@@ -12,6 +12,7 @@ import type {
   UserRole,
   Feature,
   Tier,
+  PlanMode,
 } from "@workspace/types";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import type { NavItem } from "./nav-config";
@@ -134,6 +135,7 @@ export function navItemIsAccessible(
     role: UserRole | undefined;
     canAccess: CanAccessFeatureFn;
     currentTier: Tier;
+    currentMode: PlanMode;
     hasIntelligence: boolean;
   },
 ): boolean {
@@ -145,6 +147,7 @@ export function navItemIsAccessible(
       role: args.role,
       canAccessFeature: args.canAccess,
       currentTier: args.currentTier,
+      currentMode: args.currentMode,
       hasIntelligence: args.hasIntelligence,
     },
     "read",

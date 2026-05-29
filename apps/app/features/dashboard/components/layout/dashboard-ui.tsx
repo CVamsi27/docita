@@ -154,7 +154,10 @@ export function DashboardUI({
           )}
         >
           {canAccess(Feature.CALENDAR_SLOTS) ? (
-            <TodayScheduleUI appointments={todayAppointments} />
+            <TodayScheduleUI
+              appointments={todayAppointments}
+              className="lg:col-span-2"
+            />
           ) : null}
 
           <div className="space-y-4 sm:space-y-6">

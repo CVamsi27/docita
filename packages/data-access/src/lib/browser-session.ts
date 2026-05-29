@@ -166,6 +166,39 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
     }
   };
 
+  /**
+   * The CSRF cookie is httpOnly, so the client can only learn the token via
+   * the `X-CSRF-Token` response header on a safe (GET/HEAD/OPTIONS) call.
+   * On hard reload the in-memory token is empty until that first GET lands.
+   * If a refresh fires before that happens, the strict double-submit check
+   * on /auth/refresh returns 403. Do a cheap bootstrap GET so we always have
+   * a token to echo on the refresh POST.
+   */
+  const bootstrapCsrfToken = async (): Promise<void> => {
+    if (!isBrowser()) return;
+    if (inMemoryCsrfToken) return;
+    try {
+      // Any safe (GET/HEAD/OPTIONS) request that goes through the API
+      // pipeline causes the CSRF interceptor to (re)issue the XSRF-TOKEN
+      // cookie AND emit the X-CSRF-Token response header. /health is a
+      // public, version-defaulted GET that exists for exactly this kind of
+      // cheap probe.
+      const bootstrapResponse = await fetch(
+        `${normalizeApiUrl(apiUrl)}/health`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: { Accept: "application/json" },
+          cache: "no-store",
+        },
+      );
+      captureCsrfFromResponse(bootstrapResponse);
+    } catch {
+      // best-effort — refresh will still attempt the POST and surface the
+      // real error if the network is genuinely unreachable.
+    }
+  };
+
   const refreshAccessToken = async (): Promise<boolean> => {
     if (!isBrowser()) return false;
     if (isPublicRoute()) return false;
@@ -177,6 +210,13 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
 
     const refreshPromise = (async () => {
       try {
+        // Make sure we have a CSRF token to echo. Without this the very first
+        // request after a hard reload (which is often /auth/refresh itself)
+        // would 403 because the in-memory token hasn't been populated yet.
+        if (!inMemoryCsrfToken) {
+          await bootstrapCsrfToken();
+        }
+
         const csrfToken = getCsrfToken();
         const response = await fetch(
           `${normalizeApiUrl(apiUrl)}${refreshEndpoint}`,

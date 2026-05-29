@@ -5,7 +5,9 @@ import {
   FRONT_DESK_BLOCKED_FEATURES,
   INTELLIGENCE_ADDONS,
   INTELLIGENCE_BUNDLE_DISCOUNT,
+  MODE_BLOCKED_FEATURES,
   OVERRIDABLE_FEATURES,
+  type PlanMode,
   PLANNED_FEATURES,
   Tier,
   TIER_FEATURES,
@@ -81,8 +83,15 @@ export function hasFeatureAccess(
   feature: Feature,
   hasIntelligence = false,
   overrides: ClinicFeatureOverrides = {},
+  mode: PlanMode = 'FULL',
 ): boolean {
   if (!isFeatureGenerallyAvailable(feature)) {
+    return false;
+  }
+
+  // PlanMode blocks (Front Desk = no clinical; Core = no WhatsApp/AI) run
+  // first so a mode toggle cannot be bypassed by a stale override.
+  if (MODE_BLOCKED_FEATURES[mode].has(feature)) {
     return false;
   }
 
@@ -101,7 +110,7 @@ export function hasFeatureAccess(
     return hasIntelligence;
   }
 
-  if (tier === 'FRONT_DESK') {
+  if (tier === 'FRONT_DESK' || tier === 'FRONT_DESK_CLINIC' || tier === 'FRONT_DESK_HOSPITAL') {
     if (FRONT_DESK_BLOCKED_FEATURES.has(feature)) {
       return false;
     }
@@ -122,10 +131,10 @@ export function meetsMinimumTier(
   }
 
   if (minimumTier === Tier.FRONT_DESK) {
-    return tier === 'FRONT_DESK';
+    return tier === 'FRONT_DESK' || tier === 'FRONT_DESK_CLINIC' || tier === 'FRONT_DESK_HOSPITAL';
   }
 
-  if (tier === 'FRONT_DESK') {
+  if (tier === 'FRONT_DESK' || tier === 'FRONT_DESK_CLINIC' || tier === 'FRONT_DESK_HOSPITAL') {
     return Tier.ESSENTIAL >= minimumTier;
   }
 

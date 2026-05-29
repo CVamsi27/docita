@@ -63,7 +63,7 @@ cp apps/landing/.env.example  apps/landing/.env
 | `JWT_SECRET` | Random string ≥32 chars — `openssl rand -hex 32` |
 | `ENCRYPTION_KEY` | Exactly 64 hex chars — `openssl rand -hex 32` |
 | `APP_URL` | `http://localhost:3000` (pre-filled) |
-| `NEXT_PUBLIC_API_URL` | `http://localhost:3001/api/v1` (pre-filled) |
+| `NEXT_PUBLIC_API_URL` | `/api/v1` (same-origin proxy — do **not** point the browser at `:3001` directly) |
 
 Everything else has safe defaults for local dev. Payments, WhatsApp, R2,
 Sentry, AI, and SMS keys can be left blank — features degrade gracefully.

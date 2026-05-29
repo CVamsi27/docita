@@ -73,6 +73,9 @@ describe("notificationHref", () => {
     expect(
       notificationHref(notif("INVOICE_PENDING", { invoiceId: "i1" })),
     ).toBe("/invoices/i1");
+    expect(
+      notificationHref(notif("INVOICE_PAID", { invoiceId: "i2" })),
+    ).toBe("/invoices/i2");
     expect(notificationHref(notif("INVOICE_SENT"))).toBe("/invoices");
   });
 

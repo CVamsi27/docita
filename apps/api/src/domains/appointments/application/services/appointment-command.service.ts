@@ -26,6 +26,7 @@ import { RescheduleAppointmentUseCase } from '@/domains/appointments/application
 import { StartConsultationUseCase } from '@/domains/appointments/application/use-cases/start-consultation.use-case';
 import { UpdateAppointmentDetailsUseCase } from '@/domains/appointments/application/use-cases/update-appointment-details.use-case';
 import { AppointmentCreatedEvent } from '@/domains/appointments/application/events/appointment-created.event';
+import { AppointmentUpdatedEvent } from '@/domains/appointments/application/events/appointment-updated.event';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import { AppointmentQueryService } from './appointment-query.service';
 import { AppointmentMetricsService } from './appointment-metrics.service';
@@ -104,7 +105,25 @@ export class AppointmentCommandService {
       clinicId,
       accessContext,
     );
-    return this.cancelAppointmentUseCase.execute({ appointment, reason });
+    const oldStatus = appointment.getStatus().toJSON();
+    const cancelled = await this.cancelAppointmentUseCase.execute({
+      appointment,
+      reason,
+    });
+
+    this.eventEmitter.emit(
+      // allow-direct-emit: post-commit fan-out to whatsapp listener for patient notification. See ADR 0010 §Follow-up for outbox migration.
+      ApplicationEvents.APPOINTMENT_UPDATED,
+      new AppointmentUpdatedEvent(
+        cancelled.id,
+        cancelled.clinicId,
+        cancelled.getStatus().toJSON(),
+        oldStatus,
+        cancelled,
+      ),
+    );
+
+    return cancelled;
   }
 
   async rescheduleAppointment(
@@ -119,12 +138,28 @@ export class AppointmentCommandService {
       clinicId,
       accessContext,
     );
+    const oldStartTime = appointment.getStartTime();
+    const oldStatus = appointment.getStatus().toJSON();
+
     await this.rescheduleAppointmentUseCase.execute({
       appointment,
       clinicId,
       startTime,
       endTime,
     });
+
+    this.eventEmitter.emit(
+      // allow-direct-emit: post-commit fan-out to whatsapp listener for patient notification. See ADR 0010 §Follow-up for outbox migration.
+      ApplicationEvents.APPOINTMENT_UPDATED,
+      new AppointmentUpdatedEvent(
+        appointment.id,
+        clinicId,
+        appointment.getStatus().toJSON(),
+        oldStatus,
+        appointment,
+        oldStartTime,
+      ),
+    );
   }
 
   async updateAppointmentDetails(

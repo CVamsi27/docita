@@ -144,7 +144,55 @@ export function InventoryItemDetailsUI({
               </div>
 
               <div className="border rounded-md flex-1 overflow-hidden">
-                <ScrollArea className="h-full">
+                <div className="md:hidden divide-y max-h-[min(50vh,320px)] overflow-y-auto">
+                  {item.movements && item.movements.length > 0 ? (
+                    item.movements.map((movement) => {
+                      const isInbound =
+                        movement.type === "in" ||
+                        movement.type === "adjustment";
+                      return (
+                        <div
+                          key={movement.id}
+                          className="p-3 space-y-1.5 text-sm"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-medium capitalize flex items-center gap-1.5">
+                              {isInbound ? (
+                                <ArrowDownLeft className="h-3 w-3 text-success shrink-0" />
+                              ) : (
+                                <ArrowUpRight className="h-3 w-3 text-warning shrink-0" />
+                              )}
+                              {movement.type}
+                            </span>
+                            <span
+                              className={
+                                isInbound
+                                  ? "text-success font-medium tabular-nums"
+                                  : "text-warning font-medium tabular-nums"
+                              }
+                            >
+                              {isInbound ? "+" : "-"}
+                              {movement.quantity}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {formatDate(movement.createdAt, "MMM d, yyyy")}
+                          </p>
+                          {movement.notes ? (
+                            <p className="text-xs text-muted-foreground break-words">
+                              {movement.notes}
+                            </p>
+                          ) : null}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-center py-8 text-muted-foreground text-sm">
+                      No movements recorded yet
+                    </p>
+                  )}
+                </div>
+                <ScrollArea className="h-full hidden md:block">
                   <Table>
                     <TableHeader>
                       <TableRow>

@@ -1,6 +1,7 @@
 import { enUS } from "date-fns/locale";
 import { formatInTimeZone } from "date-fns-tz";
 import { DEFAULT_TIMEZONE } from "./date-config.js";
+import { formatPickerIsoDate } from "./date-formatting.js";
 import { fromLocalISOString } from "./iso-date-utils.js";
 
 /**
@@ -8,21 +9,60 @@ import { fromLocalISOString } from "./iso-date-utils.js";
  * **clinic wall time** (not the browser's local zone). APIs persist UTC ISO instants.
  */
 
-/** yyyy-MM-dd for `timezone` from a calendar cell selection (anchor at local noon of picked day). */
-export function formatClinicPickerDayIsoFromSelection(
-  selection: Date,
-  timezone: string,
-): string {
-  const anchor = new Date(
+/** Local calendar midnight for a date-picker cell (stable react-day-picker `selected` matching). */
+export function normalizePickerSelectionDate(selection: Date): Date {
+  return new Date(
     selection.getFullYear(),
     selection.getMonth(),
     selection.getDate(),
-    12,
+    0,
     0,
     0,
     0,
   );
-  return formatInTimeZone(anchor, timezone, "yyyy-MM-dd");
+}
+
+/** yyyy-MM-dd picker value from a calendar cell (grid day = clinic schedule day). */
+export function formatClinicPickerDayIsoFromSelection(
+  selection: Date,
+  _timezone?: string,
+): string {
+  return formatPickerIsoDate(normalizePickerSelectionDate(selection));
+}
+
+/** Build a local Date for react-day-picker from a yyyy-MM-dd picker value. */
+export function pickerIsoToLocalDate(pickerIso: string): Date {
+  const parts = pickerIso.split("-").map((x) => parseInt(x, 10));
+  const y = parts[0] ?? 1970;
+  const m = (parts[1] ?? 1) - 1;
+  const d = parts[2] ?? 1;
+  return new Date(y, m, d, 0, 0, 0, 0);
+}
+
+/** Today's calendar day in the clinic zone as a local Date for the appointments picker. */
+export function clinicTodayAsPickerDate(
+  timezone: string = DEFAULT_TIMEZONE,
+): Date {
+  return pickerIsoToLocalDate(formatClinicTodayPickerIso(timezone));
+}
+
+/** Human-readable label for a clinic picker day (avoids browser-local Date drift). */
+export function formatClinicPickerIsoLabel(
+  pickerIso: string,
+  formatPattern: string,
+  timezone: string = DEFAULT_TIMEZONE,
+): string {
+  const trimmed = pickerIso.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return "";
+  }
+  const instant = fromLocalISOString(`${trimmed}T12:00`, { timezone });
+  if (!instant) {
+    return trimmed;
+  }
+  return formatInTimeZone(instant, timezone, formatPattern, {
+    locale: enUS,
+  });
 }
 
 /** Today's calendar date in the clinic zone. */

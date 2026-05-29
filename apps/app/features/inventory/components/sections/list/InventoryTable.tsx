@@ -1,19 +1,14 @@
 "use client";
 
-import React from "react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+  DataTable,
+  type DataTableColumn,
+} from "@workspace/ui/components/data-display/data-table";
+import { ListRow } from "@workspace/ui/components/data-display/list-row";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Eye, Package } from "lucide-react";
-import { EmptyState, LoadingState } from "@workspace/ui/components/feedback/empty-state";
+import { Eye } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -41,6 +36,73 @@ export function InventoryTable({
   onViewItem,
   getStockStatus,
 }: InventoryTableProps) {
+  const columns: DataTableColumn<InventoryItem>[] = [
+    {
+      id: "name",
+      header: "Item name",
+      cell: (item) => <span className="font-medium">{item.name}</span>,
+    },
+    {
+      id: "category",
+      header: "Category",
+      hiddenOnMobile: true,
+      cell: (item) => (
+        <span className="capitalize text-muted-foreground">{item.category}</span>
+      ),
+    },
+    {
+      id: "quantity",
+      header: "Quantity",
+      cell: (item) => (
+        <span>
+          {item.quantity} {item.unit}
+        </span>
+      ),
+    },
+    {
+      id: "status",
+      header: "Status",
+      cell: (item) => {
+        const status = getStockStatus(item.quantity, item.minQuantity);
+        return (
+          <Badge variant={status.variant} className="whitespace-nowrap">
+            {status.label}
+          </Badge>
+        );
+      },
+    },
+    {
+      id: "expiry",
+      header: "Expiry",
+      hiddenOnMobile: true,
+      cell: (item) => (
+        <span className="text-muted-foreground">
+          {formatDateSafe(item.expiryDate, DATE_FORMAT_OPTIONS_US_SHORT)}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      align: "right",
+      cell: (item) => (
+        <SymbolTooltip label="View item details">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewItem(item.id);
+            }}
+            aria-label="View item details"
+          >
+            <Eye className="h-4 w-4 text-muted-foreground" />
+          </Button>
+        </SymbolTooltip>
+      ),
+    },
+  ];
+
   return (
     <Card>
       <CardHeader>
@@ -51,87 +113,36 @@ export function InventoryTable({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <LoadingState message="Loading inventory…" />
-        ) : (
-          <div className="rounded-md border overflow-x-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Item name</TableHead>
-                  <TableHead className="hidden sm:table-cell">Category</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="hidden md:table-cell">Expiry</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.map((item) => {
-                  const status = getStockStatus(
-                    item.quantity,
-                    item.minQuantity,
-                  );
-                  return (
-                    <TableRow
-                      key={item.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => onViewItem(item.id)}
-                    >
-                      <TableCell className="font-medium">{item.name}</TableCell>
-                      <TableCell className="hidden sm:table-cell capitalize text-muted-foreground">
-                        {item.category}
-                      </TableCell>
-                      <TableCell>
-                        {item.quantity} {item.unit}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={status.variant}
-                          className="whitespace-nowrap"
-                        >
-                          {status.label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell text-muted-foreground">
-                        {formatDateSafe(
-                          item.expiryDate,
-                          DATE_FORMAT_OPTIONS_US_SHORT,
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <SymbolTooltip label="View item details">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onViewItem(item.id);
-                            }}
-                            aria-label="View item details"
-                          >
-                            <Eye className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                        </SymbolTooltip>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-                {items.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
-                      <EmptyState
-                        icon={Package}
-                        title="No items found"
-                        description="Adjust your filters or add a new item"
-                      />
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+        <DataTable
+          columns={columns}
+          data={items}
+          rowKey={(item) => item.id}
+          isLoading={isLoading}
+          emptyTitle="No items found"
+          emptyDescription="Adjust your filters or add a new item"
+          onRowClick={(item) => onViewItem(item.id)}
+          stackOnMobile
+          mobileRenderer={(item) => {
+            const status = getStockStatus(item.quantity, item.minQuantity);
+            const expiryLabel = item.expiryDate
+              ? formatDateSafe(item.expiryDate, DATE_FORMAT_OPTIONS_US_SHORT)
+              : null;
+            return (
+              <ListRow
+                title={item.name}
+                meta={`${item.category} · ${item.quantity} ${item.unit}`}
+                time={expiryLabel ? `Exp ${expiryLabel}` : null}
+                onClick={() => onViewItem(item.id)}
+                trailing={
+                  <Badge variant={status.variant} className="whitespace-nowrap">
+                    {status.label}
+                  </Badge>
+                }
+              />
+            );
+          }}
+          className="ui-card-surface"
+        />
       </CardContent>
     </Card>
   );

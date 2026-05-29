@@ -145,6 +145,14 @@ The `shared/` folder is the home for **non-feature** code reused across features
 - Map Prisma models to domain objects inside repositories.
 - Validate boundary with `pnpm check:prisma-boundary`.
 
+### 3.3.1 Datetime storage (timestamptz)
+
+- All Prisma `DateTime` fields use `@db.Timestamptz(3)` — UTC instants, not clinic-local wall digits.
+- Recurring schedule hours remain `String` HH:mm combined with `Clinic.timezone` at runtime.
+- Database pools must set session `TimeZone=UTC` (`createUtcPoolConfig` in `@workspace/db`).
+- Appointment and scheduling writes must convert clinic-wall input to UTC before persistence; API handlers re-validate with `normalizeAppointmentInstant`.
+- See [`packages/db/README.md`](packages/db/README.md) for migration and repair scripts.
+
 ### 3.4 Layering and separation
 
 - Controllers stay thin (orchestration only).
@@ -191,6 +199,16 @@ The `shared/` folder is the home for **non-feature** code reused across features
 - Inputs default to the floating-label `Input` variant; password fields ship the eye toggle and inline rules list per `UI_UX_STANDARD_2026.md` §3.2.
 - Tokens are the only source of color/typography/spacing. No raw hex outside `packages/ui/src/styles/globals.css`. No `text-[10px]/[11px]/[13px]/[15px]`; use `--fs-2xs/xs/sm/md`.
 - If a needed pattern is missing, add it to `packages/ui/src/components/<group>/` (groups: `form/`, `overlay/`, `layout/`, `feedback/`, `data-display/`, `navigation/`, `indicators/`) rather than creating an app-local duplicate, and update `UI_UX_STANDARD_2026.md` if the pattern is new. Consumers reach primitives via `@workspace/ui/components/<group>/<name>`.
+- **Component sourcing order is non-negotiable.** When you need a UI behavior, resolve it in this order — never skip a step:
+  1. **`@workspace/ui` primitive** — buttons, inputs, dialogs, tooltips, popovers, badges, cards, tables, etc. Reach for the grouped path (`@workspace/ui/components/<group>/<name>`).
+  2. **Existing component in the current app's `features/<feature>/` or `shared/components/`** — reuse before duplicating. If a second app needs it, promote to `packages/ui`.
+  3. Only when both above are absent: build a new primitive in `packages/ui` (preferred) or a local component, and document why.
+- **Never substitute native HTML/browser affordances for an existing primitive.** Examples — all of these are bugs in review:
+  - Use `SymbolTooltip` (or `Tooltip` + `TooltipTrigger` + `TooltipContent`) from `@workspace/ui/components/overlay/tooltip`. Do **not** use the native `title=` attribute for hover hints, even on truncated text.
+  - Use `Dialog` / `AlertDialog` / `WizardDialog` from `@workspace/ui`. Do **not** use `window.confirm`, `window.alert`, or `window.prompt`.
+  - Use `Select`, `DropdownMenu`, `Combobox`, `IsoDatePickerField`, etc. from `@workspace/ui`. Do **not** drop a bare `<select>`, `<input type="date">`, or `<details>`/`<summary>` into a feature surface.
+  - Use `toast` from `@workspace/ui` (or the configured wrapper) for transient notifications. Do **not** use `alert()` or ad-hoc fixed-position divs.
+  - Use the `Button` primitive — never a raw `<button>` styled with Tailwind classes — so variants, focus rings, and disabled states stay consistent.
 
 ## 5) Backend Rules
 
@@ -655,7 +673,12 @@ Each shape below has a canonical example to copy from. The frontmatter cites the
 - **Front Desk is tier-only.** A clinic on the Front Desk billed SKU has `clinic.tier === Tier.FRONT_DESK`. There is no `settings.workspaceProfile`, workspace-mode picker, or plan→profile resolver — onboarding and billing set the tier directly.
 - **Canonical Front Desk helpers** (all in `@workspace/types`): `isFrontDeskTier(tier)`; `FRONT_DESK_BLOCKED_FEATURES` for `@RequireFeature` / `hasFeatureAccess` denials; `FRONT_DESK_BLOCKED_ACCESS_TARGETS` and `shouldDenyAccessForFrontDeskTier` for route/API access policy. Prefer these helpers over ad-hoc `tier === "FRONT_DESK"` checks at call sites.
 - **Removed symbols** (do not reintroduce): `workspaceProfile`, `isFrontDeskClinicMode`, `isFrontDeskWorkspace`, `resolveWorkspaceProfileForPlan`, `WorkspaceModeCard`, `WorkspaceSelector`. `pnpm check:workspace-profile-gating` fails the build if they appear outside migration SQL and [`scripts/checks/check-workspace-profile-gating.mjs`](scripts/checks/check-workspace-profile-gating.mjs) (historical script name).
-- **Per-clinic overrides → custom packages, not new tiers.** Variations like "Professional without WhatsApp" or "Hospital without AI" are expressed as boolean overrides in the `Clinic.features` JSON column, **not** as new `Tier` enum values. The allowlist of features that may be toggled lives in `OVERRIDABLE_FEATURES` (`packages/types/src/billing/tier.ts`); overrides that touch any other feature are stripped at the boundary by `clinicFeatureOverridesSchema`. Pre-baked override bundles (`PROFESSIONAL_NO_COMMS`, `HOSPITAL_CORE`, …) live in `PACKAGE_PRESETS` and are the only sanctioned way for sales/admin tooling to attach overrides. `hasFeatureAccess(tier, feature, hasIntelligence, overrides)` and `assertClinicHasFeatureOrThrow` both honor overrides from the same source — never check `Clinic.features` directly. See [docs/product/CUSTOM_PACKAGES.md](docs/product/CUSTOM_PACKAGES.md).
+- **Tier × PlanMode is the canonical plan model.** Every billed plan is the combination of a {@link TierName} (Starter → Enterprise) and a `PlanMode` (`FULL` / `FRONT_DESK` / `CORE`). The published ladder is the **5 clinical tiers only**; legacy `FRONT_DESK`, `FRONT_DESK_CLINIC`, `FRONT_DESK_HOSPITAL` DB enum values are kept (additive lock) but auto-mapped to `(clinical tier, mode=FRONT_DESK)` by `mapDbClinicTierToTierAndMode` — UI surfaces never select them directly.
+- **Mode-driven feature blocks** live in `MODE_BLOCKED_FEATURES` (`packages/types/src/billing/tier.ts`): `FRONT_DESK` blocks clinical features; `CORE` blocks WhatsApp + AI; `FULL` blocks nothing. `hasFeatureAccess(tier, feature, hasIntelligence, overrides, mode)` evaluates the mode block **before** override/tier checks so a customer cannot bypass the toggle with a stale override. `assertClinicHasFeatureOrThrow` does the same on the backend.
+- **Per-clinic overrides remain as fine-grained custom packages**: boolean toggles in `Clinic.features` constrained by `OVERRIDABLE_FEATURES`/`clinicFeatureOverridesSchema`, used by `PACKAGE_PRESETS`. Overrides are subordinate to mode — they only matter for features the mode hasn't already blocked.
+- **Pricing per (tier, mode)**: `applyModeToPricing(base, mode)` multiplies base monthly/yearly by `PLAN_MODE_INFO[mode].pricingMultiplier` (FULL=1, FRONT_DESK=0.7, CORE=0.8). `Custom` tiers (Enterprise) pass through unchanged.
+- **`PUBLISHED_PLAN_LADDER` is the 5-tier clinical ladder.** Never re-add `FRONT_DESK`, `FRONT_DESK_CLINIC`, or `FRONT_DESK_HOSPITAL` to it. Use `getAvailableModesForTier(tier)` to gate the mode toggle (Starter is FULL-only).
+- See [docs/product/CUSTOM_PACKAGES.md](docs/product/CUSTOM_PACKAGES.md) for the mode catalogue and how sales/admin pick (tier, mode) at signup.
 
 ### 15.9 Import Discipline
 

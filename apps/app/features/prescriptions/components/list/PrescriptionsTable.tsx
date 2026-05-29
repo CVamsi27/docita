@@ -11,13 +11,10 @@ import {
   Printer,
 } from "lucide-react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+  DataTable,
+  type DataTableColumn,
+} from "@workspace/ui/components/data-display/data-table";
+import { ListRow } from "@workspace/ui/components/data-display/list-row";
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Badge } from "@workspace/ui/components/indicators/badge";
@@ -46,20 +43,18 @@ interface PrescriptionsTableProps {
   onDownloadPDF: (id: string) => void;
 }
 
-export function PrescriptionsTable({
-  prescriptions,
-  loading,
+function SortableHeader({
+  column,
+  label,
   sortConfig,
   onSort,
-  onDownloadPDF,
-}: PrescriptionsTableProps) {
-  const SortableHeader = ({
-    column,
-    label,
-  }: {
-    column: SortKey;
-    label: string;
-  }) => (
+}: {
+  column: SortKey;
+  label: string;
+  sortConfig: SortConfig;
+  onSort: (key: SortKey) => void;
+}) {
+  return (
     <Button
       variant="ghost"
       size="sm"
@@ -78,6 +73,162 @@ export function PrescriptionsTable({
       )}
     </Button>
   );
+}
+
+function getPatientName(prescription: Prescription) {
+  return `${prescription.patient?.firstName ?? ""} ${prescription.patient?.lastName ?? ""}`.trim();
+}
+
+export function PrescriptionsTable({
+  prescriptions,
+  loading,
+  sortConfig,
+  onSort,
+  onDownloadPDF,
+}: PrescriptionsTableProps) {
+  const columns: DataTableColumn<Prescription>[] = [
+    {
+      id: "id",
+      header: "Prescription ID",
+      hiddenOnMobile: true,
+      cell: (prescription) => (
+        <span className="font-mono text-sm">
+          {(prescription.id || "").slice(0, 8).toUpperCase()}
+        </span>
+      ),
+    },
+    {
+      id: "patient",
+      header: (
+        <SortableHeader
+          column="patient"
+          label="Patient"
+          sortConfig={sortConfig}
+          onSort={onSort}
+        />
+      ),
+      cell: (prescription) => {
+        const fullName = getPatientName(prescription);
+        const phone = prescription.patient?.phoneNumber ?? "";
+        return (
+          <div className="flex min-w-0 flex-col">
+            {fullName ? (
+              <SymbolTooltip label={fullName}>
+                <span className="truncate font-medium">{fullName}</span>
+              </SymbolTooltip>
+            ) : (
+              <span className="truncate font-medium">—</span>
+            )}
+            {phone ? (
+              <SymbolTooltip label={phone}>
+                <span className="truncate text-xs text-muted-foreground sm:text-sm">
+                  {phone}
+                </span>
+              </SymbolTooltip>
+            ) : null}
+          </div>
+        );
+      },
+    },
+    {
+      id: "diagnosis",
+      header: (
+        <SortableHeader
+          column="diagnosis"
+          label="Diagnosis"
+          sortConfig={sortConfig}
+          onSort={onSort}
+        />
+      ),
+      hiddenOnMobile: true,
+      cell: (prescription) => (
+        <span className="max-w-[200px] truncate">
+          {prescription.diagnosis || "-"}
+        </span>
+      ),
+    },
+    {
+      id: "medications",
+      header: (
+        <SortableHeader
+          column="medications"
+          label="Medications"
+          sortConfig={sortConfig}
+          onSort={onSort}
+        />
+      ),
+      cell: (prescription) => (
+        <Badge variant="secondary">
+          <Pill className="mr-1 h-3 w-3" />
+          {prescription.medications?.length || 0} meds
+        </Badge>
+      ),
+    },
+    {
+      id: "date",
+      header: (
+        <SortableHeader
+          column="date"
+          label="Date"
+          sortConfig={sortConfig}
+          onSort={onSort}
+        />
+      ),
+      hiddenOnMobile: true,
+      cell: (prescription) => (
+        <span className="whitespace-nowrap">
+          {formatDate(prescription.createdAt, "MMM d, yyyy")}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: (prescription) => (
+        <div className="flex items-center justify-end gap-1 whitespace-nowrap">
+          <SymbolTooltip label="View prescription">
+            <Button variant="ghost" size="sm" asChild className="gap-1.5">
+              <Link
+                href={`/prescriptions/${prescription.id}`}
+                aria-label="View prescription"
+              >
+                <Eye className="h-4 w-4" aria-hidden />
+                <span className="hidden lg:inline">View</span>
+              </Link>
+            </Button>
+          </SymbolTooltip>
+          <SymbolTooltip label="Download PDF">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDownloadPDF(prescription.id || "")}
+              className="gap-1.5"
+            >
+              <Download className="h-4 w-4" />
+              <span className="hidden lg:inline">PDF</span>
+            </Button>
+          </SymbolTooltip>
+          <SymbolTooltip label="Print prescription">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (!prescription.id) return;
+                window.open(
+                  `/prescriptions/${prescription.id}?print=true`,
+                  "_blank",
+                );
+              }}
+              className="gap-1.5"
+            >
+              <Printer className="h-4 w-4" />
+              <span className="hidden lg:inline">Print</span>
+            </Button>
+          </SymbolTooltip>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <Card className="border-border shadow-sm">
@@ -88,121 +239,72 @@ export function PrescriptionsTable({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-hidden rounded-md border border-border">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-muted/50">
-              <TableHead className="hidden md:table-cell">Prescription ID</TableHead>
-              <TableHead>
-                <SortableHeader column="patient" label="Patient" />
-              </TableHead>
-              <TableHead className="hidden sm:table-cell">
-                <SortableHeader column="diagnosis" label="Diagnosis" />
-              </TableHead>
-              <TableHead>
-                <SortableHeader column="medications" label="Medications" />
-              </TableHead>
-              <TableHead className="hidden sm:table-cell">
-                <SortableHeader column="date" label="Date" />
-              </TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="h-24 text-center text-muted-foreground"
-                >
-                  Loading prescriptions…
-                </TableCell>
-              </TableRow>
-            ) : prescriptions.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="h-24 text-center text-muted-foreground"
-                >
-                  No prescriptions found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              prescriptions.map((prescription) => (
-                <TableRow key={prescription.id} className="hover:bg-muted/50">
-                  <TableCell className="font-mono text-sm hidden md:table-cell">
-                    {(prescription.id || "").slice(0, 8).toUpperCase()}
-                  </TableCell>
-                  <TableCell className="max-w-[160px] sm:max-w-none">
-                    <div className="flex flex-col">
-                      <span className="font-medium truncate">
-                        {prescription.patient?.firstName}{" "}
-                        {prescription.patient?.lastName}
-                      </span>
-                      <span className="text-xs sm:text-sm text-muted-foreground">
-                        {prescription.patient?.phoneNumber}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[200px] truncate hidden sm:table-cell">
-                    {prescription.diagnosis || "-"}
-                  </TableCell>
-                  <TableCell>
+        <DataTable<Prescription>
+          columns={columns}
+          data={prescriptions}
+          rowKey={(prescription, index) =>
+            prescription.id ?? `prescription-${prescription.createdAt ?? index}`
+          }
+          isLoading={loading}
+          emptyTitle="No prescriptions found"
+          emptyDescription="Prescriptions you create will appear here."
+          stackOnMobile
+          mobileRenderer={(prescription) => {
+            const fullName = getPatientName(prescription) || "—";
+            return (
+              <div className="ui-card-surface space-y-3 p-4">
+                <ListRow
+                  title={fullName}
+                  meta={
+                    prescription.diagnosis ||
+                    prescription.patient?.phoneNumber ||
+                    undefined
+                  }
+                  time={formatDate(prescription.createdAt, "MMM d, yyyy")}
+                  showChevron={false}
+                  trailing={
                     <Badge variant="secondary">
-                      <Pill className="h-3 w-3 mr-1" />
-                      {prescription.medications?.length || 0} meds
+                      <Pill className="mr-1 h-3 w-3" />
+                      {prescription.medications?.length || 0}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    {formatDate(prescription.createdAt, "MMM d, yyyy")}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <SymbolTooltip label="View prescription">
-                      <Button variant="ghost" size="sm" asChild className="gap-1.5">
-                        <Link
-                          href={`/prescriptions/${prescription.id}`}
-                          aria-label="View prescription"
-                        >
-                          <Eye className="h-4 w-4" aria-hidden />
-                          <span className="hidden sm:inline">View</span>
-                        </Link>
-                      </Button>
-                    </SymbolTooltip>
-                    <SymbolTooltip label="Download PDF">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onDownloadPDF(prescription.id || "")}
-                        className="gap-1.5"
-                      >
-                        <Download className="h-4 w-4" />
-                        <span className="hidden sm:inline">PDF</span>
-                      </Button>
-                    </SymbolTooltip>
-                    <SymbolTooltip label="Print prescription">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          if (!prescription.id) return;
-                          window.open(
-                            `/prescriptions/${prescription.id}?print=true`,
-                            "_blank",
-                          );
-                        }}
-                        className="gap-1.5"
-                      >
-                        <Printer className="h-4 w-4" />
-                        <span className="hidden sm:inline">Print</span>
-                      </Button>
-                    </SymbolTooltip>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-        </div>
+                  }
+                />
+                <div className="flex flex-wrap gap-2 border-t border-border/60 pt-3">
+                  <Button variant="outline" size="sm" asChild className="flex-1 touch-manipulation">
+                    <Link href={`/prescriptions/${prescription.id}`}>
+                      <Eye className="mr-1.5 h-4 w-4" />
+                      View
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 touch-manipulation"
+                    onClick={() => onDownloadPDF(prescription.id || "")}
+                  >
+                    <Download className="mr-1.5 h-4 w-4" />
+                    PDF
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 touch-manipulation"
+                    onClick={() => {
+                      if (!prescription.id) return;
+                      window.open(
+                        `/prescriptions/${prescription.id}?print=true`,
+                        "_blank",
+                      );
+                    }}
+                  >
+                    <Printer className="mr-1.5 h-4 w-4" />
+                    Print
+                  </Button>
+                </div>
+              </div>
+            );
+          }}
+        />
       </CardContent>
     </Card>
   );

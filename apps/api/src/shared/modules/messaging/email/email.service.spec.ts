@@ -127,7 +127,7 @@ describe('EmailService', () => {
       await service.sendPasswordResetEmail('user@example.com', 'token-123');
 
       const call = emailProvider.send.mock.calls[0][0];
-      expect(call.html).toContain('expires in 1 hour');
+      expect(call.html).toContain('expires in 30 minutes');
     });
 
     it('should handle provider errors', async () => {

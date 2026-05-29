@@ -91,33 +91,22 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
   const [clinic, setClinicState] = useState<Clinic | null>(null);
   const [userClinics, setUserClinics] = useState<Clinic[]>([]);
   const [mounted, setMounted] = useState(false);
-  const {
-    setTier,
-    setIntelligence,
-    setFeatureOverrides,
-    setClinicType,
-    setFacilityType,
-  } = usePermissionStore();
+  const { syncFromClinic, setFacilityType } = usePermissionStore();
   const hasFetchedRef = useRef(false);
   const isFetchingRef = useRef(false);
   const lastFetchTimeRef = useRef<number>(0);
 
   const updatePermissionsFromClinic = useCallback(
     (clinicData: Clinic) => {
-      if (clinicData.tier) {
-        setTier(clinicData.tier);
-      }
-      if (clinicData.intelligenceAddon) {
-        setIntelligence(clinicData.intelligenceAddon === "ACTIVE");
-      }
       const featureOverrides = toBooleanFeatureOverrides(clinicData.features);
-      if (featureOverrides) {
-        setFeatureOverrides(featureOverrides);
-      }
-
-      if (clinicData.type) {
-        setClinicType(clinicData.type);
-      }
+      syncFromClinic({
+        tier: clinicData.tier,
+        planMode: clinicData.planMode,
+        intelligenceAddon: clinicData.intelligenceAddon,
+        features: featureOverrides,
+        type: clinicData.type,
+        settings: clinicData.settings,
+      });
 
       const facilityType =
         clinicData.facilityType ??
@@ -126,13 +115,7 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
         setFacilityType(facilityType);
       }
     },
-    [
-      setTier,
-      setIntelligence,
-      setFeatureOverrides,
-      setClinicType,
-      setFacilityType,
-    ],
+    [syncFromClinic, setFacilityType],
   );
 
   const fetchClinicFromAPI = useCallback(async () => {
@@ -203,14 +186,24 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       if (data.tier) {
         const parsedTier = tierSchema.safeParse(data.tier);
         if (parsedTier.success) {
-          setTier(parsedTier.data);
-          setClinicState((prev) =>
-            prev ? { ...prev, tier: parsedTier.data } : prev,
-          );
+          setClinicState((prev) => {
+            if (!prev) return prev;
+            const updated = { ...prev, tier: parsedTier.data };
+            updatePermissionsFromClinic(updated);
+            return updated;
+          });
         }
       }
       if (data.intelligenceAddon) {
-        setIntelligence(data.intelligenceAddon === "ACTIVE");
+        setClinicState((prev) => {
+          if (!prev) return prev;
+          const updated = {
+            ...prev,
+            intelligenceAddon: data.intelligenceAddon ?? prev.intelligenceAddon,
+          };
+          updatePermissionsFromClinic(updated);
+          return updated;
+        });
       }
       if (data.subscriptionStatus) {
         const subscriptionStatus = data.subscriptionStatus;
@@ -240,18 +233,7 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     const parsedClinic = appClinicSchema.parse(newClinic);
     setClinicId(parsedClinic.id);
     setClinicState(parsedClinic);
-
-    if (parsedClinic.tier) {
-      setTier(parsedClinic.tier);
-    }
-    if (parsedClinic.intelligenceAddon) {
-      setIntelligence(parsedClinic.intelligenceAddon === "ACTIVE");
-    }
-    const featureOverrides = toBooleanFeatureOverrides(parsedClinic.features);
-    if (featureOverrides) {
-      setFeatureOverrides(featureOverrides);
-    }
-
+    updatePermissionsFromClinic(parsedClinic);
     localStorage.setItem("selectedClinicId", parsedClinic.id);
   };
 

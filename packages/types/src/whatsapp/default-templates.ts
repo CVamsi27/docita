@@ -9,6 +9,7 @@ export const whatsappDefaultTemplateCategorySchema = z.enum([
   'FOLLOW_UP',
   'MARKETING',
   'STAFF_NOTIFICATION',
+  'AUTHENTICATION',
 ]);
 
 export const whatsappDefaultTemplateVariableSchema = z.object({
@@ -61,6 +62,8 @@ export const whatsappDefaultTemplateDefinitionSchema = z.object({
   variables: z.array(whatsappDefaultTemplateVariableSchema),
   buttonType: whatsappDefaultTemplateButtonTypeSchema,
   buttons: z.array(whatsappDefaultTemplateButtonSchema).optional(),
+  /** Named variable sent as the dynamic suffix for a Meta URL button (not a body placeholder). */
+  buttonUrlVariable: z.string().optional(),
   textFallback: z.string(),
 });
 

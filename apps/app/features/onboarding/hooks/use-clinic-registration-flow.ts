@@ -183,7 +183,7 @@ export function useClinicRegistrationFlow() {
       if (tier === "ENTERPRISE") { toast.info("Enterprise plans are handled by our sales team"); return; }
       if (tier === "ESSENTIAL") {
         setFormData((prev) => ({ ...prev, paymentDetails: { skipPayment: true, autoPay: true } }));
-        setStep(4); return;
+        setStep(5); return;
       }
       if (resolvedCurrency === "INR" && !formData.clinicDetails.gstin?.trim()) {
         showUserFacingErrorToast(null, "Add your facility GSTIN on the previous step before paying for a plan in India.", "form");
@@ -217,7 +217,7 @@ export function useClinicRegistrationFlow() {
                 razorpayOrderId: r.razorpay_order_id, razorpaySignature: r.razorpay_signature,
                 autoPay: true, skipPayment: false },
             }));
-            setStep(4);
+            setStep(5);
           },
           prefill: { name: user.name || "Clinic Owner", email: user.email,
             contact: formData.clinicDetails.phone || undefined },
@@ -255,7 +255,7 @@ export function useClinicRegistrationFlow() {
   const setTeamMembers = useCallback(async (members: TeamMember[]) => {
     setFormData((prev) => ({ ...prev, teamMembers: members }));
     await ensureOnboardingId();
-    setStep(5);
+    setStep(4);
   }, [setStep, ensureOnboardingId]);
 
   const goBackFromCompliance = useCallback(() => setStep(4), [setStep]);

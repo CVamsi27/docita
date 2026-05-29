@@ -94,10 +94,22 @@ describe("createBrowserSessionManager", () => {
   });
 
   it("refreshes token once for concurrent calls", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      headers: new Headers(),
-      json: async () => ({ access_token: "next-token" }),
+    // First call (or two) is the CSRF bootstrap GET against /health,
+    // followed by the single POST to /auth/refresh. The de-duplication
+    // contract is on the refresh POST, not on the bootstrap probe.
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if (url.includes("/auth/refresh")) {
+        return Promise.resolve({
+          ok: true,
+          headers: new Headers(),
+          json: async () => ({ access_token: "next-token" }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        headers: new Headers({ "X-CSRF-Token": "csrf-from-bootstrap" }),
+        json: async () => ({ status: "ok" }),
+      });
     });
     vi.stubGlobal("fetch", fetchMock);
 
@@ -114,7 +126,10 @@ describe("createBrowserSessionManager", () => {
 
     expect(first).toBe(true);
     expect(second).toBe(true);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const refreshCalls = fetchMock.mock.calls.filter(([url]) =>
+      String(url).includes("/auth/refresh"),
+    );
+    expect(refreshCalls).toHaveLength(1);
     expect(session.getToken()).toBe("next-token");
   });
 

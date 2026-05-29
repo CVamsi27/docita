@@ -26,6 +26,8 @@ export interface ActivateSubscriptionRequest {
   razorpaySignature: string;
   tier: string;
   cycle: string;
+  /** Optional plan mode (Full / Front Desk / Core). Defaults to FULL. */
+  planMode?: string;
   /** Razorpay payment-link resume rows may not have an order id. */
   subscriptionPaymentId?: string;
   skipPaymentVerification?: boolean;
@@ -149,7 +151,11 @@ export class ActivateSubscriptionUseCase {
       );
     }
 
-    await this.clinicSync.syncAfterActivation(request.clinicId, tier);
+    await this.clinicSync.syncAfterActivation(
+      request.clinicId,
+      tier,
+      request.planMode,
+    );
 
     this.logger.log(
       `Subscription activated for clinic ${request.clinicId}: ${tier.value} ${cycle.value}`,

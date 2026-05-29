@@ -27,6 +27,7 @@ import {
 import { WhatsappSenderResolver } from '@/domains/whatsapp/application/services/whatsapp-sender-resolver.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { isRecord } from '@workspace/utils';
+import { buildMetaTemplateComponents } from '@/shared/whatsapp/whatsapp-template-components.util';
 
 export interface SendMessageRequest {
   clinicId: string;
@@ -122,13 +123,24 @@ export class SendMessageUseCase {
     let finalContent: string;
 
     if (resolved) {
+      const useApprovedMetaTemplate =
+        this.useProductionMode && !!resolved.metaTemplateId && !!templateName;
+      const messageBody = useApprovedMetaTemplate
+        ? resolved.content
+        : resolved.buttonType === 'CALL_TO_ACTION'
+          ? resolved.textFallback
+          : resolved.content;
       finalContent = this.withSharedSenderPrefix(
-        resolved.content,
+        messageBody,
         sender.mode,
         clinicDisplayName,
       );
-      if (this.useProductionMode && resolved.metaTemplateId && templateName) {
-        const components = this.parseVariablesIntoComponents(messageVariables);
+      if (useApprovedMetaTemplate) {
+        const components = buildMetaTemplateComponents(
+          resolved.variables,
+          messageVariables,
+          resolved.buttonUrlVariable,
+        );
         const result = await this.client.sendMessage({
           to: recipientPhone,
           templateName,
@@ -137,7 +149,11 @@ export class SendMessageUseCase {
           ...(resolvedSender ? { sender } : {}),
         });
         externalId = result.externalId;
-      } else if (resolved.buttons && resolved.buttons.length > 0) {
+      } else if (
+        resolved.buttonType === 'QUICK_REPLY' &&
+        resolved.buttons &&
+        resolved.buttons.length > 0
+      ) {
         const result = await this.client.sendInteractiveMessage({
           to: recipientPhone,
           bodyText: finalContent,
@@ -200,17 +216,6 @@ export class SendMessageUseCase {
       senderMode: sender.mode,
       senderPhoneNumberId: sender.senderPhoneNumberId,
     };
-  }
-
-  private parseVariablesIntoComponents(
-    variables: Record<string, string>,
-  ): Array<Record<string, unknown>> {
-    const parameters = Object.entries(variables).map(([_, value]) => ({
-      type: 'text',
-      text: value,
-    }));
-
-    return parameters.length > 0 ? [{ type: 'body', parameters }] : [];
   }
 
   private withSharedSenderPrefix(

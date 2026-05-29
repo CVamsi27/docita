@@ -1,50 +1,48 @@
 # @workspace/db
 
-Prisma schema, generated client, and database scripts.
+Prisma schema, migrations, and database client for Docita.
 
-**Rule:** never import `@workspace/db` outside `apps/api` repositories or approved DB scripts. Frontend packages and API controllers must not touch Prisma directly.
+## Datetime convention
 
-## Schema lock — additive only since 2026-03-22
+All **instant** timestamps (`DateTime` fields in `schema.prisma`) map to PostgreSQL `timestamptz(3)` and represent **UTC instants** at the API boundary.
 
-The schema is locked to additive-only changes. This means:
+| Semantic | Storage | Example |
+| --- | --- | --- |
+| Instant event (appointment start, audit `createdAt`) | `DateTime @db.Timestamptz(3)` | `2026-05-28T08:30:00.000Z` (= 14:00 IST) |
+| Recurring wall clock (doctor hours) | `String` HH:mm + `Clinic.timezone` | `"09:00"` on `MONDAY` |
 
-- Do not remove enum members, columns, relations, or models.
-- Do not rename columns or change column types in a way that drops data.
-- New fields must be nullable or have a default so existing rows stay valid.
-- Every migration must pass `db:guardrail` before merging.
+### Connection timezone
 
-See [memory: DB Schema Locked](../memory/project_db_schema_locked.md) for context.
+All application pools must use UTC session timezone:
 
-## Migration workflow
+- `packages/db/src/index.ts` — `createUtcPoolConfig()` / `withUtcSessionTimezone()`
+- `DATABASE_URL?options=-c%20TimeZone%3DUTC` in `.env.example`
 
-```bash
-# 1. Edit packages/db/prisma/schema.prisma
-# 2. Validate before applying:
-pnpm --filter @workspace/db run db:migrate:dry-run
+### Scheduling writes
 
-# 3. Apply safely:
-pnpm --filter @workspace/db run db:migrate:safe
+- UI forms use clinic-wall `yyyy-MM-dd'T'HH:mm` strings.
+- Clients convert to UTC ISO (`Z`) before POST via `clinicWallDatetimeLocalToUtcIso`.
+- API re-validates with `normalizeAppointmentInstant` and clinic timezone.
 
-# 4. Guardrail check:
-pnpm --filter @workspace/db run db:guardrail
+### Migrations
 
-# 5. Regenerate client:
-pnpm --filter @workspace/db run db:generate
+Existing naive `timestamp(3)` values were migrated with:
+
+```sql
+ALTER COLUMN "startTime" TYPE timestamptz(3)
+  USING "startTime" AT TIME ZONE 'UTC';
 ```
 
-After any schema change, update affected Zod schemas in `packages/types` and repository mappers in `apps/api/src/domains/<domain>/infrastructure/repositories`.
+### Data repair
 
-## Performance tools (DB scripts)
+Mis-saved appointments (wall digits stored as UTC) can be detected and fixed:
 
 ```bash
-pnpm --filter @workspace/db run db:analyze-indexes
-pnpm --filter @workspace/db run db:check-query-plans
-pnpm --filter @workspace/db run db:check-integrity
-pnpm --filter @workspace/db run db:profile-queries
+# Dry-run (default — review candidates before writing)
+pnpm db:repair-appointments
+
+# Apply fixes (prod: run dry-run first, then apply)
+pnpm db:repair-appointments:apply
 ```
 
-## Who can import this package
-
-- `apps/api` — domain repositories only (never controllers or services directly)
-- `packages/db/scripts/` — one-off data migration and maintenance scripts
-- No frontend package, no `apps/app`, no `apps/internal`, no `apps/worker` runtime code
+Requires `DATABASE_URL` (loads from repo `.env` or `apps/api/.env` when unset). Uses UTC session timezone on the connection.

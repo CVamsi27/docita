@@ -16,7 +16,11 @@ import {
   ApprovalStatus,
   PaymentSessionStatus,
 } from '@workspace/db';
-import { DATE_FORMATS, formatCurrency, formatDate } from '@workspace/utils';
+import { DATE_FORMATS, formatDate } from '@workspace/utils';
+import {
+  buildInvoiceReadyVariables,
+  buildPrescriptionCreatedVariables,
+} from '@/shared/whatsapp/patient-whatsapp-template-variables';
 
 // AuditLogged: outbound WhatsApp resend delegates to SendMessageUseCase audit trail
 
@@ -79,20 +83,17 @@ export class WhatsappResendService {
       throw new BadRequestException('Prescription not approved for sharing');
     }
 
-    const medicationsList = prescription.medications
-      .map((m) => `• ${m.name} - ${m.dosage} - ${m.frequency} (${m.duration})`)
-      .join('\n');
-
-    const variables = toTemplateVariables({
-      patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
-      clinicName: prescription.appointment?.clinic?.name ?? '',
-      medications: medicationsList,
-      instructions: prescription.instructions ?? '',
-      doctorName: prescription.doctor.name,
-    });
+    const variables = toTemplateVariables(
+      buildPrescriptionCreatedVariables({
+        prescriptionId: id,
+        patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
+        clinicName: prescription.appointment?.clinic?.name ?? '',
+        doctorName: prescription.doctor.name,
+      }),
+    );
 
     const resolved = await this.templatesService.resolveTemplate(
-      'prescription_ready',
+      'prescription_created',
       variables,
       clinicId,
     );
@@ -106,7 +107,7 @@ export class WhatsappResendService {
     const sendResult = await this.sendMessage.execute({
       clinicId,
       recipientPhone: prescription.patient.phoneNumber,
-      templateName: 'prescription_ready',
+      templateName: 'prescription_created',
       variables,
     });
 
@@ -185,20 +186,25 @@ export class WhatsappResendService {
       throw new BadRequestException('Invoice not approved for sharing');
     }
 
-    const paymentLink =
-      invoice.paymentSessions[0]?.shortUrl ||
-      invoice.paymentSessions[0]?.paymentLink;
+    const paymentSession = invoice.paymentSessions[0];
+    if (!paymentSession) {
+      throw new BadRequestException(
+        'Create an online payment link for this invoice before sending on WhatsApp',
+      );
+    }
 
-    const variables = toTemplateVariables({
-      patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
-      clinicName: invoice.appointment?.clinic?.name ?? '',
-      amount: formatCurrency(invoice.total, {
+    const variables = toTemplateVariables(
+      buildInvoiceReadyVariables({
+        invoiceId: id,
+        patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
+        clinicName: invoice.appointment?.clinic?.name ?? '',
+        amount: invoice.total,
         currency: invoice.currency ?? invoice.appointment?.clinic?.currency,
+        invoiceNumber: id.slice(-8).toUpperCase(),
+        date: formatDate(invoice.createdAt, DATE_FORMATS.DATE_SHORT),
+        paymentSessionId: paymentSession.id,
       }),
-      invoiceNumber: id.slice(-8).toUpperCase(),
-      date: formatDate(invoice.createdAt, DATE_FORMATS.DATE_SHORT),
-      paymentLink: paymentLink || '',
-    });
+    );
 
     const resolved = await this.templatesService.resolveTemplate(
       'invoice_ready',

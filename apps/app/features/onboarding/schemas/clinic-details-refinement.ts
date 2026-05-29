@@ -75,14 +75,14 @@ export const clinicDetailsSchema =
       });
     }
 
-    if (data.mapsLocation) {
-      const { lat, lng } = data.mapsLocation;
-      if (typeof lat !== "number" || typeof lng !== "number") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["mapsLocation"],
-          message: "Choose the clinic location on the map",
-        });
-      }
+    const lat = data.mapsLocation?.lat;
+    const lng = data.mapsLocation?.lng;
+    const hasMapPin = typeof lat === "number" && typeof lng === "number";
+    if (!hasMapPin) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["mapsLocation"],
+        message: "Pin the clinic on Google Maps to continue",
+      });
     }
   });

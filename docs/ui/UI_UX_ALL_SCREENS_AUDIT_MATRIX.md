@@ -19,40 +19,40 @@ Every route below is covered by the shared UI system pass and the relevant app a
 
 - `apps/landing`: all discovered public/legal routes were smoked at 1440px and 390px. Result: no horizontal overflow, one visible H1 on each route, screenshots saved under `/tmp/docita-landing-*-desktop.png` and `/tmp/docita-landing-*-mobile.png`. The `/` desktop navigation completed visually, but the local smoke status was blocked by the public platform-stats API returning 502 because the backend API was not running.
 - `apps/internal`: all discovered internal routes were smoked at 1440px and 390px. Result: no horizontal overflow. Role-gated clinic routes correctly rendered the internal-access message without authenticated clinic-admin state. After the smoke pass, the internal theme default was changed from dark to light and core admin routes were rechecked with screenshots under `/tmp/docita-internal-*-light.png`.
-- `apps/app`: auth/root/setup smoke covered `/login`, `/`, `/dashboard`, `/appointments`, `/patients`, and `/choose-path` in the unauthenticated local state. Result: auth shell and redirects rendered without overflow; fully authenticated protected and patient-portal states require seeded auth/backend state beyond this UI-only pass. `pnpm audit:app` covered the configured protected visual/a11y routes.
+- `apps/app`: **390px Playwright** — `pnpm mobile:smoke` runs `mobile-forms`, `mobile-protected-routes`, `mobile-portal-routes`, and `mobile-auth-setup` (see `e2e/mobile-route-matrix.ts`). Protected TRACK/SERVICES lists, settings, desk, import, analytics, and dynamic patient/consultation/invoice detail routes are in `mobile-protected-routes.spec.ts` when API + `DATABASE_URL` are available. Portal authenticated routes use OTP fixture insertion (`apps/api/scripts/insert-patient-portal-e2e-otp.ts`). Auth/setup: `/login` and `/forgot-password` in CI; `/reset-password`, `/onboarding`, `/choose-path` are manual or local-only (`skipInCi`). `pnpm audit:app` covers desktop visual/a11y plus a mobile-width axe subset aligned with the protected matrix.
 
 ## `apps/app` Routes
 
 | Route | Surface | QA status |
 | --- | --- | --- |
 | `/` | app root | Browser smoke: unauthenticated redirect shell verified |
-| `/forgot-password` | auth | Shared auth shell pass + app audit |
-| `/login` | auth | Desktop/mobile screenshot verified |
+| `/forgot-password` | auth | Mobile Playwright overflow (390px) + app audit |
+| `/login` | auth | Mobile Playwright overflow (390px) + multi-device form spec |
 | `/reset-password` | auth | Shared auth shell pass + app audit |
-| `/ai-assistant` | protected app | Shared app shell pass + app audit; auth-gated locally |
-| `/analytics` | protected app | Shared app shell pass + app audit; auth-gated locally |
-| `/appointments` | protected app | Browser smoke: auth-gated route verified |
+| `/ai-assistant` | protected app | Mobile Playwright overflow (390px) + app audit |
+| `/analytics` | protected app | Mobile Playwright overflow (390px) + app audit |
+| `/appointments` | protected app | Browser smoke + mobile Playwright overflow (390px) |
 | `/coding-queue` | protected app | Shared app shell pass + app audit; auth-gated locally |
-| `/consultation` | protected app | Shared app shell pass + app audit; auth-gated locally |
-| `/consultation/[id]` | protected app | Shared app shell pass + app audit; auth-gated locally |
+| `/consultation` | protected app | Mobile Playwright overflow (390px) + app audit |
+| `/consultation/[id]` | protected app | Mobile Playwright overflow (390px) + app audit; auth-gated locally |
 | `/dashboard` | protected app | Browser smoke + app audit |
-| `/documents` | protected app | Shared app shell pass + app audit; auth-gated locally |
+| `/documents` | protected app | Mobile Playwright overflow (390px) + app audit |
 | `/hospital/beds` | protected app | Shared app shell pass + app audit; auth-gated locally |
-| `/import` | protected app | Shared app shell pass + app audit; auth-gated locally |
+| `/import` | protected app | Mobile Playwright overflow (390px) + app audit |
 | `/import/excel` | protected app | Shared app shell pass + app audit; auth-gated locally |
 | `/import/ocr` | protected app | Shared app shell pass + app audit; auth-gated locally |
-| `/inventory` | protected app | Shared app shell pass + app audit; auth-gated locally |
-| `/invoices` | protected app | Shared app shell pass + app audit; auth-gated locally |
-| `/invoices/new` | protected app | Shared app shell pass + app audit; auth-gated locally |
-| `/invoices/[id]` | protected app | Shared app shell pass + app audit; auth-gated locally |
+| `/inventory` | protected app | Mobile Playwright overflow (390px) + app audit |
+| `/invoices` | protected app | Mobile Playwright overflow (390px) + app audit |
+| `/invoices/new` | protected app | Mobile Playwright overflow (390px) + app audit; auth-gated locally |
+| `/invoices/[id]` | protected app | Mobile Playwright overflow (390px) when invoice fixture exists |
 | `/invoices/[id]/edit` | protected app | Shared app shell pass + app audit; auth-gated locally |
-| `/lab-tests` | protected app | Shared app shell pass + app audit; auth-gated locally |
-| `/patients` | protected app | Browser smoke + app audit |
-| `/patients/[id]` | protected app | Shared app shell pass + app audit; auth-gated locally |
-| `/prescriptions` | protected app | Shared app shell pass + app audit; auth-gated locally |
-| `/prescriptions/[id]` | protected app | Shared app shell pass + app audit; auth-gated locally |
-| `/profile` | protected app | Shared app shell pass + app audit; auth-gated locally |
-| `/settings` | protected app | Shared app shell pass + app audit; auth-gated locally |
+| `/lab-tests` | protected app | Mobile Playwright overflow (390px) + app audit |
+| `/patients` | protected app | Browser smoke + mobile Playwright overflow (390px) |
+| `/patients/[id]` | protected app | Mobile Playwright overflow (390px) + app audit; auth-gated locally |
+| `/prescriptions` | protected app | Mobile Playwright overflow (390px) + app audit |
+| `/prescriptions/[id]` | protected app | Mobile Playwright overflow (390px) when prescription exists |
+| `/profile` | protected app | Mobile Playwright overflow (390px) + app audit |
+| `/settings` | protected app | Mobile Playwright overflow (390px) + app audit; auth-gated locally |
 | `/settings/compliance` | protected app | Shared app shell pass + app audit; auth-gated locally |
 | `/settings/team/join-requests` | protected app | Shared app shell pass + app audit; auth-gated locally |
 | `/specialty/dental-charts` | protected app | Shared app shell pass + app audit; auth-gated locally |
@@ -74,10 +74,10 @@ Every route below is covered by the shared UI system pass and the relevant app a
 | `/visual-test/stats-card` | tool | Shared tool shell pass + app audit |
 | `/visual-test/status-badge` | tool | Shared tool shell pass + app audit |
 | `/visual-test/ui-contract` | tool | Shared tool shell pass + app audit |
-| `/portal` | patient portal | Shared portal shell pass + app audit; auth-gated locally |
-| `/portal/login` | patient portal | Shared portal auth pass + app audit |
-| `/portal/appointments` | patient portal | Shared portal shell pass + app audit; auth-gated locally |
-| `/portal/billing` | patient portal | Shared portal shell pass + app audit; auth-gated locally |
+| `/portal` | patient portal | Mobile Playwright overflow (390px) with portal OTP fixture |
+| `/portal/login` | patient portal | Mobile Playwright overflow (390px) |
+| `/portal/appointments` | patient portal | Mobile Playwright overflow (390px) with portal OTP fixture |
+| `/portal/billing` | patient portal | Mobile Playwright overflow (390px) with portal OTP fixture |
 | `/portal/history` | patient portal | Shared portal shell pass + app audit; auth-gated locally |
 | `/portal/medications` | patient portal | Shared portal shell pass + app audit; auth-gated locally |
 | `/portal/metrics` | patient portal | Shared portal shell pass + app audit; auth-gated locally |

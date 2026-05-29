@@ -9,9 +9,7 @@ import {
   Request,
   NotFoundException,
 } from '@nestjs/common';
-import { APP_ACCESS_TARGETS, Feature } from '@workspace/types';
-import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
-import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
+import { PatientsMetricsApiAccess } from '@/domains/patients/presentation/controllers/patients.controller.access';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
 import { PatientMetricsService } from '@/domains/patients/application/services/patientMetrics.service';
@@ -24,11 +22,12 @@ import {
   MetricHistoryQueryDto,
   UpsertMetricSelectionsDto,
 } from '@/domains/patients/application/dto/patient-metrics.dto';
+import { APP_ACCESS_TARGETS } from '@workspace/types';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 
 @Controller('patients/:patientId/metrics')
-@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENT_METRICS))
-@RequireFeature(Feature.BASIC_PATIENT_MANAGEMENT)
+@PatientsMetricsApiAccess()
 export class PatientMetricsController {
   constructor(
     private readonly patientService: PatientService,

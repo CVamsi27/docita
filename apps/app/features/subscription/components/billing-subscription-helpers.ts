@@ -1,14 +1,19 @@
 import { Tier } from "@/lib/subscription/tier-access";
 import {
+  PRICING_CURRENCY_CONFIG,
   PRICING_CURRENCY_SYMBOLS,
   TIER_PRICING_BY_CURRENCY,
 } from "@workspace/types";
-import { parseSupportedCurrency } from "@workspace/utils";
+import { formatAmountLocale, parseSupportedCurrency } from "@workspace/utils";
 import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
 
+/**
+ * Five-tier clinical ladder shown in the pricing UI. Front Desk / Core are now
+ * represented as `PlanMode` toggles on top of these tiers — not as separate
+ * ladder entries.
+ */
 export const PLAN_ORDER = [
   Tier.STARTER,
-  Tier.FRONT_DESK,
   Tier.ESSENTIAL,
   Tier.PROFESSIONAL,
   Tier.HOSPITAL,
@@ -61,6 +66,18 @@ export function currencySymbolFor(code: string | undefined) {
   return PRICING_CURRENCY_SYMBOLS[currency] ?? currency;
 }
 
+function formatMajorUnitsForCurrency(
+  amount: number,
+  currency?: string,
+): string {
+  const code = parseSupportedCurrency(currency ?? "INR");
+  const { locale, decimalPlaces } = PRICING_CURRENCY_CONFIG[code];
+  return formatAmountLocale(amount, locale, {
+    minimumFractionDigits: decimalPlaces,
+    maximumFractionDigits: decimalPlaces,
+  });
+}
+
 /**
  * Platform subscription row: always states cadence (monthly vs annual) and list
  * price when the subscription carries a non-zero base.
@@ -87,7 +104,7 @@ export function formatPlanBillingDetail(
     );
     if (listMajor != null) {
       const suffix = subscription?.billingCycle === "YEARLY" ? "/yr" : "/mo";
-      return `${cadence} — ${symbol}${listMajor}${suffix}`;
+      return `${cadence} — ${symbol}${formatMajorUnitsForCurrency(listMajor, subscription?.currency)}${suffix}`;
     }
     return `${cadence} — ${symbol}0`;
   }
@@ -98,11 +115,8 @@ export function formatPlanBillingDetail(
   }
 
   const majorUnits = cents / 100;
-  const amountLabel = Number.isInteger(majorUnits)
-    ? String(majorUnits)
-    : majorUnits.toFixed(2);
   const suffix = subscription?.billingCycle === "YEARLY" ? "/yr" : "/mo";
-  return `${cadence} — ${symbol}${amountLabel}${suffix}`;
+  return `${cadence} — ${symbol}${formatMajorUnitsForCurrency(majorUnits, subscription?.currency)}${suffix}`;
 }
 
 /**

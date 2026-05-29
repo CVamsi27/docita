@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { Providers, ToasterWrapper } from "@/components";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
+import { DataAccessBridge } from "@/providers/data-access-bridge";
 import { SentryInitializer } from "@/components/monitoring/sentry-initializer";
 import { ClientErrorReporter } from "@/components/monitoring/client-error-reporter";
 import { WebVitalsReporter } from "@/components/layout/web-vitals-reporter";
@@ -55,10 +56,12 @@ export default async function RootLayout({
         <WebVitalsReporter />
         <ReactQueryProvider>
           <AuthProvider>
-            <Providers nonce={nonce}>
-              {children}
-              <ToasterWrapper />
-            </Providers>
+            <DataAccessBridge>
+              <Providers nonce={nonce}>
+                {children}
+                <ToasterWrapper />
+              </Providers>
+            </DataAccessBridge>
           </AuthProvider>
         </ReactQueryProvider>
       </body>

@@ -7,13 +7,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { APP_ACCESS_TARGETS, Feature } from '@workspace/types';
-import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
-import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
+import { PatientsTimelineApiAccess } from '@/domains/patients/presentation/controllers/patients.controller.access';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { PatientTimelineService } from '@/domains/patients/application/services/patient-timeline.service';
 import { parsePaginationInt } from '@/shared/common/utils/string.utils';
-import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { logPatientPhiRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
 import type { TimelineEventType } from '@/domains/patients/core/repositories/timeline/timeline-event.types';
@@ -33,8 +30,7 @@ const TIMELINE_EVENT_TYPES: readonly TimelineEventType[] = [
 
 @ApiTags('patient-timeline')
 @Controller('patients/:patientId/timeline')
-@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENT_TIMELINE))
-@RequireFeature(Feature.BASIC_PATIENT_MANAGEMENT)
+@PatientsTimelineApiAccess()
 @ApiBearerAuth('JWT-auth')
 export class PatientTimelineController {
   constructor(

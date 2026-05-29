@@ -6,10 +6,11 @@ import {
   CreateInvoiceRequest,
   Feature,
   Invoice,
-  invoiceSchema,
+  type InvoiceListRow,
+  invoiceListRowSchema,
   ListInvoicesContractQuery,
+  paginatedInvoiceListResponseSchema,
   Patient,
-  patientSchema,
   SubscriptionBillingActivateRequest,
   SubscriptionBillingActivateResponse,
   SubscriptionBillingCancelRequest,
@@ -36,11 +37,8 @@ import { withQueryString } from "../lib/query-string";
 import { useDataAccessContext, useDataAccessFetcher } from "../provider/hooks";
 import { isRecord } from "@workspace/utils";
 
-export const invoiceListRowSchema = invoiceSchema.extend({
-  patient: patientSchema,
-});
-
-export type InvoiceListRow = z.infer<typeof invoiceListRowSchema>;
+export type { InvoiceListRow } from "@workspace/types";
+export { invoiceListRowSchema, normalizeInvoiceListRowInput } from "@workspace/types";
 
 function hasItemsArray(data: unknown): data is { items: unknown[] } {
   return isRecord(data) && Array.isArray(data["items"]);
@@ -57,25 +55,37 @@ export function normalizeInvoicesListResponse(data: unknown): unknown[] {
   return [];
 }
 
-const infiniteInvoicesResponseSchema = z.object({
-  items: z.array(invoiceResponseSchema),
-  nextCursor: z.string().nullable().optional(),
-  hasMore: z.boolean(),
-  count: z.number(),
-});
+const infiniteInvoicesResponseSchema = paginatedInvoiceListResponseSchema.extend(
+  {
+    nextCursor: z.string().nullable().optional(),
+    count: z.number(),
+  },
+);
+
+function parseInvoiceListRows(raw: unknown): InvoiceListRow[] {
+  const parsed = z
+    .array(invoiceListRowSchema)
+    .safeParse(normalizeInvoicesListResponse(raw));
+  if (!parsed.success) {
+    throw new APIRequestError(
+      "We could not read the invoice list. Please refresh and try again.",
+      { code: "VALIDATION_ERROR" },
+    );
+  }
+  return parsed.data;
+}
 
 export const useInvoices = (filters?: ListInvoicesContractQuery) => {
   const fetcher = useDataAccessFetcher();
-  const invoicingOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.INVOICING,
-  );
+  const { isTierFeatureEnabled, getClinicId } = useDataAccessContext();
+  const invoicingOk = isTierFeatureEnabled(Feature.INVOICING);
+  const clinicReady = Boolean(getClinicId());
   return useQuery<unknown, APIRequestError, InvoiceListRow[]>({
     queryKey: queryKeys.invoices.legacyList(filters),
     queryFn: () => fetcher<unknown>(withQueryString("/invoices", filters)),
-    select: (raw) =>
-      z.array(invoiceListRowSchema).parse(normalizeInvoicesListResponse(raw)),
+    select: parseInvoiceListRows,
     staleTime: 60 * 1000,
-    enabled: invoicingOk,
+    enabled: invoicingOk && clinicReady,
   });
 };
 
@@ -203,9 +213,9 @@ export const useInfiniteInvoices = (options?: {
   search?: string;
 }) => {
   const fetcher = useDataAccessFetcher();
-  const invoicingOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.INVOICING,
-  );
+  const { isTierFeatureEnabled, getClinicId } = useDataAccessContext();
+  const invoicingOk = isTierFeatureEnabled(Feature.INVOICING);
+  const clinicReady = Boolean(getClinicId());
   return useInfiniteQuery({
     queryKey: queryKeys.invoices.legacyInfinite(options ?? {}),
     queryFn: async ({ pageParam }) => {
@@ -219,11 +229,18 @@ export const useInfiniteInvoices = (options?: {
           search: options?.search,
         }),
       );
-      return infiniteInvoicesResponseSchema.parse(raw);
+      const parsed = infiniteInvoicesResponseSchema.safeParse(raw);
+      if (!parsed.success) {
+        throw new APIRequestError(
+          "We could not read the invoice list. Please refresh and try again.",
+          { code: "VALIDATION_ERROR" },
+        );
+      }
+      return parsed.data;
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     initialPageParam: "",
     staleTime: 1000 * 60 * 5,
-    enabled: invoicingOk,
+    enabled: invoicingOk && clinicReady,
   });
 };

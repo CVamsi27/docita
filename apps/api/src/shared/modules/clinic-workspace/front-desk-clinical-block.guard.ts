@@ -4,17 +4,17 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { ClinicTier } from '@workspace/db';
-import { PrismaService } from '@/prisma/prisma.service';
+import { isFrontDeskPlanMode } from '@workspace/types';
+import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
 import type { RequestWithUser } from '@/shared/common/types/common.types';
 
 /**
- * Blocks mutating clinical HTTP operations on the Front Desk tier.
+ * Blocks mutating clinical HTTP operations when the clinic is on Front Desk plan mode.
  * GET/HEAD requests are allowed for read-only surfaces (e.g. listing legacy prescriptions).
  */
 @Injectable()
 export class FrontDeskClinicalBlockGuard implements CanActivate {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly clinicAuthCache: ClinicAuthCacheService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<RequestWithUser>();
@@ -28,12 +28,8 @@ export class FrontDeskClinicalBlockGuard implements CanActivate {
       return true;
     }
 
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: { tier: true },
-    });
-
-    if (clinic?.tier !== ClinicTier.FRONT_DESK) {
+    const auth = await this.clinicAuthCache.getClinicAuth(clinicId);
+    if (!isFrontDeskPlanMode(auth.tier, auth.planMode)) {
       return true;
     }
 

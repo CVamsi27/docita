@@ -19,6 +19,8 @@ export interface SchedulePlanChangeRequest {
   clinicId: string;
   tier: string;
   cycle: string;
+  /** Optional plan mode (Full / Front Desk / Core). Defaults to FULL on apply. */
+  planMode?: string;
 }
 
 export interface SchedulePlanChangeResult {
@@ -26,6 +28,7 @@ export interface SchedulePlanChangeResult {
     tier: string;
     cycle: string;
     effectiveAt: string;
+    planMode?: string;
   };
 }
 
@@ -77,11 +80,12 @@ export class SchedulePlanChangeUseCase {
       targetCycle,
       effectiveAt,
       this.clock.now(),
+      request.planMode,
     );
     await this.subscriptionRepo.save(subscription);
 
     this.logger.log(
-      `Scheduled plan change for clinic ${request.clinicId}: ${targetTier.value} ${targetCycle.value} at ${effectiveAt.toISOString()}`,
+      `Scheduled plan change for clinic ${request.clinicId}: ${targetTier.value} ${targetCycle.value}${request.planMode ? ` (${request.planMode})` : ''} at ${effectiveAt.toISOString()}`,
     );
 
     return {
@@ -89,6 +93,7 @@ export class SchedulePlanChangeUseCase {
         tier: targetTier.value,
         cycle: targetCycle.value,
         effectiveAt: effectiveAt.toISOString(),
+        ...(request.planMode ? { planMode: request.planMode } : {}),
       },
     };
   }

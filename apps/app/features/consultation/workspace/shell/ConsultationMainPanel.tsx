@@ -2,6 +2,7 @@
 
 import { useMemo, type ReactNode, type RefObject } from "react";
 import { SectionTabs } from "@/features/consultation/workspace/chrome/SectionRail";
+import { cn } from "@workspace/ui/lib/utils";
 import {
   AssessmentSection,
   CardiologyExamSection,
@@ -154,7 +155,17 @@ export function ConsultationMainPanel({
         <div className="mx-auto flex max-w-3xl flex-col gap-4">
           {sections.map((section) => {
             const Node = sectionComponents[section.id];
-            return Node ?? null;
+            if (!Node) return null;
+            return (
+              <div
+                key={section.id}
+                className={cn(
+                  section.id !== activeSectionId && "hidden md:block",
+                )}
+              >
+                {Node}
+              </div>
+            );
           })}
           <ConsultationAfterVisitStrip
             appointment={appointmentData}

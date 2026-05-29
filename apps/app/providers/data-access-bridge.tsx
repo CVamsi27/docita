@@ -7,12 +7,16 @@ import {
 } from "@workspace/data-access";
 import { parseFeature } from "@/lib/access-control/parse-feature";
 import { fetchAPI } from "@/lib/api/api-core";
+import { useOptionalAuth } from "@/lib/auth/auth-context";
 import { useOptionalClinic } from "@/lib/contexts/clinic-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 
 export function DataAccessBridge({ children }: { children: ReactNode }) {
   const clinicCtx = useOptionalClinic();
-  const clinicId = clinicCtx?.clinic?.id;
+  const auth = useOptionalAuth();
+  const sessionClinicId = auth?.user?.clinicId ?? undefined;
+  const clinicId =
+    clinicCtx?.clinic?.id ?? clinicCtx?.clinicId ?? sessionClinicId ?? undefined;
   const clinicTimezone = clinicCtx?.clinic?.timezone ?? undefined;
 
   const config = useMemo<DataAccessConfig>(

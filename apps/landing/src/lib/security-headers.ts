@@ -3,6 +3,8 @@ const PUBLIC_APP_URL =
 const API_ORIGIN =
   import.meta.env.API_PROXY_TARGET || "https://api.docita.work";
 const CLOUDFLARE_TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
+const GOOGLE_FONTS_STYLES_ORIGIN = "https://fonts.googleapis.com";
+const GOOGLE_FONTS_FILES_ORIGIN = "https://fonts.gstatic.com";
 
 function toOrigin(source: string): string {
   try {
@@ -26,8 +28,8 @@ function buildLandingContentSecurityPolicy(): string {
     "object-src 'none'",
     "form-action 'self'",
     "img-src 'self' data: blob: https:",
-    "font-src 'self' data:",
-    "style-src 'self' 'unsafe-inline'",
+    `font-src 'self' data: ${GOOGLE_FONTS_FILES_ORIGIN}`,
+    `style-src 'self' 'unsafe-inline' ${GOOGLE_FONTS_STYLES_ORIGIN}`,
     `script-src 'self' 'unsafe-inline' ${CLOUDFLARE_TURNSTILE_ORIGIN}`,
     `connect-src ${Array.from(new Set(connectSources)).join(" ")}`,
     `frame-src ${CLOUDFLARE_TURNSTILE_ORIGIN}`,

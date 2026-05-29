@@ -1,9 +1,9 @@
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { ClinicTier } from '@workspace/db';
-import { PrismaService } from '@/prisma/prisma.service';
+import { ClinicTier, SubscriptionStatus } from '@workspace/db';
 import { asType } from '@/test-utils';
 import { FrontDeskClinicalBlockGuard } from './front-desk-clinical-block.guard';
+import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
 
 function createContext(request: Record<string, unknown>): ExecutionContext {
   return asType<ExecutionContext>({
@@ -19,31 +19,37 @@ function createContext(request: Record<string, unknown>): ExecutionContext {
 
 describe('FrontDeskClinicalBlockGuard', () => {
   let guard: FrontDeskClinicalBlockGuard;
-  const findUnique = jest.fn(
-    async (): Promise<{ tier?: ClinicTier } | null> => null,
-  );
+  const getClinicAuth = jest.fn<ClinicAuthCacheService['getClinicAuth']>();
 
   beforeEach(() => {
-    findUnique.mockReset();
-    const prisma = {
-      clinic: { findUnique },
-    } as unknown as PrismaService;
-    guard = new FrontDeskClinicalBlockGuard(prisma);
+    getClinicAuth.mockReset();
+    guard = new FrontDeskClinicalBlockGuard(
+      asType<ClinicAuthCacheService>({ getClinicAuth }),
+    );
   });
 
-  it('allows GET without loading clinic tier', async () => {
+  it('allows GET without loading clinic auth', async () => {
     await expect(
       guard.canActivate(
         createContext({ method: 'GET', user: { clinicId: 'c1' } }),
       ),
     ).resolves.toBe(true);
-    expect(findUnique).not.toHaveBeenCalled();
+    expect(getClinicAuth).not.toHaveBeenCalled();
   });
 
-  it('allows mutating methods when tier is not FRONT_DESK', async () => {
-    findUnique.mockImplementation(async () => ({
+  it('allows mutating methods when plan mode is FULL', async () => {
+    getClinicAuth.mockResolvedValue({
       tier: ClinicTier.PROFESSIONAL,
-    }));
+      planMode: 'FULL',
+      subscriptionStatus: SubscriptionStatus.ACTIVE,
+      subscriptionGraceUntil: null,
+      subscriptionTrialEnd: null,
+      subscriptionCurrentPeriodEnd: null,
+      hasOutstandingPendingPayment: false,
+      hasIntelligence: false,
+      features: {},
+    });
+
     await expect(
       guard.canActivate(
         createContext({ method: 'POST', user: { clinicId: 'c1' } }),
@@ -51,10 +57,39 @@ describe('FrontDeskClinicalBlockGuard', () => {
     ).resolves.toBe(true);
   });
 
-  it('forbids mutating methods on FRONT_DESK tier', async () => {
-    findUnique.mockImplementation(async () => ({
+  it('forbids mutating methods on legacy FRONT_DESK tier', async () => {
+    getClinicAuth.mockResolvedValue({
       tier: ClinicTier.FRONT_DESK,
-    }));
+      planMode: 'FRONT_DESK',
+      subscriptionStatus: SubscriptionStatus.ACTIVE,
+      subscriptionGraceUntil: null,
+      subscriptionTrialEnd: null,
+      subscriptionCurrentPeriodEnd: null,
+      hasOutstandingPendingPayment: false,
+      hasIntelligence: false,
+      features: {},
+    });
+
+    await expect(
+      guard.canActivate(
+        createContext({ method: 'POST', user: { clinicId: 'c1' } }),
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('forbids mutating methods on clinical tier with Front Desk plan mode', async () => {
+    getClinicAuth.mockResolvedValue({
+      tier: ClinicTier.PROFESSIONAL,
+      planMode: 'FRONT_DESK',
+      subscriptionStatus: SubscriptionStatus.ACTIVE,
+      subscriptionGraceUntil: null,
+      subscriptionTrialEnd: null,
+      subscriptionCurrentPeriodEnd: null,
+      hasOutstandingPendingPayment: false,
+      hasIntelligence: false,
+      features: {},
+    });
+
     await expect(
       guard.canActivate(
         createContext({ method: 'POST', user: { clinicId: 'c1' } }),
@@ -66,6 +101,6 @@ describe('FrontDeskClinicalBlockGuard', () => {
     await expect(
       guard.canActivate(createContext({ method: 'POST', user: {} })),
     ).resolves.toBe(true);
-    expect(findUnique).not.toHaveBeenCalled();
+    expect(getClinicAuth).not.toHaveBeenCalled();
   });
 });

@@ -14,12 +14,19 @@ describe('AppointmentSchedulingRulesService', () => {
       findUnique: jest.fn<() => Promise<unknown>>(),
       count: jest.fn<() => Promise<number>>(),
     },
+    clinic: {
+      findUnique: jest.fn<() => Promise<{ timezone: string } | null>>(),
+    },
     doctorTimeOff: {
       findFirst: jest.fn<(args: unknown) => Promise<unknown>>(),
     },
   };
 
   beforeEach(async () => {
+    mockPrismaService.clinic.findUnique.mockResolvedValue({
+      timezone: 'Asia/Kolkata',
+    });
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AppointmentSchedulingRulesService,

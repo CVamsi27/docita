@@ -7,6 +7,7 @@ import {
   formatClinicPickerDayIsoFromSelection,
   formatClinicTodayPickerIso,
   formatUtcInstantAsClinicPickerIso,
+  pickerIsoToLocalDate,
   startOfMonth,
   subDays,
 } from "@workspace/utils";
@@ -41,35 +42,83 @@ export const generateTimeSlots = () => {
 export const TIME_SLOTS = generateTimeSlots();
 
 export const useAppointmentsLogic = () => {
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [selectedPickerIso, setSelectedPickerIso] = useState(() =>
+    formatClinicTodayPickerIso(DEFAULT_TIMEZONE),
+  );
   const [calendarMonth, setCalendarMonth] = useState<Date>(() =>
-    startOfMonth(new Date()),
+    startOfMonth(
+      pickerIsoToLocalDate(formatClinicTodayPickerIso(DEFAULT_TIMEZONE)),
+    ),
   );
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | undefined>(
     undefined,
   );
+  const appliedDefaultDoctorRef = useRef(false);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   const { user } = useAuth();
-  const { clinic } = useClinic();
+  const { clinic, clinicId: contextClinicId } = useClinic();
+
+  useEffect(() => {
+    if (appliedDefaultDoctorRef.current || !user?.id) {
+      return;
+    }
+    if (user.role === "ADMIN_DOCTOR") {
+      setSelectedDoctorId(user.id);
+    }
+    appliedDefaultDoctorRef.current = true;
+  }, [user?.id, user?.role]);
+  const resolvedClinicId =
+    clinic?.id ?? contextClinicId ?? user?.clinicId ?? undefined;
+  const clinicReady = Boolean(resolvedClinicId);
   const clinicTz = useMemo(
     () => clinic?.timezone?.trim() || DEFAULT_TIMEZONE,
     [clinic?.timezone],
   );
   const currentTimeSlotRef = useRef<HTMLDivElement>(null);
+  const syncedClinicTzRef = useRef<string | null>(null);
+  const userPickedDateRef = useRef(false);
 
-  const selectedDateStr = useMemo(
-    () =>
-      date ? formatClinicPickerDayIsoFromSelection(date, clinicTz) : undefined,
-    [date, clinicTz],
+  const date = useMemo(
+    () => pickerIsoToLocalDate(selectedPickerIso),
+    [selectedPickerIso],
   );
 
-  const handleDateSelect = useCallback((next: Date | undefined) => {
-    const selected = next ?? new Date();
-    setDate(selected);
-    setCalendarMonth(startOfMonth(selected));
-  }, []);
+  useEffect(() => {
+    if (!clinic?.timezone || syncedClinicTzRef.current === clinicTz) {
+      return;
+    }
+    syncedClinicTzRef.current = clinicTz;
+    if (userPickedDateRef.current) {
+      return;
+    }
+    const todayIso = formatClinicTodayPickerIso(clinicTz);
+    setSelectedPickerIso(todayIso);
+    setCalendarMonth(startOfMonth(pickerIsoToLocalDate(todayIso)));
+  }, [clinic?.timezone, clinicTz]);
+
+  const handleDateSelect = useCallback(
+    (next: Date | undefined) => {
+      userPickedDateRef.current = true;
+      const pickerIso = next
+        ? formatClinicPickerDayIsoFromSelection(next, clinicTz)
+        : formatClinicTodayPickerIso(clinicTz);
+      setSelectedPickerIso(pickerIso);
+      const normalized = pickerIsoToLocalDate(pickerIso);
+      setCalendarMonth((prev) => {
+        const target = startOfMonth(normalized);
+        if (
+          prev.getFullYear() === target.getFullYear() &&
+          prev.getMonth() === target.getMonth()
+        ) {
+          return prev;
+        }
+        return target;
+      });
+    },
+    [clinicTz],
+  );
 
   const handleCalendarMonthChange = useCallback((month: Date) => {
     setCalendarMonth(month);
@@ -114,7 +163,7 @@ export const useAppointmentsLogic = () => {
   const rangeStart = subDays(startOfMonth(calendarMonth), 7);
   const rangeEnd = addDays(endOfMonth(calendarMonth), 7);
 
-  const { data: monthRangeAppointmentsResponse } = useAppointments({
+  const monthRangeQueryOptions = {
     startDate: formatClinicPickerDayIsoFromSelection(rangeStart, clinicTz),
     endDate: formatClinicPickerDayIsoFromSelection(rangeEnd, clinicTz),
     ...(doctorScope.scopedDoctorId
@@ -122,7 +171,11 @@ export const useAppointmentsLogic = () => {
       : {}),
     status: VISIBLE_APPOINTMENT_STATUS_QUERY,
     limit: 500,
-  });
+  };
+
+  const { data: monthRangeAppointmentsResponse } = useAppointments(
+    monthRangeQueryOptions,
+  );
 
   const appointmentCountsByDay = useMemo(() => {
     const map = new Map<string, number>();
@@ -136,20 +189,29 @@ export const useAppointmentsLogic = () => {
     return map;
   }, [monthRangeAppointmentsResponse?.items, clinicTz]);
 
-  const {
-    data: appointmentsResponse,
-    isLoading: loading,
-    isError,
-    refetch,
-  } = useAppointments({
-    ...(selectedDateStr ? { date: selectedDateStr } : {}),
+  const dayQueryOptions = {
+    date: selectedPickerIso,
     ...(doctorScope.scopedDoctorId
       ? { doctorId: doctorScope.scopedDoctorId }
       : {}),
     search: debouncedSearch,
     status: VISIBLE_APPOINTMENT_STATUS_QUERY,
     limit: 100,
-  });
+  };
+
+  const {
+    data: appointmentsResponse,
+    isLoading: appointmentsLoading,
+    isFetching: appointmentsFetching,
+    isError,
+    isFetched,
+    refetch,
+  } = useAppointments(dayQueryOptions);
+
+  const loading =
+    !clinicReady ||
+    appointmentsLoading ||
+    (appointmentsFetching && !isFetched);
 
   const appointments = useMemo(() => {
     return appointmentsResponse?.items || [];
@@ -188,10 +250,10 @@ export const useAppointmentsLogic = () => {
     () => formatClinicHalfHourSlotKey(new Date(), clinicTz),
     [clinicTz],
   );
-  const isToday = useMemo(() => {
-    if (!date || !selectedDateStr) return false;
-    return selectedDateStr === formatClinicTodayPickerIso(clinicTz);
-  }, [date, selectedDateStr, clinicTz]);
+  const isToday = useMemo(
+    () => selectedPickerIso === formatClinicTodayPickerIso(clinicTz),
+    [selectedPickerIso, clinicTz],
+  );
 
   useEffect(() => {
     if (isToday && currentTimeSlotRef.current) {
@@ -215,6 +277,8 @@ export const useAppointmentsLogic = () => {
   return {
     state: {
       date,
+      selectedPickerIso,
+      clinicTz,
       setDate: handleDateSelect,
       calendarMonth,
       onCalendarMonthChange: handleCalendarMonthChange,

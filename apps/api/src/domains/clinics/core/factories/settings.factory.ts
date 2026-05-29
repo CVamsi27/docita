@@ -34,7 +34,7 @@ export class SettingsFactory {
       primaryColor: '#0066cc',
       compactMode: false,
 
-      paymentReminderEnabled: false,
+      paymentReminderEnabled: true,
       paymentReminderDays: [1, 3, 7],
       paymentReminderAutoSendWhatsApp: true,
       useSameBankAccountForSubscriptionAndReceipts: true,

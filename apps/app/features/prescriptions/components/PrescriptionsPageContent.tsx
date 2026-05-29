@@ -178,12 +178,10 @@ export function PrescriptionsPageContent() {
           onDownloadPDF={downloadPDF}
         />
 
-        <div className="flex items-center justify-between">
-          <p className="text-[var(--fs-xs)] text-muted-foreground">
-            Showing {filteredAndSortedPrescriptions.length} of{" "}
-            {prescriptions.length} prescriptions
-          </p>
-        </div>
+        <p className="text-[var(--fs-xs)] text-muted-foreground">
+          Showing {filteredAndSortedPrescriptions.length} of{" "}
+          {prescriptions.length} prescriptions
+        </p>
       </AppPageScaffold>
     </FeatureGate>
   );

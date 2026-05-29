@@ -90,7 +90,7 @@ export function QuickAddPopover() {
       <PopoverContent
         align="end"
         sideOffset={8}
-        className="w-64 p-1"
+        className="w-[min(100vw-2rem,16rem)] p-1"
         data-testid="quick-add-popover"
       >
         <div className="px-2 py-1.5 text-[var(--fs-2xs)] uppercase tracking-wide text-muted-foreground">

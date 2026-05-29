@@ -43,13 +43,9 @@ export class ResponseHandlerService {
   async handlePatientResponse(
     appointmentId: string,
     responseText: string,
-    _phoneNumber: string,
-    _messageSid: string,
+    phoneNumber: string,
+    messageSid: string,
   ): Promise<void> {
-    this.logger.log(
-      `Processing response for appointment ${appointmentId}: ${responseText}`,
-    );
-
     const appointment = await this.persistence.appointment.findUnique({
       where: { id: appointmentId },
       include: {
@@ -71,6 +67,25 @@ export class ResponseHandlerService {
       );
       return;
     }
+
+    await this.handlePatientResponseForAppointment(
+      appointmentContext,
+      responseText,
+      phoneNumber,
+      messageSid,
+    );
+  }
+
+  async handlePatientResponseForAppointment(
+    appointmentContext: AppointmentContext,
+    responseText: string,
+    _phoneNumber: string,
+    _messageSid: string,
+  ): Promise<void> {
+    const appointmentId = appointmentContext.id;
+    this.logger.log(
+      `Processing response for appointment ${appointmentId}: ${responseText}`,
+    );
 
     const responseType = parsePatientResponse(responseText);
     const delayMinutes = extractDelayMinutes(responseText);
@@ -107,17 +122,17 @@ export class ResponseHandlerService {
       },
     });
 
-    await this.updateAppointmentStatus(appointment.id, responseType);
+    await this.updateAppointmentStatus(appointmentContext, responseType);
 
     let nextAppointmentTime: Date | null = null;
     let conflictDetected = false;
 
     if (responseType === 'DELAY' && delayMinutes !== null) {
       const conflict = await this.evaluateDelayConflict(
-        appointment.id,
-        appointment.clinic.id,
-        appointment.doctor.id,
-        appointment.startTime,
+        appointmentContext.id,
+        appointmentContext.clinic.id,
+        appointmentContext.doctor.id,
+        appointmentContext.startTime,
         delayMinutes,
       );
       nextAppointmentTime = conflict.nextAppointmentTime;
@@ -257,16 +272,18 @@ export class ResponseHandlerService {
   }
 
   private async updateAppointmentStatus(
-    appointmentId: string,
+    appointment: AppointmentContext,
     responseType: PatientResponseType,
   ): Promise<void> {
     const newStatus = APPOINTMENT_STATUS_BY_PATIENT_RESPONSE[responseType];
 
-    if (newStatus) {
-      await this.persistence.appointment.update({
-        where: { id: appointmentId },
-        data: { status: newStatus },
-      });
+    if (!newStatus) {
+      return;
     }
+
+    await this.persistence.appointment.update({
+      where: { id: appointment.id },
+      data: { status: newStatus },
+    });
   }
 }

@@ -152,3 +152,26 @@ export function formatPriceWithCurrency(
     fractionDigits: config.decimalPlaces,
   });
 }
+
+/**
+ * Locale-aware price formatter for **rates** (overage per-unit, ₹0.75/msg).
+ * Keeps up to 2 fractional digits when the amount isn't a whole number so
+ * fractional sub-rupee rates aren't rounded away by `PRICING_CURRENCY_CONFIG`'s
+ * decimalPlaces (INR is configured at 0).
+ */
+export function formatRateWithCurrency(
+  amount: number,
+  currency: SupportedCurrency = "INR",
+): string {
+  const config = PRICING_CURRENCY_CONFIG[currency];
+  // Currencies that already display 2 decimals (USD, EUR, …) use their default;
+  // INR / ZAR-like 0-decimal configs get up to 2 decimals only when needed.
+  const baseDigits = config.decimalPlaces;
+  const isWhole = Number.isInteger(amount);
+  return new Intl.NumberFormat(config.locale, {
+    style: "currency",
+    currency,
+    minimumFractionDigits: isWhole ? baseDigits : Math.max(baseDigits, 2),
+    maximumFractionDigits: Math.max(baseDigits, 2),
+  }).format(amount);
+}

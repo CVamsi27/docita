@@ -20,7 +20,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ClinicTypeGuard, FacilityTypeGuard } from './clinic-type.guard';
-import { ClinicAuthCacheService } from './clinic-auth-cache.service';
 import { PasswordExpiredGuard } from '@/shared/modules/auth/guards/password-expired.guard';
 import { ApiKeyGuard } from '@/shared/modules/auth/guards/api-key.guard';
 import { UsersModule } from '@/domains/users/users.module';
@@ -33,6 +32,7 @@ import { EmailModule } from '@/shared/modules/messaging/email/email.module';
 import { ConsentGuard } from '@/shared/modules/auth/guards/consent.guard';
 import { PatientDoctorGuard } from '@/shared/modules/auth/guards/patient-doctor.guard';
 import { EmailVerifiedGuard } from '@/shared/modules/auth/guards/email-verified.guard';
+import { AuthGuardsModule } from './auth-guards.module';
 
 type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
 
@@ -49,6 +49,7 @@ function parseJwtDuration(value: string): JwtDuration | null {
 @Module({
   imports: [
     PrismaModule,
+    AuthGuardsModule,
     PassportModule,
     UsersModule,
     forwardRef(() => ClinicsModule),
@@ -89,7 +90,6 @@ function parseJwtDuration(value: string): JwtDuration | null {
     JwtAuthGuard,
     ClinicTypeGuard,
     FacilityTypeGuard,
-    ClinicAuthCacheService,
     PasswordExpiredGuard,
     ApiKeyGuard,
     ConsentGuard,
@@ -119,7 +119,7 @@ function parseJwtDuration(value: string): JwtDuration | null {
     JwtModule,
     ClinicTypeGuard,
     FacilityTypeGuard,
-    ClinicAuthCacheService,
+    AuthGuardsModule,
     PasswordExpiredGuard,
     ApiKeyGuard,
     ConsentGuard,

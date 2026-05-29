@@ -77,18 +77,18 @@ export function DangerZoneSettings() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-6">
       <Card className="border-destructive/30">
-        <CardHeader>
-          <CardTitle className="text-lg text-destructive">Sign out</CardTitle>
+        <CardHeader className="border-b border-destructive/20 pb-5">
+          <CardTitle className="text-destructive">Sign out</CardTitle>
           <CardDescription>
             Sign out of your Docita account on this device.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-5">
           <Button
             variant="outline"
-            className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:border-destructive/60 transition-colors duration-150"
+            className="border-destructive/40 text-destructive transition-colors duration-150 hover:border-destructive/60 hover:bg-destructive/10"
             onClick={handleLogout}
           >
             <LogOut className="mr-2 h-4 w-4" />
@@ -98,17 +98,15 @@ export function DangerZoneSettings() {
       </Card>
 
       <Card className="border-destructive/30">
-        <CardHeader>
-          <CardTitle className="text-lg text-destructive">
-            Delete account
-          </CardTitle>
+        <CardHeader className="border-b border-destructive/20 pb-5">
+          <CardTitle className="text-destructive">Delete account</CardTitle>
           <CardDescription>
             Request permanent closure of your staff account and removal of
             personal data associated with it, subject to legal and clinical
             retention requirements.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex flex-col gap-4 pt-5">
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Warning</AlertTitle>
@@ -147,17 +145,19 @@ export function DangerZoneSettings() {
             </Label>
           </div>
 
-          <Button
-            variant="destructive"
-            className="transition-colors duration-150"
-            onClick={handleDeleteAccount}
-            disabled={
-              requestDeletion.isPending || !deletionReason || !confirmDeletion
-            }
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            {requestDeletion.isPending ? "Submitting…" : "Delete my account"}
-          </Button>
+          <div className="flex justify-end border-t border-destructive/20 pt-4">
+            <Button
+              variant="destructive"
+              className="transition-colors duration-150"
+              onClick={handleDeleteAccount}
+              disabled={
+                requestDeletion.isPending || !deletionReason || !confirmDeletion
+              }
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {requestDeletion.isPending ? "Submitting…" : "Delete my account"}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

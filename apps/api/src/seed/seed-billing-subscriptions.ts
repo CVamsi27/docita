@@ -1,6 +1,7 @@
 import {
   BillingCycle,
   ClinicTier,
+  PlanMode,
   PrismaClient,
   SubscriptionStatus,
   UsageType,
@@ -151,6 +152,9 @@ export async function seedBillingAndUsage(
     where: { id: clinicId },
     data: {
       tier: activeTier,
+      // Explicit PlanMode = FULL keeps the seeded clinic on the full feature
+      // set; switch to FRONT_DESK or CORE here to seed a mode-scoped clinic.
+      planMode: PlanMode.FULL,
       currency: INR_CURRENCY,
       subscriptionStatus: SubscriptionStatus.ACTIVE,
     },
@@ -202,7 +206,7 @@ export async function seedBillingAndUsage(
       grandTotalCents: annualBasePriceCents,
       subtotalCents: annualBasePriceCents,
       currency: INR_CURRENCY,
-      status: 'SUCCEEDED',
+      status: 'paid',
       invoiceNumber: 'DC/ENT/SEED/0001',
       invoiceType: 'TAX_INVOICE',
       description: 'Annual enterprise subscription (seed)',
@@ -215,7 +219,7 @@ export async function seedBillingAndUsage(
       grandTotalCents: annualBasePriceCents,
       subtotalCents: annualBasePriceCents,
       currency: INR_CURRENCY,
-      status: 'SUCCEEDED',
+      status: 'paid',
       razorpayPaymentId: `seed_pay_${clinicId}`,
       invoiceNumber: 'DC/ENT/SEED/0001',
       invoiceType: 'TAX_INVOICE',

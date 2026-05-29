@@ -245,6 +245,35 @@ describe('CsrfInterceptor', () => {
     expect(() => interceptor.intercept(context, next)).not.toThrow();
   });
 
+  it('bootstraps CSRF for pre-auth endpoints even when stale session cookies are present', () => {
+    // Repro: DB reset / forced revocation leaves the browser holding old
+    // access_token & refresh_token cookies. The user then tries to log in;
+    // /auth/check-email is by definition pre-session so it must still bootstrap.
+    const context = createContext({
+      method: 'POST',
+      url: '/api/v1/auth/check-email',
+      originalUrl: '/api/v1/auth/check-email',
+      cookies: {
+        access_token: 'stale-access',
+        refresh_token: 'stale-refresh',
+      },
+    });
+    expect(() => interceptor.intercept(context, next)).not.toThrow();
+  });
+
+  it('still rejects mutations on session-bound auth endpoints when cookies are present without CSRF', () => {
+    // /auth/logout and /auth/refresh stay strict — the CSRF header is required.
+    const context = createContext({
+      method: 'POST',
+      url: '/api/v1/auth/refresh',
+      originalUrl: '/api/v1/auth/refresh',
+      cookies: { refresh_token: 'refresh-token' },
+    });
+    expect(() => interceptor.intercept(context, next)).toThrow(
+      ForbiddenException,
+    );
+  });
+
   it('allows unauthenticated POST to monitoring web-vitals without CSRF', () => {
     const context = createContext({
       method: 'POST',

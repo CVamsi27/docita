@@ -13,6 +13,7 @@ on:
       - "packages/utils/**"
       - "scripts/workflow/detect-workflow-scope.mjs"
       - "scripts/deploy/test-api-startup.sh"
+      - "scripts/deploy/verify-db-schema-sync.sh"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -54,7 +55,9 @@ jobs:
   migrate-db:
     name: Apply Prisma Migrations
     needs: changes
-    if: needs.changes.outputs.db == 'true'
+    if: >
+      needs.changes.outputs.api == 'true' ||
+      needs.changes.outputs.worker == 'true'
     runs-on: ubuntu-latest
     environment: production
     env:
@@ -116,19 +119,6 @@ jobs:
           fi
           pnpm --filter @workspace/db run db:generate
 
-      - name: Prisma migrate dry-run (schema drift check)
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          if [ -z "$DATABASE_URL" ]; then
-            echo "DATABASE_URL secret is required."
-            exit 1
-          fi
-          pnpm --filter @workspace/db exec prisma migrate diff \
-            --from-config-datasource \
-            --to-schema prisma/schema.prisma \
-            --exit-code
-
       - name: Run Prisma Migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -139,13 +129,18 @@ jobs:
           fi
           pnpm --filter @workspace/db run db:migrate:safe
 
+      - name: Verify database schema is in sync
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: bash scripts/deploy/verify-db-schema-sync.sh
+
   api-startup-smoke:
     name: API startup smoke test
     needs: [changes, migrate-db]
     if: >
       always() &&
       needs.changes.outputs.api == 'true' &&
-      (needs.migrate-db.result == 'success' || needs.migrate-db.result == 'skipped')
+      needs.migrate-db.result == 'success'
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -155,6 +150,7 @@ jobs:
       NEXT_PUBLIC_APP_URL: https://app.docita.work
       NEXT_PUBLIC_API_URL: https://api.docita.work/api/v1
       CORS_ORIGINS: https://app.docita.work,https://internal.docita.work
+      RLS_ENABLED: "true"
       STORAGE_PROVIDER: r2
       QUEUE_BACKEND: postgres
       ENABLE_SCHEDULERS: false
@@ -186,7 +182,7 @@ jobs:
     if: >
       always() &&
       needs.changes.outputs.api == 'true' &&
-      (needs.migrate-db.result == 'success' || needs.migrate-db.result == 'skipped') &&
+      needs.migrate-db.result == 'success' &&
       needs.api-startup-smoke.result == 'success'
     runs-on: ubuntu-latest
     environment: production
@@ -207,7 +203,17 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy API to Fly.io
-        run: flyctl deploy --config fly.toml --app "${{ steps.fly-config.outputs.app_name }}" --remote-only
+        run: flyctl deploy --config fly.toml --app "${{ steps.fly-config.outputs.app_name }}" --remote-only --strategy bluegreen
+
+      - name: Post-deploy synthetic probes
+        env:
+          SYNTHETIC_API_ORIGIN: https://api.docita.work/api
+          SYNTHETIC_API_BASE_URL: https://api.docita.work/api/v1
+          SYNTHETIC_APP_BASE_URL: https://app.docita.work
+          SYNTHETIC_MONITOR_EMAIL: ${{ secrets.SYNTHETIC_MONITOR_EMAIL }}
+          SYNTHETIC_MONITOR_PASSWORD: ${{ secrets.SYNTHETIC_MONITOR_PASSWORD }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: node scripts/monitoring/synthetic/run-probes.mjs
 
   deploy-worker:
     name: Deploy Worker (Fly.io)
@@ -215,7 +221,7 @@ jobs:
     if: >
       always() &&
       needs.changes.outputs.worker == 'true' &&
-      (needs.migrate-db.result == 'success' || needs.migrate-db.result == 'skipped')
+      needs.migrate-db.result == 'success'
     runs-on: ubuntu-latest
     environment: production
     env:

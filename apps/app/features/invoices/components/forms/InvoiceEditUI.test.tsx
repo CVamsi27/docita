@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { InvoiceEditUI } from "./InvoiceEditUI";
 
@@ -109,7 +109,7 @@ describe("InvoiceEditUI", () => {
     render(<InvoiceEditUI invoiceId="inv_1" />);
 
     expect(screen.getByRole("heading", { name: "Edit invoice" })).toBeInTheDocument();
-    fireEvent.change(screen.getByDisplayValue("Procedure"), {
+    fireEvent.change(within(screen.getByRole("table")).getByDisplayValue("Procedure"), {
       target: { value: "Dental procedure" },
     });
     fireEvent.change(screen.getByPlaceholderText("Notes"), {

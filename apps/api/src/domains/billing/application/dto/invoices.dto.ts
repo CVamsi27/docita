@@ -5,6 +5,7 @@ import {
   invoiceResponseSchema,
   invoicePaymentActivityResponseSchema,
   listInvoicesQuerySchema,
+  paginatedInvoiceListResponseSchema,
   stripHtmlTags,
   updateInvoiceRequestSchema,
 } from '@workspace/types';
@@ -69,14 +70,8 @@ export class ListInvoicesQueryDto extends createZodDto(
 
 export class InvoiceResponseDto extends createZodDto(invoiceResponseSchema) {}
 
-const PaginatedInvoiceResponseSchema = z.object({
-  items: z.array(invoiceResponseSchema),
-  nextCursor: z.string().optional(),
-  hasMore: z.boolean(),
-  count: z.number().optional(),
-});
 export class PaginatedInvoiceResponseDto extends createZodDto(
-  PaginatedInvoiceResponseSchema,
+  paginatedInvoiceListResponseSchema,
 ) {}
 
 export class InvoicePaymentActivityResponseDto extends createZodDto(

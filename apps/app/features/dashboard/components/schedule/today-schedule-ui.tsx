@@ -23,11 +23,20 @@ import type { AppointmentListItem } from "@workspace/data-access";
 
 export interface TodayScheduleUIProps {
   appointments: AppointmentListItem[];
+  className?: string;
 }
 
-export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
+export function TodayScheduleUI({
+  appointments,
+  className,
+}: TodayScheduleUIProps) {
   return (
-    <Card className="lg:col-span-2 border border-border shadow-sm bg-card">
+    <Card
+      className={cn(
+        "border border-border shadow-sm bg-card",
+        className,
+      )}
+    >
       <CardHeader className="pb-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">

@@ -17,9 +17,15 @@ import { useAskAiOverlay } from "./use-ask-ai-overlay";
 export function AskAiOverlay() {
   const overlay = useAskAiOverlay();
 
+  const hasAnyThreads =
+    overlay.todaysThreads.length > 0 || overlay.earlierThreads.length > 0;
+
   const scopeChip = (
-    <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-accent/20 bg-accent/5 px-2.5 py-1 text-[var(--fs-xs)] font-medium text-foreground">
-      <Sparkles aria-hidden className="size-3 shrink-0 text-primary" />
+    <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-[var(--fs-2xs)] font-medium text-muted-foreground">
+      <span
+        aria-hidden
+        className="size-1.5 shrink-0 rounded-full bg-primary"
+      />
       <span className="truncate">{overlay.scopeLabel}</span>
     </span>
   );
@@ -39,9 +45,14 @@ export function AskAiOverlay() {
           "sm:h-[min(720px,90dvh)] sm:max-h-[min(720px,90dvh)] sm:max-w-[960px]",
         )}
       >
-        <DialogHeader className="flex shrink-0 flex-row items-center gap-2 border-b border-border/50 bg-muted/10 px-4 py-3 sm:px-5">
-          <Sparkles aria-hidden className="size-4 shrink-0 text-primary" />
-          <DialogTitle className="text-left text-[var(--fs-sm)] font-semibold leading-snug text-foreground">
+        <DialogHeader className="flex shrink-0 flex-row items-center gap-2.5 border-b border-border/50 bg-muted/10 px-5 py-3.5 sm:px-6">
+          <span
+            aria-hidden
+            className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
+          >
+            <Sparkles className="size-4" />
+          </span>
+          <DialogTitle className="text-left text-[var(--fs-base)] font-semibold leading-tight text-foreground">
             Ask AI
           </DialogTitle>
         </DialogHeader>
@@ -54,20 +65,21 @@ export function AskAiOverlay() {
               type="button"
               variant="outline"
               size="sm"
-              className="justify-start gap-2"
+              className="w-full justify-center gap-2"
               onClick={overlay.startNewThread}
             >
               <Plus aria-hidden className="size-3.5" />
               New thread
             </Button>
-            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1">
-              <ThreadGroup
-                label="Today"
-                threads={overlay.todaysThreads}
-                activeId={overlay.activeThreadId}
-                onSelect={overlay.selectThread}
-                emptyHint="Nothing from today yet."
-              />
+            <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1">
+              {overlay.todaysThreads.length > 0 ? (
+                <ThreadGroup
+                  label="Today"
+                  threads={overlay.todaysThreads}
+                  activeId={overlay.activeThreadId}
+                  onSelect={overlay.selectThread}
+                />
+              ) : null}
               {overlay.earlierThreads.length > 0 ? (
                 <ThreadGroup
                   label="Earlier"
@@ -75,6 +87,11 @@ export function AskAiOverlay() {
                   activeId={overlay.activeThreadId}
                   onSelect={overlay.selectThread}
                 />
+              ) : null}
+              {!hasAnyThreads ? (
+                <p className="px-2 text-[var(--fs-xs)] leading-snug text-muted-foreground">
+                  Your conversations will appear here.
+                </p>
               ) : null}
             </div>
           </aside>
@@ -84,12 +101,14 @@ export function AskAiOverlay() {
               className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6"
             >
               {overlay.messages.length === 0 && !overlay.streamingText ? (
-                <EmptyState
-                  icon={Sparkles}
-                  title="What should we look at?"
-                  description="Summarize today's queue, draft a follow-up, or ask about a schedule block."
-                  className="mx-auto max-w-sm py-4 md:py-8"
-                />
+                <div className="flex h-full min-h-[16rem] items-center justify-center">
+                  <EmptyState
+                    icon={Sparkles}
+                    title="What should we look at?"
+                    description="Summarize today's queue, draft a follow-up, or ask about a schedule block."
+                    className="mx-auto max-w-sm"
+                  />
+                </div>
               ) : (
                 <ol
                   className="flex w-full flex-col gap-2.5"
@@ -131,13 +150,12 @@ export function AskAiOverlay() {
               ) : null}
             </div>
             <div className="shrink-0 border-t border-border/50 bg-muted/10 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-6 sm:pb-4 sm:pt-4">
-              <div className="flex items-end gap-2">
+              <div className="flex items-center gap-2">
                 <PromptInput
-                  className="flex-1 gap-1.5"
+                  className="flex-1"
                   onSubmitPrompt={overlay.handleSubmit}
                   submitting={overlay.submitting}
-                  scopeChip={scopeChip}
-                  placeholder="Enter your question about patients, visits, or follow-ups"
+                  placeholder="Ask anything…"
                   aria-label="Ask AI prompt"
                   autoFocus
                 />
@@ -154,14 +172,20 @@ export function AskAiOverlay() {
                   </Button>
                 ) : null}
               </div>
-              <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground">
-                  Not medical advice—confirm with a clinician before acting.
-                </p>
+              <div className="mt-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+                <div className="flex min-w-0 items-center gap-2">
+                  {scopeChip}
+                  <p className="hidden text-[var(--fs-2xs)] leading-snug text-muted-foreground sm:block">
+                    Not medical advice—confirm with a clinician.
+                  </p>
+                </div>
                 <p className="shrink-0 text-[var(--fs-2xs)] text-muted-foreground/80">
                   Enter to send · Shift+Enter for new line
                 </p>
               </div>
+              <p className="mt-1.5 text-[var(--fs-2xs)] leading-snug text-muted-foreground sm:hidden">
+                Not medical advice—confirm with a clinician.
+              </p>
             </div>
           </section>
         </div>

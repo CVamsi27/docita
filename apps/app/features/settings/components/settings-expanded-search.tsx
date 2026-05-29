@@ -66,11 +66,11 @@ export function SettingsExpandedSearch({
         type="search"
         name="settingsSearchFilter"
         autoComplete="off"
-        placeholder="Filter settings lists"
+        placeholder="Filter settings…"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         className={cn(
-          "h-11 pl-9 pr-10 bg-muted/40 transition-colors duration-150 hover:bg-background",
+          "h-10 rounded-[calc(var(--radius)-4px)] border-border/60 bg-card/70 pl-9 pr-10 text-sm shadow-sm transition-colors duration-150 hover:bg-card focus-visible:bg-card",
           !hasQuery && "pr-3",
         )}
         aria-label="Filter settings lists"

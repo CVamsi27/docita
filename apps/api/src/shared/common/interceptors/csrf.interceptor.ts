@@ -20,6 +20,29 @@ export class CsrfInterceptor implements NestInterceptor {
     /^\/auth(?:\/|$)/i,
   ];
 
+  /**
+   * Pre-authentication endpoints: by definition there is no authenticated
+   * session yet, so they must always bootstrap a CSRF token — even if the
+   * browser happens to be carrying stale `access_token` / `refresh_token`
+   * cookies from a previous, no-longer-valid session (DB reset, forced
+   * revocation, deploy that invalidated tokens, cross-environment cookie
+   * leakage on the same host).
+   *
+   * Endpoints intentionally NOT in this list (`refresh`, `logout`,
+   * `change-password`) require a valid session and keep the strict
+   * double-submit check.
+   */
+  private static readonly PRE_AUTH_PATH_PATTERNS = [
+    /^\/(?:api(?:\/v\d+)?\/)?auth\/check-email\/?$/i,
+    /^\/(?:api(?:\/v\d+)?\/)?auth\/login\/?$/i,
+    /^\/(?:api(?:\/v\d+)?\/)?auth\/mfa\/verify\/?$/i,
+    /^\/(?:api(?:\/v\d+)?\/)?auth\/register\/?$/i,
+    /^\/(?:api(?:\/v\d+)?\/)?auth\/verify-email\/?$/i,
+    /^\/(?:api(?:\/v\d+)?\/)?auth\/resend-verification\/?$/i,
+    /^\/(?:api(?:\/v\d+)?\/)?auth\/forgot-password\/?$/i,
+    /^\/(?:api(?:\/v\d+)?\/)?auth\/reset-password\/?$/i,
+  ];
+
   private isSafeMethod(method: string): boolean {
     return ['GET', 'HEAD', 'OPTIONS'].includes(method.toUpperCase());
   }
@@ -78,6 +101,12 @@ export class CsrfInterceptor implements NestInterceptor {
     );
   }
 
+  private isPreAuthPath(path: string): boolean {
+    return CsrfInterceptor.PRE_AUTH_PATH_PATTERNS.some((pattern) =>
+      pattern.test(path),
+    );
+  }
+
   /** Public browser RUM beacons do not carry CSRF headers. */
   private isPublicWebVitalsPost(request: Request): boolean {
     if (request.method?.toUpperCase() !== 'POST') {
@@ -119,10 +148,14 @@ export class CsrfInterceptor implements NestInterceptor {
    * double-submit check applies, including to /auth/logout and /auth/refresh.
    */
   private canBootstrapCsrfForAuthMutation(request: Request): boolean {
-    return (
-      this.isAuthPath(this.getRequestPath(request)) &&
-      !this.hasSessionCookie(request)
-    );
+    const path = this.getRequestPath(request);
+    // Pre-login endpoints always bootstrap, even if stale session cookies are
+    // present — those cookies cannot represent a valid session if the user is
+    // hitting login/register/etc. See PRE_AUTH_PATH_PATTERNS.
+    if (this.isPreAuthPath(path)) {
+      return true;
+    }
+    return this.isAuthPath(path) && !this.hasSessionCookie(request);
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {

@@ -30,6 +30,7 @@ import { StaffNotificationWhatsAppDispatchService } from '@/domains/whatsapp/app
 import { StaffNotificationInboxService } from '@/domains/whatsapp/application/services/staff-notification-inbox.service';
 import { PatientResponseConfirmationService } from '@/domains/whatsapp/application/services/patient-response-confirmation.service';
 import { PatientResponseStaffNotificationService } from '@/domains/whatsapp/application/services/patient-response-staff-notification.service';
+import { PatientAppointmentResolverService } from '@/domains/whatsapp/application/services/patient-appointment-resolver.service';
 import { NOTIFICATION_RECIPIENT_RESOLVER_TOKEN } from '@/domains/whatsapp/application/ports/notification-recipient-resolver.port';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -78,6 +79,7 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
     HandleWebhookUseCase,
     WhatsAppWebhookIngressService,
     ResponseHandlerService,
+    PatientAppointmentResolverService,
     StaffNotificationRecipientResolver,
     {
       provide: NOTIFICATION_RECIPIENT_RESOLVER_TOKEN,
@@ -103,6 +105,7 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
     WhatsappWebhookService,
     WhatsAppWebhookIngressService,
     ResponseHandlerService,
+    PatientAppointmentResolverService,
     StaffNotificationService,
     SystemEventsService,
   ],

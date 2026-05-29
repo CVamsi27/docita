@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/data-display/table";
+import { cn } from "@workspace/ui/lib/utils";
 
 import { OphthalmologyExamData } from "@workspace/types";
 
@@ -23,10 +24,42 @@ interface VisionExamProps {
   readOnly?: boolean;
 }
 
+const FIELDS: Array<{
+  key: string;
+  label: string;
+  placeholder: string;
+}> = [
+  { key: "sph", label: "Sphere (Sph)", placeholder: "Sphere" },
+  { key: "cyl", label: "Cylinder (Cyl)", placeholder: "Cylinder" },
+  { key: "axis", label: "Axis", placeholder: "Axis" },
+  { key: "add", label: "Add", placeholder: "Add" },
+  { key: "va", label: "VA (Dist)", placeholder: "Visual acuity" },
+  { key: "vaNear", label: "VA (Near)", placeholder: "Near visual acuity" },
+];
+
+function getFieldValue(
+  value: OphthalmologyExamData,
+  eye: "OD" | "OS",
+  fieldKey: string,
+): string {
+  const eyeKey = eye === "OD" ? "od" : "os";
+  if (fieldKey === "sph")
+    return value.refraction?.[eyeKey]?.sphere?.toString() || "";
+  if (fieldKey === "cyl")
+    return value.refraction?.[eyeKey]?.cylinder?.toString() || "";
+  if (fieldKey === "axis")
+    return value.refraction?.[eyeKey]?.axis?.toString() || "";
+  if (fieldKey === "add") return value.refraction?.[eyeKey]?.add?.toString() || "";
+  if (fieldKey === "va") return value.visualAcuity?.[eyeKey]?.uncorrected || "";
+  if (fieldKey === "vaNear")
+    return value.visualAcuity?.[eyeKey]?.corrected || "";
+  return "";
+}
+
 export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
   const handleChange = (
     eye: "OD" | "OS",
-    field: string, 
+    field: string,
     val: string,
   ) => {
     if (readOnly) return;
@@ -59,21 +92,8 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
   };
 
   const eyes = [
-    { key: "OD", label: "OD (Right Eye)", color: "text-info" },
-    { key: "OS", label: "OS (Left Eye)", color: "text-success" },
-  ] as const;
-
-  const fields: Array<{
-    key: string;
-    label: string;
-    placeholder: string;
-  }> = [
-    { key: "sph", label: "Sphere (Sph)", placeholder: "Sphere" },
-    { key: "cyl", label: "Cylinder (Cyl)", placeholder: "Cylinder" },
-    { key: "axis", label: "Axis", placeholder: "Axis" },
-    { key: "add", label: "Add", placeholder: "Add" },
-    { key: "va", label: "VA (Dist)", placeholder: "Visual acuity" },
-    { key: "vaNear", label: "VA (Near)", placeholder: "Near visual acuity" },
+    { key: "OD" as const, label: "OD (Right Eye)", color: "text-info" },
+    { key: "OS" as const, label: "OS (Left Eye)", color: "text-success" },
   ];
 
   return (
@@ -82,12 +102,38 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
         <CardTitle className="text-base">Refraction & Visual Acuity</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-hidden">
+        <div className="space-y-4 md:hidden">
+          {eyes.map((eye) => (
+            <div
+              key={eye.key}
+              className="ui-card-surface space-y-3 p-4"
+            >
+              <p className={cn("text-sm font-semibold", eye.color)}>{eye.label}</p>
+              <div className="grid grid-cols-2 gap-3">
+                {FIELDS.map((field) => (
+                  <div key={field.key} className="space-y-1.5">
+                    <Label className="text-xs">{field.label}</Label>
+                    <Input
+                      value={getFieldValue(value, eye.key, field.key)}
+                      onChange={(e) =>
+                        handleChange(eye.key, field.key, e.target.value)
+                      }
+                      placeholder={field.placeholder}
+                      readOnly={readOnly}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden overflow-x-auto overscroll-x-contain md:block">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px]">Eye</TableHead>
-                {fields.map((field) => (
+                {FIELDS.map((field) => (
                   <TableHead key={field.key}>{field.label}</TableHead>
                 ))}
               </TableRow>
@@ -95,43 +141,13 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
             <TableBody>
               {eyes.map((eye) => (
                 <TableRow key={eye.key}>
-                  <TableCell className={`font-semibold ${eye.color}`}>
+                  <TableCell className={cn("font-semibold", eye.color)}>
                     {eye.key}
                   </TableCell>
-                  {fields.map((field) => (
+                  {FIELDS.map((field) => (
                     <TableCell key={`${eye.key}-${field.key}`}>
                       <Input
-                        value={(() => {
-                          const eyeKey = eye.key === "OD" ? "od" : "os";
-                          if (field.key === "sph")
-                            return (
-                              value.refraction?.[eyeKey]?.sphere?.toString() ||
-                              ""
-                            );
-                          if (field.key === "cyl")
-                            return (
-                              value.refraction?.[
-                                eyeKey
-                              ]?.cylinder?.toString() || ""
-                            );
-                          if (field.key === "axis")
-                            return (
-                              value.refraction?.[eyeKey]?.axis?.toString() || ""
-                            );
-                          if (field.key === "add")
-                            return (
-                              value.refraction?.[eyeKey]?.add?.toString() || ""
-                            );
-                          if (field.key === "va")
-                            return (
-                              value.visualAcuity?.[eyeKey]?.uncorrected || ""
-                            );
-                          if (field.key === "vaNear")
-                            return (
-                              value.visualAcuity?.[eyeKey]?.corrected || ""
-                            );
-                          return "";
-                        })()}
+                        value={getFieldValue(value, eye.key, field.key)}
                         onChange={(e) =>
                           handleChange(eye.key, field.key, e.target.value)
                         }
@@ -147,10 +163,10 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
           </Table>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label>PD (Pupillary Distance)</Label>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <Input
                 placeholder="Pupillary distance"
                 value={value?.refraction?.pupillaryDistance?.toString() || ""}
@@ -182,7 +198,7 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
           </div>
           <div className="space-y-2">
             <Label>IOP (Intraocular Pressure)</Label>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <div className="relative w-full">
                 <span className="absolute left-3 top-2 text-xs font-bold text-info">
                   OD

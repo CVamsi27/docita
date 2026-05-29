@@ -4,6 +4,7 @@ import path from 'path';
 
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
+import { createUtcPoolConfig } from '@workspace/db';
 
 let prisma: TestPrismaClient;
 
@@ -21,7 +22,7 @@ export function setupTestDatabase() {
     );
   }
 
-  const pool = new Pool({ connectionString: testDbUrl });
+  const pool = new Pool(createUtcPoolConfig({ connectionString: testDbUrl }));
   const adapter = new PrismaPg(pool);
   const rawPrisma = new PrismaClient({ adapter });
 

@@ -41,7 +41,7 @@ const liveHighlights = [
 export function ProductTourSection({ appUrl }: ProductTourSectionProps) {
   return (
     <section className="landing-section landing-section-muted landing-section-soft" id="tour">
-      <div className="ui-page-shell grid gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(320px,1.15fr)] lg:items-start">
+      <div className="ui-page-shell grid min-w-0 gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(280px,1.15fr)] lg:items-start">
         <div>
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-info/20 bg-info/10 px-4 py-2 text-sm text-info">
             <span className="font-medium">What is already in the product</span>

@@ -20,7 +20,7 @@ export const useInvoicesLogic = () => {
 
   const {
     data: invoicesResponse,
-    isLoading: loading,
+    isPending: loading,
     isError,
     error,
     refetch,

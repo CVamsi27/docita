@@ -85,7 +85,7 @@ export const NOTIFICATION_CATEGORIES: readonly NotificationCategoryDef[] = [
   {
     id: "invoices",
     label: "Invoices",
-    types: ["INVOICE_PENDING", "INVOICE_SENT", "INVOICE_FAILED"],
+    types: ["INVOICE_PENDING", "INVOICE_SENT", "INVOICE_FAILED", "INVOICE_PAID"],
   },
   {
     id: "payments",
@@ -186,7 +186,8 @@ export function notificationHref(n: StaffNotification): string | null {
 
     case "INVOICE_PENDING":
     case "INVOICE_SENT":
-    case "INVOICE_FAILED": {
+    case "INVOICE_FAILED":
+    case "INVOICE_PAID": {
       const id = readString(data, "invoiceId") ?? readString(data, "id");
       return id ? `/invoices/${id}` : "/invoices";
     }

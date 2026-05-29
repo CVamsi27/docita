@@ -110,4 +110,8 @@ export class PrismaDoctorScheduleRepository implements IDoctorScheduleRepository
   deleteTimeOff(id: string) {
     return this.timeOffs.deleteTimeOff(id);
   }
+
+  findClinicTimezone(clinicId: string) {
+    return this.schedules.findClinicTimezone(clinicId);
+  }
 }

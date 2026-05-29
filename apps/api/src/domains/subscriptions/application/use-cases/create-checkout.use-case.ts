@@ -29,6 +29,8 @@ export interface CreateCheckoutRequest {
   clinicId: string;
   tier: string;
   cycle: string;
+  /** Optional plan mode (Full / Front Desk / Core). Defaults to FULL. */
+  planMode?: string;
   referrals?: string[];
 }
 
@@ -114,6 +116,7 @@ export class CreateCheckoutUseCase {
         clinicId: request.clinicId,
         tier: tier.value,
         cycle: cycle.value,
+        planMode: request.planMode,
       });
       return {
         orderId: '',

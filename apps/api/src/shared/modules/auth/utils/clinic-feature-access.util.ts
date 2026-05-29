@@ -1,10 +1,16 @@
 import { ForbiddenException } from '@nestjs/common';
-import { ClinicTier, IntelligenceAddon } from '@workspace/db';
+import {
+  ClinicTier,
+  IntelligenceAddon,
+  PlanMode as DbPlanMode,
+} from '@workspace/db';
 import {
   clinicFeatureOverridesSchema,
   Feature,
-  mapDbClinicTierStringToTierName,
+  mapDbClinicTierToTierAndMode,
+  MODE_BLOCKED_FEATURES,
   type ClinicFeatureOverrides,
+  type PlanMode,
 } from '@workspace/types';
 import {
   hasFeatureAccess,
@@ -19,6 +25,7 @@ export type ClinicFeatureAuthSnapshot = {
   tier: ClinicTier;
   intelligenceAddon: IntelligenceAddon;
   features: unknown;
+  planMode?: DbPlanMode | PlanMode | null;
 };
 
 /**
@@ -48,6 +55,40 @@ function getTierDisplayName(tier: Tier): string {
   return names[tier] || 'Unknown';
 }
 
+const TIER_SENTINEL_FEATURES: Partial<Record<Tier, Feature>> = {
+  [Tier.STARTER]: Feature.BASIC_PATIENT_MANAGEMENT,
+  [Tier.ESSENTIAL]: Feature.INVOICING,
+  [Tier.PROFESSIONAL]: Feature.WHATSAPP_OWN_NUMBER,
+  [Tier.HOSPITAL]: Feature.WHATSAPP_MANAGED_NUMBER,
+};
+
+/**
+ * Enforces minimum tier via representative sentinel features (same as app access-policy).
+ */
+export function assertClinicHasTierOrThrow(
+  clinic: ClinicFeatureAuthSnapshot,
+  requiredTier: Tier,
+): void {
+  if (requiredTier === Tier.INTELLIGENCE) {
+    if (clinic.intelligenceAddon !== IntelligenceAddon.ACTIVE) {
+      throw new ForbiddenException(
+        'This feature requires the Intelligence add-on.',
+      );
+    }
+    return;
+  }
+
+  const sentinel = TIER_SENTINEL_FEATURES[requiredTier];
+  if (sentinel) {
+    assertClinicHasFeatureOrThrow(clinic, sentinel);
+    return;
+  }
+
+  throw new ForbiddenException(
+    `This feature requires ${getTierDisplayName(requiredTier)} tier or higher.`,
+  );
+}
+
 /**
  * Enforces the same feature rules as {@link TierGuard} for a single feature.
  * Call after subscription / clinic existence checks.
@@ -59,6 +100,18 @@ export function assertClinicHasFeatureOrThrow(
   if (!isFeatureGenerallyAvailable(requiredFeature)) {
     throw new ForbiddenException(
       `The ${requiredFeature} feature is not available yet.`,
+    );
+  }
+
+  const { tier: tierName, mode } = mapDbClinicTierToTierAndMode(
+    clinic.tier,
+    typeof clinic.planMode === 'string' ? clinic.planMode : null,
+  );
+
+  // PlanMode block runs before overrides so the toggle cannot be bypassed.
+  if (MODE_BLOCKED_FEATURES[mode].has(requiredFeature)) {
+    throw new ForbiddenException(
+      `The ${requiredFeature} feature is not available on the ${mode} mode of your plan.`,
     );
   }
 
@@ -83,9 +136,16 @@ export function assertClinicHasFeatureOrThrow(
     return;
   }
 
-  const tierName = mapDbClinicTierStringToTierName(clinic.tier);
   const hasIntelligence = clinic.intelligenceAddon === IntelligenceAddon.ACTIVE;
-  if (!hasFeatureAccess(tierName, requiredFeature, hasIntelligence)) {
+  if (
+    !hasFeatureAccess(
+      tierName,
+      requiredFeature,
+      hasIntelligence,
+      featureOverrides,
+      mode,
+    )
+  ) {
     throw new ForbiddenException(
       `This feature requires ${getTierDisplayName(featureTier)} tier or higher.`,
     );

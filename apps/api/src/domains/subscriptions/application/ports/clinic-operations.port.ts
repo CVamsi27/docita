@@ -23,6 +23,8 @@ export interface IClinicOperations {
     tier: string,
     subscriptionStatus: string,
     features: Record<string, boolean>,
+    /** Optional plan mode (Full / Front Desk / Core). Persists onto Clinic.planMode when provided. */
+    planMode?: string,
   ): Promise<void>;
   emitUpdate(clinicId: string, data: ClinicUpdateData): Promise<void>;
 }

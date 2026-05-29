@@ -18,7 +18,13 @@ import {
   usePricingConfig,
 } from "@/features/subscription/hooks/use-pricing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import { type TierName } from "@workspace/types";
+import {
+  type PlanMode,
+  PLAN_MODE_INFO,
+  TIER_INFO,
+  type TierName,
+  tierSchema,
+} from "@workspace/types";
 import { getDisplayBillingPeriodEndAndDaysLeft } from "@/features/subscription/lib/billing-period-display";
 import { recommendTier } from "@/features/subscription/lib/recommend-tier";
 import { getTierName } from "@workspace/utils";
@@ -32,7 +38,7 @@ import { buildCurrentPlanStatusNotice } from "@/features/subscription/lib/billin
 
 /** Subscription billing hooks in one module so Fast Refresh cannot desync parent/child hook order. */
 export function useBillingSubscriptionWorkspace() {
-  const { currentTier } = usePermissionStore();
+  const { currentTier, currentMode } = usePermissionStore();
   const { data: subscription, isLoading: isSubscriptionLoading } =
     useSubscription({ enabled: true });
   const { currency } = useLocaleCurrency();
@@ -76,6 +82,7 @@ export function useBillingSubscriptionWorkspace() {
 
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const [selectedTier, setSelectedTier] = useState<TierName | null>(null);
+  const [selectedMode, setSelectedMode] = useState<PlanMode>("FULL");
   const [selectedCycle, setSelectedCycle] = useState<"MONTHLY" | "YEARLY">(
     "MONTHLY",
   );
@@ -131,9 +138,10 @@ export function useBillingSubscriptionWorkspace() {
   const showStarterAccessThroughLabel = starterLongMonthlyWindow;
 
   const handleSelectTier = useCallback(
-    (tier: TierName, cycle: "MONTHLY" | "YEARLY") => {
+    (tier: TierName, cycle: "MONTHLY" | "YEARLY", mode: PlanMode = "FULL") => {
       setSelectedTier(tier);
       setSelectedCycle(cycle);
+      setSelectedMode(mode);
       setShowTierChangeDialog(true);
     },
     [],
@@ -146,17 +154,22 @@ export function useBillingSubscriptionWorkspace() {
       setShowContactSalesModal(true);
       return;
     }
-    await checkoutTier({ tier: selectedTier, billingCycle: selectedCycle });
-  }, [selectedTier, selectedCycle, checkoutTier]);
+    await checkoutTier({
+      tier: selectedTier,
+      billingCycle: selectedCycle,
+      planMode: selectedMode,
+    });
+  }, [selectedTier, selectedCycle, selectedMode, checkoutTier]);
 
   const handleScheduleTierChange = useCallback(async () => {
     if (!selectedTier) return;
     await scheduleMutation.mutateAsync({
       tier: selectedTier,
       billingCycle: selectedCycle,
+      planMode: selectedMode,
     });
     setShowTierChangeDialog(false);
-  }, [selectedTier, selectedCycle, scheduleMutation]);
+  }, [selectedTier, selectedCycle, selectedMode, scheduleMutation]);
 
   const currentTierInfo = getTierInfo(effectiveCurrentTier);
   const scrollToPlans = useCallback(() => {
@@ -182,8 +195,22 @@ export function useBillingSubscriptionWorkspace() {
     scrollToPlans,
   });
 
+  // Show the plan label the customer is actually paying for (subscription.tier),
+  // not the access-downgraded `effectiveCurrentTier` (which falls back to Starter
+  // when a trial expires). Mode suffix appears when the clinic is on a non-Full
+  // PlanMode so "Hospital · Front Desk" reads consistently with the upgrade UI.
+  const billedTierName: TierName | null = (() => {
+    const parsed = tierSchema.safeParse(subscription?.tier);
+    return parsed.success ? parsed.data : null;
+  })();
+  const billedTierLabel = billedTierName
+    ? TIER_INFO[billedTierName]?.name ?? currentTierInfo.name
+    : currentTierInfo.name;
+  const billedModeLabel =
+    currentMode !== "FULL" ? ` · ${PLAN_MODE_INFO[currentMode].name}` : "";
+
   const planDetails = [
-    { label: "Plan", value: currentTierInfo.name },
+    { label: "Plan", value: `${billedTierLabel}${billedModeLabel}` },
     {
       label: "Status",
       value:
@@ -226,6 +253,8 @@ export function useBillingSubscriptionWorkspace() {
     selectedTier,
     selectedCycle,
     setSelectedCycle,
+    selectedMode,
+    setSelectedMode,
     showSuccessModal,
     setShowSuccessModal,
     successData,

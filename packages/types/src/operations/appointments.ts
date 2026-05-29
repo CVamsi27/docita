@@ -224,7 +224,7 @@ function parseAppointmentWallDateTime(
   return new Date(utcGuess.getTime() - correctedOffsetMs);
 }
 
-function normalizeAppointmentDate(
+export function normalizeAppointmentInstant(
   value: string | Date,
   wallTimezone: string,
 ): Date | undefined {
@@ -246,6 +246,13 @@ function normalizeAppointmentDate(
   }
   const parsed = new Date(s);
   return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
+function normalizeAppointmentDate(
+  value: string | Date,
+  wallTimezone: string,
+): Date | undefined {
+  return normalizeAppointmentInstant(value, wallTimezone);
 }
 
 export function refineCreateAppointmentDateTimes(wallTimezone: string) {

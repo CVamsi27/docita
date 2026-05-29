@@ -75,7 +75,7 @@ export function ConsultationTimerUI({
           </TooltipContent>
         </Tooltip>
 
-        <PopoverContent className="w-64 p-4" align="end">
+        <PopoverContent className="w-[min(100vw-2rem,16rem)] p-4" align="end">
           <div className="space-y-4">
             <div className="text-center">
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">

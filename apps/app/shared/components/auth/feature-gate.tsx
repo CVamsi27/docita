@@ -23,7 +23,7 @@ import {
   Tier,
   TIER_INFO,
 } from "@workspace/types";
-import { getTierName, hasFeatureAccess } from "@workspace/utils";
+import { getTierName } from "@workspace/utils";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
@@ -183,7 +183,7 @@ export function TierGate({
   fallback,
   showLockedCard = false,
 }: TierGateProps) {
-  const { currentTier, hasIntelligence } = usePermissionStore();
+  const canAccess = usePermissionStore((state) => state.canAccess);
   const tierFeature = {
     [Tier.STARTER]: Feature.BASIC_PATIENT_MANAGEMENT,
     [Tier.ESSENTIAL]: Feature.INVOICING,
@@ -195,10 +195,8 @@ export function TierGate({
     [Tier.FRONT_DESK_CLINIC]: Feature.CALENDAR_SLOTS,
     [Tier.FRONT_DESK_HOSPITAL]: Feature.CALENDAR_SLOTS,
   }[tier];
-  const hasAccess = hasFeatureAccess(
-    getTierName(currentTier),
+  const hasAccess = canAccess(
     tierFeature ?? Feature.BASIC_PATIENT_MANAGEMENT,
-    hasIntelligence,
   );
 
   if (hasAccess) {

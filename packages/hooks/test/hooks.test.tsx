@@ -13,6 +13,11 @@ import { useMedicalCalculations } from "../src/use-medical-calculations";
 import { useMounted } from "../src/use-mounted";
 import { useSessionStorage } from "../src/use-session-storage";
 import { useToggle } from "../src/use-toggle";
+import {
+  BREAKPOINTS,
+  useBreakpoint,
+  useIsMobile,
+} from "../src/use-breakpoint";
 
 describe("@workspace/hooks", () => {
   beforeEach(() => {
@@ -249,5 +254,39 @@ describe("@workspace/hooks", () => {
     });
 
     expect(result.current).toBe(true);
+  });
+
+  it("reports breakpoint after mount", async () => {
+    Object.defineProperty(window, "innerWidth", {
+      writable: true,
+      configurable: true,
+      value: BREAKPOINTS.lg,
+    });
+
+    const { result } = renderHook(() => useBreakpoint());
+
+    await waitFor(() => {
+      expect(result.current).toBe("lg");
+    });
+  });
+
+  it("reports mobile below md breakpoint", async () => {
+    Object.defineProperty(window, "innerWidth", {
+      writable: true,
+      configurable: true,
+      value: BREAKPOINTS.md - 1,
+    });
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: query.includes("max-width"),
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+
+    const { result } = renderHook(() => useIsMobile());
+
+    await waitFor(() => {
+      expect(result.current).toBe(true);
+    });
   });
 });

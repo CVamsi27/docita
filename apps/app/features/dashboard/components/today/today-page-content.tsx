@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { DashboardSharedWorkspace } from "@/features/dashboard/components/layout/dashboard-shared-workspace";
 import { DashboardShortcutsSection } from "@/features/dashboard/components/layout/dashboard-shortcuts-section";
 import { DashboardSkeletonUI } from "@/features/dashboard/components/layout/dashboard-skeleton-ui";
@@ -22,8 +23,14 @@ import { Button } from "@workspace/ui/components/form/button";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import {
+  BottomActionBar,
+  BottomActionBarSlot,
+} from "@workspace/ui/components/layout/bottom-action-bar";
+import { useStartConsultation } from "@workspace/data-access";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { cn } from "@workspace/ui/lib/utils";
-import { LayoutDashboard, Sparkles } from "lucide-react";
+import { LayoutDashboard, Play, Sparkles } from "lucide-react";
 
 export function TodayPageContent() {
   const { clinic } = useClinic();
@@ -35,6 +42,9 @@ export function TodayPageContent() {
   } = useClinicReferralShare();
   const { canStartConsultation } = usePermissions();
   const { openOverlay } = useAskAi();
+  const router = useRouter();
+  const startConsultation = useStartConsultation();
+  const [startingNext, setStartingNext] = useState(false);
   const { state } = useDashboardLogic();
   const {
     stats,
@@ -164,9 +174,37 @@ export function TodayPageContent() {
     pendingJoinRequests > 0 || stats.pendingReports > 0 || waitingCount > 0;
   const showTodayRightColumn = hasShareRailContent || hasAdvisorRailContent;
 
+  const handleStartNextPatient = async () => {
+    const next = nextPatients[0];
+    if (!next) return;
+    try {
+      setStartingNext(true);
+      const result = await startConsultation.mutateAsync({
+        appointmentId: next.id,
+      });
+      router.push(`/consultation/${result.appointmentId}`);
+    } catch (error) {
+      showUserFacingErrorToast(
+        error,
+        "We could not open this consultation. Please try again.",
+        "save",
+      );
+    } finally {
+      setStartingNext(false);
+    }
+  };
+
   return (
     <AppPageScaffold header={header}>
-      <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start xl:gap-8 2xl:grid-cols-[minmax(0,1fr)_20rem]">
+      <div
+        className={cn(
+          "flex min-w-0 flex-col gap-6 xl:flex-row xl:items-start xl:gap-8",
+          canStartConsultation &&
+            nextPatients[0] &&
+            !currentPatient &&
+            "pb-24 md:pb-0",
+        )}
+      >
         <div className="min-w-0 flex-1">
           <DashboardSharedWorkspace
             mode="today"
@@ -194,7 +232,7 @@ export function TodayPageContent() {
               "flex w-full min-w-0 shrink-0 flex-col gap-4",
               "rounded-[var(--radius-lg)] border border-border/70 bg-card p-4 shadow-sm ring-1 ring-border/30",
               "sm:p-5",
-              "xl:sticky xl:top-4 xl:w-full xl:self-start xl:bg-card/95 xl:backdrop-blur-sm",
+              "xl:sticky xl:top-4 xl:w-72 xl:max-w-[20rem] xl:self-start xl:bg-card/95 xl:backdrop-blur-sm 2xl:w-80",
             )}
           >
             <h2 className="sr-only" id="today-rail-heading">
@@ -229,6 +267,25 @@ export function TodayPageContent() {
           </section>
         ) : null}
       </div>
+      {canStartConsultation && nextPatients[0] && !currentPatient ? (
+        <BottomActionBar>
+          <BottomActionBarSlot variant="secondary">
+            <Button variant="outline" className="w-full touch-manipulation" asChild>
+              <Link href="/consultation">View queue</Link>
+            </Button>
+          </BottomActionBarSlot>
+          <BottomActionBarSlot variant="primary">
+            <Button
+              className="w-full touch-manipulation"
+              disabled={startingNext || startConsultation.isPending}
+              onClick={() => void handleStartNextPatient()}
+            >
+              <Play className="mr-2 size-4" aria-hidden />
+              {startingNext ? "Starting…" : "Next patient"}
+            </Button>
+          </BottomActionBarSlot>
+        </BottomActionBar>
+      ) : null}
     </AppPageScaffold>
   );
 }

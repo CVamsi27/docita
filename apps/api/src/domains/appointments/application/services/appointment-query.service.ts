@@ -1,6 +1,7 @@
 import {
   Injectable,
   Inject,
+  Logger,
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
@@ -15,15 +16,31 @@ import {
   APPOINTMENT_PERSISTENCE_PORT,
   type AppointmentPersistencePort,
 } from '@/domains/appointments/application/ports/appointment-persistence.port';
-import { getClinicLocalDayUtcBounds } from '@/shared/common/utils/clinic-calendar-bounds';
+import {
+  getClinicLocalDayUtcBounds,
+  isValidIanaTimezone,
+} from '@/shared/common/utils/clinic-calendar-bounds';
+import { DEFAULT_TIMEZONE } from '@workspace/utils';
 
 type AppointmentAccessContext = {
   role?: Role;
   userId?: string;
 };
 
+type ListAppointmentsParams = AppointmentSearchParams & {
+  calendarPickerDate?: string;
+  calendarRangeStartPicker?: string;
+  calendarRangeEndPicker?: string;
+};
+
+type PaginatedAppointmentList = Awaited<
+  ReturnType<IAppointmentReadRepository['findAll']>
+>;
+
 @Injectable()
 export class AppointmentQueryService {
+  private readonly logger = new Logger(AppointmentQueryService.name);
+
   constructor(
     @Inject(APPOINTMENT_READ_REPOSITORY_TOKEN)
     private readonly appointmentRepository: IAppointmentReadRepository,
@@ -54,10 +71,13 @@ export class AppointmentQueryService {
     return appointment;
   }
 
-  async listAppointments(
-    params: AppointmentSearchParams & { calendarPickerDate?: string },
-  ) {
-    const { calendarPickerDate, ...rest } = params;
+  async listAppointments(params: ListAppointmentsParams) {
+    const {
+      calendarPickerDate,
+      calendarRangeStartPicker,
+      calendarRangeEndPicker,
+      ...rest
+    } = params;
     let repoParams: AppointmentSearchParams = { ...rest };
 
     if (calendarPickerDate && !rest.startDate && !rest.endDate) {
@@ -65,14 +85,40 @@ export class AppointmentQueryService {
         rest.clinicId,
         calendarPickerDate,
       );
-      if (bounds) {
-        repoParams = {
-          ...repoParams,
-          startDate: bounds.rangeStart,
-          endDate: bounds.rangeEndExclusive,
-          intersectCalendarRange: true,
-        };
+      if (!bounds) {
+        return this.emptyCalendarFilteredPage(
+          rest.clinicId,
+          `date '${calendarPickerDate}'`,
+        );
       }
+      repoParams = {
+        ...repoParams,
+        startDate: bounds.rangeStart,
+        endDate: bounds.rangeEndExclusive,
+        intersectCalendarRange: true,
+      };
+    } else if (
+      (calendarRangeStartPicker || calendarRangeEndPicker) &&
+      !rest.startDate &&
+      !rest.endDate
+    ) {
+      const bounds = await this.resolveCalendarPickerRangeUtcBounds(
+        rest.clinicId,
+        calendarRangeStartPicker,
+        calendarRangeEndPicker,
+      );
+      if (!bounds) {
+        return this.emptyCalendarFilteredPage(
+          rest.clinicId,
+          `range '${calendarRangeStartPicker ?? ''}'..'${calendarRangeEndPicker ?? ''}'`,
+        );
+      }
+      repoParams = {
+        ...repoParams,
+        startDate: bounds.rangeStart,
+        endDate: bounds.rangeEndExclusive,
+        intersectCalendarRange: true,
+      };
     }
 
     return this.appointmentRepository.findAll(repoParams);
@@ -82,11 +128,76 @@ export class AppointmentQueryService {
     clinicId: string,
     pickerDateStr: string,
   ): Promise<{ rangeStart: Date; rangeEndExclusive: Date } | null> {
+    const timezone = await this.resolveClinicTimezone(clinicId);
+    return getClinicLocalDayUtcBounds(pickerDateStr, timezone);
+  }
+
+  private async resolveCalendarPickerRangeUtcBounds(
+    clinicId: string,
+    startPicker?: string,
+    endPicker?: string,
+  ): Promise<{ rangeStart: Date; rangeEndExclusive: Date } | null> {
+    const timezone = await this.resolveClinicTimezone(clinicId);
+
+    const startBounds = startPicker
+      ? getClinicLocalDayUtcBounds(startPicker, timezone)
+      : null;
+    const endBounds = endPicker
+      ? getClinicLocalDayUtcBounds(endPicker, timezone)
+      : null;
+
+    if (startPicker && !startBounds) {
+      return null;
+    }
+    if (endPicker && !endBounds) {
+      return null;
+    }
+
+    const rangeStart = startBounds?.rangeStart;
+    const rangeEndExclusive = endBounds?.rangeEndExclusive;
+
+    if (!rangeStart || !rangeEndExclusive) {
+      return null;
+    }
+
+    if (rangeStart.getTime() >= rangeEndExclusive.getTime()) {
+      return null;
+    }
+
+    return { rangeStart, rangeEndExclusive };
+  }
+
+  private async resolveClinicTimezone(clinicId: string): Promise<string> {
+    return this.getClinicTimezone(clinicId);
+  }
+
+  async getClinicTimezone(clinicId: string): Promise<string> {
     const row = await this.persistence.clinic.findUnique({
       where: { id: clinicId },
       select: { timezone: true },
     });
-    const timezone = row?.timezone?.trim() || 'Asia/Kolkata';
-    return getClinicLocalDayUtcBounds(pickerDateStr, timezone);
+    const raw = row?.timezone?.trim() || DEFAULT_TIMEZONE;
+    if (isValidIanaTimezone(raw)) {
+      return raw;
+    }
+
+    this.logger.warn(
+      `Clinic ${clinicId} has invalid timezone '${raw}'; falling back to ${DEFAULT_TIMEZONE}`,
+    );
+    return DEFAULT_TIMEZONE;
+  }
+
+  private emptyCalendarFilteredPage(
+    clinicId: string,
+    context: string,
+  ): PaginatedAppointmentList {
+    this.logger.warn(
+      `Could not resolve calendar bounds for clinic ${clinicId} and ${context}. Returning empty page.`,
+    );
+    return {
+      items: [],
+      count: 0,
+      hasMore: false,
+    };
   }
 }

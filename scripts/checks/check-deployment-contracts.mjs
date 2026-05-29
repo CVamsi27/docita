@@ -121,6 +121,24 @@ try {
     );
   }
 
+  assertIncludes(
+    deployWorkflowSource,
+    "needs.changes.outputs.api == 'true' ||\n      needs.changes.outputs.worker == 'true'",
+    "migrate-db must run before any API or worker deploy, not only when packages/db changes in the last commit.",
+  );
+
+  assertIncludes(
+    deployWorkflowSource,
+    "needs.migrate-db.result == 'success'",
+    "API and worker deploy jobs must require a successful migrate-db job (skipped migrate + deploy is forbidden).",
+  );
+
+  assertIncludes(
+    deployWorkflowSource,
+    "scripts/deploy/verify-db-schema-sync.sh",
+    "Deploy workflow must verify production schema sync after migrations.",
+  );
+
   for (const requiredCiBuild of [
     "pnpm --filter @docita/app run build:cloudflare",
     "pnpm --filter @docita/internal run build:cloudflare",
@@ -150,6 +168,24 @@ try {
   assert(
     invalidCorsOrigins.length === 0,
     `fly.toml CORS_ORIGINS must only list https://*.docita.work hosts. Invalid entries: ${invalidCorsOrigins.join(", ")}`,
+  );
+
+  assertIncludes(
+    deployWorkflowSource,
+    "--strategy bluegreen",
+    "API deploy must use Fly blue-green strategy for safe traffic cutover.",
+  );
+
+  assertIncludes(
+    flyTomlSource,
+    "RLS_ENABLED",
+    "fly.toml [env] must set RLS_ENABLED for production API.",
+  );
+
+  assertIncludes(
+    deployWorkflowSource,
+    "scripts/monitoring/synthetic/run-probes.mjs",
+    "Deploy workflow must run post-deploy synthetic probes.",
   );
 
   process.stdout.write("Deployment contracts verified.\n");

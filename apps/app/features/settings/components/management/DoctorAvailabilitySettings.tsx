@@ -59,20 +59,20 @@ export function DoctorAvailabilitySettings() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="border-b border-border/60 pb-5">
           <div className="flex items-center gap-3">
             <Calendar className="h-5 w-5 text-info" />
             <div>
               <CardTitle>Doctor availability</CardTitle>
               <CardDescription>
-                Configure working hours and slot duration per doctor
+                Working hours and slot duration per doctor.
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="flex flex-col gap-6 pt-5">
           {availability.isAdmin && availability.doctors.length > 0 ? (
             <div className="space-y-2">
               <Label htmlFor="availability-doctor">Select Doctor</Label>
@@ -102,16 +102,16 @@ export function DoctorAvailabilitySettings() {
             </div>
           ) : null}
 
-          <div className="space-y-1">
-            <p className="text-sm font-medium">
-              {availability.selectedDoctorName}&apos;s Weekly Schedule
-            </p>
+          <div className="flex flex-col gap-1">
+            <span className="ui-eyebrow">
+              {availability.selectedDoctorName}&apos;s weekly schedule
+            </span>
             <p className="text-xs text-muted-foreground">
-              Toggle days on/off and set hours individually
+              Toggle days on or off and set hours individually.
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="flex flex-col gap-2">
             {availability.daySchedules.map((day) => (
               <DoctorAvailabilityDayRow
                 key={day.dayOfWeek}
@@ -123,24 +123,25 @@ export function DoctorAvailabilitySettings() {
             ))}
           </div>
 
-          <Button
-            className="w-full"
-            onClick={availability.handleSave}
-            disabled={availability.isSaving}
-          >
-            {availability.isSaving ? (
-              <>
-                <DocitaLoadingIndicator
-                  variant="inline"
-                  decorative
-                  className="mr-2"
-                />
-                Saving…
-              </>
-            ) : (
-              "Save Availability"
-            )}
-          </Button>
+          <div className="flex justify-end border-t border-border/60 pt-4">
+            <Button
+              onClick={availability.handleSave}
+              disabled={availability.isSaving}
+            >
+              {availability.isSaving ? (
+                <>
+                  <DocitaLoadingIndicator
+                    variant="inline"
+                    decorative
+                    className="mr-2"
+                  />
+                  Saving…
+                </>
+              ) : (
+                "Save availability"
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

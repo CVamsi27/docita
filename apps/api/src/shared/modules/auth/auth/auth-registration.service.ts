@@ -71,26 +71,35 @@ export class AuthRegistrationService {
         clinicId: data.clinicId,
       });
 
-      const user = await this.prisma.user.create({
-        data: {
-          ...userData,
-          onboardingStep: 'CHOOSE_PATH',
-          onboardingStartedAt: this.clock.now(),
-          emailVerified: shouldAutoVerifyEmail,
-        },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          clinicId: true,
-          emailVerified: true,
-          onboardingStep: true,
-          createdAt: true,
-          updatedAt: true,
-        },
+      const { user, tokens } = await this.prisma.$transaction(async (tx) => {
+        const createdUser = await tx.user.create({
+          data: {
+            ...userData,
+            onboardingStep: 'CHOOSE_PATH',
+            onboardingStartedAt: this.clock.now(),
+            emailVerified: shouldAutoVerifyEmail,
+          },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true,
+            clinicId: true,
+            emailVerified: true,
+            onboardingStep: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        });
+        const issuedTokens = await this.session.login(
+          createdUser,
+          undefined,
+          undefined,
+          tx,
+        );
+        return { user: createdUser, tokens: issuedTokens };
       });
-      const tokens = await this.session.login(user);
+
       let verificationEmailSent = shouldAutoVerifyEmail || !!user.emailVerified;
 
       if (!shouldAutoVerifyEmail) {

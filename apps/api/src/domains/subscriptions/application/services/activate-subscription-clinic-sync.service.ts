@@ -18,7 +18,11 @@ export class ActivateSubscriptionClinicSyncService {
     private readonly activationPolicy: SubscriptionActivationPolicyService,
   ) {}
 
-  async syncAfterActivation(clinicId: string, tier: ClinicTier): Promise<void> {
+  async syncAfterActivation(
+    clinicId: string,
+    tier: ClinicTier,
+    planMode?: string,
+  ): Promise<void> {
     const featureUpdates =
       this.activationPolicy.buildPaidTierFeatureUpdates(tier);
 
@@ -27,6 +31,7 @@ export class ActivateSubscriptionClinicSyncService {
       tier.value,
       SubscriptionStatusEnum.ACTIVE,
       featureUpdates,
+      planMode,
     );
 
     await this.clinicOps.emitUpdate(clinicId, {

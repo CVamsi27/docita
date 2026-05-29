@@ -52,7 +52,9 @@ export class AuthPasswordService {
       }
 
       const token = nanoid(64);
-      const expiresAt = new Date(this.clock.now().getTime() + 60 * 60 * 1000);
+      const expiresAt = new Date(
+        this.clock.now().getTime() + AUTH_CONSTANTS.PASSWORD_RESET_TTL_MS,
+      );
 
       await this.prisma.user.update({
         where: { id: user.id },

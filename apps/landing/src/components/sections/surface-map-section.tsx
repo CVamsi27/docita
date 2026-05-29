@@ -112,7 +112,7 @@ export function SurfaceMapSection() {
           <span className="r2-eyebrow">Built for the whole clinic</span>
         </div>
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-end lg:gap-12">
+        <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-end lg:gap-12">
           <h2
             id="r2-surface-heading"
             className="max-w-3xl r2-display-sm text-foreground"
@@ -127,7 +127,7 @@ export function SurfaceMapSection() {
         </div>
 
         <motion.div
-          className="mt-10 r2-surface-grid"
+          className="mt-10 min-w-0 overflow-x-auto overscroll-x-contain r2-surface-grid"
           variants={stagger}
           initial="hidden"
           whileInView="visible"

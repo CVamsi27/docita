@@ -28,6 +28,7 @@ import {
   subscriptionBillingActivateResponseSchema,
   subscriptionBillingCancelResponseSchema,
   subscriptionBillingCheckoutResponseSchema,
+  subscriptionBillingScheduleChangeRequestSchema,
 } from '@workspace/types';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 import { ZodSerializerDto } from 'nestjs-zod';
@@ -72,6 +73,7 @@ export class SubscriptionsBillingMutationController {
           clinicId,
           tier: body.tier,
           cycle: body.billingCycle,
+          planMode: body.planMode,
         }),
       );
     } catch (error) {
@@ -98,6 +100,7 @@ export class SubscriptionsBillingMutationController {
       razorpaySignature: body.razorpaySignature,
       tier: body.tier,
       cycle: body.billingCycle,
+      planMode: body.planMode,
     });
     return subscriptionBillingActivateResponseSchema.parse({ success: true });
   }
@@ -118,13 +121,20 @@ export class SubscriptionsBillingMutationController {
   @Post('billing/schedule-change')
   async scheduleChange(
     @Request() req: RequestWithUser,
-    @Body() body: { tier: string; billingCycle: string },
+    @Body() rawBody: unknown,
   ) {
+    const parsed =
+      subscriptionBillingScheduleChangeRequestSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.message);
+    }
+    const body = parsed.data;
     const clinicId = requireBillingClinicId(req);
     return this.schedulePlanChangeUseCase.execute({
       clinicId,
       tier: body.tier,
       cycle: body.billingCycle,
+      planMode: body.planMode,
     });
   }
 

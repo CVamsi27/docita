@@ -28,6 +28,8 @@
     "db:validate-feedback-backfill": "pnpm exec ts-node scripts/validate-feedback-feature-backfill.ts",
     "db:prod-data-safety": "pnpm exec ts-node scripts/verify-production-data-safety.ts",
     "db:backfill-onboarding-clinic-state": "pnpm exec ts-node scripts/backfill-onboarding-clinic-state.ts",
+    "db:repair-appointments": "node ../../scripts/db/repair-appointment-instants.mjs",
+    "db:repair-appointments:apply": "node ../../scripts/db/repair-appointment-instants.mjs --apply",
     "db:guardrail": "pnpm db:check-integrity && pnpm db:validate-feedback-backfill && pnpm db:analyze-indexes && pnpm db:profile-queries && pnpm db:check-query-plans"
   },
   "devDependencies": {

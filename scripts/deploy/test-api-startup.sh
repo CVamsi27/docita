@@ -80,6 +80,9 @@ export PORT
 
 cd "$REPO_ROOT"
 
+echo "==> Verifying database schema before API startup..."
+bash scripts/deploy/verify-db-schema-sync.sh
+
 echo "==> Building API..."
 pnpm build:api
 

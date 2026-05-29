@@ -81,6 +81,8 @@ type AppointmentQueryOptions = {
   search?: string;
   status?: string;
   cursor?: string;
+  page?: number;
+  sortOrder?: "asc" | "desc";
   limit?: number;
 };
 
@@ -107,6 +109,13 @@ export const useAppointments = (options?: AppointmentQueryOptions | null) => {
     {
       enabled: calendarOk && options !== null && Boolean(getClinicId()),
       placeholderData: keepPreviousData,
+      // Cached snapshot is treated as stale immediately so navigating back to
+      // /appointments — or flipping the calendar back to a previously-viewed
+      // day — always triggers a background revalidation rather than showing a
+      // stale page until the user manually refreshes or creates an entry.
+      staleTime: 0,
+      refetchOnMount: "always",
+      refetchOnWindowFocus: true,
     },
   );
 };

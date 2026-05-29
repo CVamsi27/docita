@@ -1,13 +1,7 @@
 import type { ComponentType } from "react";
-import {
-  ClipboardList,
-  LayoutDashboard,
-  Receipt,
-  Stethoscope,
-} from "lucide-react";
+import { ClipboardList, Receipt, Stethoscope } from "lucide-react";
 
 export const PATIENT_DETAIL_TAB_VALUES = [
-  "overview",
   "visits",
   "records",
   "billing",
@@ -29,6 +23,7 @@ export const LEGACY_PATIENT_TAB_REDIRECTS: Record<
   string,
   { tab: PatientDetailTabValue; subtab?: PatientRecordsSubTab }
 > = {
+  overview: { tab: "visits" },
   vitals: { tab: "records", subtab: "vitals" },
   prescriptions: { tab: "records", subtab: "prescriptions" },
   labs: { tab: "records", subtab: "labs" },
@@ -40,8 +35,7 @@ export const TAB_DEFINITIONS: Array<{
   label: string;
   icon: ComponentType<{ className?: string }>;
 }> = [
-  { value: "overview", label: "Overview", icon: LayoutDashboard },
-  { value: "visits", label: "Visits & notes", icon: Stethoscope },
+  { value: "visits", label: "Visits", icon: Stethoscope },
   { value: "records", label: "Records", icon: ClipboardList },
   { value: "billing", label: "Billing", icon: Receipt },
 ];

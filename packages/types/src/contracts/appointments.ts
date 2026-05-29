@@ -95,6 +95,22 @@ export const appointmentListItemResponseSchema = z
         }),
       )
       .optional(),
+    latestPatientResponse: z
+      .object({
+        id: z.string(),
+        responseType: z.enum([
+          "CONFIRM",
+          "ON_THE_WAY",
+          "DELAY",
+          "RESCHEDULE",
+          "CANCEL",
+          "UNKNOWN",
+        ]),
+        responseTime: z.string().or(z.date()),
+        delayMinutes: z.number().int().nullable().optional(),
+        patientMessage: z.string().nullable().optional(),
+      })
+      .optional(),
   })
   .strict();
 
@@ -157,6 +173,8 @@ export const listAppointmentsQuerySchema = z.object({
   search: z.string().optional(),
   status: z.string().optional(),
   cursor: z.string().optional(),
+  page: z.coerce.number().int().positive().optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
   limit: z.coerce.number().int().positive().max(500).optional(),
 });
 

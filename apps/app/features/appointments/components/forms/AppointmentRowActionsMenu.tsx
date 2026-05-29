@@ -137,7 +137,10 @@ export function AppointmentRowActionsMenu({
         </TooltipTrigger>
         <TooltipContent side="bottom">More actions</TooltipContent>
       </Tooltip>
-      <DropdownMenuContent align="end" className="min-w-[200px]">
+      <DropdownMenuContent
+        align="end"
+        className="min-w-[min(100vw-2rem,12.5rem)]"
+      >
         {showViewPatient && patientId ? (
           <DropdownMenuItem asChild>
             <Link

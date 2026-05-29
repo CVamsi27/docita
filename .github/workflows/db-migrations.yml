@@ -5,11 +5,17 @@ env:
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/db/**"
 
 jobs:
   migrate-db:
     name: Apply Prisma Migrations
     runs-on: ubuntu-latest
+    environment: production
     env:
       NODE_ENV: production
 
@@ -49,3 +55,8 @@ jobs:
             exit 1
           fi
           pnpm --filter @workspace/db run db:migrate:safe
+
+      - name: Verify database schema is in sync
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: bash scripts/deploy/verify-db-schema-sync.sh

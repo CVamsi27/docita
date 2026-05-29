@@ -10,6 +10,7 @@ export enum ApplicationEvents {
   DOCTOR_DELAY_MARKED = 'doctor-delay.marked',
   PRESCRIPTION_CREATED = 'prescription.created',
   INVOICE_GENERATED = 'invoice.generated',
+  PAYMENT_CAPTURED = 'payment.captured',
   NOTIFICATION_CREATED = 'notification.created',
   NOTIFICATION_READ = 'notification.read',
   NOTIFICATION_DELETED = 'notification.deleted',

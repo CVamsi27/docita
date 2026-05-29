@@ -13,6 +13,8 @@ export interface ScheduledPlanChange {
   plan: string;
   billingCycle: string;
   effectiveAt: string; // ISO-8601
+  /** Optional PlanMode for the scheduled change. Undefined defaults to FULL on apply. */
+  planMode?: string;
 }
 
 export interface SubscriptionProps {
@@ -367,11 +369,13 @@ export class Subscription {
     billingCycle: BillingCycle,
     effectiveAt: Date,
     now: Date,
+    planMode?: string,
   ) {
     this.scheduledChange = {
       plan: plan.value,
       billingCycle: billingCycle.value,
       effectiveAt: effectiveAt.toISOString(),
+      ...(planMode ? { planMode } : {}),
     };
     this.touchUpdatedAt(now);
   }

@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
-import { AppointmentStatus, WhatsappLogStatus } from '@workspace/db';
+import { WhatsappLogStatus } from '@workspace/db';
 import { WhatsAppWebhookPayload } from '@workspace/types';
 import {
   WHATSAPP_PERSISTENCE_PORT,
@@ -7,6 +7,7 @@ import {
 } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { SupportWhatsAppInboxService } from '@/shared/modules/support-whatsapp/support-whatsapp-inbox.service';
 import { ResponseHandlerService } from '@/domains/whatsapp/application/services/response-handler.service';
+import { PatientAppointmentResolverService } from '@/domains/whatsapp/application/services/patient-appointment-resolver.service';
 import {
   WHATSAPP_REPOSITORY_TOKEN,
   IWhatsAppRepository,
@@ -50,6 +51,7 @@ export class WhatsAppWebhookIngressService {
     private readonly supportInboxService: SupportWhatsAppInboxService,
     @Inject(forwardRef(() => ResponseHandlerService))
     private readonly responseHandler: ResponseHandlerService,
+    private readonly appointmentResolver: PatientAppointmentResolverService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
@@ -90,18 +92,23 @@ export class WhatsAppWebhookIngressService {
       }
 
       try {
-        const recentAppointment =
-          await this.findRecentAppointmentByPhone(phoneNumber);
-        if (recentAppointment) {
-          await this.responseHandler.handlePatientResponse(
-            recentAppointment.id,
+        const contextMessageId = this.readContextMessageId(message);
+        const appointmentContext =
+          await this.appointmentResolver.resolveForInboundMessage({
+            phoneNumber,
+            contextProviderMessageId: contextMessageId,
+          });
+
+        if (appointmentContext) {
+          await this.responseHandler.handlePatientResponseForAppointment(
+            appointmentContext,
             response,
             phoneNumber,
             message.id,
           );
         } else {
           this.logger.warn(
-            `No recent appointment found for phone: ${phoneNumber}`,
+            `No matching appointment found for WhatsApp reply from ${phoneNumber}`,
           );
         }
       } catch (error) {
@@ -213,45 +220,10 @@ export class WhatsAppWebhookIngressService {
     }
   }
 
-  private async findRecentAppointmentByPhone(phoneNumber: string) {
-    const cleanPhone = phoneNumber.replace(/\D/g, '');
-    const phoneVariants = [
-      phoneNumber,
-      cleanPhone,
-      `+${cleanPhone}`,
-      cleanPhone.slice(-10),
-    ];
-
-    const patient = await this.persistence.patient.findFirst({
-      where: {
-        phoneNumber: { in: phoneVariants },
-      },
-      select: { id: true },
-    });
-
-    if (!patient) return null;
-
-    const now = this.clock.now();
-    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
-
-    return this.persistence.appointment.findFirst({
-      where: {
-        patientId: patient.id,
-        startTime: { gte: twoHoursAgo },
-        status: {
-          in: [
-            AppointmentStatus.SCHEDULED,
-            AppointmentStatus.CONFIRMED,
-            AppointmentStatus.IN_PROGRESS,
-          ],
-        },
-      },
-      orderBy: { startTime: 'asc' },
-      include: {
-        patient: true,
-        doctor: true,
-        clinic: true,
-      },
-    });
+  private readContextMessageId(
+    message: NonNullable<WebhookChangeValue['messages']>[number],
+  ): string | undefined {
+    const context = message.context;
+    return typeof context?.id === 'string' ? context.id : undefined;
   }
 }

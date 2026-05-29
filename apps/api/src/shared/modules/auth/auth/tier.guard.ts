@@ -5,27 +5,25 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PrismaService } from '@/prisma/prisma.service';
-import { TIER_KEY, FEATURE_KEY, Tier, Feature } from './tier.decorator';
-import {
-  SubscriptionStatus,
-  IntelligenceAddon,
-  ClinicTier,
-} from '@workspace/db';
-import { isFrontDeskTier } from '@workspace/types';
+import { SubscriptionStatus, IntelligenceAddon } from '@workspace/db';
 import { bypassesSessionGuards } from './auth-route-metadata.util';
 import {
   isBillingAdminRole,
   isSubscriptionBillingHardLocked,
 } from '@/shared/modules/auth/utils/subscription-hard-lock.util';
-import { assertClinicHasFeatureOrThrow } from '@/shared/modules/auth/utils/clinic-feature-access.util';
-import { clinicHasOutstandingPendingPayment } from '@/shared/modules/auth/utils/clinic-outstanding-pending-payment.util';
+import {
+  assertClinicHasFeatureOrThrow,
+  assertClinicHasTierOrThrow,
+  type ClinicFeatureAuthSnapshot,
+} from '@/shared/modules/auth/utils/clinic-feature-access.util';
+import { ClinicAuthCacheService } from './clinic-auth-cache.service';
+import { TIER_KEY, FEATURE_KEY, Tier, Feature } from './tier.decorator';
 
 @Injectable()
 export class TierGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private prisma: PrismaService,
+    private clinicAuthCache: ClinicAuthCacheService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -57,43 +55,23 @@ export class TierGuard implements CanActivate {
       throw new ForbiddenException('User not associated with a clinic');
     }
 
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: user.clinicId },
-      select: {
-        tier: true,
-        intelligenceAddon: true,
-        features: true,
-        subscriptionStatus: true,
-        subscription: {
-          select: {
-            graceUntil: true,
-            currentPeriodEnd: true,
-          },
-        },
-        subscriptionPayments: {
-          select: { status: true },
-          orderBy: { createdAt: 'desc' },
-          take: 12,
-        },
-      },
-    });
+    if (user.role === 'INTERNAL') {
+      return true;
+    }
 
-    if (!clinic) {
-      if (user.role === 'INTERNAL') {
-        return true;
-      }
+    let auth;
+    try {
+      auth = await this.clinicAuthCache.getClinicAuth(user.clinicId);
+    } catch {
       throw new ForbiddenException('Clinic not found');
     }
 
     if (
       isSubscriptionBillingHardLocked({
-        subscriptionStatus: clinic.subscriptionStatus,
-        graceUntil: clinic.subscription?.graceUntil,
-        hasOutstandingPendingPayment: clinicHasOutstandingPendingPayment(
-          clinic.subscriptionPayments,
-        ),
-        subscriptionCurrentPeriodEnd:
-          clinic.subscription?.currentPeriodEnd ?? null,
+        subscriptionStatus: auth.subscriptionStatus,
+        graceUntil: auth.subscriptionGraceUntil,
+        hasOutstandingPendingPayment: auth.hasOutstandingPendingPayment,
+        subscriptionCurrentPeriodEnd: auth.subscriptionCurrentPeriodEnd,
       }) &&
       !isBillingAdminRole(user.role)
     ) {
@@ -110,94 +88,30 @@ export class TierGuard implements CanActivate {
       SubscriptionStatus.PAUSED,
     ]);
 
-    if (!allowedSubscriptionStatuses.has(clinic.subscriptionStatus)) {
+    if (!allowedSubscriptionStatuses.has(auth.subscriptionStatus)) {
       throw new ForbiddenException(
         'Subscription is not active. Please renew your subscription.',
       );
     }
 
-    const userTier = this.mapDbTierToEnum(clinic.tier);
-    const hasIntelligence =
-      clinic.intelligenceAddon === IntelligenceAddon.ACTIVE;
+    const snapshot: ClinicFeatureAuthSnapshot = {
+      tier: auth.tier,
+      planMode: auth.planMode,
+      intelligenceAddon: auth.hasIntelligence
+        ? IntelligenceAddon.ACTIVE
+        : IntelligenceAddon.NONE,
+      features: auth.features,
+    };
 
     if (requiredFeature !== undefined) {
-      assertClinicHasFeatureOrThrow(
-        {
-          tier: clinic.tier,
-          intelligenceAddon: clinic.intelligenceAddon,
-          features: clinic.features,
-        },
-        requiredFeature,
-      );
+      assertClinicHasFeatureOrThrow(snapshot, requiredFeature);
       return true;
     }
 
     if (requiredTier !== undefined) {
-      if (requiredTier === Tier.INTELLIGENCE && !hasIntelligence) {
-        throw new ForbiddenException(
-          'This feature requires the Intelligence add-on.',
-        );
-      }
-
-      const userIsFrontDeskTier = isFrontDeskTier(userTier);
-      const requiredIsFrontDeskTier = isFrontDeskTier(requiredTier);
-
-      if (userIsFrontDeskTier && requiredIsFrontDeskTier) {
-        if (userTier < requiredTier) {
-          throw new ForbiddenException(
-            `This feature requires ${this.getTierName(requiredTier)} tier or higher.`,
-          );
-        }
-        return true;
-      }
-
-      if (
-        userIsFrontDeskTier &&
-        requiredTier !== Tier.INTELLIGENCE &&
-        requiredTier > Tier.ESSENTIAL
-      ) {
-        throw new ForbiddenException(
-          `This feature requires ${this.getTierName(requiredTier)} tier or higher.`,
-        );
-      }
-
-      if (requiredTier !== Tier.INTELLIGENCE && userTier < requiredTier) {
-        throw new ForbiddenException(
-          `This feature requires ${this.getTierName(requiredTier)} tier or higher.`,
-        );
-      }
+      assertClinicHasTierOrThrow(snapshot, requiredTier);
     }
 
     return true;
-  }
-
-  private mapDbTierToEnum(dbTier: ClinicTier): Tier {
-    const tierMap: Record<string, Tier> = {
-      [ClinicTier.STARTER]: Tier.STARTER,
-      [ClinicTier.ESSENTIAL]: Tier.ESSENTIAL,
-      [ClinicTier.PROFESSIONAL]: Tier.PROFESSIONAL,
-      [ClinicTier.HOSPITAL]: Tier.HOSPITAL,
-      [ClinicTier.ENTERPRISE]: Tier.ENTERPRISE,
-      [ClinicTier.FRONT_DESK]: Tier.FRONT_DESK,
-      [ClinicTier.FRONT_DESK_CLINIC]: Tier.FRONT_DESK_CLINIC,
-      [ClinicTier.FRONT_DESK_HOSPITAL]: Tier.FRONT_DESK_HOSPITAL,
-    };
-
-    return tierMap[dbTier] ?? Tier.STARTER;
-  }
-
-  private getTierName(tier: Tier): string {
-    const names: Record<Tier, string> = {
-      [Tier.STARTER]: 'Starter',
-      [Tier.ESSENTIAL]: 'Essential',
-      [Tier.PROFESSIONAL]: 'Professional',
-      [Tier.HOSPITAL]: 'Hospital',
-      [Tier.ENTERPRISE]: 'Enterprise',
-      [Tier.INTELLIGENCE]: 'Intelligence',
-      [Tier.FRONT_DESK]: 'Front desk',
-      [Tier.FRONT_DESK_CLINIC]: 'Front desk Clinic',
-      [Tier.FRONT_DESK_HOSPITAL]: 'Front desk Hospital',
-    };
-    return names[tier] || 'Unknown';
   }
 }

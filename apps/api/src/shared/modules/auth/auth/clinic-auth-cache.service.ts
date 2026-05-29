@@ -5,7 +5,11 @@ import {
   SubscriptionStatus,
   IntelligenceAddon,
 } from '@workspace/db';
-import type { ClinicFeatureOverrides } from '@workspace/types';
+import {
+  type ClinicFeatureOverrides,
+  type PlanMode,
+  resolveClinicPlanMode,
+} from '@workspace/types';
 import { CACHE_CONSTANTS } from '@/shared/modules/config/app-constants';
 import { readClinicFeatureOverrides } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import { clinicHasOutstandingPendingPayment } from '@/shared/modules/auth/utils/clinic-outstanding-pending-payment.util';
@@ -13,6 +17,7 @@ import { clinicHasOutstandingPendingPayment } from '@/shared/modules/auth/utils/
 interface ClinicAuthCache {
   clinicId: string;
   tier: ClinicTier;
+  planMode: PlanMode;
   subscriptionStatus: SubscriptionStatus;
   subscriptionGraceUntil: Date | null;
   subscriptionTrialEnd: Date | null;
@@ -35,6 +40,7 @@ export class ClinicAuthCacheService {
     options: { bypassCache?: boolean } = {},
   ): Promise<{
     tier: ClinicTier;
+    planMode: PlanMode;
     subscriptionStatus: SubscriptionStatus;
     subscriptionGraceUntil: Date | null;
     subscriptionTrialEnd: Date | null;
@@ -47,6 +53,7 @@ export class ClinicAuthCacheService {
     if (!options.bypassCache && cached && this.isCacheFresh(cached)) {
       return {
         tier: cached.tier,
+        planMode: cached.planMode,
         subscriptionStatus: cached.subscriptionStatus,
         subscriptionGraceUntil: cached.subscriptionGraceUntil,
         subscriptionTrialEnd: cached.subscriptionTrialEnd,
@@ -61,6 +68,7 @@ export class ClinicAuthCacheService {
       where: { id: clinicId },
       select: {
         tier: true,
+        planMode: true,
         intelligenceAddon: true,
         features: true,
         subscriptionStatus: true,
@@ -83,8 +91,14 @@ export class ClinicAuthCacheService {
       throw new NotFoundException(`Clinic ${clinicId} not found`);
     }
 
+    const planMode: PlanMode = resolveClinicPlanMode(
+      clinic.tier,
+      clinic.planMode,
+    );
+
     const authData = {
       tier: clinic.tier,
+      planMode,
       subscriptionStatus: clinic.subscriptionStatus,
       subscriptionGraceUntil: clinic.subscription?.graceUntil ?? null,
       subscriptionTrialEnd: clinic.subscription?.trialEnd ?? null,
@@ -136,6 +150,7 @@ export class ClinicAuthCacheService {
     clinicId: string,
     authData: {
       tier: ClinicTier;
+      planMode: PlanMode;
       subscriptionStatus: SubscriptionStatus;
       subscriptionGraceUntil: Date | null;
       subscriptionTrialEnd: Date | null;

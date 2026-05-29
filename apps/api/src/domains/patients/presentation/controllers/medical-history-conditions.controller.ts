@@ -10,9 +10,7 @@ import {
 } from '@nestjs/common';
 import { MedicalHistoryService } from '@/domains/patients/application/services/medical-history.service';
 import { Role } from '@workspace/db';
-import { Feature } from '@workspace/types';
-import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
-import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
+import { PatientsBasicManagementAccess } from '@/domains/patients/presentation/controllers/patients.controller.access';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
@@ -28,8 +26,13 @@ import {
 } from '@/domains/patients/application/dto/medical-history.dto';
 
 @Controller('patients/:patientId/medical-history')
-@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR, Role.NURSE, Role.PATIENT)
-@RequireFeature(Feature.BASIC_PATIENT_MANAGEMENT)
+@PatientsBasicManagementAccess(
+  Role.ADMIN,
+  Role.ADMIN_DOCTOR,
+  Role.DOCTOR,
+  Role.NURSE,
+  Role.PATIENT,
+)
 export class MedicalHistoryConditionsController {
   constructor(
     private readonly medicalHistoryService: MedicalHistoryService,

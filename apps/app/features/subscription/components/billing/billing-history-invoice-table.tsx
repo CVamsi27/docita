@@ -19,6 +19,10 @@ import {
 } from "@workspace/ui/components/overlay/tooltip";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { cn } from "@workspace/ui/lib/utils";
+import {
+  ListRow,
+  ListRowGroup,
+} from "@workspace/ui/components/data-display/list-row";
 import type { BillingHistoryItem } from "@workspace/data-access";
 import { formatDate, formatDateTime } from "@/lib/formatters";
 import {
@@ -28,11 +32,12 @@ import {
 import {
   badgeClassForStatus,
   formatMoney,
+  isBillingRowPaid,
   isFailedLike,
-  isPaidStatus,
   isTerminalClosed,
   normalizeStatus,
   readBillingHistoryActions,
+  resolveBillingAmountCents,
 } from "./billing-history-table-helpers";
 
 export function BillingHistoryInvoiceTable({
@@ -56,7 +61,81 @@ export function BillingHistoryInvoiceTable({
 }) {
   return (
     <div className="rounded-lg border">
-      <div className="overflow-x-auto">
+      <div className="md:hidden">
+        <ListRowGroup>
+          {invoices.map((invoice) => {
+            const withActions = readBillingHistoryActions(invoice);
+            const status = normalizeStatus(invoice.status);
+            const isPaid = isBillingRowPaid(invoice);
+            const receiptUrl = isPaid
+              ? (withActions.receiptUrl ?? invoice.invoiceUrl)
+              : undefined;
+            const payUrl =
+              withActions.payUrl ??
+              (!isPaid ? invoice.invoiceUrl : undefined);
+            const terminalClosed = isTerminalClosed(status);
+            const showPayNow =
+              !isPaid &&
+              !terminalClosed &&
+              !(isFailedLike(status) && !payUrl);
+            const { label, detail } = formatInvoiceDescriptionForDisplay(
+              invoice.description,
+            );
+
+            return (
+              <ListRow
+                key={invoice.id}
+                title={label}
+                meta={detail ?? undefined}
+                time={formatDate(invoice.createdAt)}
+                status={status}
+                statusLabel={humanizeUiLabel(invoice.status)}
+                showChevron={false}
+                trailing={
+                  <div className="flex flex-col items-end gap-1.5">
+                    <span className="font-medium tabular-nums">
+                      {formatMoney(
+                        resolveBillingAmountCents(invoice),
+                        invoice.currency,
+                      )}
+                    </span>
+                    {receiptUrl ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8"
+                        onClick={() => onDownload(receiptUrl)}
+                      >
+                        <Download className="mr-1 h-4 w-4" />
+                        PDF
+                      </Button>
+                    ) : showPayNow ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={resumePaymentPending}
+                        onClick={() => {
+                          onPayNow?.();
+                          void onResumePayment(invoice, payUrl);
+                        }}
+                      >
+                        Pay now
+                      </Button>
+                    ) : null}
+                  </div>
+                }
+              />
+            );
+          })}
+        </ListRowGroup>
+        <div className="border-t px-3 py-2 text-sm">
+          <span className="text-muted-foreground">Paid total ({primaryCurrency}): </span>
+          <span className="font-semibold tabular-nums">
+            {formatMoney(paidTotalCents, primaryCurrency)}
+          </span>
+        </div>
+      </div>
+      <div className="hidden overflow-x-auto md:block">
         <Table className="min-w-[min(100%,36rem)] table-auto">
           <caption className="caption-bottom px-3 pb-3 pt-2 text-left text-[var(--fs-2xs)] leading-snug text-muted-foreground">
             {BILLING_HISTORY_TABLE_CAPTION}
@@ -78,7 +157,7 @@ export function BillingHistoryInvoiceTable({
             {invoices.map((invoice) => {
               const withActions = readBillingHistoryActions(invoice);
               const status = normalizeStatus(invoice.status);
-              const isPaid = isPaidStatus(status);
+              const isPaid = isBillingRowPaid(invoice);
               const receiptUrl = isPaid
                 ? (withActions.receiptUrl ?? invoice.invoiceUrl)
                 : undefined;
@@ -135,7 +214,10 @@ export function BillingHistoryInvoiceTable({
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">
-                    {formatMoney(invoice.amountCents, invoice.currency)}
+                    {formatMoney(
+                      resolveBillingAmountCents(invoice),
+                      invoice.currency,
+                    )}
                   </TableCell>
                   <TableCell>
                     <Badge

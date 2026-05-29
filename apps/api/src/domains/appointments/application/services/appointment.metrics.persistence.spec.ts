@@ -30,6 +30,7 @@ describe('AppointmentService metric persistence', () => {
     findAppointmentsForSlots:
       jest.fn<IAppointmentRepository['findAppointmentsForSlots']>(),
     findClinicTier: jest.fn<IAppointmentRepository['findClinicTier']>(),
+    findClinicTimezone: jest.fn<IAppointmentRepository['findClinicTimezone']>(),
     findForConsultationStart:
       jest.fn<IAppointmentRepository['findForConsultationStart']>(),
     startConsultationTx:

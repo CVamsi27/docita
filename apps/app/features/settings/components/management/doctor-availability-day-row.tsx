@@ -32,8 +32,8 @@ export function DoctorAvailabilityDayRow({
       <div
         className={
           day.isActive
-            ? "grid grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-3"
-            : "grid grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-3 opacity-40 pointer-events-none"
+            ? "grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3"
+            : "grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3 opacity-40 pointer-events-none"
         }
       >
         <div className="space-y-1">

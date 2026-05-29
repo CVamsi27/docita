@@ -3,6 +3,7 @@
 import { useCallback, useMemo } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useOptionalClinic } from "@/lib/contexts/clinic-context";
+import { usePermissionStore } from "@/lib/stores/permission-store";
 import {
   isBillingAdminRole,
   isPastSubscriptionGraceDeadline,
@@ -41,6 +42,7 @@ export function useTierAccess() {
   const { user, token } = useAuth();
   const clinicContext = useOptionalClinic();
   const clinic = clinicContext?.clinic ?? null;
+  const { currentMode, canAccess: canAccessFromStore } = usePermissionStore();
 
   const { data: subscription } = useQuery<SubscriptionCurrentResponse>({
     queryKey: queryKeys.clinic.subscription(user?.clinicId),
@@ -105,12 +107,34 @@ export function useTierAccess() {
       }
 
       if (subscriptionHardLocked) {
-        return hasFeatureAccess("STARTER", feature, hasIntelligence);
+        return hasFeatureAccess(
+          "STARTER",
+          feature,
+          hasIntelligence,
+          undefined,
+          currentMode,
+        );
       }
 
-      return hasFeatureAccess(tierNameForAccess, feature, hasIntelligence);
+      return (
+        canAccessFromStore(feature) ||
+        hasFeatureAccess(
+          tierNameForAccess,
+          feature,
+          hasIntelligence,
+          undefined,
+          currentMode,
+        )
+      );
     },
-    [tierNameForAccess, hasIntelligence, featureOverrides, subscriptionHardLocked],
+    [
+      tierNameForAccess,
+      hasIntelligence,
+      featureOverrides,
+      subscriptionHardLocked,
+      currentMode,
+      canAccessFromStore,
+    ],
   );
 
   const getRequiredTier = useCallback((feature: Feature): string => {

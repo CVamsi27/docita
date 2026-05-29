@@ -25,6 +25,10 @@ export class PaymentsService {
     return this.commandService.sendPaymentLinkWhatsApp(sessionId, clinicId);
   }
 
+  sendPaymentReminderWhatsApp(sessionId: string, clinicId: string) {
+    return this.commandService.sendPaymentReminderWhatsApp(sessionId, clinicId);
+  }
+
   createPaymentLink(
     dto: Parameters<PaymentsCommandService['createPaymentLink']>[0],
   ) {

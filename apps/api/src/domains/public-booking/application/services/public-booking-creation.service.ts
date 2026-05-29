@@ -53,7 +53,6 @@ export class PublicBookingCreationService {
 
   private async issueAndSendOtp(
     clinicId: string,
-    clinicName: string,
     phone: string,
   ): Promise<void> {
     const otp = crypto.randomInt(100000, 999999).toString();
@@ -68,7 +67,14 @@ export class PublicBookingCreationService {
     try {
       await this.whatsappClient.sendMessage({
         to: phone,
-        text: `Your verification code for booking at ${clinicName} is: ${otp}. Valid for 10 minutes.`,
+        templateName: 'patient_login_otp',
+        languageCode: 'en',
+        components: [
+          {
+            type: 'body',
+            parameters: [{ type: 'text', text: otp }],
+          },
+        ],
       });
     } catch (error) {
       this.logger.warn(
@@ -115,7 +121,7 @@ export class PublicBookingCreationService {
         phone,
       );
       if (patient) {
-        await this.issueAndSendOtp(clinic.id, clinic.name, phone);
+        await this.issueAndSendOtp(clinic.id, phone);
       }
     });
     return {

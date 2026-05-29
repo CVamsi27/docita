@@ -145,6 +145,36 @@ describe('PrismaAppointmentRepository', () => {
     expect(result.nextCursor).toBeUndefined();
   });
 
+  it('uses offset pagination with descending sort when page is provided', async () => {
+    mockAppointmentCount.mockResolvedValue(30);
+    mockAppointmentFindMany.mockResolvedValue([
+      {
+        ...baseAppointmentRow,
+        id: 'appointment-newest',
+        startTime: new Date('2026-04-02T09:00:00.000Z'),
+        endTime: new Date('2026-04-02T09:30:00.000Z'),
+      },
+    ]);
+
+    const result = await repository.findAll({
+      clinicId: 'clinic-1',
+      page: 2,
+      limit: 25,
+      sortOrder: 'desc',
+    });
+
+    expect(result.items).toHaveLength(1);
+    expect(result.hasMore).toBe(true);
+    expect(result.count).toBe(30);
+    expect(mockAppointmentFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skip: 25,
+        take: 25,
+        orderBy: [{ startTime: 'desc' }, { id: 'desc' }],
+      }),
+    );
+  });
+
   it('uses interval overlap when intersectCalendarRange is set', async () => {
     mockAppointmentCount.mockResolvedValue(0);
     mockAppointmentFindMany.mockResolvedValue([]);

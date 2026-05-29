@@ -84,7 +84,7 @@ export function RequestAdjustPopover({
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-72 space-y-2.5 p-3"
+        className="w-[min(100vw-2rem,18rem)] space-y-2.5 p-3"
         onOpenAutoFocus={(event) => event.preventDefault()}
       >
         <div className="space-y-1">

@@ -44,6 +44,8 @@ export interface AppointmentSearchParams {
   status?: AppointmentStatusEnum[];
   search?: string;
   cursor?: string;
+  page?: number;
+  sortOrder?: 'asc' | 'desc';
   limit?: number;
 }
 

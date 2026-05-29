@@ -168,4 +168,12 @@ export class PrismaDoctorScheduleCoreRepository implements IDoctorScheduleCoreRe
       data,
     });
   }
+
+  async findClinicTimezone(clinicId: string): Promise<string | null> {
+    const clinic = await this.getReadClient().clinic.findUnique({
+      where: { id: clinicId },
+      select: { timezone: true },
+    });
+    return clinic?.timezone ?? null;
+  }
 }

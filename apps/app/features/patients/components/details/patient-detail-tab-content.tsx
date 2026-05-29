@@ -6,19 +6,10 @@ import type {
   PatientWithMedicalHistory,
 } from "@workspace/types";
 import { PatientDetailTabLoadingShell } from "@/features/patients/components/details/patient-detail-tab-loading-shell";
-import type { PatientStatistics } from "@/hooks/use-patient-data";
 import type {
   PatientDetailTabValue,
   PatientRecordsSubTab,
 } from "./patient-detail-tabs-config";
-
-const OverviewTab = dynamic(
-  () =>
-    import("@/features/patients/components/details/tabs/OverviewTab").then(
-      (m) => m.OverviewTab,
-    ),
-  { loading: () => <PatientDetailTabLoadingShell />, ssr: false },
-);
 
 const VisitsTab = dynamic(
   () =>
@@ -82,39 +73,19 @@ export function PatientDetailTabContent({
   patient,
   patientId,
   appointments,
-  statistics,
   canEditPatient,
   canRecordPatientVitals,
   canViewInvoices,
-  onSelectTab,
-  onNavigateToRecordsSubTab,
-  onScheduleVisit,
 }: {
   activeTab: PatientDetailTabValue;
   activeRecordsSubTab: PatientRecordsSubTab;
   patient: PatientWithMedicalHistory;
   patientId: string;
   appointments: Appointment[];
-  statistics: PatientStatistics | null;
   canEditPatient: boolean;
   canRecordPatientVitals: boolean;
   canViewInvoices: boolean;
-  onSelectTab: (tab: string) => void;
-  onNavigateToRecordsSubTab: (subtab: string) => void;
-  onScheduleVisit: () => void;
 }) {
-  if (activeTab === "overview") {
-    return (
-      <OverviewTab
-        appointments={appointments}
-        statistics={statistics}
-        onSelectTab={onSelectTab}
-        onNavigateToRecordsSubTab={onNavigateToRecordsSubTab}
-        onScheduleVisit={onScheduleVisit}
-      />
-    );
-  }
-
   if (activeTab === "visits") {
     return <VisitsTab patientId={patientId} />;
   }

@@ -1,5 +1,5 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
-import { InvoiceStatus } from '@workspace/db';
+import { InvoiceStatus, WhatsappLogStatus } from '@workspace/db';
 import {
   BILLING_PERSISTENCE_PORT,
   type BillingPersistencePort,
@@ -21,6 +21,10 @@ interface PaymentReminderConfig {
   enabled: boolean;
   days: number[];
   autoSendWhatsApp: boolean;
+}
+
+function paymentReminderLogType(dayOffset: number): string {
+  return `payment_reminder_d${dayOffset}`;
 }
 
 @Injectable()
@@ -104,7 +108,11 @@ export class SchedulerService {
     dayOffset: number,
     autoSendWhatsApp: boolean,
   ): Promise<void> {
-    const { start, end } = this.getTargetDateRange(dayOffset);
+    if (!autoSendWhatsApp) {
+      return;
+    }
+
+    const { start, end } = this.getDueDateWindowForOffset(dayOffset);
 
     const result = await this.invoiceRepository.findAll({
       clinicId,
@@ -112,40 +120,79 @@ export class SchedulerService {
     });
 
     const targetInvoices = result.items.filter((invoice) => {
-      const createdAt = new Date(invoice.createdAt);
-      return createdAt >= start && createdAt < end;
+      if (!invoice.dueDate) {
+        return false;
+      }
+      const dueDate = new Date(invoice.dueDate);
+      return dueDate >= start && dueDate <= end;
     });
 
-    if (targetInvoices.length === 0) return;
+    if (targetInvoices.length === 0) {
+      return;
+    }
 
-    const sessions = autoSendWhatsApp
-      ? await this.sessionRepository.findPendingReminders()
-      : [];
-    const sessionByInvoiceId = new Map(sessions.map((s) => [s.invoiceId, s]));
+    const sessions = await this.sessionRepository.findPendingReminders();
+    const sessionByInvoiceId = new Map(
+      sessions
+        .filter((session) => session.clinicId === clinicId)
+        .map((session) => [session.invoiceId, session]),
+    );
+
+    const reminderType = paymentReminderLogType(dayOffset);
 
     await Promise.allSettled(
       targetInvoices.map(async (invoice) => {
-        if (!autoSendWhatsApp) {
+        const session = sessionByInvoiceId.get(invoice.id);
+        if (!session?.patient?.phoneNumber) {
           return;
         }
-        const session = sessionByInvoiceId.get(invoice.id);
+
+        const alreadySent = await this.persistence.whatsappLog.findFirst({
+          where: {
+            clinicId,
+            invoiceId: invoice.id,
+            type: reminderType,
+          },
+        });
+        if (alreadySent) {
+          return;
+        }
+
         if (
-          session &&
-          (await isClinicWhatsAppAutomationSendingAllowed(
+          !(await isClinicWhatsAppAutomationSendingAllowed(
             this.persistence,
             session.clinicId,
           ))
         ) {
-          await this.paymentsService.sendPaymentLinkWhatsApp(
-            session.id,
-            session.clinicId,
-          );
+          return;
         }
+
+        await this.paymentsService.sendPaymentReminderWhatsApp(
+          session.id,
+          session.clinicId,
+        );
+
+        await this.persistence.whatsappLog.create({
+          data: {
+            clinicId,
+            invoiceId: invoice.id,
+            paymentSessionId: session.id,
+            patientId: session.patientId,
+            type: reminderType,
+            phoneNumber: session.patient.phoneNumber,
+            message: `Scheduled payment reminder (${dayOffset}d after due date)`,
+            status: WhatsappLogStatus.SENT,
+          },
+        });
       }),
     );
   }
 
-  private getTargetDateRange(dayOffset: number): { start: Date; end: Date } {
+  /** Invoices whose due date was exactly `dayOffset` calendar days ago (UTC day bounds). */
+  private getDueDateWindowForOffset(dayOffset: number): {
+    start: Date;
+    end: Date;
+  } {
     const start = this.clock.now();
     start.setDate(start.getDate() - dayOffset);
     start.setHours(0, 0, 0, 0);

@@ -86,9 +86,13 @@ export class AuthorizationService {
         requiredFeature,
         auth.hasIntelligence,
         auth.features,
+        auth.planMode,
       );
       if (!allowedByTier) {
-        return deny('feature_locked', { feature: requiredFeature });
+        return deny('feature_locked', {
+          feature: requiredFeature,
+          mode: auth.planMode,
+        });
       }
     }
 

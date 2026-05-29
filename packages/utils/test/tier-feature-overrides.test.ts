@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyModeToPricing,
   clinicFeatureOverridesSchema,
   Feature,
+  getAvailableModesForTier,
+  MODE_BLOCKED_FEATURES,
   OVERRIDABLE_FEATURES,
   PACKAGE_PRESETS,
   type PackagePresetId,
+  type PlanMode,
+  PLAN_MODES,
   getPackagePresetsForTier,
 } from "@workspace/types";
 import { hasFeatureAccess } from "../src/billing/tier-rules";
@@ -195,6 +200,123 @@ describe("PACKAGE_PRESETS", () => {
           "number",
         );
       }
+    }
+  });
+});
+
+describe("PlanMode gating", () => {
+  it("FRONT_DESK mode blocks clinical features (prescriptions, EHR, AI)", () => {
+    const blocked = MODE_BLOCKED_FEATURES.FRONT_DESK;
+    expect(blocked.has(Feature.DIGITAL_PRESCRIPTIONS)).toBe(true);
+    expect(blocked.has(Feature.FULL_EHR)).toBe(true);
+    expect(blocked.has(Feature.AI_PRESCRIPTION_ASSISTANT)).toBe(true);
+  });
+
+  it("CORE mode blocks WhatsApp + AI but leaves clinical workflows alone", () => {
+    const blocked = MODE_BLOCKED_FEATURES.CORE;
+    expect(blocked.has(Feature.WHATSAPP_MESSAGING)).toBe(true);
+    expect(blocked.has(Feature.AI_PRESCRIPTION_ASSISTANT)).toBe(true);
+    expect(blocked.has(Feature.DIGITAL_PRESCRIPTIONS)).toBe(false);
+    expect(blocked.has(Feature.FULL_EHR)).toBe(false);
+  });
+
+  it("FULL mode blocks nothing", () => {
+    expect(MODE_BLOCKED_FEATURES.FULL.size).toBe(0);
+  });
+
+  it("hasFeatureAccess respects the mode argument", () => {
+    // Professional + FRONT_DESK denies prescriptions even though Professional
+    // would otherwise unlock them.
+    expect(
+      hasFeatureAccess(
+        "PROFESSIONAL",
+        Feature.DIGITAL_PRESCRIPTIONS,
+        false,
+        {},
+        "FRONT_DESK",
+      ),
+    ).toBe(false);
+    // Professional + CORE keeps prescriptions but denies WhatsApp + AI.
+    expect(
+      hasFeatureAccess(
+        "PROFESSIONAL",
+        Feature.DIGITAL_PRESCRIPTIONS,
+        false,
+        {},
+        "CORE",
+      ),
+    ).toBe(true);
+    expect(
+      hasFeatureAccess(
+        "PROFESSIONAL",
+        Feature.WHATSAPP_MESSAGING,
+        false,
+        {},
+        "CORE",
+      ),
+    ).toBe(false);
+    expect(
+      hasFeatureAccess(
+        "PROFESSIONAL",
+        Feature.AI_PRESCRIPTION_ASSISTANT,
+        true /* hasIntelligence */,
+        {},
+        "CORE",
+      ),
+    ).toBe(false);
+    // Professional + FULL keeps everything (general-availability permitting).
+    expect(
+      hasFeatureAccess(
+        "PROFESSIONAL",
+        Feature.WHATSAPP_MESSAGING,
+        false,
+        {},
+        "FULL",
+      ),
+    ).toBe(true);
+  });
+
+  it("mode block runs before override so toggle cannot be bypassed", () => {
+    expect(
+      hasFeatureAccess(
+        "PROFESSIONAL",
+        Feature.WHATSAPP_MESSAGING,
+        false,
+        { [Feature.WHATSAPP_MESSAGING]: true },
+        "CORE",
+      ),
+    ).toBe(false);
+  });
+
+  it("STARTER only supports FULL mode", () => {
+    expect(getAvailableModesForTier("STARTER")).toEqual(["FULL"]);
+  });
+
+  it("ESSENTIAL+ tiers support all three modes", () => {
+    for (const tier of ["ESSENTIAL", "PROFESSIONAL", "HOSPITAL", "ENTERPRISE"] as const) {
+      expect(getAvailableModesForTier(tier).sort()).toEqual(
+        [...PLAN_MODES].sort(),
+      );
+    }
+  });
+
+  it("applyModeToPricing applies the mode multiplier", () => {
+    const base = { monthly: 1000, yearly: 10000 };
+    expect(applyModeToPricing(base, "FULL")).toEqual(base);
+    expect(applyModeToPricing(base, "FRONT_DESK")).toEqual({
+      monthly: 700,
+      yearly: 7000,
+    });
+    expect(applyModeToPricing(base, "CORE")).toEqual({
+      monthly: 800,
+      yearly: 8000,
+    });
+  });
+
+  it("applyModeToPricing passes through custom pricing", () => {
+    const custom = { monthly: "custom" as const, yearly: "custom" as const };
+    for (const mode of PLAN_MODES) {
+      expect(applyModeToPricing(custom, mode as PlanMode)).toEqual(custom);
     }
   });
 });

@@ -104,21 +104,21 @@ function PrescriptionDefaultsSettings() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="border-b border-border/60 pb-5">
         <div className="flex items-center gap-2">
           <FileText className="h-5 w-5 text-primary" />
           <CardTitle>Prescription defaults</CardTitle>
         </div>
         <CardDescription>
-          Set default values for all prescriptions
+          Pre-filled values that appear on every new prescription.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-5">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             noValidate
-            className="space-y-6"
+            className="flex flex-col gap-6"
           >
             <FormField
               control={form.control}
@@ -164,8 +164,8 @@ function PrescriptionDefaultsSettings() {
               )}
             />
 
-            <div className="space-y-4">
-              <Label>Prescription options</Label>
+            <div className="flex flex-col gap-3 rounded-[calc(var(--radius)-4px)] border border-border/60 bg-muted/20 p-4">
+              <span className="ui-eyebrow">Prescription options</span>
 
               <FormField
                 control={form.control}
@@ -234,10 +234,10 @@ function PrescriptionDefaultsSettings() {
               />
             </div>
 
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-end border-t border-border/60 pt-4">
               <Button type="submit" disabled={saving} className="gap-2">
                 <Save className="h-4 w-4" />
-                {saving ? "Saving…" : "Save Defaults"}
+                {saving ? "Saving…" : "Save defaults"}
               </Button>
             </div>
           </form>

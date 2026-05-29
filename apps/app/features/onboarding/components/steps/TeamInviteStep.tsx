@@ -23,6 +23,7 @@ import { TeamMemberRow } from "./TeamMemberRow";
 export function TeamInviteStep({
   onComplete,
   onSkip,
+  onBack,
   maxMembers = 5,
   ownerName,
   ownerEmail,
@@ -160,10 +161,10 @@ export function TeamInviteStep({
             <UserPlus className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <CardTitle>Step 3: Invite Team</CardTitle>
+            <CardTitle>Invite your team</CardTitle>
             <CardDescription>
-              Add the first team members you want to invite now and refine
-              permissions in Settings after setup
+              Add the first team members you want to invite now. We will suggest a
+              plan on the next step based on your team size.
             </CardDescription>
           </div>
         </div>
@@ -273,6 +274,16 @@ export function TeamInviteStep({
         )}
 
         <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t">
+          {onBack ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onBack}
+              className="flex-1"
+            >
+              Back
+            </Button>
+          ) : null}
           <Button
             type="button"
             variant="ghost"

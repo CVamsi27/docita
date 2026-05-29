@@ -31,6 +31,8 @@ export interface ResolvedTemplate {
   buttonType: 'QUICK_REPLY' | 'CALL_TO_ACTION';
   textFallback: string;
   metaTemplateId?: string;
+  variables: TemplateVariable[];
+  buttonUrlVariable?: string;
 }
 
 @Injectable()
@@ -106,7 +108,11 @@ export class TemplateResolutionService {
     const defaultTemplate =
       this.defaultTemplates.getDefaultTemplate(templateId);
     if (defaultTemplate) {
-      return defaultTemplate;
+      return {
+        ...defaultTemplate,
+        textFallback: defaultTemplate.textFallback,
+        metaTemplateId: undefined,
+      };
     }
 
     return null;
@@ -169,6 +175,12 @@ export class TemplateResolutionService {
         template.buttonType === 'NONE' ? 'QUICK_REPLY' : template.buttonType,
       textFallback: resolvedFallback,
       metaTemplateId: getMetaTemplateId(template),
+      variables: template.variables,
+      buttonUrlVariable:
+        'buttonUrlVariable' in template &&
+        typeof template.buttonUrlVariable === 'string'
+          ? template.buttonUrlVariable
+          : undefined,
     };
   }
 }

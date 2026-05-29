@@ -83,14 +83,14 @@ export function DoctorProfileSettings() {
   const RegistrationBadgeIcon = registrationStatusBadge?.Icon;
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">Digital signature</CardTitle>
+        <CardHeader className="border-b border-border/60 pb-5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <CardTitle>Digital signature</CardTitle>
               <CardDescription>
-                Your signature appears on prescriptions and medical documents.
+                Appears on prescriptions and medical documents you generate.
               </CardDescription>
             </div>
             {hasSignature && (
@@ -104,9 +104,9 @@ export function DoctorProfileSettings() {
             )}
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex flex-col gap-4 pt-5">
           {hasSignature && resolvedSignatureUrl && (
-            <div className="flex min-h-[100px] items-center justify-center rounded-lg border bg-white p-4">
+            <div className="flex min-h-[100px] items-center justify-center rounded-[calc(var(--radius)-4px)] border border-border/60 bg-card p-4">
               <img
                 src={resolvedSignatureUrl}
                 alt="Your current signature"
@@ -115,12 +115,12 @@ export function DoctorProfileSettings() {
             </div>
           )}
           {!hasSignature && (
-            <div className="rounded-lg border border-dashed bg-muted/30 p-6 text-center">
-              <PenLine className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+            <div className="rounded-[calc(var(--radius)-4px)] border border-dashed border-border/70 bg-muted/30 p-6 text-center">
+              <PenLine className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
                 No signature uploaded yet.
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Add your signature to generate prescriptions.
               </p>
             </div>
@@ -130,14 +130,12 @@ export function DoctorProfileSettings() {
       </Card>
 
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">
-                Medical Registration Number
-              </CardTitle>
+        <CardHeader className="border-b border-border/60 pb-5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <CardTitle>Medical registration</CardTitle>
               <CardDescription>
-                Your council registration number for regulatory compliance.
+                Council registration number used for regulatory compliance.
               </CardDescription>
             </div>
             {registrationStatusBadge && RegistrationBadgeIcon ? (
@@ -151,14 +149,12 @@ export function DoctorProfileSettings() {
             ) : null}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-5">
           {hasRegistration ? (
-            <div className="space-y-2">
-              <div className="flex items-center gap-3 rounded-lg border bg-muted/30 px-4 py-3">
-                <span className="text-sm text-muted-foreground">
-                  Registration Number
-                </span>
-                <span className="font-mono text-sm font-medium text-foreground">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-3 rounded-[calc(var(--radius)-4px)] border border-border/60 bg-muted/30 px-4 py-3">
+                <span className="ui-eyebrow">Reg #</span>
+                <span className="ui-mono text-sm font-medium text-foreground">
                   {profile?.registrationNumber}
                 </span>
               </div>
@@ -191,10 +187,10 @@ export function DoctorProfileSettings() {
               )}
             </div>
           ) : (
-            <div className="flex items-center justify-between rounded-lg border border-dashed bg-muted/30 px-4 py-3">
+            <div className="flex items-center justify-between rounded-[calc(var(--radius)-4px)] border border-dashed border-border/70 bg-muted/30 px-4 py-3">
               <p className="text-sm text-muted-foreground">Not provided</p>
               <Button variant="outline" size="sm" asChild>
-                <Link href="/verify-doctor">Add Registration Number</Link>
+                <Link href="/verify-doctor">Add registration number</Link>
               </Button>
             </div>
           )}

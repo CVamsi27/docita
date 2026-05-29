@@ -1,9 +1,7 @@
 "use client";
 
-import { cn } from "@workspace/ui/lib/utils";
 import { BackButton } from "@/components/navigation/back-button";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { Tabs } from "@workspace/ui/components/navigation/tabs";
 import {
   SettingsPageHeaderUserMeta,
@@ -41,43 +39,38 @@ export function SettingsPageUI({
     <AppPageScaffold
       className="pb-24"
       header={
-        <div
-          className={cn(
-            "grid min-w-0 items-start gap-y-4",
-            "grid-cols-1 md:grid-cols-[auto_minmax(0,1fr)] md:gap-x-4",
-            "lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] lg:gap-x-10",
-          )}
-        >
-          <div className="hidden min-w-0 shrink-0 md:col-start-1 md:row-start-1 md:block">
+        <div className="flex min-w-0 flex-col gap-4">
+          <div className="hidden md:block">
             <BackButton fallback="/today" label="Back to Today" />
           </div>
-          <div className="min-w-0 w-full md:col-start-2 md:row-start-1 lg:max-w-none">
-            <SettingsExpandedSearch
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-            />
-          </div>
-          <div className="min-w-0 md:col-span-2 lg:col-span-1 lg:col-start-1 lg:row-start-2">
-            <PageHeader
-              title="Settings"
-              description="Manage your facility preferences and configurations."
-              className="min-w-0"
-            />
-          </div>
-          <div className="flex min-w-0 w-full justify-stretch md:col-span-2 lg:col-span-1 lg:col-start-2 lg:row-start-2 lg:justify-end">
+          <div className="grid min-w-0 grid-cols-1 items-end gap-x-6 gap-y-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
+            <div className="flex min-w-0 flex-col gap-1.5">
+              <span className="ui-eyebrow">Workspace</span>
+              <h1 className="ui-page-title">Settings</h1>
+              <p className="ui-page-subtitle max-w-xl">
+                Tune your clinic, team, and patient touchpoints — one calm,
+                consistent control room.
+              </p>
+            </div>
             <SettingsPageHeaderUserMeta />
           </div>
         </div>
       }
     >
-      <div className="flex flex-col gap-5 md:gap-6">
+      <div className="flex flex-col gap-6">
         <SettingsProfileHeader />
         <Tabs
           value={tabValue}
           onValueChange={onTabChange}
-          className="flex min-w-0 flex-col gap-6 md:flex-row md:items-start md:gap-8 lg:gap-10"
+          className="grid min-w-0 grid-cols-1 gap-6 md:grid-cols-[13.75rem_minmax(0,1fr)] md:gap-10 lg:grid-cols-[14.5rem_minmax(0,1fr)]"
         >
-          <SettingsPageTabNav filteredTabs={filteredTabs} />
+          <aside className="flex min-w-0 flex-col gap-3 md:sticky md:top-4 md:self-start">
+            <SettingsExpandedSearch
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+            />
+            <SettingsPageTabNav filteredTabs={filteredTabs} />
+          </aside>
           <SettingsPageTabPanels visibleTabValues={visibleTabValues} />
         </Tabs>
       </div>

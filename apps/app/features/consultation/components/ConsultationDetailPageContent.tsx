@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { ConsultationShell } from "@/features/consultation/workspace/ConsultationShell";
@@ -23,10 +23,15 @@ import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { consultationApi } from "@/features/consultation/api/consultation.api";
 import { useQueryClient } from "@tanstack/react-query";
-import { queryKeys, useSendPrescriptionWhatsApp } from "@workspace/data-access";
-import { usePermissionStore } from "@/lib/stores/permission-store";
+import { queryKeys } from "@workspace/data-access";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
+import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
+import {
+  canCompleteConsultation,
+  getConsultationCompletionMissingFields,
+} from "@/features/consultation/rules/consultationRules";
+import { resolveConsultationCompletionSnapshot } from "@/features/consultation/rules/consultation-completion";
 
 export default function ConsultationPage() {
   return (
@@ -45,8 +50,6 @@ function ConsultationPageContent() {
   const saveHandlesRef = useRef<ConsultationSaveHandles | null>(null);
   const queryClient = useQueryClient();
   const { confirmAction } = useConfirm();
-  const sendPrescription = useSendPrescriptionWhatsApp();
-  const canAccess = usePermissionStore((s) => s.canAccess);
   const [isMarkingDone, setIsMarkingDone] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
 
@@ -68,6 +71,36 @@ function ConsultationPageContent() {
     ? isConsultationReadOnlyStatus(appointmentData.status)
     : false;
 
+  const draftChiefComplaint = useConsultationDraft((s) => s.chiefComplaint);
+  const draftDiagnosis = useConsultationDraft((s) => s.diagnosis);
+
+  const completionSnapshot = useMemo(() => {
+    if (!appointmentData) {
+      return null;
+    }
+    return resolveConsultationCompletionSnapshot(appointmentData, {
+      chiefComplaint: draftChiefComplaint,
+      diagnosis: draftDiagnosis,
+    });
+  }, [appointmentData, draftChiefComplaint, draftDiagnosis]);
+
+  const completionMissingFields = useMemo(
+    () =>
+      completionSnapshot
+        ? getConsultationCompletionMissingFields(completionSnapshot)
+        : [],
+    [completionSnapshot],
+  );
+
+  const canMarkDone =
+    !consultationReadOnly &&
+    Boolean(completionSnapshot && canCompleteConsultation(completionSnapshot));
+
+  const markDoneDisabledReason =
+    completionMissingFields.length > 0
+      ? `Add ${completionMissingFields.join(", ")} before marking done`
+      : undefined;
+
   const {
     tryNavigateAway,
     attemptNavigateToHref,
@@ -85,11 +118,18 @@ function ConsultationPageContent() {
 
   const handleMarkDone = useCallback(async () => {
     if (!appointmentData) return;
-    if (consultationReadOnly || isMarkingDone) return;
+    if (consultationReadOnly || isMarkingDone || !canMarkDone) {
+      if (markDoneDisabledReason) {
+        toast.message("Consultation is incomplete", {
+          description: markDoneDisabledReason,
+        });
+      }
+      return;
+    }
     const ok = await confirmAction("mark consultation done", {
       title: "Mark consultation done?",
       description:
-        "This will finalize the visit, lock the chart, and attempt to send the prescription to the patient.",
+        "This will finalize the visit, lock the chart, and send the prescription and invoice to the patient on WhatsApp if available.",
       confirmText: "Mark done",
       variant: "warning",
     });
@@ -123,26 +163,11 @@ function ConsultationPageContent() {
       }
 
       await consultationApi.complete(appointmentId);
-      const refreshed = await consultationApi.getByAppointmentId(appointmentId);
 
       await queryClient.invalidateQueries({
         queryKey: queryKeys.appointments.detail(appointmentId),
       });
       await queryClient.invalidateQueries({ queryKey: queryKeys.appointments.all() });
-
-      const prescriptionId = refreshed.prescription?.id;
-      const canSendWhatsApp = canAccess(Feature.WHATSAPP_MESSAGING);
-      if (prescriptionId && canSendWhatsApp) {
-        try {
-          await sendPrescription.mutateAsync({ id: prescriptionId });
-        } catch (err) {
-          showUserFacingErrorToast(
-            err,
-            "Consultation marked done, but we could not send the prescription message. You can resend it from the patient chart.",
-            "save",
-          );
-        }
-      }
 
       toast.success("Consultation marked done");
       void retry();
@@ -153,14 +178,14 @@ function ConsultationPageContent() {
   }, [
     appointmentData,
     appointmentId,
-    canAccess,
+    canMarkDone,
     confirmAction,
     consultationReadOnly,
     isMarkingDone,
+    markDoneDisabledReason,
     queryClient,
     router,
     retry,
-    sendPrescription,
   ]);
 
   if (loading) {
@@ -257,6 +282,8 @@ function ConsultationPageContent() {
               onOpenCommandPalette={() => setPaletteOpen(true)}
               onMarkDone={handleMarkDone}
               isMarkingDone={isMarkingDone}
+              canMarkDone={canMarkDone}
+              markDoneDisabledReason={markDoneDisabledReason}
             />
 
             <ConsultationShell

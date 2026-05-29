@@ -123,7 +123,7 @@ describe("PatientsPageUI", () => {
       />,
     );
 
-    fireEvent.click(screen.getByText("Ada Lovelace"));
+    fireEvent.click(screen.getAllByText("Ada Lovelace")[0]!);
     expect(onViewPatient).toHaveBeenCalledWith("patient-1");
   });
 });

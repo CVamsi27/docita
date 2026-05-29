@@ -1,16 +1,21 @@
 import {
   type QueueItem,
   useAppointments,
+  useDoctors,
   useQueueByDoctor,
   useStartConsultation,
 } from "@workspace/data-access";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { APP_ACCESS_TARGETS } from "@workspace/types";
+import {
+  APP_ACCESS_TARGETS,
+  isClinicWideAppointmentRole,
+  resolveDoctorScopedAppointmentFilter,
+} from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   isQueueTokenCompleted,
@@ -50,9 +55,34 @@ export const useConsultationDashboard = () => {
     (q: QueueItem): boolean => isQueueItemForTodayFn(q, clinicTz, today),
     [clinicTz, today],
   );
-  const shouldScopeToOwnConsultations =
-    user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
-  const doctorId = shouldScopeToOwnConsultations ? user?.id : undefined;
+
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string | undefined>(
+    undefined,
+  );
+  const appliedDefaultDoctorRef = useRef(false);
+
+  useEffect(() => {
+    if (appliedDefaultDoctorRef.current || !user?.id) {
+      return;
+    }
+    if (user.role === "ADMIN_DOCTOR") {
+      setSelectedDoctorId(user.id);
+    }
+    appliedDefaultDoctorRef.current = true;
+  }, [user?.id, user?.role]);
+
+  const canViewAllDoctors = isClinicWideAppointmentRole(user?.role);
+  const doctorScope = useMemo(
+    () =>
+      resolveDoctorScopedAppointmentFilter({
+        role: user?.role,
+        userId: user?.id,
+        requestedDoctorId: selectedDoctorId,
+      }),
+    [selectedDoctorId, user?.id, user?.role],
+  );
+  const doctorId = doctorScope.scopedDoctorId;
+  const { data: doctors = [] } = useDoctors();
   const canAccessQueueApi = canAccessTarget(
     APP_ACCESS_TARGETS.API_QUEUE,
     {
@@ -277,5 +307,10 @@ export const useConsultationDashboard = () => {
     currentUserRole: user?.role,
     clinicType: clinic?.type ?? null,
     router,
+    canViewAllDoctors,
+    selectedDoctorId,
+    setSelectedDoctorId,
+    scopedDoctorId: doctorId,
+    doctorsList: doctors,
   };
 };

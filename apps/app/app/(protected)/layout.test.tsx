@@ -81,6 +81,16 @@ vi.mock("@/components/navigation/command-palette", () => ({
   CommandPalette: () => null,
 }));
 
+vi.mock("@/components/ask-ai/ask-ai-context", () => ({
+  AskAiProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useAskAi: () => ({ openOverlay: vi.fn(), closeOverlay: vi.fn() }),
+}));
+
+vi.mock("@/components/layout/top-bar-actions", () => ({
+  TopBarActions: () => null,
+  openCommandPaletteFromUi: vi.fn(),
+}));
+
 vi.mock("@/components/layout/desktop-top-bar", () => ({
   DesktopTopBar: () => <div data-testid="desktop-top-bar" />,
 }));

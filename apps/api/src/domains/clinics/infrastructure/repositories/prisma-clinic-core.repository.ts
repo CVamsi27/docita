@@ -9,6 +9,8 @@ import {
   ClinicLookup,
   ClinicSearchResult,
 } from '@/domains/clinics/core/repositories/clinic-core.repository.interface';
+import { getClinicLocalDayUtcBounds } from '@/shared/common/utils/clinic-calendar-bounds';
+import { DEFAULT_TIMEZONE, formatClinicTodayPickerIso } from '@workspace/utils';
 
 @Injectable()
 export class PrismaClinicCoreRepository implements IClinicCoreRepository {
@@ -136,10 +138,17 @@ export class PrismaClinicCoreRepository implements IClinicCoreRepository {
   }
 
   async getStats(clinicId: string): Promise<ClinicStats> {
-    const startOfDay = this.clock.now();
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = this.clock.now();
-    endOfDay.setHours(23, 59, 59, 999);
+    const clinic = await this.getReadClient().clinic.findUnique({
+      where: { id: clinicId },
+      select: { timezone: true },
+    });
+    const timezone = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
+    const todayPicker = formatClinicTodayPickerIso(timezone);
+    const todayBounds = getClinicLocalDayUtcBounds(todayPicker, timezone);
+    const startOfDay = todayBounds?.rangeStart ?? this.clock.now();
+    const endOfDay =
+      todayBounds?.rangeEndExclusive ??
+      new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
 
     const readClient = this.getReadClient();
     const [totalPatients, totalAppointments, todayAppointments] =
@@ -149,7 +158,7 @@ export class PrismaClinicCoreRepository implements IClinicCoreRepository {
         readClient.appointment.count({
           where: {
             clinicId,
-            startTime: { gte: startOfDay, lte: endOfDay },
+            startTime: { gte: startOfDay, lt: endOfDay },
           },
         }),
       ]);

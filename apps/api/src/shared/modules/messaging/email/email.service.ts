@@ -71,7 +71,7 @@ export class EmailService {
               <a href="${resetUrl}" style="color:#0f766e; text-decoration:underline; word-break:break-all;">${resetUrl}</a>
             </p>
             <p style="margin:18px 0 0; font-size:12px; line-height:1.6; color:#64748b;">
-              This link expires in 1 hour. If you did not request this, you can ignore this email
+              This link expires in 30 minutes. If you did not request this, you can ignore this email
             </p>
             <p style="margin:24px 0 0; font-size:14px; line-height:1.6; color:#475569;">
               Regards,<br />
@@ -85,7 +85,7 @@ export class EmailService {
         '',
         `Open this link to reset: ${resetUrl}`,
         '',
-        'This link expires in 1 hour. If you did not request this, you can ignore this email',
+        'This link expires in 30 minutes. If you did not request this, you can ignore this email',
         '',
         'Regards,',
         'Docita Care Team',

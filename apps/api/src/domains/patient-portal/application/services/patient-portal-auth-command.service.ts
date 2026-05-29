@@ -51,7 +51,14 @@ export class PatientPortalAuthCommandService {
       try {
         await this.whatsappClient.sendMessage({
           to: normalizedPhone,
-          text: `Your Docita login OTP is: ${otp}. Valid for 10 minutes.`,
+          templateName: 'patient_login_otp',
+          languageCode: 'en',
+          components: [
+            {
+              type: 'body',
+              parameters: [{ type: 'text', text: otp }],
+            },
+          ],
         });
       } catch (error) {
         this.logger.warn(

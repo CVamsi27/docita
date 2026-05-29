@@ -1,4 +1,11 @@
 import { AppointmentStatus, InvoiceStatus, PrismaClient } from '@workspace/db';
+import {
+  DEFAULT_TIMEZONE,
+  formatClinicTodayPickerIso,
+  formatUtcInstantAsClinicPickerIso,
+  fromLocalISOString,
+} from '@workspace/utils';
+import { SEED_PATIENT_PHONE_NUMBER } from './seed-constants';
 
 type SeedEntityRef = { id: string };
 
@@ -35,7 +42,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'O+',
     allergies: 'Penicillin',
-    phoneNumber: '9876543410',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'rajesh.kumar@docita.work',
     address: '123 MG Road, Bangalore',
     medicalHistory: ['Hypertension', 'Diabetes Type 2'],
@@ -48,7 +55,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'A+',
     allergies: null,
-    phoneNumber: '9876543411',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'priya.nair@docita.work',
     address: '456 Brigade Road, Bangalore',
     medicalHistory: ['Asthma'],
@@ -61,7 +68,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'B+',
     allergies: 'Sulfa drugs',
-    phoneNumber: '9876543412',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'amit.patel@docita.work',
     address: '789 Residency Road, Bangalore',
     medicalHistory: ['Arthritis'],
@@ -74,7 +81,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'AB+',
     allergies: null,
-    phoneNumber: '9876543413',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'lakshmi.iyer@docita.work',
     address: '321 Indiranagar, Bangalore',
     medicalHistory: [],
@@ -87,7 +94,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'O-',
     allergies: 'Latex',
-    phoneNumber: '9876543414',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'suresh.reddy@docita.work',
     address: '654 Koramangala, Bangalore',
     medicalHistory: ['Migraine'],
@@ -100,7 +107,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'B-',
     allergies: null,
-    phoneNumber: '9876543415',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'anita.desai@docita.work',
     address: '12 HSR Layout, Bangalore',
     medicalHistory: ['Hypothyroidism'],
@@ -113,7 +120,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'A-',
     allergies: 'Aspirin',
-    phoneNumber: '9876543416',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'vikram.singh@docita.work',
     address: '88 Jayanagar, Bangalore',
     medicalHistory: ['Coronary Artery Disease'],
@@ -126,7 +133,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'O+',
     allergies: null,
-    phoneNumber: '9876543417',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'meera.krishnan@docita.work',
     address: '5 BTM Layout, Bangalore',
     medicalHistory: [],
@@ -139,7 +146,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'AB-',
     allergies: null,
-    phoneNumber: '9876543418',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'arjun.menon@docita.work',
     address: '17 Whitefield, Bangalore',
     medicalHistory: ['Anxiety'],
@@ -152,7 +159,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'A+',
     allergies: 'Peanuts',
-    phoneNumber: '9876543419',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'divya.pillai@docita.work',
     address: '99 Marathahalli, Bangalore',
     medicalHistory: ['GERD'],
@@ -165,7 +172,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'B+',
     allergies: null,
-    phoneNumber: '9876543420',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'karan.verma@docita.work',
     address: '23 Banashankari, Bangalore',
     medicalHistory: ['Hypertension', 'COPD'],
@@ -178,7 +185,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'O+',
     allergies: 'Shellfish',
-    phoneNumber: '9876543421',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'sneha.rao@docita.work',
     address: '60 Hebbal, Bangalore',
     medicalHistory: [],
@@ -191,7 +198,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'O+',
     allergies: null,
-    phoneNumber: '9876543422',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'rohit.sharma@docita.work',
     address: '14 Yelahanka, Bangalore',
     medicalHistory: ['Type 2 Diabetes'],
@@ -204,7 +211,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'B+',
     allergies: 'Ibuprofen',
-    phoneNumber: '9876543423',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'kavita.joshi@docita.work',
     address: '7 Malleswaram, Bangalore',
     medicalHistory: ['Osteoporosis'],
@@ -217,7 +224,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'A+',
     allergies: null,
-    phoneNumber: '9876543424',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'deepak.gupta@docita.work',
     address: '202 Electronic City, Bangalore',
     medicalHistory: ['Allergic Rhinitis'],
@@ -230,7 +237,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'AB+',
     allergies: null,
-    phoneNumber: '9876543425',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'pooja.bhatt@docita.work',
     address: '40 Domlur, Bangalore',
     medicalHistory: ['PCOS'],
@@ -243,7 +250,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'O+',
     allergies: 'Dust',
-    phoneNumber: '9876543426',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'rahul.mehta@docita.work',
     address: '11 RT Nagar, Bangalore',
     medicalHistory: ['Childhood Asthma'],
@@ -256,7 +263,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'A-',
     allergies: null,
-    phoneNumber: '9876543427',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'ritu.khanna@docita.work',
     address: '9 Frazer Town, Bangalore',
     medicalHistory: ['Rheumatoid Arthritis'],
@@ -269,7 +276,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'B-',
     allergies: 'Codeine',
-    phoneNumber: '9876543428',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'sanjay.kapoor@docita.work',
     address: '88 Basaveshwaranagar, Bangalore',
     medicalHistory: ['Hypertension', 'Cataract'],
@@ -282,7 +289,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'O+',
     allergies: null,
-    phoneNumber: '9876543429',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'neha.agarwal@docita.work',
     address: '21 Sarjapur, Bangalore',
     medicalHistory: [],
@@ -295,7 +302,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'A+',
     allergies: null,
-    phoneNumber: '9876543430',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'aditya.chandra@docita.work',
     address: '4 Vijayanagar, Bangalore',
     medicalHistory: ['Eczema'],
@@ -308,7 +315,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'B+',
     allergies: 'Pollen',
-    phoneNumber: '9876543431',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'shreya.saxena@docita.work',
     address: '55 Bellandur, Bangalore',
     medicalHistory: ['Migraine'],
@@ -321,7 +328,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'O+',
     allergies: null,
-    phoneNumber: '9876543432',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'naveen.hegde@docita.work',
     address: '6 Rajajinagar, Bangalore',
     medicalHistory: ['Hyperlipidemia'],
@@ -334,7 +341,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'AB+',
     allergies: null,
-    phoneNumber: '9876543433',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'aishwarya.bose@docita.work',
     address: '18 Sadashivnagar, Bangalore',
     medicalHistory: ['Hypothyroidism', 'Anemia'],
@@ -347,7 +354,7 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'O-',
     allergies: 'Sulfonamides',
-    phoneNumber: '9876543434',
+    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'prakash.naidu@docita.work',
     address: '77 JP Nagar, Bangalore',
     medicalHistory: ['Type 2 Diabetes', 'Diabetic Retinopathy'],
@@ -520,17 +527,30 @@ const MEDICATION_TEMPLATES: Array<{
   },
 ];
 
-function withTime(baseDate: Date, hour: number, minute: number): Date {
-  const next = new Date(baseDate);
-  next.setHours(hour, minute, 0, 0);
-  return next;
+function withTime(
+  baseDate: Date,
+  hour: number,
+  minute: number,
+  timezone: string = DEFAULT_TIMEZONE,
+): Date {
+  const dateStr = formatUtcInstantAsClinicPickerIso(baseDate, timezone);
+  const instant = fromLocalISOString(
+    `${dateStr}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
+    { timezone },
+  );
+  if (!instant) {
+    throw new Error('Invalid seed appointment wall time');
+  }
+  return instant;
 }
 
-function dateOffset(days: number): Date {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + days);
-  return d;
+function dateOffset(days: number, timezone: string = DEFAULT_TIMEZONE): Date {
+  const todayPicker = formatClinicTodayPickerIso(timezone);
+  const noon = fromLocalISOString(`${todayPicker}T12:00`, { timezone });
+  if (!noon) {
+    throw new Error('Invalid seed date offset anchor');
+  }
+  return new Date(noon.getTime() + days * 24 * 60 * 60 * 1000);
 }
 
 export const RAJESH_APPOINTMENT_ID = 'seed-apt-rajesh-completed';

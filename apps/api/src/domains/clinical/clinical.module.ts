@@ -16,9 +16,10 @@ import { ClinicalFactory } from './application/factories/clinical.factory';
 import { CODE_CATALOG_PROVIDER } from './core/providers/code-catalog.provider';
 import { CLINICAL_SETTINGS_REPOSITORY_TOKEN } from './core/repositories/clinical-settings.repository.interface';
 import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
+import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
 
 @Module({
-  imports: [PrismaModule, AuditModule],
+  imports: [PrismaModule, AuditModule, AuthModule],
   controllers: [LabTestsController, MedicalCodingController],
   providers: [
     FrontDeskClinicalBlockGuard,

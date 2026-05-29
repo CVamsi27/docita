@@ -9,6 +9,10 @@ import {
 } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { DATE_FORMATS, formatDate, formatTime } from '@workspace/utils';
+import {
+  buildInvoiceCreatedVariables,
+  buildPrescriptionCreatedVariables,
+} from '@/shared/whatsapp/patient-whatsapp-template-variables';
 
 @Injectable()
 export class WhatsAppAutomationService {
@@ -35,7 +39,9 @@ export class WhatsAppAutomationService {
           select: { firstName: true, lastName: true, phoneNumber: true },
         },
         doctor: { select: { name: true } },
-        appointment: { include: { clinic: { select: { name: true } } } },
+        appointment: {
+          include: { clinic: { select: { name: true, currency: true } } },
+        },
       },
     });
 
@@ -45,12 +51,12 @@ export class WhatsAppAutomationService {
       clinicId,
       recipientPhone: prescription.patient.phoneNumber,
       templateName: 'prescription_created',
-      variables: {
+      variables: buildPrescriptionCreatedVariables({
+        prescriptionId,
         patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
-        clinicName: prescription.appointment?.clinic?.name ?? '',
         doctorName: prescription.doctor.name,
-        link: `https://docita.work/p/${prescriptionId}`,
-      },
+        clinicName: prescription.appointment?.clinic?.name ?? '',
+      }),
     });
   }
 
@@ -63,7 +69,9 @@ export class WhatsAppAutomationService {
         patient: {
           select: { firstName: true, lastName: true, phoneNumber: true },
         },
-        appointment: { include: { clinic: { select: { name: true } } } },
+        appointment: {
+          include: { clinic: { select: { name: true, currency: true } } },
+        },
       },
     });
 
@@ -73,12 +81,13 @@ export class WhatsAppAutomationService {
       clinicId,
       recipientPhone: invoice.patient.phoneNumber,
       templateName: 'invoice_created',
-      variables: {
+      variables: buildInvoiceCreatedVariables({
+        invoiceId,
         patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
         clinicName: invoice.appointment?.clinic?.name ?? '',
-        amount: `${invoice.total}`,
-        link: `https://docita.work/i/${invoiceId}`,
-      },
+        amount: invoice.total,
+        currency: invoice.currency ?? invoice.appointment?.clinic?.currency,
+      }),
     });
   }
 

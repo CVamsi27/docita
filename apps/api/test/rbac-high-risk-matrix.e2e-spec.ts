@@ -109,6 +109,35 @@ describe('RBAC high-risk matrix (e2e)', () => {
     });
   });
 
+  describe('TierGuard: Front Desk plan mode blocks clinical APIs on high tier', () => {
+    let token: string;
+
+    beforeEach(async () => {
+      await resetDatabase();
+      const clinic = await factories.clinic({
+        tier: 'PROFESSIONAL',
+        planMode: 'FRONT_DESK',
+      });
+      const { user, plainPassword } = await factories.user({
+        clinicId: clinic.id,
+        role: Role.RECEPTIONIST,
+      });
+
+      const loginResponse = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email: user.email, password: plainPassword });
+
+      token = loginResponse.body.access_token;
+    });
+
+    it('returns 403 for GET /inventory/stats', async () => {
+      await request(app.getHttpServer())
+        .get('/inventory/stats')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(403);
+    });
+  });
+
   describe('RolesGuard: non-billing roles cannot read subscription billing', () => {
     it.each([[Role.DOCTOR], [Role.NURSE]])(
       'returns 403 for GET /subscription/billing (%s)',

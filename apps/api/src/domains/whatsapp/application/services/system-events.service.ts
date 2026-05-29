@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
   WHATSAPP_PERSISTENCE_PORT,
   type WhatsappPersistencePort,
@@ -6,7 +7,15 @@ import {
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/whatsapp/whatsapp-patient-send-policy.util';
 import { DATE_FORMATS, formatDate, formatTime } from '@workspace/utils';
-import { ClinicSettingsSchema } from '@/domains/clinics/presentation/schemas/settings.schema';
+import {
+  buildAppointmentDelayVariables,
+  buildInvoiceCreatedVariables,
+  buildPrescriptionCreatedVariables,
+} from '@/shared/whatsapp/patient-whatsapp-template-variables';
+import {
+  logOutboundPatientTemplate,
+  resolveAppointmentMapsLink,
+} from './system-events.helpers';
 
 /**
  * Clinic automation event notifier. Message delivery delegates to SendMessageUseCase.
@@ -20,6 +29,7 @@ export class SystemEventsService {
     @Inject(WHATSAPP_PERSISTENCE_PORT)
     private readonly persistence: WhatsappPersistencePort,
     private readonly sendMessage: SendMessageUseCase,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async sendPrescriptionSystem(prescriptionId: string, clinicId: string) {
@@ -42,18 +52,20 @@ export class SystemEventsService {
           select: { firstName: true, lastName: true, phoneNumber: true },
         },
         doctor: { select: { name: true } },
-        appointment: { include: { clinic: { select: { name: true } } } },
+        appointment: {
+          include: { clinic: { select: { name: true, currency: true } } },
+        },
       },
     });
 
     if (!prescription || !prescription.patient.phoneNumber) return;
 
-    const variables = {
+    const variables = buildPrescriptionCreatedVariables({
+      prescriptionId: prescription.id,
       patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
-      clinicName: prescription.appointment?.clinic?.name ?? '',
       doctorName: prescription.doctor.name,
-      link: `https://docita.com/prescription/${prescription.id}`,
-    };
+      clinicName: prescription.appointment?.clinic?.name ?? '',
+    });
 
     try {
       await this.sendMessage.execute({
@@ -89,18 +101,21 @@ export class SystemEventsService {
         patient: {
           select: { firstName: true, lastName: true, phoneNumber: true },
         },
-        appointment: { include: { clinic: { select: { name: true } } } },
+        appointment: {
+          include: { clinic: { select: { name: true, currency: true } } },
+        },
       },
     });
 
     if (!invoice || !invoice.patient.phoneNumber) return;
 
-    const variables = {
+    const variables = buildInvoiceCreatedVariables({
+      invoiceId: invoice.id,
       patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
       clinicName: invoice.appointment?.clinic?.name ?? '',
-      amount: `${invoice.total}`,
-      link: `https://docita.com/invoice/${invoice.id}`,
-    };
+      amount: invoice.total,
+      currency: invoice.currency ?? invoice.appointment?.clinic?.currency,
+    });
 
     try {
       await this.sendMessage.execute({
@@ -134,7 +149,12 @@ export class SystemEventsService {
       where: { id: appointmentId },
       include: {
         patient: {
-          select: { firstName: true, lastName: true, phoneNumber: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
         },
         doctor: { select: { name: true } },
         clinic: { select: { name: true, settings: true } },
@@ -143,20 +163,7 @@ export class SystemEventsService {
 
     if (!appointment || !appointment.patient.phoneNumber) return;
 
-    const settingsParsed = ClinicSettingsSchema.safeParse(
-      appointment.clinic?.settings,
-    );
-    const mapsLocation = settingsParsed.success
-      ? settingsParsed.data.mapsLocation
-      : undefined;
-    const customMapsLink = settingsParsed.success
-      ? settingsParsed.data.mapsLink?.trim()
-      : undefined;
-    const mapsLink =
-      customMapsLink ||
-      (mapsLocation
-        ? `https://www.google.com/maps?q=${mapsLocation.lat},${mapsLocation.lng}`
-        : '');
+    const mapsLink = resolveAppointmentMapsLink(appointment.clinic?.settings);
 
     const variables = {
       patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
@@ -168,15 +175,82 @@ export class SystemEventsService {
     };
 
     try {
-      await this.sendMessage.execute({
+      const sendResult = await this.sendMessage.execute({
         clinicId,
         recipientPhone: appointment.patient.phoneNumber,
         templateName: 'appointment_confirmation',
         variables,
       });
+      await logOutboundPatientTemplate(this.persistence, {
+        clinicId,
+        patientId: appointment.patient.id,
+        phoneNumber: appointment.patient.phoneNumber,
+        templateId: 'appointment_confirmation',
+        appointmentId,
+        sendResult,
+        variables,
+      });
     } catch (error) {
       this.logger.error(
         `Failed to send appointment confirmation WhatsApp for ${appointmentId}`,
+        error instanceof Error ? error.stack : error,
+      );
+    }
+  }
+
+  async sendPaymentConfirmation(invoiceId: string, clinicId: string) {
+    if (
+      !(await isClinicWhatsAppAutomationSendingAllowed(
+        this.persistence,
+        clinicId,
+      ))
+    ) {
+      this.logger.log(
+        `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping payment confirmation`,
+      );
+      return;
+    }
+
+    const invoice = await this.persistence.invoice.findUnique({
+      where: { id: invoiceId },
+      include: {
+        patient: {
+          select: { firstName: true, lastName: true, phoneNumber: true },
+        },
+        appointment: { include: { clinic: { select: { name: true } } } },
+        paymentSessions: {
+          where: { status: 'CAPTURED' },
+          orderBy: { paidAt: 'desc' },
+          take: 1,
+          select: { providerPaymentId: true, paidAt: true, amount: true },
+        },
+      },
+    });
+
+    if (!invoice || !invoice.patient.phoneNumber) return;
+
+    const session = invoice.paymentSessions[0];
+    const paidAt = session?.paidAt ?? this.clock.now();
+
+    const variables = {
+      patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
+      clinicName: invoice.appointment?.clinic?.name ?? '',
+      amount: `${invoice.total}`,
+      invoiceNumber: invoice.id.slice(0, 8).toUpperCase(),
+      date: formatDate(paidAt, DATE_FORMATS.DATE_MEDIUM),
+      paymentId: session?.providerPaymentId ?? '',
+    };
+
+    try {
+      await this.sendMessage.execute({
+        clinicId,
+        recipientPhone: invoice.patient.phoneNumber,
+        templateName: 'payment_confirmation',
+        variables,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to send payment confirmation WhatsApp for invoice ${invoiceId}`,
         error instanceof Error ? error.stack : error,
       );
     }
@@ -203,27 +277,42 @@ export class SystemEventsService {
       where: { id: appointmentId },
       include: {
         patient: {
-          select: { firstName: true, lastName: true, phoneNumber: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
         },
-        clinic: { select: { name: true } },
+        clinic: { select: { name: true, timezone: true } },
       },
     });
 
     if (!appointment || !appointment.patient.phoneNumber) return;
 
-    const variables = {
+    // Appointments are shifted in DB before this event; startTime is the new slot.
+    const variables = buildAppointmentDelayVariables({
       patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
       clinicName: appointment.clinic?.name ?? '',
-      delayMinutes: `${delayMinutes}`,
-      date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM),
-      time: formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM),
-    };
+      delayMinutes,
+      updatedStartTime: appointment.startTime,
+      clinicTimezone: appointment.clinic?.timezone,
+    });
 
     try {
-      await this.sendMessage.execute({
+      const sendResult = await this.sendMessage.execute({
         clinicId,
         recipientPhone: appointment.patient.phoneNumber,
         templateName: 'appointment_delay',
+        variables,
+      });
+      await logOutboundPatientTemplate(this.persistence, {
+        clinicId,
+        patientId: appointment.patient.id,
+        phoneNumber: appointment.patient.phoneNumber,
+        templateId: 'appointment_delay',
+        appointmentId,
+        sendResult,
         variables,
       });
     } catch (error) {
@@ -255,7 +344,12 @@ export class SystemEventsService {
       where: { id: appointmentId },
       include: {
         patient: {
-          select: { firstName: true, lastName: true, phoneNumber: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
         },
         clinic: { select: { name: true } },
       },
@@ -276,10 +370,19 @@ export class SystemEventsService {
     };
 
     try {
-      await this.sendMessage.execute({
+      const sendResult = await this.sendMessage.execute({
         clinicId,
         recipientPhone: appointment.patient.phoneNumber,
         templateName,
+        variables,
+      });
+      await logOutboundPatientTemplate(this.persistence, {
+        clinicId,
+        patientId: appointment.patient.id,
+        phoneNumber: appointment.patient.phoneNumber,
+        templateId: templateName,
+        appointmentId,
+        sendResult,
         variables,
       });
     } catch (error) {

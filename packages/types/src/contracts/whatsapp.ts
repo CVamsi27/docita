@@ -111,6 +111,12 @@ export const whatsappWebhookPayloadSchema = z.object({
                   button: z
                     .object({ text: z.string(), payload: z.string() })
                     .optional(),
+                  context: z
+                    .object({
+                      from: z.string().optional(),
+                      id: z.string(),
+                    })
+                    .optional(),
                 }),
               )
               .optional(),
@@ -243,6 +249,7 @@ export const staffNotificationTypeSchema = z.enum([
   "PRESCRIPTION_FAILED",
   "INVOICE_SENT",
   "INVOICE_FAILED",
+  "INVOICE_PAID",
   "SUBSCRIPTION_PAYMENT_DUE_SOON",
   "SUBSCRIPTION_PAYMENT_OVERDUE",
   "SUBSCRIPTION_PAYMENT_SUCCESS",

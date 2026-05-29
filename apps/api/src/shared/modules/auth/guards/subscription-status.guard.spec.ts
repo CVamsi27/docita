@@ -2,7 +2,7 @@ import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ClinicTier, SubscriptionStatus } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
+import type { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
 import {
   asType,
   createFixedClockMock,
@@ -15,6 +15,22 @@ import {
   SKIP_SUBSCRIPTION_CHECK_KEY,
   SubscriptionStatusGuard,
 } from './subscription-status.guard';
+
+type ClinicAuthSnapshot = Awaited<
+  ReturnType<ClinicAuthCacheService['getClinicAuth']>
+>;
+
+const baseClinicAuth: ClinicAuthSnapshot = {
+  tier: ClinicTier.STARTER,
+  planMode: 'FULL',
+  subscriptionStatus: SubscriptionStatus.ACTIVE,
+  subscriptionGraceUntil: null,
+  subscriptionTrialEnd: null,
+  subscriptionCurrentPeriodEnd: null,
+  hasOutstandingPendingPayment: false,
+  hasIntelligence: false,
+  features: {},
+};
 
 function createContext(user: unknown): ExecutionContext {
   return asType<ExecutionContext>({
@@ -94,55 +110,22 @@ describe('SubscriptionStatusGuard', () => {
 
   it('allows ACTIVE/TRIALING and restricted-but-allowed billing states', async () => {
     clinicAuthCache.getClinicAuth
+      .mockResolvedValueOnce(baseClinicAuth)
       .mockResolvedValueOnce({
-        tier: ClinicTier.STARTER,
-        subscriptionStatus: SubscriptionStatus.ACTIVE,
-        subscriptionGraceUntil: null,
-        subscriptionTrialEnd: null,
-        subscriptionCurrentPeriodEnd: null,
-        hasOutstandingPendingPayment: false,
-        hasIntelligence: false,
-        features: {},
-      })
-      .mockResolvedValueOnce({
-        tier: ClinicTier.STARTER,
+        ...baseClinicAuth,
         subscriptionStatus: SubscriptionStatus.TRIALING,
-        subscriptionGraceUntil: null,
-        subscriptionTrialEnd: null,
-        subscriptionCurrentPeriodEnd: null,
-        hasOutstandingPendingPayment: false,
-        hasIntelligence: false,
-        features: {},
       })
       .mockResolvedValueOnce({
-        tier: ClinicTier.STARTER,
+        ...baseClinicAuth,
         subscriptionStatus: SubscriptionStatus.PAST_DUE,
-        subscriptionGraceUntil: null,
-        subscriptionTrialEnd: null,
-        subscriptionCurrentPeriodEnd: null,
-        hasOutstandingPendingPayment: false,
-        hasIntelligence: false,
-        features: {},
       })
       .mockResolvedValueOnce({
-        tier: ClinicTier.STARTER,
+        ...baseClinicAuth,
         subscriptionStatus: SubscriptionStatus.GRACE,
-        subscriptionGraceUntil: null,
-        subscriptionTrialEnd: null,
-        subscriptionCurrentPeriodEnd: null,
-        hasOutstandingPendingPayment: false,
-        hasIntelligence: false,
-        features: {},
       })
       .mockResolvedValueOnce({
-        tier: ClinicTier.STARTER,
+        ...baseClinicAuth,
         subscriptionStatus: SubscriptionStatus.PAUSED,
-        subscriptionGraceUntil: null,
-        subscriptionTrialEnd: null,
-        subscriptionCurrentPeriodEnd: null,
-        hasOutstandingPendingPayment: false,
-        hasIntelligence: false,
-        features: {},
       });
 
     await expect(
@@ -164,14 +147,8 @@ describe('SubscriptionStatusGuard', () => {
 
   it('blocks inactive subscriptions', async () => {
     clinicAuthCache.getClinicAuth.mockResolvedValue({
-      tier: ClinicTier.STARTER,
+      ...baseClinicAuth,
       subscriptionStatus: SubscriptionStatus.CANCELLED,
-      subscriptionGraceUntil: null,
-      subscriptionTrialEnd: null,
-      subscriptionCurrentPeriodEnd: null,
-      hasOutstandingPendingPayment: false,
-      hasIntelligence: false,
-      features: {},
     });
 
     await expect(
@@ -189,14 +166,10 @@ describe('SubscriptionStatusGuard', () => {
 
   it('blocks staff when grace deadline has passed', async () => {
     clinicAuthCache.getClinicAuth.mockResolvedValue({
-      tier: ClinicTier.STARTER,
+      ...baseClinicAuth,
       subscriptionStatus: SubscriptionStatus.GRACE,
       subscriptionGraceUntil: new Date('2020-01-01T00:00:00.000Z'),
-      subscriptionTrialEnd: null,
       subscriptionCurrentPeriodEnd: new Date('2020-01-01T00:00:00.000Z'),
-      hasOutstandingPendingPayment: false,
-      hasIntelligence: false,
-      features: {},
     });
 
     await expect(
@@ -211,14 +184,10 @@ describe('SubscriptionStatusGuard', () => {
 
   it('allows billing admins when grace deadline has passed', async () => {
     clinicAuthCache.getClinicAuth.mockResolvedValue({
-      tier: ClinicTier.STARTER,
+      ...baseClinicAuth,
       subscriptionStatus: SubscriptionStatus.PAST_DUE,
       subscriptionGraceUntil: new Date('2020-01-01T00:00:00.000Z'),
-      subscriptionTrialEnd: null,
       subscriptionCurrentPeriodEnd: new Date('2020-01-01T00:00:00.000Z'),
-      hasOutstandingPendingPayment: false,
-      hasIntelligence: false,
-      features: {},
     });
 
     await expect(
@@ -233,14 +202,9 @@ describe('SubscriptionStatusGuard', () => {
 
   it('blocks staff when renewal period ended with a pending payment', async () => {
     clinicAuthCache.getClinicAuth.mockResolvedValue({
-      tier: ClinicTier.STARTER,
-      subscriptionStatus: SubscriptionStatus.ACTIVE,
-      subscriptionGraceUntil: null,
-      subscriptionTrialEnd: null,
+      ...baseClinicAuth,
       subscriptionCurrentPeriodEnd: new Date('2020-01-01T00:00:00.000Z'),
       hasOutstandingPendingPayment: true,
-      hasIntelligence: false,
-      features: {},
     });
 
     await expect(
@@ -255,14 +219,9 @@ describe('SubscriptionStatusGuard', () => {
 
   it('allows billing admins when renewal period ended with a pending payment', async () => {
     clinicAuthCache.getClinicAuth.mockResolvedValue({
-      tier: ClinicTier.STARTER,
-      subscriptionStatus: SubscriptionStatus.ACTIVE,
-      subscriptionGraceUntil: null,
-      subscriptionTrialEnd: null,
+      ...baseClinicAuth,
       subscriptionCurrentPeriodEnd: new Date('2020-01-01T00:00:00.000Z'),
       hasOutstandingPendingPayment: true,
-      hasIntelligence: false,
-      features: {},
     });
 
     await expect(

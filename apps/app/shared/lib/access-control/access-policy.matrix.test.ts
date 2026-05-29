@@ -5,14 +5,15 @@ import {
   Feature,
   FEATURE_TIER_MAP,
   Tier,
+  type PlanMode,
   type UserRole,
 } from "@workspace/types";
 import { getTierName, hasFeatureAccess } from "@workspace/utils";
 
-function canAccessFeatureFactory(tier: Tier) {
+function canAccessFeatureFactory(tier: Tier, mode: PlanMode = "FULL") {
   return (feature: Feature): boolean => {
     if (FEATURE_TIER_MAP[feature] === undefined) return true;
-    return hasFeatureAccess(getTierName(tier), feature, false);
+    return hasFeatureAccess(getTierName(tier), feature, false, undefined, mode);
   };
 }
 
@@ -21,6 +22,7 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
     name: string;
     role: UserRole;
     tier: Tier;
+    planMode?: PlanMode;
     target: (typeof APP_ACCESS_TARGETS)[keyof typeof APP_ACCESS_TARGETS];
     expectAllowed: boolean;
     mode?: "read" | "write";
@@ -54,11 +56,11 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
       expectAllowed: true,
     },
     {
-      name: "Appointments allowed on Starter for receptionist",
+      name: "Appointments denied on Starter for receptionist (queue tier)",
       role: "RECEPTIONIST",
       tier: Tier.STARTER,
       target: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS,
-      expectAllowed: true,
+      expectAllowed: false,
     },
     {
       name: "Consultation blocked on FRONT_DESK tier for admin",
@@ -68,9 +70,25 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
       expectAllowed: false,
     },
     {
+      name: "Prescriptions blocked on Professional + Front Desk plan mode",
+      role: "ADMIN",
+      tier: Tier.PROFESSIONAL,
+      planMode: "FRONT_DESK",
+      target: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS,
+      expectAllowed: false,
+    },
+    {
       name: "Appointments allowed on FRONT_DESK tier for receptionist",
       role: "RECEPTIONIST",
       tier: Tier.FRONT_DESK,
+      target: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS,
+      expectAllowed: true,
+    },
+    {
+      name: "Appointments allowed on Essential + Front Desk plan mode for admin",
+      role: "ADMIN",
+      tier: Tier.ESSENTIAL,
+      planMode: "FRONT_DESK",
       target: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS,
       expectAllowed: true,
     },
@@ -213,14 +231,23 @@ describe("canAccessTarget matrix parity (role x tier x target)", () => {
     },
   ];
 
-  for (const { name, role, tier, target, expectAllowed, mode } of cases) {
+  for (const {
+    name,
+    role,
+    tier,
+    planMode = "FULL",
+    target,
+    expectAllowed,
+    mode,
+  } of cases) {
     it(name, () => {
       const allowed = canAccessTarget(
         target,
         {
           role,
-          canAccessFeature: canAccessFeatureFactory(tier),
+          canAccessFeature: canAccessFeatureFactory(tier, planMode),
           currentTier: tier,
+          currentMode: planMode,
           hasIntelligence: false,
         },
         mode ?? "read",

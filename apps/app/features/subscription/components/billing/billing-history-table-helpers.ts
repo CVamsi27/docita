@@ -1,5 +1,17 @@
-import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
+import {
+  DEFAULT_CURRENCY,
+  formatCurrency,
+  isFailedSubscriptionPaymentStatus,
+  isPendingSubscriptionPaymentStatus,
+  isSubscriptionBillingRowPaid,
+  isTerminalClosedSubscriptionPaymentStatus,
+  normalizeSubscriptionPaymentStatus,
+  resolveSubscriptionBillingAmountCents,
+} from "@workspace/utils";
 import type { BillingHistoryItem } from "@workspace/data-access";
+
+/** Local fallback when @workspace/utils dist is stale (app resolves to dist/). */
+const PAID_SUBSCRIPTION_STATUSES = new Set(["paid", "captured", "succeeded"]);
 
 export function formatMoney(amountCents: number, currency: string | undefined) {
   return formatCurrency(amountCents / 100, {
@@ -8,34 +20,45 @@ export function formatMoney(amountCents: number, currency: string | undefined) {
 }
 
 export function normalizeStatus(status: string | undefined): string {
-  return (status ?? "").toLowerCase().trim();
+  return normalizeSubscriptionPaymentStatus(status);
 }
 
 export function isPaidStatus(status: string): boolean {
-  return status === "paid" || status === "captured";
+  if (PAID_SUBSCRIPTION_STATUSES.has(status)) {
+    return true;
+  }
+  return isSubscriptionBillingRowPaid(status);
+}
+
+export function isBillingRowPaid(invoice: BillingHistoryItem): boolean {
+  if (invoice.paidAt) {
+    return true;
+  }
+  const status = normalizeStatus(invoice.status);
+  if (PAID_SUBSCRIPTION_STATUSES.has(status)) {
+    return true;
+  }
+  return isSubscriptionBillingRowPaid(status, invoice.paidAt);
+}
+
+export function resolveBillingAmountCents(invoice: BillingHistoryItem): number {
+  return resolveSubscriptionBillingAmountCents(invoice);
 }
 
 export function isTerminalClosed(status: string): boolean {
-  return status === "refunded" || status === "void" || status === "voided";
+  return isTerminalClosedSubscriptionPaymentStatus(status);
 }
 
 export function isFailedLike(status: string): boolean {
-  return status === "failed" || status === "declined";
+  return isFailedSubscriptionPaymentStatus(status);
 }
 
 export function isPendingLike(status: string): boolean {
-  return (
-    status === "pending" ||
-    status === "processing" ||
-    status === "created" ||
-    status === "requires_action" ||
-    status === "attempted" ||
-    status === "due"
-  );
+  return isPendingSubscriptionPaymentStatus(status);
 }
 
 export function badgeClassForStatus(status: string): string {
-  if (isPaidStatus(status)) return "badge-success";
+  if (isPaidStatus(normalizeStatus(status))) return "badge-success";
   if (isTerminalClosed(status)) return "";
   if (isFailedLike(status)) return "badge-destructive";
   if (isPendingLike(status)) return "badge-warning";

@@ -29,11 +29,12 @@ import {
 } from "@/components/navigation/nav-config";
 
 export function useSidebarSections() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading, token } = useAuth();
   const { clinicId } = useClinic();
   const {
     canAccess,
     currentTier,
+    currentMode,
     hasIntelligence,
     getTierInfo,
     clinicType: storeClinicType,
@@ -49,6 +50,7 @@ export function useSidebarSections() {
       role: user?.role,
       canAccessFeature: canAccess,
       currentTier,
+      currentMode,
       hasIntelligence,
     },
     "read",
@@ -60,6 +62,7 @@ export function useSidebarSections() {
       role: user?.role,
       canAccessFeature: canAccess,
       currentTier,
+      currentMode,
       hasIntelligence,
     },
     "read",
@@ -69,7 +72,9 @@ export function useSidebarSections() {
 
   const { data: unreadNotificationCount } =
     useUnreadNotificationCount(canAccessNotifications);
-  const { data: pendingJoinRequestData } = usePendingJoinRequestCount(isAdmin);
+  const { data: pendingJoinRequestData } = usePendingJoinRequestCount(
+    isAdmin && !authLoading && Boolean(token),
+  );
 
   const notificationCount = unreadNotificationCount?.count ?? 0;
   const pendingJoinRequestCount = pendingJoinRequestData?.count ?? 0;
@@ -105,6 +110,7 @@ export function useSidebarSections() {
           role: user?.role,
           canAccessFeature: canAccess,
           currentTier,
+          currentMode,
           hasIntelligence,
         },
         "read",

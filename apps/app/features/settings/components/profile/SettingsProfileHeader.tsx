@@ -36,15 +36,15 @@ export function SettingsPageHeaderUserMeta() {
 
   return (
     <div
-      className="ui-panel-muted flex w-full max-w-full flex-row items-center gap-3.5 rounded-2xl px-4 py-3.5 text-left shadow-sm ring-1 ring-border/50 sm:w-fit lg:max-w-[24rem]"
+      className="flex w-full max-w-full flex-row items-center gap-3.5 rounded-[var(--radius)] border border-border/60 bg-card px-4 py-3 text-left shadow-sm sm:w-fit lg:max-w-[24rem]"
       aria-label={roleLabel ? `${displayName}, ${roleLabel}` : displayName}
     >
-      <Avatar className="size-12 shrink-0 rounded-xl shadow-sm ring-1 ring-border/60">
-        <AvatarFallback className="rounded-xl bg-muted/80 text-[var(--fs-sm)] font-semibold text-foreground">
+      <Avatar className="size-11 shrink-0 rounded-[calc(var(--radius)-4px)] ring-1 ring-border/60">
+        <AvatarFallback className="rounded-[calc(var(--radius)-4px)] bg-[var(--brand-ink)] text-[var(--fs-sm)] font-semibold text-[var(--brand-cyan)]">
           {initials}
         </AvatarFallback>
       </Avatar>
-      <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
+      <div className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
         <div className="flex w-full min-w-0 flex-row flex-wrap items-center gap-2 sm:flex-nowrap">
           <span className="min-w-0 flex-1 truncate text-[var(--fs-md)] font-semibold leading-tight tracking-tight text-foreground">
             {displayName}
@@ -52,14 +52,14 @@ export function SettingsPageHeaderUserMeta() {
           {roleLabel ? (
             <Badge
               variant="secondary"
-              className="h-6 shrink-0 truncate px-2.5 py-0 text-[var(--fs-2xs)] font-medium leading-none"
+              className="ui-eyebrow h-5 shrink-0 truncate border border-border/60 bg-muted/40 px-2 py-0 leading-none text-muted-foreground"
             >
               {roleLabel}
             </Badge>
           ) : null}
         </div>
         {user.email ? (
-          <span className="w-full truncate text-[var(--fs-xs)] text-muted-foreground">
+          <span className="ui-mono w-full truncate text-[var(--fs-xs)] text-muted-foreground">
             {user.email}
           </span>
         ) : null}

@@ -1,9 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
+import {
+  WHATSAPP_PERSISTENCE_PORT,
+  type WhatsappPersistencePort,
+} from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { PrescriptionCreatedEvent } from '@/domains/prescriptions/core/events/prescription-created.event';
 import { InvoiceGeneratedEvent } from '@/domains/billing/application/services/events/invoice-generated.event';
+import { PaymentCapturedEvent } from '@/domains/billing/application/services/events/payment-captured.event';
 import { AppointmentCreatedEvent } from '@/domains/appointments/application/events/appointment-created.event';
 import { AppointmentUpdatedEvent } from '@/domains/appointments/application/events/appointment-updated.event';
 import { DoctorDelayMarkedEvent } from '@/domains/appointments/application/events/doctor-delay-marked.event';
@@ -12,7 +18,12 @@ import { DoctorDelayMarkedEvent } from '@/domains/appointments/application/event
 export class WhatsappEventListener {
   private readonly logger = new Logger(WhatsappEventListener.name);
 
-  constructor(private readonly whatsappService: WhatsappService) {}
+  constructor(
+    private readonly whatsappService: WhatsappService,
+    private readonly staffNotificationService: StaffNotificationService,
+    @Inject(WHATSAPP_PERSISTENCE_PORT)
+    private readonly persistence: WhatsappPersistencePort,
+  ) {}
 
   @OnEvent(ApplicationEvents.PRESCRIPTION_CREATED)
   async handlePrescriptionCreated(event: PrescriptionCreatedEvent) {
@@ -45,6 +56,56 @@ export class WhatsappEventListener {
     } catch (error) {
       this.logger.error(
         `Failed to send automatic WhatsApp for invoice ${event.invoiceId}`,
+        error,
+      );
+    }
+  }
+
+  @OnEvent(ApplicationEvents.PAYMENT_CAPTURED)
+  async handlePaymentCaptured(event: PaymentCapturedEvent) {
+    this.logger.log(
+      `Payment captured event received for invoice ${event.invoiceId} in clinic ${event.clinicId}`,
+    );
+    try {
+      await this.whatsappService.sendPaymentConfirmation(
+        event.invoiceId,
+        event.clinicId,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to send payment confirmation WhatsApp for invoice ${event.invoiceId}`,
+        error,
+      );
+    }
+
+    try {
+      const invoice = await this.persistence.invoice.findUnique({
+        where: { id: event.invoiceId },
+        include: {
+          patient: { select: { firstName: true, lastName: true } },
+        },
+      });
+      const patientName = invoice?.patient
+        ? `${invoice.patient.firstName} ${invoice.patient.lastName}`.trim()
+        : 'a patient';
+      const amountDisplay = invoice?.total ?? event.amountPaise / 100;
+      await this.staffNotificationService.notifyStaff({
+        clinicId: event.clinicId,
+        type: 'INVOICE_PAID',
+        title: 'Payment received',
+        message: `${patientName} paid ${amountDisplay} for invoice #${event.invoiceId.slice(0, 8).toUpperCase()}.`,
+        priority: 'LOW',
+        data: {
+          invoiceId: event.invoiceId,
+          providerPaymentId: event.providerPaymentId,
+          amountPaise: event.amountPaise,
+        },
+        sendWhatsApp: false,
+        sendInApp: true,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to create staff payment notification for invoice ${event.invoiceId}`,
         error,
       );
     }

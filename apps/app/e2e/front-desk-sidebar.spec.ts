@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { reuseSharedFrontDeskClinicUser } from "./utils/patient-helpers";
-import { seedSession } from "./utils/session";
+import {
+  loginUser,
+  reuseSharedFrontDeskClinicUser,
+} from "./utils/patient-helpers";
+import { expectPrimarySidebarLinkVisible } from "./utils/sidebar-helpers";
 import { expectProtectedWorkspaceLoaded } from "./utils/ui-contracts";
 
 test.describe("Front desk workspace sidebar", () => {
@@ -13,15 +16,7 @@ test.describe("Front desk workspace sidebar", () => {
 
   test.beforeEach(async ({ page }) => {
     if (!user) throw new Error("User not initialized");
-    await seedSession(page, {
-      token: user.accessToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: "ADMIN",
-        clinicId: user.clinicId,
-      },
-    });
+    await loginUser(page, user, { role: "ADMIN" });
   });
 
   test("hides Consultation for front desk clinic", async ({ page }) => {
@@ -36,10 +31,6 @@ test.describe("Front desk workspace sidebar", () => {
   test("keeps Appointments visible for front desk clinic", async ({ page }) => {
     await page.goto("/today", { waitUntil: "domcontentloaded" });
     await expectProtectedWorkspaceLoaded(page);
-
-    const primaryNav = page.getByRole("navigation", { name: "Primary" });
-    const appointmentsLink = primaryNav.getByTestId("sidebar-link-appointments");
-    await expect(appointmentsLink).toBeVisible();
-    await expect(appointmentsLink).toHaveAccessibleName("Appointments");
+    await expectPrimarySidebarLinkVisible(page, "/appointments", "Appointments");
   });
 });

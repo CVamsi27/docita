@@ -11,11 +11,16 @@ import {
   AppointmentMapper,
   PRISMA_TO_DOMAIN_STATUS,
 } from '@/domains/appointments/infrastructure/mappers/appointment.mapper';
+import { getClinicLocalDayUtcBounds } from '@/shared/common/utils/clinic-calendar-bounds';
 import {
   Prisma,
   AppointmentStatus as PrismaAppointmentStatus,
 } from '@workspace/db';
 import { APPOINTMENT_STATUS_TO_PRISMA } from './appointment-status-prisma.maps';
+import {
+  DEFAULT_TIMEZONE,
+  formatUtcInstantAsClinicPickerIso,
+} from '@workspace/utils';
 
 @Injectable()
 export class PrismaAppointmentReadRepository implements IAppointmentReadRepository {
@@ -38,6 +43,8 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
       status,
       search,
       cursor,
+      page,
+      sortOrder,
       limit = 20,
     } = params;
 
@@ -78,6 +85,70 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
 
     try {
       const readClient = this.getReadClient();
+      const listInclude = {
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
+        },
+        doctor: {
+          select: { id: true, name: true },
+        },
+        reminders: {
+          orderBy: { createdAt: 'desc' as const },
+          take: 1,
+          select: {
+            id: true,
+            type: true,
+            status: true,
+            sentAt: true,
+            error: true,
+            createdAt: true,
+          },
+        },
+        responses: {
+          orderBy: { createdAt: 'desc' as const },
+          take: 1,
+          select: {
+            id: true,
+            responseType: true,
+            responseTime: true,
+            delayMinutes: true,
+            patientMessage: true,
+          },
+        },
+      };
+
+      if (page !== undefined) {
+        const normalizedPage = Math.max(1, page);
+        const skip = (normalizedPage - 1) * limit;
+        const resolvedSortOrder = sortOrder ?? 'desc';
+        const orderBy = [
+          { startTime: resolvedSortOrder },
+          { id: resolvedSortOrder },
+        ] as const;
+
+        const [total, items] = await Promise.all([
+          readClient.appointment.count({ where }),
+          readClient.appointment.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: [...orderBy],
+            include: listInclude,
+          }),
+        ]);
+
+        return {
+          items: items.map((item) => AppointmentMapper.toListItem(item)),
+          hasMore: skip + items.length < total,
+          count: total,
+        };
+      }
+
       const [total, items] = await Promise.all([
         readClient.appointment.count({ where }),
         readClient.appointment.findMany({
@@ -86,19 +157,7 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
           cursor: cursor ? { id: cursor } : undefined,
           skip: cursor ? 1 : 0,
           orderBy: [{ startTime: 'asc' }, { id: 'asc' }],
-          include: {
-            patient: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                phoneNumber: true,
-              },
-            },
-            doctor: {
-              select: { id: true, name: true },
-            },
-          },
+          include: listInclude,
         }),
       ]);
 
@@ -146,20 +205,21 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
     doctorId: string,
     date: Date,
     clinicId: string,
+    timezone: string = DEFAULT_TIMEZONE,
   ): Promise<Appointment[]> {
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
+    const pickerDateStr = formatUtcInstantAsClinicPickerIso(date, timezone);
+    const bounds = getClinicLocalDayUtcBounds(pickerDateStr, timezone);
+    if (!bounds) {
+      return [];
+    }
 
     const items = await this.getReadClient().appointment.findMany({
       where: {
         doctorId,
         clinicId,
         startTime: {
-          gte: startOfDay,
-          lte: endOfDay,
+          gte: bounds.rangeStart,
+          lt: bounds.rangeEndExclusive,
         },
       },
       orderBy: { startTime: 'asc' },
@@ -204,11 +264,21 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
     });
   }
 
-  async findClinicTier(clinicId: string): Promise<{ tier: string } | null> {
+  async findClinicTier(
+    clinicId: string,
+  ): Promise<{ tier: string; planMode: string | null } | null> {
     return this.getReadClient().clinic.findUnique({
       where: { id: clinicId },
-      select: { tier: true },
+      select: { tier: true, planMode: true },
     });
+  }
+
+  async findClinicTimezone(clinicId: string): Promise<string | null> {
+    const row = await this.getReadClient().clinic.findUnique({
+      where: { id: clinicId },
+      select: { timezone: true },
+    });
+    return row?.timezone?.trim() || null;
   }
 
   async findForConsultationStart(id: string, clinicId: string) {

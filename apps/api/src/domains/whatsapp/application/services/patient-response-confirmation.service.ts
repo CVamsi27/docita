@@ -67,13 +67,32 @@ export class PatientResponseConfirmationService {
     );
 
     if (resolved) {
+      // Send only the variables this template actually uses. Meta requires the
+      // number of body parameters to match the number of placeholders, and the
+      // shared `variables` map carries extras (e.g. `delayMinutes` for non-delay
+      // responses) that the confirm template does not reference.
+      const templateVariables = this.pickTemplateVariables(
+        plan.templateId,
+        variables,
+      );
       await this.sendClinicPatientWhatsApp({
         clinicId: appointment.clinic.id,
         to: appointment.patient.phoneNumber,
         templateName: plan.templateId,
-        variables,
+        variables: templateVariables,
       });
     }
+  }
+
+  private pickTemplateVariables(
+    templateId: string,
+    variables: Record<string, string>,
+  ): Record<string, string> {
+    if (templateId === 'patient_response_confirm') {
+      const { delayMinutes: _omit, ...rest } = variables;
+      return rest;
+    }
+    return variables;
   }
 
   async sendDelayMinutesConfirmation(

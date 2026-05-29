@@ -7,7 +7,6 @@ import type {
   PatientWithMedicalHistory,
 } from "@workspace/types";
 import { PatientTagManagerContainer as PatientTagManager } from "@/features/patients/components/details/PatientTagManagerContainer";
-import type { PatientStatistics } from "@/hooks/use-patient-data";
 import { PatientClinicalChartSummary } from "./patient-clinical-chart-summary";
 import { PatientDetailTabContent } from "./patient-detail-tab-content";
 import { usePatientDetailTabs } from "./use-patient-detail-tabs";
@@ -24,20 +23,16 @@ interface PatientDetailTabsProps {
   patient: PatientWithMedicalHistory;
   patientId: string;
   appointments: Appointment[];
-  statistics: PatientStatistics | null;
   canEditPatient: boolean;
   canRecordPatientVitals: boolean;
-  onScheduleVisit: () => void;
 }
 
 export function PatientDetailTabs({
   patient,
   patientId,
   appointments,
-  statistics,
   canEditPatient,
   canRecordPatientVitals,
-  onScheduleVisit,
 }: PatientDetailTabsProps) {
   const tabs = usePatientDetailTabs();
 
@@ -81,13 +76,9 @@ export function PatientDetailTabs({
             patient={patient}
             patientId={patientId}
             appointments={appointments}
-            statistics={statistics}
             canEditPatient={canEditPatient}
             canRecordPatientVitals={canRecordPatientVitals}
             canViewInvoices={tabs.canViewInvoices}
-            onSelectTab={tabs.handleSelectTab}
-            onNavigateToRecordsSubTab={tabs.handleSelectRecordsSubTab}
-            onScheduleVisit={onScheduleVisit}
           />
         </div>
       ) : (
@@ -97,13 +88,9 @@ export function PatientDetailTabs({
           patient={patient}
           patientId={patientId}
           appointments={appointments}
-          statistics={statistics}
           canEditPatient={canEditPatient}
           canRecordPatientVitals={canRecordPatientVitals}
           canViewInvoices={tabs.canViewInvoices}
-          onSelectTab={tabs.handleSelectTab}
-          onNavigateToRecordsSubTab={tabs.handleSelectRecordsSubTab}
-          onScheduleVisit={onScheduleVisit}
         />
       )}
     </div>

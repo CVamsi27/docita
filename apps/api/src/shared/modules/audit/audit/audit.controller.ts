@@ -7,16 +7,15 @@ import {
 } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
 import { AuditService, AuditLogFilter } from './audit.service';
-import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
-import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
-import { Role } from '@workspace/db';
-import { Feature } from '@workspace/types';
+import {
+  AuditLogsApiAccess,
+  AuditSummaryApiAccess,
+} from '@/shared/modules/audit/audit/audit.controller.access';
 import { AnyAuditResponseDto } from './dto/audit.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('audit-logs')
-@Roles(Role.ADMIN, Role.INTERNAL)
-@RequireFeature(Feature.AUDIT_LOGS)
+@AuditLogsApiAccess()
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
@@ -42,8 +41,7 @@ export class AuditController {
 }
 
 @Controller('audit')
-@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR)
-@RequireFeature(Feature.AUDIT_LOGS)
+@AuditSummaryApiAccess()
 export class AuditSummaryController {
   constructor(private readonly auditService: AuditService) {}
 

@@ -108,6 +108,27 @@ describe('AppointmentQueryService', () => {
       );
     });
 
+    it('should resolve calendar picker range to UTC bounds with overlap', async () => {
+      appointmentRepository.findAll.mockResolvedValueOnce([] as never);
+      (prisma.clinic.findUnique as jest.Mock).mockResolvedValueOnce({
+        timezone: 'Asia/Kolkata',
+      } as never);
+
+      await service.listAppointments({
+        clinicId: 'clinic-1',
+        calendarRangeStartPicker: '2026-05-07',
+        calendarRangeEndPicker: '2026-05-09',
+      });
+
+      expect(appointmentRepository.findAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          intersectCalendarRange: true,
+          startDate: new Date('2026-05-06T18:30:00.000Z'),
+          endDate: new Date('2026-05-09T18:30:00.000Z'),
+        }),
+      );
+    });
+
     it('should skip calendar bounds resolution when explicit date range is provided', async () => {
       const appointments = [{ id: 'appt-1', clinicId: 'clinic-1' }];
       appointmentRepository.findAll.mockResolvedValueOnce(

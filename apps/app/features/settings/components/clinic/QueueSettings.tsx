@@ -5,7 +5,7 @@ import { QueueLiveStatusPanel } from "./queue/queue-live-status-panel";
 
 export const QueueSettings = () => {
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <QueueConfigurationForm />
       <QueueLiveStatusPanel />
     </div>

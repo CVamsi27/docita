@@ -25,6 +25,14 @@ export function buildUpstreamApiUrl(pathSegments: string[], requestUrl: string) 
   return `${upstreamBase}/${path}${search}`;
 }
 
+export function rewriteSetCookieForAppProxy(cookie: string): string {
+  return cookie
+    .split(";")
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0 && !/^domain=/i.test(part))
+    .join("; ");
+}
+
 export function normalizeUpstreamApiUrl(value: string) {
   const trimmed = value.replace(/\/$/, "");
   const url = new URL(trimmed);
@@ -69,7 +77,8 @@ export function createUpstreamProxyResponseHeaders(upstreamHeaders: Headers) {
   });
 
   for (const cookie of setCookies) {
-    headers.append("set-cookie", cookie);
+    // Upstream may emit Domain= for the API host; strip it so cookies bind to the app origin.
+    headers.append("set-cookie", rewriteSetCookieForAppProxy(cookie));
   }
 
   return headers;

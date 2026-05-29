@@ -1,92 +1,114 @@
-# Custom packages
+# Plan model: Tier × Mode
 
-> Sold to clinics that want a full clinical plan but **without** WhatsApp or AI
-> features (or both). Implemented as per-clinic feature overrides on top of an
-> existing tier — no new tier enum values.
+> Every billed plan is the **combination of a tier (Starter → Enterprise) and
+> a PlanMode (Full / Front Desk / Core)**. Customers pick both at signup; the
+> UI surfaces them as two orthogonal toggles (mode pill + monthly/yearly +
+> tier card).
 
-## Why overrides instead of new tiers
+## The five tiers
 
-The clinical ladder (Starter → Essential → Professional → Hospital → Enterprise)
-is product-led pricing. The moment we sell "Professional without comms" as a
-new tier, we get combinatorial sprawl: *without WhatsApp*, *without AI*,
-*without both*, *Hospital without AI*, *Hospital without comms*, etc.
+`STARTER`, `ESSENTIAL`, `PROFESSIONAL`, `HOSPITAL`, `ENTERPRISE`.
 
-Instead, every paid tier can attach a **package preset** — a bundle of boolean
-toggles stored on `Clinic.features` (Json column). Backend and frontend feature
-gates honor the overrides through the same `hasFeatureAccess` path, so a
-"Professional Core" clinic gets the full doctor experience minus the toggled
-modules, automatically.
+This is the only published ladder — `PUBLISHED_PLAN_LADDER` in
+[`packages/types/src/billing/tier.ts`](../../packages/types/src/billing/tier.ts).
 
-## Architecture (where the moving parts live)
+Legacy `FRONT_DESK`, `FRONT_DESK_CLINIC`, `FRONT_DESK_HOSPITAL` DB tier enum
+values are kept for backward compatibility (schema is additive-locked) but
+**auto-mapped** by `mapDbClinicTierToTierAndMode`:
 
-| Concern | Location |
-|---|---|
-| Allowlist of toggleable features | `OVERRIDABLE_FEATURES` in [packages/types/src/billing/tier.ts](../../packages/types/src/billing/tier.ts) |
-| Zod schema (parse + strip) | `clinicFeatureOverridesSchema` (same file) |
-| Bundled offers | `PACKAGE_PRESETS` (same file) |
-| Per-currency discount | `PackagePreset.monthlyDiscount` |
-| Backend gating | `hasFeatureAccess(...)`, `assertClinicHasFeatureOrThrow(...)` |
-| Frontend gating | `usePermissionStore().canAccess(...)` |
-| DB column | `Clinic.features` (`@json:clinicFeatureOverridesSchema`) |
-| Pricing UI metadata | `PACKAGE_PRESET_DISPLAY` in [apps/app/features/subscription/config/pricing-config.ts](../../apps/app/features/subscription/config/pricing-config.ts) |
+| Legacy DB tier         | Resolves to                     |
+|------------------------|---------------------------------|
+| `FRONT_DESK`           | `(ESSENTIAL, mode=FRONT_DESK)`  |
+| `FRONT_DESK_CLINIC`    | `(PROFESSIONAL, mode=FRONT_DESK)` |
+| `FRONT_DESK_HOSPITAL`  | `(HOSPITAL, mode=FRONT_DESK)`   |
 
-## Sanctioned presets
+UI flows never let the customer pick a legacy tier value directly. They land
+on the new (tier, mode) pair via the toggle.
 
-| ID | Base plan | What it drops | Monthly discount (INR) |
-|---|---|---|---|
-| `PROFESSIONAL_NO_COMMS` | Professional | WhatsApp, broadcast, auto-reminders | ₹500 |
-| `PROFESSIONAL_NO_AI` | Professional | AI prescription, diagnosis, smart-tasks, no-show / segmentation / anomaly | ₹500 |
-| `PROFESSIONAL_CORE` | Professional | Both comms **and** AI | ₹1,000 |
-| `HOSPITAL_NO_COMMS` | Hospital | WhatsApp, broadcast, auto-reminders | ₹500 |
-| `HOSPITAL_NO_AI` | Hospital | AI features (same set as above) | ₹500 |
-| `HOSPITAL_CORE` | Hospital | Both comms **and** AI | ₹1,000 |
+## The three modes
 
-Pricing for other currencies (USD, EUR, GBP, AUD, CAD, SGD, AED, ZAR) lives on
-each preset's `monthlyDiscount` map.
+`PlanMode = FULL | FRONT_DESK | CORE`.
 
-## How to add a new preset
+| Mode        | Pricing multiplier | What it unlocks                                                        |
+|-------------|--------------------|------------------------------------------------------------------------|
+| FULL        | × 1.00 (default)   | Every feature the tier unlocks.                                        |
+| FRONT_DESK  | × 0.70             | Reception scheduling, queue, billing, WhatsApp. **No clinical workflows.** |
+| CORE        | × 0.80             | Clinical workflows. **No WhatsApp messaging, no AI assist.**           |
 
-1. Add the ID to `PackagePresetId` and an entry in `PACKAGE_PRESETS`.
-2. If the preset toggles a feature not yet in `OVERRIDABLE_FEATURES`, add the
-   feature there first.
-3. Add a display row to `PACKAGE_PRESET_DISPLAY`.
-4. Add a test in
-   [packages/utils/test/tier-feature-overrides.test.ts](../../packages/utils/test/tier-feature-overrides.test.ts)
-   asserting which features it blocks.
+The set of features blocked by each mode lives in `MODE_BLOCKED_FEATURES`
+([same file](../../packages/types/src/billing/tier.ts)):
 
-No DB migration is needed — the override JSON shape is unchanged.
+- `FRONT_DESK` reuses the long-standing `FRONT_DESK_BLOCKED_FEATURES` set
+  (prescriptions, EHR, AI-clinical, multi-doctor, …).
+- `CORE` blocks WhatsApp messaging, broadcast, auto-reminders, and all AI
+  features (prescription assistant, diagnosis hints, smart-task engine,
+  no-show prediction, segmentation, anomaly detection).
+- `FULL` blocks nothing.
 
-## How sales / admin attach a preset to a clinic
+**Adding/removing a feature from a mode is a one-line edit** in
+`MODE_BLOCKED_FEATURES`.
 
-1. Pick the clinic in the Internal admin tool.
-2. Choose a preset from the dropdown on the subscription card.
-3. The internal flow writes the preset's `overrides` map into `Clinic.features`
-   and adjusts the monthly invoice by `monthlyDiscount[clinic.currency]`.
+## Architecture
 
-Manually editing `Clinic.features` is discouraged. The schema strips anything
-outside `OVERRIDABLE_FEATURES`, so a hand-rolled override targeting (say)
-`DIGITAL_PRESCRIPTIONS` would be silently dropped on the next read.
+| Concern                         | Location                                                                                         |
+|---------------------------------|--------------------------------------------------------------------------------------------------|
+| Mode enum + helpers             | `packages/types/src/billing/tier.ts` (`planModeSchema`, `PLAN_MODE_INFO`, `MODE_BLOCKED_FEATURES`) |
+| Tier × mode pricing             | `applyModeToPricing(base, mode)` in the same file                                                |
+| Mode-specific tier highlights   | `MODE_TIER_HIGHLIGHTS` in the same file (used by tier cards on landing + upgrade)                |
+| Available modes per tier        | `getAvailableModesForTier(tier)` — Starter is FULL-only; everyone else gets all three            |
+| DB column                       | `Clinic.planMode` (default `FULL`) — additive migration `20260528120000_add_clinic_plan_mode`    |
+| Legacy auto-map                 | `mapDbClinicTierToTierAndMode` in `packages/types/src/access/clinic-tier-map.ts`                 |
+| Backend gating                  | `hasFeatureAccess(tier, feature, hasIntelligence, overrides, mode)` + `assertClinicHasFeatureOrThrow` |
+| Frontend gating                 | `usePermissionStore().canAccess(...)` reads `currentMode`                                        |
+| Frontend pricing UI             | `apps/app/features/subscription/components/billing-plans-section.tsx` (Mode toggle + tier grid) |
+| Landing pricing                 | `apps/landing/src/components/pricing-section.tsx` (Mode toggle)                                 |
+| Onboarding plan picker          | `apps/app/features/onboarding/components/steps/plan-selection-step-*`                            |
 
 ## How `hasFeatureAccess` decides
 
 ```
-isFeatureGenerallyAvailable(feature) === false   → DENY  (planned features)
-OVERRIDABLE_FEATURES.has(feature) && overrides[feature] !== undefined
-                                                  → overrides[feature]
-requiredTier === Tier.INTELLIGENCE                → hasIntelligence
-tier === 'FRONT_DESK' && FRONT_DESK_BLOCKED       → DENY
-fallback                                          → getTierValue(tier) >= requiredTier
+isFeatureGenerallyAvailable(feature) === false        → DENY
+MODE_BLOCKED_FEATURES[mode].has(feature)              → DENY      (mode wall)
+OVERRIDABLE_FEATURES.has(feature) && override defined → override
+requiredTier === Tier.INTELLIGENCE                    → hasIntelligence
+tier ∈ legacy FRONT_DESK_*                            → legacy FD wall
+fallback                                              → numeric tier ≥ requiredTier
 ```
 
-The override path runs **before** the tier comparison so a clinic on
-Professional with `WHATSAPP_MESSAGING: false` denies WhatsApp even though
-Professional would otherwise unlock it.
+The mode block runs **before** overrides, so a clinic on `mode = CORE` cannot
+have WhatsApp re-enabled via a stale `Clinic.features` entry. Per-clinic
+overrides are still useful for finer-grained custom packages (e.g.
+"Professional Full but with WhatsApp specifically off") via `PACKAGE_PRESETS`.
 
-## Things that look like overrides but are not
+## Adding a new mode
 
-- **Intelligence add-on** — `hasIntelligence` boolean on the clinic. Don't model
-  it as an override.
-- **Front Desk gating** — handled by `FRONT_DESK_BLOCKED_FEATURES`, not by
-  per-clinic overrides.
-- **Trial / payment lock-out** — handled by `TierGuard` via subscription
-  status; package presets are orthogonal.
+(rare, but if you do)
+
+1. Extend `planModeSchema` and `PlanMode` in `tier.ts`.
+2. Add an entry to `PLAN_MODE_INFO` (pricing multiplier + copy).
+3. Define what's blocked in `MODE_BLOCKED_FEATURES`.
+4. Add the new mode value to the `PlanMode` Prisma enum (additive migration).
+5. Update the toggles in `billing-plans-section.tsx` and
+   `pricing-section.tsx` — both iterate `PLAN_MODES` automatically.
+6. Update `mapDbClinicTierToTierAndMode` if any legacy DB tier should map to
+   the new mode by default.
+
+## Per-clinic overrides (`Clinic.features`)
+
+Still supported for sales-led custom packages, but **mode wins**. Overrides
+that try to bypass the mode block are silently denied by `hasFeatureAccess`.
+The `OVERRIDABLE_FEATURES` allowlist and `clinicFeatureOverridesSchema` strip
+non-overridable features at the boundary.
+
+`PACKAGE_PRESETS` (PROFESSIONAL_NO_COMMS, HOSPITAL_CORE, …) remain as a
+catalog for internal admins to apply curated override bundles. New customers
+flow through the mode toggle; existing custom packages keep working.
+
+## Things that look like modes but are not
+
+- **Intelligence add-on** — boolean `hasIntelligence` flag on the clinic,
+  unlocks AI-* features only when `mode === FULL`.
+- **Billing cycle** — Monthly / Yearly — orthogonal to mode; both toggles
+  appear side by side.
+- **Trial / payment lock-out** — handled by `TierGuard` and subscription
+  status; mode is unrelated.

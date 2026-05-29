@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { tierSchema } from "../billing/tier";
+import { planModeSchema, tierSchema } from "../billing/tier";
 import { invoiceTaxSummarySchema, taxInvoiceTypeSchema } from "../billing/tax";
 
 const billingCycleSchema = z.enum(["MONTHLY", "YEARLY"]);
@@ -55,6 +55,8 @@ export const subscriptionBillingPreviewQuerySchema = z.object({
 export const subscriptionBillingCheckoutRequestSchema = z.object({
   tier: tierSchema,
   billingCycle: billingCycleSchema,
+  /** Plan mode toggle (Full / Front Desk / Core). Defaults to FULL. */
+  planMode: planModeSchema.optional().default("FULL"),
   referralCode: z.string().optional(),
 }).strict();
 
@@ -64,11 +66,23 @@ export const subscriptionBillingActivateRequestSchema = z.object({
   razorpaySignature: z.string(),
   tier: tierSchema,
   billingCycle: billingCycleSchema,
+  /** Plan mode toggle (Full / Front Desk / Core). Defaults to FULL. */
+  planMode: planModeSchema.optional().default("FULL"),
 }).strict();
 
 export const subscriptionBillingCancelRequestSchema = z.object({
   immediate: z.boolean().optional(),
 }).strict();
+
+export const subscriptionBillingScheduleChangeRequestSchema = z.object({
+  tier: tierSchema,
+  billingCycle: billingCycleSchema,
+  /** Plan mode toggle (Full / Front Desk / Core). Defaults to FULL. */
+  planMode: planModeSchema.optional().default("FULL"),
+}).strict();
+export type SubscriptionBillingScheduleChangeRequest = z.infer<
+  typeof subscriptionBillingScheduleChangeRequestSchema
+>;
 
 export const subscriptionBillingPaymentHistoryItemSchema = z
   .object({
@@ -234,6 +248,8 @@ export const scheduledPlanChangeJsonSchema = z
     plan: z.string(),
     billingCycle: z.string(),
     effectiveAt: z.string(),
+    /** Optional PlanMode for the scheduled change. Defaults to FULL on apply. */
+    planMode: planModeSchema.optional(),
   })
   .strict();
 

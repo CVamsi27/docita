@@ -43,6 +43,7 @@ export const FEATURE_CATEGORIES: { label: string; features: Feature[] }[] = [
       Feature.DIGITAL_INTAKE_FORMS,
       Feature.FULL_EHR,
       Feature.LAB_TESTS,
+      Feature.VACCINE_TRACKING,
       Feature.CONSENT_MANAGEMENT,
       Feature.DOCTOR_SIGNATURE,
     ],
@@ -176,7 +177,7 @@ export function FeatureCategoryRows({
         const details = getFeatureDetails(feature);
         return (
           <TableRow key={feature} className="hover:bg-muted/50">
-            <TableCell className="sticky left-0 z-10 bg-card border-r w-[260px] min-w-[200px] hover:bg-muted/50 transition-colors py-2.5">
+            <TableCell className="sticky left-0 z-10 bg-card border-r w-[11rem] min-w-[11rem] max-w-[15rem] hover:bg-muted/50 transition-colors py-2.5 lg:w-[15rem] lg:min-w-[15rem]">
               <div className="flex items-center gap-2">
                 <SymbolTooltip
                   label={details.name}
@@ -213,7 +214,7 @@ export function FeatureCategoryRows({
                 <TableCell
                   key={tier}
                   className={cn(
-                    "text-center align-middle border-l py-2.5",
+                    "w-[7.5rem] min-w-[7.5rem] px-2 text-center align-middle border-l py-2.5",
                     currentTier === tier && "bg-primary/5",
                   )}
                 >

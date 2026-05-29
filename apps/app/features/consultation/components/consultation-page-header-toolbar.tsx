@@ -34,6 +34,8 @@ interface ConsultationPageHeaderToolbarProps {
   onOpenCommandPalette?: () => void;
   onMarkDone?: () => void;
   isMarkingDone: boolean;
+  canMarkDone?: boolean;
+  markDoneDisabledReason?: string;
   onOpenVitals: () => void;
   onOpenBilling: () => void;
   onOpenAskAi: () => void;
@@ -48,6 +50,8 @@ export function ConsultationPageHeaderToolbar({
   onOpenCommandPalette,
   onMarkDone,
   isMarkingDone,
+  canMarkDone = true,
+  markDoneDisabledReason,
   onOpenVitals,
   onOpenBilling,
   onOpenAskAi,
@@ -183,15 +187,22 @@ export function ConsultationPageHeaderToolbar({
         </DropdownMenuContent>
       </DropdownMenu>
       {!readOnly && onMarkDone ? (
-        <Button
-          size="sm"
-          onClick={onMarkDone}
-          disabled={isMarkingDone}
-          className="gap-1.5 h-8"
+        <SymbolTooltip
+          label={markDoneDisabledReason ?? "Mark consultation done"}
+          side="bottom"
         >
-          <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-          <span>{isMarkingDone ? "Marking…" : "Mark done"}</span>
-        </Button>
+          <span className="inline-flex">
+            <Button
+              size="sm"
+              onClick={onMarkDone}
+              disabled={isMarkingDone || !canMarkDone}
+              className="gap-1.5 h-8"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>{isMarkingDone ? "Marking…" : "Mark done"}</span>
+            </Button>
+          </span>
+        </SymbolTooltip>
       ) : null}
     </div>
   );

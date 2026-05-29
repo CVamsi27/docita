@@ -8,7 +8,7 @@ export * from "./profile/PatientBadgeContainer";
 
 export * from "./list/PatientsPageUI";
 export * from "./list/PatientsPageContainer";
-export * from "./list/table/PatientsTable";
+export * from "./list/patients-table";
 
 export * from "./forms/PatientDialogs";
 

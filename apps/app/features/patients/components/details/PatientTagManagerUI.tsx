@@ -156,7 +156,7 @@ export function PatientTagManagerUI({
         </div>
 
         <Tabs defaultValue="current" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="flex w-full overflow-x-auto overscroll-x-contain [scrollbar-width:thin] max-md:flex-nowrap md:grid md:grid-cols-3">
             <TabsTrigger value="current">Current ({tags.length})</TabsTrigger>
             <TabsTrigger value="presets">Quick add</TabsTrigger>
             <TabsTrigger value="custom">Custom</TabsTrigger>

@@ -8,13 +8,10 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { EmptyState, LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+  DataTable,
+  type DataTableColumn,
+} from "@workspace/ui/components/data-display/data-table";
+import { ListRow } from "@workspace/ui/components/data-display/list-row";
 import { FlaskConical } from "lucide-react";
 
 import { LabTest } from "@workspace/types";
@@ -31,6 +28,33 @@ export const LabTestsCatalog: FC<LabTestsCatalogProps> = ({
 }) => {
   const { formatCurrency } = useClinicCurrency();
 
+  const columns: DataTableColumn<LabTest>[] = [
+    {
+      id: "name",
+      header: "Name",
+      cell: (test) => <span className="font-medium">{test.name}</span>,
+    },
+    {
+      id: "category",
+      header: "Category",
+      hiddenOnMobile: true,
+      cell: (test) => (
+        <span className="capitalize text-muted-foreground">{test.category}</span>
+      ),
+    },
+    {
+      id: "price",
+      header: "Price",
+      cell: (test) => (
+        <span className="font-medium tabular-nums">
+          {test.price
+            ? formatCurrency(test.price, { fractionDigits: 0 })
+            : "—"}
+        </span>
+      ),
+    },
+  ];
+
   return (
     <Card>
       <CardHeader>
@@ -40,50 +64,34 @@ export const LabTestsCatalog: FC<LabTestsCatalogProps> = ({
       <CardContent>
         {isLoading ? (
           <LoadingState message="Loading catalog…" />
-        ) : (
-          <div className="overflow-x-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="py-3 px-4">
-                    Name
-                  </TableHead>
-                  <TableHead className="py-3 px-4">
-                    Category
-                  </TableHead>
-                  <TableHead className="py-3 px-4">
-                    Price
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {testCatalog.map((test) => (
-                  <TableRow
-                    key={test.id}
-                    className="border-b hover:bg-muted/50 transition-colors"
-                  >
-                    <TableCell className="py-3 px-4 font-medium">
-                      {test.name}
-                    </TableCell>
-                    <TableCell className="py-3 px-4 text-muted-foreground capitalize">
-                      {test.category}
-                    </TableCell>
-                    <TableCell className="py-3 px-4">
-                      {test.price
-                        ? formatCurrency(test.price, { fractionDigits: 0 })
-                        : "-"}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-        {!isLoading && testCatalog.length === 0 && (
+        ) : testCatalog.length === 0 ? (
           <EmptyState
             icon={FlaskConical}
-            title="No tests found"
-            description="The test catalog is empty"
+            title="No tests in catalog"
+            description="Lab test catalog will appear here once configured."
+          />
+        ) : (
+          <DataTable<LabTest>
+            columns={columns}
+            data={testCatalog}
+            rowKey={(test) => test.id}
+            stackOnMobile
+            mobileRenderer={(test) => (
+              <ListRow
+                title={test.name}
+                meta={
+                  <span className="capitalize">{test.category}</span>
+                }
+                trailing={
+                  <span className="font-medium tabular-nums">
+                    {test.price
+                      ? formatCurrency(test.price, { fractionDigits: 0 })
+                      : "—"}
+                  </span>
+                }
+                showChevron={false}
+              />
+            )}
           />
         )}
       </CardContent>

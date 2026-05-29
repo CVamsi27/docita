@@ -12,10 +12,7 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { RemindersService } from '@/domains/reminders/application/services/reminders.service';
-import { Role } from '@workspace/db';
-import { Feature } from '@workspace/types';
-import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
-import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
+import { RemindersApiAccess } from '@/domains/reminders/presentation/controllers/reminders.controller.access';
 import {
   ReminderSettingsDto,
   SendReminderDto,
@@ -31,8 +28,7 @@ import { RequestWithUser } from '@/shared/common/types/common.types';
 import { requireClinicIdFromRequest } from '@/shared/modules/auth/auth/clinic-request-context';
 
 @Controller('reminders')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
-@RequireFeature(Feature.AUTO_REMINDERS)
+@RemindersApiAccess()
 export class RemindersController {
   constructor(private readonly remindersService: RemindersService) {}
 

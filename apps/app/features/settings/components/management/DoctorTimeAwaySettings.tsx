@@ -137,15 +137,14 @@ export function DoctorTimeAwaySettings() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Time away</CardTitle>
+      <CardHeader className="border-b border-border/60 pb-5">
+        <CardTitle>Time away</CardTitle>
         <CardDescription>
-          Block your calendar for holidays or other full-day absences. This is
-          separate from leave requests under the Leave tab, which track balances
-          and approvals.
+          Block your calendar for holidays or other full-day absences. Separate
+          from leave requests under the Leave tab.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="flex flex-col gap-6 pt-5">
         {isAdmin && doctors.length > 0 ? (
           <div className="space-y-2">
             <Label htmlFor="time-away-doctor">Doctor</Label>

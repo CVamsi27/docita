@@ -10,6 +10,7 @@ import {
   Feature,
   Tier,
   type AppAccessTarget,
+  type PlanMode,
   type UserRole,
 } from "@workspace/types";
 import { getTierName, hasFeatureAccess } from "@workspace/utils";
@@ -41,6 +42,7 @@ const SETTINGS_TAB_MIN_TIERS: Partial<Record<string, Tier>> = {
 interface VisibleSettingsTabsParams {
   userRole?: UserRole | null;
   currentTier: Tier;
+  currentMode?: PlanMode;
   hasIntelligence?: boolean;
   canAccessFeature: (feature: Feature) => boolean;
   searchQuery?: string;
@@ -49,6 +51,7 @@ interface VisibleSettingsTabsParams {
 export function getVisibleSettingsTabs({
   userRole,
   currentTier,
+  currentMode = "FULL",
   hasIntelligence = false,
   canAccessFeature,
   searchQuery = "",
@@ -71,6 +74,8 @@ export function getVisibleSettingsTabs({
             getTierName(currentTier),
             Feature.QUEUE_MANAGEMENT,
             hasIntelligence,
+            undefined,
+            currentMode,
           )
         ) {
           return false;
@@ -90,6 +95,7 @@ export function getVisibleSettingsTabs({
               role: userRole,
               canAccessFeature,
               currentTier,
+              currentMode,
               hasIntelligence,
             },
             "read",
@@ -126,6 +132,7 @@ export const useSettingsLogic = () => {
   const { user } = useAuth();
   const canAccessFeature = usePermissionStore((state) => state.canAccess);
   const currentTier = usePermissionStore((state) => state.currentTier);
+  const currentMode = usePermissionStore((state) => state.currentMode);
   const hasIntelligence = usePermissionStore((state) => state.hasIntelligence);
   const requestedTab = searchParams.get("tab") || "general";
   const [searchQuery, setSearchQuery] = useState("");
@@ -134,6 +141,7 @@ export const useSettingsLogic = () => {
     return getVisibleSettingsTabs({
       userRole: user?.role,
       currentTier,
+      currentMode,
       hasIntelligence,
       canAccessFeature,
       searchQuery,
@@ -141,6 +149,7 @@ export const useSettingsLogic = () => {
   }, [
     canAccessFeature,
     currentTier,
+    currentMode,
     hasIntelligence,
     searchQuery,
     user?.role,

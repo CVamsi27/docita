@@ -12,6 +12,7 @@ import {
   jest,
 } from '@jest/globals';
 import { ClinicTier, IntelligenceAddon } from '@workspace/db';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 
 describe('SystemEventsService', () => {
   let service: SystemEventsService;
@@ -70,6 +71,7 @@ describe('SystemEventsService', () => {
             id: 'appt-123',
             startTime: new Date('2026-04-01T10:00:00Z'),
             patient: {
+              id: 'patient-123',
               firstName: 'Sunita',
               lastName: 'Devi',
               phoneNumber: '919876543212',
@@ -82,6 +84,9 @@ describe('SystemEventsService', () => {
               },
             },
           })),
+      },
+      whatsappLog: {
+        create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       },
     };
   }
@@ -104,6 +109,10 @@ describe('SystemEventsService', () => {
         {
           provide: SendMessageUseCase,
           useValue: { execute: sendMessageExecute },
+        },
+        {
+          provide: CLOCK_PORT,
+          useValue: { now: () => new Date('2026-04-01T12:00:00Z') },
         },
       ],
     }).compile();
@@ -246,6 +255,14 @@ describe('SystemEventsService', () => {
             clinicName: 'Test Clinic',
             doctorName: 'Dr. Sharma',
             mapsLink: 'https://www.google.com/maps?q=12.9716,77.5946',
+          }),
+        }),
+      );
+      expect(mockPrisma.whatsappLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            type: 'appointment_confirmation',
+            providerMessageId: 'wamid.1',
           }),
         }),
       );

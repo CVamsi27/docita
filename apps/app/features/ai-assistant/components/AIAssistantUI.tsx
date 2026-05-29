@@ -61,7 +61,7 @@ export const AIAssistantUI: FC<AIAssistantUIProps> = ({ state, handlers }) => {
           onValueChange={handlers.setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
+          <TabsList className="grid w-full grid-cols-2 gap-1 sm:grid-cols-4 lg:w-[min(100vw-2rem,600px)]">
             <TabsTrigger
               value="prescription"
               className="flex items-center gap-2"

@@ -248,14 +248,37 @@ export function TierCardSummaryOverage({
   }
 
   return (
-    <div className="mt-4 border-t border-border/60 pt-3">
-      <p className="text-[var(--fs-2xs)] font-semibold uppercase tracking-wide text-muted-foreground">
+    <div className="mt-4 rounded-md border border-border/60 bg-muted/30 px-3 py-2.5">
+      <div className="flex items-center gap-1.5 text-[var(--fs-2xs)] font-semibold uppercase tracking-wide text-muted-foreground">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-muted-foreground/80"
+          aria-hidden
+        >
+          <path d="M12 2v20" />
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
         Beyond included usage
-      </p>
+      </div>
       {overageItems?.length ? (
-        <p className="mt-1.5 text-[var(--fs-xs)] leading-relaxed text-muted-foreground">
-          {overageItems.join(" · ")}
-        </p>
+        <ul className="mt-2 flex flex-wrap gap-1.5" role="list">
+          {overageItems.map((item) => (
+            <li
+              key={item}
+              className="inline-flex items-center rounded-full border border-border/60 bg-card px-2 py-0.5 text-[var(--fs-2xs)] font-medium tabular-nums text-foreground/80"
+            >
+              {item}
+            </li>
+          ))}
+        </ul>
       ) : overageHint ? (
         <p className="mt-1.5 text-[var(--fs-xs)] leading-relaxed text-muted-foreground">
           {overageHint}

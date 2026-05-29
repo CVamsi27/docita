@@ -87,9 +87,9 @@ export const MemberListRow: FC<MemberListRowProps> = ({ member, onManage }) => {
     member.role === "DOCTOR" || member.role === "ADMIN_DOCTOR";
 
   return (
-    <div className="flex items-center justify-between rounded-lg p-3 hover:bg-muted/50">
+    <div className="flex items-center justify-between rounded-[calc(var(--radius)-4px)] border border-transparent p-3 transition-colors hover:border-border/60 hover:bg-muted/50">
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70 font-medium text-foreground">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-card font-medium text-foreground">
           {member.name
             ?.split(" ")
             .map((n: string) => n[0])
@@ -150,19 +150,17 @@ export const MemberCardHeader: FC<MemberCardHeaderProps> = ({
   onCopyCode,
   onInvite,
 }) => (
-  <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-    <div>
-      <CardTitle>Team Members</CardTitle>
+  <CardHeader className="flex flex-col gap-4 border-b border-border/60 pb-5 md:flex-row md:items-start md:justify-between">
+    <div className="min-w-0">
+      <CardTitle>Team members</CardTitle>
       <CardDescription>
-        Manage {facilityLabel.toLowerCase()} staff and permissions
+        Manage {facilityLabel.toLowerCase()} staff and permissions.
       </CardDescription>
     </div>
     <div className="flex w-full flex-col gap-2 md:w-auto md:items-end">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs text-muted-foreground">
-          {facilityLabel} code
-        </span>
-        <code className="rounded bg-muted px-2 py-1 text-xs font-semibold tracking-wide">
+        <span className="ui-eyebrow">{facilityLabel} code</span>
+        <code className="ui-mono rounded-[calc(var(--radius)-6px)] border border-border/60 bg-muted/40 px-2 py-1 text-xs font-semibold tracking-wide text-foreground">
           {clinicReferralCode || "Not available"}
         </code>
         <Button
@@ -187,7 +185,7 @@ export const MemberCardHeader: FC<MemberCardHeaderProps> = ({
         className="w-full md:w-auto"
       >
         <UserPlus className="mr-2 h-4 w-4" />
-        Invite Member
+        Invite member
       </Button>
     </div>
   </CardHeader>

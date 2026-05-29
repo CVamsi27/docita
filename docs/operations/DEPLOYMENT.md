@@ -20,7 +20,7 @@ All backend infrastructure is co-located in Mumbai for Indian data residency (DP
 
 ## Operational Rules
 
-- Run Prisma migrations before each API deploy (CI does this automatically on push to `main`).
+- Run Prisma migrations before each API or worker deploy. The production deploy workflow applies migrations whenever `apps/api`, `apps/worker`, or shared API packages change, then blocks Fly deploy until `scripts/deploy/verify-db-schema-sync.sh` passes (no pending migrations, no schema drift). A separate `Database Migrations` workflow also runs on pushes that touch `packages/db/**`.
 - Production app deployments from GitHub Actions must be selective: on push to `main`, deploy only the apps whose related paths changed instead of deploying every app.
 - Use `DATABASE_URL` from AWS RDS for API runtime (set via `fly secrets set DATABASE_URL=...`).
 - Runtime baseline is Node `22.12.x` for local, CI, and Docker builds.
@@ -90,7 +90,7 @@ docker build -f apps/worker/Dockerfile -t docita-worker-verify .
 ```
 
 Secrets required (set via `fly secrets set KEY=value`):
-- `DATABASE_URL` — AWS RDS connection string
+- `DATABASE_URL` — AWS RDS connection string as **`docita_app`** (non-owner) when `RLS_ENABLED=true`
 - `JWT_SECRET` — minimum 32 characters
 - `ENCRYPTION_KEY` — 64-character hex key
 - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`
@@ -160,6 +160,71 @@ After merging to `main` and before or right after Fly deploys:
 5. Measure RSS on API and worker after each slice.
 
 This is a larger change than env/Fly wiring; ship it in small PRs behind the same `ENABLE_SCHEDULERS` split so rollback is flipping env on Fly.
+
+## Deployment strategy (API)
+
+Production API deploys from GitHub Actions use **Fly.io blue-green** (`flyctl deploy --strategy bluegreen`):
+
+1. Fly starts new machines with the updated image.
+2. Health checks on `GET /api/health/live` must pass.
+3. Traffic shifts to the new machines; old machines are drained and removed.
+
+This gives near-instant rollback via `fly releases rollback` without a separate green environment. The worker has no HTTP service and continues to use a rolling deploy (`--ha=false`).
+
+After each API deploy, **synthetic uptime probes** run automatically (`pnpm monitor:synthetic`). Failures block the deploy job and emit a Sentry event when `SENTRY_DSN` is configured. Scheduled probes also run every 5 minutes via `.github/workflows/synthetic-monitoring.yml`.
+
+## Row-level security (production)
+
+`RLS_ENABLED=true` is set in [`fly.toml`](../../fly.toml) and [`apps/worker/fly.toml`](../../apps/worker/fly.toml). Local development keeps `RLS_ENABLED=false` in `.env.example`.
+
+**Required before enforcement binds:** `DATABASE_URL` in Fly secrets must connect as the non-owner `docita_app` role (not the RDS owner). Owner connections bypass RLS even when the app flag is on. Provision with [`packages/db/scripts/provision-docita-app-role.sql`](../../packages/db/scripts/provision-docita-app-role.sql) — see [`docs/compliance/RLS_ROLLOUT.md`](../compliance/RLS_ROLLOUT.md).
+
+## Roll back a bad release
+
+The migration policy is **additive-only** (see `MIGRATION_NOTES.md`), so a release rollback is always a code/image rollback — never a schema rollback. Redeploying the previous image against the current schema is safe.
+
+### API or worker (Fly.io)
+
+```bash
+# List recent releases for the affected app
+fly releases --app docita-api          # or docita-worker
+
+# Roll back to the previous release (image + config)
+fly releases rollback <VERSION> --app docita-api
+
+# Confirm health
+curl -fsS https://api.docita.work/api/health/live
+fly logs --app docita-api | head -50
+```
+
+Notes:
+- `fly releases rollback` redeploys the prior image; it does not touch the database. Any migration applied by the bad release stays applied — that is intentional and safe under the additive-only policy.
+- If the bad release introduced a `fly secrets set` change that is part of the regression, revert the secret separately with `fly secrets set KEY=<previous-value>`; `releases rollback` will not revert secrets.
+- For the worker, also confirm cron heartbeat lines in `fly logs --app docita-worker` and that `QueueJob` depth is draining.
+
+### Frontend (Cloudflare Workers)
+
+Frontend production deploys are managed via Cloudflare Git integration / dashboard, not GitHub Actions. To roll back:
+
+1. Open the Cloudflare dashboard → Workers & Pages → the affected app (`docita-app`, `docita-internal`, or `docita-landing`).
+2. Under **Deployments**, locate the last known-good deployment and choose **Rollback to this deployment**.
+3. Verify the rollback by hitting the public URL and checking the browser console for chunk-load errors.
+
+### Decision guide
+
+| Symptom | Action |
+|---|---|
+| API 5xx spike or crash loop after deploy | `fly releases rollback` on `docita-api` |
+| Background jobs failing or cron not firing | `fly releases rollback` on `docita-worker` |
+| Frontend white screen / chunk errors after deploy | Cloudflare dashboard rollback on the affected app |
+| DB schema drift detected by `verify-db-schema-sync.sh` | Do **not** roll back the migration — fix forward with a new additive migration |
+| Secret-driven regression (auth, payments, R2) | Revert the secret via `fly secrets set`, then redeploy if needed |
+
+### After rollback
+
+- Page the on-call channel with the affected app, the rolled-to version, and the failing version.
+- Open a Sentry filter for the failing release tag to scope the post-mortem.
+- Confirm the synthetic monitor (`/api/v1/health` + `/api/v1/auth/me` smoke — see [`SYNTHETIC_MONITORING.md`](./SYNTHETIC_MONITORING.md)) returns green for one full interval before closing the incident.
 
 ## Scaling Path
 

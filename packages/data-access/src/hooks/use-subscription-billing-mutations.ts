@@ -2,6 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import {
+  type PlanMode,
   subscriptionBillingResumePaymentResponseSchema,
   type TierName,
 } from "@workspace/types";
@@ -12,6 +13,8 @@ import { useDataAccessFetcher } from "../provider/hooks";
 export interface SchedulePlanChangeInput {
   tier: TierName;
   billingCycle: "MONTHLY" | "YEARLY";
+  /** Optional plan mode (Full / Front Desk / Core). Defaults to FULL. */
+  planMode?: PlanMode;
 }
 
 export type SchedulePlanChangeResponse = {

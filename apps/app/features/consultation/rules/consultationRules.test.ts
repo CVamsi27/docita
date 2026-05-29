@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   canCompleteConsultation,
+  getConsultationCompletionMissingFields,
   getVitalRanges,
   isVitalNormal,
   requiresUrgentAttention,
 } from "./consultationRules";
-import type { Appointment, VitalSign } from "@workspace/types";
+import type { VitalSign } from "@workspace/types";
 
 describe("Consultation Business Rules", () => {
   describe("getVitalRanges", () => {
@@ -70,20 +71,40 @@ describe("Consultation Business Rules", () => {
 
   describe("canCompleteConsultation", () => {
     it("should require chief complaint, diagnosis, and vitals", () => {
-      const complete = {
-        chiefComplaint: "Pain",
-        diagnoses: [{ code: "A00", description: "Test" }],
-        vitalSign: {},
-      } as Appointment;
-      expect(canCompleteConsultation(complete)).toBe(true);
+      expect(
+        canCompleteConsultation({
+          chiefComplaint: "Pain",
+          hasDiagnosis: true,
+          hasVitals: true,
+        }),
+      ).toBe(true);
     });
 
     it("should return false if missing required fields", () => {
       expect(
         canCompleteConsultation({
           chiefComplaint: "Pain",
-        } as Appointment),
+          hasDiagnosis: false,
+          hasVitals: false,
+        }),
       ).toBe(false);
+    });
+
+    it("should treat missing diagnosis as incomplete", () => {
+      expect(
+        canCompleteConsultation({
+          chiefComplaint: "Pain",
+          hasDiagnosis: false,
+          hasVitals: true,
+        }),
+      ).toBe(false);
+      expect(
+        getConsultationCompletionMissingFields({
+          chiefComplaint: "Pain",
+          hasDiagnosis: false,
+          hasVitals: true,
+        }),
+      ).toEqual(["Diagnosis"]);
     });
   });
 });

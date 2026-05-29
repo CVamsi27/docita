@@ -138,6 +138,16 @@ jobs:
             e2e/critical-flows.spec.ts \
             e2e/front-desk-sidebar.spec.ts
 
+      - name: Run mobile E2E suites
+        run: |
+          unset NO_COLOR
+          pnpm --filter @docita/app exec playwright test \
+            e2e/mobile-forms.spec.ts \
+            e2e/mobile-protected-routes.spec.ts \
+            e2e/mobile-portal-routes.spec.ts \
+            e2e/mobile-auth-setup.spec.ts \
+            --project=mobile-chrome
+
       - name: Dump server logs on failure
         if: failure()
         run: |

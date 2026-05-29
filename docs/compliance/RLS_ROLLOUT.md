@@ -3,12 +3,19 @@
 ## Status
 
 - Migration: `20260502143500_add_rls_policies` (additive, gated)
-- Application flag: `RLS_ENABLED` (defaults to `false`)
+- Application flag: `RLS_ENABLED` (defaults to `false` locally; **`true` in production** via [`fly.toml`](../../fly.toml) and [`apps/worker/fly.toml`](../../apps/worker/fly.toml))
 - Application surface: `RlsService.runScopedTransaction(clinicId, fn)`
 - CI guard: `pnpm check:rls-rollout-readiness` is part of `pnpm verify:standard`
-  and is therefore **already blocking** on every PR. The remaining work
-  in `SYSTEM_DESIGN_AND_PATTERNS.md` §28.1 item 2 is operational, not
-  code: provision the `docita_app` user, run staging soak, flip the flag.
+
+### Why enforcement was staged (historical)
+
+RLS was kept off initially so we could land policies and the Prisma tx routing
+extension without changing query semantics in one shot. The migration is
+additive: policies short-circuit until `app.rls_enabled = 'on'`. Production
+now sets `RLS_ENABLED=true`; **operators must point `DATABASE_URL` at the
+non-owner `docita_app` role** or Postgres owner connections bypass RLS entirely
+(see Step 2 below).
+
 - When `RLS_ENABLED=true`, `TenantContextInterceptor` wraps each authenticated
   clinic request in a Prisma interactive transaction (`tx`), sets
   `app.rls_enabled` / `app.current_clinic_id` on `tx`, and publishes `tx`

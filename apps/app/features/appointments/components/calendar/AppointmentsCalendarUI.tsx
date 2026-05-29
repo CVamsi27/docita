@@ -16,8 +16,9 @@ import {
 import {
   DEFAULT_TIMEZONE,
   formatClinicPickerDayIsoFromSelection,
+  formatClinicPickerIsoLabel,
   formatClinicTodayPickerIso,
-  formatDate,
+  pickerIsoToLocalDate,
 } from "@workspace/utils";
 import { useClinic } from "@/lib/contexts/clinic-context";
 
@@ -28,6 +29,7 @@ interface Doctor {
 }
 
 interface AppointmentsCalendarUIProps {
+  selectedPickerIso: string;
   date: Date | undefined;
   onDateSelect: (date: Date | undefined) => void;
   calendarMonth: Date;
@@ -40,6 +42,7 @@ interface AppointmentsCalendarUIProps {
 }
 
 export function AppointmentsCalendarUI({
+  selectedPickerIso,
   date,
   onDateSelect,
   calendarMonth,
@@ -52,15 +55,22 @@ export function AppointmentsCalendarUI({
 }: AppointmentsCalendarUIProps) {
   const { clinic } = useClinic();
   const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
-  const selectedDate = date ?? new Date();
+  const selectedDate = date ?? pickerIsoToLocalDate(selectedPickerIso);
   const isTodaySelected =
-    formatClinicPickerDayIsoFromSelection(selectedDate, clinicTz) ===
-    formatClinicTodayPickerIso(clinicTz);
+    selectedPickerIso === formatClinicTodayPickerIso(clinicTz);
 
   const hasAnyMonthIndicators = appointmentCountsByDay.size > 0;
 
-  const headlineDate = formatDate(selectedDate, "EEEE");
-  const headlineSub = formatDate(selectedDate, "d MMM yyyy");
+  const headlineDate = formatClinicPickerIsoLabel(
+    selectedPickerIso,
+    "EEEE",
+    clinicTz,
+  );
+  const headlineSub = formatClinicPickerIsoLabel(
+    selectedPickerIso,
+    "d MMM yyyy",
+    clinicTz,
+  );
 
   return (
     <Card className="h-fit overflow-hidden border-border/60 bg-card shadow-sm">
@@ -79,7 +89,9 @@ export function AppointmentsCalendarUI({
             variant={isTodaySelected ? "secondary" : "outline"}
             size="sm"
             className="h-8 shrink-0 px-3"
-            onClick={() => onDateSelect(new Date())}
+            onClick={() =>
+              onDateSelect(pickerIsoToLocalDate(formatClinicTodayPickerIso(clinicTz)))
+            }
             disabled={isTodaySelected}
             aria-label="Jump to today"
           >
@@ -113,7 +125,7 @@ export function AppointmentsCalendarUI({
       </CardHeader>
 
       <CardContent className="p-0">
-        <div className="px-2 py-3">
+        <div className="px-3 py-4">
           <Calendar
             mode="single"
             required
@@ -133,7 +145,7 @@ export function AppointmentsCalendarUI({
                 "relative after:pointer-events-none after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:z-20 after:h-1 after:w-1 after:rounded-full after:bg-primary after:content-[''] aria-selected:after:bg-primary-foreground",
             }}
             captionLayout="dropdown"
-            className="w-full max-w-full bg-transparent p-0 [--cell-size:--spacing(9)] [&_[data-day]]:!size-auto [&_[data-day]]:!min-h-0 [&_[data-day]]:!min-w-0 [&_[data-day]]:!h-full [&_[data-day]]:!w-full [&_[data-day]]:tabular-nums [&_table]:w-full [&_td]:p-0.5"
+            className="w-full max-w-full bg-transparent p-0 [--cell-size:--spacing(11)] [&_[data-day]]:!size-auto [&_[data-day]]:!min-h-0 [&_[data-day]]:!min-w-0 [&_[data-day]]:!h-full [&_[data-day]]:!w-full [&_[data-day]]:!gap-0 [&_[data-day]]:tabular-nums [&_[data-day]]:text-[length:var(--fs-sm)] [&_[data-day]]:font-medium [&_table]:w-full [&_td]:p-0.5"
             classNames={{ root: "w-full max-w-full" }}
           />
         </div>

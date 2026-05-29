@@ -74,6 +74,15 @@ describe("getAccessTargetForPath", () => {
     );
   });
 
+  it("maps whatsapp and templates routes to nav-aligned targets", () => {
+    expect(getAccessTargetForPath("/whatsapp")).toBe(
+      APP_ACCESS_TARGETS.PAGE_WHATSAPP,
+    );
+    expect(getAccessTargetForPath("/templates")).toBe(
+      APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS,
+    );
+  });
+
   it("maps billing-locked to dashboard access (all staff)", () => {
     expect(getAccessTargetForPath("/billing-locked")).toBe(
       APP_ACCESS_TARGETS.PAGE_DASHBOARD,

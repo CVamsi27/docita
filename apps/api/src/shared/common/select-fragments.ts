@@ -34,6 +34,7 @@ export const DOCTOR_CARD_SELECT = {
 
 export const INVOICE_CARD_SELECT = {
   id: true,
+  patientId: true,
   clinicId: true,
   invoiceNumber: true,
   invoiceType: true,

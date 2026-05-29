@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
@@ -7,7 +8,15 @@ import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
 
 import { FALLBACK_PRICING_CONFIG, formatTierPrice } from "@/lib/landing-data";
-import { FRONT_DESK_TIER_MARKETING } from "@workspace/types";
+import {
+  getAvailableModesForTier,
+  MODE_TIER_HIGHLIGHTS,
+  PLAN_MODE_INFO,
+  PLAN_MODES,
+  type PlanMode,
+  type TierName,
+  tierSchema,
+} from "@workspace/types";
 import {
   landingFadeUpVariants,
   landingInViewViewport,
@@ -18,9 +27,8 @@ interface PricingSectionProps {
   appUrl: string;
 }
 
-const TIER_ORDER = [
+const TIER_ORDER: readonly TierName[] = [
   "STARTER",
-  "FRONT_DESK",
   "ESSENTIAL",
   "PROFESSIONAL",
   "HOSPITAL",
@@ -36,7 +44,7 @@ const STARTER_FEATURES = [
   "Single doctor",
 ];
 
-const ESSENTIAL_FEATURES = [
+const ESSENTIAL_FULL_FEATURES = [
   "Unlimited patients",
   "500 consultations / month",
   "1 doctor included",
@@ -47,17 +55,7 @@ const ESSENTIAL_FEATURES = [
   "Insurance billing",
 ];
 
-const FRONT_DESK_FEATURES = [
-  "500 consultations / month",
-  "Up to 5 staff users",
-  "WhatsApp messaging (500 msgs)",
-  "Queue and calendar",
-  "Invoicing and payment links",
-  "Schedule-only doctor profiles (no app login)",
-  "No in-app consultation or prescription workspace",
-];
-
-const PROFESSIONAL_FEATURES = [
+const PROFESSIONAL_FULL_FEATURES = [
   "Unlimited patients",
   "2,000 consultations / month",
   "Up to 5 doctors",
@@ -68,7 +66,7 @@ const PROFESSIONAL_FEATURES = [
   "Priority support with SLA",
 ];
 
-const HOSPITAL_FEATURES = [
+const HOSPITAL_FULL_FEATURES = [
   "Everything in Professional",
   "Up to 25 doctors and 5 branches",
   "75 staff users included",
@@ -79,7 +77,7 @@ const HOSPITAL_FEATURES = [
   "Higher API throughput for integrations",
 ];
 
-const ENTERPRISE_FEATURES = [
+const ENTERPRISE_FULL_FEATURES = [
   "Unlimited patients, users & branches",
   "Everything in Hospital",
   "Data warehouse export (BI tools)",
@@ -88,14 +86,25 @@ const ENTERPRISE_FEATURES = [
   "Custom SLA",
 ];
 
-function getFeaturesForTier(id: string, fallback: string[]): string[] {
-  if (id === "STARTER") return STARTER_FEATURES;
-  if (id === "ESSENTIAL") return ESSENTIAL_FEATURES;
-  if (id === "FRONT_DESK") return FRONT_DESK_FEATURES;
-  if (id === "PROFESSIONAL") return PROFESSIONAL_FEATURES;
-  if (id === "HOSPITAL") return HOSPITAL_FEATURES;
-  if (id === "ENTERPRISE") return ENTERPRISE_FEATURES;
-  return fallback;
+const FULL_FEATURES_BY_TIER: Partial<Record<TierName, string[]>> = {
+  STARTER: STARTER_FEATURES,
+  ESSENTIAL: ESSENTIAL_FULL_FEATURES,
+  PROFESSIONAL: PROFESSIONAL_FULL_FEATURES,
+  HOSPITAL: HOSPITAL_FULL_FEATURES,
+  ENTERPRISE: ENTERPRISE_FULL_FEATURES,
+};
+
+function getFeaturesForTier(id: TierName, mode: PlanMode, fallback: string[]): string[] {
+  if (mode === "FULL") {
+    return FULL_FEATURES_BY_TIER[id] ?? fallback;
+  }
+  return MODE_TIER_HIGHLIGHTS[mode]?.[id] ?? FULL_FEATURES_BY_TIER[id] ?? fallback;
+}
+
+function applyModeMultiplier(amount: number | "custom", mode: PlanMode): number | "custom" {
+  if (amount === "custom") return amount;
+  const multiplier = PLAN_MODE_INFO[mode].pricingMultiplier;
+  return Math.round(amount * multiplier);
 }
 
 const setupStartPrice = formatTierPrice(
@@ -107,6 +116,8 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
   const reduce = useReducedMotion();
   const cardVariant = landingFadeUpVariants(reduce ?? false);
   const gridVariants = landingStaggerContainer(reduce ?? false, 0.06, 0.04);
+
+  const [selectedMode, setSelectedMode] = useState<PlanMode>("FULL");
 
   const orderedTiers = TIER_ORDER.map((id) =>
     FALLBACK_PRICING_CONFIG.tiers.find((tier) => tier.id === id),
@@ -123,42 +134,53 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           <span className="r2-eyebrow">Plans</span>
         </div>
 
-        <div className="mt-4 grid items-end gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-12">
-          <h2
-            id="r2-pricing-heading"
-            className="max-w-2xl r2-display-sm text-foreground"
-          >
-            Pricing built for paid <em>clinic rollouts</em>&mdash;not free
-            trials.
-          </h2>
-          <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-            Software from {FALLBACK_PRICING_CONFIG.currency.symbol}499 / month.
-            Guided setup is scoped separately and starts from {setupStartPrice}.
-            Annual plans include 2 months free.
-          </p>
-        </div>
+        <h2
+          id="r2-pricing-heading"
+          className="mt-4 max-w-3xl r2-display-sm text-foreground"
+        >
+          Pricing built for paid <em>clinic rollouts</em>&mdash;not free
+          trials.
+        </h2>
 
-        <p className="mt-6 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-          <span className="font-medium text-foreground">
-            Front desk tier
-          </span>{" "}
-          is a billed SKU alongside Essential and Professional, with the app
-          limited to reception-led workflows.{" "}
-          <a
-            href="#front-desk-workspace"
-            className="font-medium text-primary underline-offset-4 hover:underline"
-          >
-            Jump to the front desk card
-          </a>{" "}
-          or open{" "}
-          <a
-            href={`${appUrl}/onboarding?tier=FRONT_DESK`}
-            className="font-medium text-primary underline-offset-4 hover:underline"
-          >
-            onboarding with the front desk tier pre-selected
-          </a>
-          .
+        <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
+          Software from {FALLBACK_PRICING_CONFIG.currency.symbol}499 / month.
+          Guided setup is scoped separately and starts from {setupStartPrice}.
+          Annual plans include 2 months free.
         </p>
+
+        <div className="mt-8 flex flex-col gap-4 border-t border-border/60 pt-6 sm:flex-row sm:items-start sm:justify-between">
+          <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
+            Pick a <span className="font-medium text-foreground">plan mode</span>{" "}
+            then the tier that matches your scale. {PLAN_MODE_INFO[selectedMode].helpText}
+          </p>
+          <div
+            className="inline-flex shrink-0 items-center gap-1 self-start rounded-full border bg-muted/40 p-1"
+            role="tablist"
+            aria-label="Plan mode"
+          >
+            {PLAN_MODES.map((mode) => {
+              const info = PLAN_MODE_INFO[mode];
+              const active = selectedMode === mode;
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setSelectedMode(mode)}
+                  aria-pressed={active}
+                  title={info.helpText}
+                  className={cn(
+                    "rounded-full px-3 py-1 text-xs font-medium transition",
+                    active
+                      ? "bg-primary text-primary-foreground shadow"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {info.shortLabel}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <motion.div
           className="mt-10 r2-price-grid"
@@ -168,8 +190,26 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           viewport={landingInViewViewport}
         >
           {orderedTiers.map((tier) => {
-            const isFeatured = tier.id === "ESSENTIAL";
-            const features = getFeaturesForTier(tier.id, tier.features);
+            const parsedTierId = tierSchema.safeParse(tier.id);
+            const tierId: TierName = parsedTierId.success
+              ? parsedTierId.data
+              : "STARTER";
+            const supportedModes = getAvailableModesForTier(tierId);
+            const effectiveMode: PlanMode = supportedModes.includes(selectedMode)
+              ? selectedMode
+              : "FULL";
+            const isFeatured = tierId === "ESSENTIAL";
+            const features = getFeaturesForTier(tierId, effectiveMode, tier.features);
+            const adjustedMonthly = applyModeMultiplier(
+              tier.pricing.monthly,
+              effectiveMode,
+            );
+            const modeSuffix =
+              effectiveMode === "FULL"
+                ? null
+                : ` · ${PLAN_MODE_INFO[effectiveMode].name}`;
+            const modeMismatched =
+              effectiveMode !== selectedMode && selectedMode !== "FULL";
 
             return (
               <motion.article
@@ -178,11 +218,15 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                 className={cn(
                   "r2-price-card",
                   isFeatured && "r2-price-card--featured",
+                  modeMismatched && "opacity-60",
                 )}
               >
                 <div className="flex items-baseline justify-between">
                   <h3 className="text-lg font-semibold tracking-tight text-foreground">
                     {tier.name}
+                    {modeSuffix ? (
+                      <span className="text-muted-foreground">{modeSuffix}</span>
+                    ) : null}
                   </h3>
                   {isFeatured ? (
                     <span className="r2-mono text-[var(--fs-2xs)] font-semibold uppercase tracking-[0.14em] text-primary">
@@ -200,7 +244,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                 <div className="flex items-baseline gap-2">
                   <span className="r2-price-amount text-foreground">
                     {formatTierPrice(
-                      tier.pricing.monthly,
+                      adjustedMonthly,
                       FALLBACK_PRICING_CONFIG.currency.symbol,
                     )}
                   </span>
@@ -219,53 +263,19 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                   asChild
                   className="mt-auto w-full gap-2"
                   variant={isFeatured ? "primary" : "outline"}
+                  disabled={modeMismatched}
                 >
                   <a
-                    href={
-                      tier.id === "FRONT_DESK"
-                        ? `${appUrl}/onboarding?tier=FRONT_DESK`
-                        : `${appUrl}/onboarding`
-                    }
+                    href={`${appUrl}/onboarding?tier=${tier.id}&mode=${effectiveMode}`}
                   >
-                    Start setup
-                    <ArrowRight className="h-4 w-4" />
+                    {modeMismatched ? "Only on Full" : "Start setup"}
+                    {!modeMismatched ? <ArrowRight className="h-4 w-4" /> : null}
                   </a>
                 </Button>
               </motion.article>
             );
           })}
         </motion.div>
-
-        <motion.article
-          id="front-desk-workspace"
-          variants={cardVariant}
-          initial="hidden"
-          whileInView="visible"
-          viewport={landingInViewViewport}
-          className="r2-price-card mt-10 max-w-2xl scroll-mt-24 border-primary/30 bg-primary/5"
-        >
-          <h3 className="text-lg font-semibold tracking-tight text-foreground">
-            {FRONT_DESK_TIER_MARKETING.headline}
-          </h3>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            A dedicated plan for reception-led facilities: scheduling, queue,
-            patients, and invoicing without the in-app consultation workspace or
-            prescription tools.
-          </p>
-          <ul className="mt-3 space-y-1.5" role="list">
-            {FRONT_DESK_TIER_MARKETING.included.map((feature) => (
-              <li key={feature} className="r2-price-feature">
-                <span className="text-foreground">{feature}</span>
-              </li>
-            ))}
-          </ul>
-          <Button asChild className="mt-4 w-full max-w-sm gap-2" variant="outline">
-            <a href={`${appUrl}/onboarding?tier=FRONT_DESK&workspace=front_desk`}>
-              Start front desk setup
-              <ArrowRight className="h-4 w-4" />
-            </a>
-          </Button>
-        </motion.article>
 
         <div className="mt-8 flex flex-wrap items-center gap-4 rounded-2xl border border-border/60 bg-card px-5 py-4 text-sm text-muted-foreground sm:px-6">
           <Check className="h-4 w-4 shrink-0 text-success" aria-hidden />

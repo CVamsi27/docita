@@ -4,6 +4,7 @@ import { WHATSAPP_PERSISTENCE_PORT } from '@/domains/whatsapp/application/ports/
 import { WhatsappClientAdapter } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.adapter';
 import { ResponseHandlerService } from '@/domains/whatsapp/application/services/response-handler.service';
 import { WhatsAppWebhookIngressService } from '@/domains/whatsapp/application/services/whatsapp-webhook-ingress.service';
+import { PatientAppointmentResolverService } from '@/domains/whatsapp/application/services/patient-appointment-resolver.service';
 import { WHATSAPP_REPOSITORY_TOKEN } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import { SupportWhatsAppInboxService } from '@/shared/modules/support-whatsapp';
 import { Logger } from '@nestjs/common';
@@ -244,6 +245,20 @@ function createValidSignature(body: string, secret: string): string {
   return `sha256=${hmac.digest('hex')}`;
 }
 
+function buildAppointmentContext(appointmentId: string) {
+  return {
+    id: appointmentId,
+    startTime: new Date('2026-05-28T10:00:00.000Z'),
+    patient: {
+      firstName: 'Rahul',
+      lastName: 'Sharma',
+      phoneNumber: '919876543210',
+    },
+    doctor: { id: 'doctor-123', name: 'Dr. Patel' },
+    clinic: { id: 'clinic-123', name: 'Test Clinic' },
+  };
+}
+
 describe('WhatsappWebhookService', () => {
   let service: WhatsappWebhookService;
   let mockPrisma: ReturnType<typeof buildMockPrisma>;
@@ -253,7 +268,10 @@ describe('WhatsappWebhookService', () => {
     updateMessageStatus: ReturnType<typeof jest.fn>;
   };
   let mockResponseHandler: {
-    handlePatientResponse: ReturnType<typeof jest.fn>;
+    handlePatientResponseForAppointment: ReturnType<typeof jest.fn>;
+  };
+  let mockAppointmentResolver: {
+    resolveForInboundMessage: ReturnType<typeof jest.fn>;
   };
 
   function buildMockPrisma() {
@@ -290,9 +308,14 @@ describe('WhatsappWebhookService', () => {
       updateMessageStatus: jest.fn().mockImplementation(async () => undefined),
     };
     mockResponseHandler = {
-      handlePatientResponse: jest
+      handlePatientResponseForAppointment: jest
         .fn()
         .mockImplementation(async () => undefined),
+    };
+    mockAppointmentResolver = {
+      resolveForInboundMessage: jest
+        .fn<() => Promise<unknown>>()
+        .mockResolvedValue(null),
     };
 
     jest.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
@@ -310,6 +333,10 @@ describe('WhatsappWebhookService', () => {
           useValue: mockSupportInboxService,
         },
         { provide: ResponseHandlerService, useValue: mockResponseHandler },
+        {
+          provide: PatientAppointmentResolverService,
+          useValue: mockAppointmentResolver,
+        },
         {
           provide: WHATSAPP_REPOSITORY_TOKEN,
           useValue: {
@@ -374,19 +401,10 @@ describe('WhatsappWebhookService', () => {
 
   describe('processIncomingMessages', () => {
     it('should process a text message and call responseHandler when appointment found', async () => {
-      const patient = { id: 'patient-123' };
-      const appointment = {
-        id: 'appt-123',
-        patient: {
-          firstName: 'Rahul',
-          lastName: 'Sharma',
-          phoneNumber: '919876543210',
-        },
-        doctor: { name: 'Dr. Patel' },
-        clinic: { id: 'clinic-123', name: 'Test Clinic' },
-      };
-      mockPrisma.patient.findFirst.mockResolvedValue(patient);
-      mockPrisma.appointment.findFirst.mockResolvedValue(appointment);
+      const appointmentContext = buildAppointmentContext('appt-123');
+      mockAppointmentResolver.resolveForInboundMessage.mockResolvedValue(
+        appointmentContext,
+      );
 
       const payload = createWebhookPayload('text', {
         from: '919876543210',
@@ -401,8 +419,10 @@ describe('WhatsappWebhookService', () => {
       );
 
       expect(mockSupportInboxService.recordIncomingMessages).toHaveBeenCalled();
-      expect(mockResponseHandler.handlePatientResponse).toHaveBeenCalledWith(
-        'appt-123',
+      expect(
+        mockResponseHandler.handlePatientResponseForAppointment,
+      ).toHaveBeenCalledWith(
+        appointmentContext,
         'yes',
         '919876543210',
         'wamid.msg123',
@@ -413,10 +433,10 @@ describe('WhatsappWebhookService', () => {
     });
 
     it('should process interactive button_reply message', async () => {
-      const patient = { id: 'patient-123' };
-      const appointment = { id: 'appt-456' };
-      mockPrisma.patient.findFirst.mockResolvedValue(patient);
-      mockPrisma.appointment.findFirst.mockResolvedValue(appointment);
+      const appointmentContext = buildAppointmentContext('appt-456');
+      mockAppointmentResolver.resolveForInboundMessage.mockResolvedValue(
+        appointmentContext,
+      );
 
       const payload = createWebhookPayload('interactive_button_reply', {
         from: '919876543210',
@@ -432,8 +452,10 @@ describe('WhatsappWebhookService', () => {
       );
 
       expect(mockSupportInboxService.recordIncomingMessages).toHaveBeenCalled();
-      expect(mockResponseHandler.handlePatientResponse).toHaveBeenCalledWith(
-        'appt-456',
+      expect(
+        mockResponseHandler.handlePatientResponseForAppointment,
+      ).toHaveBeenCalledWith(
+        appointmentContext,
         'btn_confirm',
         '919876543210',
         'wamid.btn123',
@@ -444,10 +466,10 @@ describe('WhatsappWebhookService', () => {
     });
 
     it('should process interactive list_reply message', async () => {
-      const patient = { id: 'patient-123' };
-      const appointment = { id: 'appt-789' };
-      mockPrisma.patient.findFirst.mockResolvedValue(patient);
-      mockPrisma.appointment.findFirst.mockResolvedValue(appointment);
+      const appointmentContext = buildAppointmentContext('appt-789');
+      mockAppointmentResolver.resolveForInboundMessage.mockResolvedValue(
+        appointmentContext,
+      );
 
       const payload = createWebhookPayload('interactive_list_reply', {
         from: '919876543210',
@@ -461,8 +483,10 @@ describe('WhatsappWebhookService', () => {
         >[0],
       );
 
-      expect(mockResponseHandler.handlePatientResponse).toHaveBeenCalledWith(
-        'appt-789',
+      expect(
+        mockResponseHandler.handlePatientResponseForAppointment,
+      ).toHaveBeenCalledWith(
+        appointmentContext,
         'option_2',
         expect.any(String),
         expect.any(String),
@@ -473,10 +497,10 @@ describe('WhatsappWebhookService', () => {
     });
 
     it('should process button message type', async () => {
-      const patient = { id: 'patient-123' };
-      const appointment = { id: 'appt-btn1' };
-      mockPrisma.patient.findFirst.mockResolvedValue(patient);
-      mockPrisma.appointment.findFirst.mockResolvedValue(appointment);
+      const appointmentContext = buildAppointmentContext('appt-btn1');
+      mockAppointmentResolver.resolveForInboundMessage.mockResolvedValue(
+        appointmentContext,
+      );
 
       const payload = createWebhookPayload('button', {
         from: '919876543210',
@@ -490,8 +514,10 @@ describe('WhatsappWebhookService', () => {
         >[0],
       );
 
-      expect(mockResponseHandler.handlePatientResponse).toHaveBeenCalledWith(
-        'appt-btn1',
+      expect(
+        mockResponseHandler.handlePatientResponseForAppointment,
+      ).toHaveBeenCalledWith(
+        appointmentContext,
         'btn_cancel',
         expect.any(String),
         expect.any(String),
@@ -510,15 +536,16 @@ describe('WhatsappWebhookService', () => {
         >[0],
       );
 
-      expect(mockResponseHandler.handlePatientResponse).not.toHaveBeenCalled();
+      expect(
+        mockResponseHandler.handlePatientResponseForAppointment,
+      ).not.toHaveBeenCalled();
       expect(
         mockSupportInboxService.updateMessageStatus,
       ).not.toHaveBeenCalled();
     });
 
     it('should log warning and not call responseHandler when no appointment found', async () => {
-      mockPrisma.patient.findFirst.mockResolvedValue({ id: 'patient-123' });
-      mockPrisma.appointment.findFirst.mockResolvedValue(null);
+      mockAppointmentResolver.resolveForInboundMessage.mockResolvedValue(null);
 
       const payload = createWebhookPayload('text', {
         from: '919876543210',
@@ -531,14 +558,16 @@ describe('WhatsappWebhookService', () => {
         >[0],
       );
 
-      expect(mockResponseHandler.handlePatientResponse).not.toHaveBeenCalled();
+      expect(
+        mockResponseHandler.handlePatientResponseForAppointment,
+      ).not.toHaveBeenCalled();
       expect(
         mockSupportInboxService.updateMessageStatus,
       ).not.toHaveBeenCalled();
     });
 
     it('should not call responseHandler when patient is not found', async () => {
-      mockPrisma.patient.findFirst.mockResolvedValue(null);
+      mockAppointmentResolver.resolveForInboundMessage.mockResolvedValue(null);
 
       const payload = createWebhookPayload('text', {
         from: '919876543210',
@@ -551,16 +580,19 @@ describe('WhatsappWebhookService', () => {
         >[0],
       );
 
-      expect(mockResponseHandler.handlePatientResponse).not.toHaveBeenCalled();
+      expect(
+        mockResponseHandler.handlePatientResponseForAppointment,
+      ).not.toHaveBeenCalled();
       expect(
         mockSupportInboxService.updateMessageStatus,
       ).not.toHaveBeenCalled();
     });
 
     it('should catch and not rethrow errors from responseHandler', async () => {
-      mockPrisma.patient.findFirst.mockResolvedValue({ id: 'patient-123' });
-      mockPrisma.appointment.findFirst.mockResolvedValue({ id: 'appt-123' });
-      mockResponseHandler.handlePatientResponse.mockRejectedValue(
+      mockAppointmentResolver.resolveForInboundMessage.mockResolvedValue(
+        buildAppointmentContext('appt-123'),
+      );
+      mockResponseHandler.handlePatientResponseForAppointment.mockRejectedValue(
         new Error('Handler failed'),
       );
 
@@ -588,7 +620,9 @@ describe('WhatsappWebhookService', () => {
         messages: [],
       } as Parameters<typeof service.processIncomingMessages>[0]);
 
-      expect(mockResponseHandler.handlePatientResponse).not.toHaveBeenCalled();
+      expect(
+        mockResponseHandler.handlePatientResponseForAppointment,
+      ).not.toHaveBeenCalled();
     });
   });
 

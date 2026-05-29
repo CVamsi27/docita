@@ -1,10 +1,13 @@
 import { defineConfig, devices } from "@playwright/test";
+import { VIEWPORT_PRESETS } from "./e2e/utils/viewport-presets";
 
 const APP_URL = process.env["APP_URL"] || "http://localhost:3000";
 const API_HEALTH_URL =
   process.env["API_HEALTH_URL"] || "http://127.0.0.1:3001/api/health/live";
 const skipServer = process.env["SKIP_SERVER"] === "true";
 const publicOnlyAudit = process.env["AUDIT_APP_PUBLIC_ONLY"] === "true";
+const LOCAL_UPSTREAM_API_URL =
+  process.env["API_URL"] || "http://127.0.0.1:3001/api/v1";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -59,6 +62,11 @@ export default defineConfig({
             command: "pnpm --filter @docita/app run dev",
             url: APP_URL,
             reuseExistingServer: true,
+            env: {
+              ...process.env,
+              API_URL: LOCAL_UPSTREAM_API_URL,
+              API_PROXY_TARGET: LOCAL_UPSTREAM_API_URL,
+            },
             timeout: 180_000,
           },
         ],
@@ -67,6 +75,31 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "mobile-chrome",
+      use: {
+        ...devices["Pixel 5"],
+        viewport: VIEWPORT_PRESETS.mobile,
+        hasTouch: true,
+        isMobile: true,
+      },
+    },
+    {
+      name: "tablet-chrome",
+      use: {
+        ...devices["iPad Pro 11"],
+        viewport: VIEWPORT_PRESETS.tablet,
+        hasTouch: true,
+        isMobile: false,
+      },
+    },
+    {
+      name: "laptop-chrome",
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: VIEWPORT_PRESETS.laptop,
+      },
     },
   ],
 });

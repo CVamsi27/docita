@@ -41,7 +41,7 @@ describe("BillingHistoryTable", () => {
       screen.queryByRole("button", { name: /pdf/i }),
     ).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /pay now/i }));
+    fireEvent.click(screen.getAllByRole("button", { name: /pay now/i })[0]!);
 
     expect(window.open).toHaveBeenCalledWith(
       "https://rzp.io/i/pending",
@@ -68,10 +68,41 @@ describe("BillingHistoryTable", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: /pdf/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /pdf/i }).length).toBeGreaterThan(
+      0,
+    );
     expect(
       screen.queryByRole("button", { name: /pay now/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it("counts succeeded payments in paid total and hides Pay now", () => {
+    render(
+      <BillingHistoryTable
+        invoices={[
+          {
+            id: "succeeded-1",
+            amountCents: 24000000,
+            amount: 240000,
+            currency: "INR",
+            status: "succeeded",
+            description: "Annual enterprise subscription (seed)",
+            receiptUrl: "https://rzp.io/i/seed-receipt",
+            createdAt: "2026-05-28T00:00:00.000Z",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getAllByRole("button", { name: /pdf/i }).length).toBeGreaterThan(
+      0,
+    );
+    expect(
+      screen.queryByRole("button", { name: /pay now/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.getAllByText("₹2,40,000.00").length).toBeGreaterThanOrEqual(
+      2,
+    );
   });
 
   it("formats each row using the stored billing currency", () => {

@@ -55,10 +55,8 @@ const baseProps = {
   } as never,
   patientId: "p-1",
   appointments: [],
-  statistics: null,
   canEditPatient: true,
   canRecordPatientVitals: true,
-  onScheduleVisit: vi.fn(),
 };
 
 describe("PatientDetailTabs", () => {
@@ -68,18 +66,17 @@ describe("PatientDetailTabs", () => {
     mocks.searchParams = new URLSearchParams();
   });
 
-  it("ships with exactly five top-level tabs (WS11f consolidation)", () => {
+  it("ships with three top-level tabs after overview consolidation", () => {
     expect(PATIENT_DETAIL_TAB_VALUES).toEqual([
-      "overview",
       "visits",
       "records",
       "billing",
-      // "communication",
     ]);
   });
 
-  it("retired tabs map to records sub-tabs for back-compat", () => {
+  it("retired tabs map to records sub-tabs and overview redirects to visits", () => {
     expect(LEGACY_PATIENT_TAB_REDIRECTS).toEqual({
+      overview: { tab: "visits" },
       vitals: { tab: "records", subtab: "vitals" },
       prescriptions: { tab: "records", subtab: "prescriptions" },
       labs: { tab: "records", subtab: "labs" },
@@ -90,21 +87,25 @@ describe("PatientDetailTabs", () => {
     }
   });
 
-  it("renders the new 5 top-level tab labels", () => {
+  it("renders the top-level tab labels", () => {
     render(<PatientDetailTabs {...baseProps} />);
 
     expect(
       screen.getByTestId("patient-clinical-chart-summary"),
     ).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Overview" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("tab", { name: "Visits & notes" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Visits" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Records" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Billing" })).toBeInTheDocument();
-    // expect(
-    //   screen.getByRole("tab", { name: "Communication" }),
-    // ).toBeInTheDocument();
+  });
+
+  it("rewrites legacy ?tab=overview to visits", () => {
+    mocks.searchParams = new URLSearchParams("tab=overview");
+    render(<PatientDetailTabs {...baseProps} />);
+
+    expect(mocks.router.replace).toHaveBeenCalledWith(
+      "/patients/p-1?tab=visits",
+      { scroll: false },
+    );
   });
 
   it("rewrites legacy ?tab=vitals to records?subtab=vitals", () => {

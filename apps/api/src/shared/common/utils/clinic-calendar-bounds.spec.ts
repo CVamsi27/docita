@@ -18,4 +18,8 @@ describe('clinic-calendar-bounds', () => {
       '2026-05-07T18:30:00.000Z',
     );
   });
+
+  it('getClinicLocalDayUtcBounds returns null for invalid IANA timezone', () => {
+    expect(getClinicLocalDayUtcBounds('2026-05-28', 'Invalid/Zone')).toBeNull();
+  });
 });

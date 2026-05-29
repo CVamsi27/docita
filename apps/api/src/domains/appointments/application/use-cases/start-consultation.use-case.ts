@@ -13,7 +13,7 @@ import {
   IAppointmentReadRepository,
   IAppointmentWriteRepository,
 } from '@/domains/appointments/core/repositories/appointment.repository.interface';
-import { isFrontDeskTier } from '@workspace/types';
+import { isFrontDeskPlanMode } from '@workspace/types';
 
 interface StartConsultationCommand {
   appointmentId: string;
@@ -45,7 +45,10 @@ export class StartConsultationUseCase {
     const { appointmentId, clinicId, userId, role } = command;
 
     const clinicRow = await this.readRepository.findClinicTier(clinicId);
-    if (isFrontDeskTier(clinicRow?.tier)) {
+    if (
+      clinicRow &&
+      isFrontDeskPlanMode(clinicRow.tier, clinicRow.planMode ?? undefined)
+    ) {
       throw new ForbiddenException(
         'Consultation start is not available on the Front Desk plan.',
       );

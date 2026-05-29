@@ -10,10 +10,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { Role } from '@workspace/db';
-import { Feature } from '@workspace/types';
-import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
-import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
+import { PatientsPrescriptionsApiAccess } from '@/domains/patients/presentation/controllers/patients.controller.access';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { MedicationDoseService } from '@/domains/patients/application/services/medication-dose.service';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
@@ -37,8 +34,7 @@ import { logPatientPhiRead } from '@/shared/modules/audit/audit/patient-access-a
 
 @ApiTags('medication-doses')
 @Controller('patients/:patientId/medication-doses')
-@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR, Role.NURSE)
-@RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
+@PatientsPrescriptionsApiAccess()
 @ApiBearerAuth('JWT-auth')
 export class MedicationDoseController {
   constructor(

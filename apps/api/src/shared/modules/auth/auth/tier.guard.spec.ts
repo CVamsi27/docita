@@ -16,14 +16,11 @@ import { IS_PUBLIC_KEY } from './public.decorator';
 import { IS_UPLOAD_SESSION_SECRET_ROUTE_KEY } from './upload-session-secret-route.decorator';
 import { FEATURE_KEY, Feature, TIER_KEY, Tier } from './tier.decorator';
 import { TierGuard } from './tier.guard';
+import { ClinicAuthCacheService } from './clinic-auth-cache.service';
 
-type ClinicRecord = {
-  tier: ClinicTier;
-  intelligenceAddon: IntelligenceAddon;
-  features: Record<string, boolean>;
-  subscriptionStatus: SubscriptionStatus;
-  subscription: { graceUntil: Date | null };
-};
+type ClinicAuthRecord = Awaited<
+  ReturnType<ClinicAuthCacheService['getClinicAuth']>
+>;
 
 function createContext(user: unknown): ExecutionContext {
   return asType<ExecutionContext>({
@@ -37,18 +34,35 @@ function createContext(user: unknown): ExecutionContext {
   });
 }
 
+function toClinicAuth(clinic: {
+  tier: ClinicTier;
+  intelligenceAddon: IntelligenceAddon;
+  features: Record<string, boolean>;
+  subscriptionStatus: SubscriptionStatus;
+  subscription: { graceUntil: Date | null; currentPeriodEnd?: Date | null };
+  planMode?: 'FULL' | 'FRONT_DESK' | 'CORE';
+}): ClinicAuthRecord {
+  return {
+    tier: clinic.tier,
+    planMode: clinic.planMode ?? 'FULL',
+    subscriptionStatus: clinic.subscriptionStatus,
+    subscriptionGraceUntil: clinic.subscription.graceUntil,
+    subscriptionTrialEnd: null,
+    subscriptionCurrentPeriodEnd: clinic.subscription.currentPeriodEnd ?? null,
+    hasOutstandingPendingPayment: false,
+    hasIntelligence: clinic.intelligenceAddon === IntelligenceAddon.ACTIVE,
+    features: clinic.features,
+  };
+}
+
 describe('TierGuard', () => {
   let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
-  let prisma: {
-    clinic: {
-      findUnique: jest.MockedFunction<
-        (...args: unknown[]) => Promise<ClinicRecord | null>
-      >;
-    };
+  let clinicAuthCache: {
+    getClinicAuth: jest.MockedFunction<ClinicAuthCacheService['getClinicAuth']>;
   };
   let guard: TierGuard;
 
-  const activeStarterClinic: ClinicRecord = {
+  const activeStarterClinic = {
     tier: ClinicTier.STARTER,
     intelligenceAddon: IntelligenceAddon.NONE,
     features: {},
@@ -65,14 +79,12 @@ describe('TierGuard', () => {
         [FEATURE_KEY, undefined],
       ]),
     };
-    prisma = {
-      clinic: {
-        findUnique: jest.fn(),
-      },
+    clinicAuthCache = {
+      getClinicAuth: jest.fn(),
     };
     guard = new TierGuard(
       asType<Reflector>(reflector),
-      asType<ConstructorParameters<typeof TierGuard>[1]>(prisma),
+      asType<ClinicAuthCacheService>(clinicAuthCache),
     );
   });
 
@@ -94,7 +106,7 @@ describe('TierGuard', () => {
     ]);
 
     await expect(guard.canActivate(createContext({}))).resolves.toBe(true);
-    expect(prisma.clinic.findUnique).not.toHaveBeenCalled();
+    expect(clinicAuthCache.getClinicAuth).not.toHaveBeenCalled();
   });
 
   it('allows upload-session-secret routes without loading clinic', async () => {
@@ -106,7 +118,7 @@ describe('TierGuard', () => {
     ]);
 
     await expect(guard.canActivate(createContext({}))).resolves.toBe(true);
-    expect(prisma.clinic.findUnique).not.toHaveBeenCalled();
+    expect(clinicAuthCache.getClinicAuth).not.toHaveBeenCalled();
   });
 
   it('allows request when no tier or feature metadata is present', async () => {
@@ -115,7 +127,7 @@ describe('TierGuard', () => {
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
     ).resolves.toBe(true);
-    expect(prisma.clinic.findUnique).not.toHaveBeenCalled();
+    expect(clinicAuthCache.getClinicAuth).not.toHaveBeenCalled();
   });
 
   it('blocks request when user has no clinicId', async () => {
@@ -132,12 +144,12 @@ describe('TierGuard', () => {
     await expect(
       guard.canActivate(createContext({ role: 'INTERNAL' })),
     ).resolves.toBe(true);
-    expect(prisma.clinic.findUnique).not.toHaveBeenCalled();
+    expect(clinicAuthCache.getClinicAuth).not.toHaveBeenCalled();
   });
 
   it('blocks request when clinic does not exist', async () => {
     setMetadata(Tier.ESSENTIAL, undefined);
-    prisma.clinic.findUnique.mockResolvedValue(null);
+    clinicAuthCache.getClinicAuth.mockRejectedValue(new Error('not found'));
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
@@ -146,10 +158,12 @@ describe('TierGuard', () => {
 
   it('blocks request when subscription is inactive', async () => {
     setMetadata(Tier.STARTER, undefined);
-    prisma.clinic.findUnique.mockResolvedValue({
-      ...activeStarterClinic,
-      subscriptionStatus: SubscriptionStatus.CANCELLED,
-    });
+    clinicAuthCache.getClinicAuth.mockResolvedValue(
+      toClinicAuth({
+        ...activeStarterClinic,
+        subscriptionStatus: SubscriptionStatus.CANCELLED,
+      }),
+    );
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
@@ -158,10 +172,12 @@ describe('TierGuard', () => {
 
   it('allows tier checks when subscription is in restricted-but-allowed state', async () => {
     setMetadata(Tier.STARTER, undefined);
-    prisma.clinic.findUnique.mockResolvedValue({
-      ...activeStarterClinic,
-      subscriptionStatus: SubscriptionStatus.PAST_DUE,
-    });
+    clinicAuthCache.getClinicAuth.mockResolvedValue(
+      toClinicAuth({
+        ...activeStarterClinic,
+        subscriptionStatus: SubscriptionStatus.PAST_DUE,
+      }),
+    );
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
@@ -170,12 +186,14 @@ describe('TierGuard', () => {
 
   it('blocks feature when explicit clinic override disables it', async () => {
     setMetadata(undefined, Feature.WHATSAPP_MESSAGING);
-    prisma.clinic.findUnique.mockResolvedValue({
-      ...activeStarterClinic,
-      features: {
-        [Feature.WHATSAPP_MESSAGING]: false,
-      },
-    });
+    clinicAuthCache.getClinicAuth.mockResolvedValue(
+      toClinicAuth({
+        ...activeStarterClinic,
+        features: {
+          [Feature.WHATSAPP_MESSAGING]: false,
+        },
+      }),
+    );
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
@@ -184,12 +202,14 @@ describe('TierGuard', () => {
 
   it('allows feature when explicit clinic override enables it', async () => {
     setMetadata(undefined, Feature.WHATSAPP_MESSAGING);
-    prisma.clinic.findUnique.mockResolvedValue({
-      ...activeStarterClinic,
-      features: {
-        [Feature.WHATSAPP_MESSAGING]: true,
-      },
-    });
+    clinicAuthCache.getClinicAuth.mockResolvedValue(
+      toClinicAuth({
+        ...activeStarterClinic,
+        features: {
+          [Feature.WHATSAPP_MESSAGING]: true,
+        },
+      }),
+    );
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
@@ -198,7 +218,9 @@ describe('TierGuard', () => {
 
   it('blocks feature when clinic tier is lower than required feature tier', async () => {
     setMetadata(undefined, Feature.QUEUE_MANAGEMENT);
-    prisma.clinic.findUnique.mockResolvedValue(activeStarterClinic);
+    clinicAuthCache.getClinicAuth.mockResolvedValue(
+      toClinicAuth(activeStarterClinic),
+    );
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
@@ -207,10 +229,12 @@ describe('TierGuard', () => {
 
   it('allows feature when clinic tier satisfies required feature tier', async () => {
     setMetadata(undefined, Feature.QUEUE_MANAGEMENT);
-    prisma.clinic.findUnique.mockResolvedValue({
-      ...activeStarterClinic,
-      tier: ClinicTier.ESSENTIAL,
-    });
+    clinicAuthCache.getClinicAuth.mockResolvedValue(
+      toClinicAuth({
+        ...activeStarterClinic,
+        tier: ClinicTier.ESSENTIAL,
+      }),
+    );
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
@@ -219,25 +243,27 @@ describe('TierGuard', () => {
 
   it('blocks planned features even when the clinic tier is high enough', async () => {
     setMetadata(undefined, Feature.BROADCAST_CAMPAIGNS);
-    prisma.clinic.findUnique.mockResolvedValue({
-      ...activeStarterClinic,
-      tier: ClinicTier.PROFESSIONAL,
-    });
+    clinicAuthCache.getClinicAuth.mockResolvedValue(
+      toClinicAuth({
+        ...activeStarterClinic,
+        tier: ClinicTier.PROFESSIONAL,
+      }),
+    );
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
     ).rejects.toThrow(ForbiddenException);
   });
 
-  it('blocks planned features before clinic feature overrides are applied', async () => {
-    setMetadata(undefined, Feature.BROADCAST_CAMPAIGNS);
-    prisma.clinic.findUnique.mockResolvedValue({
-      ...activeStarterClinic,
-      tier: ClinicTier.PROFESSIONAL,
-      features: {
-        [Feature.BROADCAST_CAMPAIGNS]: true,
-      },
-    });
+  it('blocks feature on Front Desk plan mode even when clinical tier is high', async () => {
+    setMetadata(undefined, Feature.DIGITAL_PRESCRIPTIONS);
+    clinicAuthCache.getClinicAuth.mockResolvedValue(
+      toClinicAuth({
+        ...activeStarterClinic,
+        tier: ClinicTier.PROFESSIONAL,
+        planMode: 'FRONT_DESK',
+      }),
+    );
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
@@ -246,7 +272,9 @@ describe('TierGuard', () => {
 
   it('blocks INTELLIGENCE tier requirement when addon is not active', async () => {
     setMetadata(Tier.INTELLIGENCE, undefined);
-    prisma.clinic.findUnique.mockResolvedValue(activeStarterClinic);
+    clinicAuthCache.getClinicAuth.mockResolvedValue(
+      toClinicAuth(activeStarterClinic),
+    );
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
@@ -255,7 +283,9 @@ describe('TierGuard', () => {
 
   it('blocks tier requirement when clinic tier is too low', async () => {
     setMetadata(Tier.ESSENTIAL, undefined);
-    prisma.clinic.findUnique.mockResolvedValue(activeStarterClinic);
+    clinicAuthCache.getClinicAuth.mockResolvedValue(
+      toClinicAuth(activeStarterClinic),
+    );
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
@@ -264,10 +294,12 @@ describe('TierGuard', () => {
 
   it('allows tier requirement when clinic tier is sufficient', async () => {
     setMetadata(Tier.ESSENTIAL, undefined);
-    prisma.clinic.findUnique.mockResolvedValue({
-      ...activeStarterClinic,
-      tier: ClinicTier.PROFESSIONAL,
-    });
+    clinicAuthCache.getClinicAuth.mockResolvedValue(
+      toClinicAuth({
+        ...activeStarterClinic,
+        tier: ClinicTier.PROFESSIONAL,
+      }),
+    );
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
@@ -276,13 +308,15 @@ describe('TierGuard', () => {
 
   it('blocks tier checks after grace deadline for non-admin roles', async () => {
     setMetadata(Tier.STARTER, undefined);
-    prisma.clinic.findUnique.mockResolvedValue({
-      ...activeStarterClinic,
-      subscriptionStatus: SubscriptionStatus.GRACE,
-      subscription: {
-        graceUntil: new Date('2020-01-01T00:00:00.000Z'),
-      },
-    });
+    clinicAuthCache.getClinicAuth.mockResolvedValue(
+      toClinicAuth({
+        ...activeStarterClinic,
+        subscriptionStatus: SubscriptionStatus.GRACE,
+        subscription: {
+          graceUntil: new Date('2020-01-01T00:00:00.000Z'),
+        },
+      }),
+    );
 
     await expect(
       guard.canActivate(
@@ -293,13 +327,15 @@ describe('TierGuard', () => {
 
   it('allows tier checks after grace deadline for billing admins', async () => {
     setMetadata(Tier.STARTER, undefined);
-    prisma.clinic.findUnique.mockResolvedValue({
-      ...activeStarterClinic,
-      subscriptionStatus: SubscriptionStatus.GRACE,
-      subscription: {
-        graceUntil: new Date('2020-01-01T00:00:00.000Z'),
-      },
-    });
+    clinicAuthCache.getClinicAuth.mockResolvedValue(
+      toClinicAuth({
+        ...activeStarterClinic,
+        subscriptionStatus: SubscriptionStatus.GRACE,
+        subscription: {
+          graceUntil: new Date('2020-01-01T00:00:00.000Z'),
+        },
+      }),
+    );
 
     await expect(
       guard.canActivate(

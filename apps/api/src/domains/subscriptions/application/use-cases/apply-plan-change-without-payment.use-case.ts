@@ -26,6 +26,8 @@ export interface ApplyPlanChangeWithoutPaymentParams {
   clinicId: string;
   tier: string;
   cycle: string;
+  /** Optional plan mode (Full / Front Desk / Core). Defaults to FULL. */
+  planMode?: string;
 }
 
 // AuditLogged: zero-payable subscription plan changes are billing-sensitive writes.
@@ -98,7 +100,11 @@ export class ApplyPlanChangeWithoutPaymentUseCase {
       surplusCreditCents: breakdown.surplusCreditCents,
     });
 
-    await this.clinicSync.syncAfterActivation(params.clinicId, tier);
+    await this.clinicSync.syncAfterActivation(
+      params.clinicId,
+      tier,
+      params.planMode,
+    );
 
     this.logger.log(
       `Subscription plan applied without payment for clinic ${params.clinicId}: ${tier.value} ${cycle.value}`,

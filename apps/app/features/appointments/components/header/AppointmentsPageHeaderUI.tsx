@@ -16,6 +16,7 @@ interface AppointmentsPageHeaderUIProps {
   preselectedPatientId?: string;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  searchRowAction?: React.ReactNode;
 }
 
 export function AppointmentsPageHeaderUI({
@@ -27,6 +28,7 @@ export function AppointmentsPageHeaderUI({
   preselectedPatientId,
   searchQuery,
   setSearchQuery,
+  searchRowAction,
 }: AppointmentsPageHeaderUIProps) {
   return (
     <div className="space-y-4">
@@ -41,30 +43,35 @@ export function AppointmentsPageHeaderUI({
         }
       />
 
-      <div className="relative w-full max-w-md">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-        <Input
-          placeholder="Enter patient name or phone"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className={searchQuery.trim() ? "pl-9 pr-10" : "pl-9"}
-          aria-label="Search appointments"
-        />
-        {searchQuery.trim() ? (
-          <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
-            <SymbolTooltip label="Clear search">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => setSearchQuery("")}
-                aria-label="Clear search"
-              >
-                <X className="h-4 w-4 text-muted-foreground" aria-hidden />
-              </Button>
-            </SymbolTooltip>
-          </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative w-full max-w-md flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <Input
+            placeholder="Enter patient name or phone"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={searchQuery.trim() ? "pl-9 pr-10" : "pl-9"}
+            aria-label="Search appointments"
+          />
+          {searchQuery.trim() ? (
+            <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+              <SymbolTooltip label="Clear search">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" aria-hidden />
+                </Button>
+              </SymbolTooltip>
+            </div>
+          ) : null}
+        </div>
+        {searchRowAction ? (
+          <div className="ml-auto shrink-0">{searchRowAction}</div>
         ) : null}
       </div>
 

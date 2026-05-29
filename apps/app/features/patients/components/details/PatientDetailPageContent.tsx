@@ -43,7 +43,6 @@ export function PatientDetailPageContent({
     isEditDialogOpen,
     setIsEditDialogOpen,
     appointments,
-    statistics,
   } = state;
 
   const patient = state.patient;
@@ -137,10 +136,8 @@ export function PatientDetailPageContent({
               patient={patient}
               patientId={patient.id}
               appointments={appointments}
-              statistics={statistics}
               canEditPatient={canEditPatient}
               canRecordPatientVitals={canRecordPatientVitals}
-              onScheduleVisit={handleScheduleVisit}
             />
           </Suspense>
         </div>

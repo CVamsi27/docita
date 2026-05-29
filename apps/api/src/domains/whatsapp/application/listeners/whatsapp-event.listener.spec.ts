@@ -1,9 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { WhatsappEventListener } from './whatsapp-event.listener';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
+import { WHATSAPP_PERSISTENCE_PORT } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { Logger } from '@nestjs/common';
 import { PrescriptionCreatedEvent } from '@/domains/prescriptions/core/events/prescription-created.event';
 import { InvoiceGeneratedEvent } from '@/domains/billing/application/services/events/invoice-generated.event';
+import { PaymentCapturedEvent } from '@/domains/billing/application/services/events/payment-captured.event';
 import { AppointmentCreatedEvent } from '@/domains/appointments/application/events/appointment-created.event';
 import { AppointmentUpdatedEvent } from '@/domains/appointments/application/events/appointment-updated.event';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
@@ -25,6 +28,9 @@ describe('WhatsappEventListener', () => {
     jest.fn<WhatsappService['sendAppointmentConfirmation']>();
   const sendAppointmentUpdateMock =
     jest.fn<WhatsappService['sendAppointmentUpdate']>();
+  const sendPaymentConfirmationMock =
+    jest.fn<WhatsappService['sendPaymentConfirmation']>();
+  const notifyStaffMock = jest.fn<StaffNotificationService['notifyStaff']>();
 
   const mockWhatsappService: Pick<
     WhatsappService,
@@ -32,11 +38,22 @@ describe('WhatsappEventListener', () => {
     | 'sendInvoiceSystem'
     | 'sendAppointmentConfirmation'
     | 'sendAppointmentUpdate'
+    | 'sendPaymentConfirmation'
   > = {
     sendPrescriptionSystem: sendPrescriptionSystemMock,
     sendInvoiceSystem: sendInvoiceSystemMock,
     sendAppointmentConfirmation: sendAppointmentConfirmationMock,
     sendAppointmentUpdate: sendAppointmentUpdateMock,
+    sendPaymentConfirmation: sendPaymentConfirmationMock,
+  };
+
+  const mockPersistence = {
+    invoice: {
+      findUnique: jest.fn().mockResolvedValue({
+        total: 1500,
+        patient: { firstName: 'Ada', lastName: 'Lovelace' },
+      } as never),
+    },
   };
 
   const createMockAppointment = (startTime: Date): Appointment => {
@@ -52,6 +69,8 @@ describe('WhatsappEventListener', () => {
     sendInvoiceSystemMock.mockResolvedValue();
     sendAppointmentConfirmationMock.mockResolvedValue();
     sendAppointmentUpdateMock.mockResolvedValue();
+    sendPaymentConfirmationMock.mockResolvedValue();
+    notifyStaffMock.mockResolvedValue(undefined);
 
     jest.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
@@ -60,6 +79,11 @@ describe('WhatsappEventListener', () => {
       providers: [
         WhatsappEventListener,
         { provide: WhatsappService, useValue: mockWhatsappService },
+        {
+          provide: StaffNotificationService,
+          useValue: { notifyStaff: notifyStaffMock },
+        },
+        { provide: WHATSAPP_PERSISTENCE_PORT, useValue: mockPersistence },
       ],
     }).compile();
 
@@ -164,6 +188,49 @@ describe('WhatsappEventListener', () => {
       await expect(
         listener.handleAppointmentCreated(event),
       ).resolves.not.toThrow();
+    });
+  });
+
+  describe('handlePaymentCaptured', () => {
+    it('should send payment confirmation and notify staff at LOW priority', async () => {
+      const event = new PaymentCapturedEvent(
+        'inv-pay-123',
+        'clinic-123',
+        'pay_razorpay_1',
+        150000,
+      );
+
+      await listener.handlePaymentCaptured(event);
+
+      expect(mockWhatsappService.sendPaymentConfirmation).toHaveBeenCalledWith(
+        'inv-pay-123',
+        'clinic-123',
+      );
+      expect(notifyStaffMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clinicId: 'clinic-123',
+          type: 'INVOICE_PAID',
+          priority: 'LOW',
+          sendInApp: true,
+          sendWhatsApp: false,
+          title: 'Payment received',
+        }),
+      );
+    });
+
+    it('should catch WhatsApp errors without blocking staff notification', async () => {
+      sendPaymentConfirmationMock.mockRejectedValue(new Error('WhatsApp down'));
+      const event = new PaymentCapturedEvent(
+        'inv-fail',
+        'clinic-123',
+        'pay_1',
+        10000,
+      );
+
+      await expect(
+        listener.handlePaymentCaptured(event),
+      ).resolves.not.toThrow();
+      expect(notifyStaffMock).toHaveBeenCalled();
     });
   });
 

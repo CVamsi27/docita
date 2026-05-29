@@ -125,6 +125,10 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
     name: "Lab Tests",
     description: "Lab test catalog and tracking",
   },
+  [Feature.VACCINE_TRACKING]: {
+    name: "Vaccine Tracking",
+    description: "Immunization schedules and dose tracking",
+  },
   [Feature.INVENTORY]: {
     name: "Inventory",
     description: "Medicine and supplies inventory",

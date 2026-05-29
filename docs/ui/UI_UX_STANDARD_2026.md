@@ -61,7 +61,7 @@ Origin-style minimal topbar:
 
 - **Leading**: page title (or breadcrumbs when nested) and an optional `PageTabs` strip directly under the title.
 - **Trailing cluster** (right-to-left): user avatar menu, gear (Settings shortcut), notifications bell with unread dot, `+` quick-add (opens a small sheet for new patient/appointment/invoice/start consultation), command palette opener with `Kbd` hint.
-- The trailing cluster must remain visible on mobile. The current `hidden md:flex` on `DesktopTopBar` is a regression; mobile must keep at least the palette opener and the quick-add `+`.
+- The trailing cluster must remain visible on mobile via a single `MobileHeader` (`md:hidden`) that includes the command palette opener, global search, quick-add `+`, and Ask AI. `DesktopTopBar` is desktop-only (`hidden md:block`).
 
 ### 1.3 Command palette parity
 
@@ -134,6 +134,22 @@ These are added in PR F:
 
 - `PageTabs` thin-underline component for in-page section switching (Origin's Overview / Transactions pattern).
 - Tabs sync to the URL (`?tab=`). Always preserve back-compat for old tab values when refactoring.
+
+### 3.6 Mobile companion patterns (2026 responsive pass)
+
+Use these `@workspace/ui` primitives for phone/tablet layouts; prefer Tailwind breakpoints first, primitives for repeated row/step chrome:
+
+| Primitive | Use when |
+|---|---|
+| `SegmentedControl` | Queue filters, mobile section tabs, role switchers (pill segmented control) |
+| `StepProgress` | Consultation SOAP steps, wizard section nav on `< md` |
+| `ListRow` + `ListRowGroup` | `DataTable` `stackOnMobile` card fallback; queue/inbox rows (token · name · meta · time · status) |
+| `BottomActionBar` | Primary + secondary actions docked at bottom on `< md` (Next patient, save, quick replies) |
+| `NowServingBoard` | Today/consultation queue hero (uses `--brand-ink` / `--brand-cyan`; do not duplicate) |
+
+- `Dialog` / `WizardDialog` become full-height bottom sheets below **`md`** (768px).
+- Clinical lists: `DataTable` with `stackOnMobile`, `mobileRenderer` → `ListRow`, `hiddenOnMobile` on low-priority columns.
+- No emoji in bottom actions; Lucide icons + sentence-case labels only.
 
 ## 4. AI surface contract
 

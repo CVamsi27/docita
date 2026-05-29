@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { CreditCard } from "lucide-react";
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Card,
   CardContent,
@@ -11,6 +10,10 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import {
+  ListRow,
+  ListRowGroup,
+} from "@workspace/ui/components/data-display/list-row";
 import { formatCurrency } from "@workspace/utils";
 import type { PatientPortalInvoice } from "@/features/patient-portal/types/patient-portal-types";
 import { getInvoiceStatusLabel } from "@/features/patient-portal/rules/patient-portal-rules";
@@ -49,29 +52,26 @@ export function PatientPortalBillingUI({
               description="Your paid and pending invoices will appear here once generated"
             />
           ) : (
-            <div className="space-y-3 pb-4">
-              {invoices.map((invoice) => (
-                <div key={invoice.id} className="rounded-md border p-3 text-sm">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="font-medium">
-                      {formatCurrency(invoice.amount, {
-                        currency: invoice.currency,
-                      })}
-                    </div>
-                    <Badge variant="secondary">
-                      {getInvoiceStatusLabel(invoice.status)}
-                    </Badge>
-                  </div>
-                  <div className="text-muted-foreground">
-                    Invoice #{invoice.id.slice(0, 8)} •{" "}
-                    {formatDate(invoice.dueAt)}
-                  </div>
-                </div>
-              ))}
+            <div className="ui-card-surface overflow-hidden rounded-[var(--radius-md)] border border-border/70 pb-4">
+              <ListRowGroup>
+                {invoices.map((invoice) => (
+                  <ListRow
+                    key={invoice.id}
+                    title={formatCurrency(invoice.amount, {
+                      currency: invoice.currency,
+                    })}
+                    meta={`Invoice #${invoice.id.slice(0, 8)}`}
+                    time={formatDate(invoice.dueAt)}
+                    status={invoice.status}
+                    statusLabel={getInvoiceStatusLabel(invoice.status)}
+                    showChevron={false}
+                  />
+                ))}
+              </ListRowGroup>
             </div>
           )}
-          <div className="flex justify-center pb-4">
-            <Button asChild variant="outline">
+          <div className="flex justify-center pb-4 pt-4">
+            <Button asChild variant="outline" className="touch-manipulation">
               <Link href={portalHomeHref}>Back to Portal Home</Link>
             </Button>
           </div>
