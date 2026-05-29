@@ -16,6 +16,7 @@ export function parseTeamMemberRole(value: string): TeamMember["role"] {
 export interface TeamInviteStepProps {
   onComplete: (members: TeamMember[]) => void;
   onSkip: () => void;
+  onBack?: () => void;
   maxMembers?: number;
   ownerName?: string;
   ownerEmail?: string;

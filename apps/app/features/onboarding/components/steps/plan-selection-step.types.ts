@@ -8,4 +8,7 @@ export interface PlanSelectionProps {
   defaultTier?: string;
   defaultBillingCycle?: "MONTHLY" | "YEARLY";
   currency?: string;
+  /** Owner plus invited members saved on the previous onboarding step. */
+  teamUserCount?: number;
+  onBack?: () => void;
 }

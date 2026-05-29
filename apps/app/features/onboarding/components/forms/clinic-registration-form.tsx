@@ -27,7 +27,11 @@ import {
   AlertDescription,
 } from "@workspace/ui/components/feedback/alert";
 import { Button } from "@workspace/ui/components/form/button";
-import { DEFAULT_COUNTRY_CODE, getFacilityLabel } from "@workspace/utils";
+import {
+  DEFAULT_COUNTRY_CODE,
+  getFacilityLabel,
+  recommendTierForTeamSize,
+} from "@workspace/utils";
 
 import {
   DRAFT_KEY,
@@ -282,21 +286,27 @@ export function ClinicRegistrationForm({
       )}
 
       {step === 3 && (
-        <PlanSelectionStep
-          currency={currency}
-          defaultTier={formData.planSelection.tier}
-          defaultBillingCycle={formData.planSelection.billingCycle}
-          onSelect={handleSetPlanSelection}
-        />
-      )}
-
-      {step === 4 && (
         <TeamInviteStep
+          onBack={() => setStep(2)}
           onSkip={handleSkipTeamStep}
           onComplete={handleSetTeamMembers}
           ownerName={user?.name}
           ownerEmail={user?.email}
           ownerRole={user?.role === "ADMIN_DOCTOR" ? "ADMIN_DOCTOR" : "ADMIN"}
+        />
+      )}
+
+      {step === 4 && (
+        <PlanSelectionStep
+          currency={currency}
+          defaultTier={
+            recommendTierForTeamSize(1 + formData.teamMembers.length)?.tier ??
+            formData.planSelection.tier
+          }
+          defaultBillingCycle={formData.planSelection.billingCycle}
+          teamUserCount={1 + formData.teamMembers.length}
+          onBack={() => setStep(3)}
+          onSelect={handleSetPlanSelection}
         />
       )}
 

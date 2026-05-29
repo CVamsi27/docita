@@ -6,8 +6,8 @@ import { clinicDetailsSchema } from "@/features/onboarding/schemas/clinic-detail
 export const STEPS = [
   { number: 1, label: "Facility Details", estimatedTime: "2 min" },
   { number: 2, label: "Visit hours", estimatedTime: "2 min" },
-  { number: 3, label: "Choose Plan", estimatedTime: "3 min" },
-  { number: 4, label: "Invite Team", estimatedTime: "2 min" },
+  { number: 3, label: "Invite Team", estimatedTime: "2 min" },
+  { number: 4, label: "Choose Plan", estimatedTime: "3 min" },
   { number: 5, label: "Compliance", estimatedTime: "3 min" },
 ];
 

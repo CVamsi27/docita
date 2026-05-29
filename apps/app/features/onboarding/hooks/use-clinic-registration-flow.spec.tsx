@@ -46,16 +46,19 @@ vi.mock("sonner", () => ({
 const validClinicDetails: ClinicDetails = {
   name: "Acme Clinic",
   email: "clinic@example.com",
-  phone: "9876543210",
+  phone: "+919876543210",
   addressLine1: "123 Main Street",
   addressLine2: "Near Central Park",
   city: "Hyderabad",
   state: "Telangana",
   pincode: "500001",
   address: "123 Main Street, Near Central Park, Hyderabad, Telangana, 500001, IN",
+  facilityLabel: "CLINIC",
+  countryCode: "IN",
   type: "GENERAL",
   website: "",
   gstin: "",
+  mapsLocation: { lat: 17.385, lng: 78.4867 },
 };
 
 const validCompliance: ComplianceSettings = {
@@ -185,14 +188,14 @@ describe("useClinicRegistrationFlow", () => {
     });
 
     await act(async () => {
+      await result.current.setTeamMembers([]);
+    });
+
+    await act(async () => {
       await result.current.setPlanSelection("ESSENTIAL", "MONTHLY", {
         monthly: 999,
         yearly: 9990,
       });
-    });
-
-    await act(async () => {
-      await result.current.setTeamMembers([]);
     });
 
     expect(result.current.step).toBe(5);
