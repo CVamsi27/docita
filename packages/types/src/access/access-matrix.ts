@@ -152,6 +152,7 @@ export const APP_ACCESS_TARGETS = {
   PAGE_CONSULTATION: "page.consultation",
   PAGE_PRESCRIPTIONS: "page.prescriptions",
   PAGE_LAB_TESTS: "page.lab-tests",
+  PAGE_VACCINES: "page.vaccines",
   PAGE_INVOICES: "page.invoices",
   /** Front-desk cash / POS / UPI recording (not payment links or subscription billing). */
   PAGE_DESK_PAYMENT: "page.desk-payment",
@@ -251,7 +252,7 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
   },
   [APP_ACCESS_TARGETS.PAGE_APPOINTMENTS]: {
     read: { roles: CARE_COORDINATION_ROLES },
-    feature: Feature.CALENDAR_SLOTS,
+    feature: Feature.QUEUE_MANAGEMENT,
   },
   [APP_ACCESS_TARGETS.PAGE_CONSULTATION]: {
     read: { roles: CARE_COORDINATION_ROLES },
@@ -268,6 +269,12 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
       roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE", "RECEPTIONIST"],
     },
     feature: Feature.LAB_TESTS,
+  },
+  [APP_ACCESS_TARGETS.PAGE_VACCINES]: {
+    read: {
+      roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE", "RECEPTIONIST"],
+    },
+    feature: Feature.VACCINE_TRACKING,
   },
   [APP_ACCESS_TARGETS.PAGE_INVOICES]: {
     read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
@@ -347,12 +354,12 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
   [APP_ACCESS_TARGETS.API_APPOINTMENTS]: {
     read: { roles: CARE_COORDINATION_ROLES },
     write: { roles: CARE_COORDINATION_ROLES },
-    feature: Feature.CALENDAR_SLOTS,
+    feature: Feature.QUEUE_MANAGEMENT,
   },
   [APP_ACCESS_TARGETS.API_STAFF_NOTIFICATIONS]: {
     read: { roles: CARE_COORDINATION_ROLES },
     write: { roles: CARE_COORDINATION_ROLES },
-    feature: Feature.CALENDAR_SLOTS,
+    feature: Feature.QUEUE_MANAGEMENT,
   },
   [APP_ACCESS_TARGETS.API_MEDICAL_CODING]: {
     read: { roles: CLINICAL_CODING_ROLES },

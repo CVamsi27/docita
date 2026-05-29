@@ -30,6 +30,7 @@ import {
   type ITransactionRunner,
 } from '@/shared/common/ports/transaction-runner.port';
 import { RazorpayInvoiceWebhookService } from './razorpay-invoice-webhook.service';
+import { DATE_FORMATS, formatDate } from '@workspace/utils';
 
 /**
  * Clinic invoice payment mutations (sessions, links, manual settlement).
@@ -169,10 +170,10 @@ export class PaymentsCommandService {
         recipientPhone: session.patient.phoneNumber,
         templateName: 'payment_link',
         variables: {
-          patient_name: patientName,
+          patientName,
+          clinicName: session.clinic.name,
           amount,
-          payment_link: link,
-          clinic_name: session.clinicId,
+          paymentLink: link,
         },
         clinicId: session.clinicId,
       });
@@ -185,6 +186,48 @@ export class PaymentsCommandService {
       }
       this.logger.error(
         `Failed to send payment link WhatsApp for session ${sessionId}`,
+        error,
+      );
+    }
+  }
+
+  async sendPaymentReminderWhatsApp(sessionId: string, clinicId: string) {
+    const session = await this.repository.findById(sessionId, clinicId);
+    if (!session || !session.patient || !session.clinic || !session.invoice) {
+      return;
+    }
+
+    const patientName = `${session.patient.firstName} ${session.patient.lastName}`;
+    const amount = (session.amount / 100).toFixed(2);
+    const link = session.shortUrl || session.paymentLink;
+    if (!link) return;
+
+    const dueDateDisplay = session.invoice.dueDate
+      ? formatDate(session.invoice.dueDate, DATE_FORMATS.DATE_MEDIUM)
+      : '—';
+
+    try {
+      await this.sendMessage.execute({
+        recipientPhone: session.patient.phoneNumber,
+        templateName: 'payment_reminder',
+        variables: {
+          patientName,
+          clinicName: session.clinic.name,
+          amount,
+          dueDate: dueDateDisplay,
+          invoiceLink: link,
+        },
+        clinicId: session.clinicId,
+      });
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        this.logger.log(
+          `Payment reminder skipped for session ${sessionId}: ${error.message}`,
+        );
+        return;
+      }
+      this.logger.error(
+        `Failed to send payment reminder WhatsApp for session ${sessionId}`,
         error,
       );
     }

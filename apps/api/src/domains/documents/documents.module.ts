@@ -17,11 +17,12 @@ import { StorageProvider } from './application/ports/storage-provider.port';
 import { LocalStorageProvider } from './infrastructure/local-storage.provider';
 import { R2StorageProvider } from './infrastructure/r2-storage.provider';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { AuthGuardsModule } from '@/shared/modules/auth/auth/auth-guards.module';
 
 const logger = new Logger('DocumentsModule');
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AuthGuardsModule],
   controllers: [TemplatesController, UploadsController],
   providers: [
     { provide: DOCUMENT_PERSISTENCE_PORT, useExisting: PrismaService },

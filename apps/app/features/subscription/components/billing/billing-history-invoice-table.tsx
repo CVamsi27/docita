@@ -28,11 +28,12 @@ import {
 import {
   badgeClassForStatus,
   formatMoney,
+  isBillingRowPaid,
   isFailedLike,
-  isPaidStatus,
   isTerminalClosed,
   normalizeStatus,
   readBillingHistoryActions,
+  resolveBillingAmountCents,
 } from "./billing-history-table-helpers";
 
 export function BillingHistoryInvoiceTable({
@@ -78,7 +79,7 @@ export function BillingHistoryInvoiceTable({
             {invoices.map((invoice) => {
               const withActions = readBillingHistoryActions(invoice);
               const status = normalizeStatus(invoice.status);
-              const isPaid = isPaidStatus(status);
+              const isPaid = isBillingRowPaid(invoice);
               const receiptUrl = isPaid
                 ? (withActions.receiptUrl ?? invoice.invoiceUrl)
                 : undefined;
@@ -135,7 +136,10 @@ export function BillingHistoryInvoiceTable({
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">
-                    {formatMoney(invoice.amountCents, invoice.currency)}
+                    {formatMoney(
+                      resolveBillingAmountCents(invoice),
+                      invoice.currency,
+                    )}
                   </TableCell>
                   <TableCell>
                     <Badge

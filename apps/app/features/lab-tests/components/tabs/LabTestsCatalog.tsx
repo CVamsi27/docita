@@ -41,7 +41,25 @@ export const LabTestsCatalog: FC<LabTestsCatalogProps> = ({
         {isLoading ? (
           <LoadingState message="Loading catalog…" />
         ) : (
-          <div className="overflow-x-hidden">
+          <>
+          <div className="mb-4 space-y-3 md:hidden">
+            {testCatalog.map((test) => (
+              <div key={test.id} className="ui-card-surface flex items-center justify-between gap-3 p-4">
+                <div>
+                  <p className="font-medium">{test.name}</p>
+                  <p className="text-sm capitalize text-muted-foreground">
+                    {test.category}
+                  </p>
+                </div>
+                <p className="shrink-0 text-sm font-medium tabular-nums">
+                  {test.price
+                    ? formatCurrency(test.price, { fractionDigits: 0 })
+                    : "—"}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto overscroll-x-contain md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -78,6 +96,7 @@ export const LabTestsCatalog: FC<LabTestsCatalogProps> = ({
               </TableBody>
             </Table>
           </div>
+          </>
         )}
         {!isLoading && testCatalog.length === 0 && (
           <EmptyState

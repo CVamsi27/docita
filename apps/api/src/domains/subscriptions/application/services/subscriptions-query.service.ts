@@ -87,6 +87,7 @@ export class SubscriptionsQueryService {
         clinicId,
         tier: scheduled.plan,
         cycle: scheduled.billingCycle,
+        planMode: scheduled.planMode,
       });
     } catch {
       // Best-effort. Don't break the read if the scheduled change can't apply

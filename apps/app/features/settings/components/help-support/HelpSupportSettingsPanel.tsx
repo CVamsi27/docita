@@ -12,13 +12,13 @@ import {
 export function HelpSupportSettingsPanel() {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">Help and support</CardTitle>
+      <CardHeader className="border-b border-border/60 pb-5">
+        <CardTitle>Help &amp; support</CardTitle>
         <CardDescription>
           Reach the Docita team for product questions, onboarding, and account help.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-col gap-4 pt-5">
         <SupportContact layout="stack" variant="footer" className="text-sm" />
         <p className="text-xs text-muted-foreground leading-relaxed">
           For billing and subscription changes, admins can also use the WhatsApp

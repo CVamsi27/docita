@@ -36,8 +36,18 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
     doctorId: string,
     date: Date,
     clinicId: string,
+    timezone?: string,
   ): Promise<Appointment[]> {
-    return this.readRepository.findByDoctorId(doctorId, date, clinicId);
+    return this.readRepository.findByDoctorId(
+      doctorId,
+      date,
+      clinicId,
+      timezone,
+    );
+  }
+
+  findClinicTimezone(clinicId: string) {
+    return this.readRepository.findClinicTimezone(clinicId);
   }
 
   exists(id: string, clinicId: string): Promise<boolean> {

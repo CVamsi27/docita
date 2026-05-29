@@ -84,8 +84,8 @@ export function LeavePolicyEditor() {
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Leave Plans</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between border-b border-border/60 pb-5">
+          <CardTitle>Leave plans</CardTitle>
           <Button
             size="sm"
             onClick={() => {
@@ -93,8 +93,8 @@ export function LeavePolicyEditor() {
               setPlanDialogOpen(true);
             }}
           >
-            <Plus className="h-4 w-4 mr-1" />
-            Configure Plan
+            <Plus className="mr-1 h-4 w-4" />
+            Configure plan
           </Button>
         </CardHeader>
         <CardContent>

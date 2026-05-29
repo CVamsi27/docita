@@ -17,6 +17,7 @@ import { PrismaPrescriptionRepository } from './infrastructure/repositories/pres
 import { SignatureImageClient } from './infrastructure/external/signature-image.client';
 import { FrontDeskClinicalBlockGuard } from '@/shared/modules/clinic-workspace/front-desk-clinical-block.guard';
 import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
+import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
     DocumentsModule,
     QueueModule,
     AuditModule,
+    AuthModule,
   ],
   controllers: [PrescriptionsController],
   providers: [

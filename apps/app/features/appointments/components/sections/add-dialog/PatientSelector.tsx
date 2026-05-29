@@ -110,7 +110,7 @@ export function PatientSelector({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="z-[100] w-[--radix-popover-trigger-width] min-w-[280px] p-0"
+          className="z-[100] w-[min(100vw-2rem,280px)] max-w-[--radix-popover-trigger-width] p-0"
           align="start"
         >
           <div className="flex items-center gap-2 border-b px-3 py-2">

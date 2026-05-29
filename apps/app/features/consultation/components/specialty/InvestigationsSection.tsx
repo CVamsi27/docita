@@ -101,8 +101,8 @@ export function InvestigationsSection({
               key={row.id ?? `inv-${index}`}
               className="rounded-lg border border-border/70 bg-muted/5 p-4 space-y-3"
             >
-              <div className="flex flex-wrap items-end gap-3">
-                <div className="flex-1 min-w-[180px] space-y-1.5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+                <div className="w-full space-y-1.5 sm:min-w-[180px] sm:flex-1">
                   <Label htmlFor={`inv-name-${index}`} className="text-xs">
                     Name
                   </Label>
@@ -114,7 +114,7 @@ export function InvestigationsSection({
                     onChange={(e) => updateAt(index, { name: e.target.value })}
                   />
                 </div>
-                <div className="w-[140px] space-y-1.5">
+                <div className="w-full space-y-1.5 sm:w-[140px]">
                   <Label className="text-xs">Category</Label>
                   <Select
                     disabled={readOnly}
@@ -138,7 +138,7 @@ export function InvestigationsSection({
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="w-[140px] space-y-1.5">
+                <div className="w-full space-y-1.5 sm:w-[140px]">
                   <Label className="text-xs">Status</Label>
                   <Select
                     disabled={readOnly}

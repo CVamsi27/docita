@@ -121,6 +121,24 @@ try {
     );
   }
 
+  assertIncludes(
+    deployWorkflowSource,
+    "needs.changes.outputs.api == 'true' ||\n      needs.changes.outputs.worker == 'true'",
+    "migrate-db must run before any API or worker deploy, not only when packages/db changes in the last commit.",
+  );
+
+  assertIncludes(
+    deployWorkflowSource,
+    "needs.migrate-db.result == 'success'",
+    "API and worker deploy jobs must require a successful migrate-db job (skipped migrate + deploy is forbidden).",
+  );
+
+  assertIncludes(
+    deployWorkflowSource,
+    "scripts/deploy/verify-db-schema-sync.sh",
+    "Deploy workflow must verify production schema sync after migrations.",
+  );
+
   for (const requiredCiBuild of [
     "pnpm --filter @docita/app run build:cloudflare",
     "pnpm --filter @docita/internal run build:cloudflare",

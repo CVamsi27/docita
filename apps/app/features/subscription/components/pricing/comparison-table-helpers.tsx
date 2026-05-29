@@ -43,6 +43,7 @@ export const FEATURE_CATEGORIES: { label: string; features: Feature[] }[] = [
       Feature.DIGITAL_INTAKE_FORMS,
       Feature.FULL_EHR,
       Feature.LAB_TESTS,
+      Feature.VACCINE_TRACKING,
       Feature.CONSENT_MANAGEMENT,
       Feature.DOCTOR_SIGNATURE,
     ],

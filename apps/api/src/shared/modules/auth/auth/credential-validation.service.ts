@@ -9,6 +9,7 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { Role } from '@workspace/db';
+import { isFrontDeskPlanMode } from '@workspace/types';
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 import type { UserWithoutPassword } from './auth.types';
@@ -66,11 +67,14 @@ export class CredentialValidationService {
     const clinic = await this.prisma.runUnrestricted(async () =>
       this.prisma.clinic.findUnique({
         where: { id: clinicId },
-        select: { tier: true },
+        select: { tier: true, planMode: true },
       }),
     );
 
-    if (clinic?.tier === 'FRONT_DESK') {
+    if (
+      clinic &&
+      isFrontDeskPlanMode(clinic.tier, clinic.planMode ?? undefined)
+    ) {
       throw new ForbiddenException(
         'Doctor and admin-doctor sign-in is not available on the Front Desk plan. ' +
           'Ask an admin to upgrade the clinic to enable clinical sign-in.',

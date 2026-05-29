@@ -57,13 +57,13 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
         onCopyCode={mgmt.handleCopyClinicCode}
         onInvite={() => mgmt.setIsInviteOpen(true)}
       />
-      <CardContent>
+      <CardContent className="pt-5">
         {mgmt.sortedMembers.length === 0 ? (
-          <div className="py-8 text-center text-muted-foreground">
-            No team members found. Invite your first team member.
+          <div className="rounded-[calc(var(--radius)-4px)] border border-dashed border-border/70 bg-muted/30 py-10 text-center text-sm text-muted-foreground">
+            No team members yet. Invite your first one.
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="flex flex-col gap-2">
             {mgmt.sortedMembers.map((member) => (
               <MemberListRow
                 key={member.id}

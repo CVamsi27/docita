@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 
 import { cn } from "@workspace/ui/lib/utils";
-import { Section } from "@workspace/ui/components/layout/section";
 // import { NowServingBoard } from "@workspace/ui/components/now-serving-board";
 
 import {
@@ -50,10 +49,6 @@ export function DashboardSharedWorkspace({
 }: DashboardSharedWorkspaceProps) {
   const density = alertDensity ?? defaultAlertDensity(mode);
   const totalToday = todayAppointments.length;
-  const queueSummary =
-    totalToday > 0
-      ? `${totalToday} appointment${totalToday !== 1 ? "s" : ""} on the calendar`
-      : "No appointments scheduled for today";
 
   // const tokenNumber = completedToday + inProgressToday;
   // const tokenLabel =
@@ -79,34 +74,28 @@ export function DashboardSharedWorkspace({
         nextPatientId={density === "full" ? currentPatient?.id : undefined}
       />
 
-      <Section
-        id="dashboard-queue"
-        title="Today's queue"
-        description={queueSummary}
-      >
-        <div className="grid gap-4 sm:gap-6">
-          {/* <NowServingBoard
-            token={tokenLabel}
-            patientName={currentPatientName}
-            waiting={waitingCount}
-            avgWaitMinutes={
-              waitingCount > 0 ? waitingCount * slotDurationMinutes : null
-            }
-            status={inProgressToday > 0 && currentPatient ? "live" : "idle"}
-          /> */}
-          <DoctorDashboardCards
-            currentPatient={currentPatient}
-            nextPatients={nextPatients}
-            queueStats={{
-              waiting: waitingCount,
-              inProgress: inProgressToday,
-              completed: completedToday,
-              total: totalToday,
-            }}
-            estimatedWaitTime={waitingCount * slotDurationMinutes}
-          />
-        </div>
-      </Section>
+      <div id="dashboard-queue" className="grid gap-4 sm:gap-6">
+        {/* <NowServingBoard
+          token={tokenLabel}
+          patientName={currentPatientName}
+          waiting={waitingCount}
+          avgWaitMinutes={
+            waitingCount > 0 ? waitingCount * slotDurationMinutes : null
+          }
+          status={inProgressToday > 0 && currentPatient ? "live" : "idle"}
+        /> */}
+        <DoctorDashboardCards
+          currentPatient={currentPatient}
+          nextPatients={nextPatients}
+          queueStats={{
+            waiting: waitingCount,
+            inProgress: inProgressToday,
+            completed: completedToday,
+            total: totalToday,
+          }}
+          estimatedWaitTime={waitingCount * slotDurationMinutes}
+        />
+      </div>
 
       {children}
     </div>

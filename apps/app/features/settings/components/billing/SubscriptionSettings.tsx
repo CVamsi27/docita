@@ -105,14 +105,14 @@ export function SubscriptionSettings() {
   if (!isAdmin) {
     return (
       <Card>
-        <CardHeader>
+        <CardHeader className="border-b border-border/60 pb-5">
           <CardTitle>Subscription</CardTitle>
-          <CardDescription>Your current plan details</CardDescription>
+          <CardDescription>Your current plan details.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-5">
           <div className="flex items-center justify-between">
             <p className="ui-section-title text-[var(--fs-lg)]">{tierName}</p>
-            <Badge variant="secondary" className="capitalize">
+            <Badge variant="secondary" className="ui-eyebrow border border-border/60 bg-muted/40 capitalize text-muted-foreground">
               {subscriptionStatusLabel}
             </Badge>
           </div>

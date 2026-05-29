@@ -93,7 +93,7 @@ export function WhatsappSenderSettings() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {labelMapKeys(MODE_LABELS).map((item) => {
                 const disabled = !allowedModes.has(item);
                 const selected = mode === item;

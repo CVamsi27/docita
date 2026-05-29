@@ -85,13 +85,13 @@ export const QueueConfigurationForm = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Queue Configuration</CardTitle>
+      <CardHeader className="border-b border-border/60 pb-5">
+        <CardTitle>Queue configuration</CardTitle>
         <CardDescription>
-          Configure how the patient queue is managed
+          How the patient queue is managed in real time.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="flex flex-col gap-6 pt-5">
         {settingsLoading ? (
           <div
             className="space-y-4"

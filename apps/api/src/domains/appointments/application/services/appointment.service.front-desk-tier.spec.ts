@@ -28,6 +28,7 @@ describe('AppointmentService front desk tier', () => {
     findAppointmentsForSlots:
       jest.fn<IAppointmentRepository['findAppointmentsForSlots']>(),
     findClinicTier: jest.fn<IAppointmentRepository['findClinicTier']>(),
+    findClinicTimezone: jest.fn<IAppointmentRepository['findClinicTimezone']>(),
     findForConsultationStart:
       jest.fn<IAppointmentRepository['findForConsultationStart']>(),
     startConsultationTx:
@@ -98,6 +99,7 @@ describe('AppointmentService front desk tier', () => {
   it('forbids startConsultation when clinic tier is FRONT_DESK', async () => {
     mockRepository.findClinicTier.mockResolvedValue({
       tier: 'FRONT_DESK',
+      planMode: null,
     });
 
     await expect(

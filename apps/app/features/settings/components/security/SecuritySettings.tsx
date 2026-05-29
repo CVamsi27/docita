@@ -108,22 +108,24 @@ export function SecuritySettings() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Security settings</CardTitle>
-        <CardDescription>Manage security and access controls</CardDescription>
+      <CardHeader className="border-b border-border/60 pb-5">
+        <CardTitle>Security &amp; access</CardTitle>
+        <CardDescription>
+          Hardening for sign-in, session lifetime, and audit trail.
+        </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-5">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSave)}
-            className="space-y-6"
+            className="flex flex-col gap-5"
             noValidate
           >
             <FormField
               control={form.control}
               name="twoFactorAuth"
               render={({ field }) => (
-                <FormItem className="flex items-center justify-between space-y-0">
+                <FormItem className="flex items-center justify-between space-y-0 rounded-[calc(var(--radius)-4px)] border border-border/60 bg-muted/20 px-4 py-3">
                   <div className="space-y-1">
                     <Label htmlFor="two-factor-auth">
                       Two-Factor Authentication
@@ -147,7 +149,7 @@ export function SecuritySettings() {
               control={form.control}
               name="sessionTimeout"
               render={({ field }) => (
-                <FormItem className="space-y-0">
+                <FormItem className="space-y-0 rounded-[calc(var(--radius)-4px)] border border-border/60 bg-muted/20 px-4 py-3">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <Label htmlFor="session-timeout">
@@ -168,7 +170,7 @@ export function SecuritySettings() {
                           max={240}
                           step={5}
                           {...field}
-                          className="w-24 text-right"
+                          className="ui-mono w-24 text-right"
                         />
                       </FormControl>
                       <FormMessage className="mt-1 text-right" />
@@ -182,7 +184,7 @@ export function SecuritySettings() {
               control={form.control}
               name="auditLogs"
               render={({ field }) => (
-                <FormItem className="flex items-center justify-between space-y-0">
+                <FormItem className="flex items-center justify-between space-y-0 rounded-[calc(var(--radius)-4px)] border border-border/60 bg-muted/20 px-4 py-3">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <Label htmlFor="audit-logs">Enable Audit Logs</Label>
@@ -219,10 +221,12 @@ export function SecuritySettings() {
               )}
             />
 
-            <Button className="w-full" type="submit" disabled={isSaving}>
-              {isSaving ? <DocitaLoadingIndicator variant="inline" decorative className="mr-2" /> : null}
-              Save Security Settings
-            </Button>
+            <div className="flex justify-end border-t border-border/60 pt-4">
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? <DocitaLoadingIndicator variant="inline" decorative className="mr-2" /> : null}
+                Save security settings
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>

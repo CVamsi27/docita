@@ -13,10 +13,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { TemplatesService } from '@/domains/documents/application/services/templates.service';
-import { Role } from '@workspace/db';
-import { Feature } from '@workspace/types';
-import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
-import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
+import { TemplatesApiAccess } from '@/domains/documents/presentation/controllers/templates.controller.access';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import {
   CreateTemplateSchema,
@@ -28,8 +25,7 @@ import {
 import { RequestWithUser } from '@/shared/common/types/common.types';
 
 @Controller('templates')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
-@RequireFeature(Feature.PRESCRIPTION_TEMPLATES)
+@TemplatesApiAccess()
 export class TemplatesController {
   constructor(private readonly templatesService: TemplatesService) {}
 

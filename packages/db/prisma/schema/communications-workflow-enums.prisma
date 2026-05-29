@@ -6,6 +6,7 @@ enum WhatsappTemplateCategory {
   FOLLOW_UP
   MARKETING
   STAFF_NOTIFICATION
+  AUTHENTICATION
 }
 
 enum WhatsappButtonType {
@@ -36,6 +37,7 @@ enum StaffNotificationType {
   APPOINTMENT_DELAY // Patient running late
   PRESCRIPTION_PENDING // Prescription needs approval
   INVOICE_PENDING // Invoice needs approval
+  INVOICE_PAID // Patient payment captured for a clinic invoice
   SYSTEM_ALERT // System notification
 }
 

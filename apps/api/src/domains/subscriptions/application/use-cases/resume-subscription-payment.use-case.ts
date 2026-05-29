@@ -10,7 +10,11 @@ import {
   DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN,
 } from '@/domains/payments/core/ports';
 import { Money } from '@/domains/payments/core/value-objects/money.vo';
-import { isRecord, resolveSubscriptionBillingContact } from '@workspace/utils';
+import {
+  isRecord,
+  isSubscriptionBillingRowPaid,
+  resolveSubscriptionBillingContact,
+} from '@workspace/utils';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
@@ -27,6 +31,7 @@ type SubscriptionPaymentRecord = {
   amountCents: number;
   currency: string;
   status: string;
+  paidAt?: Date | null;
   invoiceUrl?: string | null;
   invoiceNumber?: string | null;
   description?: string | null;
@@ -76,7 +81,7 @@ export class ResumeSubscriptionPaymentUseCase {
       throw new BadRequestException('Payment not found');
     }
 
-    if (payment.status.toLowerCase() === 'paid') {
+    if (isSubscriptionBillingRowPaid(payment.status, payment.paidAt)) {
       throw new BadRequestException('Payment is already completed');
     }
 

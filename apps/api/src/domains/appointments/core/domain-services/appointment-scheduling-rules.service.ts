@@ -5,6 +5,12 @@ import {
   BadRequestException as _BadRequestException,
 } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { getClinicLocalDayUtcBounds } from '@/shared/common/utils/clinic-calendar-bounds';
+import {
+  DEFAULT_TIMEZONE,
+  fromLocalISOString,
+  formatUtcInstantAsClinicPickerIso,
+} from '@workspace/utils';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppointmentStatus } from '@workspace/db';
 import { findFirstSchedulingConflict } from '@/domains/appointments/core/domain-services/appointment-interval-overlap';
@@ -215,10 +221,28 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
     };
 
     const slot = slotDefinitions[slotType];
-    const slotStartTime = new Date(date);
-    slotStartTime.setHours(slot.start, 0, 0, 0);
-    const slotEndTime = new Date(date);
-    slotEndTime.setHours(slot.end, 0, 0, 0);
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { timezone: true },
+    });
+    const timezone = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
+    const pickerDateStr = formatUtcInstantAsClinicPickerIso(date, timezone);
+    const dayBounds = getClinicLocalDayUtcBounds(pickerDateStr, timezone);
+    if (!dayBounds) {
+      return { available: false, slots: 0 };
+    }
+
+    const slotStartTime = fromLocalISOString(
+      `${pickerDateStr}T${String(slot.start).padStart(2, '0')}:00`,
+      { timezone },
+    );
+    const slotEndTime = fromLocalISOString(
+      `${pickerDateStr}T${String(slot.end).padStart(2, '0')}:00`,
+      { timezone },
+    );
+    if (!slotStartTime || !slotEndTime) {
+      return { available: false, slots: 0 };
+    }
 
     const appointmentsInSlot = await this.prisma.appointment.count({
       where: {

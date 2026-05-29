@@ -86,7 +86,29 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
           {isLoading ? (
             <LoadingState message="Loading lab tests…" />
           ) : (
-            <div className="overflow-x-hidden">
+            <>
+            <div className="mb-4 space-y-3 md:hidden">
+              {filteredTests.map((test) => (
+                <div key={test.id} className="ui-card-surface space-y-2 p-4">
+                  <p className="font-medium">
+                    {test.patient
+                      ? `${test.patient.firstName} ${test.patient.lastName}`
+                      : "Unknown"}
+                  </p>
+                  <p className="text-sm">{test.labTest?.name || "—"}</p>
+                  <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    <span className="capitalize">
+                      {test.labTest?.category || "—"}
+                    </span>
+                    <span>
+                      {formatDate(test.createdAt, DATE_FORMAT_OPTIONS_US_SHORT)}
+                    </span>
+                  </div>
+                  <StatusBadge status={test.status} />
+                </div>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto overscroll-x-contain md:block">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -154,6 +176,7 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
                 </TableBody>
               </Table>
             </div>
+            </>
           )}
           {!isLoading && filteredTests.length === 0 && (
             <EmptyState

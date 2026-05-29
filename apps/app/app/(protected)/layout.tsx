@@ -14,6 +14,10 @@ import { BackButton } from "@/components/navigation/back-button";
 import { useCanGoBack } from "@/hooks/use-can-go-back";
 import { CommandPalette } from "@/components/navigation/command-palette";
 import { DesktopTopBar } from "@/components/layout/desktop-top-bar";
+import {
+  openCommandPaletteFromUi,
+  TopBarActions,
+} from "@/components/layout/top-bar-actions";
 import { DoctorVerificationGuard } from "@/components/guards/doctor-verification-guard";
 import { SubscriptionGuard } from "@/components/guards/subscription-guard";
 import { PageAccessGuard } from "@/components/guards/page-access-guard";
@@ -32,7 +36,7 @@ import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Command, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { FeatureFlagsProvider } from "@/hooks/use-feature-flag";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
 import { persistReturnPathBeforeLogin } from "@/lib/auth/safe-return-path";
@@ -45,8 +49,9 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
   );
   return (
     <header
-      className="flex h-14 items-center gap-2 border-b bg-background px-3 md:hidden"
+      className="flex h-[var(--app-mobile-header-height)] items-center gap-1 border-b bg-background px-2 md:hidden"
       aria-label="Mobile navigation"
+      data-testid="mobile-header"
     >
       <SidebarMobileTrigger onClick={onMenuClick} />
       {isConsultationDetailRoute ? (
@@ -58,7 +63,19 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
           <DocitaLogo />
         </div>
       )}
-      <div className="ml-auto flex items-center gap-1">
+      <div className="ml-auto flex shrink-0 items-center gap-0.5">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={openCommandPaletteFromUi}
+          aria-label="Open command palette"
+          data-testid="mobile-command-palette"
+          className="touch-manipulation"
+        >
+          <Command className="size-4" aria-hidden />
+        </Button>
+        <TopBarActions />
         <ThemeToggleWithAppearanceSync />
       </div>
     </header>

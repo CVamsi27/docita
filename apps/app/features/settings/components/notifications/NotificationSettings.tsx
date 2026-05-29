@@ -117,32 +117,32 @@ export function NotificationSettings() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="border-b border-border/60 pb-5">
           <div className="flex items-center gap-3">
             <Bell className="h-5 w-5 text-warning" />
             <div>
               <CardTitle>Notification preferences</CardTitle>
               <CardDescription>
-                Manage how you receive notifications
+                Choose how the workspace nudges you.
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-5">
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
               noValidate
-              className="space-y-6"
+              className="flex flex-col gap-5"
             >
               {canWhatsApp ? (
                 <FormField
                   control={form.control}
                   name="whatsappNotifications"
                   render={({ field }) => (
-                    <FormItem className="flex items-center justify-between space-y-0 p-2">
+                    <FormItem className="flex items-center justify-between space-y-0 rounded-[calc(var(--radius)-4px)] border border-border/60 bg-muted/20 px-4 py-3">
                       <div className="flex items-center gap-3">
                         <Smartphone className="h-4 w-4 text-muted-foreground" />
                         <div className="space-y-1">
@@ -164,7 +164,7 @@ export function NotificationSettings() {
                   )}
                 />
               ) : (
-                <div className="rounded-lg border border-border/80 bg-muted/30 p-4 space-y-2">
+                <div className="flex flex-col gap-2 rounded-[calc(var(--radius)-4px)] border border-border/60 bg-muted/30 px-4 py-3">
                   <div className="flex items-center gap-2">
                     <Smartphone className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm font-medium text-foreground">
@@ -211,10 +211,12 @@ export function NotificationSettings() {
                 )}
               />
 
-              <Button className="w-full" type="submit" disabled={isSaving}>
-                {isSaving && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
-                Save Preferences
-              </Button>
+              <div className="flex justify-end border-t border-border/60 pt-4">
+                <Button type="submit" disabled={isSaving}>
+                  {isSaving && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
+                  Save preferences
+                </Button>
+              </div>
             </form>
           </Form>
         </CardContent>

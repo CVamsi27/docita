@@ -42,7 +42,10 @@ export function PlanSelectionStepInner({
   const searchParams = useSearchParams();
   const { currency: detectedCurrency } = useLocaleCurrency();
   const [selectedTier, setSelectedTier] = useState<string>(() => {
-    if (searchParams.get("tier") === "FRONT_DESK") return "FRONT_DESK";
+    const tierParam = searchParams.get("tier");
+    if (tierParam && tierSchema.safeParse(tierParam).success) {
+      return tierParam;
+    }
     return defaultTier;
   });
   const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "YEARLY">(

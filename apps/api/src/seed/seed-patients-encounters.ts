@@ -1,4 +1,10 @@
 import { AppointmentStatus, InvoiceStatus, PrismaClient } from '@workspace/db';
+import {
+  DEFAULT_TIMEZONE,
+  formatClinicTodayPickerIso,
+  formatUtcInstantAsClinicPickerIso,
+  fromLocalISOString,
+} from '@workspace/utils';
 
 type SeedEntityRef = { id: string };
 
@@ -520,17 +526,30 @@ const MEDICATION_TEMPLATES: Array<{
   },
 ];
 
-function withTime(baseDate: Date, hour: number, minute: number): Date {
-  const next = new Date(baseDate);
-  next.setHours(hour, minute, 0, 0);
-  return next;
+function withTime(
+  baseDate: Date,
+  hour: number,
+  minute: number,
+  timezone: string = DEFAULT_TIMEZONE,
+): Date {
+  const dateStr = formatUtcInstantAsClinicPickerIso(baseDate, timezone);
+  const instant = fromLocalISOString(
+    `${dateStr}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
+    { timezone },
+  );
+  if (!instant) {
+    throw new Error('Invalid seed appointment wall time');
+  }
+  return instant;
 }
 
-function dateOffset(days: number): Date {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + days);
-  return d;
+function dateOffset(days: number, timezone: string = DEFAULT_TIMEZONE): Date {
+  const todayPicker = formatClinicTodayPickerIso(timezone);
+  const noon = fromLocalISOString(`${todayPicker}T12:00`, { timezone });
+  if (!noon) {
+    throw new Error('Invalid seed date offset anchor');
+  }
+  return new Date(noon.getTime() + days * 24 * 60 * 60 * 1000);
 }
 
 export const RAJESH_APPOINTMENT_ID = 'seed-apt-rajesh-completed';

@@ -125,7 +125,7 @@ export const ExcelMappingStep = ({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border overflow-x-hidden">
+          <div className="overflow-x-auto overscroll-x-contain rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>

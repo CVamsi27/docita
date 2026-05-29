@@ -8,6 +8,9 @@ import {
   Feature,
   FEATURE_TIER_MAP,
   mapClinicTierDbStringToAccessTier,
+  mapDbClinicTierToTierAndMode,
+  type PlanMode,
+  planModeSchema,
   Tier,
   TIER_INFO,
   userRoleSchema,
@@ -25,6 +28,8 @@ export type FacilityType = "CLINIC" | "HOSPITAL";
 
 interface PermissionState {
   currentTier: Tier;
+  /** Top-level Full / Front Desk / Core toggle attached to the clinic. */
+  currentMode: PlanMode;
   hasIntelligence: boolean;
   userRole: string | null;
   facilityType: FacilityType;
@@ -32,6 +37,7 @@ interface PermissionState {
   featureOverrides: ClinicFeatureOverrides;
 
   setTier: (tier: Tier | string) => void;
+  setMode: (mode: PlanMode | string | null | undefined) => void;
   setIntelligence: (active: boolean) => void;
   setUserRole: (role: string) => void;
   setFacilityType: (type: FacilityType) => void;
@@ -40,6 +46,7 @@ interface PermissionState {
   syncFromClinic: (
     clinic: {
       tier: string;
+      planMode?: string | null;
       intelligenceAddon?: string | null;
       features?: Record<string, boolean> | null;
       type?: string | null;
@@ -62,6 +69,7 @@ interface PermissionState {
 
 export const usePermissionStore = create<PermissionState>((set, get) => ({
   currentTier: Tier.STARTER,
+  currentMode: "FULL",
   hasIntelligence: false,
   userRole: null,
   facilityType: "CLINIC",
@@ -73,6 +81,11 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
       typeof tier === "string" ? mapClinicTierDbStringToAccessTier(tier) : tier;
 
     set({ currentTier: parsedTier });
+  },
+
+  setMode: (mode) => {
+    const parsed = planModeSchema.safeParse(mode ?? "FULL");
+    set({ currentMode: parsed.success ? parsed.data : "FULL" });
   },
 
   setIntelligence: (active) => set({ hasIntelligence: active }),
@@ -99,10 +112,21 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   },
 
   syncFromClinic: (clinic, userRole) => {
-    const { setTier, setIntelligence, setUserRole, setClinicType, setFeatureOverrides } =
-      get();
+    const {
+      setTier,
+      setMode,
+      setIntelligence,
+      setUserRole,
+      setClinicType,
+      setFeatureOverrides,
+    } = get();
 
-    setTier(clinic.tier);
+    // Auto-map legacy FRONT_DESK_* DB tier values to a (clinical tier, FRONT_DESK mode) pair.
+    const { tier: resolvedTierName, mode: resolvedMode } =
+      mapDbClinicTierToTierAndMode(clinic.tier, clinic.planMode);
+
+    setTier(resolvedTierName);
+    setMode(resolvedMode);
     setIntelligence(clinic.intelligenceAddon === "ACTIVE");
     setFeatureOverrides(clinic.features || {});
 
@@ -116,7 +140,7 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   },
 
   canAccess: (feature, permission?) => {
-    const { currentTier, hasIntelligence, featureOverrides, userRole } = get();
+    const { currentTier, currentMode, hasIntelligence, featureOverrides, userRole } = get();
 
     if (!isFeatureGenerallyAvailable(feature)) {
       return false;
@@ -135,6 +159,7 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
       feature,
       hasIntelligence,
       featureOverrides,
+      currentMode,
     );
   },
 

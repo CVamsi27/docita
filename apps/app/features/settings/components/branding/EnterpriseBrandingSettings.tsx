@@ -99,25 +99,25 @@ export function EnterpriseBrandingSettings() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* White-label name */}
       <Card>
-        <CardHeader>
+        <CardHeader className="border-b border-border/60 pb-5">
           <div className="flex items-center gap-2">
-            <CardTitle>Brand Name</CardTitle>
+            <CardTitle>Brand name</CardTitle>
             {!hasWhiteLabel && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="ui-eyebrow border-border/60 text-muted-foreground">
                 Enterprise
               </Badge>
             )}
           </div>
           <CardDescription>
             Replace &ldquo;Docita&rdquo; with your clinic&apos;s name throughout
-            the application.
+            the app.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
+        <CardContent className="flex flex-col gap-5 pt-5">
+          <div className="flex flex-col gap-2">
             <Label htmlFor="brand-name">Display name</Label>
             <Input
               id="brand-name"
@@ -132,23 +132,24 @@ export function EnterpriseBrandingSettings() {
               use &ldquo;Docita&rdquo;.
             </p>
           </div>
-          <Button
-            onClick={handleSaveBranding}
-            disabled={!hasWhiteLabel || isSaving}
-            size="sm"
-          >
-            Save brand name
-          </Button>
+          <div className="flex justify-end border-t border-border/60 pt-4">
+            <Button
+              onClick={handleSaveBranding}
+              disabled={!hasWhiteLabel || isSaving}
+            >
+              Save brand name
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
       {/* Locked theme */}
       <Card>
-        <CardHeader>
+        <CardHeader className="border-b border-border/60 pb-5">
           <div className="flex items-center gap-2">
-            <CardTitle>Locked Theme</CardTitle>
+            <CardTitle>Locked theme</CardTitle>
             {!hasLockedTheme && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="ui-eyebrow border-border/60 text-muted-foreground">
                 Enterprise
               </Badge>
             )}
@@ -159,7 +160,7 @@ export function EnterpriseBrandingSettings() {
             overridden.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="flex flex-col gap-6 pt-5">
           <div className="space-y-3">
             <Label>Colour accent</Label>
             <ToggleGroup
@@ -172,7 +173,7 @@ export function EnterpriseBrandingSettings() {
                 <ToggleGroupItem
                   key={opt.value}
                   value={opt.value}
-                  className="h-8 px-3 text-xs data-[state=on]:bg-foreground data-[state=on]:text-background"
+                  className="h-8 px-3 text-xs data-[state=on]:bg-[color-mix(in_oklch,var(--primary)_12%,transparent)] data-[state=on]:text-primary data-[state=on]:font-semibold"
                 >
                   {opt.label}
                 </ToggleGroupItem>
@@ -192,19 +193,19 @@ export function EnterpriseBrandingSettings() {
             >
               <ToggleGroupItem
                 value="light"
-                className="h-8 px-3 text-xs data-[state=on]:bg-foreground data-[state=on]:text-background"
+                className="h-8 px-3 text-xs data-[state=on]:bg-[color-mix(in_oklch,var(--primary)_12%,transparent)] data-[state=on]:text-primary data-[state=on]:font-semibold"
               >
                 Light
               </ToggleGroupItem>
               <ToggleGroupItem
                 value="dark"
-                className="h-8 px-3 text-xs data-[state=on]:bg-foreground data-[state=on]:text-background"
+                className="h-8 px-3 text-xs data-[state=on]:bg-[color-mix(in_oklch,var(--primary)_12%,transparent)] data-[state=on]:text-primary data-[state=on]:font-semibold"
               >
                 Dark
               </ToggleGroupItem>
               <ToggleGroupItem
                 value="system"
-                className="h-8 px-3 text-xs data-[state=on]:bg-foreground data-[state=on]:text-background"
+                className="h-8 px-3 text-xs data-[state=on]:bg-[color-mix(in_oklch,var(--primary)_12%,transparent)] data-[state=on]:text-primary data-[state=on]:font-semibold"
               >
                 System
               </ToggleGroupItem>
@@ -243,23 +244,24 @@ export function EnterpriseBrandingSettings() {
             />
           </div>
 
-          <Button
-            onClick={handleSaveTheme}
-            disabled={!hasLockedTheme || isSaving}
-            size="sm"
-          >
-            Save theme
-          </Button>
+          <div className="flex justify-end border-t border-border/60 pt-4">
+            <Button
+              onClick={handleSaveTheme}
+              disabled={!hasLockedTheme || isSaving}
+            >
+              Save theme
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
       {/* WhatsApp custom number */}
       <Card>
-        <CardHeader>
+        <CardHeader className="border-b border-border/60 pb-5">
           <div className="flex items-center gap-2">
-            <CardTitle>WhatsApp Custom Number</CardTitle>
+            <CardTitle>WhatsApp custom number</CardTitle>
             {!hasWhatsAppOwn && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="ui-eyebrow border-border/60 text-muted-foreground">
                 Professional+
               </Badge>
             )}
@@ -269,12 +271,12 @@ export function EnterpriseBrandingSettings() {
             the shared Docita sender.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-5">
           {hasWhatsAppOwn ? (
             <p className="text-sm text-muted-foreground">
               Configure your WhatsApp sender number in{" "}
               <a
-                href="/settings?tab=whatsapp"
+                href="/settings/whatsapp-sender"
                 className="underline underline-offset-4 hover:text-foreground"
               >
                 WhatsApp settings

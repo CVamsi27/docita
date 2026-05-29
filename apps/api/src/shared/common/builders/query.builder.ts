@@ -1,5 +1,7 @@
 import { Prisma, AppointmentStatus, InvoiceStatus } from '@workspace/db';
 import { z } from 'zod';
+import { getClinicLocalDayUtcBounds } from '@/shared/common/utils/clinic-calendar-bounds';
+import { formatUtcInstantAsClinicPickerIso } from '@workspace/utils';
 
 const appointmentStatusSchema = z.nativeEnum(AppointmentStatus);
 const invoiceStatusSchema = z.nativeEnum(InvoiceStatus);
@@ -23,7 +25,10 @@ function normalizeEnumStatuses<T extends string>(
 }
 
 export class AppointmentQueryBuilder {
-  constructor(private readonly referenceNow: Date) {}
+  constructor(
+    private readonly referenceNow: Date,
+    private readonly clinicTimezone: string = 'UTC',
+  ) {}
 
   private where: Prisma.AppointmentWhereInput = {};
   private orderBy: Prisma.AppointmentOrderByWithRelationInput = {
@@ -58,11 +63,18 @@ export class AppointmentQueryBuilder {
   }
 
   onDate(date: Date): this {
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
-    return this.inDateRange(startOfDay, endOfDay);
+    const pickerDateStr = formatUtcInstantAsClinicPickerIso(
+      date,
+      this.clinicTimezone,
+    );
+    const bounds = getClinicLocalDayUtcBounds(
+      pickerDateStr,
+      this.clinicTimezone,
+    );
+    if (!bounds) {
+      return this;
+    }
+    return this.inDateRange(bounds.rangeStart, bounds.rangeEndExclusive);
   }
 
   today(): this {

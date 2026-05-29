@@ -27,7 +27,7 @@ export function TimeSlotPickerUI({
   if (loading) {
     return (
       <div
-        className="grid grid-cols-4 gap-2"
+        className="grid grid-cols-2 gap-2 sm:grid-cols-4"
         role="status"
         aria-live="polite"
         aria-label="Loading time slots"
@@ -55,7 +55,7 @@ export function TimeSlotPickerUI({
         <Badge variant="outline">{formatDate(date, "EEEE, MMM d")}</Badge>
       </div>
 
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {timeSlots.map((slot) => (
           <Button
             key={slot.time}

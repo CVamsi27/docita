@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { appClinicSettingsSchema } from "../contracts/app";
+import {
+  overduePaymentFormFromClinicSettings,
+  overduePaymentReminderFormSchema,
+} from "./payment-reminder-settings";
 
 export const reminderTimeUnitSchema = z.enum([
   "minute",
@@ -28,18 +32,17 @@ export const reminderSettingsFormSchema = z
   .object({
     appointment: reminderBlockFormSchema,
     followUp: reminderBlockFormSchema,
-    invoice: reminderBlockFormSchema,
     prescription: reminderBlockFormSchema,
     schedule: reminderBlockFormSchema,
+    overduePayment: overduePaymentReminderFormSchema,
   })
   .superRefine((data, ctx) => {
-    const blocks: Array<keyof typeof data> = [
+    const blocks = [
       "appointment",
       "followUp",
-      "invoice",
       "prescription",
       "schedule",
-    ];
+    ] as const;
 
     for (const key of blocks) {
       const block = data[key];
@@ -93,11 +96,7 @@ export function reminderFormValuesFromClinicSettings(
       before: String(clinic.followUpReminderBefore ?? "1"),
       unit: parseReminderTimeUnit(clinic.followUpReminderUnit, "day"),
     },
-    invoice: {
-      enabled: clinic.invoiceReminderEnabled ?? false,
-      before: String(clinic.invoiceReminderBefore ?? "3"),
-      unit: parseReminderTimeUnit(clinic.invoiceReminderUnit, "day"),
-    },
+    overduePayment: overduePaymentFormFromClinicSettings(settings),
     prescription: {
       enabled: clinic.prescriptionReminderEnabled ?? false,
       before: String(clinic.prescriptionReminderBefore ?? "1"),

@@ -5,6 +5,7 @@ import type {
   PublicBookingSlotsResponse,
 } from '@workspace/types';
 import { publicBookingSlotsQuerySchema } from '@workspace/types';
+import { fromLocalISOString } from '@workspace/utils';
 import {
   PUBLIC_BOOKING_PERSISTENCE_PORT,
   type PublicBookingPersistencePort,
@@ -46,14 +47,26 @@ export class PublicBookingSlotsService {
     });
   }
 
-  buildSlotStartDate(slotCalendarDate: string, time: string): Date {
-    const [y, mo, d] = slotCalendarDate.split('-').map((v) => parseInt(v, 10));
-    const [hh, mm] = time.split(':').map((v) => parseInt(v, 10));
-    return new Date(y, mo - 1, d, hh, mm, 0, 0);
+  buildSlotStartDate(
+    slotCalendarDate: string,
+    time: string,
+    timezone: string,
+  ): Date {
+    const instant = fromLocalISOString(`${slotCalendarDate}T${time}`, {
+      timezone,
+    });
+    if (!instant) {
+      throw new BadRequestException('Invalid slot time');
+    }
+    return instant;
   }
 
-  buildSlotIso(slotCalendarDate: string, time: string): string {
-    return this.buildSlotStartDate(slotCalendarDate, time).toISOString();
+  buildSlotIso(
+    slotCalendarDate: string,
+    time: string,
+    timezone: string,
+  ): string {
+    return this.buildSlotStartDate(slotCalendarDate, time, timezone).toISOString();
   }
 
   private async doctorBelongsToClinic(
@@ -120,8 +133,8 @@ export class PublicBookingSlotsService {
         doctorId: s.doctorId,
         doctorName: s.doctorName,
         specialization: s.specialization,
-        startTime: this.buildSlotIso(date, s.time),
-        endTime: this.buildSlotIso(date, s.endTime),
+        startTime: this.buildSlotIso(date, s.time, clinic.timezone),
+        endTime: this.buildSlotIso(date, s.endTime, clinic.timezone),
         isAvailable: s.isAvailable,
       }));
       return {
@@ -139,6 +152,7 @@ export class PublicBookingSlotsService {
     slotCalendarDate: string,
     requestedStart: Date,
     requestedEnd: Date,
+    timezone: string,
   ): Promise<void> {
     const SLOT_MATCH_TOLERANCE_MS = 120_000;
     const slots = await this.slotGeneration.getAvailableSlots(
@@ -153,10 +167,12 @@ export class PublicBookingSlotsService {
       const slotStartMs = this.buildSlotStartDate(
         slotCalendarDate,
         s.time,
+        timezone,
       ).getTime();
       const slotEndMs = this.buildSlotStartDate(
         slotCalendarDate,
         s.endTime,
+        timezone,
       ).getTime();
       return (
         Math.abs(slotStartMs - startMs) <= SLOT_MATCH_TOLERANCE_MS &&

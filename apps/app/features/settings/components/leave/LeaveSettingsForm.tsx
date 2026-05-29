@@ -52,14 +52,14 @@ export function LeaveSettingsForm({
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle className="text-base">
-            {userIsAdmin ? "All Leave Requests" : "My Leave Requests"}
+        <CardHeader className="flex flex-col gap-3 border-b border-border/60 pb-5 sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle>
+            {userIsAdmin ? "All leave requests" : "My leave requests"}
           </CardTitle>
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex flex-wrap items-center gap-2">
             {userIsAdmin && staffMembers.length > 0 && (
               <Select value={staffFilter} onValueChange={setStaffFilter}>
-                <SelectTrigger className="w-44 h-8 text-xs">
+                <SelectTrigger className="h-8 w-44 text-xs">
                   <SelectValue placeholder="Staff" />
                 </SelectTrigger>
                 <SelectContent>
@@ -73,12 +73,12 @@ export function LeaveSettingsForm({
               </Select>
             )}
             <Button size="sm" onClick={() => setApplyDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-1" />
-              Apply for Leave
+              <Plus className="mr-1 h-4 w-4" />
+              Apply for leave
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-5">
           {leavesLoading ? (
             <div
               className="space-y-3 py-2"

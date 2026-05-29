@@ -646,78 +646,49 @@ export async function setupTestUser(
   return await promise;
 }
 
-export async function loginUser(page: Page, user: UserData) {
-  const appOrigin = new URL(process.env.APP_URL ?? "http://127.0.0.1:3000")
-    .origin;
+export async function loginUser(
+  page: Page,
+  user: UserData,
+  options: { role?: string } = {},
+) {
   const sessionUser = {
     id: user.id,
     email: user.email,
-    role: "ADMIN_DOCTOR",
+    role: options.role ?? "ADMIN_DOCTOR",
     clinicId: user.clinicId,
   };
 
-  await page.context().addCookies([
-    {
-      name: "XSRF-TOKEN",
-      value: "e2e-csrf-token",
-      url: `${appOrigin}/`,
-    },
-    {
-      name: "access_token",
-      value: user.accessToken,
-      url: `${appOrigin}/`,
-    },
-  ]);
-
-  await page.goto("about:blank");
-  await page.goto(`${appOrigin}/__e2e_session_seed`, {
-    waitUntil: "domcontentloaded",
+  // Cookie-first auth: log in through the app's same-origin /api/v1 proxy so
+  // httpOnly access_token + refresh_token cookies attach to the app origin.
+  const loginRes = await page.request.post("/api/v1/auth/login", {
+    headers: { "x-docita-e2e": "true" },
+    data: { email: user.email, password: TEST_PASSWORD },
   });
-  await page.evaluate(
-    ({
-      clinicId,
-      sessionData,
-      token,
-    }: {
-      clinicId: string;
-      sessionData: typeof sessionUser;
-      token: string;
-    }) => {
-      localStorage.setItem("docita_user", JSON.stringify(sessionData));
-      localStorage.setItem("docita_token", token);
-      localStorage.setItem("selectedClinicId", clinicId);
-      localStorage.removeItem("selectedClinic");
-      document.cookie = "XSRF-TOKEN=e2e-csrf-token; path=/";
-    },
-    {
-      clinicId: user.clinicId,
-      sessionData: sessionUser,
-      token: user.accessToken,
-    },
-  );
+  if (!loginRes.ok()) {
+    throw new Error(
+      `UI login failed: ${loginRes.status()} ${await loginRes.text()}`,
+    );
+  }
 
   await page.addInitScript(
     ({
       clinicId,
       sessionData,
-      token,
     }: {
       clinicId: string;
       sessionData: typeof sessionUser;
-      token: string;
     }) => {
-      localStorage.setItem("docita_user", JSON.stringify(sessionData));
-      localStorage.setItem("docita_token", token);
-      localStorage.setItem("selectedClinicId", clinicId);
-      localStorage.removeItem("selectedClinic");
-      document.cookie = "XSRF-TOKEN=e2e-csrf-token; path=/";
+      try {
+        localStorage.setItem("docita_user", JSON.stringify(sessionData));
+        localStorage.setItem("selectedClinicId", clinicId);
+        localStorage.removeItem("selectedClinic");
+        localStorage.removeItem("docita_token");
+      } catch {
+        // ignore
+      }
     },
-    {
-      clinicId: user.clinicId,
-      sessionData: sessionUser,
-      token: user.accessToken,
-    },
+    { clinicId: user.clinicId, sessionData: sessionUser },
   );
 
-  await page.goto("about:blank");
+  await page.goto("/__e2e_session_seed", { waitUntil: "domcontentloaded" });
 }

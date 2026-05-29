@@ -7,6 +7,7 @@ import {
 import { PrismaClient } from '@workspace/db';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { createUtcPoolConfig } from '@workspace/db';
 import { tenantExtension } from '@/shared/common/extensions/tenant.extension';
 import { createEncryptionExtension } from '@/shared/common/extensions/encryption.extension';
 import { auditImmutabilityExtension } from '@/shared/common/extensions/audit-immutability.extension';
@@ -38,12 +39,14 @@ export class PrismaService
       ? DATABASE_CONSTANTS.POOL_IDLE_TIMEOUT_PRODUCTION_MS
       : DATABASE_CONSTANTS.POOL_IDLE_TIMEOUT_DEVELOPMENT_MS;
 
-    const pool = new Pool({
-      connectionString: databaseUrl,
-      max: poolMax,
-      idleTimeoutMillis: poolIdleTimeout,
-      connectionTimeoutMillis: DATABASE_CONSTANTS.CONNECTION_TIMEOUT_MS,
-    });
+    const pool = new Pool(
+      createUtcPoolConfig({
+        connectionString: databaseUrl,
+        max: poolMax,
+        idleTimeoutMillis: poolIdleTimeout,
+        connectionTimeoutMillis: DATABASE_CONSTANTS.CONNECTION_TIMEOUT_MS,
+      }),
+    );
     const adapter = new PrismaPg(pool);
 
     super({

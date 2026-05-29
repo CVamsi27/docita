@@ -15,6 +15,7 @@ import { usePermissionStore } from "@/lib/stores/permission-store";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { queryKeys } from "@workspace/data-access";
 import {
+  type PlanMode,
   subscriptionBillingActivateResponseSchema,
   subscriptionBillingCheckoutResponseSchema,
   type TierName,
@@ -29,6 +30,8 @@ export interface CheckoutSuccessData {
 export interface TierCheckoutParams {
   tier: TierName;
   billingCycle: "MONTHLY" | "YEARLY";
+  /** Optional plan mode (Full / Front Desk / Core). Defaults to FULL on the API. */
+  planMode?: PlanMode;
 }
 
 export function useSubscriptionCheckout(
@@ -36,7 +39,7 @@ export function useSubscriptionCheckout(
 ) {
   const { token, user } = useAuth();
   const clinicContext = useOptionalClinic();
-  const { setTier } = usePermissionStore();
+  const { setTier, setMode } = usePermissionStore();
   const queryClient = useQueryClient();
   const { openCheckout, closeCheckout, isCheckoutOpen } = useRazorpay();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -55,7 +58,11 @@ export function useSubscriptionCheckout(
   }, [clinicContext, queryClient]);
 
   const checkoutTier = useCallback(
-    async ({ tier, billingCycle }: TierCheckoutParams) => {
+    async ({
+      tier,
+      billingCycle,
+      planMode = "FULL",
+    }: TierCheckoutParams) => {
       if (!token) {
         throw new Error("Please sign in to manage your subscription");
       }
@@ -71,7 +78,7 @@ export function useSubscriptionCheckout(
           await fetchJsonWithSession("/subscription/billing/checkout", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ tier, billingCycle }),
+            body: JSON.stringify({ tier, billingCycle, planMode }),
           }),
         );
         const {
@@ -86,6 +93,7 @@ export function useSubscriptionCheckout(
 
         if (completedWithoutPayment) {
           setTier(tier);
+          setMode(planMode);
           await invalidateSubscriptionQueries();
           onSuccess({
             planName: `${tier} Plan`,
@@ -120,6 +128,7 @@ export function useSubscriptionCheckout(
                     razorpaySignature: response.razorpay_signature,
                     tier,
                     billingCycle,
+                    planMode,
                   }),
                 },
               ),
@@ -176,6 +185,7 @@ export function useSubscriptionCheckout(
       token,
       openCheckout,
       setTier,
+      setMode,
       invalidateSubscriptionQueries,
       onSuccess,
       user,

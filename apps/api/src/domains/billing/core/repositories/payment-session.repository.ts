@@ -9,8 +9,10 @@ export interface PaymentSessionDetail extends PaymentSession {
   } | null;
   invoice?: {
     id: string;
+    dueDate: Date | null;
   } | null;
   clinic?: {
+    name: string;
     phone: string | null;
   } | null;
 }

@@ -5,6 +5,11 @@ import {
   Role,
   ClinicTier,
 } from '@workspace/db';
+import {
+  DEFAULT_TIMEZONE,
+  fromLocalISOString,
+  formatClinicTodayPickerIso,
+} from '@workspace/utils';
 import * as bcrypt from 'bcrypt';
 
 let prisma: PrismaClient;
@@ -121,8 +126,12 @@ export const factories = {
     clinicId: string,
     overrides = {},
   ) => {
-    const startTime = new Date();
-    startTime.setHours(startTime.getHours() + 1);
+    const todayPicker = formatClinicTodayPickerIso(DEFAULT_TIMEZONE);
+    const startTime =
+      fromLocalISOString(`${todayPicker}T10:00`, {
+        timezone: DEFAULT_TIMEZONE,
+      }) ?? new Date();
+    const endTime = new Date(startTime.getTime() + 30 * 60000);
 
     return prisma.appointment.create({
       data: {

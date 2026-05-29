@@ -1,4 +1,4 @@
-import { PrismaClient } from '@workspace/db';
+import { PlanMode, PrismaClient } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 
 type SeedEntityRef = { id: string };
@@ -41,6 +41,7 @@ export async function seedClinicUsers(
       email: 'contact@docita.work',
       active: true,
       tier: 'ENTERPRISE',
+      planMode: PlanMode.FULL,
     },
     create: {
       id: 'default-clinic-id',
@@ -50,6 +51,7 @@ export async function seedClinicUsers(
       email: 'contact@docita.work',
       active: true,
       tier: 'ENTERPRISE',
+      planMode: PlanMode.FULL,
     },
   });
 

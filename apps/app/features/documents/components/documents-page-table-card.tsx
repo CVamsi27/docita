@@ -104,7 +104,7 @@ export function DocumentsPageTableCard({
           A list of all documents uploaded for patients
         </CardDescription>
       </CardHeader>
-      <CardContent className="overflow-x-hidden">
+      <CardContent className="overflow-x-auto overscroll-x-contain">
         {loading ? (
           <Table>
             <TableHeader>
@@ -155,6 +155,55 @@ export function DocumentsPageTableCard({
             description="Upload documents from a patient record or import flow to see them listed here."
           />
         ) : (
+          <>
+          <div className="mb-4 space-y-3 md:hidden">
+            {documents.map((document) => (
+              <div key={document.id} className="ui-card-surface space-y-3 p-4">
+                <div className="flex items-start gap-2">
+                  <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">
+                      {document.name || document.filename || document.title}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {document.patient?.name ||
+                        document.patient?.firstName ||
+                        "—"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant={getDocumentTypeBadgeVariant(document.type)}>
+                    {document.type}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    {formatDate(document.createdAt, "MMM d, yyyy")}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="touch-manipulation"
+                    onClick={() => onView(document)}
+                  >
+                    <Eye className="mr-1.5 h-4 w-4" />
+                    View
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="touch-manipulation"
+                    onClick={() => onDownload(document)}
+                  >
+                    <Download className="mr-1.5 h-4 w-4" />
+                    Download
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="hidden md:block">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-muted/50">
@@ -263,6 +312,8 @@ export function DocumentsPageTableCard({
               ))}
             </TableBody>
           </Table>
+          </div>
+          </>
         )}
       </CardContent>
     </Card>

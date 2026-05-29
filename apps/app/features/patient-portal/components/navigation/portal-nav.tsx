@@ -8,6 +8,7 @@ import {
   Calendar,
   FileText,
   LogOut,
+  MoreHorizontal,
   Pill,
   Receipt,
   Shield,
@@ -15,6 +16,13 @@ import {
   User,
 } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@workspace/ui/components/overlay/sheet";
 import { useAuth } from "@/lib/auth/auth-context";
 import { usePatientConsentSettings } from "@workspace/data-access";
 import { formatDate } from "@/lib/formatters";
@@ -31,6 +39,38 @@ const navigation = [
   { name: "Profile", href: "/portal/profile", icon: User },
 ];
 
+const primaryMobileNav = navigation.slice(0, 4);
+const secondaryMobileNav = navigation.slice(4);
+
+function NavLink({
+  item,
+  isActive,
+  compact = false,
+}: {
+  item: (typeof navigation)[number];
+  isActive: boolean;
+  compact?: boolean;
+}) {
+  const Icon = item.icon;
+  return (
+    <Link
+      href={item.href}
+      className={cn(
+        "inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius)] font-medium transition-colors",
+        compact
+          ? "px-2.5 py-1.5 text-xs"
+          : "gap-2 px-3 py-2 text-sm",
+        isActive
+          ? "bg-foreground text-background shadow-sm"
+          : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+      )}
+    >
+      <Icon className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
+      {item.name}
+    </Link>
+  );
+}
+
 export function PortalNav() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
@@ -45,38 +85,31 @@ export function PortalNav() {
     ? formatDate(consentSettings.whatsappConsentAt, "dd MMM yyyy")
     : null;
 
+  const secondaryActive = secondaryMobileNav.some((item) =>
+    isItemActive(item.href),
+  );
+
   return (
     <nav className="border-b border-border/70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
       <div className="ui-page-shell px-4">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center space-x-8">
-            <Link href="/portal" className="text-xl font-bold text-primary">
-              Patient Portal
-            </Link>
-            <div className="hidden md:flex md:space-x-4">
-              {navigation.map((item) => {
-                const Icon = item.icon;
-                const isActive = isItemActive(item.href);
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={cn(
-                      "inline-flex items-center gap-2 rounded-[var(--radius)] px-3 py-2 text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-foreground text-background shadow-sm"
-                        : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </div>
+        <div className="flex h-14 items-center justify-between gap-2 md:h-16">
+          <Link
+            href="/portal"
+            className="shrink-0 text-lg font-bold text-primary md:text-xl"
+          >
+            Patient Portal
+          </Link>
+          <div className="hidden md:flex md:flex-1 md:items-center md:justify-center md:space-x-4">
+            {navigation.map((item) => (
+              <NavLink
+                key={item.name}
+                item={item}
+                isActive={isItemActive(item.href)}
+              />
+            ))}
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
+          <div className="flex shrink-0 items-center gap-2 md:gap-4">
+            <div className="hidden text-right md:block">
               <p className="text-sm text-muted-foreground">{user?.name}</p>
               <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
                 <span>Consent updated: {consentUpdatedOn || "Not yet"}</span>
@@ -88,34 +121,60 @@ export function PortalNav() {
                 </Link>
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => logout()}>
+            <p className="max-w-[8rem] truncate text-sm text-muted-foreground md:hidden">
+              {user?.name}
+            </p>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="touch-manipulation"
+              onClick={() => logout()}
+              aria-label="Log out"
+            >
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        <div className="md:hidden pb-3">
-          <div className="flex flex-wrap items-center gap-2 overflow-x-hidden">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              const isActive = isItemActive(item.href);
-              return (
-                <Link
-                  key={`mobile-${item.name}`}
-                  href={item.href}
-                  className={cn(
-                    "inline-flex shrink-0 items-center gap-1 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium transition-colors",
-                    isActive
-                      ? "bg-foreground text-background shadow-sm"
-                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                  )}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {item.name}
-                </Link>
-              );
-            })}
+        <div className="flex items-center gap-2 pb-3 md:hidden">
+          <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto overscroll-x-contain [scrollbar-width:thin]">
+            {primaryMobileNav.map((item) => (
+              <NavLink
+                key={`mobile-primary-${item.name}`}
+                item={item}
+                isActive={isItemActive(item.href)}
+                compact
+              />
+            ))}
           </div>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                type="button"
+                variant={secondaryActive ? "default" : "outline"}
+                size="sm"
+                className="shrink-0 touch-manipulation"
+                aria-label="More portal sections"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">More</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="max-h-[70dvh]">
+              <SheetHeader>
+                <SheetTitle>More sections</SheetTitle>
+              </SheetHeader>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                {secondaryMobileNav.map((item) => (
+                  <NavLink
+                    key={`mobile-secondary-${item.name}`}
+                    item={item}
+                    isActive={isItemActive(item.href)}
+                  />
+                ))}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </nav>

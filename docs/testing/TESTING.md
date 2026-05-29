@@ -71,7 +71,11 @@ Shared helpers: `e2e/utils/patient-helpers.ts` (includes `patientDetailPath()` /
 | `invoices.spec.ts` | Invoices |
 | `lab-tests.spec.ts` | Lab tests |
 | `medical-coding.spec.ts` | Medical coding |
-| `mobile-forms.spec.ts` | Mobile form usability |
+| `mobile-route-matrix.ts` | Canonical route list for mobile specs (protected, portal, auth/setup groups) |
+| `mobile-forms.spec.ts` | Mobile form usability (login at 375/768/412px) |
+| `mobile-protected-routes.spec.ts` | Authenticated protected routes at 390px (overflow + mobile header chrome) |
+| `mobile-portal-routes.spec.ts` | Patient portal at 390px (login shell + authenticated overflow) |
+| `mobile-auth-setup.spec.ts` | Auth/setup shells at 390px (`/login`, `/forgot-password`, …) |
 | `nav-routes-smoke.spec.ts` | Parameterized smoke for main nav routes |
 | `patient-history-crud.spec.ts` | Patient profile medical history |
 | `patient-history-edge-cases.spec.ts` | Patient history edge cases |
@@ -105,8 +109,22 @@ Shared helpers: `e2e/utils/patient-helpers.ts` (includes `patientDetailPath()` /
 - `e2e/verify-doctor.spec.ts`
 - `e2e/auth.spec.ts`
 - `e2e/critical-flows.spec.ts`
+- `e2e/front-desk-sidebar.spec.ts`
+- `e2e/mobile-forms.spec.ts` (390px / multi-device login)
+- `e2e/mobile-protected-routes.spec.ts` (390px protected overflow + chrome)
+- `e2e/mobile-portal-routes.spec.ts` (390px portal overflow; needs `DATABASE_URL` for OTP fixture script)
+- `e2e/mobile-auth-setup.spec.ts` (390px auth/setup overflow)
 
 Runs **not** included there by default: `nav-routes-smoke.spec.ts`, `accessibility.spec.ts`, and other feature suites (`appointments.spec.ts`, `consultation.spec.ts`, …). Run those locally with `pnpm --filter @docita/app test:e2e`, or add a separate workflow job when you need broader regression coverage.
+
+### Mobile regression checklist (`apps/app`)
+
+Before merging UI that touches layout, tables, tabs, or the protected shell:
+
+1. Run `pnpm mobile:smoke` (runs all four mobile specs via `scripts/perf/mobile-route-smoke.mjs`) with API + app running and `DATABASE_URL` set for portal OTP insertion.
+2. Spot-check at **390×844** and **768×1024**: `/today`, `/patients`, `/patients/[id]`, `/invoices/[id]`, `/consultation/[id]`, `/settings?tab=subscription`, portal `/portal/billing`.
+3. Confirm no horizontal page overflow and that the single mobile header exposes search, quick-add, command palette, and Ask AI.
+4. For accessibility changes, run `pnpm audit:app` (desktop + mobile-width authenticated subset in `accessibility.spec.ts`).
 
 **Features**:
 

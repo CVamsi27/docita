@@ -17,7 +17,11 @@ import {
   TIER_OVERAGE_RATES_BY_CURRENCY,
   type TierName,
 } from "@workspace/types";
-import { parseSupportedCurrency } from "@workspace/utils";
+import {
+  formatPriceWithCurrency,
+  formatRateWithCurrency,
+  parseSupportedCurrency,
+} from "@workspace/utils";
 import { getTierPricing } from "@/lib/subscription/tier-access";
 import { type TierPricing } from "@/features/subscription";
 
@@ -25,11 +29,15 @@ import { type TierPricing } from "@/features/subscription";
 // Constants
 // ---------------------------------------------------------------------------
 
+// Onboarding plan selection uses the same 5-tier clinical ladder as the rest
+// of the app. The Full / Front Desk / Core toggle is exposed elsewhere — here
+// the customer picks the tier first; mode is set on the subsequent step or
+// via the URL `mode` query parameter.
 export const DISPLAY_TIERS: TierName[] = [
   "STARTER",
-  "FRONT_DESK",
   "ESSENTIAL",
   "PROFESSIONAL",
+  "HOSPITAL",
   "ENTERPRISE",
 ];
 
@@ -37,9 +45,8 @@ export const PLAN_AUDIENCE: Record<string, string> = {
   STARTER: "Best for solo doctors starting with full clinic workflows",
   ESSENTIAL:
     "Best for small facilities needing clear limits and simple billing",
-  FRONT_DESK:
-    "Best for reception-led facilities that need scheduling and billing without full clinical workflows in-app",
   PROFESSIONAL: "Best for multi-doctor facilities and growing practices",
+  HOSPITAL: "Best for multi-branch hospitals and specialty groups",
   ENTERPRISE: "Best for hospitals and chains with custom requirements",
 };
 
@@ -75,12 +82,12 @@ export function buildTierCardConfig(
   )[tierName];
   const overageFromRates =
     overageRates?.appointmentRate > 0
-      ? `then ${currencySymbol}${overageRates.appointmentRate}/extra consultation`
+      ? `then ${formatRateWithCurrency(overageRates.appointmentRate, currencyKey)} per extra consultation`
       : undefined;
 
   let overageHint: string | undefined;
   if (tierName === "ESSENTIAL") {
-    overageHint = `${currencySymbol}0 for the first ${SUBSCRIPTION_TRIAL_DAYS} days, then regular billing`;
+    overageHint = `${formatPriceWithCurrency(0, currencyKey)} for the first ${SUBSCRIPTION_TRIAL_DAYS} days, then regular billing`;
   } else if (tierName === "STARTER") {
     overageHint = [
       "Payment at signup (Razorpay). No unpaid trial on Starter.",
@@ -88,9 +95,9 @@ export function buildTierCardConfig(
     ]
       .filter(Boolean)
       .join(" ");
-  } else if (tierName === "FRONT_DESK") {
+  } else if (tierName === "HOSPITAL") {
     overageHint = [
-      "Payment required at signup. Clinical workflows stay disabled in-app.",
+      "Multi-branch billing. Annual contracts available.",
       overageFromRates,
     ]
       .filter(Boolean)

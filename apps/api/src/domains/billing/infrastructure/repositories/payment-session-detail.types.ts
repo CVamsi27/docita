@@ -12,10 +12,13 @@ export const PAYMENT_SESSION_DETAIL_INCLUDE = {
   invoice: {
     select: {
       id: true,
+      total: true,
+      dueDate: true,
     },
   },
   clinic: {
     select: {
+      name: true,
       phone: true,
     },
   },

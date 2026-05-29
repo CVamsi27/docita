@@ -45,7 +45,7 @@ export function usePatientDetailTabs() {
     ? legacyRedirect.tab
     : isPatientDetailTabValue(tabFromUrl)
       ? tabFromUrl
-      : "overview";
+      : "visits";
 
   const activeRecordsSubTab: PatientRecordsSubTab = legacyRedirect?.subtab
     ? legacyRedirect.subtab
@@ -66,7 +66,7 @@ export function usePatientDetailTabs() {
   const handleSelectTab = useCallback(
     (next: string) => {
       const params = new URLSearchParams(searchParams.toString());
-      if (next === "overview") {
+      if (next === "visits") {
         params.delete("tab");
       } else {
         params.set("tab", next);

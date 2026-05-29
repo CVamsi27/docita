@@ -14,7 +14,7 @@ import {
   PaymentWebSocketGateway,
   ClinicUpdateData as WsClinicUpdateData,
 } from '@/websockets/payment.websocket.gateway';
-import { ClinicTier, SubscriptionStatus } from '@workspace/db';
+import { ClinicTier, PlanMode, SubscriptionStatus } from '@workspace/db';
 import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
 import { isRecord } from '@workspace/utils';
 
@@ -32,6 +32,13 @@ function toSubscriptionStatus(value?: string): SubscriptionStatus | undefined {
   }
 
   return Object.values(SubscriptionStatus).find((status) => status === value);
+}
+
+function toPlanMode(value?: string): PlanMode | undefined {
+  if (!value) {
+    return undefined;
+  }
+  return Object.values(PlanMode).find((mode) => mode === value);
 }
 
 @Injectable()
@@ -77,6 +84,7 @@ export class ClinicOperationsAdapter implements IClinicOperations {
     tier: string,
     subscriptionStatus: string,
     features: Record<string, boolean>,
+    planMode?: string,
   ): Promise<void> {
     const existingClinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
@@ -100,6 +108,8 @@ export class ClinicOperationsAdapter implements IClinicOperations {
       );
     }
 
+    const parsedPlanMode = toPlanMode(planMode);
+
     await this.prisma.clinic.update({
       where: { id: clinicId },
       data: {
@@ -109,6 +119,7 @@ export class ClinicOperationsAdapter implements IClinicOperations {
           ...existingFeatures,
           ...features,
         },
+        ...(parsedPlanMode ? { planMode: parsedPlanMode } : {}),
       },
     });
     this.clinicAuthCache?.invalidate(clinicId);

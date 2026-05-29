@@ -7,12 +7,24 @@ export function isFrontDeskTier(
   if (tier === null || tier === undefined) {
     return false;
   }
-  if (tier === Tier.FRONT_DESK || tier === "FRONT_DESK") {
+  if (
+    tier === Tier.FRONT_DESK ||
+    tier === Tier.FRONT_DESK_CLINIC ||
+    tier === Tier.FRONT_DESK_HOSPITAL ||
+    tier === "FRONT_DESK" ||
+    tier === "FRONT_DESK_CLINIC" ||
+    tier === "FRONT_DESK_HOSPITAL"
+  ) {
     return true;
   }
   if (typeof tier === "string") {
     const parsed = tierSchema.safeParse(tier);
-    return parsed.success && parsed.data === "FRONT_DESK";
+    return (
+      parsed.success &&
+      (parsed.data === "FRONT_DESK" ||
+        parsed.data === "FRONT_DESK_CLINIC" ||
+        parsed.data === "FRONT_DESK_HOSPITAL")
+    );
   }
   return false;
 }

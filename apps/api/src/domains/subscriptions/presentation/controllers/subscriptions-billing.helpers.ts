@@ -1,4 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
+import { isSubscriptionBillingRowPaid } from '@workspace/utils';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 
 export function requireBillingClinicId(req: RequestWithUser): string {
@@ -32,10 +33,9 @@ export function mapSubscriptionBillingPayments(payments: BillingPaymentRow[]) {
     const status = (
       p.status ?? String(p.getStatus?.() ?? 'pending')
     ).toLowerCase();
+    const isPaid = isSubscriptionBillingRowPaid(status, p.paidAt);
     const receiptUrl =
-      status === 'paid' && typeof p.invoiceUrl === 'string'
-        ? p.invoiceUrl
-        : undefined;
+      isPaid && typeof p.invoiceUrl === 'string' ? p.invoiceUrl : undefined;
     return {
       id: p.id,
       amountCents: p.amountCents,
@@ -46,7 +46,7 @@ export function mapSubscriptionBillingPayments(payments: BillingPaymentRow[]) {
       currency: p.currency,
       status,
       description: p.description ?? undefined,
-      payUrl: status === 'paid' ? undefined : (p.invoiceUrl ?? undefined),
+      payUrl: isPaid ? undefined : (p.invoiceUrl ?? undefined),
       receiptUrl,
       invoiceUrl: p.invoiceUrl ?? undefined,
       invoiceNumber: p.invoiceNumber ?? undefined,

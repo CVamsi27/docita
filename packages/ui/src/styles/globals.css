@@ -59,6 +59,9 @@
   /* Softer rounding like Origin */
   --radius: 0.875rem;
   --radius-pill: 9999px;
+  /* App shell: mobile header (h-14) and consultation inner header for sticky tabs */
+  --app-mobile-header-height: 3.5rem;
+  --consultation-page-header-height: 3.5625rem;
   --sidebar: oklch(0.988 0.008 95);
   --sidebar-foreground: oklch(0.13 0.028 261.692);
   --sidebar-primary: oklch(0.49 0.14 250);

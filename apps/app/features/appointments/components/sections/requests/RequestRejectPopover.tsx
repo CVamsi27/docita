@@ -59,7 +59,7 @@ export function RequestRejectPopover({
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-80 space-y-2.5 p-3"
+        className="w-[min(100vw-2rem,20rem)] space-y-2.5 p-3"
         onOpenAutoFocus={(event) => event.preventDefault()}
       >
         <div className="space-y-1">

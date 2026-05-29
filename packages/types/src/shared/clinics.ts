@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { planModeSchema } from "../billing/tier";
 import { clinicTypeSchema } from "./users";
 import { jsonObjectSchema } from "./json-schema";
 
@@ -39,6 +40,7 @@ export const clinicSchema = z.object({
   logo: z.string().nullable().optional(),
   active: z.boolean(),
   tier: z.string().or(ClinicTier),
+  planMode: planModeSchema.optional(),
   type: z.string().or(clinicTypeSchema),
   settings: jsonObjectSchema.nullable().optional(),
   timezone: z.string(),

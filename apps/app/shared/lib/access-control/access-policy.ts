@@ -8,7 +8,8 @@ import {
   getAccessFeature,
   getAccessTier,
   type UserRole,
-  shouldDenyAccessForFrontDeskTier,
+  type PlanMode,
+  shouldDenyAccessForFrontDeskMode,
 } from "@workspace/types";
 import { getTierName, hasFeatureAccess } from "@workspace/utils";
 import { hasPermission } from "@/lib/auth/permissions";
@@ -18,6 +19,7 @@ interface AccessContext {
   role?: UserRole | null;
   canAccessFeature?: (feature: Feature) => boolean;
   currentTier?: Tier;
+  currentMode?: PlanMode;
   hasIntelligence?: boolean;
 }
 
@@ -46,6 +48,8 @@ function hasRequiredTier(
       getTierName(context.currentTier),
       sentinelFeature,
       context.hasIntelligence === true,
+      {},
+      context.currentMode ?? "FULL",
     );
   }
 
@@ -63,16 +67,17 @@ export function canAccessTarget(
 
   const role = context.role ?? undefined;
 
-  if (
-    shouldDenyAccessForFrontDeskTier(
-      target,
-      role ?? null,
-      context.currentTier !== undefined
-        ? getTierName(context.currentTier)
-        : null,
-    )
-  ) {
-    return false;
+  if (context.currentTier !== undefined) {
+    if (
+      shouldDenyAccessForFrontDeskMode(
+        target,
+        role ?? null,
+        getTierName(context.currentTier),
+        context.currentMode ?? "FULL",
+      )
+    ) {
+      return false;
+    }
   }
 
   const requirement = getAccessRequirement(target, mode);

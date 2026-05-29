@@ -30,7 +30,7 @@ export const OCRVitals = ({
       />
       {isOpen && (
         <div className="space-y-3 bg-muted/30 rounded-lg p-3">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="text-xs">BP</Label>
@@ -102,7 +102,7 @@ export const OCRVitals = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="space-y-2">
               <Label className="text-xs">Respiratory rate</Label>
               <Input

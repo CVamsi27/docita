@@ -8,8 +8,12 @@ import {
   getAccessRoles,
   hasAppPermission,
   isAccessComingSoon,
+  isFrontDeskPlanMode,
   mapClinicTierDbStringToAccessTier,
   mapDbClinicTierStringToTierName,
+  resolveClinicPlanMode,
+  shouldDenyAccessForFrontDeskMode,
+  shouldDenyAccessForFrontDeskTier,
   Tier,
 } from "../src";
 
@@ -63,13 +67,13 @@ describe("@workspace/types access contracts", () => {
     expect(mapClinicTierDbStringToAccessTier("STARTER")).toBe(Tier.STARTER);
     expect(mapClinicTierDbStringToAccessTier("ESSENTIAL")).toBe(Tier.ESSENTIAL);
     expect(mapClinicTierDbStringToAccessTier("FRONT_DESK")).toBe(
-      Tier.FRONT_DESK,
+      Tier.ESSENTIAL,
     );
     expect(mapClinicTierDbStringToAccessTier("FRONT_DESK_CLINIC")).toBe(
-      Tier.FRONT_DESK_CLINIC,
+      Tier.PROFESSIONAL,
     );
     expect(mapClinicTierDbStringToAccessTier("FRONT_DESK_HOSPITAL")).toBe(
-      Tier.FRONT_DESK_HOSPITAL,
+      Tier.HOSPITAL,
     );
     expect(mapClinicTierDbStringToAccessTier("CORE")).toBe(Tier.ESSENTIAL);
     expect(mapClinicTierDbStringToAccessTier("PLUS")).toBe(Tier.ESSENTIAL);
@@ -81,15 +85,62 @@ describe("@workspace/types access contracts", () => {
   });
 
   it("maps DB tier strings to billing TierName including FRONT_DESK", () => {
-    expect(mapDbClinicTierStringToTierName("FRONT_DESK")).toBe("FRONT_DESK");
+    expect(mapDbClinicTierStringToTierName("FRONT_DESK")).toBe("ESSENTIAL");
     expect(mapDbClinicTierStringToTierName("FRONT_DESK_CLINIC")).toBe(
-      "FRONT_DESK_CLINIC",
+      "PROFESSIONAL",
     );
     expect(mapDbClinicTierStringToTierName("FRONT_DESK_HOSPITAL")).toBe(
-      "FRONT_DESK_HOSPITAL",
+      "HOSPITAL",
     );
     expect(mapDbClinicTierStringToTierName("ESSENTIAL")).toBe("ESSENTIAL");
     expect(mapDbClinicTierStringToTierName("CORE")).toBe("ESSENTIAL");
   });
 
+  it("resolves plan mode from tier and planMode column", () => {
+    expect(resolveClinicPlanMode("PROFESSIONAL", "FULL")).toBe("FULL");
+    expect(resolveClinicPlanMode("PROFESSIONAL", "FRONT_DESK")).toBe(
+      "FRONT_DESK",
+    );
+    expect(resolveClinicPlanMode("FRONT_DESK", "FULL")).toBe("FRONT_DESK");
+    expect(isFrontDeskPlanMode("ESSENTIAL", "FRONT_DESK")).toBe(true);
+    expect(isFrontDeskPlanMode("ESSENTIAL", "FULL")).toBe(false);
+  });
+
+  it("denies clinical targets for Front Desk mode on non-legacy tier", () => {
+    expect(
+      shouldDenyAccessForFrontDeskMode(
+        APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS,
+        "DOCTOR",
+        "PROFESSIONAL",
+        "FRONT_DESK",
+      ),
+    ).toBe(true);
+    expect(
+      shouldDenyAccessForFrontDeskMode(
+        APP_ACCESS_TARGETS.PAGE_DASHBOARD,
+        "DOCTOR",
+        "PROFESSIONAL",
+        "FRONT_DESK",
+      ),
+    ).toBe(false);
+    expect(
+      shouldDenyAccessForFrontDeskMode(
+        APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS,
+        "INTERNAL",
+        "PROFESSIONAL",
+        "FRONT_DESK",
+      ),
+    ).toBe(false);
+  });
+
+  it("shouldDenyAccessForFrontDeskTier delegates when planMode is provided", () => {
+    expect(
+      shouldDenyAccessForFrontDeskTier(
+        APP_ACCESS_TARGETS.PAGE_CONSULTATION,
+        "ADMIN",
+        "PROFESSIONAL",
+        "FRONT_DESK",
+      ),
+    ).toBe(true);
+  });
 });

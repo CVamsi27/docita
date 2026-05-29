@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   reminderSettingsFormSchema,
   reminderFormValuesFromClinicSettings,
+  PAYMENT_REMINDER_DAY_PRESETS,
   type ReminderSettingsFormValues,
 } from "@workspace/types";
 import {
@@ -51,19 +52,16 @@ interface ReminderRowProps {
   enabledName:
     | "appointment.enabled"
     | "followUp.enabled"
-    | "invoice.enabled"
     | "prescription.enabled"
     | "schedule.enabled";
   beforeName:
     | "appointment.before"
     | "followUp.before"
-    | "invoice.before"
     | "prescription.before"
     | "schedule.before";
   unitName:
     | "appointment.unit"
     | "followUp.unit"
-    | "invoice.unit"
     | "prescription.unit"
     | "schedule.unit";
   form: ReturnType<typeof useForm<ReminderSettingsFormValues>>;
@@ -79,7 +77,7 @@ function ReminderRow({
 }: ReminderRowProps) {
   const enabled = form.watch(enabledName);
   return (
-    <div className="rounded-lg border p-4 space-y-3">
+    <div className="flex flex-col gap-3 rounded-[calc(var(--radius)-4px)] border border-border/60 bg-muted/20 p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium">{label}</p>
@@ -157,6 +155,98 @@ function ReminderRow({
   );
 }
 
+function OverduePaymentReminderSection({
+  form,
+}: {
+  form: ReturnType<typeof useForm<ReminderSettingsFormValues>>;
+}) {
+  const enabled = form.watch("overduePayment.enabled");
+  const selectedDays = form.watch("overduePayment.daysAfterDue") ?? [];
+
+  const toggleDay = (day: number) => {
+    const next = selectedDays.includes(day)
+      ? selectedDays.filter((value) => value !== day)
+      : [...selectedDays, day].sort((a, b) => a - b);
+    form.setValue("overduePayment.daysAfterDue", next, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
+  return (
+    <div className="flex flex-col gap-3 rounded-[calc(var(--radius)-4px)] border border-border/60 bg-muted/20 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium">Overdue invoice WhatsApp reminders</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Send the payment_reminder template after the due date (1, 3, and 7 days by default).
+          </p>
+        </div>
+        <FormField
+          control={form.control}
+          name="overduePayment.enabled"
+          render={({ field }) => (
+            <FormControl>
+              <Switch checked={field.value} onCheckedChange={field.onChange} />
+            </FormControl>
+          )}
+        />
+      </div>
+      {enabled ? (
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <Label className="text-xs text-muted-foreground">
+              Send WhatsApp automatically
+            </Label>
+            <FormField
+              control={form.control}
+              name="overduePayment.autoSendWhatsApp"
+              render={({ field }) => (
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              )}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label className="text-xs text-muted-foreground">
+              Days after due date
+            </Label>
+            <div className="flex flex-wrap gap-2">
+              {PAYMENT_REMINDER_DAY_PRESETS.map((day) => {
+                const active = selectedDays.includes(day);
+                return (
+                  <Button
+                    key={day}
+                    type="button"
+                    variant={active ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleDay(day)}
+                  >
+                    {day} day{day === 1 ? "" : "s"}
+                  </Button>
+                );
+              })}
+            </div>
+            <FormField
+              control={form.control}
+              name="overduePayment.daysAfterDue"
+              render={() => (
+                <FormItem>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export const ReminderSettingsUI: FC = () => {
   const { data: clinic, isLoading } = useClinicSettings();
   const { mutate: updateSettings, isPending: isSaving } = useUpdateClinicSettings();
@@ -166,9 +256,13 @@ export const ReminderSettingsUI: FC = () => {
     defaultValues: {
       appointment: { enabled: true, before: "1", unit: "day" },
       followUp: { enabled: false, before: "1", unit: "day" },
-      invoice: { enabled: false, before: "3", unit: "day" },
       prescription: { enabled: false, before: "1", unit: "day" },
       schedule: { enabled: false, before: "1", unit: "hour" },
+      overduePayment: {
+        enabled: true,
+        autoSendWhatsApp: true,
+        daysAfterDue: [...PAYMENT_REMINDER_DAY_PRESETS],
+      },
     },
   });
 
@@ -185,9 +279,11 @@ export const ReminderSettingsUI: FC = () => {
         followUpReminderEnabled: values.followUp.enabled,
         followUpReminderBefore: values.followUp.before,
         followUpReminderUnit: values.followUp.unit,
-        invoiceReminderEnabled: values.invoice.enabled,
-        invoiceReminderBefore: values.invoice.before,
-        invoiceReminderUnit: values.invoice.unit,
+        paymentReminderEnabled: values.overduePayment.enabled,
+        paymentReminderDays: values.overduePayment.enabled
+          ? values.overduePayment.daysAfterDue
+          : [],
+        paymentReminderAutoSendWhatsApp: values.overduePayment.autoSendWhatsApp,
         prescriptionReminderEnabled: values.prescription.enabled,
         prescriptionReminderBefore: values.prescription.before,
         prescriptionReminderUnit: values.prescription.unit,
@@ -238,21 +334,21 @@ export const ReminderSettingsUI: FC = () => {
       <form
         onSubmit={form.handleSubmit(handleSave)}
         noValidate
-        className="space-y-6"
+        className="flex flex-col gap-6"
       >
         <Card>
-          <CardHeader>
+          <CardHeader className="border-b border-border/60 pb-5">
             <div className="flex items-center gap-3">
               <Bell className="h-5 w-5 text-primary" />
               <div>
                 <CardTitle>Reminder settings</CardTitle>
                 <CardDescription>
-                  Configure when reminders are sent to patients
+                  When and how reminders go out to patients.
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="flex flex-col gap-3 pt-5">
             <ReminderRow
               label="Appointment reminder"
               description="Remind patient before their scheduled appointment"
@@ -271,14 +367,7 @@ export const ReminderSettingsUI: FC = () => {
               form={form}
             />
 
-            <ReminderRow
-              label="Invoice / payment reminder"
-              description="Remind patient about pending bills or upcoming payment due dates"
-              enabledName="invoice.enabled"
-              beforeName="invoice.before"
-              unitName="invoice.unit"
-              form={form}
-            />
+            <OverduePaymentReminderSection form={form} />
 
             <ReminderRow
               label="Prescription reminder"
@@ -300,10 +389,12 @@ export const ReminderSettingsUI: FC = () => {
           </CardContent>
         </Card>
 
-        <Button className="w-full" type="submit" disabled={isSaving}>
-          {isSaving ? <DocitaLoadingIndicator variant="inline" decorative className="mr-2" /> : null}
-          Save Reminder Settings
-        </Button>
+        <div className="flex justify-end border-t border-border/60 pt-4">
+          <Button type="submit" disabled={isSaving}>
+            {isSaving ? <DocitaLoadingIndicator variant="inline" decorative className="mr-2" /> : null}
+            Save reminder settings
+          </Button>
+        </div>
       </form>
     </Form>
   );

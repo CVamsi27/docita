@@ -147,8 +147,8 @@ const SERVICES_ITEMS: NavItem[] = [
     href: "/vaccines",
     icon: Syringe,
     label: "Vaccines",
-    feature: Feature.CALENDAR_SLOTS,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_PATIENTS,
+    feature: Feature.VACCINE_TRACKING,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_VACCINES,
   },
   {
     href: "/referrals",

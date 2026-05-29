@@ -115,7 +115,9 @@ describe("PricingDialog", () => {
 
     expect(screen.getByText("Choose Your Plan")).toBeInTheDocument();
     expect(screen.getByText("Clinical")).toBeInTheDocument();
-    expect(screen.getByText("Front Desk Operations")).toBeInTheDocument();
+    // Front Desk is now a PlanMode toggle, not a separate tier ladder section,
+    // so it no longer renders as a dialog group.
+    expect(screen.queryByText("Front Desk Operations")).not.toBeInTheDocument();
     expect(screen.getByText("Current")).toBeInTheDocument();
     expect(screen.getByText("₹999/mo")).toBeInTheDocument();
 

@@ -23,7 +23,11 @@ import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { consultationApi } from "@/features/consultation/api/consultation.api";
 import { useQueryClient } from "@tanstack/react-query";
-import { queryKeys, useSendPrescriptionWhatsApp } from "@workspace/data-access";
+import {
+  queryKeys,
+  useSendInvoiceWhatsApp,
+  useSendPrescriptionWhatsApp,
+} from "@workspace/data-access";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
@@ -46,6 +50,7 @@ function ConsultationPageContent() {
   const queryClient = useQueryClient();
   const { confirmAction } = useConfirm();
   const sendPrescription = useSendPrescriptionWhatsApp();
+  const sendInvoice = useSendInvoiceWhatsApp();
   const canAccess = usePermissionStore((s) => s.canAccess);
   const [isMarkingDone, setIsMarkingDone] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -89,7 +94,7 @@ function ConsultationPageContent() {
     const ok = await confirmAction("mark consultation done", {
       title: "Mark consultation done?",
       description:
-        "This will finalize the visit, lock the chart, and attempt to send the prescription to the patient.",
+        "This will finalize the visit, lock the chart, and send the prescription and invoice to the patient on WhatsApp if available.",
       confirmText: "Mark done",
       variant: "warning",
     });
@@ -131,6 +136,7 @@ function ConsultationPageContent() {
       await queryClient.invalidateQueries({ queryKey: queryKeys.appointments.all() });
 
       const prescriptionId = refreshed.prescription?.id;
+      const invoiceId = refreshed.invoice?.id;
       const canSendWhatsApp = canAccess(Feature.WHATSAPP_MESSAGING);
       if (prescriptionId && canSendWhatsApp) {
         try {
@@ -139,6 +145,17 @@ function ConsultationPageContent() {
           showUserFacingErrorToast(
             err,
             "Consultation marked done, but we could not send the prescription message. You can resend it from the patient chart.",
+            "save",
+          );
+        }
+      }
+      if (invoiceId && canSendWhatsApp) {
+        try {
+          await sendInvoice.mutateAsync({ id: invoiceId });
+        } catch (err) {
+          showUserFacingErrorToast(
+            err,
+            "Consultation marked done, but we could not send the invoice message. You can resend it from billing.",
             "save",
           );
         }
@@ -160,6 +177,7 @@ function ConsultationPageContent() {
     queryClient,
     router,
     retry,
+    sendInvoice,
     sendPrescription,
   ]);
 

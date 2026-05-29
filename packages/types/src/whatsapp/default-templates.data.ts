@@ -1,57 +1,16 @@
 /** Canonical WhatsApp default template definitions (config-as-data). */
 export const WHATSAPP_DEFAULT_TEMPLATES_RAW = {
-    appointment_scheduled: {
-      name: 'appointment_scheduled',
-      category: 'APPOINTMENT',
-      content: `Hello {{patientName}}
-
-Your appointment at *{{clinicName}}* is confirmed!
-
-Date: {{date}}
-Time: {{time}}
-Doctor: Dr. {{doctorName}}
-
-We look forward to seeing you!`,
-      variables: [
-        { name: 'patientName', required: true },
-        { name: 'clinicName', required: true },
-        { name: 'date', required: true },
-        { name: 'time', required: true },
-        { name: 'doctorName', required: true },
-      ],
-      buttonType: 'QUICK_REPLY',
-      buttons: [
-        { id: 'confirm', text: 'Confirm' },
-        { id: 'reschedule', text: 'Reschedule' },
-        { id: 'cancel', text: 'Cancel' },
-      ],
-      textFallback: `Hello {{patientName}}
-
-Your appointment at *{{clinicName}}* is confirmed!
-
-Date: {{date}}
-Time: {{time}}
-Doctor: Dr. {{doctorName}}
-
-Reply:
-1. Confirm
-2. Reschedule
-3. Cancel
-
-We look forward to seeing you!`,
-    },
-
     appointment_confirmation: {
       name: 'appointment_confirmation',
       category: 'APPOINTMENT',
-      content: `Hello {{patientName}}
-
-Your appointment at *{{clinicName}}* is confirmed!
+      content: `Hello {{patientName}}, your appointment at *{{clinicName}}* is confirmed.
 
 Date: {{date}}
 Time: {{time}}
 Doctor: Dr. {{doctorName}}
-Location: {{mapsLink}}`,
+Location: {{mapsLink}}
+
+We look forward to seeing you. Please arrive 10 minutes early.`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
@@ -66,14 +25,14 @@ Location: {{mapsLink}}`,
         { id: 'reschedule', text: 'Reschedule' },
         { id: 'cancel', text: 'Cancel' },
       ],
-      textFallback: `Hello {{patientName}}
-
-Your appointment at *{{clinicName}}* is confirmed!
+      textFallback: `Hello {{patientName}}, your appointment at *{{clinicName}}* is confirmed.
 
 Date: {{date}}
 Time: {{time}}
 Doctor: Dr. {{doctorName}}
 Location: {{mapsLink}}
+
+We look forward to seeing you. Please arrive 10 minutes early.
 
 Reply:
 1. Confirm
@@ -84,13 +43,13 @@ Reply:
     appointment_reminder_24hr: {
       name: 'appointment_reminder_24hr',
       category: 'APPOINTMENT',
-      content: `*Appointment Reminder* - {{clinicName}}
-
-Hi {{patientName}}, this is a reminder for your appointment tomorrow.
+      content: `Hi {{patientName}}, a reminder of your appointment tomorrow at *{{clinicName}}*.
 
 Date: {{date}}
 Time: {{time}}
-Doctor: Dr. {{doctorName}}`,
+Doctor: Dr. {{doctorName}}
+
+Please reply Confirm or Reschedule so we can plan the day.`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
@@ -103,25 +62,25 @@ Doctor: Dr. {{doctorName}}`,
         { id: 'confirm', text: 'Confirm' },
         { id: 'reschedule', text: 'Reschedule' },
       ],
-      textFallback: `*Appointment Reminder* - {{clinicName}}
-
-Hi {{patientName}}, this is a reminder for your appointment tomorrow.
+      textFallback: `Hi {{patientName}}, a reminder of your appointment tomorrow at *{{clinicName}}*.
 
 Date: {{date}}
 Time: {{time}}
-Doctor: Dr. {{doctorName}}`,
+Doctor: Dr. {{doctorName}}
+
+Please reply Confirm or Reschedule so we can plan the day.`,
     },
 
     appointment_reminder_1hr: {
       name: 'appointment_reminder_1hr',
       category: 'APPOINTMENT',
-      content: `*Appointment Reminder* - {{clinicName}}
-
-Hi {{patientName}}, your appointment is in 1 hour.
+      content: `Hi {{patientName}}, your appointment at *{{clinicName}}* is in about 1 hour.
 
 Date: {{date}}
 Time: {{time}}
-Doctor: Dr. {{doctorName}}`,
+Doctor: Dr. {{doctorName}}
+
+Please head over now. Reply if you are running late.`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
@@ -134,13 +93,13 @@ Doctor: Dr. {{doctorName}}`,
         { id: 'confirm', text: 'I am on my way' },
         { id: 'cancel', text: 'Cancel' },
       ],
-      textFallback: `*Appointment Reminder* - {{clinicName}}
-
-Hi {{patientName}}, your appointment is in 1 hour.
+      textFallback: `Hi {{patientName}}, your appointment at *{{clinicName}}* is in about 1 hour.
 
 Date: {{date}}
 Time: {{time}}
-Doctor: Dr. {{doctorName}}`,
+Doctor: Dr. {{doctorName}}
+
+Please head over now. Reply if you are running late.`,
     },
 
     appointment_reminder_30min: {
@@ -172,41 +131,42 @@ On time / Delayed / Cancelled`,
     prescription_shared: {
       name: 'prescription_shared',
       category: 'PRESCRIPTION',
-      content: `*Your Prescription* from {{clinicName}}
+      content: `Hi {{patientName}}, Dr. {{doctorName}} from *{{clinicName}}* has shared your prescription.
 
-Hi {{patientName}}, your prescription has been shared!
-
-Dr. {{doctorName}} prescribed:
+Medications:
 {{medications}}
 
-View full prescription: {{prescriptionLink}}`,
+Notes from the doctor:
+{{instructions}}
+
+Wishing you a quick recovery. Reach out for any clarifications.`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
         { name: 'doctorName', required: true },
         { name: 'medications', required: true },
-        { name: 'prescriptionLink', required: false, defaultValue: 'Link' },
+        { name: 'instructions', required: false, defaultValue: '' },
       ],
-      buttonType: 'CALL_TO_ACTION',
-      textFallback: `*Your Prescription* from {{clinicName}}
+      buttonType: 'NONE',
+      textFallback: `Hi {{patientName}}, Dr. {{doctorName}} from *{{clinicName}}* has shared your prescription.
 
-Hi {{patientName}}, your prescription has been shared!
-
-Dr. {{doctorName}} prescribed:
+Medications:
 {{medications}}
 
-View full prescription: {{prescriptionLink}}`,
+Notes from the doctor:
+{{instructions}}
+
+Wishing you a quick recovery. Reach out for any clarifications.`,
     },
 
     prescription_created: {
       name: 'prescription_created',
       category: 'PRESCRIPTION',
-      content: `*Your Prescription* from {{clinicName}}
+      content: `Hi {{patientName}}, Dr. {{doctorName}} from *{{clinicName}}* has added your prescription.
 
-Hi {{patientName}}, your prescription has been shared!
+View full prescription here: {{link}}
 
-Dr. {{doctorName}} has added your treatment.
-View full prescription: {{link}}`,
+Wishing you a quick recovery.`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
@@ -214,23 +174,54 @@ View full prescription: {{link}}`,
         { name: 'link', required: false, defaultValue: 'Link' },
       ],
       buttonType: 'CALL_TO_ACTION',
-      textFallback: `*Your Prescription* from {{clinicName}}
+      textFallback: `Hi {{patientName}}, Dr. {{doctorName}} from *{{clinicName}}* has added your prescription.
 
-Hi {{patientName}}, your prescription has been shared!
+View full prescription here: {{link}}
 
-Dr. {{doctorName}} has added your treatment.
-View full prescription: {{link}}`,
+Wishing you a quick recovery.`,
+    },
+
+    invoice_ready: {
+      name: 'invoice_ready',
+      category: 'INVOICE',
+      content: `Hi {{patientName}}, your invoice from *{{clinicName}}* is ready.
+
+Invoice #: {{invoiceNumber}}
+Date: {{date}}
+Amount: {{amount}}
+
+Pay online here: {{paymentLink}}
+
+Thank you for visiting us.`,
+      variables: [
+        { name: 'patientName', required: true },
+        { name: 'clinicName', required: true },
+        { name: 'amount', required: true },
+        { name: 'invoiceNumber', required: true },
+        { name: 'date', required: true },
+        { name: 'paymentLink', required: false, defaultValue: '' },
+      ],
+      buttonType: 'CALL_TO_ACTION',
+      textFallback: `Hi {{patientName}}, your invoice from *{{clinicName}}* is ready.
+
+Invoice #: {{invoiceNumber}}
+Date: {{date}}
+Amount: {{amount}}
+
+Pay online here: {{paymentLink}}
+
+Thank you for visiting us.`,
     },
 
     invoice_created: {
       name: 'invoice_created',
       category: 'INVOICE',
-      content: `*Invoice Ready* - {{clinicName}}
-
-Hi {{patientName}}, your invoice is ready.
+      content: `Hi {{patientName}}, your invoice from *{{clinicName}}* is ready.
 
 Amount: {{amount}}
-View invoice: {{link}}`,
+View invoice here: {{link}}
+
+Thank you for visiting us.`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
@@ -238,25 +229,25 @@ View invoice: {{link}}`,
         { name: 'link', required: false, defaultValue: 'Link' },
       ],
       buttonType: 'CALL_TO_ACTION',
-      textFallback: `*Invoice Ready* - {{clinicName}}
-
-Hi {{patientName}}, your invoice is ready.
+      textFallback: `Hi {{patientName}}, your invoice from *{{clinicName}}* is ready.
 
 Amount: {{amount}}
-View invoice: {{link}}`,
+View invoice here: {{link}}
+
+Thank you for visiting us.`,
     },
 
     payment_reminder: {
       name: 'payment_reminder',
       category: 'PAYMENT',
-      content: `*Payment Due* - {{clinicName}}
-
-Hi {{patientName}}, your invoice is ready!
+      content: `Hi {{patientName}}, a quick reminder from *{{clinicName}}* that your invoice is still due.
 
 Amount: {{amount}}
 Due by: {{dueDate}}
 
-View invoice: {{invoiceLink}}`,
+View invoice and pay online here: {{invoiceLink}}
+
+Reach out if you have any questions.`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
@@ -265,27 +256,27 @@ View invoice: {{invoiceLink}}`,
         { name: 'invoiceLink', required: false, defaultValue: 'Link' },
       ],
       buttonType: 'CALL_TO_ACTION',
-      textFallback: `*Payment Due* - {{clinicName}}
-
-Hi {{patientName}}, your invoice is ready!
+      textFallback: `Hi {{patientName}}, a quick reminder from *{{clinicName}}* that your invoice is still due.
 
 Amount: {{amount}}
 Due by: {{dueDate}}
 
-View invoice: {{invoiceLink}}`,
+View invoice and pay online here: {{invoiceLink}}
+
+Reach out if you have any questions.`,
     },
 
     payment_confirmation: {
       name: 'payment_confirmation',
       category: 'PAYMENT',
-      content: `*Payment Received* - {{clinicName}}
-
-Hi {{patientName}}, we received your payment.
+      content: `Hi {{patientName}}, we have received your payment at *{{clinicName}}*.
 
 Amount: {{amount}}
 Invoice: {{invoiceNumber}}
 Date: {{date}}
-Payment Ref: {{paymentId}}`,
+Payment Ref: {{paymentId}}
+
+Thank you for your payment. Wishing you good health.`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
@@ -295,25 +286,25 @@ Payment Ref: {{paymentId}}`,
         { name: 'paymentId', required: true },
       ],
       buttonType: 'NONE',
-      textFallback: `*Payment Received* - {{clinicName}}
-
-Hi {{patientName}}, we received your payment.
+      textFallback: `Hi {{patientName}}, we have received your payment at *{{clinicName}}*.
 
 Amount: {{amount}}
 Invoice: {{invoiceNumber}}
 Date: {{date}}
-Payment Ref: {{paymentId}}`,
+Payment Ref: {{paymentId}}
+
+Thank you for your payment. Wishing you good health.`,
     },
 
     appointment_cancelled: {
       name: 'appointment_cancelled',
       category: 'APPOINTMENT',
-      content: `*Appointment Update* - {{clinicName}}
-
-Hi {{patientName}}, your appointment has been cancelled.
+      content: `Hi {{patientName}}, your appointment at *{{clinicName}}* has been cancelled.
 
 Date: {{date}}
-Time: {{time}}`,
+Time: {{time}}
+
+Reach out to rebook at a time that works for you.`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
@@ -321,23 +312,23 @@ Time: {{time}}`,
         { name: 'time', required: true },
       ],
       buttonType: 'NONE',
-      textFallback: `*Appointment Update* - {{clinicName}}
-
-Hi {{patientName}}, your appointment has been cancelled.
+      textFallback: `Hi {{patientName}}, your appointment at *{{clinicName}}* has been cancelled.
 
 Date: {{date}}
-Time: {{time}}`,
+Time: {{time}}
+
+Reach out to rebook at a time that works for you.`,
     },
 
     appointment_rescheduled: {
       name: 'appointment_rescheduled',
       category: 'APPOINTMENT',
-      content: `*Appointment Update* - {{clinicName}}
-
-Hi {{patientName}}, your appointment has been rescheduled.
+      content: `Hi {{patientName}}, your appointment at *{{clinicName}}* has been rescheduled.
 
 New Date: {{date}}
-New Time: {{time}}`,
+New Time: {{time}}
+
+Thank you for your patience. See you then.`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
@@ -345,35 +336,119 @@ New Time: {{time}}`,
         { name: 'time', required: true },
       ],
       buttonType: 'NONE',
-      textFallback: `*Appointment Update* - {{clinicName}}
-
-Hi {{patientName}}, your appointment has been rescheduled.
+      textFallback: `Hi {{patientName}}, your appointment at *{{clinicName}}* has been rescheduled.
 
 New Date: {{date}}
-New Time: {{time}}`,
+New Time: {{time}}
+
+Thank you for your patience. See you then.`,
     },
 
-    lab_report_ready: {
-      name: 'lab_report_ready',
+    appointment_delay: {
+      name: 'appointment_delay',
       category: 'APPOINTMENT',
-      content: `*Lab Report Ready* - {{clinicName}}
+      content: `*Doctor Running Late* - {{clinicName}}
 
-Hi {{patientName}}, your lab report is ready!
+Hi {{patientName}}, the doctor is running approximately {{delayMinutes}} minutes late for your appointment.
 
-Test: {{testName}}
-View report: {{reportLink}}`,
+Date: {{date}}
+Time: {{time}}
+
+We apologise for the inconvenience and appreciate your patience.`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
-        { name: 'testName', required: true },
-        { name: 'reportLink', required: false, defaultValue: 'Link' },
+        { name: 'delayMinutes', required: true },
+        { name: 'date', required: true },
+        { name: 'time', required: true },
+      ],
+      buttonType: 'NONE',
+      textFallback: `*Doctor Running Late* - {{clinicName}}
+
+Hi {{patientName}}, the doctor is running approximately {{delayMinutes}} minutes late for your appointment.
+
+Date: {{date}}
+Time: {{time}}
+
+We apologise for the inconvenience and appreciate your patience.`,
+    },
+
+    payment_link: {
+      name: 'payment_link',
+      category: 'PAYMENT',
+      content: `Hi {{patientName}}, here is the secure payment link for your invoice at *{{clinicName}}*.
+
+Amount: {{amount}}
+Pay online here: {{paymentLink}}
+
+Reach out if you have any questions.`,
+      variables: [
+        { name: 'patientName', required: true },
+        { name: 'clinicName', required: true },
+        { name: 'amount', required: true },
+        { name: 'paymentLink', required: true },
       ],
       buttonType: 'CALL_TO_ACTION',
-      textFallback: `*Lab Report Ready* - {{clinicName}}
+      textFallback: `Hi {{patientName}}, here is the secure payment link for your invoice at *{{clinicName}}*.
 
-Hi {{patientName}}, your lab report is ready!
+Amount: {{amount}}
+Pay online here: {{paymentLink}}
 
-Test: {{testName}}
-View report: {{reportLink}}`,
+Reach out if you have any questions.`,
     },
+
+    patient_response_confirm: {
+      name: 'patient_response_confirm',
+      category: 'APPOINTMENT',
+      content: `Thanks {{patientName}}, your appointment at *{{clinicName}}* on {{date}} at {{time}} with Dr. {{doctorName}} is confirmed.
+
+See you then. Please arrive 10 minutes early.`,
+      variables: [
+        { name: 'patientName', required: true },
+        { name: 'clinicName', required: true },
+        { name: 'date', required: true },
+        { name: 'time', required: true },
+        { name: 'doctorName', required: true },
+      ],
+      buttonType: 'NONE',
+      textFallback: `Thanks {{patientName}}, your appointment at *{{clinicName}}* on {{date}} at {{time}} with Dr. {{doctorName}} is confirmed.
+
+See you then. Please arrive 10 minutes early.`,
+    },
+
+    patient_response_delay: {
+      name: 'patient_response_delay',
+      category: 'APPOINTMENT',
+      content: `Thanks for the heads up {{patientName}}. We have noted a delay of {{delayMinutes}} minutes for your appointment at *{{clinicName}}* on {{date}} at {{time}} with Dr. {{doctorName}}.
+
+The clinic will plan around the new time. Drive safe.`,
+      variables: [
+        { name: 'patientName', required: true },
+        { name: 'clinicName', required: true },
+        { name: 'date', required: true },
+        { name: 'time', required: true },
+        { name: 'doctorName', required: true },
+        { name: 'delayMinutes', required: true },
+      ],
+      buttonType: 'NONE',
+      textFallback: `Thanks for the heads up {{patientName}}. We have noted a delay of {{delayMinutes}} minutes for your appointment at *{{clinicName}}* on {{date}} at {{time}} with Dr. {{doctorName}}.
+
+The clinic will plan around the new time. Drive safe.`,
+    },
+
+    patient_login_otp: {
+      name: 'patient_login_otp',
+      category: 'AUTHENTICATION',
+      content: `{{code}} is your Docita verification code.
+
+For your security, do not share this code with anyone. It is valid for 10 minutes.`,
+      variables: [
+        { name: 'code', required: true },
+      ],
+      buttonType: 'NONE',
+      textFallback: `{{code}} is your Docita verification code.
+
+For your security, do not share this code with anyone. It is valid for 10 minutes.`,
+    },
+
   } as const;

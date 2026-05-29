@@ -9,6 +9,7 @@ export const whatsappDefaultTemplateCategorySchema = z.enum([
   'FOLLOW_UP',
   'MARKETING',
   'STAFF_NOTIFICATION',
+  'AUTHENTICATION',
 ]);
 
 export const whatsappDefaultTemplateVariableSchema = z.object({

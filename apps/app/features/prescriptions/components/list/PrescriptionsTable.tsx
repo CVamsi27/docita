@@ -88,7 +88,58 @@ export function PrescriptionsTable({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-hidden rounded-md border border-border">
+        {!loading && prescriptions.length > 0 ? (
+          <div className="mb-4 space-y-3 md:hidden">
+            {prescriptions.map((prescription) => (
+              <div
+                key={prescription.id}
+                className="ui-card-surface space-y-3 p-4"
+              >
+                <div>
+                  <p className="font-medium">
+                    {prescription.patient?.firstName}{" "}
+                    {prescription.patient?.lastName}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {prescription.patient?.phoneNumber}
+                  </p>
+                  {prescription.diagnosis ? (
+                    <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                      {prescription.diagnosis}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="secondary">
+                    <Pill className="mr-1 h-3 w-3" />
+                    {prescription.medications?.length || 0} meds
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    {formatDate(prescription.createdAt, "MMM d, yyyy")}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" asChild className="touch-manipulation">
+                    <Link href={`/prescriptions/${prescription.id}`}>
+                      <Eye className="mr-1.5 h-4 w-4" />
+                      View
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="touch-manipulation"
+                    onClick={() => onDownloadPDF(prescription.id || "")}
+                  >
+                    <Download className="mr-1.5 h-4 w-4" />
+                    PDF
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+        <div className="hidden overflow-x-auto overscroll-x-contain rounded-md border border-border md:block">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-muted/50">
@@ -157,6 +208,7 @@ export function PrescriptionsTable({
                     {formatDate(prescription.createdAt, "MMM d, yyyy")}
                   </TableCell>
                   <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1 whitespace-nowrap">
                     <SymbolTooltip label="View prescription">
                       <Button variant="ghost" size="sm" asChild className="gap-1.5">
                         <Link
@@ -196,6 +248,7 @@ export function PrescriptionsTable({
                         <span className="hidden sm:inline">Print</span>
                       </Button>
                     </SymbolTooltip>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

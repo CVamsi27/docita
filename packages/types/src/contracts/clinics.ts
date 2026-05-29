@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { planModeSchema } from "../billing/tier";
 import { jsonObjectSchema } from "../shared/json-schema";
 import { sidebarNavOrderSchema } from "../shared/sidebar-nav";
 
@@ -195,6 +196,7 @@ export const updateClinicMemberRequestSchema = z.object({
 
 export const clinicResponseSchema = createClinicRequestSchema.extend({
   id: z.string(),
+  planMode: planModeSchema.optional(),
   active: z.boolean().optional(),
   createdAt: z.union([z.string(), z.date()]).optional(),
   referralCode: z.string().optional(),

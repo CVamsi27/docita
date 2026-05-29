@@ -24,11 +24,15 @@ export function LeaveManagementSettings() {
   const { data: balance = [] } = useLeaveBalance();
 
   return (
-    <div className="space-y-6">
-      <p className="text-sm text-muted-foreground max-w-3xl">
-        Submit leave here when your clinic tracks quotas and approvals. To block
-        the scheduling calendar immediately, use Time away under Availability.
-      </p>
+    <div className="flex flex-col gap-6">
+      <div className="rounded-[calc(var(--radius)-4px)] border border-border/60 bg-muted/20 px-4 py-3">
+        <span className="ui-eyebrow">Leave vs. time away</span>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Submit leave here when your clinic tracks quotas and approvals. To
+          block the scheduling calendar immediately, use Time away under
+          Availability.
+        </p>
+      </div>
 
       <LeaveBalanceCard balance={balance} />
 

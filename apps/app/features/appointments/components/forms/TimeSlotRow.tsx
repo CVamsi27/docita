@@ -1,5 +1,6 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { memo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { formatClockTime } from "@/lib/formatters";
@@ -39,12 +40,16 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
     onScheduleFollowUp,
     currentUserId,
   }) => {
-    const { canStartConsultation } = usePermissions();
+    const { canStartConsultation, isAdmin } = usePermissions();
+    const router = useRouter();
     const aptStart = new Date(apt.startTime);
     const aptEnd = new Date(apt.endTime);
     const appointmentTypeLabel = apt.type ? humanizeUiLabel(apt.type) : "General";
+    // Doctors can only open their own consultations; admin-doctors (who have
+    // both startConsultation + manageClinic) can open any.
     const canAccessConsultation =
-      canStartConsultation && !!currentUserId && apt.doctorId === currentUserId;
+      canStartConsultation &&
+      (isAdmin || (!!currentUserId && apt.doctorId === currentUserId));
 
     const isTerminalVisit = apt.status === "completed" || apt.status === "no-show";
     const isConsultationActive = apt.status === "in-progress";
@@ -73,6 +78,29 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
       onScheduleFollowUp?.(apt);
     }, [apt, onScheduleFollowUp]);
 
+    const handleOpenPatient = useCallback(() => {
+      if (apt.patientId) {
+        router.push(`/patients/${apt.patientId}`);
+      }
+    }, [apt.patientId, router]);
+
+    const handleRowKeyDown = useCallback(
+      (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          handleOpenPatient();
+        }
+      },
+      [handleOpenPatient],
+    );
+
+    const stopRowActivation = useCallback(
+      (event: React.SyntheticEvent) => {
+        event.stopPropagation();
+      },
+      [],
+    );
+
     const queryClient = useQueryClient();
     const resendReminder = useResendAppointmentReminder();
     const lastReminder = apt.reminders?.[0] ?? null;
@@ -92,8 +120,23 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
       }
     }, [apt.id, resendReminder, queryClient]);
 
+    const rowInteractive = Boolean(apt.patientId);
+
     return (
-      <div className="group relative @container/apt overflow-hidden rounded-lg border border-border/60 bg-card/95 pl-3 pr-3 py-2.5 transition-colors duration-150 hover:border-border hover:bg-card">
+      <div
+        className={`group relative @container/apt overflow-hidden rounded-lg border border-border/60 bg-card/95 pl-3 pr-3 py-2.5 transition-colors duration-150 hover:border-border hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 ${
+          rowInteractive ? "cursor-pointer" : ""
+        }`}
+        role={rowInteractive ? "button" : undefined}
+        tabIndex={rowInteractive ? 0 : undefined}
+        aria-label={
+          rowInteractive && patientName
+            ? `Open ${patientName}'s patient history`
+            : undefined
+        }
+        onClick={rowInteractive ? handleOpenPatient : undefined}
+        onKeyDown={rowInteractive ? handleRowKeyDown : undefined}
+      >
         <div
           className={`absolute inset-y-0 left-0 w-1 rounded-l-lg ${
             apt.status === "checked-in"
@@ -111,51 +154,42 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
 
         <div className="flex flex-col gap-2 pl-2 @md/apt:flex-row @md/apt:items-center @md/apt:justify-between @md/apt:gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-3">
-            {/* Time range */}
-            <div className="shrink-0 text-right">
-              <p className="text-[length:var(--fs-sm)] font-semibold tabular-nums text-foreground">
+            {/* Time range — primary anchor */}
+            <div className="shrink-0 text-right tabular-nums">
+              <p className="text-[length:var(--fs-sm)] font-semibold text-foreground leading-tight">
                 {formatClockTime(aptStart)}
               </p>
-              <p className="text-[length:var(--fs-xs)] tabular-nums text-muted-foreground">
+              <p className="text-[length:var(--fs-2xs)] text-muted-foreground leading-tight">
                 {formatClockTime(aptEnd)}
               </p>
             </div>
 
-            {/* Patient + meta */}
+            {/* Patient + meta — single muted line beneath name */}
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+              <div className="flex min-w-0 items-center gap-2">
                 <span className="truncate text-[length:var(--fs-sm)] font-semibold text-foreground">
                   {patientName ?? apt.patientId}
                 </span>
-                {phone ? (
-                  <span className="text-[length:var(--fs-xs)] tabular-nums text-muted-foreground">
-                    {phone}
-                  </span>
-                ) : null}
                 <Badge
                   variant="secondary"
-                  className={`text-[length:var(--fs-2xs)] capitalize ${statusBadgeClass}`}
+                  className={`shrink-0 text-[length:var(--fs-2xs)] capitalize ${statusBadgeClass}`}
                 >
                   {humanizeUiLabel(apt.status)}
                 </Badge>
               </div>
-              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0 text-[length:var(--fs-xs)] text-muted-foreground">
-                {apt.reason?.trim() ? (
-                  <>
-                    <span className="line-clamp-1 min-w-0">{apt.reason}</span>
-                    <span aria-hidden="true">·</span>
-                  </>
-                ) : null}
-                <span>{appointmentTypeLabel}</span>
-                {apt.doctor?.name ? (
-                  <>
-                    <span aria-hidden="true">·</span>
-                    <span className="truncate">Dr. {apt.doctor.name}</span>
-                  </>
-                ) : null}
+              <div className="mt-0.5 flex min-w-0 items-center gap-x-1.5 text-[length:var(--fs-xs)] text-muted-foreground">
+                <span className="truncate">
+                  {[
+                    apt.reason?.trim() || appointmentTypeLabel,
+                    apt.doctor?.name ? `Dr. ${apt.doctor.name}` : null,
+                    phone,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </span>
               </div>
               {lastReminder ? (
-                <div className="mt-1">
+                <div className="mt-1" onClick={stopRowActivation}>
                   <WhatsAppDeliveryBadge
                     status={lastReminder.status}
                     sentAt={lastReminder.sentAt ?? null}
@@ -167,7 +201,11 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5 @md/apt:flex-nowrap @md/apt:justify-end">
+          <div
+            className="flex flex-wrap items-center gap-1.5 @md/apt:flex-nowrap @md/apt:justify-end"
+            onClick={stopRowActivation}
+            onKeyDown={stopRowActivation}
+          >
             {apt.status === "confirmed" && (
               <SymbolTooltip label="Check in patient">
                 <Button

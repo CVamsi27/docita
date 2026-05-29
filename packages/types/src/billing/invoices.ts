@@ -117,3 +117,85 @@ export const createInvoiceSchema = invoiceSchema.omit({
   appointment: true,
 });
 export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
+
+/** Patient summary embedded on GET /invoices list rows (not full {@link patientSchema}). */
+export const invoiceListPatientSchema = z.object({
+  id: z.string().optional(),
+  firstName: z.string().min(1).max(100),
+  lastName: z.string().min(1).max(100),
+  phoneNumber: z.string().nullable().optional(),
+});
+
+function asFiniteNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function normalizeInvoiceListItems(items: unknown): unknown {
+  if (!Array.isArray(items)) {
+    return items;
+  }
+  return items.map((entry) => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      return entry;
+    }
+    const item = entry as Record<string, unknown>;
+    const price = asFiniteNumber(item.price) ?? asFiniteNumber(item.unitPrice);
+    return price === undefined ? item : { ...item, price };
+  });
+}
+
+/** Coerce API list payloads before strict {@link invoiceSchema} parsing on the client. */
+export function normalizeInvoiceListRowInput(input: unknown): unknown {
+  if (input === null || typeof input !== "object" || Array.isArray(input)) {
+    return input;
+  }
+  const row = input as Record<string, unknown>;
+  const patient =
+    row.patient &&
+    typeof row.patient === "object" &&
+    !Array.isArray(row.patient)
+      ? (row.patient as Record<string, unknown>)
+      : undefined;
+  const patientId =
+    typeof row.patientId === "string"
+      ? row.patientId
+      : typeof patient?.id === "string"
+        ? patient.id
+        : row.patientId;
+  const total =
+    asFiniteNumber(row.total) ??
+    asFiniteNumber(row.grandTotal) ??
+    asFiniteNumber(row.totalAmount) ??
+    row.total;
+  const totalAmount = asFiniteNumber(row.totalAmount) ?? total;
+  return {
+    ...row,
+    patientId,
+    total,
+    totalAmount,
+    items: normalizeInvoiceListItems(row.items),
+  };
+}
+
+const invoiceListRowBaseSchema = invoiceSchema.omit({ patient: true }).extend({
+  patient: invoiceListPatientSchema.nullish().optional(),
+});
+
+/** Parsed invoice row for clinic-wide and patient-scoped list endpoints. */
+export const invoiceListRowSchema = z.preprocess(
+  normalizeInvoiceListRowInput,
+  invoiceListRowBaseSchema,
+);
+
+export type InvoiceListRow = z.infer<typeof invoiceListRowSchema>;
+
+export const paginatedInvoiceListResponseSchema = z.object({
+  items: z.array(invoiceListRowSchema),
+  nextCursor: z.string().optional(),
+  hasMore: z.boolean(),
+  count: z.number().optional(),
+});
+
+export type PaginatedInvoiceListResponse = z.infer<
+  typeof paginatedInvoiceListResponseSchema
+>;

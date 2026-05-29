@@ -7,4 +7,5 @@ export * from "./date-ranges.js";
 export * from "./date-timezone.js";
 export * from "./iso-date-utils.js";
 export * from "./clinic-scheduling-wall.js";
+export * from "./clinic-calendar-bounds.js";
 export * from "./schedule-time-utils.js";

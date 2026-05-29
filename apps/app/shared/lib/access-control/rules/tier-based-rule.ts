@@ -1,6 +1,12 @@
 
 
-import { Feature, FEATURE_TIER_MAP, Tier } from "@workspace/types";
+import {
+  Feature,
+  FEATURE_TIER_MAP,
+  Tier,
+  type PlanMode,
+  planModeSchema,
+} from "@workspace/types";
 import { hasFeatureAccess, getTierName } from "@workspace/utils";
 import type { IAccessContext, IAccessRule } from "@/lib/access-control/interfaces";
 import { AddOnType, isActiveAddOn } from "@/lib/access-control/interfaces";
@@ -28,8 +34,17 @@ export class TierBasedAccessRule implements IAccessRule {
         addOn.type === AddOnType.INTELLIGENCE && isActiveAddOn(addOn),
     );
     const tierName = getTierName(context.subscription.tier);
+    const modeRaw = context.metadata?.planMode;
+    const parsedMode = planModeSchema.safeParse(modeRaw);
+    const planMode: PlanMode = parsedMode.success ? parsedMode.data : "FULL";
 
-    return hasFeatureAccess(tierName, featureKey, hasIntelligence);
+    return hasFeatureAccess(
+      tierName,
+      featureKey,
+      hasIntelligence,
+      undefined,
+      planMode,
+    );
   }
 
   getRuleName(): string {

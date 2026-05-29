@@ -36,7 +36,8 @@ export function useCommandPalette() {
   const { user } = useAuth();
   const { clinicId } = useClinic();
   const { canStartConsultation } = usePermissions();
-  const { canAccess, currentTier, hasIntelligence } = usePermissionStore();
+  const { canAccess, currentTier, currentMode, hasIntelligence } =
+    usePermissionStore();
   const { openOverlay } = useAskAi();
   const navOrder = useSidebarNavOrder({
     clinicId,
@@ -50,6 +51,7 @@ export function useCommandPalette() {
       role: user?.role,
       canAccessFeature: canAccess,
       currentTier,
+      currentMode,
       hasIntelligence,
     },
     "read",
@@ -147,6 +149,7 @@ export function useCommandPalette() {
           role: user?.role,
           canAccess,
           currentTier,
+          currentMode,
           hasIntelligence,
         })
       )
@@ -179,6 +182,7 @@ export function useCommandPalette() {
             role: user?.role,
             canAccessFeature: canAccess,
             currentTier,
+            currentMode,
             hasIntelligence,
           },
           action.accessMode ?? "write",
@@ -209,6 +213,7 @@ export function useCommandPalette() {
     canAccess,
     canStartConsultation,
     currentTier,
+    currentMode,
     handleStartConsultation,
     hasIntelligence,
     navOrder,

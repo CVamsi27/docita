@@ -57,13 +57,13 @@ export const QueueLiveStatusPanel = () => {
   return (
     <>
       <Card>
-        <CardHeader>
-          <CardTitle>Live Queue Status</CardTitle>
+        <CardHeader className="border-b border-border/60 pb-5">
+          <CardTitle>Live queue status</CardTitle>
           <CardDescription>
             Monitor and control today&apos;s patient queue.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="flex flex-col gap-6 pt-5">
           {queueLoading ? (
             <div
               className="flex flex-col gap-4 py-6"

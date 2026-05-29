@@ -5,6 +5,8 @@ const API_HEALTH_URL =
   process.env["API_HEALTH_URL"] || "http://127.0.0.1:3001/api/health/live";
 const skipServer = process.env["SKIP_SERVER"] === "true";
 const publicOnlyAudit = process.env["AUDIT_APP_PUBLIC_ONLY"] === "true";
+const LOCAL_UPSTREAM_API_URL =
+  process.env["API_URL"] || "http://127.0.0.1:3001/api/v1";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -59,6 +61,11 @@ export default defineConfig({
             command: "pnpm --filter @docita/app run dev",
             url: APP_URL,
             reuseExistingServer: true,
+            env: {
+              ...process.env,
+              API_URL: LOCAL_UPSTREAM_API_URL,
+              API_PROXY_TARGET: LOCAL_UPSTREAM_API_URL,
+            },
             timeout: 180_000,
           },
         ],
@@ -67,6 +74,15 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "mobile-chrome",
+      use: {
+        ...devices["Pixel 5"],
+        viewport: { width: 390, height: 844 },
+        hasTouch: true,
+        isMobile: true,
+      },
     },
   ],
 });

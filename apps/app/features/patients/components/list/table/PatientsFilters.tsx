@@ -42,7 +42,7 @@ export function PatientsFilters({
             }}
             className="w-full md:w-[400px]"
           >
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="flex w-full overflow-x-auto overscroll-x-contain [scrollbar-width:thin] max-md:flex-nowrap md:grid md:grid-cols-3">
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="recent">Recently active</TabsTrigger>
               <TabsTrigger value="new">New patients</TabsTrigger>

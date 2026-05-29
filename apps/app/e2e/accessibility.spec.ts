@@ -82,6 +82,105 @@ test.describe("Accessibility Audit - Main App", () => {
     }
   });
 
+  test.describe("Authenticated routes at mobile width (390px)", () => {
+    test.use({
+      viewport: { width: 390, height: 844 },
+      hasTouch: true,
+      isMobile: true,
+    });
+
+    test.skip(
+      process.env.AUDIT_APP_PUBLIC_ONLY === "true",
+      "AUDIT_APP_PUBLIC_ONLY=true skips routes that need DATABASE_URL and API fixtures",
+    );
+
+    let user: UserData;
+    let appointmentId: string;
+
+    test.beforeAll(async ({ request }) => {
+      user = await setupTestUser(request);
+
+      const patientRes = await request.post(`${API_URL}/patients`, {
+        headers: { Authorization: `Bearer ${user.accessToken}` },
+        data: {
+          firstName: "MobileAxe",
+          lastName: "Patient",
+          phoneNumber: `96${Math.floor(Math.random() * 100000000)
+            .toString()
+            .padStart(8, "0")}`,
+          gender: "MALE",
+          dateOfBirth: "1990-01-01",
+          clinicId: user.clinicId,
+          dpdpConsent: {
+            accepted: true,
+            noticeVersion: DPDP_NOTICE_VERSION,
+            givenByName: "MobileAxe Patient",
+          },
+        },
+      });
+      expect(patientRes.ok()).toBeTruthy();
+      const patient = await patientRes.json();
+
+      const now = new Date();
+      now.setMinutes(now.getMinutes() + 15);
+      const endTime = new Date(now);
+      endTime.setMinutes(now.getMinutes() + 30);
+
+      const apptRes = await request.post(`${API_URL}/appointments`, {
+        headers: { Authorization: `Bearer ${user.accessToken}` },
+        data: {
+          patientId: patient.id,
+          doctorId: user.id,
+          clinicId: user.clinicId,
+          startTime: now.toISOString(),
+          endTime: endTime.toISOString(),
+          type: "consultation",
+          status: "scheduled",
+        },
+      });
+      expect(apptRes.ok()).toBeTruthy();
+      const appointment = await apptRes.json();
+      appointmentId = appointment.id;
+    });
+
+    test.beforeEach(async ({ page }) => {
+      await loginUser(page, user);
+    });
+
+    const mobileAuthRoutes: { path: string; name: string }[] = [
+      { path: "/today", name: "Today workspace" },
+      { path: "/patients", name: "Patients" },
+      { path: "/appointments", name: "Appointments" },
+      { path: "/settings", name: "Settings" },
+      { path: "/documents", name: "Documents" },
+      { path: "/prescriptions", name: "Prescriptions" },
+      { path: "/invoices", name: "Invoices" },
+      { path: "/lab-tests", name: "Lab tests" },
+      { path: "/inventory", name: "Inventory" },
+      { path: "/inbox", name: "Inbox" },
+      { path: "/ai-assistant", name: "AI assistant" },
+    ];
+
+    for (const route of mobileAuthRoutes) {
+      test(`should audit ${route.name} at mobile width (${route.path})`, async ({
+        page,
+      }) => {
+        await runAccessibilityAudit(page, route.path, `${route.name} (mobile)`);
+      });
+    }
+
+    test(`should audit Consultation workspace at mobile width (/consultation/[id])`, async ({
+      page,
+    }) => {
+      const detailPath = `/consultation/${appointmentId}`;
+      await runAccessibilityAudit(
+        page,
+        detailPath,
+        "Consultation detail (mobile)",
+      );
+    });
+  });
+
   test.describe("Authenticated routes", () => {
     test.skip(
       process.env.AUDIT_APP_PUBLIC_ONLY === "true",

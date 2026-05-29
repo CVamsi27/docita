@@ -185,6 +185,7 @@ export class PublicBookingSubmitService {
           data.slotCalendarDate,
           requestedStart,
           requestedEnd,
+          clinic.timezone,
         );
       }
 

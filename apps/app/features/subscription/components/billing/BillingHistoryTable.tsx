@@ -11,9 +11,10 @@ import { useResumeSubscriptionPayment } from "@workspace/data-access";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 import {
   buildBillingCsvContent,
-  isPaidStatus,
+  isBillingRowPaid,
   matchesStatusFilter,
   normalizeStatus,
+  resolveBillingAmountCents,
   parseDayBoundary,
   triggerCsvDownload,
   type StatusFilterValue,
@@ -62,10 +63,10 @@ export function BillingHistoryTable({
 
   const paidTotalCents = useMemo(() => {
     return filteredInvoices.reduce((sum, inv) => {
-      if (!isPaidStatus(normalizeStatus(inv.status))) return sum;
+      if (!isBillingRowPaid(inv)) return sum;
       const c = inv.currency || DEFAULT_CURRENCY;
       if (c !== primaryCurrency) return sum;
-      return sum + inv.amountCents;
+      return sum + resolveBillingAmountCents(inv);
     }, 0);
   }, [filteredInvoices, primaryCurrency]);
 

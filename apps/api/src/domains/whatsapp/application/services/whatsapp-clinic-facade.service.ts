@@ -74,6 +74,13 @@ export class WhatsappService {
     return this.systemEventsService.sendInvoiceSystem(invoiceId, clinicId);
   }
 
+  async sendPaymentConfirmation(invoiceId: string, clinicId: string) {
+    return this.systemEventsService.sendPaymentConfirmation(
+      invoiceId,
+      clinicId,
+    );
+  }
+
   async sendAppointmentConfirmation(appointmentId: string, clinicId: string) {
     return this.systemEventsService.sendAppointmentConfirmation(
       appointmentId,

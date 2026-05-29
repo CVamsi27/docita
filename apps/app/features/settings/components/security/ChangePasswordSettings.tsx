@@ -53,16 +53,16 @@ export function ChangePasswordSettings() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="border-b border-border/60 pb-5">
         <CardTitle>Change password</CardTitle>
-        <CardDescription>Update your account password</CardDescription>
+        <CardDescription>Update the password on your account.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-5">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
             noValidate
-            className="space-y-4"
+            className="flex flex-col gap-4"
           >
             <FormField
               control={form.control}
@@ -134,13 +134,14 @@ export function ChangePasswordSettings() {
               )}
             />
 
-            <Button
-              className="w-full"
-              type="submit"
-              disabled={form.formState.isSubmitting}
-            >
-              {form.formState.isSubmitting ? "Updating…" : "Update Password"}
-            </Button>
+            <div className="flex justify-end border-t border-border/60 pt-4">
+              <Button
+                type="submit"
+                disabled={form.formState.isSubmitting}
+              >
+                {form.formState.isSubmitting ? "Updating…" : "Update password"}
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>

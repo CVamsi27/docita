@@ -22,6 +22,7 @@ export interface IAppointmentReadRepository {
     doctorId: string,
     date: Date,
     clinicId: string,
+    timezone?: string,
   ): Promise<Appointment[]>;
   exists(id: string, clinicId: string): Promise<boolean>;
 
@@ -33,8 +34,13 @@ export interface IAppointmentReadRepository {
     rangeEndExclusive: Date,
   ): Promise<Array<{ doctorId: string; startTime: Date; endTime: Date }>>;
 
-  /** Returns the clinic tier for Front Desk gating, or null if clinic missing. */
-  findClinicTier(clinicId: string): Promise<{ tier: string } | null>;
+  /** Returns clinic tier + plan mode for Front Desk gating, or null if clinic missing. */
+  findClinicTier(
+    clinicId: string,
+  ): Promise<{ tier: string; planMode: string | null } | null>;
+
+  /** IANA timezone for clinic-local scheduling (defaults handled by caller). */
+  findClinicTimezone(clinicId: string): Promise<string | null>;
 
   /** Narrow read used before transitioning an appointment to IN_PROGRESS. */
   findForConsultationStart(

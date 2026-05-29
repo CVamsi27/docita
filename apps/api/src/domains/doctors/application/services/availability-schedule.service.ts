@@ -12,6 +12,9 @@ import {
   DOCTOR_SCHEDULE_REPOSITORY_TOKEN,
 } from '@/domains/doctors/core/repositories/doctor-schedule.repository.interface';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { PrismaService } from '@/prisma/prisma.service';
+import { getClinicLocalDayUtcBounds } from '@/shared/common/utils/clinic-calendar-bounds';
+import { DEFAULT_TIMEZONE, formatUtcInstantAsClinicPickerIso } from '@workspace/utils';
 
 type DayOfWeek =
   | 'SUNDAY'
@@ -28,6 +31,7 @@ export class AvailabilityScheduleService {
     @Inject(DOCTOR_SCHEDULE_REPOSITORY_TOKEN)
     private repository: IDoctorScheduleRepository,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
+    private readonly prisma: PrismaService,
   ) {}
 
   async getSchedules(doctorId: string, clinicId?: string) {
@@ -320,19 +324,25 @@ export class AvailabilityScheduleService {
     return { success: true };
   }
 
-  getUnavailableDoctorIdsForCalendarDate(
+  async getUnavailableDoctorIdsForCalendarDate(
     clinicId: string,
     date: Date | string,
   ): Promise<string[]> {
     const target = new Date(date);
-    const rangeStart = new Date(target);
-    rangeStart.setHours(0, 0, 0, 0);
-    const rangeEnd = new Date(target);
-    rangeEnd.setHours(23, 59, 59, 999);
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { timezone: true },
+    });
+    const timezone = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
+    const pickerDateStr = formatUtcInstantAsClinicPickerIso(target, timezone);
+    const bounds = getClinicLocalDayUtcBounds(pickerDateStr, timezone);
+    if (!bounds) {
+      return [];
+    }
     return this.repository.findDoctorIdsWithFullDayTimeOffOverlappingRange(
       clinicId,
-      rangeStart,
-      rangeEnd,
+      bounds.rangeStart,
+      new Date(bounds.rangeEndExclusive.getTime() - 1),
     );
   }
 }

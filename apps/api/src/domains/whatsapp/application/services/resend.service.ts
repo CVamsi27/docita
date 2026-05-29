@@ -92,7 +92,7 @@ export class WhatsappResendService {
     });
 
     const resolved = await this.templatesService.resolveTemplate(
-      'prescription_ready',
+      'prescription_shared',
       variables,
       clinicId,
     );
@@ -106,7 +106,7 @@ export class WhatsappResendService {
     const sendResult = await this.sendMessage.execute({
       clinicId,
       recipientPhone: prescription.patient.phoneNumber,
-      templateName: 'prescription_ready',
+      templateName: 'prescription_shared',
       variables,
     });
 

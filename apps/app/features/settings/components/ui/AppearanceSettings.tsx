@@ -41,11 +41,11 @@ export function AppearanceSettings() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="border-b border-border/60 pb-5">
         <CardTitle>Appearance</CardTitle>
-        <CardDescription>Customize the look and feel</CardDescription>
+        <CardDescription>Theme, accent, and density for this account.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="flex flex-col gap-6 pt-5">
         <div className="space-y-3">
           <Label>Theme</Label>
           <div className="flex flex-wrap gap-2">
@@ -113,11 +113,11 @@ export function AppearanceSettings() {
             ))}
           </ToggleGroup>
         </div>
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4 rounded-[calc(var(--radius)-4px)] border border-border/60 bg-muted/20 px-4 py-3">
           <div>
             <Label htmlFor="compact-mode">Compact mode</Label>
             <p className="text-sm text-muted-foreground">
-              Reduce spacing for more content
+              Reduce spacing for more content.
             </p>
           </div>
           <Switch
@@ -127,10 +127,8 @@ export function AppearanceSettings() {
           />
         </div>
 
-        <div className="rounded-lg border bg-card p-4 space-y-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Live preview
-          </p>
+        <div className="flex flex-col gap-3 rounded-[calc(var(--radius)-4px)] border border-border/60 bg-card p-4">
+          <span className="ui-eyebrow">Live preview</span>
           <div className="flex flex-wrap items-center gap-2">
             <Button size="sm" type="button">
               Primary
@@ -139,14 +137,16 @@ export function AppearanceSettings() {
               Outline
             </Button>
             <span className="text-xs text-muted-foreground">
-              Uses current theme, accent, and density
+              Uses current theme, accent, and density.
             </span>
           </div>
         </div>
 
-        <Button className="w-full" type="button" onClick={handleSave}>
-          Save Appearance
-        </Button>
+        <div className="flex justify-end border-t border-border/60 pt-4">
+          <Button type="button" onClick={handleSave}>
+            Save appearance
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

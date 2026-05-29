@@ -54,7 +54,39 @@ export function InventoryTable({
         {isLoading ? (
           <LoadingState message="Loading inventory…" />
         ) : (
-          <div className="rounded-md border overflow-x-hidden">
+          <>
+          <div className="mb-4 space-y-3 md:hidden">
+            {items.map((item) => {
+              const status = getStockStatus(item.quantity, item.minQuantity);
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="ui-card-surface w-full space-y-2 p-4 text-left touch-manipulation"
+                  onClick={() => onViewItem(item.id)}
+                >
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-sm capitalize text-muted-foreground">
+                    {item.category}
+                  </p>
+                  <p className="text-sm">
+                    {item.quantity} {item.unit}
+                  </p>
+                  <Badge variant={status.variant}>{status.label}</Badge>
+                  {item.expiryDate ? (
+                    <p className="text-xs text-muted-foreground">
+                      Expires{" "}
+                      {formatDateSafe(
+                        item.expiryDate,
+                        DATE_FORMAT_OPTIONS_US_SHORT,
+                      )}
+                    </p>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+          <div className="hidden overflow-x-auto overscroll-x-contain rounded-md border md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -131,6 +163,7 @@ export function InventoryTable({
               </TableBody>
             </Table>
           </div>
+          </>
         )}
       </CardContent>
     </Card>

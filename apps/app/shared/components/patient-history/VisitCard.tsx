@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
 import { Card, CardContent } from "@workspace/ui/components/indicators/card";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Pill } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatDate } from "@workspace/utils";
@@ -120,6 +120,12 @@ export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardPro
             <div className="flex flex-wrap items-center gap-1.5 mt-1">
               <Badge variant="outline" className="text-xs h-4 px-1.5">{typeLabel}</Badge>
               {statusBadge && <Badge variant="secondary" className="text-xs h-4 px-1.5">{humanizeUiLabel(statusBadge)}</Badge>}
+              {event.type === "APPOINTMENT" && medications.length > 0 && (
+                <Badge variant="secondary" className="badge-success gap-1 text-xs h-4 px-1.5">
+                  <Pill className="h-2.5 w-2.5" aria-hidden />
+                  {medications.length} Rx
+                </Badge>
+              )}
               {event.type === "APPOINTMENT" && doctorName && <span className="text-xs text-muted-foreground">Dr. {doctorName}</span>}
               {event.type === "APPOINTMENT" && displayPrimaryDiagnosis && <span className="text-xs text-muted-foreground truncate max-w-[200px]">&middot; {displayPrimaryDiagnosis}</span>}
             </div>

@@ -38,17 +38,12 @@ import {
 } from "lucide-react";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
-import { Invoice, Patient } from "@workspace/types";
+import type { InvoiceListRow } from "@workspace/types";
 import {
   DATE_FORMAT_OPTIONS_US_LONG,
   formatDate,
 } from "@/lib/formatters";
 import { buildInvoicePaidSummaryLine } from "@/features/invoices/lib/invoice-payment-display";
-
-type InvoiceWithPatient = Invoice & {
-  patient?: Pick<Patient, "firstName" | "lastName">;
-  total?: number;
-};
 
 export function InvoicesPageTableCard({
   listStatus,
@@ -63,7 +58,7 @@ export function InvoicesPageTableCard({
   errorMessage?: string;
   onRetry: () => void;
   hasActiveFilters: boolean;
-  filteredInvoices: InvoiceWithPatient[];
+  filteredInvoices: InvoiceListRow[];
   formatCurrency: (amount: number | undefined) => string;
   handleDownloadPdf: (id: string) => void;
 }) {
@@ -89,7 +84,48 @@ export function InvoicesPageTableCard({
               : "Create an invoice from a visit or use Create Invoice when you are ready to bill."
           }
         >
-          <div className="ui-card-surface overflow-x-hidden">
+          <div className="mb-4 space-y-3 md:hidden">
+            {filteredInvoices.map((invoice) => {
+              const paidSummary = buildInvoicePaidSummaryLine({
+                status: invoice.status,
+                paidAt: invoice.paidAt,
+                paymentMethod: invoice.paymentMethod,
+                formatDate,
+              });
+              return (
+                <button
+                  key={invoice.id ?? `invoice-mobile-${invoice.createdAt}`}
+                  type="button"
+                  className="ui-card-surface w-full space-y-2 p-4 text-left touch-manipulation"
+                  onClick={() => {
+                    if (invoice.id) router.push(`/invoices/${invoice.id}`);
+                  }}
+                >
+                  <p className="font-medium truncate">
+                    {invoice.patient
+                      ? `${invoice.patient.firstName} ${invoice.patient.lastName}`
+                      : "N/A"}
+                  </p>
+                  <p className="text-sm tabular-nums">
+                    {formatCurrency(invoice.totalAmount ?? invoice.total)}
+                  </p>
+                  <StatusBadge status={invoice.status} />
+                  {paidSummary ? (
+                    <span className="ui-helper-text block">{paidSummary}</span>
+                  ) : null}
+                  {invoice.createdAt ? (
+                    <span className="text-xs text-muted-foreground">
+                      {formatDate(
+                        invoice.createdAt,
+                        DATE_FORMAT_OPTIONS_US_LONG,
+                      )}
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+          <div className="ui-card-surface hidden overflow-x-auto overscroll-x-contain md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -104,7 +140,7 @@ export function InvoicesPageTableCard({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredInvoices.map((invoice: InvoiceWithPatient) => {
+                {filteredInvoices.map((invoice) => {
                   const paidSummary = buildInvoicePaidSummaryLine({
                     status: invoice.status,
                     paidAt: invoice.paidAt,

@@ -47,6 +47,7 @@ export interface ConsultationSection {
   icon: LucideIcon;
   persistKey?: ConsultationPersistKey;
   subtitle?: string;
+  required?: boolean;
 }
 
 const SOAP_SUBJECTIVE: Omit<ConsultationSection, "subtitle"> = {
@@ -55,6 +56,7 @@ const SOAP_SUBJECTIVE: Omit<ConsultationSection, "subtitle"> = {
   label: "Subjective",
   shortLabel: "Subjective",
   icon: ClipboardList,
+  required: true,
 };
 
 const SOAP_OBJECTIVE: Omit<ConsultationSection, "subtitle"> = {
@@ -63,6 +65,7 @@ const SOAP_OBJECTIVE: Omit<ConsultationSection, "subtitle"> = {
   label: "Objective",
   shortLabel: "Objective",
   icon: Stethoscope,
+  required: false,
 };
 
 const SOAP_ASSESSMENT: Omit<ConsultationSection, "subtitle"> = {
@@ -71,6 +74,7 @@ const SOAP_ASSESSMENT: Omit<ConsultationSection, "subtitle"> = {
   label: "Assessment",
   shortLabel: "Assessment",
   icon: Target,
+  required: true,
 };
 
 const SOAP_PLAN: Omit<ConsultationSection, "subtitle"> = {
@@ -79,6 +83,7 @@ const SOAP_PLAN: Omit<ConsultationSection, "subtitle"> = {
   label: "Plan",
   shortLabel: "Plan",
   icon: Pill,
+  required: true,
 };
 
 function soapLeadSections(features: ClinicTypeFeatures): ConsultationSection[] {

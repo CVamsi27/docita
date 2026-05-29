@@ -16,6 +16,7 @@ type ClinicAuthSnapshot = Awaited<
 
 const baseAuth: ClinicAuthSnapshot = {
   tier: ClinicTier.PROFESSIONAL,
+  planMode: 'FULL',
   subscriptionStatus: SubscriptionStatus.ACTIVE,
   subscriptionGraceUntil: null as Date | null,
   subscriptionTrialEnd: null as Date | null,

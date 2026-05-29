@@ -22,6 +22,7 @@ import {
   DoctorNextSection,
   NursePrepSection,
 } from "./ConsultationDashboardSections";
+import { ConsultationHistoryList } from "./ConsultationHistoryList";
 
 export const ConsultationDashboardUI: FC = () => {
   const {
@@ -173,7 +174,7 @@ export const ConsultationDashboardUI: FC = () => {
         />
       ) : null}
 
-
+      <ConsultationHistoryList />
     </AppPageScaffold>
   );
 };

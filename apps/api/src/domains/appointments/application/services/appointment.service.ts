@@ -92,8 +92,16 @@ export class AppointmentService {
     return this.queryService.getAppointment(id, clinicId, accessContext);
   }
 
+  async getClinicTimezone(clinicId: string): Promise<string> {
+    return this.queryService.getClinicTimezone(clinicId);
+  }
+
   async listAppointments(
-    params: AppointmentSearchParams & { calendarPickerDate?: string },
+    params: AppointmentSearchParams & {
+      calendarPickerDate?: string;
+      calendarRangeStartPicker?: string;
+      calendarRangeEndPicker?: string;
+    },
   ) {
     return this.queryService.listAppointments(params);
   }

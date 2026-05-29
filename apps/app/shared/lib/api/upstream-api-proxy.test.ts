@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildUpstreamApiUrl,
   normalizeUpstreamApiUrl,
+  rewriteSetCookieForAppProxy,
 } from "./upstream-api-proxy";
 
 describe("upstream-api-proxy", () => {
@@ -12,6 +13,14 @@ describe("upstream-api-proxy", () => {
     expect(normalizeUpstreamApiUrl("https://api.docita.work")).toBe(
       "https://api.docita.work/api/v1",
     );
+  });
+
+  it("strips Domain from proxied Set-Cookie headers", () => {
+    expect(
+      rewriteSetCookieForAppProxy(
+        "refresh_token=abc; Path=/api/v1/auth; HttpOnly; Domain=api.docita.work",
+      ),
+    ).toBe("refresh_token=abc; Path=/api/v1/auth; HttpOnly");
   });
 
   it("builds upstream paths with query strings", () => {

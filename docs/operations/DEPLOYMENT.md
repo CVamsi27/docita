@@ -20,7 +20,7 @@ All backend infrastructure is co-located in Mumbai for Indian data residency (DP
 
 ## Operational Rules
 
-- Run Prisma migrations before each API deploy (CI does this automatically on push to `main`).
+- Run Prisma migrations before each API or worker deploy. The production deploy workflow applies migrations whenever `apps/api`, `apps/worker`, or shared API packages change, then blocks Fly deploy until `scripts/deploy/verify-db-schema-sync.sh` passes (no pending migrations, no schema drift). A separate `Database Migrations` workflow also runs on pushes that touch `packages/db/**`.
 - Production app deployments from GitHub Actions must be selective: on push to `main`, deploy only the apps whose related paths changed instead of deploying every app.
 - Use `DATABASE_URL` from AWS RDS for API runtime (set via `fly secrets set DATABASE_URL=...`).
 - Runtime baseline is Node `22.12.x` for local, CI, and Docker builds.

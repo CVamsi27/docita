@@ -17,5 +17,6 @@ export * from "./patient-create-form";
 export * from "./prescription-defaults-form";
 export * from "./queue-settings-form";
 export * from "./reminder-settings-form";
+export * from "./payment-reminder-settings";
 export * from "./reset-password-form";
 export * from "./security-settings-form";

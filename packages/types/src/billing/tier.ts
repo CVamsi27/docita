@@ -60,14 +60,32 @@ export const BILLED_TIERS = [
   Tier.FRONT_DESK_HOSPITAL,
 ] as const;
 
-/** Billable clinic SKUs in published upgrade/downgrade order (excludes INTELLIGENCE add-on). */
+/**
+ * Billable clinic SKUs in published upgrade/downgrade order.
+ *
+ * This is the **5-tier clinical ladder** customers see in the UI. The legacy
+ * `FRONT_DESK`, `FRONT_DESK_CLINIC`, `FRONT_DESK_HOSPITAL` enum values are
+ * intentionally excluded — they are now auto-mapped to a (tier, mode) pair at
+ * read time (see `mapDbClinicTierToTierAndMode`). New customers select a tier
+ * **and** a `PlanMode` (Full / Front Desk / Core).
+ */
 export const PUBLISHED_PLAN_LADDER = [
   "STARTER",
-  "FRONT_DESK",
   "ESSENTIAL",
   "PROFESSIONAL",
   "HOSPITAL",
   "ENTERPRISE",
+] as const satisfies readonly TierName[];
+
+/**
+ * Legacy front-desk tier SKUs kept on the DB enum for backward compatibility.
+ * Excluded from the published ladder; auto-mapped to (clinical tier, mode=FRONT_DESK)
+ * by the billing helpers.
+ */
+export const LEGACY_FRONT_DESK_LADDER = [
+  "FRONT_DESK",
+  "FRONT_DESK_CLINIC",
+  "FRONT_DESK_HOSPITAL",
 ] as const satisfies readonly TierName[];
 
 export type PublishedPlanSku = (typeof PUBLISHED_PLAN_LADDER)[number];
@@ -119,6 +137,7 @@ export enum Feature {
   MULTI_DOCTOR = "MULTI_DOCTOR",
   MULTI_CLINIC = "MULTI_CLINIC",
   LAB_TESTS = "LAB_TESTS",
+  VACCINE_TRACKING = "VACCINE_TRACKING",
   INVENTORY = "INVENTORY",
   QUEUE_MANAGEMENT = "QUEUE_MANAGEMENT",
   AUDIT_LOGS = "AUDIT_LOGS",
@@ -176,6 +195,7 @@ export const PLANNED_FEATURES: ReadonlySet<Feature> = new Set([
 export const FRONT_DESK_BLOCKED_FEATURES: ReadonlySet<Feature> = new Set([
   Feature.DIGITAL_PRESCRIPTIONS,
   Feature.MEDICINES_LIST,
+  Feature.VACCINE_TRACKING,
   Feature.PRESCRIPTION_TEMPLATES,
   Feature.DOCTOR_SIGNATURE,
   Feature.MEDICAL_CODING,
@@ -233,6 +253,7 @@ export const FEATURE_TIER_MAP: Record<Feature, Tier> = {
   [Feature.MULTI_DOCTOR]: Tier.ESSENTIAL,
   [Feature.MULTI_CLINIC]: Tier.ESSENTIAL,
   [Feature.LAB_TESTS]: Tier.ESSENTIAL,
+  [Feature.VACCINE_TRACKING]: Tier.ESSENTIAL,
   [Feature.INVENTORY]: Tier.ESSENTIAL,
   [Feature.QUEUE_MANAGEMENT]: Tier.ESSENTIAL,
   [Feature.AUDIT_LOGS]: Tier.ESSENTIAL,
@@ -1616,6 +1637,192 @@ export const PRO_OVERAGE_RATES_INR = {
   user: 249,
   whatsappMessage: 0.75,
 } as const;
+
+// ---------------------------------------------------------------------------
+// PlanMode — top-level Full / Front Desk / Core toggle
+// ---------------------------------------------------------------------------
+
+/**
+ * Every billed plan is the combination of a {@link TierName} (Starter →
+ * Enterprise) and a {@link PlanMode} (Full / Front Desk / Core).
+ *
+ *  - **FULL** — every feature the tier unlocks (default).
+ *  - **FRONT_DESK** — reception / scheduling / billing focus; clinical
+ *    features (prescriptions, EHR, AI-clinical) are blocked.
+ *  - **CORE** — clinical without WhatsApp messaging or AI assist (for clinics
+ *    that want doctor workflows but not the comms / AI add-ons).
+ */
+export const planModeSchema = z.enum(["FULL", "FRONT_DESK", "CORE"]);
+export type PlanMode = z.infer<typeof planModeSchema>;
+
+export const PLAN_MODES: readonly PlanMode[] = ["FULL", "FRONT_DESK", "CORE"];
+
+export interface PlanModeInfo {
+  id: PlanMode;
+  name: string;
+  shortLabel: string;
+  tagline: string;
+  /** One-line summary used on tier cards. */
+  helpText: string;
+  /** Multiplier applied to the base monthly/yearly price. */
+  pricingMultiplier: number;
+}
+
+export const PLAN_MODE_INFO: Record<PlanMode, PlanModeInfo> = {
+  FULL: {
+    id: "FULL",
+    name: "Full",
+    shortLabel: "Full",
+    tagline: "Everything in this tier",
+    helpText: "All clinical, comms, and AI features the tier unlocks.",
+    pricingMultiplier: 1,
+  },
+  FRONT_DESK: {
+    id: "FRONT_DESK",
+    name: "Front Desk",
+    shortLabel: "Front Desk",
+    tagline: "Reception, queue, billing — no clinical workflows",
+    helpText: "Scheduling, intake, invoicing, WhatsApp. No prescriptions or EHR.",
+    pricingMultiplier: 0.7,
+  },
+  CORE: {
+    id: "CORE",
+    name: "Core",
+    shortLabel: "Core",
+    tagline: "Full doctor access — no WhatsApp, no AI",
+    helpText: "Consultations, prescriptions, invoicing. WhatsApp and AI features off.",
+    pricingMultiplier: 0.8,
+  },
+};
+
+/**
+ * Feature sets blocked by each mode. FULL blocks nothing; FRONT_DESK reuses
+ * the existing {@link FRONT_DESK_BLOCKED_FEATURES}; CORE blocks WhatsApp + AI
+ * (the same set as `PACKAGE_PRESETS.PROFESSIONAL_CORE.overrides`).
+ *
+ * Adding/removing features per mode is a one-line edit here.
+ */
+const CORE_BLOCKED_FEATURES_SET: ReadonlySet<Feature> = new Set([
+  Feature.WHATSAPP_MESSAGING,
+  Feature.WHATSAPP_OWN_NUMBER,
+  Feature.WHATSAPP_MANAGED_NUMBER,
+  Feature.AUTO_REMINDERS,
+  Feature.BROADCAST_CAMPAIGNS,
+  Feature.AI_PRESCRIPTION_ASSISTANT,
+  Feature.AI_DIAGNOSIS_HINTS,
+  Feature.SMART_TASK_ENGINE,
+  Feature.PREDICTIVE_NO_SHOW,
+  Feature.PATIENT_SEGMENTATION,
+  Feature.ANOMALY_DETECTION,
+]);
+
+export const MODE_BLOCKED_FEATURES: Record<PlanMode, ReadonlySet<Feature>> = {
+  FULL: new Set<Feature>(),
+  FRONT_DESK: FRONT_DESK_BLOCKED_FEATURES,
+  CORE: CORE_BLOCKED_FEATURES_SET,
+};
+
+/**
+ * Tiers that only make sense at mode = FULL (i.e. don't show Front Desk/Core
+ * toggles for these). Starter is the entry-level tier; Enterprise is bespoke.
+ */
+export const FULL_ONLY_TIERS: readonly TierName[] = ["STARTER"];
+
+export function tierSupportsMode(tier: TierName, mode: PlanMode): boolean {
+  if (mode === "FULL") return true;
+  return !FULL_ONLY_TIERS.includes(tier);
+}
+
+export function getAvailableModesForTier(tier: TierName): PlanMode[] {
+  return PLAN_MODES.filter((mode) => tierSupportsMode(tier, mode));
+}
+
+/**
+ * Apply the mode pricing multiplier to a base monthly/yearly price tuple.
+ * Custom-priced tiers (Enterprise) pass through unchanged.
+ */
+export function applyModeToPricing(
+  base: MultiCurrencyTierPricing,
+  mode: PlanMode,
+): MultiCurrencyTierPricing {
+  const multiplier = PLAN_MODE_INFO[mode].pricingMultiplier;
+  if (multiplier === 1) return base;
+  const adjustMonthly =
+    typeof base.monthly === "number"
+      ? Math.round(base.monthly * multiplier)
+      : base.monthly;
+  const adjustYearly =
+    typeof base.yearly === "number"
+      ? Math.round(base.yearly * multiplier)
+      : base.yearly;
+  return { monthly: adjustMonthly, yearly: adjustYearly };
+}
+
+/**
+ * Per-mode highlight bullets shown on tier cards. Kept separate from
+ * `TIER_FEATURES` so the same tier reads differently in each mode.
+ */
+export const MODE_TIER_HIGHLIGHTS: Record<PlanMode, Partial<Record<TierName, string[]>>> = {
+  FULL: {},
+  FRONT_DESK: {
+    ESSENTIAL: [
+      "Reception scheduling + queue",
+      "Appointment intake + check-in",
+      "Invoicing + GST",
+      "WhatsApp messaging (500/mo)",
+      "No prescriptions / EHR",
+    ],
+    PROFESSIONAL: [
+      "Multi-desk reception (up to 25 staff)",
+      "3,000 appointments / mo",
+      "WhatsApp messaging (2,000/mo)",
+      "Supervisor + billing-only roles",
+      "No prescriptions / EHR",
+    ],
+    HOSPITAL: [
+      "Per-location reception (10 branches)",
+      "15,000 appointments / mo",
+      "WhatsApp pooled (6,000/mo)",
+      "Shift handover + OPD routing",
+      "No prescriptions / EHR",
+    ],
+    ENTERPRISE: [
+      "Multi-region reception",
+      "Custom OPD workflows",
+      "Custom WhatsApp throughput",
+      "Dedicated success manager",
+    ],
+  },
+  CORE: {
+    ESSENTIAL: [
+      "Full clinical workflows",
+      "Digital prescriptions + PDF",
+      "Invoicing + GST",
+      "No WhatsApp messaging",
+      "No AI assist",
+    ],
+    PROFESSIONAL: [
+      "Multi-doctor (up to 5)",
+      "Full EHR + prescription templates",
+      "Advanced analytics",
+      "No WhatsApp messaging",
+      "No AI assist",
+    ],
+    HOSPITAL: [
+      "Multi-doctor (up to 25), 5 branches",
+      "Full EHR + audit logs",
+      "Multi-location dashboards",
+      "No WhatsApp messaging",
+      "No AI assist",
+    ],
+    ENTERPRISE: [
+      "Unlimited clinical scale",
+      "Custom EHR + integrations",
+      "No WhatsApp messaging",
+      "No AI assist",
+    ],
+  },
+};
 
 // ---------------------------------------------------------------------------
 // Per-clinic feature overrides + custom packages

@@ -1,7 +1,9 @@
 import { UseFormReturn } from "react-hook-form";
+import { Check, MapPin } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
+import { cn } from "@workspace/ui/lib/utils";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
 
 interface ClinicAddressSectionProps {
@@ -17,12 +19,19 @@ export function ClinicAddressSection({
   addressSummary,
   onOpenMapPicker,
 }: ClinicAddressSectionProps) {
+  const mapsLocation = clinicForm.watch("mapsLocation");
+  const isPinned =
+    typeof mapsLocation?.lat === "number" &&
+    typeof mapsLocation?.lng === "number";
+  const mapsLocationError = clinicForm.formState.errors.mapsLocation?.message;
+
   return (
     <div className="rounded-lg border bg-muted/20 p-4 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <Label className="text-base font-semibold" htmlFor="addressLine1">
             Address
+            <span className="text-destructive ml-0.5">*</span>
           </Label>
           <p className="text-xs text-muted-foreground">
             Use a structured address so it adapts cleanly across regions
@@ -30,14 +39,40 @@ export function ClinicAddressSection({
         </div>
         <Button
           type="button"
-          variant="outline"
+          variant={isPinned ? "outline" : "default"}
           size="sm"
-          className="h-9 rounded-lg sm:self-start"
+          className={cn(
+            "h-9 rounded-lg sm:self-start",
+            !isPinned && !!mapsLocationError && "ring-2 ring-destructive/40",
+          )}
           onClick={onOpenMapPicker}
+          aria-invalid={!isPinned && !!mapsLocationError}
         >
-          Open map picker
+          {isPinned ? (
+            <>
+              <Check className="h-4 w-4" aria-hidden />
+              Location pinned
+            </>
+          ) : (
+            <>
+              <MapPin className="h-4 w-4" aria-hidden />
+              Pin on Google Maps
+            </>
+          )}
         </Button>
       </div>
+      {!isPinned ? (
+        <p
+          className={cn(
+            "mt-2 text-xs",
+            mapsLocationError ? "text-destructive" : "text-muted-foreground",
+          )}
+          role={mapsLocationError ? "alert" : undefined}
+        >
+          {mapsLocationError ??
+            "Required — pin the clinic on Google Maps so patients can navigate to you."}
+        </p>
+      ) : null}
 
       <div className="mt-4 space-y-4">
         <div className="space-y-2">

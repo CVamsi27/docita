@@ -6,10 +6,11 @@ import {
   CreateInvoiceRequest,
   Feature,
   Invoice,
-  invoiceSchema,
+  type InvoiceListRow,
+  invoiceListRowSchema,
   ListInvoicesContractQuery,
+  paginatedInvoiceListResponseSchema,
   Patient,
-  patientSchema,
   SubscriptionBillingActivateRequest,
   SubscriptionBillingActivateResponse,
   SubscriptionBillingCancelRequest,
@@ -36,11 +37,8 @@ import { withQueryString } from "../lib/query-string";
 import { useDataAccessContext, useDataAccessFetcher } from "../provider/hooks";
 import { isRecord } from "@workspace/utils";
 
-export const invoiceListRowSchema = invoiceSchema.extend({
-  patient: patientSchema,
-});
-
-export type InvoiceListRow = z.infer<typeof invoiceListRowSchema>;
+export type { InvoiceListRow } from "@workspace/types";
+export { invoiceListRowSchema, normalizeInvoiceListRowInput } from "@workspace/types";
 
 function hasItemsArray(data: unknown): data is { items: unknown[] } {
   return isRecord(data) && Array.isArray(data["items"]);
@@ -57,12 +55,12 @@ export function normalizeInvoicesListResponse(data: unknown): unknown[] {
   return [];
 }
 
-const infiniteInvoicesResponseSchema = z.object({
-  items: z.array(invoiceResponseSchema),
-  nextCursor: z.string().nullable().optional(),
-  hasMore: z.boolean(),
-  count: z.number(),
-});
+const infiniteInvoicesResponseSchema = paginatedInvoiceListResponseSchema.extend(
+  {
+    nextCursor: z.string().nullable().optional(),
+    count: z.number(),
+  },
+);
 
 export const useInvoices = (filters?: ListInvoicesContractQuery) => {
   const fetcher = useDataAccessFetcher();

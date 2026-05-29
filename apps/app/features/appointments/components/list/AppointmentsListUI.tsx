@@ -1,10 +1,8 @@
 import { useMemo } from "react";
 import {
-  DEFAULT_TIMEZONE,
   formatClinicHalfHourSlotKey,
-  formatDate,
+  formatClinicPickerIsoLabel,
 } from "@workspace/utils";
-import { useClinic } from "@/lib/contexts/clinic-context";
 import { CalendarDays } from "lucide-react";
 import {
   Card,
@@ -17,7 +15,9 @@ import type { AppointmentListItem } from "@workspace/data-access";
 import { TimeSlotRow } from "@/features/appointments/components/forms/TimeSlotRow";
 
 interface AppointmentsListUIProps {
-  date: Date | undefined;
+  selectedPickerIso: string;
+  clinicTz: string;
+  canViewAllDoctors?: boolean;
   loading: boolean;
   isError?: boolean;
   onRetry?: () => void;
@@ -39,7 +39,9 @@ interface AppointmentsListUIProps {
 }
 
 export function AppointmentsListUI({
-  date,
+  selectedPickerIso,
+  clinicTz,
+  canViewAllDoctors = true,
   loading,
   isError,
   onRetry,
@@ -59,9 +61,6 @@ export function AppointmentsListUI({
   onScheduleFollowUp,
   currentUserId,
 }: AppointmentsListUIProps) {
-  const { clinic } = useClinic();
-  const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
-
   const appointmentsByTime = useMemo(
     () =>
       [...filteredAppointments].sort(
@@ -73,9 +72,11 @@ export function AppointmentsListUI({
   const selectedDoctorName =
     selectedDoctorId &&
     doctorsList.find((d) => d.id === selectedDoctorId)?.name;
-  const emptyStateDescription = selectedDoctorName
-    ? `Try another date or clear the Dr. ${selectedDoctorName} filter`
-    : "Try another date or schedule the first appointment for this day";
+  const emptyStateDescription = !canViewAllDoctors
+    ? "You have no appointments on this day. Try another date or schedule one from the list actions menu."
+    : selectedDoctorName
+      ? `Try another date or clear the Dr. ${selectedDoctorName} filter`
+      : "Try another date or schedule the first appointment for this day";
 
   return (
     <Card className="h-fit overflow-hidden border-border/60 bg-card/95 shadow-sm">
@@ -84,7 +85,11 @@ export function AppointmentsListUI({
           <div className="min-w-0">
             <CardTitle className="text-lg">
               Appointments for{" "}
-              {formatDate(date ?? new Date(), "MMMM d, yyyy")}
+              {formatClinicPickerIsoLabel(
+                selectedPickerIso,
+                "MMMM d, yyyy",
+                clinicTz,
+              )}
             </CardTitle>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {selectedDoctorName

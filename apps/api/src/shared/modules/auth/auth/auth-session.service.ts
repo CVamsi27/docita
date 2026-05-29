@@ -37,9 +37,10 @@ export class AuthSessionService {
     user: UserWithoutPassword,
     tokenFamily?: string,
     deviceInfo?: AuthDeviceInfo,
+    tx?: Prisma.TransactionClient,
   ): Promise<AuthLoginResult> {
-    const patientId = await this.resolvePatientId(user);
-    return this.issueTokens(user, patientId, tokenFamily, deviceInfo);
+    const patientId = await this.resolvePatientId(user, tx);
+    return this.issueTokens(user, patientId, tokenFamily, deviceInfo, tx);
   }
 
   async refreshTokens(incomingRefreshToken: string): Promise<AuthLoginResult> {

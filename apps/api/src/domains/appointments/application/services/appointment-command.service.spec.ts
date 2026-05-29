@@ -19,6 +19,28 @@ import { CancelAppointmentUseCase } from '@/domains/appointments/application/use
 import { RescheduleAppointmentUseCase } from '@/domains/appointments/application/use-cases/reschedule-appointment.use-case';
 import { StartConsultationUseCase } from '@/domains/appointments/application/use-cases/start-consultation.use-case';
 import { UpdateAppointmentDetailsUseCase } from '@/domains/appointments/application/use-cases/update-appointment-details.use-case';
+import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
+
+function createMockAppointmentEntity(
+  overrides: {
+    id?: string;
+    clinicId?: string;
+    startTime?: Date;
+    statusJson?: string;
+  } = {},
+): Appointment {
+  const appointment = Object.assign(Object.create(Appointment.prototype), {
+    id: overrides.id ?? 'appt-1',
+    clinicId: overrides.clinicId ?? 'clinic-1',
+  }) as Appointment;
+  appointment.getStartTime = jest
+    .fn<Appointment['getStartTime']>()
+    .mockReturnValue(overrides.startTime ?? new Date('2026-05-16T09:00:00Z'));
+  appointment.getStatus = jest.fn<Appointment['getStatus']>().mockReturnValue({
+    toJSON: () => overrides.statusJson ?? 'SCHEDULED',
+  } as ReturnType<Appointment['getStatus']>);
+  return appointment;
+}
 
 describe('AppointmentCommandService', () => {
   let service: AppointmentCommandService;
@@ -129,18 +151,19 @@ describe('AppointmentCommandService', () => {
 
   describe('cancelAppointment', () => {
     it('should cancel an appointment successfully', async () => {
-      const appointment = {
-        id: 'appt-1',
-        clinicId: 'clinic-1',
-        cancel: jest.fn(),
-      };
+      const appointment = createMockAppointmentEntity({
+        statusJson: 'SCHEDULED',
+      });
+      const cancelled = createMockAppointmentEntity({
+        statusJson: 'cancelled',
+      });
       (
         queryService.getAppointment as jest.MockedFunction<
           typeof queryService.getAppointment
         >
-      ).mockResolvedValueOnce(appointment as never);
+      ).mockResolvedValueOnce(appointment);
 
-      cancelUseCase.execute.mockResolvedValueOnce(appointment as never);
+      cancelUseCase.execute.mockResolvedValueOnce(cancelled);
 
       const result = await service.cancelAppointment(
         'appt-1',
@@ -154,7 +177,16 @@ describe('AppointmentCommandService', () => {
           reason: 'reason',
         }),
       );
-      expect(result).toEqual(appointment);
+      expect(result).toEqual(cancelled);
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        ApplicationEvents.APPOINTMENT_UPDATED,
+        expect.objectContaining({
+          appointmentId: 'appt-1',
+          clinicId: 'clinic-1',
+          newStatus: 'cancelled',
+          oldStatus: 'SCHEDULED',
+        }),
+      );
     });
 
     it('should throw NotFoundException when appointment does not exist', async () => {
@@ -172,16 +204,12 @@ describe('AppointmentCommandService', () => {
 
   describe('rescheduleAppointment', () => {
     it('should throw BadRequestException on scheduling conflict during reschedule', async () => {
-      const appointment = {
-        id: 'appt-1',
-        doctorId: 'doc-1',
-        reschedule: jest.fn(),
-      };
+      const appointment = createMockAppointmentEntity();
       (
         queryService.getAppointment as jest.MockedFunction<
           typeof queryService.getAppointment
         >
-      ).mockResolvedValueOnce(appointment as never);
+      ).mockResolvedValueOnce(appointment);
       rescheduleUseCase.execute.mockRejectedValueOnce(
         new BadRequestException('Doctor has conflicting appointment'),
       );

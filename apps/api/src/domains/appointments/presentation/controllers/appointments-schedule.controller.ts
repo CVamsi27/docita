@@ -19,10 +19,11 @@ import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { Role } from '@workspace/db';
 import {
   listAppointmentsResponseSchema,
-  appointmentDomainCreateSchema,
+  createAppointmentRequestSchema,
   appointmentRescheduleRequestSchema,
   resolveDoctorScopedAppointmentFilter,
 } from '@workspace/types';
+import { coerceAppointmentBoundaryInstant } from '@/domains/appointments/application/mappers/appointment-instant.mapper';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { requireClinicIdFromRequest } from '@/shared/modules/auth/auth/clinic-request-context';
@@ -43,6 +44,7 @@ import {
   logClinicPhiListRead,
   logPatientPhiRead,
 } from '@/shared/modules/audit/audit/patient-access-audit.util';
+import { isCalendarPickerIsoDate } from '@/shared/common/utils/clinic-calendar-bounds';
 
 @ApiTags('appointments')
 @Controller('appointments')
@@ -60,10 +62,26 @@ export class AppointmentsScheduleController {
     @Request() req: RequestWithUser,
     @Body() body: CreateAppointmentDto,
   ) {
-    const payload = appointmentDomainCreateSchema.parse({
-      ...body,
-      clinicId: requireClinicIdFromRequest(req),
-    });
+    const clinicId = requireClinicIdFromRequest(req);
+    const timezone = await this.appointmentService.getClinicTimezone(clinicId);
+    const parsed = createAppointmentRequestSchema.parse(body);
+    const payload = {
+      clinicId,
+      patientId: parsed.patientId,
+      doctorId: parsed.doctorId,
+      startTime: coerceAppointmentBoundaryInstant(
+        parsed.startTime,
+        timezone,
+        'start time',
+      ),
+      endTime: coerceAppointmentBoundaryInstant(
+        parsed.endTime,
+        timezone,
+        'end time',
+      ),
+      reason: parsed.notes,
+      type: parsed.type,
+    };
 
     return this.appointmentService.createAppointment(payload);
   }
@@ -141,8 +159,20 @@ export class AppointmentsScheduleController {
     const result = await this.appointmentService.listAppointments({
       clinicId: requireClinicIdFromRequest(req),
       calendarPickerDate: date,
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
+      calendarRangeStartPicker: isCalendarPickerIsoDate(startDate)
+        ? startDate.trim()
+        : undefined,
+      calendarRangeEndPicker: isCalendarPickerIsoDate(endDate)
+        ? endDate.trim()
+        : undefined,
+      startDate:
+        startDate && !isCalendarPickerIsoDate(startDate)
+          ? new Date(startDate)
+          : undefined,
+      endDate:
+        endDate && !isCalendarPickerIsoDate(endDate)
+          ? new Date(endDate)
+          : undefined,
       patientId,
       doctorId: doctorScope.scopedDoctorId,
       search,
@@ -213,12 +243,18 @@ export class AppointmentsScheduleController {
     @Request() req: RequestWithUser,
     @Body() body: RescheduleAppointmentDto,
   ) {
-    const payload = appointmentRescheduleRequestSchema.parse(body);
+    const clinicId = requireClinicIdFromRequest(req);
+    const timezone = await this.appointmentService.getClinicTimezone(clinicId);
+    const parsed = appointmentRescheduleRequestSchema.parse(body);
     return this.appointmentService.rescheduleAppointment(
       id,
-      payload.startTime,
-      payload.endTime,
-      requireClinicIdFromRequest(req),
+      coerceAppointmentBoundaryInstant(
+        parsed.startTime,
+        timezone,
+        'start time',
+      ),
+      coerceAppointmentBoundaryInstant(parsed.endTime, timezone, 'end time'),
+      clinicId,
       getAppointmentAccessContext(req),
     );
   }

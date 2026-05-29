@@ -61,7 +61,7 @@ Origin-style minimal topbar:
 
 - **Leading**: page title (or breadcrumbs when nested) and an optional `PageTabs` strip directly under the title.
 - **Trailing cluster** (right-to-left): user avatar menu, gear (Settings shortcut), notifications bell with unread dot, `+` quick-add (opens a small sheet for new patient/appointment/invoice/start consultation), command palette opener with `Kbd` hint.
-- The trailing cluster must remain visible on mobile. The current `hidden md:flex` on `DesktopTopBar` is a regression; mobile must keep at least the palette opener and the quick-add `+`.
+- The trailing cluster must remain visible on mobile via a single `MobileHeader` (`md:hidden`) that includes the command palette opener, global search, quick-add `+`, and Ask AI. `DesktopTopBar` is desktop-only (`hidden md:block`).
 
 ### 1.3 Command palette parity
 

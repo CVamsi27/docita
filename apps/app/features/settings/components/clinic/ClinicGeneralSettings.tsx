@@ -19,20 +19,25 @@ export function ClinicGeneralSettings() {
   if (settings.isLoading) return <ClinicGeneralSettingsSkeleton />;
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-6">
       <SettingsAiChips scope="clinic-general" />
       <Card>
-        <CardHeader>
-          <CardTitle>{settings.facilityLabel} Information</CardTitle>
-          <CardDescription>Basic settings and information</CardDescription>
+        <CardHeader className="border-b border-border/60 pb-5">
+          <CardTitle>{settings.facilityLabel} profile</CardTitle>
+          <CardDescription>
+            Shown on receipts, prescriptions, appointment messages, and the
+            booking page.
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          {!!settings.clinic?.referralCode && (
-            <ClinicReferralLinks
-              facilityLabel={settings.facilityLabel}
-              referralCode={settings.clinic.referralCode}
-            />
-          )}
+        <CardContent className="pt-5">
+          {settings.clinic?.referralCode ? (
+            <div className="mb-6">
+              <ClinicReferralLinks
+                facilityLabel={settings.facilityLabel}
+                referralCode={settings.clinic.referralCode}
+              />
+            </div>
+          ) : null}
           <ClinicGeneralSettingsForm
             form={settings.form}
             facilityLabel={settings.facilityLabel}

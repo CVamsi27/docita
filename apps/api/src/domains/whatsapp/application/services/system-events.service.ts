@@ -182,6 +182,64 @@ export class SystemEventsService {
     }
   }
 
+  async sendPaymentConfirmation(invoiceId: string, clinicId: string) {
+    if (
+      !(await isClinicWhatsAppAutomationSendingAllowed(
+        this.persistence,
+        clinicId,
+      ))
+    ) {
+      this.logger.log(
+        `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping payment confirmation`,
+      );
+      return;
+    }
+
+    const invoice = await this.persistence.invoice.findUnique({
+      where: { id: invoiceId },
+      include: {
+        patient: {
+          select: { firstName: true, lastName: true, phoneNumber: true },
+        },
+        appointment: { include: { clinic: { select: { name: true } } } },
+        paymentSessions: {
+          where: { status: 'CAPTURED' },
+          orderBy: { paidAt: 'desc' },
+          take: 1,
+          select: { providerPaymentId: true, paidAt: true, amount: true },
+        },
+      },
+    });
+
+    if (!invoice || !invoice.patient.phoneNumber) return;
+
+    const session = invoice.paymentSessions[0];
+    const paidAt = session?.paidAt ?? new Date();
+
+    const variables = {
+      patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
+      clinicName: invoice.appointment?.clinic?.name ?? '',
+      amount: `${invoice.total}`,
+      invoiceNumber: invoice.id.slice(0, 8).toUpperCase(),
+      date: formatDate(paidAt, DATE_FORMATS.DATE_MEDIUM),
+      paymentId: session?.providerPaymentId ?? '',
+    };
+
+    try {
+      await this.sendMessage.execute({
+        clinicId,
+        recipientPhone: invoice.patient.phoneNumber,
+        templateName: 'payment_confirmation',
+        variables,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to send payment confirmation WhatsApp for invoice ${invoiceId}`,
+        error instanceof Error ? error.stack : error,
+      );
+    }
+  }
+
   async sendAppointmentDelayNotification(
     appointmentId: string,
     clinicId: string,

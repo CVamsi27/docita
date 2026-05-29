@@ -17,13 +17,15 @@ export function ComparisonTable({
 
   return (
     <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
-      <div className="p-6 border-b">
-        <h2 className="ui-section-title text-center text-[var(--fs-2xl)]">
-          Compare Plans
-        </h2>
-        <p className="ui-page-subtitle mt-2 text-center">
-          Find the perfect fit for your facility&apos;s needs
-        </p>
+      <div className="flex flex-col gap-1 border-b px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h2 className="ui-section-title text-[var(--fs-xl)] leading-[var(--lh-tight)]">
+            Compare plans
+          </h2>
+          <p className="mt-0.5 text-[var(--fs-xs)] text-muted-foreground">
+            Side-by-side feature and limit breakdown across all tiers.
+          </p>
+        </div>
       </div>
 
       <ComparisonTableMobile

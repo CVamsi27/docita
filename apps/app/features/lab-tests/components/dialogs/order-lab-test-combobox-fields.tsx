@@ -100,7 +100,7 @@ export function OrderLabTestComboboxFields({
                   </Button>
                 </FormControl>
               </PopoverTrigger>
-              <PopoverContent className="w-[400px] p-0 z-100" align="start">
+              <PopoverContent className="w-[min(100vw-2rem,400px)] p-0 z-100" align="start">
                 <Command shouldFilter={false}>
                   <CommandInput
                     placeholder="Enter patient name"
@@ -195,7 +195,7 @@ export function OrderLabTestComboboxFields({
                   </Button>
                 </FormControl>
               </PopoverTrigger>
-              <PopoverContent className="w-[400px] p-0 z-100" align="start">
+              <PopoverContent className="w-[min(100vw-2rem,400px)] p-0 z-100" align="start">
                 <Command shouldFilter={false}>
                   <CommandInput
                     placeholder="Enter test name"
