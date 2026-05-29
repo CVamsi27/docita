@@ -15,6 +15,7 @@ import {
   PLAN_MODES,
   type PlanMode,
   type TierName,
+  tierSchema,
 } from "@workspace/types";
 import {
   landingFadeUpVariants,
@@ -189,7 +190,10 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           viewport={landingInViewViewport}
         >
           {orderedTiers.map((tier) => {
-            const tierId = tier.id as TierName;
+            const parsedTierId = tierSchema.safeParse(tier.id);
+            const tierId: TierName = parsedTierId.success
+              ? parsedTierId.data
+              : "STARTER";
             const supportedModes = getAvailableModesForTier(tierId);
             const effectiveMode: PlanMode = supportedModes.includes(selectedMode)
               ? selectedMode

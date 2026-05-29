@@ -26,6 +26,23 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
+    {
+      name: "mobile-chrome",
+      use: {
+        ...devices["Pixel 5"],
+        viewport: { width: 390, height: 844 },
+        hasTouch: true,
+        isMobile: true,
+      },
+    },
+    {
+      name: "tablet-chrome",
+      use: {
+        ...devices["iPad Pro 11"],
+        viewport: { width: 768, height: 1024 },
+        hasTouch: true,
+      },
+    },
   ],
   webServer: {
     command: "pnpm exec astro dev --port 3003 --host 127.0.0.1",

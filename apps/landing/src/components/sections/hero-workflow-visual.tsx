@@ -2,6 +2,8 @@
 
 import { motion, useReducedMotion } from "motion/react";
 
+import { cn } from "@workspace/ui/lib/utils";
+
 import { landingSpringTransition } from "@/lib/motion-prefs";
 
 interface HeroWorkflowVisualProps {
@@ -32,7 +34,7 @@ export function HeroWorkflowVisual({ className }: HeroWorkflowVisualProps) {
 
   return (
     <svg
-      className={className}
+      className={cn("h-auto w-full min-w-0 max-w-full", className)}
       viewBox="0 0 440 280"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
