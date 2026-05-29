@@ -11,7 +11,7 @@ const authDecorator =
   /^\s*@(Public|Roles|RequireFeature|RequireFeatureFlag|UseGuards|SkipSubscriptionCheck)\b/;
 /** Composite *Access() decorators apply Roles/Guards via applyDecorators. */
 const classPosturePattern =
-  /@(Roles|Public|UseGuards)\b|@\w+Access\(\)/;
+  /@(Roles|Public|UseGuards)\b|@\w+Access\s*\(/;
 const classLine = /^\s*export\s+class\s+\w+Controller\b/;
 
 const files = execSync("git ls-files apps/api/src", {

@@ -12,7 +12,6 @@ import {
   DOCTOR_SCHEDULE_REPOSITORY_TOKEN,
 } from '@/domains/doctors/core/repositories/doctor-schedule.repository.interface';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import { PrismaService } from '@/prisma/prisma.service';
 import { getClinicLocalDayUtcBounds } from '@/shared/common/utils/clinic-calendar-bounds';
 import {
   DEFAULT_TIMEZONE,
@@ -34,7 +33,6 @@ export class AvailabilityScheduleService {
     @Inject(DOCTOR_SCHEDULE_REPOSITORY_TOKEN)
     private repository: IDoctorScheduleRepository,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
-    private readonly prisma: PrismaService,
   ) {}
 
   async getSchedules(doctorId: string, clinicId?: string) {
@@ -332,11 +330,8 @@ export class AvailabilityScheduleService {
     date: Date | string,
   ): Promise<string[]> {
     const target = new Date(date);
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: { timezone: true },
-    });
-    const timezone = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
+    const clinicTimezone = await this.repository.findClinicTimezone(clinicId);
+    const timezone = clinicTimezone?.trim() || DEFAULT_TIMEZONE;
     const pickerDateStr = formatUtcInstantAsClinicPickerIso(target, timezone);
     const bounds = getClinicLocalDayUtcBounds(pickerDateStr, timezone);
     if (!bounds) {

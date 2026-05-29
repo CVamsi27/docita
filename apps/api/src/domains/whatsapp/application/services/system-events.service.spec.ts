@@ -12,6 +12,7 @@ import {
   jest,
 } from '@jest/globals';
 import { ClinicTier, IntelligenceAddon } from '@workspace/db';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 
 describe('SystemEventsService', () => {
   let service: SystemEventsService;
@@ -108,6 +109,10 @@ describe('SystemEventsService', () => {
         {
           provide: SendMessageUseCase,
           useValue: { execute: sendMessageExecute },
+        },
+        {
+          provide: CLOCK_PORT,
+          useValue: { now: () => new Date('2026-04-01T12:00:00Z') },
         },
       ],
     }).compile();

@@ -173,6 +173,8 @@ export const listAppointmentsQuerySchema = z.object({
   search: z.string().optional(),
   status: z.string().optional(),
   cursor: z.string().optional(),
+  page: z.coerce.number().int().positive().optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
   limit: z.coerce.number().int().positive().max(500).optional(),
 });
 

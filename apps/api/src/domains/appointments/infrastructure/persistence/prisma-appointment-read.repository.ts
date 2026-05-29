@@ -43,6 +43,8 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
       status,
       search,
       cursor,
+      page,
+      sortOrder,
       limit = 20,
     } = params;
 
@@ -83,6 +85,70 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
 
     try {
       const readClient = this.getReadClient();
+      const listInclude = {
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
+        },
+        doctor: {
+          select: { id: true, name: true },
+        },
+        reminders: {
+          orderBy: { createdAt: 'desc' as const },
+          take: 1,
+          select: {
+            id: true,
+            type: true,
+            status: true,
+            sentAt: true,
+            error: true,
+            createdAt: true,
+          },
+        },
+        responses: {
+          orderBy: { createdAt: 'desc' as const },
+          take: 1,
+          select: {
+            id: true,
+            responseType: true,
+            responseTime: true,
+            delayMinutes: true,
+            patientMessage: true,
+          },
+        },
+      };
+
+      if (page !== undefined) {
+        const normalizedPage = Math.max(1, page);
+        const skip = (normalizedPage - 1) * limit;
+        const resolvedSortOrder = sortOrder ?? 'desc';
+        const orderBy = [
+          { startTime: resolvedSortOrder },
+          { id: resolvedSortOrder },
+        ] as const;
+
+        const [total, items] = await Promise.all([
+          readClient.appointment.count({ where }),
+          readClient.appointment.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: [...orderBy],
+            include: listInclude,
+          }),
+        ]);
+
+        return {
+          items: items.map((item) => AppointmentMapper.toListItem(item)),
+          hasMore: skip + items.length < total,
+          count: total,
+        };
+      }
+
       const [total, items] = await Promise.all([
         readClient.appointment.count({ where }),
         readClient.appointment.findMany({
@@ -91,42 +157,7 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
           cursor: cursor ? { id: cursor } : undefined,
           skip: cursor ? 1 : 0,
           orderBy: [{ startTime: 'asc' }, { id: 'asc' }],
-          include: {
-            patient: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                phoneNumber: true,
-              },
-            },
-            doctor: {
-              select: { id: true, name: true },
-            },
-            reminders: {
-              orderBy: { createdAt: 'desc' },
-              take: 1,
-              select: {
-                id: true,
-                type: true,
-                status: true,
-                sentAt: true,
-                error: true,
-                createdAt: true,
-              },
-            },
-            responses: {
-              orderBy: { createdAt: 'desc' },
-              take: 1,
-              select: {
-                id: true,
-                responseType: true,
-                responseTime: true,
-                delayMinutes: true,
-                patientMessage: true,
-              },
-            },
-          },
+          include: listInclude,
         }),
       ]);
 

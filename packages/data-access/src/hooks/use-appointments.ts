@@ -81,6 +81,8 @@ type AppointmentQueryOptions = {
   search?: string;
   status?: string;
   cursor?: string;
+  page?: number;
+  sortOrder?: "asc" | "desc";
   limit?: number;
 };
 

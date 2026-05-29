@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
   WHATSAPP_PERSISTENCE_PORT,
   type WhatsappPersistencePort,
@@ -11,10 +12,10 @@ import {
   buildInvoiceCreatedVariables,
   buildPrescriptionCreatedVariables,
 } from '@/shared/whatsapp/patient-whatsapp-template-variables';
-import { ClinicSettingsSchema } from '@/domains/clinics/presentation/schemas/settings.schema';
-import { WhatsappLogStatus } from '@workspace/db';
-import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
-import type { SendMessageResult } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
+import {
+  logOutboundPatientTemplate,
+  resolveAppointmentMapsLink,
+} from './system-events.helpers';
 
 /**
  * Clinic automation event notifier. Message delivery delegates to SendMessageUseCase.
@@ -28,6 +29,7 @@ export class SystemEventsService {
     @Inject(WHATSAPP_PERSISTENCE_PORT)
     private readonly persistence: WhatsappPersistencePort,
     private readonly sendMessage: SendMessageUseCase,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async sendPrescriptionSystem(prescriptionId: string, clinicId: string) {
@@ -161,20 +163,7 @@ export class SystemEventsService {
 
     if (!appointment || !appointment.patient.phoneNumber) return;
 
-    const settingsParsed = ClinicSettingsSchema.safeParse(
-      appointment.clinic?.settings,
-    );
-    const mapsLocation = settingsParsed.success
-      ? settingsParsed.data.mapsLocation
-      : undefined;
-    const customMapsLink = settingsParsed.success
-      ? settingsParsed.data.mapsLink?.trim()
-      : undefined;
-    const mapsLink =
-      customMapsLink ||
-      (mapsLocation
-        ? `https://www.google.com/maps?q=${mapsLocation.lat},${mapsLocation.lng}`
-        : '');
+    const mapsLink = resolveAppointmentMapsLink(appointment.clinic?.settings);
 
     const variables = {
       patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
@@ -192,7 +181,7 @@ export class SystemEventsService {
         templateName: 'appointment_confirmation',
         variables,
       });
-      await this.logOutboundPatientTemplate({
+      await logOutboundPatientTemplate(this.persistence, {
         clinicId,
         patientId: appointment.patient.id,
         phoneNumber: appointment.patient.phoneNumber,
@@ -241,7 +230,7 @@ export class SystemEventsService {
     if (!invoice || !invoice.patient.phoneNumber) return;
 
     const session = invoice.paymentSessions[0];
-    const paidAt = session?.paidAt ?? new Date();
+    const paidAt = session?.paidAt ?? this.clock.now();
 
     const variables = {
       patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
@@ -317,7 +306,7 @@ export class SystemEventsService {
         templateName: 'appointment_delay',
         variables,
       });
-      await this.logOutboundPatientTemplate({
+      await logOutboundPatientTemplate(this.persistence, {
         clinicId,
         patientId: appointment.patient.id,
         phoneNumber: appointment.patient.phoneNumber,
@@ -387,7 +376,7 @@ export class SystemEventsService {
         templateName,
         variables,
       });
-      await this.logOutboundPatientTemplate({
+      await logOutboundPatientTemplate(this.persistence, {
         clinicId,
         patientId: appointment.patient.id,
         phoneNumber: appointment.patient.phoneNumber,
@@ -402,34 +391,5 @@ export class SystemEventsService {
         error instanceof Error ? error.stack : error,
       );
     }
-  }
-
-  private async logOutboundPatientTemplate(params: {
-    clinicId: string;
-    patientId: string;
-    phoneNumber: string;
-    templateId: string;
-    appointmentId: string;
-    sendResult: SendMessageResult;
-    variables: Record<string, string>;
-  }): Promise<void> {
-    await this.persistence.whatsappLog.create({
-      data: {
-        clinicId: params.clinicId,
-        patientId: params.patientId,
-        phoneNumber: params.phoneNumber,
-        message: `Sent template: ${params.templateId}`,
-        type: params.templateId,
-        status: WhatsappLogStatus.SENT,
-        providerMessageId: params.sendResult.providerMessageId || null,
-        senderMode: params.sendResult.senderMode ?? 'SHARED',
-        senderPhoneNumberId: params.sendResult.senderPhoneNumberId ?? null,
-        requestBody: toPrismaInputJsonValue({
-          appointmentId: params.appointmentId,
-          templateId: params.templateId,
-          variables: params.variables,
-        }),
-      },
-    });
   }
 }

@@ -109,6 +109,8 @@ export class AppointmentsScheduleController {
       status,
       cursor,
       limit,
+      page,
+      sortOrder,
     } = query;
 
     const statuses = status
@@ -152,6 +154,8 @@ export class AppointmentsScheduleController {
           status,
           cursor,
           limit,
+          page,
+          sortOrder,
         },
       );
     }
@@ -179,6 +183,8 @@ export class AppointmentsScheduleController {
       status: statuses,
       cursor,
       limit,
+      page,
+      sortOrder,
     });
 
     return listAppointmentsResponseSchema.parse(result);

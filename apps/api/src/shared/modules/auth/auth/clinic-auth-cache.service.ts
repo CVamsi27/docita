@@ -4,9 +4,12 @@ import {
   ClinicTier,
   SubscriptionStatus,
   IntelligenceAddon,
-  PlanMode as DbPlanMode,
 } from '@workspace/db';
-import type { ClinicFeatureOverrides, PlanMode } from '@workspace/types';
+import {
+  type ClinicFeatureOverrides,
+  type PlanMode,
+  resolveClinicPlanMode,
+} from '@workspace/types';
 import { CACHE_CONSTANTS } from '@/shared/modules/config/app-constants';
 import { readClinicFeatureOverrides } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import { clinicHasOutstandingPendingPayment } from '@/shared/modules/auth/utils/clinic-outstanding-pending-payment.util';
@@ -88,15 +91,10 @@ export class ClinicAuthCacheService {
       throw new NotFoundException(`Clinic ${clinicId} not found`);
     }
 
-    // Legacy FRONT_DESK_* tiers force planMode = FRONT_DESK regardless of
-    // the persisted column (see mapDbClinicTierToTierAndMode).
-    const isLegacyFrontDesk =
-      clinic.tier === ClinicTier.FRONT_DESK ||
-      clinic.tier === ClinicTier.FRONT_DESK_CLINIC ||
-      clinic.tier === ClinicTier.FRONT_DESK_HOSPITAL;
-    const planMode: PlanMode = isLegacyFrontDesk
-      ? 'FRONT_DESK'
-      : ((clinic.planMode ?? DbPlanMode.FULL) as PlanMode);
+    const planMode: PlanMode = resolveClinicPlanMode(
+      clinic.tier,
+      clinic.planMode,
+    );
 
     const authData = {
       tier: clinic.tier,

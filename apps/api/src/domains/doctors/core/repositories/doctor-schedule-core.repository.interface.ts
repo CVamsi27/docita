@@ -63,6 +63,8 @@ export interface IDoctorScheduleCoreRepository {
   createManySchedules(
     data: Prisma.DoctorScheduleCreateManyInput[],
   ): Promise<void>;
+
+  findClinicTimezone(clinicId: string): Promise<string | null>;
 }
 
 export const DOCTOR_SCHEDULE_CORE_REPOSITORY_TOKEN = Symbol(

@@ -120,9 +120,8 @@ describe('RBAC high-risk matrix (e2e)', () => {
       });
       const { user, plainPassword } = await factories.user({
         clinicId: clinic.id,
-        role: Role.DOCTOR,
+        role: Role.RECEPTIONIST,
       });
-      await factories.doctorClinic(user.id, clinic.id);
 
       const loginResponse = await request(app.getHttpServer())
         .post('/auth/login')
