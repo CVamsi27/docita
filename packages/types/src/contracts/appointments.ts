@@ -95,6 +95,22 @@ export const appointmentListItemResponseSchema = z
         }),
       )
       .optional(),
+    latestPatientResponse: z
+      .object({
+        id: z.string(),
+        responseType: z.enum([
+          "CONFIRM",
+          "ON_THE_WAY",
+          "DELAY",
+          "RESCHEDULE",
+          "CANCEL",
+          "UNKNOWN",
+        ]),
+        responseTime: z.string().or(z.date()),
+        delayMinutes: z.number().int().nullable().optional(),
+        patientMessage: z.string().nullable().optional(),
+      })
+      .optional(),
   })
   .strict();
 

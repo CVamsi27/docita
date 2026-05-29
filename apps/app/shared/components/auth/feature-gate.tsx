@@ -23,7 +23,7 @@ import {
   Tier,
   TIER_INFO,
 } from "@workspace/types";
-import { getTierName, hasFeatureAccess } from "@workspace/utils";
+import { getTierName } from "@workspace/utils";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 

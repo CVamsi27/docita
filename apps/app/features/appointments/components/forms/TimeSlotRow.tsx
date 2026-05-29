@@ -13,6 +13,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { AppointmentRowActionsMenu } from "./AppointmentRowActionsMenu";
 import { WhatsAppDeliveryBadge } from "@/components/whatsapp/whatsapp-delivery-badge";
+import { PatientWhatsAppResponseBadge } from "@/components/whatsapp/patient-whatsapp-response-badge";
 import { useResendAppointmentReminder } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
@@ -104,6 +105,7 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
     const queryClient = useQueryClient();
     const resendReminder = useResendAppointmentReminder();
     const lastReminder = apt.reminders?.[0] ?? null;
+    const latestPatientResponse = apt.latestPatientResponse ?? null;
 
     const handleReminderRetry = useCallback(async () => {
       if (!apt.id) return;
@@ -188,14 +190,26 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                     .join(" · ")}
                 </span>
               </div>
-              {lastReminder ? (
-                <div className="mt-1" onClick={stopRowActivation}>
-                  <WhatsAppDeliveryBadge
-                    status={lastReminder.status}
-                    sentAt={lastReminder.sentAt ?? null}
-                    onRetry={handleReminderRetry}
-                    isRetrying={resendReminder.isPending}
-                  />
+              {(latestPatientResponse || lastReminder) ? (
+                <div
+                  className="mt-1 flex flex-wrap items-center gap-2"
+                  onClick={stopRowActivation}
+                >
+                  {latestPatientResponse ? (
+                    <PatientWhatsAppResponseBadge
+                      responseType={latestPatientResponse.responseType}
+                      responseTime={latestPatientResponse.responseTime}
+                      delayMinutes={latestPatientResponse.delayMinutes}
+                    />
+                  ) : null}
+                  {lastReminder ? (
+                    <WhatsAppDeliveryBadge
+                      status={lastReminder.status}
+                      sentAt={lastReminder.sentAt ?? null}
+                      onRetry={handleReminderRetry}
+                      isRetrying={resendReminder.isPending}
+                    />
+                  ) : null}
                 </div>
               ) : null}
             </div>

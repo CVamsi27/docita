@@ -1,7 +1,7 @@
 "use client";
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Card,
@@ -11,7 +11,14 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/feedback/alert";
 import { cn } from "@workspace/ui/lib/utils";
+import { recommendTierForTeamSize } from "@workspace/utils";
 import { type TierPricing, usePricingConfig } from "@/features/subscription";
 import { ContactSalesModal } from "@/features/dialogs";
 import { TierCard, getFeatureDetails } from "@/features/subscription";
@@ -38,6 +45,8 @@ export function PlanSelectionStepInner({
   defaultTier = "ESSENTIAL",
   defaultBillingCycle = "MONTHLY",
   currency,
+  teamUserCount = 1,
+  onBack,
 }: PlanSelectionProps) {
   const searchParams = useSearchParams();
   const { currency: detectedCurrency } = useLocaleCurrency();
@@ -54,6 +63,11 @@ export function PlanSelectionStepInner({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
+
+  const teamRecommendation = useMemo(
+    () => recommendTierForTeamSize(teamUserCount),
+    [teamUserCount],
+  );
 
   const resolvedCurrency = currency ?? detectedCurrency;
   const { pricingConfig, isLoading, error } =
@@ -158,10 +172,10 @@ Please contact me with deployment and commercial details.`;
   return (
     <Card className="border-primary/20 bg-primary/5">
       <CardHeader>
-        <CardTitle>Step 2: Choose Your Plan</CardTitle>
+        <CardTitle>Choose your plan</CardTitle>
         <CardDescription>
-          Select a plan that fits your facility needs. Paid plans redirect to
-          Razorpay for secure checkout.
+          Select a plan that fits your facility and team size. Paid plans redirect
+          to Razorpay for secure checkout.
         </CardDescription>
         <p className="text-xs text-muted-foreground">
           {pricingRegionLabel} for facilities in{" "}
@@ -169,6 +183,25 @@ Please contact me with deployment and commercial details.`;
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
+        {teamRecommendation ? (
+          <Alert>
+            <AlertTitle>Recommended for your team</AlertTitle>
+            <AlertDescription>
+              You are setting up{" "}
+              <span className="font-medium text-foreground">
+                {teamRecommendation.totalUsers}{" "}
+                {teamRecommendation.totalUsers === 1 ? "user" : "users"}
+              </span>{" "}
+              (including you).{" "}
+              <span className="font-medium text-foreground">
+                {getTierInfo(getTierValue(teamRecommendation.tier)).name}
+              </span>{" "}
+              includes up to {teamRecommendation.includedUsers} users and is the
+              smallest plan that covers your team.
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
         <BillingCycleToggle
           billingCycle={billingCycle}
           onChange={setBillingCycle}
@@ -202,6 +235,7 @@ Please contact me with deployment and commercial details.`;
                   features={features}
                   isCurrentTier={false}
                   isLocked={false}
+                  isRecommended={teamRecommendation?.tier === tierName}
                   className={cn(
                     "h-full",
                     selectedTier === tierName &&
@@ -240,6 +274,14 @@ Please contact me with deployment and commercial details.`;
           open={comparisonOpen}
           onOpenChange={setComparisonOpen}
         />
+
+        {onBack ? (
+          <div className="flex justify-start border-t pt-4">
+            <Button type="button" variant="outline" onClick={onBack}>
+              Back
+            </Button>
+          </div>
+        ) : null}
 
         <ContactSalesModal
           open={showContactSalesModal}
