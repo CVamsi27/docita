@@ -58,10 +58,10 @@ function DialogContent({
 }) {
   const densityClass =
     density === "compact"
-      ? "p-4 sm:p-5 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-5"
+      ? "p-4 md:p-5 pb-[max(1rem,env(safe-area-inset-bottom))] md:pb-5"
       : density === "spacious"
-        ? "p-6 sm:p-7 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:pb-7"
-        : "p-5 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-6";
+        ? "p-6 md:p-7 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:pb-7"
+        : "p-5 md:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:pb-6";
 
   return (
     <DialogPortal data-slot="dialog-portal">
@@ -71,20 +71,20 @@ function DialogContent({
         className={cn(
           "bg-surface-1 supports-[backdrop-filter]:bg-surface-1/95 supports-[backdrop-filter]:backdrop-blur-xl",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-          "fixed z-50 flex flex-col gap-5 rounded-t-lg sm:rounded-lg border border-border shadow-2xl duration-200",
+          "fixed z-50 flex flex-col gap-5 rounded-t-lg md:rounded-lg border border-border shadow-2xl duration-200",
           densityClass,
           "max-h-[92dvh] overflow-y-auto overscroll-contain",
-          "bottom-0 left-0 right-0 sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:-translate-y-1/2",
-          "w-full sm:w-[calc(100%-2rem)] sm:max-w-lg",
-          "data-[state=open]:slide-in-from-bottom sm:data-[state=open]:slide-in-from-bottom-0",
-          "data-[state=closed]:slide-out-to-bottom sm:data-[state=closed]:slide-out-to-bottom-0",
+          "bottom-0 left-0 right-0 md:bottom-auto md:top-1/2 md:left-1/2 md:right-auto md:-translate-x-1/2 md:-translate-y-1/2",
+          "w-full md:w-[calc(100%-2rem)] md:max-w-lg",
+          "data-[state=open]:slide-in-from-bottom md:data-[state=open]:slide-in-from-bottom-0",
+          "data-[state=closed]:slide-out-to-bottom md:data-[state=closed]:slide-out-to-bottom-0",
           className,
         )}
         {...props}
       >
         <div
           aria-hidden="true"
-          className="sm:hidden mx-auto -mt-1 mb-1 h-1.5 w-10 rounded-full bg-muted-foreground/30"
+          className="md:hidden mx-auto -mt-1 mb-1 h-1.5 w-10 rounded-full bg-muted-foreground/30"
         />
         {children}
         {showCloseButton && (
@@ -92,16 +92,16 @@ function DialogContent({
             data-slot="dialog-close"
             aria-label="Close"
             className={cn(
-              "absolute top-3 right-3 sm:top-4 sm:right-4",
+              "absolute top-3 right-3 md:top-4 md:right-4",
               "inline-flex items-center justify-center rounded-lg",
-              "size-9 sm:size-8",
+              "size-9 md:size-8",
               "text-muted-foreground hover:text-foreground",
               "bg-transparent hover:bg-accent/60 active:bg-accent",
               "transition-colors duration-150",
               "ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               "data-[state=open]:bg-accent/40",
               "disabled:pointer-events-none touch-manipulation",
-              "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5 sm:[&_svg:not([class*='size-'])]:size-4",
+              "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5 md:[&_svg:not([class*='size-'])]:size-4",
             )}
           >
             <XIcon />
@@ -117,7 +117,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-1.5 text-left pr-10 sm:pr-8", className)}
+      className={cn("flex flex-col gap-1.5 text-left pr-10 md:pr-8", className)}
       {...props}
     />
   );
@@ -138,7 +138,7 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="dialog-footer"
       className={cn(
-        "flex flex-col-reverse gap-2 border-t border-border/70 pt-4 sm:flex-row sm:justify-end sm:gap-2",
+        "flex flex-col-reverse gap-2 border-t border-border/70 pt-4 md:flex-row md:justify-end md:gap-2",
         className,
       )}
       {...props}
