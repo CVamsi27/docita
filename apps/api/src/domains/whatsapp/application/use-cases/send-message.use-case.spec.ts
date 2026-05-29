@@ -185,6 +185,7 @@ describe('SendMessageUseCase', () => {
         buttons: undefined,
         buttonType: 'QUICK_REPLY',
         textFallback: 'Hello John',
+        variables: [],
       };
       resolveTemplateMock.mockResolvedValue(resolved);
 
@@ -216,6 +217,7 @@ describe('SendMessageUseCase', () => {
         ],
         buttonType: 'QUICK_REPLY',
         textFallback: 'Confirm appointment?',
+        variables: [],
       });
 
       await useCase.execute({
@@ -259,6 +261,7 @@ describe('SendMessageUseCase', () => {
         buttonType: 'QUICK_REPLY',
         textFallback: 'Hello',
         metaTemplateId: 'meta-tmpl-001',
+        variables: [{ name: 'patientName', required: true }],
       });
 
       await useCase.execute({

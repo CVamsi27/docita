@@ -5,8 +5,17 @@ import {
 } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/whatsapp/whatsapp-patient-send-policy.util';
-import { DATE_FORMATS, formatDate, formatTime } from '@workspace/utils';
+import {
+  DATE_FORMATS,
+  docitaPublicInvoiceUrl,
+  docitaPublicRxUrl,
+  formatDate,
+  formatTime,
+} from '@workspace/utils';
 import { ClinicSettingsSchema } from '@/domains/clinics/presentation/schemas/settings.schema';
+import { WhatsappLogStatus } from '@workspace/db';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import type { SendMessageResult } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 
 /**
  * Clinic automation event notifier. Message delivery delegates to SendMessageUseCase.
@@ -49,10 +58,11 @@ export class SystemEventsService {
     if (!prescription || !prescription.patient.phoneNumber) return;
 
     const variables = {
-      patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
       clinicName: prescription.appointment?.clinic?.name ?? '',
+      patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
       doctorName: prescription.doctor.name,
-      link: `https://docita.com/prescription/${prescription.id}`,
+      rxToken: prescription.id,
+      rxLink: docitaPublicRxUrl(prescription.id),
     };
 
     try {
@@ -96,10 +106,11 @@ export class SystemEventsService {
     if (!invoice || !invoice.patient.phoneNumber) return;
 
     const variables = {
-      patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
       clinicName: invoice.appointment?.clinic?.name ?? '',
+      patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
       amount: `${invoice.total}`,
-      link: `https://docita.com/invoice/${invoice.id}`,
+      invToken: invoice.id,
+      invLink: docitaPublicInvoiceUrl(invoice.id),
     };
 
     try {
@@ -134,7 +145,12 @@ export class SystemEventsService {
       where: { id: appointmentId },
       include: {
         patient: {
-          select: { firstName: true, lastName: true, phoneNumber: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
         },
         doctor: { select: { name: true } },
         clinic: { select: { name: true, settings: true } },
@@ -168,10 +184,19 @@ export class SystemEventsService {
     };
 
     try {
-      await this.sendMessage.execute({
+      const sendResult = await this.sendMessage.execute({
         clinicId,
         recipientPhone: appointment.patient.phoneNumber,
         templateName: 'appointment_confirmation',
+        variables,
+      });
+      await this.logOutboundPatientTemplate({
+        clinicId,
+        patientId: appointment.patient.id,
+        phoneNumber: appointment.patient.phoneNumber,
+        templateId: 'appointment_confirmation',
+        appointmentId,
+        sendResult,
         variables,
       });
     } catch (error) {
@@ -261,7 +286,12 @@ export class SystemEventsService {
       where: { id: appointmentId },
       include: {
         patient: {
-          select: { firstName: true, lastName: true, phoneNumber: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
         },
         clinic: { select: { name: true } },
       },
@@ -278,10 +308,19 @@ export class SystemEventsService {
     };
 
     try {
-      await this.sendMessage.execute({
+      const sendResult = await this.sendMessage.execute({
         clinicId,
         recipientPhone: appointment.patient.phoneNumber,
         templateName: 'appointment_delay',
+        variables,
+      });
+      await this.logOutboundPatientTemplate({
+        clinicId,
+        patientId: appointment.patient.id,
+        phoneNumber: appointment.patient.phoneNumber,
+        templateId: 'appointment_delay',
+        appointmentId,
+        sendResult,
         variables,
       });
     } catch (error) {
@@ -313,7 +352,12 @@ export class SystemEventsService {
       where: { id: appointmentId },
       include: {
         patient: {
-          select: { firstName: true, lastName: true, phoneNumber: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
         },
         clinic: { select: { name: true } },
       },
@@ -334,10 +378,19 @@ export class SystemEventsService {
     };
 
     try {
-      await this.sendMessage.execute({
+      const sendResult = await this.sendMessage.execute({
         clinicId,
         recipientPhone: appointment.patient.phoneNumber,
         templateName,
+        variables,
+      });
+      await this.logOutboundPatientTemplate({
+        clinicId,
+        patientId: appointment.patient.id,
+        phoneNumber: appointment.patient.phoneNumber,
+        templateId: templateName,
+        appointmentId,
+        sendResult,
         variables,
       });
     } catch (error) {
@@ -346,5 +399,34 @@ export class SystemEventsService {
         error instanceof Error ? error.stack : error,
       );
     }
+  }
+
+  private async logOutboundPatientTemplate(params: {
+    clinicId: string;
+    patientId: string;
+    phoneNumber: string;
+    templateId: string;
+    appointmentId: string;
+    sendResult: SendMessageResult;
+    variables: Record<string, string>;
+  }): Promise<void> {
+    await this.persistence.whatsappLog.create({
+      data: {
+        clinicId: params.clinicId,
+        patientId: params.patientId,
+        phoneNumber: params.phoneNumber,
+        message: `Sent template: ${params.templateId}`,
+        type: params.templateId,
+        status: WhatsappLogStatus.SENT,
+        providerMessageId: params.sendResult.providerMessageId || null,
+        senderMode: params.sendResult.senderMode ?? 'SHARED',
+        senderPhoneNumberId: params.sendResult.senderPhoneNumberId ?? null,
+        requestBody: toPrismaInputJsonValue({
+          appointmentId: params.appointmentId,
+          templateId: params.templateId,
+          variables: params.variables,
+        }),
+      },
+    });
   }
 }

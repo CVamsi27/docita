@@ -8,7 +8,13 @@ import {
   WHATSAPP_REPOSITORY_TOKEN,
 } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
-import { DATE_FORMATS, formatDate, formatTime } from '@workspace/utils';
+import {
+  DATE_FORMATS,
+  docitaPublicInvoiceUrl,
+  docitaPublicRxUrl,
+  formatDate,
+  formatTime,
+} from '@workspace/utils';
 
 @Injectable()
 export class WhatsAppAutomationService {
@@ -46,10 +52,11 @@ export class WhatsAppAutomationService {
       recipientPhone: prescription.patient.phoneNumber,
       templateName: 'prescription_created',
       variables: {
-        patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
         clinicName: prescription.appointment?.clinic?.name ?? '',
+        patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
         doctorName: prescription.doctor.name,
-        link: `https://docita.work/p/${prescriptionId}`,
+        rxToken: prescriptionId,
+        rxLink: docitaPublicRxUrl(prescriptionId),
       },
     });
   }
@@ -74,10 +81,11 @@ export class WhatsAppAutomationService {
       recipientPhone: invoice.patient.phoneNumber,
       templateName: 'invoice_created',
       variables: {
-        patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
         clinicName: invoice.appointment?.clinic?.name ?? '',
+        patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
         amount: `${invoice.total}`,
-        link: `https://docita.work/i/${invoiceId}`,
+        invToken: invoiceId,
+        invLink: docitaPublicInvoiceUrl(invoiceId),
       },
     });
   }

@@ -6,7 +6,12 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { PaymentsService } from '@/domains/billing/application/services/payments.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { DATE_FORMATS, formatCurrency, formatDate } from '@workspace/utils';
+import {
+  DATE_FORMATS,
+  docitaPublicInvoiceUrl,
+  formatCurrency,
+  formatDate,
+} from '@workspace/utils';
 
 @Injectable()
 export class InvoiceEventsListener {
@@ -81,12 +86,12 @@ export class InvoiceEventsListener {
         recipientPhone: invoice.patient.phoneNumber,
         templateName: 'invoice_created',
         variables: {
-          patientName: invoice.patient.firstName,
           clinicName: clinic?.name || clinicId,
+          patientName:
+            `${invoice.patient.firstName} ${invoice.patient.lastName}`.trim(),
           amount: formattedAmount,
-          link:
-            paymentLink ||
-            `${this.configService.getFrontendAppUrl()}/invoices/${invoiceId}`,
+          invToken: invoice.id,
+          invLink: docitaPublicInvoiceUrl(invoice.id),
         },
         text: message,
         metadata: { invoiceId },

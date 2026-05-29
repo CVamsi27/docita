@@ -30,7 +30,11 @@ import {
   type ITransactionRunner,
 } from '@/shared/common/ports/transaction-runner.port';
 import { RazorpayInvoiceWebhookService } from './razorpay-invoice-webhook.service';
-import { DATE_FORMATS, formatDate } from '@workspace/utils';
+import {
+  DATE_FORMATS,
+  docitaPublicInvoiceUrl,
+  formatDate,
+} from '@workspace/utils';
 
 /**
  * Clinic invoice payment mutations (sessions, links, manual settlement).
@@ -205,17 +209,19 @@ export class PaymentsCommandService {
     const dueDateDisplay = session.invoice.dueDate
       ? formatDate(session.invoice.dueDate, DATE_FORMATS.DATE_MEDIUM)
       : '—';
+    const invToken = session.invoice.id;
 
     try {
       await this.sendMessage.execute({
         recipientPhone: session.patient.phoneNumber,
         templateName: 'payment_reminder',
         variables: {
-          patientName,
           clinicName: session.clinic.name,
+          patientName,
           amount,
           dueDate: dueDateDisplay,
-          invoiceLink: link,
+          invToken,
+          invLink: docitaPublicInvoiceUrl(invToken),
         },
         clinicId: session.clinicId,
       });

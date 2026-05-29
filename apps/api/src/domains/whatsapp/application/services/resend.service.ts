@@ -16,7 +16,12 @@ import {
   ApprovalStatus,
   PaymentSessionStatus,
 } from '@workspace/db';
-import { DATE_FORMATS, formatCurrency, formatDate } from '@workspace/utils';
+import {
+  DATE_FORMATS,
+  docitaPublicPayUrl,
+  formatCurrency,
+  formatDate,
+} from '@workspace/utils';
 
 // AuditLogged: outbound WhatsApp resend delegates to SendMessageUseCase audit trail
 
@@ -185,19 +190,21 @@ export class WhatsappResendService {
       throw new BadRequestException('Invoice not approved for sharing');
     }
 
+    const paymentSession = invoice.paymentSessions[0];
     const paymentLink =
-      invoice.paymentSessions[0]?.shortUrl ||
-      invoice.paymentSessions[0]?.paymentLink;
+      paymentSession?.shortUrl || paymentSession?.paymentLink || '';
+    const payToken = paymentSession?.id ?? id;
 
     const variables = toTemplateVariables({
-      patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
       clinicName: invoice.appointment?.clinic?.name ?? '',
+      patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
+      invoiceNumber: id.slice(-8).toUpperCase(),
+      date: formatDate(invoice.createdAt, DATE_FORMATS.DATE_SHORT),
       amount: formatCurrency(invoice.total, {
         currency: invoice.currency ?? invoice.appointment?.clinic?.currency,
       }),
-      invoiceNumber: id.slice(-8).toUpperCase(),
-      date: formatDate(invoice.createdAt, DATE_FORMATS.DATE_SHORT),
-      paymentLink: paymentLink || '',
+      payToken,
+      payLink: paymentLink || docitaPublicPayUrl(payToken),
     });
 
     const resolved = await this.templatesService.resolveTemplate(
