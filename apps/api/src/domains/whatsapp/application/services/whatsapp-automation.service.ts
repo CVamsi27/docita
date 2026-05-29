@@ -8,13 +8,11 @@ import {
   WHATSAPP_REPOSITORY_TOKEN,
 } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
+import { DATE_FORMATS, formatDate, formatTime } from '@workspace/utils';
 import {
-  DATE_FORMATS,
-  docitaPublicInvoiceUrl,
-  docitaPublicRxUrl,
-  formatDate,
-  formatTime,
-} from '@workspace/utils';
+  buildInvoiceCreatedVariables,
+  buildPrescriptionCreatedVariables,
+} from '@/shared/whatsapp/patient-whatsapp-template-variables';
 
 @Injectable()
 export class WhatsAppAutomationService {
@@ -41,7 +39,9 @@ export class WhatsAppAutomationService {
           select: { firstName: true, lastName: true, phoneNumber: true },
         },
         doctor: { select: { name: true } },
-        appointment: { include: { clinic: { select: { name: true } } } },
+        appointment: {
+          include: { clinic: { select: { name: true, currency: true } } },
+        },
       },
     });
 
@@ -51,13 +51,12 @@ export class WhatsAppAutomationService {
       clinicId,
       recipientPhone: prescription.patient.phoneNumber,
       templateName: 'prescription_created',
-      variables: {
-        clinicName: prescription.appointment?.clinic?.name ?? '',
+      variables: buildPrescriptionCreatedVariables({
+        prescriptionId,
         patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
         doctorName: prescription.doctor.name,
-        rxToken: prescriptionId,
-        rxLink: docitaPublicRxUrl(prescriptionId),
-      },
+        clinicName: prescription.appointment?.clinic?.name ?? '',
+      }),
     });
   }
 
@@ -70,7 +69,9 @@ export class WhatsAppAutomationService {
         patient: {
           select: { firstName: true, lastName: true, phoneNumber: true },
         },
-        appointment: { include: { clinic: { select: { name: true } } } },
+        appointment: {
+          include: { clinic: { select: { name: true, currency: true } } },
+        },
       },
     });
 
@@ -80,13 +81,13 @@ export class WhatsAppAutomationService {
       clinicId,
       recipientPhone: invoice.patient.phoneNumber,
       templateName: 'invoice_created',
-      variables: {
-        clinicName: invoice.appointment?.clinic?.name ?? '',
+      variables: buildInvoiceCreatedVariables({
+        invoiceId,
         patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
-        amount: `${invoice.total}`,
-        invToken: invoiceId,
-        invLink: docitaPublicInvoiceUrl(invoiceId),
-      },
+        clinicName: invoice.appointment?.clinic?.name ?? '',
+        amount: invoice.total,
+        currency: invoice.currency ?? invoice.appointment?.clinic?.currency,
+      }),
     });
   }
 

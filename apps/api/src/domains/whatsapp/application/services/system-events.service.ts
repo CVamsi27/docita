@@ -5,13 +5,12 @@ import {
 } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/whatsapp/whatsapp-patient-send-policy.util';
+import { DATE_FORMATS, formatDate, formatTime } from '@workspace/utils';
 import {
-  DATE_FORMATS,
-  docitaPublicInvoiceUrl,
-  docitaPublicRxUrl,
-  formatDate,
-  formatTime,
-} from '@workspace/utils';
+  buildAppointmentDelayVariables,
+  buildInvoiceCreatedVariables,
+  buildPrescriptionCreatedVariables,
+} from '@/shared/whatsapp/patient-whatsapp-template-variables';
 import { ClinicSettingsSchema } from '@/domains/clinics/presentation/schemas/settings.schema';
 import { WhatsappLogStatus } from '@workspace/db';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
@@ -51,19 +50,20 @@ export class SystemEventsService {
           select: { firstName: true, lastName: true, phoneNumber: true },
         },
         doctor: { select: { name: true } },
-        appointment: { include: { clinic: { select: { name: true } } } },
+        appointment: {
+          include: { clinic: { select: { name: true, currency: true } } },
+        },
       },
     });
 
     if (!prescription || !prescription.patient.phoneNumber) return;
 
-    const variables = {
-      clinicName: prescription.appointment?.clinic?.name ?? '',
+    const variables = buildPrescriptionCreatedVariables({
+      prescriptionId: prescription.id,
       patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
       doctorName: prescription.doctor.name,
-      rxToken: prescription.id,
-      rxLink: docitaPublicRxUrl(prescription.id),
-    };
+      clinicName: prescription.appointment?.clinic?.name ?? '',
+    });
 
     try {
       await this.sendMessage.execute({
@@ -99,19 +99,21 @@ export class SystemEventsService {
         patient: {
           select: { firstName: true, lastName: true, phoneNumber: true },
         },
-        appointment: { include: { clinic: { select: { name: true } } } },
+        appointment: {
+          include: { clinic: { select: { name: true, currency: true } } },
+        },
       },
     });
 
     if (!invoice || !invoice.patient.phoneNumber) return;
 
-    const variables = {
-      clinicName: invoice.appointment?.clinic?.name ?? '',
+    const variables = buildInvoiceCreatedVariables({
+      invoiceId: invoice.id,
       patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
-      amount: `${invoice.total}`,
-      invToken: invoice.id,
-      invLink: docitaPublicInvoiceUrl(invoice.id),
-    };
+      clinicName: invoice.appointment?.clinic?.name ?? '',
+      amount: invoice.total,
+      currency: invoice.currency ?? invoice.appointment?.clinic?.currency,
+    });
 
     try {
       await this.sendMessage.execute({
@@ -293,19 +295,20 @@ export class SystemEventsService {
             phoneNumber: true,
           },
         },
-        clinic: { select: { name: true } },
+        clinic: { select: { name: true, timezone: true } },
       },
     });
 
     if (!appointment || !appointment.patient.phoneNumber) return;
 
-    const variables = {
+    // Appointments are shifted in DB before this event; startTime is the new slot.
+    const variables = buildAppointmentDelayVariables({
       patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
       clinicName: appointment.clinic?.name ?? '',
-      delayMinutes: `${delayMinutes}`,
-      date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM),
-      time: formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM),
-    };
+      delayMinutes,
+      updatedStartTime: appointment.startTime,
+      clinicTimezone: appointment.clinic?.timezone,
+    });
 
     try {
       const sendResult = await this.sendMessage.execute({

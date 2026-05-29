@@ -1,3 +1,5 @@
+import { toWhatsAppUrlButtonToken } from '@workspace/utils';
+
 interface TemplateVariable {
   name: string;
   required: boolean;
@@ -29,7 +31,9 @@ export function buildMetaTemplateComponents(
   }
 
   if (buttonUrlVariable) {
-    const buttonToken = filledVariables[buttonUrlVariable]?.trim();
+    const buttonToken = toWhatsAppUrlButtonToken(
+      filledVariables[buttonUrlVariable]?.trim() ?? '',
+    );
     if (buttonToken) {
       components.push({
         type: 'button',

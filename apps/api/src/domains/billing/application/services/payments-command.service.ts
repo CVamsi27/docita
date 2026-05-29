@@ -30,11 +30,12 @@ import {
   type ITransactionRunner,
 } from '@/shared/common/ports/transaction-runner.port';
 import { RazorpayInvoiceWebhookService } from './razorpay-invoice-webhook.service';
+import { isDocitaOnlinePaymentSession } from '@/domains/billing/core/rules/docita-online-payment-session';
+import { DATE_FORMATS, formatDate } from '@workspace/utils';
 import {
-  DATE_FORMATS,
-  docitaPublicInvoiceUrl,
-  formatDate,
-} from '@workspace/utils';
+  buildPaymentLinkVariables,
+  buildPaymentReminderVariables,
+} from '@/shared/whatsapp/patient-whatsapp-template-variables';
 
 /**
  * Clinic invoice payment mutations (sessions, links, manual settlement).
@@ -163,22 +164,26 @@ export class PaymentsCommandService {
       return;
     }
 
-    const patientName = `${session.patient.firstName} ${session.patient.lastName}`;
-    const amount = (session.amount / 100).toFixed(2);
-    const link = session.shortUrl || session.paymentLink;
+    if (!isDocitaOnlinePaymentSession(session)) {
+      this.logger.log(
+        `Payment link WhatsApp skipped for session ${sessionId}: not a Docita online payment session`,
+      );
+      return;
+    }
 
-    if (!link) return;
+    const patientName = `${session.patient.firstName} ${session.patient.lastName}`;
 
     try {
       await this.sendMessage.execute({
         recipientPhone: session.patient.phoneNumber,
         templateName: 'payment_link',
-        variables: {
+        variables: buildPaymentLinkVariables({
           patientName,
           clinicName: session.clinic.name,
-          amount,
-          paymentLink: link,
-        },
+          amount: session.amount / 100,
+          currency: session.currency,
+          paymentSessionId: sessionId,
+        }),
         clinicId: session.clinicId,
       });
     } catch (error) {
@@ -201,28 +206,30 @@ export class PaymentsCommandService {
       return;
     }
 
-    const patientName = `${session.patient.firstName} ${session.patient.lastName}`;
-    const amount = (session.amount / 100).toFixed(2);
-    const link = session.shortUrl || session.paymentLink;
-    if (!link) return;
+    if (!isDocitaOnlinePaymentSession(session)) {
+      this.logger.log(
+        `Payment reminder skipped for session ${sessionId}: not a Docita online payment session`,
+      );
+      return;
+    }
 
+    const patientName = `${session.patient.firstName} ${session.patient.lastName}`;
     const dueDateDisplay = session.invoice.dueDate
       ? formatDate(session.invoice.dueDate, DATE_FORMATS.DATE_MEDIUM)
       : '—';
-    const invToken = session.invoice.id;
 
     try {
       await this.sendMessage.execute({
         recipientPhone: session.patient.phoneNumber,
         templateName: 'payment_reminder',
-        variables: {
+        variables: buildPaymentReminderVariables({
           clinicName: session.clinic.name,
           patientName,
-          amount,
+          amount: session.amount / 100,
+          currency: session.currency,
           dueDate: dueDateDisplay,
-          invToken,
-          invLink: docitaPublicInvoiceUrl(invToken),
-        },
+          paymentSessionId: sessionId,
+        }),
         clinicId: session.clinicId,
       });
     } catch (error) {

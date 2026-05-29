@@ -3,23 +3,20 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { InvoiceGeneratedEvent } from '@/domains/billing/application/services/events/invoice-generated.event';
 import { PrismaService } from '@/prisma/prisma.service';
-import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { PaymentsService } from '@/domains/billing/application/services/payments.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import {
-  DATE_FORMATS,
-  docitaPublicInvoiceUrl,
-  formatCurrency,
-  formatDate,
-} from '@workspace/utils';
+import { PaymentSessionStatus } from '@workspace/db';
 
+/**
+ * Ensures each generated invoice has an online payment session for patient pay links.
+ * WhatsApp delivery for invoices is handled by {@link WhatsappEventListener}.
+ */
 @Injectable()
 export class InvoiceEventsListener {
   private readonly logger = new Logger(InvoiceEventsListener.name);
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly sendMessage: SendMessageUseCase,
     private readonly paymentsService: PaymentsService,
     private readonly configService: AppConfigService,
   ) {}
@@ -27,19 +24,32 @@ export class InvoiceEventsListener {
   @OnEvent(ApplicationEvents.INVOICE_GENERATED)
   async handleInvoiceGeneratedEvent(event: InvoiceGeneratedEvent) {
     const { invoiceId, clinicId } = event;
-    this.logger.log(`Handling invoice.generated event for ${invoiceId}`);
+    this.logger.log(`Ensuring payment session for invoice ${invoiceId}`);
 
     const invoice = await this.prisma.invoice.findUnique({
       where: { id: invoiceId },
       include: {
-        patient: true,
+        patient: { select: { id: true, phoneNumber: true } },
+        paymentSessions: {
+          where: {
+            status: {
+              in: [PaymentSessionStatus.CREATED, PaymentSessionStatus.PENDING],
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
       },
     });
 
-    if (!invoice || !invoice.patient.phoneNumber) {
+    if (!invoice?.patient.phoneNumber) {
       this.logger.warn(
-        `Invoice ${invoiceId} skipped: Patient or phone missing`,
+        `Invoice ${invoiceId} skipped: patient or phone missing for payment session`,
       );
+      return;
+    }
+
+    if (invoice.paymentSessions.length > 0) {
       return;
     }
 
@@ -48,9 +58,8 @@ export class InvoiceEventsListener {
       select: { name: true, currency: true },
     });
 
-    let paymentLink: string | undefined;
     try {
-      const paymentSession = await this.paymentsService.createPaymentSession({
+      await this.paymentsService.createPaymentSession({
         invoiceId: invoice.id,
         amount: invoice.total,
         currency: clinic?.currency || this.configService.getCurrencyCode(),
@@ -58,79 +67,11 @@ export class InvoiceEventsListener {
         clinicId,
         description: `Invoice #${invoice.id.slice(0, 8).toUpperCase()}`,
       });
-      paymentLink =
-        paymentSession.shortUrl || paymentSession.paymentLink || undefined;
     } catch (error) {
       this.logger.error(
         `Failed to create payment link for invoice ${invoice.id}`,
         error,
       );
     }
-
-    const currencyCode =
-      clinic?.currency || this.configService.getCurrencyCode();
-    const formattedAmount = formatCurrency(invoice.total, {
-      currency: currencyCode,
-    });
-
-    const message = this.buildFallbackMessage(
-      invoice,
-      clinic?.name || clinicId,
-      currencyCode,
-      paymentLink,
-    );
-
-    try {
-      await this.sendMessage.execute({
-        clinicId,
-        recipientPhone: invoice.patient.phoneNumber,
-        templateName: 'invoice_created',
-        variables: {
-          clinicName: clinic?.name || clinicId,
-          patientName:
-            `${invoice.patient.firstName} ${invoice.patient.lastName}`.trim(),
-          amount: formattedAmount,
-          invToken: invoice.id,
-          invLink: docitaPublicInvoiceUrl(invoice.id),
-        },
-        text: message,
-        metadata: { invoiceId },
-      });
-    } catch (error) {
-      this.logger.error(
-        `Failed to send invoice WhatsApp notification for ${invoiceId}`,
-        error,
-      );
-    }
-  }
-
-  private buildFallbackMessage(
-    invoice: {
-      id: string;
-      patient: { firstName: string; lastName: string };
-      total: number;
-      createdAt: Date;
-    },
-    clinicName: string,
-    currencyCode: string,
-    paymentLink?: string,
-  ): string {
-    const patientName = invoice.patient.firstName;
-    const date = formatDate(invoice.createdAt, DATE_FORMATS.DATE_MEDIUM);
-
-    let message = `Hello ${patientName}\n\n`;
-    message += `Your invoice from *${clinicName}* is ready!\n\n`;
-    message += `Invoice #: ${invoice.id.slice(0, 8).toUpperCase()}\n`;
-    message += `Date: ${date}\n`;
-    const formattedAmount = formatCurrency(invoice.total, {
-      currency: currencyCode,
-    });
-    message += `Amount Due: ${formattedAmount}\n\n`;
-    if (paymentLink) {
-      message += `Pay online: ${paymentLink}\n\n`;
-    }
-    message += `Thank you for choosing our clinic. Get well soon!`;
-
-    return message;
   }
 }

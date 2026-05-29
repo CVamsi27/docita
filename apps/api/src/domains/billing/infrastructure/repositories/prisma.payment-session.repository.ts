@@ -128,6 +128,7 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
   async findPendingReminders(): Promise<PaymentSessionDetail[]> {
     const sessions = await this.getReadClient().paymentSession.findMany({
       where: {
+        provider: 'razorpay',
         status: 'CREATED',
         NOT: {
           shortUrl: null,

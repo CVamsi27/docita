@@ -12,7 +12,7 @@ describe('buildMetaTemplateComponents', () => {
         clinicName: 'Apollo Clinic',
         patientName: 'Priya Sharma',
         doctorName: 'Dr. Kumar',
-        rxToken: 'rx-abc',
+        rxToken: 'https://docita.work/rx/rx-abc',
         rxLink: 'https://docita.work/rx/rx-abc',
       },
       'rxToken',

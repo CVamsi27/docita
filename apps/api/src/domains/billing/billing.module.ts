@@ -54,6 +54,7 @@ import {
   OVERAGE_CALCULATION_TOKEN,
   INVOICE_TAX_CALCULATOR_TOKEN,
 } from './application/ports';
+import { InvoiceEventsListener } from './infrastructure/listeners/invoice-events.listener';
 
 @Module({
   imports: [
@@ -124,6 +125,7 @@ import {
       provide: INVOICE_TAX_CALCULATOR_TOKEN,
       useExisting: TaxCalculatorService,
     },
+    InvoiceEventsListener,
   ],
   exports: [
     InvoicesService,
