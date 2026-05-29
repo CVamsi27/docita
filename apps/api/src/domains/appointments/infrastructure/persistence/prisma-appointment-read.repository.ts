@@ -103,6 +103,29 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
             doctor: {
               select: { id: true, name: true },
             },
+            reminders: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+              select: {
+                id: true,
+                type: true,
+                status: true,
+                sentAt: true,
+                error: true,
+                createdAt: true,
+              },
+            },
+            responses: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+              select: {
+                id: true,
+                responseType: true,
+                responseTime: true,
+                delayMinutes: true,
+                patientMessage: true,
+              },
+            },
           },
         }),
       ]);

@@ -25,6 +25,9 @@ describe('Appointments controllers', () => {
   };
 
   const mockAppointmentsService = {
+    getClinicTimezone: jest
+      .fn<(...args: unknown[]) => Promise<string>>()
+      .mockResolvedValue('Asia/Kolkata'),
     listAppointments: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     getAppointment: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     createAppointment: jest.fn<(...args: unknown[]) => Promise<unknown>>(),

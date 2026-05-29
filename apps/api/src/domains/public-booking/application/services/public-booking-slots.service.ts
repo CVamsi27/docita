@@ -66,7 +66,11 @@ export class PublicBookingSlotsService {
     time: string,
     timezone: string,
   ): string {
-    return this.buildSlotStartDate(slotCalendarDate, time, timezone).toISOString();
+    return this.buildSlotStartDate(
+      slotCalendarDate,
+      time,
+      timezone,
+    ).toISOString();
   }
 
   private async doctorBelongsToClinic(

@@ -14,7 +14,10 @@ import {
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { getClinicLocalDayUtcBounds } from '@/shared/common/utils/clinic-calendar-bounds';
-import { DEFAULT_TIMEZONE, formatUtcInstantAsClinicPickerIso } from '@workspace/utils';
+import {
+  DEFAULT_TIMEZONE,
+  formatUtcInstantAsClinicPickerIso,
+} from '@workspace/utils';
 
 type DayOfWeek =
   | 'SUNDAY'

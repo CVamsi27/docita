@@ -138,6 +138,21 @@ export class AppointmentMapper {
         id: string;
         name: string;
       } | null;
+      reminders?: Array<{
+        id: string;
+        type: string;
+        status: string;
+        sentAt: Date | null;
+        error: string | null;
+        createdAt: Date;
+      }>;
+      responses?: Array<{
+        id: string;
+        responseType: string;
+        responseTime: Date;
+        delayMinutes: number | null;
+        patientMessage: string | null;
+      }>;
     },
   ): AppointmentListItem {
     const domainStatus = PRISMA_TO_DOMAIN_STATUS[raw.status];
@@ -179,6 +194,7 @@ export class AppointmentMapper {
       }
     }
 
+    const latestResponse = raw.responses?.[0];
     const parsed = appointmentListItemResponseSchema.parse({
       ...pickAppointmentListPlainFields(listPlain),
       patient: raw.patient
@@ -193,6 +209,23 @@ export class AppointmentMapper {
         ? {
             id: raw.doctor.id,
             name: raw.doctor.name,
+          }
+        : undefined,
+      reminders: raw.reminders?.map((reminder) => ({
+        id: reminder.id,
+        type: reminder.type,
+        status: reminder.status,
+        sentAt: reminder.sentAt,
+        error: reminder.error,
+        createdAt: reminder.createdAt,
+      })),
+      latestPatientResponse: latestResponse
+        ? {
+            id: latestResponse.id,
+            responseType: latestResponse.responseType,
+            responseTime: latestResponse.responseTime,
+            delayMinutes: latestResponse.delayMinutes,
+            patientMessage: latestResponse.patientMessage,
           }
         : undefined,
     });
