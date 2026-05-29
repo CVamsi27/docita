@@ -36,6 +36,19 @@ Quick-reply buttons on appointment templates are fully wired end to end. When th
 
 CTA buttons on prescription, invoice and payment templates (`View Prescription`, `View Invoice`, `Pay Now`) open URLs only — Meta does not send a webhook for CTA taps, so there is no reply to handle.
 
+### CTA URL buttons (fixed domain + dynamic path)
+
+Meta rejects templates where the **domain** is dynamic (e.g. `https://{{4}}` or passing a full URL as the button variable). Use a **fixed** approved domain with a **dynamic path suffix** only:
+
+| Template | Button text | Website URL (Dynamic) | API variable for button |
+|---|---|---|---|
+| `prescription_created` | View Prescription | `https://docita.work/rx/{{1}}` | `rxToken` (e.g. prescription id) |
+| `invoice_created` | View Invoice | `https://docita.work/inv/{{1}}` | `invToken` (invoice id) |
+| `payment_reminder` | Pay Now | `https://docita.work/inv/{{1}}` | `invToken` |
+| `invoice_ready` | Pay Now | `https://docita.work/pay/{{1}}` | `payToken` (payment session id) |
+
+The button’s `{{1}}` is **independent** from body placeholders (body may use `{{1}}`–`{{3}}` for clinic/patient/doctor; the button still uses its own `{{1}}` for the path token). When sending from the API, pass only the token (e.g. `abc123`), not `https://docita.work/rx/abc123`.
+
 ---
 
 # Part A — Marketing templates (broadcasts)
@@ -542,9 +555,9 @@ Thank you for your patience. See you then.
 
 ## 17. `prescription_created` (UTILITY)
 
-Sent when the doctor finalises a prescription. Body links out to the full Rx — the medication list is *not* inlined so the template can be reused across patients without re-approval and so PHI doesn't sit in WhatsApp message bodies.
+Sent when the doctor finalises a prescription. The medication list is *not* inlined so the template can be reused across patients without re-approval and so PHI doesn't sit in WhatsApp message bodies. The patient opens the full Rx via the CTA button (not an inline URL in the body).
 
-> Meta requires CTA URLs to be on an approved domain. Add `docita.work` (and any whitelabel domains) to the WABA's allowed domain list before submitting.
+> Add `docita.work` to the WABA's allowed domain list before submitting. Do **not** use `https://{{N}}` as the button URL — use a fixed base URL with a dynamic path suffix (see [CTA URL buttons](#cta-url-buttons-fixed-domain--dynamic-path)).
 
 - **Category:** Utility
 - **Language:** English
@@ -554,14 +567,18 @@ Sent when the doctor finalises a prescription. Body links out to the full Rx —
 ```
 Hi {{2}}, Dr. {{3}} from *{{1}}* has added your prescription.
 
-View full prescription here: {{4}}
+Tap the button below to view your full prescription.
 
 Wishing you a quick recovery.
 ```
 
-- **Variable order:** `clinicName`, `patientName`, `doctorName`, `link`
-- **Buttons (Call to Action):** `View Prescription` → URL = `{{4}}`
-- **Sample variables:** `Apollo Clinic`, `Priya Sharma`, `Ravi Kumar`, `https://docita.work/rx/abc123`
+- **Variable order (body):** `clinicName`, `patientName`, `doctorName`
+- **Buttons (Call to Action — Visit website, Dynamic):**
+  - **Button text:** `View Prescription`
+  - **Website URL:** `https://docita.work/rx/{{1}}`
+  - **Sample for button {{1}}:** `abc123` (Meta preview: `https://docita.work/rx/abc123`)
+- **Sample body variables:** `Apollo Clinic`, `Priya Sharma`, `Ravi Kumar`
+- **API send:** body → `clinicName`, `patientName`, `doctorName`; button → `rxToken` only (not the full URL)
 
 ---
 
@@ -578,14 +595,19 @@ Sent when billing generates an invoice (post-consultation or post-procedure).
 Hi {{2}}, your invoice from *{{1}}* is ready.
 
 Amount: {{3}}
-View invoice here: {{4}}
+
+Tap the button below to view your invoice.
 
 Thank you for visiting us.
 ```
 
-- **Variable order:** `clinicName`, `patientName`, `amount`, `link`
-- **Buttons (Call to Action):** `View Invoice` → URL = `{{4}}`
-- **Sample variables:** `Apollo Clinic`, `Priya Sharma`, `₹850`, `https://docita.work/inv/abc123`
+- **Variable order (body):** `clinicName`, `patientName`, `amount`
+- **Buttons (Call to Action — Visit website, Dynamic):**
+  - **Button text:** `View Invoice`
+  - **Website URL:** `https://docita.work/inv/{{1}}`
+  - **Sample for button {{1}}:** `abc123`
+- **Sample body variables:** `Apollo Clinic`, `Priya Sharma`, `₹850`
+- **API send:** body → `clinicName`, `patientName`, `amount`; button → `invToken` (invoice id)
 
 > `{{3}}` is rendered by the API as a formatted currency string (e.g. `₹850`). The literal `₹` symbol is inside the *variable value*, not the template body, so the template stays currency-agnostic.
 
@@ -606,14 +628,18 @@ Hi {{2}}, a quick reminder from *{{1}}* that your invoice is still due.
 Amount: {{3}}
 Due by: {{4}}
 
-View invoice and pay online here: {{5}}
+Tap the button below to view your invoice and pay online.
 
 Reach out if you have any questions.
 ```
 
-- **Variable order:** `clinicName`, `patientName`, `amount`, `dueDate`, `invoiceLink`
-- **Buttons (Call to Action):** `Pay Now` → URL = `{{5}}`
-- **Sample variables:** `Apollo Clinic`, `Priya Sharma`, `₹850`, `31 May 2026`, `https://docita.work/inv/abc123`
+- **Variable order (body):** `clinicName`, `patientName`, `amount`, `dueDate`
+- **Buttons (Call to Action — Visit website, Dynamic):**
+  - **Button text:** `Pay Now`
+  - **Website URL:** `https://docita.work/inv/{{1}}`
+  - **Sample for button {{1}}:** `abc123`
+- **Sample body variables:** `Apollo Clinic`, `Priya Sharma`, `₹850`, `31 May 2026`
+- **API send:** body → `clinicName`, `patientName`, `amount`, `dueDate`; button → `invToken`
 
 ---
 
@@ -700,7 +726,7 @@ Wishing you a quick recovery. Reach out for any clarifications.
 
 ## 23. `invoice_ready` (UTILITY)
 
-Triggered when staff hits the manual **Send to WhatsApp** button on an invoice detail page ([`useResendInvoiceWhatsApp`](../../packages/data-access/src/hooks/use-whatsapp.ts) → [`resend.service.ts`](../../apps/api/src/domains/whatsapp/application/services/resend.service.ts)). Carries the same payment link the automatic `invoice_created` flow uses, plus invoice number and date.
+Triggered when staff hits the manual **Send to WhatsApp** button on an invoice detail page ([`useResendInvoiceWhatsApp`](../../packages/data-access/src/hooks/use-whatsapp.ts) → [`resend.service.ts`](../../apps/api/src/domains/whatsapp/application/services/resend.service.ts)). Includes invoice number and date; payment is via the CTA button (`docita.work/pay/…` redirects to the active Razorpay session).
 
 - **Category:** Utility
 - **Language:** English
@@ -714,14 +740,18 @@ Invoice #: {{3}}
 Date: {{4}}
 Amount: {{5}}
 
-Pay online here: {{6}}
+Tap the button below to pay online.
 
 Thank you for visiting us.
 ```
 
-- **Variable order:** `clinicName`, `patientName`, `invoiceNumber`, `date`, `amount`, `paymentLink`
-- **Buttons (Call to Action):** `Pay Now` → URL = `{{6}}`
-- **Sample variables:** `Apollo Clinic`, `Priya Sharma`, `INV-2026-00481`, `28 May 2026`, `₹850`, `https://rzp.io/i/abc123`
+- **Variable order (body):** `clinicName`, `patientName`, `invoiceNumber`, `date`, `amount`
+- **Buttons (Call to Action — Visit website, Dynamic):**
+  - **Button text:** `Pay Now`
+  - **Website URL:** `https://docita.work/pay/{{1}}`
+  - **Sample for button {{1}}:** `ps_abc123` (payment session id)
+- **Sample body variables:** `Apollo Clinic`, `Priya Sharma`, `INV-2026-00481`, `28 May 2026`, `₹850`
+- **API send:** body → `clinicName`, `patientName`, `invoiceNumber`, `date`, `amount`; button → `payToken` (payment session id, not the Razorpay short URL)
 
 ---
 
@@ -866,7 +896,7 @@ Follow these steps for **each** template above. Allow ~15 minutes per template t
    - **Utility templates §11–§21:** add buttons exactly as listed under each template:
      - Templates without a `Buttons` entry (or marked `Buttons: None`) must be submitted with **no buttons** at all.
      - **Quick Reply** buttons (`Confirm`, `Reschedule`, `Cancel`, `On time`, `Delayed`, `Cancelled`, `I am on my way`) — text must match exactly so the webhook handler can route replies.
-     - **Call to Action** buttons (`View Prescription`, `View Invoice`, `Pay Now`) — set type to "Visit website", URL type "Dynamic", URL template `https://docita.work/{{1}}` (or the placeholder shown in the template). Add `docita.work` to the WABA's allowed domains first.
+     - **Call to Action** buttons (`View Prescription`, `View Invoice`, `Pay Now`) — set type to **Visit website**, URL type **Dynamic**, and a **fixed** Website URL per template (e.g. `https://docita.work/rx/{{1}}` — see [CTA URL buttons](#cta-url-buttons-fixed-domain--dynamic-path)). The sample for button `{{1}}` is only the path token (`abc123`), never a full URL. Add `docita.work` to the WABA's allowed domains first. **Invalid:** `https://{{4}}` or passing `https://docita.work/rx/abc123` as the button variable at send time.
 
 ### 4. Submit and wait for review
 
