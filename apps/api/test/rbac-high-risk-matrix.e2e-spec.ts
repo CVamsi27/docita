@@ -130,9 +130,9 @@ describe('RBAC high-risk matrix (e2e)', () => {
       token = loginResponse.body.access_token;
     });
 
-    it('returns 403 for GET /reminders/settings', async () => {
+    it('returns 403 for GET /inventory/stats', async () => {
       await request(app.getHttpServer())
-        .get('/reminders/settings')
+        .get('/inventory/stats')
         .set('Authorization', `Bearer ${token}`)
         .expect(403);
     });
