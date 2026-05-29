@@ -62,18 +62,30 @@ const infiniteInvoicesResponseSchema = paginatedInvoiceListResponseSchema.extend
   },
 );
 
+function parseInvoiceListRows(raw: unknown): InvoiceListRow[] {
+  const parsed = z
+    .array(invoiceListRowSchema)
+    .safeParse(normalizeInvoicesListResponse(raw));
+  if (!parsed.success) {
+    throw new APIRequestError(
+      "We could not read the invoice list. Please refresh and try again.",
+      { code: "VALIDATION_ERROR" },
+    );
+  }
+  return parsed.data;
+}
+
 export const useInvoices = (filters?: ListInvoicesContractQuery) => {
   const fetcher = useDataAccessFetcher();
-  const invoicingOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.INVOICING,
-  );
+  const { isTierFeatureEnabled, getClinicId } = useDataAccessContext();
+  const invoicingOk = isTierFeatureEnabled(Feature.INVOICING);
+  const clinicReady = Boolean(getClinicId());
   return useQuery<unknown, APIRequestError, InvoiceListRow[]>({
     queryKey: queryKeys.invoices.legacyList(filters),
     queryFn: () => fetcher<unknown>(withQueryString("/invoices", filters)),
-    select: (raw) =>
-      z.array(invoiceListRowSchema).parse(normalizeInvoicesListResponse(raw)),
+    select: parseInvoiceListRows,
     staleTime: 60 * 1000,
-    enabled: invoicingOk,
+    enabled: invoicingOk && clinicReady,
   });
 };
 
@@ -201,9 +213,9 @@ export const useInfiniteInvoices = (options?: {
   search?: string;
 }) => {
   const fetcher = useDataAccessFetcher();
-  const invoicingOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.INVOICING,
-  );
+  const { isTierFeatureEnabled, getClinicId } = useDataAccessContext();
+  const invoicingOk = isTierFeatureEnabled(Feature.INVOICING);
+  const clinicReady = Boolean(getClinicId());
   return useInfiniteQuery({
     queryKey: queryKeys.invoices.legacyInfinite(options ?? {}),
     queryFn: async ({ pageParam }) => {
@@ -217,11 +229,18 @@ export const useInfiniteInvoices = (options?: {
           search: options?.search,
         }),
       );
-      return infiniteInvoicesResponseSchema.parse(raw);
+      const parsed = infiniteInvoicesResponseSchema.safeParse(raw);
+      if (!parsed.success) {
+        throw new APIRequestError(
+          "We could not read the invoice list. Please refresh and try again.",
+          { code: "VALIDATION_ERROR" },
+        );
+      }
+      return parsed.data;
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     initialPageParam: "",
     staleTime: 1000 * 60 * 5,
-    enabled: invoicingOk,
+    enabled: invoicingOk && clinicReady,
   });
 };

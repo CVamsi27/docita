@@ -130,6 +130,32 @@ function asFiniteNumber(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
+/** Coerce persisted/API floats to valid money fields (max two decimal places). */
+function roundMoneyAmount(value: unknown): unknown {
+  const amount = asFiniteNumber(value);
+  if (amount === undefined) {
+    return value;
+  }
+  return Math.round(amount * 100) / 100;
+}
+
+function normalizeInvoiceListPatient(
+  patient: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined {
+  if (!patient) {
+    return undefined;
+  }
+  const firstName =
+    typeof patient.firstName === "string" ? patient.firstName.trim() : "";
+  const lastName =
+    typeof patient.lastName === "string" ? patient.lastName.trim() : "";
+  return {
+    ...patient,
+    firstName: firstName.length > 0 ? firstName : "Patient",
+    lastName: lastName.length > 0 ? lastName : "Unknown",
+  };
+}
+
 function normalizeInvoiceListItems(items: unknown): unknown {
   if (!Array.isArray(items)) {
     return items;
@@ -139,8 +165,21 @@ function normalizeInvoiceListItems(items: unknown): unknown {
       return entry;
     }
     const item = entry as Record<string, unknown>;
-    const price = asFiniteNumber(item.price) ?? asFiniteNumber(item.unitPrice);
-    return price === undefined ? item : { ...item, price };
+    const rawPrice = asFiniteNumber(item.price) ?? asFiniteNumber(item.unitPrice);
+    const price =
+      rawPrice === undefined ? undefined : roundMoneyAmount(rawPrice);
+    const unitPrice =
+      item.unitPrice !== undefined
+        ? roundMoneyAmount(item.unitPrice)
+        : item.unitPrice;
+    if (price === undefined) {
+      return unitPrice === item.unitPrice ? item : { ...item, unitPrice };
+    }
+    return {
+      ...item,
+      price,
+      ...(unitPrice !== item.unitPrice ? { unitPrice } : {}),
+    };
   });
 }
 
@@ -162,17 +201,26 @@ export function normalizeInvoiceListRowInput(input: unknown): unknown {
       : typeof patient?.id === "string"
         ? patient.id
         : row.patientId;
-  const total =
+  const rawTotal =
     asFiniteNumber(row.total) ??
     asFiniteNumber(row.grandTotal) ??
-    asFiniteNumber(row.totalAmount) ??
-    row.total;
-  const totalAmount = asFiniteNumber(row.totalAmount) ?? total;
+    asFiniteNumber(row.totalAmount);
+  const total = rawTotal === undefined ? row.total : roundMoneyAmount(rawTotal);
+  const rawTotalAmount = asFiniteNumber(row.totalAmount);
+  const totalAmount =
+    rawTotalAmount === undefined
+      ? total
+      : roundMoneyAmount(rawTotalAmount);
   return {
     ...row,
     patientId,
     total,
     totalAmount,
+    grandTotal:
+      row.grandTotal !== undefined
+        ? roundMoneyAmount(row.grandTotal)
+        : row.grandTotal,
+    patient: normalizeInvoiceListPatient(patient),
     items: normalizeInvoiceListItems(row.items),
   };
 }

@@ -23,4 +23,34 @@ describe("invoiceListRowSchema", () => {
     expect(row.patient?.firstName).toBe("Ada");
     expect(row.items[0]?.price).toBe(500);
   });
+
+  it("rounds float drift on totals and line items from GET /invoices", () => {
+    const row = invoiceListRowSchema.parse({
+      id: "inv-float",
+      patientId: "patient-1",
+      total: 100.999999,
+      grandTotal: 100.999999,
+      status: "PENDING",
+      items: [{ description: "Consultation", quantity: 1, unitPrice: 100.999999 }],
+      createdAt: "2025-01-15T10:00:00.000Z",
+    });
+
+    expect(row.total).toBe(101);
+    expect(row.items[0]?.price).toBe(101);
+  });
+
+  it("fills missing patient name parts on list rows", () => {
+    const row = invoiceListRowSchema.parse({
+      id: "inv-patient",
+      patientId: "patient-1",
+      total: 250,
+      status: "PAID",
+      items: [{ description: "Visit", quantity: 1, price: 250 }],
+      createdAt: "2025-01-15T10:00:00.000Z",
+      patient: { firstName: "", lastName: "", phoneNumber: null },
+    });
+
+    expect(row.patient?.firstName).toBe("Patient");
+    expect(row.patient?.lastName).toBe("Unknown");
+  });
 });

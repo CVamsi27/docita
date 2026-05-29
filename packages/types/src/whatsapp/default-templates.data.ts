@@ -128,37 +128,6 @@ Reply with one word:
 On time / Delayed / Cancelled`,
     },
 
-    prescription_shared: {
-      name: 'prescription_shared',
-      category: 'PRESCRIPTION',
-      content: `Hi {{patientName}}, Dr. {{doctorName}} from *{{clinicName}}* has shared your prescription.
-
-Medications:
-{{medications}}
-
-Notes from the doctor:
-{{instructions}}
-
-Wishing you a quick recovery. Reach out for any clarifications.`,
-      variables: [
-        { name: 'patientName', required: true },
-        { name: 'clinicName', required: true },
-        { name: 'doctorName', required: true },
-        { name: 'medications', required: true },
-        { name: 'instructions', required: false, defaultValue: '' },
-      ],
-      buttonType: 'NONE',
-      textFallback: `Hi {{patientName}}, Dr. {{doctorName}} from *{{clinicName}}* has shared your prescription.
-
-Medications:
-{{medications}}
-
-Notes from the doctor:
-{{instructions}}
-
-Wishing you a quick recovery. Reach out for any clarifications.`,
-    },
-
     prescription_created: {
       name: 'prescription_created',
       category: 'PRESCRIPTION',
@@ -249,7 +218,7 @@ Thank you for visiting us.`,
 Amount: {{amount}}
 Due by: {{dueDate}}
 
-Tap the button below to view your invoice and pay online.
+Tap the button below to pay online securely via Docita.
 
 Reach out if you have any questions.`,
       variables: [
@@ -260,13 +229,13 @@ Reach out if you have any questions.`,
       ],
       buttonType: 'CALL_TO_ACTION',
       buttons: [{ id: 'pay_now', text: 'Pay Now' }],
-      buttonUrlVariable: 'invToken',
+      buttonUrlVariable: 'payToken',
       textFallback: `Hi {{patientName}}, a quick reminder from *{{clinicName}}* that your invoice is still due.
 
 Amount: {{amount}}
 Due by: {{dueDate}}
 
-View invoice and pay online here: {{invLink}}
+Pay online here: {{payLink}}
 
 Reach out if you have any questions.`,
     },
@@ -354,26 +323,28 @@ Thank you for your patience. See you then.`,
       category: 'APPOINTMENT',
       content: `*Doctor Running Late* - {{clinicName}}
 
-Hi {{patientName}}, the doctor is running approximately {{delayMinutes}} minutes late for your appointment.
+Hi {{patientName}}, the doctor is running approximately {{delayMinutes}} minutes late.
 
-Date: {{date}}
-Time: {{time}}
+Your updated appointment time:
+New date: {{newDate}}
+New time: {{newTime}}
 
 We apologise for the inconvenience and appreciate your patience.`,
       variables: [
-        { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
+        { name: 'patientName', required: true },
         { name: 'delayMinutes', required: true },
-        { name: 'date', required: true },
-        { name: 'time', required: true },
+        { name: 'newDate', required: true },
+        { name: 'newTime', required: true },
       ],
       buttonType: 'NONE',
       textFallback: `*Doctor Running Late* - {{clinicName}}
 
-Hi {{patientName}}, the doctor is running approximately {{delayMinutes}} minutes late for your appointment.
+Hi {{patientName}}, the doctor is running approximately {{delayMinutes}} minutes late.
 
-Date: {{date}}
-Time: {{time}}
+Your updated appointment time:
+New date: {{newDate}}
+New time: {{newTime}}
 
 We apologise for the inconvenience and appreciate your patience.`,
     },
@@ -384,20 +355,22 @@ We apologise for the inconvenience and appreciate your patience.`,
       content: `Hi {{patientName}}, here is the secure payment link for your invoice at *{{clinicName}}*.
 
 Amount: {{amount}}
-Pay online here: {{paymentLink}}
+
+Tap the button below to pay online.
 
 Reach out if you have any questions.`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
         { name: 'amount', required: true },
-        { name: 'paymentLink', required: true },
       ],
       buttonType: 'CALL_TO_ACTION',
+      buttons: [{ id: 'pay_now', text: 'Pay Now' }],
+      buttonUrlVariable: 'payToken',
       textFallback: `Hi {{patientName}}, here is the secure payment link for your invoice at *{{clinicName}}*.
 
 Amount: {{amount}}
-Pay online here: {{paymentLink}}
+Pay online here: {{payLink}}
 
 Reach out if you have any questions.`,
     },
@@ -444,16 +417,17 @@ The clinic will plan around the new time. Drive safe.`,
     patient_login_otp: {
       name: 'patient_login_otp',
       category: 'AUTHENTICATION',
-      content: `{{code}} is your Docita verification code.
-
-For your security, do not share this code with anyone. It is valid for 10 minutes.`,
-      variables: [
-        { name: 'code', required: true },
-      ],
-      buttonType: 'NONE',
-      textFallback: `{{code}} is your Docita verification code.
-
-For your security, do not share this code with anyone. It is valid for 10 minutes.`,
+      // Meta auto-generates the body for AUTHENTICATION templates from the
+      // "security recommendation" + "expiry time" toggles. We can't write custom
+      // copy here. The content below mirrors what Meta sends with both toggles
+      // ON and a 10-minute expiry, and is what the textFallback path uses if
+      // the template lookup fails. Keep this string in sync with what's
+      // approved in WhatsApp Manager.
+      content: `{{code}} is your verification code. For your security, do not share this code. This code expires in 10 minutes.`,
+      variables: [{ name: 'code', required: true }],
+      buttonType: 'CALL_TO_ACTION',
+      buttons: [{ id: 'copy_code', text: 'Copy code' }],
+      textFallback: `{{code}} is your verification code. For your security, do not share this code. This code expires in 10 minutes.`,
     },
 
   } as const;
