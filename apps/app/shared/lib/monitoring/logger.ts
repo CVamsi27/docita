@@ -1,7 +1,50 @@
+import * as Sentry from "@sentry/nextjs";
+
+type LogLevel = "info" | "warn" | "error";
 type LogContext = Record<string, unknown> | unknown;
 
-function recordClientLog(_level: "info" | "warn" | "error", _message: string, _context?: LogContext) {
-  // Centralized no-op until a non-console browser log sink is wired in.
+const SENTRY_LEVEL: Record<LogLevel, "info" | "warning" | "error"> = {
+  info: "info",
+  warn: "warning",
+  error: "error",
+};
+
+function toRecord(context: LogContext): Record<string, unknown> | undefined {
+  if (context === undefined) return undefined;
+  if (
+    typeof context === "object" &&
+    context !== null &&
+    !Array.isArray(context)
+  ) {
+    return context as Record<string, unknown>;
+  }
+  return { value: context };
+}
+
+function recordClientLog(level: LogLevel, message: string, context?: LogContext) {
+  const data = toRecord(context);
+
+  try {
+    Sentry.addBreadcrumb({
+      category: "logger",
+      level: SENTRY_LEVEL[level],
+      message,
+      data,
+    });
+  } catch {
+    // Breadcrumb recording is best-effort.
+  }
+
+  if (level === "info") return;
+
+  try {
+    Sentry.captureMessage(message, {
+      level: SENTRY_LEVEL[level],
+      extra: data,
+    });
+  } catch {
+    // Capture is best-effort and must never throw into callers.
+  }
 }
 
 export const logger = {

@@ -161,6 +161,53 @@ After merging to `main` and before or right after Fly deploys:
 
 This is a larger change than env/Fly wiring; ship it in small PRs behind the same `ENABLE_SCHEDULERS` split so rollback is flipping env on Fly.
 
+## Roll back a bad release
+
+The migration policy is **additive-only** (see `MIGRATION_NOTES.md`), so a release rollback is always a code/image rollback — never a schema rollback. Redeploying the previous image against the current schema is safe.
+
+### API or worker (Fly.io)
+
+```bash
+# List recent releases for the affected app
+fly releases --app docita-api          # or docita-worker
+
+# Roll back to the previous release (image + config)
+fly releases rollback <VERSION> --app docita-api
+
+# Confirm health
+curl -fsS https://api.docita.work/api/health/live
+fly logs --app docita-api | head -50
+```
+
+Notes:
+- `fly releases rollback` redeploys the prior image; it does not touch the database. Any migration applied by the bad release stays applied — that is intentional and safe under the additive-only policy.
+- If the bad release introduced a `fly secrets set` change that is part of the regression, revert the secret separately with `fly secrets set KEY=<previous-value>`; `releases rollback` will not revert secrets.
+- For the worker, also confirm cron heartbeat lines in `fly logs --app docita-worker` and that `QueueJob` depth is draining.
+
+### Frontend (Cloudflare Workers)
+
+Frontend production deploys are managed via Cloudflare Git integration / dashboard, not GitHub Actions. To roll back:
+
+1. Open the Cloudflare dashboard → Workers & Pages → the affected app (`docita-app`, `docita-internal`, or `docita-landing`).
+2. Under **Deployments**, locate the last known-good deployment and choose **Rollback to this deployment**.
+3. Verify the rollback by hitting the public URL and checking the browser console for chunk-load errors.
+
+### Decision guide
+
+| Symptom | Action |
+|---|---|
+| API 5xx spike or crash loop after deploy | `fly releases rollback` on `docita-api` |
+| Background jobs failing or cron not firing | `fly releases rollback` on `docita-worker` |
+| Frontend white screen / chunk errors after deploy | Cloudflare dashboard rollback on the affected app |
+| DB schema drift detected by `verify-db-schema-sync.sh` | Do **not** roll back the migration — fix forward with a new additive migration |
+| Secret-driven regression (auth, payments, R2) | Revert the secret via `fly secrets set`, then redeploy if needed |
+
+### After rollback
+
+- Page the on-call channel with the affected app, the rolled-to version, and the failing version.
+- Open a Sentry filter for the failing release tag to scope the post-mortem.
+- Confirm the synthetic monitor (`/api/v1/health` + `/api/v1/auth/me` smoke — see [`SYNTHETIC_MONITORING.md`](./SYNTHETIC_MONITORING.md)) returns green for one full interval before closing the incident.
+
 ## Scaling Path
 
 | Stage | API | Database | Cache / Background Work |
