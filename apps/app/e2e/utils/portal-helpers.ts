@@ -2,10 +2,23 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { APIRequestContext, Page } from "@playwright/test";
+import { z } from "zod";
 import { DPDP_NOTICE_VERSION } from "@workspace/types";
 import { API_URL, reuseSharedGeneralClinicUser } from "./patient-helpers";
 
 export const PORTAL_E2E_OTP = "123456";
+
+const portalVerifyOtpResponseSchema = z.object({
+  access_token: z.string().optional(),
+  user: z
+    .object({
+      id: z.string(),
+      email: z.string(),
+      name: z.string(),
+      role: z.string(),
+    })
+    .optional(),
+});
 
 function getRepoRoot(): string {
   let current = resolve(process.cwd());
@@ -137,12 +150,14 @@ export async function loginPortalPatient(
     return false;
   }
 
-  const payload = (await verifyRes.json()) as {
-    access_token?: string;
-    user?: { id: string; email: string; name: string; role: string };
-  };
+  const raw: unknown = await verifyRes.json();
+  const payload = portalVerifyOtpResponseSchema.safeParse(raw);
 
-  if (payload.access_token && payload.user) {
+  if (
+    payload.success &&
+    payload.data.access_token &&
+    payload.data.user
+  ) {
     await page.addInitScript(
       ({ token, user }) => {
         try {
@@ -153,8 +168,8 @@ export async function loginPortalPatient(
         }
       },
       {
-        token: payload.access_token,
-        user: payload.user,
+        token: payload.data.access_token,
+        user: payload.data.user,
       },
     );
   }

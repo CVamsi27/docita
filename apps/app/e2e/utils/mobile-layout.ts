@@ -1,7 +1,8 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { MOBILE_VIEWPORT, VIEWPORT_PRESETS } from "./viewport-presets";
 
-export const MOBILE_VIEWPORT = { width: 390, height: 844 } as const;
+export { MOBILE_VIEWPORT, VIEWPORT_PRESETS };
 
 export async function expectNoHorizontalOverflow(page: Page) {
   const hasOverflow = await page.evaluate(

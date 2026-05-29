@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { VIEWPORT_PRESETS } from "./e2e/utils/viewport-presets";
 
 const APP_URL = process.env["APP_URL"] || "http://localhost:3000";
 const API_HEALTH_URL =
@@ -79,9 +80,25 @@ export default defineConfig({
       name: "mobile-chrome",
       use: {
         ...devices["Pixel 5"],
-        viewport: { width: 390, height: 844 },
+        viewport: VIEWPORT_PRESETS.mobile,
         hasTouch: true,
         isMobile: true,
+      },
+    },
+    {
+      name: "tablet-chrome",
+      use: {
+        ...devices["iPad Pro 11"],
+        viewport: VIEWPORT_PRESETS.tablet,
+        hasTouch: true,
+        isMobile: false,
+      },
+    },
+    {
+      name: "laptop-chrome",
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: VIEWPORT_PRESETS.laptop,
       },
     },
   ],

@@ -9,6 +9,15 @@ import {
   setupTestUser,
   UserData,
 } from "./utils/patient-helpers";
+import { VIEWPORT_PRESETS } from "./utils/viewport-presets";
+
+const RESPONSIVE_A11Y_ROUTES = [
+  { path: "/today", name: "Today workspace" },
+  { path: "/patients", name: "Patients" },
+  { path: "/appointments", name: "Appointments" },
+  { path: "/prescriptions", name: "Prescriptions" },
+  { path: "/settings", name: "Settings" },
+] as const;
 
 const PUBLIC_AUDIT_PAGES = [
   { path: "/", name: "Home" },
@@ -180,6 +189,45 @@ test.describe("Accessibility Audit - Main App", () => {
       );
     });
   });
+
+  for (const [presetName, viewport] of [
+    ["tablet", VIEWPORT_PRESETS.tablet] as const,
+    ["laptop", VIEWPORT_PRESETS.laptop] as const,
+  ]) {
+    test.describe(`Authenticated routes at ${presetName} width`, () => {
+      test.use({
+        viewport,
+        ...(presetName === "tablet" ? { hasTouch: true } : {}),
+      });
+
+      test.skip(
+        process.env.AUDIT_APP_PUBLIC_ONLY === "true",
+        "AUDIT_APP_PUBLIC_ONLY=true skips routes that need DATABASE_URL and API fixtures",
+      );
+
+      let user: UserData;
+
+      test.beforeAll(async ({ request }) => {
+        user = await setupTestUser(request);
+      });
+
+      test.beforeEach(async ({ page }) => {
+        await loginUser(page, user);
+      });
+
+      for (const route of RESPONSIVE_A11Y_ROUTES) {
+        test(`should audit ${route.name} at ${presetName} width (${route.path})`, async ({
+          page,
+        }) => {
+          await runAccessibilityAudit(
+            page,
+            route.path,
+            `${route.name} (${presetName})`,
+          );
+        });
+      }
+    });
+  }
 
   test.describe("Authenticated routes", () => {
     test.skip(
