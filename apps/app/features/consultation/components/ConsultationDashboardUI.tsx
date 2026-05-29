@@ -36,6 +36,11 @@ export const ConsultationDashboardUI: FC = () => {
     currentUserRole,
     doctorNowNext,
     clinicType,
+    canViewAllDoctors,
+    selectedDoctorId,
+    setSelectedDoctorId,
+    scopedDoctorId,
+    doctorsList,
   } = useConsultationDashboard();
 
   const checkInAppointment = useCheckInAppointment();
@@ -174,7 +179,13 @@ export const ConsultationDashboardUI: FC = () => {
         />
       ) : null}
 
-      <ConsultationHistoryList />
+      <ConsultationHistoryList
+        scopedDoctorId={scopedDoctorId}
+        canViewAllDoctors={canViewAllDoctors}
+        selectedDoctorId={selectedDoctorId}
+        onDoctorSelect={setSelectedDoctorId}
+        doctorsList={doctorsList}
+      />
     </AppPageScaffold>
   );
 };

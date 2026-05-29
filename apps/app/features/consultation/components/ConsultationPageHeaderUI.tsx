@@ -43,6 +43,8 @@ export interface ConsultationPageHeaderUIProps {
   onOpenCommandPalette?: () => void;
   onMarkDone?: () => void;
   isMarkingDone?: boolean;
+  canMarkDone?: boolean;
+  markDoneDisabledReason?: string;
 }
 
 export function ConsultationPageHeaderUI({
@@ -61,6 +63,8 @@ export function ConsultationPageHeaderUI({
   onOpenCommandPalette,
   onMarkDone,
   isMarkingDone = false,
+  canMarkDone = true,
+  markDoneDisabledReason,
 }: ConsultationPageHeaderUIProps) {
   const { openVitals } = useConsultationVitals();
   const { openOverlay } = useAskAi();
@@ -196,6 +200,8 @@ export function ConsultationPageHeaderUI({
           onOpenCommandPalette={onOpenCommandPalette}
           onMarkDone={onMarkDone}
           isMarkingDone={isMarkingDone}
+          canMarkDone={canMarkDone}
+          markDoneDisabledReason={markDoneDisabledReason}
           onOpenVitals={() => openVitals()}
           onOpenBilling={() => setBillingOpen(true)}
           onOpenAskAi={openAskAi}

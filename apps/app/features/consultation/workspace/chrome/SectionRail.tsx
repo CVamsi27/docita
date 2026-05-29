@@ -4,6 +4,8 @@ import { useMemo } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { StepProgress } from "@workspace/ui/components/navigation/step-progress";
+import { Button } from "@workspace/ui/components/form/button";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import type { ConsultationSection } from "@/features/consultation/workspace/consultation-section-registry";
 
@@ -317,48 +319,42 @@ export function SectionTabs({
   onSelect,
 }: SectionTabsProps) {
   const completion = useSectionCompletion();
+  const nextStep = findNextStep(sections, completion);
+
+  const stepItems = useMemo(
+    () =>
+      sections.map((section) => ({
+        id: section.id,
+        label: section.shortLabel,
+        done: completion[section.id] ?? false,
+        optional: !section.required,
+      })),
+    [sections, completion],
+  );
+
   return (
-    <div
-      className="md:hidden sticky top-[var(--consultation-page-header-height)] z-10 flex flex-nowrap gap-0 overflow-x-auto overscroll-x-contain border-b bg-background/95 backdrop-blur [scrollbar-width:thin]"
-      role="tablist"
-      aria-label="Consultation sections"
-    >
-      {sections.map((section, index) => {
-        const isActive = section.id === activeSectionId;
-        const isComplete = completion[section.id] ?? false;
-        const isRequired = section.required ?? false;
-        return (
-          <button
-            key={section.id}
-            type="button"
-            role="tab"
-            aria-selected={isActive}
-            onClick={() => onSelect(section.id)}
-            className={cn(
-              "shrink-0 px-3 py-2.5 text-sm font-medium border-b-2 transition-colors",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              isActive
-                ? "border-primary text-primary"
-                : isComplete
-                  ? "border-transparent text-success"
-                  : "border-transparent text-muted-foreground",
-            )}
-          >
-            <span className="mr-1.5 text-[var(--fs-2xs)] font-bold tabular-nums">
-              {index + 1}.
-            </span>
-            {section.shortLabel}
-            {isRequired ? (
-              <span
-                className="ml-1 text-destructive"
-                aria-label="Required"
-              >
-                *
-              </span>
-            ) : null}
-          </button>
-        );
-      })}
+    <div className="md:hidden sticky top-0 z-10 border-b bg-background/95 px-3 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      <StepProgress
+        items={stepItems}
+        activeId={activeSectionId}
+        onSelect={onSelect}
+        compact
+        trailing={
+          nextStep && nextStep.id !== activeSectionId ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 shrink-0 gap-1 px-2 text-primary"
+              onClick={() => onSelect(nextStep.id)}
+              data-testid={`consultation-next-step-${nextStep.id}`}
+            >
+              Next
+              <ArrowRight className="size-3.5" aria-hidden />
+            </Button>
+          ) : undefined
+        }
+      />
     </div>
   );
 }

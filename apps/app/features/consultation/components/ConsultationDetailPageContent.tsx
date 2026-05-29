@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { ConsultationShell } from "@/features/consultation/workspace/ConsultationShell";
@@ -26,6 +26,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@workspace/data-access";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
+import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
+import {
+  canCompleteConsultation,
+  getConsultationCompletionMissingFields,
+} from "@/features/consultation/rules/consultationRules";
+import { resolveConsultationCompletionSnapshot } from "@/features/consultation/rules/consultation-completion";
 
 export default function ConsultationPage() {
   return (
@@ -65,6 +71,36 @@ function ConsultationPageContent() {
     ? isConsultationReadOnlyStatus(appointmentData.status)
     : false;
 
+  const draftChiefComplaint = useConsultationDraft((s) => s.chiefComplaint);
+  const draftDiagnosis = useConsultationDraft((s) => s.diagnosis);
+
+  const completionSnapshot = useMemo(() => {
+    if (!appointmentData) {
+      return null;
+    }
+    return resolveConsultationCompletionSnapshot(appointmentData, {
+      chiefComplaint: draftChiefComplaint,
+      diagnosis: draftDiagnosis,
+    });
+  }, [appointmentData, draftChiefComplaint, draftDiagnosis]);
+
+  const completionMissingFields = useMemo(
+    () =>
+      completionSnapshot
+        ? getConsultationCompletionMissingFields(completionSnapshot)
+        : [],
+    [completionSnapshot],
+  );
+
+  const canMarkDone =
+    !consultationReadOnly &&
+    Boolean(completionSnapshot && canCompleteConsultation(completionSnapshot));
+
+  const markDoneDisabledReason =
+    completionMissingFields.length > 0
+      ? `Add ${completionMissingFields.join(", ")} before marking done`
+      : undefined;
+
   const {
     tryNavigateAway,
     attemptNavigateToHref,
@@ -82,7 +118,14 @@ function ConsultationPageContent() {
 
   const handleMarkDone = useCallback(async () => {
     if (!appointmentData) return;
-    if (consultationReadOnly || isMarkingDone) return;
+    if (consultationReadOnly || isMarkingDone || !canMarkDone) {
+      if (markDoneDisabledReason) {
+        toast.message("Consultation is incomplete", {
+          description: markDoneDisabledReason,
+        });
+      }
+      return;
+    }
     const ok = await confirmAction("mark consultation done", {
       title: "Mark consultation done?",
       description:
@@ -135,9 +178,11 @@ function ConsultationPageContent() {
   }, [
     appointmentData,
     appointmentId,
+    canMarkDone,
     confirmAction,
     consultationReadOnly,
     isMarkingDone,
+    markDoneDisabledReason,
     queryClient,
     router,
     retry,
@@ -237,6 +282,8 @@ function ConsultationPageContent() {
               onOpenCommandPalette={() => setPaletteOpen(true)}
               onMarkDone={handleMarkDone}
               isMarkingDone={isMarkingDone}
+              canMarkDone={canMarkDone}
+              markDoneDisabledReason={markDoneDisabledReason}
             />
 
             <ConsultationShell

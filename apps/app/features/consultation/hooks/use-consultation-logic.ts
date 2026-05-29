@@ -12,6 +12,8 @@ import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { UpdateAppointmentInput } from "@workspace/types";
+import { isConsultationReadOnlyStatus } from "@/features/appointments";
+
 export const useConsultationLogic = (appointmentId: string) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -37,6 +39,9 @@ export const useConsultationLogic = (appointmentId: string) => {
     if (fromPage === "patient") {
       return "/patients";
     }
+    if (fromPage === "list") {
+      return "/consultation";
+    }
 
     return "/consultation";
   }, [fromPage, appointmentData?.patientId]);
@@ -59,6 +64,7 @@ export const useConsultationLogic = (appointmentId: string) => {
       !canAccessConsultationWorkspace ||
       markedInProgressRef.current ||
       !appointmentData ||
+      isConsultationReadOnlyStatus(appointmentData.status) ||
       !["scheduled", "confirmed", "checked-in", "in-progress"].includes(
         appointmentData.status,
       )

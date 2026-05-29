@@ -70,6 +70,10 @@ vi.mock("@/lib/errors/user-facing-errors", () => ({
   showUserFacingErrorToast: vi.fn(),
 }));
 
+vi.mock("./ConsultationHistoryList", () => ({
+  ConsultationHistoryList: () => null,
+}));
+
 describe("ConsultationDashboardUI", () => {
   beforeEach(() => {
     mockCheckIn.mutateAsync.mockReset();

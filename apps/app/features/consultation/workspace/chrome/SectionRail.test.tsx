@@ -121,7 +121,7 @@ describe("SectionRail", () => {
 });
 
 describe("SectionTabs", () => {
-  it("exposes a tablist with aria-selected on the active tab", () => {
+  it("exposes progress steps with aria-current on the active step", () => {
     render(
       <SectionTabs
         sections={SECTIONS}
@@ -129,9 +129,9 @@ describe("SectionTabs", () => {
         onSelect={() => {}}
       />,
     );
-    const list = screen.getByRole("tablist");
+    const list = screen.getByRole("list", { name: /progress steps/i });
     expect(list).toBeInTheDocument();
-    const active = screen.getByRole("tab", { name: /Assessment/i });
-    expect(active.getAttribute("aria-selected")).toBe("true");
+    const active = screen.getByRole("button", { name: /Assessment/i });
+    expect(active.getAttribute("aria-current")).toBe("step");
   });
 });

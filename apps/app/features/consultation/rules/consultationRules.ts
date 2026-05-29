@@ -1,4 +1,4 @@
-import type { Appointment, VitalSign } from "@workspace/types";
+import type { VitalSign } from "@workspace/types";
 import { isVitalRangeKey } from "@/features/consultation/lib/consultation-vital-keys";
 
 export const getVitalRanges = (age: number) => {
@@ -56,12 +56,30 @@ export const calculateBMIFromVitals = (vitals: VitalSign): number | null => {
   return parseFloat((vitals.weight / heightInMeters ** 2).toFixed(1));
 };
 
+export type ConsultationCompletionInput = {
+  chiefComplaint?: string | null;
+  hasDiagnosis: boolean;
+  hasVitals: boolean;
+};
+
+export const getConsultationCompletionMissingFields = (
+  consultation: ConsultationCompletionInput,
+): string[] => {
+  const missing: string[] = [];
+  if (!consultation.chiefComplaint?.trim()) {
+    missing.push("Chief complaint");
+  }
+  if (!consultation.hasDiagnosis) {
+    missing.push("Diagnosis");
+  }
+  if (!consultation.hasVitals) {
+    missing.push("Vitals");
+  }
+  return missing;
+};
+
 export const canCompleteConsultation = (
-  consultation: Pick<Appointment, "chiefComplaint" | "diagnoses" | "vitalSign">,
+  consultation: ConsultationCompletionInput,
 ): boolean => {
-  return !!(
-    consultation.chiefComplaint &&
-    consultation.diagnoses &&
-    consultation.vitalSign
-  );
+  return getConsultationCompletionMissingFields(consultation).length === 0;
 };

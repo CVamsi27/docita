@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Card,
@@ -10,6 +10,13 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/form/select";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import {
   ClipboardList,
@@ -22,31 +29,88 @@ import { useAppointments } from "@workspace/data-access";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatLocaleDateShortMonthYear, formatTime } from "@/lib/formatters";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useAuth } from "@/lib/auth/auth-context";
 
-const LIMIT = 25;
+const PAGE_SIZE = 25;
 
-export function ConsultationHistoryList() {
-  const { canViewPrescriptions, canViewInvoices, isDoctor, isAdmin } =
+interface ConsultationHistoryDoctor {
+  id: string;
+  name: string;
+}
+
+interface ConsultationHistoryListProps {
+  scopedDoctorId?: string;
+  canViewAllDoctors?: boolean;
+  selectedDoctorId?: string;
+  onDoctorSelect?: (doctorId: string | undefined) => void;
+  doctorsList?: ConsultationHistoryDoctor[];
+}
+
+export function ConsultationHistoryList({
+  scopedDoctorId,
+  canViewAllDoctors = false,
+  selectedDoctorId,
+  onDoctorSelect,
+  doctorsList = [],
+}: ConsultationHistoryListProps) {
+  const { user } = useAuth();
+  const { canViewPrescriptions, canViewInvoices, canStartConsultation } =
     usePermissions();
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setPage(1);
+  }, [scopedDoctorId]);
+
   const { data, isLoading, isError, refetch } = useAppointments({
     status: "completed",
-    limit: LIMIT,
+    limit: PAGE_SIZE,
+    page,
+    sortOrder: "desc",
+    ...(scopedDoctorId ? { doctorId: scopedDoctorId } : {}),
   });
 
   const items = useMemo(() => data?.items ?? [], [data]);
-  const canOpenConsultation = isDoctor || isAdmin;
+  const totalCount = data?.count ?? 0;
+  const canGoPrev = page > 1;
+  const canGoNext = Boolean(data?.hasMore);
 
   return (
     <Card className="border-border/60 bg-card/95 shadow-sm">
       <CardHeader className="border-b border-border/60 px-5 py-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-          <CardTitle className="flex items-center gap-2 text-base font-semibold">
-            <ClipboardList className="h-4 w-4 text-primary" aria-hidden />
-            Completed consultations
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Open Rx & invoice records for review or printing.
-          </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <CardTitle className="flex items-center gap-2 text-base font-semibold">
+              <ClipboardList className="h-4 w-4 text-primary" aria-hidden />
+              Completed consultations
+            </CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Open Rx and invoice records for review or printing.
+            </p>
+          </div>
+          {canViewAllDoctors && doctorsList.length > 0 && onDoctorSelect ? (
+            <Select
+              value={selectedDoctorId || "all"}
+              onValueChange={(value) =>
+                onDoctorSelect(value === "all" ? undefined : value)
+              }
+            >
+              <SelectTrigger
+                className="h-9 w-full sm:w-[220px] text-sm"
+                aria-label="Filter completed consultations by doctor"
+              >
+                <SelectValue placeholder="Doctor" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All doctors</SelectItem>
+                {doctorsList.map((doctor) => (
+                  <SelectItem key={doctor.id} value={doctor.id}>
+                    Dr. {doctor.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null}
         </div>
       </CardHeader>
       <CardContent className="p-0">
@@ -79,6 +143,10 @@ export function ConsultationHistoryList() {
               const doctorName = apt.doctor?.name ?? null;
               const prescriptionId = apt.prescription?.id ?? null;
               const invoiceId = apt.invoice?.id ?? null;
+              const canViewThisVisit =
+                Boolean(apt.id) &&
+                canStartConsultation &&
+                apt.doctorId === user?.id;
 
               return (
                 <li
@@ -122,7 +190,7 @@ export function ConsultationHistoryList() {
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-1.5 sm:flex-nowrap sm:justify-end">
-                      {canOpenConsultation && apt.id ? (
+                      {canViewThisVisit ? (
                         <Button
                           asChild
                           size="sm"
@@ -167,10 +235,32 @@ export function ConsultationHistoryList() {
               );
             })}
           </ul>
-          {data?.hasMore ? (
-            <div className="border-t border-border/60 px-4 py-2 text-center text-xs text-muted-foreground">
-              Showing the {LIMIT} most recent. Use Appointments &gt; Completed
-              filter for the full archive.
+          {totalCount > 0 ? (
+            <div className="flex items-center justify-between gap-2 border-t border-border/60 px-4 py-3 flex-wrap">
+              <p className="text-sm text-muted-foreground">
+                <span className="hidden sm:inline">Page {page} · </span>
+                {totalCount} completed consultation
+                {totalCount === 1 ? "" : "s"}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((current) => Math.max(1, current - 1))}
+                  disabled={!canGoPrev || isLoading}
+                >
+                  Previous
+                </Button>
+                <span className="px-1 text-xs text-muted-foreground">{page}</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((current) => current + 1)}
+                  disabled={!canGoNext || isLoading}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           ) : null}
         </DataState>
