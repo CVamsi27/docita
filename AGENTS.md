@@ -199,6 +199,16 @@ The `shared/` folder is the home for **non-feature** code reused across features
 - Inputs default to the floating-label `Input` variant; password fields ship the eye toggle and inline rules list per `UI_UX_STANDARD_2026.md` §3.2.
 - Tokens are the only source of color/typography/spacing. No raw hex outside `packages/ui/src/styles/globals.css`. No `text-[10px]/[11px]/[13px]/[15px]`; use `--fs-2xs/xs/sm/md`.
 - If a needed pattern is missing, add it to `packages/ui/src/components/<group>/` (groups: `form/`, `overlay/`, `layout/`, `feedback/`, `data-display/`, `navigation/`, `indicators/`) rather than creating an app-local duplicate, and update `UI_UX_STANDARD_2026.md` if the pattern is new. Consumers reach primitives via `@workspace/ui/components/<group>/<name>`.
+- **Component sourcing order is non-negotiable.** When you need a UI behavior, resolve it in this order — never skip a step:
+  1. **`@workspace/ui` primitive** — buttons, inputs, dialogs, tooltips, popovers, badges, cards, tables, etc. Reach for the grouped path (`@workspace/ui/components/<group>/<name>`).
+  2. **Existing component in the current app's `features/<feature>/` or `shared/components/`** — reuse before duplicating. If a second app needs it, promote to `packages/ui`.
+  3. Only when both above are absent: build a new primitive in `packages/ui` (preferred) or a local component, and document why.
+- **Never substitute native HTML/browser affordances for an existing primitive.** Examples — all of these are bugs in review:
+  - Use `SymbolTooltip` (or `Tooltip` + `TooltipTrigger` + `TooltipContent`) from `@workspace/ui/components/overlay/tooltip`. Do **not** use the native `title=` attribute for hover hints, even on truncated text.
+  - Use `Dialog` / `AlertDialog` / `WizardDialog` from `@workspace/ui`. Do **not** use `window.confirm`, `window.alert`, or `window.prompt`.
+  - Use `Select`, `DropdownMenu`, `Combobox`, `IsoDatePickerField`, etc. from `@workspace/ui`. Do **not** drop a bare `<select>`, `<input type="date">`, or `<details>`/`<summary>` into a feature surface.
+  - Use `toast` from `@workspace/ui` (or the configured wrapper) for transient notifications. Do **not** use `alert()` or ad-hoc fixed-position divs.
+  - Use the `Button` primitive — never a raw `<button>` styled with Tailwind classes — so variants, focus rings, and disabled states stay consistent.
 
 ## 5) Backend Rules
 

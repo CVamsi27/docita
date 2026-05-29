@@ -135,6 +135,22 @@ These are added in PR F:
 - `PageTabs` thin-underline component for in-page section switching (Origin's Overview / Transactions pattern).
 - Tabs sync to the URL (`?tab=`). Always preserve back-compat for old tab values when refactoring.
 
+### 3.6 Mobile companion patterns (2026 responsive pass)
+
+Use these `@workspace/ui` primitives for phone/tablet layouts; prefer Tailwind breakpoints first, primitives for repeated row/step chrome:
+
+| Primitive | Use when |
+|---|---|
+| `SegmentedControl` | Queue filters, mobile section tabs, role switchers (pill segmented control) |
+| `StepProgress` | Consultation SOAP steps, wizard section nav on `< md` |
+| `ListRow` + `ListRowGroup` | `DataTable` `stackOnMobile` card fallback; queue/inbox rows (token · name · meta · time · status) |
+| `BottomActionBar` | Primary + secondary actions docked at bottom on `< md` (Next patient, save, quick replies) |
+| `NowServingBoard` | Today/consultation queue hero (uses `--brand-ink` / `--brand-cyan`; do not duplicate) |
+
+- `Dialog` / `WizardDialog` become full-height bottom sheets below **`md`** (768px).
+- Clinical lists: `DataTable` with `stackOnMobile`, `mobileRenderer` → `ListRow`, `hiddenOnMobile` on low-priority columns.
+- No emoji in bottom actions; Lucide icons + sentence-case labels only.
+
 ## 4. AI surface contract
 
 - **Permanent affordance**: `AskAiButton` pinned to the sidebar bottom is mandatory.

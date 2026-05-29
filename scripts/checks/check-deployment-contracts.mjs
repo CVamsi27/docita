@@ -170,6 +170,24 @@ try {
     `fly.toml CORS_ORIGINS must only list https://*.docita.work hosts. Invalid entries: ${invalidCorsOrigins.join(", ")}`,
   );
 
+  assertIncludes(
+    deployWorkflowSource,
+    "--strategy bluegreen",
+    "API deploy must use Fly blue-green strategy for safe traffic cutover.",
+  );
+
+  assertIncludes(
+    flyTomlSource,
+    "RLS_ENABLED",
+    "fly.toml [env] must set RLS_ENABLED for production API.",
+  );
+
+  assertIncludes(
+    deployWorkflowSource,
+    "scripts/monitoring/synthetic/run-probes.mjs",
+    "Deploy workflow must run post-deploy synthetic probes.",
+  );
+
   process.stdout.write("Deployment contracts verified.\n");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);

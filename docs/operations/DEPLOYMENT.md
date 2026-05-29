@@ -90,7 +90,7 @@ docker build -f apps/worker/Dockerfile -t docita-worker-verify .
 ```
 
 Secrets required (set via `fly secrets set KEY=value`):
-- `DATABASE_URL` — AWS RDS connection string
+- `DATABASE_URL` — AWS RDS connection string as **`docita_app`** (non-owner) when `RLS_ENABLED=true`
 - `JWT_SECRET` — minimum 32 characters
 - `ENCRYPTION_KEY` — 64-character hex key
 - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`
@@ -160,6 +160,24 @@ After merging to `main` and before or right after Fly deploys:
 5. Measure RSS on API and worker after each slice.
 
 This is a larger change than env/Fly wiring; ship it in small PRs behind the same `ENABLE_SCHEDULERS` split so rollback is flipping env on Fly.
+
+## Deployment strategy (API)
+
+Production API deploys from GitHub Actions use **Fly.io blue-green** (`flyctl deploy --strategy bluegreen`):
+
+1. Fly starts new machines with the updated image.
+2. Health checks on `GET /api/health/live` must pass.
+3. Traffic shifts to the new machines; old machines are drained and removed.
+
+This gives near-instant rollback via `fly releases rollback` without a separate green environment. The worker has no HTTP service and continues to use a rolling deploy (`--ha=false`).
+
+After each API deploy, **synthetic uptime probes** run automatically (`pnpm monitor:synthetic`). Failures block the deploy job and emit a Sentry event when `SENTRY_DSN` is configured. Scheduled probes also run every 5 minutes via `.github/workflows/synthetic-monitoring.yml`.
+
+## Row-level security (production)
+
+`RLS_ENABLED=true` is set in [`fly.toml`](../../fly.toml) and [`apps/worker/fly.toml`](../../apps/worker/fly.toml). Local development keeps `RLS_ENABLED=false` in `.env.example`.
+
+**Required before enforcement binds:** `DATABASE_URL` in Fly secrets must connect as the non-owner `docita_app` role (not the RDS owner). Owner connections bypass RLS even when the app flag is on. Provision with [`packages/db/scripts/provision-docita-app-role.sql`](../../packages/db/scripts/provision-docita-app-role.sql) — see [`docs/compliance/RLS_ROLLOUT.md`](../compliance/RLS_ROLLOUT.md).
 
 ## Roll back a bad release
 

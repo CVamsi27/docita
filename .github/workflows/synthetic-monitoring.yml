@@ -1,0 +1,31 @@
+name: Synthetic uptime monitoring
+
+on:
+  schedule:
+    # Every 5 minutes — detect breakage before users report it.
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: synthetic-monitoring
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  probes:
+    name: Run production synthetic probes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Run synthetic probes
+        env:
+          SYNTHETIC_API_ORIGIN: https://api.docita.work/api
+          SYNTHETIC_API_BASE_URL: https://api.docita.work/api/v1
+          SYNTHETIC_APP_BASE_URL: https://app.docita.work
+          SYNTHETIC_MONITOR_EMAIL: ${{ secrets.SYNTHETIC_MONITOR_EMAIL }}
+          SYNTHETIC_MONITOR_PASSWORD: ${{ secrets.SYNTHETIC_MONITOR_PASSWORD }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: node scripts/monitoring/synthetic/run-probes.mjs

@@ -150,6 +150,7 @@ jobs:
       NEXT_PUBLIC_APP_URL: https://app.docita.work
       NEXT_PUBLIC_API_URL: https://api.docita.work/api/v1
       CORS_ORIGINS: https://app.docita.work,https://internal.docita.work
+      RLS_ENABLED: "true"
       STORAGE_PROVIDER: r2
       QUEUE_BACKEND: postgres
       ENABLE_SCHEDULERS: false
@@ -202,7 +203,17 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy API to Fly.io
-        run: flyctl deploy --config fly.toml --app "${{ steps.fly-config.outputs.app_name }}" --remote-only
+        run: flyctl deploy --config fly.toml --app "${{ steps.fly-config.outputs.app_name }}" --remote-only --strategy bluegreen
+
+      - name: Post-deploy synthetic probes
+        env:
+          SYNTHETIC_API_ORIGIN: https://api.docita.work/api
+          SYNTHETIC_API_BASE_URL: https://api.docita.work/api/v1
+          SYNTHETIC_APP_BASE_URL: https://app.docita.work
+          SYNTHETIC_MONITOR_EMAIL: ${{ secrets.SYNTHETIC_MONITOR_EMAIL }}
+          SYNTHETIC_MONITOR_PASSWORD: ${{ secrets.SYNTHETIC_MONITOR_PASSWORD }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: node scripts/monitoring/synthetic/run-probes.mjs
 
   deploy-worker:
     name: Deploy Worker (Fly.io)
