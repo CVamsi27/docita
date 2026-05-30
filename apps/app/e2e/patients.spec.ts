@@ -320,3 +320,34 @@ async function loginAsDoctor(
 
   await page.waitForTimeout(1000);
 }
+
+test("opens Ask AI scoped to the patient from the detail header", async ({
+  page,
+  request,
+}) => {
+  const { authToken, clinicId, user } = await setupDoctorAndClinic(request);
+
+  const patientRes = await request.post(`${API_URL}/patients`, {
+    headers: { Authorization: `Bearer ${authToken}` },
+    data: {
+      firstName: "AskAi",
+      lastName: "Patient",
+      phoneNumber: `98${Math.floor(Math.random() * 100000000)
+        .toString()
+        .padStart(8, "0")}`,
+      gender: "MALE",
+      dateOfBirth: "1990-01-01",
+      clinicId,
+    },
+  });
+  expect(patientRes.ok()).toBeTruthy();
+  const patient = toRecord(await patientRes.json());
+  const patientId = readString(patient, "id");
+  expect(patientId).toBeTruthy();
+
+  await loginAsDoctor(page, authToken, clinicId, user);
+  await page.goto(`/patients/${patientId}`, { waitUntil: "domcontentloaded" });
+  await page.getByTestId("patient-ask-ai").click();
+  await expect(page.getByRole("dialog", { name: /ask ai/i })).toBeVisible();
+  await expect(page.getByText(/on AskAi Patient/i)).toBeVisible();
+});

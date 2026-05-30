@@ -451,16 +451,13 @@ jobs:
 
       - name: Enforce perf budget against prior baseline
         if: github.event_name == 'pull_request'
-        env:
-          # TEMPORARY (consolidation PR #159): the baseline is restored from a
-          # GitHub Actions cache populated by the last `main` push (see the
-          # "Save perf baseline cache" step below). That cache predates ~15 PRs
-          # of consolidated work, so legitimate growth on patient surfaces
-          # exceeds the +15% steady-state guard. The first push to `main` after
-          # this consolidation refreshes the cache; the follow-up PR ratchets
-          # this back to the default 15% via this same env var.
-          PERF_MAX_ROUTE_SIZE_DELTA_PERCENT: "200"
         run: pnpm perf:budget:enforce
+
+      - name: Enforce per-route bundle budgets
+        if: github.event_name == 'pull_request'
+        env:
+          PERF_ROUTE_BUDGET_MODE: fail
+        run: pnpm perf:route-budgets
 
       - name: Capture and persist perf baseline
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
