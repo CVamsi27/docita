@@ -8,8 +8,9 @@ import process from "node:process";
 const repoRoot = process.cwd();
 const enforce = process.argv.includes("--enforce");
 const allowedPatterns = [
-  /^apps\/app\/app\/api\//,
-  /^apps\/app\/shared\/lib\/api\/upstream-api-proxy\.ts$/,
+  /^apps\/app\/middleware\.ts$/,
+  /^apps\/internal\/middleware\.ts$/,
+  /^packages\/utils\/src\/http\/upstream-api-proxy\.ts$/,
   /^apps\/app\/shared\/lib\/api\/api-client\.ts$/,
   /^apps\/app\/shared\/lib\/auth\/fetch-with-session\.ts$/,
   /^apps\/app\/shared\/lib\/auth\/browser-session\.ts$/,

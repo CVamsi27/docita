@@ -16,6 +16,7 @@ export * from "./onboarding";
 export * from "./operations";
 export * from "./patients";
 export * from "./public-booking";
+export * from "./daily-thought";
 export * from "./prescriptions";
 export * from "./subscriptions";
 export * from "./templates";

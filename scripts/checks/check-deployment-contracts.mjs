@@ -65,14 +65,14 @@ try {
   const ciWorkflowSource = read(".github/workflows/ci.yml");
   const flyTomlSource = read(flyTomlPath);
 
-  assertIncludes(
-    appMiddlewareSource,
-    "export function middleware",
+  assert(
+    /export async function middleware/.test(appMiddlewareSource) ||
+      /export function middleware/.test(appMiddlewareSource),
     "apps/app/middleware.ts must export middleware().",
   );
-  assertIncludes(
-    internalMiddlewareSource,
-    "export function middleware",
+  assert(
+    /export async function middleware/.test(internalMiddlewareSource) ||
+      /export function middleware/.test(internalMiddlewareSource),
     "apps/internal/middleware.ts must export middleware().",
   );
   assertIncludes(

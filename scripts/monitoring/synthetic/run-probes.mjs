@@ -83,7 +83,7 @@ async function probeApiHealthLive() {
 async function probeDailyThought() {
   return runProbe("daily-thought", async () => {
     const { response, latencyMs } = await fetchWithTimeout(
-      `${APP_BASE}/api/daily-thought`,
+      `${APP_BASE}/api/v1/public/daily-thought`,
       { headers: { Accept: "application/json" } },
       FETCH_TIMEOUT_MS,
     );

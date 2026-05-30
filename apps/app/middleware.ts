@@ -1,5 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
+  extractApiV1PathSegments,
+  proxyUpstreamApiRequest,
+} from "@workspace/utils";
+import {
   SECURITY_HEADERS,
   buildContentSecurityPolicy,
 } from "./shared/lib/security/security-headers";
@@ -16,6 +20,7 @@ import {
  */
 
 const isProduction = process.env.NODE_ENV === "production";
+const isCloudflareBuild = process.env["DOCITA_CLOUDFLARE"] === "1";
 
 const generateNonce = (): string => {
   const bytes = new Uint8Array(16);
@@ -25,7 +30,14 @@ const generateNonce = (): string => {
   return btoa(binary);
 };
 
-export function middleware(request: NextRequest): NextResponse {
+export async function middleware(request: NextRequest) {
+  if (isCloudflareBuild) {
+    const pathSegments = extractApiV1PathSegments(request.nextUrl.pathname);
+    if (pathSegments !== null) {
+      return proxyUpstreamApiRequest(request, pathSegments);
+    }
+  }
+
   if (!isProduction) return NextResponse.next();
 
   const nonce = generateNonce();

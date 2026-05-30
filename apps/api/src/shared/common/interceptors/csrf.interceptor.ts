@@ -56,7 +56,7 @@ export class CsrfInterceptor implements NestInterceptor {
    * X-XSRF-TOKEN on mutating requests. See design doc §7.5 / §7.5.1.
    *
    * NOTE: any layer between this interceptor and the browser (CDN,
-   * Next proxy at apps/app/app/api/v1/[...path]/route.ts, future caching
+   * Next middleware proxy on Cloudflare (same-origin /api/v1 → API), future caching
    * layer) MUST pass the X-CSRF-Token response header through — stripping
    * it silently breaks login.
    */

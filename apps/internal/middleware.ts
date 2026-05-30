@@ -1,5 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import {
+  extractApiV1PathSegments,
+  proxyUpstreamApiRequest,
+} from "@workspace/utils";
+import {
   applyInternalSecurityHeaders,
   buildInternalContentSecurityPolicy,
 } from "./shared/lib/security/security-headers";
@@ -14,6 +18,7 @@ import {
  * keep hot-reload functional (HMR uses inline scripts we cannot sign).
  */
 const isProduction = process.env.NODE_ENV === "production";
+const isCloudflareBuild = process.env["DOCITA_CLOUDFLARE"] === "1";
 
 function generateNonce(): string {
   const bytes = new Uint8Array(16);
@@ -43,9 +48,6 @@ function applyHeadersWithNonce(
     isProduction: true,
   });
 
-  // For renders, fork the request headers so Next picks up `x-nonce`
-  // and signs its boot scripts with it. For redirects/static responses
-  // the nonce only needs to ride on the CSP header.
   let outgoing = response;
   if (options.render) {
     const requestHeaders = new Headers(request.headers);
@@ -86,8 +88,15 @@ function isPortalPath(pathname: string): boolean {
   );
 }
 
-export function middleware(request: NextRequest): NextResponse {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (isCloudflareBuild) {
+    const pathSegments = extractApiV1PathSegments(pathname);
+    if (pathSegments !== null) {
+      return proxyUpstreamApiRequest(request, pathSegments);
+    }
+  }
 
   if (
     pathname.startsWith("/api/") ||
