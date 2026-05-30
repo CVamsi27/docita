@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import type { Prisma } from '@workspace/db';
 import {
   activeTxStorage,
   runOutsideActiveTx,
@@ -13,10 +14,10 @@ describe('runOutsideActiveTx', () => {
   });
 
   it('temporarily clears the active tx so nested Prisma calls bypass routing', async () => {
-    const tx = { marker: 'request-tx' };
+    const tx = { marker: 'request-tx' } as unknown as Prisma.TransactionClient;
     const observed: Array<string | null> = [];
 
-    await runWithActiveTx(tx as never, async () => {
+    await runWithActiveTx(tx, async () => {
       observed.push(activeTxStorage.getStore()?.tx === tx ? 'inside' : 'lost');
       await runOutsideActiveTx(async () => {
         observed.push(
@@ -24,7 +25,9 @@ describe('runOutsideActiveTx', () => {
         );
         return undefined;
       });
-      observed.push(activeTxStorage.getStore()?.tx === tx ? 'restored' : 'lost');
+      observed.push(
+        activeTxStorage.getStore()?.tx === tx ? 'restored' : 'lost',
+      );
     });
 
     expect(observed).toEqual(['inside', 'outside', 'restored']);
