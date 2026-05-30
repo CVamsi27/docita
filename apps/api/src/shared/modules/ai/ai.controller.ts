@@ -11,7 +11,8 @@ import {
   Logger,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
+import { RequestWithUser } from '@/shared/common/types/common.types';
 import { AIService } from './ai.service';
 import { AskAiService } from './ask-ai.service';
 import { Role } from '@workspace/db';
@@ -61,7 +62,7 @@ export class AIController {
    * (blocking) is gated separately on AI_CREDIT_ALLOTMENT_BY_TIER.
    */
   private recordAiUsage(
-    req: AuthenticatedRequest,
+    req: { user?: { clinicId?: string | null } | null },
     feature: AiCreditFeature,
   ): void {
     const clinicId = req.user?.clinicId;
@@ -85,7 +86,7 @@ export class AIController {
   @RequireFeature(Feature.AI_PRESCRIPTION_ASSISTANT)
   async ask(
     @Body() dto: AskAiRequestDto,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
     @Res() res: Response,
   ): Promise<void> {
     res.setHeader('Content-Type', 'text/event-stream');
@@ -114,6 +115,7 @@ export class AIController {
         if (controller.signal.aborted) break;
         send('delta', { text: delta });
       }
+      this.recordAiUsage(req, 'clinicalNote');
       send('done', { ok: true });
     } catch (err) {
       if (controller.signal.aborted) {
