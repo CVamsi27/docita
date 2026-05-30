@@ -4,6 +4,7 @@ import { OpenaiService } from './openai.service';
 import { OcrExtractionService } from './ocr-extraction.service';
 import { ClinicalAiService } from './clinical-ai.service';
 import { AskAiService } from './ask-ai.service';
+import { AiCreditGuardService } from './ai-credit-guard.service';
 import { AIController } from './ai.controller';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { MonitoringModule } from '@/shared/modules/monitoring/monitoring/monitoring.module';
@@ -18,6 +19,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     OcrExtractionService,
     ClinicalAiService,
     AskAiService,
+    AiCreditGuardService,
   ],
   exports: [
     AIService,

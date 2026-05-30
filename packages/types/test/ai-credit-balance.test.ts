@@ -4,6 +4,8 @@ import {
   computeAiCreditBalance,
   getAiCreditAllotment,
   isAiCreditEnforced,
+  isAiCreditExhausted,
+  isAnyAiCreditTierEnforced,
   tierSchema,
 } from "../src";
 
@@ -50,5 +52,21 @@ describe("computeAiCreditBalance", () => {
   it("clamps negative and fractional usage", () => {
     expect(computeAiCreditBalance(100, -5).used).toBe(0);
     expect(computeAiCreditBalance(100, 3.9).used).toBe(3);
+  });
+});
+
+describe("AI credit gate decision", () => {
+  it("reports no tier enforced by default", () => {
+    expect(isAnyAiCreditTierEnforced()).toBe(false);
+  });
+
+  it("never marks an unpriced (null) allotment as exhausted", () => {
+    expect(isAiCreditExhausted(null, 1_000_000)).toBe(false);
+  });
+
+  it("marks a finite allotment exhausted only at/over the limit", () => {
+    expect(isAiCreditExhausted(100, 50)).toBe(false);
+    expect(isAiCreditExhausted(100, 100)).toBe(true);
+    expect(isAiCreditExhausted(100, 250)).toBe(true);
   });
 });

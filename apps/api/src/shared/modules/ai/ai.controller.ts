@@ -15,6 +15,7 @@ import type { Response } from 'express';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { AIService } from './ai.service';
 import { AskAiService } from './ask-ai.service';
+import { AiCreditGuardService } from './ai-credit-guard.service';
 import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
@@ -53,6 +54,7 @@ export class AIController {
     private readonly aiService: AIService,
     private readonly askAiService: AskAiService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly aiCreditGuard: AiCreditGuardService,
   ) {}
 
   /**
@@ -114,6 +116,8 @@ export class AIController {
     @Req() req: RequestWithUser,
     @Res() res: Response,
   ): Promise<void> {
+    await this.aiCreditGuard.assertWithinAllotment(req.user?.clinicId);
+
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('Connection', 'keep-alive');
@@ -167,6 +171,7 @@ export class AIController {
     data: AnalyzePrescriptionDto,
     @Req() req: AuthenticatedRequest,
   ) {
+    await this.aiCreditGuard.assertWithinAllotment(req.user?.clinicId);
     const result = await this.aiService.analyzePrescription(data);
     this.recordAiUsage(req, 'prescriptionSuggestion');
     return result;
@@ -180,6 +185,7 @@ export class AIController {
     @Body() dto: DiagnosisSuggestionRequestDto,
     @Req() req: AuthenticatedRequest,
   ) {
+    await this.aiCreditGuard.assertWithinAllotment(req.user?.clinicId);
     const result = await this.aiService.suggestDiagnoses(
       dto.symptoms,
       dto.findingsNotes,
@@ -196,6 +202,7 @@ export class AIController {
     @Body() dto: MedicationRecommendationRequestDto,
     @Req() req: AuthenticatedRequest,
   ) {
+    await this.aiCreditGuard.assertWithinAllotment(req.user?.clinicId);
     const result = await this.aiService.recommendMedications(
       dto.condition,
       dto.patientAge,

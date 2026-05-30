@@ -1291,6 +1291,32 @@ export function computeAiCreditBalance(
   };
 }
 
+/**
+ * True iff *any* tier has a finite AI-credit allotment configured. Lets the
+ * pre-call guard short-circuit (and skip all DB work) while enforcement is off
+ * for every tier — which is the default until product sets numbers.
+ */
+export function isAnyAiCreditTierEnforced(): boolean {
+  return Object.values(AI_CREDIT_ALLOTMENT_BY_TIER).some(
+    (value) => typeof value === "number",
+  );
+}
+
+/**
+ * True iff a tier with a finite allotment has exhausted it. Returns false
+ * whenever `allotment` is null (unpriced) so callers never block. The single
+ * decision the pre-call guard makes.
+ */
+export function isAiCreditExhausted(
+  allotment: number | null,
+  used: number,
+): boolean {
+  const balance = computeAiCreditBalance(allotment, used);
+  return (
+    balance.enforced && balance.remaining !== null && balance.remaining <= 0
+  );
+}
+
 export type DiscountType =
   | "ANNUAL_COMMITMENT"
   | "SEMI_ANNUAL_COMMITMENT"
