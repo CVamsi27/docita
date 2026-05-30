@@ -8,6 +8,10 @@ import {
 } from './providers/email-provider.interface';
 import { DATE_FORMATS, escapeHtml, formatDateTime } from '@workspace/utils';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import {
+  EmailSuppressionService,
+  maskEmail,
+} from './email-suppression.service';
 
 @Injectable()
 export class EmailService {
@@ -18,7 +22,19 @@ export class EmailService {
     @Inject(EMAIL_PROVIDER)
     private readonly emailProvider: IEmailProvider,
     private configService: AppConfigService,
+    private readonly suppression: EmailSuppressionService,
   ) {}
+
+  /** First suppressed recipient (if any) so the caller can skip the send. */
+  private async firstSuppressedRecipient(
+    to: string | string[],
+  ): Promise<string | null> {
+    const recipients = Array.isArray(to) ? to : [to];
+    for (const recipient of recipients) {
+      if (await this.suppression.isSuppressed(recipient)) return recipient;
+    }
+    return null;
+  }
 
   async sendWelcomeEmail(
     email: string,
@@ -28,7 +44,7 @@ export class EmailService {
     const safeName = escapeHtml(name);
     const safeClinicName = escapeHtml(clinicName);
 
-    return this.emailProvider.send({
+    return this.send({
       to: email,
       subject: `Welcome to Docita - ${safeClinicName}`,
       html: `
@@ -51,7 +67,7 @@ export class EmailService {
   ): Promise<EmailSendResult> {
     const resetUrl = `${this.configService.getEmailLinkBaseUrl()}/reset-password?token=${resetToken}`;
 
-    return this.emailProvider.send({
+    return this.send({
       to: email,
       subject: 'Reset your password - Docita',
       replyTo: this.supportEmail,
@@ -109,7 +125,7 @@ export class EmailService {
     const safeDoctorName = escapeHtml(doctorName);
     const safeClinicName = escapeHtml(clinicName);
 
-    return this.emailProvider.send({
+    return this.send({
       to: email,
       subject: `Appointment Reminder - ${safeClinicName}`,
       html: `
@@ -133,7 +149,7 @@ export class EmailService {
   ): Promise<EmailSendResult> {
     const verifyUrl = `${this.configService.getEmailLinkBaseUrl()}/verify-email?token=${verificationToken}`;
 
-    return this.emailProvider.send({
+    return this.send({
       to: email,
       subject: 'Verify Your Email - Docita',
       replyTo: this.supportEmail,
@@ -171,10 +187,24 @@ export class EmailService {
   }
 
   async send(options: EmailOptions): Promise<EmailSendResult> {
+    const suppressed = await this.firstSuppressedRecipient(options.to);
+    if (suppressed) {
+      this.logger.warn(
+        `Skipping email to suppressed address ${maskEmail(suppressed)}`,
+      );
+      return { success: false, error: 'recipient_suppressed' };
+    }
     return this.emailProvider.send(options);
   }
 
   async sendTemplate(options: TemplatedEmailOptions): Promise<EmailSendResult> {
+    const suppressed = await this.firstSuppressedRecipient(options.to);
+    if (suppressed) {
+      this.logger.warn(
+        `Skipping templated email to suppressed address ${maskEmail(suppressed)}`,
+      );
+      return { success: false, error: 'recipient_suppressed' };
+    }
     return this.emailProvider.sendTemplate(options);
   }
 

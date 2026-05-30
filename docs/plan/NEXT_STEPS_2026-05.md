@@ -35,7 +35,7 @@ A consolidated cross-direction phase table is in [§14](#14-consolidated-phase-v
 
 A codebase audit on 2026-05-30 found that **most "Now" items were already shipped** (the May consolidation work landed more than the source docs implied). Legend: ✅ done · ◐ partly done / needs ops to finish · ⏳ genuine code gap (pending) · 🚫 ops-only · 🔢 blocked on a pricing/product number · 🔑 blocked on external credentials/spec · ⚠️ unsafe without cross-client rework.
 
-**Progress: 17 of 28 tracked items done.**
+**Progress: 18 of 28 tracked items done.**
 
 ### ✅ Done
 
@@ -56,6 +56,7 @@ A codebase audit on 2026-05-30 found that **most "Now" items were already shippe
 - [x] AI credit enforcement guard (fail-open, inert until priced)
 - [x] WhatsApp deliverability signal (event hook for alerting)
 - [x] Refresh-token Item 4 — raw refresh token is now cookie-only (stripped from all auth response bodies)
+- [x] Email bounce/complaint webhooks — suppression list + ZeptoMail webhook (HMAC) + send-path guard
 
 ### ◐ In progress / needs an input or ops run
 
@@ -69,7 +70,6 @@ A codebase audit on 2026-05-30 found that **most "Now" items were already shippe
 
 ### ⏳ Pending (blocked on input)
 
-- [ ] Email bounce/complaint webhooks — 🔑 ZeptoMail payload + secret
 - [ ] CI-gate frontend deploys — 🚫 Cloudflare creds
 - [ ] India-first GTM dry-run — QA
 
