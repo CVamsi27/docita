@@ -1085,7 +1085,11 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.02 },
     FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.02 },
     FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 2000, overageRate: 0.01 },
-    FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.008 },
+    FRONT_DESK_HOSPITAL: {
+      basePrice: 0,
+      includedQuota: 6000,
+      overageRate: 0.008,
+    },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.01 },
     HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.008 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.005 },
@@ -1094,7 +1098,11 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.02 },
     FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.02 },
     FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 2000, overageRate: 0.01 },
-    FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.007 },
+    FRONT_DESK_HOSPITAL: {
+      basePrice: 0,
+      includedQuota: 6000,
+      overageRate: 0.007,
+    },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.01 },
     HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.007 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.004 },
@@ -1102,8 +1110,16 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
   GBP: {
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.015 },
     FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.015 },
-    FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 2000, overageRate: 0.008 },
-    FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.006 },
+    FRONT_DESK_CLINIC: {
+      basePrice: 0,
+      includedQuota: 2000,
+      overageRate: 0.008,
+    },
+    FRONT_DESK_HOSPITAL: {
+      basePrice: 0,
+      includedQuota: 6000,
+      overageRate: 0.006,
+    },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.008 },
     HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.006 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.004 },
@@ -1112,7 +1128,11 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
     FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
     FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 2000, overageRate: 0.02 },
-    FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.014 },
+    FRONT_DESK_HOSPITAL: {
+      basePrice: 0,
+      includedQuota: 6000,
+      overageRate: 0.014,
+    },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.02 },
     HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.014 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.008 },
@@ -1121,7 +1141,11 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
     FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
     FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 2000, overageRate: 0.02 },
-    FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.014 },
+    FRONT_DESK_HOSPITAL: {
+      basePrice: 0,
+      includedQuota: 6000,
+      overageRate: 0.014,
+    },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.02 },
     HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.014 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.008 },
@@ -1130,7 +1154,11 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
     FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.03 },
     FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 2000, overageRate: 0.02 },
-    FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.014 },
+    FRONT_DESK_HOSPITAL: {
+      basePrice: 0,
+      includedQuota: 6000,
+      overageRate: 0.014,
+    },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.02 },
     HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.014 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.008 },
@@ -1139,7 +1167,11 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.07 },
     FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.07 },
     FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 2000, overageRate: 0.04 },
-    FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.03 },
+    FRONT_DESK_HOSPITAL: {
+      basePrice: 0,
+      includedQuota: 6000,
+      overageRate: 0.03,
+    },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.04 },
     HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.03 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.02 },
@@ -1148,7 +1180,11 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
     ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.35 },
     FRONT_DESK: { basePrice: 0, includedQuota: 500, overageRate: 0.35 },
     FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 2000, overageRate: 0.2 },
-    FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.15 },
+    FRONT_DESK_HOSPITAL: {
+      basePrice: 0,
+      includedQuota: 6000,
+      overageRate: 0.15,
+    },
     PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.2 },
     HOSPITAL: { basePrice: 0, includedQuota: 6000, overageRate: 0.15 },
     ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.1 },
@@ -1193,6 +1229,64 @@ export const AI_CREDIT_COSTS = {
   treatmentInsight: 5,
   codingSuggestion: 3,
 };
+
+/**
+ * Included AI credits per billing period, by tier. `null` means "no enforced
+ * allotment" — unlimited / not yet priced — so AI-credit enforcement stays OFF
+ * for that tier. Filling these in is a pricing decision; once a finite number
+ * is set, the pre-call guard begins blocking when period usage reaches it.
+ */
+export const AI_CREDIT_ALLOTMENT_BY_TIER: Record<TierName, number | null> = {
+  STARTER: null,
+  ESSENTIAL: null,
+  FRONT_DESK: null,
+  FRONT_DESK_CLINIC: null,
+  FRONT_DESK_HOSPITAL: null,
+  PROFESSIONAL: null,
+  HOSPITAL: null,
+  ENTERPRISE: null,
+  INTELLIGENCE: null,
+};
+
+export function getAiCreditAllotment(tier: TierName): number | null {
+  return AI_CREDIT_ALLOTMENT_BY_TIER[tier] ?? null;
+}
+
+/** True when a finite allotment is configured for the tier (enforcement active). */
+export function isAiCreditEnforced(tier: TierName): boolean {
+  return typeof getAiCreditAllotment(tier) === "number";
+}
+
+export type AiCreditBalance = {
+  allotment: number | null;
+  used: number;
+  remaining: number | null;
+  enforced: boolean;
+};
+
+/**
+ * Pure AI-credit balance used by the (forthcoming) pre-call guard. Compose with
+ * {@link getAiCreditAllotment}: `computeAiCreditBalance(getAiCreditAllotment(tier), used)`.
+ * When `allotment` is null the tier has no configured quota, so `enforced` is
+ * false and `remaining` is null — callers MUST treat that as unlimited and
+ * never block. This keeps enforcement inert until product sets per-tier numbers
+ * in {@link AI_CREDIT_ALLOTMENT_BY_TIER}.
+ */
+export function computeAiCreditBalance(
+  allotment: number | null,
+  creditsUsed: number,
+): AiCreditBalance {
+  const used = Math.max(0, Math.floor(creditsUsed));
+  if (allotment === null) {
+    return { allotment: null, used, remaining: null, enforced: false };
+  }
+  return {
+    allotment,
+    used,
+    remaining: Math.max(0, allotment - used),
+    enforced: true,
+  };
+}
 
 export type DiscountType =
   | "ANNUAL_COMMITMENT"
@@ -1682,7 +1776,8 @@ export const PLAN_MODE_INFO: Record<PlanMode, PlanModeInfo> = {
     name: "Front Desk",
     shortLabel: "Front Desk",
     tagline: "Reception, queue, billing — no clinical workflows",
-    helpText: "Scheduling, intake, invoicing, WhatsApp. No prescriptions or EHR.",
+    helpText:
+      "Scheduling, intake, invoicing, WhatsApp. No prescriptions or EHR.",
     pricingMultiplier: 0.7,
   },
   CORE: {
@@ -1690,7 +1785,8 @@ export const PLAN_MODE_INFO: Record<PlanMode, PlanModeInfo> = {
     name: "Core",
     shortLabel: "Core",
     tagline: "Full doctor access — no WhatsApp, no AI",
-    helpText: "Consultations, prescriptions, invoicing. WhatsApp and AI features off.",
+    helpText:
+      "Consultations, prescriptions, invoicing. WhatsApp and AI features off.",
     pricingMultiplier: 0.8,
   },
 };
@@ -1762,7 +1858,10 @@ export function applyModeToPricing(
  * Per-mode highlight bullets shown on tier cards. Kept separate from
  * `TIER_FEATURES` so the same tier reads differently in each mode.
  */
-export const MODE_TIER_HIGHLIGHTS: Record<PlanMode, Partial<Record<TierName, string[]>>> = {
+export const MODE_TIER_HIGHLIGHTS: Record<
+  PlanMode,
+  Partial<Record<TierName, string[]>>
+> = {
   FULL: {},
   FRONT_DESK: {
     ESSENTIAL: [
@@ -1858,17 +1957,16 @@ export const clinicFeatureOverridesSchema = z
   .transform((raw): Partial<Record<Feature, boolean>> => {
     const out: Partial<Record<Feature, boolean>> = {};
     for (const [key, value] of Object.entries(raw)) {
-      if (
-        key in FEATURE_TIER_MAP &&
-        OVERRIDABLE_FEATURES.has(key as Feature)
-      ) {
+      if (key in FEATURE_TIER_MAP && OVERRIDABLE_FEATURES.has(key as Feature)) {
         out[key as Feature] = value;
       }
     }
     return out;
   });
 
-export type ClinicFeatureOverrides = z.infer<typeof clinicFeatureOverridesSchema>;
+export type ClinicFeatureOverrides = z.infer<
+  typeof clinicFeatureOverridesSchema
+>;
 
 /** Currency-aware monthly discount applied when a preset is active. */
 export type PackagePresetDiscount = Record<SupportedCurrency, number>;
@@ -2023,4 +2121,6 @@ export const clinicPackageSelectionSchema = z.object({
   presetId: z.string().nullable(),
   overrides: clinicFeatureOverridesSchema,
 });
-export type ClinicPackageSelection = z.infer<typeof clinicPackageSelectionSchema>;
+export type ClinicPackageSelection = z.infer<
+  typeof clinicPackageSelectionSchema
+>;
