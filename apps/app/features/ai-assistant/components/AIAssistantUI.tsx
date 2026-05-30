@@ -8,13 +8,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/navigation/tabs";
-import {
-  Brain,
-  FileText,
-  Pill,
-  Sparkles,
-  TrendingUp,
-} from "lucide-react";
+import { Brain, FileText, Pill, Sparkles, TrendingUp } from "lucide-react";
 import { FeatureGuard } from "@/components/auth/feature-guard";
 import { Feature } from "@/lib/stores/permission-store";
 import { EmptyState } from "./empty-state";
@@ -45,10 +39,7 @@ export const AIAssistantUI: FC<AIAssistantUIProps> = ({ state, handlers }) => {
             }
             description="AI-powered clinical decision support for prescriptions, diagnoses, and workflow automation."
             actions={
-              <Badge
-                variant="secondary"
-                className="tier-intelligence border"
-              >
+              <Badge variant="secondary" className="tier-intelligence border">
                 <Sparkles className="h-3 w-3 mr-1" />
                 Docita Intelligence
               </Badge>
@@ -76,10 +67,16 @@ export const AIAssistantUI: FC<AIAssistantUIProps> = ({ state, handlers }) => {
             <TabsTrigger value="insights" className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
               <span className="hidden sm:inline">Insights</span>
+              <Badge variant="outline" className="ml-1 hidden sm:inline-flex">
+                Soon
+              </Badge>
             </TabsTrigger>
             <TabsTrigger value="tasks" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
               <span className="hidden sm:inline">Smart tasks</span>
+              <Badge variant="outline" className="ml-1 hidden sm:inline-flex">
+                Soon
+              </Badge>
             </TabsTrigger>
           </TabsList>
 

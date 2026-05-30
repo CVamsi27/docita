@@ -105,7 +105,7 @@ export function FollowUpForm({
         </div>
 
         {reminderEnabled && (
-          <div className="pl-6 space-y-3 animate-in slide-in-from-top-2">
+          <div className="pl-6 space-y-3">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs">When</Label>

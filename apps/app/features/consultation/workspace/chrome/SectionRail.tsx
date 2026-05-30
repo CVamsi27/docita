@@ -83,9 +83,7 @@ function useSectionCompletion() {
         diagnosis.length > 0 &&
         diagnosis.some((d) => (d.condition?.trim().length ?? 0) > 0),
       plan:
-        !!treatment.trim() ||
-        prescriptions.length > 0 ||
-        !!followUpPlan.trim(),
+        !!treatment.trim() || prescriptions.length > 0 || !!followUpPlan.trim(),
       "specialty-dental": Object.keys(dentalChart).length > 0,
       "specialty-vision": Object.keys(eyeExam).length > 0,
       "specialty-growth": (growthData?.measurements?.length ?? 0) > 0,
@@ -160,7 +158,7 @@ export function SectionRail({
           >
             <div
               className={cn(
-                "h-full rounded-full transition-all",
+                "h-full rounded-full transition-[width] duration-300 ease-out",
                 progressPct === 100 ? "bg-success" : "bg-primary",
               )}
               style={{ width: `${progressPct}%` }}
