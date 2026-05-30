@@ -7,8 +7,10 @@ import {
   useRef,
   useState,
 } from "react";
+import { usePathname } from "next/navigation";
 import { useAskAi } from "./ask-ai-context";
 import { AskAiError, streamAskAi } from "./ask-ai-stream";
+import { resolveAskAiScopeFromPathname } from "./resolve-ask-ai-scope-from-pathname";
 import {
   deriveTitle,
   isToday,
@@ -27,6 +29,7 @@ function createId(prefix: string): string {
 
 export function useAskAiOverlay() {
   const { open, scope, closeOverlay, openOverlay } = useAskAi();
+  const pathname = usePathname();
   const [threads, setThreads] = useState<AskAiStoredThread[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [messages, setMessages] = useState<AskAiStoredMessage[]>([]);
@@ -62,11 +65,11 @@ export function useAskAiOverlay() {
           target.isContentEditable);
       if (isEditable) return;
       event.preventDefault();
-      openOverlay();
+      openOverlay(resolveAskAiScopeFromPathname(pathname));
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [open, openOverlay, closeOverlay]);
+  }, [open, openOverlay, closeOverlay, pathname]);
 
   useEffect(() => {
     const node = scrollRef.current;

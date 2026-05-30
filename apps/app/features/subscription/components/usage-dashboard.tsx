@@ -201,6 +201,19 @@ export function UsageDashboard() {
           amountLocale={amountLocale}
           amountFractionDigits={amountFractionDigits}
         />
+        {usage.meters.aiCredits.included > 0 ? (
+          <UsageMeter
+            label="AI credits"
+            current={usage.meters.aiCredits.current}
+            included={usage.meters.aiCredits.included}
+            overage={usage.meters.aiCredits.overage}
+            unit="credits"
+            overageRate={usage.rates.aiCredits}
+            currencySymbol={symbol}
+            amountLocale={amountLocale}
+            amountFractionDigits={amountFractionDigits}
+          />
+        ) : null}
         {showWhatsAppMeter ? (
           <UsageMeter
             label="WhatsApp Messages"

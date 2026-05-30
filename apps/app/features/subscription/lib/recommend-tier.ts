@@ -1,4 +1,5 @@
 import {
+  getAiCreditAllotment,
   PUBLISHED_PLAN_LADDER,
   publishedPlanLadderIndex,
   TIER_LIMITS,
@@ -44,6 +45,7 @@ export function recommendTier(
   const consultations = usage.usage.consultations;
   const users = usage.usage.users;
   const whatsapp = usage.usage.whatsappMessages;
+  const aiCredits = usage.usage.aiCredits;
 
   for (let i = currentIdx + 1; i < PUBLISHED_PLAN_LADDER.length; i += 1) {
     const candidate = PUBLISHED_PLAN_LADDER[i];
@@ -52,11 +54,13 @@ export function recommendTier(
     const includedAppointments = limits.appointments ?? 0;
     const includedUsers = limits.users ?? 0;
     const includedWhatsapp = readWhatsappIncludedQuota(candidate);
+    const includedAiCredits = getAiCreditAllotment(candidate) ?? Number.MAX_SAFE_INTEGER;
 
     const covers =
       consultations <= includedAppointments &&
       users <= includedUsers &&
-      whatsapp <= includedWhatsapp;
+      whatsapp <= includedWhatsapp &&
+      aiCredits <= includedAiCredits;
     if (!covers) continue;
 
     const reasons: string[] = [];
@@ -75,6 +79,15 @@ export function recommendTier(
     if (whatsapp > currentWa) {
       reasons.push(
         `${whatsapp} WhatsApp messages vs ${currentWa} included on ${current}`,
+      );
+    }
+    const currentAiCredits = getAiCreditAllotment(current);
+    if (
+      currentAiCredits !== null &&
+      aiCredits > currentAiCredits
+    ) {
+      reasons.push(
+        `${aiCredits} AI credits vs ${currentAiCredits} included on ${current}`,
       );
     }
     if (reasons.length === 0) return null;

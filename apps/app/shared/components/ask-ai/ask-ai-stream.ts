@@ -115,6 +115,9 @@ function parseEvent(raw: string): ParsedEvent | null {
 function parseErrorMessage(status: number, detail: string): string {
   if (status === 401) return "Please sign back in to use Ask AI.";
   if (status === 403) return "Ask AI is not available on your current plan.";
+  if (status === 402) {
+    return "Your AI credit allotment for this billing period is used up. Upgrade or wait for the next cycle.";
+  }
   if (status === 429) return "Too many Ask AI requests—try again in a minute.";
   if (detail) {
     try {

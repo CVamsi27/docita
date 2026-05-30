@@ -7,6 +7,7 @@ import {
   CalendarPlus,
   Pencil,
   Play,
+  Sparkles,
   Stethoscope,
   UserPlus,
 } from "lucide-react";
@@ -18,9 +19,11 @@ import {
 import { usePermissions } from "@/hooks/use-permissions";
 import { useStartConsultation } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 
 interface PatientHeaderActionsProps {
   patientId: string;
+  patientName: string;
   appointments: Appointment[];
   canEditPatient: boolean;
   canCreateAppointment: boolean;
@@ -46,6 +49,7 @@ type ConsultationCta =
 
 export function PatientHeaderActions({
   patientId,
+  patientName,
   appointments,
   canEditPatient,
   canCreateAppointment,
@@ -56,6 +60,7 @@ export function PatientHeaderActions({
   const { canStartConsultation } = usePermissions();
   const { canAccess } = usePermissionStore();
   const startConsultation = useStartConsultation();
+  const { openOverlay } = useAskAi();
 
   const cta: ConsultationCta = useMemo(() => {
     const today = new Date();
@@ -135,6 +140,22 @@ export function PatientHeaderActions({
 
   return (
     <>
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() =>
+          openOverlay({
+            id: `patient:${patientId}`,
+            label: `on ${patientName}`,
+            payload: { kind: "patient", patientId },
+          })
+        }
+        data-testid="patient-ask-ai"
+      >
+        <Sparkles className="h-4 w-4 mr-1.5" />
+        Ask AI
+      </Button>
+
       {showConsultationCta && (
         <Button
           size="sm"

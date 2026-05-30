@@ -1,10 +1,12 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/form/button";
 import { Kbd } from "@workspace/ui/components/indicators/kbd";
 import { useAskAi } from "./ask-ai-context";
+import { resolveAskAiScopeFromPathname } from "./resolve-ask-ai-scope-from-pathname";
 
 interface AskAiButtonProps {
   collapsed?: boolean;
@@ -17,6 +19,9 @@ interface AskAiButtonProps {
  */
 export function AskAiButton({ collapsed = false, className }: AskAiButtonProps) {
   const { openOverlay } = useAskAi();
+  const pathname = usePathname();
+  const openWithRouteScope = () =>
+    openOverlay(resolveAskAiScopeFromPathname(pathname));
 
   if (collapsed) {
     return (
@@ -25,7 +30,7 @@ export function AskAiButton({ collapsed = false, className }: AskAiButtonProps) 
         variant="outline"
         size="icon"
         className={cn("size-9 rounded-full", className)}
-        onClick={() => openOverlay()}
+        onClick={openWithRouteScope}
         aria-label="Open Ask AI"
         data-testid="ask-ai-trigger"
       >
@@ -42,7 +47,7 @@ export function AskAiButton({ collapsed = false, className }: AskAiButtonProps) 
         "h-10 w-full justify-start gap-2 rounded-full border-border/70 bg-card text-sm font-medium shadow-sm hover:bg-card/90",
         className,
       )}
-      onClick={() => openOverlay()}
+      onClick={openWithRouteScope}
       aria-label="Open Ask AI"
       data-testid="ask-ai-trigger"
     >
