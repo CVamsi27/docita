@@ -51,13 +51,18 @@ export async function reportProbeFailureToSentry(dsn, probeName, errorMessage, e
   const parsed = parseSentryDsn(dsn);
   if (!parsed) return;
 
+  const summary =
+    errorMessage.length > 180
+      ? `${errorMessage.slice(0, 177)}...`
+      : errorMessage;
+
   const envelope = {
     event_id: crypto.randomUUID().replace(/-/g, ""),
     timestamp: new Date().toISOString(),
     platform: "node",
     level: "error",
     logger: "synthetic-monitoring",
-    message: `Synthetic probe failed: ${probeName}`,
+    message: `Synthetic probe failed: ${probeName} — ${summary}`,
     tags: {
       probe: probeName,
       source: "synthetic-monitoring",

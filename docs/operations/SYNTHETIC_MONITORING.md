@@ -14,7 +14,7 @@ and trigger GitHub notification emails for repository watchers.
 
 | Flow | Probe | Target | Allowed latency |
 | --- | --- | --- | --- |
-| API liveness | `GET /api/health/live` (version-neutral) | 200 + `status: ok` | 2 s |
+| API liveness | `GET /api/health/live` (version-neutral) | 200 + `status: ok` | 5 s (3 attempts, 5 s apart, when not post-deploy) |
 | Auth chrome | `GET /api/v1/public/daily-thought` (app origin, proxied to API) | 200 + quote + `Cache-Control: public` | 5 s |
 | Staff login | `POST /api/v1/auth/login` (optional creds) | 2xx + `access_token` cookie | 1.5 s |
 
@@ -35,6 +35,7 @@ synthetic clinic credentials are provisioned (see Open items).
 | Any probe failure (scheduled) | Workflow fails → GitHub email to watchers; optional Sentry error via `SENTRY_DSN`; optional Slack/PagerDuty webhook via `OPS_ALERT_WEBHOOK_URL` |
 | Post-deploy probe failure | Blocks deploy job success |
 | Post-deploy warmup | With `SYNTHETIC_POST_DEPLOY=1`, polls `/api/health/live` then `/api/health/ready` (60 s timeout, up to 8 retries each) before probes — handles Fly suspend cold starts and DB readiness |
+| Scheduled `api-health-live` | Up to **3** attempts (15 s timeout each, 5 s between) before failing — tolerates Fly `suspend` wake from GitHub Actions runners |
 | Staff login probe | **Optional** — skipped (does not fail the run) unless `SYNTHETIC_MONITOR_EMAIL` + `SYNTHETIC_MONITOR_PASSWORD` GitHub secrets are set. Password is trimmed; post-deploy retries login up to 4 times. On 401, verify secrets match the production monitor user (no trailing whitespace; account not locked). |
 | WhatsApp stale delivery backlog | API emits `WHATSAPP_DELIVERY_STALE`; `OpsAlertListener` posts to `OPS_ALERT_WEBHOOK_URL` when configured |
 

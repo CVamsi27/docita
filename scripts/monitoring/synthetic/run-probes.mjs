@@ -37,46 +37,81 @@ const IS_POST_DEPLOY =
   process.env.SYNTHETIC_POST_DEPLOY === "1" ||
   process.env.SYNTHETIC_POST_DEPLOY === "true";
 
-const FETCH_TIMEOUT_MS = IS_POST_DEPLOY ? 60_000 : 5_000;
+const FETCH_TIMEOUT_MS = IS_POST_DEPLOY ? 60_000 : 15_000;
 const POST_DEPLOY_WARMUP_ATTEMPTS = 8;
 const POST_DEPLOY_WARMUP_DELAY_MS = 10_000;
 const POST_DEPLOY_STAFF_LOGIN_ATTEMPTS = 4;
 const POST_DEPLOY_STAFF_LOGIN_DELAY_MS = 10_000;
+/** Fly suspend + cross-region CI runners often need multiple wakes before 200. */
+const SCHEDULED_HEALTH_LIVE_ATTEMPTS = 3;
+const SCHEDULED_HEALTH_LIVE_RETRY_DELAY_MS = 5_000;
 
 const LATENCY_TARGETS_MS = {
-  "api-health-live": 2_000,
+  // Fly autostart from GitHub Actions (non-Mumbai) can exceed 2s on a warm machine.
+  "api-health-live": 5_000,
   // App origin cold starts (OpenNext on Cloudflare) can exceed 3s from CI runners.
   "daily-thought": 5_000,
   "staff-login": 1_500,
 };
 
+async function assertApiHealthLiveResponse(response, latencyMs) {
+  if (!response.ok) {
+    const detail = await readHttpErrorDetail(response);
+    throw new Error(
+      detail
+        ? `Expected 200, got ${response.status} (${detail})`
+        : `Expected 200, got ${response.status}`,
+    );
+  }
+
+  const body = await response.json();
+  if (body.status !== "ok" || body.service !== "docita-api") {
+    throw new Error(`Unexpected liveness payload: ${JSON.stringify(body)}`);
+  }
+
+  if (!IS_POST_DEPLOY && latencyMs > LATENCY_TARGETS_MS["api-health-live"]) {
+    throw new Error(
+      `Latency ${latencyMs}ms exceeds ${LATENCY_TARGETS_MS["api-health-live"]}ms target`,
+    );
+  }
+}
+
 async function probeApiHealthLive() {
   return runProbe("api-health-live", async () => {
-    const { response, latencyMs } = await fetchWithTimeout(
-      `${API_ORIGIN}/health/live`,
-      { headers: { Accept: "application/json" } },
-      FETCH_TIMEOUT_MS,
-    );
+    const url = `${API_ORIGIN}/health/live`;
+    const attempts = IS_POST_DEPLOY ? 1 : SCHEDULED_HEALTH_LIVE_ATTEMPTS;
+    let lastError = "api-health-live probe failed";
 
-    if (!response.ok) {
-      throw new Error(`Expected 200, got ${response.status}`);
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      try {
+        const { response, latencyMs } = await fetchWithTimeout(
+          url,
+          { headers: { Accept: "application/json" } },
+          FETCH_TIMEOUT_MS,
+        );
+
+        await assertApiHealthLiveResponse(response, latencyMs);
+
+        if (attempt > 1) {
+          process.stdout.write(
+            `api-health-live: succeeded on attempt ${attempt}/${attempts} (${latencyMs}ms)\n`,
+          );
+        }
+
+        return { latencyMs };
+      } catch (error) {
+        lastError = error instanceof Error ? error.message : String(error);
+
+        if (attempt < attempts) {
+          process.stdout.write(
+            `api-health-live: attempt ${attempt}/${attempts} failed (${lastError}); retrying in ${SCHEDULED_HEALTH_LIVE_RETRY_DELAY_MS}ms...\n`,
+          );
+          await sleep(SCHEDULED_HEALTH_LIVE_RETRY_DELAY_MS);
+        }
+      }
     }
 
-    const body = await response.json();
-    if (body.status !== "ok" || body.service !== "docita-api") {
-      throw new Error(`Unexpected liveness payload: ${JSON.stringify(body)}`);
-    }
-
-    if (
-      !IS_POST_DEPLOY &&
-      latencyMs > LATENCY_TARGETS_MS["api-health-live"]
-    ) {
-      throw new Error(
-        `Latency ${latencyMs}ms exceeds ${LATENCY_TARGETS_MS["api-health-live"]}ms target`,
-      );
-    }
-
-    return { latencyMs };
+    throw new Error(lastError);
   });
 }
 
