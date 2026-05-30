@@ -327,8 +327,10 @@ export const successResponseSchema = z.object({
 export const whatsappStatsDetailedResponseSchema = z.object({
   totalPatients: z.number(),
   subscribers: z.number(),
-  deliveryRate: z.number().optional(),
-  responseRate: z.number().optional(),
+  deliveryRate: z.number().nullable().optional(),
+  responseRate: z.number().nullable().optional(),
+  staleDeliveryCount: z.number().int().min(0).optional(),
+  outboundLast30Days: z.number().int().min(0).optional(),
 });
 
 export const whatsappLogListResponseSchema = z.array(whatsappLogSchema);

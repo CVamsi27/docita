@@ -16,11 +16,17 @@ describe("AI credit allotment config", () => {
     }
   });
 
-  it("defaults every tier to unlimited (enforcement off)", () => {
-    for (const tier of tierSchema.options) {
-      expect(getAiCreditAllotment(tier)).toBeNull();
-      expect(isAiCreditEnforced(tier)).toBe(false);
-    }
+  it("enforces finite allotments on standard tiers", () => {
+    expect(getAiCreditAllotment("STARTER")).toBe(100);
+    expect(getAiCreditAllotment("ESSENTIAL")).toBe(500);
+    expect(getAiCreditAllotment("PROFESSIONAL")).toBe(2000);
+    expect(isAiCreditEnforced("STARTER")).toBe(true);
+  });
+
+  it("leaves enterprise and intelligence tiers unpriced", () => {
+    expect(getAiCreditAllotment("ENTERPRISE")).toBeNull();
+    expect(getAiCreditAllotment("INTELLIGENCE")).toBeNull();
+    expect(isAiCreditEnforced("ENTERPRISE")).toBe(false);
   });
 });
 
@@ -56,8 +62,8 @@ describe("computeAiCreditBalance", () => {
 });
 
 describe("AI credit gate decision", () => {
-  it("reports no tier enforced by default", () => {
-    expect(isAnyAiCreditTierEnforced()).toBe(false);
+  it("reports at least one tier enforced", () => {
+    expect(isAnyAiCreditTierEnforced()).toBe(true);
   });
 
   it("never marks an unpriced (null) allotment as exhausted", () => {

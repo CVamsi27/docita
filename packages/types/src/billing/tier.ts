@@ -1228,6 +1228,7 @@ export const AI_CREDIT_COSTS = {
   anomalyDetection: 2,
   treatmentInsight: 5,
   codingSuggestion: 3,
+  documentOcr: 3,
 };
 
 /** Keys of {@link AI_CREDIT_COSTS} — the billable AI operations. */
@@ -1240,13 +1241,13 @@ export type AiCreditFeature = keyof typeof AI_CREDIT_COSTS;
  * is set, the pre-call guard begins blocking when period usage reaches it.
  */
 export const AI_CREDIT_ALLOTMENT_BY_TIER: Record<TierName, number | null> = {
-  STARTER: null,
-  ESSENTIAL: null,
-  FRONT_DESK: null,
-  FRONT_DESK_CLINIC: null,
-  FRONT_DESK_HOSPITAL: null,
-  PROFESSIONAL: null,
-  HOSPITAL: null,
+  STARTER: 100,
+  ESSENTIAL: 500,
+  FRONT_DESK: 500,
+  FRONT_DESK_CLINIC: 2000,
+  FRONT_DESK_HOSPITAL: 6000,
+  PROFESSIONAL: 2000,
+  HOSPITAL: 8000,
   ENTERPRISE: null,
   INTELLIGENCE: null,
 };
@@ -1703,6 +1704,7 @@ export const currentUsageSchema = z
         consultations: z.number().int().min(0),
         users: z.number().int().min(0),
         whatsappMessages: z.number().int().min(0),
+        aiCredits: z.number().int().min(0),
       })
       .strict(),
     included: z
@@ -1710,6 +1712,7 @@ export const currentUsageSchema = z
         consultations: z.number().int().min(0),
         users: z.number().int().min(0),
         whatsappMessages: z.number().int().min(0),
+        aiCredits: z.number().int().min(0),
       })
       .strict(),
     overages: z
@@ -1717,6 +1720,7 @@ export const currentUsageSchema = z
         consultations: z.number().int().min(0),
         users: z.number().int().min(0),
         whatsappMessages: z.number().int().min(0),
+        aiCredits: z.number().int().min(0),
       })
       .strict(),
     rates: z
@@ -1724,6 +1728,7 @@ export const currentUsageSchema = z
         consultations: z.number().min(0),
         users: z.number().min(0),
         whatsappMessages: z.number().min(0),
+        aiCredits: z.number().min(0),
       })
       .strict(),
     breakdown: z
@@ -1731,6 +1736,7 @@ export const currentUsageSchema = z
         consultations: usageChargeSchema,
         users: usageChargeSchema,
         whatsappMessages: usageChargeSchema,
+        aiCredits: usageChargeSchema,
       })
       .strict(),
     total: z.number().min(0),
@@ -1739,6 +1745,7 @@ export const currentUsageSchema = z
         consultations: usageMeterSchema,
         users: usageMeterSchema,
         whatsappMessages: usageMeterSchema,
+        aiCredits: usageMeterSchema,
       })
       .strict(),
     warnings: z
@@ -1746,6 +1753,7 @@ export const currentUsageSchema = z
         consultations: usageWarningSchema,
         users: usageWarningSchema,
         whatsappMessages: usageWarningSchema,
+        aiCredits: usageWarningSchema,
       })
       .strict(),
     tier: z.string(),
