@@ -7,7 +7,8 @@ import {
 } from './email-provider.interface';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
-import { isRecord } from '@workspace/utils';
+import { escapeHtml, isRecord } from '@workspace/utils';
+import { formatZeptoMailErrorBody } from './zeptomail-error';
 
 type ZeptoMailAddress = {
   address: string;
@@ -20,7 +21,7 @@ type ZeptoMailRequest = {
   subject: string;
   htmlbody?: string;
   textbody?: string;
-  reply_to?: ZeptoMailAddress;
+  reply_to?: Array<{ address: string; name?: string }>;
   attachments?: Array<{
     name: string;
     content: string;
@@ -53,12 +54,16 @@ export class ZeptoMailEmailProvider implements IEmailProvider {
     if (!match) return { address: trimmed };
     const name = match[1]?.trim().replace(/^"|"$/g, '');
     const address = match[2]?.trim();
+    if (!address) return { address: trimmed };
     return name ? { name, address } : { address };
   }
 
   private normalizeRecipients(to: EmailOptions['to']): ZeptoMailRequest['to'] {
     const recipients = Array.isArray(to) ? to : [to];
-    return recipients.map((address) => ({ email_address: { address } }));
+    return recipients
+      .map((address) => address.trim())
+      .filter((address) => address.length > 0)
+      .map((address) => ({ email_address: { address } }));
   }
 
   private getAuthorizationHeader(): string {
@@ -69,6 +74,41 @@ export class ZeptoMailEmailProvider implements IEmailProvider {
     return `Zoho-enczapikey ${trimmedToken}`;
   }
 
+  private buildPayload(options: EmailOptions): ZeptoMailRequest | null {
+    const htmlbody = options.html?.trim();
+    const textbody = options.text?.trim();
+    if (!htmlbody && !textbody) {
+      return null;
+    }
+
+    const to = this.normalizeRecipients(options.to);
+    if (to.length === 0) {
+      return null;
+    }
+
+    const attachments = options.attachments?.map((att) => ({
+      name: att.filename,
+      content:
+        typeof att.content === 'string'
+          ? att.content
+          : att.content.toString('base64'),
+      mime_type: att.contentType,
+    }));
+
+    return {
+      from: this.parseFrom(options.from || this.defaultFrom),
+      to,
+      subject: options.subject.trim(),
+      htmlbody: htmlbody || undefined,
+      textbody: textbody || undefined,
+      reply_to: options.replyTo
+        ? [{ address: options.replyTo.trim() }]
+        : undefined,
+      attachments:
+        attachments && attachments.length > 0 ? attachments : undefined,
+    };
+  }
+
   async send(options: EmailOptions): Promise<EmailSendResult> {
     if (!this.sendMailToken) {
       return {
@@ -77,23 +117,14 @@ export class ZeptoMailEmailProvider implements IEmailProvider {
       };
     }
 
-    const from = this.parseFrom(options.from || this.defaultFrom);
-    const payload: ZeptoMailRequest = {
-      from,
-      to: this.normalizeRecipients(options.to),
-      subject: options.subject,
-      htmlbody: options.html,
-      textbody: options.text,
-      reply_to: options.replyTo ? { address: options.replyTo } : undefined,
-      attachments: options.attachments?.map((att) => ({
-        name: att.filename,
-        content:
-          typeof att.content === 'string'
-            ? att.content
-            : att.content.toString('base64'),
-        mime_type: att.contentType,
-      })),
-    };
+    const payload = this.buildPayload(options);
+    if (!payload) {
+      return {
+        success: false,
+        error:
+          'Email must include at least one recipient and html or text body',
+      };
+    }
 
     try {
       const response = await fetchWithTimeout(this.apiUrl, {
@@ -106,19 +137,39 @@ export class ZeptoMailEmailProvider implements IEmailProvider {
         body: JSON.stringify(payload),
       });
 
+      const responseText = await response.text().catch(() => '');
+
       if (!response.ok) {
-        const text = await response.text().catch(() => '');
+        const error = formatZeptoMailErrorBody(responseText);
         this.logger.error('ZeptoMail API error', {
           status: response.status,
-          body: text,
+          error,
         });
         return {
           success: false,
-          error: text || `HTTP ${response.status}`,
+          error: error || `HTTP ${response.status}`,
         };
       }
 
-      const raw: unknown = await response.json();
+      let raw: unknown;
+      try {
+        raw = responseText ? JSON.parse(responseText) : undefined;
+      } catch {
+        this.logger.error('ZeptoMail returned non-JSON success body', {
+          body: responseText.slice(0, 500),
+        });
+        return {
+          success: false,
+          error: 'ZeptoMail returned an invalid success response',
+        };
+      }
+
+      if (isRecord(raw) && isRecord(raw.error)) {
+        const error = formatZeptoMailErrorBody(responseText);
+        this.logger.error('ZeptoMail API returned error payload', { error });
+        return { success: false, error };
+      }
+
       const messageId =
         isRecord(raw) &&
         Array.isArray(raw.data) &&
@@ -126,6 +177,18 @@ export class ZeptoMailEmailProvider implements IEmailProvider {
         typeof raw.data[0].message_id === 'string'
           ? raw.data[0].message_id
           : undefined;
+
+      const requestId =
+        isRecord(raw) && typeof raw.request_id === 'string'
+          ? raw.request_id
+          : undefined;
+
+      this.logger.log('ZeptoMail email accepted', {
+        messageId,
+        requestId,
+        recipientCount: payload.to.length,
+      });
+
       return { success: true, messageId };
     } catch (error) {
       const errorMessage =
@@ -141,7 +204,10 @@ export class ZeptoMailEmailProvider implements IEmailProvider {
         <h2>Docita Notification</h2>
         <div style="margin-top: 20px;">
           ${Object.entries(options.templateData)
-            .map(([key, value]) => `<p><strong>${key}:</strong> ${value}</p>`)
+            .map(
+              ([key, value]) =>
+                `<p><strong>${escapeHtml(key)}:</strong> ${escapeHtml(String(value))}</p>`,
+            )
             .join('')}
         </div>
         <p style="margin-top: 30px; font-size: 0.8em; color: #666;">
@@ -160,6 +226,6 @@ export class ZeptoMailEmailProvider implements IEmailProvider {
   }
 
   async verify(): Promise<boolean> {
-    return Boolean(this.sendMailToken);
+    return Boolean(this.sendMailToken.trim());
   }
 }

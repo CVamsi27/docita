@@ -15,6 +15,16 @@ export const AUTH_CONSTANTS = {
   PASSWORD_HISTORY_COUNT: 5,
 } as const;
 
+/** Human-readable password-reset link TTL for outbound email copy. */
+export function formatPasswordResetTtlLabel(): string {
+  const minutes = AUTH_CONSTANTS.PASSWORD_RESET_TTL_MS / (60 * 1000);
+  if (minutes >= 60 && minutes % 60 === 0) {
+    const hours = minutes / 60;
+    return hours === 1 ? '1 hour' : `${hours} hours`;
+  }
+  return `${minutes} minutes`;
+}
+
 export const CACHE_CONSTANTS = {
   CLINIC_AUTH_TTL_MS: 5 * 60 * 1000,
   MAX_CLINIC_AUTH_CACHE_SIZE: 1000,
