@@ -35,11 +35,11 @@ model User {
   registrationCouncil        String?
   registrationStateCode      String?
   signatureUrl               String?
-  signatureUploadedAt        DateTime?                @db.Timestamptz(3)
+  signatureUploadedAt        DateTime? @db.Timestamptz(3)
   bio                        String?
   consultationFee            Float?
   hospitalRole               HospitalRole?
-  licenseExpiry              DateTime?                @db.Timestamptz(3)
+  licenseExpiry              DateTime? @db.Timestamptz(3)
   licenseNumber              String?
   verificationStatus         DoctorVerificationStatus @default(UNVERIFIED)
   verificationSource         String?
@@ -47,33 +47,33 @@ model User {
   verificationReason         String?
   /// @json:jsonObjectSchema
   verificationData           Json?
-  verificationCheckedAt      DateTime?                @db.Timestamptz(3)
+  verificationCheckedAt      DateTime? @db.Timestamptz(3)
   registrationCertificateUrl String?
   verifiedByAdminId          String?
-  verifiedByAdminAt          DateTime?                @db.Timestamptz(3)
+  verifiedByAdminAt          DateTime? @db.Timestamptz(3)
   phoneNumber                String?
   profilePhotoUrl            String?
   specialization             Specialization?
   yearsOfExperience          Int?
   failedLoginAttempts        Int                      @default(0)
-  lastFailedLoginAt          DateTime?                @db.Timestamptz(3)
+  lastFailedLoginAt          DateTime? @db.Timestamptz(3)
   appLoginDisabled           Boolean                  @default(false)
-  accountLockedUntil         DateTime?                @db.Timestamptz(3)
+  accountLockedUntil         DateTime? @db.Timestamptz(3)
   mfaEnabled                 Boolean                  @default(false)
   mfaSecret                  String?
   mfaTempSecret              String?
   mfaBackupCodes             String[]                 @default([])
-  passwordChangedAt          DateTime?                @db.Timestamptz(3)
-  passwordExpiresAt          DateTime?                @db.Timestamptz(3)
+  passwordChangedAt          DateTime? @db.Timestamptz(3)
+  passwordExpiresAt          DateTime? @db.Timestamptz(3)
   emailVerified              Boolean                  @default(false)
   emailVerificationToken     String?                  @unique
-  emailVerificationExpiresAt DateTime?                @db.Timestamptz(3)
+  emailVerificationExpiresAt DateTime? @db.Timestamptz(3)
   passwordResetToken         String?                  @unique
-  passwordResetExpiresAt     DateTime?                @db.Timestamptz(3)
+  passwordResetExpiresAt     DateTime? @db.Timestamptz(3)
   onboardingStep             OnboardingStep?          @default(NOT_STARTED)
-  onboardingStartedAt        DateTime?                @db.Timestamptz(3)
-  onboardingCompletedAt      DateTime?                @db.Timestamptz(3)
-  deletedAt                  DateTime?                @db.Timestamptz(3)
+  onboardingStartedAt        DateTime? @db.Timestamptz(3)
+  onboardingCompletedAt      DateTime? @db.Timestamptz(3)
+  deletedAt                  DateTime? @db.Timestamptz(3)
 
   appointments                 Appointment[]
   auditLogs                    AuditLog[]
@@ -134,9 +134,9 @@ model SignatureUploadToken {
   id        String           @id @default(cuid())
   doctorId  String?
   token     String           @unique
-  expiresAt DateTime         @db.Timestamptz(3)
+  expiresAt DateTime @db.Timestamptz(3)
   used      Boolean          @default(false)
-  usedAt    DateTime?        @db.Timestamptz(3)
+  usedAt    DateTime? @db.Timestamptz(3)
   createdAt DateTime         @default(now()) @db.Timestamptz(3)
   purpose   SignaturePurpose @default(DOCTOR_PRESCRIPTION)
   clinicId  String?
@@ -160,8 +160,8 @@ model MemberJoinRequest {
   approvedByName  String?
   responseMessage String?
   requestedAt     DateTime          @default(now()) @db.Timestamptz(3)
-  respondedAt     DateTime?         @db.Timestamptz(3)
-  expiresAt       DateTime?         @db.Timestamptz(3)
+  respondedAt     DateTime? @db.Timestamptz(3)
+  expiresAt       DateTime? @db.Timestamptz(3)
 
   user       User   @relation(fields: [userId], references: [id], onDelete: Restrict)
   clinic     Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
@@ -198,7 +198,7 @@ model DoctorCertification {
   doctorId      String
   name          String
   issuingBody   String
-  issueDate     DateTime  @db.Timestamptz(3)
+  issueDate     DateTime @db.Timestamptz(3)
   expiryDate    DateTime? @db.Timestamptz(3)
   credentialId  String?
   credentialUrl String?
@@ -292,7 +292,7 @@ model Patient {
   lastName                 String
   preferredName            String?
   pronouns                 String?
-  dateOfBirth              DateTime                  @db.Timestamptz(3)
+  dateOfBirth              DateTime @db.Timestamptz(3)
   phoneNumber              String
   email                    String?
   address                  String?
@@ -316,11 +316,11 @@ model Patient {
   emergencyContactPhone    String?
   emergencyContactRelation String?
   codeStatus               CodeStatus                @default(FULL_CODE)
-  codeStatusUpdatedAt      DateTime?                 @db.Timestamptz(3)
+  codeStatusUpdatedAt      DateTime? @db.Timestamptz(3)
   codeStatusUpdatedBy      String?
   advanceDirectiveUrl      String?
   whatsappConsent          Boolean                   @default(false)
-  whatsappConsentAt        DateTime?                 @db.Timestamptz(3)
+  whatsappConsentAt        DateTime? @db.Timestamptz(3)
   appointments             Appointment[]
   appointmentRequests      AppointmentRequest[]
   documents                Document[]
@@ -332,7 +332,7 @@ model Patient {
   queueTokens              QueueToken[]
   whatsappLogs             WhatsappLog[]
   abhaAddress              String?
-  deletedAt                DateTime?                 @db.Timestamptz(3)
+  deletedAt                DateTime? @db.Timestamptz(3)
   medicalConditions        PatientMedicalCondition[]
   patientAllergies         PatientAllergy[]
   familyHistory            PatientFamilyHistory[]
@@ -376,8 +376,8 @@ model PatientMedicalCondition {
   conditionType       MedicalConditionType @default(CHRONIC)
   status              ConditionStatus      @default(ACTIVE)
   severity            ConditionSeverity?
-  diagnosedDate       DateTime?            @db.Timestamptz(3)
-  resolvedDate        DateTime?            @db.Timestamptz(3)
+  diagnosedDate       DateTime? @db.Timestamptz(3)
+  resolvedDate        DateTime? @db.Timestamptz(3)
   diagnosedBy         String?
   notes               String?
   sourceType          ConditionSourceType  @default(MANUAL)
@@ -401,9 +401,9 @@ model PatientAllergy {
   allergyType AllergyType     @default(DRUG)
   severity    AllergySeverity @default(MODERATE)
   reaction    String?
-  onsetDate   DateTime?       @db.Timestamptz(3)
+  onsetDate   DateTime? @db.Timestamptz(3)
   verifiedBy  String?
-  verifiedAt  DateTime?       @db.Timestamptz(3)
+  verifiedAt  DateTime? @db.Timestamptz(3)
   isVerified  Boolean         @default(false)
   notes       String?
   createdAt   DateTime        @default(now()) @db.Timestamptz(3)
@@ -437,7 +437,7 @@ model PatientSocialHistory {
   patientId           String            @unique
   smokingStatus       SmokingStatus?
   smokingPackYears    Float?
-  smokingQuitDate     DateTime?         @db.Timestamptz(3)
+  smokingQuitDate     DateTime? @db.Timestamptz(3)
   alcoholUse          AlcoholUseStatus?
   alcoholFrequency    String?
   substanceUse        String?
@@ -565,7 +565,7 @@ model UploadSession {
   doctorId         String?
   uploadSecretHash String?
   createdAt        DateTime             @default(now()) @db.Timestamptz(3)
-  expiresAt        DateTime             @db.Timestamptz(3)
+  expiresAt        DateTime @db.Timestamptz(3)
   doctor           User?                @relation(fields: [doctorId], references: [id], onDelete: SetNull)
 
   @@index([doctorId])
@@ -575,8 +575,8 @@ model Appointment {
   id                      String                @id @default(cuid())
   patientId               String
   doctorId                String
-  startTime               DateTime              @db.Timestamptz(3)
-  endTime                 DateTime              @db.Timestamptz(3)
+  startTime               DateTime @db.Timestamptz(3)
+  endTime                 DateTime @db.Timestamptz(3)
   status                  AppointmentStatus     @default(SCHEDULED)
   type                    String
   notes                   String?
@@ -632,7 +632,7 @@ model Appointment {
   responses               AppointmentResponse[]
   metricRecords           PatientMetricRecord[]
   followUps               FollowUp[]
-  originalStartTime       DateTime?             @db.Timestamptz(3)
+  originalStartTime       DateTime? @db.Timestamptz(3)
 
   @@index([clinicId])
   @@index([createdAt])
@@ -712,8 +712,8 @@ model Prescription {
   updatedAt                DateTime         @updatedAt @db.Timestamptz(3)
   approvalStatus           ApprovalStatus   @default(PENDING)
   approvedById             String?
-  approvedAt               DateTime?        @db.Timestamptz(3)
-  whatsappSentAt           DateTime?        @db.Timestamptz(3)
+  approvedAt               DateTime? @db.Timestamptz(3)
+  whatsappSentAt           DateTime? @db.Timestamptz(3)
   whatsappMessageId        String?
   whatsappStatus           String?
   doctorName               String?
@@ -724,7 +724,7 @@ model Prescription {
   doctorRegistrationNumber String?
   doctorLicenseNumber      String?
   pdfUrl                   String?
-  pdfGeneratedAt           DateTime?        @db.Timestamptz(3)
+  pdfGeneratedAt           DateTime? @db.Timestamptz(3)
   pdfTemplateVersion       Int              @default(1)
   version                  Int              @default(1)
   medications              Medication[]
@@ -759,8 +759,8 @@ model Medication {
   refillsAllowed      Int?        @default(0)
   dispenseAsWritten   Boolean     @default(false)
   sigCode             SigCode?
-  startDate           DateTime?   @db.Timestamptz(3)
-  endDate             DateTime?   @db.Timestamptz(3)
+  startDate           DateTime? @db.Timestamptz(3)
+  endDate             DateTime? @db.Timestamptz(3)
   isPRN               Boolean     @default(false)
   prnInstructions     String?
   prnMaxDose          String?
@@ -781,8 +781,8 @@ model MedicationDose {
   patientId      String
   clinicId       String
   prescriptionId String?
-  scheduledAt    DateTime             @db.Timestamptz(3)
-  takenAt        DateTime?            @db.Timestamptz(3)
+  scheduledAt    DateTime @db.Timestamptz(3)
+  takenAt        DateTime? @db.Timestamptz(3)
   status         MedicationDoseStatus @default(PENDING)
   doseAmount     String?
   route          String?
@@ -847,12 +847,12 @@ model Invoice {
   placeOfSupplyStateCode   String?
   placeOfSupplyStateName   String?
   reverseCharge            Boolean          @default(false)
-  issuedAt                 DateTime?        @db.Timestamptz(3)
-  dueDate                  DateTime?        @db.Timestamptz(3)
+  issuedAt                 DateTime? @db.Timestamptz(3)
+  dueDate                  DateTime? @db.Timestamptz(3)
   eInvoiceRequired         Boolean          @default(false)
   eInvoiceIrn              String?
   eInvoiceQrCode           String?
-  eInvoiceAcknowledgedAt   DateTime?        @db.Timestamptz(3)
+  eInvoiceAcknowledgedAt   DateTime? @db.Timestamptz(3)
   status                   InvoiceStatus    @default(PENDING)
   /// @json:invoiceItemsSchema
   items                    Json
@@ -861,8 +861,8 @@ model Invoice {
   version                  Int              @default(1)
   approvalStatus           ApprovalStatus   @default(PENDING)
   approvedById             String?
-  approvedAt               DateTime?        @db.Timestamptz(3)
-  whatsappSentAt           DateTime?        @db.Timestamptz(3)
+  approvedAt               DateTime? @db.Timestamptz(3)
+  whatsappSentAt           DateTime? @db.Timestamptz(3)
   whatsappMessageId        String?
   whatsappStatus           String?
   doctorName               String?
@@ -873,7 +873,7 @@ model Invoice {
   doctorRegistrationNumber String?
   doctorLicenseNumber      String?
   pdfUrl                   String?
-  pdfGeneratedAt           DateTime?        @db.Timestamptz(3)
+  pdfGeneratedAt           DateTime? @db.Timestamptz(3)
   pdfTemplateVersion       Int              @default(1)
   // Optional idempotency key for create paths. Unique-when-present so
   // duplicate POSTs from a retrying client surface as a P2002 the service
@@ -1032,7 +1032,7 @@ model AppointmentReminder {
   clinicId      String?
   type          String
   status        String      @default("pending")
-  sentAt        DateTime?   @db.Timestamptz(3)
+  sentAt        DateTime? @db.Timestamptz(3)
   error         String?
   createdAt     DateTime    @default(now()) @db.Timestamptz(3)
   updatedAt     DateTime    @updatedAt @db.Timestamptz(3)
@@ -1046,88 +1046,88 @@ model AppointmentReminder {
 }
 
 model Clinic {
-  id                           String                    @id @default(cuid())
-  name                         String
-  address                      String
-  phone                        String
-  email                        String
-  website                      String?
-  logo                         String?
-  active                       Boolean                   @default(true)
-  tier                         ClinicTier                @default(STARTER)
+  id                       String                   @id @default(cuid())
+  name                     String
+  address                  String
+  phone                    String
+  email                    String
+  website                  String?
+  logo                     String?
+  active                   Boolean                  @default(true)
+  tier                     ClinicTier               @default(STARTER)
   /// Top-level Full/Front Desk/Core toggle paired with `tier`.
   /// Legacy FRONT_DESK_* rows on `tier` ignore this column and are surfaced
   /// as mode = FRONT_DESK by `mapDbClinicTierToTierAndMode`.
-  planMode                     PlanMode                  @default(FULL)
-  type                         ClinicType                @default(GENERAL)
+  planMode                 PlanMode                 @default(FULL)
+  type                     ClinicType               @default(GENERAL)
   /// @json:jsonObjectSchema
-  settings                     Json?
-  timezone                     String                    @default("Asia/Kolkata")
-  locale                       String                    @default("en-IN")
-  currency                     String                    @default("INR")
-  createdAt                    DateTime                  @default(now()) @db.Timestamptz(3)
-  updatedAt                    DateTime                  @updatedAt @db.Timestamptz(3)
-  subscriptionStatus           SubscriptionStatus        @default(ACTIVE)
+  settings                 Json?
+  timezone                 String                   @default("Asia/Kolkata")
+  locale                   String                   @default("en-IN")
+  currency                 String                   @default("INR")
+  createdAt                DateTime                 @default(now()) @db.Timestamptz(3)
+  updatedAt                DateTime                 @updatedAt @db.Timestamptz(3)
+  subscriptionStatus       SubscriptionStatus       @default(ACTIVE)
   /// @json:jsonObjectSchema
-  branding                     Json?
+  branding                 Json?
   /// Per-clinic feature overrides keyed by Feature enum (see `clinicFeatureOverridesSchema` in @workspace/types).
   /// Only features in OVERRIDABLE_FEATURES (WhatsApp/AI/comms) are honored; everything else is stripped at read time.
   /// Drives custom packages like PROFESSIONAL_NO_COMMS — never edit by hand; go through PACKAGE_PRESETS.
   /// @json:clinicFeatureOverridesSchema
-  features                     Json?
+  features                 Json?
   /// @json:whatsAppAutomationSchema
-  whatsappAutomation           Json?
-  whatsappSenderMode           WhatsappSenderMode        @default(SHARED)
-  whatsappSenderStatus         WhatsappSenderStatus      @default(NOT_CONFIGURED)
-  whatsappPhoneNumberId        String?                   @unique
-  whatsappWabaId               String?
-  whatsappDisplayName          String?
-  whatsappVerifiedAt           DateTime?                 @db.Timestamptz(3)
-  whatsappTokenExpiresAt       DateTime?                 @db.Timestamptz(3)
-  whatsappLastVerifyError      String?
-  intelligenceAddon            IntelligenceAddon         @default(NONE)
-  trialEndsAt                  DateTime?                 @db.Timestamptz(3)
-  avgConsultationMinutes       Int                       @default(15)
-  lateArrivalGraceMinutes      Int                       @default(30)
-  queueBufferMinutes           Int                       @default(10)
-  useDoctorQueues              Boolean                   @default(false)
-  mrnPrefix                    String?
-  razorpayCustomerId           String?
-  referralCode                 String?                   @unique
-  domain                       String?
-  referralCreditsMonths        Int                       @default(0)
-  appointments                 Appointment[]
-  appointmentRequests          AppointmentRequest[]
-  publicBookingOtps            PublicBookingOtp[]
-  appointmentReminders         AppointmentReminder[]
-  auditLogs                    AuditLog[]
-  analyticsSnapshots           AnalyticsSnapshot[]
-  paymentRetries               PaymentRetry[]
-  bulkImportJobs               BulkImportJob[]
-  clinicalTemplates            ClinicalTemplate[]
-  customFields                 CustomField[]
-  documents                    Document[]
-  doctorClinics                DoctorClinic[]
-  doctorSchedules              DoctorSchedule[]
-  clinicWeeklySchedules        ClinicWeeklySchedule[]
-  doctorTimeOffs               DoctorTimeOff[]
-  feedbacks                    Feedback[]
-  feedbackFeatures             FeedbackFeature[]
-  featureFlags                 FeatureFlag[]
-  importJobs                   ImportJob[]
-  invoices                     Invoice[]
-  invoiceSequences             InvoiceSequence[]
-  invoiceItems                 InvoiceItem[]
-  patients                     Patient[]
-  paymentSessions              PaymentSession[]
-  queueTokens                  QueueToken[]
-  reminderSettings             ReminderSettings?
-  users                        User[]
-  vitalSigns                   VitalSign[]
-  whatsappLogs                 WhatsappLog[]
-  clinicSecrets                ClinicSecret[]
-  subscription                 Subscription?
-  enterpriseContractsAsPrimary EnterpriseContract[]      @relation("EnterprisePrimaryClinic")
+  whatsappAutomation       Json?
+  whatsappSenderMode       WhatsappSenderMode       @default(SHARED)
+  whatsappSenderStatus     WhatsappSenderStatus     @default(NOT_CONFIGURED)
+  whatsappPhoneNumberId    String?                  @unique
+  whatsappWabaId           String?
+  whatsappDisplayName      String?
+  whatsappVerifiedAt       DateTime? @db.Timestamptz(3)
+  whatsappTokenExpiresAt   DateTime? @db.Timestamptz(3)
+  whatsappLastVerifyError  String?
+  intelligenceAddon        IntelligenceAddon        @default(NONE)
+  trialEndsAt              DateTime? @db.Timestamptz(3)
+  avgConsultationMinutes   Int                      @default(15)
+  lateArrivalGraceMinutes  Int                      @default(30)
+  queueBufferMinutes       Int                      @default(10)
+  useDoctorQueues          Boolean                  @default(false)
+  mrnPrefix                String?
+  razorpayCustomerId       String?
+  referralCode             String?                  @unique
+  domain                   String?
+  referralCreditsMonths    Int                      @default(0)
+  appointments             Appointment[]
+  appointmentRequests      AppointmentRequest[]
+  publicBookingOtps        PublicBookingOtp[]
+  appointmentReminders     AppointmentReminder[]
+  auditLogs                AuditLog[]
+  analyticsSnapshots       AnalyticsSnapshot[]
+  paymentRetries           PaymentRetry[]
+  bulkImportJobs           BulkImportJob[]
+  clinicalTemplates        ClinicalTemplate[]
+  customFields             CustomField[]
+  documents                Document[]
+  doctorClinics            DoctorClinic[]
+  doctorSchedules          DoctorSchedule[]
+  clinicWeeklySchedules    ClinicWeeklySchedule[]
+  doctorTimeOffs           DoctorTimeOff[]
+  feedbacks                Feedback[]
+  feedbackFeatures         FeedbackFeature[]
+  featureFlags             FeatureFlag[]
+  importJobs               ImportJob[]
+  invoices                 Invoice[]
+  invoiceSequences         InvoiceSequence[]
+  invoiceItems             InvoiceItem[]
+  patients                 Patient[]
+  paymentSessions          PaymentSession[]
+  queueTokens              QueueToken[]
+  reminderSettings         ReminderSettings?
+  users                    User[]
+  vitalSigns               VitalSign[]
+  whatsappLogs             WhatsappLog[]
+  clinicSecrets            ClinicSecret[]
+  subscription             Subscription?
+  enterpriseContractsAsPrimary EnterpriseContract[] @relation("EnterprisePrimaryClinic")
   enterpriseContractMembership EnterpriseContractMember?
   subscriptionPayments         SubscriptionPayment[]
   subscriptionReminders        SubscriptionReminder[]
@@ -1151,7 +1151,7 @@ model Clinic {
   metricSelections             PatientMetricSelection[]
   memberJoinRequests           MemberJoinRequest[]
   slaSignatureUrl              String?
-  slaSignatureAcceptedAt       DateTime?                 @db.Timestamptz(3)
+  slaSignatureAcceptedAt       DateTime? @db.Timestamptz(3)
   slaSignatureUploadTokens     SignatureUploadToken[]    @relation("ClinicSlaSignatureTokens")
   medicalDocuments             MedicalDocument[]
   followUps                    FollowUp[]
@@ -1421,21 +1421,20 @@ model PaymentSession {
   status            PaymentSessionStatus @default(CREATED)
   createdAt         DateTime             @default(now()) @db.Timestamptz(3)
   updatedAt         DateTime             @updatedAt @db.Timestamptz(3)
-  paidAt            DateTime?            @db.Timestamptz(3)
-  failedAt          DateTime?            @db.Timestamptz(3)
-  expiresAt         DateTime?            @db.Timestamptz(3)
+  paidAt            DateTime? @db.Timestamptz(3)
+  failedAt          DateTime? @db.Timestamptz(3)
+  expiresAt         DateTime? @db.Timestamptz(3)
   /// @json:paymentSessionWebhookPayloadSchema
   webhookPayload    Json?
   /// @json:paymentSessionMetaJsonSchema
   meta              Json?
-  whatsappSentAt    DateTime?            @db.Timestamptz(3)
+  whatsappSentAt    DateTime? @db.Timestamptz(3)
   whatsappMessageId String?
   whatsappStatus    String?
   clinic            Clinic               @relation(fields: [clinicId], references: [id])
   invoice           Invoice?             @relation(fields: [invoiceId], references: [id])
   patient           Patient?             @relation(fields: [patientId], references: [id])
 
-  @@unique([provider, providerPaymentId], map: "PaymentSession_provider_providerPaymentId_key")
   @@index([clinicId])
   @@index([clinicId, providerSessionId])
   @@index([clinicId, status])
@@ -1443,6 +1442,7 @@ model PaymentSession {
   @@index([providerPaymentId])
   @@index([providerSessionId])
   @@index([status])
+  @@unique([provider, providerPaymentId], map: "PaymentSession_provider_providerPaymentId_key")
 }
 
 model OnboardingSession {
@@ -1475,15 +1475,15 @@ model WhatsappLog {
   senderPhoneNumberId String?
   senderMode          WhatsappSenderMode @default(SHARED)
   /// @json:jsonObjectSchema
-  requestBody         Json?
+  requestBody       Json?
   /// @json:jsonObjectSchema
-  responseBody        Json?
-  errorMessage        String?
-  createdAt           DateTime           @default(now()) @db.Timestamptz(3)
-  updatedAt           DateTime           @updatedAt @db.Timestamptz(3)
-  deliveredAt         DateTime?          @db.Timestamptz(3)
-  clinic              Clinic             @relation(fields: [clinicId], references: [id])
-  patient             Patient?           @relation(fields: [patientId], references: [id])
+  responseBody      Json?
+  errorMessage      String?
+  createdAt         DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime          @updatedAt @db.Timestamptz(3)
+  deliveredAt       DateTime? @db.Timestamptz(3)
+  clinic            Clinic            @relation(fields: [clinicId], references: [id])
+  patient           Patient?          @relation(fields: [patientId], references: [id])
 
   @@index([clinicId])
   @@index([patientId])
@@ -1504,7 +1504,7 @@ model SupportInquiry {
   status        SupportInquiryStatus @default(NEW)
   createdAt     DateTime             @default(now()) @db.Timestamptz(3)
   updatedAt     DateTime             @updatedAt @db.Timestamptz(3)
-  reviewedAt    DateTime?            @db.Timestamptz(3)
+  reviewedAt    DateTime? @db.Timestamptz(3)
   reviewedBy    String?
   internalNotes String?
 
@@ -1526,7 +1526,7 @@ model SupportWhatsAppMessage {
   messageBody              String
   status                   SupportWhatsAppMessageStatus    @default(NEW)
   receivedAt               DateTime                        @default(now()) @db.Timestamptz(3)
-  respondedAt              DateTime?                       @db.Timestamptz(3)
+  respondedAt              DateTime? @db.Timestamptz(3)
   replyToProviderMessageId String?
   errorMessage             String?
   /// @json:jsonObjectSchema
@@ -1571,42 +1571,42 @@ model WhatsappTemplate {
 }
 
 model WhatsAppBroadcastJob {
-  id            String                       @id @default(cuid())
-  title         String
-  audienceLabel String?
-  templateName  String?
-  languageCode  String                       @default("en")
-  messageText   String?
-  totalCount    Int                          @default(0)
-  sentCount     Int                          @default(0)
-  failedCount   Int                          @default(0)
-  status        WhatsAppBroadcastJobStatus   @default(PENDING)
-  createdBy     String?
-  startedAt     DateTime?                    @db.Timestamptz(3)
-  completedAt   DateTime?                    @db.Timestamptz(3)
-  errorMessage  String?
-  createdAt     DateTime                     @default(now()) @db.Timestamptz(3)
-  updatedAt     DateTime                     @updatedAt @db.Timestamptz(3)
-  recipients    WhatsAppBroadcastRecipient[]
+  id              String                       @id @default(cuid())
+  title           String
+  audienceLabel   String?
+  templateName    String?
+  languageCode    String                       @default("en")
+  messageText     String?
+  totalCount      Int                          @default(0)
+  sentCount       Int                          @default(0)
+  failedCount     Int                          @default(0)
+  status          WhatsAppBroadcastJobStatus   @default(PENDING)
+  createdBy       String?
+  startedAt       DateTime? @db.Timestamptz(3)
+  completedAt     DateTime? @db.Timestamptz(3)
+  errorMessage    String?
+  createdAt       DateTime                     @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime                     @updatedAt @db.Timestamptz(3)
+  recipients      WhatsAppBroadcastRecipient[]
 
   @@index([status])
   @@index([createdAt])
 }
 
 model WhatsAppBroadcastRecipient {
-  id                String                           @id @default(cuid())
+  id                String                            @id @default(cuid())
   broadcastJobId    String
   phoneNumber       String
   name              String?
   /// @json:whatsappBroadcastVariablesSchema
   variables         Json?
-  status            WhatsAppBroadcastRecipientStatus @default(PENDING)
+  status            WhatsAppBroadcastRecipientStatus  @default(PENDING)
   providerMessageId String?
   errorMessage      String?
-  sentAt            DateTime?                        @db.Timestamptz(3)
-  createdAt         DateTime                         @default(now()) @db.Timestamptz(3)
-  updatedAt         DateTime                         @updatedAt @db.Timestamptz(3)
-  broadcastJob      WhatsAppBroadcastJob             @relation(fields: [broadcastJobId], references: [id], onDelete: Cascade)
+  sentAt            DateTime? @db.Timestamptz(3)
+  createdAt         DateTime                          @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime                          @updatedAt @db.Timestamptz(3)
+  broadcastJob      WhatsAppBroadcastJob              @relation(fields: [broadcastJobId], references: [id], onDelete: Cascade)
 
   @@index([broadcastJobId])
   @@index([status])
@@ -1636,9 +1636,9 @@ model AppointmentResponse {
   patientMessage  String?
   delayMinutes    Int?
   staffNotified   Boolean             @default(false)
-  staffNotifiedAt DateTime?           @db.Timestamptz(3)
+  staffNotifiedAt DateTime? @db.Timestamptz(3)
   handledById     String?
-  handledAt       DateTime?           @db.Timestamptz(3)
+  handledAt       DateTime? @db.Timestamptz(3)
   notes           String?
   createdAt       DateTime            @default(now()) @db.Timestamptz(3)
   updatedAt       DateTime            @updatedAt @db.Timestamptz(3)
@@ -1661,8 +1661,8 @@ model StaffNotification {
   data      Json?
   priority  NotificationPriority  @default(NORMAL)
   isRead    Boolean               @default(false)
-  readAt    DateTime?             @db.Timestamptz(3)
-  deletedAt DateTime?             @db.Timestamptz(3)
+  readAt    DateTime? @db.Timestamptz(3)
+  deletedAt DateTime? @db.Timestamptz(3)
   createdAt DateTime              @default(now()) @db.Timestamptz(3)
   clinic    Clinic                @relation(fields: [clinicId], references: [id])
   user      User?                 @relation(fields: [userId], references: [id])
@@ -1918,7 +1918,7 @@ model ImportJob {
   createdBy     String
   createdAt     DateTime        @default(now()) @db.Timestamptz(3)
   updatedAt     DateTime        @updatedAt @db.Timestamptz(3)
-  completedAt   DateTime?       @db.Timestamptz(3)
+  completedAt   DateTime? @db.Timestamptz(3)
   clinic        Clinic          @relation(fields: [clinicId], references: [id])
 
   @@index([clinicId])
@@ -1942,7 +1942,7 @@ model OcrDocument {
   suggestedCorrections  Json?
   status                OcrDocumentStatus @default(PENDING)
   reviewedBy            String?
-  reviewedAt            DateTime?         @db.Timestamptz(3)
+  reviewedAt            DateTime? @db.Timestamptz(3)
   /// @json:ocrCorrectionsJsonSchema
   corrections           Json?
   createdAt             DateTime          @default(now()) @db.Timestamptz(3)
@@ -2001,16 +2001,16 @@ model QueueToken {
   status            QueueTokenStatus @default(WAITING)
   priority          Int              @default(0)
   notes             String?
-  calledAt          DateTime?        @db.Timestamptz(3)
-  completedAt       DateTime?        @db.Timestamptz(3)
+  calledAt          DateTime? @db.Timestamptz(3)
+  completedAt       DateTime? @db.Timestamptz(3)
   createdAt         DateTime         @default(now()) @db.Timestamptz(3)
   updatedAt         DateTime         @updatedAt @db.Timestamptz(3)
-  consultationEnd   DateTime?        @db.Timestamptz(3)
-  consultationStart DateTime?        @db.Timestamptz(3)
+  consultationEnd   DateTime? @db.Timestamptz(3)
+  consultationStart DateTime? @db.Timestamptz(3)
   doctorId          String?
   estimatedDuration Int              @default(15)
   estimatedWaitTime Int?
-  scheduledTime     DateTime?        @db.Timestamptz(3)
+  scheduledTime     DateTime? @db.Timestamptz(3)
   tokenType         String           @default("walk-in")
   appointment       Appointment?     @relation(fields: [appointmentId], references: [id])
   clinic            Clinic           @relation(fields: [clinicId], references: [id])
@@ -2039,7 +2039,7 @@ model InventoryItem {
   unit          String              @default("units")
   purchasePrice Float?
   sellingPrice  Float?
-  expiryDate    DateTime?           @db.Timestamptz(3)
+  expiryDate    DateTime? @db.Timestamptz(3)
   batchNumber   String?
   supplier      String?
   active        Boolean             @default(true)
@@ -2113,8 +2113,8 @@ model LabTestOrder {
   resultUrl     String?
   notes         String?
   orderedBy     String
-  collectedAt   DateTime?          @db.Timestamptz(3)
-  completedAt   DateTime?          @db.Timestamptz(3)
+  collectedAt   DateTime? @db.Timestamptz(3)
+  completedAt   DateTime? @db.Timestamptz(3)
   createdAt     DateTime           @default(now()) @db.Timestamptz(3)
   updatedAt     DateTime           @updatedAt @db.Timestamptz(3)
   labTest       LabTest            @relation(fields: [labTestId], references: [id])
@@ -2148,7 +2148,7 @@ model WhatsappConversation {
   clinicId      String
   patientId     String
   status        WhatsappConversationStatus @default(OPEN)
-  lastMessageAt DateTime?                  @db.Timestamptz(3)
+  lastMessageAt DateTime? @db.Timestamptz(3)
   /// @json:jsonObjectSchema
   context       Json?
   createdAt     DateTime                   @default(now()) @db.Timestamptz(3)
@@ -2502,8 +2502,8 @@ model Immunization {
   ndcCode           String?
   manufacturer      String?
   lotNumber         String?
-  expirationDate    DateTime?          @db.Timestamptz(3)
-  administeredDate  DateTime           @db.Timestamptz(3)
+  expirationDate    DateTime? @db.Timestamptz(3)
+  administeredDate  DateTime @db.Timestamptz(3)
   administeredBy    String?
   administeredAt    String?
   site              ImmunizationSite?
@@ -2535,12 +2535,12 @@ model Consent {
   status          ConsentStatus @default(PENDING)
   givenBy         String?
   givenByRelation String?
-  givenAt         DateTime?     @db.Timestamptz(3)
+  givenAt         DateTime? @db.Timestamptz(3)
   witnessedBy     String?
-  witnessedAt     DateTime?     @db.Timestamptz(3)
-  validFrom       DateTime?     @db.Timestamptz(3)
-  validUntil      DateTime?     @db.Timestamptz(3)
-  revokedAt       DateTime?     @db.Timestamptz(3)
+  witnessedAt     DateTime? @db.Timestamptz(3)
+  validFrom       DateTime? @db.Timestamptz(3)
+  validUntil      DateTime? @db.Timestamptz(3)
+  revokedAt       DateTime? @db.Timestamptz(3)
   revokedBy       String?
   revokedReason   String?
   procedureId     String?
@@ -2608,10 +2608,10 @@ model DataSubjectRequest {
   requestedByRelation String?
   requestChannel      String?
   requestDetails      String?
-  dueAt               DateTime?                @db.Timestamptz(3)
-  completedAt         DateTime?                @db.Timestamptz(3)
+  dueAt               DateTime? @db.Timestamptz(3)
+  completedAt         DateTime? @db.Timestamptz(3)
   handledById         String?
-  handledAt           DateTime?                @db.Timestamptz(3)
+  handledAt           DateTime? @db.Timestamptz(3)
   resolutionNotes     String?
   createdAt           DateTime                 @default(now()) @db.Timestamptz(3)
   updatedAt           DateTime                 @updatedAt @db.Timestamptz(3)
@@ -2761,7 +2761,7 @@ model ErrorLog {
   severity    ErrorSeverity @default(ERROR)
   resolved    Boolean       @default(false)
   resolvedBy  String?
-  resolvedAt  DateTime?     @db.Timestamptz(3)
+  resolvedAt  DateTime? @db.Timestamptz(3)
   createdAt   DateTime      @default(now()) @db.Timestamptz(3)
 
   @@index([clinicId])
@@ -2915,9 +2915,9 @@ model ClinicAddOn {
   status                 AddOnStatus  @default(ACTIVE)
   priceCents             Int
   billingCycle           BillingCycle @default(MONTHLY)
-  currentPeriodStart     DateTime     @db.Timestamptz(3)
-  currentPeriodEnd       DateTime     @db.Timestamptz(3)
-  cancelledAt            DateTime?    @db.Timestamptz(3)
+  currentPeriodStart     DateTime @db.Timestamptz(3)
+  currentPeriodEnd       DateTime @db.Timestamptz(3)
+  cancelledAt            DateTime? @db.Timestamptz(3)
   cancelAtPeriodEnd      Boolean      @default(false)
   razorpaySubscriptionId String?
 
@@ -2937,8 +2937,8 @@ model UsageRecord {
   id                 String    @id @default(cuid())
   clinicId           String
   type               UsageType
-  periodStart        DateTime  @db.Timestamptz(3)
-  periodEnd          DateTime  @db.Timestamptz(3)
+  periodStart        DateTime @db.Timestamptz(3)
+  periodEnd          DateTime @db.Timestamptz(3)
   quantity           Int
   includedQuota      Int
   overageUnits       Int
@@ -3021,17 +3021,17 @@ model Subscription {
   razorpayPlanId         String?
   razorpayTokenId        String?
   razorpayCustomerId     String?
-  currentPeriodStart     DateTime           @db.Timestamptz(3)
-  currentPeriodEnd       DateTime           @db.Timestamptz(3)
-  trialEnd               DateTime?          @db.Timestamptz(3)
-  cancelledAt            DateTime?          @db.Timestamptz(3)
+  currentPeriodStart     DateTime @db.Timestamptz(3)
+  currentPeriodEnd       DateTime @db.Timestamptz(3)
+  trialEnd               DateTime? @db.Timestamptz(3)
+  cancelledAt            DateTime? @db.Timestamptz(3)
   cancelAtPeriodEnd      Boolean            @default(false)
   creditsCents           Int                @default(0)
   autoPayEnabled         Boolean            @default(false)
   paymentMethodType      String?
-  lastFailedPaymentDate  DateTime?          @db.Timestamptz(3)
+  lastFailedPaymentDate  DateTime? @db.Timestamptz(3)
   failureRetryCount      Int                @default(0)
-  graceUntil             DateTime?          @db.Timestamptz(3) // Payment resolution deadline when status is GRACE or PAST_DUE
+  graceUntil             DateTime? @db.Timestamptz(3) // Payment resolution deadline when status is GRACE or PAST_DUE
   /// @json:scheduledPlanChangeJsonSchema
   scheduledChange        Json?
 
@@ -3053,8 +3053,8 @@ model EnterpriseContract {
   groupName       String?
   contractNumber  String                   @unique
   status          EnterpriseContractStatus @default(DRAFT)
-  startDate       DateTime                 @db.Timestamptz(3)
-  endDate         DateTime                 @db.Timestamptz(3)
+  startDate       DateTime @db.Timestamptz(3)
+  endDate         DateTime @db.Timestamptz(3)
   billingCycle    BillingCycle             @default(MONTHLY)
   currency        String                   @default("INR")
 
@@ -3068,15 +3068,15 @@ model EnterpriseContract {
   includedPrescriptions    Int @default(0)
   includedInvoices         Int @default(0)
 
-  overageUserCents         Int  @default(0)
-  overageConsultationCents Int  @default(0)
-  overageWhatsappCents     Int  @default(0)
-  overageStorageCents      Int  @default(0)
-  overageDoctorCents       Int  @default(0)
-  overagePrescriptionCents Int  @default(0)
-  overageInvoiceCents      Int  @default(0)
-  setupFeeCents            Int  @default(0)
-  dedicatedSupportCents    Int  @default(0)
+  overageUserCents         Int @default(0)
+  overageConsultationCents Int @default(0)
+  overageWhatsappCents     Int @default(0)
+  overageStorageCents      Int @default(0)
+  overageDoctorCents       Int @default(0)
+  overagePrescriptionCents Int @default(0)
+  overageInvoiceCents      Int @default(0)
+  setupFeeCents            Int @default(0)
+  dedicatedSupportCents    Int @default(0)
   /// @json:enterpriseContractCustomLineItemsJsonSchema
   customLineItems          Json @default("[]")
 
@@ -3137,8 +3137,8 @@ model EnterpriseContractInvoice {
   subscriptionPaymentId String?               @unique
   amountCents           Int
   currency              String
-  periodStart           DateTime              @db.Timestamptz(3)
-  periodEnd             DateTime              @db.Timestamptz(3)
+  periodStart           DateTime @db.Timestamptz(3)
+  periodEnd             DateTime @db.Timestamptz(3)
   discountPercent       Int                   @default(0)
   /// @json:jsonObjectSchema
   metadata              Json?
@@ -3381,7 +3381,7 @@ model PaymentRetry {
   razorpayLinkId  String?
   attemptCount    Int       @default(0)
   maxRetries      Int       @default(3)
-  nextRetryAt     DateTime  @db.Timestamptz(3)
+  nextRetryAt     DateTime @db.Timestamptz(3)
   retryIntervals  Int[]     @default([3600, 86400, 259200])
   status          String    @default("PENDING")
   lastError       String?
@@ -3613,7 +3613,7 @@ model Admission {
   bedId             String
   clinicId          String?
   admittedAt        DateTime        @default(now()) @db.Timestamptz(3)
-  dischargedAt      DateTime?       @db.Timestamptz(3)
+  dischargedAt      DateTime? @db.Timestamptz(3)
   status            AdmissionStatus @default(ADMITTED)
   reason            String?
   diagnosis         String?
@@ -3638,7 +3638,7 @@ model RefreshToken {
   id              String    @id @default(cuid())
   token           String?   @unique
   tokenHash       String?   @unique
-  expiresAt       DateTime  @db.Timestamptz(3)
+  expiresAt       DateTime @db.Timestamptz(3)
   userId          String
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   revokedAt       DateTime? @db.Timestamptz(3)
@@ -3662,7 +3662,7 @@ model PatientOtp {
   id          String    @id @default(cuid())
   phoneNumber String
   otpHash     String
-  expiresAt   DateTime  @db.Timestamptz(3)
+  expiresAt   DateTime @db.Timestamptz(3)
   usedAt      DateTime? @db.Timestamptz(3)
   attempts    Int       @default(0)
   createdAt   DateTime  @default(now()) @db.Timestamptz(3)
@@ -3713,8 +3713,8 @@ model WhatsappLogArchive {
   /// @json:jsonObjectSchema
   responseBody      Json?
   errorMessage      String?
-  createdAt         DateTime  @db.Timestamptz(3)
-  updatedAt         DateTime  @db.Timestamptz(3)
+  createdAt         DateTime @db.Timestamptz(3)
+  updatedAt         DateTime @db.Timestamptz(3)
   deliveredAt       DateTime? @db.Timestamptz(3)
   archivedAt        DateTime  @default(now()) @db.Timestamptz(3)
 
@@ -3727,14 +3727,14 @@ model AppointmentArchive {
   id                      String              @id
   patientId               String
   doctorId                String
-  startTime               DateTime            @db.Timestamptz(3)
-  endTime                 DateTime            @db.Timestamptz(3)
+  startTime               DateTime @db.Timestamptz(3)
+  endTime                 DateTime @db.Timestamptz(3)
   status                  String
   type                    String
   notes                   String?
   consultationNotes       String?
-  createdAt               DateTime            @db.Timestamptz(3)
-  updatedAt               DateTime            @db.Timestamptz(3)
+  createdAt               DateTime @db.Timestamptz(3)
+  updatedAt               DateTime @db.Timestamptz(3)
   clinicId                String
   observations            String?
   chiefComplaint          String?
@@ -3788,10 +3788,10 @@ model MedicalDocument {
   title         String
   /// @json:medicalDocumentContentJsonSchema
   content       Json
-  validFrom     DateTime?             @db.Timestamptz(3)
-  validUntil    DateTime?             @db.Timestamptz(3)
+  validFrom     DateTime? @db.Timestamptz(3)
+  validUntil    DateTime? @db.Timestamptz(3)
   status        MedicalDocumentStatus @default(DRAFT)
-  signedAt      DateTime?             @db.Timestamptz(3)
+  signedAt      DateTime? @db.Timestamptz(3)
   pdfUrl        String?
   createdAt     DateTime              @default(now()) @db.Timestamptz(3)
   updatedAt     DateTime              @updatedAt @db.Timestamptz(3)
@@ -3812,10 +3812,10 @@ model FollowUp {
   patientId           String
   doctorId            String
   clinicId            String
-  scheduledDate       DateTime       @db.Timestamptz(3)
+  scheduledDate       DateTime @db.Timestamptz(3)
   reason              String
   status              FollowUpStatus @default(PENDING)
-  reminderSentAt      DateTime?      @db.Timestamptz(3)
+  reminderSentAt      DateTime? @db.Timestamptz(3)
   bookedAppointmentId String?
   createdAt           DateTime       @default(now()) @db.Timestamptz(3)
   updatedAt           DateTime       @updatedAt @db.Timestamptz(3)
@@ -3867,15 +3867,15 @@ model AppointmentRequest {
   patientId          String
   clinicId           String
   preferredDoctorId  String?
-  preferredDate      DateTime                 @db.Timestamptz(3)
+  preferredDate      DateTime @db.Timestamptz(3)
   preferredTime      String?
-  requestedSlotStart DateTime?                @db.Timestamptz(3)
-  requestedSlotEnd   DateTime?                @db.Timestamptz(3)
+  requestedSlotStart DateTime? @db.Timestamptz(3)
+  requestedSlotEnd   DateTime? @db.Timestamptz(3)
   reason             String
   notes              String?
   status             AppointmentRequestStatus @default(PENDING)
   reviewedById       String?
-  reviewedAt         DateTime?                @db.Timestamptz(3)
+  reviewedAt         DateTime? @db.Timestamptz(3)
   responseMessage    String?
   createdAt          DateTime                 @default(now()) @db.Timestamptz(3)
   updatedAt          DateTime                 @updatedAt @db.Timestamptz(3)
@@ -3897,7 +3897,7 @@ model PublicBookingOtp {
   clinicId    String
   phoneNumber String
   otpHash     String
-  expiresAt   DateTime  @db.Timestamptz(3)
+  expiresAt   DateTime @db.Timestamptz(3)
   usedAt      DateTime? @db.Timestamptz(3)
   attempts    Int       @default(0)
   createdAt   DateTime  @default(now()) @db.Timestamptz(3)
@@ -3927,14 +3927,14 @@ model StaffLeave {
   staffId         String
   clinicId        String
   leaveType       LeaveType
-  startDate       DateTime    @db.Timestamptz(3)
-  endDate         DateTime    @db.Timestamptz(3)
+  startDate       DateTime @db.Timestamptz(3)
+  endDate         DateTime @db.Timestamptz(3)
   reason          String?
   status          LeaveStatus @default(PENDING)
   approvedBy      String?
-  approvedAt      DateTime?   @db.Timestamptz(3)
+  approvedAt      DateTime? @db.Timestamptz(3)
   rejectionReason String?
-  cancelledAt     DateTime?   @db.Timestamptz(3)
+  cancelledAt     DateTime? @db.Timestamptz(3)
   createdAt       DateTime    @default(now()) @db.Timestamptz(3)
   updatedAt       DateTime    @updatedAt @db.Timestamptz(3)
   version         Int         @default(1)
@@ -4046,7 +4046,7 @@ model PdfJob {
   attemptsMade Int          @default(0)
   createdAt    DateTime     @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime     @default(now()) @updatedAt @db.Timestamptz(3)
-  completedAt  DateTime?    @db.Timestamptz(3)
+  completedAt  DateTime? @db.Timestamptz(3)
   clinic       Clinic       @relation(fields: [clinicId], references: [id])
 
   @@unique([clinicId, documentId, documentType])
@@ -4074,11 +4074,11 @@ model QueueJob {
   attemptsMade   Int            @default(0)
   maxAttempts    Int            @default(5)
   failedReason   String?
-  processedAt    DateTime?      @db.Timestamptz(3)
-  delayedUntil   DateTime?      @db.Timestamptz(3)
+  processedAt    DateTime? @db.Timestamptz(3)
+  delayedUntil   DateTime? @db.Timestamptz(3)
   idempotencyKey String?
-  completedAt    DateTime?      @db.Timestamptz(3)
-  deadLetteredAt DateTime?      @db.Timestamptz(3)
+  completedAt    DateTime? @db.Timestamptz(3)
+  deadLetteredAt DateTime? @db.Timestamptz(3)
   createdAt      DateTime       @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime       @default(now()) @updatedAt @db.Timestamptz(3)
 
@@ -4097,16 +4097,16 @@ enum ApiHttpIdempotencyStatus {
 /// Cross-replica HTTP idempotency for POST mutations (Idempotency-Key header).
 /// Rows are purged after recordExpiresAt by EphemeralStoreCleanupScheduler.
 model ApiHttpIdempotencyRecord {
-  id                  String                   @id @default(cuid())
-  scopedKey           String                   @unique
-  bodyHash            String
-  status              ApiHttpIdempotencyStatus
+  id                    String                   @id @default(cuid())
+  scopedKey             String                   @unique
+  bodyHash              String
+  status                ApiHttpIdempotencyStatus
   /// @json:apiHttpIdempotencyResponseJsonSchema
-  response            Json?
-  processingExpiresAt DateTime                 @db.Timestamptz(3)
-  recordExpiresAt     DateTime                 @db.Timestamptz(3)
-  createdAt           DateTime                 @default(now()) @db.Timestamptz(3)
-  updatedAt           DateTime                 @updatedAt @db.Timestamptz(3)
+  response              Json?
+  processingExpiresAt   DateTime @db.Timestamptz(3)
+  recordExpiresAt       DateTime @db.Timestamptz(3)
+  createdAt             DateTime                 @default(now()) @db.Timestamptz(3)
+  updatedAt             DateTime                 @updatedAt @db.Timestamptz(3)
 
   @@index([recordExpiresAt])
   @@index([status, processingExpiresAt])
@@ -4133,13 +4133,13 @@ enum CronHeartbeatStatus {
 }
 
 model CronHeartbeat {
-  id         String              @id @default(cuid())
-  name       String              @unique
-  lastRunAt  DateTime            @db.Timestamptz(3)
+  id         String             @id @default(cuid())
+  name       String             @unique
+  lastRunAt  DateTime @db.Timestamptz(3)
   lastStatus CronHeartbeatStatus
   lastError  String?
-  createdAt  DateTime            @default(now()) @db.Timestamptz(3)
-  updatedAt  DateTime            @updatedAt @db.Timestamptz(3)
+  createdAt  DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime           @updatedAt @db.Timestamptz(3)
 
   @@index([lastRunAt])
 }
