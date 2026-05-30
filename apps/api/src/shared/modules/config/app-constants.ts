@@ -39,7 +39,13 @@ export const DATABASE_CONSTANTS = {
   CONNECTION_TIMEOUT_MS: 10_000,
   /** Default interactive transaction pool wait (Prisma default is 2s). */
   TRANSACTION_MAX_WAIT_MS: 8_000,
-  TRANSACTION_TIMEOUT_MS: 15_000,
+  TRANSACTION_TIMEOUT_MS: 30_000,
+  /**
+   * Per-request RLS envelope (TenantContextInterceptor) must cover slow list
+   * endpoints; Prisma default execution timeout is only 5s.
+   */
+  RLS_REQUEST_TRANSACTION_MAX_WAIT_MS: 10_000,
+  RLS_REQUEST_TRANSACTION_TIMEOUT_MS: 60_000,
   /** Auth refresh is high-volume; allow extra pool wait + one retry under contention. */
   AUTH_REFRESH_TRANSACTION_MAX_WAIT_MS: 12_000,
   AUTH_REFRESH_TRANSACTION_TIMEOUT_MS: 15_000,

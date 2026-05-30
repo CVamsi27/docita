@@ -11,6 +11,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { applyRlsScope } from '@/shared/modules/rls/apply-rls-scope';
 import { runWithActiveTx } from '@/shared/modules/rls/active-tx.storage';
+import { getRlsRequestTransactionOptions } from '@/shared/common/database-transaction-options';
 
 @Injectable()
 export class TenantContextInterceptor implements NestInterceptor {
@@ -49,10 +50,13 @@ export class TenantContextInterceptor implements NestInterceptor {
           // would only apply to `tx`'s pinned connection while the rest
           // of the request used a different pool connection.
           return from(
-            this.prisma.$transaction(async (tx) => {
-              await applyRlsScope(tx, clinicId);
-              return runWithActiveTx(tx, runHandler);
-            }),
+            this.prisma.$transaction(
+              async (tx) => {
+                await applyRlsScope(tx, clinicId);
+                return runWithActiveTx(tx, runHandler);
+              },
+              getRlsRequestTransactionOptions(),
+            ),
           );
         }
 

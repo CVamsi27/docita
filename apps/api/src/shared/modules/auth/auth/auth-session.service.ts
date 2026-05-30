@@ -10,10 +10,9 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma, Role } from '@workspace/db';
-import {
-  AUTH_CONSTANTS,
-  DATABASE_CONSTANTS,
-} from '@/shared/modules/config/app-constants';
+import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
+import { getAuthRefreshTransactionOptions } from '@/shared/common/database-transaction-options';
+import { DATABASE_CONSTANTS } from '@/shared/modules/config/app-constants';
 import { isPrismaTransactionAcquireTimeout } from '@/shared/common/utils/prisma-transaction-acquire-timeout';
 import { nanoid } from 'nanoid';
 import type {
@@ -57,10 +56,7 @@ export class AuthSessionService {
   private async runRefreshTokenTransaction(
     incomingRefreshToken: string,
   ): Promise<AuthLoginResult> {
-    const transactionOptions = {
-      maxWait: DATABASE_CONSTANTS.AUTH_REFRESH_TRANSACTION_MAX_WAIT_MS,
-      timeout: DATABASE_CONSTANTS.AUTH_REFRESH_TRANSACTION_TIMEOUT_MS,
-    };
+    const transactionOptions = getAuthRefreshTransactionOptions();
     const maxAttempts = DATABASE_CONSTANTS.AUTH_REFRESH_TRANSACTION_MAX_ATTEMPTS;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {

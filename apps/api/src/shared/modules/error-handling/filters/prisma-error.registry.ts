@@ -72,7 +72,10 @@ const PRISMA_KNOWN_ERROR_REGISTRY: Record<string, PrismaErrorMapping> = {
   P2028: {
     status: HttpStatus.SERVICE_UNAVAILABLE,
     message: 'Database is busy. Please try again shortly.',
-    details: () => ({ code: 'P2028' }),
+    details: (exception) => ({
+      code: 'P2028',
+      reason: toStringOrUndefined(exception.meta?.error) ?? 'transaction_api',
+    }),
   },
 };
 

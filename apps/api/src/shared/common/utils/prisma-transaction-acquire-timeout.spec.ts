@@ -1,5 +1,8 @@
 import { Prisma } from '@workspace/db';
-import { isPrismaTransactionAcquireTimeout } from './prisma-transaction-acquire-timeout';
+import {
+  isPrismaTransactionAcquireTimeout,
+  isPrismaTransactionApiError,
+} from './prisma-transaction-acquire-timeout';
 
 describe('isPrismaTransactionAcquireTimeout', () => {
   it('returns true for Prisma P2028 transaction acquire errors', () => {
@@ -24,5 +27,15 @@ describe('isPrismaTransactionAcquireTimeout', () => {
     expect(isPrismaTransactionAcquireTimeout(new Error('not found'))).toBe(
       false,
     );
+  });
+
+  it('detects expired interactive transaction errors', () => {
+    expect(
+      isPrismaTransactionApiError(
+        new Error(
+          'Invalid `prisma.patient.count()` invocation: Transaction API error: A query cannot be executed on an expired transaction.',
+        ),
+      ),
+    ).toBe(true);
   });
 });

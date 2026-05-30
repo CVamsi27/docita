@@ -16,7 +16,7 @@ import { tenantStorage } from '@/shared/common/middleware/tenant.middleware';
 import { EncryptionService } from '@/shared/common/encryption.service';
 import { slowQueryExtension } from '@/shared/common/extensions/logging.extension';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { DATABASE_CONSTANTS } from '@/shared/modules/config/app-constants';
+import { getDefaultTransactionOptions } from '@/shared/common/database-transaction-options';
 
 @Injectable()
 export class PrismaService
@@ -52,10 +52,7 @@ export class PrismaService
     super({
       adapter,
       log: [],
-      transactionOptions: {
-        maxWait: DATABASE_CONSTANTS.TRANSACTION_MAX_WAIT_MS,
-        timeout: DATABASE_CONSTANTS.TRANSACTION_TIMEOUT_MS,
-      },
+      transactionOptions: getDefaultTransactionOptions(),
     });
   }
 

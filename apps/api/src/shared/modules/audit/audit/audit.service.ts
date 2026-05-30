@@ -8,6 +8,7 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import { runOutsideActiveTx } from '@/shared/modules/rls/active-tx.storage';
 import type { AppAuditLogSummary } from '@workspace/types';
 
 export interface AuditLogData {
@@ -54,7 +55,8 @@ export class AuditService {
 
   async createAuditLog(data: AuditLogData): Promise<unknown> {
     // RLS-BYPASS: audit persistence correlates events across tenants for compliance
-    return this.prisma.runUnrestricted(async () => {
+    return this.prisma.runUnrestricted(async () =>
+      runOutsideActiveTx(async () => {
       try {
         const [clinic, user] = await Promise.all([
           this.prisma.clinic.findUnique({ where: { id: data.clinicId } }),
@@ -113,7 +115,8 @@ export class AuditService {
         );
         throw error;
       }
-    });
+      }),
+    );
   }
 
   async getAuditLogs(
