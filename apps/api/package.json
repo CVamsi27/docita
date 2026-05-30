@@ -6,6 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "prebuild": "pnpm --filter @workspace/types run build && pnpm --filter @workspace/auth run build && pnpm --filter @workspace/utils run build && pnpm --filter @workspace/db run build",
     "build": "nest build",
     "predev": "pnpm --filter @workspace/types run build && pnpm --filter @workspace/auth run build && pnpm --filter @workspace/utils run build && pnpm --filter @workspace/db run build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
