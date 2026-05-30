@@ -336,6 +336,7 @@ export function SectionTabs({
         items={stepItems}
         activeId={activeSectionId}
         onSelect={onSelect}
+        ariaLabel="Consultation sections"
         compact
         trailing={
           nextStep && nextStep.id !== activeSectionId ? (

@@ -145,7 +145,7 @@ test.describe("Mobile protected routes", () => {
     if (!appointmentId) throw new Error("Appointment fixture missing");
     await visitProtectedRoute(page, `/consultation/${appointmentId}`);
     await expect(
-      page.getByRole("tablist", { name: "Consultation sections" }),
+      page.getByRole("list", { name: "Consultation sections" }),
     ).toBeVisible();
   });
 

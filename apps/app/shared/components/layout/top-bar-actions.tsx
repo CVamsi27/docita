@@ -8,7 +8,7 @@ import { QuickAddPopover } from "@/components/navigation/quick-add-popover";
 import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 import { resolveAskAiScopeFromPathname } from "@/components/ask-ai/resolve-ask-ai-scope-from-pathname";
 
-export function TopBarActions() {
+export function TopBarActions({ compact = false }: { compact?: boolean }) {
   const { openOverlay } = useAskAi();
   const pathname = usePathname();
 
@@ -16,17 +16,19 @@ export function TopBarActions() {
     <>
       <GlobalSearch />
       <QuickAddPopover />
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        onClick={() => openOverlay(resolveAskAiScopeFromPathname(pathname))}
-        aria-label="Open Ask AI"
-        data-testid="topbar-ask-ai"
-        className="touch-manipulation"
-      >
-        <Sparkles className="size-4" aria-hidden />
-      </Button>
+      {compact ? null : (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => openOverlay(resolveAskAiScopeFromPathname(pathname))}
+          aria-label="Open Ask AI"
+          data-testid="topbar-ask-ai"
+          className="touch-manipulation"
+        >
+          <Sparkles className="size-4" aria-hidden />
+        </Button>
+      )}
     </>
   );
 }

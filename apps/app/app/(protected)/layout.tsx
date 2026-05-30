@@ -31,7 +31,6 @@ import {
 import type { ImperativePanelHandle } from "@workspace/ui/components/layout/resizable";
 import { ErrorBoundaryWrapper } from "@/components/errors/error-boundary";
 import { useAuth } from "@/lib/auth/auth-context";
-import { ThemeToggleWithAppearanceSync } from "@/components/layout/theme-toggle-with-appearance-sync";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
 import { Button } from "@workspace/ui/components/form/button";
@@ -59,8 +58,8 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
       ) : canGoBack ? (
         <BackButton fallback="/today" iconOnly className="px-2" />
       ) : (
-        <div className="flex h-10 items-center">
-          <DocitaLogo />
+        <div className="flex h-10 min-w-0 items-center">
+          <DocitaLogo showText={false} />
         </div>
       )}
       <div className="ml-auto flex shrink-0 items-center gap-0.5">
@@ -75,8 +74,7 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
         >
           <Command className="size-4" aria-hidden />
         </Button>
-        <TopBarActions />
-        <ThemeToggleWithAppearanceSync />
+        <TopBarActions compact />
       </div>
     </header>
   );

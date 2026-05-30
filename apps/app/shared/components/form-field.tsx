@@ -2,6 +2,7 @@ import React from "react";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import { AlertCircle } from "lucide-react";
+import { cn } from "@workspace/ui/lib/utils";
 import type { FormValidationErrors } from "@/lib/types/form";
 import { getFieldError, hasFieldError } from "@/lib/utils/form-errors";
 
@@ -67,11 +68,11 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
           pattern={pattern}
           minLength={minLength}
           maxLength={maxLength}
-          className={`
-            h-11 bg-background/50
-            ${error ? "border-destructive focus-visible:ring-destructive" : ""}
-            ${className || ""}
-          `}
+          className={cn(
+            "h-12 min-h-12 bg-background/50",
+            error && "border-destructive focus-visible:ring-destructive",
+            className,
+          )}
           aria-invalid={error}
           aria-describedby={error ? `${id}-error` : undefined}
         />
