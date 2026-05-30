@@ -9,7 +9,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 export function useAppointmentsDialogUrlSync() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(
+    () => searchParams.get("action") === "new",
+  );
 
   const currentAction = searchParams.get("action");
   useEffect(() => {
@@ -25,7 +27,10 @@ export function useAppointmentsDialogUrlSync() {
         const newParams = new URLSearchParams(searchParams.toString());
         newParams.delete("action");
         newParams.delete("patientId");
-        router.replace(`/appointments?${newParams.toString()}`);
+        const qs = newParams.toString();
+        router.replace(qs.length > 0 ? `/appointments?${qs}` : "/appointments", {
+          scroll: false,
+        });
       }
     },
     [searchParams, router],

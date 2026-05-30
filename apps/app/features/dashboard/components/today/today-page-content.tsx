@@ -29,6 +29,8 @@ import {
 } from "@workspace/ui/components/layout/bottom-action-bar";
 import { useStartConsultation } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { useSessionRecoveryRedirect } from "@/hooks/use-session-recovery-redirect";
+import { isSessionRecoveryError } from "@/lib/auth/session-recovery";
 import { cn } from "@workspace/ui/lib/utils";
 import { LayoutDashboard, Play, Sparkles } from "lucide-react";
 
@@ -57,11 +59,17 @@ export function TodayPageContent() {
     pendingJoinRequests,
     isLoading,
     isError,
+    statsError,
     refetchAll,
     lastDataUpdatedAtMs,
     isRefreshing,
     canAccess,
   } = state;
+
+  const isRecoveringSession = useSessionRecoveryRedirect({
+    error: statsError,
+    onRecovered: refetchAll,
+  });
 
   const summaryLine = useMemo(
     () => formatDashboardSummary(todayAppointments.length, waitingCount),
@@ -128,7 +136,7 @@ export function TodayPageContent() {
     />
   );
 
-  if (isLoading) {
+  if (isLoading || isRecoveringSession) {
     return (
       <AppPageScaffold header={header}>
         <DashboardSkeletonUI variant="today" />
@@ -136,7 +144,7 @@ export function TodayPageContent() {
     );
   }
 
-  if (isError) {
+  if (isError && !isSessionRecoveryError(statsError)) {
     return (
       <AppPageScaffold header={header}>
         <DataState

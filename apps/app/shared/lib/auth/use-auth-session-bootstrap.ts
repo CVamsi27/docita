@@ -14,6 +14,19 @@ import { appSession } from "./session";
 
 type ValidateAuth = (headers?: Record<string, string>) => Promise<unknown>;
 
+const SESSION_REFRESH_TIMEOUT_MS = 15_000;
+
+async function refreshAccessTokenWithTimeout(
+  refreshAccessToken: () => Promise<boolean>,
+): Promise<boolean> {
+  return Promise.race([
+    refreshAccessToken(),
+    new Promise<boolean>((resolve) => {
+      window.setTimeout(() => resolve(false), SESSION_REFRESH_TIMEOUT_MS);
+    }),
+  ]);
+}
+
 export function useAuthSessionBootstrap(options: {
   validateAuth: ValidateAuth;
   refreshAccessToken: () => Promise<boolean>;
@@ -57,7 +70,7 @@ export function useAuthSessionBootstrap(options: {
           setUserRole(userData.role);
           hasSetRoleRef.current = true;
           if (!appSession.getToken()) {
-            await refreshAccessToken();
+            await refreshAccessTokenWithTimeout(refreshAccessToken);
           }
           return;
         }
@@ -71,9 +84,10 @@ export function useAuthSessionBootstrap(options: {
           return;
         }
 
-        const refreshed = await refreshAccessToken();
+        const refreshed = await refreshAccessTokenWithTimeout(refreshAccessToken);
         if (!refreshed) {
           clearSession();
+          appSession.redirectToLogin();
           return;
         }
 
@@ -109,7 +123,7 @@ export function useAuthSessionBootstrap(options: {
         return;
       }
       void (async () => {
-        await refreshAccessToken();
+        await refreshAccessTokenWithTimeout(refreshAccessToken);
         await validateSession();
       })();
       return;

@@ -1,4 +1,4 @@
-const CACHE_VERSION = "docita-shell-v2";
+const CACHE_VERSION = "docita-shell-v3";
 const SHELL_ASSETS = ["/offline.html"];
 const SAFE_STATIC_PATHS = [
   "/offline.html",

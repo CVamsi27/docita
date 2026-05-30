@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Feature } from "@workspace/types";
 import { usePatientData } from "@/hooks/use-patient-data";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
@@ -25,6 +26,7 @@ export const usePatientDetailLogic = (patientId: string) => {
     usePermissions();
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
 
   const canAccessPatient = useMemo(() => {
     if (!user) return false;
@@ -36,11 +38,20 @@ export const usePatientDetailLogic = (patientId: string) => {
     [role],
   );
 
+  const handleScheduleDialogChange = useCallback((open: boolean) => {
+    setIsScheduleDialogOpen(open);
+  }, []);
+
   const handleScheduleVisit = useCallback(() => {
-    if (patient?.id) {
-      router.push(`/appointments?patientId=${patient.id}&action=new`);
+    if (!patient?.id) {
+      return;
     }
-  }, [router, patient?.id]);
+    if (canAccess(Feature.CALENDAR_SLOTS)) {
+      setIsScheduleDialogOpen(true);
+      return;
+    }
+    router.push(`/appointments?patientId=${patient.id}&action=new`);
+  }, [canAccess, patient?.id, router]);
 
   const handleBackToPatients = useCallback(() => {
     goBack();
@@ -71,6 +82,7 @@ export const usePatientDetailLogic = (patientId: string) => {
       canRecordPatientVitals,
       isEditDialogOpen,
       setIsEditDialogOpen,
+      isScheduleDialogOpen,
       user,
       role,
       canAccess,
@@ -78,6 +90,7 @@ export const usePatientDetailLogic = (patientId: string) => {
     handlers: {
       handleBackToPatients,
       handleScheduleVisit,
+      handleScheduleDialogChange,
       handleRepeatPrescription,
       handleRefetch: refetch,
     },

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Feature } from "@workspace/types";
+import { Feature, type PlanMode } from "@workspace/types";
 import {
   FEATURE_TIER_MAP,
   Tier,
@@ -10,18 +10,11 @@ import {
 } from "@/lib/subscription/tier-access";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import {
+  COMPARISON_MODES,
+  comparisonTiersForMode,
   FEATURE_CATEGORIES,
   KEY_FEATURE_CATEGORIES,
 } from "./comparison-table-helpers";
-
-export const PUBLISHED_TIER_LADDER: Tier[] = [
-  Tier.STARTER,
-  Tier.FRONT_DESK,
-  Tier.ESSENTIAL,
-  Tier.PROFESSIONAL,
-  Tier.HOSPITAL,
-  Tier.ENTERPRISE,
-];
 
 export type AvailableFeatureItem =
   | { kind: "header"; label: string }
@@ -29,7 +22,6 @@ export type AvailableFeatureItem =
       kind: "feature";
       feature: Feature;
       label: string;
-      requiredTier: Tier;
     };
 
 export function useComparisonTable({
@@ -39,7 +31,8 @@ export function useComparisonTable({
   currentTier: number;
   keyFeaturesOnly?: boolean;
 }) {
-  const tiers = PUBLISHED_TIER_LADDER;
+  const [mode, setMode] = useState<PlanMode>("FULL");
+  const tiers = useMemo(() => comparisonTiersForMode(mode), [mode]);
 
   const limitRows = useMemo(
     () =>
@@ -61,9 +54,15 @@ export function useComparisonTable({
     tiers.includes(currentTier) ? currentTier : (tiers[0] ?? Tier.STARTER),
   );
 
+  // The picked mobile tier may fall outside the active mode's column set (e.g.
+  // Starter after switching to Front Desk) — clamp it back into range.
+  const effectiveMobileTier: Tier = tiers.includes(mobileTier)
+    ? mobileTier
+    : validCurrentTier;
+
   const compareWithTier: Tier =
-    mobileTier !== validCurrentTier
-      ? mobileTier
+    effectiveMobileTier !== validCurrentTier
+      ? effectiveMobileTier
       : (tiers.find((t) => t !== validCurrentTier) ?? validCurrentTier);
 
   const availableFeatures = useMemo(() => {
@@ -82,7 +81,6 @@ export function useComparisonTable({
         kind: "feature",
         feature,
         label: getFeatureDetails(feature).name,
-        requiredTier: FEATURE_TIER_MAP[feature],
       }));
 
       return [header, ...features];
@@ -98,5 +96,8 @@ export function useComparisonTable({
     setMobileTier,
     availableFeatures,
     currentTier,
+    mode,
+    setMode,
+    modes: COMPARISON_MODES,
   };
 }

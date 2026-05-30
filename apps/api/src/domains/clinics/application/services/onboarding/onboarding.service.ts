@@ -26,7 +26,7 @@ import { OnboardingWorkflowService } from './onboarding-workflow.service';
 import { OnboardingComplianceService } from './onboarding-compliance.service';
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
 import {
-  hasPriorPaidSubscriptionForEmail,
+  hasPriorSubscriptionForEmail,
   createSlaSignatureSession,
   uploadSlaSignature,
   getSlaSignatureSessionStatus,
@@ -159,14 +159,15 @@ export class OnboardingService {
         completeData.planSelection.tier === ClinicTier.ESSENTIAL &&
         completeData.paymentDetails?.skipPayment === true;
 
-      // Free trial re-use prevention: prior paid subscriptions must use
-      // checkout instead of another trial.
+      // Free-trial re-use prevention: an email that has ever onboarded a clinic
+      // — whether it paid or only consumed a prior 30-day trial — must use
+      // checkout instead of starting another free trial.
       if (isUnpaidEssentialTrial) {
-        const hasPriorPaid = await hasPriorPaidSubscriptionForEmail(
+        const hasPriorSubscription = await hasPriorSubscriptionForEmail(
           this.persistence,
           completeData.adminAccount.email,
         );
-        if (hasPriorPaid) {
+        if (hasPriorSubscription) {
           throw new BadRequestException(
             'The 30-day free trial is only available to new customers. Please choose a paid plan to continue.',
           );

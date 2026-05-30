@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { z } from "zod";
 const ZENQUOTES_TODAY = "https://zenquotes.io/api/today";
+const ZENQUOTES_FETCH_TIMEOUT_MS = 2_000;
 
 const zenQuotesTodaySchema = z.array(
   z.object({
@@ -33,6 +34,7 @@ function utcCalendarDayKey(): string {
 async function fetchZenQuotesToday(): Promise<DailyThoughtPayload> {
   const response = await fetch(ZENQUOTES_TODAY, {
     headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(ZENQUOTES_FETCH_TIMEOUT_MS),
   });
 
   if (!response.ok) {

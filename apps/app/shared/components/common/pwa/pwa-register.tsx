@@ -14,8 +14,13 @@ export function PwaRegister() {
       return;
     }
 
-    void navigator.serviceWorker.register(SW_PATH).catch(() => {
-    });
+    void navigator.serviceWorker
+      .register(SW_PATH, { updateViaCache: "none" })
+      .then((registration) => {
+        void registration.update();
+      })
+      .catch(() => {
+      });
   }, []);
 
   return null;

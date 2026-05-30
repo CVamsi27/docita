@@ -65,7 +65,7 @@ export function AuthLoginStepUI({
           </Label>
           <Button
             variant="link"
-            className="px-0 h-auto text-xs font-normal"
+            className="min-h-12 px-2 text-xs font-normal"
             tabIndex={-1}
             type="button"
             onClick={onForgotPassword}
@@ -81,7 +81,7 @@ export function AuthLoginStepUI({
             onChange={(e) => onChangePassword(e.target.value)}
             autoComplete="current-password"
             required
-            className={`pr-10 h-11 bg-background/50 ${fieldClass(fieldErrors, "password")}`}
+            className={`pr-12 h-12 min-h-12 bg-background/50 ${fieldClass(fieldErrors, "password")}`}
             placeholder="Password"
             autoFocus
             aria-invalid={hasFieldError(fieldErrors, "password")}
@@ -99,8 +99,8 @@ export function AuthLoginStepUI({
               <Button
                 type="button"
                 variant="ghost"
-                size="icon-sm"
-                className="text-muted-foreground hover:text-foreground"
+                size="icon"
+                className="size-12 text-muted-foreground hover:text-foreground"
                 onClick={onTogglePassword}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
@@ -140,7 +140,7 @@ export function AuthLoginStepUI({
 
       <Button
         type="submit"
-        className="w-full h-11 text-base shadow-md hover:shadow-lg transition-shadow"
+        className="w-full h-12 min-h-12 text-base shadow-md hover:shadow-lg transition-shadow"
         disabled={loading || isLocked || password.trim().length === 0}
       >
         {loading ? (

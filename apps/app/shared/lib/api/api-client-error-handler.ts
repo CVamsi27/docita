@@ -2,13 +2,14 @@ import {
   SUBSCRIPTION_BILLING_RESOLVE_PATH,
   SUBSCRIPTION_SETTINGS_PATH,
 } from "@/lib/subscription/subscription-settings-path";
-import { appSession } from "@/lib/auth/session";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export type ApiClientError = {
   status?: number;
   data?: unknown;
   message?: string;
+  code?: string;
+  isNetworkError?: boolean;
 };
 
 function toRecord(value: unknown): Record<string, unknown> | null {
@@ -60,17 +61,20 @@ export function getRedirectPathForForbiddenCode(code?: string): string | null {
   }
 }
 
+/**
+ * Global API error hook wired into the shared fetch client.
+ *
+ * Must stay fast and side-effect free for auth/network failures — the client
+ * awaits this handler before surfacing errors. Session refresh and login
+ * redirects live in auth bootstrap + fetch-with-session instead.
+ */
 export async function handleApiClientError(error: ApiClientError) {
-  if (error.status === 401) {
-    if (typeof window !== "undefined") {
-      const refreshed = await appSession.refreshAccessToken();
-      if (refreshed) {
-        return;
-      }
-
-      appSession.clearSession();
-      appSession.redirectToLogin();
-    }
+  if (
+    error.status === 401 ||
+    error.isNetworkError ||
+    error.code === "NETWORK_ERROR" ||
+    error.code === "TIMEOUT"
+  ) {
     return;
   }
 

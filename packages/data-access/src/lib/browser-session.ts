@@ -1,5 +1,7 @@
 export interface BrowserSessionConfig {
   apiUrl: string;
+  /** When set, overrides `apiUrl` for bootstrap/refresh at call time. */
+  resolveApiUrl?: () => string;
   tokenStorageKey: string;
   userStorageKey?: string;
   refreshEndpoint?: string;
@@ -41,6 +43,7 @@ function extractAccessToken(payload: unknown): string | null {
 export function createBrowserSessionManager(config: BrowserSessionConfig) {
   const {
     apiUrl,
+    resolveApiUrl,
     tokenStorageKey,
     userStorageKey,
     refreshEndpoint = "/auth/refresh",
@@ -51,7 +54,10 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
     redirectStorageKey = "redirectAfterLogin",
   } = config;
 
-  const refreshKey = `${apiUrl}::${tokenStorageKey}`;
+  const refreshKey = `${tokenStorageKey}`;
+
+  const getActiveApiUrl = (): string =>
+    normalizeApiUrl(resolveApiUrl?.() ?? apiUrl);
 
   /**
    * Access tokens are NO LONGER persisted to localStorage.
@@ -184,7 +190,7 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
       // public, version-defaulted GET that exists for exactly this kind of
       // cheap probe.
       const bootstrapResponse = await fetch(
-        `${normalizeApiUrl(apiUrl)}/health`,
+        `${getActiveApiUrl()}/health`,
         {
           method: "GET",
           credentials: "include",
@@ -218,18 +224,26 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
         }
 
         const csrfToken = getCsrfToken();
-        const response = await fetch(
-          `${normalizeApiUrl(apiUrl)}${refreshEndpoint}`,
-          {
-            method: "POST",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-              ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15_000);
+        let response: Response;
+        try {
+          response = await fetch(
+            `${getActiveApiUrl()}${refreshEndpoint}`,
+            {
+              method: "POST",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+                ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+              },
+              body: JSON.stringify({}),
+              signal: controller.signal,
             },
-            body: JSON.stringify({}),
-          },
-        );
+          );
+        } finally {
+          clearTimeout(timeoutId);
+        }
 
         captureCsrfFromResponse(response);
 

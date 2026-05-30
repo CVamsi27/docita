@@ -15,7 +15,7 @@ and trigger GitHub notification emails for repository watchers.
 | Flow | Probe | Target | Allowed latency |
 | --- | --- | --- | --- |
 | API liveness | `GET /api/health/live` (version-neutral) | 200 + `status: ok` | 2 s |
-| Auth chrome | `GET /api/daily-thought` (app origin) | 200 + quote + `Cache-Control: public` | 3 s |
+| Auth chrome | `GET /api/daily-thought` (app origin) | 200 + quote + `Cache-Control: public` | 5 s |
 | Staff login | `POST /api/v1/auth/login` (optional creds) | 2xx + `access_token` cookie | 1.5 s |
 
 Public booking and patient-portal OTP probes remain in the backlog until
@@ -34,7 +34,8 @@ synthetic clinic credentials are provisioned (see Open items).
 | --- | --- |
 | Any probe failure (scheduled) | Workflow fails → GitHub email to watchers; optional Sentry error via `SENTRY_DSN`; optional Slack/PagerDuty webhook via `OPS_ALERT_WEBHOOK_URL` |
 | Post-deploy probe failure | Blocks deploy job success |
-| Staff login probe | Skipped unless `SYNTHETIC_MONITOR_EMAIL` + `SYNTHETIC_MONITOR_PASSWORD` secrets are set |
+| Post-deploy warmup | With `SYNTHETIC_POST_DEPLOY=1`, polls `/api/health/live` (60 s timeout, up to 8 retries) before probes — handles Fly suspend cold starts |
+| Staff login probe | **Optional** — skipped (does not fail the run) unless `SYNTHETIC_MONITOR_EMAIL` + `SYNTHETIC_MONITOR_PASSWORD` GitHub secrets are set |
 | WhatsApp stale delivery backlog | API emits `WHATSAPP_DELIVERY_STALE`; `OpsAlertListener` posts to `OPS_ALERT_WEBHOOK_URL` when configured |
 
 Configure Sentry alert rules in the Sentry dashboard for events tagged

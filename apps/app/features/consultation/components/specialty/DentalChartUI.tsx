@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { Label } from "@workspace/ui/components/form/label";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import { cn } from "@workspace/ui/lib/utils";
 import { useState } from "react";
 import type { DentalChartData } from "@workspace/types";
@@ -194,8 +195,8 @@ export function DentalChartUI({
 
             <div className="space-y-2">
               <Label>Notes</Label>
-              <textarea
-                className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              <Textarea
+                className="min-h-20"
                 placeholder="Tooth notes"
                 value={getToothData(selectedTooth).notes}
                 onChange={(e) => updateToothNotes(e.target.value)}

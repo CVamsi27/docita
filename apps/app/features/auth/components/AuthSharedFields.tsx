@@ -108,7 +108,7 @@ export function BackEmailField({
           iconOnly
           variant="ghost"
           size="icon"
-          className="h-11 w-11"
+          className="size-12 shrink-0"
           ariaLabel="Go back"
           tooltipLabel="Go back"
         />
@@ -118,7 +118,7 @@ export function BackEmailField({
             type="email"
             value={value}
             disabled
-            className={`h-11 bg-muted/50 ${fieldClass(fieldErrors, "email")}`}
+            className={`h-12 min-h-12 bg-muted/50 ${fieldClass(fieldErrors, "email")}`}
             aria-invalid={hasFieldError(fieldErrors, "email")}
             aria-describedby={
               hasFieldError(fieldErrors, "email") ? errorId : undefined

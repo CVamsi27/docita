@@ -4,6 +4,7 @@ import * as React from "react";
 import { DocitaLoadingIndicator } from "../feedback/docita-loading-indicator";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -37,7 +38,7 @@ export function FormDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={cn("sm:max-w-[600px]", contentClassName)}
+        className={cn(contentClassName ? undefined : "md:max-w-[600px]", contentClassName)}
         onInteractOutside={(e: Event) => {
           if (isLoading || disabled) {
             e.preventDefault();
@@ -54,7 +55,7 @@ export function FormDialog({
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
 
-        {children}
+        <DialogBody>{children}</DialogBody>
       </DialogContent>
     </Dialog>
   );

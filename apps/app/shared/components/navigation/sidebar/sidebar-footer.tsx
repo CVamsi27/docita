@@ -11,12 +11,8 @@ import {
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@workspace/ui/components/overlay/tooltip";
+import { SidebarRailAction } from "@workspace/ui/components/navigation/sidebar-rail-action";
+import { SidebarRailTooltip } from "@workspace/ui/components/navigation/sidebar-rail-tooltip";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { NotificationPanel } from "@/components/navigation/notification-panel";
 import { NotificationBellWithBadges } from "@/components/navigation/notification-bell-with-badges";
@@ -94,101 +90,87 @@ export function SidebarFooter({
   return (
     <div className="shrink-0 border-t border-border/70">
       {/* Quick-access icons row */}
-      <TooltipProvider>
-        <div
-          className={cn(
-            "flex items-center justify-between gap-1 py-2",
-            collapsedRail
-              ? "flex-col items-center justify-center px-1 py-3"
-              : "px-2",
-          )}
-        >
-          <ThemeToggleWithAppearanceSync />
+      <div
+        className={cn(
+          "flex items-center justify-between gap-1 py-2",
+          collapsedRail
+            ? "flex-col items-center justify-center px-1 py-3"
+            : "px-2",
+        )}
+      >
+        <ThemeToggleWithAppearanceSync />
 
-          {canAccessNotifications && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative h-8 w-8 shrink-0 overflow-visible text-muted-foreground hover:text-foreground hover:bg-muted"
-                  onClick={() => setNotificationPanelOpen(true)}
-                  aria-label={
-                    notificationCount > 0
-                      ? `Notifications, ${notificationCount} unread`
-                      : "Notifications"
-                  }
-                >
-                  <NotificationBellWithBadges count={notificationCount} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right">Notifications</TooltipContent>
-            </Tooltip>
-          )}
+        {canAccessNotifications && (
+          <SidebarRailAction label="Notifications">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative h-8 w-8 shrink-0 overflow-visible text-muted-foreground hover:bg-muted hover:text-foreground"
+              onClick={() => setNotificationPanelOpen(true)}
+              aria-label={
+                notificationCount > 0
+                  ? `Notifications, ${notificationCount} unread`
+                  : "Notifications"
+              }
+            >
+              <NotificationBellWithBadges count={notificationCount} />
+            </Button>
+          </SidebarRailAction>
+        )}
 
-          {canAccessSettings && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn(
-                    "relative h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted",
-                    pathname.startsWith("/settings") &&
-                      "bg-primary/8 text-primary",
-                  )}
-                  asChild
-                >
-                  <Link href="/settings" aria-label="Settings">
-                    <Settings2 className="h-4 w-4" />
-                    {isAdmin && pendingJoinRequestCount > 0 && (
-                      <span className="pointer-events-none absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />
-                    )}
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right">Settings</TooltipContent>
-            </Tooltip>
-          )}
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted",
-                  pathname.startsWith(HELP_NAV_ITEM.href) &&
-                    "bg-primary/8 text-primary",
+        {canAccessSettings && (
+          <SidebarRailAction label="Settings">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "relative h-8 w-8 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground",
+                pathname.startsWith("/settings") &&
+                  "bg-primary/8 text-primary",
+              )}
+              asChild
+            >
+              <Link href="/settings" aria-label="Settings">
+                <Settings2 className="h-4 w-4" />
+                {isAdmin && pendingJoinRequestCount > 0 && (
+                  <span className="pointer-events-none absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />
                 )}
-                asChild
-              >
-                <Link href={HELP_NAV_ITEM.href} aria-label="Help">
-                  <HelpCircle className="h-4 w-4" />
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">Help</TooltipContent>
-          </Tooltip>
+              </Link>
+            </Button>
+          </SidebarRailAction>
+        )}
 
-          {isAdmin && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
-                  onClick={() => setCustomizeOpen(true)}
-                  aria-label="Customize sidebar"
-                >
-                  <SlidersHorizontal className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right">Customize sidebar</TooltipContent>
-            </Tooltip>
-          )}
-        </div>
-      </TooltipProvider>
+        <SidebarRailAction label="Help">
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "h-8 w-8 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground",
+              pathname.startsWith(HELP_NAV_ITEM.href) &&
+                "bg-primary/8 text-primary",
+            )}
+            asChild
+          >
+            <Link href={HELP_NAV_ITEM.href} aria-label="Help">
+              <HelpCircle className="h-4 w-4" />
+            </Link>
+          </Button>
+        </SidebarRailAction>
+
+        {isAdmin && (
+          <SidebarRailAction label="Customize sidebar">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground"
+              onClick={() => setCustomizeOpen(true)}
+              aria-label="Customize sidebar"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </Button>
+          </SidebarRailAction>
+        )}
+      </div>
 
       {/* Plan row */}
       {isAdmin && (
@@ -199,31 +181,29 @@ export function SidebarFooter({
           )}
         >
           {canOpenBillingSettings ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
+            collapsedRail ? (
+              <SidebarRailTooltip label="Billing and subscription">
                 <Link
                   href={SUBSCRIPTION_SETTINGS_PATH}
-                  className={cn(
-                    "flex items-center justify-center gap-2 min-w-0 rounded-xl px-1 py-1 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
-                    collapsedRail &&
-                      "size-11 flex-col justify-center p-0 hover:bg-muted/60",
-                    !collapsedRail && "w-full",
-                  )}
+                  className="flex size-11 flex-col items-center justify-center rounded-xl p-0 transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
                   aria-label={`Billing and subscription, ${tierInfo.name}`}
                 >
                   <TierDot color={tierInfo.color} />
-                  {showLabels && (
-                    <div className="min-w-0 flex items-center gap-2">
-                      <MicroLabel className="leading-none">Plan</MicroLabel>
-                      <Badge variant="default">{tierInfo.name}</Badge>
-                    </div>
-                  )}
                 </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                Billing and subscription
-              </TooltipContent>
-            </Tooltip>
+              </SidebarRailTooltip>
+            ) : (
+              <Link
+                href={SUBSCRIPTION_SETTINGS_PATH}
+                className="flex w-full min-w-0 items-center justify-center gap-2 rounded-xl px-1 py-1 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+                aria-label={`Billing and subscription, ${tierInfo.name}`}
+              >
+                <TierDot color={tierInfo.color} />
+                <div className="flex min-w-0 items-center gap-2">
+                  <MicroLabel className="leading-none">Plan</MicroLabel>
+                  <Badge variant="default">{tierInfo.name}</Badge>
+                </div>
+              </Link>
+            )
           ) : (
             <div
               className={cn(

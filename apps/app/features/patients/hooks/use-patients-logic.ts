@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { Patient } from "@workspace/types";
+import { Feature, type Patient } from "@workspace/types";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 
 import { usePatients } from "@workspace/data-access";
+import { usePermissionStore } from "@/lib/stores/permission-store";
 
 type PatientsSortConfig = {
   key: keyof Patient | "fullName";
@@ -29,6 +30,10 @@ export function usePatientsLogic() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<PatientsSortConfig | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+  const [schedulingPatientId, setSchedulingPatientId] = useState<
+    string | undefined
+  >(undefined);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
 
   const {
@@ -43,6 +48,7 @@ export function usePatientsLogic() {
   });
   const searchParams = useSearchParams();
   const router = useRouter();
+  const canAccess = usePermissionStore((state) => state.canAccess);
 
   useEffect(() => {
     setPage(1);
@@ -127,6 +133,25 @@ export function usePatientsLogic() {
     setPage((current) => (current > 1 ? current - 1 : current));
   }, []);
 
+  const handleScheduleDialogChange = useCallback((open: boolean) => {
+    setIsScheduleDialogOpen(open);
+    if (!open) {
+      setSchedulingPatientId(undefined);
+    }
+  }, []);
+
+  const schedulePatient = useCallback(
+    (patientId: string) => {
+      if (canAccess(Feature.CALENDAR_SLOTS)) {
+        setSchedulingPatientId(patientId);
+        setIsScheduleDialogOpen(true);
+        return;
+      }
+      router.push(`/appointments?action=new&patientId=${patientId}`);
+    },
+    [canAccess, router],
+  );
+
   return {
     state: {
       isLoading,
@@ -135,6 +160,8 @@ export function usePatientsLogic() {
       sortConfig,
       filteredPatients,
       isAddDialogOpen,
+      isScheduleDialogOpen,
+      schedulingPatientId,
       editingPatient,
       totalPatients,
       pageSize: PAGE_SIZE,
@@ -153,8 +180,8 @@ export function usePatientsLogic() {
         void refetch();
       },
       goToPatient: (patientId: string) => router.push(`/patients/${patientId}`),
-      schedulePatient: (patientId: string) =>
-        router.push(`/appointments?action=new&patientId=${patientId}`),
+      schedulePatient,
+      handleScheduleDialogChange,
       openConsultationQueue: () => router.push("/consultation"),
       openAddDialog: () => setIsAddDialogOpen(true),
       clearSearch: () => setSearchQuery(""),

@@ -6,6 +6,7 @@ import {
   Form,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@workspace/ui/components/form/form";
 import type { CreateAppointmentInput, Patient } from "@workspace/types";
@@ -64,7 +65,8 @@ function TestForm({ prefilledPatientId }: { prefilledPatientId?: string }) {
         control={form.control}
         name="patientId"
         render={({ field }) => (
-          <FormItem>
+          <FormItem className="min-w-0">
+            <FormLabel>Patient</FormLabel>
             <PatientSelector
               value={field.value ?? ""}
               onChange={field.onChange}

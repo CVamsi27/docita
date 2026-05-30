@@ -21,13 +21,15 @@ test.describe("Mobile auth and setup shells", () => {
   test("login primary action meets minimum touch target", async ({ page }) => {
     await page.goto("/login", { waitUntil: "domcontentloaded" });
 
-    const submit = page.getByRole("button", { name: /sign in|log in/i }).first();
+    const submit = page
+      .getByRole("button", { name: /sign in|log in|continue/i })
+      .first();
     await expect(submit).toBeVisible();
     const box = await submit.boundingBox();
     expect(box).not.toBeNull();
     if (box) {
-      expect(box.width).toBeGreaterThanOrEqual(44);
-      expect(box.height).toBeGreaterThanOrEqual(44);
+      expect(box.width).toBeGreaterThanOrEqual(48);
+      expect(box.height).toBeGreaterThanOrEqual(48);
     }
   });
 });

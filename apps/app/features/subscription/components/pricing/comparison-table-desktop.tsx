@@ -23,9 +23,11 @@ import { getFeatureDetails } from "@/features/subscription/config/feature-config
 import {
   LIMIT_ROW_DESCRIPTIONS,
   FeatureCategoryRows,
+  isLimitRowBlockedInMode,
   SectionHeader,
 } from "./comparison-table-helpers";
 import type { FEATURE_CATEGORIES } from "./comparison-table-helpers";
+import type { PlanMode } from "@workspace/types";
 
 type FeatureCategory = (typeof FEATURE_CATEGORIES)[number];
 
@@ -34,11 +36,13 @@ export function ComparisonTableDesktop({
   currentTier,
   limitRows,
   categories,
+  mode,
 }: {
   tiers: Tier[];
   currentTier: number;
   limitRows: FeatureComparisonRow[];
   categories: FeatureCategory[];
+  mode: PlanMode;
 }) {
   return (
     <div className="hidden md:block">
@@ -79,7 +83,9 @@ export function ComparisonTableDesktop({
         </TableHeader>
         <TableBody>
           <SectionHeader label="Plan Limits" colSpan={tiers.length + 1} />
-          {limitRows.map((row: FeatureComparisonRow) => (
+          {limitRows.map((row: FeatureComparisonRow) => {
+            const limitBlocked = isLimitRowBlockedInMode(row.name, mode);
+            return (
             <TableRow key={row.name} className="hover:bg-muted/50">
               <TableCell className="sticky left-0 z-10 w-[11rem] min-w-[11rem] max-w-[15rem] border-r bg-card py-2.5 text-sm font-medium transition-colors hover:bg-muted/50 lg:w-[15rem] lg:min-w-[15rem]">
                 <div className="flex items-center gap-2">
@@ -115,13 +121,19 @@ export function ComparisonTableDesktop({
                     currentTier === tier && "bg-primary/5",
                   )}
                 >
-                  <span className="block text-sm font-medium tabular-nums whitespace-nowrap">
-                    {String(row.values[tier])}
+                  <span
+                    className={cn(
+                      "block text-sm font-medium tabular-nums whitespace-nowrap",
+                      limitBlocked && "text-muted-foreground/40",
+                    )}
+                  >
+                    {limitBlocked ? "—" : String(row.values[tier])}
                   </span>
                 </TableCell>
               ))}
             </TableRow>
-          ))}
+            );
+          })}
 
           {categories.map((category) => {
             const validFeatures = category.features.filter(
@@ -137,6 +149,7 @@ export function ComparisonTableDesktop({
                 features={validFeatures}
                 tiers={tiers}
                 currentTier={currentTier}
+                mode={mode}
               />
             );
           })}

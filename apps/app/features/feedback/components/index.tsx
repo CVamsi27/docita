@@ -68,7 +68,7 @@ export const FeedbackForm: FC<{
                   className={cn(
                     "h-8 w-8 transition-colors",
                     star <= rating
-                      ? "fill-yellow-400 text-warning"
+                      ? "fill-[var(--warning)] text-warning"
                       : "text-muted-foreground",
                   )}
                 />

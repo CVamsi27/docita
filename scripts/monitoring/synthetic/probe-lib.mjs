@@ -6,6 +6,12 @@
 
 const DEFAULT_TIMEOUT_MS = 5_000;
 
+export function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 export async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_TIMEOUT_MS) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -17,6 +23,11 @@ export async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_TI
       signal: controller.signal,
     });
     return { response, latencyMs: Date.now() - startedAt };
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(`Request timed out after ${timeoutMs}ms`);
+    }
+    throw error;
   } finally {
     clearTimeout(timer);
   }

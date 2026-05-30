@@ -10,7 +10,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { cn } from "@workspace/ui/lib/utils";
 import { PromptOptions } from "@/features/dialogs/types";
-import { getVariantStyles } from "@/features/dialogs/utils";
+import { getConfirmButtonVariant, getVariantStyles } from "@/features/dialogs/utils";
 
 interface PromptDialogProps {
   open: boolean;
@@ -81,6 +81,7 @@ export function PromptDialog({
             {options.cancelText || "Cancel"}
           </Button>
           <Button
+            variant={getConfirmButtonVariant(options.variant)}
             onClick={onSubmit}
             className={cn(getVariantStyles(options.variant))}
           >

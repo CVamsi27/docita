@@ -45,6 +45,25 @@ export function isStarterActiveZeroBase(
   );
 }
 
+/**
+ * A paid tier (anything above Starter) that is currently ACTIVE yet carries no
+ * base charge is complimentary / comped access — not a ₹0 list price. The normal
+ * checkout + activation path always captures the catalog price, so a zero base
+ * here means the row was comped or seeded. Surface it as "Complimentary" rather
+ * than "Annual — ₹0", which misreads as a paid plan being given away for free.
+ */
+export function isComplimentaryActivePaidPlan(
+  subscription: { tier?: string; basePriceCents?: number } | null | undefined,
+  subscriptionStatus: string | undefined,
+): boolean {
+  return (
+    subscription?.tier != null &&
+    subscription.tier !== "STARTER" &&
+    subscriptionStatus === "ACTIVE" &&
+    (subscription.basePriceCents ?? 0) <= 0
+  );
+}
+
 export function starterCatalogListMajorUnits(
   currency: string | undefined,
   billingCycle?: "MONTHLY" | "YEARLY" | string,
@@ -111,6 +130,9 @@ export function formatPlanBillingDetail(
 
   const cents = subscription?.basePriceCents ?? 0;
   if (cents <= 0) {
+    if (isComplimentaryActivePaidPlan(subscription, subscriptionStatus)) {
+      return "Complimentary";
+    }
     return `${cadence} — ${symbol}0`;
   }
 

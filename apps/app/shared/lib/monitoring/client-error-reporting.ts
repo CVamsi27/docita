@@ -1,4 +1,4 @@
-import { API_URL } from "@/lib/api/api-config";
+import { getAppApiUrl } from "@/lib/api/api-config";
 import { browserRequest } from "@/lib/auth/browser-request";
 import { appSession } from "@/lib/auth/session";
 
@@ -101,7 +101,7 @@ export const reportClientError = async (
 
   try {
     const response = await browserRequest(
-      `${API_URL}/monitoring/client-errors`,
+      `${getAppApiUrl()}/monitoring/client-errors`,
       {
         method: "POST",
         headers: {

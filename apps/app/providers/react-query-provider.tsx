@@ -17,6 +17,9 @@ export function ReactQueryProvider({ children }: { children: ReactNode }) {
             refetchOnMount: false,
             retry: (failureCount: number, error: unknown) => {
               if (error instanceof ApiError) {
+                if (error.statusCode === 401) {
+                  return false;
+                }
                 if (error.statusCode >= 400 && error.statusCode < 500) {
                   return false;
                 }

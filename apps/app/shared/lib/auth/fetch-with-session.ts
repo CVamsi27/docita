@@ -1,4 +1,4 @@
-import { API_URL } from "@/lib/api/api-config";
+import { getAppApiUrl } from "@/lib/api/api-config";
 import { appSession } from "@/lib/auth/session";
 import { isRecord } from "@workspace/utils";
 
@@ -36,7 +36,7 @@ export async function fetchWithSession(
 ): Promise<Response> {
   const csrfToken = appSession.getCsrfToken();
   const request = () =>
-    fetch(`${API_URL}${endpoint}`, {
+    fetch(`${getAppApiUrl()}${endpoint}`, {
       ...init,
       credentials: "include",
       headers: mergeHeaders(init?.headers, csrfToken, init?.method),

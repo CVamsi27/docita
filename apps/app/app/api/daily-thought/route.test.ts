@@ -65,4 +65,22 @@ describe("GET /api/daily-thought", () => {
 
     expect(body.author).toBe("Ernest Hemingway");
   });
+
+  it("times out slow ZenQuotes responses and returns fallback", async () => {
+    vi.mocked(fetch).mockRejectedValueOnce(
+      new DOMException("The operation was aborted.", "TimeoutError"),
+    );
+
+    const { GET } = await import("./route");
+    const res = await GET();
+    const body = (await res.json()) as { quote: string; author: string };
+
+    expect(body.author).toBe("Ernest Hemingway");
+    expect(fetch).toHaveBeenCalledWith(
+      "https://zenquotes.io/api/today",
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+      }),
+    );
+  });
 });

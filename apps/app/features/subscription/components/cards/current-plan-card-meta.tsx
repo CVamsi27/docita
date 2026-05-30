@@ -4,8 +4,8 @@ import {
   Activity,
   CalendarClock,
   CreditCard,
+  Layers,
   LockKeyhole,
-  Receipt,
   Sparkles,
 } from "lucide-react";
 import { Badge } from "@workspace/ui/components/indicators/badge";
@@ -13,6 +13,24 @@ import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
 import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
 import type { CurrentPlanCardProps } from "./current-plan-card-types";
+
+/**
+ * Map a plan-detail row to a semantically matching icon. The "period" row label
+ * varies (Renews On / Trial Ends / Ends On / Access through), so anything that
+ * isn't a known fixed label falls back to the calendar icon.
+ */
+function planDetailIcon(label: string) {
+  switch (label.toLowerCase()) {
+    case "plan":
+      return Layers;
+    case "status":
+      return Activity;
+    case "billing":
+      return CreditCard;
+    default:
+      return CalendarClock;
+  }
+}
 
 export function CurrentPlanCardMeta({
   scheduledChange,
@@ -95,15 +113,8 @@ export function CurrentPlanCardMeta({
 
       {planDetails && planDetails.length > 0 ? (
         <dl className="divide-y divide-border/60 rounded-lg border border-border/70 bg-background/70">
-          {planDetails.map((detail, index) => {
-            const DetailIcon =
-              index === 0
-                ? Activity
-                : index === 1
-                  ? CreditCard
-                  : index === 2
-                    ? Receipt
-                    : CalendarClock;
+          {planDetails.map((detail) => {
+            const DetailIcon = planDetailIcon(detail.label);
             return (
               <div
                 key={`${detail.label}-${detail.value}`}

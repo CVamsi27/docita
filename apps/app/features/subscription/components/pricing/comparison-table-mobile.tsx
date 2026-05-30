@@ -2,8 +2,18 @@
 
 import { Check, Minus } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import { getTierInfo, Tier } from "@/lib/subscription/tier-access";
+import {
+  getTierInfo,
+  getTierName,
+  hasFeatureAccess,
+  Tier,
+} from "@/lib/subscription/tier-access";
 import type { FeatureComparisonRow } from "@/lib/subscription/tier-access";
+import type { PlanMode } from "@workspace/types";
+import {
+  isFeatureBlockedInMode,
+  isLimitRowBlockedInMode,
+} from "./comparison-table-helpers";
 import type { AvailableFeatureItem } from "./use-comparison-table";
 
 export function ComparisonTableMobile({
@@ -13,6 +23,7 @@ export function ComparisonTableMobile({
   onSelectCompareTier,
   limitRows,
   availableFeatures,
+  mode,
 }: {
   tiers: Tier[];
   validCurrentTier: Tier;
@@ -20,6 +31,7 @@ export function ComparisonTableMobile({
   onSelectCompareTier: (tier: Tier) => void;
   limitRows: FeatureComparisonRow[];
   availableFeatures: AvailableFeatureItem[];
+  mode: PlanMode;
 }) {
   return (
     <div className="block md:hidden p-4 space-y-4">
@@ -69,22 +81,35 @@ export function ComparisonTableMobile({
           </p>
         </div>
         <div className="divide-y divide-border/60">
-          {limitRows.map((row) => (
-            <div
-              key={row.name}
-              className="grid grid-cols-[minmax(0,1fr)_minmax(4.5rem,auto)_minmax(4.5rem,auto)] items-baseline gap-x-3 gap-y-1 px-3 py-2.5"
-            >
-              <p className="min-w-0 break-words text-[var(--fs-xs)] text-muted-foreground">
-                {row.name}
-              </p>
-              <p className="shrink-0 text-right text-[var(--fs-sm)] font-medium tabular-nums whitespace-nowrap text-foreground">
-                {String(row.values[validCurrentTier])}
-              </p>
-              <p className="shrink-0 text-right text-[var(--fs-sm)] font-semibold tabular-nums whitespace-nowrap text-primary">
-                {String(row.values[compareWithTier])}
-              </p>
-            </div>
-          ))}
+          {limitRows.map((row) => {
+            const limitBlocked = isLimitRowBlockedInMode(row.name, mode);
+            return (
+              <div
+                key={row.name}
+                className="grid grid-cols-[minmax(0,1fr)_minmax(4.5rem,auto)_minmax(4.5rem,auto)] items-baseline gap-x-3 gap-y-1 px-3 py-2.5"
+              >
+                <p className="min-w-0 break-words text-[var(--fs-xs)] text-muted-foreground">
+                  {row.name}
+                </p>
+                <p
+                  className={cn(
+                    "shrink-0 text-right text-[var(--fs-sm)] font-medium tabular-nums whitespace-nowrap",
+                    limitBlocked ? "text-muted-foreground/40" : "text-foreground",
+                  )}
+                >
+                  {limitBlocked ? "—" : String(row.values[validCurrentTier])}
+                </p>
+                <p
+                  className={cn(
+                    "shrink-0 text-right text-[var(--fs-sm)] font-semibold tabular-nums whitespace-nowrap",
+                    limitBlocked ? "text-muted-foreground/40" : "text-primary",
+                  )}
+                >
+                  {limitBlocked ? "—" : String(row.values[compareWithTier])}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -107,8 +132,18 @@ export function ComparisonTableMobile({
               );
             }
 
-            const inCurrent = validCurrentTier >= item.requiredTier;
-            const inCompare = compareWithTier >= item.requiredTier;
+            const inCurrent =
+              hasFeatureAccess(
+                getTierName(validCurrentTier),
+                item.feature,
+                false,
+              ) && !isFeatureBlockedInMode(item.feature, mode);
+            const inCompare =
+              hasFeatureAccess(
+                getTierName(compareWithTier),
+                item.feature,
+                false,
+              ) && !isFeatureBlockedInMode(item.feature, mode);
             return (
               <div
                 key={item.feature}

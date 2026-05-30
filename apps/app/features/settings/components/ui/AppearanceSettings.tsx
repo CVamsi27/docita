@@ -83,15 +83,15 @@ export function AppearanceSettings() {
               { value: "orange", className: "bg-warning" },
               {
                 value: "rose",
-                className: "bg-[oklch(0.58_0.19_22)]",
+                className: "bg-[var(--tag-rose)]",
               },
               {
                 value: "teal",
-                className: "bg-[oklch(0.52_0.12_185)]",
+                className: "bg-[var(--tag-teal)]",
               },
               {
                 value: "slate",
-                className: "bg-[oklch(0.48_0.03_260)]",
+                className: "bg-[var(--tag-slate)]",
               },
             ].map((color) => (
               <ToggleGroupItem
