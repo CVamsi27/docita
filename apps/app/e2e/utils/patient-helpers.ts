@@ -8,6 +8,7 @@ import {
   type ClinicType,
 } from "@workspace/types";
 import { z } from "zod";
+import { E2E_ACCESS_TOKEN_SESSION_KEY } from "./e2e-session-token-key";
 
 export const API_URL = process.env["API_URL"] || "http://127.0.0.1:3001/api/v1";
 export const TEST_PASSWORD = "Test@123456";
@@ -670,15 +671,32 @@ export async function loginUser(
     );
   }
 
+  const loginPayload = (await loginRes.json()) as {
+    access_token?: string;
+    accessToken?: string;
+    data?: { access_token?: string; accessToken?: string };
+  };
+  const accessToken =
+    loginPayload.access_token ??
+    loginPayload.accessToken ??
+    loginPayload.data?.access_token ??
+    loginPayload.data?.accessToken ??
+    user.accessToken;
+
   await page.addInitScript(
     ({
       clinicId,
       sessionData,
+      token,
+      tokenKey,
     }: {
       clinicId: string;
       sessionData: typeof sessionUser;
+      token: string;
+      tokenKey: string;
     }) => {
       try {
+        sessionStorage.setItem(tokenKey, token);
         localStorage.setItem("docita_user", JSON.stringify(sessionData));
         localStorage.setItem("selectedClinicId", clinicId);
         localStorage.removeItem("selectedClinic");
@@ -687,7 +705,12 @@ export async function loginUser(
         // ignore
       }
     },
-    { clinicId: user.clinicId, sessionData: sessionUser },
+    {
+      clinicId: user.clinicId,
+      sessionData: sessionUser,
+      token: accessToken,
+      tokenKey: E2E_ACCESS_TOKEN_SESSION_KEY,
+    },
   );
 
   await page.goto("/__e2e_session_seed", { waitUntil: "domcontentloaded" });

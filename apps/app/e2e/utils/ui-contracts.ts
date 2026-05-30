@@ -60,6 +60,15 @@ export async function isDashboardQueueSectionVisible(page: Page) {
   return page.locator("#dashboard-queue-heading").isVisible();
 }
 
+export async function expectConsultationWorkspaceReady(page: Page) {
+  const loading = page.getByText(/Loading consultation|Restoring your session/i);
+  await loading.waitFor({ state: "hidden", timeout: 90_000 }).catch(() => {});
+
+  await expect(
+    page.getByRole("list", { name: "Consultation sections" }),
+  ).toBeVisible({ timeout: 60_000 });
+}
+
 export async function expectDataState(
   page: Page,
   state: "loading" | "error" | "empty" | "ready",
