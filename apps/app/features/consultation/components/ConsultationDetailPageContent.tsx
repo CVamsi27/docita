@@ -32,6 +32,7 @@ import {
   getConsultationCompletionMissingFields,
 } from "@/features/consultation/rules/consultationRules";
 import { resolveConsultationCompletionSnapshot } from "@/features/consultation/rules/consultation-completion";
+import { useSessionRecoveryRedirect } from "@/hooks/use-session-recovery-redirect";
 
 export default function ConsultationPage() {
   return (
@@ -63,9 +64,15 @@ function ConsultationPageContent() {
     clinic,
     isSidebarOpen,
     fallbackRoute,
+    appointmentError,
   } = state;
 
   const { handleBack, toggleSidebar, retry } = handlers;
+
+  const isRecoveringSession = useSessionRecoveryRedirect({
+    error: appointmentError,
+    onRecovered: retry,
+  });
 
   const consultationReadOnly = appointmentData
     ? isConsultationReadOnlyStatus(appointmentData.status)
@@ -188,13 +195,17 @@ function ConsultationPageContent() {
     retry,
   ]);
 
-  if (loading) {
+  if (loading || isRecoveringSession) {
     return (
       <AppPageScaffold>
         <DataState
           status="loading"
           className="min-h-[50vh]"
-          loadingMessage="Loading consultation…"
+          loadingMessage={
+            isRecoveringSession
+              ? "Restoring your session…"
+              : "Loading consultation…"
+          }
         />
       </AppPageScaffold>
     );

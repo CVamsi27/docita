@@ -1,17 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "@workspace/data-access";
 import {
-  useAppointment,
+  queryKeys,
+  type AppointmentWithRelations,
   useStartConsultation,
   useUpdateAppointment,
 } from "@workspace/data-access";
 import { useClinicSettings } from "@workspace/data-access";
+import { useAPIQuery } from "@/lib/api/api-core";
+import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { useAuth } from "@/lib/auth/auth-context";
+import { isSessionRecoveryError } from "@/lib/auth/session-recovery";
 import { usePermissions } from "@/hooks/use-permissions";
-import { UpdateAppointmentInput } from "@workspace/types";
+import { Feature, UpdateAppointmentInput } from "@workspace/types";
 import { isConsultationReadOnlyStatus } from "@/features/appointments";
 
 export const useConsultationLogic = (appointmentId: string) => {
@@ -22,12 +25,29 @@ export const useConsultationLogic = (appointmentId: string) => {
   const { user, isLoading: authLoading } = useAuth();
   const { canStartConsultation } = usePermissions();
 
+  const calendarOk = useTierFeatureEnabled(Feature.CALENDAR_SLOTS);
+  const appointmentQueryEnabled =
+    calendarOk && appointmentId.length > 0 && !authLoading && Boolean(user);
+
   const {
     data: appointmentData,
-    isLoading: loading,
+    isPending,
+    isFetching,
     isError,
+    error: appointmentError,
     refetch: refetchAppointment,
-  } = useAppointment(appointmentId);
+  } = useAPIQuery<AppointmentWithRelations>(
+    queryKeys.appointments.detail(appointmentId),
+    `/appointments/${appointmentId}`,
+    { enabled: appointmentQueryEnabled },
+  );
+
+  const loading =
+    authLoading ||
+    (appointmentQueryEnabled &&
+      !appointmentData &&
+      !isError &&
+      (isPending || isFetching));
 
   const { data: clinic } = useClinicSettings();
 
@@ -57,12 +77,12 @@ export const useConsultationLogic = (appointmentId: string) => {
     return appointmentData.doctorId === user.id;
   }, [appointmentData, canStartConsultation, user]);
 
-  const markedInProgressRef = useRef(false);
+  const startConsultationAttemptedRef = useRef(false);
   useEffect(() => {
     if (
       authLoading ||
       !canAccessConsultationWorkspace ||
-      markedInProgressRef.current ||
+      startConsultationAttemptedRef.current ||
       !appointmentData ||
       isConsultationReadOnlyStatus(appointmentData.status) ||
       !["scheduled", "confirmed", "checked-in", "in-progress"].includes(
@@ -72,15 +92,8 @@ export const useConsultationLogic = (appointmentId: string) => {
       return;
     }
 
-    markedInProgressRef.current = true;
-    startConsultation.mutate(
-      { appointmentId },
-      {
-        onError: () => {
-          markedInProgressRef.current = false;
-        },
-      },
-    );
+    startConsultationAttemptedRef.current = true;
+    startConsultation.mutate({ appointmentId });
   }, [
     appointmentData,
     appointmentId,
@@ -131,6 +144,9 @@ export const useConsultationLogic = (appointmentId: string) => {
       appointmentData,
       loading,
       isError,
+      appointmentError: isSessionRecoveryError(appointmentError)
+        ? appointmentError
+        : undefined,
       isAccessDenied:
         !loading &&
         !authLoading &&

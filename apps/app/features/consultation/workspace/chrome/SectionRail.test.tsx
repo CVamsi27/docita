@@ -129,7 +129,7 @@ describe("SectionTabs", () => {
         onSelect={() => {}}
       />,
     );
-    const list = screen.getByRole("list", { name: /progress steps/i });
+    const list = screen.getByRole("list", { name: /consultation sections/i });
     expect(list).toBeInTheDocument();
     const active = screen.getByRole("button", { name: /Assessment/i });
     expect(active.getAttribute("aria-current")).toBe("step");
