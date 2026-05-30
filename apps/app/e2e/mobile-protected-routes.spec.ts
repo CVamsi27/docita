@@ -11,7 +11,10 @@ import {
   expectMobileWorkspaceChrome,
   expectNoHorizontalOverflow,
 } from "./utils/mobile-layout";
-import { expectProtectedWorkspaceLoaded } from "./utils/ui-contracts";
+import {
+  expectConsultationWorkspaceReady,
+  expectProtectedWorkspaceLoaded,
+} from "./utils/ui-contracts";
 
 test.describe("Mobile protected routes", () => {
   let user: Awaited<ReturnType<typeof reuseSharedGeneralClinicUser>> | null =
@@ -144,9 +147,7 @@ test.describe("Mobile protected routes", () => {
   test("consultation detail renders without page overflow", async ({ page }) => {
     if (!appointmentId) throw new Error("Appointment fixture missing");
     await visitProtectedRoute(page, `/consultation/${appointmentId}`);
-    await expect(
-      page.getByRole("list", { name: "Consultation sections" }),
-    ).toBeVisible();
+    await expectConsultationWorkspaceReady(page);
   });
 
   test("invoice detail renders without page overflow", async ({ page }) => {

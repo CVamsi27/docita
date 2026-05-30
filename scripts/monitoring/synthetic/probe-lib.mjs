@@ -114,6 +114,28 @@ export class ProbeFailure extends Error {
   }
 }
 
+/** Best-effort RFC 7807 / Nest error body parsing for probe diagnostics. */
+export async function readHttpErrorDetail(response) {
+  try {
+    const body = await response.clone().json();
+    if (body && typeof body === "object") {
+      const detail =
+        typeof body.detail === "string"
+          ? body.detail
+          : typeof body.message === "string"
+            ? body.message
+            : null;
+      if (detail) {
+        return detail;
+      }
+    }
+  } catch {
+    // ignore non-JSON bodies
+  }
+
+  return null;
+}
+
 export async function runProbe(probeName, fn) {
   const startedAt = Date.now();
   try {

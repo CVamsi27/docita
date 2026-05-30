@@ -9,6 +9,7 @@ import {
   parseValidatedUser,
   type User,
 } from "./auth-context-helpers";
+import { consumeE2EAccessToken } from "./e2e-session-token";
 import { readLoginLockoutUntil } from "./auth-lockout";
 import { appSession } from "./session";
 
@@ -55,6 +56,11 @@ export function useAuthSessionBootstrap(options: {
       return;
     }
     hasInitializedSessionRef.current = true;
+
+    const e2eAccessToken = consumeE2EAccessToken();
+    if (e2eAccessToken) {
+      appSession.setToken(e2eAccessToken);
+    }
 
     const persistedLockoutUntil = readLoginLockoutUntil();
     clearLegacyUserStorage();

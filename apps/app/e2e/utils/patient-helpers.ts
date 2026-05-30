@@ -4,10 +4,46 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { APIRequestContext, Page } from "@playwright/test";
 import {
+  loginResponseSchema,
   uploadSessionCreateContractResponseSchema,
   type ClinicType,
 } from "@workspace/types";
 import { z } from "zod";
+import { E2E_ACCESS_TOKEN_SESSION_KEY } from "./e2e-session-token-key";
+
+const e2eLoginTokenFallbackSchema = z.object({
+  access_token: z.string().optional(),
+  accessToken: z.string().optional(),
+  data: z
+    .object({
+      access_token: z.string().optional(),
+      accessToken: z.string().optional(),
+    })
+    .optional(),
+});
+
+function readAccessTokenFromLoginResponse(
+  raw: unknown,
+  fallback: string,
+): string {
+  const direct = loginResponseSchema.safeParse(raw);
+  if (direct.success) {
+    return direct.data.access_token;
+  }
+
+  const loose = e2eLoginTokenFallbackSchema.safeParse(raw);
+  if (loose.success) {
+    return (
+      loose.data.access_token ??
+      loose.data.accessToken ??
+      loose.data.data?.access_token ??
+      loose.data.data?.accessToken ??
+      fallback
+    );
+  }
+
+  return fallback;
+}
 
 export const API_URL = process.env["API_URL"] || "http://127.0.0.1:3001/api/v1";
 export const TEST_PASSWORD = "Test@123456";
@@ -670,15 +706,25 @@ export async function loginUser(
     );
   }
 
+  const accessToken = readAccessTokenFromLoginResponse(
+    await loginRes.json(),
+    user.accessToken,
+  );
+
   await page.addInitScript(
     ({
       clinicId,
       sessionData,
+      token,
+      tokenKey,
     }: {
       clinicId: string;
       sessionData: typeof sessionUser;
+      token: string;
+      tokenKey: string;
     }) => {
       try {
+        sessionStorage.setItem(tokenKey, token);
         localStorage.setItem("docita_user", JSON.stringify(sessionData));
         localStorage.setItem("selectedClinicId", clinicId);
         localStorage.removeItem("selectedClinic");
@@ -687,7 +733,12 @@ export async function loginUser(
         // ignore
       }
     },
-    { clinicId: user.clinicId, sessionData: sessionUser },
+    {
+      clinicId: user.clinicId,
+      sessionData: sessionUser,
+      token: accessToken,
+      tokenKey: E2E_ACCESS_TOKEN_SESSION_KEY,
+    },
   );
 
   await page.goto("/__e2e_session_seed", { waitUntil: "domcontentloaded" });
