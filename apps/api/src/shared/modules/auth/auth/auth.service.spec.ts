@@ -16,7 +16,7 @@ import { UserFactory } from '@/domains/users/core/factories/user.factory';
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 import * as bcrypt from 'bcrypt';
-import { OnboardingStep, Role } from '@workspace/db';
+import { OnboardingStep, Prisma, Role } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { clockPortTestProvider } from '@/test-utils';
 
@@ -1013,6 +1013,49 @@ describe('AuthService', () => {
         2,
         expect.objectContaining({ where: { token: 'legacy-raw' } }),
       );
+    });
+
+    it('retries refresh when the first transaction cannot acquire a pool connection', async () => {
+      const acquireError = new Prisma.PrismaClientKnownRequestError(
+        'Transaction API error: Unable to start a transaction in the given time.',
+        { code: 'P2028', clientVersion: 'test' },
+      );
+      jest.spyOn(prismaService.refreshToken, 'findUnique').mockResolvedValue({
+        id: 'rt-1',
+        token: 'incoming',
+        userId: 'user-123',
+        tokenFamily: 'family-1',
+        deviceName: null,
+        ipAddress: null,
+        userAgent: null,
+        revokedAt: null,
+        expiresAt: new Date('2026-01-15T12:01:00.000Z'),
+        replacedByToken: null,
+        user: mockUser,
+      });
+      jest.spyOn(prismaService.refreshToken, 'create').mockResolvedValue({});
+      jest
+        .spyOn(prismaService.refreshToken, 'updateMany')
+        .mockResolvedValue({ count: 1 });
+
+      const transactionSpy = jest.spyOn(prismaService, '$transaction');
+      transactionSpy
+        .mockRejectedValueOnce(acquireError)
+        .mockImplementation(async (ops: unknown, options?: unknown) => {
+          if (typeof ops === 'function') {
+            return (ops as (tx: unknown) => Promise<unknown>)(prismaService);
+          }
+          return Promise.all(ops as Promise<unknown>[]);
+        });
+
+      const tokens = await service.refreshTokens('incoming');
+
+      expect(transactionSpy).toHaveBeenCalledTimes(2);
+      expect(transactionSpy).toHaveBeenLastCalledWith(
+        expect.any(Function),
+        expect.objectContaining({ maxWait: expect.any(Number) }),
+      );
+      expect(tokens.access_token).toBe('mock-jwt-token');
     });
   });
 

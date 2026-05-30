@@ -52,6 +52,10 @@ export class PrismaService
     super({
       adapter,
       log: [],
+      transactionOptions: {
+        maxWait: DATABASE_CONSTANTS.TRANSACTION_MAX_WAIT_MS,
+        timeout: DATABASE_CONSTANTS.TRANSACTION_TIMEOUT_MS,
+      },
     });
   }
 
