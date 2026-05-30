@@ -32,7 +32,8 @@ export class AuditEventListener {
         );
       }
 
-      if (!event.metadata.userId) {
+      const userId = event.metadata.userId;
+      if (!userId) {
         this.logger.debug(`Skipping audit log for ${event.type} - no userId`);
         return;
       }
@@ -46,7 +47,7 @@ export class AuditEventListener {
               action: action?.toUpperCase() ?? 'UNKNOWN',
               entityType: entity?.toUpperCase() ?? 'UNKNOWN',
               entityId: this.extractEntityId(event) ?? 'unknown',
-              userId: event.metadata.userId,
+              userId,
               clinicId: event.metadata.clinicId,
               metadata: JSON.parse(
                 JSON.stringify({
