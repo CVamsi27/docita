@@ -12,7 +12,7 @@ interface RequestOtpResponse {
 
 interface VerifyOtpResponse {
   access_token: string;
-  refresh_token: string;
+  // refresh_token is delivered only as an httpOnly cookie, never in the body.
   user: {
     id: string;
     email: string;

@@ -17,7 +17,10 @@ import { IpRateLimitGuard } from '@/shared/modules/auth/guards/ip-rate-limit.gua
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { LoginDto } from './dto/auth.dto';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { setAuthCookies } from './auth-cookie.helpers';
+import {
+  setAuthCookies,
+  stripRefreshTokenFromBody,
+} from './auth-cookie.helpers';
 import { readRequestHeaderString } from '@/shared/common/http/client-ip';
 
 @ApiTags('auth')
@@ -55,7 +58,7 @@ export class AuthLoginController {
         return result;
       }
       setAuthCookies(res, result, this.configService);
-      return result;
+      return stripRefreshTokenFromBody(result);
     } catch (error) {
       this.logger.error('Login error:', error);
       throw error;
@@ -83,6 +86,6 @@ export class AuthLoginController {
       deviceInfo,
     );
     setAuthCookies(res, tokens, this.configService);
-    return tokens;
+    return stripRefreshTokenFromBody(tokens);
   }
 }
