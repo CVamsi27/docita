@@ -3,12 +3,10 @@ import { Request } from 'express';
 import { EmailSuppressionReason } from '@workspace/db';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { WebhookVerifierService } from '@/shared/modules/webhooks';
 import { EmailSuppressionService } from './email-suppression.service';
-import {
-  verifySignature,
-  secretsMatch,
-  parseZeptoMailEvents,
-} from './zeptomail-webhook.parser';
+import { parseZeptoMailEvents } from './zeptomail-webhook.parser';
+import { verifyZeptoMailWebhookIngress } from './zeptomail-webhook-verification.helper';
 
 /** Permanent reasons that should suppress future sends (soft bounces don't). */
 const SUPPRESSING_REASONS: ReadonlySet<EmailSuppressionReason> = new Set([
@@ -16,11 +14,6 @@ const SUPPRESSING_REASONS: ReadonlySet<EmailSuppressionReason> = new Set([
   EmailSuppressionReason.COMPLAINT,
   EmailSuppressionReason.UNSUBSCRIBE,
 ]);
-
-function headerString(req: Request, name: string): string | undefined {
-  const value = req.headers[name];
-  return Array.isArray(value) ? value[0] : value;
-}
 
 /**
  * Receives ZeptoMail delivery webhooks (bounces / complaints / unsubscribes) and
@@ -41,6 +34,7 @@ export class ZeptoMailWebhookController {
   constructor(
     private readonly suppression: EmailSuppressionService,
     private readonly configService: AppConfigService,
+    private readonly webhookVerifier: WebhookVerifierService,
   ) {}
 
   @Public()
@@ -49,7 +43,20 @@ export class ZeptoMailWebhookController {
   async handle(
     @Req() req: Request & { rawBody?: Buffer; body?: unknown },
   ): Promise<{ received: true; suppressed: number }> {
-    if (!this.isAuthorized(req)) {
+    const secret = this.configService.getZeptoMailWebhookSecret();
+    if (!secret) {
+      this.logger.warn(
+        'ZEPTOMAIL_WEBHOOK_SECRET is not set; ignoring email webhook payload',
+      );
+      return { received: true, suppressed: 0 };
+    }
+
+    const authorized = await verifyZeptoMailWebhookIngress({
+      req,
+      secret,
+      verifier: this.webhookVerifier,
+    });
+    if (!authorized) {
       return { received: true, suppressed: 0 };
     }
 
@@ -73,23 +80,5 @@ export class ZeptoMailWebhookController {
       }
     }
     return { received: true, suppressed };
-  }
-
-  private isAuthorized(req: Request & { rawBody?: Buffer }): boolean {
-    const secret = this.configService.getZeptoMailWebhookSecret();
-    if (!secret) {
-      this.logger.warn(
-        'ZEPTOMAIL_WEBHOOK_SECRET is not set; ignoring email webhook payload',
-      );
-      return false;
-    }
-    const signature = headerString(req, 'x-zoho-signature');
-    if (signature) {
-      return verifySignature(req.rawBody ?? Buffer.from(''), signature, secret);
-    }
-    const provided =
-      headerString(req, 'authorization') ??
-      headerString(req, 'x-webhook-secret');
-    return secretsMatch(provided, secret);
   }
 }
