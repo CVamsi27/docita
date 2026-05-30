@@ -1,5 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 import {
   IWhatsappReconciliationRepository,
   WHATSAPP_RECONCILIATION_REPOSITORY_TOKEN,
@@ -25,6 +27,7 @@ export class WhatsappReconciliationService {
     @Inject(WHATSAPP_RECONCILIATION_REPOSITORY_TOKEN)
     private readonly repository: IWhatsappReconciliationRepository,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async runStaleDeliverySweep(): Promise<void> {
@@ -51,5 +54,12 @@ export class WhatsappReconciliationService {
         `${groups.length} clinic/status group(s) have had no final delivery status ` +
         `for over ${WhatsappReconciliationService.STALE_AFTER_HOURS}h. ${breakdown}`,
     );
+
+    // allow-direct-emit: read-side deliverability telemetry (the alerting hook),
+    // not a domain-state command — no outbox needed. Carries counts only (no PHI).
+    this.eventEmitter.emit(ApplicationEvents.WHATSAPP_DELIVERY_STALE, {
+      totalStale,
+      groupCount: groups.length,
+    });
   }
 }
