@@ -81,6 +81,31 @@ export class AIController {
     }
   }
 
+  /**
+   * Fire-and-forget: meter a synchronous AI OCR extraction as one OCR page so it
+   * feeds the billing OCR usage rollups. The bulk-import flow already emits this
+   * (`import-ocr-workflow.service.ts`); the single-image endpoint did not. Never
+   * throws — telemetry must not break the response.
+   */
+  private recordOcrPage(req: {
+    user?: { clinicId?: string | null } | null;
+  }): void {
+    const clinicId = req.user?.clinicId;
+    if (!clinicId) return;
+    try {
+      this.eventEmitter.emit(ApplicationEvents.OCR_PAGE_PROCESSED, {
+        clinicId,
+        pageCount: 1,
+      });
+    } catch (err) {
+      this.logger.warn(
+        `Failed to emit OCR usage event: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+    }
+  }
+
   @Post('ask')
   @RateLimit({ limit: 30, window: 60000 })
   @RequireFeature(Feature.AI_PRESCRIPTION_ASSISTANT)
@@ -201,14 +226,22 @@ export class AIController {
       },
     }),
   )
-  async extractWithAI(@UploadedFile() file: Express.Multer.File) {
+  async extractWithAI(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: RequestWithUser,
+  ) {
     if (!file) {
       throw new BadRequestException('File is required');
     }
 
     try {
       await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp', 'gif']);
-      return await this.aiService.extractFromMedicalDocument(file.path, true);
+      const result = await this.aiService.extractFromMedicalDocument(
+        file.path,
+        true,
+      );
+      this.recordOcrPage(req);
+      return result;
     } finally {
       if (file.path) {
         await unlink(file.path).catch(() => {});
