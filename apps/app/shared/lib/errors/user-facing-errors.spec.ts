@@ -9,6 +9,21 @@ vi.mock("sonner", () => ({
 }));
 
 describe("user-facing error messages", () => {
+  it("prefers API detail over generic 403 copy", () => {
+    expect(
+      getUserFacingErrorMessage({
+        status: 403,
+        data: { detail: "User is not associated with a clinic" },
+      }),
+    ).toBe("User is not associated with a clinic");
+  });
+
+  it("maps NO_CLINIC code to setup guidance", () => {
+    expect(getUserFacingErrorMessage({ status: 403, code: "NO_CLINIC" })).toBe(
+      "Finish setting up your clinic to continue",
+    );
+  });
+
   it.each([
     [400, "Please check the information and try again"],
     [401, "Please sign in again to continue"],

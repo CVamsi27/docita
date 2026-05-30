@@ -25,6 +25,16 @@ describe("getRedirectPathForForbiddenCode", () => {
     );
   });
 
+  it("routes missing clinic to choose-path", () => {
+    expect(getRedirectPathForForbiddenCode("NO_CLINIC")).toBe("/choose-path");
+  });
+
+  it("routes billing hard lock to billing resolve", () => {
+    expect(getRedirectPathForForbiddenCode("SUBSCRIPTION_HARD_LOCKED")).toBe(
+      SUBSCRIPTION_BILLING_RESOLVE_PATH,
+    );
+  });
+
   it("returns null for unknown codes", () => {
     expect(getRedirectPathForForbiddenCode("OTHER")).toBeNull();
   });

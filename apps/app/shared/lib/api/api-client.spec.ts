@@ -59,4 +59,27 @@ describe("api-client", () => {
     expect(assignSpy).toHaveBeenCalledWith("/verify-email-sent");
     expect(mocks.showUserFacingErrorToast).not.toHaveBeenCalled();
   });
+
+  it("redirects NO_CLINIC without showing a permission toast", async () => {
+    const assignSpy = vi.fn();
+    const redirectWindow = Object.create(window) as Window;
+    Object.defineProperty(redirectWindow, "location", {
+      configurable: true,
+      value: {
+        assign: assignSpy,
+        pathname: "/today",
+      },
+    });
+    vi.stubGlobal("window", redirectWindow);
+    const { handleApiClientError } = await import("./api-client-error-handler");
+
+    await handleApiClientError({
+      status: 403,
+      data: { code: "NO_CLINIC" },
+      message: "User is not associated with a clinic",
+    });
+
+    expect(assignSpy).toHaveBeenCalledWith("/choose-path");
+    expect(mocks.showUserFacingErrorToast).not.toHaveBeenCalled();
+  });
 });

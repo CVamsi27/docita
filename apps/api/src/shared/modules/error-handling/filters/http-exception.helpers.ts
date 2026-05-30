@@ -63,3 +63,12 @@ export function readZodIssuesFromCause(
 ): readonly ZodIssue[] | null {
   return cause instanceof ZodError ? cause.issues : null;
 }
+
+export function readProblemErrorCode(response: unknown): string | undefined {
+  if (!isObject(response)) {
+    return undefined;
+  }
+
+  const code = response.code;
+  return typeof code === 'string' ? code : undefined;
+}

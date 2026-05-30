@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { Role } from '@workspace/db';
 import { Request } from 'express';
+import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   IUserRepository,
@@ -84,7 +85,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         throw new UnauthorizedException('User not found');
       }
       if (user.appLoginDisabled) {
-        throw new ForbiddenException('This profile cannot sign in to the app.');
+        throw forbiddenProblem(
+          'APP_LOGIN_DISABLED',
+          'This profile cannot sign in to the app.',
+        );
       }
       const jwtAudience = Array.isArray(payload.aud)
         ? payload.aud[0]

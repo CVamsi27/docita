@@ -24,6 +24,7 @@ import {
 import { apiFetch } from "@/lib/api/api-client";
 import { isNetworkError } from "@/lib/api/network-error";
 import { appQueryKeys } from "@/lib/api/query-keys";
+import { shouldSkipAuthenticatedBootstrapFetch } from "@/lib/auth/pre-clinic-setup-routes";
 
 export type {
   PlanPricing,
@@ -57,13 +58,7 @@ export function TierConfigProvider({
 }) {
   const pathname = usePathname();
 
-  const shouldSkipTierFetch =
-    pathname === "/login" ||
-    pathname.startsWith("/login/") ||
-    pathname === "/onboarding" ||
-    pathname.startsWith("/onboarding/") ||
-    pathname === "/clinic-selection" ||
-    pathname.startsWith("/clinic-selection/");
+  const shouldSkipTierFetch = shouldSkipAuthenticatedBootstrapFetch(pathname);
 
   const tierConfigQuery = useQuery({
     queryKey: appQueryKeys.config.tier(),

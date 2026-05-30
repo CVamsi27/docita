@@ -2,6 +2,7 @@ import {
   SUBSCRIPTION_BILLING_RESOLVE_PATH,
   SUBSCRIPTION_SETTINGS_PATH,
 } from "@/lib/subscription/subscription-settings-path";
+import { isPreClinicSetupRoute } from "@/lib/auth/pre-clinic-setup-routes";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export type ApiClientError = {
@@ -20,8 +21,12 @@ function toRecord(value: unknown): Record<string, unknown> | null {
   return Object.fromEntries(Object.entries(value));
 }
 
-function extractErrorCode(value: unknown): string | undefined {
-  const data = toRecord(value);
+function extractErrorCode(error: ApiClientError): string | undefined {
+  if (typeof error.code === "string" && error.code.length > 0) {
+    return error.code;
+  }
+
+  const data = toRecord(error.data);
   const directCode = data?.code;
   if (typeof directCode === "string") return directCode;
   const nestedError = toRecord(data?.error);
@@ -50,12 +55,18 @@ export function getRedirectPathForForbiddenCode(code?: string): string | null {
   switch (code) {
     case "EMAIL_NOT_VERIFIED":
       return "/verify-email-sent";
+    case "NO_CLINIC":
+      return "/choose-path";
     case "SUBSCRIPTION_INACTIVE":
+    case "SUBSCRIPTION_HARD_LOCKED":
+    case "TRIAL_EXPIRED":
       return SUBSCRIPTION_BILLING_RESOLVE_PATH;
     case "INSUFFICIENT_TIER":
       return SUBSCRIPTION_SETTINGS_PATH;
-    case "NO_CLINIC":
-      return "/choose-path";
+    case "PASSWORD_EXPIRED":
+      return "/settings?tab=security";
+    case "INVALID_CSRF_TOKEN":
+      return "/login";
     default:
       return null;
   }
@@ -78,12 +89,20 @@ export async function handleApiClientError(error: ApiClientError) {
     return;
   }
 
-  const errorCode = extractErrorCode(error.data);
+  const errorCode = extractErrorCode(error);
   const redirectPath =
     error.status === 403 ? getRedirectPathForForbiddenCode(errorCode) : null;
 
   if (redirectPath && typeof window !== "undefined") {
     window.location.assign(redirectPath);
+    return;
+  }
+
+  if (
+    error.status === 403 &&
+    typeof window !== "undefined" &&
+    isPreClinicSetupRoute(window.location.pathname)
+  ) {
     return;
   }
 

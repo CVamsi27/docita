@@ -133,6 +133,19 @@ describe('RBAC 403 Verification (e2e)', () => {
         .set('Authorization', `Bearer ${noClinicAdminToken}`)
         .expect(403);
     });
+
+    it('should return app config for authenticated user without a clinic', async () => {
+      const noClinicAdminToken = await getAuthToken(Role.ADMIN, null);
+
+      const response = await request(app.getHttpServer())
+        .get('/config')
+        .set('Authorization', `Bearer ${noClinicAdminToken}`)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('formOptions');
+      expect(response.body).toHaveProperty('defaults');
+      expect(response.body.clinicSettings).toBeUndefined();
+    });
   });
 
   describe('Clinic Isolation 403', () => {

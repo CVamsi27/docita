@@ -1,9 +1,5 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@workspace/db';
 import { IS_PUBLIC_KEY } from '@/shared/modules/auth/auth/public.decorator';
@@ -89,7 +85,10 @@ export class TenantGuard implements CanActivate {
       if (allowNoClinic) {
         return true;
       }
-      throw new ForbiddenException('User is not associated with a clinic');
+      throw forbiddenProblem(
+        'NO_CLINIC',
+        'User is not associated with a clinic',
+      );
     }
 
     const requestClinicIds = new Set<string>();
@@ -100,7 +99,8 @@ export class TenantGuard implements CanActivate {
 
     for (const clinicId of requestClinicIds) {
       if (clinicId !== user.clinicId) {
-        throw new ForbiddenException(
+        throw forbiddenProblem(
+          'CLINIC_SCOPE_MISMATCH',
           'Clinic scope violation: requested clinic does not match your account clinic',
         );
       }
