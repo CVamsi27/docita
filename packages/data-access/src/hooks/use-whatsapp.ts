@@ -2,6 +2,7 @@ import type {
   StaffNotificationEntry,
   UpdateWhatsappSenderRequest,
   WhatsappSenderConfigResponse,
+  WhatsAppStatsDetailedResponse,
   WhatsAppUnreadCountResponse,
 } from "@workspace/types";
 import { Feature } from "@workspace/types";
@@ -93,6 +94,17 @@ export const useWhatsappSender = () =>
     queryKeys.whatsapp.sender(),
     "/whatsapp/sender",
   );
+
+export const useWhatsappStats = () => {
+  const whatsappOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.WHATSAPP_MESSAGING,
+  );
+  return useAPIQuery<WhatsAppStatsDetailedResponse>(
+    queryKeys.whatsapp.stats(),
+    "/whatsapp/stats",
+    { enabled: whatsappOk, staleTime: 60_000 },
+  );
+};
 
 export const useUpdateWhatsappSender = () =>
   useAPIMutation<WhatsappSenderConfigResponse, UpdateWhatsappSenderRequest>(

@@ -281,6 +281,7 @@ export const queryKeys = {
   },
   whatsapp: {
     sender: () => ["whatsapp", "sender"] as const,
+    stats: () => ["whatsapp", "stats"] as const,
     notifications: {
       unreadCount: () => ["whatsapp", "notifications", "unread-count"] as const,
       unread: (limit: number) =>
