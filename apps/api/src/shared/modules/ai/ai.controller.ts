@@ -38,6 +38,9 @@ import {
   createTempDiskStorage,
 } from '@/shared/common/utils/upload.utils';
 import { unlink } from 'fs/promises';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
+import type { AuthenticatedRequest, AiCreditFeature } from '@workspace/types';
 
 @Controller('ai')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR)
@@ -48,7 +51,34 @@ export class AIController {
   constructor(
     private readonly aiService: AIService,
     private readonly askAiService: AskAiService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
+
+  /**
+   * Fire-and-forget: record a billable AI operation as usage so it feeds the
+   * billing usage rollups (a billing listener consumes AI_CREDITS_CONSUMED).
+   * Never throws — telemetry must not break the response. Enforcement
+   * (blocking) is gated separately on AI_CREDIT_ALLOTMENT_BY_TIER.
+   */
+  private recordAiUsage(
+    req: AuthenticatedRequest,
+    feature: AiCreditFeature,
+  ): void {
+    const clinicId = req.user?.clinicId;
+    if (!clinicId) return;
+    try {
+      this.eventEmitter.emit(ApplicationEvents.AI_CREDITS_CONSUMED, {
+        clinicId,
+        feature,
+      });
+    } catch (err) {
+      this.logger.warn(
+        `Failed to emit AI usage event: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+    }
+  }
 
   @Post('ask')
   @RateLimit({ limit: 30, window: 60000 })
@@ -108,28 +138,44 @@ export class AIController {
   async analyzePrescription(
     @Body()
     data: AnalyzePrescriptionDto,
+    @Req() req: AuthenticatedRequest,
   ) {
-    return this.aiService.analyzePrescription(data);
+    const result = await this.aiService.analyzePrescription(data);
+    this.recordAiUsage(req, 'prescriptionSuggestion');
+    return result;
   }
 
   @Post('diagnosis-suggestions')
   @RateLimit({ limit: 20, window: 60000 })
   @RequireFeature(Feature.AI_DIAGNOSIS_HINTS)
   @ZodSerializerDto(DiagnosisSuggestionListResponseDto)
-  async suggestDiagnoses(@Body() dto: DiagnosisSuggestionRequestDto) {
-    return this.aiService.suggestDiagnoses(dto.symptoms, dto.findingsNotes);
+  async suggestDiagnoses(
+    @Body() dto: DiagnosisSuggestionRequestDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const result = await this.aiService.suggestDiagnoses(
+      dto.symptoms,
+      dto.findingsNotes,
+    );
+    this.recordAiUsage(req, 'codingSuggestion');
+    return result;
   }
 
   @Post('medication-recommendations')
   @RateLimit({ limit: 20, window: 60000 })
   @RequireFeature(Feature.AI_PRESCRIPTION_ASSISTANT)
   @ZodSerializerDto(MedicationRecommendationListResponseDto)
-  async recommendMedications(@Body() dto: MedicationRecommendationRequestDto) {
-    return this.aiService.recommendMedications(
+  async recommendMedications(
+    @Body() dto: MedicationRecommendationRequestDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const result = await this.aiService.recommendMedications(
       dto.condition,
       dto.patientAge,
       dto.allergies,
     );
+    this.recordAiUsage(req, 'prescriptionSuggestion');
+    return result;
   }
 
   @Post('ocr/extract')

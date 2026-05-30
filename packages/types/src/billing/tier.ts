@@ -1230,6 +1230,9 @@ export const AI_CREDIT_COSTS = {
   codingSuggestion: 3,
 };
 
+/** Keys of {@link AI_CREDIT_COSTS} — the billable AI operations. */
+export type AiCreditFeature = keyof typeof AI_CREDIT_COSTS;
+
 /**
  * Included AI credits per billing period, by tier. `null` means "no enforced
  * allotment" — unlimited / not yet priced — so AI-credit enforcement stays OFF

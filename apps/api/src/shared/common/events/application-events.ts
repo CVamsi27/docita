@@ -17,4 +17,5 @@ export enum ApplicationEvents {
   NOTIFICATION_BULK_DELETED = 'notification.bulk-deleted',
   WHATSAPP_MESSAGE_SENT = 'whatsapp.message.sent',
   OCR_PAGE_PROCESSED = 'ocr.page.processed',
+  AI_CREDITS_CONSUMED = 'ai.credits.consumed',
 }
