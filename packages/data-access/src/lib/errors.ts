@@ -62,9 +62,12 @@ export async function parseApiErrorResponse(
   try {
     const data = await response.json();
     const validationErrors = sanitizeFieldErrors(data.validationErrors);
+    const responseCode =
+      typeof data.code === "string" ? data.code : undefined;
     const message = getUserFacingErrorMessage(
       {
         status: response.status,
+        code: responseCode,
         data: { ...data, message: data.detail || data.message },
       },
       { fallback: fallbackMessage, context: "form" },
@@ -74,9 +77,15 @@ export async function parseApiErrorResponse(
       return new APIRequestError(message, {
         validationErrors,
         status: response.status,
+        code: responseCode,
+        data,
       });
     }
-    return new Error(message);
+    return new APIRequestError(message, {
+      status: response.status,
+      code: responseCode,
+      data,
+    });
   } catch {
     return new Error(fallbackMessage);
   }

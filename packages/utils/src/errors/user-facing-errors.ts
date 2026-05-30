@@ -48,7 +48,7 @@ const CODE_MESSAGES: Record<string, string> = {
   APPOINTMENT_CONFLICT:
     "This time is no longer available. Please choose another time.",
   APPOINTMENT_NOT_FOUND: "We could not find that appointment",
-  CLINIC_NOT_FOUND: "We could not find that clinic",
+  CLINIC_NOT_FOUND: "We could not find your clinic workspace",
   DOCUMENT_NOT_FOUND: "We could not find that document",
   DOCTOR_NOT_FOUND: "We could not find that doctor",
   DUPLICATE_ENTRY: "This information already exists",
@@ -58,6 +58,20 @@ const CODE_MESSAGES: Record<string, string> = {
   FORBIDDEN: "You do not have permission to do that",
   INTERNAL_ERROR: DEFAULT_ERROR_MESSAGE,
   INSUFFICIENT_PERMISSIONS: "You do not have permission to do that",
+  NO_CLINIC: "Finish setting up your clinic to continue",
+  INVALID_CSRF_TOKEN:
+    "Your session expired. Please refresh the page and sign in again",
+  AUTHENTICATION_REQUIRED: "Please sign in again to continue",
+  APP_LOGIN_DISABLED: "This profile cannot sign in to the app",
+  CLINIC_SCOPE_MISMATCH:
+    "That action belongs to a different clinic than your account",
+  SUBSCRIPTION_HARD_LOCKED:
+    "Your workspace is restricted until billing is resolved",
+  TRIAL_EXPIRED:
+    "Your free trial has ended. A clinic admin needs to choose a paid plan",
+  PASSWORD_EXPIRED: "Your password has expired. Please set a new password",
+  PASSWORD_EXPIRY_CHECK_FAILED:
+    "We could not verify your password status. Please try again shortly",
   INSUFFICIENT_TIER: "Your current plan does not include this feature",
   INVALID_CREDENTIALS: "Incorrect email or password",
   INVALID_DATE_RANGE: "Please choose a valid date range",
@@ -143,18 +157,22 @@ function extractStatus(error: unknown): number | undefined {
   return typeof dataStatus === "number" ? dataStatus : undefined;
 }
 
+const GENERIC_HTTP_ERROR_CODES = new Set(["FORBIDDEN", "UNAUTHORIZED"]);
+
 function extractCode(error: unknown): string | undefined {
   const record = toRecord(error);
-  const directCode = record?.['code'];
-  if (typeof directCode === "string") return directCode;
-
   const data = toRecord(record?.['data']);
-  const dataCode = data?.['code'];
-  if (typeof dataCode === "string") return dataCode;
-
   const nestedError = toRecord(data?.['error'] ?? record?.['error']);
-  const nestedCode = nestedError?.['code'];
-  return typeof nestedCode === "string" ? nestedCode : undefined;
+
+  for (const source of [data, nestedError, record]) {
+    const code = source?.['code'];
+    if (typeof code !== "string") continue;
+    if (GENERIC_HTTP_ERROR_CODES.has(code)) continue;
+    return code;
+  }
+
+  const directCode = record?.['code'];
+  return typeof directCode === "string" ? directCode : undefined;
 }
 
 function extractMessage(error: unknown): string | undefined {
@@ -241,10 +259,18 @@ export function getUserFacingErrorMessage(
   }
 
   const status = extractStatus(error);
+  const message = extractMessage(error);
+  if (
+    message &&
+    !isTechnicalErrorMessage(message) &&
+    (status === 401 || status === 403)
+  ) {
+    return polishUserFacingMessage(message);
+  }
+
   if (status && STATUS_MESSAGES[status]) {
     return STATUS_MESSAGES[status];
   }
 
-  const message = extractMessage(error);
   return sanitizeUserFacingMessage(message, fallback);
 }

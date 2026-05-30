@@ -1,4 +1,4 @@
-import { ForbiddenException } from '@nestjs/common';
+import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
 import type { Role } from '@workspace/db';
 import type { RequestWithUser } from '@/shared/common/types/common.types';
 import { getAuthenticatedUserId } from '@/shared/modules/auth/auth/request-user.util';
@@ -18,7 +18,7 @@ export function getClinicStaffRequestContext(
   const role = req.user?.role;
 
   if (!userId || !clinicId || role == null) {
-    throw new ForbiddenException('No clinic assigned to this user');
+    throw forbiddenProblem('NO_CLINIC', 'No clinic assigned to this user');
   }
 
   return { clinicId, userId, role };
@@ -33,7 +33,10 @@ export function requireClinicIdFromRequest(req: RequestWithUser): string {
 export function requireAuthenticatedUserId(req: RequestWithUser): string {
   const userId = getAuthenticatedUserId(req.user);
   if (!userId) {
-    throw new ForbiddenException('Authentication required');
+    throw forbiddenProblem(
+      'AUTHENTICATION_REQUIRED',
+      'Authentication required',
+    );
   }
   return userId;
 }
@@ -43,7 +46,10 @@ export function requireAuthenticatedUser(
   req: RequestWithUser,
 ): NonNullable<RequestWithUser['user']> {
   if (!req.user) {
-    throw new ForbiddenException('Authentication required');
+    throw forbiddenProblem(
+      'AUTHENTICATION_REQUIRED',
+      'Authentication required',
+    );
   }
   requireAuthenticatedUserId(req);
   return req.user;

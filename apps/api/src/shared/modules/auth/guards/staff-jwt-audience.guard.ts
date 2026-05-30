@@ -1,9 +1,5 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
 import { Reflector } from '@nestjs/core';
 import { PATIENT_PORTAL_SESSION_KEY } from '@/shared/modules/auth/auth/patient-portal-session.decorator';
 import { isPatientPortalJwtAudience } from '@/shared/modules/auth/auth/jwt-audience';
@@ -36,7 +32,8 @@ export class StaffJwtAudienceGuard implements CanActivate {
     const audience = request.user?.jwtAudience;
 
     if (isPatientPortalJwtAudience(audience)) {
-      throw new ForbiddenException(
+      throw forbiddenProblem(
+        'INSUFFICIENT_PERMISSIONS',
         'Patient portal sessions cannot access staff API routes.',
       );
     }

@@ -1,9 +1,5 @@
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
 import { Reflector } from '@nestjs/core';
 import { SubscriptionStatus, IntelligenceAddon } from '@workspace/db';
 import { bypassesSessionGuards } from './auth-route-metadata.util';
@@ -52,7 +48,7 @@ export class TierGuard implements CanActivate {
       if (user?.role === 'INTERNAL') {
         return true;
       }
-      throw new ForbiddenException('User not associated with a clinic');
+      throw forbiddenProblem('NO_CLINIC', 'User not associated with a clinic');
     }
 
     if (user.role === 'INTERNAL') {
@@ -63,7 +59,7 @@ export class TierGuard implements CanActivate {
     try {
       auth = await this.clinicAuthCache.getClinicAuth(user.clinicId);
     } catch {
-      throw new ForbiddenException('Clinic not found');
+      throw forbiddenProblem('CLINIC_NOT_FOUND', 'Clinic not found');
     }
 
     if (
@@ -75,7 +71,8 @@ export class TierGuard implements CanActivate {
       }) &&
       !isBillingAdminRole(user.role)
     ) {
-      throw new ForbiddenException(
+      throw forbiddenProblem(
+        'SUBSCRIPTION_HARD_LOCKED',
         'Workspace access is limited until billing is resolved.',
       );
     }
@@ -89,7 +86,8 @@ export class TierGuard implements CanActivate {
     ]);
 
     if (!allowedSubscriptionStatuses.has(auth.subscriptionStatus)) {
-      throw new ForbiddenException(
+      throw forbiddenProblem(
+        'SUBSCRIPTION_INACTIVE',
         'Subscription is not active. Please renew your subscription.',
       );
     }

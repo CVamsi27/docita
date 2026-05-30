@@ -3,11 +3,11 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
-  ForbiddenException,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { Response, Request } from 'express';
 import { randomBytes, timingSafeEqual } from 'crypto';
+import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { readRequestHeaderString } from '@/shared/common/http/client-ip';
 
@@ -209,7 +209,10 @@ export class CsrfInterceptor implements NestInterceptor {
         !headerToken ||
         !safeTokenEqual(csrfToken, headerToken)
       ) {
-        throw new ForbiddenException('Invalid or missing CSRF token');
+        throw forbiddenProblem(
+          'INVALID_CSRF_TOKEN',
+          'Invalid or missing CSRF token',
+        );
       }
     }
 

@@ -132,6 +132,11 @@ export function createAPIClient(config: APIClientConfig): APIClient {
 
           const problem = parseProblemDetailsFromJson(errorData);
 
+          const responseCode =
+            problem.raw && typeof problem.raw["code"] === "string"
+              ? problem.raw["code"]
+              : undefined;
+
           const error = new APIRequestError(
             problem.detail ||
               problem.message ||
@@ -140,7 +145,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
             {
               status: response.status,
               statusText: response.statusText,
-              code: getErrorCode(response.status),
+              code: responseCode ?? getErrorCode(response.status),
               ...(problem.raw ? { data: problem.raw } : {}),
               ...(problem.validationErrors
                 ? { validationErrors: problem.validationErrors }
@@ -336,6 +341,10 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
         const problem = parseProblemDetailsFromJson(errorData);
+        const responseCode =
+          problem.raw && typeof problem.raw["code"] === "string"
+            ? problem.raw["code"]
+            : undefined;
         throw new APIRequestError(
           problem.detail ||
             problem.message ||
@@ -344,7 +353,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
           {
             status: response.status,
             statusText: response.statusText,
-            code: getErrorCode(response.status),
+            code: responseCode ?? getErrorCode(response.status),
             ...(problem.raw ? { data: problem.raw } : {}),
             ...(problem.validationErrors
               ? { validationErrors: problem.validationErrors }

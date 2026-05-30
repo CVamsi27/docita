@@ -22,6 +22,7 @@ import {
   formatZodIssuesToFieldMap,
   getErrorCause,
   isObject,
+  readProblemErrorCode,
   readZodIssuesFromCause,
   resolveHttpExceptionMessage,
 } from '@/shared/modules/error-handling/filters/http-exception.helpers';
@@ -106,6 +107,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     let errorType = 'UnknownError';
     let errorStack: string | undefined;
     let details: unknown;
+    let errorCode: string | undefined;
 
     if (exception instanceof ZodValidationException) {
       status = HttpStatus.BAD_REQUEST;
@@ -129,8 +131,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
       exception instanceof UnauthorizedException
     ) {
       status = exception.getStatus();
-      message = exception.message;
       errorType = exception.name;
+      const exceptionResponse = exception.getResponse();
+      const resolved = resolveHttpExceptionMessage(
+        exceptionResponse,
+        exception.message,
+      );
+      message = resolved.message;
+      errorCode = readProblemErrorCode(exceptionResponse);
 
       this.logger.warn(`Auth Error: ${message} (${request.path})`);
     } else if (exception instanceof HttpException) {
@@ -153,6 +161,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         if (resolved.details && resolved.details.length > 0) {
           details = resolved.details;
         }
+        errorCode = readProblemErrorCode(exceptionResponse);
       }
     } else if (exception instanceof NotFoundDomainError) {
       status = HttpStatus.NOT_FOUND;
@@ -278,6 +287,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       detail: message,
       instance: request.path,
       timestamp: new Date().toISOString(),
+
+      ...(errorCode ? { code: errorCode } : {}),
 
       ...(details && typeof details === 'object'
         ? { validationErrors: details }

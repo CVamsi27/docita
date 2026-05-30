@@ -1,9 +1,5 @@
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ClinicType } from '@workspace/db';
@@ -34,7 +30,7 @@ export class ClinicTypeGuard implements CanActivate {
     const user = request.user;
 
     if (!user || !user.clinicId) {
-      throw new ForbiddenException('User not associated with a clinic');
+      throw forbiddenProblem('NO_CLINIC', 'User not associated with a clinic');
     }
 
     const clinic = await this.prisma.clinic.findUnique({
@@ -43,12 +39,13 @@ export class ClinicTypeGuard implements CanActivate {
     });
 
     if (!clinic) {
-      throw new ForbiddenException('Clinic not found');
+      throw forbiddenProblem('CLINIC_NOT_FOUND', 'Clinic not found');
     }
 
     if (!requiredTypes.includes(clinic.type)) {
       const requiredTypeNames = requiredTypes.join(', ');
-      throw new ForbiddenException(
+      throw forbiddenProblem(
+        'CLINIC_TYPE_MISMATCH',
         `This feature is only available for ${requiredTypeNames} clinics. ` +
           `Your clinic (${clinic.name}) has type ${clinic.type}.`,
       );
@@ -79,7 +76,7 @@ export class FacilityTypeGuard implements CanActivate {
     const user = request.user;
 
     if (!user || !user.clinicId) {
-      throw new ForbiddenException('User not associated with a clinic');
+      throw forbiddenProblem('NO_CLINIC', 'User not associated with a clinic');
     }
 
     const clinic = await this.prisma.clinic.findUnique({
@@ -88,7 +85,7 @@ export class FacilityTypeGuard implements CanActivate {
     });
 
     if (!clinic) {
-      throw new ForbiddenException('Clinic not found');
+      throw forbiddenProblem('CLINIC_NOT_FOUND', 'Clinic not found');
     }
 
     const facilityType = parseStringEnumMember(
@@ -97,7 +94,8 @@ export class FacilityTypeGuard implements CanActivate {
     );
     if (!facilityType || !requiredTypes.includes(facilityType)) {
       const requiredTypeNames = requiredTypes.join(', ');
-      throw new ForbiddenException(
+      throw forbiddenProblem(
+        'FACILITY_TYPE_MISMATCH',
         `This feature is only available for ${requiredTypeNames} facilities. ` +
           `Your facility (${clinic.name}) has facility type ${clinic.facilityType}.`,
       );

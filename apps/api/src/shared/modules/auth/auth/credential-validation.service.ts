@@ -2,7 +2,6 @@ import {
   Inject,
   Injectable,
   UnauthorizedException,
-  ForbiddenException,
   Logger,
 } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
@@ -10,6 +9,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { Role } from '@workspace/db';
 import { isFrontDeskPlanMode } from '@workspace/types';
+import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 import type { UserWithoutPassword } from './auth.types';
@@ -75,7 +75,8 @@ export class CredentialValidationService {
       clinic &&
       isFrontDeskPlanMode(clinic.tier, clinic.planMode ?? undefined)
     ) {
-      throw new ForbiddenException(
+      throw forbiddenProblem(
+        'FEATURE_NOT_AVAILABLE',
         'Doctor and admin-doctor sign-in is not available on the Front Desk plan. ' +
           'Ask an admin to upgrade the clinic to enable clinical sign-in.',
       );
@@ -97,7 +98,10 @@ export class CredentialValidationService {
       }
 
       if (user.appLoginDisabled) {
-        throw new ForbiddenException('This profile cannot sign in to the app.');
+        throw forbiddenProblem(
+          'APP_LOGIN_DISABLED',
+          'This profile cannot sign in to the app.',
+        );
       }
 
       await this.assertClinicTierAllowsRole(user.clinicId, user.role);

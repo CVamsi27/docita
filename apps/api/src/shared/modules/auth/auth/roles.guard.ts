@@ -1,9 +1,5 @@
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@workspace/db';
 import { ROLES_KEY } from './roles.decorator';
@@ -35,14 +31,16 @@ export class RolesGuard implements CanActivate {
     }
 
     if (!user) {
-      throw new ForbiddenException(
+      throw forbiddenProblem(
+        'AUTHENTICATION_REQUIRED',
         'Authentication required to access this resource.',
       );
     }
 
     const hasRole = requiredRoles.some((role) => user.role === role);
     if (!hasRole) {
-      throw new ForbiddenException(
+      throw forbiddenProblem(
+        'INSUFFICIENT_PERMISSIONS',
         'Insufficient permissions. You do not have the required role to access this resource.',
       );
     }
@@ -55,7 +53,8 @@ export class RolesGuard implements CanActivate {
         const userEmail =
           typeof user.email === 'string' ? user.email.toLowerCase() : '';
         if (!userEmail || !allowedEmails.includes(userEmail)) {
-          throw new ForbiddenException(
+          throw forbiddenProblem(
+            'INSUFFICIENT_PERMISSIONS',
             'Internal access is restricted to the Docita operator team.',
           );
         }

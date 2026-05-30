@@ -1,10 +1,10 @@
 import {
   BadRequestException,
-  ForbiddenException,
   SetMetadata,
   UseGuards,
   applyDecorators,
 } from '@nestjs/common';
+import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
@@ -56,7 +56,7 @@ export class ClinicScopedGuard implements CanActivate {
       requestedClinicId &&
       userClinicId !== requestedClinicId
     ) {
-      throw new ForbiddenException('Clinic scope mismatch');
+      throw forbiddenProblem('CLINIC_SCOPE_MISMATCH', 'Clinic scope mismatch');
     }
 
     return true;
