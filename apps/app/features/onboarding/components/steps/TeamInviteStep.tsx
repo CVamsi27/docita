@@ -3,15 +3,14 @@
 import { useState } from "react";
 import { Plus, UserPlus } from "lucide-react";
 import type { TeamMember } from "@/features/onboarding/components/types";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
+import {
+  OnboardingStepBody,
+  OnboardingStepCard,
+  OnboardingStepFooter,
+  OnboardingStepHeader,
+} from "@/features/onboarding/components/shared";
 import {
   type TeamInviteStepProps,
   ROLE_OPTIONS,
@@ -154,22 +153,15 @@ export function TeamInviteStep({
   const hasValidMembers = validMembers.length > 0;
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70">
-            <UserPlus className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <CardTitle>Invite your team</CardTitle>
-            <CardDescription>
-              Add the first team members you want to invite now. We will suggest a
-              plan on the next step based on your team size.
-            </CardDescription>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
+    <OnboardingStepCard>
+      <OnboardingStepHeader
+        stepNumber={3}
+        eyebrow="Invite team"
+        icon={<UserPlus strokeWidth={1.5} />}
+        title="Invite your team"
+        description="Add the first team members you want to invite now. We will suggest a plan on the next step based on your team size."
+      />
+      <OnboardingStepBody className="space-y-6">
         <div className="ui-panel-muted p-4 space-y-2">
           <p className="text-sm font-medium">Team guidance</p>
           <p className="text-xs text-muted-foreground">
@@ -273,35 +265,16 @@ export function TeamInviteStep({
           </div>
         )}
 
-        <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t">
-          {onBack ? (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onBack}
-              className="flex-1"
-            >
-              Back
-            </Button>
-          ) : null}
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onSkip}
-            className="flex-1"
-          >
-            Skip for now
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!hasValidMembers}
-            className="flex-1"
-          >
-            {hasValidMembers ? "Save team and continue" : "Continue"}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+      </OnboardingStepBody>
+      <OnboardingStepFooter
+        back={onBack ? { label: "Back to visit hours", onClick: onBack } : undefined}
+        skip={{ label: "Skip for now", onClick: onSkip }}
+        primary={{
+          label: hasValidMembers ? "Save team & continue" : "Continue to plan",
+          onClick: handleSubmit,
+          disabled: !hasValidMembers,
+        }}
+      />
+    </OnboardingStepCard>
   );
 }

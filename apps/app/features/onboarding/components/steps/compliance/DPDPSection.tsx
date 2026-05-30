@@ -1,8 +1,10 @@
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
+import { ShieldCheck } from "lucide-react";
 import { Checkbox } from "@workspace/ui/components/form/checkbox";
 import { Label } from "@workspace/ui/components/form/label";
+import { OnboardingSection } from "@/features/onboarding/components/shared";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
 
 interface DPDPSectionProps {
@@ -11,8 +13,7 @@ interface DPDPSectionProps {
 
 export function DPDPSection({ complianceForm }: DPDPSectionProps) {
   return (
-    <div className="space-y-3 border p-4 rounded-md">
-      <h3 className="font-semibold text-sm">DPDP Compliance Settings</h3>
+    <OnboardingSection title="DPDP compliance settings" icon={<ShieldCheck />}>
       <div className="flex items-start space-x-2">
         <Checkbox
           id="requireConsent"
@@ -36,6 +37,6 @@ export function DPDPSection({ complianceForm }: DPDPSectionProps) {
           </p>
         </div>
       </div>
-    </div>
+    </OnboardingSection>
   );
 }

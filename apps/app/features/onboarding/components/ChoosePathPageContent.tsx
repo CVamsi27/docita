@@ -6,6 +6,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Building2, Check, Users } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
+import {
+  CategoryAvatar,
+  type CategoryAvatarTone,
+} from "@workspace/ui/components/indicators/category-avatar";
 import { cn } from "@workspace/ui/lib/utils";
 import { typedApi } from "@/lib/api/api-client";
 import { logger } from "@/lib/monitoring/logger";
@@ -116,8 +120,8 @@ export default function ChoosePathPage() {
 
       <div className="grid sm:grid-cols-2 gap-4">
         <PathCard
-          icon={<Building2 className="h-7 w-7 text-primary" />}
-          iconBg="border border-border/70 bg-background/70"
+          icon={<Building2 strokeWidth={1.5} />}
+          tone="primary"
           title="Create New Facility"
           description="Set up your own facility and choose a plan"
           bullets={CREATE_BULLETS}
@@ -130,8 +134,8 @@ export default function ChoosePathPage() {
         />
 
         <PathCard
-          icon={<Users className="h-7 w-7 text-info" />}
-          iconBg="border border-border/70 bg-background/70"
+          icon={<Users strokeWidth={1.5} />}
+          tone="info"
           title="Join Existing Facility"
           description="Request access to a facility in your organization"
           bullets={JOIN_BULLETS}
