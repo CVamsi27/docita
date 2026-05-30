@@ -16,7 +16,7 @@ and trigger GitHub notification emails for repository watchers.
 | --- | --- | --- | --- |
 | API liveness | `GET /api/health/live` (version-neutral) | 200 + `status: ok` | 5 s (3 attempts, 5 s apart, when not post-deploy) |
 | Auth chrome | `GET /api/v1/public/daily-thought` (app origin, proxied to API) | 200 + quote + `Cache-Control: public` | 5 s |
-| Staff login | `POST /api/v1/auth/login` (optional creds) | 2xx + `access_token` cookie | 1.5 s |
+| Staff login | `POST /api/v1/auth/login` (optional creds) | 2xx + `access_token` cookie | 5 s (3 attempts when scheduled; skipped if liveness failed) |
 
 Public booking and patient-portal OTP probes remain in the backlog until
 synthetic clinic credentials are provisioned (see Open items).
@@ -36,7 +36,7 @@ synthetic clinic credentials are provisioned (see Open items).
 | Post-deploy probe failure | Blocks deploy job success |
 | Post-deploy warmup | With `SYNTHETIC_POST_DEPLOY=1`, polls `/api/health/live` then `/api/health/ready` (60 s timeout, up to 8 retries each) before probes — handles Fly suspend cold starts and DB readiness |
 | Scheduled `api-health-live` | Up to **3** attempts (15 s timeout each, 5 s between) before failing — tolerates Fly `suspend` wake from GitHub Actions runners |
-| Staff login probe | **Optional** — skipped (does not fail the run) unless `SYNTHETIC_MONITOR_EMAIL` + `SYNTHETIC_MONITOR_PASSWORD` GitHub secrets are set. Password is trimmed; post-deploy retries login up to 4 times. On 401, verify secrets match the production monitor user (no trailing whitespace; account not locked). |
+| Staff login probe | **Optional** — skipped unless `SYNTHETIC_MONITOR_EMAIL` + `SYNTHETIC_MONITOR_PASSWORD` are set. Also skipped when `api-health-live` failed in the same run (avoids duplicate Sentry noise). Scheduled runs retry up to 3 times on timeouts/5xx; post-deploy retries up to 4 times. **401/403 are not retried** — fix secrets or unlock the monitor user; disable MFA on that account. |
 | WhatsApp stale delivery backlog | API emits `WHATSAPP_DELIVERY_STALE`; `OpsAlertListener` posts to `OPS_ALERT_WEBHOOK_URL` when configured |
 
 Configure Sentry alert rules in the Sentry dashboard for events tagged

@@ -43,16 +43,41 @@ const POST_DEPLOY_WARMUP_DELAY_MS = 10_000;
 const POST_DEPLOY_STAFF_LOGIN_ATTEMPTS = 4;
 const POST_DEPLOY_STAFF_LOGIN_DELAY_MS = 10_000;
 /** Fly suspend + cross-region CI runners often need multiple wakes before 200. */
-const SCHEDULED_HEALTH_LIVE_ATTEMPTS = 3;
-const SCHEDULED_HEALTH_LIVE_RETRY_DELAY_MS = 5_000;
+const SCHEDULED_PROBE_ATTEMPTS = 3;
+const SCHEDULED_PROBE_RETRY_DELAY_MS = 5_000;
 
 const LATENCY_TARGETS_MS = {
   // Fly autostart from GitHub Actions (non-Mumbai) can exceed 2s on a warm machine.
   "api-health-live": 5_000,
   // App origin cold starts (OpenNext on Cloudflare) can exceed 3s from CI runners.
   "daily-thought": 5_000,
-  "staff-login": 1_500,
+  "staff-login": 5_000,
 };
+
+function isRetryableStaffLoginFailure(response, error) {
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+    if (
+      message.includes("timed out") ||
+      message.includes("fetch failed") ||
+      message.includes("aborterror") ||
+      message.includes("econnrefused") ||
+      message.includes("enotfound")
+    ) {
+      return true;
+    }
+  }
+
+  if (!response) {
+    return true;
+  }
+
+  if (response.status >= 502 || response.status === 429) {
+    return true;
+  }
+
+  return false;
+}
 
 async function assertApiHealthLiveResponse(response, latencyMs) {
   if (!response.ok) {
@@ -79,7 +104,7 @@ async function assertApiHealthLiveResponse(response, latencyMs) {
 async function probeApiHealthLive() {
   return runProbe("api-health-live", async () => {
     const url = `${API_ORIGIN}/health/live`;
-    const attempts = IS_POST_DEPLOY ? 1 : SCHEDULED_HEALTH_LIVE_ATTEMPTS;
+    const attempts = IS_POST_DEPLOY ? 1 : SCHEDULED_PROBE_ATTEMPTS;
     let lastError = "api-health-live probe failed";
 
     for (let attempt = 1; attempt <= attempts; attempt += 1) {
@@ -104,9 +129,9 @@ async function probeApiHealthLive() {
 
         if (attempt < attempts) {
           process.stdout.write(
-            `api-health-live: attempt ${attempt}/${attempts} failed (${lastError}); retrying in ${SCHEDULED_HEALTH_LIVE_RETRY_DELAY_MS}ms...\n`,
+            `api-health-live: attempt ${attempt}/${attempts} failed (${lastError}); retrying in ${SCHEDULED_PROBE_RETRY_DELAY_MS}ms...\n`,
           );
-          await sleep(SCHEDULED_HEALTH_LIVE_RETRY_DELAY_MS);
+          await sleep(SCHEDULED_PROBE_RETRY_DELAY_MS);
         }
       }
     }
@@ -147,7 +172,7 @@ async function probeDailyThought() {
   });
 }
 
-async function probeStaffLogin() {
+async function probeStaffLogin({ apiReachable = true } = {}) {
   const email = process.env.SYNTHETIC_MONITOR_EMAIL?.trim();
   const password = process.env.SYNTHETIC_MONITOR_PASSWORD?.trim();
 
@@ -158,24 +183,51 @@ async function probeStaffLogin() {
     return { probeName: "staff-login", ok: true, skipped: true };
   }
 
-  const attempts = IS_POST_DEPLOY ? POST_DEPLOY_STAFF_LOGIN_ATTEMPTS : 1;
+  if (!apiReachable) {
+    process.stdout.write(
+      "staff-login: skipped (api-health-live did not pass — login probe is not meaningful)\n",
+    );
+    return { probeName: "staff-login", ok: true, skipped: true };
+  }
+
+  const attempts = IS_POST_DEPLOY
+    ? POST_DEPLOY_STAFF_LOGIN_ATTEMPTS
+    : SCHEDULED_PROBE_ATTEMPTS;
+  const retryDelayMs = IS_POST_DEPLOY
+    ? POST_DEPLOY_STAFF_LOGIN_DELAY_MS
+    : SCHEDULED_PROBE_RETRY_DELAY_MS;
 
   return runProbe("staff-login", async () => {
     let lastError = "Expected 2xx login";
 
     for (let attempt = 1; attempt <= attempts; attempt += 1) {
-      const { response, latencyMs } = await fetchWithTimeout(
-        `${API_V1}/auth/login`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
+      let response;
+      let latencyMs;
+
+      try {
+        ({ response, latencyMs } = await fetchWithTimeout(
+          `${API_V1}/auth/login`,
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password }),
           },
-          body: JSON.stringify({ email, password }),
-        },
-        FETCH_TIMEOUT_MS,
-      );
+          FETCH_TIMEOUT_MS,
+        ));
+      } catch (error) {
+        lastError = error instanceof Error ? error.message : String(error);
+        if (!isRetryableStaffLoginFailure(null, error) || attempt >= attempts) {
+          break;
+        }
+        process.stdout.write(
+          `staff-login: attempt ${attempt}/${attempts} failed (${lastError}); retrying in ${retryDelayMs}ms...\n`,
+        );
+        await sleep(retryDelayMs);
+        continue;
+      }
 
       if (response.status === 200 || response.status === 201) {
         const body = await response.json().catch(() => null);
@@ -203,9 +255,9 @@ async function probeStaffLogin() {
           );
         }
 
-        if (IS_POST_DEPLOY && attempt > 1) {
+        if (attempt > 1) {
           process.stdout.write(
-            `staff-login: succeeded on attempt ${attempt}/${attempts}\n`,
+            `staff-login: succeeded on attempt ${attempt}/${attempts} (${latencyMs}ms)\n`,
           );
         }
 
@@ -217,16 +269,18 @@ async function probeStaffLogin() {
         ? `Expected 2xx login, got ${response.status} (${detail})`
         : `Expected 2xx login, got ${response.status}`;
 
-      if (attempt < attempts) {
-        process.stdout.write(
-          `staff-login: attempt ${attempt}/${attempts} failed (${lastError}); retrying in ${POST_DEPLOY_STAFF_LOGIN_DELAY_MS}ms...\n`,
-        );
-        await sleep(POST_DEPLOY_STAFF_LOGIN_DELAY_MS);
+      if (!isRetryableStaffLoginFailure(response, null) || attempt >= attempts) {
+        break;
       }
+
+      process.stdout.write(
+        `staff-login: attempt ${attempt}/${attempts} failed (${lastError}); retrying in ${retryDelayMs}ms...\n`,
+      );
+      await sleep(retryDelayMs);
     }
 
     throw new Error(
-      `${lastError}. Verify SYNTHETIC_MONITOR_EMAIL and SYNTHETIC_MONITOR_PASSWORD GitHub secrets match the production monitor account (no trailing whitespace; account not locked).`,
+      `${lastError}. Verify SYNTHETIC_MONITOR_EMAIL and SYNTHETIC_MONITOR_PASSWORD GitHub secrets match the production monitor user (no trailing whitespace; account not locked; MFA disabled).`,
     );
   });
 }
@@ -316,11 +370,11 @@ async function main() {
     await waitForApiWarmAfterDeploy();
   }
 
-  const probes = [probeApiHealthLive, probeDailyThought, probeStaffLogin];
   const results = [];
   const failures = [];
+  let apiHealthPassed = false;
 
-  for (const probe of probes) {
+  async function runProbeStep(probe) {
     try {
       const result = await probe();
       results.push(result);
@@ -329,26 +383,44 @@ async function main() {
           `${result.probeName}: PASS (${result.latencyMs ?? "?"}ms)\n`,
         );
       }
+      return result;
     } catch (error) {
       const failure =
         error instanceof ProbeFailure
           ? error
-          : new ProbeFailure("unknown", error instanceof Error ? error.message : String(error));
+          : new ProbeFailure(
+              "unknown",
+              error instanceof Error ? error.message : String(error),
+            );
       failures.push(failure);
       process.stderr.write(`${failure.message}\n`);
-      await reportProbeFailureToSentry(SENTRY_DSN, failure.probeName, failure.message, failure.details);
+      await reportProbeFailureToSentry(
+        SENTRY_DSN,
+        failure.probeName,
+        failure.message,
+        failure.details,
+      );
       await reportOpsAlertToWebhook(
         OPS_ALERT_WEBHOOK_URL,
         "Synthetic probe failed",
         failure.message,
         { probe: failure.probeName, source: "synthetic-monitoring" },
       );
+      return null;
     }
   }
 
+  const healthResult = await runProbeStep(probeApiHealthLive);
+  if (healthResult && !healthResult.skipped) {
+    apiHealthPassed = true;
+  }
+
+  await runProbeStep(probeDailyThought);
+  await runProbeStep(() => probeStaffLogin({ apiReachable: apiHealthPassed }));
+
   if (failures.length > 0) {
     process.stderr.write(
-      `\nSynthetic monitoring failed: ${failures.length}/${probes.length} probe(s).\n`,
+      `\nSynthetic monitoring failed: ${failures.length} probe(s).\n`,
     );
     process.exit(1);
   }
