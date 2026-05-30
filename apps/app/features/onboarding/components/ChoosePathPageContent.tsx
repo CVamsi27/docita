@@ -152,7 +152,7 @@ export default function ChoosePathPage() {
 
 interface PathCardProps {
   icon: React.ReactNode;
-  iconBg: string;
+  tone: CategoryAvatarTone;
   title: string;
   description: string;
   bullets: string[];
@@ -166,7 +166,7 @@ interface PathCardProps {
 
 function PathCard({
   icon,
-  iconBg,
+  tone,
   title,
   description,
   bullets,
@@ -189,14 +189,7 @@ function PathCard({
       )}
     >
       <div className="space-y-4 flex-1">
-        <div
-          className={cn(
-            "flex h-12 w-12 items-center justify-center rounded-full",
-            iconBg,
-          )}
-        >
-          {icon}
-        </div>
+        <CategoryAvatar icon={icon} tone={tone} size="lg" />
 
         <div className="ui-copy-stack">
           <h2 className="ui-section-title text-[var(--fs-lg)]">{title}</h2>

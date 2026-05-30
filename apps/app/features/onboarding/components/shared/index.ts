@@ -1,5 +1,4 @@
 export {
-  ONBOARDING_TOTAL_STEPS,
   OnboardingStepCard,
   OnboardingStepHeader,
   OnboardingStepBody,

@@ -117,7 +117,7 @@ test.describe("Clinic Registration Flow", () => {
         timeout: 30000,
       });
       await expect(
-        page.getByRole("button", { name: "Next: Visit hours" }),
+        page.getByRole("button", { name: "Continue to visit hours" }),
       ).toBeVisible({ timeout: 30000 });
       return;
     }

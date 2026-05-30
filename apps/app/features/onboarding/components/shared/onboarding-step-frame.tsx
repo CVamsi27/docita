@@ -26,7 +26,7 @@ import { cn } from "@workspace/ui/lib/utils";
  *   </OnboardingStepCard>
  */
 
-export const ONBOARDING_TOTAL_STEPS = 5;
+const ONBOARDING_TOTAL_STEPS = 5;
 
 export function OnboardingStepCard({
   className,
