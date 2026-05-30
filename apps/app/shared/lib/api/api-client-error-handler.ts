@@ -90,19 +90,28 @@ export async function handleApiClientError(error: ApiClientError) {
   }
 
   const errorCode = extractErrorCode(error);
+  const onPreClinicSetupRoute =
+    typeof window !== "undefined" &&
+    isPreClinicSetupRoute(window.location.pathname);
+
+  // An already-authenticated user can hit a CSRF mismatch on the first mutating
+  // call mid-onboarding. Hard-redirecting them to /login there creates a
+  // login -> retry -> bounce loop, so on pre-clinic setup routes we let the
+  // request reject and surface the caller's own recoverable error instead.
+  const suppressCsrfLoginRedirect =
+    errorCode === "INVALID_CSRF_TOKEN" && onPreClinicSetupRoute;
+
   const redirectPath =
-    error.status === 403 ? getRedirectPathForForbiddenCode(errorCode) : null;
+    error.status === 403 && !suppressCsrfLoginRedirect
+      ? getRedirectPathForForbiddenCode(errorCode)
+      : null;
 
   if (redirectPath && typeof window !== "undefined") {
     window.location.assign(redirectPath);
     return;
   }
 
-  if (
-    error.status === 403 &&
-    typeof window !== "undefined" &&
-    isPreClinicSetupRoute(window.location.pathname)
-  ) {
+  if (error.status === 403 && onPreClinicSetupRoute) {
     return;
   }
 

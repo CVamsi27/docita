@@ -69,4 +69,36 @@ describe("handleApiClientError", () => {
 
     expect(showUserFacingErrorToast).not.toHaveBeenCalled();
   });
+
+  it("does not bounce to /login for CSRF errors mid-onboarding (no logout loop)", async () => {
+    const { showUserFacingErrorToast } = await import(
+      "@/lib/errors/user-facing-errors"
+    );
+    const assign = vi.fn();
+    vi.stubGlobal("window", {
+      location: { assign, pathname: "/onboarding" },
+    });
+
+    await handleApiClientError({
+      status: 403,
+      code: "INVALID_CSRF_TOKEN",
+      message: "Invalid CSRF token",
+    });
+
+    expect(assign).not.toHaveBeenCalled();
+    expect(showUserFacingErrorToast).not.toHaveBeenCalled();
+  });
+
+  it("still redirects CSRF errors to /login on post-setup routes", async () => {
+    const assign = vi.fn();
+    vi.stubGlobal("window", { location: { assign, pathname: "/today" } });
+
+    await handleApiClientError({
+      status: 403,
+      code: "INVALID_CSRF_TOKEN",
+      message: "Invalid CSRF token",
+    });
+
+    expect(assign).toHaveBeenCalledWith("/login");
+  });
 });
