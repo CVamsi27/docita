@@ -238,7 +238,8 @@ describe('Auth controllers', () => {
           request,
           response,
         ),
-      ).resolves.toEqual(tokens);
+        // Item 4: the refresh token is NOT echoed in the body (cookie only).
+      ).resolves.toEqual({ access_token: 'access-token', user });
 
       expect(response.cookie).toHaveBeenCalledWith(
         'access_token',
@@ -340,7 +341,8 @@ describe('Auth controllers', () => {
 
       await expect(
         registrationController.register(dto, response),
-      ).resolves.toEqual(tokens);
+        // Item 4: body carries no refresh_token (cookie only).
+      ).resolves.toEqual({ access_token: 'access-token' });
       expect(mockAuthService.register).toHaveBeenCalledWith({
         email: dto.email,
         password: dto.password,
@@ -448,7 +450,8 @@ describe('Auth controllers', () => {
           request,
           response,
         ),
-      ).resolves.toEqual(tokens);
+        // Item 4: rotated refresh token stays in the cookie, not the body.
+      ).resolves.toEqual({ access_token: 'new-access' });
       expect(mockAuthService.refreshTokens).toHaveBeenCalledWith('dto-refresh');
       expect(response.cookie).toHaveBeenCalledTimes(2);
     });
@@ -524,10 +527,8 @@ describe('Auth controllers', () => {
           request,
           response,
         ),
-      ).resolves.toEqual({
-        access_token: 'access',
-        refresh_token: 'refresh',
-      });
+        // Item 4: body carries no refresh_token (cookie only).
+      ).resolves.toEqual({ access_token: 'access' });
       expect(mockAuthService.loginAfterMfa).toHaveBeenCalledWith(
         'challenge',
         '123456',

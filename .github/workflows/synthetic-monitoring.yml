@@ -28,4 +28,5 @@ jobs:
           SYNTHETIC_MONITOR_EMAIL: ${{ secrets.SYNTHETIC_MONITOR_EMAIL }}
           SYNTHETIC_MONITOR_PASSWORD: ${{ secrets.SYNTHETIC_MONITOR_PASSWORD }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          OPS_ALERT_WEBHOOK_URL: ${{ secrets.OPS_ALERT_WEBHOOK_URL }}
         run: node scripts/monitoring/synthetic/run-probes.mjs

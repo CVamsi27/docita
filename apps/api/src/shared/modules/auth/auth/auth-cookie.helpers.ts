@@ -29,6 +29,22 @@ export function setAuthCookies(
   });
 }
 
+/**
+ * Removes the raw refresh token from a token bundle before it is returned in a
+ * response body. The refresh token is delivered to clients ONLY via the
+ * httpOnly cookie ({@link setAuthCookies}); echoing it in the JSON body would
+ * let any payload/log leak expose a long-lived (30-day) credential. The browser
+ * session manager already refreshes via the cookie (empty body +
+ * `credentials: "include"`), so the body field is unused.
+ * See docs/compliance/AUTH_HARDENING.md Item 4.
+ */
+export function stripRefreshTokenFromBody<T extends { refresh_token?: string }>(
+  tokens: T,
+): Omit<T, 'refresh_token'> {
+  const { refresh_token: _refreshToken, ...rest } = tokens;
+  return rest;
+}
+
 export function clearAuthCookies(
   res: Response,
   configService: AppConfigService,

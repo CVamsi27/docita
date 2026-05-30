@@ -113,6 +113,7 @@ export function PatientDetailPageContent({
         actions={
           <PatientHeaderActions
             patientId={patient.id}
+            patientName={`${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim() || "this patient"}
             appointments={appointments}
             canEditPatient={canEditPatient}
             canCreateAppointment={canCreateAppointment}

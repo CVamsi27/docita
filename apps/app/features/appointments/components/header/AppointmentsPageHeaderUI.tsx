@@ -3,8 +3,9 @@ import { Input } from "@workspace/ui/components/form/input";
 import { Button } from "@workspace/ui/components/form/button";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Plus, Search, X } from "lucide-react";
+import { Plus, Search, Sparkles, X } from "lucide-react";
 import type { Appointment } from "@workspace/types";
+import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 
 interface AppointmentsPageHeaderUIProps {
   onAppointmentAdded: (appointment: Appointment) => void | Promise<void>;
@@ -30,16 +31,34 @@ export function AppointmentsPageHeaderUI({
   setSearchQuery,
   searchRowAction,
 }: AppointmentsPageHeaderUIProps) {
+  const { openOverlay } = useAskAi();
+
   return (
     <div className="space-y-4">
       <PageHeader
         title="Appointments"
         description="Schedule and manage patient appointments"
         actions={
-          <Button onClick={() => onOpenChange(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            New appointment
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() =>
+                openOverlay({
+                  id: "appointments",
+                  label: "on appointments",
+                  payload: { kind: "appointments" },
+                })
+              }
+              data-testid="appointments-ask-ai"
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              Ask AI
+            </Button>
+            <Button onClick={() => onOpenChange(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              New appointment
+            </Button>
+          </div>
         }
       />
 

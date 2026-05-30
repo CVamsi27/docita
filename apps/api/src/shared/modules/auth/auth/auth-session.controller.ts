@@ -33,7 +33,11 @@ import { AuthenticatedRequest } from '@workspace/types';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { AuthSessionAccess } from './auth.controller.access';
-import { setAuthCookies, clearAuthCookies } from './auth-cookie.helpers';
+import {
+  setAuthCookies,
+  clearAuthCookies,
+  stripRefreshTokenFromBody,
+} from './auth-cookie.helpers';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -86,7 +90,7 @@ export class AuthSessionController {
     }
     const tokens = await this.authService.refreshTokens(refreshToken);
     setAuthCookies(res, tokens, this.configService);
-    return tokens;
+    return stripRefreshTokenFromBody(tokens);
   }
 
   @Public()

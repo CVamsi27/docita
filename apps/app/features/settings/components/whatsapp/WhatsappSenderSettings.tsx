@@ -24,6 +24,7 @@ import {
   useUpdateWhatsappSender,
   useVerifyWhatsappSender,
   useWhatsappSender,
+  useWhatsappStats,
 } from "@workspace/data-access";
 
 type SenderMode = "SHARED" | "BYO" | "MANAGED";
@@ -36,6 +37,7 @@ const MODE_LABELS: Record<SenderMode, string> = {
 
 export function WhatsappSenderSettings() {
   const sender = useWhatsappSender();
+  const stats = useWhatsappStats();
   const updateSender = useUpdateWhatsappSender();
   const verifySender = useVerifyWhatsappSender();
   const revokeSender = useRevokeWhatsappSender();
@@ -216,6 +218,60 @@ export function WhatsappSenderSettings() {
                 {sender.data.lastVerifyError}
               </p>
             ) : null}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Deliverability (30 days)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            {stats.isLoading ? (
+              <p className="text-muted-foreground">Loading delivery metrics…</p>
+            ) : stats.data ? (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-muted-foreground">Outbound messages</span>
+                  <span className="font-medium">
+                    {stats.data.outboundLast30Days ?? 0}
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-muted-foreground">Delivery rate</span>
+                  <span className="font-medium">
+                    {stats.data.deliveryRate === null ||
+                    stats.data.deliveryRate === undefined
+                      ? "—"
+                      : `${stats.data.deliveryRate}%`}
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-muted-foreground">
+                    Stale (no final status &gt;6h)
+                  </span>
+                  <Badge
+                    variant={
+                      (stats.data.staleDeliveryCount ?? 0) > 0
+                        ? "destructive"
+                        : "secondary"
+                    }
+                  >
+                    {stats.data.staleDeliveryCount ?? 0}
+                  </Badge>
+                </div>
+                {(stats.data.staleDeliveryCount ?? 0) > 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    Some messages have not received a delivery webhook from Meta.
+                    They remain queued for ops review — nothing was auto-marked
+                    failed.
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <p className="text-muted-foreground">
+                Delivery metrics are unavailable right now.
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>

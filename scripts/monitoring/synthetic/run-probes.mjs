@@ -9,11 +9,13 @@
  *   SYNTHETIC_APP_BASE_URL  (default https://app.docita.work)
  *   SYNTHETIC_MONITOR_EMAIL / SYNTHETIC_MONITOR_PASSWORD (optional staff login probe)
  *   SENTRY_DSN              (optional — emits error event on failure)
+ *   OPS_ALERT_WEBHOOK_URL   (optional — Slack/PagerDuty-compatible webhook)
  */
 
 import {
   fetchWithTimeout,
   ProbeFailure,
+  reportOpsAlertToWebhook,
   reportProbeFailureToSentry,
   runProbe,
 } from "./probe-lib.mjs";
@@ -27,6 +29,7 @@ const APP_BASE =
   process.env.SYNTHETIC_APP_BASE_URL?.replace(/\/$/, "") ??
   "https://app.docita.work";
 const SENTRY_DSN = process.env.SENTRY_DSN ?? "";
+const OPS_ALERT_WEBHOOK_URL = process.env.OPS_ALERT_WEBHOOK_URL ?? "";
 
 const FETCH_TIMEOUT_MS = 5_000;
 
@@ -161,6 +164,12 @@ async function main() {
       failures.push(failure);
       process.stderr.write(`${failure.message}\n`);
       await reportProbeFailureToSentry(SENTRY_DSN, failure.probeName, failure.message, failure.details);
+      await reportOpsAlertToWebhook(
+        OPS_ALERT_WEBHOOK_URL,
+        "Synthetic probe failed",
+        failure.message,
+        { probe: failure.probeName, source: "synthetic-monitoring" },
+      );
     }
   }
 

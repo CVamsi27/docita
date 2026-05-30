@@ -14,7 +14,10 @@ import {
 } from './dto/auth.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { setAuthCookies } from './auth-cookie.helpers';
+import {
+  setAuthCookies,
+  stripRefreshTokenFromBody,
+} from './auth-cookie.helpers';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -58,7 +61,7 @@ export class AuthRegistrationController {
         clinicName: dto.clinicName,
       });
       setAuthCookies(res, tokens, this.configService);
-      return tokens;
+      return stripRefreshTokenFromBody(tokens);
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&

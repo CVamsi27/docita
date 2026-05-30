@@ -301,6 +301,15 @@ test.describe("Accessibility Audit - Main App", () => {
       },
       { path: "/upgrade", name: "Upgrade" },
       { path: "/whatsapp", name: "WhatsApp inbox" },
+      { path: "/desk/collect-payment", name: "Collect payment" },
+      { path: "/daybook", name: "Daybook" },
+      { path: "/pharmacy", name: "Pharmacy" },
+      { path: "/vaccines", name: "Vaccines" },
+      { path: "/referrals", name: "Referrals" },
+      { path: "/follow-ups", name: "Follow-ups" },
+      { path: "/analytics", name: "Analytics" },
+      { path: "/import", name: "Import" },
+      { path: "/help", name: "Help" },
     ];
 
     for (const route of staticAuthRoutes) {

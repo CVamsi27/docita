@@ -67,6 +67,16 @@ test.describe("Appointments", () => {
     });
   });
 
+  test("opens Ask AI scoped to appointments from the page header", async ({
+    page,
+  }) => {
+    await page.goto("/appointments");
+    await expectRoute(page, /\/appointments/);
+    await page.getByTestId("appointments-ask-ai").click();
+    await expect(page.getByRole("dialog", { name: /ask ai/i })).toBeVisible();
+    await expect(page.getByText(/on appointments/i)).toBeVisible();
+  });
+
   test("should create a new appointment", async ({ page }) => {
     await page.goto("/appointments");
 

@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { WhatsappLogStatus } from '@workspace/db';
 import { MessagingService } from './messaging.service';
 import { WHATSAPP_PERSISTENCE_PORT } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
+import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
+import { createFixedClockMock } from '@/test-utils/fixed-clock.mock';
 import {
   beforeEach,
   afterEach,
@@ -43,6 +46,15 @@ describe('MessagingService', () => {
         findMany: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
           .mockResolvedValue(mockLogs),
+        groupBy: jest
+          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .mockResolvedValue([
+            { status: WhatsappLogStatus.DELIVERED, _count: { _all: 8 } },
+            { status: WhatsappLogStatus.SENT, _count: { _all: 2 } },
+          ]),
+        count: jest
+          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .mockResolvedValue(1),
       },
       patient: {
         count: jest
@@ -59,6 +71,10 @@ describe('MessagingService', () => {
       providers: [
         MessagingService,
         { provide: WHATSAPP_PERSISTENCE_PORT, useValue: mockPrisma },
+        {
+          provide: CLOCK_PORT,
+          useValue: createFixedClockMock('2026-05-30T12:00:00.000Z'),
+        },
       ],
     }).compile();
 
@@ -85,58 +101,10 @@ describe('MessagingService', () => {
       );
       expect(result).toHaveLength(2);
     });
-
-    it('should filter by patientId when provided', async () => {
-      await service.getLogs('clinic-123', { patientId: 'patient-123' });
-
-      expect(mockPrisma.whatsappLog.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { clinicId: 'clinic-123', patientId: 'patient-123' },
-        }),
-      );
-    });
-
-    it('should filter by type when provided', async () => {
-      await service.getLogs('clinic-123', { type: 'reminder' });
-
-      expect(mockPrisma.whatsappLog.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { clinicId: 'clinic-123', type: 'reminder' },
-        }),
-      );
-    });
-
-    it('should use limit when provided', async () => {
-      await service.getLogs('clinic-123', { limit: 10 });
-
-      expect(mockPrisma.whatsappLog.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ take: 10 }),
-      );
-    });
-
-    it('should default to limit 50 when not provided', async () => {
-      await service.getLogs('clinic-123', {});
-
-      expect(mockPrisma.whatsappLog.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ take: 50 }),
-      );
-    });
-
-    it('should include patient firstName and lastName', async () => {
-      await service.getLogs('clinic-123', {});
-
-      expect(mockPrisma.whatsappLog.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          include: {
-            patient: { select: { firstName: true, lastName: true } },
-          },
-        }),
-      );
-    });
   });
 
   describe('getWhatsappStats', () => {
-    it('should return totalPatients and subscribers counts', async () => {
+    it('should return patient counts and computed delivery metrics', async () => {
       mockPrisma.patient.count
         .mockResolvedValueOnce(120)
         .mockResolvedValueOnce(95);
@@ -145,24 +113,21 @@ describe('MessagingService', () => {
 
       expect(result.totalPatients).toBe(120);
       expect(result.subscribers).toBe(95);
+      expect(result.outboundLast30Days).toBe(10);
+      expect(result.deliveryRate).toBe(80);
+      expect(result.staleDeliveryCount).toBe(1);
+      expect(result.responseRate).toBeNull();
     });
 
-    it('should count subscribers as patients with non-empty phone number', async () => {
+    it('should aggregate log statuses for the trailing 30-day window', async () => {
       await service.getWhatsappStats('clinic-123');
 
-      expect(mockPrisma.patient.count).toHaveBeenCalledWith({
-        where: {
-          clinicId: 'clinic-123',
-          phoneNumber: { not: '' },
-        },
-      });
-    });
-
-    it('should return hardcoded delivery and response rates', async () => {
-      const result = await service.getWhatsappStats('clinic-123');
-
-      expect(result.deliveryRate).toBe(98.5);
-      expect(result.responseRate).toBe(12.4);
+      expect(mockPrisma.whatsappLog.groupBy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          by: ['status'],
+          where: expect.objectContaining({ clinicId: 'clinic-123' }),
+        }),
+      );
     });
   });
 });

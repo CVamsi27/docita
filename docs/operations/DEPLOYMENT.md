@@ -206,7 +206,11 @@ Notes:
 
 ### Frontend (Cloudflare Workers)
 
-Frontend production deploys are managed via Cloudflare Git integration / dashboard, not GitHub Actions. To roll back:
+Production frontend deploys can run from GitHub Actions via
+[`.github/workflows/deploy-cloudflare.yml`](../../.github/workflows/deploy-cloudflare.yml)
+when `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets are
+set. Until then, Cloudflare Git integration / dashboard deploys remain the
+fallback. To roll back:
 
 1. Open the Cloudflare dashboard → Workers & Pages → the affected app (`docita-app`, `docita-internal`, or `docita-landing`).
 2. Under **Deployments**, locate the last known-good deployment and choose **Rollback to this deployment**.

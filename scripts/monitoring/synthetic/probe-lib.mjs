@@ -72,6 +72,28 @@ export async function reportProbeFailureToSentry(dsn, probeName, errorMessage, e
   });
 }
 
+/** Posts a Slack-compatible payload when OPS_ALERT_WEBHOOK_URL is configured. */
+export async function reportOpsAlertToWebhook(webhookUrl, title, text, extra = {}) {
+  const url = webhookUrl?.trim();
+  if (!url) return;
+
+  const tagLine = Object.entries(extra)
+    .map(([key, value]) => `${key}=${value}`)
+    .join(" ");
+
+  const body = JSON.stringify({
+    text: [`[PAGE] ${title}`, text, tagLine].filter(Boolean).join("\n"),
+  });
+
+  await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+  }).catch(() => {
+    // Non-blocking: workflow failure + Sentry remain the primary signals.
+  });
+}
+
 export class ProbeFailure extends Error {
   constructor(probeName, message, details = {}) {
     super(`[${probeName}] ${message}`);

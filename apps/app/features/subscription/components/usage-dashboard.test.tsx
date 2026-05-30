@@ -5,25 +5,28 @@ import { UsageDashboard } from "./usage-dashboard";
 
 const mockUsage: CurrentUsage = {
   period: { start: "2026-05-01T00:00:00.000Z", end: "2026-05-31T23:59:59.000Z" },
-  usage: { consultations: 1, users: 1, whatsappMessages: 5 },
-  included: { consultations: 50, users: 3, whatsappMessages: 200 },
-  overages: { consultations: 0, users: 0, whatsappMessages: 0 },
-  rates: { consultations: 2, users: 10, whatsappMessages: 0.5 },
+  usage: { consultations: 1, users: 1, whatsappMessages: 5, aiCredits: 42 },
+  included: { consultations: 50, users: 3, whatsappMessages: 200, aiCredits: 500 },
+  overages: { consultations: 0, users: 0, whatsappMessages: 0, aiCredits: 0 },
+  rates: { consultations: 2, users: 10, whatsappMessages: 0.5, aiCredits: 0 },
   breakdown: {
     consultations: { quantity: 0, rate: 2, charge: 0 },
     users: { quantity: 0, rate: 10, charge: 0 },
     whatsappMessages: { quantity: 0, rate: 0.5, charge: 0 },
+    aiCredits: { quantity: 0, rate: 0, charge: 0 },
   },
   total: 0,
   meters: {
     consultations: { current: 1, included: 50, overage: 0 },
     users: { current: 1, included: 3, overage: 0 },
     whatsappMessages: { current: 5, included: 200, overage: 0 },
+    aiCredits: { current: 42, included: 500, overage: 0 },
   },
   warnings: {
     consultations: { percentUsed: 2, threshold: null },
     users: { percentUsed: 33, threshold: null },
     whatsappMessages: { percentUsed: 2.5, threshold: null },
+    aiCredits: { percentUsed: 8.4, threshold: null },
   },
   tier: "ESSENTIAL",
 };
@@ -78,5 +81,13 @@ describe("UsageDashboard", () => {
     render(<UsageDashboard />);
 
     expect(screen.getByText("WhatsApp Messages")).toBeInTheDocument();
+  });
+
+  it("shows the AI credits meter when a tier allotment is configured", () => {
+    useSubscriptionMock.mockReturnValue({ data: { tier: "ESSENTIAL" } });
+
+    render(<UsageDashboard />);
+
+    expect(screen.getByText("AI credits")).toBeInTheDocument();
   });
 });

@@ -3,6 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UsageType, Prisma } from '@workspace/db';
+import type { AiCreditFeature } from '@workspace/types';
 
 @Injectable()
 export class UsageTrackingCommandService {
@@ -219,5 +220,20 @@ export class UsageTrackingCommandService {
         this.logger.error('Failed to track consultation usage', err);
       },
     );
+  }
+
+  @OnEvent(ApplicationEvents.AI_CREDITS_CONSUMED)
+  async handleAiCreditsConsumed(payload: {
+    clinicId: string;
+    feature: AiCreditFeature;
+    entityId?: string;
+  }) {
+    await this.trackAICredits(
+      payload.clinicId,
+      payload.feature,
+      payload.entityId,
+    ).catch((err) => {
+      this.logger.error('Failed to track AI credit usage', err);
+    });
   }
 }

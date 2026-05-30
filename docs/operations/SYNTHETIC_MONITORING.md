@@ -32,12 +32,15 @@ synthetic clinic credentials are provisioned (see Open items).
 
 | Signal | Behavior |
 | --- | --- |
-| Any probe failure (scheduled) | Workflow fails → GitHub email to watchers; optional Sentry error via `SENTRY_DSN` |
+| Any probe failure (scheduled) | Workflow fails → GitHub email to watchers; optional Sentry error via `SENTRY_DSN`; optional Slack/PagerDuty webhook via `OPS_ALERT_WEBHOOK_URL` |
 | Post-deploy probe failure | Blocks deploy job success |
 | Staff login probe | Skipped unless `SYNTHETIC_MONITOR_EMAIL` + `SYNTHETIC_MONITOR_PASSWORD` secrets are set |
+| WhatsApp stale delivery backlog | API emits `WHATSAPP_DELIVERY_STALE`; `OpsAlertListener` posts to `OPS_ALERT_WEBHOOK_URL` when configured |
 
 Configure Sentry alert rules in the Sentry dashboard for events tagged
-`source=synthetic-monitoring` to page on-call.
+`source=synthetic-monitoring` to page on-call. Set `OPS_ALERT_WEBHOOK_URL` in
+Fly secrets (API) and GitHub Actions (synthetic workflow) for Slack/PagerDuty
+routing.
 
 ## Validation
 
@@ -54,4 +57,4 @@ SYNTHETIC_MONITOR_EMAIL=... SYNTHETIC_MONITOR_PASSWORD=... pnpm monitor:syntheti
 ## Open items
 
 - Provision synthetic clinic + dedicated monitor user; enable booking/OTP probes.
-- Optional Slack webhook for warn vs page thresholds (2 vs 5 consecutive failures).
+- Wire PagerDuty escalation on top of `OPS_ALERT_WEBHOOK_URL` (scaffold shipped 2026-05-30).

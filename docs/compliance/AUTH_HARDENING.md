@@ -20,21 +20,28 @@ fetch the PDF until the TTL expires.
 `scripts/checks/check-pdf-bearer-cap.mjs` flags controllers that return
 signed URLs without an obvious requester binding.
 
-## Item 4 — Drop unhashed refresh tokens
+## Item 4 — Drop unhashed refresh tokens — ✅ DONE (2026-05-30)
 
-**Today**: refresh tokens are stored hashed in `Session.tokenHash` but
-the controller also returns the raw token in the response and stores a
-cookie. A row leak limited to `tokenHash` columns is safe; a leak that
-includes recent in-memory request payloads is not.
+**Was**: the auth controllers also echoed the raw refresh token in the JSON
+response body (in addition to the httpOnly cookie). A leak of a recent response
+payload/log would expose a 30-day credential.
 
-**Hardening**:
+**Now**: the raw refresh token is delivered **only** via the httpOnly
+`refresh_token` cookie. `stripRefreshTokenFromBody()`
+(`auth-cookie.helpers.ts`) removes it from every auth response body — login,
+MFA-verify, register, refresh, and patient-portal OTP-verify. The browser
+session manager already refreshes via the cookie (empty body +
+`credentials: "include"`), and no client read the body field, so this is
+transparent to callers. Error paths return an exception envelope with no token.
 
-1. Server-side rotation issues a new opaque token + invalidates the
-   previous tokenHash row in the same transaction.
-2. Never return the raw token in any error path; always return 401
-   with no payload.
-3. Add a `Session.replacedByHash` self-reference so we can detect
-   replay of a rotated token.
+Rotation lineage (hardening item 3) is already provided by the `RefreshToken`
+table's `tokenFamily` + `replacedByToken` (reuse detection revokes the family),
+so the doc's hypothetical `Session.replacedByHash` is not needed — the real
+table is `RefreshToken`, not `Session`.
+
+_Follow-up (minor):_ `replacedByToken` stores the rotated token's raw value;
+switching it to a hash is a small additional hardening, deferred to avoid
+touching reuse-detection logic in this pass.
 
 ## Item 5 — WebAuthn MFA
 

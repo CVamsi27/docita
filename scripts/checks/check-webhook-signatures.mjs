@@ -26,7 +26,7 @@ for (const file of files) {
   if (!hasPublicPost) continue;
 
   const verifiesSignature =
-    /\b(webhookVerifier\.verify|verifySignature|verifyHmac|validateSignature|x-hub-signature|x-razorpay-signature)\b/.test(
+    /\b(webhookVerifier\.verify|verifySignature|verifyHmac|validateSignature|verifyZeptoMailWebhookIngress|x-hub-signature|x-razorpay-signature)\b/.test(
       source,
     );
   const usesRawBody = /\brawBody\b/.test(source);

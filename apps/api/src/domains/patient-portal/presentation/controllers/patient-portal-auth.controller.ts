@@ -13,6 +13,7 @@ import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { PatientPortalAuthService } from '@/domains/patient-portal/application/services/patient-portal-auth.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
+import { stripRefreshTokenFromBody } from '@/shared/modules/auth/auth/auth-cookie.helpers';
 
 class RequestOtpDto {
   phoneNumber!: string;
@@ -97,7 +98,7 @@ export class PatientPortalAuthController {
     try {
       const tokens = await this.authService.verifyOtp(dto.phoneNumber, dto.otp);
       this.setAuthCookies(res, tokens);
-      return tokens;
+      return stripRefreshTokenFromBody(tokens);
     } catch (error) {
       this.logger.warn(
         'Patient portal OTP verification failed',

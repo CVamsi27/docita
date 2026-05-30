@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { EmailService } from './email.service';
 import { EmailEventsListener } from './email-events.listener';
+import { EmailSuppressionService } from './email-suppression.service';
+import { ZeptoMailWebhookController } from './zeptomail-webhook.controller';
 import {
   ConsoleEmailProvider,
   ZeptoMailEmailProvider,
@@ -11,6 +13,7 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 
 @Module({
   imports: [PrismaModule],
+  controllers: [ZeptoMailWebhookController],
   providers: [
     {
       provide: EMAIL_PROVIDER,
@@ -23,8 +26,9 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
       inject: [AppConfigService],
     },
     EmailService,
+    EmailSuppressionService,
     EmailEventsListener,
   ],
-  exports: [EmailService],
+  exports: [EmailService, EmailSuppressionService],
 })
 export class EmailModule {}

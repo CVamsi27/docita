@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useStartConsultation, useQueueByDoctor } from "@workspace/data-access";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -12,6 +12,7 @@ import type { CommandPaletteAction } from "@workspace/ui/components/overlay/comm
 import { Sparkles } from "lucide-react";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { useAskAi } from "@/components/ask-ai/ask-ai-context";
+import { resolveAskAiScopeFromPathname } from "@/components/ask-ai/resolve-ask-ai-scope-from-pathname";
 import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import {
@@ -33,6 +34,7 @@ import {
 export function useCommandPalette() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const { user } = useAuth();
   const { clinicId } = useClinic();
   const { canStartConsultation } = usePermissions();
@@ -171,7 +173,7 @@ export function useCommandPalette() {
       icon: <Sparkles className="size-4" />,
       keywords: ["assistant", "chat", "prompt"],
       shortcut: "⌘J",
-      onRun: () => openOverlay(),
+      onRun: () => openOverlay(resolveAskAiScopeFromPathname(pathname)),
     });
 
     for (const action of QUICK_ACTIONS) {
@@ -218,6 +220,7 @@ export function useCommandPalette() {
     hasIntelligence,
     navOrder,
     openOverlay,
+    pathname,
     router,
     user?.role,
   ]);

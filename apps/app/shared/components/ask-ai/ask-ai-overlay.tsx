@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle, Plus, Sparkles, Square } from "lucide-react";
+import { computeAiCreditBalance } from "@workspace/types";
 import {
   Dialog,
   DialogContent,
@@ -11,11 +12,22 @@ import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { PromptInput } from "@workspace/ui/components/form/prompt-input";
 import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
+import { useCurrentUsage } from "@/features/subscription/hooks/use-pricing";
+import { formatCountLocale } from "@workspace/utils";
 import { MessageBubble, ThreadGroup } from "./ask-ai-messages";
 import { useAskAiOverlay } from "./use-ask-ai-overlay";
 
 export function AskAiOverlay() {
   const overlay = useAskAiOverlay();
+  const { usage } = useCurrentUsage();
+  const aiCreditAllotment =
+    usage && usage.meters.aiCredits.included > 0
+      ? usage.meters.aiCredits.included
+      : null;
+  const aiCreditBalance = computeAiCreditBalance(
+    aiCreditAllotment,
+    usage?.meters.aiCredits.current ?? 0,
+  );
 
   const hasAnyThreads =
     overlay.todaysThreads.length > 0 || overlay.earlierThreads.length > 0;
@@ -175,6 +187,13 @@ export function AskAiOverlay() {
               <div className="mt-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
                 <div className="flex min-w-0 items-center gap-2">
                   {scopeChip}
+                  {aiCreditBalance.enforced &&
+                  aiCreditBalance.remaining !== null ? (
+                    <span className="inline-flex max-w-full items-center rounded-full border border-border/60 bg-background px-2.5 py-1 text-[var(--fs-2xs)] font-medium text-muted-foreground">
+                      {formatCountLocale(aiCreditBalance.remaining)} AI credits
+                      left
+                    </span>
+                  ) : null}
                   <p className="hidden text-[var(--fs-2xs)] leading-snug text-muted-foreground sm:block">
                     Not medical advice—confirm with a clinician.
                   </p>

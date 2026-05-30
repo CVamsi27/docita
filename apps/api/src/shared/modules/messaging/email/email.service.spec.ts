@@ -6,6 +6,7 @@ import {
   EMAIL_PROVIDER,
   IEmailProvider,
 } from './providers/email-provider.interface';
+import { EmailSuppressionService } from './email-suppression.service';
 
 describe('EmailService', () => {
   let service: EmailService;
@@ -26,6 +27,13 @@ describe('EmailService', () => {
         {
           provide: EMAIL_PROVIDER,
           useValue: emailProviderMock,
+        },
+        {
+          provide: EmailSuppressionService,
+          useValue: {
+            isSuppressed: jest.fn().mockImplementation(async () => false),
+            recordSuppression: jest.fn().mockImplementation(async () => {}),
+          },
         },
         {
           provide: AppConfigService,

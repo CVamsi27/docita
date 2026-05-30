@@ -4168,3 +4168,26 @@ model OutboxEvent {
   @@index([eventName])
   @@index([processedAt, nextAttemptAt])
 }
+
+enum EmailSuppressionReason {
+  HARD_BOUNCE
+  SOFT_BOUNCE
+  COMPLAINT
+  UNSUBSCRIBE
+}
+
+/// Addresses we must not email again (hard bounces, spam complaints,
+/// unsubscribes), populated from the ESP delivery webhook. Stored as a hash so
+/// no raw PHI email lives here; the masked form is for operator visibility.
+model EmailSuppression {
+  id          String                 @id @default(cuid())
+  emailHash   String                 @unique
+  maskedEmail String
+  reason      EmailSuppressionReason
+  detail      String?
+  provider    String                 @default("zeptomail")
+  createdAt   DateTime               @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime               @updatedAt @db.Timestamptz(3)
+
+  @@index([createdAt])
+}

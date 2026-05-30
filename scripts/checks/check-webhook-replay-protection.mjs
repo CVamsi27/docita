@@ -27,6 +27,7 @@ for (const file of files) {
   const hasReplayProtection =
     /webhookVerifier\.verify\s*\(/.test(source) ||
     /assertVerifiedRazorpayWebhook\s*\(/.test(source) ||
+    /verifyZeptoMailWebhookIngress\s*\(/.test(source) ||
     (/RequiresIdempotency/.test(source) &&
       /IdempotencyInterceptor/.test(source));
 

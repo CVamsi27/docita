@@ -140,4 +140,43 @@ describe('WebhookVerifierService', () => {
     expect(result.ok).toBe(false);
     expect(result.failure).toBe('invalid-signature');
   });
+
+  it('accepts ZeptoMail Authorization header auth with replay dedupe', async () => {
+    const body = Buffer.from(JSON.stringify({ event_name: ['bounce'] }));
+    const first = await service.verify({
+      provider: 'zeptomail',
+      rawBody: body,
+      signature: 'Bearer shared-secret',
+      secret: 'Bearer shared-secret',
+      authMode: 'shared-secret-header',
+      sharedSecretHeader: 'Bearer shared-secret',
+    });
+    dedupe.tryClaim.mockResolvedValueOnce(false);
+    const second = await service.verify({
+      provider: 'zeptomail',
+      rawBody: body,
+      signature: 'Bearer shared-secret',
+      secret: 'Bearer shared-secret',
+      authMode: 'shared-secret-header',
+      sharedSecretHeader: 'Bearer shared-secret',
+    });
+    expect(first.ok).toBe(true);
+    expect(second.ok).toBe(false);
+    expect(second.failure).toBe('replayed');
+  });
+
+  it('rejects ZeptoMail Authorization header auth when the secret does not match', async () => {
+    const body = Buffer.from('{}');
+    const result = await service.verify({
+      provider: 'zeptomail',
+      rawBody: body,
+      signature: 'wrong',
+      secret: 'expected',
+      authMode: 'shared-secret-header',
+      sharedSecretHeader: 'wrong',
+    });
+    expect(result.ok).toBe(false);
+    expect(result.failure).toBe('invalid-signature');
+    expect(dedupe.tryClaim).not.toHaveBeenCalled();
+  });
 });
