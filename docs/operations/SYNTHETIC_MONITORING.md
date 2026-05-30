@@ -15,7 +15,7 @@ and trigger GitHub notification emails for repository watchers.
 | Flow | Probe | Target | Allowed latency |
 | --- | --- | --- | --- |
 | API liveness | `GET /api/health/live` (version-neutral) | 200 + `status: ok` | 2 s |
-| Auth chrome | `GET /api/daily-thought` (app origin) | 200 + quote + `Cache-Control: public` | 3 s |
+| Auth chrome | `GET /api/daily-thought` (app origin) | 200 + quote + `Cache-Control: public` | 5 s |
 | Staff login | `POST /api/v1/auth/login` (optional creds) | 2xx + `access_token` cookie | 1.5 s |
 
 Public booking and patient-portal OTP probes remain in the backlog until

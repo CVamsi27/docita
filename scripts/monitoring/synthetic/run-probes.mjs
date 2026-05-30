@@ -42,7 +42,8 @@ const POST_DEPLOY_WARMUP_DELAY_MS = 10_000;
 
 const LATENCY_TARGETS_MS = {
   "api-health-live": 2_000,
-  "daily-thought": 3_000,
+  // App origin cold starts (OpenNext on Cloudflare) can exceed 3s from CI runners.
+  "daily-thought": 5_000,
   "staff-login": 1_500,
 };
 
