@@ -12,7 +12,8 @@ import {
 } from "@workspace/types";
 import { CheckCircle } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
-import { FloatingInput } from "@workspace/ui/components/form/floating-input";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
 import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import { api } from "@/lib/api/api-client";
 import { logger } from "@/lib/monitoring/logger";
@@ -102,16 +103,27 @@ function ForgotPasswordPageContent() {
             noValidate
             className="space-y-5"
           >
-            <FloatingInput
-              id="email"
-              type="email"
-              label="Email address"
-              autoComplete="email"
-              autoFocus
-              {...form.register("email")}
-              errorText={form.formState.errors.email?.message}
-              className="h-12"
-            />
+            <div className="space-y-2">
+              <Label htmlFor="email">Email address</Label>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                autoFocus
+                placeholder="Enter email address"
+                className="h-12 min-h-12 bg-background/50"
+                aria-invalid={Boolean(form.formState.errors.email)}
+                aria-describedby={
+                  form.formState.errors.email ? "email-error" : undefined
+                }
+                {...form.register("email")}
+              />
+              {form.formState.errors.email?.message ? (
+                <p id="email-error" className="text-sm text-destructive">
+                  {form.formState.errors.email.message}
+                </p>
+              ) : null}
+            </div>
 
             {error && (
               <p className="text-sm text-destructive text-center">{error}</p>
