@@ -4,13 +4,11 @@ import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle, Eye, EyeOff } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { CheckCircle } from "lucide-react";
+import { Controller, useForm } from "react-hook-form";
 import { Button } from "@workspace/ui/components/form/button";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
-import { FloatingInput } from "@workspace/ui/components/form/floating-input";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import {
   resetPasswordFormSchema,
   type ResetPasswordFormValues,
@@ -19,7 +17,11 @@ import { getUserFacingErrorMessage } from "@workspace/utils";
 import { BackButton } from "@/components/navigation/back-button";
 import { api } from "@/lib/api/api-client";
 import { logger } from "@/lib/monitoring/logger";
+import { AuthPasswordFloatingField } from "./auth-password-floating-field";
 import { PreDashboardShell } from "./PreDashboardShell";
+
+const PASSWORD_RULES_HELPER =
+  "Must be 8+ characters with uppercase, lowercase, number, and special character";
 
 function ResetPasswordInner() {
   const searchParams = useSearchParams();
@@ -107,48 +109,45 @@ function ResetPasswordInner() {
             noValidate
             className="space-y-5"
           >
-            <FloatingInput
-              id="newPassword"
-              type={showPassword ? "text" : "password"}
-              label="New password"
-              autoComplete="new-password"
-              autoFocus
-              required
-              {...form.register("newPassword")}
-              errorText={form.formState.errors.newPassword?.message}
-              className="h-12"
-              trailing={
-                <SymbolTooltip
-                  label={showPassword ? "Hide password" : "Show password"}
-                  side="left"
-                >
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 text-muted-foreground hover:text-foreground"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                </SymbolTooltip>
-              }
+            <Controller
+              control={form.control}
+              name="newPassword"
+              render={({ field, fieldState }) => (
+                <AuthPasswordFloatingField
+                  id="newPassword"
+                  label="New password"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  error={fieldState.error?.message}
+                  showPassword={showPassword}
+                  onTogglePassword={() => setShowPassword((prev) => !prev)}
+                  autoComplete="new-password"
+                  autoFocus
+                  showStrength
+                  helperText={
+                    fieldState.error ? undefined : PASSWORD_RULES_HELPER
+                  }
+                />
+              )}
             />
 
-            <FloatingInput
-              id="confirmPassword"
-              type={showPassword ? "text" : "password"}
-              label="Confirm new password"
-              autoComplete="new-password"
-              required
-              {...form.register("confirmPassword")}
-              errorText={form.formState.errors.confirmPassword?.message}
-              className="h-12"
+            <Controller
+              control={form.control}
+              name="confirmPassword"
+              render={({ field, fieldState }) => (
+                <AuthPasswordFloatingField
+                  id="confirmPassword"
+                  label="Confirm new password"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  error={fieldState.error?.message}
+                  showPassword={showPassword}
+                  onTogglePassword={() => setShowPassword((prev) => !prev)}
+                  autoComplete="new-password"
+                />
+              )}
             />
 
             {error && (
@@ -203,4 +202,3 @@ export function ResetPasswordPageContent() {
     </Suspense>
   );
 }
-

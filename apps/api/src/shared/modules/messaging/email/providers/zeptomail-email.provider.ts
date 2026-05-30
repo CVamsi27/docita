@@ -20,7 +20,7 @@ type ZeptoMailRequest = {
   subject: string;
   htmlbody?: string;
   textbody?: string;
-  reply_to?: ZeptoMailAddress;
+  reply_to?: Array<{ address: string; name?: string }>;
   attachments?: Array<{
     name: string;
     content: string;
@@ -84,7 +84,9 @@ export class ZeptoMailEmailProvider implements IEmailProvider {
       subject: options.subject,
       htmlbody: options.html,
       textbody: options.text,
-      reply_to: options.replyTo ? { address: options.replyTo } : undefined,
+      reply_to: options.replyTo
+        ? [{ address: options.replyTo.trim() }]
+        : undefined,
       attachments: options.attachments?.map((att) => ({
         name: att.filename,
         content:
