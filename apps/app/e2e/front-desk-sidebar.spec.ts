@@ -3,7 +3,10 @@ import {
   loginUser,
   reuseSharedFrontDeskClinicUser,
 } from "./utils/patient-helpers";
-import { expectPrimarySidebarLinkVisible } from "./utils/sidebar-helpers";
+import {
+  ensurePrimarySidebarAccessible,
+  expectPrimarySidebarLinkVisible,
+} from "./utils/sidebar-helpers";
 import { expectProtectedWorkspaceLoaded } from "./utils/ui-contracts";
 
 test.describe("Front desk workspace sidebar", () => {
@@ -22,6 +25,7 @@ test.describe("Front desk workspace sidebar", () => {
   test("hides Consultation for front desk clinic", async ({ page }) => {
     await page.goto("/today", { waitUntil: "domcontentloaded" });
     await expectProtectedWorkspaceLoaded(page);
+    await ensurePrimarySidebarAccessible(page);
     const primaryNav = page.getByRole("navigation", { name: "Primary" });
     await expect(
       primaryNav.getByRole("link", { name: "Consultation", exact: true }),
