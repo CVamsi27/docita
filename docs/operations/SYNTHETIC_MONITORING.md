@@ -34,7 +34,8 @@ synthetic clinic credentials are provisioned (see Open items).
 | --- | --- |
 | Any probe failure (scheduled) | Workflow fails → GitHub email to watchers; optional Sentry error via `SENTRY_DSN`; optional Slack/PagerDuty webhook via `OPS_ALERT_WEBHOOK_URL` |
 | Post-deploy probe failure | Blocks deploy job success |
-| Staff login probe | Skipped unless `SYNTHETIC_MONITOR_EMAIL` + `SYNTHETIC_MONITOR_PASSWORD` secrets are set |
+| Post-deploy warmup | With `SYNTHETIC_POST_DEPLOY=1`, polls `/api/health/live` (60 s timeout, up to 8 retries) before probes — handles Fly suspend cold starts |
+| Staff login probe | **Optional** — skipped (does not fail the run) unless `SYNTHETIC_MONITOR_EMAIL` + `SYNTHETIC_MONITOR_PASSWORD` GitHub secrets are set |
 | WhatsApp stale delivery backlog | API emits `WHATSAPP_DELIVERY_STALE`; `OpsAlertListener` posts to `OPS_ALERT_WEBHOOK_URL` when configured |
 
 Configure Sentry alert rules in the Sentry dashboard for events tagged

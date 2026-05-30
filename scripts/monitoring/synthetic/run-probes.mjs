@@ -8,6 +8,7 @@
  *   SYNTHETIC_API_BASE_URL  (default https://api.docita.work/api/v1)
  *   SYNTHETIC_APP_BASE_URL  (default https://app.docita.work)
  *   SYNTHETIC_MONITOR_EMAIL / SYNTHETIC_MONITOR_PASSWORD (optional staff login probe)
+ *   SYNTHETIC_POST_DEPLOY     (optional — longer timeouts + API warmup after Fly deploy)
  *   SENTRY_DSN              (optional — emits error event on failure)
  *   OPS_ALERT_WEBHOOK_URL   (optional — Slack/PagerDuty-compatible webhook)
  */
@@ -18,6 +19,7 @@ import {
   reportOpsAlertToWebhook,
   reportProbeFailureToSentry,
   runProbe,
+  sleep,
 } from "./probe-lib.mjs";
 
 const API_ORIGIN =
@@ -30,8 +32,13 @@ const APP_BASE =
   "https://app.docita.work";
 const SENTRY_DSN = process.env.SENTRY_DSN ?? "";
 const OPS_ALERT_WEBHOOK_URL = process.env.OPS_ALERT_WEBHOOK_URL ?? "";
+const IS_POST_DEPLOY =
+  process.env.SYNTHETIC_POST_DEPLOY === "1" ||
+  process.env.SYNTHETIC_POST_DEPLOY === "true";
 
-const FETCH_TIMEOUT_MS = 5_000;
+const FETCH_TIMEOUT_MS = IS_POST_DEPLOY ? 60_000 : 5_000;
+const POST_DEPLOY_WARMUP_ATTEMPTS = 8;
+const POST_DEPLOY_WARMUP_DELAY_MS = 10_000;
 
 const LATENCY_TARGETS_MS = {
   "api-health-live": 2_000,
@@ -56,7 +63,10 @@ async function probeApiHealthLive() {
       throw new Error(`Unexpected liveness payload: ${JSON.stringify(body)}`);
     }
 
-    if (latencyMs > LATENCY_TARGETS_MS["api-health-live"]) {
+    if (
+      !IS_POST_DEPLOY &&
+      latencyMs > LATENCY_TARGETS_MS["api-health-live"]
+    ) {
       throw new Error(
         `Latency ${latencyMs}ms exceeds ${LATENCY_TARGETS_MS["api-health-live"]}ms target`,
       );
@@ -142,7 +152,55 @@ async function probeStaffLogin() {
   });
 }
 
+async function waitForApiWarmAfterDeploy() {
+  process.stdout.write(
+    `Post-deploy warmup: polling ${API_ORIGIN}/health/live (up to ${POST_DEPLOY_WARMUP_ATTEMPTS} attempts)...\n`,
+  );
+
+  for (let attempt = 1; attempt <= POST_DEPLOY_WARMUP_ATTEMPTS; attempt += 1) {
+    try {
+      const { response, latencyMs } = await fetchWithTimeout(
+        `${API_ORIGIN}/health/live`,
+        { headers: { Accept: "application/json" } },
+        FETCH_TIMEOUT_MS,
+      );
+
+      if (!response.ok) {
+        throw new Error(`Expected 200, got ${response.status}`);
+      }
+
+      const body = await response.json();
+      if (body.status !== "ok" || body.service !== "docita-api") {
+        throw new Error(`Unexpected liveness payload: ${JSON.stringify(body)}`);
+      }
+
+      process.stdout.write(
+        `Post-deploy warmup: API ready on attempt ${attempt}/${POST_DEPLOY_WARMUP_ATTEMPTS} (${latencyMs}ms)\n`,
+      );
+      return;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      process.stdout.write(
+        `Post-deploy warmup: attempt ${attempt}/${POST_DEPLOY_WARMUP_ATTEMPTS} failed (${message})\n`,
+      );
+
+      if (attempt < POST_DEPLOY_WARMUP_ATTEMPTS) {
+        await sleep(POST_DEPLOY_WARMUP_DELAY_MS);
+      }
+    }
+  }
+
+  throw new ProbeFailure(
+    "api-health-live",
+    `API did not become ready within ${POST_DEPLOY_WARMUP_ATTEMPTS} warmup attempts`,
+  );
+}
+
 async function main() {
+  if (IS_POST_DEPLOY) {
+    await waitForApiWarmAfterDeploy();
+  }
+
   const probes = [probeApiHealthLive, probeDailyThought, probeStaffLogin];
   const results = [];
   const failures = [];
