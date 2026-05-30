@@ -50,13 +50,10 @@ export class TenantContextInterceptor implements NestInterceptor {
           // would only apply to `tx`'s pinned connection while the rest
           // of the request used a different pool connection.
           return from(
-            this.prisma.$transaction(
-              async (tx) => {
-                await applyRlsScope(tx, clinicId);
-                return runWithActiveTx(tx, runHandler);
-              },
-              getRlsRequestTransactionOptions(),
-            ),
+            this.prisma.$transaction(async (tx) => {
+              await applyRlsScope(tx, clinicId);
+              return runWithActiveTx(tx, runHandler);
+            }, getRlsRequestTransactionOptions()),
           );
         }
 

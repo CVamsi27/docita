@@ -61,14 +61,11 @@ export class RlsService implements OnModuleInit {
     clinicId: string,
     fn: (tx: Tx) => Promise<T>,
   ): Promise<T> {
-    return this.prisma.$transaction(
-      async (tx) => {
-        if (this.isEnabled()) {
-          await applyRlsScope(tx, clinicId);
-        }
-        return runWithActiveTx(tx, () => fn(tx));
-      },
-      getRlsRequestTransactionOptions(),
-    );
+    return this.prisma.$transaction(async (tx) => {
+      if (this.isEnabled()) {
+        await applyRlsScope(tx, clinicId);
+      }
+      return runWithActiveTx(tx, () => fn(tx));
+    }, getRlsRequestTransactionOptions());
   }
 }

@@ -10,9 +10,7 @@ export function isPrismaTransactionApiError(error: unknown): boolean {
     return (
       message.includes('Unable to start a transaction in the given time') ||
       message.includes('cannot be executed on an expired transaction') ||
-      message.includes(
-        'A commit cannot be executed on an expired transaction',
-      )
+      message.includes('A commit cannot be executed on an expired transaction')
     );
   }
   return false;

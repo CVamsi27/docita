@@ -57,64 +57,64 @@ export class AuditService {
     // RLS-BYPASS: audit persistence correlates events across tenants for compliance
     return this.prisma.runUnrestricted(async () =>
       runOutsideActiveTx(async () => {
-      try {
-        const [clinic, user] = await Promise.all([
-          this.prisma.clinic.findUnique({ where: { id: data.clinicId } }),
-          this.prisma.user.findUnique({ where: { id: data.userId } }),
-        ]);
+        try {
+          const [clinic, user] = await Promise.all([
+            this.prisma.clinic.findUnique({ where: { id: data.clinicId } }),
+            this.prisma.user.findUnique({ where: { id: data.userId } }),
+          ]);
 
-        if (!clinic) {
-          throw new BadRequestException(`Clinic ${data.clinicId} not found`);
-        }
+          if (!clinic) {
+            throw new BadRequestException(`Clinic ${data.clinicId} not found`);
+          }
 
-        if (!user) {
-          throw new BadRequestException(`User ${data.userId} not found`);
-        }
+          if (!user) {
+            throw new BadRequestException(`User ${data.userId} not found`);
+          }
 
-        const auditLog = await this.prisma.auditLog.create({
-          data: {
+          const auditLog = await this.prisma.auditLog.create({
+            data: {
+              clinicId: data.clinicId,
+              userId: data.userId,
+              action: data.actionType,
+              entityType: data.resourceType,
+              entityId: data.resourceId,
+              newValue: data.changes
+                ? toPrismaInputJsonValue(data.changes)
+                : Prisma.JsonNull,
+              metadata: data.metadata
+                ? toPrismaInputJsonValue(data.metadata)
+                : Prisma.JsonNull,
+              ipAddress: data.ipAddress,
+              userAgent: data.userAgent,
+            },
+          });
+
+          this.logger.log(
+            `[AUDIT] ${data.actionType} | User: ${data.userId} | Resource: ${data.resourceType}:${data.resourceId} | ID: ${auditLog.id}`,
+          );
+
+          const auditData = {
+            id: auditLog.id,
             clinicId: data.clinicId,
             userId: data.userId,
-            action: data.actionType,
-            entityType: data.resourceType,
-            entityId: data.resourceId,
-            newValue: data.changes
-              ? toPrismaInputJsonValue(data.changes)
-              : Prisma.JsonNull,
-            metadata: data.metadata
-              ? toPrismaInputJsonValue(data.metadata)
-              : Prisma.JsonNull,
+            actionType: data.actionType,
+            resourceType: data.resourceType,
+            resourceId: data.resourceId,
+            changes: data.changes,
             ipAddress: data.ipAddress,
             userAgent: data.userAgent,
-          },
-        });
+            metadata: data.metadata,
+            createdAt: this.clock.now(),
+          };
 
-        this.logger.log(
-          `[AUDIT] ${data.actionType} | User: ${data.userId} | Resource: ${data.resourceType}:${data.resourceId} | ID: ${auditLog.id}`,
-        );
-
-        const auditData = {
-          id: auditLog.id,
-          clinicId: data.clinicId,
-          userId: data.userId,
-          actionType: data.actionType,
-          resourceType: data.resourceType,
-          resourceId: data.resourceId,
-          changes: data.changes,
-          ipAddress: data.ipAddress,
-          userAgent: data.userAgent,
-          metadata: data.metadata,
-          createdAt: this.clock.now(),
-        };
-
-        return auditData;
-      } catch (error) {
-        this.logger.error(
-          `Failed to create audit log: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          error instanceof Error ? error.stack : undefined,
-        );
-        throw error;
-      }
+          return auditData;
+        } catch (error) {
+          this.logger.error(
+            `Failed to create audit log: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            error instanceof Error ? error.stack : undefined,
+          );
+          throw error;
+        }
       }),
     );
   }

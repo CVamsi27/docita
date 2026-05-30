@@ -57,7 +57,8 @@ export class AuthSessionService {
     incomingRefreshToken: string,
   ): Promise<AuthLoginResult> {
     const transactionOptions = getAuthRefreshTransactionOptions();
-    const maxAttempts = DATABASE_CONSTANTS.AUTH_REFRESH_TRANSACTION_MAX_ATTEMPTS;
+    const maxAttempts =
+      DATABASE_CONSTANTS.AUTH_REFRESH_TRANSACTION_MAX_ATTEMPTS;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
@@ -68,8 +69,7 @@ export class AuthSessionService {
         );
       } catch (error) {
         const canRetry =
-          attempt < maxAttempts &&
-          isPrismaTransactionAcquireTimeout(error);
+          attempt < maxAttempts && isPrismaTransactionAcquireTimeout(error);
         if (!canRetry) {
           throw error;
         }
