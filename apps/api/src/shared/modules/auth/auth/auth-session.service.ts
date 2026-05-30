@@ -48,7 +48,7 @@ export class AuthSessionService {
 
   async refreshTokens(incomingRefreshToken: string): Promise<AuthLoginResult> {
     // RLS-BYPASS: auth resolves users before clinic tenant context is established
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.runRefreshTokenTransaction(incomingRefreshToken),
     );
   }
