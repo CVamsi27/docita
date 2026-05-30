@@ -96,6 +96,8 @@ Secrets required (set via `fly secrets set KEY=value`):
 - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`
 - `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`
 - `ZEPTOMAIL_SENDMAIL_TOKEN`
+- `ZEPTOMAIL_API_URL` — use `https://api.zeptomail.in/v1.1/email` for India agents, or `https://api.zeptomail.com/v1.1/email` for global agents (must match your ZeptoMail account region)
+- `EMAIL_FROM` — verified sender in your ZeptoMail agent (default `Docita <notifications@docita.work>`)
 - `SENTRY_DSN`
 
 ## AWS RDS Quick Guide

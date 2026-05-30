@@ -23,9 +23,11 @@ describe('ZeptoMailEmailProvider', () => {
   it('sends reply_to as an array per ZeptoMail API contract', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({
-        data: [{ message_id: 'msg-1' }],
-      }),
+      text: async () =>
+        JSON.stringify({
+          data: [{ message_id: 'msg-1' }],
+          request_id: 'req-1',
+        }),
     } as Response);
 
     const provider = createProvider();
@@ -42,15 +44,49 @@ describe('ZeptoMailEmailProvider', () => {
     const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
     const payload = JSON.parse(String(requestInit.body)) as {
       reply_to?: Array<{ address: string }>;
+      from: { address: string; name?: string };
     };
 
     expect(payload.reply_to).toEqual([{ address: 'support@docita.work' }]);
+    expect(payload.from).toEqual({
+      name: 'Docita',
+      address: 'notifications@docita.work',
+    });
+  });
+
+  it('supports text-only transactional emails', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      text: async () =>
+        JSON.stringify({ data: [{ message_id: 'msg-text' }] }),
+    } as Response);
+
+    const provider = createProvider();
+    const result = await provider.send({
+      to: ['admin@example.com', 'billing@example.com'],
+      subject: 'Usage warning',
+      text: 'Your clinic reached 80% usage.',
+    });
+
+    expect(result.success).toBe(true);
+
+    const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const payload = JSON.parse(String(requestInit.body)) as {
+      htmlbody?: string;
+      textbody?: string;
+      to: Array<{ email_address: { address: string } }>;
+    };
+
+    expect(payload.textbody).toContain('80% usage');
+    expect(payload.htmlbody).toBeUndefined();
+    expect(payload.to).toHaveLength(2);
   });
 
   it('prefixes bare send mail tokens with Zoho-enczapikey', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ data: [{ message_id: 'msg-2' }] }),
+      text: async () =>
+        JSON.stringify({ data: [{ message_id: 'msg-2' }] }),
     } as Response);
 
     const provider = createProvider('plain-token');
@@ -70,7 +106,19 @@ describe('ZeptoMailEmailProvider', () => {
     fetchMock.mockResolvedValueOnce({
       ok: false,
       status: 400,
-      text: async () => '{"error":{"message":"Invalid reply_to"}}',
+      text: async () =>
+        JSON.stringify({
+          error: {
+            message: 'Invalid reply_to',
+            details: [
+              {
+                code: 'EM_101',
+                target: 'reply_to',
+                message: 'Invalid data type',
+              },
+            ],
+          },
+        }),
     } as Response);
 
     const provider = createProvider();
@@ -83,5 +131,44 @@ describe('ZeptoMailEmailProvider', () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toContain('Invalid reply_to');
+    expect(result.error).toContain('reply_to');
+  });
+
+  it('rejects sends without html or text before calling ZeptoMail', async () => {
+    const provider = createProvider();
+    const result = await provider.send({
+      to: 'user@example.com',
+      subject: 'Empty body',
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('html or text body');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects sends without recipients before calling ZeptoMail', async () => {
+    const provider = createProvider();
+    const result = await provider.send({
+      to: ['', '   '],
+      subject: 'No recipients',
+      html: '<p>Hi</p>',
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('recipient');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('returns failure when token is missing', async () => {
+    const provider = createProvider('');
+    const result = await provider.send({
+      to: 'user@example.com',
+      subject: 'Hello',
+      html: '<p>Hi</p>',
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('ZEPTOMAIL_SENDMAIL_TOKEN');
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

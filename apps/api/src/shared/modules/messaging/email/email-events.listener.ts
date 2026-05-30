@@ -41,11 +41,19 @@ export class EmailEventsListener {
         select: { name: true },
       });
 
-      await this.emailService.sendWelcomeEmail(
+      const result = await this.emailService.sendWelcomeEmail(
         payload.email,
         payload.name,
         clinic?.name ?? '',
       );
+
+      if (!result.success) {
+        this.logger.error(
+          `Welcome email provider rejected send to ${this.maskEmail(payload.email)}`,
+          { error: result.error ?? 'unknown' },
+        );
+        return;
+      }
 
       this.logger.log(`Welcome email sent to ${this.maskEmail(payload.email)}`);
     } catch (error) {
@@ -79,13 +87,21 @@ export class EmailEventsListener {
       ]);
 
       if (patient?.email) {
-        await this.emailService.sendAppointmentReminder(
+        const result = await this.emailService.sendAppointmentReminder(
           patient.email,
           `${patient.firstName} ${patient.lastName}`,
           doctor?.name ?? '',
           payload.startTime,
           clinic?.name ?? '',
         );
+
+        if (!result.success) {
+          this.logger.error(
+            `Appointment confirmation provider rejected send to ${this.maskEmail(patient.email)}`,
+            { error: result.error ?? 'unknown' },
+          );
+          return;
+        }
 
         this.logger.log(
           `Appointment confirmation sent to ${this.maskEmail(patient.email)}`,
