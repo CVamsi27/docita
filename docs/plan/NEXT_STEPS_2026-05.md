@@ -35,43 +35,47 @@ A consolidated cross-direction phase table is in [§14](#14-consolidated-phase-v
 
 A codebase audit on 2026-05-30 found that **most "Now" items were already shipped** (the May consolidation work landed more than the source docs implied). Legend: ✅ done · ◐ partly done / needs ops to finish · ⏳ genuine code gap (pending) · 🚫 ops-only · 🔢 blocked on a pricing/product number · 🔑 blocked on external credentials/spec · ⚠️ unsafe without cross-client rework.
 
-| §   | Now item                                        | Status | Evidence / note                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| --- | ----------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 2   | `HOSPITAL` in `ClinicTier` enum                 | ✅     | Present in `schema.prisma` + `schema/core-domain-enums.prisma`                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| 2   | Codify additive-only migration rule             | ✅     | `docs/operations/MIGRATION_NOTES.md` + enforced by `check-migration-reversibility.mjs`                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| 3   | G3 controller RBAC posture                      | ✅     | `check:controller-rbac` passes; wired in `verify:standard`                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| 3   | G11/G12 security detectors                      | ✅     | `check:webhook-signatures`, `:upload-validation`, `:sentry-scrubbing`, `:audit-logging` pass (enforced)                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| 3   | G13 job idempotency                             | ✅     | `check:job-idempotency --enforce` passes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| 4   | Label stubbed AI tabs as preview                | ✅     | **Done 2026-05-30** — `ComingSoonPreview` banner + "Soon" badges on Insights/Smart-tasks                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| 4   | AI feature gating                               | ✅     | `FeatureGuard(AI_PRESCRIPTION_ASSISTANT)` wraps the surface                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| 6   | Item 3 — session-bound signed URLs              | ✅     | `check:pdf-bearer-cap` passes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| 9   | Motion-policy compliance                        | ✅     | **Done 2026-05-30** — removed decorative `animate-in` (FollowUpForm) + banned `transition-all` (SectionRail)                                                                                                                                                                                                                                                                                                                                                                                                             |
-| 12  | Hold shipped wins (logger, no `console.*`)      | ✅     | `check:no-console-runtime` passes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| 1   | Onboarding/settings/upgrade redesign            | ◐      | Feature-complete but uncommitted; needs land + deploy                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| 7   | Enforce RLS in production                       | ◐ 🚫   | `check:rls-rollout-readiness` passes; the prod role-swap + flag flip is ops-only                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| 8   | Commit clean perf baseline; flip `warn→fail`    | ◐      | `perf:baseline` + `perf:budget:enforce` exist; needs a stable-main run + CI wiring                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| 9   | A11y baseline + CI enforce                      | ◐      | `check:a11y-budget(:enforce)` exist; needs an `audit:app` run to capture the baseline                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| 10  | Formalize staging environment                   | ◐ 🚫   | `docs/operations/STAGING.md` exists; completion is ops                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| 4   | AI credit metering + enforcement                | ◐ 🔢   | **Foundation + recording landed 2026-05-30.** Config (`AI_CREDIT_ALLOTMENT_BY_TIER`, all `null`=unlimited) + pure `computeAiCreditBalance` helpers in `packages/types` (6 tests); and AI usage is now **recorded** via `ApplicationEvents.AI_CREDITS_CONSUMED` → billing `@OnEvent` (revived dead `trackAICredits`; no DI cycle). Recording now covers all four clinical AI endpoints incl. streaming `ask`. Pending only: per-tier credit **numbers** (pricing) → then the fail-open pre-call guard; plus OCR recording |
-| 5   | WhatsApp delivery reconciliation                | ✅     | **Done 2026-05-30** — hourly worker sweep (`whatsapp-reconciliation.cron`) surfaces outbound logs stuck in QUEUED/SENT >6h; non-destructive (logs + heartbeat, no row mutation). Marking stale msgs FAILED is a deliberate follow-up                                                                                                                                                                                                                                                                                     |
-| 5   | Email bounce/complaint webhooks                 | ⏳ 🔑  | **Blocked on external inputs** — needs the ZeptoMail webhook payload spec + signing secret to verify (HMAC) and parse correctly                                                                                                                                                                                                                                                                                                                                                                                          |
-| 6   | Item 4 — stop returning unhashed refresh tokens | ⏳ ⚠️  | **Unsafe to apply blindly.** Patient-portal OTP auth reads `refresh_token` from the response **body** (`use-portal-otp-auth.ts`); removing it breaks that flow. Also the doc says `Session.replacedByHash` but the table is `RefreshToken` (already has `tokenFamily` for replay lineage). Needs a cross-client rework + sign-off                                                                                                                                                                                        |
-| 6   | State-based account lockout                     | ✅     | Enforced in `credential-validation.service.ts` — rejects login while `accountLockedUntil` is in the future; locks after the failed-attempt threshold                                                                                                                                                                                                                                                                                                                                                                     |
-| 9   | Ask AI surface completeness                     | ◐      | Global pinned affordance present (`sidebar-footer.tsx`); per-route scope-chip audit optional                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| 10  | CI-gate frontend deploys                        | ⏳ 🚫  | `deploy.yml` gates API+worker only; app/internal/landing deploy via Cloudflare Git integration (needs creds)                                                                                                                                                                                                                                                                                                                                                                                                             |
-| 11  | Cron heartbeat pruning                          | ✅     | Not needed — `CronHeartbeat.name` is `@unique` and the writer upserts, so the table is bounded (one row per cron)                                                                                                                                                                                                                                                                                                                                                                                                        |
-| 12  | Knip CSS `@import` allowlist                    | ✅     | `knip.json` already lists `@fontsource/*`, `@tailwindcss/postcss`, `tailwindcss` under `ignoreDependencies`                                                                                                                                                                                                                                                                                                                                                                                                              |
-| 1   | 5 billing-audit follow-ups                      | ✅     | Verified done — comparison table uses `PUBLISHED_TIER_LADDER` (HOSPITAL between Professional/Enterprise); HOSPITAL in seed `CANONICAL_TIERS` + plan DTO; settings tabs + PLANNED `comingSoon` badges already correct per the audit                                                                                                                                                                                                                                                                                       |
-| 1   | India-first GTM dry-run                         | ⏳     | QA/validation task                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| 11  | Alerting + on-call                              | 🚫     | PagerDuty/Slack wiring is ops                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+**Progress: 16 of 28 tracked items done.**
 
-**Net (after the 2026-05-30 audit + follow-up sweep + implementation pass):** the backend / security / compliance / hygiene / billing "Now" work is complete and green — including several items the roadmap had wrongly listed as pending (account lockout, Knip allowlist, cron pruning, HOSPITAL enum, the guardrail checks, all 5 billing-audit follow-ups). **WhatsApp delivery reconciliation is now shipped** (non-destructive detection sweep). The three still-open items are each blocked on an input outside the repo, which is exactly why they remain unshipped:
+### ✅ Done
 
-- **AI credit pre-call block** (🔢) — there is **no included-credit allotment config** anywhere (only `AI_CREDIT_COSTS` per-op costs). A block can't compare usage to a quota until the per-tier included-credit numbers are decided. Mechanism is ready to build the moment those land; it will fail open on any error.
-- **Refresh-token Item 4** (⚠️) — **unsafe to apply blindly**: patient-portal OTP auth reads `refresh_token` from the response **body** (`apps/app/features/patient-portal/hooks/use-portal-otp-auth.ts`), so dropping the body token breaks that login. The doc also references `Session.replacedByHash`, but the real table is `RefreshToken` (already carries `tokenFamily` for replay lineage). Needs a cross-client rework + sign-off, ideally validated against the auth e2e suite.
-- **Email bounce/complaint webhooks** (🔑) — needs the ZeptoMail webhook payload spec + signing secret to verify (HMAC) and parse.
+- [x] `HOSPITAL` in ClinicTier enum
+- [x] Additive-only migration rule (MIGRATION_NOTES + check)
+- [x] G3 controller-RBAC · G11/G12 detectors · G13 job-idempotency
+- [x] AI preview-tab labels · AI feature gating
+- [x] PDF bearer-cap (signed URLs)
+- [x] Motion-policy compliance
+- [x] no-console / logger discipline
+- [x] State-based account lockout
+- [x] Cron-heartbeat bounded (no pruning needed)
+- [x] Knip CSS `@import` allowlist
+- [x] 5 billing-audit follow-ups
+- [x] WhatsApp delivery reconciliation (worker sweep)
+- [x] AI credit metering — config + balance helpers + usage recording (all 4 clinical endpoints)
+- [x] OCR usage recording on `/ai/ocr/extract`
+- [x] AI credit enforcement guard (fail-open, inert until priced)
+- [x] WhatsApp deliverability signal (event hook for alerting)
 
-The ◐/🚫 rows (RLS prod flip, perf/a11y baseline capture, staging, CI frontend gate, alerting, GTM dry-run) need an ops run, a build run, or external credentials and can't be completed from the repo alone.
+### ◐ In progress / needs an input or ops run
+
+- [ ] AI credit enforcement — 🔢 set per-tier allotment numbers to activate the (shipped) guard
+- [ ] Onboarding/settings/upgrade redesign — land + deploy
+- [ ] Ask AI per-route scope-chip audit
+- [ ] RLS prod enforcement — 🚫 role-swap + flag flip
+- [ ] Perf baseline commit + budget warn→fail
+- [ ] A11y baseline capture + CI enforce
+- [ ] Formalize staging env — 🚫
+
+### ⏳ Pending (blocked on input)
+
+- [ ] Refresh-token Item 4 — ⚠️ patient-portal cookie migration + sign-off
+- [ ] Email bounce/complaint webhooks — 🔑 ZeptoMail payload + secret
+- [ ] CI-gate frontend deploys — 🚫 Cloudflare creds
+- [ ] India-first GTM dry-run — QA
+
+### 🚫 Ops-only
+
+- [ ] Alerting + on-call (PagerDuty/Slack)
 
 ---
 
@@ -144,27 +148,83 @@ refine the roadmap and open new business opportunities.
 
 ---
 
+## 0.3 Business & product expansion (added 2026-05-30)
+
+New opportunities surfaced while implementing the Now-phase work. Grouped by
+theme; each is a roadmap candidate, not yet scheduled.
+
+### 💰 Revenue / monetization
+
+- [ ] Surface metered AI usage in the billing usage dashboard + overage; package the **Intelligence add-on**; set per-tier AI allotments to switch on the (already-shipped) enforcement guard.
+- [ ] Branded WhatsApp (BYO/MANAGED sender) as the **Professional/Hospital upsell**.
+- [ ] Activate annual + loyalty pricing in checkout (`DiscountType` ANNUAL_COMMITMENT / LOYALTY_1/2/3 already exist) to lift ARPU + retention.
+- [ ] Bill inventory / pharmacy / lab-orders for the HOSPITAL tier.
+- [ ] Make storage / branch / seat overages legible in the usage recommender.
+
+### 📈 Growth / acquisition
+
+- [ ] Activate the **dormant referral program** (`Referral` / `ReferralCredit` models exist, no workflow): invite link, credit auto-apply at signup, referral dashboard.
+- [ ] Instrument the **onboarding → paid conversion funnel** (find drop-off steps).
+- [ ] Lean into India-first organic growth: WhatsApp-shareable digital Rx / invoice / payment links as acquisition surfaces.
+
+### 🔁 Retention / engagement
+
+- [ ] Patient-portal engagement: medication adherence, self-serve follow-up booking, record/doc access; telemedicine upsell.
+- [ ] No-show reduction ROI: ship predictive no-show + reminders, quantify saved revenue.
+- [ ] NPS / feedback loop (feedback domain) → close-the-loop + reviews/reputation.
+
+### 🩺 Features (clinical breadth) — sequence §13 thin-domains by tier revenue
+
+- [ ] IPD: discharge summary + bed map (hospital tier).
+- [ ] Pharmacy dispensing workflow + inventory decrement.
+- [ ] Lab external-lab integration + result import; abnormal-value flagging.
+- [ ] Vaccines schedule + due reminders; referrals workflow.
+
+### 🇮🇳 India differentiators / compliance
+
+- [ ] ABHA/ABDM health-stack linking + e-invoice IRN — hospital/enterprise unlock + regulatory.
+- [ ] Data-residency / DPDP posture (RLS enforcement, audit export) as enterprise trust signals.
+
+### 🔒 Security
+
+- [ ] Refresh-token Item 4 (cookie migration) · WebAuthn/passkeys (Item 5) · KEK re-wrap (Item 8) · webhook-secret rotation (Item 9).
+- [ ] Email suppression list from bounce webhooks.
+
+### ⚡ Performance
+
+- [ ] Commit a CI-representative perf baseline + flip budget warn→fail · Web Vitals tracking · Lighthouse-in-CI · RDS read replica for analytics · Redis cache layer.
+
+### ♻️ Code quality
+
+- [ ] WS-2/3/4/5 SOLID/DRY splits · enforce file-size budget · consolidate types/hooks/utils · kill inline fetches · commit a visual-regression baseline.
+
+### 📊 Observability
+
+- [ ] Alerting / on-call · metrics export (Prometheus) · SLO/SLIs · WhatsApp **deliverability dashboard** off the new sweep + `WHATSAPP_DELIVERY_STALE` signal.
+
+---
+
 ## 1. Business (primary)
 
 ### Now — 🚀 beta launch readiness
 
-- **Ship the onboarding / settings / upgrade redesign** — feature-complete but uncommitted: QR-based SLA signature, doctor-verification gate (`/verify-doctor`), subscription-expiry guard → `/upgrade`, dynamic pricing on the payment step. Land → verify → deploy.
-- **Close the 5 billing-audit follow-ups** ([BILLING_AND_GATING_AUDIT_2026-05-07.md](../product/BILLING_AND_GATING_AUDIT_2026-05-07.md)): specialty-page matrix alignment, settings-tab visibility checks, comparison-table sorting by published ladder (not numeric), PLANNED-feature copy consistency, `APP_ACCESS_MATRIX` as single source of truth.
-- **India-first GTM dry-run** ([INDIA_FIRST_EXECUTION.md](../product/INDIA_FIRST_EXECUTION.md)): validate the 4-step demo (import → queue → digital Rx → invoice/follow-up) on refreshed seed data; enforce honest "live vs planned" copy — no unsupported certification or ABHA claims while those remain stubs.
+- [ ] **Ship the onboarding / settings / upgrade redesign** — feature-complete but uncommitted: QR-based SLA signature, doctor-verification gate (`/verify-doctor`), subscription-expiry guard → `/upgrade`, dynamic pricing on the payment step. Land → verify → deploy.
+- [ ] **Close the 5 billing-audit follow-ups** ([BILLING_AND_GATING_AUDIT_2026-05-07.md](../product/BILLING_AND_GATING_AUDIT_2026-05-07.md)): specialty-page matrix alignment, settings-tab visibility checks, comparison-table sorting by published ladder (not numeric), PLANNED-feature copy consistency, `APP_ACCESS_MATRIX` as single source of truth.
+- [ ] **India-first GTM dry-run** ([INDIA_FIRST_EXECUTION.md](../product/INDIA_FIRST_EXECUTION.md)): validate the 4-step demo (import → queue → digital Rx → invoice/follow-up) on refreshed seed data; enforce honest "live vs planned" copy — no unsupported certification or ABHA claims while those remain stubs.
 
 ### Next — 💰 revenue & monetization
 
-- **Enterprise WhatsApp identity** (Feature 1, [feature-to-add-their-warm-valley.md](../UpcomingPlans/feature-to-add-their-warm-valley.md)): three sender modes — SHARED (default, all tiers), BYO (`Tier.PROFESSIONAL`), MANAGED (`Tier.HOSPITAL`); new `Feature.WHATSAPP_OWN_NUMBER` / `WHATSAPP_MANAGED_NUMBER`. Ship behind flags, SHARED-first.
-- **Dynamic enterprise pricing** (Feature 2, Phase A): overage billing for doctors / prescriptions / invoices / consultations; `EnterpriseContract` line items + internal-portal contract editor + invoice preview.
-- **Tier × Mode packages** ([CUSTOM_PACKAGES.md](../product/CUSTOM_PACKAGES.md)): finish FULL / FRONT_DESK / CORE mode blocks with a single pre-override mode check; verify no bypass via stale `Clinic.features`.
-- **Operationalize the AI credit system** (see [§4](#4-ai--intelligence)): credits are scaffolded (`AI_CREDIT_COSTS`, 8 ops) but **not enforced** — quota enforcement, usage meter, and low-credit warnings are required before AI becomes a paid lever.
+- [ ] **Enterprise WhatsApp identity** (Feature 1, [feature-to-add-their-warm-valley.md](../UpcomingPlans/feature-to-add-their-warm-valley.md)): three sender modes — SHARED (default, all tiers), BYO (`Tier.PROFESSIONAL`), MANAGED (`Tier.HOSPITAL`); new `Feature.WHATSAPP_OWN_NUMBER` / `WHATSAPP_MANAGED_NUMBER`. Ship behind flags, SHARED-first.
+- [ ] **Dynamic enterprise pricing** (Feature 2, Phase A): overage billing for doctors / prescriptions / invoices / consultations; `EnterpriseContract` line items + internal-portal contract editor + invoice preview.
+- [ ] **Tier × Mode packages** ([CUSTOM_PACKAGES.md](../product/CUSTOM_PACKAGES.md)): finish FULL / FRONT_DESK / CORE mode blocks with a single pre-override mode check; verify no bypass via stale `Clinic.features`.
+- [ ] **Operationalize the AI credit system** (see [§4](#4-ai--intelligence)): credits are scaffolded (`AI_CREDIT_COSTS`, 8 ops) but **not enforced** — quota enforcement, usage meter, and low-credit warnings are required before AI becomes a paid lever.
 
 ### Later — 💰🩺 expansion & differentiation
 
-- **Whitelabel / branding** (Feature 2, Phase B): `brandingConfigSchema`; custom domain behind `Feature.DEDICATED_DEPLOYMENT`.
-- **Internationalization** ([I18N_PLAN.md](../UpcomingPlans/I18N_PLAN.md)): `next-intl`, Hindi + one regional language; decide URL strategy (segment vs cookie). Direct India-market reach lever.
-- **India health-stack differentiators** (see [§5](#5-integrations)): ABHA/ABDM linking + e-invoice IRN — regulatory/market unlocks for larger clinics and hospitals.
-- **Per-clinic infra credentials + dedicated deployment** (Feature 2, Phases C/D): gated on the first enterprise customer.
+- [ ] **Whitelabel / branding** (Feature 2, Phase B): `brandingConfigSchema`; custom domain behind `Feature.DEDICATED_DEPLOYMENT`.
+- [ ] **Internationalization** ([I18N_PLAN.md](../UpcomingPlans/I18N_PLAN.md)): `next-intl`, Hindi + one regional language; decide URL strategy (segment vs cookie). Direct India-market reach lever.
+- [ ] **India health-stack differentiators** (see [§5](#5-integrations)): ABHA/ABDM linking + e-invoice IRN — regulatory/market unlocks for larger clinics and hospitals.
+- [ ] **Per-clinic infra credentials + dedicated deployment** (Feature 2, Phases C/D): gated on the first enterprise customer.
 
 ---
 
@@ -174,21 +234,21 @@ refine the roadmap and open new business opportunities.
 
 ### Now
 
-- **Add `HOSPITAL` to the DB `ClinicTier` enum** — prerequisite for MANAGED WhatsApp + hospital contracts (today only PROFESSIONAL/ENTERPRISE map cleanly).
-- **Codify the locked-schema rule** in the migrations README + CI (additive-only, no `db:push` in prod). See [MIGRATION_HISTORY.md](../operations/MIGRATION_HISTORY.md).
+- [ ] **Add `HOSPITAL` to the DB `ClinicTier` enum** — prerequisite for MANAGED WhatsApp + hospital contracts (today only PROFESSIONAL/ENTERPRISE map cleanly).
+- [ ] **Codify the locked-schema rule** in the migrations README + CI (additive-only, no `db:push` in prod). See [MIGRATION_HISTORY.md](../operations/MIGRATION_HISTORY.md).
 
 ### Next (all additive)
 
-- **WhatsApp sender storage**: `WhatsappSenderMode` / `WhatsappSenderStatus` enums; `ClinicSecret` rows for encrypted Meta tokens (ciphertext only — never plaintext in logs/Sentry); `Clinic` sender fields.
-- **Enterprise pricing dimensions**: new `UsageType` values (`DOCTORS`, `PRESCRIPTIONS`, `INVOICES`, `CONSULTATIONS`); `EnterpriseContract` columns (included counts, per-unit overages, setup/support fees, `customLineItems` JSON).
-- **Per-tenant audit retention**: `ClinicSettings.auditRetentionDays` (defaults 180d general / 365d billing / unlimited compliance-flagged) — unblocks [§7](#7-compliance--privacy-phi--dpdp--rls) retention work.
+- [ ] **WhatsApp sender storage**: `WhatsappSenderMode` / `WhatsappSenderStatus` enums; `ClinicSecret` rows for encrypted Meta tokens (ciphertext only — never plaintext in logs/Sentry); `Clinic` sender fields.
+- [ ] **Enterprise pricing dimensions**: new `UsageType` values (`DOCTORS`, `PRESCRIPTIONS`, `INVOICES`, `CONSULTATIONS`); `EnterpriseContract` columns (included counts, per-unit overages, setup/support fees, `customLineItems` JSON).
+- [ ] **Per-tenant audit retention**: `ClinicSettings.auditRetentionDays` (defaults 180d general / 365d billing / unlimited compliance-flagged) — unblocks [§7](#7-compliance--privacy-phi--dpdp--rls) retention work.
 
 ### Later
 
-- **Domain build-out models** (additive, paired with [§3](#3-backend-platform--core-domains) / [§13](#13-thin-domain-completion-matrix)): IPD discharge/charges/timeline, Inventory PurchaseOrder/Supplier/GRN, Pharmacy dispense, Vaccine schedule, Lab panels/external-lab, Daybook, MedicationRefillRequest, Referral workflow tables.
-- **Branding config + per-clinic infra-credential rows** (extend `ClinicSecret`).
-- **Searchable-PHI strategy**: deterministic-hash shadow columns if encrypting currently-plaintext lookup fields (`mrn`, etc.) — design first.
-- **Read-path indexes**: additive indexes on hot multi-tenant queries (appointments, queue, invoices, analytics) — paired with [§8](#8-performance) query-plan review.
+- [ ] **Domain build-out models** (additive, paired with [§3](#3-backend-platform--core-domains) / [§13](#13-thin-domain-completion-matrix)): IPD discharge/charges/timeline, Inventory PurchaseOrder/Supplier/GRN, Pharmacy dispense, Vaccine schedule, Lab panels/external-lab, Daybook, MedicationRefillRequest, Referral workflow tables.
+- [ ] **Branding config + per-clinic infra-credential rows** (extend `ClinicSecret`).
+- [ ] **Searchable-PHI strategy**: deterministic-hash shadow columns if encrypting currently-plaintext lookup fields (`mrn`, etc.) — design first.
+- [ ] **Read-path indexes**: additive indexes on hot multi-tenant queries (appointments, queue, invoices, analytics) — paired with [§8](#8-performance) query-plan review.
 
 ---
 
@@ -198,21 +258,21 @@ refine the roadmap and open new business opportunities.
 
 ### Now — 🚀 beta-blocking invariants
 
-- **G3 controller RBAC posture**: every controller declares an explicit auth posture; land `check-controller-rbac.mjs` in CI. Backstops the tenant-isolation story.
-- **G11/G12 security detectors**: webhook HMAC (already verified for Razorpay/Meta — codify), upload validation, public-endpoint rate limits; audit logging at the command boundary; **no PHI in Sentry** (`check-audit-logging.mjs`, `check-sentry-scrubbing.mjs` — partly present, extend to value-level coverage).
-- **G13 job idempotency**: every QueueJob / scheduler processor declares retry + idempotency (`check-job-idempotency.mjs`). The transactional outbox already exists — codify the invariant.
+- [ ] **G3 controller RBAC posture**: every controller declares an explicit auth posture; land `check-controller-rbac.mjs` in CI. Backstops the tenant-isolation story.
+- [ ] **G11/G12 security detectors**: webhook HMAC (already verified for Razorpay/Meta — codify), upload validation, public-endpoint rate limits; audit logging at the command boundary; **no PHI in Sentry** (`check-audit-logging.mjs`, `check-sentry-scrubbing.mjs` — partly present, extend to value-level coverage).
+- [ ] **G13 job idempotency**: every QueueJob / scheduler processor declares retry + idempotency (`check-job-idempotency.mjs`). The transactional outbox already exists — codify the invariant.
 
 ### Next — ♻️ SOLID + revenue plumbing
 
-- **WS-2 backend SOLID** ([security-and-performance-audit-merry-lobster.md](../UpcomingPlans/security-and-performance-audit-merry-lobster.md)): split ~14 services >400 lines via CQS — e.g. `appointment.service.ts` (945L) → Command/Query/Rules; `invoices.service.ts` (773L) → Command/Query/Calculator. Parallelize sequential reads in `medical-history.service.ts`.
-- **WhatsApp `WhatsappSenderResolver`** + adapter refactor + webhook routing by `phone_number_id` (fall back to global); BYO token lifecycle (validate permanent tokens, alert at T-30d).
-- **Enterprise usage events**: prescription/invoice creation → usage tracking; consultation-completion event (distinct from appointment); nightly active-doctor count job.
-- **Durable background jobs**: the PG-`QueueJob` queue is best-effort and fragile on worker restart — harden retry/dead-letter or evaluate a durable backend (Redis/BullMQ). Pairs with [§10](#10-devops--infra--ci-cd) infra.
+- [ ] **WS-2 backend SOLID** ([security-and-performance-audit-merry-lobster.md](../UpcomingPlans/security-and-performance-audit-merry-lobster.md)): split ~14 services >400 lines via CQS — e.g. `appointment.service.ts` (945L) → Command/Query/Rules; `invoices.service.ts` (773L) → Command/Query/Calculator. Parallelize sequential reads in `medical-history.service.ts`.
+- [ ] **WhatsApp `WhatsappSenderResolver`** + adapter refactor + webhook routing by `phone_number_id` (fall back to global); BYO token lifecycle (validate permanent tokens, alert at T-30d).
+- [ ] **Enterprise usage events**: prescription/invoice creation → usage tracking; consultation-completion event (distinct from appointment); nightly active-doctor count job.
+- [ ] **Durable background jobs**: the PG-`QueueJob` queue is best-effort and fragile on worker restart — harden retry/dead-letter or evaluate a durable backend (Redis/BullMQ). Pairs with [§10](#10-devops--infra--ci-cd) infra.
 
 ### Later — 🩺 breadth + tests
 
-- **Complete thin domains** per [§13](#13-thin-domain-completion-matrix) (IPD, Inventory, Patient-portal, Leave, Referrals, Vaccines, Pharmacy, Daybook, Lab external integration, Feedback loop, unified Inbox).
-- **Test coverage for 0-test domains**: `ipd`, `public-booking`, `enterprise-contracts`; raise `webhooks`/`medical-documents` from minimal. Add specs alongside each feature build (WS-9).
+- [ ] **Complete thin domains** per [§13](#13-thin-domain-completion-matrix) (IPD, Inventory, Patient-portal, Leave, Referrals, Vaccines, Pharmacy, Daybook, Lab external integration, Feedback loop, unified Inbox).
+- [ ] **Test coverage for 0-test domains**: `ipd`, `public-booking`, `enterprise-contracts`; raise `webhooks`/`medical-documents` from minimal. Add specs alongside each feature build (WS-9).
 
 ---
 
@@ -222,20 +282,20 @@ refine the roadmap and open new business opportunities.
 
 ### Now
 
-- **🚀 Honesty + gating audit**: confirm AI features are correctly gated (`Feature.AI_PRESCRIPTION_ASSISTANT` / `AI_DIAGNOSIS_HINTS` etc. → ESSENTIAL) and that stubbed tabs (**Insights**, **Smart Tasks**) are clearly labeled "coming soon," not presented as live.
-- **🚀 Cost/abuse guardrails**: AI endpoints are rate-limited but **credits aren't enforced** — add a hard quota check + LLM spend logging before broader rollout.
+- [ ] **🚀 Honesty + gating audit**: confirm AI features are correctly gated (`Feature.AI_PRESCRIPTION_ASSISTANT` / `AI_DIAGNOSIS_HINTS` etc. → ESSENTIAL) and that stubbed tabs (**Insights**, **Smart Tasks**) are clearly labeled "coming soon," not presented as live.
+- [ ] **🚀 Cost/abuse guardrails**: AI endpoints are rate-limited but **credits aren't enforced** — add a hard quota check + LLM spend logging before broader rollout.
 
 ### Next
 
-- **💰 Credit system GA** (ties to [§1](#1-business-primary)): quota enforcement, usage dashboard, low-balance warnings; define what the **Intelligence add-on** actually grants (currently $0 / undefined).
-- **🩺 Ship the planned AI services** that already have features + credit costs but no implementation: **no-show prediction** (`PREDICTIVE_NO_SHOW`), **anomaly detection**, **risk/patient segmentation** (PROFESSIONAL). Start with no-show (highest operational value).
-- **♻️ LLM provider strategy decision**: today 100% OpenAI with no fallback. Decide on a provider abstraction + fallback/redundancy and the PHI-handling posture at the LLM boundary (no PHI leakage; document data-processing terms).
+- [ ] **💰 Credit system GA** (ties to [§1](#1-business-primary)): quota enforcement, usage dashboard, low-balance warnings; define what the **Intelligence add-on** actually grants (currently $0 / undefined).
+- [ ] **🩺 Ship the planned AI services** that already have features + credit costs but no implementation: **no-show prediction** (`PREDICTIVE_NO_SHOW`), **anomaly detection**, **risk/patient segmentation** (PROFESSIONAL). Start with no-show (highest operational value).
+- [ ] **♻️ LLM provider strategy decision**: today 100% OpenAI with no fallback. Decide on a provider abstraction + fallback/redundancy and the PHI-handling posture at the LLM boundary (no PHI leakage; document data-processing terms).
 
 ### Later
 
-- **🩺 Voice-to-text transcription** (credit cost defined, no impl) for clinical notes.
-- **🩺 Semantic / vector search** over notes/symptoms (current tsvector won't do similarity) — needs an embeddings + vector-store decision.
-- **🩺 Clinical-note generation/summarization** and **auto-coding suggestions** surfaced inline in the SOAP workspace.
+- [ ] **🩺 Voice-to-text transcription** (credit cost defined, no impl) for clinical notes.
+- [ ] **🩺 Semantic / vector search** over notes/symptoms (current tsvector won't do similarity) — needs an embeddings + vector-store decision.
+- [ ] **🩺 Clinical-note generation/summarization** and **auto-coding suggestions** surfaced inline in the SOAP workspace.
 
 ---
 
@@ -245,23 +305,23 @@ refine the roadmap and open new business opportunities.
 
 ### Now — 🚀
 
-- **WhatsApp delivery reliability**: add delivery/read-status reconciliation (status webhook is received but no historical polling) and harden the broadcast/bulk path.
-- **Email deliverability**: wire ZeptoMail bounce/complaint webhooks; today there is no delivery-status feedback loop.
+- [ ] **WhatsApp delivery reliability**: add delivery/read-status reconciliation (status webhook is received but no historical polling) and harden the broadcast/bulk path.
+- [ ] **Email deliverability**: wire ZeptoMail bounce/complaint webhooks; today there is no delivery-status feedback loop.
 
 ### Next — 💰
 
-- **WhatsApp BYO/MANAGED sender modes** (pairs with [§1](#1-business-primary)/[§2](#2-database)/[§3](#3-backend-platform--core-domains)) — the revenue feature.
-- **Razorpay clinic Flow B**: clinic-merchant payment provider for patient invoices (`CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN` exists; clinic-credential wiring is a TODO). Lets clinics collect into their own accounts.
-- **SMS provider** (currently a stub; `smsNotifications` flag unused): integrate an India provider (MSG91 / Exotel / AWS SNS) as a reminder fallback channel — important where WhatsApp opt-in is missing.
-- **PDF breadth**: invoice PDF (today Razorpay-hosted only), discharge summary, lab report — with clinic letterhead/branding templating.
+- [ ] **WhatsApp BYO/MANAGED sender modes** (pairs with [§1](#1-business-primary)/[§2](#2-database)/[§3](#3-backend-platform--core-domains)) — the revenue feature.
+- [ ] **Razorpay clinic Flow B**: clinic-merchant payment provider for patient invoices (`CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN` exists; clinic-credential wiring is a TODO). Lets clinics collect into their own accounts.
+- [ ] **SMS provider** (currently a stub; `smsNotifications` flag unused): integrate an India provider (MSG91 / Exotel / AWS SNS) as a reminder fallback channel — important where WhatsApp opt-in is missing.
+- [ ] **PDF breadth**: invoice PDF (today Razorpay-hosted only), discharge summary, lab report — with clinic letterhead/branding templating.
 
 ### Later — 🩺 India health stack (differentiators)
 
-- **e-Invoice / GST IRN** (currently stubbed; **critical compliance gap for larger clinics**): IRN generation + QR via NIC IRP or a GSP, HSN/SAC master sync, e-way bill for IPD transfers. GST line-item split already works.
-- **ABHA / ABDM** (currently a stored `abhaAddress` field only; **major India-market gap**): ABHA creation/linking, PHR consent manager, HIP/HIU record exchange, ABDM HPR for doctor verification (stub noted in `doctor-verification.service.ts`).
-- **OCR maturity**: auto-retry on failures, batch re-processing of low-confidence docs, OCR cost/usage monitoring.
-- **External lab integration** ([§13](#13-thin-domain-completion-matrix)): order submission + result webhook import (Metropolis/Thyrocare), result normalization, abnormal-value flagging.
-- **Calendar sync** (Google/Outlook/iCal) — not started; doctor convenience feature.
+- [ ] **e-Invoice / GST IRN** (currently stubbed; **critical compliance gap for larger clinics**): IRN generation + QR via NIC IRP or a GSP, HSN/SAC master sync, e-way bill for IPD transfers. GST line-item split already works.
+- [ ] **ABHA / ABDM** (currently a stored `abhaAddress` field only; **major India-market gap**): ABHA creation/linking, PHR consent manager, HIP/HIU record exchange, ABDM HPR for doctor verification (stub noted in `doctor-verification.service.ts`).
+- [ ] **OCR maturity**: auto-retry on failures, batch re-processing of low-confidence docs, OCR cost/usage monitoring.
+- [ ] **External lab integration** ([§13](#13-thin-domain-completion-matrix)): order submission + result webhook import (Metropolis/Thyrocare), result normalization, abnormal-value flagging.
+- [ ] **Calendar sync** (Google/Outlook/iCal) — not started; doctor convenience feature.
 
 ---
 
@@ -271,21 +331,21 @@ refine the roadmap and open new business opportunities.
 
 ### Now — 🚀
 
-- **Item 4 — stop returning unhashed refresh tokens** in any response/error path; single-transaction rotate with `Session.replacedByHash` (`auth-session.service.ts`).
-- **State-based account lockout**: `User.failedLoginAttempts` / `accountLockedUntil` fields exist but enforcement is throttle-based only — wire actual lockout + password history/expiry enforcement.
-- **Item 3 — session-bound signed URLs** for PDFs (HMAC of `sessionId + url + nonce`); `check-pdf-bearer-cap.mjs` must pass.
+- [ ] **Item 4 — stop returning unhashed refresh tokens** in any response/error path; single-transaction rotate with `Session.replacedByHash` (`auth-session.service.ts`).
+- [ ] **State-based account lockout**: `User.failedLoginAttempts` / `accountLockedUntil` fields exist but enforcement is throttle-based only — wire actual lockout + password history/expiry enforcement.
+- [ ] **Item 3 — session-bound signed URLs** for PDFs (HMAC of `sessionId + url + nonce`); `check-pdf-bearer-cap.mjs` must pass.
 
 ### Next — 🔒
 
-- **Item 9 — rotating webhook secrets** with overlap windows (`*_WEBHOOK_SECRET_VERSIONS` JSON; verifier tries all active versions) for Razorpay + Meta.
-- **Item 8 — automated KEK rotation**: env scaffold (`ENCRYPTION_KEY_V2..V5`) exists; ship the re-wrap scheduler that migrates old-key data forward, with audit logging. See [KEY_ROTATION.md](../operations/KEY_ROTATION.md).
-- **Item 5 — WebAuthn/passkey MFA**: `WebAuthnCredential` model + `/auth/webauthn/*` endpoints + settings UI + recovery codes.
+- [ ] **Item 9 — rotating webhook secrets** with overlap windows (`*_WEBHOOK_SECRET_VERSIONS` JSON; verifier tries all active versions) for Razorpay + Meta.
+- [ ] **Item 8 — automated KEK rotation**: env scaffold (`ENCRYPTION_KEY_V2..V5`) exists; ship the re-wrap scheduler that migrates old-key data forward, with audit logging. See [KEY_ROTATION.md](../operations/KEY_ROTATION.md).
+- [ ] **Item 5 — WebAuthn/passkey MFA**: `WebAuthnCredential` model + `/auth/webauthn/*` endpoints + settings UI + recovery codes.
 
 ### Later — 🔒
 
-- **Upload hardening**: Content-Type check before magic-byte, image-dimension limits (DoS), optional malware scanning.
-- **Per-clinic API rate limits**: wire `ClinicApiQuota` (schema exists) to HTTP handlers; queue-depth limits on bulk import. See [RATE_LIMITS.md](../operations/RATE_LIMITS.md).
-- **KMS integration** for key material (today env-var + Fly secrets); scheduled secret rotation ([SECRET_ROTATION_CHECKLIST.md](../operations/SECRET_ROTATION_CHECKLIST.md)).
+- [ ] **Upload hardening**: Content-Type check before magic-byte, image-dimension limits (DoS), optional malware scanning.
+- [ ] **Per-clinic API rate limits**: wire `ClinicApiQuota` (schema exists) to HTTP handlers; queue-depth limits on bulk import. See [RATE_LIMITS.md](../operations/RATE_LIMITS.md).
+- [ ] **KMS integration** for key material (today env-var + Fly secrets); scheduled secret rotation ([SECRET_ROTATION_CHECKLIST.md](../operations/SECRET_ROTATION_CHECKLIST.md)).
 
 ---
 
@@ -295,19 +355,19 @@ refine the roadmap and open new business opportunities.
 
 ### Now — 🚀 (highest-leverage compliance item)
 
-- **Enforce RLS in production**: migration `20260502143500_add_rls_policies` + `TenantContextInterceptor` / `RlsService` are ready, but enforcement requires (1) provisioning the non-owner `docita_app` role (`packages/db/scripts/provision-docita-app-role.sql`), (2) pointing `DATABASE_URL` at it, (3) a staging dry-run with `RLS_ENABLED=true`, then (4) prod flip + 24h soak. **Until flipped, tenant isolation relies solely on app-layer scoping.**
+- [ ] **Enforce RLS in production**: migration `20260502143500_add_rls_policies` + `TenantContextInterceptor` / `RlsService` are ready, but enforcement requires (1) provisioning the non-owner `docita_app` role (`packages/db/scripts/provision-docita-app-role.sql`), (2) pointing `DATABASE_URL` at it, (3) a staging dry-run with `RLS_ENABLED=true`, then (4) prod flip + 24h soak. **Until flipped, tenant isolation relies solely on app-layer scoping.**
 
 ### Next — 🔒
 
-- **Per-tenant retention** (needs [§2](#2-database) `auditRetentionDays`): scheduler respects per-clinic windows + operator UI in `apps/internal`.
-- **Consent revocation workflow**: today consent, once granted, persists unless an expiry is set — add revoke + gate-check on revocation.
-- **PHI-in-logs value-level scrubbing**: the current check catches field _names_; extend to value patterns in stack traces.
+- [ ] **Per-tenant retention** (needs [§2](#2-database) `auditRetentionDays`): scheduler respects per-clinic windows + operator UI in `apps/internal`.
+- [ ] **Consent revocation workflow**: today consent, once granted, persists unless an expiry is set — add revoke + gate-check on revocation.
+- [ ] **PHI-in-logs value-level scrubbing**: the current check catches field _names_; extend to value patterns in stack traces.
 
 ### Later — 🔒
 
-- **Regulator / audit export job** (designed in [AUDIT_EXPORT.md](../compliance/AUDIT_EXPORT.md), not shipped): worker processor, PHI-scrubbed, envelope-encrypted per clinic KEK, session-bound signed download.
-- **DPIA tooling/template**; document-content encryption-at-rest in R2 (today relies on transport + provider-side at-rest).
-- **India-specific**: ABHA/ABDM consent manager (pairs with [§5](#5-integrations)); PAN/Aadhaar validation if required.
+- [ ] **Regulator / audit export job** (designed in [AUDIT_EXPORT.md](../compliance/AUDIT_EXPORT.md), not shipped): worker processor, PHI-scrubbed, envelope-encrypted per clinic KEK, session-bound signed download.
+- [ ] **DPIA tooling/template**; document-content encryption-at-rest in R2 (today relies on transport + provider-side at-rest).
+- [ ] **India-specific**: ABHA/ABDM consent manager (pairs with [§5](#5-integrations)); PAN/Aadhaar validation if required.
 
 ---
 
@@ -317,20 +377,20 @@ refine the roadmap and open new business opportunities.
 
 ### Now — 🚀
 
-- **Commit a clean perf baseline** (`pnpm perf:baseline` on stable main → `logs/performance/baseline.json`).
-- **Promote budget mode `warn` → `fail`** so >15% route-size regressions block CI.
+- [ ] **Commit a clean perf baseline** (`pnpm perf:baseline` on stable main → `logs/performance/baseline.json`).
+- [ ] **Promote budget mode `warn` → `fail`** so >15% route-size regressions block CI.
 
 ### Next — ⚡
 
-- **WS-6 read parallelization** of sequential `findMany` calls + **React Query `staleTime`/`gcTime` audit** across hot pages.
-- **Bundle analysis** (`ANALYZE=true`) per route vs budgets; trim the heaviest imports.
-- **Web Vitals tracking**: wire `PERF_API_BASE_URL` into baseline collection; track LCP/INP/CLS against targets.
+- [ ] **WS-6 read parallelization** of sequential `findMany` calls + **React Query `staleTime`/`gcTime` audit** across hot pages.
+- [ ] **Bundle analysis** (`ANALYZE=true`) per route vs budgets; trim the heaviest imports.
+- [ ] **Web Vitals tracking**: wire `PERF_API_BASE_URL` into baseline collection; track LCP/INP/CLS against targets.
 
 ### Later — ⚡
 
-- **Headless Lighthouse** in CI checking `ROUTE_WEB_VITALS`.
-- **DB read scaling**: RDS read replica for analytics/reporting (trigger ~20+ clinics); query-plan review with [§2](#2-database) additive indexes.
-- **Persistent cache layer**: the in-process cache is lost on restart — evaluate Redis for AI/search/auth-snapshot caches.
+- [ ] **Headless Lighthouse** in CI checking `ROUTE_WEB_VITALS`.
+- [ ] **DB read scaling**: RDS read replica for analytics/reporting (trigger ~20+ clinics); query-plan review with [§2](#2-database) additive indexes.
+- [ ] **Persistent cache layer**: the in-process cache is lost on restart — evaluate Redis for AI/search/auth-snapshot caches.
 
 ---
 
@@ -340,20 +400,20 @@ refine the roadmap and open new business opportunities.
 
 ### Now — 🚀 beta-blocking
 
-- **A11y sweep across all TRACK/SERVICES routes** (not the current subset) via `apps/app/e2e/accessibility.spec.ts`; fix critical/serious Axe issues; **commit the a11y baseline** (`artifacts/a11y-baseline.json`, G14) and enforce in CI.
-- **Motion-policy compliance** (standard §5): remove banned decorative `animate-in` / `transition-all`; keep only `animate-spin` + `transition-colors duration-150`. Spot-check onboarding/auth.
-- **Ask AI surface completeness**: pinned affordance + scope chips on Today, patient detail, consultation, appointments.
+- [ ] **A11y sweep across all TRACK/SERVICES routes** (not the current subset) via `apps/app/e2e/accessibility.spec.ts`; fix critical/serious Axe issues; **commit the a11y baseline** (`artifacts/a11y-baseline.json`, G14) and enforce in CI.
+- [ ] **Motion-policy compliance** (standard §5): remove banned decorative `animate-in` / `transition-all`; keep only `animate-spin` + `transition-colors duration-150`. Spot-check onboarding/auth.
+- [ ] **Ask AI surface completeness**: pinned affordance + scope chips on Today, patient detail, consultation, appointments.
 
 ### Next — 🎨
 
-- **Remove app-local `@workspace/ui` duplicates** (empty-state, back-button); delete the stale `sidebarItems` constant; enforce the sidebar IA.
-- **WS-3 frontend SOLID**: split 9 components >700 lines (`public-booking-form-sections.tsx` 1374L, `sidebar.tsx` 826L) into sections + hooks.
-- **DataState rollout**: migrate ~656 ad-hoc `isLoading/isEmpty/error` sites to page-level `DataState`.
+- [ ] **Remove app-local `@workspace/ui` duplicates** (empty-state, back-button); delete the stale `sidebarItems` constant; enforce the sidebar IA.
+- [ ] **WS-3 frontend SOLID**: split 9 components >700 lines (`public-booking-form-sections.tsx` 1374L, `sidebar.tsx` 826L) into sections + hooks.
+- [ ] **DataState rollout**: migrate ~656 ad-hoc `isLoading/isEmpty/error` sites to page-level `DataState`.
 
 ### Later — 🎨
 
-- **Post-launch polish build** ([post-launch-polish.md](../UpcomingPlans/post-launch-polish.md)): 23 designed clinic-OS screens (SOAP chart, Rx w/ drug search + allergy alerts, week calendar, reception queue/floor panel, daybook, IPD bed map), mobile companion kit, landing brand refresh.
-- **Exercise `compact`/`spacious` density** on consultation/patients/appointments; audit `design-tokens.ts` vs `globals.css` drift.
+- [ ] **Post-launch polish build** ([post-launch-polish.md](../UpcomingPlans/post-launch-polish.md)): 23 designed clinic-OS screens (SOAP chart, Rx w/ drug search + allergy alerts, week calendar, reception queue/floor panel, daybook, IPD bed map), mobile companion kit, landing brand refresh.
+- [ ] **Exercise `compact`/`spacious` density** on consultation/patients/appointments; audit `design-tokens.ts` vs `globals.css` drift.
 
 ---
 
@@ -363,19 +423,19 @@ refine the roadmap and open new business opportunities.
 
 ### Now — 🚀
 
-- **Formalize the staging environment** ([STAGING.md](../operations/STAGING.md) exists; complete it): dedicated Fly apps + RDS snapshot/replica + env-var guards so prod secrets/config can't leak into staging. Needed to safely dry-run RLS ([§7](#7-compliance--privacy-phi--dpdp--rls)) and releases.
-- **CI-gate frontend deploys** (today manual via Cloudflare) to match the backend release gates.
+- [ ] **Formalize the staging environment** ([STAGING.md](../operations/STAGING.md) exists; complete it): dedicated Fly apps + RDS snapshot/replica + env-var guards so prod secrets/config can't leak into staging. Needed to safely dry-run RLS ([§7](#7-compliance--privacy-phi--dpdp--rls)) and releases.
+- [ ] **CI-gate frontend deploys** (today manual via Cloudflare) to match the backend release gates.
 
 ### Next — 🔒♻️
 
-- **Scheduler module split**: extract `@Cron` handlers into worker-only modules to cut API RSS and isolate scheduling.
-- **Backup hardening**: cross-region snapshot copy, documented PITR runbook, periodic restore verification (snapshots are created but never tested). Extend [DR_RUNBOOK.md](../operations/DR_RUNBOOK.md).
+- [ ] **Scheduler module split**: extract `@Cron` handlers into worker-only modules to cut API RSS and isolate scheduling.
+- [ ] **Backup hardening**: cross-region snapshot copy, documented PITR runbook, periodic restore verification (snapshots are created but never tested). Extend [DR_RUNBOOK.md](../operations/DR_RUNBOOK.md).
 
 ### Later
 
-- **RDS read replica + scale plan** (pairs with [§8](#8-performance)); evaluate a durable queue backend ([§3](#3-backend-platform--core-domains)).
-- **Multi-region / failover** posture; load-balancer review.
-- **IaC / Terraform + dedicated-deployment tooling** (Feature 2, Phase D — gated on the first enterprise customer).
+- [ ] **RDS read replica + scale plan** (pairs with [§8](#8-performance)); evaluate a durable queue backend ([§3](#3-backend-platform--core-domains)).
+- [ ] **Multi-region / failover** posture; load-balancer review.
+- [ ] **IaC / Terraform + dedicated-deployment tooling** (Feature 2, Phase D — gated on the first enterprise customer).
 
 ---
 
@@ -385,18 +445,18 @@ refine the roadmap and open new business opportunities.
 
 ### Now — 🚀
 
-- **Alerting + on-call**: synthetic probes log failures but there is **no PagerDuty/Slack alerting** — wire alerts for probe failure, error-rate spike, and missing cron heartbeat. Biggest reliability gap for beta.
-- **Cron heartbeat pruning**: rows accumulate unbounded — schedule cleanup.
+- [ ] **Alerting + on-call**: synthetic probes log failures but there is **no PagerDuty/Slack alerting** — wire alerts for probe failure, error-rate spike, and missing cron heartbeat. Biggest reliability gap for beta.
+- [ ] **Cron heartbeat pruning**: rows accumulate unbounded — schedule cleanup.
 
 ### Next
 
-- **Metrics export**: `/metrics` (Prometheus) or push to Datadog/Grafana; today metrics live only in the DB.
-- **SLO/SLI definitions** (availability, p99 latency) with error budgets.
+- [ ] **Metrics export**: `/metrics` (Prometheus) or push to Datadog/Grafana; today metrics live only in the DB.
+- [ ] **SLO/SLI definitions** (availability, p99 latency) with error budgets.
 
 ### Later
 
-- **APM / distributed tracing** (OpenTelemetry) across API → DB → R2 → webhooks.
-- **Real-time dashboards** (Grafana/Datadog); expand synthetic probes to clinic-level e2e flows.
+- [ ] **APM / distributed tracing** (OpenTelemetry) across API → DB → R2 → webhooks.
+- [ ] **Real-time dashboards** (Grafana/Datadog); expand synthetic probes to clinic-level e2e flows.
 
 ---
 
@@ -406,20 +466,20 @@ refine the roadmap and open new business opportunities.
 
 ### Now — ♻️
 
-- **Hold shipped wins**: confirm features use `@/lib/monitoring/logger`, not `console.*`; keep fetch-ban + prisma-boundary green.
-- **Knip baseline** with CSS `@import` exceptions allowlisted (Knip misses `@fontsource/*` in `globals.css`) so drift is visible without false positives.
+- [ ] **Hold shipped wins**: confirm features use `@/lib/monitoring/logger`, not `console.*`; keep fetch-ban + prisma-boundary green.
+- [ ] **Knip baseline** with CSS `@import` exceptions allowlisted (Knip misses `@fontsource/*` in `globals.css`) so drift is visible without false positives.
 
 ### Next — ♻️
 
-- **WS-4 DRY consolidation**: app-local types → `packages/types`, hooks → `packages/hooks`, utils → `packages/utils`; eliminate ~64 inline `fetch()` calls in `apps/app` via data-access (G1/G2/G7/G8).
-- **WS-5 cleanup**: residual `as any` / `@ts-ignore`, raw hex outside `globals.css`, `transition-all`, ad-hoc font-size literals.
-- **WS-1 tier/role hygiene**: soft-deprecate unused `HospitalRole` (12 values) + 16 `Specialization` values (export active sets only); land `check-tier-comparisons.mjs` (G4/G9).
+- [ ] **WS-4 DRY consolidation**: app-local types → `packages/types`, hooks → `packages/hooks`, utils → `packages/utils`; eliminate ~64 inline `fetch()` calls in `apps/app` via data-access (G1/G2/G7/G8).
+- [ ] **WS-5 cleanup**: residual `as any` / `@ts-ignore`, raw hex outside `globals.css`, `transition-all`, ad-hoc font-size literals.
+- [ ] **WS-1 tier/role hygiene**: soft-deprecate unused `HospitalRole` (12 values) + 16 `Specialization` values (export active sets only); land `check-tier-comparisons.mjs` (G4/G9).
 
 ### Later — ♻️
 
-- **Enforce `check-file-size-budget` (400L)** once the 14 oversized files are decomposed.
-- **WS-8 docs**: keep [AGENTS.md](../../AGENTS.md) §15 Pattern Catalogue authoritative; per-package READMEs.
-- **WS-9 test density**: feature-hook unit tests; commit the Playwright visual-regression baseline; sidebar-IA assertion.
+- [ ] **Enforce `check-file-size-budget` (400L)** once the 14 oversized files are decomposed.
+- [ ] **WS-8 docs**: keep [AGENTS.md](../../AGENTS.md) §15 Pattern Catalogue authoritative; per-package READMEs.
+- [ ] **WS-9 test density**: feature-hook unit tests; commit the Playwright visual-regression baseline; sidebar-IA assertion.
 
 ---
 
