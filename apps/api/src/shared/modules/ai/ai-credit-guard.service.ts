@@ -11,7 +11,6 @@ import {
   isAiCreditEnforced,
   isAiCreditExhausted,
   isAnyAiCreditTierEnforced,
-  type TierName,
 } from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
@@ -48,7 +47,8 @@ export class AiCreditGuardService {
         where: { id: clinicId },
         select: { tier: true },
       });
-      const tier = clinic?.tier as TierName | undefined;
+      // ClinicTier (db) values are a subset of TierName, so no cast needed.
+      const tier = clinic?.tier;
       if (!tier || !isAiCreditEnforced(tier)) return;
 
       const used = await this.currentPeriodAiCredits(clinicId);
