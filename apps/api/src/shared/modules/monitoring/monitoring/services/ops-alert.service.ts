@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 export type OpsAlertPayload = {
@@ -35,7 +36,7 @@ export class OpsAlertService {
       .join('\n');
 
     try {
-      const response = await fetch(webhookUrl, {
+      const response = await fetchWithTimeout(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
