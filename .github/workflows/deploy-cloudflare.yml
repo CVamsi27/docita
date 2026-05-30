@@ -60,15 +60,26 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       enabled: ${{ steps.check.outputs.enabled }}
+      reason: ${{ steps.check.outputs.reason }}
     steps:
+      - uses: actions/checkout@v5
+
       - id: check
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          if [ -n "${CLOUDFLARE_API_TOKEN}" ]; then
+          if [ -z "${CLOUDFLARE_API_TOKEN}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID}" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "reason=missing-secrets" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if node scripts/deploy/verify-cloudflare-deploy-credentials.mjs; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "reason=ready" >> "$GITHUB_OUTPUT"
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "reason=invalid-credentials" >> "$GITHUB_OUTPUT"
           fi
 
   deploy-app:
@@ -93,6 +104,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Clear wrangler deploy cache
+        run: rm -rf node_modules/.cache/wrangler apps/app/.wrangler
 
       - name: Build and deploy
         env:
@@ -123,6 +137,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Clear wrangler deploy cache
+        run: rm -rf node_modules/.cache/wrangler apps/internal/.wrangler
+
       - name: Build and deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -152,6 +169,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Clear wrangler deploy cache
+        run: rm -rf node_modules/.cache/wrangler apps/landing/.wrangler
+
       - name: Build and deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -170,6 +190,14 @@ jobs:
       )
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v5
+
       - name: Log skip reason
+        env:
+          SKIP_REASON: ${{ needs.gate.outputs.reason }}
         run: |
-          echo "Cloudflare deploy skipped: set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets to enable CI-gated frontend deploys."
+          if [ "${SKIP_REASON}" = "invalid-credentials" ]; then
+            echo "::warning::Cloudflare deploy skipped: CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID failed verification (authentication error 10000 / missing Workers Routes permission). Rotate the token using the Edit Cloudflare Workers template with Zone Workers Routes access for docita.work, then re-run this workflow."
+          else
+            echo "Cloudflare deploy skipped: set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets to enable CI-gated frontend deploys."
+          fi
