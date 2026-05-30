@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny-ps" viewBox="0 0 512 512">
+  <title>Docita</title>
+  <desc>Docita brand mark for BIMI</desc>
+  <rect fill="#1a1d21" width="512" height="512"/>
+  <circle fill="#3a4048" cx="256" cy="256" r="232"/>
+  <rect fill="#ffffff" x="148" y="128" width="56" height="256" rx="12"/>
+  <path fill="#ffffff" d="M204 192c0-40 42-72 100-72s100 32 100 72v112c0 40-42 72-100 72s-100-32-100-72V192z"/>
+  <linearGradient id="g" gradientUnits="userSpaceOnUse" x1="312" y1="168" x2="388" y2="208">
+    <stop offset="0" stop-color="#22d3ee"/>
+    <stop offset="1" stop-color="#a3e635"/>
+  </linearGradient>
+  <rect fill="url(#g)" x="318" y="156" width="72" height="20" rx="6"/>
+  <rect fill="url(#g)" x="344" y="132" width="20" height="68" rx="6"/>
+</svg>
