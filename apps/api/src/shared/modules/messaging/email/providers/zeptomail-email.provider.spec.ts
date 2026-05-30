@@ -57,8 +57,7 @@ describe('ZeptoMailEmailProvider', () => {
   it('supports text-only transactional emails', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      text: async () =>
-        JSON.stringify({ data: [{ message_id: 'msg-text' }] }),
+      text: async () => JSON.stringify({ data: [{ message_id: 'msg-text' }] }),
     } as Response);
 
     const provider = createProvider();
@@ -85,8 +84,7 @@ describe('ZeptoMailEmailProvider', () => {
   it('prefixes bare send mail tokens with Zoho-enczapikey', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      text: async () =>
-        JSON.stringify({ data: [{ message_id: 'msg-2' }] }),
+      text: async () => JSON.stringify({ data: [{ message_id: 'msg-2' }] }),
     } as Response);
 
     const provider = createProvider('plain-token');

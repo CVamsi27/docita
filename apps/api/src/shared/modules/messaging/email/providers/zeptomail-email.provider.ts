@@ -121,7 +121,8 @@ export class ZeptoMailEmailProvider implements IEmailProvider {
     if (!payload) {
       return {
         success: false,
-        error: 'Email must include at least one recipient and html or text body',
+        error:
+          'Email must include at least one recipient and html or text body',
       };
     }
 
