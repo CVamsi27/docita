@@ -29,6 +29,28 @@ const safeEqual = (a: string, b: string): boolean => {
   }
 };
 
+const claimReplay = async (
+  dedupeRepository: WebhookReplayDedupeRepository,
+  provider: WebhookProvider,
+  signature: string,
+  rawBody: Buffer,
+  signedTimestampSeconds?: number,
+): Promise<WebhookVerificationResult> => {
+  const replayKey = buildReplayKey(
+    provider,
+    signature,
+    rawBody,
+    signedTimestampSeconds,
+  );
+  const dedupeKeyHash = createHash('sha256').update(replayKey).digest('hex');
+  const expiresAt = new Date(Date.now() + REPLAY_CACHE_TTL_MS);
+  const claimed = await dedupeRepository.tryClaim(dedupeKeyHash, expiresAt);
+  if (!claimed) {
+    return { ok: false, failure: 'replayed' };
+  }
+  return { ok: true };
+};
+
 const buildReplayKey = (
   provider: WebhookProvider,
   signature: string,
@@ -73,6 +95,26 @@ export class WebhookVerifierService {
       }
     }
 
+    if (input.authMode === 'shared-secret-header') {
+      const provided = input.sharedSecretHeader?.trim();
+      if (!provided || !safeEqual(provided, input.secret)) {
+        return { ok: false, failure: 'invalid-signature' };
+      }
+      const replay = await claimReplay(
+        this.dedupeRepository,
+        input.provider,
+        provided,
+        input.rawBody,
+        input.signedTimestampSeconds,
+      );
+      if (!replay.ok) {
+        this.logger.warn(
+          `Replayed webhook detected for provider ${input.provider}`,
+        );
+      }
+      return replay;
+    }
+
     const expected = computeSignature(
       input.secret,
       input.rawBody,
@@ -82,24 +124,18 @@ export class WebhookVerifierService {
       return { ok: false, failure: 'invalid-signature' };
     }
 
-    const replayKey = buildReplayKey(
+    const replay = await claimReplay(
+      this.dedupeRepository,
       input.provider,
       input.signature,
       input.rawBody,
       input.signedTimestampSeconds,
     );
-    const dedupeKeyHash = createHash('sha256').update(replayKey).digest('hex');
-    const expiresAt = new Date(Date.now() + REPLAY_CACHE_TTL_MS);
-    const claimed = await this.dedupeRepository.tryClaim(
-      dedupeKeyHash,
-      expiresAt,
-    );
-    if (!claimed) {
+    if (!replay.ok) {
       this.logger.warn(
         `Replayed webhook detected for provider ${input.provider}`,
       );
-      return { ok: false, failure: 'replayed' };
     }
-    return { ok: true };
+    return replay;
   }
 }

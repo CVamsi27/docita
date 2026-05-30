@@ -1,9 +1,18 @@
-export type WebhookProvider = 'razorpay' | 'meta-whatsapp';
+export type WebhookProvider = 'razorpay' | 'meta-whatsapp' | 'zeptomail';
+
+export type WebhookAuthMode = 'hmac-body' | 'shared-secret-header';
 
 export interface WebhookVerificationInput {
   provider: WebhookProvider;
   rawBody: Buffer;
   signature: string;
+  /**
+   * Defaults to HMAC verification of {@link rawBody}. ZeptoMail's primary auth
+   * uses a configured Authorization header instead of a body signature.
+   */
+  authMode?: WebhookAuthMode;
+  /** Required when {@link authMode} is `shared-secret-header`. */
+  sharedSecretHeader?: string;
   /**
    * Optional pre-computed prefix for HMAC algorithms that emit a
    * versioned signature (e.g. Meta's `sha256=...`).
