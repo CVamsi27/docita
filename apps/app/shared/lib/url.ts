@@ -1,6 +1,6 @@
 "use client";
 
-import { API_URL } from "@/lib/api/api-config";
+import { getAppApiUrl } from "@/lib/api/api-config";
 import { getAppUrl } from "@/lib/constants/env-config";
 
 function normalizePath(pathOrUrl: string): string {
@@ -9,7 +9,7 @@ function normalizePath(pathOrUrl: string): string {
 
 function resolveApiOrigin(): string {
   try {
-    return new URL(API_URL).origin;
+    return new URL(getAppApiUrl()).origin;
   } catch {
     if (typeof window !== "undefined" && window.location?.origin) {
       return window.location.origin;

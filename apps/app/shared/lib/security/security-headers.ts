@@ -1,7 +1,3 @@
-const DEFAULT_PUBLIC_API_URL =
-  process.env["DOCITA_CLOUDFLARE"] === "1"
-    ? "/api/v1"
-    : "http://localhost:3001/api/v1";
 const DEFAULT_PUBLIC_APP_URL =
   process.env["DOCITA_CLOUDFLARE"] === "1"
     ? "https://app.docita.work"
@@ -14,11 +10,20 @@ const DEFAULT_PUBLIC_SOCKET_URL =
 /** Public /book flow loads Turnstile from this origin (see `TurnstileWidget`). */
 const CLOUDFLARE_TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
 
-function toOrigin(source: string): string {
+/** CSP source lists require origins, schemes, or keywords — not path-only URLs. */
+function normalizeCspSource(source: string): string | undefined {
+  if (source.startsWith("/")) {
+    return undefined;
+  }
+
+  if (source.startsWith("'") || source.endsWith(":")) {
+    return source;
+  }
+
   try {
     return new URL(source).origin;
   } catch {
-    return source;
+    return undefined;
   }
 }
 
@@ -68,37 +73,26 @@ const CONNECT_SOURCES = [
   "https://checkout.razorpay.com",
   "https://lumberjack.razorpay.com",
   "https://*.sentry.io",
-  DEFAULT_PUBLIC_API_URL,
   DEFAULT_PUBLIC_SOCKET_URL,
   ...SOCKET_SOURCES.map(toWebSocketOrigin),
-  process.env["NEXT_PUBLIC_API_URL"],
   process.env["NEXT_PUBLIC_SOCKET_URL"],
   process.env["NEXT_PUBLIC_ANALYTICS_URL"],
 ]
   .filter((source): source is string => Boolean(source))
-  .map((source) => (source.startsWith("/") ? source : toOrigin(source)));
+  .map(normalizeCspSource)
+  .filter((source): source is string => Boolean(source));
 
 const IMAGE_SOURCES = [
   "'self'",
   "data:",
   "blob:",
   "https:",
-  process.env["NEXT_PUBLIC_API_URL"] ?? DEFAULT_PUBLIC_API_URL,
+  resolveApiProxyOrigin(),
   process.env["NEXT_PUBLIC_APP_URL"] ?? DEFAULT_PUBLIC_APP_URL,
 ]
   .filter((source): source is string => Boolean(source))
-  .map((source) => {
-    if (source.endsWith(":")) {
-      return source;
-    }
-
-    try {
-      const url = new URL(source);
-      return url.origin;
-    } catch {
-      return source;
-    }
-  });
+  .map(normalizeCspSource)
+  .filter((source): source is string => Boolean(source));
 
 const FRAME_SOURCES = [
   "'self'",

@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
     clearSession: vi.fn(),
     getCsrfToken: vi.fn(),
     refreshAccessToken: vi.fn(),
+    redirectToLogin: vi.fn(),
   },
 }));
 
@@ -71,6 +72,7 @@ describe("AuthProvider", () => {
     mocks.session.clearSession.mockReset();
     mocks.session.getCsrfToken.mockReset();
     mocks.session.refreshAccessToken.mockReset();
+    mocks.session.redirectToLogin.mockReset();
 
     mocks.session.getToken.mockReturnValue("stale-token");
     mocks.session.getCsrfToken.mockReturnValue(null);
@@ -114,6 +116,7 @@ describe("AuthProvider", () => {
 
     expect(mocks.session.refreshAccessToken).toHaveBeenCalledTimes(1);
     expect(mocks.session.clearSession).toHaveBeenCalledTimes(1);
+    expect(mocks.session.redirectToLogin).toHaveBeenCalledTimes(1);
   });
 
   it("hydrates the latest onboarding step from validate", async () => {

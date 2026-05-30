@@ -10,11 +10,11 @@ import type { UseMutationOptions, UseQueryOptions } from "@tanstack/react-query"
 import type { z } from "zod";
 import { type PaginatedResponse } from "@workspace/types";
 import { getUserFacingErrorMessage } from "@workspace/utils";
-import { API_URL } from "./api-config";
+import { API_URL, getAppApiUrl } from "./api-config";
 import { apiFetch } from "./api-client";
 import { ApiError } from "@/lib/errors";
 
-export { API_URL };
+export { API_URL, getAppApiUrl };
 export type { PaginatedResponse };
 
 // React Query wrappers live in @workspace/data-access (transport-agnostic,

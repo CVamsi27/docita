@@ -12,7 +12,7 @@ import {
   VERIFICATION_EMAIL_STATUS_STORAGE_KEY,
 } from "@/lib/auth/auth-context";
 import { logger } from "@/lib/monitoring/logger";
-import { API_URL } from "@/lib/api/api-config";
+import { getAppApiUrl } from "@/lib/api/api-config";
 import { browserRequest } from "@/lib/auth/browser-request";
 import { PreDashboardShell } from "@/features/auth";
 import { BackButton } from "@/components/navigation/back-button";
@@ -34,7 +34,8 @@ function VerifyEmailInner() {
     }
 
     let cancelled = false;
-    const base = API_URL.endsWith("/") ? API_URL : `${API_URL}/`;
+    const apiUrl = getAppApiUrl();
+    const base = apiUrl.endsWith("/") ? apiUrl : `${apiUrl}/`;
 
     async function verifyEmail() {
       try {

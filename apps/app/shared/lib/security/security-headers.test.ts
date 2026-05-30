@@ -41,4 +41,21 @@ describe("buildContentSecurityPolicy", () => {
     const csp = buildContentSecurityPolicy();
     expect(csp).toContain("object-src 'none'");
   });
+
+  it("does not emit invalid path-only connect-src or img-src entries", () => {
+    const csp = buildContentSecurityPolicy({ isProduction: true });
+    const connectSrc = csp
+      .split(";")
+      .map((d) => d.trim())
+      .find((d) => d.startsWith("connect-src"));
+    const imgSrc = csp
+      .split(";")
+      .map((d) => d.trim())
+      .find((d) => d.startsWith("img-src"));
+
+    expect(connectSrc).toBeDefined();
+    expect(imgSrc).toBeDefined();
+    expect(connectSrc).not.toMatch(/\s\/api\/v1\b/);
+    expect(imgSrc).not.toMatch(/\s\/api\/v1\b/);
+  });
 });

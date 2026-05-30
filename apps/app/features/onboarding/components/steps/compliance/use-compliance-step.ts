@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import type { UseFormReturn } from "react-hook-form";
 import { APIRequestError } from "@workspace/data-access";
 import { apiFetch } from "@/lib/api/api-client";
-import { API_URL } from "@/lib/api/api-config";
+import { getAppApiUrl } from "@/lib/api/api-config";
 import { buildJsonHeaders } from "@/lib/auth/csrf";
 import { toAbsoluteAppUrl } from "@/lib/utils/url";
 import { usePhoneSignatureQrFlow } from "@/hooks/use-phone-signature-qr-flow";
@@ -31,12 +31,7 @@ export function resolveSignaturePreviewUrl(fileUrl: string): string {
   }
 
   if (trimmed.startsWith("/")) {
-    const apiOrigin = new URL(
-      API_URL,
-      typeof window !== "undefined"
-        ? window.location.origin
-        : "http://localhost",
-    ).origin;
+    const apiOrigin = new URL(getAppApiUrl()).origin;
     return `${apiOrigin}${trimmed}`;
   }
 
