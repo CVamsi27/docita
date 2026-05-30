@@ -18,7 +18,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@workspace/ui/components/overlay/tooltip";
-import { Feature } from "@workspace/types";
+import {
+  Feature,
+  MODE_BLOCKED_FEATURES,
+  PLAN_MODES,
+  PUBLISHED_PLAN_LADDER,
+  Tier,
+  tierSupportsMode,
+  type PlanMode,
+} from "@workspace/types";
 
 export const FEATURE_CATEGORIES: { label: string; features: Feature[] }[] = [
   {
@@ -119,6 +127,53 @@ export const FEATURE_CATEGORIES: { label: string; features: Feature[] }[] = [
 
 export const KEY_FEATURE_CATEGORIES = FEATURE_CATEGORIES.slice(0, 4);
 
+// ---------------------------------------------------------------------------
+// Plan-mode gating (Full / Front Desk / Core)
+//
+// Front Desk and Core are PlanModes layered on the 5 clinical tiers, not tiers
+// of their own. These pure helpers drive which tier columns show and which
+// features / limits are gated off in each mode, all from the canonical
+// `@workspace/types` model so the table stays in sync with feature access.
+// ---------------------------------------------------------------------------
+
+export const COMPARISON_MODES: readonly PlanMode[] = PLAN_MODES;
+
+/**
+ * Tier columns for a mode: the published 5-tier ladder minus tiers the mode
+ * doesn't support. Starter is Full-only, so it drops out of Front Desk / Core.
+ */
+export function comparisonTiersForMode(mode: PlanMode): Tier[] {
+  return PUBLISHED_PLAN_LADDER.filter((name) =>
+    tierSupportsMode(name, mode),
+  ).map((name) => Tier[name]);
+}
+
+export function isFeatureBlockedInMode(
+  feature: Feature,
+  mode: PlanMode,
+): boolean {
+  return MODE_BLOCKED_FEATURES[mode].has(feature);
+}
+
+/**
+ * Limit rows whose availability tracks a mode-gated capability. A row is blanked
+ * to "—" when its representative feature is blocked in the active mode (e.g.
+ * Prescriptions in Front Desk, WhatsApp messages in Core). Rows without an entry
+ * here are always shown.
+ */
+const LIMIT_ROW_MODE_FEATURE: Record<string, Feature> = {
+  Prescriptions: Feature.DIGITAL_PRESCRIPTIONS,
+  "WhatsApp messages (incl. / mo)": Feature.WHATSAPP_MESSAGING,
+};
+
+export function isLimitRowBlockedInMode(
+  rowName: string,
+  mode: PlanMode,
+): boolean {
+  const feature = LIMIT_ROW_MODE_FEATURE[rowName];
+  return feature !== undefined && isFeatureBlockedInMode(feature, mode);
+}
+
 export const LIMIT_ROW_DESCRIPTIONS: Record<string, string> = {
   "Patient Limit":
     "Maximum number of unique patient profiles you can actively manage in the plan",
@@ -164,11 +219,13 @@ export function FeatureCategoryRows({
   features,
   tiers,
   currentTier,
+  mode,
 }: {
   label: string;
   features: Feature[];
   tiers: number[];
   currentTier: number;
+  mode: PlanMode;
 }) {
   return (
     <>
@@ -209,7 +266,8 @@ export function FeatureCategoryRows({
             {tiers.map((tier) => {
               const hasAccess =
                 details.isGenerallyAvailable &&
-                hasFeatureAccess(getTierName(tier), feature, false);
+                hasFeatureAccess(getTierName(tier), feature, false) &&
+                !isFeatureBlockedInMode(feature, mode);
               return (
                 <TableCell
                   key={tier}

@@ -10,6 +10,7 @@ import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffo
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { User } from "lucide-react";
 import { PatientDetailTabLoadingShell } from "@/features/patients/components/details/patient-detail-tab-loading-shell";
+import { AddAppointmentDialogContainer } from "@/features/appointments/components/dialogs/AddAppointmentDialogContainer";
 import { usePatientDetailLogic } from "@/features/patients/hooks/use-patient-detail-logic";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
@@ -42,12 +43,18 @@ export function PatientDetailPageContent({
     canRecordPatientVitals,
     isEditDialogOpen,
     setIsEditDialogOpen,
+    isScheduleDialogOpen,
     appointments,
   } = state;
 
   const patient = state.patient;
 
-  const { handleBackToPatients, handleScheduleVisit, handleRefetch } = handlers;
+  const {
+    handleBackToPatients,
+    handleScheduleVisit,
+    handleScheduleDialogChange,
+    handleRefetch,
+  } = handlers;
 
   if (loading) {
     return (
@@ -144,6 +151,18 @@ export function PatientDetailPageContent({
         </div>
         <PatientAdvisorRail patient={patient} />
       </div>
+
+      <FeatureGate feature={Feature.CALENDAR_SLOTS} fallback={null}>
+        <AddAppointmentDialogContainer
+          open={isScheduleDialogOpen}
+          onOpenChange={handleScheduleDialogChange}
+          preselectedPatientId={patient.id}
+          selectedDate={new Date()}
+          onAppointmentAdded={async () => {
+            await handleRefetch();
+          }}
+        />
+      </FeatureGate>
     </AppPageScaffold>
   );
 }

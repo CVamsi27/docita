@@ -1,11 +1,25 @@
+import type { VariantProps } from "class-variance-authority";
+import type { buttonVariants } from "@workspace/ui/components/form/button";
 import { ConfirmVariant } from "./types";
+
+type ButtonVariant = NonNullable<VariantProps<typeof buttonVariants>["variant"]>;
+
+/** Maps confirm/alert dialog variants to Button `variant` — avoids outline/default utilities overriding semantic colors in dark mode. */
+export const getConfirmButtonVariant = (
+  variant: ConfirmVariant = "default",
+): ButtonVariant => {
+  switch (variant) {
+    case "destructive":
+      return "destructive";
+    case "warning":
+      return "warning";
+    default:
+      return "default";
+  }
+};
 
 export const getVariantStyles = (variant: ConfirmVariant = "default") => {
   switch (variant) {
-    case "destructive":
-      return "btn-danger";
-    case "warning":
-      return "btn-warning";
     case "success":
       return "bg-success hover:bg-success/90 text-success-foreground";
     default:

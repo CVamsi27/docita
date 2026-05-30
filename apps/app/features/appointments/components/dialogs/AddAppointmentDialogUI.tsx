@@ -156,40 +156,45 @@ export function AddAppointmentDialogUI({
           ? "Pick patient + doctor. We’ll use the next available slot."
           : "Pick the patient, doctor, date, time slot, and visit type."
       }
-      contentClassName="sm:max-w-[840px]"
+      contentClassName="md:max-w-[840px]"
     >
       <Form {...form}>
-        <form onSubmit={handleSubmit} noValidate className="space-y-6">
+        <form onSubmit={handleSubmit} noValidate className="min-w-0 space-y-6">
           <section className="space-y-4">
             <SectionHeader
               title="Patient & doctor"
               description="Who the appointment is for and who will see them."
             />
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="patientId"
-                render={({ field }) => (
-                  <FormItem>
-                    <PatientSelector
-                      value={field.value ?? ""}
-                      onChange={field.onChange}
-                      patients={patients}
-                      patientsLoading={patientsLoading}
-                      patientSearch={patientSearch}
-                      setPatientSearch={setPatientSearch}
-                      patientComboboxOpen={patientComboboxOpen}
-                      setPatientComboboxOpen={setPatientComboboxOpen}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <DoctorSelector
-                form={form}
-                doctors={doctors}
-                doctorsLoading={doctorsLoading}
-              />
+            <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:gap-6">
+              <div className="min-w-0 flex-1">
+                <FormField
+                  control={form.control}
+                  name="patientId"
+                  render={({ field }) => (
+                    <FormItem className="min-w-0">
+                      <FormLabel>Patient</FormLabel>
+                      <PatientSelector
+                        value={field.value ?? ""}
+                        onChange={field.onChange}
+                        patients={patients}
+                        patientsLoading={patientsLoading}
+                        patientSearch={patientSearch}
+                        setPatientSearch={setPatientSearch}
+                        patientComboboxOpen={patientComboboxOpen}
+                        setPatientComboboxOpen={setPatientComboboxOpen}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <DoctorSelector
+                  form={form}
+                  doctors={doctors}
+                  doctorsLoading={doctorsLoading}
+                />
+              </div>
             </div>
           </section>
 

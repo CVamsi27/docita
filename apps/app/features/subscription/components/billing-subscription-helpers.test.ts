@@ -27,4 +27,32 @@ describe("formatPlanBillingDetail", () => {
       ),
     ).toBe("Monthly — $1,999.99/mo");
   });
+
+  it("labels an active paid tier with no base charge as Complimentary", () => {
+    expect(
+      formatPlanBillingDetail(
+        {
+          tier: "PROFESSIONAL",
+          billingCycle: "YEARLY",
+          basePriceCents: 0,
+          currency: "INR",
+        },
+        "ACTIVE",
+      ),
+    ).toBe("Complimentary");
+  });
+
+  it("still shows ₹0 for a non-active paid tier with no base charge", () => {
+    expect(
+      formatPlanBillingDetail(
+        {
+          tier: "PROFESSIONAL",
+          billingCycle: "YEARLY",
+          basePriceCents: 0,
+          currency: "INR",
+        },
+        "EXPIRED",
+      ),
+    ).toBe("Annual — ₹0");
+  });
 });

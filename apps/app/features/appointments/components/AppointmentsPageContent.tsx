@@ -186,9 +186,8 @@ function AppointmentsContent() {
           setSearchQuery={setSearchQuery}
           searchRowAction={
             <Button
-              variant="outline"
+              variant="warning"
               size="sm"
-              className="btn-warning"
               onClick={() => setIsDelayDialogOpen(true)}
             >
               <Clock className="mr-1.5 h-3.5 w-3.5" />

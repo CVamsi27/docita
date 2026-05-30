@@ -10,7 +10,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { cn } from "@workspace/ui/lib/utils";
 import { ConfirmOptions } from "@/features/dialogs/types";
-import { getVariantStyles } from "@/features/dialogs/utils";
+import { getConfirmButtonVariant, getVariantStyles } from "@/features/dialogs/utils";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -68,6 +68,7 @@ export function ConfirmDialog({
             {options.cancelText || "Cancel"}
           </Button>
           <Button
+            variant={getConfirmButtonVariant(options.variant)}
             onClick={onConfirm}
             className={cn(getVariantStyles(options.variant))}
             disabled={!confirmationMatches}

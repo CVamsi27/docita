@@ -2,6 +2,7 @@
 
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
+import { AddAppointmentDialogContainer } from "@/features/appointments/components/dialogs/AddAppointmentDialogContainer";
 import { AddPatientDialog, EditPatientDialog } from "@/features/patients/components/forms/PatientDialogs";
 
 import { usePatientsLogic } from "@/features/patients/hooks/use-patients-logic";
@@ -54,6 +55,16 @@ export function PatientsPageContainer() {
         }
         onPatientUpdated={handlers.onPatientUpdated}
       />
+
+      <FeatureGate feature={Feature.CALENDAR_SLOTS} fallback={null}>
+        <AddAppointmentDialogContainer
+          open={state.isScheduleDialogOpen}
+          onOpenChange={handlers.handleScheduleDialogChange}
+          preselectedPatientId={state.schedulingPatientId}
+          selectedDate={new Date()}
+          onAppointmentAdded={async () => undefined}
+        />
+      </FeatureGate>
     </FeatureGate>
   );
 }

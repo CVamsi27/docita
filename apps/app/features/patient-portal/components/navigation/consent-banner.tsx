@@ -2,17 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/overlay/dialog";
 import { Checkbox } from "@workspace/ui/components/form/checkbox";
-import { Bell, Shield, X } from "lucide-react";
+import { Label } from "@workspace/ui/components/form/label";
+import { Bell, Shield } from "lucide-react";
 import {
   usePatientConsentSettings,
   useUpdatePatientConsent,
@@ -29,7 +29,6 @@ export function ConsentBanner() {
   const updateConsent = useUpdatePatientConsent();
 
   useEffect(() => {
-
     if (consentSettings && !consentSettings.isFirstLogin) {
       setDismissed(true);
     }
@@ -52,83 +51,69 @@ export function ConsentBanner() {
     }
   };
 
-  if (isLoading || dismissed || !consentSettings?.isFirstLogin) {
-    return null;
-  }
+  const open = !isLoading && !dismissed && Boolean(consentSettings?.isFirstLogin);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-primary" />
-              <CardTitle>Privacy & Consent</CardTitle>
-            </div>
-            <SymbolTooltip label="Dismiss">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setDismissed(true)}
-                className="h-6 w-6 p-0"
-                aria-label="Dismiss consent banner"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </SymbolTooltip>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) setDismissed(true);
+      }}
+    >
+      <DialogContent className="md:max-w-md">
+        <DialogHeader>
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-primary" />
+            <DialogTitle>Privacy &amp; consent</DialogTitle>
           </div>
-          <CardDescription>
+          <DialogDescription>
             Welcome to the Patient Portal! Please review and accept our privacy
             preferences.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-start space-x-3 rounded-lg border p-4">
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 rounded-lg border p-4">
             <Checkbox
               id="whatsapp"
               checked={whatsappConsent}
               onCheckedChange={(checked) => setWhatsappConsent(!!checked)}
             />
-            <div className="space-y-1 flex-1">
-              <label
-                htmlFor="whatsapp"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                WhatsApp Notifications
-              </label>
+            <div className="flex-1 space-y-1">
+              <Label htmlFor="whatsapp" className="font-medium">
+                WhatsApp notifications
+              </Label>
               <p className="text-sm text-muted-foreground">
                 Receive appointment reminders and health updates via WhatsApp
               </p>
             </div>
-            <Bell className="h-4 w-4 text-muted-foreground mt-1" />
+            <Bell className="mt-1 h-4 w-4 text-muted-foreground" />
           </div>
 
-          <div className="flex items-start space-x-3 rounded-lg border p-4">
+          <div className="flex items-start gap-3 rounded-lg border p-4">
             <Checkbox
               id="storage"
               checked={dataStorageConsent}
               onCheckedChange={(checked) => setDataStorageConsent(!!checked)}
             />
-            <div className="space-y-1 flex-1">
-              <label
-                htmlFor="storage"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Data Storage Consent
-              </label>
+            <div className="flex-1 space-y-1">
+              <Label htmlFor="storage" className="font-medium">
+                Data storage consent
+              </Label>
               <p className="text-sm text-muted-foreground">
                 I consent to storing my health data securely for medical
                 purposes
               </p>
             </div>
-            <Shield className="h-4 w-4 text-muted-foreground mt-1" />
+            <Shield className="mt-1 h-4 w-4 text-muted-foreground" />
           </div>
 
           <p className="text-xs text-muted-foreground">
             You can change these preferences anytime in your profile settings.
           </p>
-        </CardContent>
-        <CardFooter className="flex gap-2">
+        </div>
+
+        <DialogFooter>
           <Button
             variant="outline"
             onClick={() => setDismissed(true)}
@@ -141,10 +126,10 @@ export function ConsentBanner() {
             disabled={updateConsent.isPending}
             className="flex-1"
           >
-            {updateConsent.isPending ? "Saving…" : "Save Preferences"}
+            {updateConsent.isPending ? "Saving…" : "Save preferences"}
           </Button>
-        </CardFooter>
-      </Card>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

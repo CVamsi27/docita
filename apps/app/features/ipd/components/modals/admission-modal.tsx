@@ -2,12 +2,24 @@
 
 import React, { FC, useMemo, useState } from "react";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/overlay/dialog";
 import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/form/select";
 import { useDoctors } from "@workspace/data-access";
 import type { AdmitPatientRequest } from "@workspace/types";
 import type { WardWithRooms as WardInfo } from "@/features/ipd/hooks/use-ipd-logic";
@@ -59,8 +71,6 @@ export const AdmissionModal: FC<ModalProps> = ({
     );
   }, [data.wardId, wards]);
 
-  if (!open) return null;
-
   const validate = () => {
     const nextErrors: AdmissionFormErrors = {};
     if (!data.patientId.trim()) {
@@ -94,140 +104,138 @@ export const AdmissionModal: FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <Card className="w-full max-w-lg m-4">
-        <CardHeader>
-          <CardTitle>Admit patient</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <label className="text-sm font-medium" htmlFor="ipd-patient-id">
-              Patient ID / MRN
-            </label>
-            <input
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="md:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Admit patient</DialogTitle>
+          <DialogDescription>
+            Assign a bed and attending doctor to start an inpatient admission.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="ipd-patient-id">Patient ID / MRN</Label>
+            <Input
               id="ipd-patient-id"
-              className="w-full p-2 mt-1 rounded border bg-background"
               value={data.patientId}
-              onChange={(e) =>
-                setData({ ...data, patientId: e.target.value })
-              }
+              onChange={(e) => setData({ ...data, patientId: e.target.value })}
               placeholder="Patient ID"
               aria-invalid={!!errors.patientId}
             />
             {errors.patientId && (
-              <p className="mt-1 text-xs text-destructive">
-                {errors.patientId}
-              </p>
+              <p className="text-xs text-destructive">{errors.patientId}</p>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium" htmlFor="ipd-ward">
-                Ward
-              </label>
-              <select
-                id="ipd-ward"
-                className="w-full p-2 mt-1 rounded border bg-background"
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="ipd-ward">Ward</Label>
+              <Select
                 value={data.wardId}
-                onChange={(e) =>
-                  setData({ ...data, wardId: e.target.value, bedId: "" })
+                onValueChange={(value) =>
+                  setData({ ...data, wardId: value, bedId: "" })
                 }
               >
-                <option value="">Select ward</option>
-                {wards.map((ward) => (
-                  <option key={ward.id} value={ward.id}>
-                    {ward.name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id="ipd-ward">
+                  <SelectValue placeholder="Select ward" />
+                </SelectTrigger>
+                <SelectContent>
+                  {wards.map((ward) => (
+                    <SelectItem key={ward.id} value={ward.id}>
+                      {ward.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <label className="text-sm font-medium" htmlFor="ipd-bed">
-                Bed
-              </label>
-              <select
-                id="ipd-bed"
-                className="w-full p-2 mt-1 rounded border bg-background"
+            <div className="space-y-2">
+              <Label htmlFor="ipd-bed">Bed</Label>
+              <Select
                 value={data.bedId}
-                onChange={(e) => setData({ ...data, bedId: e.target.value })}
-                aria-invalid={!!errors.bedId}
+                onValueChange={(value) => setData({ ...data, bedId: value })}
+                disabled={!data.wardId}
               >
-                <option value="">Select bed</option>
-                {availableBeds.map((bed) => (
-                  <option key={bed.id} value={bed.id}>
-                    {bed.label}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id="ipd-bed" aria-invalid={!!errors.bedId}>
+                  <SelectValue placeholder="Select bed" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableBeds.map((bed) => (
+                    <SelectItem key={bed.id} value={bed.id}>
+                      {bed.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {errors.bedId && (
-                <p className="mt-1 text-xs text-destructive">{errors.bedId}</p>
+                <p className="text-xs text-destructive">{errors.bedId}</p>
               )}
             </div>
           </div>
-          <div>
-            <label className="text-sm font-medium" htmlFor="ipd-doctor">
-              Attending Doctor
-            </label>
-            <select
-              id="ipd-doctor"
-              className="w-full p-2 mt-1 rounded border bg-background"
+
+          <div className="space-y-2">
+            <Label htmlFor="ipd-doctor">Attending doctor</Label>
+            <Select
               value={data.admittingDoctorId}
-              onChange={(e) =>
-                setData({ ...data, admittingDoctorId: e.target.value })
+              onValueChange={(value) =>
+                setData({ ...data, admittingDoctorId: value })
               }
-              aria-invalid={!!errors.admittingDoctorId}
             >
-              <option value="">Select doctor</option>
-              {doctors.map((doc) => (
-                <option key={doc.id} value={doc.id}>
-                  {doc.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                id="ipd-doctor"
+                aria-invalid={!!errors.admittingDoctorId}
+              >
+                <SelectValue placeholder="Select doctor" />
+              </SelectTrigger>
+              <SelectContent>
+                {doctors.map((doc) => (
+                  <SelectItem key={doc.id} value={doc.id}>
+                    {doc.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {errors.admittingDoctorId && (
-              <p className="mt-1 text-xs text-destructive">
+              <p className="text-xs text-destructive">
                 {errors.admittingDoctorId}
               </p>
             )}
           </div>
-          <div>
-            <label className="text-sm font-medium" htmlFor="ipd-diagnosis">
-              Admission Diagnosis
-            </label>
-            <textarea
+
+          <div className="space-y-2">
+            <Label htmlFor="ipd-diagnosis">Admission diagnosis</Label>
+            <Textarea
               id="ipd-diagnosis"
-              className="w-full p-2 mt-1 rounded border bg-background min-h-20"
+              className="min-h-20"
               value={data.diagnosis}
               onChange={(e) => setData({ ...data, diagnosis: e.target.value })}
               aria-invalid={!!errors.diagnosis}
             />
             {errors.diagnosis && (
-              <p className="mt-1 text-xs text-destructive">
-                {errors.diagnosis}
-              </p>
+              <p className="text-xs text-destructive">{errors.diagnosis}</p>
             )}
           </div>
-          <div>
-            <label className="text-sm font-medium" htmlFor="ipd-notes">
-              Notes
-            </label>
-            <textarea
+
+          <div className="space-y-2">
+            <Label htmlFor="ipd-notes">Notes</Label>
+            <Textarea
               id="ipd-notes"
-              className="w-full p-2 mt-1 rounded border bg-background min-h-16"
+              className="min-h-16"
               value={data.notes}
               onChange={(e) => setData({ ...data, notes: e.target.value })}
             />
           </div>
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => onOpenChange?.(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? "Admitting…" : "Admit"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange?.(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? "Admitting…" : "Admit"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };

@@ -77,12 +77,13 @@ export const InvoiceCreateUI: FC = () => {
               <CardTitle>Invoice details</CardTitle>
             </CardHeader>
             <CardContent className="grid md:grid-cols-2 gap-6">
-              <div className="col-span-full md:col-span-1">
+              <div className="col-span-full min-w-0 sm:col-span-1">
                 <FormField
                   control={form.control}
                   name="patientId"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="min-w-0">
+                      <FormLabel>Patient</FormLabel>
                       <PatientSelector
                         value={field.value ?? ""}
                         onChange={field.onChange}

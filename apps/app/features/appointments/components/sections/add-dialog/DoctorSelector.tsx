@@ -34,14 +34,14 @@ export function DoctorSelector({
       control={form.control}
       name="doctorId"
       render={({ field }) => (
-        <FormItem>
+        <FormItem className="min-w-0">
           <FormLabel>Doctor</FormLabel>
           <Select
             onValueChange={field.onChange}
             value={field.value ?? ""}
           >
             <FormControl>
-              <SelectTrigger className="min-h-11 w-full">
+              <SelectTrigger className="min-h-11 w-full min-w-0">
                 <SelectValue placeholder="Doctor" />
               </SelectTrigger>
             </FormControl>

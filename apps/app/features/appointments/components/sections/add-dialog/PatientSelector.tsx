@@ -1,6 +1,6 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import React from "react";
-import { FormLabel } from "@workspace/ui/components/form/form";
+import { FormControl } from "@workspace/ui/components/form/form";
 import {
   Popover,
   PopoverContent,
@@ -85,21 +85,20 @@ export function PatientSelector({
   };
 
   return (
-    <div className="flex flex-col space-y-2">
-      <FormLabel>Patient</FormLabel>
-      <Popover
-        open={patientComboboxOpen}
-        onOpenChange={setPatientComboboxOpen}
-        modal={false}
-      >
-        <PopoverTrigger asChild>
+    <Popover
+      open={patientComboboxOpen}
+      onOpenChange={setPatientComboboxOpen}
+      modal={false}
+    >
+      <PopoverTrigger asChild>
+        <FormControl>
           <Button
             variant="outline"
             role="combobox"
             type="button"
             aria-expanded={patientComboboxOpen}
             className={cn(
-              "min-h-11 w-full justify-between gap-3 aria-invalid:border-destructive aria-invalid:bg-destructive/5 aria-invalid:ring-destructive/20",
+              "min-h-11 w-full min-w-0 shrink justify-between gap-3 aria-invalid:border-destructive aria-invalid:bg-destructive/5 aria-invalid:ring-destructive/20",
               !value && "text-muted-foreground",
             )}
           >
@@ -108,11 +107,12 @@ export function PatientSelector({
             </span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="z-[100] w-[min(100vw-2rem,280px)] max-w-[--radix-popover-trigger-width] p-0"
-          align="start"
-        >
+        </FormControl>
+      </PopoverTrigger>
+      <PopoverContent
+        className="z-[100] w-[min(100vw-2rem,280px)] max-w-[--radix-popover-trigger-width] p-0"
+        align="start"
+      >
           <div className="flex items-center gap-2 border-b px-3 py-2">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <Input
@@ -189,6 +189,5 @@ export function PatientSelector({
           </div>
         </PopoverContent>
       </Popover>
-    </div>
   );
 }

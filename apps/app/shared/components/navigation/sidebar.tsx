@@ -13,6 +13,7 @@ import {
   SheetTitle,
 } from "@workspace/ui/components/overlay/sheet";
 import { DocitaIcon, DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
+import { SidebarRailTooltip } from "@workspace/ui/components/navigation/sidebar-rail-tooltip";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { SidebarTrackSection } from "./sidebar/sidebar-track-section";
 import { SidebarServicesSection } from "./sidebar/sidebar-services-section";
@@ -105,7 +106,7 @@ function SidebarContent({
     <>
       {/* Header */}
       {collapsedRail ? (
-        <SymbolTooltip label="Expand sidebar" side="right">
+        <SidebarRailTooltip label="Expand sidebar">
           <button
             type="button"
             className="flex h-14 w-full shrink-0 items-center justify-center border-b border-border/60 hover:bg-muted/50 transition-colors"
@@ -120,7 +121,7 @@ function SidebarContent({
               <DocitaIcon />
             )}
           </button>
-        </SymbolTooltip>
+        </SidebarRailTooltip>
       ) : (
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-border/60 px-3">
           <Link

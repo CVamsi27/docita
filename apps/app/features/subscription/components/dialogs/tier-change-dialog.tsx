@@ -197,9 +197,9 @@ export function TierChangeDialog(props: TierChangeDialogProps) {
                 Cancel
               </Button>
               <Button
+                variant={dialog.isUpgrade ? "default" : "warning"}
                 onClick={dialog.handleConfirm}
                 disabled={dialog.busy}
-                className={cn(dialog.isUpgrade ? "" : "btn-warning")}
               >
                 {dialog.busy ? (
                   <>
