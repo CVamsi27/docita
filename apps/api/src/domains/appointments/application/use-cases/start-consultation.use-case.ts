@@ -14,6 +14,7 @@ import {
   IAppointmentWriteRepository,
 } from '@/domains/appointments/core/repositories/appointment.repository.interface';
 import { isFrontDeskPlanMode } from '@workspace/types';
+import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 
 interface StartConsultationCommand {
   appointmentId: string;
@@ -22,10 +23,11 @@ interface StartConsultationCommand {
   role: Role;
 }
 
-const CONSULTATION_START_ALLOWED_STATUSES = new Set([
-  'SCHEDULED',
-  'CONFIRMED',
-  'IN_PROGRESS',
+const CONSULTATION_START_ALLOWED_STATUSES = new Set<AppointmentStatusEnum>([
+  AppointmentStatusEnum.SCHEDULED,
+  AppointmentStatusEnum.CONFIRMED,
+  AppointmentStatusEnum.ARRIVED,
+  AppointmentStatusEnum.IN_PROGRESS,
 ]);
 
 @Injectable()

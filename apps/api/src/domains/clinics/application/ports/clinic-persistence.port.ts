@@ -9,6 +9,7 @@ type ClinicPersistenceKey =
   | 'onboardingSession'
   | 'patient'
   | 'runUnrestricted'
+  | 'subscription'
   | 'subscriptionPayment'
   | 'uploadSession'
   | 'user';

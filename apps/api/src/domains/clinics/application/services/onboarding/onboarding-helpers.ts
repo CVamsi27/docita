@@ -5,11 +5,12 @@ import { type ClinicPersistencePort } from '@/domains/clinics/application/ports/
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
 
 /**
- * Returns true if any clinic linked to a user with the given email has
- * a `paid` SubscriptionPayment on record. Used to gate the free-trial
- * offer so each customer can only consume it once.
+ * Returns true if any clinic linked to a user with the given email already has
+ * a Subscription on record — trial OR paid. Used to enforce the once-per-account
+ * free trial: an email that has ever onboarded (including a lapsed 30-day trial
+ * with no payment) must use checkout instead of starting another free trial.
  */
-export async function hasPriorPaidSubscriptionForEmail(
+export async function hasPriorSubscriptionForEmail(
   persistence: ClinicPersistencePort,
   email: string,
 ): Promise<boolean> {
@@ -25,11 +26,11 @@ export async function hasPriorPaidSubscriptionForEmail(
       .map((u) => u.clinicId)
       .filter((id): id is string => !!id);
     if (clinicIds.length === 0) return false;
-    const paid = await persistence.subscriptionPayment.findFirst({
-      where: { clinicId: { in: clinicIds }, status: 'paid' },
+    const existing = await persistence.subscription.findFirst({
+      where: { clinicId: { in: clinicIds } },
       select: { id: true },
     });
-    return !!paid;
+    return !!existing;
   });
 }
 
