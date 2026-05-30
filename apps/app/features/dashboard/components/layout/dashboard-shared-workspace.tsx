@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
+import { Clock } from "lucide-react";
 
 import { cn } from "@workspace/ui/lib/utils";
 import { NowServingBoard } from "@workspace/ui/components/data-display/now-serving-board";
@@ -56,6 +58,10 @@ export function DashboardSharedWorkspace({
   const currentPatientName = currentPatient?.patient
     ? `${currentPatient.patient.firstName} ${currentPatient.patient.lastName}`.trim()
     : null;
+  const progressPercent =
+    totalToday > 0
+      ? Math.min(Math.max((completedToday / totalToday) * 100, 0), 100)
+      : 0;
 
   return (
     <div className={cn("space-y-4 sm:space-y-6", className)}>
@@ -74,9 +80,14 @@ export function DashboardSharedWorkspace({
         nextPatientId={density === "full" ? currentPatient?.id : undefined}
       />
 
-      <div id="dashboard-queue" className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,220px)_1fr] xl:grid-cols-[minmax(0,220px)_1fr_1fr_1fr]">
+      <h2 id="dashboard-queue-heading" className="sr-only">
+        Queue
+      </h2>
+      <div
+        id="dashboard-queue"
+        className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)] lg:items-stretch"
+      >
         <NowServingBoard
-          className="lg:col-span-1 xl:col-span-1"
           token={tokenLabel}
           patientName={currentPatientName}
           waiting={waitingCount}
@@ -85,26 +96,57 @@ export function DashboardSharedWorkspace({
           }
           status={inProgressToday > 0 && currentPatient ? "live" : "idle"}
           footer={
-            mode === "today" ? (
-              <span className="text-[var(--fs-xs)] text-white/70">
-                Today · <strong className="text-white">{totalToday}</strong>
-              </span>
-            ) : undefined
+            <div className="flex flex-col gap-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[var(--fs-xs)] text-white/70">
+                <span>
+                  Active ·{" "}
+                  <strong className="text-white tabular-nums">
+                    {inProgressToday}
+                  </strong>
+                </span>
+                <span>
+                  Done ·{" "}
+                  <strong className="text-white tabular-nums">
+                    {completedToday}
+                  </strong>
+                </span>
+                <span>
+                  Today ·{" "}
+                  <strong className="text-white tabular-nums">
+                    {totalToday}
+                  </strong>
+                </span>
+              </div>
+              {totalToday > 0 ? (
+                <div>
+                  <div className="mb-1 flex justify-between text-[var(--fs-2xs)] text-white/60">
+                    <span>Today&apos;s progress</span>
+                    <span className="tabular-nums">
+                      {completedToday}/{totalToday}
+                    </span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full rounded-full bg-[var(--brand-cyan)] transition-colors duration-150"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                </div>
+              ) : null}
+              <Link
+                href="/consultation"
+                className="inline-flex items-center justify-center gap-1.5 rounded-[var(--radius)] py-1.5 text-[var(--fs-xs)] font-medium text-white/85 transition-colors duration-150 hover:text-white"
+              >
+                <Clock className="size-3.5 shrink-0" aria-hidden />
+                View full queue
+              </Link>
+            </div>
           }
         />
-        <div className="min-w-0 lg:col-span-1 xl:col-span-3">
         <DoctorDashboardCards
           currentPatient={currentPatient}
           nextPatients={nextPatients}
-          queueStats={{
-            waiting: waitingCount,
-            inProgress: inProgressToday,
-            completed: completedToday,
-            total: totalToday,
-          }}
-          estimatedWaitTime={waitingCount * slotDurationMinutes}
         />
-        </div>
       </div>
 
       {children}

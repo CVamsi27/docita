@@ -8,6 +8,7 @@ import {
 } from './providers/email-provider.interface';
 import { DATE_FORMATS, escapeHtml, formatDateTime } from '@workspace/utils';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { formatPasswordResetTtlLabel } from '@/shared/modules/config/app-constants';
 import {
   EmailSuppressionService,
   maskEmail,
@@ -66,6 +67,8 @@ export class EmailService {
     resetToken: string,
   ): Promise<EmailSendResult> {
     const resetUrl = `${this.configService.getEmailLinkBaseUrl()}/reset-password?token=${resetToken}`;
+    const expiryLabel = formatPasswordResetTtlLabel();
+    const expiryNotice = `This link expires in ${expiryLabel}. If you did not request this, you can ignore this email`;
 
     return this.send({
       to: email,
@@ -87,7 +90,7 @@ export class EmailService {
               <a href="${resetUrl}" style="color:#0f766e; text-decoration:underline; word-break:break-all;">${resetUrl}</a>
             </p>
             <p style="margin:18px 0 0; font-size:12px; line-height:1.6; color:#64748b;">
-              This link expires in 30 minutes. If you did not request this, you can ignore this email
+              ${expiryNotice}
             </p>
             <p style="margin:24px 0 0; font-size:14px; line-height:1.6; color:#475569;">
               Regards,<br />
@@ -101,7 +104,7 @@ export class EmailService {
         '',
         `Open this link to reset: ${resetUrl}`,
         '',
-        'This link expires in 30 minutes. If you did not request this, you can ignore this email',
+        expiryNotice,
         '',
         'Regards,',
         'Docita Care Team',

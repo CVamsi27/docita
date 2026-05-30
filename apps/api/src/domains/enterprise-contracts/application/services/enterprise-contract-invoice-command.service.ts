@@ -196,11 +196,21 @@ export class EnterpriseContractInvoiceCommandService {
         const subject = `[Docita] True-up alert: ${contract.contractNumber} at ${observedPercent}% of commit`;
         const body = `Contract ${contract.contractNumber} (primary clinic ${contract.primaryClinicId}) has reached ${observedPercent}% of its annual commitment (threshold: ${contract.trueUpThresholdPercent}%).\n\nYTD platform fees: ${(ytdPlatformCents / 100).toFixed(2)} ${contract.currency}\nYTD overages: ${(ytdOverageCents / 100).toFixed(2)} ${contract.currency}\nMonths elapsed in term: ${monthsElapsed}\n\nAction: open the Docita Internal app → Enterprise Contracts → ${contract.contractNumber} and schedule a renegotiation conversation with the customer's account manager.`;
         try {
-          await Promise.all(
+          const results = await Promise.all(
             recipients.map((email) =>
               this.emailService.send({ to: email, subject, text: body }),
             ),
           );
+          const failed = results.filter((result) => !result.success);
+          if (failed.length > 0) {
+            this.logger.warn(
+              `True-up alert email send failed for ${contract.contractNumber}`,
+              {
+                failedCount: failed.length,
+                errors: failed.map((result) => result.error ?? 'unknown'),
+              },
+            );
+          }
         } catch (err) {
           this.logger.warn(
             `True-up alert email send failed for ${contract.contractNumber}`,

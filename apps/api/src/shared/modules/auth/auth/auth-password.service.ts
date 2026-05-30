@@ -64,16 +64,24 @@ export class AuthPasswordService {
         },
       });
 
-      await this.emailService
+      const emailResult = await this.emailService
         .sendPasswordResetEmail(email, token)
         .catch((err: unknown) => {
           this.logger.warn('Failed to send password reset email', {
             userId: user.id,
             error: err instanceof Error ? err.message : String(err),
           });
+          return { success: false as const, error: 'send_failed' };
         });
 
-      this.logger.log('Password reset email sent', { userId: user.id });
+      if (!emailResult.success) {
+        this.logger.warn('Password reset email provider rejected send', {
+          userId: user.id,
+          error: emailResult.error ?? 'unknown',
+        });
+      } else {
+        this.logger.log('Password reset email sent', { userId: user.id });
+      }
 
       return {
         message:

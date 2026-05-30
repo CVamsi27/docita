@@ -5,6 +5,17 @@ function sidebarNavLinkTestId(href: string): string {
   return `sidebar-link-${slug}`;
 }
 
+/** Opens the mobile navigation sheet when the desktop sidebar is hidden. */
+export async function openMobileNavigationIfNeeded(page: Page) {
+  const openNav = page.getByRole("button", { name: "Open navigation" });
+  if (await openNav.isVisible().catch(() => false)) {
+    await openNav.click();
+    await expect(
+      page.getByRole("navigation", { name: "Primary" }),
+    ).toBeVisible();
+  }
+}
+
 /** Expands the desktop sidebar rail when labels are collapsed to icons only. */
 export async function expandSidebarIfCollapsed(page: Page) {
   const expandSidebar = page.getByRole("button", { name: "Expand sidebar" });
@@ -13,20 +24,10 @@ export async function expandSidebarIfCollapsed(page: Page) {
   }
 }
 
-/**
- * Opens the mobile navigation drawer when the desktop sidebar rail is hidden
- * (viewports below the `md` breakpoint, e.g. mobile-chrome). On wider viewports
- * the "Open navigation" trigger is `md:hidden`, so this is a no-op.
- */
-export async function openMobileNavIfPresent(page: Page) {
-  const openNav = page.getByRole("button", { name: "Open navigation" });
-  if (await openNav.isVisible().catch(() => false)) {
-    await openNav.click();
-    await page
-      .getByRole("navigation", { name: "Primary" })
-      .waitFor({ state: "visible", timeout: 5000 })
-      .catch(() => undefined);
-  }
+/** Ensures primary sidebar nav is reachable (mobile sheet or expanded desktop rail). */
+export async function ensurePrimarySidebarAccessible(page: Page) {
+  await openMobileNavigationIfNeeded(page);
+  await expandSidebarIfCollapsed(page);
 }
 
 /** Asserts a primary sidebar nav link is present (icon rail or expanded labels). */
@@ -35,8 +36,7 @@ export async function expectPrimarySidebarLinkVisible(
   href: string,
   label: string,
 ) {
-  await openMobileNavIfPresent(page);
-  await expandSidebarIfCollapsed(page);
+  await ensurePrimarySidebarAccessible(page);
 
   const primaryNav = page.getByRole("navigation", { name: "Primary" });
   const testIdLink = primaryNav.getByTestId(sidebarNavLinkTestId(href));
