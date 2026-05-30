@@ -84,28 +84,14 @@ export class AIController {
   }
 
   /**
-   * Fire-and-forget: meter a synchronous AI OCR extraction as one OCR page so it
-   * feeds the billing OCR usage rollups. The bulk-import flow already emits this
-   * (`import-ocr-workflow.service.ts`); the single-image endpoint did not. Never
-   * throws — telemetry must not break the response.
+   * Meter a synchronous AI OCR extraction as AI credits (not OCR_PAGE) so the
+   * single-image endpoint shares the same quota as other AI ops. Bulk import
+   * OCR continues to emit OCR_PAGE_PROCESSED separately.
    */
-  private recordOcrPage(req: {
+  private recordOcrAsAiCredits(req: {
     user?: { clinicId?: string | null } | null;
   }): void {
-    const clinicId = req.user?.clinicId;
-    if (!clinicId) return;
-    try {
-      this.eventEmitter.emit(ApplicationEvents.OCR_PAGE_PROCESSED, {
-        clinicId,
-        pageCount: 1,
-      });
-    } catch (err) {
-      this.logger.warn(
-        `Failed to emit OCR usage event: ${
-          err instanceof Error ? err.message : String(err)
-        }`,
-      );
-    }
+    this.recordAiUsage(req, 'documentOcr');
   }
 
   @Post('ask')
@@ -241,13 +227,15 @@ export class AIController {
       throw new BadRequestException('File is required');
     }
 
+    await this.aiCreditGuard.assertWithinAllotment(req.user?.clinicId);
+
     try {
       await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp', 'gif']);
       const result = await this.aiService.extractFromMedicalDocument(
         file.path,
         true,
       );
-      this.recordOcrPage(req);
+      this.recordOcrAsAiCredits(req);
       return result;
     } finally {
       if (file.path) {

@@ -5,6 +5,7 @@ import { UsageType, ClinicTier, Role } from '@workspace/db';
 import {
   TIER_LIMITS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
+  getAiCreditAllotment,
   type SupportedCurrency,
 } from '@workspace/types';
 import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
@@ -56,6 +57,7 @@ export class UsageTrackingQueryService {
     const [
       consultations,
       whatsappMessages,
+      aiCredits,
       activeUsers,
       maxUsersEvent,
       maxUsersRecord,
@@ -71,6 +73,14 @@ export class UsageTrackingQueryService {
         where: {
           clinicId,
           type: 'WHATSAPP_MESSAGES',
+          timestamp: { gte: periodStart, lte: periodEnd },
+        },
+        _sum: { quantity: true },
+      }),
+      this.prisma.usageEvent.aggregate({
+        where: {
+          clinicId,
+          type: 'AI_CREDITS',
           timestamp: { gte: periodStart, lte: periodEnd },
         },
         _sum: { quantity: true },
@@ -127,12 +137,20 @@ export class UsageTrackingQueryService {
         )
       : null;
     const includedWhatsapp = whatsappPlan?.includedQuota ?? 0;
+    const aiCreditAllotment = getAiCreditAllotment(tierKey);
+    const includedAiCredits = aiCreditAllotment ?? 0;
+    const aiCreditRate = 0;
     const consultationOverage = Math.max(
       0,
       consultations - includedConsultations,
     );
     const whatsappCurrent = whatsappMessages._sum.quantity ?? 0;
     const whatsappOverage = Math.max(0, whatsappCurrent - includedWhatsapp);
+    const aiCreditsCurrent = aiCredits._sum.quantity ?? 0;
+    const aiCreditsOverage =
+      aiCreditAllotment === null
+        ? 0
+        : Math.max(0, aiCreditsCurrent - includedAiCredits);
     const peakUsersInCycle = Math.max(
       activeUsers,
       maxUsersEvent._max.quantity ?? 0,
@@ -143,6 +161,7 @@ export class UsageTrackingQueryService {
       consultations: tierRates.appointmentRate,
       users: tierRates.userRate,
       whatsappMessages: whatsappPlan?.overageRate ?? 0,
+      aiCredits: aiCreditRate,
     };
     const breakdown = {
       consultations: {
@@ -159,6 +178,11 @@ export class UsageTrackingQueryService {
         quantity: whatsappOverage,
         rate: rates.whatsappMessages,
         charge: whatsappOverage * rates.whatsappMessages,
+      },
+      aiCredits: {
+        quantity: aiCreditsOverage,
+        rate: rates.aiCredits,
+        charge: aiCreditsOverage * rates.aiCredits,
       },
     };
     const total = Object.values(breakdown).reduce(
@@ -181,6 +205,11 @@ export class UsageTrackingQueryService {
         included: includedWhatsapp,
         overage: whatsappOverage,
       },
+      aiCredits: {
+        current: aiCreditsCurrent,
+        included: includedAiCredits,
+        overage: aiCreditsOverage,
+      },
     };
 
     return {
@@ -192,16 +221,19 @@ export class UsageTrackingQueryService {
         consultations,
         users: peakUsersInCycle,
         whatsappMessages: whatsappCurrent,
+        aiCredits: aiCreditsCurrent,
       },
       included: {
         consultations: includedConsultations,
         users: includedUsers,
         whatsappMessages: includedWhatsapp,
+        aiCredits: includedAiCredits,
       },
       overages: {
         consultations: consultationOverage,
         users: usersOverage,
         whatsappMessages: whatsappOverage,
+        aiCredits: aiCreditsOverage,
       },
       rates,
       breakdown,
@@ -211,6 +243,10 @@ export class UsageTrackingQueryService {
         consultations: buildUsageWarning(consultations, includedConsultations),
         users: buildUsageWarning(peakUsersInCycle, includedUsers),
         whatsappMessages: buildUsageWarning(whatsappCurrent, includedWhatsapp),
+        aiCredits:
+          aiCreditAllotment === null
+            ? { percentUsed: 0, threshold: null }
+            : buildUsageWarning(aiCreditsCurrent, includedAiCredits),
       },
       tier: resolveClinicTierPlan(subscription?.plan),
     };

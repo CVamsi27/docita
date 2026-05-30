@@ -80,6 +80,8 @@ export const EnvSchema = z.object({
   ZEPTOMAIL_API_URL: z.string().default('https://api.zeptomail.in/v1.1/email'),
   ZEPTOMAIL_WEBHOOK_SECRET: z.string().optional(),
   EMAIL_FROM: z.string().default('Docita <notifications@docita.work>'),
+  /** Slack/PagerDuty-compatible incoming webhook for ops alerts (optional). */
+  OPS_ALERT_WEBHOOK_URL: z.string().url().optional(),
   SENTRY_DSN: z.string().optional(),
   SENTRY_TRACES_SAMPLE_RATE: z.coerce.number().min(0).max(1).default(0.1),
   SENTRY_PROFILES_SAMPLE_RATE: z.coerce.number().min(0).max(1).default(0.1),

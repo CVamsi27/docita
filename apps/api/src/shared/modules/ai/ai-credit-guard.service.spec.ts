@@ -1,14 +1,9 @@
+import { HttpException } from '@nestjs/common';
 import { AiCreditGuardService } from './ai-credit-guard.service';
 import type { PrismaService } from '@/prisma/prisma.service';
 import { createFixedClockMock } from '@/test-utils/fixed-clock.mock';
 
-/**
- * These cover the only path that runs in production today: with no tier priced
- * (all AI_CREDIT_ALLOTMENT_BY_TIER entries null), the guard must allow every
- * call without touching the database. The over-allotment decision itself is
- * unit-tested via the pure isAiCreditExhausted helper in @workspace/types.
- */
-describe('AiCreditGuardService (inert default)', () => {
+describe('AiCreditGuardService', () => {
   function setup() {
     const findUnique = jest.fn();
     const aggregate = jest.fn();
@@ -30,13 +25,35 @@ describe('AiCreditGuardService (inert default)', () => {
     expect(findUnique).not.toHaveBeenCalled();
   });
 
-  it('allows without any DB lookup while no tier is priced (the default)', async () => {
+  it('allows when the clinic tier has no enforced allotment', async () => {
     const { service, findUnique, aggregate } = setup();
+    findUnique.mockResolvedValue({ tier: 'ENTERPRISE' });
 
     await expect(
       service.assertWithinAllotment('clinic-1'),
     ).resolves.toBeUndefined();
-    expect(findUnique).not.toHaveBeenCalled();
+    expect(findUnique).toHaveBeenCalled();
     expect(aggregate).not.toHaveBeenCalled();
+  });
+
+  it('allows when usage is below the tier allotment', async () => {
+    const { service, findUnique, aggregate } = setup();
+    findUnique.mockResolvedValue({ tier: 'ESSENTIAL' });
+    aggregate.mockResolvedValue({ _sum: { quantity: 100 } });
+
+    await expect(
+      service.assertWithinAllotment('clinic-1'),
+    ).resolves.toBeUndefined();
+    expect(aggregate).toHaveBeenCalled();
+  });
+
+  it('blocks with HTTP 402 when the allotment is exhausted', async () => {
+    const { service, findUnique, aggregate } = setup();
+    findUnique.mockResolvedValue({ tier: 'STARTER' });
+    aggregate.mockResolvedValue({ _sum: { quantity: 100 } });
+
+    await expect(
+      service.assertWithinAllotment('clinic-1'),
+    ).rejects.toBeInstanceOf(HttpException);
   });
 });

@@ -19,12 +19,15 @@ import { WebVitalsMetricsService } from './services/web-vitals-metrics.service';
 import { MetricsQueryService } from './services/metrics-query.service';
 import { MetricsAggregationService } from './services/metrics-aggregation.service';
 import { HealthCheckService } from './services/health-check.service';
+import { OpsAlertService } from './services/ops-alert.service';
+import { OpsAlertListener } from './listeners/ops-alert.listener';
 import { API_REQUEST_METRICS_REPOSITORY_TOKEN } from './ports/api-request-metrics.repository.port';
 import { PrismaApiRequestMetricsRepository } from './infrastructure/prisma-api-request-metrics.repository';
+import { AppConfigModule } from '@/shared/modules/config/config.module';
 
 @Global()
 @Module({
-  imports: [TerminusModule, PrismaModule, ComplianceModule],
+  imports: [TerminusModule, PrismaModule, ComplianceModule, AppConfigModule],
   controllers: [
     MonitoringController,
     MonitoringRumController,
@@ -49,6 +52,8 @@ import { PrismaApiRequestMetricsRepository } from './infrastructure/prisma-api-r
     MetricsAggregationService,
     MetricsService,
     HealthCheckService,
+    OpsAlertService,
+    OpsAlertListener,
   ],
   exports: [
     MonitoringService,
@@ -63,6 +68,7 @@ import { PrismaApiRequestMetricsRepository } from './infrastructure/prisma-api-r
     MetricsAggregationService,
     MetricsService,
     HealthCheckService,
+    OpsAlertService,
   ],
 })
 export class MonitoringModule {}

@@ -406,6 +406,10 @@ export class AppConfigService {
     return this.getConfig().ZEPTOMAIL_WEBHOOK_SECRET || '';
   }
 
+  getOpsAlertWebhookUrl(): string {
+    return this.getConfig().OPS_ALERT_WEBHOOK_URL ?? '';
+  }
+
   /** Domain of the sender address (from EMAIL_FROM); used to exclude our own address from suppression. */
   getEmailSenderDomain(): string {
     const from = this.getConfig().EMAIL_FROM;

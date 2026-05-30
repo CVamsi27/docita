@@ -11,7 +11,12 @@ import {
 import type { CurrentUsage } from '@workspace/types';
 import { parseStringEnumMember } from '@workspace/utils';
 
-const USAGE_METERS = ['consultations', 'users', 'whatsappMessages'] as const;
+const USAGE_METERS = [
+  'consultations',
+  'users',
+  'whatsappMessages',
+  'aiCredits',
+] as const;
 
 function parseUsageThreshold(value: number | null): 80 | 100 | null {
   if (value === 80 || value === 100) {
