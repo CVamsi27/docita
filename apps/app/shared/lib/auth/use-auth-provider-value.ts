@@ -30,6 +30,7 @@ export function useAuthProviderValue(): AuthContextType {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() => appSession.getToken());
   const [isLoading, setIsLoading] = useState(true);
+  const [isApiStarting, setIsApiStarting] = useState(false);
   const [loginLockoutUntil, setLoginLockoutUntil] = useState<number | null>(
     () => readLoginLockoutUntil(),
   );
@@ -106,6 +107,7 @@ export function useAuthProviderValue(): AuthContextType {
     setUser,
     setUserRole,
     setIsLoading,
+    setIsApiStarting,
     setLoginLockoutUntil,
     hasSetRoleRef,
   });
@@ -158,6 +160,7 @@ export function useAuthProviderValue(): AuthContextType {
     user,
     isAuthenticated,
     isLoading,
+    isApiStarting,
     refreshUser,
     isAdmin: user?.role === "ADMIN" || user?.role === "ADMIN_DOCTOR",
     isDoctor: user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR",
