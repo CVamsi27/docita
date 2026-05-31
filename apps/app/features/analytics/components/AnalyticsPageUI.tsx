@@ -12,6 +12,7 @@ import { Calendar, DollarSign, Users } from "lucide-react";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import {
@@ -101,6 +102,8 @@ interface AnalyticsPageUIProps {
   revenueByCPT: RevenueByCPT[];
   complianceMetrics: ComplianceMetric[];
   isLoading: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
   trendsLoading: boolean;
   revenueLoading: boolean;
   complianceLoading: boolean;
@@ -114,6 +117,8 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
   revenueByCPT,
   complianceMetrics,
   isLoading,
+  isError,
+  onRetry,
   trendsLoading,
   revenueLoading,
   complianceLoading,
@@ -124,6 +129,17 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
 
   if (isLoading) {
     return <LoadingState message="Loading analytics…" className="min-h-[60vh]" />;
+  }
+
+  if (isError) {
+    return (
+      <DataState
+        status="error"
+        className="min-h-[60vh]"
+        errorMessage="We could not load analytics. Please try again."
+        onRetry={onRetry}
+      />
+    );
   }
 
   const formatCurrency = (amount: number) =>

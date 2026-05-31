@@ -9,6 +9,8 @@ export default function BedManagementPage() {
   const {
     wards,
     isLoading,
+    isError,
+    refetch,
     stats,
     searchQuery,
     setSearchQuery,
@@ -23,6 +25,8 @@ export default function BedManagementPage() {
       <BedManagementUI
         wards={wards}
         isLoading={isLoading}
+        isError={isError}
+        onRetry={() => void refetch()}
         stats={stats}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}

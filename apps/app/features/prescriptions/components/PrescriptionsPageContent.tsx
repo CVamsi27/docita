@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Pill } from "lucide-react";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { DEFAULT_TIMEZONE, formatClinicTodayPickerIso } from "@workspace/utils";
@@ -42,7 +43,12 @@ export function PrescriptionsPageContent() {
 
   const hasDateRange = startDate.trim().length > 0 && endDate.trim().length > 0;
 
-  const { data: prescriptionsData = [], isLoading: loading } = usePrescriptions({
+  const {
+    data: prescriptionsData = [],
+    isLoading: loading,
+    isError,
+    refetch,
+  } = usePrescriptions({
     search: debouncedSearch || undefined,
     patientId: patientId.trim() ? patientId : undefined,
     ...(hasDateRange ? { startDate, endDate } : {}),
@@ -161,27 +167,38 @@ export function PrescriptionsPageContent() {
           <PageHeader title="Prescriptions" description={headerDescription} />
         }
       >
-        <PrescriptionsFilters
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          startDate={startDate}
-          endDate={endDate}
-          onStartDateChange={setStartDate}
-          onEndDateChange={setEndDate}
-        />
+        {isError ? (
+          <DataState
+            status="error"
+            className="min-h-[40vh]"
+            errorMessage="We could not load prescriptions. Please try again."
+            onRetry={() => void refetch()}
+          />
+        ) : (
+          <>
+            <PrescriptionsFilters
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              startDate={startDate}
+              endDate={endDate}
+              onStartDateChange={setStartDate}
+              onEndDateChange={setEndDate}
+            />
 
-        <PrescriptionsTable
-          prescriptions={filteredAndSortedPrescriptions}
-          loading={loading}
-          sortConfig={sortConfig}
-          onSort={handleSort}
-          onDownloadPDF={downloadPDF}
-        />
+            <PrescriptionsTable
+              prescriptions={filteredAndSortedPrescriptions}
+              loading={loading}
+              sortConfig={sortConfig}
+              onSort={handleSort}
+              onDownloadPDF={downloadPDF}
+            />
 
-        <p className="text-[var(--fs-xs)] text-muted-foreground">
-          Showing {filteredAndSortedPrescriptions.length} of{" "}
-          {prescriptions.length} prescriptions
-        </p>
+            <p className="text-[var(--fs-xs)] text-muted-foreground">
+              Showing {filteredAndSortedPrescriptions.length} of{" "}
+              {prescriptions.length} prescriptions
+            </p>
+          </>
+        )}
       </AppPageScaffold>
     </FeatureGate>
   );

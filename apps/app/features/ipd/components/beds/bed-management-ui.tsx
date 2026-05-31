@@ -10,6 +10,7 @@ import { Input } from "@workspace/ui/components/form/input";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { StatGrid, type StatItem } from "@workspace/ui/components/data-display/stat-grid";
 import { AdmissionModal } from "@/features/ipd/components/modals/admission-modal";
 import type { AdmitPatientRequest, Admission } from "@workspace/types";
@@ -21,6 +22,8 @@ export type WardInfo = WardWithRooms;
 interface BedManagementUIProps {
   wards: WardWithRooms[] | undefined;
   isLoading: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
   stats: {
     totalBeds: number;
     occupiedBeds: number;
@@ -40,6 +43,8 @@ interface BedManagementUIProps {
 export function BedManagementUI({
   wards,
   isLoading,
+  isError,
+  onRetry,
   stats,
   showAdmissionModal,
   setShowAdmissionModal,
@@ -52,6 +57,17 @@ export function BedManagementUI({
 
   if (isLoading) {
     return <LoadingState message="Loading bed status…" className="min-h-[40vh]" />;
+  }
+
+  if (isError) {
+    return (
+      <DataState
+        status="error"
+        className="min-h-[40vh]"
+        errorMessage="We could not load bed status. Please try again."
+        onRetry={onRetry}
+      />
+    );
   }
 
   const {
