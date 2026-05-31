@@ -48,14 +48,15 @@ export default function VerifyDoctorPage() {
 
   return (
     <PreDashboardShell currentStep="verify-doctor" contentMaxWidth="max-w-lg">
-      <div className="space-y-1">
+      <div className="space-y-2">
+        <p className="ui-eyebrow">Profile verification</p>
         <div className="flex items-center gap-3">
           <CategoryAvatar
             icon={<ShieldCheck strokeWidth={1.5} />}
             tone="primary"
             size="md"
           />
-          <h1 className="ui-page-title">Profile Verification</h1>
+          <h1 className="ui-page-title">Verify your profile</h1>
         </div>
         <p className="ui-page-subtitle">
           Complete your profile before accessing your workspace. This ensures

@@ -110,7 +110,7 @@ function VerifyEmailInner() {
 
   return (
     <PreDashboardShell currentStep="verify-email">
-      <div className="ui-card-surface space-y-6 p-8">
+      <div className="ui-card-surface space-y-6 rounded-[var(--radius-xl)] p-8">
         {state === "loading" && (
           <div
             className="flex flex-col items-center gap-4 py-4"
@@ -136,9 +136,13 @@ function VerifyEmailInner() {
 
         {(state === "error" || state === "missing") && (
           <div className="space-y-6">
-            <div className="flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-destructive/10">
-                <XCircle className="h-8 w-8 text-destructive" />
+            <div className="relative mx-auto w-fit">
+              <div
+                aria-hidden
+                className="absolute inset-0 scale-110 rounded-full bg-destructive/20 blur-md"
+              />
+              <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-destructive/25 bg-destructive/[0.1] text-destructive shadow-sm">
+                <XCircle className="h-8 w-8" strokeWidth={1.5} />
               </div>
             </div>
             <div className="text-center ui-copy-stack">

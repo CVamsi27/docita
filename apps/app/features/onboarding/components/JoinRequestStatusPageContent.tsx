@@ -56,9 +56,10 @@ export default function JoinRequestStatusPage() {
           fallback="/choose-path"
           className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
         />
-        <h1 className="ui-page-title">Join Request Status</h1>
+        <p className="ui-eyebrow">Join request</p>
+        <h1 className="ui-page-title">Request status</h1>
         <p className="ui-page-subtitle">
-          Your request is being reviewed by the facility administrator
+          Your request is being reviewed by the facility administrator.
         </p>
       </div>
 

@@ -54,9 +54,10 @@ export default function JoinClinicPage() {
           label="Back to Choose Path"
           className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
         />
-        <h1 className="ui-page-title">Join a Facility</h1>
+        <p className="ui-eyebrow">Join existing facility</p>
+        <h1 className="ui-page-title">Find your facility</h1>
         <p className="ui-page-subtitle">
-          Search for your facility by name, email, or referral code
+          Search by name, email, or referral code, then send a request to join.
         </p>
       </div>
 
