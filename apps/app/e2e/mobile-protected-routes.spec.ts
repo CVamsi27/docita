@@ -160,6 +160,11 @@ test.describe("Mobile protected routes", () => {
     await page.goto(`/consultation/${appointmentId}`, {
       waitUntil: "domcontentloaded",
     });
+    // Wait for the layout shell to hydrate before checking consultation readiness.
+    // Without this, the "Loading consultation" text hasn't appeared yet, so
+    // expectConsultationWorkspaceReady's hidden-check resolves immediately and
+    // the 90 s workspace wait starts before auth/data have had a chance to run.
+    await expectProtectedWorkspaceLoaded(page);
     await expectConsultationWorkspaceReady(page);
     await expectNoHorizontalOverflow(page);
   });

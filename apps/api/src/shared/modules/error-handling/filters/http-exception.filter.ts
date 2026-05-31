@@ -225,7 +225,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
     }
 
-    if (status >= 500) {
+    // Health-check probes intentionally return 503 when a dependency is down.
+    // Capturing those to Sentry/monitoring creates noise; the load balancer
+    // already handles them by rotating the pod out of service.
+    const isHealthProbe = request.path.startsWith('/health');
+
+    if (status >= 500 && !isHealthProbe) {
       const monitoringUser = getMonitoringUserContext(request.user);
       const requestBodySummary = summarizeRequestBody(request.body);
       Sentry.captureException(exception, {
@@ -241,7 +246,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
     }
 
-    if (this.monitoringService) {
+    if (this.monitoringService && !isHealthProbe) {
       const monitoringUser = getMonitoringUserContext(request.user);
       const requestBodySummary = summarizeRequestBody(request.body);
       this.monitoringService.logError({
