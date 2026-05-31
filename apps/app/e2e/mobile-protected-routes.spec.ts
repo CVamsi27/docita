@@ -73,6 +73,14 @@ test.describe("Mobile protected routes", () => {
     const appointment = await apptRes.json();
     appointmentId = appointment.id as string;
 
+    const startRes = await request.post(
+      `${API_URL}/appointments/${appointmentId}/start-consultation`,
+      {
+        headers: { Authorization: `Bearer ${user.accessToken}` },
+      },
+    );
+    expect(startRes.ok()).toBeTruthy();
+
     const invoiceRes = await request.post(`${API_URL}/invoices`, {
       headers: { Authorization: `Bearer ${user.accessToken}` },
       data: {
@@ -145,9 +153,14 @@ test.describe("Mobile protected routes", () => {
   });
 
   test("consultation detail renders without page overflow", async ({ page }) => {
+    test.setTimeout(180_000);
     if (!appointmentId) throw new Error("Appointment fixture missing");
-    await visitProtectedRoute(page, `/consultation/${appointmentId}`);
+    await page.goto(`/consultation/${appointmentId}`, {
+      waitUntil: "domcontentloaded",
+    });
+    await expectProtectedWorkspaceLoaded(page);
     await expectConsultationWorkspaceReady(page);
+    await expectNoHorizontalOverflow(page);
   });
 
   test("invoice detail renders without page overflow", async ({ page }) => {

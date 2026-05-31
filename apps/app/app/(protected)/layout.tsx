@@ -11,6 +11,7 @@ import {
   SidebarMobileTrigger,
 } from "@/components";
 import { BackButton } from "@/components/navigation/back-button";
+import { MobileBottomNav } from "@/components/navigation/mobile-bottom-nav";
 import { useCanGoBack } from "@/hooks/use-can-go-back";
 import { CommandPalette } from "@/components/navigation/command-palette";
 import { DesktopTopBar } from "@/components/layout/desktop-top-bar";
@@ -36,7 +37,7 @@ import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Command, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { FeatureFlagsProvider } from "@/hooks/use-feature-flag";
+import { FeatureFlagsProvider, useFeatureFlag } from "@/hooks/use-feature-flag";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
 import { persistReturnPathBeforeLogin } from "@/lib/auth/safe-return-path";
 
@@ -77,6 +78,37 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
         <TopBarActions compact />
       </div>
     </header>
+  );
+}
+
+/**
+ * Main content + (flag-gated) mobile bottom nav. Lives inside
+ * FeatureFlagsProvider so it can read the `mobile-bottom-nav` flag; when the
+ * flag is off (default) it renders identically to before.
+ */
+function ProtectedMainArea({
+  isConsultationDetailRoute,
+  onMore,
+  children,
+}: {
+  isConsultationDetailRoute: boolean;
+  onMore: () => void;
+  children: React.ReactNode;
+}) {
+  const mobileBottomNavEnabled = useFeatureFlag("mobile-bottom-nav") === true;
+  const mainClassName = isConsultationDetailRoute
+    ? "flex-1 overflow-hidden"
+    : mobileBottomNavEnabled
+      ? "flex-1 overflow-y-auto p-4 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:p-6"
+      : "flex-1 overflow-y-auto p-4 md:p-6";
+
+  return (
+    <>
+      <main className={mainClassName} aria-label="Main content">
+        <ErrorBoundaryWrapper>{children}</ErrorBoundaryWrapper>
+      </main>
+      {mobileBottomNavEnabled ? <MobileBottomNav onMore={onMore} /> : null}
+    </>
   );
 }
 
@@ -299,16 +331,12 @@ export default function ProtectedLayout({
                       {!isConsultationDetailRoute ? (
                         <SubscriptionLockNotice />
                       ) : null}
-                      <main
-                        className={
-                          isConsultationDetailRoute
-                            ? "flex-1 overflow-hidden"
-                            : "flex-1 overflow-y-auto p-4 md:p-6"
-                        }
-                        aria-label="Main content"
+                      <ProtectedMainArea
+                        isConsultationDetailRoute={isConsultationDetailRoute}
+                        onMore={() => setMobileOpen(true)}
                       >
-                        <ErrorBoundaryWrapper>{children}</ErrorBoundaryWrapper>
-                      </main>
+                        {children}
+                      </ProtectedMainArea>
                     </div>
                   </ResizablePanel>
                 </ResizablePanelGroup>

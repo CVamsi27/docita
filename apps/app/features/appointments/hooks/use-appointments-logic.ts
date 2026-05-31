@@ -177,6 +177,11 @@ export const useAppointmentsLogic = () => {
     monthRangeQueryOptions,
   );
 
+  const monthRangeAppointments = useMemo(
+    () => monthRangeAppointmentsResponse?.items ?? [],
+    [monthRangeAppointmentsResponse?.items],
+  );
+
   const appointmentCountsByDay = useMemo(() => {
     const map = new Map<string, number>();
     for (const apt of monthRangeAppointmentsResponse?.items ?? []) {
@@ -283,6 +288,7 @@ export const useAppointmentsLogic = () => {
       calendarMonth,
       onCalendarMonthChange: handleCalendarMonthChange,
       appointmentCountsByDay,
+      monthRangeAppointments,
       checkingIn,
       startingConsultationId,
       rowActionDialogProps: rowActions.dialogProps,

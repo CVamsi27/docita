@@ -1,4 +1,5 @@
 export * from "./calendar/AppointmentsCalendarUI";
+export * from "./calendar/AppointmentsWeekView";
 export * from "./dialogs/AddAppointmentDialogContainer";
 export * from "./dialogs/AddAppointmentDialogUI";
 export * from "./dialogs/AppointmentRowActionDialogs";

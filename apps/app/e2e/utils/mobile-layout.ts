@@ -15,11 +15,11 @@ export async function expectMobileWorkspaceChrome(page: Page) {
   const mobileHeader = page.getByTestId("mobile-header");
   await expect(mobileHeader).toBeVisible();
   await expect(
-    page.getByTestId("mobile-command-palette"),
+    mobileHeader.getByTestId("mobile-command-palette"),
   ).toBeVisible();
-  await expect(page.getByTestId("topbar-quick-add")).toBeVisible();
+  await expect(mobileHeader.getByTestId("topbar-quick-add")).toBeVisible();
   await expect(
-    page.getByRole("button", {
+    mobileHeader.getByRole("button", {
       name: "Search patients, appointments, and prescriptions",
     }),
   ).toBeVisible();

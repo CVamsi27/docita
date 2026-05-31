@@ -111,6 +111,27 @@ const nextConfig: NextConfig = {
           new webpack.NormalModuleReplacementPlugin(pattern, STUB),
         );
       }
+
+      if (isCloudflareBuild) {
+        const clientOnlyPatterns = [
+          /^leaflet$/,
+          /^react-leaflet$/,
+          /^@react-google-maps\/api$/,
+          /^canvas-confetti$/,
+          // Sentry is fully no-op on Cloudflare (instrumentation.register()
+          // early-returns and @sentry/nextjs is aliased to a stub), but the
+          // heavy @sentry/node server SDK (~2.6 MB) can still leak into the
+          // server output and blow the Worker size limit. Stub it outright.
+          /^@sentry\/node(\/|$)/,
+          /^@sentry\/profiling-node(\/|$)/,
+          /^@sentry-internal\//,
+        ];
+        for (const pattern of clientOnlyPatterns) {
+          config.plugins.push(
+            new webpack.NormalModuleReplacementPlugin(pattern, STUB),
+          );
+        }
+      }
     }
 
     return config;

@@ -20,6 +20,7 @@ import {
   AppointmentsCalendarUI,
   AppointmentsListUI,
   AppointmentsPageHeaderUI,
+  AppointmentsWeekView,
 } from "@/features/appointments/components";
 import { DoctorDelayBanner } from "@/features/appointments/components/DoctorDelayBanner";
 import { MarkDoctorDelayDialog } from "@/features/appointments/components/dialogs/MarkDoctorDelayDialog";
@@ -48,6 +49,10 @@ function AppointmentsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isDelayDialogOpen, setIsDelayDialogOpen] = useState(false);
+  const isV2Design = searchParams.get("design") === "v2";
+  const [calendarView, setCalendarView] = useState<"day" | "week">(
+    isV2Design ? "week" : "day",
+  );
   const { mutate: markDelay, isPending: isMarkingDelay } = useMarkDoctorDelay();
   const appointmentRequestsRef = useRef<HTMLDivElement>(null);
   const focusRequestsPanel = searchParams.get(REQUESTS_PANEL_FOCUS_PARAM);
@@ -90,6 +95,7 @@ function AppointmentsContent() {
     calendarMonth,
     onCalendarMonthChange,
     appointmentCountsByDay,
+    monthRangeAppointments,
     checkingIn,
     rowActionDialogProps,
     isAddDialogOpen,
@@ -234,6 +240,46 @@ function AppointmentsContent() {
           </div>
         ) : null}
 
+        {isV2Design ? (
+          <div className="flex w-fit items-center gap-0.5 rounded-[var(--radius-md)] border border-border/60 bg-muted/30 p-0.5">
+            <Button
+              size="sm"
+              variant={calendarView === "day" ? "default" : "ghost"}
+              onClick={() => setCalendarView("day")}
+            >
+              Day
+            </Button>
+            <Button
+              size="sm"
+              variant={calendarView === "week" ? "default" : "ghost"}
+              onClick={() => setCalendarView("week")}
+            >
+              Week
+            </Button>
+          </div>
+        ) : null}
+
+        {isV2Design && calendarView === "week" ? (
+          isError ? (
+            <DataState
+              status="error"
+              className="min-h-[40vh]"
+              errorMessage="We could not load this week's appointments. Please try again."
+              onRetry={refetch}
+            />
+          ) : (
+            <AppointmentsWeekView
+              appointments={monthRangeAppointments}
+              selectedPickerIso={selectedPickerIso}
+              clinicTz={clinicTz}
+              onSelectDay={setDate}
+              onOpenAppointment={(appointment) => {
+                setDate(new Date(appointment.startTime));
+                setCalendarView("day");
+              }}
+            />
+          )
+        ) : (
         <div className="grid gap-4 md:gap-6 lg:grid-cols-[minmax(320px,360px)_minmax(0,1fr)]">
           <div className="order-2 lg:order-1">
           <AppointmentsCalendarUI
@@ -276,6 +322,7 @@ function AppointmentsContent() {
           />
           </div>
         </div>
+        )}
 
         <div
           ref={appointmentRequestsRef}

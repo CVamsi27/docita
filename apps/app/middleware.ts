@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   extractApiV1PathSegments,
   proxyUpstreamApiRequest,
-} from "@workspace/utils";
+} from "@workspace/utils/http/upstream-api-proxy";
 import {
   SECURITY_HEADERS,
   buildContentSecurityPolicy,
