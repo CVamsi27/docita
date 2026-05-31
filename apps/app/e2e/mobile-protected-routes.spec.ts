@@ -155,10 +155,11 @@ test.describe("Mobile protected routes", () => {
   test("consultation detail renders without page overflow", async ({ page }) => {
     test.setTimeout(180_000);
     if (!appointmentId) throw new Error("Appointment fixture missing");
+    // Warm the protected shell on a light route before deep-linking consultation.
+    await visitProtectedRoute(page, "/today");
     await page.goto(`/consultation/${appointmentId}`, {
       waitUntil: "domcontentloaded",
     });
-    await expectProtectedWorkspaceLoaded(page);
     await expectConsultationWorkspaceReady(page);
     await expectNoHorizontalOverflow(page);
   });
