@@ -17,7 +17,7 @@ deploy_args=(deploy --config "$config_path" --app "$app_name" --remote-only --st
 last_status=1
 for region in $regions; do
   echo "Attempting Fly deploy in region: ${region}"
-  if flyctl "${deploy_args[@]}" --region "$region"; then
+  if flyctl "${deploy_args[@]}" --primary-region "$region"; then
     echo "Fly deploy succeeded in region: ${region}"
     exit 0
   fi
