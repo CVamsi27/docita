@@ -94,21 +94,33 @@ export const useConsultationDashboard = () => {
     "read",
   );
 
-  const { data: appointmentsData, isLoading: isLoadingAppointments } =
-    useAppointments({
-      date: today,
-      ...(doctorId ? { doctorId } : {}),
-    });
+  const {
+    data: appointmentsData,
+    isLoading: isLoadingAppointments,
+    isError: isAppointmentsError,
+    refetch: refetchAppointments,
+  } = useAppointments({
+    date: today,
+    ...(doctorId ? { doctorId } : {}),
+  });
 
-  const { data: inProgressAppointmentsData, isLoading: isLoadingInProgress } =
-    useAppointments({
-      status: "in-progress",
-      limit: 100,
-      ...(doctorId ? { doctorId } : {}),
-    });
+  const {
+    data: inProgressAppointmentsData,
+    isLoading: isLoadingInProgress,
+    isError: isInProgressError,
+    refetch: refetchInProgress,
+  } = useAppointments({
+    status: "in-progress",
+    limit: 100,
+    ...(doctorId ? { doctorId } : {}),
+  });
 
-  const { data: queueData, isLoading: isLoadingQueue } =
-    useQueueByDoctor(doctorId, undefined, canAccessQueueApi);
+  const {
+    data: queueData,
+    isLoading: isLoadingQueue,
+    isError: isQueueError,
+    refetch: refetchQueue,
+  } = useQueueByDoctor(doctorId, undefined, canAccessQueueApi);
   const startConsultation = useStartConsultation();
 
   const stats = useMemo(() => {
@@ -298,6 +310,12 @@ export const useConsultationDashboard = () => {
     waitingList,
     opdQueueRows,
     isLoading: isLoadingAppointments || isLoadingQueue || isLoadingInProgress,
+    isError: isAppointmentsError || isInProgressError || isQueueError,
+    refetch: () => {
+      void refetchAppointments();
+      void refetchInProgress();
+      void refetchQueue();
+    },
     handleStartConsultation,
     goToConsultationWorkspace,
     canAccessQueue: canAccessQueueApi,
