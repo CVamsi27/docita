@@ -182,7 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (internalSession.getToken()) {
             const csrfToken = internalSession.getCsrfToken();
             await postInternalAuthLogout(API_URL, {
-              ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+              ...(csrfToken ? { "x-xsrf-token": csrfToken } : {}),
             });
           }
         } catch {

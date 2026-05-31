@@ -275,7 +275,7 @@ const faqs = [
             credentials: "include",
             headers: {
               "Content-Type": "application/json",
-              "X-XSRF-TOKEN": getCookie("XSRF-TOKEN") ?? "",
+              "x-xsrf-token": getCookie("XSRF-TOKEN") ?? "",
             },
             body: JSON.stringify({
               name: String(payload.get("name") ?? "").trim(),

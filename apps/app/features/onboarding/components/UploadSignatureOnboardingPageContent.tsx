@@ -165,13 +165,19 @@ function OnboardingSlaUploadInner() {
 
   if (uploadComplete) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
-        <Card className="w-full max-w-md text-center">
+      <div className="app-shell-bg flex min-h-screen items-center justify-center p-4">
+        <Card className="w-full max-w-md rounded-[var(--radius-xl)] text-center">
           <CardHeader>
-            <div className="flex items-center justify-center gap-2">
-              <CheckCircle2 className="h-6 w-6 text-success" />
-              <CardTitle>Signature Uploaded</CardTitle>
+            <div className="relative mx-auto mb-2 w-fit">
+              <div
+                aria-hidden
+                className="absolute inset-0 scale-110 rounded-full bg-success/20 blur-md"
+              />
+              <div className="relative flex h-14 w-14 items-center justify-center rounded-full border border-success/25 bg-success/[0.1] text-success shadow-sm">
+                <CheckCircle2 className="h-7 w-7" strokeWidth={1.5} />
+              </div>
             </div>
+            <CardTitle>Signature uploaded</CardTitle>
             <CardDescription>
               {alreadyUploaded
                 ? "This signature link is already completed. You can close this page and return to your desktop."
@@ -185,7 +191,7 @@ function OnboardingSlaUploadInner() {
 
   if (statusQuery.isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+      <div className="app-shell-bg flex min-h-screen items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
             <DocitaLoadingIndicator variant="inline" decorative />
@@ -198,7 +204,7 @@ function OnboardingSlaUploadInner() {
 
   if (statusQuery.isError) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+      <div className="app-shell-bg flex min-h-screen items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -224,7 +230,7 @@ function OnboardingSlaUploadInner() {
 
   if (!onboardingId || !sessionId || !uploadSecret?.trim()) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+      <div className="app-shell-bg flex min-h-screen items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -246,7 +252,7 @@ function OnboardingSlaUploadInner() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+    <div className="app-shell-bg flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-lg">
         <CardHeader>
           <CardTitle>Upload SLA Signature</CardTitle>
@@ -282,7 +288,7 @@ export default function OnboardingSlaUploadPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+        <div className="app-shell-bg flex min-h-screen items-center justify-center p-4">
           <Card className="w-full max-w-md">
             <CardContent
               className="flex flex-col items-center justify-center gap-3 py-10 text-center text-sm text-muted-foreground"

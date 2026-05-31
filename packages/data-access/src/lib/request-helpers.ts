@@ -17,6 +17,40 @@ export function normalizeHeaders(headers?: HeadersInit): string {
     .join("|");
 }
 
+/**
+ * Collapse case-variant duplicate header keys into a single canonical entry,
+ * keeping the LAST value seen.
+ *
+ * A plain headers object can legitimately carry both `X-XSRF-TOKEN` and
+ * `x-xsrf-token` as distinct keys — e.g. a caller sets one casing manually and
+ * the client's `onRequest` interceptor injects the other. Passing that object
+ * straight to `fetch` makes the `Headers` constructor *combine* them into
+ * `x-xsrf-token: <a>, <b>`, which then fails the backend CSRF double-submit
+ * check (it compares the header against a single-value cookie). Building the
+ * `Headers` via repeated `.set()` overwrites case-insensitively, so the
+ * last-written value (the interceptor's freshly-resolved token) wins and no
+ * doubled header is ever sent.
+ */
+export function dedupeHeaders(headers?: HeadersInit): Headers {
+  const result = new Headers();
+  if (!headers) {
+    return result;
+  }
+
+  const entries =
+    headers instanceof Headers
+      ? Array.from(headers.entries())
+      : Array.isArray(headers)
+        ? headers
+        : Object.entries(headers);
+
+  for (const [key, value] of entries) {
+    result.set(key, String(value));
+  }
+
+  return result;
+}
+
 export function buildURL(
   baseURL: string,
   endpoint: string,

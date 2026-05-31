@@ -37,9 +37,17 @@ export function OnboardingStepCard({
     // Zero out the card's intrinsic padding/gap so the header and footer bands
     // sit flush against the rounded edges.
     <Card
-      className={cn("gap-0 overflow-hidden py-0 ring-1 ring-border/25", className)}
+      className={cn(
+        "relative gap-0 overflow-hidden rounded-[var(--radius-xl)] py-0 shadow-md ring-1 ring-border/25",
+        className,
+      )}
       {...rest}
     >
+      {/* Brand accent bar along the top edge of every wizard step. */}
+      <span
+        aria-hidden
+        className="absolute inset-x-0 top-0 z-10 h-1 bg-gradient-to-r from-primary/50 via-primary to-primary/50"
+      />
       {children}
     </Card>
   );
@@ -67,10 +75,10 @@ export function OnboardingStepHeader({
   tone = "primary",
 }: OnboardingStepHeaderProps) {
   return (
-    <div className="flex items-start gap-3.5 border-b border-border/60 bg-surface-2 px-4 py-4 sm:gap-4 sm:px-6 sm:py-5">
+    <div className="flex items-start gap-3.5 border-b border-border/60 bg-gradient-to-b from-surface-2 to-card px-4 py-4 sm:gap-4 sm:px-6 sm:py-5">
       <CategoryAvatar icon={icon} tone={tone} size="lg" className="mt-0.5" />
       <div className="min-w-0 space-y-1.5">
-        <MicroLabel as="h2">
+        <MicroLabel as="h2" className="text-primary">
           {`Step ${stepNumber} of ${totalSteps} · ${eyebrow}`}
         </MicroLabel>
         <CardTitle className="text-[length:var(--fs-xl)] font-semibold tracking-tight sm:text-[length:var(--fs-2xl)]">

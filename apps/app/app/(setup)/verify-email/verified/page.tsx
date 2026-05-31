@@ -29,20 +29,31 @@ export default function VerifyEmailVerifiedPage() {
   const { user } = useAuth();
 
   return (
-    <main className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-lg border bg-card p-8 text-center shadow-sm">
-        <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-success/10">
-          <CheckCircle2 className="h-8 w-8 text-success" aria-hidden="true" />
+    <main className="flex min-h-screen items-center justify-center bg-background p-6">
+      <div className="ui-card-surface flex w-full max-w-sm flex-col items-center gap-5 rounded-[var(--radius-xl)] p-8 text-center">
+        <div className="relative mx-auto w-fit">
+          <div
+            aria-hidden
+            className="absolute inset-0 scale-110 rounded-full bg-success/20 blur-md"
+          />
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-success/25 bg-success/[0.1] text-success shadow-sm">
+            <CheckCircle2 className="h-8 w-8" strokeWidth={1.5} aria-hidden="true" />
+          </div>
         </div>
-        <p
-          className="text-base font-semibold text-foreground"
-          role="status"
-          aria-live="polite"
-        >
-          Verified
-        </p>
+        <div className="space-y-1.5">
+          <h1
+            className="ui-section-title"
+            role="status"
+            aria-live="polite"
+          >
+            Email verified
+          </h1>
+          <p className="ui-page-subtitle">
+            Your account is confirmed. Let’s finish setting things up.
+          </p>
+        </div>
         <Button
-          className="w-full"
+          className="h-11 w-full font-semibold"
           onClick={() => router.push(getNextPathForVerifiedUser(user))}
         >
           Continue

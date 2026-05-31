@@ -38,7 +38,7 @@ describe("VerifyEmailVerifiedPage", () => {
   it("shows the verified state with a continue action", () => {
     render(<VerifyEmailVerifiedPage />);
 
-    expect(screen.getByText("Verified")).toBeInTheDocument();
+    expect(screen.getByText("Email verified")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Continue" }),
     ).toBeInTheDocument();

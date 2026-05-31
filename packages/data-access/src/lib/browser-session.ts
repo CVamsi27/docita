@@ -235,7 +235,7 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
               credentials: "include",
               headers: {
                 "Content-Type": "application/json",
-                ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+                ...(csrfToken ? { "x-xsrf-token": csrfToken } : {}),
               },
               body: JSON.stringify({}),
               signal: controller.signal,

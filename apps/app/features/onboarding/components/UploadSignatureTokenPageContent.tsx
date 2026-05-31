@@ -21,10 +21,14 @@ import {
 import { SignatureUploadWorkflow } from "@/components/signature/signature-upload-workflow";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import { SupportContact } from "@/components/support-contact/support-contact";
+import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
 
 function UploadPageShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-muted/30">
+    <div className="app-shell-bg flex min-h-screen flex-col">
+      <div className="flex items-center justify-center border-b border-border/40 bg-background/70 px-4 py-4 backdrop-blur">
+        <DocitaLogo className="h-8 w-auto" />
+      </div>
       <div className="flex flex-1 flex-col items-center justify-center p-4">
         {children}
       </div>
@@ -147,12 +151,18 @@ export default function UploadSignaturePage() {
   if (uploadComplete && uploadResult) {
     return (
       <UploadPageShell>
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-success" />
-              <CardTitle>Upload Successful!</CardTitle>
+        <Card className="w-full max-w-md rounded-[var(--radius-xl)]">
+          <CardHeader className="items-center text-center">
+            <div className="relative mx-auto mb-2 w-fit">
+              <div
+                aria-hidden
+                className="absolute inset-0 scale-110 rounded-full bg-success/20 blur-md"
+              />
+              <div className="relative flex h-14 w-14 items-center justify-center rounded-full border border-success/25 bg-success/[0.1] text-success shadow-sm">
+                <CheckCircle2 className="h-7 w-7" strokeWidth={1.5} />
+              </div>
             </div>
+            <CardTitle>Upload successful</CardTitle>
             <CardDescription>
               Your signature has been uploaded successfully.
             </CardDescription>

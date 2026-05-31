@@ -197,7 +197,7 @@ export function useAuthRefreshUser(options: {
       const csrfToken = appSession.getCsrfToken();
       const headers = {
         "Content-Type": "application/json",
-        ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+        ...(csrfToken ? { "x-xsrf-token": csrfToken } : {}),
       };
 
       const userData = parseValidatedUser(await validateAuth(headers));

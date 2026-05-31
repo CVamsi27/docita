@@ -92,20 +92,38 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
       ? "Sign in to manage appointments, patients, billing, and clinical workflows"
       : "Account setup, email verification, onboarding — each step unlocks the next. You only do this once.";
 
+  const progressPct =
+    activeStepIndex >= 0
+      ? Math.round((activeStepIndex / (setupSteps.length - 1)) * 100)
+      : 0;
+
   return (
     <aside
-      className="relative hidden h-full min-h-0 overflow-hidden border-r bg-card lg:flex lg:flex-col lg:justify-between"
+      className="relative hidden h-full min-h-0 overflow-hidden border-r border-border/60 bg-card lg:flex lg:flex-col lg:justify-between"
       aria-label="Docita setup overview"
     >
+      {/* Brand accent bar — matches the app's guided-flow hero language. */}
       <div
-        className="absolute inset-0 opacity-60"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, oklch(var(--border) / 0.5) 1px, transparent 1px), linear-gradient(to bottom, oklch(var(--border) / 0.5) 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
-        }}
-        aria-hidden="true"
+        aria-hidden
+        className="absolute inset-x-0 top-0 z-20 h-1 bg-gradient-to-r from-primary/50 via-primary to-primary/50"
       />
+
+      {/* Layered light depth: a faint primary tint + glow over a subtle grid. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute inset-0 opacity-50"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, oklch(var(--border) / 0.5) 1px, transparent 1px), linear-gradient(to bottom, oklch(var(--border) / 0.5) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.05] via-transparent to-transparent" />
+        <div
+          className="absolute -left-28 -top-28 h-[26rem] w-[26rem] rounded-full bg-primary/10 blur-3xl"
+        />
+      </div>
+
       <div className="relative z-10 flex items-center justify-between p-8 xl:p-10">
         <div className="flex items-center gap-3">
           <DocitaIcon className="h-10 w-10" />
@@ -113,15 +131,15 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
             docita
           </span>
         </div>
-        <span className="badge-muted rounded-full border px-3 py-1 text-xs font-medium shadow-sm">
+        <span className="rounded-full border border-primary/25 bg-primary/[0.08] px-3 py-1 text-xs font-semibold tracking-wide text-primary">
           Facility workspace
         </span>
       </div>
 
       <div className="relative z-10 px-8 xl:px-10">
         <div className="max-w-xl space-y-4">
-          <p className="text-sm font-medium text-primary">{heroKicker}</p>
-          <h2 className="ui-page-title text-[var(--fs-3xl)] xl:text-[var(--fs-4xl)] leading-[var(--lh-tight)]">
+          <p className="text-sm font-semibold text-primary">{heroKicker}</p>
+          <h2 className="ui-page-title text-[var(--fs-3xl)] leading-[var(--lh-tight)] xl:text-[var(--fs-4xl)]">
             {heroTitle}
           </h2>
           <p className="ui-page-subtitle max-w-md">{heroDescription}</p>
@@ -133,7 +151,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
               <p className="text-sm font-semibold text-foreground">
                 Sign in or get started
               </p>
-              <p className="text-xs text-muted-foreground pb-2">
+              <p className="pb-2 text-xs text-muted-foreground">
                 Enter your work email on the right. We will take you to sign in
                 or account creation, then guide you through setup.
               </p>
@@ -162,8 +180,8 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-                  If you forgot your password, choose “Forgot password” to
-                  reset it
+                  If you forgot your password, choose “Forgot password” to reset
+                  it
                 </li>
               </ul>
             </div>
@@ -180,14 +198,12 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
                       : "Ready to begin"}
                   </p>
                 </div>
-                <span className="badge-info rounded-full border px-2.5 py-1 text-xs font-medium">
-                  {activeStepIndex >= 0
-                    ? `${Math.round((activeStepIndex / (setupSteps.length - 1)) * 100)}% there`
-                    : "Start"}
+                <span className="badge-info rounded-full border px-2.5 py-1 text-xs font-semibold">
+                  {activeStepIndex >= 0 ? `${progressPct}% there` : "Start"}
                 </span>
               </div>
 
-              <ol className="space-y-2">
+              <ol className="space-y-1.5">
                 {setupSteps.map((step, index) => {
                   const Icon = step.icon;
                   const isActive = index === activeStepIndex;
@@ -226,7 +242,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
                           <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                         )}
                       </div>
-                      <div className="min-w-0 flex items-center gap-2 flex-1">
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
                         <div className="flex-1">
                           <p
                             className={cn(
@@ -239,18 +255,18 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
                             {step.title}
                           </p>
                           {isActive && (
-                            <p className="text-xs leading-4 text-muted-foreground mt-0.5">
+                            <p className="mt-0.5 text-xs leading-4 text-muted-foreground">
                               {step.description}
                             </p>
                           )}
                         </div>
                         {isActive && (
-                          <span className="badge-info rounded-full border px-2 py-0.5 text-[var(--fs-2xs)] font-semibold shrink-0">
+                          <span className="badge-info shrink-0 rounded-full border px-2 py-0.5 text-[var(--fs-2xs)] font-semibold">
                             Now
                           </span>
                         )}
                         {isComplete && (
-                          <span className="text-[var(--fs-2xs)] font-medium text-success shrink-0">
+                          <span className="shrink-0 text-[var(--fs-2xs)] font-medium text-success">
                             Done
                           </span>
                         )}

@@ -82,7 +82,8 @@ export default function OnboardingPage() {
       contentAlignment="start"
       showSignOut
     >
-      <div className="space-y-1">
+      <div className="space-y-1.5">
+        <p className="ui-eyebrow">Facility setup</p>
         <h1 className="ui-page-title">Set up your facility</h1>
         <p className="ui-page-subtitle">
           Complete your facility registration to get started.

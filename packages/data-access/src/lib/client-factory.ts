@@ -5,7 +5,7 @@ import {
   parseProblemDetailsFromJson,
 } from "./api-error-body";
 import { APIRequestError, ErrorCodes, getErrorCode } from "./errors";
-import { buildURL, normalizeHeaders } from "./request-helpers";
+import { buildURL, dedupeHeaders, normalizeHeaders } from "./request-helpers";
 import { executeWithRetry } from "./retry";
 import type { APIClient, APIClientConfig, RequestConfig } from "./types";
 import { assertTyped } from "./typed-http-boundary";
@@ -113,6 +113,10 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       try {
         const response = await fetch(url, {
           ...requestConfig,
+          // Dedupe case-variant header keys (e.g. a manual `X-XSRF-TOKEN` plus
+          // the interceptor's `x-xsrf-token`) so `fetch` cannot combine them
+          // into a doubled value that fails the backend CSRF check.
+          headers: dedupeHeaders(requestConfig.headers),
           credentials: "include",
           signal: controller.signal,
         });
@@ -348,10 +352,10 @@ export function createAPIClient(config: APIClientConfig): APIClient {
         ...restOptions,
         method: "POST",
         credentials: "include",
-        headers: {
+        headers: dedupeHeaders({
           ...defaultHeaders,
           ...headers,
-        },
+        }),
         body: formData,
       });
 

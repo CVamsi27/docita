@@ -108,11 +108,21 @@ export function PreDashboardShell({
       ) : null}
 
       {/* Right panel keeps its own scroll so the branding rail stays fixed */}
-      <div className="relative flex min-h-0 min-w-0 flex-col overflow-y-auto overflow-x-hidden">
+      <div className="relative flex min-h-0 min-w-0 flex-col overflow-y-auto overflow-x-hidden bg-background">
+        {/* Soft ambient tint so the content panel reads with depth, not flat white. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-72"
+          style={{
+            background:
+              "radial-gradient(120% 100% at 50% 0%, color-mix(in oklch, var(--primary) 7%, transparent) 0%, transparent 70%)",
+          }}
+        />
+
         {/* Sticky top bar — stays visible while scrolling */}
-        <div className="sticky top-0 z-20 flex items-center justify-between px-4 pt-4 pb-2 bg-background/80 backdrop-blur-sm">
+        <div className="sticky top-0 z-20 flex items-center justify-between border-b border-border/40 bg-background/75 px-4 pt-4 pb-3 backdrop-blur-md sm:px-6">
           <div className={cn(showBrandingPanel ? "lg:hidden" : "")}>
-            <DocitaLogo />
+            <DocitaLogo className="h-8 w-auto" />
           </div>
 
           <div className="flex items-center gap-2">
@@ -132,36 +142,37 @@ export function PreDashboardShell({
         </div>
 
         <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col">
-          <div className="flex flex-1 flex-col items-center justify-center px-4 py-4">
+          <div className="flex flex-1 flex-col items-center justify-center px-4 py-6 sm:px-6 sm:py-8">
             <div
               className={cn(
-                "w-full min-w-0 flex flex-col gap-5",
+                "w-full min-w-0 flex flex-col gap-6",
                 contentMaxWidth,
-                contentAlignment === "start" && "self-start pt-2",
+                contentAlignment === "start" && "self-start pt-1",
               )}
             >
               {showProgress ? (
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
+                    <p className="text-[var(--fs-2xs)] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                       {meta.label}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {stepNumber} / {TOTAL_STEPS}
+                    <p className="text-[var(--fs-2xs)] font-medium text-muted-foreground">
+                      <span className="text-foreground">{stepNumber}</span> /{" "}
+                      {TOTAL_STEPS}
                     </p>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1.5">
                     {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
                       <div
                         key={i}
-                        className={[
-                          "h-1 flex-1 rounded-full transition-colors duration-500",
+                        className={cn(
+                          "h-1.5 flex-1 rounded-full transition-colors duration-500",
                           i < meta.index
                             ? "bg-success"
                             : i === meta.index
-                              ? "bg-primary"
+                              ? "bg-primary shadow-[0_0_0_3px_color-mix(in_oklch,var(--primary)_18%,transparent)]"
                               : "bg-muted",
-                        ].join(" ")}
+                        )}
                       />
                     ))}
                   </div>

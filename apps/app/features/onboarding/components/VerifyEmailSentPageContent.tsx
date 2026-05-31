@@ -152,10 +152,14 @@ export default function VerifyEmailSentPage() {
   if (user?.emailVerified === true) {
     return (
       <PreDashboardShell currentStep="verify-email-sent" showSignOut>
-        <div className="ui-card-surface space-y-6 p-8">
-          <div className="flex justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
-              <CheckCircle2 className="h-8 w-8 text-success" />
+        <div className="ui-card-surface space-y-6 rounded-[var(--radius-xl)] p-8">
+          <div className="relative mx-auto w-fit">
+            <div
+              aria-hidden
+              className="absolute inset-0 scale-110 rounded-full bg-success/20 blur-md"
+            />
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-success/25 bg-success/[0.1] text-success shadow-sm">
+              <CheckCircle2 className="h-8 w-8" strokeWidth={1.5} />
             </div>
           </div>
 
@@ -223,17 +227,23 @@ export default function VerifyEmailSentPage() {
 
   return (
     <PreDashboardShell currentStep="verify-email-sent" showSignOut>
-      <div className="ui-card-surface space-y-6 p-8">
-        <div className="flex justify-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-            <Mail className="h-8 w-8 text-primary" />
+      <div className="ui-card-surface space-y-6 rounded-[var(--radius-xl)] p-8">
+        <div className="relative mx-auto w-fit">
+          <div
+            aria-hidden
+            className="absolute inset-0 scale-110 rounded-full bg-primary/20 blur-md"
+          />
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-primary/25 bg-primary/[0.1] text-primary shadow-sm">
+            <Mail className="h-8 w-8" strokeWidth={1.5} />
           </div>
         </div>
 
-        <div className="text-center space-y-2">
+        <div className="space-y-2 text-center">
           <h1 className="ui-page-title">Check your email</h1>
-          <p className="ui-page-subtitle">We need to verify</p>
-          <p className="text-sm font-medium">{email}</p>
+          <p className="ui-page-subtitle">We sent a verification link to</p>
+          <p className="inline-flex rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-sm font-medium text-foreground">
+            {email}
+          </p>
           <p className="ui-page-subtitle pt-1">
             Use the verification link in the email before continuing with your
             clinic setup.
