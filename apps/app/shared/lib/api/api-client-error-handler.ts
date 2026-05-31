@@ -90,9 +90,11 @@ export async function handleApiClientError(error: ApiClientError) {
   }
 
   const errorCode = extractErrorCode(error);
+  const currentPathname =
+    typeof window !== "undefined" ? window.location?.pathname : undefined;
   const onPreClinicSetupRoute =
-    typeof window !== "undefined" &&
-    isPreClinicSetupRoute(window.location.pathname);
+    typeof currentPathname === "string" &&
+    isPreClinicSetupRoute(currentPathname);
 
   // An already-authenticated user can hit a CSRF mismatch on the first mutating
   // call mid-onboarding. Hard-redirecting them to /login there creates a
