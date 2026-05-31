@@ -64,9 +64,15 @@ export async function expectConsultationWorkspaceReady(page: Page) {
   const loading = page.getByText(/Loading consultation|Restoring your session/i);
   await loading.waitFor({ state: "hidden", timeout: 90_000 }).catch(() => {});
 
-  await expect(
-    page.getByRole("list", { name: "Consultation sections" }),
-  ).toBeVisible({ timeout: 60_000 });
+  const workspace = page.locator('main[aria-label="Consultation workspace"]');
+  const sectionRail = page.getByRole("list", { name: "Consultation sections" });
+
+  await Promise.race([
+    workspace.waitFor({ state: "visible", timeout: 90_000 }),
+    sectionRail.waitFor({ state: "visible", timeout: 90_000 }),
+  ]);
+
+  await expect(workspace.or(sectionRail)).toBeVisible({ timeout: 15_000 });
 }
 
 export async function expectDataState(

@@ -111,6 +111,20 @@ const nextConfig: NextConfig = {
           new webpack.NormalModuleReplacementPlugin(pattern, STUB),
         );
       }
+
+      if (isCloudflareBuild) {
+        const clientOnlyPatterns = [
+          /^leaflet$/,
+          /^react-leaflet$/,
+          /^@react-google-maps\/api$/,
+          /^canvas-confetti$/,
+        ];
+        for (const pattern of clientOnlyPatterns) {
+          config.plugins.push(
+            new webpack.NormalModuleReplacementPlugin(pattern, STUB),
+          );
+        }
+      }
     }
 
     return config;
