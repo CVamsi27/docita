@@ -18,7 +18,34 @@ import { DiagnosisInput } from "@/features/consultation/components/structured/Di
 import { ExaminationInput } from "@/features/consultation/components/structured/ExaminationInput";
 import { PrescriptionInput } from "@/features/consultation/components/structured/PrescriptionInput";
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
-import type { PatientWithMedicalHistory } from "@workspace/types";
+import {
+  AllergyBanner,
+  type AllergyEntry,
+} from "@workspace/ui/components/feedback/allergy-banner";
+import type { PatientAllergy, PatientWithMedicalHistory } from "@workspace/types";
+
+/** Maps a stored allergy severity to the {@link AllergyBanner} severity scale. */
+function toBannerAllergySeverity(
+  severity?: string | null,
+): AllergyEntry["severity"] {
+  const value = (severity ?? "").toUpperCase();
+  if (value === "SEVERE" || value === "LIFE_THREATENING") return "severe";
+  if (value === "MILD") return "mild";
+  if (value === "MODERATE") return "moderate";
+  return undefined;
+}
+
+function toAllergyEntries(
+  allergies: readonly PatientAllergy[] | undefined,
+): AllergyEntry[] {
+  return (allergies ?? [])
+    .filter((allergy) => allergy.allergen?.trim())
+    .map((allergy) => ({
+      allergen: allergy.allergen,
+      severity: toBannerAllergySeverity(allergy.severity),
+      reaction: allergy.reaction ?? undefined,
+    }));
+}
 
 function SectionLoading() {
   return (
@@ -111,7 +138,11 @@ export function AssessmentSection({ readOnly, sectionRef }: SectionProps) {
   );
 }
 
-export function PlanSection({ readOnly, sectionRef }: SectionProps) {
+export function PlanSection({
+  readOnly,
+  sectionRef,
+  patientAllergies,
+}: SectionProps & { patientAllergies?: PatientAllergy[] }) {
   const subtitle = useConsultationSectionSubtitle("plan");
   const prescriptions = useConsultationDraft((s) => s.prescriptions);
   const treatment = useConsultationDraft((s) => s.treatment);
@@ -119,8 +150,12 @@ export function PlanSection({ readOnly, sectionRef }: SectionProps) {
   const setPrescriptions = useConsultationDraft((s) => s.setPrescriptions);
   const setTreatment = useConsultationDraft((s) => s.setTreatment);
   const setFollowUpPlan = useConsultationDraft((s) => s.setFollowUpPlan);
+  const allergyEntries = toAllergyEntries(patientAllergies);
   return (
     <SectionContainer ref={sectionRef} id="plan" letter="P" title="Plan" subtitle={subtitle}>
+      {allergyEntries.length > 0 ? (
+        <AllergyBanner allergies={allergyEntries} />
+      ) : null}
       <div className="space-y-2">
         <h3 className="text-sm font-semibold">Medications</h3>
         <PrescriptionInput value={prescriptions} onChange={setPrescriptions} readOnly={readOnly} />

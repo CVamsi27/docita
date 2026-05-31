@@ -133,6 +133,7 @@ export function ConsultationMainPanel({
           key="plan"
           sectionRef={setSectionRef("plan")}
           readOnly={readOnly}
+          patientAllergies={effectivePatient?.patientAllergies}
         />
       ),
     }),
