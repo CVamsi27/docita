@@ -1,7 +1,7 @@
 import { DATABASE_CONSTANTS } from '@/shared/modules/config/app-constants';
 
 /** Prisma interactive transaction / client `transactionOptions` shape. */
-export type InteractiveTransactionOptions = {
+type InteractiveTransactionOptions = {
   maxWait?: number;
   timeout?: number;
 };

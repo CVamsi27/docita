@@ -115,7 +115,6 @@
       },
       "ignoreDependencies": [
         "@tailwindcss/postcss",
-        "class-variance-authority",
         "@types/react-signature-canvas",
         "baseline-browser-mapping",
         "globals",
