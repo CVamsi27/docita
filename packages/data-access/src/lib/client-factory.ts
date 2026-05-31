@@ -105,6 +105,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       }
     }
 
+    let csrfRetried = false;
     const makeRequest = async (): Promise<T> => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), requestTimeout);
@@ -118,7 +119,13 @@ export function createAPIClient(config: APIClientConfig): APIClient {
 
         clearTimeout(timeoutId);
 
-        if (response.ok && onFetchResponse) {
+        // Capture refreshed session/CSRF headers from EVERY response, including
+        // error responses. The API mints a fresh X-CSRF-Token on each reply, so
+        // a 403 INVALID_CSRF_TOKEN still carries the token the client needs to
+        // recover. Capturing only on response.ok meant the first mutating call
+        // on a route that never warmed the token (e.g. onboarding "Skip for
+        // now") could fail CSRF and never pick the new token up — looping.
+        if (onFetchResponse) {
           onFetchResponse(response);
         }
 
@@ -152,6 +159,16 @@ export function createAPIClient(config: APIClientConfig): APIClient {
                 : {}),
             },
           );
+
+          // One-shot self-heal for a CSRF token that was never warmed (e.g. the
+          // first mutating call on a pre-clinic onboarding route). The API
+          // re-issues a fresh token on this 403, captured above via
+          // onFetchResponse; re-run onRequest to echo it and replay once.
+          if (error.code === "INVALID_CSRF_TOKEN" && !csrfRetried && onRequest) {
+            csrfRetried = true;
+            requestConfig = await onRequest(requestConfig);
+            return makeRequest();
+          }
 
           if (onError && shouldNotifyGlobalError) {
             await onError(error);
