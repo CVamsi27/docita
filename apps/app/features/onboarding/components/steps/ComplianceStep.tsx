@@ -1,15 +1,14 @@
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { ShieldCheck } from "lucide-react";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
+import {
+  OnboardingStepBody,
+  OnboardingStepCard,
+  OnboardingStepFooter,
+  OnboardingStepHeader,
+} from "@/features/onboarding/components/shared";
 import { DPDPSection } from "./compliance/DPDPSection";
 import { SignaturesSection } from "./compliance/SignaturesSection";
 import { CompliancePoliciesSection } from "./compliance/CompliancePoliciesSection";
@@ -54,13 +53,18 @@ export function ComplianceStep({
   ];
   const isReady = checklist.every((c) => c.done);
   const pendingItems = checklist.filter((c) => !c.done);
+  const isSubmitting = complianceForm.formState.isSubmitting;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Step 4: Compliance and Legal</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <OnboardingStepCard>
+      <OnboardingStepHeader
+        stepNumber={5}
+        eyebrow="Compliance"
+        icon={<ShieldCheck strokeWidth={1.5} />}
+        title="Compliance & legal"
+        description="Capture your SLA signature and accept the legal agreements to finish registration."
+      />
+      <OnboardingStepBody>
         <form id="step5" onSubmit={onSubmit} noValidate className="space-y-6">
           <DPDPSection complianceForm={complianceForm} />
 
@@ -85,32 +89,37 @@ export function ComplianceStep({
             acceptedCount={acceptedCount}
           />
         </form>
-      </CardContent>
+      </OnboardingStepBody>
 
-      <CardFooter className="flex flex-col gap-4">
-        {pendingItems.length > 0 && !complianceForm.formState.isSubmitting && (
-          <div className="w-full rounded-md border border-muted bg-muted/30 p-3 space-y-1">
-            <p className="text-xs font-medium text-muted-foreground">Complete before registering:</p>
-            {pendingItems.map((item) => (
-              <p key={item.label} className="text-xs text-muted-foreground flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 shrink-0" />
-                {item.label}
+      <OnboardingStepFooter
+        back={{ label: "Back to plan", onClick: onBack }}
+        extra={
+          pendingItems.length > 0 && !isSubmitting ? (
+            <div className="w-full space-y-1 rounded-md border border-border/60 bg-muted/30 p-3">
+              <p className="text-xs font-medium text-muted-foreground">
+                Complete before registering:
               </p>
-            ))}
-          </div>
-        )}
-        <div className="flex w-full justify-between gap-4">
-          <Button variant="outline" onClick={onBack}>Back</Button>
-          <Button
-            className="flex-1"
-            form="step5"
-            type="submit"
-            disabled={complianceForm.formState.isSubmitting || !isReady}
-          >
-            {complianceForm.formState.isSubmitting ? "Creating Clinic…" : "Complete Registration"}
-          </Button>
-        </div>
-      </CardFooter>
-    </Card>
+              {pendingItems.map((item) => (
+                <p
+                  key={item.label}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground"
+                >
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground/50" />
+                  {item.label}
+                </p>
+              ))}
+            </div>
+          ) : undefined
+        }
+        primary={{
+          label: "Complete registration",
+          loadingLabel: "Creating clinic…",
+          form: "step5",
+          type: "submit",
+          disabled: !isReady,
+          loading: isSubmitting,
+        }}
+      />
+    </OnboardingStepCard>
   );
 }

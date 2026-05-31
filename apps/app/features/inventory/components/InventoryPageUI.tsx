@@ -1,6 +1,7 @@
 import { FC } from "react";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { StatGrid, type StatItem } from "@workspace/ui/components/data-display/stat-grid";
 import { Button } from "@workspace/ui/components/form/button";
 import { InventoryAddItemDialog } from "@/features/dialogs";
@@ -22,6 +23,7 @@ export const InventoryPageUI: FC = () => {
     filteredInventory,
     stats,
     isLoading,
+    isError,
     isFetching,
     searchQuery,
     setSearchQuery,
@@ -71,6 +73,26 @@ export const InventoryPageUI: FC = () => {
       accent: "danger",
     },
   ];
+
+  if (isError) {
+    return (
+      <AppPageScaffold
+        header={
+          <PageHeader
+            title="Inventory"
+            description="Manage your facility's inventory and supplies."
+          />
+        }
+      >
+        <DataState
+          status="error"
+          className="min-h-[40vh]"
+          errorMessage="We could not load your inventory. Please try again."
+          onRetry={() => void refetch()}
+        />
+      </AppPageScaffold>
+    );
+  }
 
   return (
     <AppPageScaffold

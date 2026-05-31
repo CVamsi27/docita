@@ -2,6 +2,7 @@
 
 import { ShieldCheck } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
+import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
 import { PreDashboardShell } from "@/features/auth";
@@ -48,8 +49,12 @@ export default function VerifyDoctorPage() {
   return (
     <PreDashboardShell currentStep="verify-doctor" contentMaxWidth="max-w-lg">
       <div className="space-y-1">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="h-6 w-6 text-primary" />
+        <div className="flex items-center gap-3">
+          <CategoryAvatar
+            icon={<ShieldCheck strokeWidth={1.5} />}
+            tone="primary"
+            size="md"
+          />
           <h1 className="ui-page-title">Profile Verification</h1>
         </div>
         <p className="ui-page-subtitle">

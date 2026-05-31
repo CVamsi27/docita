@@ -8,6 +8,7 @@ const skipServer = process.env["SKIP_SERVER"] === "true";
 const publicOnlyAudit = process.env["AUDIT_APP_PUBLIC_ONLY"] === "true";
 const LOCAL_UPSTREAM_API_URL =
   process.env["API_URL"] || "http://127.0.0.1:3001/api/v1";
+const LOCAL_UPSTREAM_API_ORIGIN = new URL(LOCAL_UPSTREAM_API_URL).origin;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -65,7 +66,7 @@ export default defineConfig({
             env: {
               ...process.env,
               API_URL: LOCAL_UPSTREAM_API_URL,
-              API_PROXY_TARGET: LOCAL_UPSTREAM_API_URL,
+              API_PROXY_TARGET: LOCAL_UPSTREAM_API_ORIGIN,
             },
             timeout: 180_000,
           },

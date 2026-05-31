@@ -132,6 +132,30 @@ describe('CsrfInterceptor', () => {
     );
   });
 
+  it('re-issues a fresh CSRF token on rejection so the client can retry', () => {
+    const context = createContext({
+      method: 'POST',
+      cookies: { 'XSRF-TOKEN': 'server-token' },
+      headers: { 'x-xsrf-token': 'mismatched-token' },
+    });
+    expect(() => interceptor.intercept(context, next)).toThrow(
+      ForbiddenException,
+    );
+
+    const response = context.switchToHttp().getResponse();
+    // A new token is minted and exposed on the rejection response so a
+    // legitimate client that never warmed its token can recover and replay.
+    expect(response.cookie).toHaveBeenCalledWith(
+      'XSRF-TOKEN',
+      expect.any(String),
+      expect.objectContaining({ path: '/', httpOnly: true }),
+    );
+    expect(response.setHeader).toHaveBeenCalledWith(
+      'X-CSRF-Token',
+      expect.any(String),
+    );
+  });
+
   it('allows mutating requests with matching CSRF cookie and header', () => {
     const token = 'csrf-token-1';
     const context = createContext({

@@ -4,6 +4,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { applyRlsScope } from '@/shared/modules/rls/apply-rls-scope';
 import { runWithActiveTx } from '@/shared/modules/rls/active-tx.storage';
+import { getRlsRequestTransactionOptions } from '@/shared/common/database-transaction-options';
 
 type Tx = Prisma.TransactionClient;
 
@@ -65,6 +66,6 @@ export class RlsService implements OnModuleInit {
         await applyRlsScope(tx, clinicId);
       }
       return runWithActiveTx(tx, () => fn(tx));
-    });
+    }, getRlsRequestTransactionOptions());
   }
 }

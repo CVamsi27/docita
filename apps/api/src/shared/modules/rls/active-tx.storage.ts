@@ -38,3 +38,22 @@ export function getActiveTx(): Tx | null {
 export function runWithActiveTx<T>(tx: Tx, fn: () => Promise<T>): Promise<T> {
   return activeTxStorage.run({ tx }, fn);
 }
+
+/**
+ * Runs `fn` without re-routing Prisma calls through the request-scoped RLS tx.
+ * Use for side-effect writes (audit, async listeners) that must not inherit an
+ * expired interactive transaction from TenantContextInterceptor.
+ */
+export async function runOutsideActiveTx<T>(fn: () => Promise<T>): Promise<T> {
+  const store = activeTxStorage.getStore();
+  if (!store?.tx) {
+    return fn();
+  }
+  const previousTx = store.tx;
+  store.tx = null;
+  try {
+    return await fn();
+  } finally {
+    store.tx = previousTx;
+  }
+}

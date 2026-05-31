@@ -24,7 +24,12 @@ export const useAnalyticsLogic = () => {
   const startDate = "";
   const endDate = "";
 
-  const { data: overview, isLoading: overviewLoading } = useAnalyticsOverview();
+  const {
+    data: overview,
+    isLoading: overviewLoading,
+    isError: overviewError,
+    refetch: refetchOverview,
+  } = useAnalyticsOverview();
 
   const { data: diseaseTrends = [], isLoading: trendsLoading } = useDiseaseTrends(
     defaultClinicId,
@@ -122,6 +127,7 @@ export const useAnalyticsLogic = () => {
   }, [complianceMetricsData]);
 
   const isLoading = overviewLoading;
+  const isError = overviewError;
 
   return {
     state: {
@@ -131,12 +137,16 @@ export const useAnalyticsLogic = () => {
       complianceMetrics,
       activeTab,
       isLoading,
+      isError,
       trendsLoading,
       revenueLoading,
       complianceLoading,
     },
     handlers: {
       setActiveTab: (tab: AnalyticsTab) => setActiveTab(tab),
+      refetch: () => {
+        void refetchOverview();
+      },
     },
   };
 };

@@ -3,6 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { PrismaService } from '@/prisma/prisma.service';
 import { DomainEvent } from '@/shared/common/events/domain-events';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { runOutsideActiveTx } from '@/shared/modules/rls/active-tx.storage';
 
 @Injectable()
 export class AuditEventListener {
@@ -31,30 +32,37 @@ export class AuditEventListener {
         );
       }
 
-      if (!event.metadata.userId) {
+      const userId = event.metadata.userId;
+      if (!userId) {
         this.logger.debug(`Skipping audit log for ${event.type} - no userId`);
         return;
       }
 
       const [entity, action] = event.type.split('.');
 
-      await this.prisma.auditLog.create({
-        data: {
-          action: action?.toUpperCase() ?? 'UNKNOWN',
-          entityType: entity?.toUpperCase() ?? 'UNKNOWN',
-          entityId: this.extractEntityId(event) ?? 'unknown',
-          userId: event.metadata.userId,
-          clinicId: event.metadata.clinicId,
-          metadata: JSON.parse(
-            JSON.stringify({
-              correlationId: event.metadata.correlationId,
-              source: event.metadata.source,
-              payload: event.payload,
-              version: event.metadata.version,
-            }),
-          ),
-        },
-      });
+      // RLS-BYPASS: audit writes run from the domain-event listener outside the
+      // originating request's tenant/RLS transaction (cross-tenant compliance log).
+      await this.prisma.runUnrestricted(async () =>
+        runOutsideActiveTx(async () => {
+          await this.prisma.auditLog.create({
+            data: {
+              action: action?.toUpperCase() ?? 'UNKNOWN',
+              entityType: entity?.toUpperCase() ?? 'UNKNOWN',
+              entityId: this.extractEntityId(event) ?? 'unknown',
+              userId,
+              clinicId: event.metadata.clinicId,
+              metadata: JSON.parse(
+                JSON.stringify({
+                  correlationId: event.metadata.correlationId,
+                  source: event.metadata.source,
+                  payload: event.payload,
+                  version: event.metadata.version,
+                }),
+              ),
+            },
+          });
+        }),
+      );
     } catch (error) {
       this.logger.error(
         `Failed to create audit log for ${event.type}`,

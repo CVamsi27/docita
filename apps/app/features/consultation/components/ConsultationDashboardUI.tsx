@@ -3,6 +3,7 @@
 import { FC, useCallback, useMemo, useState } from "react";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { Button } from "@workspace/ui/components/form/button";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { Activity, Calendar, Stethoscope, Users } from "lucide-react";
 import { useConsultationDashboard } from "@/features/consultation/hooks/use-consultation-dashboard";
@@ -29,6 +30,8 @@ export const ConsultationDashboardUI: FC = () => {
     opdQueueRows,
     stats,
     isLoading,
+    isError,
+    refetch,
     handleStartConsultation,
     goToConsultationWorkspace,
     isStartingConsultation,
@@ -98,6 +101,26 @@ export const ConsultationDashboardUI: FC = () => {
   );
 
   if (isLoading) return <ConsultationDashboardSkeleton />;
+
+  if (isError) {
+    return (
+      <AppPageScaffold
+        header={
+          <PageHeader
+            title="Consultation"
+            description="Continue your current visit, open the next patient, or add a walk-in for today."
+          />
+        }
+      >
+        <DataState
+          status="error"
+          className="min-h-[50vh]"
+          errorMessage="We could not load your consultation queue. Please try again."
+          onRetry={() => refetch()}
+        />
+      </AppPageScaffold>
+    );
+  }
 
   return (
     <AppPageScaffold

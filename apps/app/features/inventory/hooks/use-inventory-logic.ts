@@ -21,6 +21,7 @@ export const useInventoryLogic = () => {
   const {
     data: inventory = [],
     isLoading,
+    isError,
     refetch,
     isFetching,
   } = useInventory({
@@ -69,6 +70,7 @@ export const useInventoryLogic = () => {
     filteredInventory,
     stats,
     isLoading,
+    isError,
     isFetching,
     searchQuery,
     setSearchQuery,

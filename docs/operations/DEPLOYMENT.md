@@ -209,8 +209,13 @@ Notes:
 Production frontend deploys can run from GitHub Actions via
 [`.github/workflows/deploy-cloudflare.yml`](../../.github/workflows/deploy-cloudflare.yml)
 when `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets are
-set. Until then, Cloudflare Git integration / dashboard deploys remain the
-fallback. To roll back:
+set and pass [`scripts/deploy/verify-cloudflare-deploy-credentials.mjs`](../../scripts/deploy/verify-cloudflare-deploy-credentials.mjs)
+(token verify, account scope, and `Zone > Workers Routes` read access on
+`docita.work`). Use the **Edit Cloudflare Workers** API token template scoped to
+the production account; if deploy fails with `Authentication error [code: 10000]`
+on `/zones/.../workers/routes`, rotate the token with Workers Routes permission
+for that zone. Until credentials verify, the workflow skips deploy (warning) and
+Cloudflare Git integration / dashboard deploys remain the fallback. To roll back:
 
 1. Open the Cloudflare dashboard → Workers & Pages → the affected app (`docita-app`, `docita-internal`, or `docita-landing`).
 2. Under **Deployments**, locate the last known-good deployment and choose **Rollback to this deployment**.

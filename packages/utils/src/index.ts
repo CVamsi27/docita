@@ -13,4 +13,5 @@ export * from "./locale-numbers.js";
 export * from "./errors/index.js";
 export * from "./billing/index.js";
 export * from "./monitoring/index.js";
+export * from "./http/upstream-api-proxy.js";
 export * from "./whatsapp-public-links.js";

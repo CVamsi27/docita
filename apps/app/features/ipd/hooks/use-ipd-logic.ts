@@ -26,7 +26,12 @@ export const useIpdLogic = () => {
   const debouncedSearch = useDebounce(searchQuery, 300);
   const [showAdmissionModal, setShowAdmissionModal] = useState(false);
 
-  const { data: wards, isLoading } = useAPIQuery<WardWithRooms[]>(
+  const {
+    data: wards,
+    isLoading,
+    isError,
+    refetch: refetchWards,
+  } = useAPIQuery<WardWithRooms[]>(
     queryKeys.ipd.wards(debouncedSearch),
     `/ipd/wards${debouncedSearch ? `?search=${encodeURIComponent(debouncedSearch)}` : ""}`,
     { staleTime: 15 * 1000, enabled: ipdOk },
@@ -148,6 +153,8 @@ export const useIpdLogic = () => {
   return {
     wards: normalizedWards,
     isLoading,
+    isError,
+    refetch: refetchWards,
     stats,
     searchQuery,
     setSearchQuery,

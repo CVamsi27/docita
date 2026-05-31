@@ -191,7 +191,7 @@ The `shared/` folder is the home for **non-feature** code reused across features
 - Every new page, modal, or feature surface MUST be assembled from `@workspace/ui` primitives. Do not reinvent a primitive that already exists.
   - Layout/chrome: `AppPageScaffold`, `PageHeader`, `PageContainer`, `Section`, `AppShell`, `TopBar`, `Breadcrumbs`, `PageTabs`.
   - State: `DataState`, `LoadingState`, `EmptyState`, `ErrorState`, `Skeleton`.
-  - Origin patterns: `MicroLabel`, `WizardDialog`, `RightRailCardStack`, `PromptInput`, `CategoryAvatar`, `ProgressGauge`, `FloatingInput`.
+  - Origin patterns: `MicroLabel`, `WizardDialog`, `RightRailCardStack`, `PromptInput`, `CategoryAvatar`, `ProgressGauge`.
 - Sidebar IA must remain sectioned (TRACK / SERVICES + Settings / Help / Theme / Plan footer + Ask AI pinned) per `UI_UX_STANDARD_2026.md` §1.1. The command palette must stay in lockstep with the sidebar.
 - AI surfaces follow the contract in `UI_UX_STANDARD_2026.md` §4 (`AskAiButton` pinned, `AskAiOverlay` shell, contextual scope chip, "AI suggestions are not medical advice" footer).
 - Motion policy is fixed: no `animate-pulse` on chrome, no skeleton `animation="wave"`, no decorative `animate-in fade-in slide-in-from-bottom-*`, no `transition-all`. Only `animate-spin` for explicit loading and `transition-colors duration-150` for hover/focus.

@@ -1,8 +1,3 @@
-const UPSTREAM_API_URL =
-  process.env["API_URL"] ||
-  process.env["API_PROXY_TARGET"] ||
-  "https://api.docita.work/api/v1";
-
 const HOP_BY_HOP_HEADERS = new Set([
   "connection",
   "content-encoding",
@@ -17,8 +12,34 @@ const HOP_BY_HOP_HEADERS = new Set([
   "upgrade",
 ]);
 
-export function buildUpstreamApiUrl(pathSegments: string[], requestUrl: string) {
-  const upstreamBase = normalizeUpstreamApiUrl(UPSTREAM_API_URL);
+export function normalizeUpstreamApiUrl(value: string) {
+  const trimmed = value.replace(/\/$/, "");
+  const url = new URL(trimmed);
+  const pathname = url.pathname.replace(/\/$/, "");
+
+  if (pathname === "" || pathname === "/") {
+    return `${url.origin}/api/v1`;
+  }
+
+  return `${url.origin}${pathname}`;
+}
+
+export function resolveUpstreamApiBaseUrl(
+  env: Record<string, string | undefined> = process.env,
+) {
+  const upstream =
+    env["API_URL"] ||
+    env["API_PROXY_TARGET"] ||
+    "https://api.docita.work/api/v1";
+
+  return normalizeUpstreamApiUrl(upstream);
+}
+
+export function buildUpstreamApiUrl(
+  pathSegments: string[],
+  requestUrl: string,
+  upstreamBase = resolveUpstreamApiBaseUrl(),
+) {
   const path = pathSegments.map(encodeURIComponent).join("/");
   const search = new URL(requestUrl).search;
 
@@ -31,18 +52,6 @@ export function rewriteSetCookieForAppProxy(cookie: string): string {
     .map((part) => part.trim())
     .filter((part) => part.length > 0 && !/^domain=/i.test(part))
     .join("; ");
-}
-
-export function normalizeUpstreamApiUrl(value: string) {
-  const trimmed = value.replace(/\/$/, "");
-  const url = new URL(trimmed);
-  const pathname = url.pathname.replace(/\/$/, "");
-
-  if (pathname === "" || pathname === "/") {
-    return `${url.origin}/api/v1`;
-  }
-
-  return `${url.origin}${pathname}`;
 }
 
 export function createUpstreamProxyRequestHeaders(request: Request) {
@@ -77,7 +86,6 @@ export function createUpstreamProxyResponseHeaders(upstreamHeaders: Headers) {
   });
 
   for (const cookie of setCookies) {
-    // Upstream may emit Domain= for the API host; strip it so cookies bind to the app origin.
     headers.append("set-cookie", rewriteSetCookieForAppProxy(cookie));
   }
 
@@ -87,22 +95,39 @@ export function createUpstreamProxyResponseHeaders(upstreamHeaders: Headers) {
 export async function proxyUpstreamApiRequest(
   request: Request,
   pathSegments: string[],
+  upstreamBase?: string,
 ) {
   const method = request.method.toUpperCase();
-  const body =
+  const body: BodyInit | null =
     method === "GET" || method === "HEAD"
-      ? undefined
+      ? null
       : await request.arrayBuffer();
-  const upstreamResponse = await fetch(buildUpstreamApiUrl(pathSegments, request.url), {
-    method,
-    headers: createUpstreamProxyRequestHeaders(request),
-    body,
-    redirect: "manual",
-  });
+  const upstreamResponse = await fetch(
+    buildUpstreamApiUrl(pathSegments, request.url, upstreamBase),
+    {
+      method,
+      headers: createUpstreamProxyRequestHeaders(request),
+      body,
+      redirect: "manual",
+    },
+  );
 
   return new Response(upstreamResponse.body, {
     status: upstreamResponse.status,
     statusText: upstreamResponse.statusText,
     headers: createUpstreamProxyResponseHeaders(upstreamResponse.headers),
   });
+}
+
+export function extractApiV1PathSegments(pathname: string): string[] | null {
+  if (!pathname.startsWith("/api/v1/")) {
+    return null;
+  }
+
+  const remainder = pathname.slice("/api/v1/".length);
+  if (!remainder) {
+    return [];
+  }
+
+  return remainder.split("/").filter(Boolean);
 }

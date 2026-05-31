@@ -9,6 +9,7 @@ import {
   PrivacyPolicyContent,
   SLAContent,
 } from "@/features/legal";
+import { OnboardingSection } from "@/features/onboarding/components/shared";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
 import type { LegalDocumentType } from "./use-compliance-step";
 import { ComplianceLegalCard } from "./compliance-legal-card";
@@ -59,31 +60,25 @@ export function CompliancePoliciesSection({
 
   return (
     <>
-      <div className="space-y-4 rounded-lg border p-4 md:p-5 bg-card">
-        <div className="space-y-2.5">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-primary" />
-              <h3 className="font-semibold text-sm">Legal Agreements</h3>
-            </div>
-            <Badge
-              variant={
-                acceptedCount === legalDocs.length ? "default" : "secondary"
-              }
-              className="h-6 px-2.5"
-            >
-              {acceptedCount}/{legalDocs.length} accepted
-            </Badge>
-          </div>
-          <Progress
-            value={(acceptedCount / legalDocs.length) * 100}
-            className="h-1.5"
-          />
-          <p className="text-xs text-muted-foreground">
-            Review each agreement and accept all documents to continue
-            registration.
-          </p>
-        </div>
+      <OnboardingSection
+        title="Legal agreements"
+        icon={<ShieldCheck />}
+        description="Review each agreement and accept all documents to continue registration."
+        trailing={
+          <Badge
+            variant={
+              acceptedCount === legalDocs.length ? "default" : "secondary"
+            }
+            className="h-6 px-2.5"
+          >
+            {acceptedCount}/{legalDocs.length} accepted
+          </Badge>
+        }
+      >
+        <Progress
+          value={(acceptedCount / legalDocs.length) * 100}
+          className="h-1.5"
+        />
         <div className="space-y-3">
           {legalDocs.map((doc, index) => (
             <ComplianceLegalCard
@@ -104,7 +99,7 @@ export function CompliancePoliciesSection({
             />
           ))}
         </div>
-      </div>
+      </OnboardingSection>
 
       {legalDocumentConfig ? (
         <ComplianceLegalDocumentDialog

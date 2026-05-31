@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   buildUpstreamApiUrl,
+  extractApiV1PathSegments,
   normalizeUpstreamApiUrl,
   rewriteSetCookieForAppProxy,
-} from "./upstream-api-proxy";
+} from "./upstream-api-proxy.js";
 
 describe("upstream-api-proxy", () => {
   it("normalizes API_URL to /api/v1 upstream base", () => {
@@ -27,8 +28,17 @@ describe("upstream-api-proxy", () => {
     const url = buildUpstreamApiUrl(
       ["clinic", "settings"],
       "https://app.docita.work/api/v1/clinic/settings?foo=1",
+      "https://api.docita.work/api/v1",
     );
 
     expect(url).toBe("https://api.docita.work/api/v1/clinic/settings?foo=1");
+  });
+
+  it("extracts path segments from /api/v1 requests", () => {
+    expect(extractApiV1PathSegments("/api/v1/public/daily-thought")).toEqual([
+      "public",
+      "daily-thought",
+    ]);
+    expect(extractApiV1PathSegments("/dashboard")).toBeNull();
   });
 });

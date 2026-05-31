@@ -21,7 +21,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
-import { FloatingInput } from "@workspace/ui/components/form/floating-input";
+import { Input } from "@workspace/ui/components/form/input";
 import {
   type DeskPaymentMethod,
   PAYMENT_CHANNEL_OPTIONS,
@@ -94,13 +94,18 @@ export function RecordPaymentDialog({
               </SelectContent>
             </Select>
           </div>
-          <FloatingInput
-            id="desk-reference"
-            label="Reference or receipt ID (optional)"
-            value={reference}
-            onChange={(e) => onReferenceChange(e.target.value)}
-            autoComplete="off"
-          />
+          <div className="space-y-2">
+            <Label htmlFor="desk-reference" className="text-[var(--fs-xs)]">
+              Reference or receipt ID (optional)
+            </Label>
+            <Input
+              id="desk-reference"
+              value={reference}
+              onChange={(e) => onReferenceChange(e.target.value)}
+              autoComplete="off"
+              placeholder="Enter reference or receipt ID"
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="desk-notes" className="text-[var(--fs-xs)]">
               Notes (optional)

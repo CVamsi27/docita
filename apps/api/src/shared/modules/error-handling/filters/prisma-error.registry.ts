@@ -69,6 +69,14 @@ const PRISMA_KNOWN_ERROR_REGISTRY: Record<string, PrismaErrorMapping> = {
     message: 'Database input parsing error - malformed input data',
     details: () => ({ code: 'P2019' }),
   },
+  P2028: {
+    status: HttpStatus.SERVICE_UNAVAILABLE,
+    message: 'Database is busy. Please try again shortly.',
+    details: (exception) => ({
+      code: 'P2028',
+      reason: toStringOrUndefined(exception.meta?.error) ?? 'transaction_api',
+    }),
+  },
 };
 
 export function mapPrismaKnownRequestError(

@@ -2,19 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { dailyThoughtResponseSchema } from "@workspace/types";
+import type { DailyThoughtResponse } from "@workspace/types";
 import { browserJson } from "@/lib/auth/browser-request";
 import { logger } from "@/lib/monitoring/logger";
-import { z } from "zod";
-
-const dailyThoughtPayloadSchema = z.object({
-  quote: z.string(),
-  author: z.string(),
-});
-
-type DailyThoughtPayload = z.infer<typeof dailyThoughtPayloadSchema>;
 
 export function LoginDailyThought() {
-  const [data, setData] = useState<DailyThoughtPayload | null>(null);
+  const [data, setData] = useState<DailyThoughtResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,16 +16,14 @@ export function LoginDailyThought() {
 
     async function load() {
       try {
-        // Key the request by UTC day so the browser doesn't keep
-        // serving a prior day's cached response indefinitely.
         const dayKey = new Date().toISOString().slice(0, 10);
         const body = await browserJson<unknown>(
-          `/api/daily-thought?day=${dayKey}`,
+          `/api/v1/public/daily-thought?day=${dayKey}`,
           {
             method: "GET",
           },
         );
-        const parsed = dailyThoughtPayloadSchema.safeParse(body);
+        const parsed = dailyThoughtResponseSchema.safeParse(body);
         if (!cancelled && parsed.success) {
           setData(parsed.data);
         }

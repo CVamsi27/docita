@@ -16,6 +16,7 @@ import { tenantStorage } from '@/shared/common/middleware/tenant.middleware';
 import { EncryptionService } from '@/shared/common/encryption.service';
 import { slowQueryExtension } from '@/shared/common/extensions/logging.extension';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { getDefaultTransactionOptions } from '@/shared/common/database-transaction-options';
 import { DATABASE_CONSTANTS } from '@/shared/modules/config/app-constants';
 
 @Injectable()
@@ -52,6 +53,7 @@ export class PrismaService
     super({
       adapter,
       log: [],
+      transactionOptions: getDefaultTransactionOptions(),
     });
   }
 

@@ -154,7 +154,7 @@ export default function VerifyEmailSentPage() {
       <PreDashboardShell currentStep="verify-email-sent" showSignOut>
         <div className="ui-card-surface space-y-6 p-8">
           <div className="flex justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-success/10">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
               <CheckCircle2 className="h-8 w-8 text-success" />
             </div>
           </div>
@@ -225,7 +225,7 @@ export default function VerifyEmailSentPage() {
     <PreDashboardShell currentStep="verify-email-sent" showSignOut>
       <div className="ui-card-surface space-y-6 p-8">
         <div className="flex justify-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full border border-border/70 bg-background/70">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
             <Mail className="h-8 w-8 text-primary" />
           </div>
         </div>

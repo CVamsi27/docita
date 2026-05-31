@@ -133,6 +133,15 @@ export function ClinicAddressPickerDialog({
                   onLeafletLoad={picker.setLeafletMap}
                   onLeafletPaint={() => picker.setIsLeafletPainted(true)}
                 />
+
+                {picker.isMapViewportReady && !picker.picked ? (
+                  <div className="pointer-events-none absolute inset-x-0 top-3 z-[450] flex justify-center px-3">
+                    <div className="flex items-center gap-2 rounded-full border border-border/70 bg-background/95 px-3.5 py-1.5 text-xs font-medium text-foreground shadow-sm backdrop-blur">
+                      <MapPin className="h-3.5 w-3.5 shrink-0 text-primary" />
+                      Click the map, search, or use your location to drop the pin
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
 

@@ -3,15 +3,8 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Sparkles } from "lucide-react";
 import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
 import {
   Alert,
   AlertDescription,
@@ -19,6 +12,12 @@ import {
 } from "@workspace/ui/components/feedback/alert";
 import { cn } from "@workspace/ui/lib/utils";
 import { recommendTierForTeamSize } from "@workspace/utils";
+import {
+  OnboardingStepBody,
+  OnboardingStepCard,
+  OnboardingStepFooter,
+  OnboardingStepHeader,
+} from "@/features/onboarding/components/shared";
 import { type TierPricing, usePricingConfig } from "@/features/subscription";
 import { ContactSalesModal } from "@/features/dialogs";
 import { TierCard, getFeatureDetails } from "@/features/subscription";
@@ -121,10 +120,21 @@ export function PlanSelectionStepInner({
     }
   };
 
+  const stepHeader = (
+    <OnboardingStepHeader
+      stepNumber={4}
+      eyebrow="Choose plan"
+      icon={<Sparkles strokeWidth={1.5} />}
+      title="Choose your plan"
+      description="Select a plan that fits your facility and team size. Paid plans redirect to Razorpay for secure checkout."
+    />
+  );
+
   if (isLoading) {
     return (
-      <Card>
-        <CardContent
+      <OnboardingStepCard>
+        {stepHeader}
+        <OnboardingStepBody
           className="flex flex-col items-center justify-center gap-3 py-12 sm:flex-row"
           role="status"
           aria-live="polite"
@@ -138,20 +148,21 @@ export function PlanSelectionStepInner({
           <span className="text-sm text-muted-foreground">
             Loading pricing…
           </span>
-        </CardContent>
-      </Card>
+        </OnboardingStepBody>
+      </OnboardingStepCard>
     );
   }
 
   if (error || !pricingConfig) {
     return (
-      <Card>
-        <CardContent className="py-8 text-center">
+      <OnboardingStepCard>
+        {stepHeader}
+        <OnboardingStepBody className="py-8 text-center">
           <p className="text-muted-foreground">
             We could not load pricing right now. Please try again shortly.
           </p>
-        </CardContent>
-      </Card>
+        </OnboardingStepBody>
+      </OnboardingStepCard>
     );
   }
 
@@ -170,19 +181,13 @@ Billing preference: ${billingCycle}
 Please contact me with deployment and commercial details.`;
 
   return (
-    <Card className="border-primary/20 bg-primary/5">
-      <CardHeader>
-        <CardTitle>Choose your plan</CardTitle>
-        <CardDescription>
-          Select a plan that fits your facility and team size. Paid plans redirect
-          to Razorpay for secure checkout.
-        </CardDescription>
+    <OnboardingStepCard>
+      {stepHeader}
+      <OnboardingStepBody className="space-y-6">
         <p className="text-xs text-muted-foreground">
           {pricingRegionLabel} for facilities in{" "}
           {pricingConfig.currency.code === "INR" ? "India" : "your region"}.
         </p>
-      </CardHeader>
-      <CardContent className="space-y-6">
         {teamRecommendation ? (
           <Alert>
             <AlertTitle>Recommended for your team</AlertTitle>
@@ -275,21 +280,18 @@ Please contact me with deployment and commercial details.`;
           onOpenChange={setComparisonOpen}
         />
 
-        {onBack ? (
-          <div className="flex justify-start border-t pt-4">
-            <Button type="button" variant="outline" onClick={onBack}>
-              Back
-            </Button>
-          </div>
-        ) : null}
-
         <ContactSalesModal
           open={showContactSalesModal}
           onOpenChange={setShowContactSalesModal}
           source="onboarding_enterprise"
           defaultValues={{ message: enterpriseContactMessage }}
         />
-      </CardContent>
-    </Card>
+      </OnboardingStepBody>
+      {onBack ? (
+        <OnboardingStepFooter
+          back={{ label: "Back to team", onClick: onBack }}
+        />
+      ) : null}
+    </OnboardingStepCard>
   );
 }

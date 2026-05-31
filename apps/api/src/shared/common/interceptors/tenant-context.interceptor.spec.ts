@@ -6,6 +6,7 @@ import { tenantStorage } from '@/shared/common/middleware/tenant.middleware';
 import type { PrismaService } from '@/prisma/prisma.service';
 import type { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import type { CallHandler, ExecutionContext } from '@nestjs/common';
+import { getRlsRequestTransactionOptions } from '@/shared/common/database-transaction-options';
 
 interface FakeTx {
   $executeRaw: jest.Mock;
@@ -96,6 +97,10 @@ describe('TenantContextInterceptor', () => {
 
     expect(result).toBe('handler-result');
     expect($transaction).toHaveBeenCalledTimes(1);
+    expect($transaction).toHaveBeenCalledWith(
+      expect.any(Function),
+      getRlsRequestTransactionOptions(),
+    );
     // applyRlsScope issues two `set_config` calls.
     expect(tx.$executeRaw).toHaveBeenCalledTimes(2);
     expect(observedTxInsideHandler).toBe(tx);

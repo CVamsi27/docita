@@ -3,19 +3,8 @@
 import { useMemo, useState } from "react";
 import { Calendar } from "lucide-react";
 import { DAY_OF_WEEK_LABELS, type DayOfWeek } from "@workspace/types";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import {
   Select,
   SelectContent,
@@ -25,6 +14,12 @@ import {
 } from "@workspace/ui/components/form/select";
 import { Switch } from "@workspace/ui/components/form/switch";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import {
+  OnboardingStepBody,
+  OnboardingStepCard,
+  OnboardingStepFooter,
+  OnboardingStepHeader,
+} from "@/features/onboarding/components/shared";
 import type { ClinicWeeklyHourRow } from "@/features/onboarding/components/types";
 
 const DISPLAY_ORDER: DayOfWeek[] = [
@@ -140,29 +135,15 @@ export function ClinicWeeklyHoursStep({
   };
 
   return (
-    <Card className="overflow-hidden border-border/70 shadow-sm ring-1 ring-border/25">
-      <CardHeader className="border-b border-border/60 bg-surface-2">
-        <div className="flex gap-3.5 sm:gap-4">
-          <CategoryAvatar
-            icon={<Calendar strokeWidth={1.5} />}
-            tone="primary"
-            size="lg"
-            className="mt-0.5"
-          />
-          <div className="min-w-0 space-y-1.5">
-            <MicroLabel as="h2">Default visit hours</MicroLabel>
-            <CardTitle className="text-[length:var(--fs-xl)] font-semibold tracking-tight sm:text-[length:var(--fs-2xl)]">
-              When is this {facilityWord.toLowerCase()} open?
-            </CardTitle>
-            <CardDescription className="max-w-prose text-pretty text-[length:var(--fs-sm)] sm:text-[length:var(--fs-base)]">
-              These hours become the default schedule for online booking. Each
-              doctor can later set their own hours in settings; until then, they
-              follow this weekly pattern.
-            </CardDescription>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4 px-4 py-5 sm:px-6 sm:py-6">
+    <OnboardingStepCard>
+      <OnboardingStepHeader
+        stepNumber={2}
+        eyebrow="Visit hours"
+        icon={<Calendar strokeWidth={1.5} />}
+        title={`When is this ${facilityWord.toLowerCase()} open?`}
+        description="These hours become the default schedule for online booking. Each doctor can later set their own hours in settings; until then, they follow this weekly pattern."
+      />
+      <OnboardingStepBody className="space-y-4">
         <div className="space-y-3">
           {DISPLAY_ORDER.map((day) => {
             const dayRow = rows[day];
@@ -263,24 +244,11 @@ export function ClinicWeeklyHoursStep({
             );
           })}
         </div>
-      </CardContent>
-      <CardFooter className="flex flex-col gap-2 border-t border-border/60 bg-muted/[0.06] px-4 py-4 sm:flex-row sm:justify-between sm:px-6">
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full rounded-[var(--radius-md)] sm:w-auto"
-          onClick={onBack}
-        >
-          Back to facility details
-        </Button>
-        <Button
-          type="button"
-          className="h-11 w-full rounded-[var(--radius-md)] px-6 text-[length:var(--fs-sm)] font-semibold sm:w-auto sm:min-w-[12rem]"
-          onClick={handleContinue}
-        >
-          Continue to plan
-        </Button>
-      </CardFooter>
-    </Card>
+      </OnboardingStepBody>
+      <OnboardingStepFooter
+        back={{ label: "Back to facility details", onClick: onBack }}
+        primary={{ label: "Continue to team", onClick: handleContinue }}
+      />
+    </OnboardingStepCard>
   );
 }

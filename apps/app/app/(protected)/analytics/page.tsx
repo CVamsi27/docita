@@ -40,6 +40,8 @@ export default function AnalyticsPage() {
         revenueByCPT={state.revenueByCPT}
         complianceMetrics={state.complianceMetrics}
         isLoading={state.isLoading}
+        isError={state.isError}
+        onRetry={handlers.refetch}
         trendsLoading={state.trendsLoading}
         revenueLoading={state.revenueLoading}
         complianceLoading={state.complianceLoading}

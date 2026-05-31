@@ -1,10 +1,12 @@
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
+import { PenLine } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import Image from "next/image";
 import { PhoneSignatureQrPanel } from "@/components/signature/phone-signature-qr-panel";
 import type { usePhoneSignatureQrFlow } from "@/hooks/use-phone-signature-qr-flow";
+import { OnboardingSection } from "@/features/onboarding/components/shared";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
 
 interface SignaturesSectionProps {
@@ -33,8 +35,7 @@ export function SignaturesSection({
   onResign,
 }: SignaturesSectionProps) {
   return (
-    <div className="space-y-3">
-      <h3 className="font-semibold text-sm">SLA Signature</h3>
+    <OnboardingSection title="SLA signature" icon={<PenLine />}>
       <PhoneSignatureQrPanel
         loading={qrFlow.isLoading}
         uploaded={qrFlow.isUploaded}
@@ -48,7 +49,7 @@ export function SignaturesSection({
         onCopyLink={onCopyLink}
         missingContextMessage={
           !hasOnboardingContext
-            ? "Missing onboarding session ID for QR signature. Go back to Step 3 and continue once to re-initialize."
+            ? "Missing onboarding session ID for QR signature. Go back one step and continue once to re-initialize."
             : undefined
         }
         successTitle="Signature received from your phone"
@@ -99,6 +100,6 @@ export function SignaturesSection({
           {complianceForm.formState.errors.slaSignatureSessionId.message}
         </p>
       )}
-    </div>
+    </OnboardingSection>
   );
 }

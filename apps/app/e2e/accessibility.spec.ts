@@ -41,17 +41,25 @@ const violationsByPage: Record<
   }
 > = {};
 
+function e2eAuthHeaders(user: UserData) {
+  return {
+    Authorization: `Bearer ${user.accessToken}`,
+    "x-docita-e2e": "true",
+  };
+}
+
 async function runAccessibilityAudit(
   page: import("@playwright/test").Page,
   targetPath: string,
   pageName: string,
 ) {
   await page.goto(targetPath, { waitUntil: "networkidle" });
-  await page.waitForLoadState("networkidle");
   await page.waitForLoadState("domcontentloaded");
-  await page.evaluate(
-    () => new Promise((resolve) => setTimeout(resolve, 500)),
-  );
+  await page.waitForURL((url) => url.pathname === targetPath.split("?")[0], {
+    timeout: 15_000,
+  });
+  await page.waitForLoadState("networkidle");
+  await page.locator("body").waitFor({ state: "visible" });
 
   await injectAxe(page);
 
@@ -110,7 +118,7 @@ test.describe("Accessibility Audit - Main App", () => {
       user = await setupTestUser(request);
 
       const patientRes = await request.post(`${API_URL}/patients`, {
-        headers: { Authorization: `Bearer ${user.accessToken}` },
+        headers: e2eAuthHeaders(user),
         data: {
           firstName: "MobileAxe",
           lastName: "Patient",
@@ -127,7 +135,10 @@ test.describe("Accessibility Audit - Main App", () => {
           },
         },
       });
-      expect(patientRes.ok()).toBeTruthy();
+      await expect(
+        patientRes.ok(),
+        `Patient setup failed: ${patientRes.status()} ${await patientRes.text()}`,
+      ).toBeTruthy();
       const patient = await patientRes.json();
 
       const now = new Date();
@@ -136,7 +147,7 @@ test.describe("Accessibility Audit - Main App", () => {
       endTime.setMinutes(now.getMinutes() + 30);
 
       const apptRes = await request.post(`${API_URL}/appointments`, {
-        headers: { Authorization: `Bearer ${user.accessToken}` },
+        headers: e2eAuthHeaders(user),
         data: {
           patientId: patient.id,
           doctorId: user.id,
@@ -147,7 +158,10 @@ test.describe("Accessibility Audit - Main App", () => {
           status: "scheduled",
         },
       });
-      expect(apptRes.ok()).toBeTruthy();
+      await expect(
+        apptRes.ok(),
+        `Appointment setup failed: ${apptRes.status()} ${await apptRes.text()}`,
+      ).toBeTruthy();
       const appointment = await apptRes.json();
       appointmentId = appointment.id;
     });
@@ -242,7 +256,7 @@ test.describe("Accessibility Audit - Main App", () => {
       user = await setupTestUser(request);
 
       const patientRes = await request.post(`${API_URL}/patients`, {
-        headers: { Authorization: `Bearer ${user.accessToken}` },
+        headers: e2eAuthHeaders(user),
         data: {
           firstName: "Axe",
           lastName: "Patient",
@@ -259,7 +273,10 @@ test.describe("Accessibility Audit - Main App", () => {
           },
         },
       });
-      expect(patientRes.ok()).toBeTruthy();
+      await expect(
+        patientRes.ok(),
+        `Patient setup failed: ${patientRes.status()} ${await patientRes.text()}`,
+      ).toBeTruthy();
       const patient = await patientRes.json();
 
       const now = new Date();
@@ -268,7 +285,7 @@ test.describe("Accessibility Audit - Main App", () => {
       endTime.setMinutes(now.getMinutes() + 30);
 
       const apptRes = await request.post(`${API_URL}/appointments`, {
-        headers: { Authorization: `Bearer ${user.accessToken}` },
+        headers: e2eAuthHeaders(user),
         data: {
           patientId: patient.id,
           doctorId: user.id,
@@ -279,7 +296,10 @@ test.describe("Accessibility Audit - Main App", () => {
           status: "scheduled",
         },
       });
-      expect(apptRes.ok()).toBeTruthy();
+      await expect(
+        apptRes.ok(),
+        `Appointment setup failed: ${apptRes.status()} ${await apptRes.text()}`,
+      ).toBeTruthy();
       const appointment = await apptRes.json();
       appointmentId = appointment.id;
     });
