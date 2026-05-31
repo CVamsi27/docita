@@ -17,6 +17,15 @@ type ValidateAuth = (headers?: Record<string, string>) => Promise<unknown>;
 
 const SESSION_REFRESH_TIMEOUT_MS = 15_000;
 const VALIDATE_SESSION_TIMEOUT_MS = 30_000;
+/**
+ * First-attempt timeout before declaring a possible cold-start. Kept below
+ * the full 30 s so the "warming up" screen appears promptly when the API
+ * machine is still booting, but high enough to avoid false positives on
+ * genuinely slow-but-working connections.
+ */
+const COLD_START_PROBE_TIMEOUT_MS = 10_000;
+/** How long to wait before retrying after a suspected cold-start. */
+const COLD_START_RETRY_DELAY_MS = 5_000;
 
 async function refreshAccessTokenWithTimeout(
   refreshAccessToken: () => Promise<boolean>,
@@ -29,6 +38,21 @@ async function refreshAccessTokenWithTimeout(
   ]);
 }
 
+function makeTimeoutRace(
+  validateAuth: ValidateAuth,
+  timeoutMs: number,
+): Promise<unknown> {
+  return Promise.race([
+    validateAuth(undefined),
+    new Promise<never>((_, reject) => {
+      window.setTimeout(
+        () => reject(new Error("Auth validation timed out")),
+        timeoutMs,
+      );
+    }),
+  ]);
+}
+
 export function useAuthSessionBootstrap(options: {
   validateAuth: ValidateAuth;
   refreshAccessToken: () => Promise<boolean>;
@@ -36,6 +60,7 @@ export function useAuthSessionBootstrap(options: {
   setUser: (user: User | null) => void;
   setUserRole: (role: string) => void;
   setIsLoading: (loading: boolean) => void;
+  setIsApiStarting: (starting: boolean) => void;
   setLoginLockoutUntil: (until: number | null) => void;
   hasSetRoleRef: MutableRefObject<boolean>;
 }): void {
@@ -48,6 +73,7 @@ export function useAuthSessionBootstrap(options: {
     setUser,
     setUserRole,
     setIsLoading,
+    setIsApiStarting,
     setLoginLockoutUntil,
     hasSetRoleRef,
   } = options;
@@ -69,30 +95,46 @@ export function useAuthSessionBootstrap(options: {
       setLoginLockoutUntil(persistedLockoutUntil);
     }
 
-    const validateSession = async () => {
+    const applyValidatedUser = async (raw: unknown): Promise<boolean> => {
+      const userData = parseValidatedUser(raw);
+      if (!userData) return false;
+      setUser(userData);
+      setUserRole(userData.role);
+      hasSetRoleRef.current = true;
+      if (!appSession.getToken()) {
+        await refreshAccessTokenWithTimeout(refreshAccessToken);
+      }
+      return true;
+    };
+
+    const validateSession = async (isColdStartRetry = false): Promise<void> => {
+      // Use a shorter probe timeout on the first attempt so we detect a cold-start
+      // quickly. If this races out and the user has a valid token we show the
+      // "warming up" screen and retry once with the full timeout.
+      const timeoutMs = isColdStartRetry
+        ? VALIDATE_SESSION_TIMEOUT_MS
+        : COLD_START_PROBE_TIMEOUT_MS;
+
       try {
-        const userData = parseValidatedUser(
-          await Promise.race([
-            validateAuth(undefined),
-            new Promise<never>((_, reject) => {
-              window.setTimeout(
-                () => reject(new Error("Auth validation timed out")),
-                VALIDATE_SESSION_TIMEOUT_MS,
-              );
-            }),
-          ]),
+        const applied = await applyValidatedUser(
+          await makeTimeoutRace(validateAuth, timeoutMs),
         );
-        if (userData) {
-          setUser(userData);
-          setUserRole(userData.role);
-          hasSetRoleRef.current = true;
-          if (!appSession.getToken()) {
-            await refreshAccessTokenWithTimeout(refreshAccessToken);
-          }
-          return;
-        }
+        if (applied) return;
       } catch (error) {
         if (!isAuthFailure(error)) {
+          // Network error or timeout — could be an API cold-start.
+          // If the user has a valid token, signal the warming state and retry once.
+          if (!isColdStartRetry && appSession.getToken()) {
+            setIsApiStarting(true);
+            await new Promise<void>((resolve) => {
+              window.setTimeout(resolve, COLD_START_RETRY_DELAY_MS);
+            });
+            // Retry is fire-and-forget within this call — the finally below
+            // will still clear isLoading/isApiStarting after it resolves.
+            await validateSession(true);
+          }
+          // Either no token (unauthenticated) or second attempt still failed —
+          // fall through to setIsLoading(false) in finally.
           return;
         }
 
@@ -109,14 +151,8 @@ export function useAuthSessionBootstrap(options: {
         }
 
         try {
-          const retryUser = parseValidatedUser(await validateAuth(undefined));
-          if (retryUser) {
-            setUser(retryUser);
-            setUserRole(retryUser.role);
-            hasSetRoleRef.current = true;
-            return;
-          }
-          clearSession();
+          const applied = await applyValidatedUser(await validateAuth(undefined));
+          if (!applied) clearSession();
         } catch (retryError) {
           if (isAuthFailure(retryError)) {
             clearSession();
@@ -124,16 +160,10 @@ export function useAuthSessionBootstrap(options: {
         }
       } finally {
         setIsLoading(false);
+        setIsApiStarting(false);
       }
     };
 
-    /**
-     * Cold-reload path: no in-memory access token (we no longer persist it
-     * to localStorage). The httpOnly refresh-token cookie still rides
-     * automatically. On a public path we stay quiet; elsewhere we attempt
-     * a refresh and then validate. If refresh fails the validateSession
-     * catch branch will clear and redirect.
-     */
     if (!appSession.getToken()) {
       if (isPublicAuthPath(pathname)) {
         setIsLoading(false);
@@ -152,16 +182,11 @@ export function useAuthSessionBootstrap(options: {
     pathname,
     refreshAccessToken,
     setIsLoading,
+    setIsApiStarting,
     setLoginLockoutUntil,
     setUser,
     setUserRole,
     validateAuth,
     hasSetRoleRef,
   ]);
-
-  // Cross-tab logout previously rode the `storage` event watching
-  // `docita_token`. Since we no longer persist the token, that channel
-  // is gone. Tabs converge on the next API call: a logged-out tab will
-  // receive a 401 → refresh fails → clearSession → redirect. If we want
-  // instant cross-tab signaling later, switch to BroadcastChannel.
 }

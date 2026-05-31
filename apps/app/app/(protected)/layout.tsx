@@ -125,7 +125,7 @@ export default function ProtectedLayout({
   const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
   const wasSettingsAutoCollapseRouteRef = useRef(false);
   const wasConsultationAutoCollapseRouteRef = useRef(false);
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isApiStarting } = useAuth();
   const router = useRouter();
   const isSettingsRoute = pathname?.startsWith("/settings") ?? false;
   const isConsultationDetailRoute = Boolean(
@@ -133,7 +133,7 @@ export default function ProtectedLayout({
   );
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || isApiStarting) return;
     if (!user) {
       setRedirectMessage("Your session is missing. Redirecting to login…");
       persistReturnPathBeforeLogin();
@@ -157,7 +157,7 @@ export default function ProtectedLayout({
         router.replace("/choose-path");
       }
     }
-  }, [isLoading, user, router]);
+  }, [isApiStarting, isLoading, user, router]);
 
   // Consultation detail: collapse/expand based on route
   useEffect(() => {
@@ -238,6 +238,15 @@ export default function ProtectedLayout({
           </div>
         </div>
       </div>
+    );
+  }
+
+  if (isApiStarting) {
+    return (
+      <PageTransitionLoader
+        title="Server is warming up…"
+        description="The backend is starting from cold. This takes a few seconds — you'll be connected automatically."
+      />
     );
   }
 
