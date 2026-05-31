@@ -140,35 +140,68 @@ async function probeApiHealthLive() {
   });
 }
 
+async function assertDailyThoughtResponse(response, latencyMs) {
+  if (!response.ok) {
+    throw new Error(`Expected 200, got ${response.status}`);
+  }
+
+  const body = await response.json();
+  if (typeof body.quote !== "string" || body.quote.trim().length === 0) {
+    throw new Error("Response missing non-empty quote field");
+  }
+
+  const cacheControl = response.headers.get("cache-control") ?? "";
+  if (!cacheControl.toLowerCase().includes("public")) {
+    throw new Error(`Expected public Cache-Control, got "${cacheControl}"`);
+  }
+
+  if (latencyMs > LATENCY_TARGETS_MS["daily-thought"]) {
+    throw new Error(
+      `Latency ${latencyMs}ms exceeds ${LATENCY_TARGETS_MS["daily-thought"]}ms target`,
+    );
+  }
+}
+
 async function probeDailyThought() {
   return runProbe("daily-thought", async () => {
-    const { response, latencyMs } = await fetchWithTimeout(
-      `${APP_BASE}/api/v1/public/daily-thought`,
-      { headers: { Accept: "application/json" } },
-      FETCH_TIMEOUT_MS,
-    );
+    const url = `${APP_BASE}/api/v1/public/daily-thought`;
+    // The app origin (OpenNext on Cloudflare) and the API behind it can cold
+    // start from a non-warm CI runner, so the first request of a 5-minute cycle
+    // can time out while the platform wakes. Retry like api-health-live so a
+    // cold start warms the path instead of paging.
+    const attempts = IS_POST_DEPLOY ? 1 : SCHEDULED_PROBE_ATTEMPTS;
+    let lastError = "daily-thought probe failed";
 
-    if (!response.ok) {
-      throw new Error(`Expected 200, got ${response.status}`);
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      try {
+        const { response, latencyMs } = await fetchWithTimeout(
+          url,
+          { headers: { Accept: "application/json" } },
+          FETCH_TIMEOUT_MS,
+        );
+
+        await assertDailyThoughtResponse(response, latencyMs);
+
+        if (attempt > 1) {
+          process.stdout.write(
+            `daily-thought: succeeded on attempt ${attempt}/${attempts} (${latencyMs}ms)\n`,
+          );
+        }
+
+        return { latencyMs };
+      } catch (error) {
+        lastError = error instanceof Error ? error.message : String(error);
+
+        if (attempt < attempts) {
+          process.stdout.write(
+            `daily-thought: attempt ${attempt}/${attempts} failed (${lastError}); retrying in ${SCHEDULED_PROBE_RETRY_DELAY_MS}ms...\n`,
+          );
+          await sleep(SCHEDULED_PROBE_RETRY_DELAY_MS);
+        }
+      }
     }
 
-    const body = await response.json();
-    if (typeof body.quote !== "string" || body.quote.trim().length === 0) {
-      throw new Error("Response missing non-empty quote field");
-    }
-
-    const cacheControl = response.headers.get("cache-control") ?? "";
-    if (!cacheControl.toLowerCase().includes("public")) {
-      throw new Error(`Expected public Cache-Control, got "${cacheControl}"`);
-    }
-
-    if (latencyMs > LATENCY_TARGETS_MS["daily-thought"]) {
-      throw new Error(
-        `Latency ${latencyMs}ms exceeds ${LATENCY_TARGETS_MS["daily-thought"]}ms target`,
-      );
-    }
-
-    return { latencyMs };
+    throw new Error(lastError);
   });
 }
 
