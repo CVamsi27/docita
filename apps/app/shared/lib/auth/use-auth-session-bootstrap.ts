@@ -16,6 +16,7 @@ import { appSession } from "./session";
 type ValidateAuth = (headers?: Record<string, string>) => Promise<unknown>;
 
 const SESSION_REFRESH_TIMEOUT_MS = 15_000;
+const VALIDATE_SESSION_TIMEOUT_MS = 30_000;
 
 async function refreshAccessTokenWithTimeout(
   refreshAccessToken: () => Promise<boolean>,
@@ -70,7 +71,17 @@ export function useAuthSessionBootstrap(options: {
 
     const validateSession = async () => {
       try {
-        const userData = parseValidatedUser(await validateAuth(undefined));
+        const userData = parseValidatedUser(
+          await Promise.race([
+            validateAuth(undefined),
+            new Promise<never>((_, reject) => {
+              window.setTimeout(
+                () => reject(new Error("Auth validation timed out")),
+                VALIDATE_SESSION_TIMEOUT_MS,
+              );
+            }),
+          ]),
+        );
         if (userData) {
           setUser(userData);
           setUserRole(userData.role);

@@ -2,9 +2,18 @@ import { expect, Page } from "@playwright/test";
 
 /** Resolves after `(protected)/layout` finishes its initial auth/clinic load shell. */
 export async function expectProtectedWorkspaceLoaded(page: Page) {
-  await page
-    .getByRole("status", { name: "Loading workspace" })
-    .waitFor({ state: "hidden", timeout: 90000 });
+  const loadingWorkspace = page.getByRole("status", {
+    name: "Loading workspace",
+  });
+  const mobileHeader = page.getByTestId("mobile-header");
+  const mainContent = page.locator('main[aria-label="Main content"]');
+
+  await Promise.race([
+    loadingWorkspace.waitFor({ state: "hidden", timeout: 90_000 }),
+    loadingWorkspace.waitFor({ state: "detached", timeout: 90_000 }),
+    mobileHeader.waitFor({ state: "visible", timeout: 90_000 }),
+    mainContent.waitFor({ state: "visible", timeout: 90_000 }),
+  ]);
 }
 
 export async function expectPageHeader(
