@@ -170,8 +170,29 @@ try {
     `fly.toml CORS_ORIGINS must only list https://*.docita.work hosts. Invalid entries: ${invalidCorsOrigins.join(", ")}`,
   );
 
+  // The deploy step may call flyctl inline, or delegate to a helper script
+  // (e.g. scripts/deploy/fly-deploy-with-region-fallback.sh) so it can retry
+  // across regions when the primary region has no capacity. Either way the
+  // zero-downtime contract holds as long as the real flyctl call still uses
+  // --strategy bluegreen, so search deploy.yml plus any deploy helper scripts
+  // it references.
+  const deployStrategySource = [deployWorkflowSource]
+    .concat(
+      [...deployWorkflowSource.matchAll(/scripts\/deploy\/[\w./-]+\.sh/g)]
+        .map((match) => match[0])
+        .filter((scriptPath, index, all) => all.indexOf(scriptPath) === index)
+        .map((scriptPath) => {
+          try {
+            return read(scriptPath);
+          } catch {
+            return "";
+          }
+        }),
+    )
+    .join("\n");
+
   assertIncludes(
-    deployWorkflowSource,
+    deployStrategySource,
     "--strategy bluegreen",
     "API deploy must use Fly blue-green strategy for safe traffic cutover.",
   );
