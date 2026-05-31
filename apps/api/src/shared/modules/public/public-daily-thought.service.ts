@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { dailyThoughtResponseSchema } from '@workspace/types';
 import type { DailyThoughtResponse } from '@workspace/types';
 import { z } from 'zod';
+import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 
 const ZENQUOTES_TODAY = 'https://zenquotes.io/api/today';
 const ZENQUOTES_FETCH_TIMEOUT_MS = 2_000;
@@ -50,10 +51,11 @@ export class PublicDailyThoughtService {
   }
 
   private async fetchZenQuotesToday(): Promise<DailyThoughtResponse> {
-    const response = await fetch(ZENQUOTES_TODAY, {
-      headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(ZENQUOTES_FETCH_TIMEOUT_MS),
-    });
+    const response = await fetchWithTimeout(
+      ZENQUOTES_TODAY,
+      { headers: { Accept: 'application/json' } },
+      ZENQUOTES_FETCH_TIMEOUT_MS,
+    );
 
     if (!response.ok) {
       throw new Error(`ZenQuotes responded with ${response.status}`);

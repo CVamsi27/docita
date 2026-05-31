@@ -40,6 +40,8 @@ export class AuditEventListener {
 
       const [entity, action] = event.type.split('.');
 
+      // RLS-BYPASS: audit writes run from the domain-event listener outside the
+      // originating request's tenant/RLS transaction (cross-tenant compliance log).
       await this.prisma.runUnrestricted(async () =>
         runOutsideActiveTx(async () => {
           await this.prisma.auditLog.create({
