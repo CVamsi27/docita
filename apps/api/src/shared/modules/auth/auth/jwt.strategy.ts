@@ -17,6 +17,7 @@ import {
 } from '@/domains/users/core/repositories/user.repository.interface';
 
 import { JWT_AUDIENCES, type JwtAudience } from './jwt-audience';
+import { resolveOnboardingStepForAuth } from './onboarding-state';
 
 interface JwtPayload {
   sub: string;
@@ -102,7 +103,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         name: user.name,
         clinicId: user.clinicId,
         emailVerified: user.emailVerified,
-        onboardingStep: user.onboardingStep,
+        onboardingStep: resolveOnboardingStepForAuth(user),
         patientId: payload.patientId,
         jwtAudience,
       };

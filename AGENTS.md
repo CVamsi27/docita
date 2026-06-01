@@ -328,6 +328,14 @@ The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX
 - Use pagination for large lists; avoid unbounded `findMany` in request paths.
 - Normalize for integrity and update consistency; denormalize only with a documented read-performance rationale and a single source of truth for updates.
 
+### 9.4 Existing-user compatibility (mandatory)
+
+- Treat every release as a migration for existing paying users, not only as a clean-install flow. Before changing schemas, onboarding, defaults, feature flags, tier rules, auth routing, or required settings, trace the behavior for accounts created before the change.
+- Never reset a clinic-associated user to full onboarding. `User.clinicId` is the durable workspace boundary; clinic-associated users must keep `onboardingStep = COMPLETED`.
+- When a new setting or consent choice is required from existing users, add a targeted in-app prompt or settings modal for only that requirement. Do not reuse the initial onboarding wizard, clear existing work, or block unrelated workspace access unless a documented compliance requirement explicitly demands it.
+- Add a backfill for existing rows whenever a new required field, default, enum, or state machine transition would otherwise change historical account behavior. Prefer expand → backfill → prompt → enforce rollouts for required user choices.
+- Include regression tests for both new accounts and pre-change accounts. For onboarding or auth changes, cover a clinic-associated user with stale or missing newly introduced state and verify that the user still lands in the workspace.
+
 ## 10) Testing and Verification
 
 - Test strategy:
@@ -554,6 +562,7 @@ Before finalizing changes:
 - SOLID, KISS, and DRY were applied per §12.6 (not line-count alone); any new abstraction has at least one current consumer and removes at least one duplicate.
 - Required patterns in §15.6–15.7 are followed for new pages, hooks, and backend domains (or deviation is documented in the PR).
 - Changed behavior is covered by appropriate tests/checks; E2E routes and selectors updated when flows move.
+- Existing-user impact was reviewed for schema, onboarding, auth-routing, tier, feature-flag, and required-setting changes; any required historical backfill or targeted prompt is included.
 - When your change is Knip-relevant per the CI scope detector, `pnpm knip` passes locally and the Knip step runs in CI; otherwise run Knip locally before merging if you touched dependencies or exports.
 - `pnpm lint`, targeted `check-types`, tests, and Knip (when applicable) pass before push.
 - Relevant local tests/builds were run and passed before the final push.

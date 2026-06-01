@@ -37,6 +37,57 @@ export class EmailService {
     return null;
   }
 
+  /**
+   * Shared transactional-email chrome: a single centered card on a soft
+   * background, brand-teal CTA, optional fallback link and note, and a
+   * consistent sign-off. Inline styles only — email clients ignore CSS
+   * variables and most external/embedded CSS. Callers must pre-escape any
+   * user-supplied values interpolated into `title`, `intro`, or `bodyHtml`.
+   */
+  private renderEmailShell(opts: {
+    title: string;
+    intro?: string;
+    bodyHtml?: string;
+    cta?: { label: string; url: string };
+    fallbackUrl?: string;
+    note?: string;
+  }): string {
+    const { title, intro, bodyHtml, cta, fallbackUrl, note } = opts;
+
+    return `
+      <div style="margin:0; padding:32px 16px; background:#f8fafc; color:#0f172a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+        <div style="max-width:420px; margin:0 auto; background:#ffffff; border:1px solid #dbe4f0; border-radius:16px; padding:32px 24px; text-align:center;">
+          <p style="margin:0 0 10px; font-size:28px; line-height:1.2; font-weight:700;">${title}</p>
+          ${
+            intro
+              ? `<p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#475569;">${intro}</p>`
+              : ''
+          }
+          ${bodyHtml ?? ''}
+          ${
+            cta
+              ? `<a href="${cta.url}" style="display:inline-block; background:#0f766e; color:#ffffff; padding:14px 24px; border-radius:12px; text-decoration:none; font-weight:600;">${cta.label}</a>`
+              : ''
+          }
+          ${
+            fallbackUrl
+              ? `<p style="margin:18px 0 0; font-size:12px; line-height:1.6; color:#64748b;">If the button does not work, copy and paste this link into your browser:<br /><a href="${fallbackUrl}" style="color:#0f766e; text-decoration:underline; word-break:break-all;">${fallbackUrl}</a></p>`
+              : ''
+          }
+          ${
+            note
+              ? `<p style="margin:18px 0 0; font-size:12px; line-height:1.6; color:#64748b;">${note}</p>`
+              : ''
+          }
+          <p style="margin:24px 0 0; font-size:14px; line-height:1.6; color:#475569;">
+            Regards,<br />
+            Docita Care Team
+          </p>
+        </div>
+      </div>
+    `;
+  }
+
   async sendWelcomeEmail(
     email: string,
     name: string,
@@ -44,21 +95,26 @@ export class EmailService {
   ): Promise<EmailSendResult> {
     const safeName = escapeHtml(name);
     const safeClinicName = escapeHtml(clinicName);
+    const getStartedUrl = this.configService.getEmailLinkBaseUrl();
 
     return this.send({
       to: email,
       subject: `Welcome to Docita - ${safeClinicName}`,
-      html: `
-        <h1>Welcome, ${safeName}!</h1>
-        <p>Your clinic <strong>${safeClinicName}</strong> has been successfully registered on Docita.</p>
-        <p>You can now start managing your practice efficiently.</p>
-        <p>
-          <a href="${this.configService.getEmailLinkBaseUrl()}" 
-             style="background: #4F46E5; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">
-            Get Started
-          </a>
-        </p>
-      `,
+      html: this.renderEmailShell({
+        title: `Welcome, ${safeName}!`,
+        intro: `Your clinic <strong>${safeClinicName}</strong> is set up on Docita. You can start managing your practice right away.`,
+        cta: { label: 'Get Started', url: getStartedUrl },
+      }),
+      text: [
+        `Welcome, ${name}!`,
+        '',
+        `Your clinic ${clinicName} is set up on Docita. You can start managing your practice right away.`,
+        '',
+        `Get started: ${getStartedUrl}`,
+        '',
+        'Regards,',
+        'Docita Care Team',
+      ].join('\n'),
     });
   }
 
@@ -74,31 +130,13 @@ export class EmailService {
       to: email,
       subject: 'Reset your password - Docita',
       replyTo: this.supportEmail,
-      html: `
-        <div style="margin:0; padding:32px 16px; background:#f8fafc; color:#0f172a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-          <div style="max-width:420px; margin:0 auto; background:#ffffff; border:1px solid #dbe4f0; border-radius:16px; padding:32px 24px; text-align:center;">
-            <p style="margin:0 0 10px; font-size:28px; line-height:1.2; font-weight:700;">Reset your password</p>
-            <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#475569;">
-              Click the button below to set a new password
-            </p>
-            <a href="${resetUrl}"
-               style="display:inline-block; background:#0f766e; color:#ffffff; padding:14px 24px; border-radius:12px; text-decoration:none; font-weight:600;">
-              Reset password
-            </a>
-            <p style="margin:18px 0 0; font-size:12px; line-height:1.6; color:#64748b;">
-              If the button does not work, copy and paste this link into your browser:<br />
-              <a href="${resetUrl}" style="color:#0f766e; text-decoration:underline; word-break:break-all;">${resetUrl}</a>
-            </p>
-            <p style="margin:18px 0 0; font-size:12px; line-height:1.6; color:#64748b;">
-              ${expiryNotice}
-            </p>
-            <p style="margin:24px 0 0; font-size:14px; line-height:1.6; color:#475569;">
-              Regards,<br />
-              Docita Care Team
-            </p>
-          </div>
-        </div>
-      `,
+      html: this.renderEmailShell({
+        title: 'Reset your password',
+        intro: 'Click the button below to set a new password',
+        cta: { label: 'Reset password', url: resetUrl },
+        fallbackUrl: resetUrl,
+        note: expiryNotice,
+      }),
       text: [
         'Reset your password',
         '',
@@ -128,20 +166,37 @@ export class EmailService {
     const safeDoctorName = escapeHtml(doctorName);
     const safeClinicName = escapeHtml(clinicName);
 
+    const detailsHtml = `
+      <div style="margin:18px 0 0; text-align:left; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px;">
+        <p style="margin:0 0 8px; font-size:14px; line-height:1.5; color:#0f172a;"><strong>Doctor:</strong> Dr. ${safeDoctorName}</p>
+        <p style="margin:0 0 8px; font-size:14px; line-height:1.5; color:#0f172a;"><strong>Date & Time:</strong> ${formattedDate}</p>
+        <p style="margin:0; font-size:14px; line-height:1.5; color:#0f172a;"><strong>Clinic:</strong> ${safeClinicName}</p>
+      </div>
+    `;
+
     return this.send({
       to: email,
       subject: `Appointment Reminder - ${safeClinicName}`,
-      html: `
-        <h1>Appointment Reminder</h1>
-        <p>Dear ${safePatientName},</p>
-        <p>This is a reminder for your upcoming appointment:</p>
-        <ul>
-          <li><strong>Doctor:</strong> Dr. ${safeDoctorName}</li>
-          <li><strong>Date & Time:</strong> ${formattedDate}</li>
-          <li><strong>Clinic:</strong> ${safeClinicName}</li>
-        </ul>
-        <p>Please arrive 10 minutes before your scheduled time.</p>
-      `,
+      html: this.renderEmailShell({
+        title: 'Appointment Reminder',
+        intro: `Dear ${safePatientName}, this is a reminder for your upcoming appointment.`,
+        bodyHtml: detailsHtml,
+        note: 'Please arrive 10 minutes before your scheduled time.',
+      }),
+      text: [
+        'Appointment Reminder',
+        '',
+        `Dear ${patientName}, this is a reminder for your upcoming appointment.`,
+        '',
+        `Doctor: Dr. ${doctorName}`,
+        `Date & Time: ${formattedDate}`,
+        `Clinic: ${clinicName}`,
+        '',
+        'Please arrive 10 minutes before your scheduled time.',
+        '',
+        'Regards,',
+        'Docita Care Team',
+      ].join('\n'),
     });
   }
 
@@ -156,28 +211,12 @@ export class EmailService {
       to: email,
       subject: 'Verify Your Email - Docita',
       replyTo: this.supportEmail,
-      html: `
-        <div style="margin:0; padding:32px 16px; background:#f8fafc; color:#0f172a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-          <div style="max-width:420px; margin:0 auto; background:#ffffff; border:1px solid #dbe4f0; border-radius:16px; padding:32px 24px; text-align:center;">
-            <p style="margin:0 0 10px; font-size:28px; line-height:1.2; font-weight:700;">Verify your email</p>
-            <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#475569;">
-              Click the button below to verify your email address.
-            </p>
-            <a href="${verifyUrl}"
-               style="display:inline-block; background:#0f766e; color:#ffffff; padding:14px 24px; border-radius:12px; text-decoration:none; font-weight:600;">
-              Verify email
-            </a>
-            <p style="margin:18px 0 0; font-size:12px; line-height:1.6; color:#64748b;">
-              If the button does not work, copy and paste this link into your browser:<br />
-              <a href="${verifyUrl}" style="color:#0f766e; text-decoration:underline; word-break:break-all;">${verifyUrl}</a>
-            </p>
-            <p style="margin:24px 0 0; font-size:14px; line-height:1.6; color:#475569;">
-              Regards,<br />
-              Docita Care Team
-            </p>
-          </div>
-        </div>
-      `,
+      html: this.renderEmailShell({
+        title: 'Verify your email',
+        intro: 'Click the button below to verify your email address.',
+        cta: { label: 'Verify email', url: verifyUrl },
+        fallbackUrl: verifyUrl,
+      }),
       text: [
         'Verify your email',
         '',

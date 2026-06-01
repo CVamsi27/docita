@@ -21,6 +21,7 @@ import type {
   UserWithoutPassword,
 } from './auth.types';
 import { jwtAudienceForRole } from './jwt-audience';
+import { resolveOnboardingStepForAuth } from './onboarding-state';
 
 function hashRefreshToken(token: string): string {
   return createHash('sha256').update(token, 'utf8').digest('hex');
@@ -312,7 +313,7 @@ export class AuthSessionService {
         role: user.role,
         clinicId: user.clinicId,
         emailVerified: user.emailVerified,
-        onboardingStep: user.onboardingStep ?? undefined,
+        onboardingStep: resolveOnboardingStepForAuth(user),
       },
     };
   }

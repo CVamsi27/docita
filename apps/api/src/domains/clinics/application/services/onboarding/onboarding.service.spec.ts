@@ -54,6 +54,7 @@ describe('OnboardingService', () => {
     },
     user: {
       findUnique: jest.fn(),
+      findMany: jest.fn().mockImplementation(async () => []),
       create: jest.fn(),
     },
     subscription: {
@@ -348,6 +349,9 @@ describe('OnboardingService', () => {
         planSelection: {
           tier: ClinicTier.ESSENTIAL,
           billingCycle: BillingCycle.MONTHLY,
+        },
+        paymentDetails: {
+          skipPayment: true,
         },
         slaAgreement: {
           acceptedSLA: true,

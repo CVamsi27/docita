@@ -309,12 +309,13 @@ export class ObservabilityService implements OnModuleDestroy {
     };
 
     const checkedAt = this.clock.now();
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     try {
       await Promise.race([
         this.prisma.$queryRaw`SELECT 1`,
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('DB timeout')), 5000),
-        ),
+        new Promise((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error('DB timeout')), 5000);
+        }),
       ]);
       checks.database = { status: 'connected', checked_at: checkedAt };
     } catch (error) {
@@ -322,6 +323,10 @@ export class ObservabilityService implements OnModuleDestroy {
         status: 'disconnected',
         error: error instanceof Error ? error.message : 'Unknown error',
       };
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     }
 
     const dbConnected = getRecordStatus(checks.database) === 'connected';

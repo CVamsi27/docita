@@ -94,7 +94,7 @@ describe('JwtStrategy', () => {
         name: 'Test Admin',
         clinicId: 'clinic-456',
         emailVerified: false,
-        onboardingStep: 'CHOOSE_PATH',
+        onboardingStep: 'COMPLETED',
         patientId: undefined,
       });
     });

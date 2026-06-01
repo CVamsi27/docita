@@ -34,6 +34,7 @@ import {
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { OnboardingPaymentService } from './onboarding-payment.service';
 import type { OnboardingResult } from './onboarding-result.types';
+import { isFrontDeskPlanMode } from '@workspace/types';
 
 /**
  * Facade — delegates checkout, progress, and compliance to onboarding specialists;
@@ -153,6 +154,7 @@ export class OnboardingService {
         completeData.planSelection.tier,
         completeData.planSelection.billingCycle,
         completeData.planSelection.currency,
+        completeData.planSelection.planMode,
       );
 
       const isUnpaidEssentialTrial =
@@ -174,12 +176,17 @@ export class OnboardingService {
         }
       }
 
-      if (listPriceCents > 0 && !isUnpaidEssentialTrial && hasRazorpayPayment) {
+      if (listPriceCents > 0 && !isUnpaidEssentialTrial) {
         const paymentDetails = completeData.paymentDetails;
         const razorpayPaymentId = paymentDetails?.razorpayPaymentId;
         const razorpayOrderId = paymentDetails?.razorpayOrderId;
         const razorpaySignature = paymentDetails?.razorpaySignature;
-        if (!razorpayPaymentId || !razorpayOrderId || !razorpaySignature) {
+        if (
+          !hasRazorpayPayment ||
+          !razorpayPaymentId ||
+          !razorpayOrderId ||
+          !razorpaySignature
+        ) {
           throw new BadRequestException('Payment details are required');
         }
         const verification = await this.paymentGateway.verifyPayment({
@@ -215,6 +222,7 @@ export class OnboardingService {
             clinic.id,
             ipAddress,
             completeData.planSelection.tier,
+            completeData.planSelection.planMode,
           );
           userId = adminUser.id;
 
@@ -247,11 +255,17 @@ export class OnboardingService {
               completeData.staffSetup,
               ipAddress,
               completeData.planSelection.tier,
+              completeData.planSelection.planMode,
             );
             this.logger.log(`Created ${staffCount} staff members`);
           }
 
-          if (completeData.planSelection.tier === ClinicTier.FRONT_DESK) {
+          if (
+            isFrontDeskPlanMode(
+              completeData.planSelection.tier,
+              completeData.planSelection.planMode,
+            )
+          ) {
             await this.workflowService.ensureFrontDeskScheduleDoctor(
               tx,
               clinic.id,

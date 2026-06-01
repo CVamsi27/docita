@@ -132,6 +132,31 @@ export async function runIntegrityChecks(
         : undefined,
   });
 
+  const clinicUsersWithIncompleteOnboardingRows = await prisma.$queryRaw<
+    Array<{ count: bigint }>
+  >`
+    SELECT COUNT(*)::bigint AS count
+    FROM "User"
+    WHERE "clinicId" IS NOT NULL
+      AND (
+        "onboardingStep" IS DISTINCT FROM 'COMPLETED'
+        OR "onboardingCompletedAt" IS NULL
+      )
+  `;
+  const clinicUsersWithIncompleteOnboarding = Number(
+    clinicUsersWithIncompleteOnboardingRows[0]?.count ?? 0n,
+  );
+  checks.push({
+    name: "Clinic Users Stay Out Of Onboarding",
+    description: "Every clinic-associated user has completed onboarding state",
+    passed: clinicUsersWithIncompleteOnboarding === 0,
+    count: clinicUsersWithIncompleteOnboarding,
+    details:
+      clinicUsersWithIncompleteOnboarding > 0
+        ? `Found ${clinicUsersWithIncompleteOnboarding} clinic users with incomplete onboarding state`
+        : undefined,
+  });
+
   const duplicateMrns = await prisma.$queryRaw<{ count: bigint }[]>`
     SELECT COUNT(*) as count FROM (
       SELECT "clinicId", mrn

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   Clinic,
   ClinicTier,
+  PlanMode,
   DayOfWeek,
   Prisma,
   Subscription,
@@ -74,6 +75,8 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
         name: data.name,
         role: data.role,
         clinicId: data.clinicId,
+        onboardingStep: 'COMPLETED',
+        onboardingCompletedAt: data.onboardingCompletedAt,
         phoneNumber: data.phoneNumber,
         qualification: data.qualification,
         registrationNumber: data.registrationNumber,
@@ -94,6 +97,8 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
         phoneNumber: data.phoneNumber,
         role: data.role,
         clinicId: data.clinicId,
+        onboardingStep: 'COMPLETED',
+        onboardingCompletedAt: data.onboardingCompletedAt,
         qualification: data.qualification,
         registrationNumber: data.registrationNumber,
         specialization: data.specialization,
@@ -168,6 +173,7 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
     tier: ClinicTier,
     status: SubscriptionStatus,
     trialEndsAt: Date | null,
+    planMode?: PlanMode,
   ): Promise<void> {
     await tx.clinic.update({
       where: { id: clinicId },
@@ -175,6 +181,7 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
         tier,
         subscriptionStatus: status,
         trialEndsAt,
+        ...(planMode ? { planMode } : {}),
       },
     });
   }

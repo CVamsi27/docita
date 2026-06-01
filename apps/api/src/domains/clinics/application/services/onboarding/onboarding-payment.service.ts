@@ -30,19 +30,11 @@ export class OnboardingPaymentService {
       data.tier,
       data.billingCycle,
       data.currency,
+      data.planMode,
     );
 
-    if (
-      this.validationService.validateTier(data.tier) &&
-      this.validationService.validateBillingCycle(data.billingCycle) &&
-      data.currency?.toUpperCase() === 'INR' &&
-      amountCents > 0 &&
-      !data.gstin
-    ) {
-      throw new BadRequestException(
-        'GSTIN is required before charging paid Indian plans',
-      );
-    }
+    // GSTIN is optional at onboarding; it is collected later in
+    // Settings → Billing before the first paid GST invoice is issued.
 
     if (amountCents <= 0) {
       throw new BadRequestException(

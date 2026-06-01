@@ -1,9 +1,16 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { Specialization } from '@workspace/db';
 import {
+  isFrontDeskPlanMode,
+  mapDbClinicTierStringToTierName,
+  PLAN_MODE_INFO,
+  planModeSchema,
+  resolveClinicPlanMode,
   TIER_PRICING_BY_CURRENCY,
+  tierSupportsMode,
   tierSchema,
   type MultiCurrencyTierPricing,
+  type PlanMode,
   type SupportedCurrency,
 } from '@workspace/types';
 import { parseStringEnumMember } from '@workspace/utils';
@@ -57,6 +64,22 @@ export class OnboardingValidationService {
     return 'INR';
   }
 
+  private resolvePlanMode(tier: string, planMode?: string): PlanMode {
+    const parsedMode = planModeSchema.safeParse(planMode ?? 'FULL');
+    if (!parsedMode.success) {
+      throw new BadRequestException('Invalid plan mode');
+    }
+
+    const tierName = mapDbClinicTierStringToTierName(tier);
+    if (!tierSupportsMode(tierName, parsedMode.data)) {
+      throw new BadRequestException(
+        `${tierName} is only available in Full plan mode`,
+      );
+    }
+
+    return resolveClinicPlanMode(tier, parsedMode.data);
+  }
+
   validateOnboardingCompletion(data: CompleteOnboardingDto): {
     valid: boolean;
     errors?: string[];
@@ -92,16 +115,21 @@ export class OnboardingValidationService {
     }
 
     if (data.planSelection) {
-      const currency = this.resolveCurrency(data.planSelection.currency);
-      const listPricePaise = this.getTierPricing(
-        data.planSelection.tier,
-        data.planSelection.billingCycle,
-        data.planSelection.currency,
-      );
+      try {
+        this.resolvePlanMode(
+          data.planSelection.tier,
+          data.planSelection.planMode,
+        );
+      } catch (error) {
+        errors.push(
+          error instanceof Error ? error.message : 'Invalid plan mode',
+        );
+      }
+
       const hasProcessedPayment =
-        !!data.paymentDetails?.razorpayPaymentId ||
-        (!!data.paymentDetails?.cardLast4 &&
-          data.paymentDetails?.skipPayment !== true);
+        !!data.paymentDetails?.razorpayPaymentId &&
+        !!data.paymentDetails?.razorpayOrderId &&
+        !!data.paymentDetails?.razorpaySignature;
 
       const unpaidEssentialTrial =
         data.planSelection.tier === ClinicTier.ESSENTIAL &&
@@ -111,16 +139,8 @@ export class OnboardingValidationService {
         errors.push('Payment details are required for paid plans');
       }
 
-      if (
-        currency === 'INR' &&
-        !data.clinicDetails?.gstin &&
-        listPricePaise > 0 &&
-        !unpaidEssentialTrial
-      ) {
-        errors.push(
-          'GSTIN is required for paid Indian plans so we can issue GST invoices',
-        );
-      }
+      // GSTIN is optional at onboarding; clinics add it later in
+      // Settings → Billing before the first paid GST invoice is issued.
     }
 
     const wantsWhatsapp =
@@ -137,7 +157,12 @@ export class OnboardingValidationService {
       );
     }
 
-    const isFrontDeskPlan = data.planSelection?.tier === ClinicTier.FRONT_DESK;
+    const isFrontDeskPlan = data.planSelection
+      ? isFrontDeskPlanMode(
+          data.planSelection.tier,
+          data.planSelection.planMode,
+        )
+      : false;
     if (isFrontDeskPlan && data.staffSetup?.staffMembers) {
       for (const member of data.staffSetup.staffMembers) {
         if (member.role === 'NURSE' || member.role === 'ADMIN_DOCTOR') {
@@ -230,7 +255,12 @@ export class OnboardingValidationService {
     }
   }
 
-  getTierPricing(tier: string, cycle: string, currency?: string): number {
+  getTierPricing(
+    tier: string,
+    cycle: string,
+    currency?: string,
+    planMode?: string,
+  ): number {
     validateClinicTier(tier);
     validateBillingCycle(cycle);
 
@@ -244,9 +274,14 @@ export class OnboardingValidationService {
     if (typeof amount !== 'number') {
       return 0;
     }
-    // Catalog amounts are in major units (e.g. INR rupees); Razorpay and
-    // Subscription.basePriceCents store smallest currency units (paise).
-    return Math.round(amount * 100);
+    // Front Desk / Core plans bill at a fraction of the Full-mode price; keep
+    // checkout, the verified payment amount, and basePriceCents consistent.
+    const resolvedMode = this.resolvePlanMode(tier, planMode);
+    const multiplier = PLAN_MODE_INFO[resolvedMode].pricingMultiplier;
+    // Catalog amounts are in major units (e.g. INR rupees). Match the shared
+    // UI pricing helper by rounding the adjusted catalog amount before
+    // converting it to Razorpay / Subscription smallest units (paise).
+    return Math.round(amount * multiplier) * 100;
   }
 
   getTierLimits(tier: string): {

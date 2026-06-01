@@ -65,11 +65,13 @@ describe('EmailService', () => {
       );
 
       expect(result).toEqual({ success: true, messageId: 'msg-1' });
-      expect(emailProvider.send).toHaveBeenCalledWith({
-        to: 'user@example.com',
-        subject: 'Welcome to Docita - Main Clinic',
-        html: expect.stringContaining('Welcome, John Doe!'),
-      });
+      expect(emailProvider.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'user@example.com',
+          subject: 'Welcome to Docita - Main Clinic',
+          html: expect.stringContaining('Welcome, John Doe!'),
+        }),
+      );
     });
 
     it('should escape HTML in name and clinic name', async () => {
@@ -194,11 +196,13 @@ describe('EmailService', () => {
       );
 
       expect(result).toEqual({ success: true, messageId: 'msg-1' });
-      expect(emailProvider.send).toHaveBeenCalledWith({
-        to: 'patient@example.com',
-        subject: expect.stringContaining('Appointment Reminder'),
-        html: expect.stringContaining('Appointment Reminder'),
-      });
+      expect(emailProvider.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'patient@example.com',
+          subject: expect.stringContaining('Appointment Reminder'),
+          html: expect.stringContaining('Appointment Reminder'),
+        }),
+      );
     });
 
     it('should include clinic name in subject and body', async () => {
