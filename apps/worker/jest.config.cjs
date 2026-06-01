@@ -7,7 +7,7 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/../api/src/$1',
   },
   transform: {
-    '^.+\\.(t|j)s$': [
+    '^.+\\.ts$': [
       'ts-jest',
       { tsconfig: '<rootDir>/tsconfig.spec.json' },
     ],

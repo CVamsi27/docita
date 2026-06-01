@@ -209,6 +209,7 @@ jobs:
       - name: Post-deploy synthetic probes
         env:
           SYNTHETIC_POST_DEPLOY: "1"
+          SYNTHETIC_FLY_API_ORIGIN: https://${{ steps.fly-config.outputs.app_name }}.fly.dev/api
           SYNTHETIC_API_ORIGIN: https://api.docita.work/api
           SYNTHETIC_API_BASE_URL: https://api.docita.work/api/v1
           SYNTHETIC_APP_BASE_URL: https://app.docita.work

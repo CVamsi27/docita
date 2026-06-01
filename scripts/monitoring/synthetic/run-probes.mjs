@@ -6,6 +6,7 @@
  *
  * Env:
  *   SYNTHETIC_API_BASE_URL  (default https://api.docita.work/api/v1)
+ *   SYNTHETIC_FLY_API_ORIGIN (optional direct Fly origin for post-deploy warmup)
  *   SYNTHETIC_APP_BASE_URL  (default https://app.docita.work)
  *   SYNTHETIC_MONITOR_EMAIL / SYNTHETIC_MONITOR_PASSWORD (optional staff login probe)
  *   SYNTHETIC_POST_DEPLOY     (optional — longer timeouts + API warmup after Fly deploy)
@@ -28,6 +29,8 @@ const API_ORIGIN =
   "https://api.docita.work/api";
 const API_V1 =
   process.env.SYNTHETIC_API_BASE_URL?.replace(/\/$/, "") ?? `${API_ORIGIN}/v1`;
+const FLY_API_ORIGIN =
+  process.env.SYNTHETIC_FLY_API_ORIGIN?.replace(/\/$/, "") ?? "";
 const APP_BASE =
   process.env.SYNTHETIC_APP_BASE_URL?.replace(/\/$/, "") ??
   "https://app.docita.work";
@@ -264,11 +267,7 @@ async function probeStaffLogin({ apiReachable = true } = {}) {
 
       if (response.status === 200 || response.status === 201) {
         const body = await response.json().catch(() => null);
-        if (
-          body &&
-          typeof body === "object" &&
-          body.mfa_required === true
-        ) {
+        if (body && typeof body === "object" && body.mfa_required === true) {
           throw new Error(
             "Monitor account has MFA enabled; disable MFA on the synthetic monitor user or extend the probe to verify MFA",
           );
@@ -279,10 +278,7 @@ async function probeStaffLogin({ apiReachable = true } = {}) {
           throw new Error("Login response missing access_token cookie");
         }
 
-        if (
-          !IS_POST_DEPLOY &&
-          latencyMs > LATENCY_TARGETS_MS["staff-login"]
-        ) {
+        if (!IS_POST_DEPLOY && latencyMs > LATENCY_TARGETS_MS["staff-login"]) {
           throw new Error(
             `Latency ${latencyMs}ms exceeds ${LATENCY_TARGETS_MS["staff-login"]}ms target`,
           );
@@ -302,7 +298,10 @@ async function probeStaffLogin({ apiReachable = true } = {}) {
         ? `Expected 2xx login, got ${response.status} (${detail})`
         : `Expected 2xx login, got ${response.status}`;
 
-      if (!isRetryableStaffLoginFailure(response, null) || attempt >= attempts) {
+      if (
+        !isRetryableStaffLoginFailure(response, null) ||
+        attempt >= attempts
+      ) {
         break;
       }
 
@@ -362,6 +361,25 @@ async function waitForEndpointReady({
 }
 
 async function waitForApiWarmAfterDeploy() {
+  if (FLY_API_ORIGIN) {
+    await waitForEndpointReady({
+      label: "fly-api-health-live",
+      url: `${FLY_API_ORIGIN}/health/live`,
+      validate: async (response) => {
+        if (!response.ok) {
+          throw new Error(`Expected 200, got ${response.status}`);
+        }
+
+        const body = await response.json();
+        if (body.status !== "ok" || body.service !== "docita-api") {
+          throw new Error(
+            `Unexpected liveness payload: ${JSON.stringify(body)}`,
+          );
+        }
+      },
+    });
+  }
+
   await waitForEndpointReady({
     label: "api-health-live",
     url: `${API_ORIGIN}/health/live`,
@@ -392,7 +410,9 @@ async function waitForApiWarmAfterDeploy() {
 
       const body = await response.json();
       if (body.ready !== true) {
-        throw new Error(`Unexpected readiness payload: ${JSON.stringify(body)}`);
+        throw new Error(
+          `Unexpected readiness payload: ${JSON.stringify(body)}`,
+        );
       }
     },
   });
@@ -463,6 +483,8 @@ async function main() {
 }
 
 main().catch((error) => {
-  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+  process.stderr.write(
+    `${error instanceof Error ? error.message : String(error)}\n`,
+  );
   process.exit(1);
 });

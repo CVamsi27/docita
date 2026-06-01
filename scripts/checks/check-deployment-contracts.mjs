@@ -63,6 +63,10 @@ try {
   const deployWorkflowSource = read(deployWorkflowPath);
   const detectScopeSource = read(detectScopePath);
   const ciWorkflowSource = read(".github/workflows/ci.yml");
+  const apiE2eWorkflowSource = read(".github/workflows/api-e2e.yml");
+  const frontendCriticalE2eWorkflowSource = read(
+    ".github/workflows/frontend-critical-e2e.yml",
+  );
   const flyTomlSource = read(flyTomlPath);
 
   assert(
@@ -208,6 +212,25 @@ try {
     "scripts/monitoring/synthetic/run-probes.mjs",
     "Deploy workflow must run post-deploy synthetic probes.",
   );
+  assertIncludes(
+    deployWorkflowSource,
+    "SYNTHETIC_FLY_API_ORIGIN:",
+    "API deploy probes must warm the direct Fly origin before validating the public edge.",
+  );
+
+  for (const [workflowPath, workflowSource] of [
+    [".github/workflows/ci.yml", ciWorkflowSource],
+    [".github/workflows/api-e2e.yml", apiE2eWorkflowSource],
+    [
+      ".github/workflows/frontend-critical-e2e.yml",
+      frontendCriticalE2eWorkflowSource,
+    ],
+  ]) {
+    assert(
+      /--health-cmd\s+"pg_isready\s+-U\s+\S+\s+-d\s+\S+"/.test(workflowSource),
+      `${workflowPath} Postgres healthcheck must pass an explicit user and database to pg_isready.`,
+    );
+  }
 
   process.stdout.write("Deployment contracts verified.\n");
 } catch (error) {
