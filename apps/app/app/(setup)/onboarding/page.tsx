@@ -78,11 +78,12 @@ export default function OnboardingPage() {
   return (
     <PreDashboardShell
       currentStep="onboarding"
-      contentMaxWidth="max-w-3xl"
-      contentAlignment="start"
+      contentMaxWidth="max-w-5xl"
+      showBrandingPanel={false}
+      showProgress={false}
       showSignOut
     >
-      <div className="space-y-1.5">
+      <div className="mx-auto w-full max-w-3xl space-y-1.5">
         <p className="ui-eyebrow">Facility setup</p>
         <h1 className="ui-page-title">Set up your facility</h1>
         <p className="ui-page-subtitle">

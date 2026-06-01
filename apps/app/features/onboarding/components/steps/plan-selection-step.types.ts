@@ -1,9 +1,11 @@
+import type { PlanMode } from "@workspace/types";
+
 export interface PlanSelectionProps {
   onSelect: (
     tier: string,
     billingCycle: "MONTHLY" | "YEARLY",
     pricing: { monthly: number | "custom"; yearly: number | "custom" },
-    options?: { currency?: string },
+    options?: { currency?: string; mode?: PlanMode },
   ) => Promise<void>;
   defaultTier?: string;
   defaultBillingCycle?: "MONTHLY" | "YEARLY";

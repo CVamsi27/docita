@@ -1,7 +1,4 @@
-const DEFAULT_API_URL =
-  process.env["DOCITA_CLOUDFLARE"] === "1"
-    ? "/api/v1"
-    : "http://127.0.0.1:3001/api/v1";
+const DEFAULT_API_URL = "/api/v1";
 
 const UPSTREAM_API_HOSTS = new Set([
   "api.docita.work",

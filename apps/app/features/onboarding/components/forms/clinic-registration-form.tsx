@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle } from "lucide-react";
 import { getUserFacingErrorMessage } from "@workspace/utils";
+import type { PlanMode } from "@workspace/types";
 import { useClinicRegistrationFlow } from "@/features/onboarding/hooks/use-clinic-registration-flow";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
@@ -64,6 +65,7 @@ export function ClinicRegistrationForm({
     setPlanSelection,
     setTeamMembers,
     goBackFromCompliance,
+    setComplianceDraft,
     submitRegistration,
   } = useClinicRegistrationFlow();
 
@@ -105,6 +107,22 @@ export function ClinicRegistrationForm({
     },
   });
 
+  // Persist agreement acceptance + signature session into the onboarding draft
+  // so they survive a remount (e.g. coming back after a phone signature upload).
+  useEffect(() => {
+    const subscription = complianceForm.watch((values) => {
+      setComplianceDraft({
+        acceptedSLA: values.acceptedSLA,
+        acceptedPrivacyPolicy: values.acceptedPrivacyPolicy,
+        acceptedDataProcessing: values.acceptedDataProcessing,
+        enableWhatsApp: values.enableWhatsApp,
+        requireConsent: values.requireConsent,
+        slaSignatureSessionId: values.slaSignatureSessionId,
+      });
+    });
+    return () => subscription.unsubscribe();
+  }, [complianceForm, setComplianceDraft]);
+
   const {
     showDraftDialog,
     setShowDraftDialog,
@@ -131,22 +149,13 @@ export function ClinicRegistrationForm({
     pricing: { monthly: number | "custom"; yearly: number | "custom" },
     options?: {
       currency?: string;
+      mode?: PlanMode;
     },
   ) => {
     setStepError(null);
 
-    const price = billingCycle === "YEARLY" ? pricing.yearly : pricing.monthly;
-    const clinicGstin = clinicForm.getValues("gstin");
-    const isIndianCurrency = currency === "INR";
-    const isPaidPlan = typeof price === "number" && price > 0;
-
-    if (isIndianCurrency && isPaidPlan && !clinicGstin?.trim()) {
-      setStepError(
-        "Add your GSTIN in Facility Details before charging a paid Indian plan. We need it for GST invoices.",
-      );
-      return;
-    }
-
+    // GSTIN is optional during onboarding; it is collected later in
+    // Settings → Billing before the first paid GST invoice. No mid-flow block.
     try {
       await setPlanSelection(tier, billingCycle, pricing, {
         ...options,

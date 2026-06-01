@@ -3,7 +3,6 @@ import {
   Check,
   FileCheck2,
   KeyRound,
-  LayoutDashboard,
   UserCheck,
 } from "lucide-react";
 import { AUTH_ASSURANCE_ITEMS } from "@/features/auth/lib/auth-assurance-items";
@@ -54,12 +53,6 @@ const setupSteps: readonly SetupStep[] = [
       "join-request-status",
       "verify-doctor",
     ],
-  },
-  {
-    icon: LayoutDashboard,
-    title: "Start the day",
-    description: "Open appointments, patients, prescriptions, and billing",
-    authSteps: [],
   },
 ];
 
@@ -119,9 +112,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.05] via-transparent to-transparent" />
-        <div
-          className="absolute -left-28 -top-28 h-[26rem] w-[26rem] rounded-full bg-primary/10 blur-3xl"
-        />
+        <div className="absolute -left-28 -top-28 h-[26rem] w-[26rem] rounded-full bg-primary/10 blur-3xl" />
       </div>
 
       <div className="relative z-10 flex items-center justify-between p-8 xl:p-10">

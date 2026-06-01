@@ -73,6 +73,7 @@ export function DoctorNextSection({
             return (
               <div
                 key={apt.id}
+                data-appointment-id={apt.id}
                 className="flex items-center justify-between gap-3 bg-primary/5 p-3 sm:p-4"
               >
                 <div className="min-w-0">

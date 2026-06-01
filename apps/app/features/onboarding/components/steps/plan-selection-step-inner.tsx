@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
 import {
   Alert,
   AlertDescription,
@@ -27,7 +28,16 @@ import {
   getTierInfo,
   getTierValue,
 } from "@/lib/subscription/tier-access";
-import { tierSchema } from "@workspace/types";
+import {
+  applyModeToPricing,
+  getAvailableModesForTier,
+  MODE_TIER_HIGHLIGHTS,
+  PLAN_MODE_INFO,
+  PLAN_MODES,
+  type PlanMode,
+  planModeSchema,
+  tierSchema,
+} from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription";
 import {
@@ -59,6 +69,12 @@ export function PlanSelectionStepInner({
   const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "YEARLY">(
     defaultBillingCycle,
   );
+  const [selectedMode, setSelectedMode] = useState<PlanMode>(() => {
+    const parsed = planModeSchema.safeParse(
+      searchParams.get("mode")?.toUpperCase(),
+    );
+    return parsed.success ? parsed.data : "FULL";
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
@@ -91,7 +107,7 @@ export function PlanSelectionStepInner({
     };
   });
 
-  const handleSelectTier = async (tier: string) => {
+  const handleSelectTier = async (tier: string, mode: PlanMode) => {
     if (tier === "ENTERPRISE") {
       setShowContactSalesModal(true);
       return;
@@ -108,12 +124,16 @@ export function PlanSelectionStepInner({
       resolvedCurrency,
       pricingConfig?.tiers ?? [],
     );
-    const pricingPayload = tierPricingFromApi?.pricing ?? cardPricing;
+    const pricingPayload = applyModeToPricing(
+      tierPricingFromApi?.pricing ?? cardPricing,
+      mode,
+    );
 
     setIsSubmitting(true);
     try {
       await onSelect(tier, billingCycle, pricingPayload, {
         currency: resolvedCurrency,
+        mode,
       });
     } finally {
       setIsSubmitting(false);
@@ -181,7 +201,7 @@ Billing preference: ${billingCycle}
 Please contact me with deployment and commercial details.`;
 
   return (
-    <OnboardingStepCard>
+    <OnboardingStepCard wide>
       {stepHeader}
       <OnboardingStepBody className="space-y-6">
         <p className="text-xs text-muted-foreground">
@@ -207,12 +227,40 @@ Please contact me with deployment and commercial details.`;
           </Alert>
         ) : null}
 
-        <BillingCycleToggle
-          billingCycle={billingCycle}
-          onChange={setBillingCycle}
-        />
+        <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div
+            className="inline-flex shrink-0 items-center gap-1 rounded-full border bg-muted/40 p-1"
+            role="tablist"
+            aria-label="Plan mode"
+          >
+            {PLAN_MODES.map((mode) => {
+              const modeInfo = PLAN_MODE_INFO[mode];
+              const active = selectedMode === mode;
+              return (
+                <Button
+                  key={mode}
+                  variant={active ? "default" : "ghost"}
+                  size="sm"
+                  className="rounded-full"
+                  onClick={() => setSelectedMode(mode)}
+                  aria-pressed={active}
+                  title={modeInfo.helpText}
+                >
+                  {modeInfo.shortLabel}
+                </Button>
+              );
+            })}
+          </div>
+          <BillingCycleToggle
+            billingCycle={billingCycle}
+            onChange={setBillingCycle}
+          />
+        </div>
+        <p className="-mt-2 text-center text-xs text-muted-foreground sm:text-left">
+          {PLAN_MODE_INFO[selectedMode].helpText}
+        </p>
 
-        <div className="flex flex-wrap justify-center gap-4">
+        <div className="grid auto-rows-fr items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {featuresByTier.map(({ tierName, tier, info, features }) => {
             const { cardPricing, currencySymbol, overageHint, buttonLabel } =
               buildTierCardConfig(
@@ -221,14 +269,32 @@ Please contact me with deployment and commercial details.`;
                 pricingConfig.tiers,
               );
 
+            const supportedModes = getAvailableModesForTier(tierName);
+            const effectiveMode: PlanMode = supportedModes.includes(
+              selectedMode,
+            )
+              ? selectedMode
+              : "FULL";
+            const modeMismatched =
+              effectiveMode !== selectedMode && selectedMode !== "FULL";
+            const resolvedPricing = applyModeToPricing(
+              cardPricing,
+              effectiveMode,
+            );
+            const modeSuffix =
+              effectiveMode === "FULL"
+                ? null
+                : ` · ${PLAN_MODE_INFO[effectiveMode].name}`;
+            const cardInfo = modeSuffix
+              ? { ...info, name: `${info.name}${modeSuffix}` }
+              : info;
+            const keyHighlights =
+              MODE_TIER_HIGHLIGHTS[effectiveMode]?.[tierName] ??
+              PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ??
+              [];
+
             return (
-              <div
-                key={tier}
-                className={cn(
-                  "relative flex w-full max-w-[22rem] flex-col sm:max-w-[24rem]",
-                  tierName === "ESSENTIAL" && "order-first md:order-none",
-                )}
-              >
+              <div key={tier} className="relative flex flex-col">
                 {tierName === "ESSENTIAL" ? (
                   <Badge className="absolute -top-2 left-4 z-10 bg-success text-success-foreground">
                     Popular
@@ -236,23 +302,26 @@ Please contact me with deployment and commercial details.`;
                 ) : null}
                 <TierCard
                   tier={tier}
-                  info={info}
+                  info={cardInfo}
                   features={features}
                   isCurrentTier={false}
-                  isLocked={false}
+                  isLocked={modeMismatched}
                   isRecommended={teamRecommendation?.tier === tierName}
                   className={cn(
                     "h-full",
                     selectedTier === tierName &&
+                      !modeMismatched &&
                       "border-primary ring-2 ring-primary/20 shadow-lg",
                   )}
-                  keyHighlights={PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ?? []}
-                  pricing={cardPricing}
+                  keyHighlights={keyHighlights}
+                  pricing={resolvedPricing}
                   billingCycle={billingCycle}
                   currencySymbol={currencySymbol}
                   overageHint={overageHint}
-                  buttonLabel={buttonLabel}
-                  maxDisplay={8}
+                  buttonLabel={
+                    modeMismatched ? "Only available on Full" : buttonLabel
+                  }
+                  maxDisplay={5}
                   usageHints={
                     PLAN_LIMITS[tierName]
                       ? {
@@ -262,11 +331,11 @@ Please contact me with deployment and commercial details.`;
                       : undefined
                   }
                   onSelect={
-                    isSubmitting
+                    isSubmitting || modeMismatched
                       ? undefined
                       : () => {
                           setSelectedTier(tierName);
-                          void handleSelectTier(tierName);
+                          void handleSelectTier(tierName, effectiveMode);
                         }
                   }
                 />

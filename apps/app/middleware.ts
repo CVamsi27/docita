@@ -41,7 +41,11 @@ export async function middleware(request: NextRequest) {
   if (!isProduction) return NextResponse.next();
 
   const nonce = generateNonce();
-  const csp = buildContentSecurityPolicy({ nonce, isProduction: true });
+  const csp = buildContentSecurityPolicy({
+    nonce,
+    isProduction: true,
+    upgradeInsecureRequests: request.nextUrl.protocol === "https:",
+  });
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);

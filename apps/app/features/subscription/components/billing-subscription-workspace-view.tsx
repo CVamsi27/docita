@@ -46,10 +46,12 @@ export function BillingSubscriptionWorkspaceView({
           </Button>
         </div>
       ) : null}
-      {ws.subscription?.tier === "ENTERPRISE" ? <EnterpriseContractCard /> : null}
+      {ws.subscription?.tier === "ENTERPRISE" ? (
+        <EnterpriseContractCard />
+      ) : null}
       <CurrentPlanCard
-        tierInfo={ws.currentTierInfo}
-        currentTier={ws.effectiveCurrentTier}
+        tierInfo={ws.currentPlanTierInfo}
+        currentTier={ws.currentPlanTier}
         hasIntelligence={false}
         canChangeTier={ws.billingAllowed}
         onChangePlan={ws.scrollToPlans}
@@ -63,7 +65,8 @@ export function BillingSubscriptionWorkspaceView({
             : undefined
         }
         renewActionLabel={
-          ws.hasRecoverablePayment || ws.subscription?.hasOutstandingPendingPayment
+          ws.hasRecoverablePayment ||
+          ws.subscription?.hasOutstandingPendingPayment
             ? "Pay now"
             : ws.subscriptionStatus === "TRIALING"
               ? "Add payment method"
@@ -107,7 +110,7 @@ export function BillingSubscriptionWorkspaceView({
       <UsageDashboard />
 
       <PlansSection
-        effectiveCurrentTier={ws.effectiveCurrentTier}
+        effectiveCurrentTier={ws.currentPlanTier}
         selectedCycle={ws.selectedCycle}
         setSelectedCycle={ws.setSelectedCycle}
         recommendation={ws.recommendation}
@@ -119,9 +122,11 @@ export function BillingSubscriptionWorkspaceView({
         plansRef={ws.plansRef}
       />
 
-      <PlanTabsSection effectiveCurrentTier={ws.effectiveCurrentTier} />
+      <PlanTabsSection effectiveCurrentTier={ws.currentPlanTier} />
 
-      <ContactSalesCard onContactSales={() => ws.setShowContactSalesModal(true)} />
+      <ContactSalesCard
+        onContactSales={() => ws.setShowContactSalesModal(true)}
+      />
 
       <LegalFooter
         onOpenTerms={() => ws.setLegalDialog("terms")}
@@ -141,7 +146,7 @@ export function BillingSubscriptionWorkspaceView({
       <TierChangeDialog
         open={ws.showTierChangeDialog}
         onOpenChange={ws.setShowTierChangeDialog}
-        currentTier={ws.effectiveCurrentTier}
+        currentTier={ws.currentPlanTier}
         selectedTier={ws.selectedTier}
         billingCycle={ws.selectedCycle}
         currency={parseSupportedCurrency(ws.currency)}

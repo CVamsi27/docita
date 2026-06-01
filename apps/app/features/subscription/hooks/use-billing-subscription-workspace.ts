@@ -2,7 +2,11 @@
 
 import { useCallback, useRef, useState } from "react";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { getTierInfo, Tier } from "@/lib/subscription/tier-access";
+import {
+  getTierInfo,
+  getTierValue,
+  Tier,
+} from "@/lib/subscription/tier-access";
 import {
   type CheckoutSuccessData,
   useSubscriptionCheckout,
@@ -204,10 +208,21 @@ export function useBillingSubscriptionWorkspace() {
     return parsed.success ? parsed.data : null;
   })();
   const billedTierLabel = billedTierName
-    ? TIER_INFO[billedTierName]?.name ?? currentTierInfo.name
+    ? (TIER_INFO[billedTierName]?.name ?? currentTierInfo.name)
     : currentTierInfo.name;
   const billedModeLabel =
     currentMode !== "FULL" ? ` · ${PLAN_MODE_INFO[currentMode].name}` : "";
+
+  // The plan the customer is actually subscribed to — drives every "current
+  // plan" display (header card, plan-grid badge, compare table, change dialog)
+  // so a trialing Essential reads as Essential, not the access-tier Starter
+  // that `effectiveCurrentTier` falls back to. Once a trial expires we defer to
+  // the access tier so the downgrade is reflected honestly.
+  const currentPlanTier: Tier =
+    billedTierName && !isTrialExpired
+      ? getTierValue(billedTierName)
+      : effectiveCurrentTier;
+  const currentPlanTierInfo = getTierInfo(currentPlanTier);
 
   const planDetails = [
     { label: "Plan", value: `${billedTierLabel}${billedModeLabel}` },
@@ -276,6 +291,8 @@ export function useBillingSubscriptionWorkspace() {
     usageError,
     effectiveCurrentTier,
     currentTierInfo,
+    currentPlanTier,
+    currentPlanTierInfo,
     daysLeftInPeriod,
     subscriptionStatus,
     isSubscriptionExpired,

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { DayOfWeek } from "@workspace/types";
+import type { DayOfWeek, PlanMode } from "@workspace/types";
 import {
   onboardingComplianceFormSchema,
   type OnboardingComplianceFormValues,
@@ -49,6 +49,8 @@ export interface PlanSelection {
   price: number;
   currency: string;
   isCoreTrial?: boolean;
+  /** Full / Front Desk / Core plan mode chosen on the plan step. */
+  planMode?: PlanMode;
 }
 
 /** One row per weekday for default clinic visit windows (matches onboarding API). */

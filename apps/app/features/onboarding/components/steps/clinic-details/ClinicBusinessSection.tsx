@@ -34,7 +34,7 @@ export function ClinicBusinessSection({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="gstin">GSTIN for invoices</Label>
+        <Label htmlFor="gstin">GSTIN for invoices (optional)</Label>
         <Input
           id="gstin"
           {...clinicForm.register("gstin")}
@@ -57,15 +57,14 @@ export function ClinicBusinessSection({
           </p>
         ) : (
           <p id="clinic-gstin-help" className="text-xs text-muted-foreground">
-            Required for GST invoices before charging paid Indian plans
+            Optional — add it later in Settings → Billing to receive GST
+            invoices
           </p>
         )}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="legalName">
-          Legal name on tax invoice (optional)
-        </Label>
+        <Label htmlFor="legalName">Legal name on tax invoice (optional)</Label>
         <Input
           id="legalName"
           {...clinicForm.register("legalName")}

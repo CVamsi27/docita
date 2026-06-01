@@ -16,7 +16,7 @@ import {
 
 interface HydrateOptions {
   appointmentId: string;
-  appointmentData: Record<string, unknown> | null | undefined;
+  appointmentData: unknown;
 }
 
 export function useConsultationHydrate({
@@ -109,9 +109,12 @@ export function useConsultationHydrate({
           applyConsultationSessionDraft(state, sessionDraft),
         );
       } catch (error) {
-        logger.warn("Failed to restore consultation draft from sessionStorage", {
-          error,
-        });
+        logger.warn(
+          "Failed to restore consultation draft from sessionStorage",
+          {
+            error,
+          },
+        );
       }
     })();
 

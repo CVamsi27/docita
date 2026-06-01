@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getTierInfo } from "@/lib/subscription/tier-access";
 import { WhatsAppButton } from "@/components/whatsapp/whatsapp-button";
@@ -112,7 +113,10 @@ export function SubscriptionSettings() {
         <CardContent className="pt-5">
           <div className="flex items-center justify-between">
             <p className="ui-section-title text-[var(--fs-lg)]">{tierName}</p>
-            <Badge variant="secondary" className="ui-eyebrow border border-border/60 bg-muted/40 capitalize text-muted-foreground">
+            <Badge
+              variant="secondary"
+              className="ui-eyebrow border border-border/60 bg-muted/40 capitalize text-muted-foreground"
+            >
               {subscriptionStatusLabel}
             </Badge>
           </div>
@@ -137,6 +141,13 @@ export function SubscriptionSettings() {
 
   const freeStarterActive = isFreeStarterActive(subscription ?? undefined);
   const isResolving = billing.isCheckoutProcessing;
+
+  // GSTIN is optional during onboarding; remind paying Indian clinics to add it
+  // so their payments can be issued as GST invoices. Non-blocking.
+  const needsGstinForInvoices =
+    !clinic?.gstin?.trim() &&
+    (subscription?.basePriceCents ?? 0) > 0 &&
+    subscription?.currency?.toUpperCase() === "INR";
 
   return (
     <div className="space-y-6">
@@ -183,6 +194,22 @@ export function SubscriptionSettings() {
           </AlertDescription>
         </Alert>
       ) : null}
+
+      {needsGstinForInvoices && (
+        <Alert className="border-border bg-muted/40">
+          <Info className="h-4 w-4 text-muted-foreground" aria-hidden />
+          <AlertTitle>Add your GSTIN for GST invoices</AlertTitle>
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+            <span>
+              Add your facility GSTIN so your payments receive GST invoices. It
+              is optional, but required on the invoice for input tax credit.
+            </span>
+            <Button size="sm" variant="outline" asChild className="shrink-0">
+              <Link href="/settings?tab=general">Add GSTIN</Link>
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {isPaymentDue && !showRecoveryCard && (
         <Alert variant="destructive">
@@ -277,7 +304,9 @@ export function SubscriptionSettings() {
         <Section
           id="billing-history-section"
           title="Billing history"
-          description={billingHistorySectionDescription(subscription ?? undefined)}
+          description={billingHistorySectionDescription(
+            subscription ?? undefined,
+          )}
           actions={billingHistorySectionActions(subscription ?? undefined)}
         >
           <BillingHistory

@@ -1,13 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { expect, test } from "@playwright/test";
 import {
   API_URL,
   createUniqueClientIp,
   TEST_PASSWORD,
 } from "./utils/patient-helpers";
+import { findRepoRoot, requireRepoDatabaseUrl } from "./utils/repo-root";
 
 type JsonRecord = Record<string, unknown>;
 const APP_ORIGIN = new URL(
@@ -107,23 +106,6 @@ function readAccessToken(source: JsonRecord): string | null {
   );
 }
 
-function getRepoRoot(): string {
-  return resolve(process.cwd(), "..", "..");
-}
-
-function readDatabaseUrl(): string {
-  const envPath = resolve(getRepoRoot(), ".env");
-  const file = readFileSync(envPath, "utf8");
-  for (const line of file.split(/\r?\n/)) {
-    if (!line.startsWith("DATABASE_URL=")) continue;
-    const value = line.slice("DATABASE_URL=".length).trim();
-    if (!value) break;
-    return value.replace(/^"(.*)"$/, "$1");
-  }
-
-  throw new Error("DATABASE_URL was not found in the repository .env file.");
-}
-
 async function fetchVerificationToken(email: string): Promise<string | null> {
   const output = execFileSync(
     "node",
@@ -133,10 +115,10 @@ async function fetchVerificationToken(email: string): Promise<string | null> {
       "apps/api/scripts/fetch-verification-token.ts",
     ],
     {
-      cwd: getRepoRoot(),
+      cwd: findRepoRoot(),
       env: {
         ...process.env,
-        DATABASE_URL: readDatabaseUrl(),
+        DATABASE_URL: requireRepoDatabaseUrl(),
         VERIFICATION_EMAIL: email,
       },
       encoding: "utf8",

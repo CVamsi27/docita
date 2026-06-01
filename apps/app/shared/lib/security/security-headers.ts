@@ -106,6 +106,8 @@ interface CspOptions {
   nonce?: string;
   /** Forces production semantics regardless of NODE_ENV. */
   isProduction?: boolean;
+  /** Suppress HTTPS upgrades for plain-HTTP local production previews. */
+  upgradeInsecureRequests?: boolean;
 }
 
 /**
@@ -116,6 +118,8 @@ interface CspOptions {
 export function buildContentSecurityPolicy(options: CspOptions = {}): string {
   const isProduction =
     options.isProduction ?? process.env["NODE_ENV"] === "production";
+  const upgradeInsecureRequests =
+    options.upgradeInsecureRequests ?? isProduction;
   const nonce = options.nonce;
 
   const scriptSources = [
@@ -142,7 +146,7 @@ export function buildContentSecurityPolicy(options: CspOptions = {}): string {
     `frame-src ${Array.from(new Set(FRAME_SOURCES)).join(" ")}`,
     "worker-src 'self' blob:",
     "manifest-src 'self'",
-    isProduction ? "upgrade-insecure-requests" : undefined,
+    upgradeInsecureRequests ? "upgrade-insecure-requests" : undefined,
   ]
     .filter((directive): directive is string => Boolean(directive))
     .join("; ");

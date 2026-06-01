@@ -1,4 +1,8 @@
-import { Card, CardContent, CardHeader } from "@workspace/ui/components/indicators/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from "@workspace/ui/components/indicators/card";
 import { formatDate } from "@workspace/utils";
 import type { Medication, Patient } from "@workspace/types";
 import { formatGenderLabel } from "@/lib/formatters";
@@ -154,7 +158,7 @@ export function PrescriptionDocument({
                   <span className="font-bold text-primary">{index + 1}</span>
                   <div className="flex-1">
                     <p className="font-semibold text-base">{med.name}</p>
-                    <div className="grid grid-cols-3 gap-2 mt-1 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-1 text-sm print:grid-cols-3">
                       <div>
                         <span className="text-muted-foreground">Dosage: </span>
                         <span className="font-medium">{med.dosage}</span>

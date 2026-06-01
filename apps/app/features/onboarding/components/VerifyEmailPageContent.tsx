@@ -92,7 +92,9 @@ function VerifyEmailInner() {
           return;
         }
         logger.error("Email verification request failed", { err });
-        setErrorMessage("We could not verify this email link. Please try again.");
+        setErrorMessage(
+          "We could not verify this email link. Please try again.",
+        );
         setState("error");
       }
     }
@@ -109,7 +111,11 @@ function VerifyEmailInner() {
   };
 
   return (
-    <PreDashboardShell currentStep="verify-email">
+    <PreDashboardShell
+      currentStep="verify-email"
+      showBrandingPanel={false}
+      showProgress={false}
+    >
       <div className="ui-card-surface space-y-6 rounded-[var(--radius-xl)] p-8">
         {state === "loading" && (
           <div
@@ -128,7 +134,11 @@ function VerifyEmailInner() {
         )}
 
         {state === "success" && (
-          <div className="flex flex-col items-center gap-4 py-4" role="status" aria-live="polite">
+          <div
+            className="flex flex-col items-center gap-4 py-4"
+            role="status"
+            aria-live="polite"
+          >
             <CheckCircle className="h-10 w-10 text-success" />
             <p className="text-sm font-semibold text-foreground">Verified</p>
           </div>
@@ -180,7 +190,11 @@ export default function VerifyEmailPage() {
   return (
     <Suspense
       fallback={
-        <PreDashboardShell currentStep="verify-email">
+        <PreDashboardShell
+          currentStep="verify-email"
+          showBrandingPanel={false}
+          showProgress={false}
+        >
           <div className="ui-card-surface space-y-6 p-8">
             <div
               className="flex flex-col items-center gap-4 py-4"

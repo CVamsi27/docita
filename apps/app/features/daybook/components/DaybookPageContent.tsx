@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { addDaysToPickerIsoDate } from "@workspace/utils";
 import { FeatureGate } from "@/components/auth/feature-gate";
+import { ComingSoonBadge } from "@/components/feedback/coming-soon-badge";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import { formatDate, formatTime } from "@/lib/formatters";
 import { useDaybook } from "@/features/daybook/hooks/use-daybook";
@@ -52,7 +53,9 @@ export function DaybookPageContent() {
               size="icon"
               className="h-8 w-8"
               aria-label="Previous day"
-              onClick={() => setSelectedDayIso(addDaysToPickerIsoDate(selectedDayIso, -1))}
+              onClick={() =>
+                setSelectedDayIso(addDaysToPickerIsoDate(selectedDayIso, -1))
+              }
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -65,13 +68,17 @@ export function DaybookPageContent() {
               className="h-8 w-8"
               aria-label="Next day"
               disabled={isToday}
-              onClick={() => setSelectedDayIso(addDaysToPickerIsoDate(selectedDayIso, 1))}
+              onClick={() =>
+                setSelectedDayIso(addDaysToPickerIsoDate(selectedDayIso, 1))
+              }
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
           <Button variant="outline" className="gap-2" onClick={refetch}>
-            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
         </div>
@@ -143,7 +150,10 @@ export function DaybookPageContent() {
           <Card className="ui-card-surface">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-[length:var(--fs-lg)]">
-                <Banknote className="size-4 text-muted-foreground" aria-hidden />
+                <Banknote
+                  className="size-4 text-muted-foreground"
+                  aria-hidden
+                />
                 Collected by method
               </CardTitle>
             </CardHeader>
@@ -218,15 +228,18 @@ export function DaybookPageContent() {
         <Card className="ui-card-surface">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-[length:var(--fs-lg)]">
-              <CalendarCheck className="size-4 text-muted-foreground" aria-hidden />
+              <CalendarCheck
+                className="size-4 text-muted-foreground"
+                aria-hidden
+              />
               Close the day
+              <ComingSoonBadge className="ml-1" />
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="ui-helper-text">
               Locking the day&apos;s collections writes a settled-ledger entry.
-              This action is coming soon — reconcile against the totals above in
-              the meantime.
+              For now, reconcile against the totals above.
             </p>
             <Button disabled className="shrink-0">
               Close day

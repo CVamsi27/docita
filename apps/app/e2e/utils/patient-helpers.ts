@@ -1,7 +1,5 @@
 import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { APIRequestContext, Page } from "@playwright/test";
 import {
   loginResponseSchema,
@@ -10,6 +8,7 @@ import {
 } from "@workspace/types";
 import { z } from "zod";
 import { E2E_ACCESS_TOKEN_SESSION_KEY } from "./e2e-session-token-key";
+import { findRepoRoot, requireRepoDatabaseUrl } from "./repo-root";
 
 const e2eLoginTokenFallbackSchema = z.object({
   access_token: z.string().optional(),
@@ -84,59 +83,6 @@ const e2eVerificationUserSchema = z.object({
   emailVerificationToken: z.string().nullable().optional(),
 });
 
-function getRepoRoot(): string {
-  // Playwright can run from repo root or package root; walk up to find the monorepo root.
-  let current = resolve(process.cwd());
-  while (true) {
-    if (
-      existsSync(resolve(current, "pnpm-workspace.yaml")) ||
-      existsSync(resolve(current, "turbo.json")) ||
-      existsSync(resolve(current, "package.json"))
-    ) {
-      // Prefer the highest directory that still looks like the repo root.
-      const parent = resolve(current, "..");
-      const parentLooksLikeRepo =
-        existsSync(resolve(parent, "pnpm-workspace.yaml")) ||
-        existsSync(resolve(parent, "turbo.json"));
-      if (!parentLooksLikeRepo) {
-        return current;
-      }
-    }
-
-    const parent = resolve(current, "..");
-    if (parent === current) {
-      return process.cwd();
-    }
-    current = parent;
-  }
-}
-
-function readDatabaseUrl(): string {
-  const fromEnv = process.env["DATABASE_URL"]?.trim();
-  if (fromEnv) {
-    return fromEnv;
-  }
-
-  const envPath = resolve(getRepoRoot(), ".env");
-  if (!existsSync(envPath)) {
-    throw new Error(
-      "DATABASE_URL was not found in process.env and repository .env is missing.",
-    );
-  }
-  const file = readFileSync(envPath, "utf8");
-
-  for (const line of file.split(/\r?\n/)) {
-    if (!line.startsWith("DATABASE_URL=")) continue;
-    const value = line.slice("DATABASE_URL=".length).trim();
-    if (!value) break;
-    return value.replace(/^"(.*)"$/, "$1");
-  }
-
-  throw new Error(
-    "DATABASE_URL was not found in process.env or the repository .env file.",
-  );
-}
-
 async function fetchVerificationToken(email: string): Promise<string | null> {
   let output = "";
   try {
@@ -148,10 +94,10 @@ async function fetchVerificationToken(email: string): Promise<string | null> {
         "apps/api/scripts/fetch-verification-token.ts",
       ],
       {
-        cwd: getRepoRoot(),
+        cwd: findRepoRoot(),
         env: {
           ...process.env,
-          DATABASE_URL: readDatabaseUrl(),
+          DATABASE_URL: requireRepoDatabaseUrl(),
           VERIFICATION_EMAIL: email,
         },
         encoding: "utf8",
@@ -687,6 +633,9 @@ export async function loginUser(
   user: UserData,
   options: { role?: string } = {},
 ) {
+  // Keep non-production browser API traffic outside rate-limit budgets during route sweeps.
+  await page.setExtraHTTPHeaders({ "x-docita-e2e": "true" });
+
   const sessionUser = {
     id: user.id,
     email: user.email,
