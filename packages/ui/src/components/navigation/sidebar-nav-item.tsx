@@ -41,7 +41,12 @@ export function SidebarNavItem({
       "group relative flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors duration-200",
       collapsedRail && "mx-auto w-11 max-w-[2.75rem] justify-center px-0",
       isActive
-        ? "bg-foreground text-background shadow-sm"
+        ? collapsedRail
+          ? // Collapsed: let the inner chip carry the fill so the left accent
+            // bar reads as a distinct edge marker instead of blending into a
+            // full-width foreground pill (which made it look cut off).
+            "text-background"
+          : "bg-foreground text-background shadow-sm"
         : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
       className,
     ),
@@ -53,7 +58,7 @@ export function SidebarNavItem({
             aria-hidden
             className={cn(
               "pointer-events-none absolute left-0 top-1/2 w-[3px] -translate-y-1/2 rounded-r-full bg-foreground transition-[height,width] duration-200",
-              collapsedRail ? "h-6" : "h-5",
+              collapsedRail ? "h-7" : "h-5",
             )}
           />
         ) : null}

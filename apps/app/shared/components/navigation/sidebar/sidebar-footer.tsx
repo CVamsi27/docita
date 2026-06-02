@@ -84,17 +84,43 @@ export function SidebarFooter({
   const [customizeOpen, setCustomizeOpen] = useState(false);
 
   return (
-    <div className="shrink-0 border-t border-border/70">
+    <div
+      className={cn(
+        "shrink-0 border-t",
+        // Collapsed: read as a distinct pinned "dock" so it can't be
+        // confused with the scrollable nav above it. A tinted surface +
+        // solid top border separate it from the in-nav section dividers.
+        collapsedRail
+          ? "border-border bg-muted/40 shadow-[inset_0_1px_0_0_hsl(var(--background))]"
+          : "border-border/70",
+      )}
+    >
       {/* Quick-access icons row */}
       <div
         className={cn(
-          "flex items-center justify-between gap-1 py-2",
+          "flex items-center justify-between gap-1.5 py-2",
           collapsedRail
-            ? "flex-col items-center justify-center px-1 py-3"
+            ? "flex-col items-center justify-center gap-1 px-1 pt-2 pb-1.5"
             : "px-2",
         )}
       >
         <ThemeToggleWithAppearanceSync />
+
+        {/* Customize sits with the theme toggle (personalization) so it isn't
+            mistaken for Settings. */}
+        {isAdmin && (
+          <SidebarRailAction label="Customize sidebar">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground"
+              onClick={() => setCustomizeOpen(true)}
+              aria-label="Customize sidebar"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </Button>
+          </SidebarRailAction>
+        )}
 
         {canAccessNotifications && (
           <SidebarRailAction label="Notifications">
@@ -151,20 +177,6 @@ export function SidebarFooter({
             </Link>
           </Button>
         </SidebarRailAction>
-
-        {isAdmin && (
-          <SidebarRailAction label="Customize sidebar">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground"
-              onClick={() => setCustomizeOpen(true)}
-              aria-label="Customize sidebar"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-            </Button>
-          </SidebarRailAction>
-        )}
       </div>
 
       {/* Plan row */}
@@ -172,7 +184,7 @@ export function SidebarFooter({
         <div
           className={cn(
             "pb-2",
-            collapsedRail ? "flex flex-col items-center px-1" : "px-3",
+            collapsedRail ? "flex flex-col items-center px-1 pb-1.5" : "px-3",
           )}
         >
           {canOpenBillingSettings ? (
@@ -180,7 +192,7 @@ export function SidebarFooter({
               <SidebarRailTooltip label="Billing and subscription">
                 <Link
                   href={SUBSCRIPTION_SETTINGS_PATH}
-                  className="flex size-11 flex-col items-center justify-center rounded-xl p-0 transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+                  className="flex size-9 flex-col items-center justify-center rounded-xl p-0 transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
                   aria-label={`Billing and subscription, ${tierInfo.name}`}
                 >
                   <TierDot color={tierInfo.color} />
@@ -223,8 +235,10 @@ export function SidebarFooter({
       {/* Pinned Ask AI */}
       <div
         className={cn(
-          "border-t border-border/60 pt-3 pb-3",
-          collapsedRail ? "px-1 flex justify-center" : "px-3",
+          "border-t border-border/60",
+          collapsedRail
+            ? "flex justify-center px-1 pt-2 pb-2.5"
+            : "px-3 pt-3 pb-3",
         )}
       >
         <AskAiButton collapsed={collapsedRail} />
