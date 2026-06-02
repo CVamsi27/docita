@@ -53,7 +53,7 @@ flowchart LR
 - **Footer** holds Settings (`Link`), Help, theme toggle, and (for billing-capable admins) Plan.
 - **Ask AI** is pinned at the very bottom of the sidebar and is always visible; it opens the global AI overlay scoped to the current surface.
 
-`/dashboard` is retired; it server-redirects to `/today`. `/upgrade` remains a server redirect to `/settings?tab=subscription` and never appears in nav.
+`/dashboard` is retired; middleware redirects it to `/today`. `/upgrade` remains a middleware redirect to `/settings?tab=subscription` and never appears in nav.
 
 ### 1.2 Topbar
 

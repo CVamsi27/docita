@@ -33,7 +33,7 @@
 - `apps/app/app/(protected)/route-meta.ts` is blocking inventory for protected pages.
 - `scripts/checks/check-e2e-nav-routes.mjs` derives required smoke destinations from `nav-config.ts`.
 - `/dashboard` redirects to `/today`; `/upgrade` redirects to Settings subscription.
-- `/pharmacy` remains unavailable as a direct implementation placeholder and is not advertised.
+- `/pharmacy` remains unavailable: the placeholder route is removed and the unsupported surface is not advertised.
 - AI and hospital-only surfaces remain gated until their access policies are enabled.
 
 ## Final Verification
