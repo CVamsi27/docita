@@ -11,7 +11,10 @@ import type {
   CreateInsuranceClaimInput,
   UpdateInsuranceClaimInput,
 } from '@workspace/types';
-import { ClaimValidationService } from '@/domains/billing/core/services/claim-validation.service';
+import {
+  CLAIM_VALIDATION_PORT,
+  type IClaimValidation,
+} from '@/domains/insurance-claims/application/ports/claim-validation.port';
 import {
   IInsuranceClaimRepository,
   INSURANCE_CLAIM_REPOSITORY_TOKEN,
@@ -26,7 +29,8 @@ export class InsuranceClaimsCommandService {
   constructor(
     @Inject(INSURANCE_CLAIM_REPOSITORY_TOKEN)
     private readonly repository: IInsuranceClaimRepository,
-    private readonly claimValidationService: ClaimValidationService,
+    @Inject(CLAIM_VALIDATION_PORT)
+    private readonly claimValidationService: IClaimValidation,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
