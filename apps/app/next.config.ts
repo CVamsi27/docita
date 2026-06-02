@@ -116,6 +116,10 @@ const nextConfig: NextConfig = {
           /^react-leaflet$/,
           /^@react-google-maps\/api$/,
           /^canvas-confetti$/,
+          // The realtime socket only connects in the browser (SocketProvider
+          // loads it inside an effect). Stubbing socket.io-client keeps it and
+          // its Node `ws` transitive dependency out of the Worker server bundle.
+          /^socket\.io-client(\/|$)/,
           // Sentry is fully no-op on Cloudflare (instrumentation.register()
           // early-returns and @sentry/nextjs is aliased to a stub), but the
           // heavy @sentry/node server SDK (~2.6 MB) can still leak into the

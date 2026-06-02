@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { io, Socket } from "socket.io-client";
+import type { Socket } from "socket.io-client";
 import { isRecord } from "@workspace/utils";
 import { useAuth } from "@/lib/auth/auth-context";
 import { appSession } from "@/lib/auth/session";
@@ -112,46 +112,64 @@ export function SocketProvider({
         ? "https://api.docita.work"
         : "http://localhost:3001");
 
-    const socketInstance = io(socketUrl, {
-      auth: { token },
-      autoConnect: false,
-      transports: ["websocket", "polling"],
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      reconnectionAttempts: 5,
-    });
+    let cancelled = false;
 
-    socketRef.current = socketInstance;
+    // Load the socket.io client only in the browser. The static import would
+    // otherwise drag socket.io-client (and its Node `ws` dependency) into the
+    // server bundle, which is dead weight in the Cloudflare worker.
+    void (async () => {
+      const { io } = await import("socket.io-client");
+      if (cancelled) return;
 
-    socketInstance.on("connect", () => {
-      setIsConnected(true);
-    });
+      const socketInstance = io(socketUrl, {
+        auth: { token },
+        autoConnect: false,
+        transports: ["websocket", "polling"],
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        reconnectionAttempts: 5,
+      });
 
-    socketInstance.on("disconnect", (reason) => {
-      setIsConnected(false);
+      socketRef.current = socketInstance;
 
-      if (reason === "io server disconnect") {
-        reconnectTimeoutRef.current = setTimeout(() => {
-          if (token && socketRef.current) {
-            reconnectSocket(token);
-          }
-        }, 1000);
-      }
-    });
+      socketInstance.on("connect", () => {
+        setIsConnected(true);
+      });
 
-    socketInstance.on("connect_error", (err) => {
-      setIsConnected(false);
+      socketInstance.on("disconnect", (reason) => {
+        setIsConnected(false);
 
-      const errorPayload =
-        err && typeof err === "object"
-          ? socketErrorData(err)
-          : undefined;
+        if (reason === "io server disconnect") {
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (token && socketRef.current) {
+              reconnectSocket(token);
+            }
+          }, 1000);
+        }
+      });
 
-      if (
-        err.message === "Unauthorized" ||
-        errorPayload?.content?.message === "Unauthorized"
-      ) {
+      socketInstance.on("connect_error", (err) => {
+        setIsConnected(false);
+
+        const errorPayload =
+          err && typeof err === "object" ? socketErrorData(err) : undefined;
+
+        if (
+          err.message === "Unauthorized" ||
+          errorPayload?.content?.message === "Unauthorized"
+        ) {
+          void (async () => {
+            const recovered = await recoverSocketAuth();
+            if (!recovered) {
+              await logoutRef.current();
+              socketInstance.disconnect();
+            }
+          })();
+        }
+      });
+
+      socketInstance.on("unauthorized", () => {
         void (async () => {
           const recovered = await recoverSocketAuth();
           if (!recovered) {
@@ -159,50 +177,43 @@ export function SocketProvider({
             socketInstance.disconnect();
           }
         })();
-      }
-    });
+      });
 
-    socketInstance.on("unauthorized", () => {
-      void (async () => {
-        const recovered = await recoverSocketAuth();
-        if (!recovered) {
-          await logoutRef.current();
-          socketInstance.disconnect();
+      socketInstance.on("token_refresh", () => {
+        if (token) {
+          reconnectSocket(token);
         }
-      })();
-    });
+      });
 
-    socketInstance.on("token_refresh", () => {
-      if (token) {
-        reconnectSocket(token);
-      }
-    });
+      setSocket(socketInstance);
 
-    setSocket(socketInstance);
-
-    // Defer the initial connect so StrictMode's mount/unmount cycle in dev
-    // can clean up without racing the WebSocket handshake.
-    connectTimeoutRef.current = window.setTimeout(() => {
-      if (socketRef.current === socketInstance) {
-        socketInstance.connect();
-      }
-    }, 0);
+      // Defer the initial connect so StrictMode's mount/unmount cycle in dev
+      // can clean up without racing the WebSocket handshake.
+      connectTimeoutRef.current = window.setTimeout(() => {
+        if (socketRef.current === socketInstance) {
+          socketInstance.connect();
+        }
+      }, 0);
+    })();
 
     return () => {
+      cancelled = true;
+
       if (connectTimeoutRef.current !== null) {
         window.clearTimeout(connectTimeoutRef.current);
         connectTimeoutRef.current = null;
       }
 
-      if (socketInstance.connected) {
-        socketInstance.disconnect();
-      } else {
-        socketInstance.off();
-      }
-
-      if (socketRef.current === socketInstance) {
+      const current = socketRef.current;
+      if (current) {
+        if (current.connected) {
+          current.disconnect();
+        } else {
+          current.off();
+        }
         socketRef.current = null;
       }
+
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = null;
