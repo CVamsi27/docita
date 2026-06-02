@@ -190,6 +190,35 @@ async function fetchVerificationToken(email: string): Promise<string | null> {
   return parsed.data.emailVerificationToken ?? null;
 }
 
+/**
+ * Deterministically marks a test account's email verified in the DB. Used after
+ * onboarding to close the race where the token round-trip in
+ * {@link verifyEmailIfNeeded} skips, leaving the admin unverified.
+ */
+function ensureEmailVerified(email: string): void {
+  try {
+    execFileSync(
+      "node",
+      [
+        "-r",
+        "ts-node/register/transpile-only",
+        "apps/api/scripts/ensure-email-verified.ts",
+      ],
+      {
+        cwd: findRepoRoot(),
+        env: {
+          ...process.env,
+          DATABASE_URL: requireRepoDatabaseUrl(),
+          VERIFICATION_EMAIL: email,
+        },
+        stdio: "ignore",
+      },
+    );
+  } catch {
+    // Best-effort: environments without DB access fall back to the API flow.
+  }
+}
+
 export async function verifyEmailIfNeeded(
   request: APIRequestContext,
   email: string,
@@ -534,6 +563,11 @@ async function setupTestUserImpl(
   if (!clinicId) {
     throw new Error("Onboarding completion did not return a clinicId");
   }
+
+  // Guarantee the onboarding admin is email-verified. The pre-onboarding token
+  // round-trip can race under load and silently skip, which then bounces the
+  // user to the email-verification journey instead of the workspace.
+  ensureEmailVerified(email);
 
   // Always perform a fresh login after onboarding completion.
   // The API associates the user to the clinic during onboarding; using a fresh
