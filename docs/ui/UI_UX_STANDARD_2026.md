@@ -48,8 +48,8 @@ flowchart LR
   AskAi -.opens.-> Overlay[Ask AI overlay]
 ```
 
-- **TRACK** is the clinical work surface: `/today`, `/patients`, `/appointments`, `/consultation`, `/prescriptions`, `/lab-tests`, `/documents`.
-- **SERVICES** is the operational surface: `/invoices`, `/inventory`, `/follow-ups` (until absorbed by `/inbox`), `/whatsapp`, `/analytics`, `/coding-queue`, plus dynamic specialty entries (`/specialty/dental-charts`, `/hospital/beds`).
+- **TRACK** is the clinical work surface: `/today`, `/consultation`, `/appointments`, `/patients`, `/desk/collect-payment`, `/invoices`, `/daybook`, `/insurance-claims`, `/prescriptions`, `/lab-tests`, `/documents`.
+- **SERVICES** is the operational surface: `/whatsapp`, `/inbox`, `/inventory`, `/vaccines`, `/referrals`, `/follow-ups`, `/analytics`, `/import`, plus dynamic specialty entries (`/specialty/dental-charts`, `/hospital/beds`).
 - **Footer** holds Settings (`Link`), Help, theme toggle, and (for billing-capable admins) Plan.
 - **Ask AI** is pinned at the very bottom of the sidebar and is always visible; it opens the global AI overlay scoped to the current surface.
 
@@ -72,7 +72,8 @@ Every nav destination must appear in the command palette, and every palette quic
 These are added in PR F:
 
 - `/help` — wired Help center (FAQ + what's new + contact).
-- `/inbox` — unified inbox combining WhatsApp threads, follow-up tasks, join-requests, coding-queue items.
+- `/inbox` — unified staff-notification hub with links to follow-up tasks, join requests, and coding queue items.
+- `/whatsapp` — patient conversation inbox, clinic campaigns, reusable templates, and delivery health. Sender credentials remain admin-only under `/settings/whatsapp-sender`.
 - `/templates` — note templates, prescription templates, SMS/WhatsApp templates, consent forms.
 
 ## 2. Visual language
@@ -139,13 +140,13 @@ These are added in PR F:
 
 Use these `@workspace/ui` primitives for phone/tablet layouts; prefer Tailwind breakpoints first, primitives for repeated row/step chrome:
 
-| Primitive | Use when |
-|---|---|
-| `SegmentedControl` | Queue filters, mobile section tabs, role switchers (pill segmented control) |
-| `StepProgress` | Consultation SOAP steps, wizard section nav on `< md` |
+| Primitive                  | Use when                                                                                          |
+| -------------------------- | ------------------------------------------------------------------------------------------------- |
+| `SegmentedControl`         | Queue filters, mobile section tabs, role switchers (pill segmented control)                       |
+| `StepProgress`             | Consultation SOAP steps, wizard section nav on `< md`                                             |
 | `ListRow` + `ListRowGroup` | `DataTable` `stackOnMobile` card fallback; queue/inbox rows (token · name · meta · time · status) |
-| `BottomActionBar` | Primary + secondary actions docked at bottom on `< md` (Next patient, save, quick replies) |
-| `NowServingBoard` | Today/consultation queue hero (uses `--brand-ink` / `--brand-cyan`; do not duplicate) |
+| `BottomActionBar`          | Primary + secondary actions docked at bottom on `< md` (Next patient, save, quick replies)        |
+| `NowServingBoard`          | Today/consultation queue hero (uses `--brand-ink` / `--brand-cyan`; do not duplicate)             |
 
 - `Dialog` / `WizardDialog` become full-height bottom sheets below **`md`** (768px).
 - Clinical lists: `DataTable` with `stackOnMobile`, `mobileRenderer` → `ListRow`, `hiddenOnMobile` on low-priority columns.
