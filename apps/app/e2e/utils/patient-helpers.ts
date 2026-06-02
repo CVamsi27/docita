@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { randomUUID } from "node:crypto";
+import { createHmac, randomUUID } from "node:crypto";
 import { APIRequestContext, Page } from "@playwright/test";
 import {
   loginResponseSchema,
@@ -48,6 +48,73 @@ export const API_URL = process.env["API_URL"] || "http://127.0.0.1:3001/api/v1";
 export const TEST_PASSWORD = "Test@123456";
 /** Valid 15-char GSTIN for paid INR onboarding in E2E (not a real taxpayer ID). */
 const E2E_PAID_PLAN_GSTIN = "29AABCU9603R1ZX";
+
+/**
+ * Builds verified Razorpay payment details for a paid-plan onboarding. Creates
+ * a real test order via the checkout endpoint, then signs `${orderId}|${paymentId}`
+ * with the test key secret — matching the API's rzp_test_ verification path,
+ * which reads the amount from the order rather than fetching a (non-existent)
+ * payment object. Requires RAZORPAY_KEY_SECRET (a test secret) in the env.
+ */
+async function createTestPaymentDetails(
+  request: APIRequestContext,
+  onboardingId: string,
+  options: {
+    headers: Record<string, string>;
+    tier: string;
+    customerEmail: string;
+  },
+): Promise<{
+  razorpayOrderId: string;
+  razorpayPaymentId: string;
+  razorpaySignature: string;
+}> {
+  const keySecret = process.env["RAZORPAY_KEY_SECRET"];
+  if (!keySecret) {
+    throw new Error(
+      "RAZORPAY_KEY_SECRET (test secret) is required to complete paid-plan onboarding in E2E",
+    );
+  }
+
+  const checkoutRes = await request.post(
+    `${API_URL}/onboarding/${onboardingId}/checkout`,
+    {
+      headers: options.headers,
+      data: {
+        tier: options.tier,
+        billingCycle: "MONTHLY",
+        currency: "INR",
+        customerEmail: options.customerEmail,
+        customerName: "Dr. History",
+        customerPhone: "1234567890",
+      },
+    },
+  );
+  if (!checkoutRes.ok()) {
+    throw new Error(
+      `Onboarding checkout failed: ${await checkoutRes.text()}`,
+    );
+  }
+
+  const checkout = onboardingCheckoutResultSchema.parse(await checkoutRes.json());
+  const razorpayPaymentId = `pay_e2e_${randomUUID().replace(/-/g, "").slice(0, 14)}`;
+  const razorpaySignature = createHmac("sha256", keySecret)
+    .update(`${checkout.orderId}|${razorpayPaymentId}`)
+    .digest("hex");
+
+  return {
+    razorpayOrderId: checkout.orderId,
+    razorpayPaymentId,
+    razorpaySignature,
+  };
+}
+
+const onboardingCheckoutResultSchema = z.object({
+  orderId: z.string(),
+  amountCents: z.number(),
+  currency: z.string(),
+  razorpayKeyId: z.string(),
+});
 
 /** Next.js `(protected)` patient routes — keep Playwright URLs aligned with the app router. */
 export const PATIENTS_LIST_PATH = "/patients";
@@ -394,6 +461,18 @@ async function setupTestUserImpl(
     );
   }
 
+  // Paid plans require a verified Razorpay payment. Create a real test order
+  // via the checkout endpoint and sign it with the test secret; the API's
+  // rzp_test_ path verifies the HMAC and reads the amount from the order
+  // (a real payment object can't be minted without the Checkout UI).
+  const paymentDetails = isUnpaidEssentialTrial
+    ? { skipPayment: true }
+    : await createTestPaymentDetails(request, onboardingId, {
+        headers: authHeaders(accessToken),
+        tier,
+        customerEmail: email,
+      });
+
   const completeRes = await request.post(
     `${API_URL}/onboarding/${onboardingId}/complete`,
     {
@@ -418,9 +497,7 @@ async function setupTestUserImpl(
           billingCycle: "MONTHLY",
           currency: "INR",
         },
-        paymentDetails: isUnpaidEssentialTrial
-          ? { skipPayment: true }
-          : { cardLast4: "4242" },
+        paymentDetails,
         slaAgreement: {
           acceptedSLA: true,
           slaVersion: "1.0",

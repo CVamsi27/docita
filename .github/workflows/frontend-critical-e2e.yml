@@ -41,6 +41,13 @@ jobs:
       API_PROXY_TARGET: http://127.0.0.1:3001
       CORS_ORIGINS: http://127.0.0.1:3000,http://localhost:3000
       WHATSAPP_PRODUCTION_MODE: "false"
+      # Razorpay TEST credentials (rzp_test_…) so onboarding payment
+      # verification runs against the sandbox. The API verifies the HMAC
+      # signature and the order amount; the test-key path skips the live
+      # payment fetch (see razorpay-order.adapter.ts).
+      RAZORPAY_KEY_ID: ${{ secrets.RAZORPAY_KEY_ID }}
+      RAZORPAY_KEY_SECRET: ${{ secrets.RAZORPAY_KEY_SECRET }}
+      RAZORPAY_WEBHOOK_SECRET: ${{ secrets.RAZORPAY_WEBHOOK_SECRET }}
     services:
       postgres:
         image: postgres:16-alpine
