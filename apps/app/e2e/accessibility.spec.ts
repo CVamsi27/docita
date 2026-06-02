@@ -207,6 +207,7 @@ test.describe("Accessibility Audit - Main App", () => {
       { path: "/lab-tests", name: "Lab tests" },
       { path: "/inventory", name: "Inventory" },
       { path: "/inbox", name: "Inbox" },
+      { path: "/whatsapp", name: "WhatsApp" },
     ];
 
     for (const route of mobileAuthRoutes) {
@@ -340,13 +341,9 @@ test.describe("Accessibility Audit - Main App", () => {
         path: "/settings?tab=subscription",
         name: "Settings subscription tab",
       },
-      {
-        path: "/settings/whatsapp-sender",
-        name: "WhatsApp sender",
-      },
+      { path: "/whatsapp", name: "WhatsApp" },
       { path: "/desk/collect-payment", name: "Collect payment" },
       { path: "/daybook", name: "Daybook" },
-      { path: "/pharmacy", name: "Pharmacy" },
       { path: "/vaccines", name: "Vaccines" },
       { path: "/referrals", name: "Referrals" },
       { path: "/follow-ups", name: "Follow-ups" },

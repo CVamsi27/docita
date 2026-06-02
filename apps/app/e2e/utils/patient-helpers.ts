@@ -91,12 +91,12 @@ async function createTestPaymentDetails(
     },
   );
   if (!checkoutRes.ok()) {
-    throw new Error(
-      `Onboarding checkout failed: ${await checkoutRes.text()}`,
-    );
+    throw new Error(`Onboarding checkout failed: ${await checkoutRes.text()}`);
   }
 
-  const checkout = onboardingCheckoutResultSchema.parse(await checkoutRes.json());
+  const checkout = onboardingCheckoutResultSchema.parse(
+    await checkoutRes.json(),
+  );
   const razorpayPaymentId = `pay_e2e_${randomUUID().replace(/-/g, "").slice(0, 14)}`;
   const razorpaySignature = createHmac("sha256", keySecret)
     .update(`${checkout.orderId}|${razorpayPaymentId}`)
@@ -216,6 +216,35 @@ function ensureEmailVerified(email: string): void {
     );
   } catch {
     // Best-effort: environments without DB access fall back to the API flow.
+  }
+}
+
+/**
+ * Local E2E has no external doctor-verification provider. Mark fixture doctors
+ * verified after they complete registration so clinical workflow tests can
+ * issue prescriptions without bypassing production guards.
+ */
+function ensureDoctorVerified(doctorId: string): void {
+  try {
+    execFileSync(
+      "node",
+      [
+        "-r",
+        "ts-node/register/transpile-only",
+        "apps/api/scripts/ensure-doctor-verified.ts",
+      ],
+      {
+        cwd: findRepoRoot(),
+        env: {
+          ...process.env,
+          DATABASE_URL: requireRepoDatabaseUrl(),
+          VERIFICATION_DOCTOR_ID: doctorId,
+        },
+        stdio: "ignore",
+      },
+    );
+  } catch {
+    // Best-effort: environments without DB access exercise the pending state.
   }
 }
 
@@ -655,6 +684,8 @@ async function setupTestUserImpl(
         `Doctor registration number update failed: ${await regNumberRes.text()}`,
       );
     }
+
+    ensureDoctorVerified(userId);
   }
 
   return {
@@ -801,5 +832,5 @@ export async function loginUser(
     },
   );
 
-  await page.goto("/__e2e_session_seed", { waitUntil: "domcontentloaded" });
+  await page.goto("/e2e-session-seed", { waitUntil: "domcontentloaded" });
 }

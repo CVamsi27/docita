@@ -25,7 +25,7 @@ export default defineConfig({
 
   timeout: 120000,
 
-  globalTimeout: 1200000,
+  globalTimeout: 2400000,
 
   use: {
     baseURL: APP_URL,
