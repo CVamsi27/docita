@@ -7,6 +7,7 @@ import type {
   ClinicWhatsappTemplate,
   WhatsappTemplateCategory,
 } from "@workspace/types";
+import { whatsappTemplateCategorySchema } from "@workspace/types";
 import {
   useClinicWhatsappTemplates,
   useCreateWhatsappTemplate,
@@ -267,7 +268,7 @@ export function WhatsappTemplatesSettings() {
               onValueChange={(value) =>
                 setEditor((prev) => ({
                   ...prev,
-                  category: value as WhatsappTemplateCategory,
+                  category: whatsappTemplateCategorySchema.parse(value),
                 }))
               }
             >

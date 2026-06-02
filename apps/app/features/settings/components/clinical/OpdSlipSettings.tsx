@@ -140,8 +140,8 @@ function OpdSlipSettings() {
                     />
                   </FormControl>
                   <p className="text-xs text-muted-foreground">
-                    Printed as &ldquo;Valid for free revisit within N
-                    days&rdquo;. Set to 0 to hide the notice.
+                    Printed on the slip: &ldquo;Valid for free revisit within
+                    N days&rdquo;. Set to 0 to hide the notice.
                   </p>
                   <FormMessage />
                 </FormItem>

@@ -11,7 +11,7 @@ import { AppointmentsScheduleController } from './presentation/controllers/appoi
 import { AppointmentsConsultationController } from './presentation/controllers/appointments-consultation.controller';
 import { AppointmentsClinicalController } from './presentation/controllers/appointments-clinical.controller';
 import { OpdSlipController } from './presentation/controllers/opd-slip.controller';
-import { OpdSlipService } from './application/services/opd-slip.service';
+import { OpdSlipQueryService } from './application/services/opd-slip-query.service';
 import { OpdSlipPdfService } from './application/services/opd-slip-pdf.service';
 import { AppointmentRequestController } from './presentation/controllers/appointment-request.controller';
 import {
@@ -75,7 +75,7 @@ import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
     AppointmentMetricsService,
     AppointmentMetricDefinitionService,
     AppointmentDiagnosisService,
-    OpdSlipService,
+    OpdSlipQueryService,
     OpdSlipPdfService,
     AppointmentRequestCommandService,
     AppointmentRequestQueryService,

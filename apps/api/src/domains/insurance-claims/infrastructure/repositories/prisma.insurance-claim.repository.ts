@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — Prisma cursor pagination erases the claim `select` payload typing
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';

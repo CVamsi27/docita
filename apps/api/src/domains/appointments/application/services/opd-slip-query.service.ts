@@ -8,10 +8,10 @@ import { OpdSlipPdfService } from './opd-slip-pdf.service';
 import { PatientQueryService } from '@/domains/patients/application/services/patient-query.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { extractPdfTheme } from '@workspace/types';
-import { calculateAge, getPatientFullName } from '@workspace/utils';
+import { calculateAge, getPatientFullName, isRecord } from '@workspace/utils';
 
 @Injectable()
-export class OpdSlipService {
+export class OpdSlipQueryService {
   constructor(
     private readonly appointmentQueryService: AppointmentQueryService,
     private readonly patientQueryService: PatientQueryService,
@@ -91,10 +91,7 @@ export class OpdSlipService {
   }
 
   private toRecord(value: unknown): Record<string, unknown> {
-    if (!value || typeof value !== 'object') {
-      return {};
-    }
-    return value as Record<string, unknown>;
+    return isRecord(value) ? value : {};
   }
 
   private readNumber(

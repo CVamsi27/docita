@@ -1,14 +1,13 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { getAppApiUrl } from "@/lib/api/api-config";
+import { fetchWithSession } from "@/lib/auth/fetch-with-session";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 /**
  * Fetches the printable OPD prescription slip for an appointment and opens it in
- * a new tab. The slip endpoint streams a binary PDF, so we fetch it as a blob
- * (carrying the httpOnly auth cookie via `credentials: "include"`) rather than
- * routing through the JSON API client.
+ * a new tab. The slip endpoint streams a binary PDF, so we read it as a blob
+ * via the session-aware wrapper rather than routing through the JSON API client.
  */
 export function useDownloadOpdSlip() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -17,10 +16,8 @@ export function useDownloadOpdSlip() {
     if (!appointmentId) return;
     setDownloadingId(appointmentId);
     try {
-      const baseUrl = getAppApiUrl().replace(/\/$/, "");
-      const response = await fetch(
-        `${baseUrl}/appointments/${appointmentId}/opd-slip`,
-        { credentials: "include" },
+      const response = await fetchWithSession(
+        `/appointments/${appointmentId}/opd-slip`,
       );
       if (!response.ok) {
         throw new Error(

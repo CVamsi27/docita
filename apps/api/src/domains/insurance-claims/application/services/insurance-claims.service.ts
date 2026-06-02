@@ -13,7 +13,9 @@ import {
 import { InsuranceClaimsQueryService } from './insurance-claims-query.service';
 import { InsuranceClaimsCommandService } from './insurance-claims-command.service';
 
-/** Facade combining the claim query/command services for the controller. */
+/**
+ * Thin facade — delegates claim queries and commands to focused services.
+ */
 @Injectable()
 export class InsuranceClaimsService {
   constructor(

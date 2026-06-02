@@ -4,7 +4,7 @@ import type { Response } from 'express';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { requireClinicIdFromRequest } from '@/shared/modules/auth/auth/clinic-request-context';
 import { AppointmentsApiAccess } from '@/domains/appointments/presentation/controllers/appointments.controller.access';
-import { OpdSlipService } from '@/domains/appointments/application/services/opd-slip.service';
+import { OpdSlipQueryService } from '@/domains/appointments/application/services/opd-slip-query.service';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { logPatientPhiRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
 import { setPrivateNoStoreHeaders } from '@/shared/common/http/private-download-response';
@@ -14,7 +14,7 @@ import { setPrivateNoStoreHeaders } from '@/shared/common/http/private-download-
 @AppointmentsApiAccess()
 export class OpdSlipController {
   constructor(
-    private readonly opdSlipService: OpdSlipService,
+    private readonly opdSlipService: OpdSlipQueryService,
     private readonly auditService: AuditService,
   ) {}
 
