@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { HeartPulse } from "lucide-react";
+import { ChevronDown, HeartPulse } from "lucide-react";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { Button } from "@workspace/ui/components/form/button";
@@ -134,7 +134,7 @@ export function SubjectiveSection({
           <Textarea
             id="hpi"
             className="min-h-[120px]"
-            placeholder="Enter history of present illness"
+            placeholder="Onset, progression, and associated symptoms…"
             value={history}
             readOnly={readOnly}
             onChange={(e) => setHistory(e.target.value)}
@@ -145,10 +145,11 @@ export function SubjectiveSection({
         <CollapsibleTrigger asChild>
           <Button
             type="button"
-            variant="ghost"
-            className="h-auto w-full justify-start p-0 text-sm font-semibold hover:bg-transparent"
+            variant="outline"
+            className="h-8 w-full justify-between text-sm font-semibold"
           >
             Past medical history
+            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180" aria-hidden="true" />
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-3">
@@ -269,7 +270,7 @@ export function PlanSection({
           <Textarea
             id="treatment-plan"
             className="min-h-[110px]"
-            placeholder="Enter plan"
+            placeholder="Advice, procedures, and treatment given…"
             value={treatment}
             readOnly={readOnly}
             onChange={(e) => setTreatment(e.target.value)}
@@ -282,7 +283,7 @@ export function PlanSection({
           <Textarea
             id="follow-up-plan"
             className="min-h-[110px]"
-            placeholder="Enter follow-up instructions"
+            placeholder="When to return and what to watch for…"
             value={followUpPlan}
             readOnly={readOnly}
             onChange={(e) => setFollowUpPlan(e.target.value)}

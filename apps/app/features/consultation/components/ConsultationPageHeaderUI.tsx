@@ -146,7 +146,7 @@ export function ConsultationPageHeaderUI({
 
           <div className="flex items-center gap-3 min-w-0">
             <Avatar className="h-9 w-9 shrink-0">
-              <AvatarFallback className="border border-border/70 bg-background/70 text-foreground text-xs font-semibold">
+              <AvatarFallback className="border border-primary/20 bg-primary/5 text-primary text-xs font-semibold">
                 {initials}
               </AvatarFallback>
             </Avatar>

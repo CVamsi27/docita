@@ -1,7 +1,6 @@
 "use client";
 
 import React, { FC, useState } from "react";
-import Link from "next/link";
 import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
@@ -10,15 +9,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@workspace/ui/components/overlay/collapsible";
-import {
-  Clock,
-  ChevronDown,
-  ChevronRight,
-  FileText,
-  Receipt,
-  User,
-  X,
-} from "lucide-react";
+import { Clock, ChevronDown, User, X } from "lucide-react";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { cn } from "@workspace/ui/lib/utils";
 import {
   Appointment,
   Patient as BasePatient,
@@ -34,7 +27,6 @@ import { formatGenderLabel } from "@/lib/formatters";
 import { getInitials } from "@/lib/formatters/text-helpers";
 import { getPatientFullName } from "@workspace/utils";
 import { FollowUpWidget } from "./FollowUpWidget";
-import { usePermissions } from "@/hooks/use-permissions";
 
 interface Patient extends BasePatient {
   age?: string;
@@ -75,7 +67,6 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
   onClose,
 }) => {
   const [historyOpen, setHistoryOpen] = useState(false);
-  const { canViewInvoices, canViewPrescriptions } = usePermissions();
   const rawData = appointmentData ?? appointment;
 
   const patient: Patient | undefined = rawData
@@ -104,12 +95,10 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
       : rawData.id
     : undefined;
 
-  const patientRecordId = patient.id;
-
   return (
     <div className="h-full overflow-y-auto p-4 space-y-6 bg-background">
       <div className="ui-card-surface relative flex items-center gap-4 p-4 group">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-lg font-bold text-primary">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/5 text-lg font-bold text-primary">
           {initials}
         </div>
         <div className="min-w-0 flex-1">
@@ -143,15 +132,15 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
 
       {timelineData && (
         <div className="space-y-2">
-          <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-2">
-            <Clock className="h-3 w-3" />
+          <MicroLabel className="flex items-center gap-1.5 text-muted-foreground">
+            <Clock className="h-3 w-3" aria-hidden="true" />
             History
-            {timelineData.total > 0 && (
-              <span className="normal-case font-normal">
+            {timelineData.total > 0 ? (
+              <span className="font-normal normal-case">
                 ({timelineData.total})
               </span>
-            )}
-          </h3>
+            ) : null}
+          </MicroLabel>
           {timelineData.events.length === 0 ? (
             <p className="text-xs text-muted-foreground py-1">
               No previous visits
@@ -167,28 +156,6 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
         </div>
       )}
 
-      {patientRecordId && (canViewPrescriptions || canViewInvoices) ? (
-        <div className="flex flex-wrap gap-2 border-t border-border/60 pt-3">
-          {canViewPrescriptions ? (
-            <Button variant="outline" size="sm" asChild>
-              <Link
-                href={`/prescriptions?patientId=${encodeURIComponent(patientRecordId)}`}
-              >
-                <FileText className="mr-1.5 h-3.5 w-3.5" aria-hidden />
-                Prescriptions
-              </Link>
-            </Button>
-          ) : null}
-          {canViewInvoices ? (
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`/patients/${patientRecordId}?tab=billing`}>
-                <Receipt className="mr-1.5 h-3.5 w-3.5" aria-hidden />
-                Billing
-              </Link>
-            </Button>
-          ) : null}
-        </div>
-      ) : null}
 
       {appointmentId ? <FollowUpWidget appointmentId={appointmentId} /> : null}
 
@@ -197,24 +164,26 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
           <CollapsibleTrigger asChild>
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="h-auto w-full justify-start gap-1 px-0 py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+              className="h-8 w-full justify-between text-xs font-semibold"
             >
-              {historyOpen ? (
-                <ChevronDown className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              ) : (
-                <ChevronRight className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              )}
               Full structured history
+              <ChevronDown
+                className={cn(
+                  "h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform duration-200",
+                  historyOpen && "rotate-180",
+                )}
+                aria-hidden="true"
+              />
             </Button>
           </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-4 pt-2 data-[state=open]:border-t data-[state=open]:border-border/60">
+          <CollapsibleContent className="space-y-4 pt-3">
             {surgicalHistory.length > 0 && (
               <div className="space-y-2">
-                <h3 className="text-xs font-medium text-muted-foreground">
-                  Surgical History
-                </h3>
+                <MicroLabel className="text-muted-foreground">
+                  Surgical history
+                </MicroLabel>
                 <ul className="space-y-1">
                   {surgicalHistory.map((s, i) => (
                     <li
@@ -235,9 +204,9 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
 
             {familyHistory.length > 0 && (
               <div className="space-y-2">
-                <h3 className="text-xs font-medium text-muted-foreground">
-                  Family History
-                </h3>
+                <MicroLabel className="text-muted-foreground">
+                  Family history
+                </MicroLabel>
                 <ul className="space-y-1">
                   {familyHistory.map((h, i) => (
                     <li

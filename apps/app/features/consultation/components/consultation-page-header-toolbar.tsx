@@ -61,62 +61,40 @@ export function ConsultationPageHeaderToolbar({
       {!readOnly ? (
         <SaveStatusChip className="max-w-[min(100%,14rem)] truncate" />
       ) : null}
-      {onToggleDesktopSidebar ? (
-        <SymbolTooltip
-          label={
-            isDesktopSidebarOpen
-              ? "Hide patient history"
-              : "Show patient history"
-          }
-          side="bottom"
-        >
-          <Button
-            variant="outline"
-            size="icon"
-            className="hidden xl:inline-flex h-8 w-8"
-            onClick={onToggleDesktopSidebar}
-            aria-label={
-              isDesktopSidebarOpen
-                ? "Hide patient history"
-                : "Show patient history"
-            }
-          >
-            <PanelLeft className="h-3.5 w-3.5" />
-          </Button>
-        </SymbolTooltip>
-      ) : null}
       {!readOnly ? (
         <>
           <ConsultationTimerContainer
             appointmentId={appointmentId}
             className="hidden sm:flex"
           />
-          <SymbolTooltip label="Record vital signs" side="bottom">
-            <Button
-              variant="outline"
-              size="icon"
-              className="hidden sm:inline-flex h-8 w-8"
-              onClick={onOpenVitals}
-              aria-label="Record vital signs"
-            >
-              <HeartPulse className="h-3.5 w-3.5 text-destructive" />
-            </Button>
-          </SymbolTooltip>
+          <Button
+            variant="outline"
+            size="sm"
+            className="hidden sm:inline-flex gap-1.5 h-8"
+            onClick={onOpenVitals}
+            aria-label="Record vital signs"
+          >
+            <HeartPulse className="h-3.5 w-3.5 text-destructive" aria-hidden="true" />
+            Vitals
+          </Button>
         </>
       ) : null}
       {canCreateInvoice ? (
-        <SymbolTooltip label="Create invoice" side="bottom">
-          <Button
-            variant="outline"
-            size="icon"
-            className="hidden sm:inline-flex h-8 w-8"
-            onClick={onOpenBilling}
-            aria-label="Create invoice"
-          >
-            <CreditCard className="h-3.5 w-3.5 text-success" />
-          </Button>
-        </SymbolTooltip>
+        <Button
+          variant="outline"
+          size="sm"
+          className="hidden sm:inline-flex gap-1.5 h-8"
+          onClick={onOpenBilling}
+          aria-label="Create invoice"
+        >
+          <CreditCard className="h-3.5 w-3.5 text-success" aria-hidden="true" />
+          Invoice
+        </Button>
       ) : null}
+      <span
+        className="hidden sm:block h-5 w-px shrink-0 bg-border"
+        aria-hidden="true"
+      />
       <SymbolTooltip label="Ask AI about this consultation" side="bottom">
         <Button
           variant="outline"
@@ -187,6 +165,12 @@ export function ConsultationPageHeaderToolbar({
         </DropdownMenuContent>
       </DropdownMenu>
       {!readOnly && onMarkDone ? (
+        <span
+          className="hidden sm:block h-5 w-px shrink-0 bg-border"
+          aria-hidden="true"
+        />
+      ) : null}
+      {!readOnly && onMarkDone ? (
         <SymbolTooltip
           label={markDoneDisabledReason ?? "Mark consultation done"}
           side="bottom"
@@ -202,6 +186,30 @@ export function ConsultationPageHeaderToolbar({
               <span>{isMarkingDone ? "Marking…" : "Mark done"}</span>
             </Button>
           </span>
+        </SymbolTooltip>
+      ) : null}
+      {onToggleDesktopSidebar ? (
+        <SymbolTooltip
+          label={
+            isDesktopSidebarOpen
+              ? "Hide patient history"
+              : "Show patient history"
+          }
+          side="bottom"
+        >
+          <Button
+            variant="outline"
+            size="icon"
+            className="hidden xl:inline-flex h-8 w-8"
+            onClick={onToggleDesktopSidebar}
+            aria-label={
+              isDesktopSidebarOpen
+                ? "Hide patient history"
+                : "Show patient history"
+            }
+          >
+            <PanelLeft className="h-3.5 w-3.5" />
+          </Button>
         </SymbolTooltip>
       ) : null}
     </div>

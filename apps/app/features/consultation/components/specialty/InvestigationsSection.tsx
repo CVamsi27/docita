@@ -99,7 +99,7 @@ export function InvestigationsSection({
           {investigations.map((row, index) => (
             <li
               key={row.id ?? `inv-${index}`}
-              className="rounded-lg border border-border/70 bg-muted/5 p-4 space-y-3"
+              className="space-y-3 rounded-[var(--radius-md)] border border-border/70 bg-muted/20 p-4 transition-colors duration-150 hover:bg-muted/30"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
                 <div className="w-full space-y-1.5 sm:min-w-[180px] sm:flex-1">

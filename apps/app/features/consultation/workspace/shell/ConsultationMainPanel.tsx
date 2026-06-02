@@ -150,10 +150,10 @@ export function ConsultationMainPanel({
 
       <main
         ref={mainScrollRef}
-        className="flex-1 overflow-y-auto px-3 py-4 md:px-6 md:py-6"
+        className="flex-1 overflow-y-auto bg-muted/40 px-3 py-4 md:px-6 md:py-6"
         aria-label="Consultation workspace"
       >
-        <div className="mx-auto flex max-w-3xl flex-col gap-4">
+        <div className="mx-auto flex max-w-3xl flex-col gap-5">
           {sections.map((section) => {
             const Node = sectionComponents[section.id];
             if (!Node) return null;

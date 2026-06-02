@@ -26,14 +26,14 @@ export const SectionContainer = forwardRef<HTMLElement, SectionContainerProps>(
         data-section-id={id}
         aria-labelledby={`${id}-title`}
         className={cn(
-          "scroll-mt-24 rounded-[var(--radius)] border border-border/70 bg-background shadow-sm",
+          "scroll-mt-24 overflow-hidden rounded-[var(--radius-md)] border border-border/60 bg-card shadow-[0_1px_2px_0_rgb(0_0_0/0.04)]",
           className,
         )}
       >
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 md:px-5 md:py-4">
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-3 md:px-5 md:py-4">
           <div className="flex items-center gap-3 min-w-0">
             <span
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-sm font-bold text-primary"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/5 text-sm font-bold text-primary"
               aria-hidden="true"
             >
               {letter}

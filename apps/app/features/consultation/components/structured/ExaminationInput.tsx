@@ -121,7 +121,7 @@ export function ExaminationInput({
       label: "Cardiovascular",
       short: "CVS",
       icon: <Heart className="h-4 w-4 text-destructive" />,
-      placeholder: "Cardiovascular",
+      placeholder: "e.g. S1 S2 heard, no murmurs",
       value: data.systemic.cvs,
     },
     {
@@ -129,7 +129,7 @@ export function ExaminationInput({
       label: "Respiratory",
       short: "RS",
       icon: <Wind className="h-4 w-4 text-info" />,
-      placeholder: "Respiratory",
+      placeholder: "e.g. bilateral air entry, no added sounds",
       value: data.systemic.rs,
     },
     {
@@ -137,7 +137,7 @@ export function ExaminationInput({
       label: "Per Abdomen",
       short: "P/A",
       icon: <Activity className="h-4 w-4 text-warning" />,
-      placeholder: "Per abdomen",
+      placeholder: "e.g. soft, non-tender, no organomegaly",
       value: data.systemic.pa,
     },
     {
@@ -145,7 +145,7 @@ export function ExaminationInput({
       label: "CNS & Other",
       short: "CNS",
       icon: <FileText className="h-4 w-4 text-primary" />,
-      placeholder: "CNS findings",
+      placeholder: "e.g. conscious, oriented, no focal deficit",
       value: data.systemic.cns,
     },
   ];
@@ -156,7 +156,7 @@ export function ExaminationInput({
         <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 border-b bg-muted/30 px-4 py-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Activity className="h-4 w-4 text-primary" />
-            General Examination
+            General examination
           </CardTitle>
           <Badge
             variant="outline"
@@ -207,13 +207,13 @@ export function ExaminationInput({
               htmlFor="exam-general-notes"
               className="text-xs font-medium text-muted-foreground"
             >
-              General Notes
+              General notes
             </Label>
             <Textarea
               id="exam-general-notes"
               value={data.general.notes}
               onChange={(e) => updateGeneral("notes", e.target.value)}
-              placeholder="Examination findings"
+              placeholder="Other general findings"
               readOnly={readOnly}
               className="min-h-16 resize-y"
             />
@@ -225,7 +225,7 @@ export function ExaminationInput({
         <CardHeader className="border-b bg-muted/30 px-4 py-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Stethoscope className="h-4 w-4 text-primary" />
-            Systemic Examination
+            Systemic examination
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">

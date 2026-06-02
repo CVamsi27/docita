@@ -84,12 +84,12 @@ export function DiagnosisInput({
           className="w-full border-dashed py-3 text-muted-foreground hover:text-primary"
         >
           <Plus className="mr-2 h-4 w-4" />
-          Add Diagnosis
+          Add diagnosis
         </Button>
       ) : null}
 
       {items.length === 0 && readOnly ? (
-        <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">
+        <div className="rounded-[var(--radius-md)] border border-dashed py-8 text-center text-muted-foreground">
           No diagnosis recorded.
         </div>
       ) : null}
