@@ -8,6 +8,16 @@ import {
   updateWhatsappSenderRequestSchema,
   verifyWhatsappSenderResponseSchema,
   revokeWhatsappSenderResponseSchema,
+  clinicWhatsappCampaignCancelResponseSchema,
+  clinicWhatsappCampaignListResponseSchema,
+  clinicWhatsappCampaignPreviewRequestSchema,
+  clinicWhatsappCampaignPreviewResponseSchema,
+  clinicWhatsappCampaignSummarySchema,
+  clinicWhatsappConversationListResponseSchema,
+  clinicWhatsappConversationMessageListResponseSchema,
+  clinicWhatsappConversationReadResponseSchema,
+  clinicWhatsappConversationReplyRequestSchema,
+  createClinicWhatsappCampaignRequestSchema,
 } from '@workspace/types';
 
 export class SendWhatsAppMessageDto extends createZodDto(
@@ -40,4 +50,35 @@ export class VerifyWhatsappSenderResponseDto extends createZodDto(
 
 export class RevokeWhatsappSenderResponseDto extends createZodDto(
   revokeWhatsappSenderResponseSchema,
+) {}
+
+export class ClinicWhatsappConversationListResponseDto extends createZodDto(
+  clinicWhatsappConversationListResponseSchema,
+) {}
+export class ClinicWhatsappConversationMessageListResponseDto extends createZodDto(
+  clinicWhatsappConversationMessageListResponseSchema,
+) {}
+export class ClinicWhatsappConversationReplyDto extends createZodDto(
+  clinicWhatsappConversationReplyRequestSchema,
+) {}
+export class ClinicWhatsappConversationReadResponseDto extends createZodDto(
+  clinicWhatsappConversationReadResponseSchema,
+) {}
+export class ClinicWhatsappCampaignPreviewDto extends createZodDto(
+  clinicWhatsappCampaignPreviewRequestSchema,
+) {}
+export class ClinicWhatsappCampaignPreviewResponseDto extends createZodDto(
+  clinicWhatsappCampaignPreviewResponseSchema,
+) {}
+export class CreateClinicWhatsappCampaignDto extends createZodDto(
+  createClinicWhatsappCampaignRequestSchema,
+) {}
+export class ClinicWhatsappCampaignSummaryDto extends createZodDto(
+  clinicWhatsappCampaignSummarySchema,
+) {}
+export class ClinicWhatsappCampaignListResponseDto extends createZodDto(
+  clinicWhatsappCampaignListResponseSchema,
+) {}
+export class ClinicWhatsappCampaignCancelResponseDto extends createZodDto(
+  clinicWhatsappCampaignCancelResponseSchema,
 ) {}

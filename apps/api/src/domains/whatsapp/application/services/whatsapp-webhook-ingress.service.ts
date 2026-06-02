@@ -59,13 +59,8 @@ export class WhatsAppWebhookIngressService {
     await this.supportInboxService.recordIncomingMessages(value);
 
     for (const message of value.messages || []) {
-      const contact = value.contacts?.[0];
       const phoneNumber = message.from;
-      const profileName = contact?.profile?.name;
-
-      this.logger.log(
-        `Incoming WhatsApp from ${phoneNumber} (${profileName}): type=${message.type}`,
-      );
+      this.logger.log(`Incoming WhatsApp message: type=${message.type}`);
 
       let responseText = '';
       let buttonId = '';
@@ -93,6 +88,14 @@ export class WhatsAppWebhookIngressService {
 
       try {
         const contextMessageId = this.readContextMessageId(message);
+        await this.recordClinicConversationMessage({
+          phoneNumber,
+          providerMessageId: message.id,
+          messageType: message.type,
+          content: response,
+          contextProviderMessageId: contextMessageId,
+          senderPhoneNumberId: value.metadata.phone_number_id,
+        });
         const appointmentContext =
           await this.appointmentResolver.resolveForInboundMessage({
             phoneNumber,
@@ -118,6 +121,74 @@ export class WhatsAppWebhookIngressService {
         );
       }
     }
+  }
+
+  private async recordClinicConversationMessage(input: {
+    phoneNumber: string;
+    providerMessageId: string;
+    messageType: string;
+    content: string;
+    contextProviderMessageId?: string;
+    senderPhoneNumberId: string;
+  }): Promise<void> {
+    const contactPhone = input.phoneNumber.replace(/\D/g, '');
+    const contextMessage = input.contextProviderMessageId
+      ? await this.persistence.whatsappMessage.findFirst({
+          where: { providerMsgId: input.contextProviderMessageId },
+          include: { conversation: true },
+        })
+      : null;
+    const clinicId =
+      contextMessage?.conversation.clinicId ??
+      (
+        await this.persistence.clinic.findFirst({
+          where: {
+            whatsappPhoneNumberId: input.senderPhoneNumberId,
+            whatsappSenderStatus: 'VERIFIED',
+          },
+          select: { id: true },
+        })
+      )?.id;
+    if (!clinicId) {
+      this.logger.warn(
+        'Inbound WhatsApp message could not be resolved to a clinic; message quarantined from staff views',
+      );
+      return;
+    }
+    const patient = await this.persistence.patient.findFirst({
+      where: { clinicId, phoneNumber: contactPhone, deletedAt: null },
+      select: { id: true },
+    });
+    await this.persistence.$transaction(async (tx) => {
+      const conversation = await tx.whatsappConversation.upsert({
+        where: { clinicId_contactPhone: { clinicId, contactPhone } },
+        create: {
+          clinicId,
+          patientId: patient?.id ?? null,
+          contactPhone,
+          lastMessageAt: this.clock.now(),
+          unreadCount: 1,
+        },
+        update: {
+          patientId: patient?.id ?? undefined,
+          lastMessageAt: this.clock.now(),
+          unreadCount: { increment: 1 },
+        },
+      });
+      await tx.whatsappMessage.upsert({
+        where: { id: `inbound_${input.providerMessageId}` },
+        create: {
+          id: `inbound_${input.providerMessageId}`,
+          conversationId: conversation.id,
+          direction: 'INBOUND',
+          messageType: input.messageType.toUpperCase(),
+          content: input.content,
+          providerMsgId: input.providerMessageId,
+          status: 'READ',
+        },
+        update: {},
+      });
+    });
   }
 
   async processStatusUpdates(value: WebhookChangeValue): Promise<void> {

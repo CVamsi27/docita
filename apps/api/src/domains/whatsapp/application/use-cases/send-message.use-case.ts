@@ -187,11 +187,15 @@ export class SendMessageUseCase {
       );
     }
 
+    const conversationId = await this.repository.ensureConversation(
+      clinicId,
+      recipientPhone,
+    );
     const message = WhatsAppMessage.create(
       {
         clinicId,
         recipientPhone,
-        conversationId: 'default',
+        conversationId,
         templateName: templateName || undefined,
         content: finalContent,
         externalMessageId: externalId,

@@ -12,13 +12,20 @@ const ROUTE_ACCESS_RULES: RouteAccessRule[] = [
     pathPrefix: "/billing-locked",
     target: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
   },
+  {
+    pathPrefix: "/settings/whatsapp-sender",
+    target: APP_ACCESS_TARGETS.PAGE_WHATSAPP_SENDER,
+  },
   { pathPrefix: "/settings", target: APP_ACCESS_TARGETS.PAGE_SETTINGS },
   { pathPrefix: "/profile", target: APP_ACCESS_TARGETS.PAGE_PROFILE },
   { pathPrefix: "/patients", target: APP_ACCESS_TARGETS.PAGE_PATIENTS },
   { pathPrefix: "/appointments", target: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS },
   { pathPrefix: "/follow-ups", target: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS },
   { pathPrefix: "/consultation", target: APP_ACCESS_TARGETS.PAGE_CONSULTATION },
-  { pathPrefix: "/prescriptions", target: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS },
+  {
+    pathPrefix: "/prescriptions",
+    target: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS,
+  },
   { pathPrefix: "/lab-tests", target: APP_ACCESS_TARGETS.PAGE_LAB_TESTS },
   { pathPrefix: "/desk/floor", target: APP_ACCESS_TARGETS.PAGE_DESK_FLOOR },
   { pathPrefix: "/desk", target: APP_ACCESS_TARGETS.PAGE_DESK_PAYMENT },
@@ -49,7 +56,9 @@ const ROUTE_ACCESS_RULES: RouteAccessRule[] = [
   },
 ];
 
-export function getAccessTargetForPath(pathname?: string | null): AppAccessTarget | null {
+export function getAccessTargetForPath(
+  pathname?: string | null,
+): AppAccessTarget | null {
   if (!pathname) return null;
 
   const rule = ROUTE_ACCESS_RULES.find(

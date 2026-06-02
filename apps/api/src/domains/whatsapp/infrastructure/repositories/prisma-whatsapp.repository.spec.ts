@@ -25,6 +25,7 @@ import {
   WhatsappTemplateStatus as PrismaTemplateStatus,
 } from '@workspace/db';
 import type { SupportWhatsAppMessage } from '@workspace/types';
+import { createFixedClockMock } from '@/test-utils';
 
 const NOW = new Date('2026-01-01T00:00:00.000Z');
 
@@ -153,6 +154,38 @@ describe('PrismaWhatsAppRepository', () => {
       getReadClient: jest
         .fn<() => PrismaWhatsAppReadClient>()
         .mockReturnValue(mockReadClient),
+      patient: {
+        findFirst: jest
+          .fn<
+            (args: {
+              where: { clinicId: string; phoneNumber: string; deletedAt: null };
+              select: { id: true };
+            }) => Promise<{ id: string } | null>
+          >()
+          .mockResolvedValue({ id: 'patient-001' }),
+      },
+      whatsappConversation: {
+        upsert: jest
+          .fn<
+            (args: {
+              where: {
+                clinicId_contactPhone: {
+                  clinicId: string;
+                  contactPhone: string;
+                };
+              };
+              create: {
+                clinicId: string;
+                patientId: string | null;
+                contactPhone: string;
+                lastMessageAt: Date;
+              };
+              update: { patientId: string | undefined; lastMessageAt: Date };
+              select: { id: true };
+            }) => Promise<{ id: string }>
+          >()
+          .mockResolvedValue({ id: 'conv-001' }),
+      },
       whatsappMessage: {
         upsert: jest
           .fn<
@@ -219,9 +252,38 @@ describe('PrismaWhatsAppRepository', () => {
     };
 
     repository = new PrismaWhatsAppRepository(
-      new PrismaWhatsAppMessageRepository(mockPrisma),
+      new PrismaWhatsAppMessageRepository(
+        mockPrisma,
+        createFixedClockMock(NOW.toISOString()),
+      ),
       new PrismaWhatsAppTemplateRepository(mockPrisma),
     );
+  });
+
+  describe('ensureConversation', () => {
+    it('should normalize the phone number and use the injected clock', async () => {
+      await repository.ensureConversation('clinic-123', '+91 98765 43210');
+
+      expect(mockPrisma.whatsappConversation.upsert).toHaveBeenCalledWith({
+        where: {
+          clinicId_contactPhone: {
+            clinicId: 'clinic-123',
+            contactPhone: '919876543210',
+          },
+        },
+        create: {
+          clinicId: 'clinic-123',
+          patientId: 'patient-001',
+          contactPhone: '919876543210',
+          lastMessageAt: NOW,
+        },
+        update: {
+          patientId: 'patient-001',
+          lastMessageAt: NOW,
+        },
+        select: { id: true },
+      });
+    });
   });
 
   describe('saveMessage', () => {

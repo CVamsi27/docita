@@ -18,6 +18,7 @@ import { SubscriptionsWorkerModule } from '@/domains/subscriptions/subscriptions
 import { EnterpriseContractsWorkerModule } from '@/domains/enterprise-contracts/enterprise-contracts.worker.module';
 import { DoctorsVerificationWorkerModule } from '@/domains/doctors/doctors-verification.worker.module';
 import { WhatsappReconciliationWorkerModule } from '@/domains/whatsapp/whatsapp-reconciliation.worker.module';
+import { WhatsappCampaignWorkerModule } from '@/domains/whatsapp/whatsapp-campaign.worker.module';
 import { AdminAlertsSchedulerModule } from '@/shared/modules/messaging/admin-alerts/admin-alerts.scheduler.module';
 import { EphemeralStoreSchedulerModule } from '@/shared/modules/ephemeral-store/ephemeral-store.scheduler.module';
 import { OutboxModule } from '@/shared/modules/outbox/outbox.module';
@@ -62,6 +63,7 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
     EnterpriseContractsWorkerModule,
     DoctorsVerificationWorkerModule,
     WhatsappReconciliationWorkerModule,
+    WhatsappCampaignWorkerModule,
     OutboxModule,
     CronHeartbeatModule,
   ],

@@ -1,4 +1,11 @@
-import { Body, Controller, Logger, Post, Req, UsePipes } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Post,
+  Req,
+  UsePipes,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { ZodSerializerDto } from 'nestjs-zod';
 import {
@@ -23,8 +30,6 @@ import { requireClinicActor } from '@/domains/whatsapp/presentation/controllers/
 @Controller('whatsapp')
 @LegacyWhatsappClinicAccess()
 export class LegacyWhatsappSendController {
-  private readonly logger = new Logger(LegacyWhatsappSendController.name);
-
   constructor(private readonly whatsappService: WhatsappService) {}
 
   @Post('send')
@@ -72,11 +77,10 @@ export class LegacyWhatsappSendController {
     @Req() req: Request,
     @Body() body: Record<string, unknown>,
   ) {
-    const { id: userId, clinicId } = requireClinicActor(req);
-    const parsed = createWhatsAppBroadcastRequestSchema.parse(body);
-    this.logger.log(
-      `WhatsApp campaign requested by ${userId} for clinic ${clinicId}: ${parsed.campaignName}`,
+    createWhatsAppBroadcastRequestSchema.parse(body);
+    requireClinicActor(req);
+    throw new BadRequestException(
+      'This campaign endpoint has been retired. Use the WhatsApp operations campaign flow.',
     );
-    return { success: true, message: 'Campaign created successfully' };
   }
 }

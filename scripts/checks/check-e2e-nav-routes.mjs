@@ -5,8 +5,17 @@ import process from "node:process";
 
 const enforce = process.argv.includes("--enforce");
 
-/** Clinician-critical routes that must appear in nav-routes-smoke.spec.ts */
-const REQUIRED_ROUTES = ["/today", "/patients", "/appointments"];
+const navConfigFile = "apps/app/shared/components/navigation/nav-config.ts";
+
+/** Advertised sidebar and footer routes must appear in nav-routes-smoke.spec.ts. */
+const navConfigSource = readFileSync(navConfigFile, "utf8");
+const REQUIRED_ROUTES = [
+  ...new Set(
+    [...navConfigSource.matchAll(/href:\s*"([^"?]+)(?:\?[^"]*)?"/g)].map(
+      ([, route]) => route,
+    ),
+  ),
+];
 
 const smokeFile = "apps/app/e2e/nav-routes-smoke.spec.ts";
 const source = readFileSync(smokeFile, "utf8");
@@ -14,10 +23,11 @@ const source = readFileSync(smokeFile, "utf8");
 const findings = [];
 
 for (const route of REQUIRED_ROUTES) {
-  if (!source.includes(`path: "${route}"`) && !source.includes(`path: '${route}'`)) {
-    findings.push(
-      `${smokeFile}: missing NAV_SMOKE_ROUTES entry for ${route}`,
-    );
+  if (
+    !source.includes(`path: "${route}"`) &&
+    !source.includes(`path: '${route}'`)
+  ) {
+    findings.push(`${smokeFile}: missing NAV_SMOKE_ROUTES entry for ${route}`);
   }
 }
 

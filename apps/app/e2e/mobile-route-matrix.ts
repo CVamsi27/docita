@@ -21,7 +21,12 @@ export interface MobileRouteEntry {
 }
 
 export const PROTECTED_STATIC_MOBILE_ROUTES: MobileRouteEntry[] = [
-  { path: "/today", label: "Today", group: "protected-static", fixture: "none" },
+  {
+    path: "/today",
+    label: "Today",
+    group: "protected-static",
+    fixture: "none",
+  },
   {
     path: "/patients",
     label: "Patients",
@@ -79,6 +84,12 @@ export const PROTECTED_STATIC_MOBILE_ROUTES: MobileRouteEntry[] = [
   {
     path: "/inbox",
     label: "Inbox",
+    group: "protected-static",
+    fixture: "none",
+  },
+  {
+    path: "/whatsapp",
+    label: "WhatsApp",
     group: "protected-static",
     fixture: "none",
   },

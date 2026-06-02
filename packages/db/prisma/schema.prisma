@@ -331,6 +331,8 @@ model Patient {
   prescriptions            Prescription[]
   queueTokens              QueueToken[]
   whatsappLogs             WhatsappLog[]
+  whatsappConversations    WhatsappConversation[]
+  whatsappBroadcastRecipients WhatsAppBroadcastRecipient[]
   abhaAddress              String?
   deletedAt                DateTime?                 @db.Timestamptz(3)
   medicalConditions        PatientMedicalCondition[]
@@ -1210,6 +1212,8 @@ model Clinic {
   users                        User[]
   vitalSigns                   VitalSign[]
   whatsappLogs                 WhatsappLog[]
+  whatsappConversations        WhatsappConversation[]
+  whatsappBroadcastJobs        WhatsAppBroadcastJob[]
   clinicSecrets                ClinicSecret[]
   subscription                 Subscription?
   enterpriseContractsAsPrimary EnterpriseContract[]      @relation("EnterprisePrimaryClinic")
@@ -1658,6 +1662,7 @@ model WhatsappTemplate {
 
 model WhatsAppBroadcastJob {
   id            String                       @id @default(cuid())
+  clinicId      String?
   title         String
   audienceLabel String?
   templateName  String?
@@ -1667,36 +1672,58 @@ model WhatsAppBroadcastJob {
   sentCount     Int                          @default(0)
   failedCount   Int                          @default(0)
   status        WhatsAppBroadcastJobStatus   @default(PENDING)
+  source        WhatsAppBroadcastSource      @default(INTERNAL)
   createdBy     String?
   startedAt     DateTime?                    @db.Timestamptz(3)
   completedAt   DateTime?                    @db.Timestamptz(3)
   errorMessage  String?
+  attempts      Int                          @default(0)
+  nextAttemptAt DateTime?                    @db.Timestamptz(3)
+  lastAttemptAt DateTime?                    @db.Timestamptz(3)
+  leaseExpiresAt DateTime?                   @db.Timestamptz(3)
+  cancelRequestedAt DateTime?                @db.Timestamptz(3)
   createdAt     DateTime                     @default(now()) @db.Timestamptz(3)
   updatedAt     DateTime                     @updatedAt @db.Timestamptz(3)
   recipients    WhatsAppBroadcastRecipient[]
+  clinic        Clinic?                      @relation(fields: [clinicId], references: [id])
 
   @@index([status])
   @@index([createdAt])
+  @@index([clinicId, createdAt])
+  @@index([status, nextAttemptAt, createdAt])
 }
 
 model WhatsAppBroadcastRecipient {
   id                String                           @id @default(cuid())
   broadcastJobId    String
   phoneNumber       String
+  patientId         String?
   name              String?
   /// @json:whatsappBroadcastVariablesSchema
   variables         Json?
   status            WhatsAppBroadcastRecipientStatus @default(PENDING)
   providerMessageId String?
   errorMessage      String?
+  skipReason        String?
+  whatsappConsentAt DateTime?                        @db.Timestamptz(3)
+  attempts          Int                              @default(0)
+  lastAttemptAt     DateTime?                        @db.Timestamptz(3)
   sentAt            DateTime?                        @db.Timestamptz(3)
   createdAt         DateTime                         @default(now()) @db.Timestamptz(3)
   updatedAt         DateTime                         @updatedAt @db.Timestamptz(3)
   broadcastJob      WhatsAppBroadcastJob             @relation(fields: [broadcastJobId], references: [id], onDelete: Cascade)
+  patient           Patient?                         @relation(fields: [patientId], references: [id], onDelete: SetNull)
 
   @@index([broadcastJobId])
   @@index([status])
   @@index([phoneNumber])
+  @@index([patientId])
+  @@index([broadcastJobId, status])
+}
+
+enum WhatsAppBroadcastSource {
+  INTERNAL
+  CLINIC
 }
 
 enum WhatsAppBroadcastJobStatus {
@@ -2232,34 +2259,49 @@ model WhatsappFlow {
 model WhatsappConversation {
   id            String                     @id @default(cuid())
   clinicId      String
-  patientId     String
+  patientId     String?
+  contactPhone  String
   status        WhatsappConversationStatus @default(OPEN)
   lastMessageAt DateTime?                  @db.Timestamptz(3)
+  unreadCount   Int                        @default(0)
+  lastReadAt    DateTime?                  @db.Timestamptz(3)
   /// @json:jsonObjectSchema
   context       Json?
   createdAt     DateTime                   @default(now()) @db.Timestamptz(3)
   updatedAt     DateTime                   @updatedAt @db.Timestamptz(3)
   messages      WhatsappMessage[]
+  clinic        Clinic                     @relation(fields: [clinicId], references: [id])
+  patient       Patient?                   @relation(fields: [patientId], references: [id], onDelete: SetNull)
 
   @@index([clinicId])
   @@index([patientId])
   @@index([status])
+  @@unique([clinicId, contactPhone])
+  @@index([clinicId, status, lastMessageAt])
 }
 
 model WhatsappMessage {
   id             String                @id @default(cuid())
   conversationId String
-  direction      String
+  direction      WhatsappMessageDirection
   messageType    String
   content        String
   mediaUrl       String?
   status         WhatsappMessageStatus @default(SENT)
   providerMsgId  String?
+  errorMessage   String?
   createdAt      DateTime              @default(now()) @db.Timestamptz(3)
   conversation   WhatsappConversation  @relation(fields: [conversationId], references: [id])
 
   @@index([conversationId])
   @@index([createdAt])
+  @@index([providerMsgId])
+  @@index([conversationId, createdAt])
+}
+
+enum WhatsappMessageDirection {
+  INBOUND
+  OUTBOUND
 }
 
 enum Role {

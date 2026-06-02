@@ -26,7 +26,11 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-import { APP_ACCESS_TARGETS, type AppAccessTarget, Feature } from "@workspace/types";
+import {
+  APP_ACCESS_TARGETS,
+  type AppAccessTarget,
+  Feature,
+} from "@workspace/types";
 
 export interface NavItem {
   href: string;
@@ -141,13 +145,6 @@ const SERVICES_ITEMS: NavItem[] = [
     href: "/inventory",
     icon: Boxes,
     label: "Inventory",
-    feature: Feature.INVENTORY,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_INVENTORY,
-  },
-  {
-    href: "/pharmacy",
-    icon: Pill,
-    label: "Pharmacy",
     feature: Feature.INVENTORY,
     accessTarget: APP_ACCESS_TARGETS.PAGE_INVENTORY,
   },

@@ -39,6 +39,9 @@ describe("getAccessTargetForPath", () => {
     expect(getAccessTargetForPath("/settings/compliance")).toBe(
       APP_ACCESS_TARGETS.PAGE_SETTINGS,
     );
+    expect(getAccessTargetForPath("/settings/whatsapp-sender")).toBe(
+      APP_ACCESS_TARGETS.PAGE_WHATSAPP_SENDER,
+    );
     expect(getAccessTargetForPath("/profile")).toBe(
       APP_ACCESS_TARGETS.PAGE_PROFILE,
     );
@@ -99,8 +102,10 @@ describe("getAccessTargetForPath", () => {
 
     expect(pages.length).toBeGreaterThan(0);
     for (const page of pages) {
-      expect(getAccessTargetForPath(page), `missing access target for ${page}`)
-        .not.toBeNull();
+      expect(
+        getAccessTargetForPath(page),
+        `missing access target for ${page}`,
+      ).not.toBeNull();
     }
   });
 });

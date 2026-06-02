@@ -6,22 +6,28 @@ import {
   whatsappTemplateSchema,
 } from "../shared/whatsapp";
 
-export const sendWhatsAppMessageRequestSchema = z.object({
-  recipientPhone: z.string(),
-  templateName: z.string(),
-  variables: z.record(z.string()),
-  metadata: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
-}).strict();
+export const sendWhatsAppMessageRequestSchema = z
+  .object({
+    recipientPhone: z.string(),
+    templateName: z.string(),
+    variables: z.record(z.string()),
+    metadata: z
+      .record(z.union([z.string(), z.number(), z.boolean()]))
+      .optional(),
+  })
+  .strict();
 
-export const sendTemplateRequestSchema = z.object({
-  templateId: z.string(),
-  phoneNumber: z.string(),
-  variables: z.record(z.string()),
-  patientId: z.string().optional(),
-  appointmentId: z.string().optional(),
-  prescriptionId: z.string().optional(),
-  invoiceId: z.string().optional(),
-}).strict();
+export const sendTemplateRequestSchema = z
+  .object({
+    templateId: z.string(),
+    phoneNumber: z.string(),
+    variables: z.record(z.string()),
+    patientId: z.string().optional(),
+    appointmentId: z.string().optional(),
+    prescriptionId: z.string().optional(),
+    invoiceId: z.string().optional(),
+  })
+  .strict();
 
 export const whatsappWebhookDeliveryStatusSchema = z.object({
   id: z.string(),
@@ -224,6 +230,88 @@ export const clinicWhatsappSentMessageListResponseSchema = z.array(
   clinicWhatsappSentMessageSchema,
 );
 
+export const clinicWhatsappConversationSchema = z.object({
+  id: z.string(),
+  patientId: z.string().nullable(),
+  patientName: z.string().nullable(),
+  maskedPhoneNumber: z.string(),
+  status: z.enum(["OPEN", "CLOSED", "ARCHIVED"]),
+  unreadCount: z.number().int().min(0),
+  lastMessageAt: z.string().or(z.date()).nullable(),
+  lastMessagePreview: z.string().nullable(),
+});
+
+export const clinicWhatsappConversationListResponseSchema = z.array(
+  clinicWhatsappConversationSchema,
+);
+
+export const clinicWhatsappConversationMessageSchema = z.object({
+  id: z.string(),
+  direction: z.enum(["INBOUND", "OUTBOUND"]),
+  messageType: z.string(),
+  content: z.string(),
+  status: z.string(),
+  createdAt: z.string().or(z.date()),
+  errorMessage: z.string().nullable(),
+});
+
+export const clinicWhatsappConversationMessageListResponseSchema = z.array(
+  clinicWhatsappConversationMessageSchema,
+);
+
+export const clinicWhatsappConversationReplyRequestSchema = z
+  .object({
+    text: z.string().trim().min(1).max(4096),
+  })
+  .strict();
+
+export const clinicWhatsappConversationReadResponseSchema = z.object({
+  updated: z.literal(true),
+});
+
+export const clinicWhatsappCampaignAudienceSchema = z
+  .object({
+    patientIds: z.array(z.string().trim().min(1)).min(1).max(10000),
+  })
+  .strict();
+
+export const clinicWhatsappCampaignPreviewRequestSchema =
+  clinicWhatsappCampaignAudienceSchema.extend({}).strict();
+
+export const clinicWhatsappCampaignPreviewResponseSchema = z.object({
+  eligibleCount: z.number().int().min(0),
+  skippedCount: z.number().int().min(0),
+});
+
+export const createClinicWhatsappCampaignRequestSchema =
+  clinicWhatsappCampaignAudienceSchema
+    .extend({
+      title: z.string().trim().min(1).max(200),
+      templateName: z.string().trim().min(1).max(200),
+      languageCode: z.string().trim().min(2).max(10).default("en"),
+    })
+    .strict();
+
+export const clinicWhatsappCampaignSummarySchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  templateName: z.string().nullable(),
+  totalCount: z.number().int().min(0),
+  sentCount: z.number().int().min(0),
+  failedCount: z.number().int().min(0),
+  status: z.enum(["PENDING", "RUNNING", "COMPLETED", "FAILED", "CANCELLED"]),
+  createdAt: z.string().or(z.date()),
+  completedAt: z.string().or(z.date()).nullable(),
+});
+
+export const clinicWhatsappCampaignListResponseSchema = z.array(
+  clinicWhatsappCampaignSummarySchema,
+);
+
+export const clinicWhatsappCampaignCancelResponseSchema = z.object({
+  cancelled: z.literal(true),
+});
+
 export const whatsappSenderModeSchema = z.enum(["SHARED", "BYO", "MANAGED"]);
 export const whatsappSenderStatusSchema = z.enum([
   "NOT_CONFIGURED",
@@ -380,25 +468,28 @@ export const whatsappSettingsResponseSchema = z.object({
   emergencyAlerts: z.boolean(),
 });
 
-export const updateWhatsAppSettingsRequestSchema = whatsappSettingsResponseSchema
-  .partial()
+export const updateWhatsAppSettingsRequestSchema =
+  whatsappSettingsResponseSchema.partial().strict();
+
+export const createMedicineReminderRequestSchema = z
+  .object({
+    medicineName: z.string(),
+    dosage: z.string(),
+    frequency: z.string(),
+    reminderTime: z.string(),
+    patientPhone: z.string(),
+  })
   .strict();
 
-export const createMedicineReminderRequestSchema = z.object({
-  medicineName: z.string(),
-  dosage: z.string(),
-  frequency: z.string(),
-  reminderTime: z.string(),
-  patientPhone: z.string(),
-}).strict();
-
-export const createWhatsAppBroadcastRequestSchema = z.object({
-  campaignName: z.string(),
-  message: z.string(),
-  sendToAllPatients: z.boolean(),
-  sendToSpecificPatients: z.boolean(),
-  scheduleTime: z.string().optional(),
-}).strict();
+export const createWhatsAppBroadcastRequestSchema = z
+  .object({
+    campaignName: z.string(),
+    message: z.string(),
+    sendToAllPatients: z.boolean(),
+    sendToSpecificPatients: z.boolean(),
+    scheduleTime: z.string().optional(),
+  })
+  .strict();
 
 export const successResponseSchema = z.object({
   success: z.boolean(),
@@ -416,7 +507,8 @@ export const whatsappStatsDetailedResponseSchema = z.object({
 
 export const whatsappLogListResponseSchema = z.array(whatsappLogSchema);
 export const whatsappStatsResponseSchema = whatsappStatsSchema;
-export const whatsappMessageProviderResponseSchema = whatsappMessageResponseSchema;
+export const whatsappMessageProviderResponseSchema =
+  whatsappMessageResponseSchema;
 
 export type SendWhatsAppMessageRequest = z.infer<
   typeof sendWhatsAppMessageRequestSchema
@@ -500,4 +592,25 @@ export type ClinicWhatsappSentMessage = z.infer<
 >;
 export type ClinicWhatsappSentMessageListResponse = z.infer<
   typeof clinicWhatsappSentMessageListResponseSchema
+>;
+export type ClinicWhatsappConversation = z.infer<
+  typeof clinicWhatsappConversationSchema
+>;
+export type ClinicWhatsappConversationMessage = z.infer<
+  typeof clinicWhatsappConversationMessageSchema
+>;
+export type ClinicWhatsappConversationReplyRequest = z.infer<
+  typeof clinicWhatsappConversationReplyRequestSchema
+>;
+export type ClinicWhatsappCampaignPreviewRequest = z.infer<
+  typeof clinicWhatsappCampaignPreviewRequestSchema
+>;
+export type ClinicWhatsappCampaignPreviewResponse = z.infer<
+  typeof clinicWhatsappCampaignPreviewResponseSchema
+>;
+export type CreateClinicWhatsappCampaignRequest = z.infer<
+  typeof createClinicWhatsappCampaignRequestSchema
+>;
+export type ClinicWhatsappCampaignSummary = z.infer<
+  typeof clinicWhatsappCampaignSummarySchema
 >;

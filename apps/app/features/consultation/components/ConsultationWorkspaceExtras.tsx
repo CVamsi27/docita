@@ -114,58 +114,62 @@ export function ConsultationAfterVisitStrip({
       aria-label="After this visit"
     >
       <MicroLabel className="mb-2 block">After this visit</MicroLabel>
-      <div className="flex flex-wrap gap-2">
-        {(canCreatePrescription || canViewPrescriptions) && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onGoToPlan}
-          >
-            Plan &amp; Rx
-          </Button>
-        )}
-        {canViewPrescriptions ? (
-          <Button variant="outline" size="sm" asChild>
-            <Link
-              href={`/prescriptions?patientId=${encodeURIComponent(patientId)}`}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap gap-2">
+          {(canCreatePrescription || canViewPrescriptions) && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onGoToPlan}
             >
-              Prescriptions
-            </Link>
-          </Button>
-        ) : null}
-        {canLab ? (
+              Plan &amp; Rx
+            </Button>
+          )}
+          {canViewInvoices ? (
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/desk/collect-payment">Collect payment</Link>
+            </Button>
+          ) : null}
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/patients/${patientId}?tab=records&subtab=labs`}>
-              Lab tests
-            </Link>
+            <Link href="/follow-ups">Schedule follow-up</Link>
           </Button>
-        ) : null}
-        {canViewInvoices ? (
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/patients/${patientId}?tab=billing`}>Billing</Link>
-          </Button>
-        ) : null}
-        {canViewInvoices ? (
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/desk/collect-payment">Payment desk</Link>
-          </Button>
-        ) : null}
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/follow-ups">Follow-ups</Link>
-        </Button>
-        {canWhatsapp ? (
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/patients/${patientId}?tab=communication`}>
-              WhatsApp
-            </Link>
-          </Button>
-        ) : null}
-        {completed && canCodingQueue ? (
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/coding-queue">Coding queue</Link>
-          </Button>
-        ) : null}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {canViewPrescriptions ? (
+            <Button variant="outline" size="sm" asChild>
+              <Link
+                href={`/prescriptions?patientId=${encodeURIComponent(patientId)}`}
+              >
+                View prescriptions
+              </Link>
+            </Button>
+          ) : null}
+          {canViewInvoices ? (
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/patients/${patientId}?tab=billing`}>View invoices</Link>
+            </Button>
+          ) : null}
+          {canLab ? (
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/patients/${patientId}?tab=records&subtab=labs`}>
+                View lab tests
+              </Link>
+            </Button>
+          ) : null}
+          {canWhatsapp ? (
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/patients/${patientId}?tab=communication`}>
+                View messages
+              </Link>
+            </Button>
+          ) : null}
+          {completed && canCodingQueue ? (
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/coding-queue">Coding queue</Link>
+            </Button>
+          ) : null}
+        </div>
       </div>
     </div>
   );

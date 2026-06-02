@@ -111,16 +111,14 @@ test.describe("WhatsApp Integration", () => {
 
     await expectRoute(page, /\/whatsapp/);
     await expectPageHeader(page, {
-      title: "WhatsApp Integration",
-      description: /WhatsApp Business API/i,
+      title: "WhatsApp",
+      description: /Patient conversations/i,
     });
 
     await expect(
-      page.getByRole("button", { name: /Manage Settings/i }),
+      page.getByRole("link", { name: /Sender settings/i }),
     ).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: /Create Campaign/i }),
-    ).toBeVisible();
+    await expect(page.getByRole("tab", { name: /Campaigns/i })).toBeVisible();
   });
 
   test("should trigger WhatsApp API when sending prescription", async ({

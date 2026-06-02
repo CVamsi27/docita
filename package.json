@@ -101,7 +101,7 @@
     "check:external-http-timeouts": "node scripts/checks/check-external-http-timeouts.mjs",
     "check:non-null-assertion": "node scripts/checks/check-non-null-assertion.mjs",
     "check:application-event-constants": "node scripts/checks/check-application-event-constants.mjs --enforce",
-    "check:e2e-nav-routes": "node scripts/checks/check-e2e-nav-routes.mjs --enforce",
+    "check:e2e-nav-routes": "node scripts/checks/check-route-meta-coverage.mjs && node scripts/checks/check-e2e-nav-routes.mjs --enforce",
     "check:domain-rules-tests": "node scripts/checks/check-domain-rules-tests.mjs --enforce",
     "check:ad-hoc-service-cache": "node scripts/checks/check-ad-hoc-service-cache.mjs --enforce",
     "check:external-sdk-in-application": "node scripts/checks/check-external-sdk-in-application.mjs --enforce",

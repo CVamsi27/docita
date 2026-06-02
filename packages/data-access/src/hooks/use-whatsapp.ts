@@ -1,5 +1,12 @@
 import type {
   ClinicWhatsappSentMessage,
+  ClinicWhatsappCampaignPreviewRequest,
+  ClinicWhatsappCampaignPreviewResponse,
+  ClinicWhatsappCampaignSummary,
+  ClinicWhatsappConversation,
+  ClinicWhatsappConversationMessage,
+  ClinicWhatsappConversationReplyRequest,
+  CreateClinicWhatsappCampaignRequest,
   ClinicWhatsappTemplate,
   CreateWhatsappTemplateRequest,
   SendWhatsAppCustomMessageRequest,
@@ -33,7 +40,9 @@ export const useSendInvoiceWhatsApp = () =>
   );
 
 export const useWhatsappUnreadNotificationCount = () => {
-  const whatsappOk = useDataAccessContext().isTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
+  const whatsappOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.WHATSAPP_MESSAGING,
+  );
   return useAPIQuery<NotificationUnreadCountResponse>(
     queryKeys.whatsapp.notifications.unreadCount(),
     "/whatsapp/notifications/unread-count",
@@ -45,7 +54,9 @@ export const useWhatsappUnreadNotificationCount = () => {
 };
 
 export const useUnreadNotifications = (limit: number = 50) => {
-  const whatsappOk = useDataAccessContext().isTierFeatureEnabled(Feature.WHATSAPP_MESSAGING);
+  const whatsappOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.WHATSAPP_MESSAGING,
+  );
   return useAPIQuery<StaffNotificationEntry[]>(
     queryKeys.whatsapp.notifications.unread(limit),
     `/whatsapp/notifications/unread?limit=${limit}`,
@@ -89,11 +100,9 @@ export const useResendAppointmentReminder = () =>
   useAPIMutation<
     { success: boolean; message: string },
     { appointmentId: string }
-  >(
-    ({ appointmentId }) => `/reminders/send/${appointmentId}`,
-    "POST",
-    { body: () => ({ type: "whatsapp" as const }) },
-  );
+  >(({ appointmentId }) => `/reminders/send/${appointmentId}`, "POST", {
+    body: () => ({ type: "whatsapp" as const }),
+  });
 
 export const useWhatsappSender = () =>
   useAPIQuery<WhatsappSenderConfigResponse>(
@@ -185,7 +194,12 @@ export const useUpdateWhatsappSender = () =>
 export const useVerifyWhatsappSender = () =>
   useAPIMutation<
     {
-      status: "NOT_CONFIGURED" | "PENDING_VERIFICATION" | "VERIFIED" | "FAILED" | "REVOKED";
+      status:
+        | "NOT_CONFIGURED"
+        | "PENDING_VERIFICATION"
+        | "VERIFIED"
+        | "FAILED"
+        | "REVOKED";
       displayName: string | null;
       phoneNumberId: string | null;
       tokenExpiresAt: string | null;
@@ -204,5 +218,67 @@ export const useRevokeWhatsappSender = () =>
     {
       body: () => undefined,
       invalidateKeys: [queryKeys.whatsapp.sender()],
+    },
+  );
+
+export const useClinicWhatsappConversations = () =>
+  useAPIQuery<ClinicWhatsappConversation[]>(
+    queryKeys.whatsapp.conversations(),
+    "/whatsapp/operations/conversations",
+  );
+
+export const useClinicWhatsappConversationMessages = (id: string) =>
+  useAPIQuery<ClinicWhatsappConversationMessage[]>(
+    queryKeys.whatsapp.conversationMessages(id),
+    `/whatsapp/operations/conversations/${id}/messages`,
+    { enabled: Boolean(id) },
+  );
+
+export const useMarkClinicWhatsappConversationRead = () =>
+  useAPIMutation<{ updated: true }, { id: string }>(
+    ({ id }) => `/whatsapp/operations/conversations/${id}/read`,
+    "POST",
+    {
+      body: () => undefined,
+      invalidateKeys: [queryKeys.whatsapp.conversations()],
+    },
+  );
+
+export const useReplyToClinicWhatsappConversation = () =>
+  useAPIMutation<
+    { messageId: string },
+    { id: string } & ClinicWhatsappConversationReplyRequest
+  >(({ id }) => `/whatsapp/operations/conversations/${id}/reply`, "POST", {
+    body: ({ id: _id, ...body }) => body,
+    invalidateKeys: [queryKeys.whatsapp.conversations()],
+  });
+
+export const useClinicWhatsappCampaigns = () =>
+  useAPIQuery<ClinicWhatsappCampaignSummary[]>(
+    queryKeys.whatsapp.campaigns(),
+    "/whatsapp/operations/campaigns",
+  );
+
+export const usePreviewClinicWhatsappCampaign = () =>
+  useAPIMutation<
+    ClinicWhatsappCampaignPreviewResponse,
+    ClinicWhatsappCampaignPreviewRequest
+  >("/whatsapp/operations/campaigns/preview", "POST");
+
+export const useCreateClinicWhatsappCampaign = () =>
+  useAPIMutation<
+    ClinicWhatsappCampaignSummary,
+    CreateClinicWhatsappCampaignRequest
+  >("/whatsapp/operations/campaigns", "POST", {
+    invalidateKeys: [queryKeys.whatsapp.campaigns()],
+  });
+
+export const useCancelClinicWhatsappCampaign = () =>
+  useAPIMutation<{ cancelled: true }, { id: string }>(
+    ({ id }) => `/whatsapp/operations/campaigns/${id}/cancel`,
+    "POST",
+    {
+      body: () => undefined,
+      invalidateKeys: [queryKeys.whatsapp.campaigns()],
     },
   );

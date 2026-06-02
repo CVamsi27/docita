@@ -9,10 +9,18 @@ const NAV_SMOKE_ROUTES: { path: string }[] = [
   { path: "/today" },
   { path: "/patients" },
   { path: "/appointments" },
+  { path: "/consultation" },
+  { path: "/desk/collect-payment" },
   { path: "/prescriptions" },
   { path: "/lab-tests" },
   { path: "/invoices" },
+  { path: "/daybook" },
+  { path: "/insurance-claims" },
+  { path: "/whatsapp" },
+  { path: "/inbox" },
   { path: "/inventory" },
+  { path: "/vaccines" },
+  { path: "/referrals" },
   { path: "/documents" },
   { path: "/analytics" },
   { path: "/import" },
@@ -23,6 +31,8 @@ const NAV_SMOKE_ROUTES: { path: string }[] = [
   { path: "/hospital/beds" },
   { path: "/billing-locked" },
   { path: "/upgrade" },
+  { path: "/settings" },
+  { path: "/help" },
 ];
 
 test.describe("Nav routes smoke", () => {

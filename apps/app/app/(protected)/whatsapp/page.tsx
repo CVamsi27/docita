@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { WhatsappOperationsPageContent } from "@/features/whatsapp";
 
 export default function WhatsappPage() {
-  redirect("/settings/whatsapp-sender");
+  return <WhatsappOperationsPageContent />;
 }

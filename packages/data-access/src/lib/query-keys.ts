@@ -296,6 +296,10 @@ export const queryKeys = {
     sender: () => ["whatsapp", "sender"] as const,
     stats: () => ["whatsapp", "stats"] as const,
     customTemplates: () => ["whatsapp", "templates", "custom"] as const,
+    conversations: () => ["whatsapp", "operations", "conversations"] as const,
+    conversationMessages: (id: string) =>
+      ["whatsapp", "operations", "conversations", id, "messages"] as const,
+    campaigns: () => ["whatsapp", "operations", "campaigns"] as const,
     patientSentMessages: (patientId: string) =>
       ["whatsapp", "sent-messages", patientId] as const,
     notifications: {
