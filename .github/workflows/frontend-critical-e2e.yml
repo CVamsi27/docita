@@ -92,14 +92,22 @@ jobs:
       - name: Prepare App workspace packages
         run: pnpm --filter @docita/app run prestart
 
+      - name: Build App (production)
+        run: pnpm --filter @docita/app run build
+
       - name: Start API server
         run: |
           pnpm --filter @docita/api run dev > /tmp/docita-api.log 2>&1 &
           echo $! > /tmp/docita-api.pid
 
-      - name: Start App server
+      - name: Start App server (production)
+        # Serve a production build instead of `next dev`. Dev mode compiles
+        # routes on-demand, so the first hit to a protected route (e.g.
+        # /consultation/:id) under CI load could exceed the 90s workspace-load
+        # timeout and reset connections. `next start` serves precompiled routes
+        # in milliseconds, removing both flake sources.
         run: |
-          pnpm --filter @docita/app run dev > /tmp/docita-app.log 2>&1 &
+          pnpm --filter @docita/app exec next start -p 3000 > /tmp/docita-app.log 2>&1 &
           echo $! > /tmp/docita-app.pid
 
       - name: Wait for API and App
