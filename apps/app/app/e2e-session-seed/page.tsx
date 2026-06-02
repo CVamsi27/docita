@@ -3,5 +3,5 @@
  * bootstrap (localStorage clinic selection) before navigating to protected routes.
  */
 export default function E2ESessionSeedPage() {
-  return null;
+  return <></>;
 }
