@@ -13,7 +13,7 @@ on:
       - "packages/utils/**"
       - "scripts/workflow/detect-workflow-scope.mjs"
       - "scripts/deploy/test-api-startup.sh"
-      - "scripts/deploy/fly-deploy-with-region-fallback.sh"
+      - "scripts/deploy/fly-deploy-in-primary-region.sh"
       - "scripts/deploy/verify-db-schema-sync.sh"
       - "package.json"
       - "pnpm-lock.yaml"
@@ -204,7 +204,7 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy API to Fly.io
-        run: bash scripts/deploy/fly-deploy-with-region-fallback.sh fly.toml "${{ steps.fly-config.outputs.app_name }}"
+        run: bash scripts/deploy/fly-deploy-in-primary-region.sh fly.toml "${{ steps.fly-config.outputs.app_name }}"
 
       - name: Post-deploy synthetic probes
         env:
@@ -244,4 +244,4 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy Worker to Fly.io
-        run: bash scripts/deploy/fly-deploy-with-region-fallback.sh apps/worker/fly.toml "${{ steps.fly-config.outputs.app_name }}" --ha=false
+        run: bash scripts/deploy/fly-deploy-in-primary-region.sh apps/worker/fly.toml "${{ steps.fly-config.outputs.app_name }}" --ha=false

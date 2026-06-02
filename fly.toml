@@ -1,4 +1,6 @@
 app = 'docita-api'
+# Production API machines stay in Mumbai. CI reads this value and does not
+# fall back to another region when Mumbai placement is temporarily unavailable.
 primary_region = 'bom'
 
 [build]

@@ -39,6 +39,9 @@ try {
   const detectScopePath = "scripts/workflow/detect-workflow-scope.mjs";
   const appLayoutPath = "apps/app/app/layout.tsx";
   const flyTomlPath = "fly.toml";
+  const workerFlyTomlPath = "apps/worker/fly.toml";
+  const flyDeployScriptPath =
+    "scripts/deploy/fly-deploy-in-primary-region.sh";
   const stagingMirrorWorkflowPath =
     ".github/workflows/sync-staging-after-promotion.yml";
 
@@ -70,6 +73,8 @@ try {
     ".github/workflows/frontend-critical-e2e.yml",
   );
   const flyTomlSource = read(flyTomlPath);
+  const workerFlyTomlSource = read(workerFlyTomlPath);
+  const flyDeployScriptSource = read(flyDeployScriptPath);
   const stagingMirrorWorkflowSource = read(stagingMirrorWorkflowPath);
 
   assert(
@@ -96,6 +101,7 @@ try {
   for (const requiredPath of [
     '"scripts/workflow/detect-workflow-scope.mjs"',
     '"scripts/deploy/test-api-startup.sh"',
+    '"scripts/deploy/fly-deploy-in-primary-region.sh"',
     '".github/workflows/deploy.yml"',
   ]) {
     assertIncludes(
@@ -109,6 +115,7 @@ try {
     'file === ".github/workflows/deploy.yml"',
     'file === "scripts/workflow/detect-workflow-scope.mjs"',
     'file === "scripts/deploy/test-api-startup.sh"',
+    'file === "scripts/deploy/fly-deploy-in-primary-region.sh"',
   ]) {
     assertIncludes(
       detectScopeSource,
@@ -116,6 +123,12 @@ try {
       `Deploy scope detector must treat ${requiredDeployInput} as an API deploy change.`,
     );
   }
+
+  assertIncludes(
+    detectScopeSource,
+    "isWorkerSpecificChange(file) ||\n    isFlyDeployChange(file)",
+    "Deploy scope detector must redeploy the worker when shared Fly deployment logic changes.",
+  );
 
   for (const requiredGuard of [
     "always() &&\n      needs.changes.outputs.api == 'true'",
@@ -177,12 +190,30 @@ try {
     `fly.toml CORS_ORIGINS must only list https://*.docita.work hosts. Invalid entries: ${invalidCorsOrigins.join(", ")}`,
   );
 
-  // The deploy step may call flyctl inline, or delegate to a helper script
-  // (e.g. scripts/deploy/fly-deploy-with-region-fallback.sh) so it can retry
-  // across regions when the primary region has no capacity. Either way the
-  // zero-downtime contract holds as long as the real flyctl call still uses
-  // --strategy bluegreen, so search deploy.yml plus any deploy helper scripts
-  // it references.
+  for (const [configPath, configSource] of [
+    [flyTomlPath, flyTomlSource],
+    [workerFlyTomlPath, workerFlyTomlSource],
+  ]) {
+    assert(
+      parseTomlSingleQuotedEnvValue(configSource, "primary_region") === "bom",
+      `${configPath} must pin Fly production machines to Mumbai (bom).`,
+    );
+  }
+
+  assertIncludes(
+    flyDeployScriptSource,
+    '--primary-region "$primary_region"',
+    "Fly deploy helper must use the primary_region declared in the app manifest.",
+  );
+  assert(
+    !flyDeployScriptSource.includes("FLY_DEPLOY_REGION_FALLBACK"),
+    "Fly deploy helper must not retry production deployment in another region.",
+  );
+
+  // The deploy step may call flyctl inline or delegate to a helper script.
+  // Either way the zero-downtime contract holds as long as the real flyctl
+  // call still uses --strategy bluegreen, so search deploy.yml plus any deploy
+  // helper scripts it references.
   const deployStrategySource = [deployWorkflowSource]
     .concat(
       [...deployWorkflowSource.matchAll(/scripts\/deploy\/[\w./-]+\.sh/g)]

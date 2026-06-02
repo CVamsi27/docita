@@ -1,4 +1,5 @@
 app = 'docita-worker'
+# Production worker machines stay in Mumbai with the API and database.
 primary_region = 'bom'
 
 [build]

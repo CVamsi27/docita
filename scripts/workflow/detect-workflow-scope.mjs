@@ -114,14 +114,25 @@ function isApiChange(file) {
 function isDeployApiChange(file) {
   return (
     isApiChange(file) ||
-    file === ".github/workflows/deploy.yml" ||
-    file === "scripts/workflow/detect-workflow-scope.mjs" ||
+    isFlyDeployChange(file) ||
     file === "scripts/deploy/test-api-startup.sh"
   );
 }
 
 function isDeployWorkerChange(file) {
-  return isApiChange(file) || isWorkerSpecificChange(file);
+  return (
+    isApiChange(file) ||
+    isWorkerSpecificChange(file) ||
+    isFlyDeployChange(file)
+  );
+}
+
+function isFlyDeployChange(file) {
+  return (
+    file === ".github/workflows/deploy.yml" ||
+    file === "scripts/workflow/detect-workflow-scope.mjs" ||
+    file === "scripts/deploy/fly-deploy-in-primary-region.sh"
+  );
 }
 
 function isAppChange(file) {
