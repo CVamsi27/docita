@@ -7,7 +7,7 @@
     "enumMembers": "warn",
     "types": "warn"
   },
-  "ignoreBinaries": ["printf", "tsx"],
+  "ignoreBinaries": ["printf", "tsx", "vitest"],
   "ignoreWorkspaces": ["apps/worker"],
   "workspaces": {
     "apps/api": {
