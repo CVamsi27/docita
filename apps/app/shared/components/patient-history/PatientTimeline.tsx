@@ -4,7 +4,11 @@ import { useState } from "react";
 import { Button } from "@workspace/ui/components/form/button";
 import { Activity } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import type { TimelineEvent, TimelineEventType, PatientTimelineResponse } from "@workspace/types";
+import type {
+  TimelineEvent,
+  TimelineEventType,
+  PatientTimelineResponse,
+} from "@workspace/types";
 import { VisitCard, EVENT_TYPE_CONFIG } from "./VisitCard";
 
 interface PatientTimelineProps {
@@ -105,10 +109,10 @@ export function PatientTimeline({
                     : "bg-background/60 text-muted-foreground border-border/40 hover:bg-muted/60 hover:text-foreground",
                 )}
               >
-                <Icon className={cn("h-3 w-3", isSelected ? "" : config.color)} />
-                {mode === "portal"
-                  ? config.friendlyName
-                  : config.label}
+                <Icon
+                  className={cn("h-3 w-3", isSelected ? "" : config.color)}
+                />
+                {mode === "portal" ? config.friendlyName : config.label}
                 {count > 0 && (
                   <span className="ml-0.5 text-xs opacity-70">{count}</span>
                 )}
@@ -138,13 +142,17 @@ export function PatientTimeline({
                 className="h-7 text-xs"
                 onClick={() => setShowPast((v) => !v)}
               >
-                {showPast ? "Hide past visits" : `View past visits (${past.length})`}
+                {showPast
+                  ? "Hide past visits"
+                  : `View past visits (${past.length})`}
               </Button>
             </div>
           )}
 
           {showPast &&
-            past.map((event) => <VisitCard key={event.id} event={event} mode={mode} />)}
+            past.map((event) => (
+              <VisitCard key={event.id} event={event} mode={mode} />
+            ))}
 
           {upcomingOrToday.map((event) => (
             <VisitCard key={event.id} event={event} mode={mode} />

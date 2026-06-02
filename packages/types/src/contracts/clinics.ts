@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { planModeSchema } from "../billing/tier";
+import { taxRegimeSchema } from "../billing/tax";
 import { jsonObjectSchema } from "../shared/json-schema";
 import { sidebarNavOrderSchema } from "../shared/sidebar-nav";
 
@@ -25,7 +26,7 @@ const taxSettingsSchema = z.object({
     .toUpperCase()
     .regex(/^[A-Z]{2}$/)
     .optional(),
-  regime: z.enum(["IN_GST", "VAT", "SALES_TAX", "NONE"]).optional(),
+  regime: taxRegimeSchema.optional(),
   registrationId: z.string().optional(),
   registrationLabel: z.string().optional(),
   /** Registered legal name for tax invoices, separate from the trade/facility name. */
@@ -197,6 +198,7 @@ export const updateClinicMemberRequestSchema = z.object({
 export const clinicResponseSchema = createClinicRequestSchema.extend({
   id: z.string(),
   planMode: planModeSchema.optional(),
+  facilityType: z.enum(["CLINIC", "HOSPITAL"]).optional(),
   active: z.boolean().optional(),
   createdAt: z.union([z.string(), z.date()]).optional(),
   referralCode: z.string().optional(),

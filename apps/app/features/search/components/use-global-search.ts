@@ -11,7 +11,9 @@ import {
 } from "@/features/search/api/search-api";
 import { searchResultRoutes } from "./global-search-constants";
 
-export function useGlobalSearch(onResultClick?: (result: SearchResult) => void) {
+export function useGlobalSearch(
+  onResultClick?: (result: SearchResult) => void,
+) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");

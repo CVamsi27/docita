@@ -9,6 +9,7 @@ pnpm --filter @docita/landing run dev
 pnpm --filter @docita/landing run check-types
 pnpm --filter @docita/landing run lint
 pnpm --filter @docita/landing run build
+pnpm --filter @docita/landing run test
 pnpm --filter @docita/landing run test:critical-flows
 pnpm --filter @docita/landing run audit:accessibility
 ```
@@ -31,6 +32,7 @@ Recommended production defaults:
 2. Validate:
    - route parity (`/`, `/contact`, `/privacy`, `/terms`, `/cookies`, `/refund-policy`)
    - API-backed blocks (pricing, stats, contact inquiry)
+   - BFF helper contract tests (`pnpm --filter @docita/landing run test`)
    - Playwright critical flows and accessibility smoke checks
 3. Keep existing Next landing on `docita.work`, `www.docita.work`, and `landing.docita.work` until sign-off.
 4. During cutover, move production routes from old worker to this worker.

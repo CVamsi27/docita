@@ -10,7 +10,10 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
 import { Button } from "@workspace/ui/components/form/button";
-import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
+import {
+  Alert,
+  AlertDescription,
+} from "@workspace/ui/components/feedback/alert";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   AlertTriangle,
@@ -20,9 +23,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
-import {
-  type TierChangeDialogProps,
-} from "./tier-change-dialog-types";
+import { type TierChangeDialogProps } from "./tier-change-dialog-types";
 import {
   FeatureDeltaGrid,
   DowngradeTimingChooser,

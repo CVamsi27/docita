@@ -3,7 +3,10 @@
 import { ArrowLeft, Clock, Lock, PanelLeft } from "lucide-react";
 import { queryKeys } from "@workspace/data-access";
 import { useAskAi } from "@/components/ask-ai/ask-ai-context";
-import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+} from "@workspace/ui/components/indicators/avatar";
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import {

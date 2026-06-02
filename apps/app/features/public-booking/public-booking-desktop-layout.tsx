@@ -43,9 +43,7 @@ function StepSection({
         <p className="mb-3.5 text-[length:var(--fs-xs)] font-semibold uppercase tracking-widest text-muted-foreground">
           Step {step} · {label}
         </p>
-        <div className="flex flex-col gap-4 md:gap-5">
-          {children}
-        </div>
+        <div className="flex flex-col gap-4 md:gap-5">{children}</div>
       </div>
     </div>
   );
@@ -75,7 +73,10 @@ export function PublicBookingDesktopLayout({
 
           <div className="mt-2">
             <StepSection step={1} label="Doctor & schedule">
-              <PublicBookingAppointmentSection c={c} doctorPickerVariant="chips" />
+              <PublicBookingAppointmentSection
+                c={c}
+                doctorPickerVariant="chips"
+              />
             </StepSection>
 
             <StepSection step={2} label="Your contact details" isLast>

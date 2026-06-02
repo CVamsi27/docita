@@ -4,7 +4,6 @@ import {
   JobNames,
   GeneratePdfJobData,
 } from '@/shared/modules/queue/queue.interface';
-import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { PrescriptionsService } from './prescription.service';
 import {
   PDF_JOB_PROCESSOR_PRISMA_TOKEN,
@@ -13,8 +12,6 @@ import {
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 import { shouldRegisterPdfQueueHandlers } from '@/shared/modules/queue/pdf-processor-registration';
-
-const PDF_SIGNED_URL_TTL_SECONDS = 3600;
 
 export type PrescriptionPdfProcessorPort = Pick<
   PrescriptionsService,
@@ -30,7 +27,6 @@ export class PrescriptionPdfProcessor implements OnModuleInit {
     private readonly persistence: PdfJobProcessorPrismaPort,
     @Inject(PrescriptionsService)
     private readonly prescriptionsService: PrescriptionPdfProcessorPort,
-    private readonly storageProvider: StorageProvider,
     @Inject('queue') private readonly queue: Pick<IQueueProvider, 'process'>,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
@@ -73,18 +69,15 @@ export class PrescriptionPdfProcessor implements OnModuleInit {
             );
 
           if (pdfJobId) {
-            const pdfUrl = await this.storageProvider.generateSignedUrl(
-              storedKey,
-              PDF_SIGNED_URL_TTL_SECONDS,
-            );
-
             // RLS-BYPASS: prescription PDF worker processes jobs without request tenant context
             await this.persistence.runUnrestricted(async () =>
               this.persistence.pdfJob.update({
                 where: { id: pdfJobId },
                 data: {
                   status: 'COMPLETED',
-                  pdfUrl,
+                  // Historical column name; completed jobs persist the object key
+                  // and mint a fresh signed URL when status is read.
+                  pdfUrl: storedKey,
                   completedAt: this.clock.now(),
                 },
               }),

@@ -11,7 +11,9 @@ export default function StatsCardVisualTest() {
   return (
     <div className="p-8 space-y-8">
       <section data-testid="gradient-cards">
-        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">Gradient Stat Cards</h2>
+        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">
+          Gradient Stat Cards
+        </h2>
         <div className="grid grid-cols-2 gap-4">
           <GradientStatCard
             variant="primary"
@@ -41,7 +43,9 @@ export default function StatsCardVisualTest() {
       </section>
 
       <section data-testid="gradient-with-subtitle">
-        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">With Subtitle</h2>
+        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">
+          With Subtitle
+        </h2>
         <div className="grid grid-cols-2 gap-4">
           <GradientStatCard
             variant="primary"
@@ -61,17 +65,25 @@ export default function StatsCardVisualTest() {
       </section>
 
       <section data-testid="quick-action-cards">
-        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">Quick Action Cards</h2>
+        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">
+          Quick Action Cards
+        </h2>
         <div className="grid grid-cols-4 gap-4">
           <QuickActionCard variant="primary" icon={Users} label="Primary" />
-          <QuickActionCard variant="success" icon={DollarSign} label="Success" />
+          <QuickActionCard
+            variant="success"
+            icon={DollarSign}
+            label="Success"
+          />
           <QuickActionCard variant="info" icon={Calendar} label="Info" />
           <QuickActionCard variant="warning" icon={Activity} label="Warning" />
         </div>
       </section>
 
       <section data-testid="quick-action-with-badge">
-        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">Quick Action With Badge</h2>
+        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">
+          Quick Action With Badge
+        </h2>
         <div className="grid grid-cols-4 gap-4">
           <QuickActionCard
             variant="primary"
@@ -89,7 +101,9 @@ export default function StatsCardVisualTest() {
       </section>
 
       <section data-testid="progress-stats">
-        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">Progress Stats</h2>
+        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">
+          Progress Stats
+        </h2>
         <div className="space-y-4 max-w-md">
           <ProgressStat
             label="Primary Progress"
@@ -119,7 +133,9 @@ export default function StatsCardVisualTest() {
       </section>
 
       <section data-testid="progress-with-description">
-        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">Progress With Description</h2>
+        <h2 className="ui-section-title mb-4 text-[var(--fs-2xl)]">
+          Progress With Description
+        </h2>
         <div className="space-y-4 max-w-md">
           <ProgressStat
             label="Storage Used"

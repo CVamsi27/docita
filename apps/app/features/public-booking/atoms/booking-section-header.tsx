@@ -2,7 +2,10 @@
 
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { CardDescription, CardTitle } from "@workspace/ui/components/indicators/card";
+import {
+  CardDescription,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { cn } from "@workspace/ui/lib/utils";
@@ -24,7 +27,9 @@ export function BookingSectionHeader({
 }) {
   const isCompact = variant === "compact";
   return (
-    <div className={cn("flex", isCompact ? "gap-3 sm:gap-3" : "gap-3.5 sm:gap-4")}>
+    <div
+      className={cn("flex", isCompact ? "gap-3 sm:gap-3" : "gap-3.5 sm:gap-4")}
+    >
       <CategoryAvatar
         icon={<Icon strokeWidth={1.5} />}
         tone={tone}

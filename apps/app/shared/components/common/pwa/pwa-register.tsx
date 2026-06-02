@@ -19,8 +19,7 @@ export function PwaRegister() {
       .then((registration) => {
         void registration.update();
       })
-      .catch(() => {
-      });
+      .catch(() => {});
   }, []);
 
   return null;

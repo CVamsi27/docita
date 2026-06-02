@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import {
   Injectable,
   Inject,
@@ -28,7 +29,10 @@ import {
   ClaimReadinessResult,
   ClaimValidationService,
 } from '@/domains/billing/core/services/claim-validation.service';
-import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
+import {
+  GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
+  StorageProvider,
+} from '@/domains/documents/application/ports/storage-provider.port';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
@@ -38,7 +42,6 @@ import {
   parseInvoiceTaxSummary,
   parseTaxRegistrationSnapshot,
   extractClinicGstin,
-  PDF_SIGNED_URL_TTL_SECONDS,
 } from './invoices-helpers';
 
 @Injectable()
@@ -233,7 +236,7 @@ export class InvoicesQueryService {
         gstin: sellerTaxSnapshot?.registrationId ?? extractClinicGstin(clinic),
       },
       patient: {
-        name: `${patient?.firstName} ${patient?.lastName}`,
+        name: getPatientFullName(patient),
         phoneNumber: patient?.phoneNumber || '',
         email: patient?.email || undefined,
         address: patient?.address || undefined,
@@ -294,7 +297,7 @@ export class InvoicesQueryService {
       if (invoice.pdfUrl) {
         const url = await this.storageProvider.generateSignedUrl(
           invoice.pdfUrl,
-          PDF_SIGNED_URL_TTL_SECONDS,
+          GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
         );
         return { type: 'url', url };
       }
@@ -309,7 +312,7 @@ export class InvoicesQueryService {
 
       const url = await this.storageProvider.generateSignedUrl(
         storedKey,
-        PDF_SIGNED_URL_TTL_SECONDS,
+        GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
       );
       return { type: 'url', url };
     }

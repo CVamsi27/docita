@@ -1,6 +1,12 @@
 import type {
+  ClinicWhatsappSentMessage,
+  ClinicWhatsappTemplate,
+  CreateWhatsappTemplateRequest,
+  SendWhatsAppCustomMessageRequest,
+  SendWhatsAppCustomMessageResponse,
   StaffNotificationEntry,
   UpdateWhatsappSenderRequest,
+  UpdateWhatsappTemplateRequest,
   WhatsappSenderConfigResponse,
   WhatsAppStatsDetailedResponse,
   WhatsAppUnreadCountResponse,
@@ -93,6 +99,69 @@ export const useWhatsappSender = () =>
   useAPIQuery<WhatsappSenderConfigResponse>(
     queryKeys.whatsapp.sender(),
     "/whatsapp/sender",
+  );
+
+/**
+ * Send an ad-hoc free-text WhatsApp message to a patient. Per WhatsApp policy
+ * this only delivers inside the 24h customer-service window; outside it the
+ * provider rejects the send and the mutation surfaces the error.
+ */
+export const useSendCustomWhatsAppMessage = () =>
+  useAPIMutation<
+    SendWhatsAppCustomMessageResponse,
+    SendWhatsAppCustomMessageRequest
+  >("/whatsapp/send-custom", "POST");
+
+/**
+ * Outbound-only sent-message history for a patient (no inbound / conversation
+ * threading). Powers the patient Messages tab history list.
+ */
+export const usePatientWhatsappSentMessages = (patientId: string) => {
+  const whatsappOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.WHATSAPP_MESSAGING,
+  );
+  return useAPIQuery<ClinicWhatsappSentMessage[]>(
+    queryKeys.whatsapp.patientSentMessages(patientId),
+    `/whatsapp/patients/${patientId}/sent-messages`,
+    { enabled: whatsappOk && Boolean(patientId) },
+  );
+};
+
+export const useClinicWhatsappTemplates = () => {
+  const whatsappOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.WHATSAPP_MESSAGING,
+  );
+  return useAPIQuery<ClinicWhatsappTemplate[]>(
+    queryKeys.whatsapp.customTemplates(),
+    "/whatsapp/templates/custom",
+    { enabled: whatsappOk, staleTime: 60_000 },
+  );
+};
+
+export const useCreateWhatsappTemplate = () =>
+  useAPIMutation<ClinicWhatsappTemplate, CreateWhatsappTemplateRequest>(
+    "/whatsapp/templates/custom",
+    "POST",
+    { invalidateKeys: [queryKeys.whatsapp.customTemplates()] },
+  );
+
+export const useUpdateWhatsappTemplate = () =>
+  useAPIMutation<
+    ClinicWhatsappTemplate,
+    { id: string } & UpdateWhatsappTemplateRequest
+  >(({ id }) => `/whatsapp/templates/custom/${id}`, "PATCH", {
+    body: ({ id: _id, ...rest }) => rest,
+    invalidateKeys: [queryKeys.whatsapp.customTemplates()],
+  });
+
+export const useDeleteWhatsappTemplate = () =>
+  useAPIMutation<{ success: boolean }, { id: string }>(
+    ({ id }) => `/whatsapp/templates/custom/${id}`,
+    "DELETE",
+    {
+      body: () => undefined,
+      invalidateKeys: [queryKeys.whatsapp.customTemplates()],
+    },
   );
 
 export const useWhatsappStats = () => {

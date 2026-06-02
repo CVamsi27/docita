@@ -3,7 +3,10 @@
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
 import { AddAppointmentDialogContainer } from "@/features/appointments/components/dialogs/AddAppointmentDialogContainer";
-import { AddPatientDialog, EditPatientDialog } from "@/features/patients/components/forms/PatientDialogs";
+import {
+  AddPatientDialog,
+  EditPatientDialog,
+} from "@/features/patients/components/forms/PatientDialogs";
 
 import { usePatientsLogic } from "@/features/patients/hooks/use-patients-logic";
 import { usePermissions } from "@/hooks/use-permissions";

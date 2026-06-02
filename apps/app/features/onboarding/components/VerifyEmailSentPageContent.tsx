@@ -4,8 +4,7 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  AlertTriangle, CheckCircle2, Mail, RefreshCw } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Mail, RefreshCw } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import { toast } from "sonner";
 import {
@@ -97,9 +96,7 @@ export default function VerifyEmailSentPage() {
     ) {
       setResendAvailableAt(resendAvailableAtValue);
     } else {
-      window.sessionStorage.removeItem(
-        VERIFICATION_EMAIL_COOLDOWN_STORAGE_KEY,
-      );
+      window.sessionStorage.removeItem(VERIFICATION_EMAIL_COOLDOWN_STORAGE_KEY);
       setResendAvailableAt(null);
     }
 
@@ -120,13 +117,16 @@ export default function VerifyEmailSentPage() {
       setNow(Date.now());
     }, 1000);
 
-    const timeoutId = window.setTimeout(() => {
-      setResendAvailableAt(null);
-      window.sessionStorage.removeItem(
-        VERIFICATION_EMAIL_COOLDOWN_STORAGE_KEY,
-      );
-      setNow(Date.now());
-    }, Math.max(resendAvailableAt - Date.now(), 0));
+    const timeoutId = window.setTimeout(
+      () => {
+        setResendAvailableAt(null);
+        window.sessionStorage.removeItem(
+          VERIFICATION_EMAIL_COOLDOWN_STORAGE_KEY,
+        );
+        setNow(Date.now());
+      },
+      Math.max(resendAvailableAt - Date.now(), 0),
+    );
 
     return () => {
       window.clearInterval(intervalId);
@@ -194,8 +194,7 @@ export default function VerifyEmailSentPage() {
     setResending(true);
     try {
       await apiFetch("/auth/resend-verification", { method: "POST" });
-      const availableAt =
-        Date.now() + VERIFICATION_EMAIL_COOLDOWN_MS;
+      const availableAt = Date.now() + VERIFICATION_EMAIL_COOLDOWN_MS;
       window.sessionStorage.setItem(
         VERIFICATION_EMAIL_COOLDOWN_STORAGE_KEY,
         String(availableAt),
@@ -271,7 +270,9 @@ export default function VerifyEmailSentPage() {
             <div className="flex items-start gap-3">
               <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
               <div className="space-y-1 ui-helper-text">
-                <p>Check your inbox and spam folder for a message from Docita.</p>
+                <p>
+                  Check your inbox and spam folder for a message from Docita.
+                </p>
                 <p>
                   The link stays active for 24 hours and you can request a fresh
                   one anytime.
@@ -290,7 +291,11 @@ export default function VerifyEmailSentPage() {
           >
             {resending ? (
               <>
-                <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                <DocitaLoadingIndicator
+                  variant="inline"
+                  decorative
+                  className="mr-2"
+                />
                 Sending…
               </>
             ) : (
@@ -306,7 +311,8 @@ export default function VerifyEmailSentPage() {
           </Button>
           {isResendCoolingDown && (
             <p className="text-center ui-helper-text">
-              You can resend again in {formatCooldown(resendCooldownRemainingMs)}.
+              You can resend again in{" "}
+              {formatCooldown(resendCooldownRemainingMs)}.
             </p>
           )}
         </div>

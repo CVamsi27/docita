@@ -4,6 +4,7 @@ import type {
   ClinicTier,
   PlanMode,
   ClinicType,
+  FacilityType,
   DayOfWeek,
   Prisma,
   Role,
@@ -18,6 +19,7 @@ export interface OnboardingClinicWriteData {
   phone: string;
   address: string;
   type: ClinicType;
+  facilityType: FacilityType;
   website?: string;
   mrnPrefix: string;
   timezone: string;

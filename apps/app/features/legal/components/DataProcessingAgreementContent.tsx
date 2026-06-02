@@ -11,9 +11,10 @@ export function DataProcessingAgreementContent() {
           <li>
             <h3 className="mt-0 mb-2">1. Parties and Scope</h3>
             <p>
-              This Data Processing Agreement governs how Docita processes personal
-              and health data on behalf of your clinic to provide healthcare
-              workflow, communication, and operational software services.
+              This Data Processing Agreement governs how Docita processes
+              personal and health data on behalf of your clinic to provide
+              healthcare workflow, communication, and operational software
+              services.
             </p>
           </li>
 
@@ -32,8 +33,12 @@ export function DataProcessingAgreementContent() {
             <ul>
               <li>Treatment and consultation support</li>
               <li>Billing, invoicing, and practice operations</li>
-              <li>Patient communication for healthcare-related notifications</li>
-              <li>Regulatory compliance, auditability, and security monitoring</li>
+              <li>
+                Patient communication for healthcare-related notifications
+              </li>
+              <li>
+                Regulatory compliance, auditability, and security monitoring
+              </li>
             </ul>
           </li>
 
@@ -51,8 +56,8 @@ export function DataProcessingAgreementContent() {
             <h3 className="mt-0 mb-2">5. Sub-processors and Hosting</h3>
             <p>
               Docita uses vetted infrastructure and service providers only where
-              necessary to deliver platform services, under contractual safeguards
-              and access limitations.
+              necessary to deliver platform services, under contractual
+              safeguards and access limitations.
             </p>
           </li>
 
@@ -69,9 +74,9 @@ export function DataProcessingAgreementContent() {
           <li>
             <h3 className="mt-0 mb-2">7. Retention and Deletion</h3>
             <p>
-              Data is retained for active service obligations and legal compliance
-              windows, and is deleted or anonymized according to retention policy
-              once no longer required.
+              Data is retained for active service obligations and legal
+              compliance windows, and is deleted or anonymized according to
+              retention policy once no longer required.
             </p>
           </li>
         </ol>

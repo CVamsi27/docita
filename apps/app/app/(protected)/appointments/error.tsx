@@ -12,9 +12,7 @@ export default function AppointmentsError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-
-  }, [error]);
+  useEffect(() => {}, [error]);
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center p-4">
@@ -26,7 +24,8 @@ export default function AppointmentsError({
           We could not load appointments
         </h2>
         <p className="mb-6 text-muted-foreground">
-          We could not load this appointments page. Please try again in a moment.
+          We could not load this appointments page. Please try again in a
+          moment.
         </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Button onClick={() => reset()}>

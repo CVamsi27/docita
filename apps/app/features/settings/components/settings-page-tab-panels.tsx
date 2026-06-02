@@ -5,6 +5,7 @@ import {
   AppearanceSettings,
   ClinicGeneralSettings,
   NotificationSettings,
+  OpdSlipSettingsContainer,
   PrescriptionDefaultsSettingsContainer,
   QueueSettings,
   ReminderSettings,
@@ -77,6 +78,14 @@ export function SettingsPageTabPanels({
         <TabsContent value="prescriptions" className="mt-0 space-y-6">
           <RoleGuard requiredPermission="createPrescription">
             <PrescriptionDefaultsSettingsContainer />
+          </RoleGuard>
+        </TabsContent>
+      )}
+
+      {visibleTabValues.has("opd-slip") && (
+        <TabsContent value="opd-slip" className="mt-0 space-y-6">
+          <RoleGuard requiredPermission="manageClinic">
+            <OpdSlipSettingsContainer />
           </RoleGuard>
         </TabsContent>
       )}

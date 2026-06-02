@@ -13,10 +13,7 @@ import {
   OphthalmologyExamData,
   PatientWithMedicalHistory,
 } from "@workspace/types";
-import {
-  DentalChartUI,
-  type DentalChartValue,
-} from "@/features/consultation";
+import { DentalChartUI, type DentalChartValue } from "@/features/consultation";
 import { GrowthChartUI } from "@/features/consultation";
 import { VisionExamUI } from "@/features/consultation";
 import {

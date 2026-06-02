@@ -35,7 +35,9 @@ export function Providers({
           <TooltipProvider delayDuration={300}>
             <DialogStackProvider>
               <ConfirmProvider>
-                <NavigationHistoryProvider>{children}</NavigationHistoryProvider>
+                <NavigationHistoryProvider>
+                  {children}
+                </NavigationHistoryProvider>
               </ConfirmProvider>
             </DialogStackProvider>
           </TooltipProvider>
@@ -45,11 +47,7 @@ export function Providers({
   );
 }
 
-export function RealtimeProviders({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function RealtimeProviders({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const enabled = [
     "/dashboard",

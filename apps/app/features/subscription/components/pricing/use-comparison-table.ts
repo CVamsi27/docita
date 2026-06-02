@@ -68,7 +68,8 @@ export function useComparisonTable({
   const availableFeatures = useMemo(() => {
     return categories.flatMap<AvailableFeatureItem>((category) => {
       const validFeatures = category.features.filter(
-        (f) => f in FEATURE_TIER_MAP && getFeatureDetails(f).isGenerallyAvailable,
+        (f) =>
+          f in FEATURE_TIER_MAP && getFeatureDetails(f).isGenerallyAvailable,
       );
       if (validFeatures.length === 0) return [];
 

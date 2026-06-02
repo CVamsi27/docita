@@ -1,12 +1,21 @@
 "use client";
 
 import { FC } from "react";
-import { Card, CardContent, CardFooter } from "@workspace/ui/components/indicators/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+} from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
-import { Download, Edit, FileText, Printer } from "lucide-react";
+import { Download, Edit, FileText, Printer, ShieldPlus } from "lucide-react";
+import { Feature } from "@workspace/types";
+import { useFeature } from "@/components/auth/feature-gate";
 import { BackButton } from "@/components/navigation/back-button";
 import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
-import { EmptyState, LoadingState } from "@workspace/ui/components/feedback/empty-state";
+import {
+  EmptyState,
+  LoadingState,
+} from "@workspace/ui/components/feedback/empty-state";
 import { useInvoiceDetailsLogic } from "@/features/invoices/hooks/use-invoice-details-logic";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -49,6 +58,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
 
   const queryClient = useQueryClient();
   const resendInvoice = useResendInvoiceWhatsApp(invoiceId);
+  const canCreateClaim = useFeature(Feature.INSURANCE_BILLING);
 
   const handleWhatsappRetry = async () => {
     try {
@@ -115,7 +125,8 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
           ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {invoice.whatsappStatus !== undefined && invoice.whatsappStatus !== null ? (
+          {invoice.whatsappStatus !== undefined &&
+          invoice.whatsappStatus !== null ? (
             <WhatsAppDeliveryBadge
               status={invoice.whatsappStatus}
               sentAt={invoice.whatsappSentAt ?? null}
@@ -136,6 +147,16 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
             <Download className="h-4 w-4 mr-2" />
             {isDownloading ? "Preparing…" : "Download"}
           </Button>
+          {canCreateClaim ? (
+            <Button variant="outline" size="sm" asChild>
+              <Link
+                href={`/insurance-claims/new?patientId=${invoice.patientId}&invoiceId=${invoiceId}&claimType=REIMBURSEMENT`}
+              >
+                <ShieldPlus className="h-4 w-4 mr-2" />
+                Create claim
+              </Link>
+            </Button>
+          ) : null}
           <Button size="sm" asChild>
             <Link href={`/invoices/${invoiceId}/edit`}>
               <Edit className="h-4 w-4 mr-2" />

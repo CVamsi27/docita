@@ -20,10 +20,7 @@ import { Kbd } from "@workspace/ui/components/indicators/kbd";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useAuth } from "@/lib/auth/auth-context";
-import {
-  QUICK_ACTIONS,
-  type QuickAction,
-} from "./command-palette";
+import { QUICK_ACTIONS, type QuickAction } from "./command-palette";
 
 const ICONS: Record<string, typeof UserPlus> = {
   "new-patient": UserPlus,
@@ -109,7 +106,10 @@ export function QuickAddPopover() {
                   className="flex w-full items-center justify-between gap-3 rounded-sm px-2 py-2 text-left text-[var(--fs-sm)] transition-colors duration-150 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <span className="inline-flex items-center gap-2">
-                    <Icon className="size-4 text-muted-foreground" aria-hidden />
+                    <Icon
+                      className="size-4 text-muted-foreground"
+                      aria-hidden
+                    />
                     {action.label}
                   </span>
                   {action.shortcut ? <Kbd>{action.shortcut}</Kbd> : null}

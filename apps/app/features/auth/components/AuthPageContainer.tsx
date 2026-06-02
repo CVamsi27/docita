@@ -33,9 +33,7 @@ export function AuthPageContainer() {
     >
       <div className={["ui-copy-stack", auth.copyAlignment].join(" ")}>
         <h1 className="ui-page-title">{AUTH_STEP_TITLES[auth.step]}</h1>
-        <p className="ui-page-subtitle">
-          {AUTH_STEP_DESCRIPTIONS[auth.step]}
-        </p>
+        <p className="ui-page-subtitle">{AUTH_STEP_DESCRIPTIONS[auth.step]}</p>
       </div>
 
       <div className="ui-card-surface p-6 sm:p-8">

@@ -4,6 +4,10 @@ import {
 } from "@/lib/subscription/subscription-settings-path";
 import { isPreClinicSetupRoute } from "@/lib/auth/pre-clinic-setup-routes";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import {
+  isApiAvailabilityError,
+  markApiUnavailable,
+} from "@/lib/api/api-availability";
 
 export type ApiClientError = {
   status?: number;
@@ -80,12 +84,12 @@ export function getRedirectPathForForbiddenCode(code?: string): string | null {
  * redirects live in auth bootstrap + fetch-with-session instead.
  */
 export async function handleApiClientError(error: ApiClientError) {
-  if (
-    error.status === 401 ||
-    error.isNetworkError ||
-    error.code === "NETWORK_ERROR" ||
-    error.code === "TIMEOUT"
-  ) {
+  if (isApiAvailabilityError(error)) {
+    markApiUnavailable();
+    return;
+  }
+
+  if (error.status === 401 || error.isNetworkError) {
     return;
   }
 

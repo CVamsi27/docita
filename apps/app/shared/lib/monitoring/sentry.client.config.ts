@@ -93,7 +93,6 @@ function getUserContextFromStorage(): {
   role: string;
 } | null {
   try {
-
     const userStr = sessionStorage.getItem("docita_user_context");
     if (userStr) {
       return JSON.parse(userStr);
@@ -101,7 +100,6 @@ function getUserContextFromStorage(): {
 
     return null;
   } catch {
-
     return null;
   }
 }
@@ -144,7 +142,6 @@ export function captureMessage(
   level: SentrySeverityLevel = "info",
 ) {
   if (!isSentryEnabled()) {
-
     return;
   }
 

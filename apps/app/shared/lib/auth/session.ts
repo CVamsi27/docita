@@ -18,6 +18,11 @@ export const appSession = createBrowserSessionManager({
     "/reset-password",
     "/portal/login",
     "/book",
+    // Per-session-secret / token-authorised QR landing pages. These are
+    // opened on a phone with no clinician session (signature & document
+    // upload flows), so they must never bounce to /login.
+    "/upload-signature",
+    "/mobile-upload",
   ],
   resolveLoginPath: resolveAppLoginPath,
 });

@@ -24,9 +24,7 @@ import type { ClinicSettingsFormValues } from "@workspace/types";
 const monoInputClass = "font-mono text-[var(--fs-sm)] tracking-tight";
 
 function SectionEyebrow({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="ui-eyebrow pb-3 pt-1">{children}</div>
-  );
+  return <div className="ui-eyebrow pb-3 pt-1">{children}</div>;
 }
 
 export function ClinicGeneralSettingsForm({

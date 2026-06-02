@@ -4,9 +4,8 @@ import { createContext, useContext, useMemo, type ReactNode } from "react";
 
 export type ConsultationProgrammaticNavigate = (href: string) => void;
 
-const ConsultationLeaveNavigationContext = createContext<
-  ConsultationProgrammaticNavigate | null
->(null);
+const ConsultationLeaveNavigationContext =
+  createContext<ConsultationProgrammaticNavigate | null>(null);
 
 export function ConsultationLeaveNavigationProvider({
   attemptNavigateToHref,
@@ -15,10 +14,7 @@ export function ConsultationLeaveNavigationProvider({
   attemptNavigateToHref: ConsultationProgrammaticNavigate;
   children: ReactNode;
 }) {
-  const value = useMemo(
-    () => attemptNavigateToHref,
-    [attemptNavigateToHref],
-  );
+  const value = useMemo(() => attemptNavigateToHref, [attemptNavigateToHref]);
   return (
     <ConsultationLeaveNavigationContext.Provider value={value}>
       {children}

@@ -114,10 +114,7 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Ward</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger
                           className="w-full"
@@ -145,10 +142,7 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Bed</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger
                           className="w-full"

@@ -42,9 +42,7 @@ export function DoctorTimeAwaySettings() {
 
   const doctors = useMemo(
     () =>
-      members.filter(
-        (m) => m.role === "DOCTOR" || m.role === "ADMIN_DOCTOR",
-      ),
+      members.filter((m) => m.role === "DOCTOR" || m.role === "ADMIN_DOCTOR"),
     [members],
   );
 
@@ -110,9 +108,7 @@ export function DoctorTimeAwaySettings() {
         endDate,
         reason: reason.trim() || undefined,
         isFullDay,
-        ...(!isFullDay
-          ? { startTime: partialStart, endTime: partialEnd }
-          : {}),
+        ...(!isFullDay ? { startTime: partialStart, endTime: partialEnd } : {}),
       });
       toast.success("Time away saved");
       resetForm();
@@ -232,7 +228,11 @@ export function DoctorTimeAwaySettings() {
         >
           {createMutation.isPending ? (
             <>
-              <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+              <DocitaLoadingIndicator
+                variant="inline"
+                decorative
+                className="mr-2"
+              />
               Saving
             </>
           ) : (
@@ -273,7 +273,9 @@ export function DoctorTimeAwaySettings() {
                           : null}
                       </div>
                       {off.reason ? (
-                        <div className="text-muted-foreground">{off.reason}</div>
+                        <div className="text-muted-foreground">
+                          {off.reason}
+                        </div>
                       ) : null}
                     </div>
                     {canDelete && off.id ? (

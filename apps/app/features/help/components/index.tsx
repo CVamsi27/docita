@@ -53,9 +53,7 @@ export const HelpCenter: FC = () => {
   const filteredCategories = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return HELP_CATEGORIES;
-    return HELP_CATEGORIES.filter((cat) =>
-      cat.title.toLowerCase().includes(q),
-    );
+    return HELP_CATEGORIES.filter((cat) => cat.title.toLowerCase().includes(q));
   }, [searchQuery]);
 
   return (
@@ -65,7 +63,10 @@ export const HelpCenter: FC = () => {
           How can we help you?
         </h1>
         <div className="relative max-w-md mx-auto">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden
+          />
           <Input
             placeholder="Enter topic"
             value={searchQuery}

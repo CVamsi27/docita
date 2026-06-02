@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { EmailService } from './email.service';
@@ -89,7 +90,7 @@ export class EmailEventsListener {
       if (patient?.email) {
         const result = await this.emailService.sendAppointmentReminder(
           patient.email,
-          `${patient.firstName} ${patient.lastName}`,
+          getPatientFullName(patient),
           doctor?.name ?? '',
           payload.startTime,
           clinic?.name ?? '',

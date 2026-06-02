@@ -18,6 +18,8 @@ import { slowQueryExtension } from '@/shared/common/extensions/logging.extension
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { getDefaultTransactionOptions } from '@/shared/common/database-transaction-options';
 import { DATABASE_CONSTANTS } from '@/shared/modules/config/app-constants';
+import { makeQueryBudgetExtension } from '@/shared/common/extensions/query-budget.extension';
+import { getRequestQueryCounterContext } from '@/shared/common/context/request-context.store';
 
 @Injectable()
 export class PrismaService
@@ -67,16 +69,22 @@ export class PrismaService
     //      RLS-scoped tx connection (when one is published in
     //      activeTxStorage); subsequent extensions then run against that
     //      tx client.
-    //   2. tenant       — fails closed when no clinic context is set.
-    //   3. encryption   — transparent column-level encryption.
-    //   4. audit        — immutability guard for audit-log writes.
-    //   5. slow-query   — observability, always last so it sees the
-    //      true wall-clock cost of the full extension chain.
+    //   2. encryption   — transparent column-level encryption.
+    //   3. audit        — immutability guard for audit-log writes.
+    //   4. tenant       — fails closed when no clinic context is set.
+    //   5. slow-query   — wall-clock observability.
+    //   6. query-budget — request-scoped query-count observability.
     const extended = this.$extends(rlsRoutingExtension)
       .$extends(createEncryptionExtension(this.encryptionService))
       .$extends(auditImmutabilityExtension)
       .$extends(tenantExtension)
-      .$extends(slowQueryExtension);
+      .$extends(slowQueryExtension)
+      .$extends(
+        makeQueryBudgetExtension({
+          getContext: getRequestQueryCounterContext,
+          logger: this.logger,
+        }),
+      );
     Object.assign(this, extended);
 
     void this.$connect()

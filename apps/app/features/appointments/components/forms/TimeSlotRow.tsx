@@ -1,3 +1,4 @@
+import { getPatientFullName } from "@workspace/utils";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -16,6 +17,7 @@ import { WhatsAppDeliveryBadge } from "@/components/whatsapp/whatsapp-delivery-b
 import { PatientWhatsAppResponseBadge } from "@/components/whatsapp/patient-whatsapp-response-badge";
 import { useResendAppointmentReminder } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { useDownloadOpdSlip } from "@/features/appointments/hooks/use-download-opd-slip";
 
 interface TimeSlotRowProps {
   appointment: AppointmentListItem;
@@ -43,18 +45,28 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
   }) => {
     const { canStartConsultation, isAdmin } = usePermissions();
     const router = useRouter();
+    const { download: downloadOpdSlip, downloadingId: opdSlipDownloadingId } =
+      useDownloadOpdSlip();
+    const aptId = apt.id;
     const aptStart = new Date(apt.startTime);
     const aptEnd = new Date(apt.endTime);
-    const appointmentTypeLabel = apt.type ? humanizeUiLabel(apt.type) : "General";
+    const appointmentTypeLabel = apt.type
+      ? humanizeUiLabel(apt.type)
+      : "General";
     // Doctors can only open their own consultations; admin-doctors (who have
     // both startConsultation + manageClinic) can open any.
     const canAccessConsultation =
       canStartConsultation &&
       (isAdmin || (!!currentUserId && apt.doctorId === currentUserId));
 
-    const isTerminalVisit = apt.status === "completed" || apt.status === "no-show";
+    const isTerminalVisit =
+      apt.status === "completed" || apt.status === "no-show";
     const isConsultationActive = apt.status === "in-progress";
-    const consultationPrimaryLabel = isTerminalVisit ? "View" : isConsultationActive ? "Resume" : "Start";
+    const consultationPrimaryLabel = isTerminalVisit
+      ? "View"
+      : isConsultationActive
+        ? "Resume"
+        : "Start";
     const consultationTitle = isTerminalVisit
       ? "View consultation record"
       : isConsultationActive
@@ -62,7 +74,7 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
         : "Start consultation";
 
     const patientName = apt.patient
-      ? `${apt.patient.firstName} ${apt.patient.lastName}`.trim()
+      ? getPatientFullName(apt.patient).trim()
       : null;
     const phone = apt.patient?.phoneNumber?.trim() || null;
 
@@ -95,12 +107,9 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
       [handleOpenPatient],
     );
 
-    const stopRowActivation = useCallback(
-      (event: React.SyntheticEvent) => {
-        event.stopPropagation();
-      },
-      [],
-    );
+    const stopRowActivation = useCallback((event: React.SyntheticEvent) => {
+      event.stopPropagation();
+    }, []);
 
     const queryClient = useQueryClient();
     const resendReminder = useResendAppointmentReminder();
@@ -112,7 +121,9 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
       try {
         await resendReminder.mutateAsync({ appointmentId: apt.id });
         toast.success("Reminder re-sent on WhatsApp");
-        await queryClient.invalidateQueries({ queryKey: queryKeys.appointments.all() });
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.appointments.all(),
+        });
       } catch (err) {
         showUserFacingErrorToast(
           err,
@@ -190,7 +201,7 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                     .join(" · ")}
                 </span>
               </div>
-              {(latestPatientResponse || lastReminder) ? (
+              {latestPatientResponse || lastReminder ? (
                 <div
                   className="mt-1 flex flex-wrap items-center gap-2"
                   onClick={stopRowActivation}
@@ -232,7 +243,11 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                   className="h-7 gap-1.5 rounded-full px-3 text-[length:var(--fs-xs)]"
                 >
                   {checkingIn === apt.id ? (
-                    <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-3 w-3" />
+                    <DocitaLoadingIndicator
+                      variant="inline"
+                      decorative
+                      iconClassName="h-3 w-3"
+                    />
                   ) : (
                     <UserCheck className="h-3 w-3" />
                   )}
@@ -241,7 +256,10 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
               </SymbolTooltip>
             )}
             {apt.status === "checked-in" && (
-              <Badge variant="secondary" className="badge-success h-7 gap-1 rounded-full px-3 text-[length:var(--fs-xs)]">
+              <Badge
+                variant="secondary"
+                className="badge-success h-7 gap-1 rounded-full px-3 text-[length:var(--fs-xs)]"
+              >
                 <Check className="h-3 w-3" />
                 In Queue
               </Badge>
@@ -258,7 +276,11 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                   className="h-7 gap-1.5 rounded-full px-3 text-[length:var(--fs-xs)]"
                 >
                   {startingConsultationId === apt.id ? (
-                    <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-3 w-3" />
+                    <DocitaLoadingIndicator
+                      variant="inline"
+                      decorative
+                      iconClassName="h-3 w-3"
+                    />
                   ) : (
                     <Play className="h-3 w-3" />
                   )}
@@ -275,6 +297,10 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
               onScheduleFollowUp={
                 onScheduleFollowUp ? handleScheduleFollowUp : undefined
               }
+              onPrintOpdSlip={
+                aptId ? () => downloadOpdSlip(aptId) : undefined
+              }
+              printingOpdSlip={Boolean(aptId) && opdSlipDownloadingId === aptId}
             />
           </div>
         </div>

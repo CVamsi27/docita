@@ -1,10 +1,7 @@
 "use client";
 
 import { Check, Info, Minus } from "lucide-react";
-import {
-  getTierName,
-  hasFeatureAccess,
-} from "@/lib/subscription/tier-access";
+import { getTierName, hasFeatureAccess } from "@/lib/subscription/tier-access";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import {
   TableCell,
@@ -78,10 +75,7 @@ export const FEATURE_CATEGORIES: { label: string; features: Feature[] }[] = [
   },
   {
     label: "Communication",
-    features: [
-      Feature.WHATSAPP_MESSAGING,
-      Feature.BROADCAST_CAMPAIGNS,
-    ],
+    features: [Feature.WHATSAPP_MESSAGING, Feature.BROADCAST_CAMPAIGNS],
   },
   {
     label: "Team & Access Control",
@@ -187,8 +181,7 @@ export const LIMIT_ROW_DESCRIPTIONS: Record<string, string> = {
     "Number of consultations included in the billing cycle before overage charges apply",
   Prescriptions:
     "Number of digital prescriptions included in the billing cycle",
-  Invoices:
-    "Number of invoices you can generate in the billing cycle",
+  Invoices: "Number of invoices you can generate in the billing cycle",
   "WhatsApp messages (incl. / mo)":
     "WhatsApp messages included per calendar month before per-message overage applies (Essential and above)",
 };
@@ -244,7 +237,10 @@ export function FeatureCategoryRows({
                   <span className="text-sm truncate">{details.name}</span>
                 </SymbolTooltip>
                 {!details.isGenerallyAvailable && (
-                  <Badge variant="secondary" className="text-[var(--fs-2xs)] px-1.5 py-0">
+                  <Badge
+                    variant="secondary"
+                    className="text-[var(--fs-2xs)] px-1.5 py-0"
+                  >
                     Planned
                   </Badge>
                 )}

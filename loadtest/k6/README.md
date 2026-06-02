@@ -14,6 +14,7 @@ live in [`scenarios/`](./scenarios), share configuration via
 | `appointments-create`   | `POST /appointments` with idempotency keys                      | p95 latency < 1500 ms, error rate < 5%                      |
 | `webhook-flood`         | HMAC-signed `/webhooks/whatsapp` (100 RPS for 1m)               | p95 latency < 400 ms, error rate < 1%                       |
 | `whatsapp-send`         | Throttled outbound `POST /whatsapp/messages` (5 RPS for 2m)     | p95 latency < 2000 ms, error rate < 5%                      |
+| `proxy-route`           | Cloudflare app proxy `/api/v1/health` vs direct API baseline    | proxy p95 < 1500 ms, direct API p95 < 800 ms, errors < 1%  |
 
 The thresholds above are encoded in each scenario file so a regression
 fails the run with a non-zero exit code (suitable for CI gating).
@@ -37,6 +38,7 @@ export K6_TENANT_ID="..."         # clinic id for that user
 export K6_WEBHOOK_SECRET="..."    # matches WHATSAPP_WEBHOOK_SECRET in env
 export K6_PATIENT_ID="seed-patient-1"
 export K6_DOCTOR_ID="seed-doctor-1"
+export K6_DIRECT_API_BASE="http://localhost:3001/api/v1" # proxy-route comparison
 ```
 
 ## Running

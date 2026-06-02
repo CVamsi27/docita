@@ -3,12 +3,10 @@ import { buildJsonHeaders } from "@/lib/auth/csrf";
 import { BRAND_FOREGROUND_HEX } from "@/lib/constants/branding";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
 import type { RazorpayResponse, useRazorpay } from "@/hooks/use-razorpay";
-import type { PlanMode } from "@workspace/types";
-
-export interface PlanPricing {
-  monthly: number | "custom";
-  yearly: number | "custom";
-}
+import {
+  onboardingTrialEligibilityResponseSchema,
+  type PlanMode,
+} from "@workspace/types";
 
 export interface PlanSelectionOptions {
   currency?: string;
@@ -32,6 +30,20 @@ interface OpenOnboardingPlanCheckoutOptions {
   customer: { email: string; name?: string | null };
   openCheckout: ReturnType<typeof useRazorpay>["openCheckout"];
   onPaymentCompleted: (response: RazorpayResponse) => void;
+}
+
+export async function getOnboardingTrialEligibility(
+  onboardingId: string,
+): Promise<boolean> {
+  const response = await apiFetch<unknown>(
+    `/onboarding/${onboardingId}/trial-eligibility`,
+    {
+      method: "POST",
+      headers: buildJsonHeaders(),
+      body: JSON.stringify({}),
+    },
+  );
+  return onboardingTrialEligibilityResponseSchema.parse(response).eligible;
 }
 
 export async function openOnboardingPlanCheckout({

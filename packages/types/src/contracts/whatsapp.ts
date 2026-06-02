@@ -143,6 +143,87 @@ export const whatsappTemplateListResponseSchema = z.object({
 
 export const whatsappDefaultTemplatesResponseSchema = z.array(z.string());
 
+/**
+ * Clinic-authored custom message templates. These mirror the
+ * `WhatsappTemplate` rows scoped to a clinic and are surfaced both in the
+ * Settings management UI and the per-patient composer's template picker.
+ */
+export const whatsappTemplateCategorySchema = z.enum([
+  "APPOINTMENT",
+  "PRESCRIPTION",
+  "INVOICE",
+  "PAYMENT",
+  "FOLLOW_UP",
+  "MARKETING",
+  "STAFF_NOTIFICATION",
+  "AUTHENTICATION",
+]);
+
+export const clinicWhatsappTemplateSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  category: whatsappTemplateCategorySchema,
+  content: z.string(),
+  status: z.string(),
+  isDefault: z.boolean(),
+  isActive: z.boolean(),
+  updatedAt: z.string().or(z.date()),
+});
+
+export const clinicWhatsappTemplateListResponseSchema = z.array(
+  clinicWhatsappTemplateSchema,
+);
+
+export const createWhatsappTemplateRequestSchema = z
+  .object({
+    name: z.string().trim().min(1).max(120),
+    content: z.string().trim().min(1).max(2000),
+    category: whatsappTemplateCategorySchema.default("FOLLOW_UP"),
+  })
+  .strict();
+
+export const updateWhatsappTemplateRequestSchema = z
+  .object({
+    content: z.string().trim().min(1).max(2000).optional(),
+    category: whatsappTemplateCategorySchema.optional(),
+  })
+  .strict();
+
+/**
+ * Ad-hoc free-text message to a patient. Per WhatsApp policy this only
+ * delivers inside the 24h customer-service window; outside it an approved
+ * template is required (surfaced as guidance in the composer UI).
+ */
+export const sendWhatsAppCustomMessageRequestSchema = z
+  .object({
+    patientId: z.string().trim().min(1),
+    text: z.string().trim().min(1).max(4096),
+  })
+  .strict();
+
+export const sendWhatsAppCustomMessageResponseSchema = z.object({
+  success: z.boolean(),
+  messageId: z.string(),
+});
+
+/**
+ * Outbound-only history of WhatsApp messages sent to a patient. This is a
+ * one-way send log (no inbound replies / conversation threading) sourced from
+ * `whatsappLog` rows.
+ */
+export const clinicWhatsappSentMessageSchema = z.object({
+  id: z.string(),
+  message: z.string(),
+  type: z.string(),
+  status: z.string(),
+  phoneNumber: z.string(),
+  createdAt: z.string().or(z.date()),
+});
+
+export const clinicWhatsappSentMessageListResponseSchema = z.array(
+  clinicWhatsappSentMessageSchema,
+);
+
 export const whatsappSenderModeSchema = z.enum(["SHARED", "BYO", "MANAGED"]);
 export const whatsappSenderStatusSchema = z.enum([
   "NOT_CONFIGURED",
@@ -392,4 +473,31 @@ export type WhatsAppLogListResponse = z.infer<
 export type WhatsAppStatsResponse = z.infer<typeof whatsappStatsResponseSchema>;
 export type WhatsAppMessageProviderResponse = z.infer<
   typeof whatsappMessageProviderResponseSchema
+>;
+export type WhatsappTemplateCategory = z.infer<
+  typeof whatsappTemplateCategorySchema
+>;
+export type ClinicWhatsappTemplate = z.infer<
+  typeof clinicWhatsappTemplateSchema
+>;
+export type ClinicWhatsappTemplateListResponse = z.infer<
+  typeof clinicWhatsappTemplateListResponseSchema
+>;
+export type CreateWhatsappTemplateRequest = z.infer<
+  typeof createWhatsappTemplateRequestSchema
+>;
+export type UpdateWhatsappTemplateRequest = z.infer<
+  typeof updateWhatsappTemplateRequestSchema
+>;
+export type SendWhatsAppCustomMessageRequest = z.infer<
+  typeof sendWhatsAppCustomMessageRequestSchema
+>;
+export type SendWhatsAppCustomMessageResponse = z.infer<
+  typeof sendWhatsAppCustomMessageResponseSchema
+>;
+export type ClinicWhatsappSentMessage = z.infer<
+  typeof clinicWhatsappSentMessageSchema
+>;
+export type ClinicWhatsappSentMessageListResponse = z.infer<
+  typeof clinicWhatsappSentMessageListResponseSchema
 >;

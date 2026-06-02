@@ -13,6 +13,7 @@ import {
 } from "@workspace/types";
 import { appSession } from "@/lib/auth/session";
 import { handleApiClientError } from "./api-client-error-handler";
+import { trackApiResponse } from "./api-availability";
 
 function resolveClientBaseUrl(): string {
   const url = getAppApiUrl();
@@ -36,6 +37,7 @@ function getAppApiClient(): APIClient {
     retries: 3,
     onFetchResponse: (response) => {
       appSession.captureCsrfFromResponse(response);
+      trackApiResponse(response);
     },
     onRequest: (config: RequestConfig): RequestConfig => {
       const mutating = ["POST", "PUT", "PATCH", "DELETE"];
@@ -62,7 +64,8 @@ function withAppClient<T>(run: (client: APIClient) => Promise<T>): Promise<T> {
 }
 
 export const api: AppApiClient = {
-  get: (endpoint, options) => withAppClient((client) => client.get(endpoint, options)),
+  get: (endpoint, options) =>
+    withAppClient((client) => client.get(endpoint, options)),
   post: (endpoint, body, options) =>
     withAppClient((client) => client.post(endpoint, body, options)),
   put: (endpoint, body, options) =>
@@ -85,7 +88,9 @@ export const typedApi = {
         client.validate(
           API_ROUTES.patients.list,
           listPatientsResponseSchema,
-          params ? { params: listPatientsQuerySchema.parse(params) } : undefined,
+          params
+            ? { params: listPatientsQuerySchema.parse(params) }
+            : undefined,
         ),
       ),
     get: (id: string) =>
@@ -95,7 +100,9 @@ export const typedApi = {
     create: (data: Record<string, unknown>) =>
       withAppClient((client) => client.post(API_ROUTES.patients.create, data)),
     update: (id: string, data: unknown) =>
-      withAppClient((client) => client.patch(API_ROUTES.patients.update(id), data)),
+      withAppClient((client) =>
+        client.patch(API_ROUTES.patients.update(id), data),
+      ),
     delete: (id: string) =>
       withAppClient((client) => client.delete(API_ROUTES.patients.delete(id))),
   },
@@ -108,7 +115,9 @@ export const typedApi = {
     get: (id: string) =>
       withAppClient((client) => client.get(API_ROUTES.appointments.get(id))),
     create: (data: Record<string, unknown>) =>
-      withAppClient((client) => client.post(API_ROUTES.appointments.create, data)),
+      withAppClient((client) =>
+        client.post(API_ROUTES.appointments.create, data),
+      ),
     update: (id: string, data: unknown) =>
       withAppClient((client) =>
         client.patch(API_ROUTES.appointments.update(id), data),
@@ -184,7 +193,10 @@ export const typedApi = {
       withAppClient((client) =>
         client.get<number>(API_ROUTES.clinics.joinRequests.count),
       ),
-    approve: (id: string, data?: { assignedRole?: string; welcomeMessage?: string }) =>
+    approve: (
+      id: string,
+      data?: { assignedRole?: string; welcomeMessage?: string },
+    ) =>
       withAppClient((client) =>
         client.post(API_ROUTES.clinics.joinRequests.approve(id), data),
       ),

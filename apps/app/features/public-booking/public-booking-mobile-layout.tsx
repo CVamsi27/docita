@@ -192,7 +192,8 @@ export function PublicBookingMobileLayout({
             <PublicBookingSubmitAlerts c={c} />
             <PublicBookingReviewBlock c={c} onEdit={c.goToStep} />
             <MicroLabel as="p" className="text-muted-foreground">
-              Submitting sends a request only — the clinic confirms before your visit is final.
+              Submitting sends a request only — the clinic confirms before your
+              visit is final.
             </MicroLabel>
             {c.clinic.phone || c.clinic.address ? (
               <div className="rounded-[var(--radius-lg)] border border-border/60 bg-muted/15 px-4 py-3 shadow-sm">
@@ -268,7 +269,9 @@ export function PublicBookingMobileLayout({
                 disabled={!canContinue}
                 onClick={goForward}
                 aria-describedby={
-                  !canContinue && continueBlockedReason ? continueHintId : undefined
+                  !canContinue && continueBlockedReason
+                    ? continueHintId
+                    : undefined
                 }
               >
                 Continue

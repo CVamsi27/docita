@@ -9,6 +9,10 @@ import { Prisma } from '@workspace/db';
 import {
   taxRegistrationSnapshotSchema,
   taxSettingsSchema,
+  DEFAULT_TAX_COUNTRY_CODE,
+  DEFAULT_TAX_CURRENCY,
+  DEFAULT_TAX_REGIME,
+  extractStateCodeFromGstin,
   type InvoiceTaxSummary,
   type TaxRegistrationSnapshot,
 } from '@workspace/types';
@@ -69,8 +73,8 @@ export class SubscriptionPaymentTaxCalculator {
       platformTaxConfig.seller,
     );
     const taxSettings = taxSettingsSchema.parse({
-      countryCode: 'IN',
-      regime: 'IN_GST',
+      countryCode: DEFAULT_TAX_COUNTRY_CODE,
+      regime: DEFAULT_TAX_REGIME,
       ...this.extractClinicTaxSettings(clinic?.settings),
     });
     const buyer = taxRegistrationSnapshotSchema.parse({
@@ -85,7 +89,8 @@ export class SubscriptionPaymentTaxCalculator {
     });
 
     const taxRate =
-      payment.currency === 'INR' && seller.countryCode === 'IN'
+      payment.currency === DEFAULT_TAX_CURRENCY &&
+      seller.countryCode === DEFAULT_TAX_COUNTRY_CODE
         ? platformTaxConfig.subscriptionTaxRate
         : 0;
     const grandTotal = roundCurrency(payment.amountCents / 100);
@@ -94,7 +99,7 @@ export class SubscriptionPaymentTaxCalculator {
         ? roundCurrency(grandTotal / (1 + taxRate / 100))
         : grandTotal;
     const calculation = this.taxCalculator.calculateInvoice({
-      currency: payment.currency || clinic?.currency || 'INR',
+      currency: payment.currency || clinic?.currency || DEFAULT_TAX_CURRENCY,
       seller,
       buyer,
       placeOfSupply: {
@@ -141,10 +146,7 @@ export class SubscriptionPaymentTaxCalculator {
       readJsonString(settingsObject, 'gstin') ??
       readJsonString(taxSettingsObject, 'registrationId');
     const explicitStateCode = readJsonString(taxSettingsObject, 'stateCode');
-    const derivedStateCode =
-      registrationId && /^[0-9]{2}/.test(registrationId)
-        ? registrationId.slice(0, 2)
-        : undefined;
+    const derivedStateCode = extractStateCodeFromGstin(registrationId);
 
     return {
       registrationId,

@@ -1,5 +1,7 @@
 "use client";
 
+import { getPatientFullName } from "@workspace/utils";
+
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -18,13 +20,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
-import {
-  ClipboardList,
-  Eye,
-  FileText,
-  Pill,
-  Receipt,
-} from "lucide-react";
+import { ClipboardList, Eye, FileText, Pill, Receipt } from "lucide-react";
 import { useAppointments } from "@workspace/data-access";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatLocaleDateShortMonthYear, formatTime } from "@/lib/formatters";
@@ -138,7 +134,7 @@ export function ConsultationHistoryList({
               const dateLabel = formatLocaleDateShortMonthYear(start);
               const timeLabel = formatTime(start, "h:mm a");
               const patientName = apt.patient
-                ? `${apt.patient.firstName} ${apt.patient.lastName}`.trim()
+                ? getPatientFullName(apt.patient).trim()
                 : "Unknown patient";
               const doctorName = apt.doctor?.name ?? null;
               const prescriptionId = apt.prescription?.id ?? null;
@@ -251,7 +247,9 @@ export function ConsultationHistoryList({
                 >
                   Previous
                 </Button>
-                <span className="px-1 text-xs text-muted-foreground">{page}</span>
+                <span className="px-1 text-xs text-muted-foreground">
+                  {page}
+                </span>
                 <Button
                   variant="outline"
                   size="sm"

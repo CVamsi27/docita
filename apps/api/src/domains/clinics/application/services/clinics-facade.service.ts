@@ -3,6 +3,7 @@ import { ClinicDataService } from './clinic-data.service';
 import { ClinicSettingsService } from './clinic-settings.service';
 import { StaffManagementService } from './staff-management.service';
 import { ClinicTier, ClinicType, Prisma, Role } from '@workspace/db';
+import type { ClinicSettingsData } from './clinic-settings.types';
 
 interface CreateClinicData {
   name: string;
@@ -24,67 +25,6 @@ interface UpdateClinicData {
   tier?: ClinicTier;
   type?: ClinicType;
   settings?: Prisma.InputJsonValue;
-}
-
-interface ClinicSettingsData {
-  name?: string;
-  address?: string;
-  phone?: string;
-  phoneNumber?: string;
-  gstin?: string;
-  email?: string;
-  website?: string;
-  description?: string;
-  openingTime?: string;
-  closingTime?: string;
-  workingDays?: string[];
-  consultationDuration?: number;
-  reminderBefore?: string | number;
-  reminderUnit?: string;
-  whatsappAppointmentReminders?: boolean;
-  whatsappFollowUpMessages?: boolean;
-  whatsappBirthdayWishes?: boolean;
-  whatsappMedicineReminders?: boolean;
-  customFields?: { name: string; type: string; required: boolean }[];
-  emailNotifications?: boolean;
-  smsNotifications?: boolean;
-  pushNotifications?: boolean;
-  appointmentAlerts?: boolean;
-  reportAlerts?: boolean;
-  twoFactorAuth?: boolean;
-  sessionTimeout?: string | number;
-  auditLogs?: boolean;
-  theme?: string;
-  primaryColor?: string;
-  compactMode?: boolean;
-  paymentReminderEnabled?: boolean;
-  paymentReminderDays?: number[];
-  paymentReminderAutoSendWhatsApp?: boolean;
-  useSameBankAccountForSubscriptionAndReceipts?: boolean;
-  subscriptionPaymentBankAccount?: {
-    accountHolderName?: string;
-    bankName?: string;
-    accountNumber?: string;
-    ifscCode?: string;
-    branchName?: string;
-    upiId?: string;
-  };
-  paymentReceivingBankAccount?: {
-    accountHolderName?: string;
-    bankName?: string;
-    accountNumber?: string;
-    ifscCode?: string;
-    branchName?: string;
-    upiId?: string;
-  };
-
-  brandName?: string;
-  lockedTheme?: {
-    primaryColor?: string;
-    mode?: 'light' | 'dark' | 'system';
-    compactMode?: boolean;
-    enforced?: boolean;
-  };
 }
 
 interface CreateDoctorData {
@@ -227,6 +167,17 @@ export class ClinicsService {
       clinicId,
       data,
     );
+  }
+
+  async getOpdSlipSettings(clinicId: string) {
+    return this.clinicSettingsService.getOpdSlipSettings(clinicId);
+  }
+
+  async updateOpdSlipSettings(
+    clinicId: string,
+    data: { revisitValidityDays?: number; footerNote?: string },
+  ) {
+    return this.clinicSettingsService.updateOpdSlipSettings(clinicId, data);
   }
 
   async createDoctor(clinicId: string, data: CreateDoctorData) {

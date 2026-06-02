@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { SUPPORT_EMAIL } from '@/shared/common/constants/support-contact.constants';
 import { PrismaService } from '@/prisma/prisma.service';
 
 export type AdminAlertSeverity = 'info' | 'warn' | 'critical';
@@ -120,7 +121,7 @@ export class AdminAlertsService {
         text: options.text,
         html: options.html,
         from: this.config.getEmailFrom(),
-        replyTo: 'support@docita.work',
+        replyTo: SUPPORT_EMAIL,
       });
 
       if (!result.success) {
@@ -186,7 +187,7 @@ export class AdminAlertsService {
         text: options.text,
         html: options.html,
         from: this.config.getEmailFrom(),
-        replyTo: 'support@docita.work',
+        replyTo: SUPPORT_EMAIL,
       });
 
       if (!result.success) {

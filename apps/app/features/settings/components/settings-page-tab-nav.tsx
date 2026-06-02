@@ -80,7 +80,9 @@ export function SettingsPageTabNav({
                           : "text-muted-foreground group-data-[state=active]:text-primary",
                       )}
                     />
-                    <span className="min-w-0 truncate text-left">{item.label}</span>
+                    <span className="min-w-0 truncate text-left">
+                      {item.label}
+                    </span>
                   </TabsTrigger>
                 );
               })}

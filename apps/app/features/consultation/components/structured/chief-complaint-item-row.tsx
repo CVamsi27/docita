@@ -140,7 +140,9 @@ export function ChiefComplaintItemRow({
             className="h-11 bg-background"
           />
           {!readOnly && hasComplaint && !isDurationValid ? (
-            <p className="text-sm text-warning">Duration must be greater than 0.</p>
+            <p className="text-sm text-warning">
+              Duration must be greater than 0.
+            </p>
           ) : null}
         </div>
 

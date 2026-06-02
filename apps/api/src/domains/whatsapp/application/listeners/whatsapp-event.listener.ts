@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
@@ -86,7 +87,7 @@ export class WhatsappEventListener {
         },
       });
       const patientName = invoice?.patient
-        ? `${invoice.patient.firstName} ${invoice.patient.lastName}`.trim()
+        ? getPatientFullName(invoice.patient).trim()
         : 'a patient';
       const amountDisplay = invoice?.total ?? event.amountPaise / 100;
       await this.staffNotificationService.notifyStaff({

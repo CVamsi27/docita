@@ -13,6 +13,7 @@ import { AuthModule } from './shared/modules/auth/auth/auth.module';
 import { AuthorizationModule } from './shared/modules/auth/authorization/authorization.module';
 import { PrescriptionsModule } from './domains/prescriptions/prescriptions.module';
 import { BillingModule } from './domains/billing/billing.module';
+import { InsuranceClaimsModule } from './domains/insurance-claims/insurance-claims.module';
 import { PaymentsModule } from './domains/payments/payments.module';
 import { ImportsModule } from './shared/modules/imports/imports.module';
 import { ConfigModule } from '@nestjs/config';
@@ -176,6 +177,7 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
     SubscriptionsModule,
     EnterpriseContractsModule,
     BillingModule,
+    InsuranceClaimsModule,
     PrescriptionTemplatesModule,
     ClinicalModule,
     FeedbackModule,

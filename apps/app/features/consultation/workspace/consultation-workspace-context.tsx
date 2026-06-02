@@ -21,9 +21,7 @@ export function ConsultationWorkspaceProvider({
   children,
 }: ConsultationWorkspaceContextValue & { children: ReactNode }) {
   return (
-    <ConsultationWorkspaceContext.Provider
-      value={{ clinicFeatures, sections }}
-    >
+    <ConsultationWorkspaceContext.Provider value={{ clinicFeatures, sections }}>
       {children}
     </ConsultationWorkspaceContext.Provider>
   );

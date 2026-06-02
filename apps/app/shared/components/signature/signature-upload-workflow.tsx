@@ -5,10 +5,21 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "@workspace/ui/components/form/button";
-import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/navigation/tabs";
+import {
+  Alert,
+  AlertDescription,
+} from "@workspace/ui/components/feedback/alert";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/navigation/tabs";
 import { AlertCircle, Image as ImageIcon, Pencil, Upload } from "lucide-react";
-import { SignaturePad, SignaturePreview } from "@/components/inputs/signature-canvas";
+import {
+  SignaturePad,
+  SignaturePreview,
+} from "@/components/inputs/signature-canvas";
 import {
   dataUrlToFile,
   validateSignatureImageFile,
@@ -155,7 +166,11 @@ export function SignatureUploadWorkflow({
                 >
                   {uploading ? (
                     <>
-                      <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                      <DocitaLoadingIndicator
+                        variant="inline"
+                        decorative
+                        className="mr-2"
+                      />
                       {uploadingButtonLabel}
                     </>
                   ) : (
@@ -215,7 +230,11 @@ export function SignatureUploadWorkflow({
               >
                 {uploading ? (
                   <>
-                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    <DocitaLoadingIndicator
+                      variant="inline"
+                      decorative
+                      className="mr-2"
+                    />
                     {uploadingButtonLabel}
                   </>
                 ) : (

@@ -216,7 +216,11 @@ export function InvoiceItemsTable({
                     min="1"
                     value={item.quantity}
                     onChange={(e) =>
-                      onUpdateItem(index, "quantity", parseFloat(e.target.value))
+                      onUpdateItem(
+                        index,
+                        "quantity",
+                        parseFloat(e.target.value),
+                      )
                     }
                   />
                 </TableCell>
@@ -227,7 +231,11 @@ export function InvoiceItemsTable({
                     step="0.01"
                     value={item.unitPrice}
                     onChange={(e) =>
-                      onUpdateItem(index, "unitPrice", parseFloat(e.target.value))
+                      onUpdateItem(
+                        index,
+                        "unitPrice",
+                        parseFloat(e.target.value),
+                      )
                     }
                   />
                 </TableCell>

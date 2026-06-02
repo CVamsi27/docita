@@ -119,10 +119,7 @@ function UpgradePrompt({
   const router = useRouter();
 
   return (
-    <div
-      role="alert"
-      className="surface-warning rounded-lg p-6 text-center"
-    >
+    <div role="alert" className="surface-warning rounded-lg p-6 text-center">
       <div className="icon-warning mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full">
         <svg
           className="h-6 w-6"
@@ -139,9 +136,7 @@ function UpgradePrompt({
           />
         </svg>
       </div>
-      <h3 className="text-lg font-semibold">
-        Upgrade Required
-      </h3>
+      <h3 className="text-lg font-semibold">Upgrade Required</h3>
       <p className="mt-1 text-sm opacity-90">
         {featureName
           ? `The ${formatFeatureName(featureName)} feature requires `
@@ -169,13 +164,8 @@ function SubscriptionExpiredBanner() {
   const router = useRouter();
 
   return (
-    <div
-      role="alert"
-      className="surface-danger rounded-lg p-6 text-center"
-    >
-      <h3 className="text-lg font-semibold">
-        Subscription Inactive
-      </h3>
+    <div role="alert" className="surface-danger rounded-lg p-6 text-center">
+      <h3 className="text-lg font-semibold">Subscription Inactive</h3>
       <p className="mt-1 text-sm opacity-90">
         Your subscription has expired. Please renew to continue using Docita.
       </p>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { CalendarRange } from "lucide-react";
-import { formatDate } from "@workspace/utils";
+import { formatDate, getPatientFullName } from "@workspace/utils";
 import type { DashboardStats } from "@workspace/types";
 import {
   Card,
@@ -20,7 +20,9 @@ interface DashboardUpcomingCardProps {
   upcoming: DashboardStats["upcomingAppointments"];
 }
 
-export function DashboardUpcomingCard({ upcoming }: DashboardUpcomingCardProps) {
+export function DashboardUpcomingCard({
+  upcoming,
+}: DashboardUpcomingCardProps) {
   const rows = filterUpcomingBeyondToday(upcoming).slice(0, 6);
 
   return (
@@ -32,7 +34,9 @@ export function DashboardUpcomingCard({ upcoming }: DashboardUpcomingCardProps) 
               <CalendarRange className="h-4 w-4" />
             </div>
             <div>
-              <CardTitle className="text-[var(--fs-base)]">Upcoming visits</CardTitle>
+              <CardTitle className="text-[var(--fs-base)]">
+                Upcoming visits
+              </CardTitle>
               <CardDescription className="text-xs">
                 Scheduled from tomorrow onward
               </CardDescription>
@@ -58,7 +62,7 @@ export function DashboardUpcomingCard({ upcoming }: DashboardUpcomingCardProps) 
                   className="group flex flex-col gap-0.5 rounded-lg border border-transparent p-3 transition-colors duration-150 hover:border-border/50 hover:bg-muted/60"
                 >
                   <span className="text-sm font-medium">
-                    {apt.patient.firstName} {apt.patient.lastName}
+                    {getPatientFullName(apt.patient)}
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {formatDate(apt.startTime, "EEE MMM d '·' hh:mm a")} ·{" "}

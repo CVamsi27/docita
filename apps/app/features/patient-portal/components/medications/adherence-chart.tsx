@@ -49,12 +49,7 @@ export function AdherenceChart({ summary, label }: AdherenceChartProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center gap-4">
-          <div
-            className={cn(
-              "text-4xl font-bold tabular-nums",
-              color,
-            )}
-          >
+          <div className={cn("text-4xl font-bold tabular-nums", color)}>
             {Math.round(adherenceRate)}%
           </div>
           <div>

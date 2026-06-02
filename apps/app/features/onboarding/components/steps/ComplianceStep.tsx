@@ -19,7 +19,9 @@ interface ComplianceStepProps {
   onBack: () => void;
   onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>;
   onboardingId?: string;
-  ensureOnboardingId?: (options?: { forceRefresh?: boolean }) => Promise<string>;
+  ensureOnboardingId?: (options?: {
+    forceRefresh?: boolean;
+  }) => Promise<string>;
   clinicId?: string;
 }
 
@@ -49,7 +51,10 @@ export function ComplianceStep({
 
   const checklist = [
     { label: "SLA signature uploaded", done: !!signatureSessionId },
-    ...legalDocs.map((d) => ({ label: `${d.title} accepted`, done: d.accepted })),
+    ...legalDocs.map((d) => ({
+      label: `${d.title} accepted`,
+      done: d.accepted,
+    })),
   ];
   const isReady = checklist.every((c) => c.done);
   const pendingItems = checklist.filter((c) => !c.done);

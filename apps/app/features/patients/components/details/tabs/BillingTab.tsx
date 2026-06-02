@@ -14,6 +14,7 @@ import { ExternalLink, Receipt } from "lucide-react";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatCurrency, formatDate } from "@workspace/utils";
 import { useInvoices } from "@workspace/data-access";
+import { PatientClaimsPanel } from "@/features/insurance-claims";
 
 interface BillingTabProps {
   patientId: string;
@@ -31,44 +32,38 @@ const STATUS_VARIANT: Record<
 };
 
 export function BillingTab({ patientId }: BillingTabProps) {
-  const { data: invoices, isLoading, isError, refetch } = useInvoices({
+  const {
+    data: invoices,
+    isLoading,
+    isError,
+    refetch,
+  } = useInvoices({
     patientId,
   });
 
-  if (isLoading) {
-    return <DataState status="loading" loadingMessage="Loading invoices…" />;
-  }
-
-  if (isError) {
-    return (
-      <DataState
-        status="error"
-        errorMessage="We could not load these invoices. Please try again."
-        onRetry={() => refetch()}
-      />
-    );
-  }
-
   const list = invoices ?? [];
-
-  if (list.length === 0) {
-    return (
-      <DataState
-        status="empty"
-        emptyIcon={Receipt}
-        emptyTitle="No invoices"
-        emptyDescription="Invoices billed to this patient will appear here."
-      />
-    );
-  }
-
   const sorted = [...list].sort((a, b) => {
     const aDate = new Date(a.issuedAt ?? a.createdAt).getTime();
     const bDate = new Date(b.issuedAt ?? b.createdAt).getTime();
     return bDate - aDate;
   });
 
-  return (
+  const invoicesSection = isLoading ? (
+    <DataState status="loading" loadingMessage="Loading invoices…" />
+  ) : isError ? (
+    <DataState
+      status="error"
+      errorMessage="We could not load these invoices. Please try again."
+      onRetry={() => refetch()}
+    />
+  ) : list.length === 0 ? (
+    <DataState
+      status="empty"
+      emptyIcon={Receipt}
+      emptyTitle="No invoices"
+      emptyDescription="Invoices billed to this patient will appear here."
+    />
+  ) : (
     <div className="space-y-3">
       {sorted.map((invoice) => {
         const issuedDate = invoice.issuedAt ?? invoice.createdAt;
@@ -127,6 +122,13 @@ export function BillingTab({ patientId }: BillingTabProps) {
           </Card>
         );
       })}
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      <PatientClaimsPanel patientId={patientId} />
+      {invoicesSection}
     </div>
   );
 }

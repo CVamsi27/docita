@@ -1,3 +1,4 @@
+import { getPatientFullName } from "@workspace/utils";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Clock } from "lucide-react";
@@ -14,7 +15,9 @@ import type { AppointmentListItem } from "@workspace/data-access";
 
 export type DashboardWorkspaceMode = "dashboard" | "today";
 
-function defaultAlertDensity(mode: DashboardWorkspaceMode): DashboardAlertDensity {
+function defaultAlertDensity(
+  mode: DashboardWorkspaceMode,
+): DashboardAlertDensity {
   return mode === "today" ? "urgent-only" : "full";
 }
 
@@ -56,7 +59,7 @@ export function DashboardSharedWorkspace({
   const tokenLabel =
     tokenNumber > 0 ? String(tokenNumber).padStart(2, "0") : null;
   const currentPatientName = currentPatient?.patient
-    ? `${currentPatient.patient.firstName} ${currentPatient.patient.lastName}`.trim()
+    ? getPatientFullName(currentPatient.patient).trim()
     : null;
   const progressPercent =
     totalToday > 0
@@ -74,7 +77,7 @@ export function DashboardSharedWorkspace({
         patientsWaiting={waitingCount}
         nextPatientName={
           density === "full" && currentPatient?.patient
-            ? `${currentPatient.patient.firstName} ${currentPatient.patient.lastName}`
+            ? getPatientFullName(currentPatient.patient)
             : undefined
         }
         nextPatientId={density === "full" ? currentPatient?.id : undefined}

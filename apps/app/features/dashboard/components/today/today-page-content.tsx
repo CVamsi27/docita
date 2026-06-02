@@ -32,6 +32,7 @@ import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { useSessionRecoveryRedirect } from "@/hooks/use-session-recovery-redirect";
 import { isSessionRecoveryError } from "@/lib/auth/session-recovery";
 import { cn } from "@workspace/ui/lib/utils";
+import { DEFAULT_SLOT_DURATION } from "@workspace/utils";
 import { LayoutDashboard, Play, Sparkles } from "lucide-react";
 
 export function TodayPageContent() {
@@ -224,7 +225,7 @@ export function TodayPageContent() {
             waitingCount={waitingCount}
             pendingJoinRequests={pendingJoinRequests}
             pendingReports={stats.pendingReports}
-            slotDurationMinutes={clinic?.slotDuration ?? 15}
+            slotDurationMinutes={clinic?.slotDuration ?? DEFAULT_SLOT_DURATION}
           >
             <TodayFollowUpsPanel enabled={canAccess(Feature.CALENDAR_SLOTS)} />
             <DashboardShortcutsSection pendingReports={stats.pendingReports} />
@@ -278,7 +279,11 @@ export function TodayPageContent() {
       {canStartConsultation && nextPatients[0] && !currentPatient ? (
         <BottomActionBar>
           <BottomActionBarSlot variant="secondary">
-            <Button variant="outline" className="w-full touch-manipulation" asChild>
+            <Button
+              variant="outline"
+              className="w-full touch-manipulation"
+              asChild
+            >
               <Link href="/consultation">View queue</Link>
             </Button>
           </BottomActionBarSlot>

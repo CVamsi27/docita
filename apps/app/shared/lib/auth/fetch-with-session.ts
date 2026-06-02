@@ -1,9 +1,15 @@
 import { getAppApiUrl } from "@/lib/api/api-config";
+import {
+  markApiUnavailable,
+  trackApiResponse,
+} from "@/lib/api/api-availability";
 import { appSession } from "@/lib/auth/session";
 import { isRecord } from "@workspace/utils";
 
 function isMutatingMethod(method: string | undefined): boolean {
-  return ["POST", "PUT", "PATCH", "DELETE"].includes((method ?? "GET").toUpperCase());
+  return ["POST", "PUT", "PATCH", "DELETE"].includes(
+    (method ?? "GET").toUpperCase(),
+  );
 }
 
 /**
@@ -42,11 +48,25 @@ export async function fetchWithSession(
       headers: mergeHeaders(init?.headers, csrfToken, init?.method),
     });
 
-  let response = await request();
+  let response: Response;
+  try {
+    response = await request();
+    trackApiResponse(response);
+  } catch (error) {
+    markApiUnavailable();
+    throw error;
+  }
+
   if (response.status === 401) {
     const refreshed = await appSession.refreshAccessToken();
     if (refreshed) {
-      response = await request();
+      try {
+        response = await request();
+        trackApiResponse(response);
+      } catch (error) {
+        markApiUnavailable();
+        throw error;
+      }
     }
   }
 

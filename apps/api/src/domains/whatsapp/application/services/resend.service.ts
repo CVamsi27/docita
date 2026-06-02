@@ -16,7 +16,7 @@ import {
   ApprovalStatus,
   PaymentSessionStatus,
 } from '@workspace/db';
-import { DATE_FORMATS, formatDate } from '@workspace/utils';
+import { DATE_FORMATS, formatDate, getPatientFullName } from '@workspace/utils';
 import {
   buildInvoiceReadyVariables,
   buildPrescriptionCreatedVariables,
@@ -86,7 +86,7 @@ export class WhatsappResendService {
     const variables = toTemplateVariables(
       buildPrescriptionCreatedVariables({
         prescriptionId: id,
-        patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
+        patientName: getPatientFullName(prescription.patient),
         clinicName: prescription.appointment?.clinic?.name ?? '',
         doctorName: prescription.doctor.name,
       }),
@@ -196,7 +196,7 @@ export class WhatsappResendService {
     const variables = toTemplateVariables(
       buildInvoiceReadyVariables({
         invoiceId: id,
-        patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
+        patientName: getPatientFullName(invoice.patient),
         clinicName: invoice.appointment?.clinic?.name ?? '',
         amount: invoice.total,
         currency: invoice.currency ?? invoice.appointment?.clinic?.currency,

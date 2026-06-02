@@ -64,7 +64,8 @@ function getLatestValue(
   const v = record.values[0];
   if (v.valueNumber !== undefined && v.valueNumber !== null)
     return String(v.valueNumber);
-  if (v.valueString !== undefined && v.valueString !== null) return v.valueString;
+  if (v.valueString !== undefined && v.valueString !== null)
+    return v.valueString;
   if (v.valueBoolean !== undefined && v.valueBoolean !== null)
     return v.valueBoolean ? "Yes" : "No";
   return null;

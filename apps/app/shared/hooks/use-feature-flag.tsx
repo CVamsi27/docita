@@ -9,7 +9,9 @@ interface FeatureFlagsContextValue {
   isError: boolean;
 }
 
-const FeatureFlagsContext = createContext<FeatureFlagsContextValue | null>(null);
+const FeatureFlagsContext = createContext<FeatureFlagsContextValue | null>(
+  null,
+);
 
 export const FeatureFlagsProvider = ({ children }: { children: ReactNode }) => {
   const { data, isLoading, isError } = useResolvedFeatureFlags();

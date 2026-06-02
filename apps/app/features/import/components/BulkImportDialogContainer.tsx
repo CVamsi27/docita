@@ -55,9 +55,7 @@ export function BulkImportDialogContainer({
     }
     const j = jobStatusQuery.data;
     const pct =
-      j.totalRows > 0
-        ? Math.round((j.processedRows / j.totalRows) * 100)
-        : 0;
+      j.totalRows > 0 ? Math.round((j.processedRows / j.totalRows) * 100) : 0;
     setProgress(Math.min(100, pct));
 
     if (

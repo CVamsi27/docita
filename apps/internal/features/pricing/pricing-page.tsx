@@ -24,6 +24,13 @@ import {
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { DatePicker } from "@workspace/ui/components/form/date-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/form/select";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
@@ -301,404 +308,411 @@ export default function PricingPage() {
           void clinicsQuery.refetch();
         }}
       >
-      {saveError && (
-        <div className="surface-danger rounded-md px-4 py-2 text-sm">
-          {saveError}
-        </div>
-      )}
+        {saveError && (
+          <div className="surface-danger rounded-md px-4 py-2 text-sm">
+            {saveError}
+          </div>
+        )}
 
-      <Tabs defaultValue="tiers" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="tiers">Tier pricing</TabsTrigger>
-          <TabsTrigger value="offers">Facility offers</TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="tiers" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="tiers">Tier pricing</TabsTrigger>
+            <TabsTrigger value="offers">Facility offers</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="tiers">
-          <Card>
-            <CardHeader>
-              <CardTitle>Tier pricing</CardTitle>
-              <CardDescription>
-                All prices are stored in cents/paise. The public pricing API
-                converts them for display.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {tiers.length === 0 ? (
-                <EmptyState
-                  icon={Sparkles}
-                  title="No tier pricing rows"
-                  description="Run the billing seed script to populate tier pricing before editing."
-                />
-              ) : (
-                <div className="overflow-x-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-28">Tier</TableHead>
-                        <TableHead>Monthly (cents)</TableHead>
-                        <TableHead>Patients</TableHead>
-                        <TableHead>Appointments</TableHead>
-                        <TableHead>Storage GB</TableHead>
-                        <TableHead>Users</TableHead>
-                        <TableHead>Patient overage</TableHead>
-                        <TableHead>Appt overage</TableHead>
-                        <TableHead>Rx overage</TableHead>
-                        <TableHead>Invoice overage</TableHead>
-                        <TableHead>OCR Overage</TableHead>
-                        <TableHead>API Overage</TableHead>
-                        <TableHead />
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {tiers.map((tier) => (
-                        <TableRow key={tier.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-medium text-xs">
-                                {tier.tier}
-                              </span>
-                              {tier.isDirty && (
-                                <Badge
-                                  variant="outline"
-                                  className="text-xs px-1 py-0 h-4"
-                                >
-                                  unsaved
-                                </Badge>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {numericField(
-                              tier.id,
-                              "monthlyBasePriceCents",
-                              tier.monthlyBasePriceCents,
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {numericField(
-                              tier.id,
-                              "includedPatients",
-                              tier.includedPatients,
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {numericField(
-                              tier.id,
-                              "includedAppointments",
-                              tier.includedAppointments,
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {numericField(
-                              tier.id,
-                              "includedStorageGB",
-                              tier.includedStorageGB,
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {numericField(
-                              tier.id,
-                              "includedUsers",
-                              tier.includedUsers,
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {numericField(
-                              tier.id,
-                              "overagePatientCents",
-                              tier.overagePatientCents,
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {numericField(
-                              tier.id,
-                              "overageAppointmentCents",
-                              tier.overageAppointmentCents,
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {numericField(
-                              tier.id,
-                              "overagePrescriptionCents",
-                              tier.overagePrescriptionCents,
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {numericField(
-                              tier.id,
-                              "overageInvoiceCents",
-                              tier.overageInvoiceCents,
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {numericField(
-                              tier.id,
-                              "overageOcrPageCents",
-                              tier.overageOcrPageCents,
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {numericField(
-                              tier.id,
-                              "overageApiCallCents",
-                              tier.overageApiCallCents,
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              size="sm"
-                              variant={tier.isDirty ? "default" : "outline"}
-                              className="h-7 gap-1 px-2 text-xs"
-                              disabled={savingId === tier.id || !tier.isDirty}
-                              onClick={() => saveTier(tier)}
-                            >
-                              {savingId === tier.id ? (
-                                <DocitaLoadingIndicator
-                                  variant="inline"
-                                  decorative
-                                  iconClassName="h-3 w-3"
-                                />
-                              ) : (
-                                <Save className="h-3 w-3" />
-                              )}
-                              Save
-                            </Button>
-                          </TableCell>
+          <TabsContent value="tiers">
+            <Card>
+              <CardHeader>
+                <CardTitle>Tier pricing</CardTitle>
+                <CardDescription>
+                  All prices are stored in cents/paise. The public pricing API
+                  converts them for display.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {tiers.length === 0 ? (
+                  <EmptyState
+                    icon={Sparkles}
+                    title="No tier pricing rows"
+                    description="Run the billing seed script to populate tier pricing before editing."
+                  />
+                ) : (
+                  <div className="overflow-x-hidden">
+                    <Table className="min-w-[96rem]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-28">Tier</TableHead>
+                          <TableHead>Monthly (cents)</TableHead>
+                          <TableHead>Patients</TableHead>
+                          <TableHead>Appointments</TableHead>
+                          <TableHead>Storage GB</TableHead>
+                          <TableHead>Users</TableHead>
+                          <TableHead>Patient overage</TableHead>
+                          <TableHead>Appt overage</TableHead>
+                          <TableHead>Rx overage</TableHead>
+                          <TableHead>Invoice overage</TableHead>
+                          <TableHead>OCR Overage</TableHead>
+                          <TableHead>API Overage</TableHead>
+                          <TableHead />
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+                      </TableHeader>
+                      <TableBody>
+                        {tiers.map((tier) => (
+                          <TableRow key={tier.id}>
+                            <TableCell>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-medium text-xs">
+                                  {tier.tier}
+                                </span>
+                                {tier.isDirty && (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs px-1 py-0 h-4"
+                                  >
+                                    unsaved
+                                  </Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {numericField(
+                                tier.id,
+                                "monthlyBasePriceCents",
+                                tier.monthlyBasePriceCents,
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {numericField(
+                                tier.id,
+                                "includedPatients",
+                                tier.includedPatients,
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {numericField(
+                                tier.id,
+                                "includedAppointments",
+                                tier.includedAppointments,
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {numericField(
+                                tier.id,
+                                "includedStorageGB",
+                                tier.includedStorageGB,
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {numericField(
+                                tier.id,
+                                "includedUsers",
+                                tier.includedUsers,
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {numericField(
+                                tier.id,
+                                "overagePatientCents",
+                                tier.overagePatientCents,
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {numericField(
+                                tier.id,
+                                "overageAppointmentCents",
+                                tier.overageAppointmentCents,
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {numericField(
+                                tier.id,
+                                "overagePrescriptionCents",
+                                tier.overagePrescriptionCents,
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {numericField(
+                                tier.id,
+                                "overageInvoiceCents",
+                                tier.overageInvoiceCents,
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {numericField(
+                                tier.id,
+                                "overageOcrPageCents",
+                                tier.overageOcrPageCents,
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {numericField(
+                                tier.id,
+                                "overageApiCallCents",
+                                tier.overageApiCallCents,
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                size="sm"
+                                variant={tier.isDirty ? "default" : "outline"}
+                                className="h-7 gap-1 px-2 text-xs"
+                                disabled={savingId === tier.id || !tier.isDirty}
+                                onClick={() => saveTier(tier)}
+                              >
+                                {savingId === tier.id ? (
+                                  <DocitaLoadingIndicator
+                                    variant="inline"
+                                    decorative
+                                    iconClassName="h-3 w-3"
+                                  />
+                                ) : (
+                                  <Save className="h-3 w-3" />
+                                )}
+                                Save
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        <TabsContent value="offers" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                Clinic Offer Builder
-              </CardTitle>
-              <CardDescription>
-                Grant special pricing to requested hospitals. The offer is
-                stored per clinic and applied automatically in checkout and
-                billing previews.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Quick offer templates</p>
-                <div className="flex flex-wrap gap-2">
-                  {OFFER_TEMPLATES.map((template) => (
-                    <Button
-                      key={template.key}
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8"
-                      onClick={() => applyTemplate(template)}
-                    >
-                      {template.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <TabsContent value="offers" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  Clinic Offer Builder
+                </CardTitle>
+                <CardDescription>
+                  Grant special pricing to requested hospitals. The offer is
+                  stored per clinic and applied automatically in checkout and
+                  billing previews.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Clinic</label>
-                  <select
-                    className="h-10 w-full rounded-md border bg-background px-3 text-sm"
-                    value={offerForm.clinicId}
-                    onChange={(e) =>
-                      setOfferForm((prev) => ({
-                        ...prev,
-                        clinicId: e.target.value,
-                      }))
-                    }
-                    disabled={isLoadingClinics}
-                  >
-                    <option value="">
-                      {isLoadingClinics ? "Loading" : "Facility"}
-                    </option>
-                    {clinicOptions.map((clinic) => (
-                      <option key={clinic.id} value={clinic.id}>
-                        {clinic.name}
-                      </option>
+                  <p className="text-sm font-medium">Quick offer templates</p>
+                  <div className="flex flex-wrap gap-2">
+                    {OFFER_TEMPLATES.map((template) => (
+                      <Button
+                        key={template.key}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8"
+                        onClick={() => applyTemplate(template)}
+                      >
+                        {template.label}
+                      </Button>
                     ))}
-                  </select>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Offer title</label>
-                  <Input
-                    value={offerForm.title}
-                    onChange={(e) =>
-                      setOfferForm((prev) => ({
-                        ...prev,
-                        title: e.target.value,
-                      }))
-                    }
-                    placeholder="Offer title"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Discount %</label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={offerForm.percentOff}
-                    onChange={(e) =>
-                      setOfferForm((prev) => ({
-                        ...prev,
-                        percentOff: parseInt(e.target.value, 10) || 0,
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Duration (months)
-                  </label>
-                  <Input
-                    type="number"
-                    min={1}
-                    value={offerForm.durationMonths}
-                    onChange={(e) =>
-                      setOfferForm((prev) => ({
-                        ...prev,
-                        durationMonths: parseInt(e.target.value, 10) || 0,
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Valid until</label>
-                  <DatePicker
-                    value={offerForm.validUntil || undefined}
-                    onChange={(date) =>
-                      setOfferForm((prev) => ({
-                        ...prev,
-                        validUntil: date?.toISOString().slice(0, 10) ?? "",
-                      }))
-                    }
-                    placeholder="Date"
-                  />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-medium">Description</label>
-                  <Input
-                    value={offerForm.description}
-                    onChange={(e) =>
-                      setOfferForm((prev) => ({
-                        ...prev,
-                        description: e.target.value,
-                      }))
-                    }
-                    placeholder="Description"
-                  />
-                </div>
-                <div className="space-y-2 md:col-span-3">
-                  <label className="text-sm font-medium">Internal notes</label>
-                  <Input
-                    value={offerForm.notes}
-                    onChange={(e) =>
-                      setOfferForm((prev) => ({
-                        ...prev,
-                        notes: e.target.value,
-                      }))
-                    }
-                    placeholder="Internal notes"
-                  />
-                </div>
-              </div>
 
-              <div className="flex items-center justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setOfferForm(DEFAULT_OFFER_FORM)}
-                >
-                  Reset
-                </Button>
-                <Button onClick={saveOffer} disabled={savingId !== null}>
-                  {savingId === offerForm.clinicId ? (
-                    <DocitaLoadingIndicator variant="inline" decorative />
-                  ) : (
-                    <Plus className="h-4 w-4" />
-                  )}
-                  Save Offer
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Active offers</CardTitle>
-              <CardDescription>
-                These offers are automatically applied to the next checkout
-                preview for each clinic.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {offers.length === 0 ? (
-                <EmptyState
-                  icon={Sparkles}
-                  title="No active offers"
-                  description="Create a facility-specific offer to apply at checkout preview."
-                />
-              ) : (
-                <div className="space-y-3">
-                  {offers.map((offer) => (
-                    <div
-                      key={offer.id}
-                      className="rounded-[var(--radius)] border border-border/70 bg-background p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Clinic</label>
+                    <Select
+                      value={offerForm.clinicId}
+                      onValueChange={(clinicId) =>
+                        setOfferForm((prev) => ({
+                          ...prev,
+                          clinicId,
+                        }))
+                      }
+                      disabled={isLoadingClinics}
                     >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">
-                            {offer.clinic?.name ?? offer.clinicId}
-                          </p>
-                          <Badge variant="outline">
-                            {offer.percentOff}% off
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {offer.title}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {offer.description}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {offer.durationMonths
-                            ? `${offer.durationMonths} month offer`
-                            : "No fixed duration"}{" "}
-                          {offer.validUntil
-                            ? ` • until ${offer.validUntil}`
-                            : ""}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deleteOffer(offer.clinicId)}
-                          disabled={savingId === offer.clinicId}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Remove
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                      <SelectTrigger aria-label="Clinic">
+                        <SelectValue
+                          placeholder={
+                            isLoadingClinics ? "Loading" : "Facility"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clinicOptions.map((clinic) => (
+                          <SelectItem key={clinic.id} value={clinic.id}>
+                            {clinic.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Offer title</label>
+                    <Input
+                      value={offerForm.title}
+                      onChange={(e) =>
+                        setOfferForm((prev) => ({
+                          ...prev,
+                          title: e.target.value,
+                        }))
+                      }
+                      placeholder="Offer title"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Discount %</label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={offerForm.percentOff}
+                      onChange={(e) =>
+                        setOfferForm((prev) => ({
+                          ...prev,
+                          percentOff: parseInt(e.target.value, 10) || 0,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Duration (months)
+                    </label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={offerForm.durationMonths}
+                      onChange={(e) =>
+                        setOfferForm((prev) => ({
+                          ...prev,
+                          durationMonths: parseInt(e.target.value, 10) || 0,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Valid until</label>
+                    <DatePicker
+                      value={offerForm.validUntil || undefined}
+                      onChange={(date) =>
+                        setOfferForm((prev) => ({
+                          ...prev,
+                          validUntil: date?.toISOString().slice(0, 10) ?? "",
+                        }))
+                      }
+                      placeholder="Date"
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-sm font-medium">Description</label>
+                    <Input
+                      value={offerForm.description}
+                      onChange={(e) =>
+                        setOfferForm((prev) => ({
+                          ...prev,
+                          description: e.target.value,
+                        }))
+                      }
+                      placeholder="Description"
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-3">
+                    <label className="text-sm font-medium">
+                      Internal notes
+                    </label>
+                    <Input
+                      value={offerForm.notes}
+                      onChange={(e) =>
+                        setOfferForm((prev) => ({
+                          ...prev,
+                          notes: e.target.value,
+                        }))
+                      }
+                      placeholder="Internal notes"
+                    />
+                  </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setOfferForm(DEFAULT_OFFER_FORM)}
+                  >
+                    Reset
+                  </Button>
+                  <Button onClick={saveOffer} disabled={savingId !== null}>
+                    {savingId === offerForm.clinicId ? (
+                      <DocitaLoadingIndicator variant="inline" decorative />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
+                    Save Offer
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Active offers</CardTitle>
+                <CardDescription>
+                  These offers are automatically applied to the next checkout
+                  preview for each clinic.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {offers.length === 0 ? (
+                  <EmptyState
+                    icon={Sparkles}
+                    title="No active offers"
+                    description="Create a facility-specific offer to apply at checkout preview."
+                  />
+                ) : (
+                  <div className="space-y-3">
+                    {offers.map((offer) => (
+                      <div
+                        key={offer.id}
+                        className="rounded-[var(--radius)] border border-border/70 bg-background p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">
+                              {offer.clinic?.name ?? offer.clinicId}
+                            </p>
+                            <Badge variant="outline">
+                              {offer.percentOff}% off
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {offer.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {offer.description}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {offer.durationMonths
+                              ? `${offer.durationMonths} month offer`
+                              : "No fixed duration"}{" "}
+                            {offer.validUntil
+                              ? ` • until ${offer.validUntil}`
+                              : ""}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => deleteOffer(offer.clinicId)}
+                            disabled={savingId === offer.clinicId}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </DataState>
     </AppPageScaffold>
   );

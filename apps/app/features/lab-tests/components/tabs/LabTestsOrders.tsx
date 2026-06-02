@@ -1,3 +1,4 @@
+import { getPatientFullName } from "@workspace/utils";
 import { FC } from "react";
 import {
   Card,
@@ -19,10 +20,7 @@ import {
 import { ListRow } from "@workspace/ui/components/data-display/list-row";
 
 import { LabTestOrder } from "@workspace/types";
-import {
-  DATE_FORMAT_OPTIONS_US_SHORT,
-  formatDate,
-} from "@/lib/formatters";
+import { DATE_FORMAT_OPTIONS_US_SHORT, formatDate } from "@/lib/formatters";
 
 interface LabTestsOrdersProps {
   isLoading: boolean;
@@ -43,9 +41,7 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
       header: "Patient",
       cell: (test) => (
         <span className="font-medium">
-          {test.patient
-            ? `${test.patient.firstName} ${test.patient.lastName}`
-            : "Unknown"}
+          {test.patient ? getPatientFullName(test.patient) : "Unknown"}
         </span>
       ),
     },
@@ -69,15 +65,16 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
       header: "Ordered By",
       hiddenOnMobile: true,
       cell: (test) => (
-        <span className="text-muted-foreground">{test.doctor?.name || "—"}</span>
+        <span className="text-muted-foreground">
+          {test.doctor?.name || "—"}
+        </span>
       ),
     },
     {
       id: "orderDate",
       header: "Order Date",
       hiddenOnMobile: true,
-      cell: (test) =>
-        formatDate(test.createdAt, DATE_FORMAT_OPTIONS_US_SHORT),
+      cell: (test) => formatDate(test.createdAt, DATE_FORMAT_OPTIONS_US_SHORT),
     },
     {
       id: "status",
@@ -162,9 +159,7 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
               mobileRenderer={(test) => (
                 <ListRow
                   title={
-                    test.patient
-                      ? `${test.patient.firstName} ${test.patient.lastName}`
-                      : "Unknown"
+                    test.patient ? getPatientFullName(test.patient) : "Unknown"
                   }
                   meta={[
                     test.labTest?.name || "—",
@@ -172,7 +167,10 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
                   ]
                     .filter(Boolean)
                     .join(" · ")}
-                  time={formatDate(test.createdAt, DATE_FORMAT_OPTIONS_US_SHORT)}
+                  time={formatDate(
+                    test.createdAt,
+                    DATE_FORMAT_OPTIONS_US_SHORT,
+                  )}
                   status={test.status}
                   showChevron={false}
                 />

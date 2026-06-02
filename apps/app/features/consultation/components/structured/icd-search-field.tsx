@@ -30,7 +30,9 @@ export function IcdSearchField({
   if (value) {
     return (
       <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/30 text-sm">
-        <span className="font-mono font-semibold text-primary">{value.code}</span>
+        <span className="font-mono font-semibold text-primary">
+          {value.code}
+        </span>
         <span className="text-muted-foreground truncate flex-1">
           {value.description}
         </span>

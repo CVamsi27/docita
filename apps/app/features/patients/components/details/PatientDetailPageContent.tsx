@@ -1,5 +1,6 @@
 "use client";
 
+import { getPatientFullName } from "@workspace/utils";
 import { Suspense } from "react";
 import { EditPatientDialog } from "@/features/patients/components/forms/dialogs/EditPatientDialog";
 import { PatientFaceSheetHeaderContainer as PatientFaceSheetHeader } from "@/features/patients/components/profile/PatientFaceSheetHeaderContainer";
@@ -120,7 +121,7 @@ export function PatientDetailPageContent({
         actions={
           <PatientHeaderActions
             patientId={patient.id}
-            patientName={`${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim() || "this patient"}
+            patientName={getPatientFullName(patient, "this patient")}
             appointments={appointments}
             canEditPatient={canEditPatient}
             canCreateAppointment={canCreateAppointment}

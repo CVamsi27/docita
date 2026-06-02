@@ -32,7 +32,9 @@ export default function GlobalError({
             padding: "24px",
           }}
         >
-          <div style={{ maxWidth: "576px", textAlign: "center", width: "100%" }}>
+          <div
+            style={{ maxWidth: "576px", textAlign: "center", width: "100%" }}
+          >
             <div
               role="presentation"
               aria-hidden="true"

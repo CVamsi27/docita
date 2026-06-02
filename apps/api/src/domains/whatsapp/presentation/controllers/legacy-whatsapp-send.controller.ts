@@ -4,6 +4,8 @@ import { ZodSerializerDto } from 'nestjs-zod';
 import {
   createMedicineReminderRequestSchema,
   createWhatsAppBroadcastRequestSchema,
+  sendWhatsAppCustomMessageRequestSchema,
+  type SendWhatsAppCustomMessageRequest,
 } from '@workspace/types';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
@@ -11,7 +13,10 @@ import {
   SendTemplateDto,
   sendTemplateSchema,
 } from '@/domains/whatsapp/presentation/dto/send-template.dto';
-import { WhatsappMessageResponseDto } from '@/domains/whatsapp/presentation/dto/whatsapp-response.dto';
+import {
+  SendWhatsappCustomMessageResponseDto,
+  WhatsappMessageResponseDto,
+} from '@/domains/whatsapp/presentation/dto/whatsapp-response.dto';
 import { LegacyWhatsappClinicAccess } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.access';
 import { requireClinicActor } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.helpers';
 
@@ -28,6 +33,17 @@ export class LegacyWhatsappSendController {
   async sendTemplateMessage(@Req() req: Request, @Body() dto: SendTemplateDto) {
     const { clinicId, id } = requireClinicActor(req);
     return this.whatsappService.handleSendTemplate(clinicId, id, dto);
+  }
+
+  @UsePipes(new ZodValidationPipe(sendWhatsAppCustomMessageRequestSchema))
+  @Post('send-custom')
+  @ZodSerializerDto(SendWhatsappCustomMessageResponseDto)
+  async sendCustomMessage(
+    @Req() req: Request,
+    @Body() dto: SendWhatsAppCustomMessageRequest,
+  ) {
+    const { clinicId, id } = requireClinicActor(req);
+    return this.whatsappService.handleSendCustomMessage(clinicId, id, dto);
   }
 
   @UsePipes(new ZodValidationPipe(createMedicineReminderRequestSchema))

@@ -1,8 +1,15 @@
 "use client";
 
 import { Lock } from "lucide-react";
-import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
-import { Card, CardContent, CardHeader } from "@workspace/ui/components/indicators/card";
+import {
+  Alert,
+  AlertDescription,
+} from "@workspace/ui/components/feedback/alert";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from "@workspace/ui/components/indicators/card";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { TurnstileWidget } from "@/features/public-booking/components/turnstile-widget";
@@ -92,9 +99,14 @@ export function PublicBookingTurnstileSection({
   }
 
   return (
-    <Card className={cn(bookingCardClass, bookingSectionShell, "flex flex-col")}>
+    <Card
+      className={cn(bookingCardClass, bookingSectionShell, "flex flex-col")}
+    >
       <CardHeader
-        className={cn(bookingSectionHeaderBar, compactHeader ? "py-3 sm:py-4" : "py-4 sm:py-5")}
+        className={cn(
+          bookingSectionHeaderBar,
+          compactHeader ? "py-3 sm:py-4" : "py-4 sm:py-5",
+        )}
       >
         <BookingSectionHeader
           icon={Lock}
@@ -105,15 +117,17 @@ export function PublicBookingTurnstileSection({
               <span aria-hidden className="font-semibold text-destructive">
                 *{" "}
               </span>
-              This protects the page from automated abuse. Your visit details stay
-              private.
+              This protects the page from automated abuse. Your visit details
+              stay private.
             </>
           }
           tone="neutral"
           variant={compactHeader ? "compact" : "full"}
         />
       </CardHeader>
-      <CardContent className="bg-muted/25 px-4 py-5 sm:px-6">{widget}</CardContent>
+      <CardContent className="bg-muted/25 px-4 py-5 sm:px-6">
+        {widget}
+      </CardContent>
     </Card>
   );
 }

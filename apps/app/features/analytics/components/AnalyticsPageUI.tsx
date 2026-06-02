@@ -15,10 +15,7 @@ import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
-import {
-  Feature,
-  FeatureGate,
-} from "@/components/auth/feature-gate";
+import { Feature, FeatureGate } from "@/components/auth/feature-gate";
 import type {
   AnalyticsOverview,
   AnalyticsTab,
@@ -128,7 +125,9 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
   const clinicCurrency = useClinicCurrency();
 
   if (isLoading) {
-    return <LoadingState message="Loading analytics…" className="min-h-[60vh]" />;
+    return (
+      <LoadingState message="Loading analytics…" className="min-h-[60vh]" />
+    );
   }
 
   if (isError) {

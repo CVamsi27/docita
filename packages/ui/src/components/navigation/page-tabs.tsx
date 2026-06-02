@@ -49,14 +49,14 @@ export function PageTabs({
   return (
     <div
       className={cn(
-        "max-md:-mx-4 max-md:px-4 max-md:overflow-x-auto max-md:overscroll-x-contain max-md:[scrollbar-width:thin]",
+        "overflow-x-auto overscroll-x-contain [scrollbar-width:thin] max-md:-mx-4 max-md:px-4",
         className,
       )}
     >
       <div
         role="tablist"
         aria-label={ariaLabel}
-        className="flex min-w-0 items-end gap-6 border-b border-border/60 max-md:w-max max-md:min-w-full max-md:gap-4"
+        className="flex w-max min-w-full items-end gap-6 border-b border-border/60 max-md:gap-4"
       >
         {items.map((item) => {
           const isActive = item.id === activeId;

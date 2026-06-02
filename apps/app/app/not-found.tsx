@@ -26,7 +26,12 @@ export default function NotFound() {
                 Go to workspace
               </Link>
             </Button>
-            <BackButton fallback="/login" label="Go back" variant="outline" size="default" />
+            <BackButton
+              fallback="/login"
+              label="Go back"
+              variant="outline"
+              size="default"
+            />
           </div>
         </CardContent>
       </Card>

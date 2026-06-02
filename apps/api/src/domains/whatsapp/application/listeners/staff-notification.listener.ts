@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
@@ -42,7 +43,7 @@ export class StaffNotificationListener {
       if (!invoice) return;
 
       const patientName = invoice.patient
-        ? `${invoice.patient.firstName} ${invoice.patient.lastName}`.trim()
+        ? getPatientFullName(invoice.patient).trim()
         : 'patient';
 
       await this.staffNotifications.notifyStaff({

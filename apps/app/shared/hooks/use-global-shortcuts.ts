@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export interface GlobalShortcutContext {
-
   isInConsultation: boolean;
   consultationId?: string;
 

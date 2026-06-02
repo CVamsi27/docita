@@ -109,7 +109,9 @@ export function ChiefComplaintInput({
             isListening={isListening && listeningIndex === index}
             isSupported={isSupported}
             onMicToggle={() => handleMicToggle(index)}
-            onUpdate={(field, fieldValue) => updateItem(index, field, fieldValue)}
+            onUpdate={(field, fieldValue) =>
+              updateItem(index, field, fieldValue)
+            }
             onRemove={() => removeItem(index)}
           />
         ))}
@@ -131,9 +133,12 @@ export function ChiefComplaintInput({
           <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <Activity className="h-4 w-4" />
           </div>
-          <p className="font-medium text-foreground">No chief complaints recorded</p>
+          <p className="font-medium text-foreground">
+            No chief complaints recorded
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            This consultation does not have a documented presenting complaint yet.
+            This consultation does not have a documented presenting complaint
+            yet.
           </p>
         </div>
       ) : null}

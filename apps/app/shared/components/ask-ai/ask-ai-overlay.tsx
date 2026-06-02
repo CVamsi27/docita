@@ -34,10 +34,7 @@ export function AskAiOverlay() {
 
   const scopeChip = (
     <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-[var(--fs-2xs)] font-medium text-muted-foreground">
-      <span
-        aria-hidden
-        className="size-1.5 shrink-0 rounded-full bg-primary"
-      />
+      <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-primary" />
       <span className="truncate">{overlay.scopeLabel}</span>
     </span>
   );
@@ -156,7 +153,10 @@ export function AskAiOverlay() {
                   role="alert"
                   className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-[var(--fs-xs)] text-destructive"
                 >
-                  <AlertCircle aria-hidden className="mt-0.5 size-3.5 shrink-0" />
+                  <AlertCircle
+                    aria-hidden
+                    className="mt-0.5 size-3.5 shrink-0"
+                  />
                   <span>{overlay.error}</span>
                 </div>
               ) : null}

@@ -7,7 +7,7 @@
 
 This runbook covers recovery from data-tier or region-level loss of:
 
-- **Postgres** (single primary in Render-managed Indian region; PITR up
+- **Postgres** (single primary in AWS RDS `ap-south-1`; PITR up
   to 7 days; nightly snapshots retained 30 days).
 - **Cloudflare R2** (multi-region; documents and PHI attachments).
 - **Fly.io** (API and worker; multiple machines per region).
@@ -57,11 +57,13 @@ Document the drill outcome in `docs/operations/dr-drills/YYYY-QN.md`.
 
 1. **Page**: confirm the incident commander has acknowledged.
 2. **Snapshot the current state** so the failed primary can be inspected
-   later: `fly postgres ssh <app>` + `pg_dump` to local volume (skip if
-   primary is unreachable).
+   later: `aws rds create-db-snapshot --db-instance-identifier <prod-rds> --db-snapshot-identifier <incident-snapshot>` (skip if the primary is unreachable).
 3. **Provision a restore target**:
    ```
-   render postgres restore --service <prod-pg> --target <restore-pg> --pitr <ISO timestamp>
+   aws rds restore-db-instance-to-point-in-time \
+     --source-db-instance-identifier <prod-rds> \
+     --target-db-instance-identifier <restore-rds> \
+     --restore-time <ISO timestamp>
    ```
 4. **Verify**: connect with `psql`, run `SELECT count(*) FROM clinic;` and
    compare to last-known-good metrics.
@@ -77,8 +79,8 @@ Document the drill outcome in `docs/operations/dr-drills/YYYY-QN.md`.
 Used when PITR is unavailable (e.g., the restore target only retains
 daily snapshots).
 
-1. **Pick the most recent snapshot before the incident** from the Render
-   dashboard or `render postgres list-snapshots`.
+1. **Pick the most recent snapshot before the incident** from the RDS
+   console or `aws rds describe-db-snapshots --db-instance-identifier <prod-rds>`.
 2. Provision a new Postgres from that snapshot.
 3. Apply pending migrations: `pnpm --filter @workspace/db run db:migrate:safe`.
 4. Compare row counts on critical tables (`User`, `Clinic`, `Patient`,

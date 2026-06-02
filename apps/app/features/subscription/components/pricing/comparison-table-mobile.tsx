@@ -94,7 +94,9 @@ export function ComparisonTableMobile({
                 <p
                   className={cn(
                     "shrink-0 text-right text-[var(--fs-sm)] font-medium tabular-nums whitespace-nowrap",
-                    limitBlocked ? "text-muted-foreground/40" : "text-foreground",
+                    limitBlocked
+                      ? "text-muted-foreground/40"
+                      : "text-foreground",
                   )}
                 >
                   {limitBlocked ? "—" : String(row.values[validCurrentTier])}

@@ -171,7 +171,10 @@ export default function ProtectedLayout({
         // Entering consultation detail: collapse sidebar
         sidebarPanelRef.current?.collapse();
         setIsCollapsed(true);
-      } else if (!isConsultationDetailRoute && wasConsultationAutoCollapseRoute) {
+      } else if (
+        !isConsultationDetailRoute &&
+        wasConsultationAutoCollapseRoute
+      ) {
         // Leaving consultation detail: expand sidebar
         sidebarPanelRef.current?.expand();
         setIsCollapsed(false);
@@ -212,10 +215,7 @@ export default function ProtectedLayout({
           <Skeleton className="h-8 w-32" />
           <div className="flex flex-col gap-2 mt-4">
             {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton
-                key={i}
-                className="h-9 w-full rounded-md"
-              />
+              <Skeleton key={i} className="h-9 w-full rounded-md" />
             ))}
           </div>
         </div>
@@ -228,10 +228,7 @@ export default function ProtectedLayout({
             <Skeleton className="h-8 w-48" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton
-                  key={i}
-                  className="h-28 rounded-lg"
-                />
+                <Skeleton key={i} className="h-28 rounded-lg" />
               ))}
             </div>
             <Skeleton className="h-64 rounded-lg" />
@@ -263,100 +260,108 @@ export default function ProtectedLayout({
     <RealtimeProviders>
       <ClinicProvider>
         <FeatureFlagsProvider>
-        <DoctorVerificationGuard>
-          <SubscriptionGuard>
-            <PageAccessGuard>
-             <AskAiProvider>
-              <div className="flex h-screen overflow-hidden bg-background">
-                <ResizablePanelGroup direction="horizontal">
-                  <ResizablePanel
-                    ref={sidebarPanelRef}
-                    defaultSize={18}
-                    minSize={15}
-                    maxSize={25}
-                    className="hidden md:block"
-                    collapsible={true}
-                    collapsedSize={4}
-                    onCollapse={() => setIsCollapsed(true)}
-                    onExpand={() => setIsCollapsed(false)}
-                    style={{
-                      transition: isDragging
-                        ? "none"
-                        : "flex 220ms cubic-bezier(0.16, 1, 0.3, 1)",
-                    }}
-                  >
-                    <Sidebar
-                      isCollapsed={isCollapsed}
-                      onCollapsedChange={(collapsed) => {
-                        setIsCollapsed(collapsed);
-                        if (collapsed) {
-                          sidebarPanelRef.current?.collapse();
-                        } else {
-                          sidebarPanelRef.current?.expand();
-                        }
-                      }}
-                      mobileOpen={mobileOpen}
-                      onMobileOpenChange={setMobileOpen}
-                    />
-                  </ResizablePanel>
-                  <div className="relative hidden md:flex overflow-visible">
-                    <ResizableHandle onDragging={setIsDragging} />
-                    <SymbolTooltip
-                      label={
-                        isCollapsed ? "Expand sidebar" : "Collapse sidebar"
-                      }
-                      side="right"
-                    >
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-7 left-1/2 z-30 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-0 bg-transparent p-0 text-muted-foreground shadow-none transition-colors hover:cursor-pointer hover:bg-muted/70 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const next = !isCollapsed;
-                          setIsCollapsed(next);
-                          if (next) {
-                            sidebarPanelRef.current?.collapse();
-                          } else {
-                            sidebarPanelRef.current?.expand();
-                          }
+          <DoctorVerificationGuard>
+            <SubscriptionGuard>
+              <PageAccessGuard>
+                <AskAiProvider>
+                  <div className="flex h-screen overflow-hidden bg-background">
+                    <ResizablePanelGroup direction="horizontal">
+                      <ResizablePanel
+                        ref={sidebarPanelRef}
+                        defaultSize={18}
+                        minSize={15}
+                        maxSize={25}
+                        className="hidden md:block"
+                        collapsible={true}
+                        collapsedSize={4}
+                        onCollapse={() => setIsCollapsed(true)}
+                        onExpand={() => setIsCollapsed(false)}
+                        style={{
+                          transition: isDragging
+                            ? "none"
+                            : "flex 220ms cubic-bezier(0.16, 1, 0.3, 1)",
                         }}
-                        aria-label={
-                          isCollapsed ? "Expand sidebar" : "Collapse sidebar"
-                        }
                       >
-                        {isCollapsed ? (
-                          <PanelLeftOpen className="h-3 w-3 shrink-0" />
-                        ) : (
-                          <PanelLeftClose className="h-3 w-3 shrink-0" />
-                        )}
-                      </Button>
-                    </SymbolTooltip>
+                        <Sidebar
+                          isCollapsed={isCollapsed}
+                          onCollapsedChange={(collapsed) => {
+                            setIsCollapsed(collapsed);
+                            if (collapsed) {
+                              sidebarPanelRef.current?.collapse();
+                            } else {
+                              sidebarPanelRef.current?.expand();
+                            }
+                          }}
+                          mobileOpen={mobileOpen}
+                          onMobileOpenChange={setMobileOpen}
+                        />
+                      </ResizablePanel>
+                      <div className="relative hidden md:flex overflow-visible">
+                        <ResizableHandle onDragging={setIsDragging} />
+                        <SymbolTooltip
+                          label={
+                            isCollapsed ? "Expand sidebar" : "Collapse sidebar"
+                          }
+                          side="right"
+                        >
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-7 left-1/2 z-30 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-0 bg-transparent p-0 text-muted-foreground shadow-none transition-colors hover:cursor-pointer hover:bg-muted/70 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const next = !isCollapsed;
+                              setIsCollapsed(next);
+                              if (next) {
+                                sidebarPanelRef.current?.collapse();
+                              } else {
+                                sidebarPanelRef.current?.expand();
+                              }
+                            }}
+                            aria-label={
+                              isCollapsed
+                                ? "Expand sidebar"
+                                : "Collapse sidebar"
+                            }
+                          >
+                            {isCollapsed ? (
+                              <PanelLeftOpen className="h-3 w-3 shrink-0" />
+                            ) : (
+                              <PanelLeftClose className="h-3 w-3 shrink-0" />
+                            )}
+                          </Button>
+                        </SymbolTooltip>
+                      </div>
+                      <ResizablePanel defaultSize={82}>
+                        <div className="flex h-full flex-col overflow-hidden">
+                          <MobileHeader
+                            onMenuClick={() => setMobileOpen(true)}
+                          />
+                          {!isConsultationDetailRoute ? (
+                            <DesktopTopBar />
+                          ) : null}
+                          {!isConsultationDetailRoute ? (
+                            <SubscriptionLockNotice />
+                          ) : null}
+                          <ProtectedMainArea
+                            isConsultationDetailRoute={
+                              isConsultationDetailRoute
+                            }
+                            onMore={() => setMobileOpen(true)}
+                          >
+                            {children}
+                          </ProtectedMainArea>
+                        </div>
+                      </ResizablePanel>
+                    </ResizablePanelGroup>
                   </div>
-                  <ResizablePanel defaultSize={82}>
-                    <div className="flex h-full flex-col overflow-hidden">
-                      <MobileHeader onMenuClick={() => setMobileOpen(true)} />
-                      {!isConsultationDetailRoute ? <DesktopTopBar /> : null}
-                      {!isConsultationDetailRoute ? (
-                        <SubscriptionLockNotice />
-                      ) : null}
-                      <ProtectedMainArea
-                        isConsultationDetailRoute={isConsultationDetailRoute}
-                        onMore={() => setMobileOpen(true)}
-                      >
-                        {children}
-                      </ProtectedMainArea>
-                    </div>
-                  </ResizablePanel>
-                </ResizablePanelGroup>
-              </div>
-              <FloatingStartConsultation />
-              <CommandPalette />
-              <AskAiOverlay />
-             </AskAiProvider>
-            </PageAccessGuard>
-          </SubscriptionGuard>
-        </DoctorVerificationGuard>
+                  <FloatingStartConsultation />
+                  <CommandPalette />
+                  <AskAiOverlay />
+                </AskAiProvider>
+              </PageAccessGuard>
+            </SubscriptionGuard>
+          </DoctorVerificationGuard>
         </FeatureFlagsProvider>
       </ClinicProvider>
     </RealtimeProviders>

@@ -154,8 +154,8 @@ async function waitForDatabase(
         return;
       }
 
-      // Exponential backoff capped at 8s — keeps sending connections which
-      // is exactly what wakes a Neon free-plan compute from cold start.
+      // Exponential backoff capped at 8s tolerates transient managed-database
+      // startup and network readiness delays without stalling bootstrap.
       const delay = Math.min(BASE_DELAY_MS * 2 ** (attempt - 1), 8_000);
       logger.warn(
         `Dependency check: database not ready (attempt ${attempt}/${MAX_ATTEMPTS}), retrying in ${delay}ms...`,

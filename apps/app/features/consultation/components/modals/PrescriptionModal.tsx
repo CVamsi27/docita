@@ -21,7 +21,9 @@ import { Pill, Plus, RotateCcw, X } from "lucide-react";
 import { ApiError } from "@/lib/errors";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
-const getPrescriptionComplianceErrorMessage = (error: unknown): string | null => {
+const getPrescriptionComplianceErrorMessage = (
+  error: unknown,
+): string | null => {
   if (!(error instanceof ApiError)) {
     return null;
   }
@@ -143,7 +145,6 @@ export function PrescriptionModal({
         complianceMessage ||
           "We could not create this prescription. Please try again.",
       );
-
     }
   };
 
@@ -173,7 +174,6 @@ export function PrescriptionModal({
 
   const removeMedication = (index: number) => {
     if (medications.length === 1) {
-
       setMedications([
         {
           name: "",

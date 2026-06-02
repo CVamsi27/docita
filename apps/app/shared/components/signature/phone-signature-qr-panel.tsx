@@ -89,7 +89,11 @@ export function PhoneSignatureQrPanel({
 
       {loading ? (
         <div className="flex items-center justify-center py-8 gap-2 text-sm text-muted-foreground">
-          <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-5 w-5" />
+          <DocitaLoadingIndicator
+            variant="inline"
+            decorative
+            iconClassName="h-5 w-5"
+          />
           Generating QR code…
         </div>
       ) : null}
@@ -110,7 +114,11 @@ export function PhoneSignatureQrPanel({
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             {polling ? (
               <>
-                <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-3.5 w-3.5" />
+                <DocitaLoadingIndicator
+                  variant="inline"
+                  decorative
+                  iconClassName="h-3.5 w-3.5"
+                />
                 {waitingText}
               </>
             ) : (

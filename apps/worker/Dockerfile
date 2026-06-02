@@ -41,6 +41,7 @@ RUN apk add --no-cache dumb-init curl && \
     npm install -g pnpm@10.30.3
 
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages/auth/node_modules ./packages/auth/node_modules
 COPY --from=deps /app/packages/db/node_modules ./packages/db/node_modules
 COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
 COPY --from=deps /app/packages/utils/node_modules ./packages/utils/node_modules
@@ -48,6 +49,7 @@ COPY --from=deps /app/apps/worker/node_modules ./apps/worker/node_modules
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY packages/auth/package.json ./packages/auth/
 COPY packages/db/package.json ./packages/db/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
 COPY packages/types/package.json ./packages/types/
@@ -56,13 +58,15 @@ COPY packages/utils/package.json ./packages/utils/
 COPY apps/api/package.json ./apps/api/
 COPY apps/worker/package.json ./apps/worker/
 
+COPY --from=deps --chown=nodejs:nodejs /app/packages/auth/dist ./packages/auth/dist
 COPY --from=deps --chown=nodejs:nodejs /app/packages/db/dist ./packages/db/dist
 COPY --from=deps --chown=nodejs:nodejs /app/packages/types/dist ./packages/types/dist
 COPY --from=deps --chown=nodejs:nodejs /app/packages/utils/dist ./packages/utils/dist
 COPY --from=deps --chown=nodejs:nodejs /app/apps/worker/dist ./apps/worker/dist
 
 RUN mkdir -p /app/node_modules/@workspace && \
-    rm -rf /app/node_modules/@workspace/db && \
+    rm -rf /app/node_modules/@workspace/auth /app/node_modules/@workspace/db && \
+    cp -R /app/packages/auth/dist /app/node_modules/@workspace/auth && \
     cp -R /app/packages/db/dist /app/node_modules/@workspace/db && \
     ln -s /app/apps/worker/dist /app/dist
 

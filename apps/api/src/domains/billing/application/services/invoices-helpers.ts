@@ -4,6 +4,9 @@ import {
   invoiceTaxSummarySchema,
   taxRegistrationSnapshotSchema,
   taxSettingsSchema,
+  DEFAULT_TAX_COUNTRY_CODE,
+  DEFAULT_TAX_REGIME,
+  extractStateCodeFromGstin,
   type InvoiceItem,
   type InvoiceTaxSummary,
   type JsonValue,
@@ -11,6 +14,7 @@ import {
   type TaxSettings,
 } from '@workspace/types';
 import { toPrismaJson } from '@/domains/billing/core/utils/invoice-normalization';
+import { getClinicGstin } from '@workspace/utils';
 import {
   validateHospitalRole,
   validateSpecialization,
@@ -19,7 +23,6 @@ import {
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 export const CURRENT_PDF_TEMPLATE_VERSION = 1;
-export const PDF_SIGNED_URL_TTL_SECONDS = 3600;
 export const DEFAULT_INVOICE_DUE_DAYS = 30;
 
 // ── JSON helpers ───────────────────────────────────────────────────────────────
@@ -51,8 +54,8 @@ export const parseTaxSettings = (
     : undefined;
 
   return taxSettingsSchema.parse({
-    countryCode: 'IN',
-    regime: 'IN_GST',
+    countryCode: DEFAULT_TAX_COUNTRY_CODE,
+    regime: DEFAULT_TAX_REGIME,
     registrationId: readJsonString(settingsObject, 'gstin'),
     ...taxSettingsObject,
   });
@@ -72,37 +75,18 @@ export const parseInvoiceTaxSummary = (
   return parsed.success ? parsed.data : undefined;
 };
 
-export const extractGstinStateCode = (gstin?: string): string | undefined => {
-  const stateCode = gstin?.slice(0, 2);
-  return stateCode && /^\d{2}$/.test(stateCode) ? stateCode : undefined;
-};
+export const extractGstinStateCode = extractStateCodeFromGstin;
 
 export const extractClinicGstin = (
   clinic:
     | {
-        gstin?: string | null;
         settings?: JsonValue | null;
       }
     | null
     | undefined,
 ): string | undefined => {
   if (!clinic) return undefined;
-  if (clinic.gstin) return clinic.gstin;
-
-  const settings = clinic.settings;
-  if (!isJsonObject(settings)) {
-    return undefined;
-  }
-
-  const gstin = readJsonString(settings, 'gstin');
-  if (gstin) {
-    return gstin;
-  }
-
-  const taxSettings = isJsonObject(settings.taxSettings)
-    ? settings.taxSettings
-    : undefined;
-  return readJsonString(taxSettings, 'registrationId');
+  return getClinicGstin(clinic.settings);
 };
 
 // ── Invoice item helpers ───────────────────────────────────────────────────────

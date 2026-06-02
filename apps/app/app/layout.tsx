@@ -8,6 +8,7 @@ import { DataAccessBridge } from "@/providers/data-access-bridge";
 import { SentryInitializer } from "@/components/monitoring/sentry-initializer";
 import { ClientErrorReporter } from "@/components/monitoring/client-error-reporter";
 import { WebVitalsReporter } from "@/components/layout/web-vitals-reporter";
+import { ApiAvailabilityOverlay } from "@/components/feedback/api-availability-overlay";
 
 export const metadata = {
   title: "Docita - Healthcare OS",
@@ -59,6 +60,7 @@ export default async function RootLayout({
             <DataAccessBridge>
               <Providers nonce={nonce}>
                 {children}
+                <ApiAvailabilityOverlay />
                 <ToasterWrapper />
               </Providers>
             </DataAccessBridge>

@@ -7,6 +7,7 @@ import {
   formatTime,
   DATE_FORMATS,
   DEFAULT_TIMEZONE,
+  getPatientFullName,
 } from '@workspace/utils';
 import type {
   AppointmentContext,
@@ -29,7 +30,7 @@ export class PatientResponseConfirmationService {
     delayContext: DelayContext,
   ): Promise<void> {
     const variables: Record<string, string> = {
-      patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
+      patientName: getPatientFullName(appointment.patient),
       clinicName: appointment.clinic.name,
       date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM, {
         timezone: DEFAULT_TIMEZONE,

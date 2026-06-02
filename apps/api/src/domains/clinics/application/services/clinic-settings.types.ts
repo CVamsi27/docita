@@ -1,3 +1,5 @@
+import type { TaxRegime } from '@workspace/types';
+
 export interface ClinicSettingsData {
   name?: string;
   address?: string;
@@ -59,6 +61,8 @@ export interface ClinicSettingsData {
   mapsLink?: string;
   brandName?: string;
   lockedTheme?: LockedThemeSettings;
+  opdSlipRevisitValidityDays?: number;
+  opdSlipFooterNote?: string;
 }
 
 interface BankAccountSettings {
@@ -71,10 +75,13 @@ interface BankAccountSettings {
 }
 
 interface TaxSettingsData {
-  countryCode: string;
-  regime?: 'IN_GST' | 'VAT' | 'SALES_TAX' | 'NONE';
+  countryCode?: string;
+  regime?: TaxRegime;
   registrationId?: string;
   registrationLabel?: string;
+  legalName?: string;
+  stateCode?: string;
+  stateName?: string;
 }
 
 interface LockedThemeSettings {

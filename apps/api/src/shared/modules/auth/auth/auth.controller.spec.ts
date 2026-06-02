@@ -64,6 +64,7 @@ describe('Auth controllers', () => {
   const mockApiKeyService = {
     createApiKey: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     listApiKeys: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    rotateApiKey: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     revokeApiKey: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
@@ -658,8 +659,9 @@ describe('Auth controllers', () => {
       );
     });
 
-    it('lists and revokes API keys for clinic users', async () => {
+    it('lists, rotates, and revokes API keys for clinic users', async () => {
       mockApiKeyService.listApiKeys.mockResolvedValue([{ id: 'key-1' }]);
+      mockApiKeyService.rotateApiKey.mockResolvedValue({ id: 'key-2' });
       mockApiKeyService.revokeApiKey.mockResolvedValue(undefined);
 
       await expect(
@@ -670,6 +672,15 @@ describe('Auth controllers', () => {
         ),
       ).resolves.toEqual([{ id: 'key-1' }]);
       await expect(
+        apiKeysController.rotateApiKey(
+          createAuthenticatedRequest({
+            user: { ...defaultAuthenticatedUser, clinicId: 'clinic-1' },
+          }),
+          'key-1',
+          { overlapMinutes: 30 },
+        ),
+      ).resolves.toEqual({ id: 'key-2' });
+      await expect(
         apiKeysController.revokeApiKey(
           createAuthenticatedRequest({
             user: { ...defaultAuthenticatedUser, clinicId: 'clinic-1' },
@@ -678,6 +689,12 @@ describe('Auth controllers', () => {
         ),
       ).resolves.toEqual({ message: 'API key revoked successfully' });
       expect(mockApiKeyService.listApiKeys).toHaveBeenCalledWith('clinic-1');
+      expect(mockApiKeyService.rotateApiKey).toHaveBeenCalledWith(
+        'key-1',
+        'clinic-1',
+        'user-1',
+        30,
+      );
       expect(mockApiKeyService.revokeApiKey).toHaveBeenCalledWith(
         'key-1',
         'clinic-1',
@@ -698,6 +715,9 @@ describe('Auth controllers', () => {
       await expect(apiKeysController.listApiKeys(request)).rejects.toThrow(
         BadRequestException,
       );
+      await expect(
+        apiKeysController.rotateApiKey(request, 'id', { overlapMinutes: 60 }),
+      ).rejects.toThrow(BadRequestException);
       await expect(
         apiKeysController.revokeApiKey(request, 'id'),
       ).rejects.toThrow(BadRequestException);

@@ -60,7 +60,11 @@ export function SaveStatusChip({ className }: SaveStatusChipProps) {
       )}
     >
       {saveState === "saving" ? (
-        <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-3 w-3" />
+        <DocitaLoadingIndicator
+          variant="inline"
+          decorative
+          iconClassName="h-3 w-3"
+        />
       ) : saveState === "error" ? (
         <AlertTriangle className="h-3 w-3" aria-hidden="true" />
       ) : saveState === "dirty" ? (

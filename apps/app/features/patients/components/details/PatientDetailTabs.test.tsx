@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -66,17 +66,19 @@ describe("PatientDetailTabs", () => {
     mocks.searchParams = new URLSearchParams();
   });
 
-  it("ships with three top-level tabs after overview consolidation", () => {
+  it("ships with summary as the first top-level tab", () => {
     expect(PATIENT_DETAIL_TAB_VALUES).toEqual([
+      "summary",
       "visits",
       "records",
       "billing",
+      "communication",
     ]);
   });
 
-  it("retired tabs map to records sub-tabs and overview redirects to visits", () => {
+  it("retired tabs map to records sub-tabs and overview redirects to summary", () => {
     expect(LEGACY_PATIENT_TAB_REDIRECTS).toEqual({
-      overview: { tab: "visits" },
+      overview: { tab: "summary" },
       vitals: { tab: "records", subtab: "vitals" },
       prescriptions: { tab: "records", subtab: "prescriptions" },
       labs: { tab: "records", subtab: "labs" },
@@ -93,19 +95,39 @@ describe("PatientDetailTabs", () => {
     expect(
       screen.getByTestId("patient-clinical-chart-summary"),
     ).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Summary" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
     expect(screen.getByRole("tab", { name: "Visits" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Records" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Billing" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Messages" })).toBeInTheDocument();
   });
 
-  it("rewrites legacy ?tab=overview to visits", () => {
+  it("rewrites legacy ?tab=overview to summary", () => {
     mocks.searchParams = new URLSearchParams("tab=overview");
     render(<PatientDetailTabs {...baseProps} />);
 
     expect(mocks.router.replace).toHaveBeenCalledWith(
+      "/patients/p-1?tab=summary",
+      { scroll: false },
+    );
+  });
+
+  it("keeps visits explicit in the URL and summary implicit", () => {
+    render(<PatientDetailTabs {...baseProps} />);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Visits" }));
+    expect(mocks.router.replace).toHaveBeenLastCalledWith(
       "/patients/p-1?tab=visits",
       { scroll: false },
     );
+
+    fireEvent.click(screen.getByRole("tab", { name: "Summary" }));
+    expect(mocks.router.replace).toHaveBeenLastCalledWith("/patients/p-1", {
+      scroll: false,
+    });
   });
 
   it("rewrites legacy ?tab=vitals to records?subtab=vitals", () => {
@@ -144,10 +166,15 @@ describe("PatientDetailTabs", () => {
     expect(screen.getByRole("tab", { name: "Documents" })).toBeInTheDocument();
   });
 
-  // it("shows the communication tab content when active", () => {
-  //   mocks.searchParams = new URLSearchParams("tab=communication");
-  //   render(<PatientDetailTabs {...baseProps} />);
+  it("keeps trailing records sub-tabs reachable through URL state", () => {
+    mocks.searchParams = new URLSearchParams("tab=records");
+    render(<PatientDetailTabs {...baseProps} />);
 
-  //   expect(screen.getByTestId("patient-communication-tab")).toBeInTheDocument();
-  // });
+    fireEvent.click(screen.getByRole("tab", { name: "Documents" }));
+
+    expect(mocks.router.replace).toHaveBeenCalledWith(
+      "/patients/p-1?tab=records&subtab=documents",
+      { scroll: false },
+    );
+  });
 });

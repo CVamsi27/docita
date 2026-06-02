@@ -1,5 +1,7 @@
 "use client";
 
+import { getPatientFullName } from "@workspace/utils";
+
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/form/button";
@@ -30,8 +32,7 @@ export function FloatingStartConsultation({
   const router = useRouter();
   const { canStartConsultation } = usePermissions();
   const { user } = useAuth();
-  const { canAccess, currentTier, hasIntelligence } =
-    usePermissionStore();
+  const { canAccess, currentTier, hasIntelligence } = usePermissionStore();
   const startConsultation = useStartConsultation();
   const [isMinimized, setIsMinimized] = useState(minimized);
   const canAccessQueueApi = canAccessTarget(
@@ -76,10 +77,9 @@ export function FloatingStartConsultation({
 
   const resolvedAppointmentId = appointmentId ?? queueCandidate?.appointmentId;
   const resolvedPatientId = patientId ?? queueCandidate?.patientId;
-  const patientName =
-    queueCandidate?.patient
-      ? `${queueCandidate.patient.firstName} ${queueCandidate.patient.lastName}`
-      : null;
+  const patientName = queueCandidate?.patient
+    ? getPatientFullName(queueCandidate.patient)
+    : null;
   const isResumeFlow =
     queueCandidate?.status?.toUpperCase() === "IN_PROGRESS" && !appointmentId;
 

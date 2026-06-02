@@ -65,7 +65,9 @@ export function InventoryItemDetailsContainer({
         purchasePrice: Number(rawData.purchasePrice || 0),
         sellingPrice: Number(rawData.sellingPrice || 0),
         expiryDate:
-          typeof rawData.expiryDate === "string" ? rawData.expiryDate : undefined,
+          typeof rawData.expiryDate === "string"
+            ? rawData.expiryDate
+            : undefined,
         movements,
       }
     : null;

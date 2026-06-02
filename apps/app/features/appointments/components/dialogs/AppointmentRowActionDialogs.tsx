@@ -13,9 +13,11 @@ const CancelAppointmentDialog = dynamicImport(
 
 const ConfirmationDialog = dynamicImport(
   () =>
-    import("@workspace/ui/components/overlay/confirmation-dialog").then((m) => ({
-      default: m.ConfirmationDialog,
-    })),
+    import("@workspace/ui/components/overlay/confirmation-dialog").then(
+      (m) => ({
+        default: m.ConfirmationDialog,
+      }),
+    ),
   { ssr: false },
 );
 

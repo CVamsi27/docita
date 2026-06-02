@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { calculateBMI, getBMICategory } from "@workspace/utils";
+import { calculateBMI, getBMICategory, getBMIStatus } from "@workspace/utils";
 
 export function useMedicalCalculations(weight?: number, height?: number) {
   const bmi = useMemo(() => {
@@ -23,10 +23,7 @@ export function useMedicalCalculations(weight?: number, height?: number) {
     | "obese"
     | undefined => {
     if (bmi === undefined) return undefined;
-    if (bmi < 18.5) return "underweight";
-    if (bmi < 25) return "normal";
-    if (bmi < 30) return "overweight";
-    return "obese";
+    return getBMIStatus(bmi);
   }, [bmi]);
 
   return {

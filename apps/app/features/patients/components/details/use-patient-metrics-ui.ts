@@ -18,10 +18,7 @@ import {
   type MetricValueType,
 } from "./patient-metrics-history-helpers";
 
-export function usePatientMetricsUI(
-  patientId: string,
-  categoryKey?: string,
-) {
+export function usePatientMetricsUI(patientId: string, categoryKey?: string) {
   const { data: categoriesData, isLoading: loadingCategories } =
     usePatientMetricCategories(patientId);
   const { data: historyData, isLoading: loadingHistory } =
@@ -70,12 +67,22 @@ export function usePatientMetricsUI(
     if (!newCategoryKey.trim() || !newCategoryName.trim()) return;
     createCategory.mutate(
       { key: newCategoryKey.trim(), name: newCategoryName.trim() },
-      { onSuccess: () => { setNewCategoryKey(""); setNewCategoryName(""); } },
+      {
+        onSuccess: () => {
+          setNewCategoryKey("");
+          setNewCategoryName("");
+        },
+      },
     );
   };
 
   const onAddDefinition = () => {
-    if (!definitionCategoryId || !newDefinitionKey.trim() || !newDefinitionLabel.trim()) return;
+    if (
+      !definitionCategoryId ||
+      !newDefinitionKey.trim() ||
+      !newDefinitionLabel.trim()
+    )
+      return;
     createDefinition.mutate(
       {
         categoryId: definitionCategoryId,
@@ -103,22 +110,36 @@ export function usePatientMetricsUI(
 
   const onRecordValue = () => {
     if (!valueDefinitionId || !valueInput.trim()) return;
-    const definition = flatDefinitions.find((item) => item.id === valueDefinitionId);
+    const definition = flatDefinitions.find(
+      (item) => item.id === valueDefinitionId,
+    );
     if (!definition) return;
 
     if (definition.valueType === "NUMBER") {
       const numberValue = Number(valueInput);
       if (!Number.isFinite(numberValue)) return;
-      recordValue.mutate({ definitionId: valueDefinitionId, valueNumber: numberValue, source: "MANUAL" });
+      recordValue.mutate({
+        definitionId: valueDefinitionId,
+        valueNumber: numberValue,
+        source: "MANUAL",
+      });
       setValueInput("");
       return;
     }
     if (definition.valueType === "BOOLEAN") {
-      recordValue.mutate({ definitionId: valueDefinitionId, valueBoolean: valueInput.toLowerCase() === "true", source: "MANUAL" });
+      recordValue.mutate({
+        definitionId: valueDefinitionId,
+        valueBoolean: valueInput.toLowerCase() === "true",
+        source: "MANUAL",
+      });
       setValueInput("");
       return;
     }
-    recordValue.mutate({ definitionId: valueDefinitionId, valueString: valueInput, source: "MANUAL" });
+    recordValue.mutate({
+      definitionId: valueDefinitionId,
+      valueString: valueInput,
+      source: "MANUAL",
+    });
     setValueInput("");
   };
 
@@ -134,16 +155,26 @@ export function usePatientMetricsUI(
     createDefinition,
     updateSelections,
     recordValue,
-    newCategoryKey, setNewCategoryKey,
-    newCategoryName, setNewCategoryName,
-    definitionCategoryId, setDefinitionCategoryId,
-    newDefinitionKey, setNewDefinitionKey,
-    newDefinitionLabel, setNewDefinitionLabel,
-    newDefinitionType, setNewDefinitionType,
-    newDefinitionUnit, setNewDefinitionUnit,
-    newDefinitionTracked, setNewDefinitionTracked,
-    valueDefinitionId, setValueDefinitionId,
-    valueInput, setValueInput,
+    newCategoryKey,
+    setNewCategoryKey,
+    newCategoryName,
+    setNewCategoryName,
+    definitionCategoryId,
+    setDefinitionCategoryId,
+    newDefinitionKey,
+    setNewDefinitionKey,
+    newDefinitionLabel,
+    setNewDefinitionLabel,
+    newDefinitionType,
+    setNewDefinitionType,
+    newDefinitionUnit,
+    setNewDefinitionUnit,
+    newDefinitionTracked,
+    setNewDefinitionTracked,
+    valueDefinitionId,
+    setValueDefinitionId,
+    valueInput,
+    setValueInput,
     onAddCategory,
     onAddDefinition,
     onToggleTracked,

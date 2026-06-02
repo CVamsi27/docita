@@ -21,9 +21,12 @@ export const useDocumentsLogic = () => {
     direction: "desc",
   });
 
-  const { data: documents = [], isLoading: loading } = useDocuments({
-    search: debouncedSearch,
-  });
+  const {
+    data: documents = [],
+    isLoading: loading,
+    isError,
+    refetch,
+  } = useDocuments({ search: debouncedSearch });
 
   const handleSort = (key: SortKey) => {
     setSortConfig((prev) => ({
@@ -90,6 +93,10 @@ export const useDocumentsLogic = () => {
     documents: sortedDocuments,
     totalDocuments: documents.length,
     loading,
+    isError,
+    retry: () => {
+      void refetch();
+    },
     searchQuery,
     setSearchQuery,
     sortConfig,

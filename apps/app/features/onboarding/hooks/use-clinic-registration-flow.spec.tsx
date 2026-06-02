@@ -161,6 +161,13 @@ describe("useClinicRegistrationFlow", () => {
         });
       }
 
+      if (url.includes("/onboarding/onb_test_1/trial-eligibility")) {
+        return new Response(JSON.stringify({ eligible: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
       if (url.includes("/onboarding/onb_test_1/complete")) {
         return new Response(
           JSON.stringify({
@@ -253,5 +260,66 @@ describe("useClinicRegistrationFlow", () => {
         String(input).includes("/onboarding/onb_stale_1/progress"),
       ),
     ).toBe(false);
+  });
+
+  it("opens paid Essential checkout for a returning customer without changing tier", async () => {
+    mocks.fetch.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/onboarding/initialize")) {
+        return new Response(JSON.stringify({ onboardingId: "onb_repeat_1" }), {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url.includes("/onboarding/onb_repeat_1/trial-eligibility")) {
+        return new Response(JSON.stringify({ eligible: false }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url.includes("/onboarding/onb_repeat_1/checkout")) {
+        return new Response(
+          JSON.stringify({
+            orderId: "order_repeat_1",
+            amountCents: 99900,
+            currency: "INR",
+            razorpayKeyId: "rzp_test_repeat",
+          }),
+          {
+            status: 201,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+      return new Response(JSON.stringify({}), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
+    mocks.openCheckout.mockResolvedValueOnce({ status: "canceled" });
+
+    const { result } = renderHook(() => useClinicRegistrationFlow());
+
+    act(() => {
+      result.current.setClinicDetails(validClinicDetails);
+    });
+    await act(async () => {
+      await result.current.setPlanSelection("ESSENTIAL", "MONTHLY", {
+        monthly: 999,
+        yearly: 9990,
+      });
+    });
+
+    expect(mocks.toast.info).toHaveBeenCalledWith(
+      "Your free trial has already been used. Complete payment to continue with Essential.",
+    );
+    expect(mocks.openCheckout).toHaveBeenCalledWith(
+      expect.objectContaining({
+        amount: 99900,
+        description: "ESSENTIAL MONTHLY subscription",
+      }),
+    );
+    expect(result.current.formData.planSelection.tier).toBe("ESSENTIAL");
+    expect(result.current.step).not.toBe(5);
   });
 });

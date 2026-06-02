@@ -12,8 +12,15 @@ import React, {
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useClinicSocket } from "@/hooks/use-clinic-socket";
 import { fetchWithSession } from "@/lib/auth/fetch-with-session";
+import { useAuth } from "@/lib/auth/auth-context";
 import { logger } from "@/lib/monitoring/logger";
 import { appClinicSchema, tierSchema, type AppClinic } from "@workspace/types";
+import {
+  getFacilityLabelFromSettings,
+  getStoredClinicId,
+  subscribeToWindowFocus,
+  toBooleanFeatureOverrides,
+} from "./clinic-context-helpers";
 
 export type Clinic = AppClinic;
 
@@ -28,65 +35,8 @@ interface ClinicContextType {
 
 const ClinicContext = createContext<ClinicContextType | undefined>(undefined);
 
-function getStoredClinicId(): string | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  try {
-    const savedClinicId = localStorage.getItem("selectedClinicId");
-    localStorage.removeItem("selectedClinic");
-    return savedClinicId && savedClinicId.length > 0 ? savedClinicId : null;
-  } catch (error) {
-    logger.warn("Failed to read selected clinic from localStorage", { error });
-  }
-  return null;
-}
-
-function subscribeToWindowFocus(callback: () => void) {
-  const handleFocus = () => callback();
-  const handleVisibilityChange = () => {
-    if (document.visibilityState === "visible") {
-      callback();
-    }
-  };
-
-  window.addEventListener("focus", handleFocus);
-  document.addEventListener("visibilitychange", handleVisibilityChange);
-
-  return () => {
-    window.removeEventListener("focus", handleFocus);
-    document.removeEventListener("visibilitychange", handleVisibilityChange);
-  };
-}
-
-function toBooleanFeatureOverrides(
-  value: Clinic["features"],
-): Record<string, boolean> | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return null;
-  }
-
-  return Object.fromEntries(
-    Object.entries(value).filter(
-      (entry): entry is [string, boolean] => typeof entry[1] === "boolean",
-    ),
-  );
-}
-
-function getFacilityLabelFromSettings(
-  value: Clinic["settings"],
-): "CLINIC" | "HOSPITAL" | undefined {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return undefined;
-  }
-
-  const facilityLabel = Object.fromEntries(Object.entries(value)).facilityLabel;
-  return facilityLabel === "CLINIC" || facilityLabel === "HOSPITAL"
-    ? facilityLabel
-    : undefined;
-}
-
 export function ClinicProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   const [clinicId, setClinicId] = useState<string | null>(null);
   const [clinic, setClinicState] = useState<Clinic | null>(null);
   const [userClinics, setUserClinics] = useState<Clinic[]>([]);
@@ -118,46 +68,53 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     [syncFromClinic, setFacilityType],
   );
 
-  const fetchClinicFromAPI = useCallback(async () => {
-    const now = Date.now();
-    if (isFetchingRef.current || now - lastFetchTimeRef.current < 1000) {
-      return;
-    }
-
-    try {
-      isFetchingRef.current = true;
-      lastFetchTimeRef.current = now;
-
-      const response = await fetchWithSession("/clinic/settings", {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        const parsedClinic = appClinicSchema.safeParse(await response.json());
-        if (parsedClinic.success) {
-          const clinicData = parsedClinic.data;
-          setClinicId(clinicData.id);
-          setClinicState(clinicData);
-          updatePermissionsFromClinic(clinicData);
-          localStorage.setItem("selectedClinicId", clinicData.id);
-        }
+  const fetchClinicFromAPI = useCallback(
+    async (force = false) => {
+      const now = Date.now();
+      if (
+        isFetchingRef.current ||
+        (!force && now - lastFetchTimeRef.current < 1000)
+      ) {
+        return;
       }
-    } catch (error) {
-      logger.warn("Failed to refresh clinic context", { error });
-    } finally {
-      isFetchingRef.current = false;
-    }
-  }, [updatePermissionsFromClinic]);
+
+      try {
+        isFetchingRef.current = true;
+        lastFetchTimeRef.current = now;
+
+        const response = await fetchWithSession("/clinic/settings", {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.ok) {
+          const parsedClinic = appClinicSchema.safeParse(await response.json());
+          if (parsedClinic.success) {
+            const clinicData = parsedClinic.data;
+            setClinicId(clinicData.id);
+            setClinicState(clinicData);
+            updatePermissionsFromClinic(clinicData);
+            localStorage.setItem("selectedClinicId", clinicData.id);
+          }
+        }
+      } catch (error) {
+        logger.warn("Failed to refresh clinic context", { error });
+      } finally {
+        isFetchingRef.current = false;
+      }
+    },
+    [updatePermissionsFromClinic],
+  );
 
   useEffect(() => {
     const storedClinicId = getStoredClinicId();
-    if (storedClinicId) {
-      setClinicId(storedClinicId);
+    const resolvedClinicId = user?.clinicId ?? storedClinicId;
+    if (resolvedClinicId) {
+      setClinicId(resolvedClinicId);
     }
     setMounted(true);
-  }, []);
+  }, [user?.clinicId]);
 
   useSyncExternalStore(
     useCallback(
@@ -183,6 +140,14 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
 
   useClinicSocket(clinicId, (data) => {
     if (data.clinicId === clinicId) {
+      if (
+        data.tier ||
+        data.intelligenceAddon ||
+        data.subscriptionStatus ||
+        data.subscriptionGraceUntil !== undefined
+      ) {
+        void fetchClinicFromAPI(true);
+      }
       if (data.tier) {
         const parsedTier = tierSchema.safeParse(data.tier);
         if (parsedTier.success) {

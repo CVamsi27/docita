@@ -20,7 +20,7 @@ import {
   CollapsibleContent,
 } from "@workspace/ui/components/overlay/collapsible";
 import { cn } from "@workspace/ui/lib/utils";
-import { formatDistanceToNow } from "@workspace/utils";
+import { formatDistanceToNow, getPatientFullName } from "@workspace/utils";
 import { SummaryMedications } from "./shared/SummaryMedications";
 import { SummaryConditions } from "./shared/SummaryConditions";
 
@@ -93,9 +93,7 @@ export function PatientContextCardUI({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold">
-                  {patient.firstName} {patient.lastName}
-                </h3>
+                <h3 className="font-semibold">{getPatientFullName(patient)}</h3>
                 {patient.age && patient.gender && (
                   <span className="text-sm text-muted-foreground">
                     {patient.age}
@@ -127,7 +125,9 @@ export function PatientContextCardUI({
             </div>
           </div>
           <SymbolTooltip
-            label={isExpanded ? "Collapse patient summary" : "Expand patient summary"}
+            label={
+              isExpanded ? "Collapse patient summary" : "Expand patient summary"
+            }
           >
             <Button
               variant="ghost"
@@ -135,7 +135,9 @@ export function PatientContextCardUI({
               className="h-8 w-8"
               onClick={onToggleExpand}
               aria-label={
-                isExpanded ? "Collapse patient summary" : "Expand patient summary"
+                isExpanded
+                  ? "Collapse patient summary"
+                  : "Expand patient summary"
               }
             >
               {isExpanded ? (
@@ -233,8 +235,7 @@ export function PatientContextCardUI({
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <History className="h-3 w-3" />
-                    Last visit:{" "}
-                    {formatDistanceToNow(patient.lastVisit)}
+                    Last visit: {formatDistanceToNow(patient.lastVisit)}
                   </div>
                   {patient.lastVisitReason && (
                     <span className="text-xs text-muted-foreground">

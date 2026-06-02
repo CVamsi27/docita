@@ -6,61 +6,42 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pull-requests: write
+  contents: write
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   mirror-staging:
-    name: Open `staging` sync PR
+    name: Mirror `staging` ref to `main`
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Open sync PR
+      - name: Update staging ref
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.SYNC_PR_TOKEN || github.token }}
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-
-            const title = 'sync: align staging with main';
-            const body = [
-              '## Summary',
-              'Sync `staging` to mirror `main` after a promotion merge so future promotion PRs only show new changes.',
-              '',
-              '## Merge method',
-              'Merge this PR using the repository-approved PR workflow for `staging`.',
-            ].join('\n');
-
-            const { data: openPrs } = await github.rest.pulls.list({
+            const { data: main } = await github.rest.git.getRef({
               owner,
               repo,
-              state: 'open',
-              base: 'staging',
-              head: `${owner}:main`,
-              per_page: 100,
+              ref: 'heads/main',
             });
-
-            if (openPrs.length > 0) {
-              core.info(`Sync PR already exists: ${openPrs[0].html_url}`);
+            const { data: staging } = await github.rest.git.getRef({
+              owner,
+              repo,
+              ref: 'heads/staging',
+            });
+            if (main.object.sha === staging.object.sha) {
+              core.info('staging already mirrors main');
               return;
             }
-
-            const { data: pr } = await github.rest.pulls.create({
+            await github.rest.git.updateRef({
               owner,
               repo,
-              title,
-              head: 'main',
-              base: 'staging',
-              body,
-              maintainer_can_modify: true,
+              ref: 'heads/staging',
+              sha: main.object.sha,
+              force: true,
             });
-
-            core.info(`Created sync PR: ${pr.html_url}`);
+            core.info(`Moved staging to ${main.object.sha}`);

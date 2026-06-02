@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
 export interface PatientProps {
@@ -11,6 +12,9 @@ export interface PatientProps {
   gender: string;
   dateOfBirth?: Date;
   address?: string;
+  insuranceProvider?: string;
+  insurancePolicyNumber?: string;
+  insuranceGroupNumber?: string;
   metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
@@ -28,6 +32,9 @@ type PatientProfileUpdate = Partial<
     | 'gender'
     | 'dateOfBirth'
     | 'address'
+    | 'insuranceProvider'
+    | 'insurancePolicyNumber'
+    | 'insuranceGroupNumber'
     | 'metadata'
   >
 >;
@@ -43,6 +50,9 @@ export class Patient {
   private gender: string;
   private dateOfBirth?: Date;
   private address?: string;
+  private insuranceProvider?: string;
+  private insurancePolicyNumber?: string;
+  private insuranceGroupNumber?: string;
   private metadata: Record<string, unknown>;
   readonly createdAt: Date;
   private updatedAt: Date;
@@ -59,6 +69,9 @@ export class Patient {
     this.gender = props.gender;
     this.dateOfBirth = props.dateOfBirth;
     this.address = props.address;
+    this.insuranceProvider = props.insuranceProvider;
+    this.insurancePolicyNumber = props.insurancePolicyNumber;
+    this.insuranceGroupNumber = props.insuranceGroupNumber;
     this.metadata = props.metadata || {};
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
@@ -91,7 +104,10 @@ export class Patient {
   }
 
   getFullName(): string {
-    return `${this.firstName} ${this.lastName}`;
+    return getPatientFullName({
+      firstName: this.firstName,
+      lastName: this.lastName,
+    });
   }
 
   getMrn(): string | undefined {
@@ -113,6 +129,12 @@ export class Patient {
     if (data.gender !== undefined) this.gender = data.gender;
     if (data.dateOfBirth !== undefined) this.dateOfBirth = data.dateOfBirth;
     if (data.address !== undefined) this.address = data.address;
+    if (data.insuranceProvider !== undefined)
+      this.insuranceProvider = data.insuranceProvider;
+    if (data.insurancePolicyNumber !== undefined)
+      this.insurancePolicyNumber = data.insurancePolicyNumber;
+    if (data.insuranceGroupNumber !== undefined)
+      this.insuranceGroupNumber = data.insuranceGroupNumber;
     if (data.metadata !== undefined) this.metadata = data.metadata;
 
     this.updatedAt = now;
@@ -131,6 +153,9 @@ export class Patient {
       gender: this.gender,
       dateOfBirth: this.dateOfBirth,
       address: this.address,
+      insuranceProvider: this.insuranceProvider,
+      insurancePolicyNumber: this.insurancePolicyNumber,
+      insuranceGroupNumber: this.insuranceGroupNumber,
       metadata: this.metadata,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,

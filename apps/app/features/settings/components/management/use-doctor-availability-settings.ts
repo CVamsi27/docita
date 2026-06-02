@@ -22,9 +22,7 @@ export function useDoctorAvailabilitySettings() {
 
   const doctors = useMemo(
     () =>
-      members.filter(
-        (m) => m.role === "DOCTOR" || m.role === "ADMIN_DOCTOR",
-      ),
+      members.filter((m) => m.role === "DOCTOR" || m.role === "ADMIN_DOCTOR"),
     [members],
   );
 

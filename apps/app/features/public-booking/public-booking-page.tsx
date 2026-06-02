@@ -126,10 +126,7 @@ export function PublicBookingPage({ referralCode }: PublicBookingPageProps) {
         >
           {c.clinic ? (
             isDesktopLayout ? (
-              <PublicBookingDesktopLayout
-                c={c}
-                facilityWord={facilityWord}
-              />
+              <PublicBookingDesktopLayout c={c} facilityWord={facilityWord} />
             ) : (
               <PublicBookingMobileLayout c={c} facilityWord={facilityWord} />
             )

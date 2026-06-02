@@ -1,5 +1,5 @@
 import type { Patient, User } from "@workspace/types";
-import { calculateAge } from "@workspace/utils";
+import { calculateAge, getPatientFullName } from "@workspace/utils";
 import { hasPermission } from "@/lib/auth/permissions";
 import { resolveLibPhoneCountry } from "@/lib/phone/resolve-libphone-country";
 import {
@@ -45,7 +45,7 @@ export const canViewPatient = (user: User): boolean => {
 };
 
 export const getPatientDisplayName = (patient: PatientNameLike): string => {
-  return `${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim();
+  return getPatientFullName(patient);
 };
 
 export const getPatientAge = (patient: PatientDateLike): number | null => {
@@ -71,7 +71,7 @@ export const getPatientAgeDisplay = (patient: PatientDateLike): string => {
 };
 
 export const getPatientDisplayLabel = (patient: PatientNameLike): string => {
-  return `${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim();
+  return getPatientFullName(patient);
 };
 
 export const validatePatientPhoneNumberForCountry = (

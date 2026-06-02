@@ -344,19 +344,10 @@ export class ObservabilityService implements OnModuleDestroy {
   async getDatabaseHealth(): Promise<Record<string, unknown>> {
     const checkedAt = this.clock.now();
     try {
-      const result = await this.prisma.$queryRaw`
-        SELECT
-          (SELECT count(*) FROM "User") user_count,
-          (SELECT count(*) FROM "Clinic") clinic_count,
-          (SELECT count(*) FROM "Appointment") appointment_count,
-          (SELECT count(*) FROM "Patient") patient_count,
-          (SELECT extract(epoch from (now() - max(pg_postmaster_start_time()))) / 3600 uptime_hours
-            FROM pg_postmaster_start_time())
-      `;
+      await this.prisma.$queryRaw`SELECT 1`;
 
       return {
         status: 'connected',
-        stats: result,
         checked_at: checkedAt,
       };
     } catch (error) {

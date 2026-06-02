@@ -6,7 +6,11 @@
 // simple regex that flags the English word "as" in JSX text as a type cast.
 // There are no TypeScript type assertions in this file.
 
-import { Card, CardContent, CardHeader } from "@workspace/ui/components/indicators/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from "@workspace/ui/components/indicators/card";
 import { Separator } from "@workspace/ui/components/layout/separator";
 import { formatDate } from "@workspace/utils";
 import {
@@ -79,10 +83,12 @@ export function ConsentTemplateDocument({
           </div>
         </div>
         <div className="text-center">
-          <h2 className="ui-section-title">Patient Consent for Collection and Use of Health Data</h2>
+          <h2 className="ui-section-title">
+            Patient Consent for Collection and Use of Health Data
+          </h2>
           <p className="ui-page-subtitle text-muted-foreground">
-            Provided under the Digital Personal Data Protection Act, 2023 and applicable healthcare record-handling
-            standards.
+            Provided under the Digital Personal Data Protection Act, 2023 and
+            applicable healthcare record-handling standards.
           </p>
         </div>
       </CardHeader>
@@ -91,8 +97,8 @@ export function ConsentTemplateDocument({
         <section className="space-y-2">
           <h3 className="text-base font-semibold">1. Patient Information</h3>
           <p className="text-muted-foreground">
-            Please verify the details on file. If anything is incorrect, ask the facility to update your record
-            before signing.
+            Please verify the details on file. If anything is incorrect, ask the
+            facility to update your record before signing.
           </p>
           <div className="grid grid-cols-1 gap-x-6 gap-y-3 pt-2 md:grid-cols-2">
             <SignatureField label="Patient name" />
@@ -106,10 +112,13 @@ export function ConsentTemplateDocument({
 
         <section className="space-y-3">
           <div>
-            <h3 className="text-base font-semibold">2. Categories of Data We Collect</h3>
+            <h3 className="text-base font-semibold">
+              2. Categories of Data We Collect
+            </h3>
             <p className="text-muted-foreground">
-              The facility named above collects, processes, and stores the following categories of personal and
-              health data about you. Each entry lists the purpose for which the data is used.
+              The facility named above collects, processes, and stores the
+              following categories of personal and health data about you. Each
+              entry lists the purpose for which the data is used.
             </p>
           </div>
           <div className="divide-y rounded-md border">
@@ -135,16 +144,27 @@ export function ConsentTemplateDocument({
           <h3 className="text-base font-semibold">3. How We Use Your Data</h3>
           <p>Your data is processed only for the following purposes:</p>
           <ul className="list-disc space-y-1 pl-5">
-            <li>Delivering clinical care, including diagnosis, treatment, and continuity across visits.</li>
             <li>
-              Communicating appointments, follow-ups, prescriptions, and lab results through channels you opt into
-              (such as WhatsApp, SMS, or email).
+              Delivering clinical care, including diagnosis, treatment, and
+              continuity across visits.
             </li>
-            <li>Generating invoices, processing payments, and supporting insurance claims where applicable.</li>
-            <li>Maintaining mandatory clinical, billing, and audit records under Indian healthcare regulations.</li>
             <li>
-              Anonymous, aggregated quality and safety reporting. Identifiable data is never sold, leased, or used
-              for marketing without your separate opt-in.
+              Communicating appointments, follow-ups, prescriptions, and lab
+              results through channels you opt into (such as WhatsApp, SMS, or
+              email).
+            </li>
+            <li>
+              Generating invoices, processing payments, and supporting insurance
+              claims where applicable.
+            </li>
+            <li>
+              Maintaining mandatory clinical, billing, and audit records under
+              Indian healthcare regulations.
+            </li>
+            <li>
+              Anonymous, aggregated quality and safety reporting. Identifiable
+              data is never sold, leased, or used for marketing without your
+              separate opt-in.
             </li>
           </ul>
         </section>
@@ -152,12 +172,15 @@ export function ConsentTemplateDocument({
         <Separator />
 
         <section className="space-y-2">
-          <h3 className="text-base font-semibold">4. Sharing With Third Parties</h3>
+          <h3 className="text-base font-semibold">
+            4. Sharing With Third Parties
+          </h3>
           <p>
-            Your data may be shared only with: (a) clinicians directly involved in your care, (b) labs and
-            pharmacies you are referred to, (c) statutory or regulatory authorities when required by law, and (d)
-            secure cloud and technology vendors bound by data-processing agreements consistent with the DPDP Act,
-            2023.
+            Your data may be shared only with: (a) clinicians directly involved
+            in your care, (b) labs and pharmacies you are referred to, (c)
+            statutory or regulatory authorities when required by law, and (d)
+            secure cloud and technology vendors bound by data-processing
+            agreements consistent with the DPDP Act, 2023.
           </p>
         </section>
 
@@ -166,13 +189,14 @@ export function ConsentTemplateDocument({
         <section className="space-y-2">
           <h3 className="text-base font-semibold">5. Data Retention</h3>
           <p>
-            Records are retained only for as long as necessary for clinical, legal, and regulatory purposes.
-            Indicative retention periods:
+            Records are retained only for as long as necessary for clinical,
+            legal, and regulatory purposes. Indicative retention periods:
           </p>
           <ul className="list-disc space-y-1 pl-5">
             {CONSENT_RETENTION_SUMMARY.map((entry) => (
               <li key={entry.category}>
-                <span className="font-medium">{entry.category}:</span> {entry.retention}
+                <span className="font-medium">{entry.category}:</span>{" "}
+                {entry.retention}
               </li>
             ))}
           </ul>
@@ -182,16 +206,31 @@ export function ConsentTemplateDocument({
 
         <section className="space-y-2">
           <h3 className="text-base font-semibold">6. Your Rights</h3>
-          <p>Under the Digital Personal Data Protection Act, 2023, you have the right to:</p>
+          <p>
+            Under the Digital Personal Data Protection Act, 2023, you have the
+            right to:
+          </p>
           <ul className="list-disc space-y-1 pl-5">
             <li>Access a copy of the personal data we hold about you.</li>
-            <li>Request correction of inaccurate or out-of-date information.</li>
-            <li>Request deletion of data that is no longer required for care or legal reasons.</li>
-            <li>Withdraw any consent you have given (for example, WhatsApp communications).</li>
-            <li>Nominate a person to exercise these rights on your behalf in case of incapacity or death.</li>
+            <li>
+              Request correction of inaccurate or out-of-date information.
+            </li>
+            <li>
+              Request deletion of data that is no longer required for care or
+              legal reasons.
+            </li>
+            <li>
+              Withdraw any consent you have given (for example, WhatsApp
+              communications).
+            </li>
+            <li>
+              Nominate a person to exercise these rights on your behalf in case
+              of incapacity or death.
+            </li>
           </ul>
           <p className="text-muted-foreground">
-            To exercise any of these rights, contact the facility using the details at the top of this form.
+            To exercise any of these rights, contact the facility using the
+            details at the top of this form.
           </p>
         </section>
 
@@ -200,9 +239,11 @@ export function ConsentTemplateDocument({
         <section className="space-y-3">
           <h3 className="text-base font-semibold">7. Patient Consent</h3>
           <p>
-            I confirm that I have read and understood this form. I consent to the facility collecting, processing,
-            and storing the categories of data listed above for the purposes described, in compliance with the
-            Digital Personal Data Protection Act, 2023 and applicable healthcare record-handling standards.
+            I confirm that I have read and understood this form. I consent to
+            the facility collecting, processing, and storing the categories of
+            data listed above for the purposes described, in compliance with the
+            Digital Personal Data Protection Act, 2023 and applicable healthcare
+            record-handling standards.
           </p>
           <ConsentOptionRow
             label="Consent to general health data collection and storage (required for care)"
@@ -243,10 +284,14 @@ export function ConsentTemplateDocument({
 
         <div className="border-t pt-4 text-center text-xs text-muted-foreground">
           <p className="font-medium">
-            This form should be retained with the patient&apos;s medical record. A digital audit trail of the
-            recorded consent is maintained by the facility.
+            This form should be retained with the patient&apos;s medical record.
+            A digital audit trail of the recorded consent is maintained by the
+            facility.
           </p>
-          <p>For questions about how your data is handled, contact the facility named above.</p>
+          <p>
+            For questions about how your data is handled, contact the facility
+            named above.
+          </p>
         </div>
       </CardContent>
     </Card>

@@ -9,6 +9,7 @@ import {
   SubscriptionStatus,
   User,
 } from '@workspace/db';
+import { DEFAULT_TAX_COUNTRY_CODE, DEFAULT_TAX_REGIME } from '@workspace/types';
 import { isPrismaTableDoesNotExistForModel } from '@/shared/common/utils/prisma-missing-table';
 import {
   IOnboardingTxRepository,
@@ -40,6 +41,7 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
         phone: data.phone,
         address: data.address,
         type: data.type,
+        facilityType: data.facilityType,
         website: data.website,
         mrnPrefix: data.mrnPrefix,
         timezone: data.timezone,
@@ -146,8 +148,8 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
         taxCents: 0,
         grandTotalCents: data.amountCents,
         taxSummary: {
-          countryCode: 'IN',
-          regime: 'IN_GST',
+          countryCode: DEFAULT_TAX_COUNTRY_CODE,
+          regime: DEFAULT_TAX_REGIME,
           currency: data.currency,
           subtotal: data.amountCents / 100,
           discountTotal: 0,

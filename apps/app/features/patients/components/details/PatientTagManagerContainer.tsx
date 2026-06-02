@@ -25,7 +25,9 @@ export function PatientTagManagerContainer({
   const [newTag, setNewTag] = useState("");
   const [newColor, setNewColor] = useState(DEFAULT_TAG_COLOR_VAR);
   const [loading, setLoading] = useState(false);
-  const tierPatientsOk = useTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  const tierPatientsOk = useTierFeatureEnabled(
+    Feature.BASIC_PATIENT_MANAGEMENT,
+  );
 
   const { data: clinic } = useClinicSettings();
   const presetTags = ClinicFeatureService.getPresetTags(

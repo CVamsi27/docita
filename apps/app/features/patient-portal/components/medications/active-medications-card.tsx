@@ -15,7 +15,9 @@ interface ActiveMedicationsCardProps {
   medications: ActiveMedication[];
 }
 
-export function ActiveMedicationsCard({ medications }: ActiveMedicationsCardProps) {
+export function ActiveMedicationsCard({
+  medications,
+}: ActiveMedicationsCardProps) {
   if (medications.length === 0) {
     return (
       <Card>
@@ -26,7 +28,9 @@ export function ActiveMedicationsCard({ medications }: ActiveMedicationsCardProp
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">No active medications found</p>
+          <p className="text-sm text-muted-foreground">
+            No active medications found
+          </p>
         </CardContent>
       </Card>
     );
@@ -97,7 +101,8 @@ export function ActiveMedicationsCard({ medications }: ActiveMedicationsCardProp
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {med.adherence.taken} of {med.adherence.totalDoses} doses taken
+                  {med.adherence.taken} of {med.adherence.totalDoses} doses
+                  taken
                 </p>
               </div>
             )}

@@ -121,6 +121,7 @@ The `shared/` folder is the home for **non-feature** code reused across features
 
 ### 3.1 Zod-first type system
 
+- **Every data point has one canonical source — see [`docs/architecture/SINGLE_SOURCE_OF_TRUTH.md`](docs/architecture/SINGLE_SOURCE_OF_TRUTH.md).** Check it before adding any new store/derivation/constant; never introduce a second source for an existing data point (tier, GSTIN, patient name, timezone, support email, URLs, etc.).
 - Zod schemas in `packages/types` are the single source of truth.
 - Define/update schema first, then infer TypeScript types via `z.infer`.
 - Do not create parallel handwritten interfaces for the same shape.
@@ -335,6 +336,7 @@ The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX
 - When a new setting or consent choice is required from existing users, add a targeted in-app prompt or settings modal for only that requirement. Do not reuse the initial onboarding wizard, clear existing work, or block unrelated workspace access unless a documented compliance requirement explicitly demands it.
 - Add a backfill for existing rows whenever a new required field, default, enum, or state machine transition would otherwise change historical account behavior. Prefer expand → backfill → prompt → enforce rollouts for required user choices.
 - Include regression tests for both new accounts and pre-change accounts. For onboarding or auth changes, cover a clinic-associated user with stale or missing newly introduced state and verify that the user still lands in the workspace.
+- Use [`docs/operations/REQUIRED_SETTING_ROLLOUT_CHECKLIST.md`](docs/operations/REQUIRED_SETTING_ROLLOUT_CHECKLIST.md) for required-setting release evidence.
 
 ## 10) Testing and Verification
 
@@ -394,7 +396,7 @@ The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX
 - Fly.io API deployments must be driven by [`fly.toml`](fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
 - Fly.io worker deployments must be driven by [`apps/worker/fly.toml`](apps/worker/fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
 - Staging API deployments are handled by Render auto-deploys from the `staging` branch; GitHub Actions should not add a separate deploy hook for the staging API.
-- Cloudflare frontend deployments are not handled by GitHub Actions in this repository; manage their auto-deploy behavior through Cloudflare watch-path settings instead.
+- Cloudflare frontend deployments are handled by the path-scoped [`.github/workflows/deploy-cloudflare.yml`](.github/workflows/deploy-cloudflare.yml) workflow when repository credentials verify. Keep app watch paths scoped and use Cloudflare Git integration or dashboard deploys only as the documented fallback.
 
 ## 11.2) CI scope and cost
 
@@ -720,6 +722,7 @@ Mechanical checks catch **boundary violations**; they do not fully enforce SOLID
 | **Facade / CQS** | `pnpm check:facade-delegation --enforce` | Large application services delegate instead of embedding persistence |
 | **Zod-first / contracts** | `pnpm check:contracts-strict`, `pnpm verify:contracts`, `pnpm check:type-duplicates` | Shared schemas; no duplicate DTO shapes |
 | **Data access (frontend)** | `pnpm check:frontend-fetch`, `pnpm check:legacy-app-api-hooks` | No inline client `fetch`; legacy app API hook dir stays gone |
+| **SSOT composition** | `pnpm check:patient-name-ssot` | Patient display names route through `getPatientFullName()` instead of inline recomposition |
 | **Feature / package boundaries** | `pnpm check:feature-boundaries`, `pnpm check:package-boundaries` | Imports stay inside feature and package rules |
 | **Tier / feature gating** | `pnpm check:tier-comparisons`, `pnpm check:workspace-profile-gating` | No numeric tier compares; blocks legacy `workspaceProfile` symbols; tier-only Front Desk via `isFrontDeskTier` |
 | **RBAC** | `pnpm check:controller-rbac` | Controller auth posture declared |

@@ -106,7 +106,10 @@ export function EnterpriseBrandingSettings() {
           <div className="flex items-center gap-2">
             <CardTitle>Brand name</CardTitle>
             {!hasWhiteLabel && (
-              <Badge variant="outline" className="ui-eyebrow border-border/60 text-muted-foreground">
+              <Badge
+                variant="outline"
+                className="ui-eyebrow border-border/60 text-muted-foreground"
+              >
                 Enterprise
               </Badge>
             )}
@@ -149,7 +152,10 @@ export function EnterpriseBrandingSettings() {
           <div className="flex items-center gap-2">
             <CardTitle>Locked theme</CardTitle>
             {!hasLockedTheme && (
-              <Badge variant="outline" className="ui-eyebrow border-border/60 text-muted-foreground">
+              <Badge
+                variant="outline"
+                className="ui-eyebrow border-border/60 text-muted-foreground"
+              >
                 Enterprise
               </Badge>
             )}
@@ -166,8 +172,13 @@ export function EnterpriseBrandingSettings() {
             <ToggleGroup
               type="single"
               value={primaryColor}
-              onValueChange={(v) => { if (typeof v === "string" && v) setPrimaryColor(v); }}
-              className={cn("flex flex-wrap gap-2 justify-start", !hasLockedTheme && "pointer-events-none opacity-50")}
+              onValueChange={(v) => {
+                if (typeof v === "string" && v) setPrimaryColor(v);
+              }}
+              className={cn(
+                "flex flex-wrap gap-2 justify-start",
+                !hasLockedTheme && "pointer-events-none opacity-50",
+              )}
             >
               {ACCENT_OPTIONS.map((opt) => (
                 <ToggleGroupItem
@@ -189,7 +200,10 @@ export function EnterpriseBrandingSettings() {
               onValueChange={(v) => {
                 if (v === "light" || v === "dark" || v === "system") setMode(v);
               }}
-              className={cn("flex gap-2 justify-start", !hasLockedTheme && "pointer-events-none opacity-50")}
+              className={cn(
+                "flex gap-2 justify-start",
+                !hasLockedTheme && "pointer-events-none opacity-50",
+              )}
             >
               <ToggleGroupItem
                 value="light"
@@ -261,7 +275,10 @@ export function EnterpriseBrandingSettings() {
           <div className="flex items-center gap-2">
             <CardTitle>WhatsApp custom number</CardTitle>
             {!hasWhatsAppOwn && (
-              <Badge variant="outline" className="ui-eyebrow border-border/60 text-muted-foreground">
+              <Badge
+                variant="outline"
+                className="ui-eyebrow border-border/60 text-muted-foreground"
+              >
                 Professional+
               </Badge>
             )}

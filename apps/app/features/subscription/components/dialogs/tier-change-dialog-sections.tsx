@@ -27,8 +27,14 @@ export function FeatureDeltaGrid({ gained, lost }: FeatureDeltaGridProps) {
           </p>
           <ul className="space-y-1 text-sm">
             {gained.slice(0, 6).map((f) => (
-              <li key={f.feature} className="flex items-start gap-2 leading-snug">
-                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" aria-hidden />
+              <li
+                key={f.feature}
+                className="flex items-start gap-2 leading-snug"
+              >
+                <Check
+                  className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success"
+                  aria-hidden
+                />
                 <span>{f.name}</span>
               </li>
             ))}
@@ -47,8 +53,14 @@ export function FeatureDeltaGrid({ gained, lost }: FeatureDeltaGridProps) {
           </p>
           <ul className="space-y-1 text-sm">
             {lost.slice(0, 6).map((f) => (
-              <li key={f.feature} className="flex items-start gap-2 leading-snug">
-                <Minus className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" aria-hidden />
+              <li
+                key={f.feature}
+                className="flex items-start gap-2 leading-snug"
+              >
+                <Minus
+                  className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning"
+                  aria-hidden
+                />
                 <span>{f.name}</span>
               </li>
             ))}
@@ -95,10 +107,12 @@ export function DowngradeTimingChooser({
         >
           <span className="flex items-center gap-2 font-medium">
             <CalendarClock className="h-4 w-4 shrink-0" aria-hidden />
-            At next renewal{formattedRenewalDate ? ` (${formattedRenewalDate})` : ""}
+            At next renewal
+            {formattedRenewalDate ? ` (${formattedRenewalDate})` : ""}
           </span>
           <span className="text-xs text-muted-foreground">
-            Keep {currentPlanName} features for the rest of the paid period. No charge today.
+            Keep {currentPlanName} features for the rest of the paid period. No
+            charge today.
           </span>
         </button>
         <button
@@ -113,7 +127,8 @@ export function DowngradeTimingChooser({
         >
           <span className="font-medium">Apply immediately</span>
           <span className="text-xs text-muted-foreground">
-            Lose higher-tier features now. Unused time becomes account credit toward your next invoice.
+            Lose higher-tier features now. Unused time becomes account credit
+            toward your next invoice.
           </span>
         </button>
       </div>
@@ -123,7 +138,10 @@ export function DowngradeTimingChooser({
 
 interface ProrationPreviewProps {
   prorationLoading: boolean;
-  prorationPreview: { creditCents: number; finalAmountCents: number } | null | undefined;
+  prorationPreview:
+    | { creditCents: number; finalAmountCents: number }
+    | null
+    | undefined;
   currency: SupportedCurrency;
   currencyConfig: (typeof PRICING_CURRENCY_CONFIG)[SupportedCurrency];
 }

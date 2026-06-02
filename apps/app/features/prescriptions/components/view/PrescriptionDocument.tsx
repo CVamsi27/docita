@@ -3,7 +3,7 @@ import {
   CardContent,
   CardHeader,
 } from "@workspace/ui/components/indicators/card";
-import { formatDate } from "@workspace/utils";
+import { formatDate, getPatientFullName } from "@workspace/utils";
 import type { Medication, Patient } from "@workspace/types";
 import { formatGenderLabel } from "@/lib/formatters";
 
@@ -44,7 +44,7 @@ export function PrescriptionDocument({
   const doctorName = doctorInfo?.name ?? "";
 
   const patientName = prescription.patient
-    ? `${prescription.patient.firstName} ${prescription.patient.lastName}`
+    ? getPatientFullName(prescription.patient)
     : "Patient";
 
   const patientAge = prescription.patient?.dateOfBirth

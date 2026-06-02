@@ -13,7 +13,10 @@ import {
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
-import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
+import {
+  Alert,
+  AlertDescription,
+} from "@workspace/ui/components/feedback/alert";
 import { ArrowLeft, Phone, ShieldCheck } from "lucide-react";
 import { usePortalOtpAuth } from "@/features/patient-portal/hooks/use-portal-otp-auth";
 
@@ -92,7 +95,11 @@ export function PortalOtpLoginUI() {
               >
                 {isLoading ? (
                   <>
-                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    <DocitaLoadingIndicator
+                      variant="inline"
+                      decorative
+                      className="mr-2"
+                    />
                     Sending code…
                   </>
                 ) : (
@@ -127,7 +134,11 @@ export function PortalOtpLoginUI() {
               >
                 {isLoading ? (
                   <>
-                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    <DocitaLoadingIndicator
+                      variant="inline"
+                      decorative
+                      className="mr-2"
+                    />
                     Verifying…
                   </>
                 ) : (

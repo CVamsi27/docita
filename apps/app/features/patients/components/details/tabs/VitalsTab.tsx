@@ -9,6 +9,8 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import {
   Activity,
   ChevronDown,
@@ -150,9 +152,12 @@ export function VitalsTab({
               />
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No vitals recorded for this patient yet.
-            </p>
+            <DataState
+              status="empty"
+              emptyIcon={Heart}
+              emptyTitle="No vitals recorded"
+              emptyDescription="Vitals captured during a visit will appear here."
+            />
           )}
         </CardContent>
       </Card>
@@ -163,9 +168,12 @@ export function VitalsTab({
         </CardHeader>
         <CardContent>
           {rows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Vitals captured during a visit will be listed here.
-            </p>
+            <DataState
+              status="empty"
+              emptyIcon={Activity}
+              emptyTitle="No vitals history"
+              emptyDescription="Vitals captured during a visit will be listed here."
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
@@ -219,10 +227,11 @@ export function VitalsTab({
       </Card>
 
       <div className="rounded-lg border bg-muted/20">
-        <button
+        <Button
           type="button"
+          variant="ghost"
           onClick={() => setShowAdvanced((v) => !v)}
-          className="flex w-full items-center justify-between gap-2 px-4 py-3 text-sm font-medium"
+          className="h-auto w-full justify-between gap-2 rounded-none px-4 py-3 text-sm font-medium"
         >
           <span className="flex items-center gap-2">
             <Settings2 className="h-4 w-4 text-muted-foreground" />
@@ -233,7 +242,7 @@ export function VitalsTab({
           ) : (
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           )}
-        </button>
+        </Button>
         {showAdvanced && (
           <div className="border-t px-4 py-4">
             <PatientMetricsHistoryUI
@@ -280,7 +289,10 @@ function VitalCell({
           {value}
         </span>
         {unit && (
-          <Badge variant="outline" className="text-[0.625rem] px-1 h-4 font-normal">
+          <Badge
+            variant="outline"
+            className="text-[0.625rem] px-1 h-4 font-normal"
+          >
             {unit}
           </Badge>
         )}

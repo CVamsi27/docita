@@ -21,6 +21,7 @@ import { WhatsappReconciliationWorkerModule } from '@/domains/whatsapp/whatsapp-
 import { AdminAlertsSchedulerModule } from '@/shared/modules/messaging/admin-alerts/admin-alerts.scheduler.module';
 import { EphemeralStoreSchedulerModule } from '@/shared/modules/ephemeral-store/ephemeral-store.scheduler.module';
 import { OutboxModule } from '@/shared/modules/outbox/outbox.module';
+import { CronHeartbeatModule } from '@/shared/modules/schedule/cron-heartbeat.module';
 
 const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
 
@@ -62,6 +63,7 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
     DoctorsVerificationWorkerModule,
     WhatsappReconciliationWorkerModule,
     OutboxModule,
+    CronHeartbeatModule,
   ],
 })
 export class WorkerModule {}

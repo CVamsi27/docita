@@ -1,7 +1,14 @@
 "use client";
 
 import dynamicImport from "next/dynamic";
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CalendarDays, Clock } from "lucide-react";
@@ -33,9 +40,9 @@ const REQUESTS_PANEL_FOCUS_PARAM = "requestsPanel";
 
 const AppointmentRequestsPanel = dynamicImport(
   () =>
-    import(
-      "@/features/appointments/components/sections/AppointmentRequestsPanel"
-    ).then((m) => ({ default: m.AppointmentRequestsPanel })),
+    import("@/features/appointments/components/sections/AppointmentRequestsPanel").then(
+      (m) => ({ default: m.AppointmentRequestsPanel }),
+    ),
   {
     ssr: false,
     loading: () => (
@@ -152,11 +159,18 @@ function AppointmentsContent() {
       { label: "Scheduled", value: counts.scheduled, status: "scheduled" },
       { label: "Confirmed", value: counts.confirmed, status: "confirmed" },
       { label: "Checked in", value: counts["checked-in"], status: "success" },
-      { label: "In progress", value: counts["in-progress"], status: "in-progress" },
+      {
+        label: "In progress",
+        value: counts["in-progress"],
+        status: "in-progress",
+      },
       { label: "Completed", value: counts.completed, status: "completed" },
     ];
 
-    return { total: counts.total, breakdown: breakdown.filter((item) => item.value > 0) };
+    return {
+      total: counts.total,
+      breakdown: breakdown.filter((item) => item.value > 0),
+    };
   }, [filteredAppointments]);
 
   return (
@@ -170,8 +184,8 @@ function AppointmentsContent() {
             </div>
             <h2 className="ui-section-title mb-2">Appointment Scheduling</h2>
             <p className="ui-page-subtitle mb-5 max-w-md">
-              Manage patient appointments with an intuitive calendar. Upgrade
-              to Core tier to unlock this feature.
+              Manage patient appointments with an intuitive calendar. Upgrade to
+              Core tier to unlock this feature.
             </p>
             <Button asChild>
               <Link href={SUBSCRIPTION_SETTINGS_PATH}>Upgrade to Core</Link>
@@ -211,7 +225,10 @@ function AppointmentsContent() {
               {appointmentSummary.total !== 1 ? "s" : ""}
             </span>
             {appointmentSummary.breakdown.length > 0 ? (
-              <span className="hidden text-muted-foreground sm:inline" aria-hidden>
+              <span
+                className="hidden text-muted-foreground sm:inline"
+                aria-hidden
+              >
                 ·
               </span>
             ) : null}
@@ -280,48 +297,48 @@ function AppointmentsContent() {
             />
           )
         ) : (
-        <div className="grid gap-4 md:gap-6 lg:grid-cols-[minmax(320px,360px)_minmax(0,1fr)]">
-          <div className="order-2 lg:order-1">
-          <AppointmentsCalendarUI
-            selectedPickerIso={selectedPickerIso}
-            date={date}
-            onDateSelect={setDate}
-            calendarMonth={calendarMonth}
-            onCalendarMonthChange={onCalendarMonthChange}
-            appointmentCountsByDay={appointmentCountsByDay}
-            canViewAllDoctors={canViewAllDoctors || false}
-            doctorsList={doctorsList}
-            selectedDoctorId={selectedDoctorId}
-            onDoctorSelect={setSelectedDoctorId}
-          />
-          </div>
+          <div className="grid gap-4 md:gap-6 lg:grid-cols-[minmax(320px,360px)_minmax(0,1fr)]">
+            <div className="order-2 lg:order-1">
+              <AppointmentsCalendarUI
+                selectedPickerIso={selectedPickerIso}
+                date={date}
+                onDateSelect={setDate}
+                calendarMonth={calendarMonth}
+                onCalendarMonthChange={onCalendarMonthChange}
+                appointmentCountsByDay={appointmentCountsByDay}
+                canViewAllDoctors={canViewAllDoctors || false}
+                doctorsList={doctorsList}
+                selectedDoctorId={selectedDoctorId}
+                onDoctorSelect={setSelectedDoctorId}
+              />
+            </div>
 
-          <div className="order-1 min-w-0 lg:order-2">
-          <AppointmentsListUI
-            selectedPickerIso={selectedPickerIso}
-            clinicTz={clinicTz}
-            canViewAllDoctors={canViewAllDoctors || false}
-            loading={loading}
-            isError={isError}
-            onRetry={refetch}
-            doctorsList={doctorsList}
-            selectedDoctorId={selectedDoctorId}
-            filteredAppointments={filteredAppointments}
-            hasMoreAppointments={hasMoreAppointments}
-            isToday={isToday}
-            currentTimeSlot={currentTimeSlot}
-            currentTimeSlotRef={currentTimeSlotRef}
-            checkingIn={checkingIn}
-            startingConsultationId={startingConsultationId}
-            onCheckIn={handleCheckIn}
-            onStartConsultation={handleStartConsultation}
-            onCancelClick={onCancelClick}
-            onNoShowClick={onNoShowClick}
-            onScheduleFollowUp={handleScheduleFollowUp}
-            currentUserId={user?.id}
-          />
+            <div className="order-1 min-w-0 lg:order-2">
+              <AppointmentsListUI
+                selectedPickerIso={selectedPickerIso}
+                clinicTz={clinicTz}
+                canViewAllDoctors={canViewAllDoctors || false}
+                loading={loading}
+                isError={isError}
+                onRetry={refetch}
+                doctorsList={doctorsList}
+                selectedDoctorId={selectedDoctorId}
+                filteredAppointments={filteredAppointments}
+                hasMoreAppointments={hasMoreAppointments}
+                isToday={isToday}
+                currentTimeSlot={currentTimeSlot}
+                currentTimeSlotRef={currentTimeSlotRef}
+                checkingIn={checkingIn}
+                startingConsultationId={startingConsultationId}
+                onCheckIn={handleCheckIn}
+                onStartConsultation={handleStartConsultation}
+                onCancelClick={onCancelClick}
+                onNoShowClick={onNoShowClick}
+                onScheduleFollowUp={handleScheduleFollowUp}
+                currentUserId={user?.id}
+              />
+            </div>
           </div>
-        </div>
         )}
 
         <div

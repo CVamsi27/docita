@@ -1,19 +1,15 @@
 "use client";
 
+import { getPatientFullName } from "@workspace/utils";
+
 import type { Invoice } from "@workspace/types";
 import Link from "next/link";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { Section } from "@workspace/ui/components/layout/section";
 import { Button } from "@workspace/ui/components/form/button";
-import {
-  Card,
-  CardContent,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
-import {
-  DATE_FORMAT_OPTIONS_US_LONG,
-  formatDate,
-} from "@/lib/formatters";
+import { DATE_FORMAT_OPTIONS_US_LONG, formatDate } from "@/lib/formatters";
 import { ExternalLink } from "lucide-react";
 
 interface DeskPatientListItem {
@@ -50,7 +46,7 @@ export function OpenInvoicesSection({
       title="Open visit invoices"
       description={
         selectedPatient
-          ? `${selectedPatient.firstName} ${selectedPatient.lastName}`
+          ? getPatientFullName(selectedPatient)
           : "Select a patient to load invoices."
       }
     >

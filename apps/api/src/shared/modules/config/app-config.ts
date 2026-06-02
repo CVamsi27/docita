@@ -123,7 +123,7 @@ export function validateEnv(): EnvConfig {
 
   if (envToParse.NODE_ENV === 'test') {
     envToParse.DATABASE_URL ??=
-      'postgresql://test:test@localhost:5434/docita_test';
+      'postgresql://docita:docita@localhost:5434/docita_test';
     envToParse.JWT_SECRET ??= 'test-jwt-secret-minimum-32-characters';
     envToParse.ENCRYPTION_KEY ??=
       '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';

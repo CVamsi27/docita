@@ -160,8 +160,6 @@ export const ConsultationDashboardUI: FC = () => {
         />
       ) : null}
 
-
-
       {canCreateWalkIn ? (
         <AddAppointmentDialogContainer
           open={walkInOpen}

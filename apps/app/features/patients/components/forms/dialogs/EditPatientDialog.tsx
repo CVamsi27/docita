@@ -92,8 +92,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
           dateOfBirth: patient.dateOfBirth
             ? String(patient.dateOfBirth).split("T")[0]
             : null,
-          address:
-            typeof patient.address === "string" ? patient.address : null,
+          address: typeof patient.address === "string" ? patient.address : null,
           mrn: patient.mrn ?? null,
           metadata: null,
           clinicId: undefined,
@@ -240,7 +239,10 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
                   <Select
                     value={field.value ?? ""}
                     onValueChange={(value) => {
-                      const parsed = parseStringEnumMember(GENDER_VALUES, value);
+                      const parsed = parseStringEnumMember(
+                        GENDER_VALUES,
+                        value,
+                      );
                       if (parsed) {
                         field.onChange(parsed);
                       }
@@ -296,7 +298,11 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
             </Button>
             <Button type="submit" disabled={updatePatient.isPending}>
               {updatePatient.isPending && (
-                <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                <DocitaLoadingIndicator
+                  variant="inline"
+                  decorative
+                  className="mr-2"
+                />
               )}
               Save Changes
             </Button>

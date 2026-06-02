@@ -42,7 +42,9 @@ export const ProgressCard: FC<ProgressCardProps> = ({ steps }) => {
                   </span>
                 )}
               </p>
-              <p className="text-xs text-muted-foreground">{step.description}</p>
+              <p className="text-xs text-muted-foreground">
+                {step.description}
+              </p>
             </div>
           </div>
         ))}

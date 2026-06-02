@@ -27,7 +27,7 @@ export function SlotGridTimeRangeFilters({
           Time range (from)
         </Label>
         <Select
-          value={useNoneValue ? (c.timeRangeStart || noneVal) : c.timeRangeStart}
+          value={useNoneValue ? c.timeRangeStart || noneVal : c.timeRangeStart}
           onValueChange={(v) => {
             const val = useNoneValue && v === "__none__" ? "" : v;
             c.setTimeRangeStart(val);
@@ -58,7 +58,7 @@ export function SlotGridTimeRangeFilters({
           Time range (to)
         </Label>
         <Select
-          value={useNoneValue ? (c.timeRangeEnd || noneVal) : c.timeRangeEnd}
+          value={useNoneValue ? c.timeRangeEnd || noneVal : c.timeRangeEnd}
           onValueChange={(v) =>
             c.setTimeRangeEnd(useNoneValue && v === "__none__" ? "" : v)
           }

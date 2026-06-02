@@ -169,8 +169,7 @@ export function ImportPageContent() {
           </p>
           <p>
             <strong>Duplicates:</strong> Patients with matching phone numbers or
-            matching name + date of birth will be flagged duplicate and
-            skipped.
+            matching name + date of birth will be flagged duplicate and skipped.
           </p>
         </CardContent>
       </Card>

@@ -49,7 +49,10 @@ export function ComplianceLegalCard({
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <p
-              className={cn("text-sm font-semibold", accepted && "text-primary")}
+              className={cn(
+                "text-sm font-semibold",
+                accepted && "text-primary",
+              )}
             >
               {index}. {title}
             </p>

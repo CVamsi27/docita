@@ -2,7 +2,10 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Breadcrumbs, type BreadcrumbItem } from "@workspace/ui/components/navigation/breadcrumbs";
+import {
+  Breadcrumbs,
+  type BreadcrumbItem,
+} from "@workspace/ui/components/navigation/breadcrumbs";
 import { TopBar } from "@workspace/ui/components/layout/top-bar";
 import { breadcrumbsFor } from "@/app/(protected)/route-meta";
 import { TopBarActions } from "@/components/layout/top-bar-actions";

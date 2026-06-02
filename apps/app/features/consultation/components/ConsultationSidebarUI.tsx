@@ -10,7 +10,15 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@workspace/ui/components/overlay/collapsible";
-import { Clock, ChevronDown, ChevronRight, FileText, Receipt, User, X } from "lucide-react";
+import {
+  Clock,
+  ChevronDown,
+  ChevronRight,
+  FileText,
+  Receipt,
+  User,
+  X,
+} from "lucide-react";
 import {
   Appointment,
   Patient as BasePatient,
@@ -23,6 +31,8 @@ import {
 import { PatientSnapshotStrip } from "@/components/patient-history/PatientSnapshotStrip";
 import { PatientTimeline } from "@/components/patient-history/PatientTimeline";
 import { formatGenderLabel } from "@/lib/formatters";
+import { getInitials } from "@/lib/formatters/text-helpers";
+import { getPatientFullName } from "@workspace/utils";
 import { FollowUpWidget } from "./FollowUpWidget";
 import { usePermissions } from "@/hooks/use-permissions";
 
@@ -85,9 +95,8 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
     );
   }
 
-  const patientName =
-    `${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim();
-  const initials = `${patient.firstName?.[0] ?? ""}${patient.lastName?.[0] ?? ""}`;
+  const patientName = getPatientFullName(patient);
+  const initials = getInitials(patient.firstName ?? "", patient.lastName);
 
   const appointmentId = rawData
     ? isAppointmentWrapper(rawData)
@@ -144,7 +153,9 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
             )}
           </h3>
           {timelineData.events.length === 0 ? (
-            <p className="text-xs text-muted-foreground py-1">No previous visits</p>
+            <p className="text-xs text-muted-foreground py-1">
+              No previous visits
+            </p>
           ) : (
             <PatientTimeline
               mode="compact"
@@ -179,9 +190,7 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
         </div>
       ) : null}
 
-      {appointmentId ? (
-        <FollowUpWidget appointmentId={appointmentId} />
-      ) : null}
+      {appointmentId ? <FollowUpWidget appointmentId={appointmentId} /> : null}
 
       {(surgicalHistory.length > 0 || familyHistory.length > 0) && (
         <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>

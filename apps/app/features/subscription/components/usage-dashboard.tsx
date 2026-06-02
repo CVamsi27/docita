@@ -19,7 +19,13 @@ import {
   formatLocaleDateShortMonthYear,
 } from "@/lib/formatters";
 import { AlertTriangle, TrendingUp } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/indicators/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@workspace/ui/components/indicators/card";
 import { Progress } from "@workspace/ui/components/feedback/progress";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { cn } from "@workspace/ui/lib/utils";
@@ -55,8 +61,7 @@ function UsageMeter({
   const noIncludedQuota = usageMeterHasNoIncludedQuota(included);
   const pct = usageProgressPercentForBar(current, included);
   const isOver = overage > 0;
-  const isWarning =
-    included > 0 && pct >= 80 && !isOver;
+  const isWarning = included > 0 && pct >= 80 && !isOver;
   const caption = formatUsageMeterCaption(current, included, unit);
 
   return (
@@ -69,10 +74,13 @@ function UsageMeter({
               +{formatCountLocale(overage)} over
             </Badge>
           )}
-          {isWarning && (
-            <AlertTriangle className="h-3.5 w-3.5 text-warning" />
-          )}
-          <span className={cn("text-muted-foreground", isOver && "text-destructive")}>
+          {isWarning && <AlertTriangle className="h-3.5 w-3.5 text-warning" />}
+          <span
+            className={cn(
+              "text-muted-foreground",
+              isOver && "text-destructive",
+            )}
+          >
             {caption}
           </span>
         </div>
@@ -83,10 +91,7 @@ function UsageMeter({
           "h-2",
           isOver && "[&>div]:bg-destructive",
           isWarning && "[&>div]:bg-warning",
-          noIncludedQuota &&
-            !isOver &&
-            !isWarning &&
-            "[&>div]:bg-primary/35",
+          noIncludedQuota && !isOver && !isWarning && "[&>div]:bg-primary/35",
         )}
       />
       {isOver && overageRate !== undefined && (
@@ -155,7 +160,9 @@ export function UsageDashboard() {
               <TrendingUp className="h-4 w-4 text-primary" />
               This Period&apos;s Usage
             </CardTitle>
-            <CardDescription>{periodStart} – {periodEnd}</CardDescription>
+            <CardDescription>
+              {periodStart} – {periodEnd}
+            </CardDescription>
           </div>
           {totalOverageCost > 0 && (
             <div className="text-right">

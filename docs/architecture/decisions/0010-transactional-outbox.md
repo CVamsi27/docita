@@ -21,8 +21,9 @@ but not domain event fan-out.
 ## Decision
 
 Introduce a transactional `Outbox` Prisma model written in the same
-`prisma.$transaction` as the business write. A relay worker
-(`apps/worker/src/processors/outbox.processor.ts`) polls unpublished
+`prisma.$transaction` as the business write. A relay scheduler
+([`outbox-relay.scheduler.ts`](../../../apps/api/src/shared/modules/outbox/outbox-relay.scheduler.ts))
+polls unpublished
 rows and republishes to the in-process `EventEmitter2` (initially) or
 to Postgres `LISTEN/NOTIFY` for cross-pod fan-out (later).
 
@@ -32,17 +33,17 @@ may stay direct.
 
 ## Alternatives considered
 
-| Option | Pros | Cons | Why rejected |
-| --- | --- | --- | --- |
-| NATS JetStream | Mature broker | New ops surface, new dep | Premature |
-| Kafka | Strong durability | Massive ops overhead | Overkill at our scale |
-| Stay direct | Simplest | Loses on retry + multi-pod | Doesn't solve the problem |
+| Option         | Pros              | Cons                       | Why rejected              |
+| -------------- | ----------------- | -------------------------- | ------------------------- |
+| NATS JetStream | Mature broker     | New ops surface, new dep   | Premature                 |
+| Kafka          | Strong durability | Massive ops overhead       | Overkill at our scale     |
+| Stay direct    | Simplest          | Loses on retry + multi-pod | Doesn't solve the problem |
 
 ## Consequences
 
 - Positive: atomic emit with the business write; relay can retry; replay
   story exists (`SELECT * FROM Outbox WHERE publishedAt IS NULL`).
-- Negative: one extra table + worker; latency between commit and emit
+- Negative: one extra table + scheduler; latency between commit and emit
   is bounded by relay poll interval (target: <1s).
 - Follow-up: `scripts/checks/check-event-emit-via-outbox.mjs` (Stream O)
   enforces no direct `emit` in command paths.
@@ -64,6 +65,8 @@ model OutboxEvent {
   processedAt     DateTime?
   attempts        Int       @default(0)
   lastError       String?
+  nextAttemptAt   DateTime?
+  lastAttemptAt   DateTime?
 
   @@index([processedAt, createdAt])
   @@index([clinicId])
@@ -73,9 +76,10 @@ model OutboxEvent {
 `idempotencyKey @unique` collapses duplicate `append` calls (retried
 webhooks, retried commands) into a single row, giving producer-side
 exactly-once. The relay marks `processedAt` on successful dispatch; on
-failure it increments `attempts` and writes `lastError`. After a
-configurable attempt ceiling, the row is dead-lettered via the existing
-Postgres-queue DLQ pattern.
+failure the atomic claim has already incremented `attempts`; the relay writes
+`lastError` and schedules `nextAttemptAt` with bounded exponential backoff.
+After the attempt ceiling the row remains available for the outbox alerting
+and operator-drain path.
 
 ## Follow-up: migrate existing direct emits to outbox
 

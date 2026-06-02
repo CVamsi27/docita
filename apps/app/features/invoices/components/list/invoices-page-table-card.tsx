@@ -1,5 +1,7 @@
 "use client";
 
+import { getPatientFullName } from "@workspace/utils";
+
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -22,12 +24,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@workspace/ui/components/overlay/tooltip";
-import {
-  Download,
-  Eye,
-  MoreHorizontal,
-  Printer,
-} from "lucide-react";
+import { Download, Eye, MoreHorizontal, Printer } from "lucide-react";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import {
   DataTable,
@@ -36,10 +33,7 @@ import {
 import { ListRow } from "@workspace/ui/components/data-display/list-row";
 import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
 import type { InvoiceListRow } from "@workspace/types";
-import {
-  DATE_FORMAT_OPTIONS_US_LONG,
-  formatDate,
-} from "@/lib/formatters";
+import { DATE_FORMAT_OPTIONS_US_LONG, formatDate } from "@/lib/formatters";
 import { buildInvoicePaidSummaryLine } from "@/features/invoices/lib/invoice-payment-display";
 
 export function InvoicesPageTableCard({
@@ -77,9 +71,7 @@ export function InvoicesPageTableCard({
       header: "Patient",
       cell: (invoice) => (
         <span className="block max-w-[140px] truncate sm:max-w-none">
-          {invoice.patient
-            ? `${invoice.patient.firstName} ${invoice.patient.lastName}`
-            : "N/A"}
+          {invoice.patient ? getPatientFullName(invoice.patient) : "N/A"}
         </span>
       ),
     },
@@ -95,8 +87,7 @@ export function InvoicesPageTableCard({
     {
       id: "amount",
       header: "Amount",
-      cell: (invoice) =>
-        formatCurrency(invoice.totalAmount ?? invoice.total),
+      cell: (invoice) => formatCurrency(invoice.totalAmount ?? invoice.total),
     },
     {
       id: "status",
@@ -219,7 +210,7 @@ export function InvoicesPageTableCard({
                   }
                   title={
                     invoice.patient
-                      ? `${invoice.patient.firstName} ${invoice.patient.lastName}`
+                      ? getPatientFullName(invoice.patient)
                       : "N/A"
                   }
                   meta={formatCurrency(invoice.totalAmount ?? invoice.total)}

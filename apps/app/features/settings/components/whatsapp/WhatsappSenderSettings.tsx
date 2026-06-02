@@ -223,7 +223,9 @@ export function WhatsappSenderSettings() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Deliverability (30 days)</CardTitle>
+            <CardTitle className="text-base">
+              Deliverability (30 days)
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             {stats.isLoading ? (
@@ -231,7 +233,9 @@ export function WhatsappSenderSettings() {
             ) : stats.data ? (
               <>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-muted-foreground">Outbound messages</span>
+                  <span className="text-muted-foreground">
+                    Outbound messages
+                  </span>
                   <span className="font-medium">
                     {stats.data.outboundLast30Days ?? 0}
                   </span>
@@ -261,9 +265,9 @@ export function WhatsappSenderSettings() {
                 </div>
                 {(stats.data.staleDeliveryCount ?? 0) > 0 ? (
                   <p className="text-xs text-muted-foreground">
-                    Some messages have not received a delivery webhook from Meta.
-                    They remain queued for ops review — nothing was auto-marked
-                    failed.
+                    Some messages have not received a delivery webhook from
+                    Meta. They remain queued for ops review — nothing was
+                    auto-marked failed.
                   </p>
                 ) : null}
               </>

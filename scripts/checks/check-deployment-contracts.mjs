@@ -39,6 +39,8 @@ try {
   const detectScopePath = "scripts/workflow/detect-workflow-scope.mjs";
   const appLayoutPath = "apps/app/app/layout.tsx";
   const flyTomlPath = "fly.toml";
+  const stagingMirrorWorkflowPath =
+    ".github/workflows/sync-staging-after-promotion.yml";
 
   assertExists(
     appMiddleware,
@@ -68,6 +70,7 @@ try {
     ".github/workflows/frontend-critical-e2e.yml",
   );
   const flyTomlSource = read(flyTomlPath);
+  const stagingMirrorWorkflowSource = read(stagingMirrorWorkflowPath);
 
   assert(
     /export async function middleware/.test(appMiddlewareSource) ||
@@ -205,6 +208,26 @@ try {
     flyTomlSource,
     "RLS_ENABLED",
     "fly.toml [env] must set RLS_ENABLED for production API.",
+  );
+  assertIncludes(
+    flyTomlSource,
+    "auto_stop_machines = 'suspend'",
+    "fly.toml must suspend idle scale-out API machines instead of fully stopping them.",
+  );
+  assertIncludes(
+    flyTomlSource,
+    "min_machines_running = 1",
+    "fly.toml must keep one production API machine running to avoid clinician-facing wake timeouts.",
+  );
+
+  assertIncludes(
+    stagingMirrorWorkflowSource,
+    "github.rest.git.updateRef",
+    "Staging mirror workflow must move the staging ref to main after promotion.",
+  );
+  assert(
+    !stagingMirrorWorkflowSource.includes("github.rest.pulls.create"),
+    "Staging mirror workflow must not open sync PRs; staging is an automatic exact mirror of main.",
   );
 
   assertIncludes(

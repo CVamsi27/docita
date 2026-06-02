@@ -1,5 +1,6 @@
 "use client";
 
+import { getPatientFullName } from "@workspace/utils";
 import { useCallback } from "react";
 import { DPDP_NOTICE_VERSION } from "@workspace/types";
 import {
@@ -37,7 +38,9 @@ interface SubmitActionsState {
   selectedStart: string | null;
   selectedEnd: string | null;
   selectedSlotDoctorId: string | null;
-  setSubmitFieldErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  setSubmitFieldErrors: React.Dispatch<
+    React.SetStateAction<Record<string, string>>
+  >;
   setSubmitGeneralMessage: (v: string | null) => void;
   setDone: (v: boolean) => void;
 }
@@ -133,18 +136,35 @@ export function usePublicBookingSubmitActions(
         "generic",
       );
     }
-  }, [otp, otpVerify, phone, setVerificationToken, setFirstName, setLastName, setEmail, setSubmitFieldErrors]);
+  }, [
+    otp,
+    otpVerify,
+    phone,
+    setVerificationToken,
+    setFirstName,
+    setLastName,
+    setEmail,
+    setSubmitFieldErrors,
+  ]);
 
   const handleSubmit = useCallback(async () => {
     setSubmitFieldErrors({});
     setSubmitGeneralMessage(null);
 
     if (!slotDate) {
-      showUserFacingErrorToast(null, "Choose a date for your appointment request.", "generic");
+      showUserFacingErrorToast(
+        null,
+        "Choose a date for your appointment request.",
+        "generic",
+      );
       return;
     }
     if (!phone.trim()) {
-      showUserFacingErrorToast(null, "Enter your phone number before submitting.", "generic");
+      showUserFacingErrorToast(
+        null,
+        "Enter your phone number before submitting.",
+        "generic",
+      );
       return;
     }
 
@@ -155,15 +175,30 @@ export function usePublicBookingSubmitActions(
         otpRequired = check.requiresOtp;
       }
       if (otpRequired && !verificationToken) {
-        showUserFacingErrorToast(null, "Verify your phone with the code we sent before submitting.", "generic");
+        showUserFacingErrorToast(
+          null,
+          "Verify your phone with the code we sent before submitting.",
+          "generic",
+        );
         return;
       }
-      if (!otpRequired && (!firstName.trim() || !lastName.trim() || !dateOfBirth.trim())) {
-        showUserFacingErrorToast(null, "Enter your name and date of birth before submitting.", "generic");
+      if (
+        !otpRequired &&
+        (!firstName.trim() || !lastName.trim() || !dateOfBirth.trim())
+      ) {
+        showUserFacingErrorToast(
+          null,
+          "Enter your name and date of birth before submitting.",
+          "generic",
+        );
         return;
       }
       if (!otpRequired && !dpdpConsentAccepted) {
-        showUserFacingErrorToast(null, "Please accept the data processing notice (DPDP Act, 2023) before submitting.", "generic");
+        showUserFacingErrorToast(
+          null,
+          "Please accept the data processing notice (DPDP Act, 2023) before submitting.",
+          "generic",
+        );
         return;
       }
 
@@ -176,12 +211,18 @@ export function usePublicBookingSubmitActions(
           phoneNumber: phone,
           firstName: firstName.trim(),
           lastName: lastName.trim(),
-          dateOfBirth: otpRequired ? undefined : dateOfBirth.trim() || undefined,
+          dateOfBirth: otpRequired
+            ? undefined
+            : dateOfBirth.trim() || undefined,
           email: email.trim() || undefined,
           preferredDoctorId: resolvedDoctorId ?? undefined,
           slotCalendarDate: slotDate,
-          requestedSlotStart: includeSlot ? selectedStart ?? undefined : undefined,
-          requestedSlotEnd: includeSlot ? selectedEnd ?? undefined : undefined,
+          requestedSlotStart: includeSlot
+            ? (selectedStart ?? undefined)
+            : undefined,
+          requestedSlotEnd: includeSlot
+            ? (selectedEnd ?? undefined)
+            : undefined,
           reason: reason.trim() || undefined,
           notes: notes.trim() || undefined,
           turnstileToken: turnstileToken ?? undefined,
@@ -192,7 +233,7 @@ export function usePublicBookingSubmitActions(
                 accepted: true,
                 noticeVersion: DPDP_NOTICE_VERSION,
                 relation: "SELF",
-                givenByName: `${firstName.trim()} ${lastName.trim()}`.trim(),
+                givenByName: getPatientFullName({ firstName, lastName }),
               },
         },
         authorization: verificationToken ?? undefined,
@@ -215,13 +256,25 @@ export function usePublicBookingSubmitActions(
 
       const hasFieldHints = Object.keys(fieldErrors).length > 0;
       if (hasFieldHints) {
-        showUserFacingErrorToast(null, "Review the fields marked below and try again.", "form");
+        showUserFacingErrorToast(
+          null,
+          "Review the fields marked below and try again.",
+          "form",
+        );
       } else if (generalMessage) {
         // submitGeneralMessage Alert provides copy; skip extra toast noise.
       } else if (error instanceof ApiError) {
-        showUserFacingErrorToast(null, "We could not submit your request. Please review your details and try again.", "form");
+        showUserFacingErrorToast(
+          null,
+          "We could not submit your request. Please review your details and try again.",
+          "form",
+        );
       } else {
-        showUserFacingErrorToast(error, "We could not submit your request. Please try again.", "generic");
+        showUserFacingErrorToast(
+          error,
+          "We could not submit your request. Please try again.",
+          "generic",
+        );
       }
     }
   }, [

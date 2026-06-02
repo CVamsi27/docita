@@ -13,9 +13,7 @@ import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { Copy, UserPlus } from "lucide-react";
 import { User } from "@workspace/types";
-import {
-  memberRoleDisplayLabel,
-} from "@/features/settings/components/management/member-management-schemas";
+import { memberRoleDisplayLabel } from "@/features/settings/components/management/member-management-schemas";
 
 // ---------------------------------------------------------------------------
 // Pure badge helpers
@@ -83,8 +81,7 @@ interface MemberListRowProps {
 }
 
 export const MemberListRow: FC<MemberListRowProps> = ({ member, onManage }) => {
-  const isDoctor =
-    member.role === "DOCTOR" || member.role === "ADMIN_DOCTOR";
+  const isDoctor = member.role === "DOCTOR" || member.role === "ADMIN_DOCTOR";
 
   return (
     <div className="flex items-center justify-between rounded-[calc(var(--radius)-4px)] border border-transparent p-3 transition-colors hover:border-border/60 hover:bg-muted/50">
@@ -113,9 +110,7 @@ export const MemberListRow: FC<MemberListRowProps> = ({ member, onManage }) => {
                   {getVerificationBadgeLabel(member.verificationStatus)}
                 </Badge>
                 <Badge
-                  variant={
-                    member.signatureUploadedAt ? "default" : "outline"
-                  }
+                  variant={member.signatureUploadedAt ? "default" : "outline"}
                 >
                   Signature {member.signatureUploadedAt ? "Ready" : "Missing"}
                 </Badge>
@@ -175,8 +170,8 @@ export const MemberCardHeader: FC<MemberCardHeaderProps> = ({
         </Button>
       </div>
       <p className="text-xs text-muted-foreground md:text-right">
-        Share this code so staff can join from the{" "}
-        {facilityLabel.toLowerCase()} selection page.
+        Share this code so staff can join from the {facilityLabel.toLowerCase()}{" "}
+        selection page.
       </p>
       <Button
         size="sm"

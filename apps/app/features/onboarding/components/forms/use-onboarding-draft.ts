@@ -12,6 +12,7 @@ import {
 import {
   DRAFT_KEY,
   SESSION_ONBOARDING_ID_KEY,
+  hasMeaningfulComplianceDraftData,
   hasMeaningfulClinicDraftData,
   parseClinicDetailsDraft,
   parseOnboardingDraft,
@@ -56,6 +57,7 @@ export function useOnboardingDraft({
       const ageMs = Date.now() - new Date(draft.savedAt).getTime();
       const hasMeaningfulDraft =
         hasMeaningfulClinicDraftData(draft.clinicDetails) ||
+        hasMeaningfulComplianceDraftData(draft.compliance) ||
         Boolean(draft.onboardingId);
       const isSameOnboardingSession =
         Boolean(draft.onboardingId) &&
@@ -78,13 +80,17 @@ export function useOnboardingDraft({
       ) {
         const clinicDetails = parseClinicDetailsDraft(draft.clinicDetails);
         if (clinicDetails) clinicForm.reset(clinicDetails);
+        complianceForm.reset({
+          ...defaultComplianceValues,
+          ...draft.compliance,
+        });
       } else {
         localStorage.removeItem(DRAFT_KEY);
       }
     } catch {
       // ignore parse errors
     }
-  }, [clinicForm]);
+  }, [clinicForm, complianceForm]);
 
   const handleRestoreDraft = () => {
     if (savedDraft?.clinicDetails) {
@@ -93,6 +99,12 @@ export function useOnboardingDraft({
     }
     if (savedDraft?.onboardingId) {
       restoreOnboardingId(savedDraft.onboardingId);
+    }
+    if (savedDraft?.compliance) {
+      complianceForm.reset({
+        ...defaultComplianceValues,
+        ...savedDraft.compliance,
+      });
     }
     setShowDraftDialog(false);
     setSavedDraft(null);
@@ -113,15 +125,21 @@ export function useOnboardingDraft({
   };
 
   const persistDraft = useCallback(
-    (clinicDetails: Partial<ClinicDetails>) => {
+    (
+      clinicDetails: Partial<ClinicDetails>,
+      compliance: Partial<ComplianceSettings>,
+    ) => {
       try {
         const draft: OnboardingDraft = {
           clinicDetails,
+          compliance,
           savedAt: new Date().toISOString(),
           onboardingId,
         };
         const hasMeaningfulDraft =
-          hasMeaningfulClinicDraftData(clinicDetails) || Boolean(onboardingId);
+          hasMeaningfulClinicDraftData(clinicDetails) ||
+          hasMeaningfulComplianceDraftData(compliance) ||
+          Boolean(onboardingId);
         if (!hasMeaningfulDraft) {
           localStorage.removeItem(DRAFT_KEY);
           return;
@@ -136,14 +154,21 @@ export function useOnboardingDraft({
 
   useEffect(() => {
     const subscription = clinicForm.watch((values) => {
-      persistDraft(values);
+      persistDraft(values, complianceForm.getValues());
     });
     return () => subscription.unsubscribe();
-  }, [clinicForm, persistDraft]);
+  }, [clinicForm, complianceForm, persistDraft]);
 
   useEffect(() => {
-    persistDraft(clinicForm.getValues());
-  }, [clinicForm, onboardingId, persistDraft]);
+    const subscription = complianceForm.watch((values) => {
+      persistDraft(clinicForm.getValues(), values);
+    });
+    return () => subscription.unsubscribe();
+  }, [clinicForm, complianceForm, persistDraft]);
+
+  useEffect(() => {
+    persistDraft(clinicForm.getValues(), complianceForm.getValues());
+  }, [clinicForm, complianceForm, onboardingId, persistDraft]);
 
   return {
     showDraftDialog,

@@ -1,8 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 import {
+  calculateInvoiceLineAmounts,
+  roundCurrency,
+  sumCurrency,
+  type InvoiceLineAmounts,
+} from '@workspace/utils';
+import {
   invoiceTaxSummarySchema,
   taxRegistrationSnapshotSchema,
+  DEFAULT_TAX_COUNTRY_CODE,
+  DEFAULT_TAX_CURRENCY,
+  DEFAULT_TAX_REGIME,
   type InvoiceItem,
   type InvoiceTaxSummary,
   type PlaceOfSupply,
@@ -30,25 +39,9 @@ export interface CalculatedInvoiceTax {
   grandTotal: number;
 }
 
-interface LineAmounts {
-  subtotal: number;
-  discount: number;
-  netAmount: number;
-  taxableAmount: number;
-  exemptAmount: number;
-  taxAmount: number;
+interface LineAmounts extends InvoiceLineAmounts {
   components: TaxComponent[];
 }
-
-const DEFAULT_COUNTRY_CODE = 'IN';
-const DEFAULT_CURRENCY = 'INR';
-const DEFAULT_REGIME = 'IN_GST';
-
-const roundCurrency = (value: number): number =>
-  Math.round((value + Number.EPSILON) * 100) / 100;
-
-const sumCurrency = (values: number[]): number =>
-  roundCurrency(values.reduce((total, value) => total + value, 0));
 
 const normalizeStateCode = (value?: string): string | undefined => {
   const normalized = value?.trim();
@@ -59,8 +52,8 @@ const normalizeStateCode = (value?: string): string | undefined => {
 export class TaxCalculatorService {
   calculateInvoice(input: CalculateInvoiceTaxInput): CalculatedInvoiceTax {
     const seller = taxRegistrationSnapshotSchema.parse({
-      countryCode: DEFAULT_COUNTRY_CODE,
-      regime: DEFAULT_REGIME,
+      countryCode: DEFAULT_TAX_COUNTRY_CODE,
+      regime: DEFAULT_TAX_REGIME,
       ...input.seller,
     });
     const buyer = taxRegistrationSnapshotSchema.parse({
@@ -83,7 +76,7 @@ export class TaxCalculatorService {
         'Place of supply state is required for taxable invoices',
       );
     }
-    const currency = input.currency ?? DEFAULT_CURRENCY;
+    const currency = input.currency ?? DEFAULT_TAX_CURRENCY;
 
     const lineResults = input.items.map((item) =>
       this.calculateLine(item, seller, placeOfSupply),
@@ -159,52 +152,32 @@ export class TaxCalculatorService {
     seller: TaxRegistrationSnapshot,
     placeOfSupply: PlaceOfSupply,
   ): LineAmounts {
-    const unitPrice = item.unitPrice ?? item.price;
-    const subtotal = roundCurrency(unitPrice * item.quantity);
-    const rateDiscount = roundCurrency(
-      subtotal * ((item.discountRate ?? 0) / 100),
-    );
-    const discount = Math.min(
-      subtotal,
-      roundCurrency((item.discountAmount ?? 0) + rateDiscount),
-    );
-    const netAmount = roundCurrency(subtotal - discount);
     const taxTreatment = item.taxTreatment ?? 'EXEMPT_HEALTHCARE';
     const isTaxable =
-      seller.countryCode === DEFAULT_COUNTRY_CODE &&
-      seller.regime === DEFAULT_REGIME &&
+      seller.countryCode === DEFAULT_TAX_COUNTRY_CODE &&
+      seller.regime === DEFAULT_TAX_REGIME &&
       taxTreatment === 'TAXABLE' &&
       (item.taxRate ?? 0) > 0;
+    const line = calculateInvoiceLineAmounts(item, { taxable: isTaxable });
 
     if (!isTaxable) {
       return {
-        subtotal,
-        discount,
-        netAmount,
-        taxableAmount: 0,
-        exemptAmount: netAmount,
-        taxAmount: 0,
+        ...line,
         components: [],
       };
     }
 
     const taxRate = item.taxRate ?? 0;
-    const taxAmount = roundCurrency(netAmount * (taxRate / 100));
     const components = this.calculateIndianComponents(
-      netAmount,
+      line.netAmount,
       taxRate,
-      taxAmount,
+      line.taxAmount,
       seller,
       placeOfSupply,
     );
 
     return {
-      subtotal,
-      discount,
-      netAmount,
-      taxableAmount: netAmount,
-      exemptAmount: 0,
-      taxAmount,
+      ...line,
       components,
     };
   }

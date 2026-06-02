@@ -4,9 +4,14 @@ import {
   DataTable,
   type DataTableColumn,
 } from "@workspace/ui/components/data-display/data-table";
-import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+} from "@workspace/ui/components/indicators/avatar";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { formatGenderLabel } from "@/lib/formatters";
+import { getInitials } from "@/lib/formatters/text-helpers";
+import { getPatientFullName } from "@workspace/utils";
 import {
   ArrowDown,
   ArrowUp,
@@ -89,14 +94,11 @@ function PatientMobileCard({
       >
         <Avatar className="h-9 w-9 shrink-0 border border-border/70 bg-background/70">
           <AvatarFallback>
-            {patient.firstName.charAt(0)}
-            {patient.lastName.charAt(0)}
+            {getInitials(patient.firstName, patient.lastName)}
           </AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-medium">
-            {patient.firstName} {patient.lastName}
-          </p>
+          <p className="truncate font-medium">{getPatientFullName(patient)}</p>
           <p className="truncate text-sm text-muted-foreground">
             {patient.phoneNumber}
           </p>
@@ -162,8 +164,7 @@ export function PatientsTable({
       cell: (patient) => (
         <Avatar className="h-8 w-8 border border-border/70 bg-background/70 text-foreground">
           <AvatarFallback className="border border-border/70 bg-background/70 text-foreground">
-            {patient.firstName.charAt(0)}
-            {patient.lastName.charAt(0)}
+            {getInitials(patient.firstName, patient.lastName)}
           </AvatarFallback>
         </Avatar>
       ),
@@ -180,7 +181,7 @@ export function PatientsTable({
       ),
       cell: (patient) => (
         <span className="block max-w-[160px] truncate font-medium sm:max-w-xs">
-          {patient.firstName} {patient.lastName}
+          {getPatientFullName(patient)}
         </span>
       ),
     },
@@ -258,7 +259,7 @@ export function PatientsTable({
       columns={columns}
       data={filteredPatients}
       rowKey={(patient, index) =>
-        patient.id ?? `${patient.firstName}-${patient.lastName}-${index}`
+        patient.id ?? `${getPatientFullName(patient, "patient")}-${index}`
       }
       isLoading={isLoading}
       emptyTitle="No patients found"

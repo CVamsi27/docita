@@ -14,7 +14,11 @@ import {
   DEFAULT_CURRENCY,
   parseSupportedCurrency,
 } from "@workspace/utils";
-import { tierSchema, type SupportedCurrency, type TierName } from "@workspace/types";
+import {
+  tierSchema,
+  type SupportedCurrency,
+  type TierName,
+} from "@workspace/types";
 import type { PricingConfig } from "@/features/subscription/hooks/use-pricing";
 
 export interface PricingEstimatorUsage {
@@ -112,19 +116,21 @@ export function DynamicPricingEstimatorInputs({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {(pricingConfig?.supportedCurrencies || [
-                  {
-                    code: DEFAULT_CURRENCY,
-                    symbol:
-                      CURRENCY_OPTIONS.find(
-                        (option) => option.value === DEFAULT_CURRENCY,
-                      )?.symbol ?? DEFAULT_CURRENCY,
-                    name:
-                      CURRENCY_OPTIONS.find(
-                        (option) => option.value === DEFAULT_CURRENCY,
-                      )?.label ?? DEFAULT_CURRENCY,
-                  },
-                ]).map((item) => (
+                {(
+                  pricingConfig?.supportedCurrencies || [
+                    {
+                      code: DEFAULT_CURRENCY,
+                      symbol:
+                        CURRENCY_OPTIONS.find(
+                          (option) => option.value === DEFAULT_CURRENCY,
+                        )?.symbol ?? DEFAULT_CURRENCY,
+                      name:
+                        CURRENCY_OPTIONS.find(
+                          (option) => option.value === DEFAULT_CURRENCY,
+                        )?.label ?? DEFAULT_CURRENCY,
+                    },
+                  ]
+                ).map((item) => (
                   <SelectItem key={item.code} value={item.code}>
                     {item.symbol} {item.code}
                   </SelectItem>

@@ -22,9 +22,7 @@ export function PatientDetailTabLoadingShell() {
           <Skeleton className="h-4 w-full max-w-lg" />
         </div>
       </div>
-      <Skeleton
-        className="h-48 w-full rounded-lg md:h-64"
-      />
+      <Skeleton className="h-48 w-full rounded-lg md:h-64" />
     </div>
   );
 }

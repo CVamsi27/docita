@@ -23,7 +23,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { formatDateTime } from "@/lib/formatters";
-import { isRecord } from "@workspace/utils";
+import { formatCurrency, isRecord } from "@workspace/utils";
 
 function pickString(v: unknown): string | undefined {
   return typeof v === "string" && v.trim() ? v : undefined;
@@ -82,7 +82,7 @@ export default function PortalDashboardPage() {
           : null;
     const billLine =
       total != null
-        ? `Receipt · ${total.toLocaleString("en-IN", { style: "currency", currency: "INR" })}${invStatus ? ` · ${invStatus}` : ""}`
+        ? `Receipt · ${formatCurrency(total, { currency: "INR" })}${invStatus ? ` · ${invStatus}` : ""}`
         : dashboard.summary.outstandingInvoicesCount > 0
           ? `Bills · ${dashboard.summary.outstandingInvoicesCount} open`
           : "Bills · Nothing outstanding";
@@ -172,7 +172,9 @@ export default function PortalDashboardPage() {
               <p>
                 <span className="font-medium">Data storage:</span>
                 <span className="ml-1 text-muted-foreground">
-                  {consentSettings?.dataStorageConsent ? "Granted" : "Not granted"}
+                  {consentSettings?.dataStorageConsent
+                    ? "Granted"
+                    : "Not granted"}
                 </span>
               </p>
             </div>

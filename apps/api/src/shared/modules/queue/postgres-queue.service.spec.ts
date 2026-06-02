@@ -19,6 +19,8 @@ interface MockRow {
   priority: number;
   attemptsMade: number;
   maxAttempts: number;
+  replayCount: number;
+  lastReplayedAt: Date | null;
   failedReason: string | null;
   processedAt: Date | null;
   delayedUntil: Date | null;
@@ -37,6 +39,8 @@ const makeRow = (overrides: Partial<MockRow> = {}): MockRow => ({
   priority: 0,
   attemptsMade: 0,
   maxAttempts: 3,
+  replayCount: 0,
+  lastReplayedAt: null,
   failedReason: null,
   processedAt: null,
   delayedUntil: null,
@@ -245,6 +249,28 @@ describe('PostgresQueueService', () => {
       expect(handler).not.toHaveBeenCalled();
       expect(updateMock).not.toHaveBeenCalled();
     });
+
+    it('does not overlap scheduled polls for the same queue', async () => {
+      await service.process(
+        'test-job',
+        jest.fn<QueueJobHandler<QueueJobData>>().mockResolvedValue(undefined),
+      );
+
+      const pollIfIdle = (
+        service as unknown as {
+          pollIfIdle: (name: string) => Promise<void>;
+        }
+      ).pollIfIdle.bind(service);
+
+      const firstPoll = pollIfIdle('test-job');
+      const skippedPoll = pollIfIdle('test-job');
+      await Promise.all([firstPoll, skippedPoll]);
+
+      expect(queueJobsMock.claimNextWaitingJob).toHaveBeenCalledTimes(1);
+
+      await pollIfIdle('test-job');
+      expect(queueJobsMock.claimNextWaitingJob).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('getJob', () => {
@@ -416,6 +442,8 @@ describe('PostgresQueueService', () => {
           deadLetteredAt: null,
           delayedUntil: null,
           processedAt: null,
+          replayCount: { increment: 1 },
+          lastReplayedAt: expect.any(Date),
         }),
       });
       expect(job.id).toBe('dl-1');

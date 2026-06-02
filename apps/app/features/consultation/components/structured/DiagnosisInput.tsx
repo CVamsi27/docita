@@ -5,9 +5,15 @@ import { Plus } from "lucide-react";
 import { Feature } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { DiagnosisItemRow } from "./diagnosis-item-row";
-import type { DiagnosisInputProps, DiagnosisItem } from "./diagnosis-input-types";
+import type {
+  DiagnosisInputProps,
+  DiagnosisItem,
+} from "./diagnosis-input-types";
 
-export type { DiagnosisItem, DiagnosisInputProps } from "./diagnosis-input-types";
+export type {
+  DiagnosisItem,
+  DiagnosisInputProps,
+} from "./diagnosis-input-types";
 
 export function DiagnosisInput({
   value = [],
@@ -62,7 +68,9 @@ export function DiagnosisInput({
             index={index}
             readOnly={readOnly}
             medicalCodingEnabled={medicalCodingEnabled}
-            onUpdate={(field, fieldValue) => updateItem(index, field, fieldValue)}
+            onUpdate={(field, fieldValue) =>
+              updateItem(index, field, fieldValue)
+            }
             onSetIcdCode={(code) => setIcdCode(index, code)}
             onRemove={() => removeItem(index)}
           />

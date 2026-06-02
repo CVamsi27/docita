@@ -42,9 +42,7 @@ export function RoleGuard({
   const router = useRouter();
 
   const needsLoginRedirect =
-    !!(requiredPermission || requiredRole) &&
-    !user?.role &&
-    !fallback;
+    !!(requiredPermission || requiredRole) && !user?.role && !fallback;
 
   useEffect(() => {
     if (!needsLoginRedirect) {

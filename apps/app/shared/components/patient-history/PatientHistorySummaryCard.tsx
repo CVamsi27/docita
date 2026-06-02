@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { FC } from "react";
@@ -43,6 +41,7 @@ interface PatientHistorySummaryCardProps {
   familyHistory?: PatientFamilyHistory[];
   socialHistory?: PatientSocialHistory | null;
   compact?: boolean;
+  showClinicalHistory?: boolean;
   className?: string;
 }
 
@@ -60,6 +59,7 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
   familyHistory = [],
   socialHistory,
   compact = false,
+  showClinicalHistory = true,
   className = "",
 }) => {
   const hasConditions = conditions.length > 0;
@@ -73,8 +73,7 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
       socialHistory.occupation);
 
   const hasAnyHistory =
-    hasConditions ||
-    hasAllergies ||
+    (showClinicalHistory && (hasConditions || hasAllergies)) ||
     hasSurgeries ||
     hasFamilyHistory ||
     hasSocialHistory;
@@ -91,52 +90,54 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
 
   return (
     <div className={`space-y-3 ${className}`}>
-      <Card
-        className={`overflow-hidden ${hasAllergies ? "border-destructive/30" : "border-success/30"}`}
-      >
-        <CardHeader className="py-2.5 px-3 bg-muted/30">
-          <CardTitle className="text-sm flex items-center gap-2 font-semibold">
-            <AlertTriangle
-              className={`h-4 w-4 ${hasAllergies ? "text-destructive" : "text-success"}`}
-            />
-            Allergies
-            {hasAllergies && (
-              <Badge
-                variant="secondary"
-                className="ml-auto h-5 px-1.5 text-[var(--fs-2xs)]"
-              >
-                {allergies.length}
-              </Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-3 py-3">
-          {hasAllergies ? (
-            <div className="flex flex-wrap gap-1.5">
-              {allergies.map((allergy, i) => (
+      {showClinicalHistory && (
+        <Card
+          className={`overflow-hidden ${hasAllergies ? "border-destructive/30" : "border-success/30"}`}
+        >
+          <CardHeader className="py-2.5 px-3 bg-muted/30">
+            <CardTitle className="text-sm flex items-center gap-2 font-semibold">
+              <AlertTriangle
+                className={`h-4 w-4 ${hasAllergies ? "text-destructive" : "text-success"}`}
+              />
+              Allergies
+              {hasAllergies && (
                 <Badge
-                  key={allergy.id || i}
-                  variant="outline"
-                  className={`text-xs ${SEVERITY_COLORS[allergy.severity || "MODERATE"]}`}
+                  variant="secondary"
+                  className="ml-auto h-5 px-1.5 text-[var(--fs-2xs)]"
                 >
-                  {allergy.allergen}
-                  {allergy.severity && (
-                    <span className="ml-1 opacity-70 text-[var(--fs-2xs)]">
-                      ({humanizeUiLabel(allergy.severity)})
-                    </span>
-                  )}
+                  {allergies.length}
                 </Badge>
-              ))}
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 text-sm text-success">
-              <span className="font-medium">No known allergies</span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-3 py-3">
+            {hasAllergies ? (
+              <div className="flex flex-wrap gap-1.5">
+                {allergies.map((allergy, i) => (
+                  <Badge
+                    key={allergy.id || i}
+                    variant="outline"
+                    className={`text-xs ${SEVERITY_COLORS[allergy.severity || "MODERATE"]}`}
+                  >
+                    {allergy.allergen}
+                    {allergy.severity && (
+                      <span className="ml-1 opacity-70 text-[var(--fs-2xs)]">
+                        ({humanizeUiLabel(allergy.severity)})
+                      </span>
+                    )}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-success">
+                <span className="font-medium">No known allergies</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
-      {hasConditions && (
+      {showClinicalHistory && hasConditions && (
         <Collapsible defaultOpen={!compact}>
           <Card>
             <CollapsibleTrigger className="w-full hover:bg-muted/50 transition-colors">
@@ -344,4 +345,3 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
     </div>
   );
 };
-

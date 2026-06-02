@@ -1,6 +1,11 @@
 "use client";
 
-import { DATE_FORMATS, formatDate, formatDistanceToNow, getUserFacingErrorMessage } from "@workspace/utils";
+import {
+  DATE_FORMATS,
+  formatDate,
+  formatDistanceToNow,
+  getUserFacingErrorMessage,
+} from "@workspace/utils";
 
 import { type ChangeEvent, type FormEvent, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -26,15 +31,17 @@ import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffo
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@workspace/ui/components/overlay/collapsible";
 import { WhatsAppBroadcastJobSummary } from "@workspace/types";
 import { AlertCircle, FileText, Megaphone, Send, Upload } from "lucide-react";
 import { broadcastsAPI } from "@/lib/api/api";
 import { internalQueryKeys } from "@/lib/api/query-keys";
 import { useInternalBroadcastsList } from "@workspace/data-access/internal";
-import {
-  BROADCAST_PRESETS,
-  type BroadcastPresetId,
-} from "./broadcast-presets";
+import { BROADCAST_PRESETS, type BroadcastPresetId } from "./broadcast-presets";
 import { parseRecipientsCsv } from "./parse-csv";
 
 const BROADCAST_LIST_LIMIT = 50;
@@ -149,7 +156,7 @@ export function BroadcastsPage() {
       templateName: useTemplate ? selectedPreset.metaTemplateName : undefined,
       messageText: useTemplate
         ? undefined
-        : (messageOverride.trim() || selectedPreset.body),
+        : messageOverride.trim() || selectedPreset.body,
       recipients,
     });
   };
@@ -220,7 +227,9 @@ export function BroadcastsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="broadcast-title">Broadcast name (optional)</Label>
+                <Label htmlFor="broadcast-title">
+                  Broadcast name (optional)
+                </Label>
                 <Input
                   id="broadcast-title"
                   value={title}
@@ -328,23 +337,32 @@ export function BroadcastsPage() {
                     )}
                   </div>
                   {skippedRows.length > 0 && (
-                    <details className="mt-3 text-xs">
-                      <summary className="cursor-pointer text-muted-foreground">
-                        Show skipped rows
-                      </summary>
-                      <ul className="mt-2 max-h-40 list-disc space-y-1 overflow-y-auto pl-5 text-muted-foreground">
-                        {skippedRows.slice(0, 50).map((skip, idx) => (
-                          <li key={idx}>
-                            Row {skip.row}: {skip.reason}
-                          </li>
-                        ))}
-                        {skippedRows.length > 50 && (
-                          <li>
-                            … and {skippedRows.length - 50} more skipped rows
-                          </li>
-                        )}
-                      </ul>
-                    </details>
+                    <Collapsible className="mt-3 text-xs">
+                      <CollapsibleTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-auto px-0 text-xs text-muted-foreground"
+                        >
+                          Show skipped rows
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <ul className="mt-2 max-h-40 list-disc space-y-1 overflow-y-auto pl-5 text-muted-foreground">
+                          {skippedRows.slice(0, 50).map((skip, idx) => (
+                            <li key={idx}>
+                              Row {skip.row}: {skip.reason}
+                            </li>
+                          ))}
+                          {skippedRows.length > 50 && (
+                            <li>
+                              … and {skippedRows.length - 50} more skipped rows
+                            </li>
+                          )}
+                        </ul>
+                      </CollapsibleContent>
+                    </Collapsible>
                   )}
                 </div>
               )}

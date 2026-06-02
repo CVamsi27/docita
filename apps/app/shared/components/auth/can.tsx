@@ -29,7 +29,10 @@ const ROLE_HIERARCHY: Record<UserRole, number> = {
   PATIENT: 0,
 };
 
-function meetsRole(userRole: UserRole | undefined, required: UserRole): boolean {
+function meetsRole(
+  userRole: UserRole | undefined,
+  required: UserRole,
+): boolean {
   if (!userRole) return false;
   return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[required];
 }

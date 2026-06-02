@@ -1,5 +1,7 @@
 "use client";
 
+import { getPatientFullName } from "@workspace/utils";
+
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useUpdateInvoice } from "@workspace/data-access";
@@ -94,7 +96,7 @@ export function EditInvoiceDialogContainer({
     })();
   };
   const patientName = invoice?.patient
-    ? `${invoice.patient.firstName} ${invoice.patient.lastName}`
+    ? getPatientFullName(invoice.patient)
     : "Unknown Patient";
   return (
     <EditInvoiceDialogUI

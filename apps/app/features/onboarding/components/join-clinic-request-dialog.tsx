@@ -37,7 +37,10 @@ export function JoinClinicRequestDialog({
   onSubmit: () => void;
 }) {
   return (
-    <Dialog open={!!clinic} onOpenChange={(open) => !open && onOpenChange(false)}>
+    <Dialog
+      open={!!clinic}
+      onOpenChange={(open) => !open && onOpenChange(false)}
+    >
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Request to Join {clinic?.name}</DialogTitle>

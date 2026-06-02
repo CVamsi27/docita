@@ -49,7 +49,9 @@ export function ConsultationVitalsProvider({
     queryClient.invalidateQueries({
       queryKey: queryKeys.appointments.detail(appointmentId),
     });
-    queryClient.invalidateQueries({ queryKey: queryKeys.patientSnapshot.all() });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.patientSnapshot.all(),
+    });
   }, [appointmentId, queryClient]);
 
   const value = useMemo(() => ({ openVitals }), [openVitals]);

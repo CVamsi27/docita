@@ -12,7 +12,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/overlay/sheet";
-import { DocitaIcon, DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
+import {
+  DocitaIcon,
+  DocitaLogo,
+} from "@workspace/ui/components/indicators/docita-logo";
 import { SidebarRailTooltip } from "@workspace/ui/components/navigation/sidebar-rail-tooltip";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { SidebarTrackSection } from "./sidebar/sidebar-track-section";
@@ -38,9 +41,7 @@ function useScrollShadow(ref: React.RefObject<HTMLElement | null>) {
     function update() {
       if (!el) return;
       setShowTopShadow(el.scrollTop > 4);
-      setShowBottomShadow(
-        el.scrollTop + el.clientHeight < el.scrollHeight - 4,
-      );
+      setShowBottomShadow(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
     }
 
     update();
@@ -165,7 +166,10 @@ function SidebarContent({
                   "linear-gradient(to bottom, hsl(var(--background)) 20%, transparent)",
               }}
               onClick={() =>
-                scrollRef.current?.scrollBy({ top: -120, behavior: scrollBehavior })
+                scrollRef.current?.scrollBy({
+                  top: -120,
+                  behavior: scrollBehavior,
+                })
               }
             >
               <ChevronUp className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5" />
@@ -207,7 +211,10 @@ function SidebarContent({
                   "linear-gradient(to top, hsl(var(--background)) 40%, transparent)",
               }}
               onClick={() =>
-                scrollRef.current?.scrollBy({ top: 120, behavior: scrollBehavior })
+                scrollRef.current?.scrollBy({
+                  top: 120,
+                  behavior: scrollBehavior,
+                })
               }
             >
               <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-y-0.5" />

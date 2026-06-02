@@ -1,5 +1,7 @@
 "use client";
 
+import { getPatientFullName } from "@workspace/utils";
+
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Button } from "@workspace/ui/components/form/button";
 import { Check, ChevronsUpDown } from "lucide-react";
@@ -94,13 +96,16 @@ export function OrderLabTestComboboxFields({
                     )}
                   >
                     {selectedPatient
-                      ? `${selectedPatient.firstName} ${selectedPatient.lastName}`
+                      ? getPatientFullName(selectedPatient)
                       : "Search patient by name…"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </FormControl>
               </PopoverTrigger>
-              <PopoverContent className="w-[min(100vw-2rem,400px)] p-0 z-100" align="start">
+              <PopoverContent
+                className="w-[min(100vw-2rem,400px)] p-0 z-100"
+                align="start"
+              >
                 <Command shouldFilter={false}>
                   <CommandInput
                     placeholder="Enter patient name"
@@ -142,9 +147,7 @@ export function OrderLabTestComboboxFields({
                               )}
                             />
                             <div className="flex flex-col">
-                              <span>
-                                {patient.firstName} {patient.lastName}
-                              </span>
+                              <span>{getPatientFullName(patient)}</span>
                               {patient.phoneNumber ? (
                                 <span className="text-xs text-muted-foreground">
                                   {patient.phoneNumber}
@@ -195,7 +198,10 @@ export function OrderLabTestComboboxFields({
                   </Button>
                 </FormControl>
               </PopoverTrigger>
-              <PopoverContent className="w-[min(100vw-2rem,400px)] p-0 z-100" align="start">
+              <PopoverContent
+                className="w-[min(100vw-2rem,400px)] p-0 z-100"
+                align="start"
+              >
                 <Command shouldFilter={false}>
                   <CommandInput
                     placeholder="Enter test name"

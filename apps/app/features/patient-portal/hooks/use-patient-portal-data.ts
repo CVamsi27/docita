@@ -1,7 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import { getUserFacingErrorMessage } from "@workspace/utils";
+import {
+  getUserFacingErrorMessage,
+  getPatientFullName,
+} from "@workspace/utils";
 import {
   type AppointmentListItem,
   usePatientAppointments,
@@ -69,11 +72,11 @@ export function usePatientPortalData(patientId?: string | null) {
       };
     }
 
-    const items: AppointmentWithPortalRelations[] =
-      (appointmentsResponse?.items || []).filter(
-        (item): item is AppointmentWithPortalRelations =>
-          Boolean(item.id && item.startTime),
-      );
+    const items: AppointmentWithPortalRelations[] = (
+      appointmentsResponse?.items || []
+    ).filter((item): item is AppointmentWithPortalRelations =>
+      Boolean(item.id && item.startTime),
+    );
 
     const now = Date.now();
 
@@ -163,7 +166,8 @@ export function usePatientPortalData(patientId?: string | null) {
     return appointmentsError
       ? getUserFacingErrorMessage(appointmentsError, {
           context: "load",
-          fallback: "We could not load your portal information. Please try again.",
+          fallback:
+            "We could not load your portal information. Please try again.",
         })
       : null;
   }, [appointmentsError, hasPatientId]);
@@ -173,6 +177,6 @@ export function usePatientPortalData(patientId?: string | null) {
     error,
     snapshot,
     summary,
-    patientName: patient ? `${patient.firstName} ${patient.lastName}` : null,
+    patientName: patient ? getPatientFullName(patient) : null,
   };
 }

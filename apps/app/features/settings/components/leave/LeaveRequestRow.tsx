@@ -6,10 +6,7 @@ import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { formatDate } from "@workspace/utils";
-import {
-  useApproveLeave,
-  useCancelLeave,
-} from "@workspace/data-access";
+import { useApproveLeave, useCancelLeave } from "@workspace/data-access";
 import type { StaffLeave } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";

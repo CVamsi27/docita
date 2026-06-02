@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { PRICING_CURRENCY_CONFIG, TIER_INFO } from "@workspace/types";
 import { getTierName, getUserFacingErrorMessage } from "@workspace/utils";
-import { type TierPricing, usePricingConfig } from "@/features/subscription/hooks/use-pricing";
+import {
+  type TierPricing,
+  usePricingConfig,
+} from "@/features/subscription/hooks/use-pricing";
 import { useProrationPreview } from "@workspace/data-access";
 import { formatPriceWithCurrency } from "@workspace/utils";
 import { getTierFeatureDelta } from "@/features/subscription/lib/feature-delta";
@@ -116,7 +119,8 @@ export function useTierChangeDialog({
     } catch (err) {
       setError(
         getUserFacingErrorMessage(err, {
-          fallback: "We could not change your plan right now. Please try again.",
+          fallback:
+            "We could not change your plan right now. Please try again.",
           context: "payment",
         }),
       );

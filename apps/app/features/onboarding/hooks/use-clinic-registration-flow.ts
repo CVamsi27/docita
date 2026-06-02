@@ -19,7 +19,7 @@ import {
   type TeamMember,
 } from "@/features/onboarding/components/types";
 import { DEFAULT_CURRENCY, getUserFacingErrorMessage } from "@workspace/utils";
-import type { PlanMode } from "@workspace/types";
+import type { MultiCurrencyTierPricing, PlanMode } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { parseClinicDetailsDraft } from "@/features/onboarding/components/forms/clinic-registration-form-helpers";
 import {
@@ -37,8 +37,8 @@ import {
   validateRegistrationRequirements,
 } from "./onboarding-payload";
 import {
+  getOnboardingTrialEligibility,
   openOnboardingPlanCheckout,
-  type PlanPricing,
   type PlanSelectionOptions,
 } from "./onboarding-plan-checkout";
 import { completeOnboardingRegistration } from "./onboarding-completion";
@@ -170,7 +170,7 @@ export function useClinicRegistrationFlow() {
     async (
       tier: string,
       billingCycle: "MONTHLY" | "YEARLY",
-      pricing: PlanPricing,
+      pricing: MultiCurrencyTierPricing,
       options?: PlanSelectionOptions,
     ) => {
       const price =
@@ -194,14 +194,6 @@ export function useClinicRegistrationFlow() {
         toast.info("Enterprise plans are handled by our sales team");
         return;
       }
-      if (tier === "ESSENTIAL") {
-        setFormData((prev) => ({
-          ...prev,
-          paymentDetails: { skipPayment: true, autoPay: true },
-        }));
-        setStep(5);
-        return;
-      }
       if (!user?.email) {
         showUserFacingErrorToast(
           null,
@@ -214,6 +206,20 @@ export function useClinicRegistrationFlow() {
       try {
         setIsProcessingPayment(true);
         const oid = await ensureOnboardingId();
+        if (tier === "ESSENTIAL") {
+          const trialEligible = await getOnboardingTrialEligibility(oid);
+          if (trialEligible) {
+            setFormData((prev) => ({
+              ...prev,
+              paymentDetails: { skipPayment: true, autoPay: true },
+            }));
+            setStep(5);
+            return;
+          }
+          toast.info(
+            "Your free trial has already been used. Complete payment to continue with Essential.",
+          );
+        }
         const checkoutResult = await openOnboardingPlanCheckout({
           onboardingId: oid,
           tier,
@@ -277,10 +283,7 @@ export function useClinicRegistrationFlow() {
 
   const goBackFromCompliance = useCallback(() => setStep(4), [setStep]);
 
-  // Mirror compliance edits (agreement acceptance, signature session) into the
-  // persisted form data so they survive a remount — e.g. returning to the wizard
-  // after a phone signature upload. Without this the acceptance only lived in the
-  // in-memory compliance form and was lost on re-init.
+  // Persist compliance edits across remounts, including phone signature returns.
   const setComplianceDraft = useCallback(
     (compliance: Partial<ComplianceSettings>) => {
       setFormData((prev) => ({

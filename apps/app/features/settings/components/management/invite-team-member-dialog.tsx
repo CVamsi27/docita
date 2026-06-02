@@ -135,11 +135,7 @@ export function InviteTeamMemberDialog({
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="Email"
-                        {...field}
-                      />
+                      <Input type="email" placeholder="Email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -237,7 +233,11 @@ export function InviteTeamMemberDialog({
                 className="w-full sm:w-auto"
               >
                 {isSaving && (
-                  <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                  <DocitaLoadingIndicator
+                    variant="inline"
+                    decorative
+                    className="mr-2"
+                  />
                 )}
                 Invite Member
               </Button>

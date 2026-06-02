@@ -31,7 +31,7 @@ import {
 } from '@/shared/common/ports/transaction-runner.port';
 import { RazorpayInvoiceWebhookService } from './razorpay-invoice-webhook.service';
 import { isDocitaOnlinePaymentSession } from '@/domains/billing/core/rules/docita-online-payment-session';
-import { DATE_FORMATS, formatDate } from '@workspace/utils';
+import { DATE_FORMATS, formatDate, getPatientFullName } from '@workspace/utils';
 import {
   buildPaymentLinkVariables,
   buildPaymentReminderVariables,
@@ -171,7 +171,7 @@ export class PaymentsCommandService {
       return;
     }
 
-    const patientName = `${session.patient.firstName} ${session.patient.lastName}`;
+    const patientName = getPatientFullName(session.patient);
 
     try {
       await this.sendMessage.execute({
@@ -213,7 +213,7 @@ export class PaymentsCommandService {
       return;
     }
 
-    const patientName = `${session.patient.firstName} ${session.patient.lastName}`;
+    const patientName = getPatientFullName(session.patient);
     const dueDateDisplay = session.invoice.dueDate
       ? formatDate(session.invoice.dueDate, DATE_FORMATS.DATE_MEDIUM)
       : '—';

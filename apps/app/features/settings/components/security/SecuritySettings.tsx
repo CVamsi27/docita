@@ -201,7 +201,12 @@ export function SecuritySettings() {
                   </div>
                   <div className="flex items-center gap-2">
                     {!canAccess(Feature.AUDIT_LOGS) ? (
-                      <Button asChild variant="outline" size="sm" className="h-8">
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="h-8"
+                      >
                         <Link href={SUBSCRIPTION_SETTINGS_PATH}>
                           <Lock className="mr-2 h-3 w-3" />
                           Upgrade
@@ -223,7 +228,13 @@ export function SecuritySettings() {
 
             <div className="flex justify-end border-t border-border/60 pt-4">
               <Button type="submit" disabled={isSaving}>
-                {isSaving ? <DocitaLoadingIndicator variant="inline" decorative className="mr-2" /> : null}
+                {isSaving ? (
+                  <DocitaLoadingIndicator
+                    variant="inline"
+                    decorative
+                    className="mr-2"
+                  />
+                ) : null}
                 Save security settings
               </Button>
             </div>

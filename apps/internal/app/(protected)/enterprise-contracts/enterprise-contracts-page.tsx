@@ -16,7 +16,11 @@ import {
 } from "@workspace/data-access/internal";
 import { useDataAccessFetcher } from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth";
-import { formatCurrency, formatDate, parseStringEnumMember } from "@workspace/utils";
+import {
+  formatCurrency,
+  formatDate,
+  parseStringEnumMember,
+} from "@workspace/utils";
 import { enterpriseContractStatusSchema } from "@workspace/types";
 import {
   Card,
@@ -45,6 +49,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
 import { Input } from "@workspace/ui/components/form/input";
+import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
 import { Label } from "@workspace/ui/components/form/label";
 import { Textarea } from "@workspace/ui/components/form/textarea";
 import {
@@ -848,23 +853,25 @@ export default function EnterpriseContractsPage() {
               </Select>
             </div>
             <div>
-              <Label>Start date</Label>
-              <Input
-                type="date"
+              <Label htmlFor="enterprise-contract-start-date">Start date</Label>
+              <IsoDatePickerField
+                id="enterprise-contract-start-date"
+                label=""
+                showLabel={false}
                 value={form.startDate}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, startDate: e.target.value }))
-                }
+                onChange={(startDate) => setForm((f) => ({ ...f, startDate }))}
+                triggerClassName="sm:w-full"
               />
             </div>
             <div>
-              <Label>End date</Label>
-              <Input
-                type="date"
+              <Label htmlFor="enterprise-contract-end-date">End date</Label>
+              <IsoDatePickerField
+                id="enterprise-contract-end-date"
+                label=""
+                showLabel={false}
                 value={form.endDate}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, endDate: e.target.value }))
-                }
+                onChange={(endDate) => setForm((f) => ({ ...f, endDate }))}
+                triggerClassName="sm:w-full"
               />
             </div>
             <div>

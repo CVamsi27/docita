@@ -2,11 +2,8 @@
 
 import { useCallback, useRef, useState } from "react";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import {
-  getTierInfo,
-  getTierValue,
-  Tier,
-} from "@/lib/subscription/tier-access";
+import { getTierInfo, Tier } from "@/lib/subscription/tier-access";
+import { resolveCurrentPlanTier } from "@/lib/subscription/current-plan-tier";
 import {
   type CheckoutSuccessData,
   useSubscriptionCheckout,
@@ -100,16 +97,7 @@ export function useBillingSubscriptionWorkspace() {
   const subscriptionPeriodEnd = subscription?.currentPeriodEnd
     ? new Date(subscription.currentPeriodEnd)
     : null;
-  const daysLeftInPeriod =
-    subscriptionPeriodEnd !== null
-      ? Math.max(
-          0,
-          Math.ceil(
-            (subscriptionPeriodEnd.getTime() - Date.now()) /
-              (1000 * 60 * 60 * 24),
-          ),
-        )
-      : null;
+  const daysLeftInPeriod = subscription?.daysRemaining ?? null;
   const displayBillingPeriod =
     subscription?.subscriptionStatus === "ACTIVE"
       ? getDisplayBillingPeriodEndAndDaysLeft(subscription)
@@ -119,9 +107,7 @@ export function useBillingSubscriptionWorkspace() {
   const planStripDaysLeft = displayBillingPeriod?.daysLeft ?? daysLeftInPeriod;
   const isTrialing = subscriptionStatus === "TRIALING";
   const isTrialExpired =
-    isTrialing && subscriptionPeriodEnd !== null
-      ? subscriptionPeriodEnd.getTime() <= Date.now()
-      : false;
+    isTrialing && subscription?.trialWindowState === "EXPIRED";
   const isSubscriptionExpired = subscriptionStatus === "EXPIRED";
   const hasOutstandingPendingPayment =
     subscription?.hasOutstandingPendingPayment === true;
@@ -218,10 +204,11 @@ export function useBillingSubscriptionWorkspace() {
   // so a trialing Essential reads as Essential, not the access-tier Starter
   // that `effectiveCurrentTier` falls back to. Once a trial expires we defer to
   // the access tier so the downgrade is reflected honestly.
-  const currentPlanTier: Tier =
-    billedTierName && !isTrialExpired
-      ? getTierValue(billedTierName)
-      : effectiveCurrentTier;
+  const currentPlanTier: Tier = resolveCurrentPlanTier({
+    subscriptionTier: subscription?.tier,
+    isTrialExpired,
+    accessTier: effectiveCurrentTier,
+  });
   const currentPlanTierInfo = getTierInfo(currentPlanTier);
 
   const planDetails = [

@@ -1,4 +1,4 @@
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { DEFAULT_CURRENCY, DEFAULT_TIMEZONE } from "@workspace/utils";
 import type {
   SelectOption,
   DurationOption,
@@ -123,7 +123,7 @@ export const DEFAULT_VALUES: DefaultValues = {
   appointmentDuration: 30,
   consultationFee: 800,
   currency: DEFAULT_CURRENCY,
-  timezone: "Asia/Kolkata",
+  timezone: DEFAULT_TIMEZONE,
   invoiceItems: [{ description: "Consultation Fee", quantity: 1, price: 800 }],
 };
 

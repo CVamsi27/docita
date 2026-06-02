@@ -62,6 +62,16 @@ export class OnboardingService {
     return this.paymentService.createCheckout(onboardingId, data);
   }
 
+  async getTrialEligibility(onboardingId: string, email: string) {
+    const sessionData = await this.dataService.getSessionData(onboardingId);
+    if (!sessionData) {
+      throw new BadRequestException('Onboarding session not found or expired');
+    }
+    return {
+      eligible: !(await hasPriorSubscriptionForEmail(this.persistence, email)),
+    };
+  }
+
   async createSlaSignatureSession(onboardingId: string) {
     const sessionData = await this.dataService.getSessionData(onboardingId);
     if (!sessionData) {

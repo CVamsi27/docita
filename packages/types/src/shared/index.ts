@@ -1,4 +1,5 @@
 export * from "./common";
+export * from "./defaults";
 export * from "./app-config";
 export * from "./json-schema";
 export * from "./common-types";

@@ -11,10 +11,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
-import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+} from "@workspace/ui/components/indicators/avatar";
 import { LiveDot } from "@workspace/ui/components/indicators/live-dot";
 import { NowServingBoard } from "@workspace/ui/components/data-display/now-serving-board";
-import { LoadingState, EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import {
+  LoadingState,
+  EmptyState,
+} from "@workspace/ui/components/feedback/empty-state";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { cn } from "@workspace/ui/lib/utils";
 
@@ -122,7 +128,9 @@ export function DeskFloorPanelUI({
           waiting={waitingCount}
           avgWaitMinutes={avgWaitMinutes}
           status={current ? "live" : "idle"}
-          eyebrow={current?.doctorName ? `With ${current.doctorName}` : "Now serving"}
+          eyebrow={
+            current?.doctorName ? `With ${current.doctorName}` : "Now serving"
+          }
         />
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">

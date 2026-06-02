@@ -125,7 +125,9 @@ function PrescriptionDefaultsSettings() {
               name="defaultInstructions"
               render={({ field }) => (
                 <FormItem>
-                  <Label htmlFor="defaultInstructions">Default instructions</Label>
+                  <Label htmlFor="defaultInstructions">
+                    Default instructions
+                  </Label>
                   <FormControl>
                     <Textarea
                       id="defaultInstructions"
@@ -135,7 +137,8 @@ function PrescriptionDefaultsSettings() {
                     />
                   </FormControl>
                   <p className="text-xs text-muted-foreground">
-                    These instructions will be pre-filled in every new prescription
+                    These instructions will be pre-filled in every new
+                    prescription
                   </p>
                   <FormMessage />
                 </FormItem>

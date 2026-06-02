@@ -27,11 +27,14 @@ interface UseConsultationAutosaveOptions {
   patientId?: string;
 }
 
-export function useConsultationAutosave(options: UseConsultationAutosaveOptions) {
+export function useConsultationAutosave(
+  options: UseConsultationAutosaveOptions,
+) {
   const { appointmentId, readOnly, clinicType, patientId } = options;
 
   const queryClient = useQueryClient();
-  const updateAppointment = useConsultationAutosaveUpdateAppointment(appointmentId);
+  const updateAppointment =
+    useConsultationAutosaveUpdateAppointment(appointmentId);
   const syncDiagnoses = useSyncDiagnoses(appointmentId);
   const createPrescription = useCreatePrescription();
 

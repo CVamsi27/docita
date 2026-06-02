@@ -8,6 +8,8 @@ import { UploadsService } from './application/services/uploads.service';
 import { UploadsCommandService } from './application/services/uploads-command.service';
 import { UploadsQueryService } from './application/services/uploads-query.service';
 import { StoredFileUrlResolverService } from './application/services/stored-file-url-resolver.service';
+import { TEMPLATES_REPOSITORY_TOKEN } from './application/ports/templates.repository.port';
+import { PrismaTemplatesRepository } from './infrastructure/repositories/prisma-templates.repository';
 import { StorageProvider } from './application/ports/storage-provider.port';
 import { LocalStorageProvider } from './infrastructure/local-storage.provider';
 import { R2StorageProvider } from './infrastructure/r2-storage.provider';
@@ -22,6 +24,10 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
     UploadsQueryService,
     UploadsService,
     StoredFileUrlResolverService,
+    {
+      provide: TEMPLATES_REPOSITORY_TOKEN,
+      useClass: PrismaTemplatesRepository,
+    },
     {
       provide: StorageProvider,
       inject: [AppConfigService, CLOCK_PORT],

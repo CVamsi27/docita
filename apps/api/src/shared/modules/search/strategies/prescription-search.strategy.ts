@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import type { SearchResult } from '../search.types';
@@ -38,7 +39,7 @@ export class PrescriptionSearchStrategy implements ISearchStrategy {
     return prescriptions.map((prescription) => ({
       id: prescription.id,
       type: 'prescription' as const,
-      title: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
+      title: getPatientFullName(prescription.patient),
       subtitle: prescription.instructions || 'Prescription',
       meta: { createdAt: prescription.createdAt },
     }));

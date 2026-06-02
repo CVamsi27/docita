@@ -1,83 +1,60 @@
 # SSOT Remaining Work
 
-Living checklist for the consolidation rules in
+This is the living checklist for the remaining single-source-of-truth
+consolidation work. The canonical rules live in
 [`SINGLE_SOURCE_OF_TRUTH.md`](SINGLE_SOURCE_OF_TRUTH.md).
 
-Counts were measured on 2026-06-01 against the current source tree. Candidate counts
-are intentionally explicit: some grep hits need semantic triage before replacement,
-but the same scans must reach zero or an intentional allowlist before an item is
-checked off.
+Counts were refreshed on **2026-06-02** from the current branch with `rg`. They
+are intentionally broad repo counts where noted, so future cleanup work can
+re-run the same searches and record the reduction.
 
-## Completed
+## Phase 1: Low Risk
 
-- [x] Support contact: removed the dead app duplicate and moved API
-  `support@docita.work` literals to one `SUPPORT_EMAIL`.
-- [x] Published tier ladder: `DISPLAY_TIERS` derives from
-  `PUBLISHED_PLAN_LADDER`.
-- [x] Onboarding wizard step count: `TOTAL_STEPS = STEPS.length`, consumed by the
-  step frame.
-- [x] Current plan display: billing workspace and sidebar PLAN badge use the shared
-  `resolveCurrentPlanTier` selector.
-- [x] Patient full-name helper: `getPatientFullName()` exists and is exported from
-  `@workspace/utils`; the adoption sweep remains below.
-- [x] Appointment status scan: appointment feature status derivation is centralized
-  in `appointmentRules.ts`; no second appointment-feature implementation was found.
+| Done | Gap                           | Current measured state                                                                                                                                               | Canonical target                                                                        | Risk                   |
+| ---- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ---------------------- |
+| [x]  | Patient full name             | Production display composition routes through `getPatientFullName()`; `check-patient-name-ssot.mjs` prevents inline recomposition in app/API source.                 | `getPatientFullName()` from `@workspace/utils`                                          | High count, mechanical |
+| [x]  | Patient initials              | Display call sites route through `getInitials()`; the remaining `.charAt(0)` matches are its implementation.                                                         | one `getInitials()` helper                                                              | Low                    |
+| [x]  | BMI thresholds                | Normalized BMI status is centralized in `@workspace/utils`; feature adapters preserve their existing display shapes.                                                 | one threshold table in `@workspace/utils`; adapters derive their existing return shapes | Medium                 |
+| [x]  | Slot duration default         | User-facing 15-minute fallbacks route through `DEFAULT_SLOT_DURATION`. Separate 30-minute schedule and appointment-duration contracts remain intentionally distinct. | one `DEFAULT_SLOT_DURATION`                                                             | Low                    |
+| [x]  | Clinic timezone default       | Runtime fallbacks route through `DEFAULT_TIMEZONE`. Remaining literals are the canonical option catalog, Prisma defaults, migration history, or fixtures.            | `DEFAULT_TIMEZONE` from date config                                                     | Low                    |
+| [x]  | Public origin and booking URL | The compatibility module re-exports the canonical implementation; booking links use `getPublicBookingUrl()`.                                                         | one `getPublicAppOrigin()` plus `getPublicBookingUrl()`                                 | Low                    |
+| [x]  | API URL config                | Compatibility modules re-export `shared/lib/api/api-config.ts`; URL builders and `STORAGE_KEYS` live there once.                                                     | one `api-config` module                                                                 | Medium                 |
+| [x]  | Currency and date formatting  | User-visible raw formatting matches were replaced or reviewed. Remaining broad-search hits are tests and explanatory comments.                                       | `useClinicCurrency()` and `@workspace/utils` formatters                                 | Low                    |
+| [x]  | Appointment status derivation | Parity review confirmed appointment past/today/upcoming helpers are centralized in `appointmentRules.ts`; consultation helpers do not fork those states.             | one `isAppointmentPast/Today/Upcoming` helper                                           | Low                    |
 
-## Phase 1 - Low Risk
+## Phase 2: Shared Infrastructure
 
-| Done | Gap | Current state measured on 2026-06-01 | Canonical target | Effort / risk |
-|---|---|---|---|---|
-| [ ] | Patient full name | `getPatientFullName()` exists; 99 production candidate rows remain across 68 app/API files. Triage intentional non-display uses before replacement. | `getPatientFullName()` from `@workspace/utils` | high count / low risk |
-| [ ] | Patient initials | 11 inline patient-initial rows remain across 5 app files, excluding the canonical helper. | `getInitials()` | low |
-| [ ] | BMI thresholds and calculation | 4 non-canonical implementations remain in addition to `packages/utils`: `packages/hooks`, app shared rules, patient vitals rules, and consultation rules. | one threshold table and calculator in `@workspace/utils`; derive presentation shapes from it | medium |
-| [ ] | Slot-duration default | 4 app fallback sites remain: 2 `DEFAULT_SLOT_MINUTES` constants and 2 raw `?? 15` fallbacks. | one `DEFAULT_SLOT_DURATION` | low |
-| [ ] | Clinic-timezone default | 4 non-canonical source files still hard-code the fallback or form timezone. `app-config.ts` also contains the intentional option-catalog literal. | `DEFAULT_TIMEZONE` from date config | low |
-| [ ] | Public booking URL | `getPublicAppOrigin()` exists in 2 files and `/book/:code` is assembled in 2 consumers. | one `getPublicAppOrigin()` plus `getPublicBookingUrl()` | low |
-| [ ] | App API URL config | `config.ts` and `constants/env-config.ts` both declare `getApiUrl`, `getAppUrl`, `getSocketUrl`, route builders, and `STORAGE_KEYS`. | one `api-config` module | medium |
-| [ ] | Currency formatting | 2 production UI call sites bypass the shared formatter: patient-portal receipt `toLocaleString` and current-plan account-credit symbol selection. | `useClinicCurrency()` / `@workspace/utils` formatter | low |
+| Done | Gap                       | Current measured state                                                                                                                                                                                        | Canonical target                                                                | Risk   |
+| ---- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ------ |
+| [x]  | GSTIN                     | `getClinicGstin()` reads canonical settings and the legacy nested tax registration fallback. Remaining `clinic.gstin` reads render already-derived PDF DTO fields.                                            | one `getClinicGstin()` reading `settings.gstin`                                 | Medium |
+| [x]  | Facility label            | Onboarding and settings writes persist `Clinic.facilityType`; settings JSON remains a legacy read fallback only.                                                                                              | write and read `Clinic.facilityType`; keep JSON only as a legacy read fallback  | Medium |
+| [x]  | Identity and clinic cache | Onboarding no longer writes `docita_user`; `AuthContext.user` seeds clinic selection and subscription socket changes force a clinic refetch. Legacy cleanup and E2E compatibility setup remain intentionally. | `AuthContext.user` is canonical; refetch clinic on tier or subscription changes | Medium |
+| [x]  | Trial-days math           | Subscription responses expose server-derived trial window fields; billing consumers prefer `trialWindowState` and shared grace constants.                                                                     | prefer server `trialWindowState`; one client helper only where needed           | Medium |
 
-## Phase 2 - Medium Risk
+## Phase 3: Confirm Before Refactor
 
-| Done | Gap | Current state measured on 2026-06-01 | Canonical target |
-|---|---|---|---|
-| [ ] | GSTIN | 7 `clinic.gstin` reads remain across 5 source files even though the column does not exist. | one `getClinicGstin()` reading `settings.gstin` |
-| [ ] | Facility label | 39 production source files reference `facilityLabel`; onboarding and settings still use `settings.facilityLabel` paths while `Clinic.facilityType` exists. | write/read `facilityType`; keep `settings.facilityLabel` only as a legacy read fallback |
-| [ ] | Auth identity and clinic cache | `docita_user` has 2 duplicate config declarations, 1 production localStorage write, and logout cleanup paths. Clinic-id selection priority is not documented in code. | `AuthContext.user`; validate `selectedClinicId`; refetch clinic when tier/subscription changes |
-| [ ] | Trial-days math | server `trialWindowState` exists, but the client still has a lockout derivation plus period-days calculations in billing display/workspace code. | prefer server `trialWindowState`; one client display helper |
+| Done | Gap                | Current state                                                                                                                                | Canonical target                                  | Risk |
+| ---- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- | ---- |
+| [x]  | Invoice money math | Client preview and server invoice tax calculation share invoice line arithmetic; parity coverage includes mixed lines and invoice discounts. | one calculator with client/server parity coverage | High |
+| [x]  | Tax config         | Default country, currency, regime, GSTIN state extraction, and tax-regime schema live in `packages/types/src/billing/tax.ts`.                | one tax-config module                             | High |
 
-## Phase 3 - Higher Risk
+## Completed Foundations
 
-Confirm behavior and add parity tests before consolidating these paths.
+- [x] Support email hardcodes consolidated to the app and API support-contact constants.
+- [x] Published onboarding tier ladder derives from `PUBLISHED_PLAN_LADDER`.
+- [x] Wizard step count derives from `STEPS.length`.
+- [x] Current plan display selector is shared between billing and the sidebar badge.
+- [x] `getPatientFullName()` exists and is exported from `@workspace/utils`.
+- [x] The canonical SSOT rules are linked from `AGENTS.md`.
 
-| Done | Gap | Current state measured on 2026-06-01 | Canonical target |
-|---|---|---|---|
-| [ ] | Invoice money math | independent calculation paths remain in client `invoiceRules.ts`, server billing/tax services, and subscription-payment tax calculation. | one authoritative calculator; server-persisted totals for display; client/server parity test |
-| [ ] | Tax config | `IN_GST` defaults and assignments remain distributed across invoice helpers, billing tax service, onboarding persistence, and subscription-payment tax calculation. | one tax-config module and one `extractStateFromGstin()` |
-
-## Checkoff Scans
-
-Run the relevant scan before checking an item. Narrower follow-up searches are
-expected when a scan intentionally includes candidates that need review.
+## Count Commands
 
 ```sh
-rg -n '\$\{[^}]*firstName[^}]*\}[^\n]*\$\{[^}]*lastName[^}]*\}|\{[^}\n]*firstName[^}\n]*\}[^\n]*\{[^}\n]*lastName[^}\n]*\}' apps/app apps/api --glob '!**/*.spec.*' --glob '!**/*.test.*' --glob '!**/e2e/**' --glob '!**/test/**' --glob '!**/seed/**' --glob '!**/scripts/**'
-rg -n 'firstName(?:\.charAt\(0\)|\?\.\[0\]|\.\[0\])|lastName(?:\.charAt\(0\)|\?\.\[0\]|\.\[0\])' apps/app --glob '!**/*.spec.*' --glob '!**/*.test.*' --glob '!**/e2e/**'
-rg -n 'getBMICategory|getBMIStatus|calculateBMIFromVitals|calculateBMI:|if \(bmi < 18\.5\)' packages/hooks/src packages/utils/src apps/app/shared/lib apps/app/features
-rg -n 'DEFAULT_SLOT_MINUTES|slotDuration\s*\?\?\s*15|avgConsultationMinutes:\s*[^,]*\?\?\s*15' apps/app
-rg -n 'Asia/Kolkata|APPOINTMENT_FORM_WALL_TIMEZONE' apps packages --glob '!**/*.spec.*' --glob '!**/*.test.*' --glob '!**/e2e/**' --glob '!**/prisma/**'
-rg -n 'getPublicAppOrigin|/book/' apps/app
-rg -n 'getApiUrl|getAppUrl|getSocketUrl|STORAGE_KEYS' apps/app/shared/lib
-rg -n 'clinic\.gstin|settings\.gstin' apps/api apps/app
-rg -n 'facilityLabel|facilityType' apps packages
-rg -n 'docita_user|selectedClinicId|trialWindowState|getTrialState' apps/app apps/api
-rg -n 'calculateInvoiceTotals|TaxCalculatorService|SubscriptionPaymentTaxCalculator|IN_GST|extractStateFromGstin' apps packages
+rg -n '\$\{[^}]*firstName[^}]*\}[^\n]*\$\{[^}]*lastName[^}]*\}' apps/app apps/api --glob '*.{ts,tsx}' --glob '!**/*.spec.*' --glob '!**/*.test.*' --glob '!**/e2e/**'
+rg -n 'firstName(?:\.charAt\(0\)|\?\.\[0\]|\.\[0\])|lastName(?:\.charAt\(0\)|\?\.\[0\]|\.\[0\])' apps/app --glob '*.{ts,tsx}' --glob '!**/*.spec.*' --glob '!**/*.test.*' --glob '!**/e2e/**'
+rg -n 'DEFAULT_SLOT_MINUTES|\?\? 15|\|\| 15|slotDurationMinutes = 15|slotDuration: 15' apps packages --glob '*.{ts,tsx}' --glob '!**/*.spec.*' --glob '!**/*.test.*' --glob '!**/e2e/**'
+rg -n 'Asia/Kolkata' apps packages --glob '*.{ts,tsx}' --glob '!**/*.spec.*' --glob '!**/*.test.*' --glob '!**/e2e/**'
+rg -n 'clinic\.gstin' apps packages --glob '*.{ts,tsx}' --glob '!**/*.spec.*' --glob '!**/*.test.*' --glob '!**/e2e/**'
+rg -n 'facilityLabel' apps packages --glob '*.{ts,tsx}'
+rg -n '₹|toLocaleString\(' apps/app/features --glob '*.{ts,tsx}'
 ```
-
-## Verification When Items Land
-
-- Run `pnpm lint`, targeted app/API typechecks, affected unit tests, and
-  `pnpm knip` for each consolidation slice.
-- Run `pnpm verify:standard` before publishing a combined slice.
-- Spot-check GST invoice PDFs, onboarding facility-label persistence, Essential
-  trial display in billing and sidebar, and patient name/initial/BMI rendering.
-- Require an invoice preview versus server-total parity test before Phase 3 lands.

@@ -240,8 +240,8 @@ export function AdvancedMetricsCharts({
           {doctorPerformanceLoading ? (
             <LoadingSpinner />
           ) : doctorPerformance.length > 0 ? (
-            <div className="rounded-md border border-border overflow-hidden">
-              <Table>
+            <div className="overflow-x-auto overscroll-x-contain rounded-md border border-border">
+              <Table className="min-w-[42rem]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Doctor</TableHead>

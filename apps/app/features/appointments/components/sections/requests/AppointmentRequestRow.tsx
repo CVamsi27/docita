@@ -85,9 +85,9 @@ export function AppointmentRequestRow({
 
   const hasStructuredSlot = Boolean(
     request.requestedSlotStart &&
-      request.requestedSlotEnd &&
-      utcRequestedSlotToWallLocal(request.requestedSlotStart, clinicTimezone) &&
-      utcRequestedSlotToWallLocal(request.requestedSlotEnd, clinicTimezone),
+    request.requestedSlotEnd &&
+    utcRequestedSlotToWallLocal(request.requestedSlotStart, clinicTimezone) &&
+    utcRequestedSlotToWallLocal(request.requestedSlotEnd, clinicTimezone),
   );
 
   useEffect(() => {
@@ -103,7 +103,9 @@ export function AppointmentRequestRow({
       if (cancelled || !win) return;
       setStartByRequest((prev) => ({ ...prev, [request.id]: win.startLocal }));
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [
     request.id,
     request.preferredDate,
@@ -116,16 +118,27 @@ export function AppointmentRequestRow({
     slotSuggestionGeneration,
   ]);
 
-  const structuredStart = utcRequestedSlotToWallLocal(request.requestedSlotStart, clinicTimezone);
-  const structuredEnd = utcRequestedSlotToWallLocal(request.requestedSlotEnd, clinicTimezone);
+  const structuredStart = utcRequestedSlotToWallLocal(
+    request.requestedSlotStart,
+    clinicTimezone,
+  );
+  const structuredEnd = utcRequestedSlotToWallLocal(
+    request.requestedSlotEnd,
+    clinicTimezone,
+  );
   const fallbackStart = preferredDateTimeWallLocal(
     request.preferredDate,
     request.preferredTime,
     clinicTimezone,
   );
 
-  const startValue = startByRequest[request.id] ?? structuredStart ?? fallbackStart;
-  const endValue = addMinutesToClinicWallDatetimeLocal(startValue, 30, clinicTimezone);
+  const startValue =
+    startByRequest[request.id] ?? structuredStart ?? fallbackStart;
+  const endValue = addMinutesToClinicWallDatetimeLocal(
+    startValue,
+    30,
+    clinicTimezone,
+  );
   const endDisplay = endValue ?? structuredEnd ?? startValue;
 
   const startDayIso = startValue.slice(0, 10);
@@ -148,7 +161,10 @@ export function AppointmentRequestRow({
       .map((s) => ({ time: s.time, endTime: s.endTime }));
   }, [availabilitySlots, effectiveDoctorId]);
 
-  const nowWallLocal = utcInstantToClinicWallDatetimeLocal(new Date(), clinicTimezone);
+  const nowWallLocal = utcInstantToClinicWallDatetimeLocal(
+    new Date(),
+    clinicTimezone,
+  );
   const isPast = Boolean(nowWallLocal && startValue < nowWallLocal);
   const endHHmm = endDisplay.slice(11, 16);
   const matchesAvailableSlot = availableStartTimes.some(
@@ -164,9 +180,9 @@ export function AppointmentRequestRow({
 
   const hasApproveFieldErrors = Boolean(
     approveFieldErrors &&
-      (approveFieldErrors.doctorId ||
-        approveFieldErrors.startTime ||
-        approveFieldErrors.endTime),
+    (approveFieldErrors.doctorId ||
+      approveFieldErrors.startTime ||
+      approveFieldErrors.endTime),
   );
   const approveBlocked = isMutating || !isStartAllowed || hasApproveFieldErrors;
 

@@ -19,9 +19,7 @@ interface UsePhoneSignatureQrFlowOptions {
   persistenceKey?: string;
 }
 
-function readPersistedSession(
-  key?: string,
-): PhoneSignatureQrSession | null {
+function readPersistedSession(key?: string): PhoneSignatureQrSession | null {
   if (!key || typeof window === "undefined") return null;
   try {
     const raw = sessionStorage.getItem(key);
@@ -129,43 +127,44 @@ export function usePhoneSignatureQrFlow({
     [checkUploadOnce, pollIntervalMs, stopPolling],
   );
 
-  const startSession = useCallback(async (
-    options?: { force?: boolean },
-  ) => {
-    const force = options?.force === true;
-    if ((!force && session) || createInFlightRef.current) return;
-    if (!force && isUploaded) return;
+  const startSession = useCallback(
+    async (options?: { force?: boolean }) => {
+      const force = options?.force === true;
+      if ((!force && session) || createInFlightRef.current) return;
+      if (!force && isUploaded) return;
 
-    createInFlightRef.current = true;
-    setIsLoading(true);
-    setError(null);
+      createInFlightRef.current = true;
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const nextSession = await createSession();
-      if (!isMountedRef.current) return;
-      setSession(nextSession);
-      setIsUploaded(false);
-      const uploaded = await checkUploadOnce(nextSession).catch(() => false);
-      if (!uploaded) {
-        startPolling(nextSession);
+      try {
+        const nextSession = await createSession();
+        if (!isMountedRef.current) return;
+        setSession(nextSession);
+        setIsUploaded(false);
+        const uploaded = await checkUploadOnce(nextSession).catch(() => false);
+        if (!uploaded) {
+          startPolling(nextSession);
+        }
+      } catch (err) {
+        if (isMountedRef.current) {
+          setError(
+            getUserFacingErrorMessage(err, {
+              fallback:
+                "We could not create this signature link. Please try again.",
+              context: "upload",
+            }),
+          );
+        }
+      } finally {
+        createInFlightRef.current = false;
+        if (isMountedRef.current) {
+          setIsLoading(false);
+        }
       }
-    } catch (err) {
-      if (isMountedRef.current) {
-        setError(
-          getUserFacingErrorMessage(err, {
-            fallback:
-              "We could not create this signature link. Please try again.",
-            context: "upload",
-          }),
-        );
-      }
-    } finally {
-      createInFlightRef.current = false;
-      if (isMountedRef.current) {
-        setIsLoading(false);
-      }
-    }
-  }, [checkUploadOnce, createSession, isUploaded, session, startPolling]);
+    },
+    [checkUploadOnce, createSession, isUploaded, session, startPolling],
+  );
 
   const retrySession = useCallback(async () => {
     stopPolling();
@@ -214,7 +213,14 @@ export function usePhoneSignatureQrFlow({
     return () => {
       cancelled = true;
     };
-  }, [autoStart, checkUploadOnce, isPolling, isUploaded, session, startPolling]);
+  }, [
+    autoStart,
+    checkUploadOnce,
+    isPolling,
+    isUploaded,
+    session,
+    startPolling,
+  ]);
 
   useEffect(() => {
     if (initialUploaded) {

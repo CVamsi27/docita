@@ -50,9 +50,9 @@ export function useAppointmentRequestsPanel() {
   const approveRequest = useApproveAppointmentRequest();
   const rejectRequest = useRejectAppointmentRequest();
 
-  const [doctorByRequest, setDoctorByRequest] = useState<Record<string, string>>(
-    {},
-  );
+  const [doctorByRequest, setDoctorByRequest] = useState<
+    Record<string, string>
+  >({});
   const [startByRequest, setStartByRequest] = useState<Record<string, string>>(
     {},
   );
@@ -62,9 +62,10 @@ export function useAppointmentRequestsPanel() {
   const [rejectCustomByRequest, setRejectCustomByRequest] = useState<
     Record<string, string>
   >({});
-  const [approveFieldErrorsByRequest, setApproveFieldErrorsByRequest] = useState<
-    Record<string, Partial<Record<ApproveScheduleFieldKey, string>>>
-  >({});
+  const [approveFieldErrorsByRequest, setApproveFieldErrorsByRequest] =
+    useState<Record<string, Partial<Record<ApproveScheduleFieldKey, string>>>>(
+      {},
+    );
   const [slotSuggestionGeneration, setSlotSuggestionGeneration] = useState(0);
   const [hiddenRequestIds, setHiddenRequestIds] = useState<Set<string>>(
     () => new Set(),

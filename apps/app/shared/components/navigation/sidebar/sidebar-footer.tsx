@@ -3,11 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  HelpCircle,
-  Settings2,
-  SlidersHorizontal,
-} from "lucide-react";
+import { HelpCircle, Settings2, SlidersHorizontal } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
@@ -125,8 +121,7 @@ export function SidebarFooter({
               size="icon"
               className={cn(
                 "relative h-8 w-8 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground",
-                pathname.startsWith("/settings") &&
-                  "bg-primary/8 text-primary",
+                pathname.startsWith("/settings") && "bg-primary/8 text-primary",
               )}
               asChild
             >

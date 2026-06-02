@@ -1,5 +1,7 @@
 "use client";
 
+import { getPatientFullName } from "@workspace/utils";
+
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useState } from "react";
@@ -132,7 +134,11 @@ export default function DentalChartsPage() {
                   disabled={!isDirty || isSaving}
                 >
                   {isSaving ? (
-                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    <DocitaLoadingIndicator
+                      variant="inline"
+                      decorative
+                      className="mr-2"
+                    />
                   ) : (
                     <Save className="mr-2 h-4 w-4" />
                   )}
@@ -143,7 +149,6 @@ export default function DentalChartsPage() {
           />
         }
       >
-
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-4">
             <Card className="ui-card-surface">
@@ -152,7 +157,10 @@ export default function DentalChartsPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+                  <Search
+                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                    aria-hidden
+                  />
                   <Input
                     placeholder="Enter name or phone"
                     data-testid="dental-chart-patient-search"
@@ -180,7 +188,10 @@ export default function DentalChartsPage() {
                           }}
                           aria-label="Clear search"
                         >
-                          <X className="h-4 w-4 text-muted-foreground" aria-hidden />
+                          <X
+                            className="h-4 w-4 text-muted-foreground"
+                            aria-hidden
+                          />
                         </Button>
                       </SymbolTooltip>
                     </div>
@@ -210,14 +221,12 @@ export default function DentalChartsPage() {
                         setSelectedPatient(patient);
                         setSelectedAppointmentId(null);
                         setChartData({});
-                        setSearch(
-                          `${patient.firstName} ${patient.lastName}`.trim(),
-                        );
+                        setSearch(getPatientFullName(patient).trim());
                       }}
                       className="w-full text-left rounded-lg border px-3 py-2 hover:bg-muted/50 transition-colors"
                     >
                       <p className="text-sm font-medium">
-                        {patient.firstName} {patient.lastName}
+                        {getPatientFullName(patient)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {patient.phoneNumber}

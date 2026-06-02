@@ -4,7 +4,10 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 
 import { type ReactNode, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
+import {
+  Alert,
+  AlertDescription,
+} from "@workspace/ui/components/feedback/alert";
 import {
   Card,
   CardContent,
@@ -14,10 +17,7 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import type { UploadResult } from "@workspace/data-access";
-import {
-  uploadSignature,
-  validateToken,
-} from "@/lib/api/signature-helpers";
+import { uploadSignature, validateToken } from "@/lib/api/signature-helpers";
 import { SignatureUploadWorkflow } from "@/components/signature/signature-upload-workflow";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import { SupportContact } from "@/components/support-contact/support-contact";
@@ -171,7 +171,8 @@ export default function UploadSignaturePage() {
             <Alert className="border-success/50 bg-success/10">
               <CheckCircle2 className="h-4 w-4 text-success" />
               <AlertDescription>
-                Signature uploaded for <strong>{uploadResult.doctor?.name}</strong>
+                Signature uploaded for{" "}
+                <strong>{uploadResult.doctor?.name}</strong>
               </AlertDescription>
             </Alert>
 

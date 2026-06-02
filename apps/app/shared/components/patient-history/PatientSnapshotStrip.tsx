@@ -29,12 +29,14 @@ interface PatientSnapshotStripProps {
   snapshot: PatientSnapshot;
   layout: "horizontal" | "vertical";
   showVitals?: boolean;
+  compact?: boolean;
 }
 
 export function PatientSnapshotStrip({
   snapshot,
   layout,
   showVitals = false,
+  compact = false,
 }: PatientSnapshotStripProps) {
   const { activeConditions, activeAllergies, activeMedications, latestVitals } =
     snapshot;
@@ -73,7 +75,11 @@ export function PatientSnapshotStrip({
             </h3>
             <div className="flex flex-wrap gap-1">
               {activeConditions.map((c) => (
-                <Badge key={c.id} variant="secondary" className="text-xs font-normal">
+                <Badge
+                  key={c.id}
+                  variant="secondary"
+                  className="text-xs font-normal"
+                >
                   {c.conditionName}
                 </Badge>
               ))}
@@ -114,7 +120,7 @@ export function PatientSnapshotStrip({
 
   return (
     <Card>
-      <CardContent className="p-4">
+      <CardContent className={compact ? "p-3" : "p-4"}>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -131,14 +137,14 @@ export function PatientSnapshotStrip({
                     <AlertCircle className="h-3.5 w-3.5" />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent>
-                  Clinical Snapshot
-                </TooltipContent>
+                <TooltipContent>Clinical Snapshot</TooltipContent>
               </Tooltip>
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              This strip updates whenever the chart changes.
-            </p>
+            {!compact ? (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                This strip updates whenever the chart changes.
+              </p>
+            ) : null}
           </div>
           {showVitals && latestVitals?.recordedAt ? (
             <p className="text-[var(--fs-2xs)] text-muted-foreground shrink-0">
@@ -148,14 +154,22 @@ export function PatientSnapshotStrip({
           ) : null}
         </div>
 
-        <div className="mt-4 flex flex-col gap-2 xl:flex-row xl:items-stretch xl:gap-2">
+        <div
+          className={cn(
+            "flex flex-col gap-2 xl:flex-row xl:items-stretch xl:gap-2",
+            compact ? "mt-2" : "mt-4",
+          )}
+        >
           <SnapshotCell
             icon={Heart}
             label="Conditions"
             value={
               activeConditions.length === 0
                 ? "None recorded"
-                : activeConditions.slice(0, 3).map((c) => c.conditionName).join(", ")
+                : activeConditions
+                    .slice(0, 3)
+                    .map((c) => c.conditionName)
+                    .join(", ")
             }
             overflow={
               activeConditions.length > 3
@@ -169,7 +183,10 @@ export function PatientSnapshotStrip({
             value={
               activeAllergies.length === 0
                 ? "No known allergies"
-                : activeAllergies.slice(0, 3).map((a) => a.allergen).join(", ")
+                : activeAllergies
+                    .slice(0, 3)
+                    .map((a) => a.allergen)
+                    .join(", ")
             }
             overflow={
               activeAllergies.length > 3
@@ -230,7 +247,12 @@ interface SnapshotCellProps {
   overflow?: string;
 }
 
-function SnapshotCell({ icon: Icon, label, value, overflow }: SnapshotCellProps) {
+function SnapshotCell({
+  icon: Icon,
+  label,
+  value,
+  overflow,
+}: SnapshotCellProps) {
   return (
     <div className="flex-1 rounded-lg border bg-muted/20 px-3 py-2">
       <p className="flex items-center gap-1 text-[var(--fs-2xs)] font-medium uppercase tracking-wide text-muted-foreground">
@@ -240,7 +262,9 @@ function SnapshotCell({ icon: Icon, label, value, overflow }: SnapshotCellProps)
       <p className="mt-1 text-sm font-medium text-foreground leading-snug">
         {value}
       </p>
-      {overflow ? <p className="mt-1 text-xs text-muted-foreground">{overflow}</p> : null}
+      {overflow ? (
+        <p className="mt-1 text-xs text-muted-foreground">{overflow}</p>
+      ) : null}
     </div>
   );
 }

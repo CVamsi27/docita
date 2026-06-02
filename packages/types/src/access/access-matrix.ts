@@ -154,6 +154,7 @@ export const APP_ACCESS_TARGETS = {
   PAGE_LAB_TESTS: "page.lab-tests",
   PAGE_VACCINES: "page.vaccines",
   PAGE_INVOICES: "page.invoices",
+  PAGE_INSURANCE_CLAIMS: "page.insurance-claims",
   /** Front-desk cash / POS / UPI recording (not payment links or subscription billing). */
   PAGE_DESK_PAYMENT: "page.desk-payment",
   /** Live OPD floor panel for the front desk: now-serving token, queue, recently completed.
@@ -279,6 +280,10 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
   [APP_ACCESS_TARGETS.PAGE_INVOICES]: {
     read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.INVOICING,
+  },
+  [APP_ACCESS_TARGETS.PAGE_INSURANCE_CLAIMS]: {
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
+    feature: Feature.INSURANCE_BILLING,
   },
   [APP_ACCESS_TARGETS.PAGE_DESK_PAYMENT]: {
     read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },

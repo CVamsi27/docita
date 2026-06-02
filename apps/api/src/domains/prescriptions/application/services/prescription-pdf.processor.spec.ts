@@ -10,7 +10,6 @@ import {
 } from '@/shared/modules/queue/queue.interface';
 import type { PrescriptionPdfProcessorPort } from './prescription-pdf.processor';
 import type { PrescriptionsService } from './prescription.service';
-import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import type { PdfJobProcessorPrismaPort } from '@/shared/modules/queue/pdf-job.service';
 import type { PrescriptionDetail } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
 import { ApprovalStatus } from '@workspace/db';
@@ -57,18 +56,6 @@ describe('PrescriptionPdfProcessor', () => {
     pdfJob: { update: pdfJobUpdateMock },
   };
 
-  const generateSignedUrlMock = jest.fn<StorageProvider['generateSignedUrl']>();
-
-  class MockStorage extends StorageProvider {
-    readonly supportsSignedUrls = true;
-    upload = jest.fn<StorageProvider['upload']>();
-    delete = jest.fn<StorageProvider['delete']>();
-    uploadBuffer = jest.fn<StorageProvider['uploadBuffer']>();
-    generateSignedUrl = generateSignedUrlMock;
-  }
-
-  const storageProvider = new MockStorage();
-
   const processMock = jest.fn(
     async <T extends QueueJobData>(
       _name: string,
@@ -90,7 +77,6 @@ describe('PrescriptionPdfProcessor', () => {
     processor = new PrescriptionPdfProcessor(
       prisma,
       prescriptionsService,
-      storageProvider,
       queue,
       { now: () => new Date('2026-01-15T10:00:00Z') },
     );
@@ -205,8 +191,6 @@ describe('PrescriptionPdfProcessor', () => {
       storedKey: 'pdfs/prescriptions/rx-1.pdf',
       generatedAt: new Date(),
     });
-    generateSignedUrlMock.mockResolvedValue('https://cdn.example.com/rx-1.pdf');
-
     processor.onModuleInit();
     const registeredHandler = processMock.mock.calls[0]?.[1];
     expect(registeredHandler).toEqual(expect.any(Function));
@@ -219,7 +203,7 @@ describe('PrescriptionPdfProcessor', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           status: 'COMPLETED',
-          pdfUrl: 'https://cdn.example.com/rx-1.pdf',
+          pdfUrl: 'pdfs/prescriptions/rx-1.pdf',
         }),
       }),
     );
@@ -449,7 +433,6 @@ describe('PrescriptionPdfProcessor', () => {
       storedKey: 'pdfs/prescriptions/rx-1.pdf',
       generatedAt: new Date(),
     });
-    generateSignedUrlMock.mockResolvedValue('https://cdn.example.com/rx-1.pdf');
 
     processor.onModuleInit();
     const registeredHandler = processMock.mock.calls[0]?.[1];

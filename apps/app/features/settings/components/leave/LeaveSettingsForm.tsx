@@ -43,11 +43,7 @@ export function LeaveSettingsForm({
   const leavesQuery = useLeaves(
     userIsAdmin && staffFilter !== "all" ? { staffId: staffFilter } : undefined,
   );
-  const {
-    data: leaves = [],
-    isLoading: leavesLoading,
-    refetch,
-  } = leavesQuery;
+  const { data: leaves = [], isLoading: leavesLoading, refetch } = leavesQuery;
 
   return (
     <>

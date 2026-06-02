@@ -5,6 +5,7 @@ Background worker app for queue and scheduled processing. Entry point: `apps/wor
 ## BullMQ / queue layout
 
 The queue backend is selected at runtime via `AppConfigService.getQueueBackend()`:
+
 - `"postgres"` — `PostgresQueueService` (production default)
 - `"in-memory"` — `InMemoryQueueService` (test/dev)
 
@@ -12,15 +13,15 @@ The `IQueueProvider` interface (`apps/api/src/shared/modules/queue/queue.interfa
 
 ## Domain-scoped worker modules
 
-| Module | Domain |
-|---|---|
-| `DocumentsWorkerModule` | Document PDF generation and storage |
-| `BillingWorkerModule` | Invoice PDF generation, payment-retry cron |
-| `PrescriptionsWorkerModule` | Prescription PDF generation |
-| `SubscriptionsWorkerModule` | Subscription lifecycle events |
-| `EnterpriseContractsWorkerModule` | Enterprise contract processing |
-| `DoctorsVerificationWorkerModule` | Doctor verification workflow |
-| `WhatsAppWorkerModule` | WhatsApp message delivery |
+| Module                            | Domain                                     |
+| --------------------------------- | ------------------------------------------ |
+| `DocumentsWorkerModule`           | Document PDF generation and storage        |
+| `BillingWorkerModule`             | Invoice PDF generation, payment-retry cron |
+| `PrescriptionsWorkerModule`       | Prescription PDF generation                |
+| `SubscriptionsWorkerModule`       | Subscription lifecycle events              |
+| `EnterpriseContractsWorkerModule` | Enterprise contract processing             |
+| `DoctorsVerificationWorkerModule` | Doctor verification workflow               |
+| `WhatsAppWorkerModule`            | WhatsApp message delivery                  |
 
 Scheduled modules (crons): `ClinicalSchedulerModule`, `RemindersSchedulerModule`, `ComplianceSchedulerModule`, `MonitoringSchedulerModule`, `AdminAlertsSchedulerModule`, `EphemeralStoreSchedulerModule`. Schedulers are conditionally loaded when `ENABLE_SCHEDULERS !== "false"`.
 
@@ -30,9 +31,9 @@ Job options are passed via `QueueJobOptions` (see `queue.interface.ts`):
 
 ```ts
 interface QueueJobOptions {
-  attempts?: number;       // number of attempts before DLQ
+  attempts?: number; // number of attempts before DLQ
   backoff?: { type: "fixed" | "exponential"; delay: number };
-  delay?: number;          // ms before first attempt
+  delay?: number; // ms before first attempt
   priority?: number;
   timeout?: number;
   removeOnComplete?: boolean;
@@ -41,6 +42,10 @@ interface QueueJobOptions {
 ```
 
 Processors must check `job.attemptsMade + 1 >= job.maxAttempts` to detect the final attempt and trigger DLQ/alert behavior. Idempotency keys should be synthesised from domain ID + action (e.g. `"invoice-pdf:${invoiceId}"`).
+
+Manual DLQ replay resets `attemptsMade` for the new execution window while
+durably incrementing `QueueJob.replayCount` and recording `lastReplayedAt`.
+Automatic replay stays disabled until each queue has an explicit bounded policy.
 
 ## Boundaries
 

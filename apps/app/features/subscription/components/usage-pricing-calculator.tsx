@@ -1,13 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/indicators/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@workspace/ui/components/indicators/card";
 import { Label } from "@workspace/ui/components/form/label";
 import { Slider } from "@workspace/ui/components/form/slider";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Separator } from "@workspace/ui/components/layout/separator";
 import { Button } from "@workspace/ui/components/form/button";
-import { PRICING_CURRENCY_CONFIG, TIER_PRICING_BY_CURRENCY, TIER_OVERAGE_RATES_BY_CURRENCY, PRICING_CURRENCY_SYMBOLS, TIER_LIMITS, type SupportedCurrency } from "@workspace/types";
+import {
+  PRICING_CURRENCY_CONFIG,
+  TIER_PRICING_BY_CURRENCY,
+  TIER_OVERAGE_RATES_BY_CURRENCY,
+  PRICING_CURRENCY_SYMBOLS,
+  TIER_LIMITS,
+  type SupportedCurrency,
+} from "@workspace/types";
 import { getWhatsAppAddonPricingByCurrency } from "@workspace/utils";
 import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
 import { Calculator, ArrowRight } from "lucide-react";
@@ -32,14 +45,40 @@ const DEFAULT_USAGE: UsageInput = {
 };
 
 const SLIDERS = [
-  { key: "consultations" as const, label: "Consultations / month", min: 0, max: 20000, step: 100, unit: "consults" },
-  { key: "users" as const, label: "Team Members", min: 1, max: 50, step: 1, unit: "users" },
-  { key: "whatsappMessages" as const, label: "WhatsApp Messages / month", min: 0, max: 10000, step: 100, unit: "msgs" },
+  {
+    key: "consultations" as const,
+    label: "Consultations / month",
+    min: 0,
+    max: 20000,
+    step: 100,
+    unit: "consults",
+  },
+  {
+    key: "users" as const,
+    label: "Team Members",
+    min: 1,
+    max: 50,
+    step: 1,
+    unit: "users",
+  },
+  {
+    key: "whatsappMessages" as const,
+    label: "WhatsApp Messages / month",
+    min: 0,
+    max: 10000,
+    step: 100,
+    unit: "msgs",
+  },
 ];
 
 interface BillResult {
   base: number;
-  overageBreakdown: { label: string; units: number; rate: number; cost: number }[];
+  overageBreakdown: {
+    label: string;
+    units: number;
+    rate: number;
+    cost: number;
+  }[];
   overageTotal: number;
   total: number;
   whatsappIncluded: number;
@@ -53,28 +92,61 @@ function calculateBill(
 ): BillResult {
   const monthly = TIER_PRICING_BY_CURRENCY[currency]?.[tierKey]?.monthly;
   const base = typeof monthly === "number" ? monthly : 0;
-  const rates = TIER_OVERAGE_RATES_BY_CURRENCY[currency]?.[tierKey] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierKey];
+  const rates =
+    TIER_OVERAGE_RATES_BY_CURRENCY[currency]?.[tierKey] ??
+    TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierKey];
   const limits = TIER_LIMITS[tierKey];
   const whatsappPricing = getWhatsAppAddonPricingByCurrency(tierKey, currency);
   const whatsappIncluded = whatsappPricing.includedQuota;
   const whatsappOverageRate = whatsappPricing.overageRate;
 
-  const overageBreakdown: { label: string; units: number; rate: number; cost: number }[] = [];
+  const overageBreakdown: {
+    label: string;
+    units: number;
+    rate: number;
+    cost: number;
+  }[] = [];
 
-  const addOverage = (label: string, current: number, included: number, rate: number) => {
+  const addOverage = (
+    label: string,
+    current: number,
+    included: number,
+    rate: number,
+  ) => {
     const units = Math.max(0, current - included);
-    if (units > 0) overageBreakdown.push({ label, units, rate, cost: units * rate });
+    if (units > 0)
+      overageBreakdown.push({ label, units, rate, cost: units * rate });
   };
 
-  addOverage("Consultations", usage.consultations, limits.appointments ?? 2000, rates.appointmentRate);
+  addOverage(
+    "Consultations",
+    usage.consultations,
+    limits.appointments ?? 2000,
+    rates.appointmentRate,
+  );
   addOverage("Users", usage.users, limits.users ?? 5, rates.userRate);
-  addOverage("WhatsApp", usage.whatsappMessages, whatsappIncluded, whatsappOverageRate);
+  addOverage(
+    "WhatsApp",
+    usage.whatsappMessages,
+    whatsappIncluded,
+    whatsappOverageRate,
+  );
 
   const overageTotal = overageBreakdown.reduce((sum, o) => sum + o.cost, 0);
-  return { base, overageBreakdown, overageTotal, total: base + overageTotal, whatsappIncluded, whatsappOverageRate };
+  return {
+    base,
+    overageBreakdown,
+    overageTotal,
+    total: base + overageTotal,
+    whatsappIncluded,
+    whatsappOverageRate,
+  };
 }
 
-function exceedsProLimits(usage: UsageInput, currency: SupportedCurrency): boolean {
+function exceedsProLimits(
+  usage: UsageInput,
+  currency: SupportedCurrency,
+): boolean {
   const limits = TIER_LIMITS.ESSENTIAL;
   const whatsappIncluded = getWhatsAppAddonPricingByCurrency(
     "ESSENTIAL",
@@ -87,7 +159,9 @@ function exceedsProLimits(usage: UsageInput, currency: SupportedCurrency): boole
   );
 }
 
-export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps) {
+export function UsagePricingCalculator({
+  currency,
+}: UsagePricingCalculatorProps) {
   const [usage, setUsage] = useState<UsageInput>(DEFAULT_USAGE);
   const router = useRouter();
   const { currency: detectedCurrency } = useLocaleCurrency();
@@ -106,29 +180,51 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
   const setField = (key: keyof UsageInput, value: number) =>
     setUsage((prev) => ({ ...prev, [key]: value }));
 
-  const renderBreakdown = (bill: BillResult, tierLabel: string, highlight: boolean) => (
-    <div className={`flex flex-col gap-3 rounded-lg p-4 border ${highlight ? "bg-primary/5 border-primary/30" : "bg-muted/30"}`}>
+  const renderBreakdown = (
+    bill: BillResult,
+    tierLabel: string,
+    highlight: boolean,
+  ) => (
+    <div
+      className={`flex flex-col gap-3 rounded-lg p-4 border ${highlight ? "bg-primary/5 border-primary/30" : "bg-muted/30"}`}
+    >
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{tierLabel}</span>
-        {highlight && <Badge variant="default" className="text-xs">Recommended</Badge>}
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {tierLabel}
+        </span>
+        {highlight && (
+          <Badge variant="default" className="text-xs">
+            Recommended
+          </Badge>
+        )}
       </div>
 
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted-foreground">Base plan</span>
-        <span className="text-sm font-medium">{symbol}{fmtMoney(bill.base)}/mo</span>
+        <span className="text-sm font-medium">
+          {symbol}
+          {fmtMoney(bill.base)}/mo
+        </span>
       </div>
 
       {bill.overageBreakdown.length > 0 && (
         <>
           <Separator />
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Usage overage</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Usage overage
+          </p>
           {bill.overageBreakdown.map((o) => (
-            <div key={o.label} className="flex items-center justify-between text-sm">
+            <div
+              key={o.label}
+              className="flex items-center justify-between text-sm"
+            >
               <span className="text-muted-foreground">
-                {o.label} ({formatCountLocale(o.units)} × {symbol}{fmtMoney(o.rate)})
+                {o.label} ({formatCountLocale(o.units)} × {symbol}
+                {fmtMoney(o.rate)})
               </span>
               <span className="font-medium text-warning">
-                +{symbol}{fmtMoney(Math.round(o.cost))}
+                +{symbol}
+                {fmtMoney(Math.round(o.cost))}
               </span>
             </div>
           ))}
@@ -140,15 +236,22 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold">Estimated total</span>
         <div className="text-right">
-          <span className="text-xl font-bold">{symbol}{fmtMoney(Math.round(bill.total))}</span>
+          <span className="text-xl font-bold">
+            {symbol}
+            {fmtMoney(Math.round(bill.total))}
+          </span>
           <span className="text-sm text-muted-foreground">/mo</span>
         </div>
       </div>
 
       {bill.overageTotal === 0 ? (
-        <Badge variant="secondary" className="self-start text-xs">All within included quota</Badge>
+        <Badge variant="secondary" className="self-start text-xs">
+          All within included quota
+        </Badge>
       ) : (
-        <p className="text-xs text-muted-foreground">Overage billed at month-end based on actual usage</p>
+        <p className="text-xs text-muted-foreground">
+          Overage billed at month-end based on actual usage
+        </p>
       )}
     </div>
   );
@@ -161,7 +264,8 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
           Estimate Your Monthly Bill
         </CardTitle>
         <CardDescription>
-          Adjust the sliders to match your facility&apos;s usage. You only pay for what you use beyond the included quota.
+          Adjust the sliders to match your facility&apos;s usage. You only pay
+          for what you use beyond the included quota.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -193,9 +297,14 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
                 {renderBreakdown(proBill, "Essential", false)}
                 {renderBreakdown(clinicBill, "Professional", true)}
                 <p className="text-xs text-muted-foreground text-center">
-                  Professional has higher quotas and lower per-unit overage rates - saving you{" "}
+                  Professional has higher quotas and lower per-unit overage
+                  rates - saving you{" "}
                   <span className="font-medium text-foreground">
-                    {symbol}{fmtMoney(Math.max(0, Math.round(proBill.total - clinicBill.total)))}/mo
+                    {symbol}
+                    {fmtMoney(
+                      Math.max(0, Math.round(proBill.total - clinicBill.total)),
+                    )}
+                    /mo
                   </span>{" "}
                   at this usage level.
                 </p>

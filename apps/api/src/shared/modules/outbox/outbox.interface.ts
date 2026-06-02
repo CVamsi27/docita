@@ -6,8 +6,8 @@
  *
  * Producers in command paths call `outbox.append(...)` inside the
  * same `prisma.$transaction(...)` as the business write. A relay
- * worker (`apps/worker/src/processors/outbox.processor.ts`) polls
- * unpublished rows and republishes via the in-process EventEmitter2.
+ * scheduler (`apps/api/src/shared/modules/outbox/outbox-relay.scheduler.ts`)
+ * polls unpublished rows and republishes via the in-process EventEmitter2.
  */
 import type { Prisma } from '@workspace/db';
 

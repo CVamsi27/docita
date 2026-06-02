@@ -80,7 +80,9 @@ export function CancelAppointmentDialog({
     const rawReason = isOther ? otherReason.trim() : selectedReason;
     const parsed = cancelReasonSchema.safeParse(rawReason);
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Enter a cancellation reason.");
+      setError(
+        parsed.error.issues[0]?.message ?? "Enter a cancellation reason.",
+      );
       return;
     }
 
@@ -151,7 +153,9 @@ export function CancelAppointmentDialog({
             disabled={isLoading}
             className="gap-2"
           >
-            {isLoading && <DocitaLoadingIndicator variant="inline" decorative />}
+            {isLoading && (
+              <DocitaLoadingIndicator variant="inline" decorative />
+            )}
             Cancel Appointment
           </Button>
         </DialogFooter>

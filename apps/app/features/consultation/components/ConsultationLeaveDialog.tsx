@@ -35,7 +35,10 @@ export function ConsultationLeaveDialog({
   const lastError = useConsultationDraft((s) => s.lastError);
 
   const saving = saveState === "saving";
-  const needsLeaveGuard = consultationDraftNeedsLeaveGuard({ dirty, saveState });
+  const needsLeaveGuard = consultationDraftNeedsLeaveGuard({
+    dirty,
+    saveState,
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -60,7 +63,11 @@ export function ConsultationLeaveDialog({
           </p>
         ) : null}
         <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
             Stay
           </Button>
           <Button
@@ -78,7 +85,11 @@ export function ConsultationLeaveDialog({
           >
             {leaveBusy ? (
               <>
-                <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                <DocitaLoadingIndicator
+                  variant="inline"
+                  decorative
+                  className="mr-2"
+                />
                 Saving
               </>
             ) : (

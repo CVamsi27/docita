@@ -14,6 +14,8 @@ import {
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { cn } from "@workspace/ui/lib/utils";
+// Single source of truth for the wizard step count lives with the step list.
+import { TOTAL_STEPS as ONBOARDING_TOTAL_STEPS } from "@/features/onboarding/components/forms/clinic-registration-form-helpers";
 
 /**
  * Shared scaffolding for the clinic onboarding wizard so every step renders the
@@ -25,8 +27,6 @@ import { cn } from "@workspace/ui/lib/utils";
  *     <OnboardingStepFooter primary={{…}} back={{…}} />
  *   </OnboardingStepCard>
  */
-
-const ONBOARDING_TOTAL_STEPS = 5;
 
 export function OnboardingStepCard({
   className,

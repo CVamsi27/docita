@@ -12,7 +12,10 @@ import {
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { PageTabs, type PageTabItem } from "@workspace/ui/components/navigation/page-tabs";
+import {
+  PageTabs,
+  type PageTabItem,
+} from "@workspace/ui/components/navigation/page-tabs";
 import {
   APP_ACCESS_TARGETS,
   type AppAccessTarget,

@@ -28,7 +28,9 @@ import { useAuthSessionBootstrap } from "./use-auth-session-bootstrap";
 
 export function useAuthProviderValue(): AuthContextType {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(() => appSession.getToken());
+  const [token, setToken] = useState<string | null>(() =>
+    appSession.getToken(),
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isApiStarting, setIsApiStarting] = useState(false);
   const [loginLockoutUntil, setLoginLockoutUntil] = useState<number | null>(

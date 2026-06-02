@@ -36,12 +36,16 @@ describe('ObservabilityService', () => {
   };
 
   type MockPrismaService = PrismaService & {
+    $queryRaw: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
     errorLog: {
       create: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
     };
   };
 
   const mockPrismaService: MockPrismaService = {
+    $queryRaw: jest
+      .fn<(...args: unknown[]) => Promise<unknown>>()
+      .mockResolvedValue([{ '?column?': 1 }]),
     errorLog: {
       create: jest
         .fn<(...args: unknown[]) => Promise<unknown>>()
@@ -176,5 +180,22 @@ describe('ObservabilityService', () => {
 
     expect(mockPrismaService.errorLog.create).toHaveBeenCalled();
     expect(Sentry.captureMessage).not.toHaveBeenCalled();
+  });
+
+  it('returns database connectivity without exposing aggregate record counts', async () => {
+    service = new ObservabilityService(
+      mockPrismaService,
+      mockConfigService as unknown as AppConfigService,
+      clock,
+    );
+
+    const result = await service.getDatabaseHealth();
+
+    expect(mockPrismaService.$queryRaw).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({
+      status: 'connected',
+      checked_at: clock.now(),
+    });
+    expect(result).not.toHaveProperty('stats');
   });
 });

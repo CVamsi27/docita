@@ -38,7 +38,10 @@ export function PublicBookingTopChrome() {
         <div className="flex min-h-0 min-w-0 items-center leading-none">
           <DocitaWordmark className="block h-[26px] max-h-[26px] w-auto max-w-[min(100%,11rem)] object-contain object-left sm:h-7 sm:max-h-7 sm:max-w-[12.5rem] md:h-8 md:max-h-8" />
         </div>
-        <div className="hidden items-center gap-1.5 text-[length:var(--fs-2xs)] text-muted-foreground sm:flex" aria-hidden>
+        <div
+          className="hidden items-center gap-1.5 text-[length:var(--fs-2xs)] text-muted-foreground sm:flex"
+          aria-hidden
+        >
           <Lock className="h-3 w-3 shrink-0" />
           <span>Private booking</span>
         </div>

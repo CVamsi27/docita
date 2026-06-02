@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SearchFullTextSupportService } from '../search-full-text-support.service';
@@ -55,7 +56,7 @@ export class PatientSearchStrategy implements ISearchStrategy {
     return patients.map((patient) => ({
       id: patient.id,
       type: 'patient' as const,
-      title: `${patient.firstName} ${patient.lastName}`,
+      title: getPatientFullName(patient),
       subtitle: patient.phoneNumber || undefined,
       relevanceScore: patient.rank,
       meta: { mrn: patient.mrn || undefined },
@@ -91,7 +92,7 @@ export class PatientSearchStrategy implements ISearchStrategy {
     return patients.map((patient) => ({
       id: patient.id,
       type: 'patient' as const,
-      title: `${patient.firstName} ${patient.lastName}`,
+      title: getPatientFullName(patient),
       subtitle: patient.phoneNumber || undefined,
       meta: { mrn: patient.mrn || undefined },
     }));

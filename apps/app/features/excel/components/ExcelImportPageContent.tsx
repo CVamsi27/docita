@@ -50,7 +50,6 @@ export function ExcelImportPageContent() {
           />
         }
       >
-
         <div className="flex items-center gap-2">
           {["upload", "mapping", "importing", "results"].map((s, i) => (
             <div key={s} className="flex items-center">

@@ -1,7 +1,11 @@
 "use client";
 
 import { UserCircle } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@workspace/ui/components/indicators/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from "@workspace/ui/components/indicators/card";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import { Textarea } from "@workspace/ui/components/form/textarea";
@@ -34,7 +38,9 @@ export function ContactSection({
   );
 
   return (
-    <Card className={cn(bookingCardClass, bookingSectionShell, "flex flex-col")}>
+    <Card
+      className={cn(bookingCardClass, bookingSectionShell, "flex flex-col")}
+    >
       <CardHeader
         className={cn(
           bookingSectionHeaderBar,

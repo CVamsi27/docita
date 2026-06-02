@@ -17,12 +17,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@workspace/ui/components/overlay/tooltip";
-import {
-  Feature,
-  FEATURE_TIER_MAP,
-  Tier,
-  TIER_INFO,
-} from "@workspace/types";
+import { Feature, FEATURE_TIER_MAP, Tier, TIER_INFO } from "@workspace/types";
 import { getTierName } from "@workspace/utils";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
@@ -84,10 +79,7 @@ export function LockedFeatureCard({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Button
-          asChild
-          className="gap-2"
-        >
+        <Button asChild className="gap-2">
           <Link href={SUBSCRIPTION_SETTINGS_PATH}>
             <Sparkles className="h-4 w-4" />
             Upgrade to {tierInfo?.name || "unlock"}
@@ -195,9 +187,7 @@ export function TierGate({
     [Tier.FRONT_DESK_CLINIC]: Feature.CALENDAR_SLOTS,
     [Tier.FRONT_DESK_HOSPITAL]: Feature.CALENDAR_SLOTS,
   }[tier];
-  const hasAccess = canAccess(
-    tierFeature ?? Feature.BASIC_PATIENT_MANAGEMENT,
-  );
+  const hasAccess = canAccess(tierFeature ?? Feature.BASIC_PATIENT_MANAGEMENT);
 
   if (hasAccess) {
     return <>{children}</>;
@@ -228,9 +218,7 @@ export function LockedFeatureIndicator({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Lock
-          className={`h-4 w-4 text-warning ${className ?? ""}`}
-        />
+        <Lock className={`h-4 w-4 text-warning ${className ?? ""}`} />
       </TooltipTrigger>
       <TooltipContent>
         <p>Locked</p>

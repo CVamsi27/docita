@@ -16,6 +16,7 @@ import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { Input } from "@workspace/ui/components/form/input";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { useDebounce } from "@workspace/hooks/use-debounce";
+import { getPatientFullName } from "@workspace/utils";
 import { FeatureGate } from "@/components/auth/feature-gate";
 import { CodingQueue } from "@/features/medical-coding/components";
 import { useCodingQueue } from "@workspace/data-access";
@@ -40,13 +41,10 @@ function formatStatus(status: string): string {
 }
 
 function getPatientName(appointment: Appointment): string {
-  const patient = appointment.patient;
-  const fullName = [patient?.firstName, patient?.lastName]
-    .filter(Boolean)
-    .join(" ")
-    .trim();
-
-  return fullName || `Patient ${appointment.patientId}`;
+  return getPatientFullName(
+    appointment.patient,
+    `Patient ${appointment.patientId}`,
+  );
 }
 
 export function CodingQueuePageContent() {

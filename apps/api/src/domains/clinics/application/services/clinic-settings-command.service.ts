@@ -182,7 +182,6 @@ export class ClinicSettingsCommandService {
         data.useSameBankAccountForSubscriptionAndReceipts,
       subscriptionPaymentBankAccount: data.subscriptionPaymentBankAccount,
       paymentReceivingBankAccount: data.paymentReceivingBankAccount,
-      facilityLabel: data.facilityLabel,
       taxSettings: data.taxSettings,
       mapsLink: data.mapsLink,
     };
@@ -250,6 +249,9 @@ export class ClinicSettingsCommandService {
         }),
         email: data.email,
         website: data.website,
+        ...(data.facilityLabel !== undefined && {
+          facilityType: data.facilityLabel,
+        }),
         ...(data.avgConsultationMinutes !== undefined && {
           avgConsultationMinutes: data.avgConsultationMinutes,
         }),
@@ -316,6 +318,33 @@ export class ClinicSettingsCommandService {
       ...currentSettings,
       ...data,
     };
+
+    return this.persistence.clinic.update({
+      where: { id: clinicId },
+      data: {
+        settings: toPrismaInputJsonValue(mergedSettings),
+      },
+    });
+  }
+
+  async updateOpdSlipSettings(
+    clinicId: string,
+    data: { revisitValidityDays?: number; footerNote?: string },
+  ) {
+    const clinic = await this.persistence.clinic.findUnique({
+      where: { id: clinicId },
+      select: { settings: true },
+    });
+
+    const currentSettings = this.toRecord(clinic?.settings);
+    const mergedSettings: Record<string, unknown> = { ...currentSettings };
+
+    if (data.revisitValidityDays !== undefined) {
+      mergedSettings.opdSlipRevisitValidityDays = data.revisitValidityDays;
+    }
+    if (data.footerNote !== undefined) {
+      mergedSettings.opdSlipFooterNote = data.footerNote;
+    }
 
     return this.persistence.clinic.update({
       where: { id: clinicId },

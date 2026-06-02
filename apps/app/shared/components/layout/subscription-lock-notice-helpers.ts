@@ -1,6 +1,6 @@
 import {
   mapDbClinicTierStringToTierName,
-  SUBSCRIPTION_TRIAL_DAYS,
+  TRIAL_GRACE_DAYS,
 } from "@workspace/types";
 import type { Clinic } from "@/lib/contexts/clinic-context";
 import {
@@ -30,10 +30,7 @@ export interface SubscriptionLockNoticeCopy {
 
 type ClinicShape = Pick<
   Clinic,
-  | "subscriptionStatus"
-  | "tier"
-  | "trialEndsAt"
-  | "subscriptionGraceUntil"
+  "subscriptionStatus" | "tier" | "trialEndsAt" | "subscriptionGraceUntil"
 >;
 
 /**
@@ -97,7 +94,9 @@ export function resolveSubscriptionLockNotice(
       ? Math.max(
           0,
           Math.ceil(
-            (trialEnd.getTime() + 3 * 24 * 60 * 60 * 1000 - Date.now()) /
+            (trialEnd.getTime() +
+              TRIAL_GRACE_DAYS * 24 * 60 * 60 * 1000 -
+              Date.now()) /
               (1000 * 60 * 60 * 24),
           ),
         )
@@ -180,10 +179,12 @@ export function resolveSubscriptionLockNotice(
         : "trial active";
     return {
       kind: "trial-active",
-      title: isEnding ? "Trial ending soon" : "Trial active: payment not completed",
-      description: `${trialTierLabel} plan: ${trialBody}${
+      title: isEnding
+        ? "Trial ending soon"
+        : "Trial active: payment not completed",
+      description: `${trialTierLabel} plan · ${trialBody}${
         trialEndText ? ` (ends ${trialEndText})` : ""
-      }. Your trial includes a ${SUBSCRIPTION_TRIAL_DAYS}-day evaluation period. Add payment before the trial ends to avoid entering a payment grace period.`,
+      }. Add payment before it ends to stay active.`,
       ctaLabel: "Billing & subscription",
       variant: "default",
       toneClass: "border-info/40 bg-info/10",

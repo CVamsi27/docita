@@ -201,7 +201,14 @@ export function useAuthSessionBootstrap(options: {
     };
 
     if (!appSession.getToken()) {
-      if (isPublicAuthPath(pathname)) {
+      // Auth-shell pages (/login, /register, …) AND per-session-secret QR
+      // landing pages (/upload-signature, /mobile-upload, /book) are reachable
+      // without a clinician session. Skip the validate/redirect dance entirely
+      // so a phone scanning the QR never bounces to /login.
+      if (
+        isPublicAuthPath(pathname) ||
+        (pathname !== null && appSession.isPublicPath(pathname))
+      ) {
         setIsLoading(false);
         return;
       }

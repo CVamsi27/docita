@@ -172,9 +172,9 @@ export function NotificationSettings() {
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    WhatsApp messaging is available on Essential and higher plans.
-                    Upgrade to enable automated WhatsApp reminders from this
-                    workspace.
+                    WhatsApp messaging is available on Essential and higher
+                    plans. Upgrade to enable automated WhatsApp reminders from
+                    this workspace.
                   </p>
                   <Link
                     href={SUBSCRIPTION_SETTINGS_PATH}
@@ -213,7 +213,13 @@ export function NotificationSettings() {
 
               <div className="flex justify-end border-t border-border/60 pt-4">
                 <Button type="submit" disabled={isSaving}>
-                  {isSaving && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
+                  {isSaving && (
+                    <DocitaLoadingIndicator
+                      variant="inline"
+                      decorative
+                      className="mr-2"
+                    />
+                  )}
                   Save preferences
                 </Button>
               </div>

@@ -1,8 +1,10 @@
 import {
   calculateAge as getAgeInYears,
+  calculateBMI,
   clinicWallHourMinuteFromUtcInstant,
   DEFAULT_TIMEZONE,
   formatCurrency,
+  getBMIStatus,
   isFuture,
   isPast,
   isToday,
@@ -95,15 +97,17 @@ export const medicalRules = {
 
   calculateBMI: (weightKg: number, heightCm: number): number | null => {
     if (!weightKg || !heightCm) return null;
-    const heightM = heightCm / 100;
-    return parseFloat((weightKg / heightM ** 2).toFixed(1));
+    return calculateBMI(weightKg, heightCm);
   },
 
   getBMICategory: (bmi: number): string => {
-    if (bmi < 18.5) return "Underweight";
-    if (bmi < 25) return "Normal";
-    if (bmi < 30) return "Overweight";
-    return "Obese";
+    const labels = {
+      underweight: "Underweight",
+      normal: "Normal",
+      overweight: "Overweight",
+      obese: "Obese",
+    } as const;
+    return labels[getBMIStatus(bmi)];
   },
 };
 

@@ -25,9 +25,7 @@ export function DermatologyExamSection({
   };
 
   const skinNotes =
-    value.skinAssessment?.generalCondition ??
-    value.skinAssessment?.notes ??
-    "";
+    value.skinAssessment?.generalCondition ?? value.skinAssessment?.notes ?? "";
 
   return (
     <SectionContainer

@@ -264,10 +264,11 @@ export function TeamInviteStep({
             </div>
           </div>
         )}
-
       </OnboardingStepBody>
       <OnboardingStepFooter
-        back={onBack ? { label: "Back to visit hours", onClick: onBack } : undefined}
+        back={
+          onBack ? { label: "Back to visit hours", onClick: onBack } : undefined
+        }
         skip={{ label: "Skip for now", onClick: onSkip }}
         primary={{
           label: hasValidMembers ? "Save team & continue" : "Continue to plan",

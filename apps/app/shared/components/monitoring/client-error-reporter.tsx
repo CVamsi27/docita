@@ -136,7 +136,9 @@ export function ClientErrorReporter() {
       }
 
       if (captureConsoleWarnings) {
-        const firstError = args.find((arg): arg is Error => arg instanceof Error);
+        const firstError = args.find(
+          (arg): arg is Error => arg instanceof Error,
+        );
         report(`console-warn:${message}`, {
           type: "ConsoleWarning",
           message,

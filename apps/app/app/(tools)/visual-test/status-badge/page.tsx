@@ -1,15 +1,29 @@
 "use client";
 
-import { StatusBadge, PriorityBadge } from "@workspace/ui/components/indicators/status-badge";
+import {
+  StatusBadge,
+  PriorityBadge,
+} from "@workspace/ui/components/indicators/status-badge";
 
 export default function StatusBadgeVisualTest() {
   const statuses = [
-    'completed', 'confirmed', 'scheduled', 'cancelled',
-    'pending', 'in-progress', 'active', 'inactive',
-    'paid', 'unpaid', 'success', 'warning', 'error', 'info'
+    "completed",
+    "confirmed",
+    "scheduled",
+    "cancelled",
+    "pending",
+    "in-progress",
+    "active",
+    "inactive",
+    "paid",
+    "unpaid",
+    "success",
+    "warning",
+    "error",
+    "info",
   ];
 
-  const priorities = ['low', 'medium', 'high', 'urgent', 'critical'];
+  const priorities = ["low", "medium", "high", "urgent", "critical"];
 
   return (
     <div className="p-8 space-y-12 max-w-6xl mx-auto">
@@ -25,7 +39,7 @@ export default function StatusBadgeVisualTest() {
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">All Status Variants</h2>
         <div className="flex flex-wrap gap-3">
-          {statuses.map(status => (
+          {statuses.map((status) => (
             <StatusBadge key={status} status={status} label={status} />
           ))}
         </div>
@@ -39,21 +53,29 @@ export default function StatusBadgeVisualTest() {
         </div>
         <div className="flex gap-4 items-center">
           <StatusBadge status="pending" size="sm" label="Small Pending" />
-          <StatusBadge status="pending" size="default" label="Default Pending" />
+          <StatusBadge
+            status="pending"
+            size="default"
+            label="Default Pending"
+          />
         </div>
       </section>
 
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">Priority Badges</h2>
         <div className="flex flex-wrap gap-3">
-          {priorities.map(priority => (
+          {priorities.map((priority) => (
             <PriorityBadge key={priority} priority={priority} />
           ))}
         </div>
         <div className="flex flex-wrap gap-3">
           <p className="text-sm text-muted-foreground w-full">Without dots:</p>
-          {priorities.map(priority => (
-            <PriorityBadge key={`no-dot-${priority}`} priority={priority} showDot={false} />
+          {priorities.map((priority) => (
+            <PriorityBadge
+              key={`no-dot-${priority}`}
+              priority={priority}
+              showDot={false}
+            />
           ))}
         </div>
       </section>

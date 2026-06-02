@@ -23,6 +23,10 @@ const ROUTE_ACCESS_RULES: RouteAccessRule[] = [
   { pathPrefix: "/desk/floor", target: APP_ACCESS_TARGETS.PAGE_DESK_FLOOR },
   { pathPrefix: "/desk", target: APP_ACCESS_TARGETS.PAGE_DESK_PAYMENT },
   { pathPrefix: "/invoices", target: APP_ACCESS_TARGETS.PAGE_INVOICES },
+  {
+    pathPrefix: "/insurance-claims",
+    target: APP_ACCESS_TARGETS.PAGE_INSURANCE_CLAIMS,
+  },
   { pathPrefix: "/daybook", target: APP_ACCESS_TARGETS.PAGE_INVOICES },
   { pathPrefix: "/inventory", target: APP_ACCESS_TARGETS.PAGE_INVENTORY },
   { pathPrefix: "/pharmacy", target: APP_ACCESS_TARGETS.PAGE_INVENTORY },

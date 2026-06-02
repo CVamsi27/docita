@@ -128,6 +128,31 @@ export const useInvoicePaymentActivity = (
   );
 };
 
+export interface InvoiceClaimReadiness {
+  invoiceId: string;
+  appointmentId: string | null;
+  requiresClinicalCoding: boolean;
+  claimReady: boolean;
+  issues: string[];
+  summary: {
+    diagnoses: number;
+    procedures: number;
+    uncodedDiagnoses: number;
+    uncodedProcedures: number;
+  };
+}
+
+export const useInvoiceClaimReadiness = (invoiceId: string) => {
+  const invoicingOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.INVOICING,
+  );
+  return useAPIQuery<InvoiceClaimReadiness>(
+    queryKeys.invoices.claimReadiness(invoiceId),
+    `/invoices/${invoiceId}/claim-readiness`,
+    { enabled: invoicingOk && invoiceId.length > 0 },
+  );
+};
+
 export const useCreateInvoice = () =>
   useAPIMutation<Invoice, CreateInvoiceRequest>("/invoices", "POST", {
     invalidateKeys: [queryKeys.invoices.all()],

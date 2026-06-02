@@ -33,11 +33,12 @@ export function usePublicBookingPageState(referralCode: string) {
   const [submitFieldErrors, setSubmitFieldErrors] = useState<
     Record<string, string>
   >({});
-  const [submitGeneralMessage, setSubmitGeneralMessage] = useState<string | null>(
-    null,
-  );
+  const [submitGeneralMessage, setSubmitGeneralMessage] = useState<
+    string | null
+  >(null);
   const [done, setDone] = useState(false);
-  const [mobileStep, setMobileStep] = useState<PublicBookingMobileStep>("visit");
+  const [mobileStep, setMobileStep] =
+    useState<PublicBookingMobileStep>("visit");
 
   const unknownSubmitErrors = useMemo(
     () =>
@@ -52,7 +53,10 @@ export function usePublicBookingPageState(referralCode: string) {
     const end = submitFieldErrors.requestedSlotEnd;
     if (start && end && start !== end) return `${start} · ${end}`;
     return start ?? end ?? "";
-  }, [submitFieldErrors.requestedSlotEnd, submitFieldErrors.requestedSlotStart]);
+  }, [
+    submitFieldErrors.requestedSlotEnd,
+    submitFieldErrors.requestedSlotStart,
+  ]);
 
   const contextQuery = usePublicBookingContext(referralCode, verificationToken);
 

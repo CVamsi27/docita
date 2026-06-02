@@ -140,8 +140,8 @@ export function DangerZoneSettings() {
               htmlFor="staff-confirm-deletion"
               className="text-sm font-normal leading-snug"
             >
-              I understand this will remove my access and request deletion of
-              my personal data where permitted.
+              I understand this will remove my access and request deletion of my
+              personal data where permitted.
             </Label>
           </div>
 

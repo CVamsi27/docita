@@ -50,7 +50,9 @@ export default function ChoosePathPage() {
       return;
     }
     if (user?.clinicId || user?.onboardingStep === "COMPLETED") {
-      setRedirectMessage("Account already linked. Redirecting to your workspace…");
+      setRedirectMessage(
+        "Account already linked. Redirecting to your workspace…",
+      );
       router.replace("/today");
       return;
     }

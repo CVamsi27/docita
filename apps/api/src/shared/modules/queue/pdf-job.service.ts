@@ -7,6 +7,10 @@ import {
   pdfJobStatusSchema,
 } from '@workspace/types';
 import { isRecord } from '@workspace/utils';
+import {
+  GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
+  StorageProvider,
+} from '@/domains/documents/application/ports/storage-provider.port';
 
 type PdfJobRecord = {
   id: string;
@@ -74,6 +78,7 @@ export class PdfJobService implements PdfJobServicePort {
     @Inject(PrismaService)
     private readonly prisma: PdfJobPrismaPort,
     @Inject('queue') private readonly queue: Pick<IQueueProvider, 'enqueue'>,
+    private readonly storageProvider: StorageProvider,
   ) {}
 
   async enqueue(
@@ -148,12 +153,28 @@ export class PdfJobService implements PdfJobServicePort {
       throw new NotFoundException(`PDF job ${jobId} not found`);
     }
 
+    const objectKey =
+      pdfJob.status === 'COMPLETED' &&
+      pdfJob.pdfUrl &&
+      !this.isLegacySignedUrl(pdfJob.pdfUrl)
+        ? pdfJob.pdfUrl
+        : undefined;
+
     return {
       jobId: pdfJob.id,
       status: pdfJobStatusSchema.parse(pdfJob.status),
-      pdfUrl: pdfJob.pdfUrl ?? undefined,
+      pdfUrl: objectKey
+        ? await this.storageProvider.generateSignedUrl(
+            objectKey,
+            GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
+          )
+        : undefined,
       createdAt: pdfJob.createdAt,
     };
+  }
+
+  private isLegacySignedUrl(value: string): boolean {
+    return value.startsWith('http://') || value.startsWith('https://');
   }
 
   private isUniqueConstraintViolation(error: unknown): boolean {

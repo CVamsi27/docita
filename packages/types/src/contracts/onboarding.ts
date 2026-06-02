@@ -5,3 +5,11 @@ export const chooseOnboardingPathSchema = z.object({
 });
 
 export type ChooseOnboardingPath = z.infer<typeof chooseOnboardingPathSchema>;
+
+export const onboardingTrialEligibilityResponseSchema = z.object({
+  eligible: z.boolean(),
+});
+
+export type OnboardingTrialEligibilityResponse = z.infer<
+  typeof onboardingTrialEligibilityResponseSchema
+>;

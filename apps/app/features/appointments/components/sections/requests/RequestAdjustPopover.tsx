@@ -15,10 +15,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
-import { formatClinicPickerDayIsoFromSelection, formatScheduleTime } from "@workspace/utils";
+import {
+  formatClinicPickerDayIsoFromSelection,
+  formatScheduleTime,
+} from "@workspace/utils";
 import type { ApproveScheduleFieldKey } from "@/lib/utils/appointment-request-approve-errors";
 import { cn } from "@workspace/ui/lib/utils";
-import { type SchedulableDoctor, parsePickerIsoToLocalDate } from "./request-row-helpers";
+import {
+  type SchedulableDoctor,
+  parsePickerIsoToLocalDate,
+} from "./request-row-helpers";
 
 type AvailableTime = { time: string; endTime: string };
 
@@ -35,11 +41,17 @@ export interface RequestAdjustPopoverProps {
   availableStartTimes: AvailableTime[];
   isStartAllowed: boolean;
   hasApproveFieldErrors: boolean;
-  approveFieldErrors: Partial<Record<ApproveScheduleFieldKey, string>> | undefined;
+  approveFieldErrors:
+    | Partial<Record<ApproveScheduleFieldKey, string>>
+    | undefined;
   clinicTimezone: string;
   onClearApproveFieldErrors: () => void;
-  setDoctorByRequest: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-  setStartByRequest: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  setDoctorByRequest: React.Dispatch<
+    React.SetStateAction<Record<string, string>>
+  >;
+  setStartByRequest: React.Dispatch<
+    React.SetStateAction<Record<string, string>>
+  >;
 }
 
 export function RequestAdjustPopover({
@@ -150,7 +162,10 @@ export function RequestAdjustPopover({
                   onSelect={(d) => {
                     if (!d) return;
                     onClearApproveFieldErrors();
-                    const nextIso = formatClinicPickerDayIsoFromSelection(d, clinicTimezone);
+                    const nextIso = formatClinicPickerDayIsoFromSelection(
+                      d,
+                      clinicTimezone,
+                    );
                     setStartByRequest((prev) => ({
                       ...prev,
                       [requestId]: `${nextIso}T${startTimeHHmm}`,

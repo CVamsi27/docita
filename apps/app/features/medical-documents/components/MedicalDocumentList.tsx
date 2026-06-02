@@ -2,7 +2,7 @@
 
 import { Button } from "@workspace/ui/components/form/button";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { Plus } from "lucide-react";
+import { FileText, Plus } from "lucide-react";
 import { MedicalDocumentCard } from "./medical-document-card";
 import { MedicalDocumentCreateDialog } from "./medical-document-create-dialog";
 import { useMedicalDocumentList } from "./use-medical-document-list";
@@ -15,8 +15,16 @@ export function MedicalDocumentList({ patientId }: Props) {
   const list = useMedicalDocumentList(patientId);
 
   if (list.loading) {
+    return <DataState status="loading" loadingMessage="Loading documents…" />;
+  }
+
+  if (list.isError) {
     return (
-      <DataState status="loading" loadingMessage="Loading documents…" />
+      <DataState
+        status="error"
+        errorMessage="We could not load these documents. Please try again."
+        onRetry={() => list.refetch()}
+      />
     );
   }
 
@@ -24,7 +32,11 @@ export function MedicalDocumentList({ patientId }: Props) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">Medical Documents</h3>
-        <Button size="sm" variant="outline" onClick={() => list.setShowNew(true)}>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => list.setShowNew(true)}
+        >
           <Plus className="h-3 w-3 mr-1" />
           New
         </Button>
@@ -49,7 +61,12 @@ export function MedicalDocumentList({ patientId }: Props) {
       />
 
       {list.documents.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No documents yet</p>
+        <DataState
+          status="empty"
+          emptyIcon={FileText}
+          emptyTitle="No documents yet"
+          emptyDescription="Uploaded and generated medical documents will appear here."
+        />
       ) : (
         list.documents.map((doc) => (
           <MedicalDocumentCard

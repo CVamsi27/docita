@@ -25,12 +25,7 @@ function mapInvoiceStatus(status: unknown): PatientInvoiceStatus {
 }
 
 export default function PortalBillingPage() {
-  const {
-    data,
-    isLoading,
-    isError,
-    refetch,
-  } = usePatientPortalInvoices();
+  const { data, isLoading, isError, refetch } = usePatientPortalInvoices();
 
   const invoices = (data?.invoices ?? []).map((item, index) => {
     const row = isRecord(item) ? item : {};
@@ -63,8 +58,8 @@ export default function PortalBillingPage() {
     : isError
       ? "error"
       : invoices.length === 0
-      ? "empty"
-      : "success";
+        ? "empty"
+        : "success";
 
   return (
     <AppPageScaffold

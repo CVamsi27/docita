@@ -98,7 +98,8 @@ export function useCommandPalette() {
   const handleStartConsultation = useCallback(async () => {
     const queueItems = doctorQueue.data ?? [];
     const inProgress = queueItems.find(
-      (item) => item.appointmentId && item.status.toUpperCase() === "IN_PROGRESS",
+      (item) =>
+        item.appointmentId && item.status.toUpperCase() === "IN_PROGRESS",
     )?.appointmentId;
     const waiting = queueItems.find(
       (item) => item.appointmentId && item.status.toUpperCase() === "WAITING",
@@ -191,7 +192,8 @@ export function useCommandPalette() {
         );
         if (!ok) continue;
       }
-      if (action.kind === "start-consultation" && !canStartConsultation) continue;
+      if (action.kind === "start-consultation" && !canStartConsultation)
+        continue;
 
       out.push({
         id: `action-${action.id}`,

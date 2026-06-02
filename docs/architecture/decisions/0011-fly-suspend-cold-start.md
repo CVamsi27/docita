@@ -1,4 +1,4 @@
-# 0011: Use Fly `auto_stop_machines = suspend` for the API cold-start policy
+# 0011: Keep one Fly API machine running and suspend scale-out capacity
 
 - **Status**: accepted
 - **Date**: 2026-05-26
@@ -22,32 +22,31 @@ gap this surfaced.
 ## Decision
 
 Switch `apps/api` to `auto_stop_machines = 'suspend'` with
-`grace_period = '240s'` and keep `min_machines_running = 0`.
-Suspended machines snapshot RAM to disk and resume in ~1s on the
-next inbound request, so the user-facing wake latency is well
-within Cloudflare's origin timeout. The 240s `grace_period` is
-the safety net for the rare full cold start (deploy, host
-migration, OOM).
+`grace_period = '240s'` and keep `min_machines_running = 1`.
+The running floor keeps the steady-state clinician request path
+available. Any scale-out machines can still suspend when idle and
+resume without a full container boot. The 240s `grace_period` is
+the safety net for deploys, host migration, and OOM recovery.
 
 ## Alternatives considered
 
 | Option | Pros | Cons | Why rejected |
 | --- | --- | --- | --- |
 | Keep `stop`, raise `grace_period` to 240s | No cost change | Wake still ~3min, Cloudflare gives up before that | Doesn't fix the user-visible 502 |
-| `min_machines_running = 1` | Zero cold-start latency | Pay 24/7 for an always-on VM | Not aligned with "pay nothing while idle" intent |
-| `auto_stop_machines = 'off'` | Same as min_machines_running=1 | Same | Same |
+| `min_machines_running = 0` | Lowest idle cost | Repeated production liveness timeouts after idle wake | Rejected for the production clinician path |
+| `auto_stop_machines = 'off'` | Keep every scaled machine running | Higher idle cost after scale-out | Keep suspend for capacity above the running floor |
 | Reduce Nest bootstrap to <30s | Fixes the root cause | Multi-week refactor across modules | Pursue in parallel, but not a release blocker |
 
 ## Consequences
 
 - Positive:
   - Cloudflare 502s on cold start go away.
-  - Idle-period cost stays at $0 CPU.
-  - Steady-state wake is ~1s, well within CF origin timeout.
+  - Clinician traffic no longer depends on an idle wake.
+  - Scale-out capacity can still suspend when idle.
 - Negative:
-  - Suspended-state storage has a small Fly charge per machine.
-  - Suspend does not survive host failover; that still triggers a
-    full cold start. The 240s `grace_period` covers it.
+  - One API VM remains billable while production is active.
+  - Host failover can still trigger recovery. The 240s
+    `grace_period` covers it.
   - Hides the underlying ~3-minute `NestFactory.create` problem.
 - Follow-up:
   - Bootstrap-timing instrumentation in `apps/api/src/main.ts`

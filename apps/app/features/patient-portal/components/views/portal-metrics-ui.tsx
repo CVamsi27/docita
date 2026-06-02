@@ -73,7 +73,9 @@ type PortalMetricCategory = {
   metricDefinitions: PortalMetricDefinition[];
 };
 
-function readPortalMetricDefinition(value: unknown): PortalMetricDefinition | null {
+function readPortalMetricDefinition(
+  value: unknown,
+): PortalMetricDefinition | null {
   if (!isRecord(value)) return null;
   if (typeof value.id !== "string" || typeof value.key !== "string") {
     return null;
@@ -82,7 +84,8 @@ function readPortalMetricDefinition(value: unknown): PortalMetricDefinition | nu
     id: value.id,
     key: value.key,
     label: typeof value.label === "string" ? value.label : value.key,
-    unit: typeof value.unit === "string" || value.unit === null ? value.unit : null,
+    unit:
+      typeof value.unit === "string" || value.unit === null ? value.unit : null,
     valueType: typeof value.valueType === "string" ? value.valueType : "NUMBER",
     isTracked: value.isTracked === true,
   };
@@ -122,9 +125,7 @@ interface PortalMetricsUIProps {
   showHeader?: boolean;
 }
 
-export function PortalMetricsUI({
-  showHeader = true,
-}: PortalMetricsUIProps) {
+export function PortalMetricsUI({ showHeader = true }: PortalMetricsUIProps) {
   const [dateRange, setDateRange] = useState("30");
   const [showAddModal, setShowAddModal] = useState(false);
   const queryClient = useQueryClient();

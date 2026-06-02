@@ -16,12 +16,7 @@ import type { User } from "@workspace/types";
 import { SignatureUploadQR } from "@/features/settings/components/signature-upload-qr";
 import { RegistrationCertificateUpload } from "@/features/settings/components/doctor-profile/RegistrationCertificateUpload";
 import Link from "next/link";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Clock,
-  PenLine,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, PenLine } from "lucide-react";
 import { toAbsoluteApiUrl } from "@/lib/utils/url";
 import { getDoctorVerificationPublicNote } from "@/lib/formatters/doctor-verification-display";
 
@@ -51,8 +46,7 @@ export function DoctorProfileSettings() {
       ? {
           label: "Verified",
           variant: "outline" as const,
-          className:
-            "gap-1.5 border-primary/30 text-primary",
+          className: "gap-1.5 border-primary/30 text-primary",
           Icon: CheckCircle2,
         }
       : hasRegistration && verificationStatus === "PENDING"

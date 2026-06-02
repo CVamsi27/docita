@@ -189,8 +189,13 @@ export function useAuthRefreshUser(options: {
   setUserRole: (role: string) => void;
   validateAuth: ValidateAuth;
 }) {
-  const { clearSession, refreshAccessToken, setUser, setUserRole, validateAuth } =
-    options;
+  const {
+    clearSession,
+    refreshAccessToken,
+    setUser,
+    setUserRole,
+    validateAuth,
+  } = options;
 
   return useCallback(async (): Promise<User | null> => {
     try {

@@ -18,7 +18,10 @@ interface AskAiButtonProps {
  * Pinned bottom sidebar trigger that opens the Ask AI overlay.
  * In collapsed rail mode, renders an icon-only round button.
  */
-export function AskAiButton({ collapsed = false, className }: AskAiButtonProps) {
+export function AskAiButton({
+  collapsed = false,
+  className,
+}: AskAiButtonProps) {
   const { openOverlay } = useAskAi();
   const pathname = usePathname();
   const openWithRouteScope = () =>

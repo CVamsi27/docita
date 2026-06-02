@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import { Inject, Injectable, BadRequestException } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -99,7 +100,7 @@ export class ImportPatientPersistenceService {
           clinicId,
           consentType: ConsentType.DPDP_NOTICE,
           status: ConsentStatus.ACTIVE,
-          givenBy: `${firstName} ${lastName}`.trim(),
+          givenBy: getPatientFullName({ firstName, lastName }),
           givenByRelation: 'SELF',
           givenAt: this.clock.now(),
           validFrom: this.clock.now(),

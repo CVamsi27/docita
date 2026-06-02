@@ -12,6 +12,7 @@ import {
 } from "@/features/subscription";
 import { useAutoResolveSubscriptionPayment } from "@/features/subscription";
 import { getTrialState } from "@/lib/subscription/subscription-lockout";
+import { getClinicGstin } from "@workspace/utils";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import {
@@ -67,7 +68,7 @@ export function SubscriptionSettings() {
     subscriptionStatus === "PAYMENT_DUE" || subscriptionStatus === "PAST_DUE";
   const isExpired = subscriptionStatus === "EXPIRED";
   const isInGracePeriod = subscriptionStatus === "GRACE";
-  const trialState = getTrialState(clinic);
+  const trialState = subscription?.trialWindowState ?? getTrialState(clinic);
   const showRecoveryCard =
     isPaymentDue ||
     isInGracePeriod ||
@@ -129,14 +130,8 @@ export function SubscriptionSettings() {
   }
 
   const trialDaysLeft =
-    subscriptionStatusLabel === "TRIALING" && subscription?.currentPeriodEnd
-      ? Math.max(
-          0,
-          Math.ceil(
-            (new Date(subscription.currentPeriodEnd).getTime() - Date.now()) /
-              (1000 * 60 * 60 * 24),
-          ),
-        )
+    subscriptionStatusLabel === "TRIALING"
+      ? (subscription?.daysRemaining ?? null)
       : null;
 
   const freeStarterActive = isFreeStarterActive(subscription ?? undefined);
@@ -145,7 +140,7 @@ export function SubscriptionSettings() {
   // GSTIN is optional during onboarding; remind paying Indian clinics to add it
   // so their payments can be issued as GST invoices. Non-blocking.
   const needsGstinForInvoices =
-    !clinic?.gstin?.trim() &&
+    !getClinicGstin(clinic?.settings) &&
     (subscription?.basePriceCents ?? 0) > 0 &&
     subscription?.currency?.toUpperCase() === "INR";
 

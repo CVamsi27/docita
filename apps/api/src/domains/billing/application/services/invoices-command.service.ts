@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, InvoiceStatus } from '@workspace/db';
 import {
@@ -74,7 +75,7 @@ export class InvoicesCommandService {
     const buyer = taxRegistrationSnapshotSchema.parse({
       countryCode: seller.countryCode,
       regime: seller.regime,
-      legalName: `${patient.firstName} ${patient.lastName}`.trim(),
+      legalName: getPatientFullName(patient).trim(),
       address: patient.address || undefined,
     });
     return { taxSettings, seller, buyer };

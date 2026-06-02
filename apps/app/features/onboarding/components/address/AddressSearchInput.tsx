@@ -18,7 +18,11 @@ export interface AddressSearchInputProps {
   shouldUseGoogle: boolean;
   autocomplete: google.maps.places.Autocomplete | null;
   onAutocompleteLoad: (instance: google.maps.places.Autocomplete) => void;
-  onPlaceChanged: (pos: { lat: number; lng: number }, address: string, details: ClinicAddressDetails | null) => void;
+  onPlaceChanged: (
+    pos: { lat: number; lng: number },
+    address: string,
+    details: ClinicAddressDetails | null,
+  ) => void;
   searchQuery: string;
   setSearchQuery: (value: string) => void;
   suggestions: PlaceSuggestion[];
@@ -59,7 +63,9 @@ export function AddressSearchInput({
 
               const pos = { lat: location.lat(), lng: location.lng() };
               const formatted = place?.formatted_address?.trim();
-              const details = parseGoogleAddressDetails(place?.address_components);
+              const details = parseGoogleAddressDetails(
+                place?.address_components,
+              );
               const address =
                 formatted || (details ? formatAddressDetails(details) : "");
 

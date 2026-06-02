@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { AlertCircle, Scan, Smartphone, Upload } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
@@ -85,7 +86,11 @@ export const OCRUploadSection = ({
               >
                 {isScanning ? (
                   <>
-                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    <DocitaLoadingIndicator
+                      variant="inline"
+                      decorative
+                      className="mr-2"
+                    />
                     Scanning…
                   </>
                 ) : (
@@ -98,17 +103,19 @@ export const OCRUploadSection = ({
                 )}
               </Button>
             ) : (
-              <div
-                className={cn(
-                  "inline-flex h-10 w-full min-w-0 items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 text-sm font-medium text-muted-foreground shadow-xs sm:h-11",
-                  "cursor-not-allowed select-none",
-                )}
-                aria-disabled="true"
-                title="Choose a file in the upload area first"
-              >
-                <Scan className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
-                <span className="min-w-0 truncate">Scan document</span>
-              </div>
+              <SymbolTooltip label="Choose a file in the upload area first">
+                <div
+                  className={cn(
+                    "inline-flex h-10 w-full min-w-0 items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 text-sm font-medium text-muted-foreground shadow-xs sm:h-11",
+                    "cursor-not-allowed select-none",
+                  )}
+                  aria-disabled="true"
+                  tabIndex={0}
+                >
+                  <Scan className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+                  <span className="min-w-0 truncate">Scan document</span>
+                </div>
+              </SymbolTooltip>
             )}
           </div>
 

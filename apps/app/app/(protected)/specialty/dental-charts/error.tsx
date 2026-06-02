@@ -12,9 +12,7 @@ export default function DentalChartsError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-
-  }, [error]);
+  useEffect(() => {}, [error]);
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center p-4">

@@ -4,7 +4,6 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InvoiceStatus, PaymentSessionStatus } from '@workspace/db';
 import type { PaymentWebhookPayload } from '@workspace/types';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
@@ -22,7 +21,7 @@ import {
   type ITransactionRunner,
 } from '@/shared/common/ports/transaction-runner.port';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import { PaymentCapturedEvent } from './events/payment-captured.event';
+import type { IOutboxService } from '@/shared/modules/outbox/outbox.interface';
 
 // AuditLogged: Razorpay invoice webhooks persist provider payloads on the
 // payment session and transition the linked invoice inside one transaction.
@@ -38,7 +37,7 @@ export class RazorpayInvoiceWebhookService {
     @Inject(TRANSACTION_RUNNER_PORT)
     private readonly transactionRunner: ITransactionRunner,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
-    private readonly eventEmitter: EventEmitter2,
+    @Inject('IOutboxService') private readonly outbox: IOutboxService,
   ) {}
 
   async handle(payload: PaymentWebhookPayload, signature: string) {
@@ -148,16 +147,20 @@ export class RazorpayInvoiceWebhookService {
         session.clinicId,
         tx,
       );
-    });
 
-    this.eventEmitter.emit(
-      ApplicationEvents.PAYMENT_CAPTURED,
-      new PaymentCapturedEvent(
-        invoiceId,
-        session.clinicId,
-        providerPaymentId,
-        amountPaise,
-      ),
-    );
+      await this.outbox.append(tx, {
+        eventName: ApplicationEvents.PAYMENT_CAPTURED,
+        aggregateType: 'Invoice',
+        aggregateId: invoiceId,
+        clinicId: session.clinicId,
+        idempotencyKey: `payment-captured:${providerPaymentId}`,
+        payload: {
+          invoiceId,
+          clinicId: session.clinicId,
+          providerPaymentId,
+          amountPaise,
+        },
+      });
+    });
   }
 }

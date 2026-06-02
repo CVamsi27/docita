@@ -75,7 +75,7 @@ Fly-specific notes:
 - GitHub Actions API deploys must resolve the Fly app name from [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and deploy with that config, rather than relying on a separate hardcoded app value in workflow logic.
 - For GitHub Actions API deploys, add `FLY_API_TOKEN` as a repository secret.
 - The worker app uses [`apps/worker/fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/fly.toml), builds from `apps/worker/Dockerfile`, and should use `--ha=false` so Fly does not create a standby machine for the no-service worker process.
-- Keep `auto_stop_machines = "stop"` and `min_machines_running = 0` for the API during the initial low-traffic phase. The Fly proxy will restart it on incoming HTTP traffic.
+- Keep `auto_stop_machines = "suspend"` and `min_machines_running = 1` for the production API. The always-available floor avoids clinician-facing wake timeouts while additional capacity can still suspend when idle.
 - Do not scale the no-service worker to zero unless scheduler and queue wake-up behavior has a separate trigger; it does not receive HTTP traffic that Fly can use for autostart.
 - Verify the API image locally before infra changes with:
 
@@ -123,7 +123,7 @@ DATABASE_URL="postgresql://..." pnpm --filter @workspace/db run db:migrate:safe
 - Build `apps/landing` with `pnpm build:landing:cloudflare`.
 - Preview each Worker locally with the matching `preview:*:cloudflare` script.
 - Deploy each Worker with the matching `deploy:*:cloudflare` script.
-- Frontend production deploys are expected to be managed by Cloudflare Git integration or dashboard settings, not GitHub Actions in this repository.
+- Frontend production deploys run through the path-scoped [`deploy-cloudflare.yml`](../../.github/workflows/deploy-cloudflare.yml) workflow when repository credentials verify. Cloudflare Git integration or dashboard deploys remain the fallback.
 
 ## Release Gates
 

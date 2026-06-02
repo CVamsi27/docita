@@ -22,7 +22,10 @@ const Spinner = React.forwardRef<HTMLDivElement, LoaderProps>(
     return (
       <div
         ref={ref}
-        className={cn("inline-flex shrink-0 items-center justify-center", className)}
+        className={cn(
+          "inline-flex shrink-0 items-center justify-center",
+          className,
+        )}
         {...props}
       >
         <DocitaLoadingIndicator

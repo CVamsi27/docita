@@ -6,6 +6,7 @@ import { InvoiceDetailsUI } from "./InvoiceDetailsUI";
 
 vi.mock("@/components/auth/feature-gate", () => ({
   FeatureGate: ({ children }: { children: ReactElement }) => children,
+  useFeature: () => false,
 }));
 
 vi.mock("next/navigation", () => ({

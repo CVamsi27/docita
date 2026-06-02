@@ -11,7 +11,12 @@
  * `scripts/checks/check-cron-heartbeat-coverage.mjs` enforces that every
  * `@Cron` handler carries a unique `@TrackHeartbeat("<name>")`.
  */
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import 'reflect-metadata';
 import { PrismaService } from '@/prisma/prisma.service';
 
@@ -32,6 +37,21 @@ export class NoopCronHeartbeatService implements ICronHeartbeatService {
   }
 }
 
+const noopCronHeartbeatService = new NoopCronHeartbeatService();
+let activeCronHeartbeatService: ICronHeartbeatService =
+  noopCronHeartbeatService;
+
+export function registerCronHeartbeatService(
+  service: ICronHeartbeatService,
+): () => void {
+  activeCronHeartbeatService = service;
+  return () => {
+    if (activeCronHeartbeatService === service) {
+      activeCronHeartbeatService = noopCronHeartbeatService;
+    }
+  };
+}
+
 /**
  * Persistent heartbeat backed by the `CronHeartbeat` Prisma model. Each
  * successful or failed scheduler run upserts a row keyed by `name` so
@@ -39,10 +59,21 @@ export class NoopCronHeartbeatService implements ICronHeartbeatService {
  * answer "did the X scheduler run in the last Y minutes".
  */
 @Injectable()
-export class PrismaCronHeartbeatService implements ICronHeartbeatService {
+export class PrismaCronHeartbeatService
+  implements ICronHeartbeatService, OnModuleInit, OnModuleDestroy
+{
   private readonly logger = new Logger(PrismaCronHeartbeatService.name);
+  private unregister?: () => void;
 
   constructor(private readonly prisma: PrismaService) {}
+
+  onModuleInit(): void {
+    this.unregister = registerCronHeartbeatService(this);
+  }
+
+  onModuleDestroy(): void {
+    this.unregister?.();
+  }
 
   async recordSuccess(name: string): Promise<void> {
     try {
@@ -93,18 +124,42 @@ export class PrismaCronHeartbeatService implements ICronHeartbeatService {
 }
 
 /**
- * Decorator. Annotates a scheduler method with the heartbeat name.
- * The actual recording is performed by a NestJS interceptor that
- * reads the metadata (added when the Prisma model is provisioned).
+ * Decorator. Annotates a scheduler method with the heartbeat name and wraps
+ * execution so success and failure are persisted by the worker-scoped recorder.
  *
  * Example:
  *   @Cron(CRON_SCHEDULES.REMINDER_HOURLY)
  *   @TrackHeartbeat("billing.reconcile")
  *   async run() { ... }
  */
-export function TrackHeartbeat(name: string): MethodDecorator {
-  return (target, propertyKey) => {
+type SchedulerMethod = (...args: unknown[]) => unknown;
+
+function isSchedulerMethod(value: unknown): value is SchedulerMethod {
+  return typeof value === 'function';
+}
+
+export function TrackHeartbeat(name: string) {
+  return (
+    target: object,
+    propertyKey: string | symbol,
+    descriptor: PropertyDescriptor,
+  ): void => {
     Reflect.defineMetadata(CRON_HEARTBEAT_KEY, name, target, propertyKey);
+    const original: unknown = descriptor.value;
+    if (!isSchedulerMethod(original)) {
+      return;
+    }
+
+    descriptor.value = async function (...args: unknown[]) {
+      try {
+        const result = await original.apply(this, args);
+        await activeCronHeartbeatService.recordSuccess(name);
+        return result;
+      } catch (error) {
+        await activeCronHeartbeatService.recordFailure(name, error);
+        throw error;
+      }
+    };
   };
 }
 

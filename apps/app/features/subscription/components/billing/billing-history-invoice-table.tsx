@@ -57,7 +57,10 @@ export function BillingHistoryInvoiceTable({
   onDownload: (url: string) => void;
   onPayNow?: () => void;
   resumePaymentPending: boolean;
-  onResumePayment: (invoice: BillingHistoryItem, payUrl?: string) => Promise<void>;
+  onResumePayment: (
+    invoice: BillingHistoryItem,
+    payUrl?: string,
+  ) => Promise<void>;
 }) {
   return (
     <div className="rounded-lg border">
@@ -71,13 +74,10 @@ export function BillingHistoryInvoiceTable({
               ? (withActions.receiptUrl ?? invoice.invoiceUrl)
               : undefined;
             const payUrl =
-              withActions.payUrl ??
-              (!isPaid ? invoice.invoiceUrl : undefined);
+              withActions.payUrl ?? (!isPaid ? invoice.invoiceUrl : undefined);
             const terminalClosed = isTerminalClosed(status);
             const showPayNow =
-              !isPaid &&
-              !terminalClosed &&
-              !(isFailedLike(status) && !payUrl);
+              !isPaid && !terminalClosed && !(isFailedLike(status) && !payUrl);
             const { label, detail } = formatInvoiceDescriptionForDisplay(
               invoice.description,
             );
@@ -129,7 +129,9 @@ export function BillingHistoryInvoiceTable({
           })}
         </ListRowGroup>
         <div className="border-t px-3 py-2 text-sm">
-          <span className="text-muted-foreground">Paid total ({primaryCurrency}): </span>
+          <span className="text-muted-foreground">
+            Paid total ({primaryCurrency}):{" "}
+          </span>
           <span className="font-semibold tabular-nums">
             {formatMoney(paidTotalCents, primaryCurrency)}
           </span>
@@ -198,7 +200,9 @@ export function BillingHistoryInvoiceTable({
                   </TableCell>
                   <TableCell className="min-w-0 max-w-[14rem] sm:max-w-md">
                     <div className="flex flex-col gap-0.5">
-                      <span className="font-medium text-foreground">{label}</span>
+                      <span className="font-medium text-foreground">
+                        {label}
+                      </span>
                       {detail ? (
                         <Tooltip>
                           <TooltipTrigger asChild>

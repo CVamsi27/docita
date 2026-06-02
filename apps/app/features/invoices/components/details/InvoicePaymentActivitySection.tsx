@@ -86,7 +86,9 @@ export const InvoicePaymentActivitySection: FC<
                     </p>
                   ) : null}
                   {row.notes ? (
-                    <p className="break-words text-muted-foreground">{row.notes}</p>
+                    <p className="break-words text-muted-foreground">
+                      {row.notes}
+                    </p>
                   ) : null}
                   {linkUrl ? (
                     <a
@@ -131,7 +133,9 @@ export const InvoicePaymentActivitySection: FC<
                         <div className="flex flex-col gap-0.5">
                           <span>{formatProviderLabel(row.provider)}</span>
                           {row.channel ? (
-                            <span className="ui-helper-text">{row.channel}</span>
+                            <span className="ui-helper-text">
+                              {row.channel}
+                            </span>
                           ) : null}
                         </div>
                       </TableCell>

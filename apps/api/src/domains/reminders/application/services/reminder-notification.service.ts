@@ -14,6 +14,7 @@ import {
   formatTime,
   DATE_FORMATS,
   DEFAULT_TIMEZONE,
+  getPatientFullName,
 } from '@workspace/utils';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
@@ -157,7 +158,7 @@ export class ReminderNotificationService {
       const clinicName = appointment.clinic?.name ?? '';
 
       const variables: Record<string, string> = {
-        patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
+        patientName: getPatientFullName(appointment.patient),
         doctorName: appointment.doctor.name,
         clinicName,
         date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM, {
@@ -230,7 +231,7 @@ export class ReminderNotificationService {
     appointment: AppointmentForReminder,
     timezone: string = DEFAULT_TIMEZONE,
   ): string {
-    const patientName = `${appointment.patient.firstName} ${appointment.patient.lastName}`;
+    const patientName = getPatientFullName(appointment.patient);
     const formattedDate = formatDate(
       appointment.startTime,
       DATE_FORMATS.DATE_MEDIUM,

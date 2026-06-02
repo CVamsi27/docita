@@ -51,7 +51,8 @@ export function ConsentBanner() {
     }
   };
 
-  const open = !isLoading && !dismissed && Boolean(consentSettings?.isFirstLogin);
+  const open =
+    !isLoading && !dismissed && Boolean(consentSettings?.isFirstLogin);
 
   return (
     <Dialog

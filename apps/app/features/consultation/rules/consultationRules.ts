@@ -1,4 +1,5 @@
 import type { VitalSign } from "@workspace/types";
+import { calculateBMI } from "@workspace/utils";
 import { isVitalRangeKey } from "@/features/consultation/lib/consultation-vital-keys";
 
 export const getVitalRanges = (age: number) => {
@@ -52,8 +53,7 @@ export const requiresUrgentAttention = (vitals: VitalSign): boolean => {
 
 export const calculateBMIFromVitals = (vitals: VitalSign): number | null => {
   if (!vitals.weight || !vitals.height) return null;
-  const heightInMeters = vitals.height / 100;
-  return parseFloat((vitals.weight / heightInMeters ** 2).toFixed(1));
+  return calculateBMI(vitals.weight, vitals.height);
 };
 
 export type ConsultationCompletionInput = {

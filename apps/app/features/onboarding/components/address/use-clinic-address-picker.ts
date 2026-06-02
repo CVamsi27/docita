@@ -30,9 +30,8 @@ export function useClinicAddressPicker({
   const [picked, setPicked] = useState<LatLng | null>(null);
   const [resolvedAddress, setResolvedAddress] = useState("");
   const [addressDraft, setAddressDraft] = useState(initialAddress);
-  const [addressDetails, setAddressDetails] = useState<ClinicAddressDetails | null>(
-    null,
-  );
+  const [addressDetails, setAddressDetails] =
+    useState<ClinicAddressDetails | null>(null);
   const [isResolving, setIsResolving] = useState(false);
   const [autocomplete, setAutocomplete] =
     useState<google.maps.places.Autocomplete | null>(null);
@@ -53,11 +52,12 @@ export function useClinicAddressPicker({
 
   const rawGoogleKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
   const hasGoogleKey = isValidGoogleMapsApiKey(rawGoogleKey);
-  const { isLoaded: isGoogleLoaded, loadError: googleLoadError } = useJsApiLoader({
-    id: "google-maps-script",
-    googleMapsApiKey: hasGoogleKey ? rawGoogleKey.trim() : "",
-    libraries: GOOGLE_LIBRARIES,
-  });
+  const { isLoaded: isGoogleLoaded, loadError: googleLoadError } =
+    useJsApiLoader({
+      id: "google-maps-script",
+      googleMapsApiKey: hasGoogleKey ? rawGoogleKey.trim() : "",
+      libraries: GOOGLE_LIBRARIES,
+    });
   const shouldUseGoogle = hasGoogleKey && isGoogleLoaded && !googleLoadError;
 
   const addressValue = addressDraft || resolvedAddress || initialAddress;
@@ -212,13 +212,15 @@ export function useClinicAddressPicker({
     if (!navigator.geolocation) return;
     setIsResolving(true);
     try {
-      const coords = await new Promise<GeolocationCoordinates>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve(pos.coords),
-          (err) => reject(err),
-          { enableHighAccuracy: true, timeout: 8000 },
-        );
-      });
+      const coords = await new Promise<GeolocationCoordinates>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => resolve(pos.coords),
+            (err) => reject(err),
+            { enableHighAccuracy: true, timeout: 8000 },
+          );
+        },
+      );
       const pos = { lat: coords.latitude, lng: coords.longitude };
       await (shouldUseGoogle ? handlePickWithGoogle(pos) : handlePick(pos));
     } catch {

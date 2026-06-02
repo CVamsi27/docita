@@ -13,6 +13,13 @@ import {
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/form/select";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
@@ -281,43 +288,50 @@ export function SystemLogsPage({
           <label className="text-xs font-medium text-muted-foreground">
             Severity
           </label>
-          <select
-            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          <Select
             value={selectedLevel}
-            onChange={(e) => {
-              const value = parseLogLevel(e.target.value);
+            onValueChange={(nextValue) => {
+              const value = parseLogLevel(nextValue);
               setSelectedLevel(value);
               updateFilterParams({ level: value, offset: 0 });
             }}
           >
-            <option value="ALL">All severities</option>
-            <option value="ERROR">ERROR</option>
-            <option value="WARNING">WARNING</option>
-            <option value="INFO">INFO</option>
-            <option value="DEBUG">DEBUG</option>
-          </select>
+            <SelectTrigger aria-label="Severity" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All severities</SelectItem>
+              <SelectItem value="ERROR">ERROR</SelectItem>
+              <SelectItem value="WARNING">WARNING</SelectItem>
+              <SelectItem value="INFO">INFO</SelectItem>
+              <SelectItem value="DEBUG">DEBUG</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-1">
           <label className="text-xs font-medium text-muted-foreground">
             Module / Source
           </label>
-          <select
-            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          <Select
             value={selectedModule}
-            onChange={(e) => {
-              const value = e.target.value;
+            onValueChange={(value) => {
               setSelectedModule(value);
               updateFilterParams({ module: value, offset: 0 });
             }}
           >
-            <option value="ALL">All modules</option>
-            {moduleOptions.map((module) => (
-              <option key={module} value={module}>
-                {module}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger aria-label="Module / Source" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All modules</SelectItem>
+              {moduleOptions.map((module) => (
+                <SelectItem key={module} value={module}>
+                  {module}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-1">
@@ -338,19 +352,23 @@ export function SystemLogsPage({
           <label className="text-xs font-medium text-muted-foreground">
             Page size
           </label>
-          <select
-            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-            value={selectedLimit}
-            onChange={(e) => {
-              const value = parseLogLimit(e.target.value, defaultLimit);
+          <Select
+            value={String(selectedLimit)}
+            onValueChange={(nextValue) => {
+              const value = parseLogLimit(nextValue, defaultLimit);
               setSelectedLimit(value);
               updateFilterParams({ limit: value, offset: 0 });
             }}
           >
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
+            <SelectTrigger aria-label="Page size" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="25">25</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

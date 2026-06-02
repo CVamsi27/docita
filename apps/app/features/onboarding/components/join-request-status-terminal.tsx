@@ -4,7 +4,11 @@ import Link from "next/link";
 import { Building2, XCircle } from "lucide-react";
 import { Card } from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/feedback/alert";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/feedback/alert";
 import { PreDashboardShell } from "@/features/auth";
 
 export type JoinRequestTerminalState =
@@ -17,7 +21,9 @@ export function JoinRequestStatusTerminal({
   state: JoinRequestTerminalState;
 }) {
   const isRejected = state.kind === "rejected";
-  const title = isRejected ? "Join request not approved" : "Join request withdrawn";
+  const title = isRejected
+    ? "Join request not approved"
+    : "Join request withdrawn";
   const description = isRejected
     ? `${state.clinicName} did not approve your request to join.`
     : `You withdrew your request to join ${state.clinicName}.`;
@@ -56,17 +62,14 @@ export function JoinRequestStatusTerminal({
           <Building2 className="h-4 w-4" />
           <AlertTitle>Pick your next step</AlertTitle>
           <AlertDescription className="mt-1.5 text-sm">
-            You can request to join a different clinic or set up a new clinic
-            of your own. Your account stays intact either way.
+            You can request to join a different clinic or set up a new clinic of
+            your own. Your account stays intact either way.
           </AlertDescription>
         </Alert>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
           <Button asChild variant="outline" className="sm:order-1">
-            <Link
-              href="/choose-path"
-              data-testid="join-request-create-clinic"
-            >
+            <Link href="/choose-path" data-testid="join-request-create-clinic">
               Create a new clinic
             </Link>
           </Button>

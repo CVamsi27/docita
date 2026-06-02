@@ -46,6 +46,5 @@ export async function completeOnboardingRegistration(
   }
 
   appSession.setToken(response.access_token);
-  localStorage.setItem("docita_user", JSON.stringify(response.user));
   return true;
 }

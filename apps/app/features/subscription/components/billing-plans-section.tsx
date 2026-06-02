@@ -1,9 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Tier, getTierInfo, getTierPricing } from "@/lib/subscription/tier-access";
+import {
+  Tier,
+  getTierInfo,
+  getTierPricing,
+} from "@/lib/subscription/tier-access";
 import { getTierName, parseSupportedCurrency } from "@workspace/utils";
 import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { TierCard } from "@/features/subscription/components/cards/tier-card";
@@ -28,7 +33,15 @@ import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription/config/p
 import { PLAN_ORDER } from "./billing-subscription-helpers";
 import type { recommendTier } from "@/features/subscription/lib/recommend-tier";
 type Recommendation = ReturnType<typeof recommendTier>;
-type PricingConfig = { tiers: { id: string; pricing: { monthly: number | "custom"; yearly: number | "custom" } }[] } | null | undefined;
+type PricingConfig =
+  | {
+      tiers: {
+        id: string;
+        pricing: { monthly: number | "custom"; yearly: number | "custom" };
+      }[];
+    }
+  | null
+  | undefined;
 
 interface PlansSectionProps {
   effectiveCurrentTier: Tier;
@@ -91,17 +104,17 @@ export function PlansSection({
               const info = PLAN_MODE_INFO[mode];
               const active = selectedMode === mode;
               return (
-                <Button
-                  key={mode}
-                  variant={active ? "default" : "ghost"}
-                  size="sm"
-                  className="rounded-full"
-                  onClick={() => setSelectedMode(mode)}
-                  aria-pressed={active}
-                  title={info.helpText}
-                >
-                  {info.shortLabel}
-                </Button>
+                <SymbolTooltip key={mode} label={info.helpText}>
+                  <Button
+                    variant={active ? "default" : "ghost"}
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => setSelectedMode(mode)}
+                    aria-pressed={active}
+                  >
+                    {info.shortLabel}
+                  </Button>
+                </SymbolTooltip>
               );
             })}
           </div>
@@ -176,7 +189,9 @@ export function PlansSection({
             <Button
               size="sm"
               variant="primary"
-              onClick={() => handleSelectTier(recommendation.tier, selectedCycle)}
+              onClick={() =>
+                handleSelectTier(recommendation.tier, selectedCycle)
+              }
               disabled={!billingAllowed}
               className="shrink-0 gap-1.5 self-start sm:self-center"
             >
@@ -194,17 +209,19 @@ export function PlansSection({
             (t) => t.id === tierName,
           );
           const catalogPricing = getTierPricing(tierName);
-          const basePricing =
-            tierPricingData?.pricing ?? {
-              monthly: catalogPricing.monthly,
-              yearly: catalogPricing.yearly,
-            };
+          const basePricing = tierPricingData?.pricing ?? {
+            monthly: catalogPricing.monthly,
+            yearly: catalogPricing.yearly,
+          };
 
           const supportedModes = getAvailableModesForTier(tierName);
           const effectiveMode: PlanMode = supportedModes.includes(selectedMode)
             ? selectedMode
             : "FULL";
-          const resolvedPricing = applyModeToPricing(basePricing, effectiveMode);
+          const resolvedPricing = applyModeToPricing(
+            basePricing,
+            effectiveMode,
+          );
 
           const currencySymbol =
             PRICING_CURRENCY_SYMBOLS[pricingCurrency] ??
@@ -270,9 +287,7 @@ export function PlansSection({
               pricing={resolvedPricing}
               billingCycle={selectedCycle}
               currencySymbol={currencySymbol}
-              overageItems={
-                overageParts.length > 0 ? overageParts : undefined
-              }
+              overageItems={overageParts.length > 0 ? overageParts : undefined}
               density="summary"
               buttonLabel={
                 tier === Tier.ENTERPRISE

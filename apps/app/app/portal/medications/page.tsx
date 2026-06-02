@@ -26,7 +26,10 @@ function MedicationsContent({
   return (
     <div className="space-y-6">
       {adherence && adherence.totalDoses > 0 && (
-        <AdherenceChart summary={adherence} label="Overall Medication Adherence" />
+        <AdherenceChart
+          summary={adherence}
+          label="Overall Medication Adherence"
+        />
       )}
 
       <ActiveMedicationsCard medications={medications} />

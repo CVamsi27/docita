@@ -18,12 +18,7 @@ function mapPrescriptionStatus(status: unknown): PatientPrescriptionStatus {
 }
 
 export default function PortalPrescriptionsPage() {
-  const {
-    data,
-    isLoading,
-    isError,
-    refetch,
-  } = usePatientPortalPrescriptions();
+  const { data, isLoading, isError, refetch } = usePatientPortalPrescriptions();
 
   const prescriptions = (data?.prescriptions ?? []).map((item, index) => {
     const row = isRecord(item) ? item : {};
@@ -64,8 +59,8 @@ export default function PortalPrescriptionsPage() {
     : isError
       ? "error"
       : prescriptions.length === 0
-      ? "empty"
-      : "success";
+        ? "empty"
+        : "success";
 
   return (
     <AppPageScaffold

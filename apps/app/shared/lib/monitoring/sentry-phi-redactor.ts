@@ -33,6 +33,8 @@ const PHI_FIELDS: ReadonlySet<string> = new Set([
   "aadhar",
   "pan",
   "address",
+  "emergencycontactname",
+  "emergencycontactphone",
   "addressline",
   "addressline1",
   "addressline2",

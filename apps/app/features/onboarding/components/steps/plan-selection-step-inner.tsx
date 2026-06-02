@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import {
   Alert,
   AlertDescription,
@@ -237,17 +238,17 @@ Please contact me with deployment and commercial details.`;
               const modeInfo = PLAN_MODE_INFO[mode];
               const active = selectedMode === mode;
               return (
-                <Button
-                  key={mode}
-                  variant={active ? "default" : "ghost"}
-                  size="sm"
-                  className="rounded-full"
-                  onClick={() => setSelectedMode(mode)}
-                  aria-pressed={active}
-                  title={modeInfo.helpText}
-                >
-                  {modeInfo.shortLabel}
-                </Button>
+                <SymbolTooltip key={mode} label={modeInfo.helpText}>
+                  <Button
+                    variant={active ? "default" : "ghost"}
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => setSelectedMode(mode)}
+                    aria-pressed={active}
+                  >
+                    {modeInfo.shortLabel}
+                  </Button>
+                </SymbolTooltip>
               );
             })}
           </div>

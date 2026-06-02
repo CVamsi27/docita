@@ -50,6 +50,9 @@ describe('PatientService domain safeguards', () => {
     phoneNumber: undefined,
     dateOfBirth: undefined,
     address: undefined,
+    insuranceProvider: undefined,
+    insurancePolicyNumber: undefined,
+    insuranceGroupNumber: undefined,
     metadata: undefined,
     ...overrides,
   });
@@ -65,6 +68,9 @@ describe('PatientService domain safeguards', () => {
     phoneNumber: undefined,
     dateOfBirth: undefined,
     address: undefined,
+    insuranceProvider: undefined,
+    insurancePolicyNumber: undefined,
+    insuranceGroupNumber: undefined,
     metadata: undefined,
     ...overrides,
   });

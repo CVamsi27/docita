@@ -16,9 +16,8 @@ export function useJoinRequestStatusPage() {
   const queryClient = useQueryClient();
   const { user, refreshUser } = useAuth();
   const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
-  const [terminalState, setTerminalState] = useState<JoinRequestTerminalState | null>(
-    null,
-  );
+  const [terminalState, setTerminalState] =
+    useState<JoinRequestTerminalState | null>(null);
 
   const { data: request, isLoading } = useQuery<JoinRequestStatusItem | null>({
     queryKey: appQueryKeys.onboarding.myJoinRequest(),
@@ -28,7 +27,8 @@ export function useJoinRequestStatusPage() {
   });
 
   const withdrawMutation = useMutation({
-    mutationFn: (requestId: string) => typedApi.joinRequests.withdraw(requestId),
+    mutationFn: (requestId: string) =>
+      typedApi.joinRequests.withdraw(requestId),
     onSuccess: () => {
       toast.success("Request withdrawn successfully");
       queryClient.invalidateQueries({

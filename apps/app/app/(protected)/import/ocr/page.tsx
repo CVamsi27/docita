@@ -4,7 +4,11 @@ import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
 import { useMobileUpload } from "@/features/ocr/hooks/use-mobile-upload";
 import { useOCR } from "@/features/ocr/hooks/use-ocr";
-import { OCRMobileDialog, OCRResults, OCRUploadSection } from "@/features/ocr/components";
+import {
+  OCRMobileDialog,
+  OCRResults,
+  OCRUploadSection,
+} from "@/features/ocr/components";
 import { BackButton } from "@/components/navigation/back-button";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
@@ -45,42 +49,43 @@ export default function OCRPage() {
         className="max-w-5xl"
         header={
           <PageHeader
-            breadcrumbs={<BackButton fallback="/import" label="Back to Import" />}
+            breadcrumbs={
+              <BackButton fallback="/import" label="Back to Import" />
+            }
             title="Smart OCR Digitization"
             description="Upload a photo of a prescription or case sheet to auto-extract details."
           />
         }
       >
-
         <div className="grid gap-6 lg:grid-cols-2">
-        <OCRUploadSection
-          previewUrl={previewUrl}
-          file={file}
-          isScanning={isScanning}
-          scanned={scanned}
-          onFileChange={handleFileChange}
-          onStartMobileUpload={handleMobileUploadStart}
-          onScan={handleScan}
-        />
+          <OCRUploadSection
+            previewUrl={previewUrl}
+            file={file}
+            isScanning={isScanning}
+            scanned={scanned}
+            onFileChange={handleFileChange}
+            onStartMobileUpload={handleMobileUploadStart}
+            onScan={handleScan}
+          />
 
-        <OCRResults
-          scanned={scanned}
-          documentType={documentType}
-          confidenceScores={confidenceScores}
-          suggestedCorrections={suggestedCorrections}
-          formData={formData}
-          setFormData={setFormData}
-          expandedSections={expandedSections}
-          onToggleSection={toggleSection}
-          isSaving={isSaving}
-          onSave={handleSave}
-          needsReviewAcknowledgement={needsReviewAcknowledgement}
-          reviewAcknowledged={reviewAcknowledged}
-          onReviewAcknowledgedChange={setReviewAcknowledged}
-        />
-      </div>
+          <OCRResults
+            scanned={scanned}
+            documentType={documentType}
+            confidenceScores={confidenceScores}
+            suggestedCorrections={suggestedCorrections}
+            formData={formData}
+            setFormData={setFormData}
+            expandedSections={expandedSections}
+            onToggleSection={toggleSection}
+            isSaving={isSaving}
+            onSave={handleSave}
+            needsReviewAcknowledgement={needsReviewAcknowledgement}
+            reviewAcknowledged={reviewAcknowledged}
+            onReviewAcknowledgedChange={setReviewAcknowledged}
+          />
+        </div>
 
-      <OCRMobileDialog open={showQr} onOpenChange={setShowQr} qrUrl={qrUrl} />
+        <OCRMobileDialog open={showQr} onOpenChange={setShowQr} qrUrl={qrUrl} />
       </AppPageScaffold>
     </FeatureGate>
   );

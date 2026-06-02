@@ -1,7 +1,11 @@
 "use client";
 
 import { ShieldCheck } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/feedback/alert";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/feedback/alert";
 import { Button } from "@workspace/ui/components/form/button";
 import {
   Sheet,

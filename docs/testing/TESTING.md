@@ -159,13 +159,14 @@ pnpm --filter @docita/app exec playwright install --with-deps
 
 ```bash
 # Option 1: Using existing PostgreSQL
-export DATABASE_URL=postgresql://postgres:postgres@localhost:5434/docita_test
+export DATABASE_URL=postgresql://docita:docita@localhost:5434/docita_test
 pnpm --filter @workspace/db exec npx prisma migrate deploy
 
 # Option 2: Using Docker
 docker run -d \
   --name docita_test_db \
-  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_USER=docita \
+  -e POSTGRES_PASSWORD=docita \
   -e POSTGRES_DB=docita_test \
   -p 5434:5432 \
   postgres:16-alpine

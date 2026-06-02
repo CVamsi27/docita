@@ -111,7 +111,11 @@ export function AuthSignupStepUI({
       >
         {loading ? (
           <>
-            <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+            <DocitaLoadingIndicator
+              variant="inline"
+              decorative
+              className="mr-2"
+            />
             Creating account…
           </>
         ) : (

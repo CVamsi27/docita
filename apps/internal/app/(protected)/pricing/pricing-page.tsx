@@ -24,6 +24,13 @@ import {
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { DatePicker } from "@workspace/ui/components/form/date-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/form/select";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
   Tabs,
@@ -324,7 +331,7 @@ export default function PricingPage() {
                 </p>
               ) : (
                 <div className="overflow-x-hidden">
-                  <Table>
+                  <Table className="min-w-[96rem]">
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-28">Tier</TableHead>
@@ -502,26 +509,29 @@ export default function PricingPage() {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Clinic</label>
-                  <select
-                    className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+                  <Select
                     value={offerForm.clinicId}
-                    onChange={(e) =>
+                    onValueChange={(clinicId) =>
                       setOfferForm((prev) => ({
                         ...prev,
-                        clinicId: e.target.value,
+                        clinicId,
                       }))
                     }
                     disabled={isLoadingClinics}
                   >
-                    <option value="">
-                      {isLoadingClinics ? "Loading" : "Facility"}
-                    </option>
-                    {clinicOptions.map((clinic) => (
-                      <option key={clinic.id} value={clinic.id}>
-                        {clinic.name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger aria-label="Clinic">
+                      <SelectValue
+                        placeholder={isLoadingClinics ? "Loading" : "Facility"}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clinicOptions.map((clinic) => (
+                        <SelectItem key={clinic.id} value={clinic.id}>
+                          {clinic.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Offer title</label>

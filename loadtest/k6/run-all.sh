@@ -29,6 +29,7 @@ SCENARIOS=(
   "appointments-create"
   "webhook-flood"
   "whatsapp-send"
+  "proxy-route"
 )
 
 TS=$(date -u +"%Y%m%dT%H%M%SZ")

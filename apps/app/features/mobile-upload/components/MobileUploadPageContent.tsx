@@ -176,7 +176,11 @@ function MobileUploadPageInner() {
         >
           {uploadMutation.isPending ? (
             <span className="flex items-center gap-2">
-              <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-5 w-5" />
+              <DocitaLoadingIndicator
+                variant="inline"
+                decorative
+                iconClassName="h-5 w-5"
+              />
               Uploading…
             </span>
           ) : (

@@ -23,7 +23,6 @@ import {
   RecordPaymentDialog,
 } from "./DeskCollectPaymentSections";
 
-
 export function DeskCollectPaymentPageUI() {
   const clinicCurrency = useClinicCurrency();
   const { user } = useAuth();
@@ -58,9 +57,7 @@ export function DeskCollectPaymentPageUI() {
     isError: invoicesError,
     refetch: refetchInvoices,
   } = useInvoices(
-    selectedPatientId
-      ? { patientId: selectedPatientId, limit: 50 }
-      : undefined,
+    selectedPatientId ? { patientId: selectedPatientId, limit: 50 } : undefined,
     { enabled: Boolean(selectedPatientId) },
   );
 

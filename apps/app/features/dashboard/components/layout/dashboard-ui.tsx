@@ -15,6 +15,7 @@ import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffo
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { LayoutDashboard } from "lucide-react";
 import { Section } from "@workspace/ui/components/layout/section";
+import { DEFAULT_SLOT_DURATION } from "@workspace/utils";
 import { formatDashboardSummary } from "@/features/dashboard/lib/format-dashboard-summary";
 import { DashboardHeaderContainer } from "./dashboard-header-container";
 import { DashboardSharedWorkspace } from "./dashboard-shared-workspace";
@@ -59,7 +60,7 @@ export function DashboardUI({
   nextPatients,
   waitingCount,
   pendingJoinRequests,
-  slotDurationMinutes = 15,
+  slotDurationMinutes = DEFAULT_SLOT_DURATION,
   isLoading,
   isError,
   onRetry,

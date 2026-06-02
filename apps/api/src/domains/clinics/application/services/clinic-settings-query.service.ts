@@ -41,6 +41,17 @@ export class ClinicSettingsQueryService {
     return typeof value === 'boolean' ? value : fallback;
   }
 
+  private readNumber(
+    source: Record<string, unknown>,
+    key: string,
+    fallback: number,
+  ): number {
+    const value = source[key];
+    return typeof value === 'number' && Number.isFinite(value)
+      ? value
+      : fallback;
+  }
+
   async getComplianceSummary(clinicId: string): Promise<AppComplianceSummary> {
     const openRequestStatuses = [
       DataSubjectRequestStatus.OPEN,
@@ -126,6 +137,26 @@ export class ClinicSettingsQueryService {
         true,
       ),
       includeQRCode: this.readBoolean(settings, 'includeQRCode', false),
+    };
+  }
+
+  async getOpdSlipSettings(clinicId: string) {
+    const clinic = await this.persistence.clinic.findUnique({
+      where: { id: clinicId },
+      select: { settings: true },
+    });
+
+    if (!clinic) return null;
+
+    const settings = this.toRecord(clinic.settings);
+
+    return {
+      revisitValidityDays: this.readNumber(
+        settings,
+        'opdSlipRevisitValidityDays',
+        0,
+      ),
+      footerNote: this.readString(settings, 'opdSlipFooterNote', ''),
     };
   }
 }

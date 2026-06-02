@@ -10,9 +10,10 @@ import {
 } from './providers';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { WebhooksModule } from '@/shared/modules/webhooks';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, WebhooksModule],
   controllers: [ZeptoMailWebhookController],
   providers: [
     {

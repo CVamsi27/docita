@@ -14,6 +14,7 @@ import {
   type LucideIcon,
   Pill,
   Receipt,
+  ShieldPlus,
   Banknote,
   BookOpen,
   Network,
@@ -91,6 +92,13 @@ const TRACK_ITEMS: NavItem[] = [
     label: "Daybook",
     feature: Feature.INVOICING,
     accessTarget: APP_ACCESS_TARGETS.PAGE_INVOICES,
+  },
+  {
+    href: "/insurance-claims",
+    icon: ShieldPlus,
+    label: "Insurance Claims",
+    feature: Feature.INSURANCE_BILLING,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_INSURANCE_CLAIMS,
   },
   {
     href: "/prescriptions",

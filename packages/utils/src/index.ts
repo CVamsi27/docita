@@ -1,5 +1,6 @@
 export * from "./date/index.js";
 export * from "./medical/index.js";
+export * from "./patient/index.js";
 export * from "./config/index.js";
 export * from "./constants/index.js";
 export * from "./imports.js";

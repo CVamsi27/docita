@@ -1,4 +1,5 @@
 export * from "./invoices";
+export * from "./insurance-claims";
 export * from "./payments";
 export * from "./billing";
 export * from "./subscription";

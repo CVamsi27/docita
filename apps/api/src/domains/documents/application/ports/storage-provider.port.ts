@@ -4,6 +4,10 @@ import { BadRequestException } from '@nestjs/common';
 export const MAX_SIGNED_URL_TTL_SECONDS = 24 * 60 * 60;
 /** Floor: anything shorter has no operational use. */
 export const MIN_SIGNED_URL_TTL_SECONDS = 30;
+/** Generated clinical PDFs contain PHI, so keep their bearer lifetime short. */
+export const GENERATED_PDF_SIGNED_URL_TTL_SECONDS = 15 * 60;
+/** Generic private uploads are used by longer-lived profile and document views. */
+export const GENERIC_STORED_FILE_SIGNED_URL_TTL_SECONDS = 4 * 60 * 60;
 
 export interface StorageFile {
   fieldname: string;

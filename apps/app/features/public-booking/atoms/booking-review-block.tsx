@@ -2,7 +2,7 @@
 
 import { Button } from "@workspace/ui/components/form/button";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
-import { formatDate } from "@workspace/utils";
+import { formatDate, getPatientFullName } from "@workspace/utils";
 import { formatTime } from "@/lib/formatters";
 import {
   PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS,
@@ -60,9 +60,7 @@ export function PublicBookingReviewBlock({
   onEdit: (step: PublicBookingMobileStep, fieldId?: string) => void;
 }) {
   const patient =
-    c.firstName.trim() || c.lastName.trim()
-      ? `${c.firstName.trim()} ${c.lastName.trim()}`.trim()
-      : "—";
+    c.firstName.trim() || c.lastName.trim() ? getPatientFullName(c) : "—";
 
   const dayLabel = c.selectedCalendarDay
     ? formatDate(c.selectedCalendarDay, "EEE, d MMM yyyy")
@@ -76,7 +74,13 @@ export function PublicBookingReviewBlock({
   const doctorLabel = c.selectedDoctorName ?? "—";
 
   return (
-    <div className={cn(bookingSectionShell, bookingCardClass, "flex flex-col bg-card")}>
+    <div
+      className={cn(
+        bookingSectionShell,
+        bookingCardClass,
+        "flex flex-col bg-card",
+      )}
+    >
       <div className={cn(bookingSectionHeaderBar, "px-4 py-3 sm:px-5 sm:py-4")}>
         <MicroLabel as="h2" className="mt-0">
           Review

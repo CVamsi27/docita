@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from 'fs/promises';
 import * as path from 'path';
 import { PrismaClient } from '@workspace/db';
+import { getPatientFullName } from '@workspace/utils';
 import { PrescriptionPdfService } from '@/domains/prescriptions/application/services/prescription-pdf.service';
 import { SignatureImageClient } from '@/domains/prescriptions/infrastructure/external/signature-image.client';
 import { PDFService } from '@/domains/billing/application/services/pdf.service';
@@ -117,7 +118,7 @@ export async function seedPdfs(
       specialization: prescription.doctor.specialization ?? undefined,
     },
     patient: {
-      name: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
+      name: getPatientFullName(prescription.patient),
       phoneNumber: prescription.patient.phoneNumber,
       email: prescription.patient.email ?? undefined,
       gender: prescription.patient.gender,
@@ -155,7 +156,7 @@ export async function seedPdfs(
     invoiceId: invoice.invoiceNumber ?? invoice.id,
     clinic: clinicInfo,
     patient: {
-      name: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
+      name: getPatientFullName(invoice.patient),
       phoneNumber: invoice.patient.phoneNumber,
       email: invoice.patient.email ?? undefined,
       gender: invoice.patient.gender,

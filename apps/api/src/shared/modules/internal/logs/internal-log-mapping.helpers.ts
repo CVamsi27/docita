@@ -120,8 +120,6 @@ export function mapAppointmentActivityRow(apt: {
 export function mapPatientActivityRow(patient: {
   id: string;
   createdAt: Date;
-  firstName: string;
-  lastName: string;
   clinic: { name: string } | null;
 }): SystemLogEntry {
   return {
@@ -129,7 +127,7 @@ export function mapPatientActivityRow(patient: {
     timestamp: patient.createdAt.toISOString(),
     level: 'INFO',
     module: 'Patients',
-    message: `Patient registered: ${patient.firstName} ${patient.lastName}`,
+    message: 'Patient registered',
     details: patient.clinic?.name,
   };
 }

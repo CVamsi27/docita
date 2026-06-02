@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarPlus, ExternalLink, MoreVertical } from "lucide-react";
+import { CalendarPlus, ExternalLink, MoreVertical, Printer } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import {
   DropdownMenu,
@@ -30,6 +30,13 @@ export interface AppointmentRowActionsMenuProps {
   onNoShowClick: (appointmentId: string) => void;
   /** Optional follow-up scheduling. When omitted, the menu item is hidden. */
   onScheduleFollowUp?: () => void;
+  /**
+   * Optional OPD prescription slip printing. When omitted, the menu item is
+   * hidden. Requires an appointment id to resolve the patient.
+   */
+  onPrintOpdSlip?: () => void;
+  /** True while the OPD slip for this row is being generated. */
+  printingOpdSlip?: boolean;
   /** Optional override for the trigger button's aria-label. */
   triggerLabel?: string;
 }
@@ -39,11 +46,13 @@ export interface AppointmentRowActionVisibilityInput {
   patientId?: string | null;
   status?: string | null;
   hasScheduleFollowUp?: boolean;
+  hasPrintOpdSlip?: boolean;
 }
 
 export interface AppointmentRowActionVisibility {
   showViewPatient: boolean;
   showFollowUp: boolean;
+  showPrintOpdSlip: boolean;
   showCancel: boolean;
   showNoShow: boolean;
   /** True when at least one menu item should render. */
@@ -65,6 +74,9 @@ const NO_SHOW_BLOCKED_STATUSES = new Set([
   "canceled",
 ]);
 
+/** OPD slips are only printable before/at the visit, not after it concludes. */
+const OPD_SLIP_ALLOWED_STATUSES = new Set(["scheduled", "checked-in"]);
+
 /**
  * Pure visibility rules for the kebab menu. Exposed so tests (and callers
  * that want to hide an empty trigger early) can reason about the gating
@@ -75,10 +87,15 @@ export function getAppointmentRowActionVisibility({
   patientId,
   status,
   hasScheduleFollowUp = false,
+  hasPrintOpdSlip = false,
 }: AppointmentRowActionVisibilityInput): AppointmentRowActionVisibility {
   const normalizedStatus = (status ?? "").toLowerCase();
   const showViewPatient = Boolean(patientId);
   const showFollowUp = Boolean(patientId) && hasScheduleFollowUp;
+  const showPrintOpdSlip =
+    Boolean(appointmentId) &&
+    hasPrintOpdSlip &&
+    OPD_SLIP_ALLOWED_STATUSES.has(normalizedStatus);
   const showCancel =
     Boolean(appointmentId) && !TERMINAL_STATUSES.has(normalizedStatus);
   const showNoShow =
@@ -87,10 +104,15 @@ export function getAppointmentRowActionVisibility({
   return {
     showViewPatient,
     showFollowUp,
+    showPrintOpdSlip,
     showCancel,
     showNoShow,
     hasAnyAction:
-      showViewPatient || showFollowUp || showCancel || showNoShow,
+      showViewPatient ||
+      showFollowUp ||
+      showPrintOpdSlip ||
+      showCancel ||
+      showNoShow,
   };
 }
 
@@ -106,15 +128,24 @@ export function AppointmentRowActionsMenu({
   onCancelClick,
   onNoShowClick,
   onScheduleFollowUp,
+  onPrintOpdSlip,
+  printingOpdSlip = false,
   triggerLabel = "More appointment actions",
 }: AppointmentRowActionsMenuProps) {
-  const { showViewPatient, showFollowUp, showCancel, showNoShow, hasAnyAction } =
-    getAppointmentRowActionVisibility({
-      appointmentId,
-      patientId,
-      status,
-      hasScheduleFollowUp: Boolean(onScheduleFollowUp),
-    });
+  const {
+    showViewPatient,
+    showFollowUp,
+    showPrintOpdSlip,
+    showCancel,
+    showNoShow,
+    hasAnyAction,
+  } = getAppointmentRowActionVisibility({
+    appointmentId,
+    patientId,
+    status,
+    hasScheduleFollowUp: Boolean(onScheduleFollowUp),
+    hasPrintOpdSlip: Boolean(onPrintOpdSlip),
+  });
 
   if (!hasAnyAction) {
     return null;
@@ -159,6 +190,16 @@ export function AppointmentRowActionsMenu({
           >
             <CalendarPlus className="mr-2 h-4 w-4" />
             Schedule follow-up
+          </DropdownMenuItem>
+        ) : null}
+        {showPrintOpdSlip && onPrintOpdSlip ? (
+          <DropdownMenuItem
+            onClick={onPrintOpdSlip}
+            disabled={printingOpdSlip}
+            data-testid="print-opd-slip"
+          >
+            <Printer className="mr-2 h-4 w-4" />
+            {printingOpdSlip ? "Preparing slip…" : "Print OPD prescription"}
           </DropdownMenuItem>
         ) : null}
         {showCancel && appointmentId ? (

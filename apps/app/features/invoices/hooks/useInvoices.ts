@@ -36,4 +36,3 @@ export function useCreateInvoice() {
     successMessage: "Invoice created",
   });
 }
-

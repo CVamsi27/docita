@@ -109,9 +109,7 @@ export function PaymentSuccessModal({
           <div className="flex justify-between items-center text-sm">
             <span className="text-muted-foreground">Amount paid</span>
             <span className="font-semibold text-lg">
-              {amount
-                ? formatCurrency(amount, { fractionDigits: 0 })
-                : "Paid"}
+              {amount ? formatCurrency(amount, { fractionDigits: 0 }) : "Paid"}
             </span>
           </div>
           {transactionId && (
@@ -124,9 +122,7 @@ export function PaymentSuccessModal({
           )}
           <div className="flex justify-between items-center text-sm">
             <span className="text-muted-foreground">Date</span>
-            <span>
-              {formatDate(new Date())}
-            </span>
+            <span>{formatDate(new Date())}</span>
           </div>
         </div>
 

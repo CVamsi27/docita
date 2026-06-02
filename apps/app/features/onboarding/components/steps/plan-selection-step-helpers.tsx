@@ -13,6 +13,7 @@ import {
 import { ComparisonTable } from "@/features/subscription";
 import {
   PRICING_CURRENCY_SYMBOLS,
+  PUBLISHED_PLAN_LADDER,
   SUBSCRIPTION_TRIAL_DAYS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
   type TierName,
@@ -29,17 +30,11 @@ import { type TierPricing } from "@/features/subscription";
 // Constants
 // ---------------------------------------------------------------------------
 
-// Onboarding plan selection uses the same 5-tier clinical ladder as the rest
-// of the app. The Full / Front Desk / Core toggle is exposed elsewhere — here
-// the customer picks the tier first; mode is set on the subsequent step or
-// via the URL `mode` query parameter.
-export const DISPLAY_TIERS: TierName[] = [
-  "STARTER",
-  "ESSENTIAL",
-  "PROFESSIONAL",
-  "HOSPITAL",
-  "ENTERPRISE",
-];
+// Onboarding plan selection uses the same published clinical ladder as the rest
+// of the app — sourced from the single PUBLISHED_PLAN_LADDER catalog (not a
+// hardcoded copy) so the order/membership can never drift. The Full / Front
+// Desk / Core toggle is exposed on the step; mode comes from the `mode` query.
+export const DISPLAY_TIERS: readonly TierName[] = PUBLISHED_PLAN_LADDER;
 
 export const PLAN_AUDIENCE: Record<string, string> = {
   STARTER: "Best for solo doctors starting with full clinic workflows",
@@ -76,10 +71,8 @@ export function buildTierCardConfig(
   const currencyKey = parseSupportedCurrency(resolvedCurrency);
   const currencySymbol =
     PRICING_CURRENCY_SYMBOLS[currencyKey] ?? resolvedCurrency;
-  const overageRates = (
-    TIER_OVERAGE_RATES_BY_CURRENCY[currencyKey] ??
-    TIER_OVERAGE_RATES_BY_CURRENCY.INR
-  )[tierName];
+  const overageRates = (TIER_OVERAGE_RATES_BY_CURRENCY[currencyKey] ??
+    TIER_OVERAGE_RATES_BY_CURRENCY.INR)[tierName];
   const overageFromRates =
     overageRates?.appointmentRate > 0
       ? `then ${formatRateWithCurrency(overageRates.appointmentRate, currencyKey)} per extra consultation`

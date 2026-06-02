@@ -11,7 +11,11 @@ interface VisitsTabProps {
   patientId: string;
 }
 
-const VISIT_TYPES: TimelineEventType[] = ["APPOINTMENT", "FOLLOW_UP", "ADMISSION"];
+const VISIT_TYPES: TimelineEventType[] = [
+  "APPOINTMENT",
+  "FOLLOW_UP",
+  "ADMISSION",
+];
 
 export function VisitsTab({ patientId }: VisitsTabProps) {
   const [selectedTypes, setSelectedTypes] =

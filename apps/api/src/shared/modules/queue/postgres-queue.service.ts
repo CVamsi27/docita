@@ -36,6 +36,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   private readonly logger = new Logger(PostgresQueueService.name);
   private readonly handlers = new Map<string, QueueJobHandler>();
   private readonly pollers = new Map<string, ReturnType<typeof setInterval>>();
+  private readonly activePolls = new Set<string>();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -106,7 +107,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
 
     if (!this.pollers.has(name)) {
       const interval = setInterval(() => {
-        void this.poll(name).catch((err) => {
+        void this.pollIfIdle(name).catch((err) => {
           this.logger.error(
             `Queue poller error for ${name}: ${err instanceof Error ? err.message : String(err)}`,
           );
@@ -115,6 +116,17 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
       interval.unref?.();
 
       this.pollers.set(name, interval);
+    }
+  }
+
+  private async pollIfIdle(name: string): Promise<void> {
+    if (this.activePolls.has(name)) return;
+
+    this.activePolls.add(name);
+    try {
+      await this.poll(name);
+    } finally {
+      this.activePolls.delete(name);
     }
   }
 
@@ -245,7 +257,9 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
 
   /**
    * Replays a dead-lettered job by resetting attempt counts and putting
-   * it back into the WAITING queue. Returns the refreshed job.
+   * it back into the WAITING queue. The replay count remains durable so
+   * operators and future auto-replay policy can enforce a bounded history.
+   * Returns the refreshed job.
    */
   async replayDeadLettered(jobId: string): Promise<QueueJob<QueueJobData>> {
     // RLS-BYPASS: background queue workers run without per-request clinic session
@@ -259,6 +273,8 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
           deadLetteredAt: null,
           delayedUntil: null,
           processedAt: null,
+          replayCount: { increment: 1 },
+          lastReplayedAt: this.clock.now(),
         },
       }),
     );
@@ -342,6 +358,8 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
       failedReason: row.failedReason ?? undefined,
       attemptsMade: row.attemptsMade,
       maxAttempts: row.maxAttempts,
+      replayCount: row.replayCount,
+      lastReplayedAt: row.lastReplayedAt?.getTime(),
       timestamp: row.createdAt.getTime(),
     };
   }

@@ -8,6 +8,7 @@ import {
   Request,
   BadRequestException,
   UseGuards,
+  UsePipes,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
@@ -16,6 +17,12 @@ import { Roles } from './roles.decorator';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ApiKeyService } from './api-key.service';
 import { AuthenticatedRequest } from '@workspace/types';
+import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
+import {
+  CreateApiKeyDto,
+  RotateApiKeyDto,
+} from '@/shared/modules/auth/auth/dto/api-key.dto';
+import { createApiKeySchema, rotateApiKeySchema } from '@workspace/types';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -28,9 +35,10 @@ export class AuthApiKeysController {
   @Post('api-keys')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create a new API key for the clinic' })
+  @UsePipes(new ZodValidationPipe(createApiKeySchema))
   async createApiKey(
     @Request() req: AuthenticatedRequest,
-    @Body() body: { name: string; scopes: string[]; expiresAt?: string },
+    @Body() body: CreateApiKeyDto,
   ) {
     if (!req.user.clinicId) {
       throw new BadRequestException('No clinic associated with this account');
@@ -49,6 +57,7 @@ export class AuthApiKeysController {
     return this.apiKeyService.createApiKey(req.user.clinicId, req.user.sub, {
       name: body.name,
       scopes: body.scopes,
+      ...(body.allowedIps ? { allowedIps: body.allowedIps } : {}),
       expiresAt,
     });
   }
@@ -63,6 +72,29 @@ export class AuthApiKeysController {
       throw new BadRequestException('No clinic associated with this account');
     }
     return this.apiKeyService.listApiKeys(req.user.clinicId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.INTERNAL)
+  @Throttle({ short: { ttl: 60000, limit: 10 } })
+  @Post('api-keys/:id/rotate')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Rotate an API key with a bounded overlap window' })
+  @UsePipes(new ZodValidationPipe(rotateApiKeySchema))
+  async rotateApiKey(
+    @Request() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() body: RotateApiKeyDto,
+  ) {
+    if (!req.user.clinicId) {
+      throw new BadRequestException('No clinic associated with this account');
+    }
+    return this.apiKeyService.rotateApiKey(
+      id,
+      req.user.clinicId,
+      req.user.sub,
+      body.overlapMinutes,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

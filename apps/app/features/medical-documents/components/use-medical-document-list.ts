@@ -19,8 +19,12 @@ import { useMobileUpload } from "@/features/ocr";
 export function useMedicalDocumentList(patientId: string) {
   const { user } = useAuth();
   const docsOk = useTierFeatureEnabled(Feature.DOCUMENT_ARCHIVAL);
-  const { data: documents = [], isLoading: loading } =
-    useMedicalDocuments(patientId);
+  const {
+    data: documents = [],
+    isLoading: loading,
+    isError,
+    refetch,
+  } = useMedicalDocuments(patientId);
   const signDocument = useSignMedicalDocument();
   const revokeDocument = useRevokeMedicalDocument();
   const createDocument = useCreateMedicalDocument();
@@ -125,6 +129,8 @@ export function useMedicalDocumentList(patientId: string) {
 
   return {
     loading,
+    isError,
+    refetch,
     documents,
     showNew,
     setShowNew,

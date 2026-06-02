@@ -6,7 +6,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { CopyableLinkField } from "@/components/signature/copyable-link-field";
-import { getPublicAppOrigin } from "@/lib/constants/public-app-origin";
+import { getPublicBookingUrl } from "@/lib/constants/public-app-origin";
 
 interface ClinicReferralLinksProps {
   facilityLabel: string;
@@ -72,7 +72,7 @@ export function ClinicReferralLinks({
         </p>
         <div className="mt-3">
           <CopyableLinkField
-            value={`${getPublicAppOrigin()}/book/${encodeURIComponent(referralCode)}`}
+            value={getPublicBookingUrl(referralCode)}
             helperText="Opens your clinic's online booking form."
           />
         </div>

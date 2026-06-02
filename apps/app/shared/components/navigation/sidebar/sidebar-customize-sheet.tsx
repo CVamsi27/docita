@@ -9,6 +9,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/overlay/sheet";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import {
   FIXED_NAV_HREFS,
@@ -111,51 +112,51 @@ function CustomizeSidebarOrderUI({
             {section.items.map((item) => {
               const fixed = FIXED_NAV_HREFS.has(item.href);
               return (
-                <div
-                  key={item.href}
-                  draggable
-                  onDragStart={() =>
-                    setDragging({ sectionId: section.id, href: item.href })
-                  }
-                  onDragEnd={() => setDragging(null)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    handleDrop({
-                      sectionId: section.id,
-                      beforeHref: item.href,
-                      scope: "user",
-                    });
-                  }}
-                  className={cn(
-                    "flex items-center justify-between rounded-lg px-2 py-2 transition-colors",
-                    "hover:bg-muted",
-                    dragging?.href === item.href && "bg-muted/70",
-                  )}
-                  aria-label={`Reorder ${item.label}`}
-                  title="Drag to reorder"
-                >
-                  <div className="flex items-center gap-3 text-sm min-w-0">
-                    <div className={getIconClasses(false)}>
-                      <item.icon className="h-4 w-4 shrink-0" />
-                    </div>
-                    <span className="font-medium truncate">{item.label}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {!fixed ? (
-                      <Switch
-                        checked={!isHidden(item.href)}
-                        onCheckedChange={() => toggleItem(item.href)}
-                        aria-label={`Show ${item.label} in sidebar`}
-                      />
-                    ) : (
-                      <span className="text-xs text-muted-foreground">
-                        Fixed
-                      </span>
+                <SymbolTooltip key={item.href} label="Drag to reorder">
+                  <div
+                    draggable
+                    onDragStart={() =>
+                      setDragging({ sectionId: section.id, href: item.href })
+                    }
+                    onDragEnd={() => setDragging(null)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      handleDrop({
+                        sectionId: section.id,
+                        beforeHref: item.href,
+                        scope: "user",
+                      });
+                    }}
+                    className={cn(
+                      "flex items-center justify-between rounded-lg px-2 py-2 transition-colors",
+                      "hover:bg-muted",
+                      dragging?.href === item.href && "bg-muted/70",
                     )}
+                    aria-label={`Reorder ${item.label}`}
+                  >
+                    <div className="flex items-center gap-3 text-sm min-w-0">
+                      <div className={getIconClasses(false)}>
+                        <item.icon className="h-4 w-4 shrink-0" />
+                      </div>
+                      <span className="font-medium truncate">{item.label}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {!fixed ? (
+                        <Switch
+                          checked={!isHidden(item.href)}
+                          onCheckedChange={() => toggleItem(item.href)}
+                          aria-label={`Show ${item.label} in sidebar`}
+                        />
+                      ) : (
+                        <span className="text-xs text-muted-foreground">
+                          Fixed
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
+                </SymbolTooltip>
               );
             })}
           </div>

@@ -16,7 +16,10 @@ import {
   type ConsultationSaveHandles,
 } from "@/features/consultation/workspace/use-consultation-leave-navigation";
 import { isConsultationReadOnlyStatus } from "@/features/appointments";
-import { formatChiefComplaintSummary } from "@workspace/utils";
+import {
+  formatChiefComplaintSummary,
+  getPatientFullName,
+} from "@workspace/utils";
 import { Stethoscope } from "lucide-react";
 import { useConfirm } from "@/hooks/use-confirm";
 import { toast } from "sonner";
@@ -174,7 +177,9 @@ function ConsultationPageContent() {
       await queryClient.invalidateQueries({
         queryKey: queryKeys.appointments.detail(appointmentId),
       });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.appointments.all() });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.appointments.all(),
+      });
 
       toast.success("Consultation marked done");
       void retry();
@@ -256,7 +261,7 @@ function ConsultationPageContent() {
   }
 
   const patientName = appointmentData.patient
-    ? `${appointmentData.patient.firstName} ${appointmentData.patient.lastName}`
+    ? getPatientFullName(appointmentData.patient)
     : "Patient";
 
   const MobileSidebar = (

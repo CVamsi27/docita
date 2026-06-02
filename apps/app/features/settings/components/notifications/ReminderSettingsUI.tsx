@@ -16,7 +16,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
@@ -35,7 +34,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@workspace/ui/components/form/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@workspace/ui/components/form/form";
+import { ReminderSettingsLoadingCard } from "./reminder-settings-loading-card";
 
 const TIME_UNITS = [
   { value: "minute", label: "Minutes" },
@@ -117,7 +123,6 @@ function ReminderRow({
               )}
             />
           </div>
-
           <div className="flex flex-col">
             <FormField
               control={form.control}
@@ -175,9 +180,12 @@ function OverduePaymentReminderSection({
     <div className="flex flex-col gap-3 rounded-[calc(var(--radius)-4px)] border border-border/60 bg-muted/20 p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium">Overdue invoice WhatsApp reminders</p>
+          <p className="text-sm font-medium">
+            Overdue invoice WhatsApp reminders
+          </p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Send the payment_reminder template after the due date (1, 3, and 7 days by default).
+            Send the payment_reminder template after the due date (1, 3, and 7
+            days by default).
           </p>
         </div>
         <FormField
@@ -247,7 +255,8 @@ function OverduePaymentReminderSection({
 
 export const ReminderSettingsUI: FC = () => {
   const { data: clinic, isLoading } = useClinicSettings();
-  const { mutate: updateSettings, isPending: isSaving } = useUpdateClinicSettings();
+  const { mutate: updateSettings, isPending: isSaving } =
+    useUpdateClinicSettings();
 
   const form = useForm<ReminderSettingsFormValues>({
     resolver: zodResolver(reminderSettingsFormSchema),
@@ -272,8 +281,12 @@ export const ReminderSettingsUI: FC = () => {
   const handleSave = (values: ReminderSettingsFormValues) => {
     updateSettings(
       {
-        reminderBefore: values.appointment.enabled ? values.appointment.before : undefined,
-        reminderUnit: values.appointment.enabled ? values.appointment.unit : undefined,
+        reminderBefore: values.appointment.enabled
+          ? values.appointment.before
+          : undefined,
+        reminderUnit: values.appointment.enabled
+          ? values.appointment.unit
+          : undefined,
         followUpReminderEnabled: values.followUp.enabled,
         followUpReminderBefore: values.followUp.before,
         followUpReminderUnit: values.followUp.unit,
@@ -305,26 +318,7 @@ export const ReminderSettingsUI: FC = () => {
   };
 
   if (isLoading) {
-    return (
-      <Card
-        role="status"
-        aria-live="polite"
-        aria-label="Loading reminder settings"
-      >
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="mt-2 h-4 w-full max-w-lg" />
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton
-              key={i}
-              className="h-24 w-full rounded-lg"
-            />
-          ))}
-        </CardContent>
-      </Card>
-    );
+    return <ReminderSettingsLoadingCard />;
   }
 
   return (
@@ -389,7 +383,13 @@ export const ReminderSettingsUI: FC = () => {
 
         <div className="flex justify-end border-t border-border/60 pt-4">
           <Button type="submit" disabled={isSaving}>
-            {isSaving ? <DocitaLoadingIndicator variant="inline" decorative className="mr-2" /> : null}
+            {isSaving ? (
+              <DocitaLoadingIndicator
+                variant="inline"
+                decorative
+                className="mr-2"
+              />
+            ) : null}
             Save reminder settings
           </Button>
         </div>

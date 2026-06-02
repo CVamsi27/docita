@@ -47,6 +47,6 @@ import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
       useClass: PrismaClinicalSettingsRepository,
     },
   ],
-  exports: [ClinicalService, CODE_CATALOG_PROVIDER],
+  exports: [ClinicalService, CODE_CATALOG_PROVIDER, 'IMedicalCodingRepository'],
 })
 export class ClinicalModule {}

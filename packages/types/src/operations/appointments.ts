@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DEFAULT_TIMEZONE } from "../shared/defaults";
 import {
   appointmentStatusSchema,
   appointmentTypeSchema,
@@ -139,7 +140,7 @@ export const appointmentSchema = z.object({
       }),
     )
     .optional(),
-  });
+});
 export type Appointment = z.infer<typeof appointmentSchema>;
 
 export const createAppointmentBaseSchema = appointmentSchema.omit({
@@ -174,7 +175,6 @@ export const createAppointmentBaseSchema = appointmentSchema.omit({
  * Fallback wall timezone for generated `createAppointmentSchema` only.
  * Clinician scheduling forms should super-refine with `refineCreateAppointmentDateTimes(clinicTz)`.
  */
-const APPOINTMENT_FORM_WALL_TIMEZONE = "Asia/Kolkata";
 const APPOINTMENT_LOCAL_DATETIME_PATTERN =
   /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
 
@@ -295,7 +295,7 @@ export function refineCreateAppointmentDateTimes(wallTimezone: string) {
 }
 
 export const createAppointmentSchema = createAppointmentBaseSchema.superRefine(
-  refineCreateAppointmentDateTimes(APPOINTMENT_FORM_WALL_TIMEZONE),
+  refineCreateAppointmentDateTimes(DEFAULT_TIMEZONE),
 );
 export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 

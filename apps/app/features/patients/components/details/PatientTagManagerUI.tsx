@@ -69,7 +69,10 @@ export function PatientTagManagerUI({
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [editShowColorPicker, setEditShowColorPicker] = useState(false);
 
-  const groupedPresets = useMemo(() => groupPresetTags(presetTags), [presetTags]);
+  const groupedPresets = useMemo(
+    () => groupPresetTags(presetTags),
+    [presetTags],
+  );
 
   const filteredTags = useMemo(() => {
     if (!searchQuery.trim()) return tags;
@@ -133,7 +136,10 @@ export function PatientTagManagerUI({
         </DialogHeader>
 
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden
+          />
           <Input
             placeholder="Enter tags"
             value={searchQuery}

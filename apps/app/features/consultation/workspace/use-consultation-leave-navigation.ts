@@ -190,8 +190,7 @@ export function useConsultationLeaveNavigation({
 
       if (anchor.closest(`[${CONSULTATION_LEAVE_GUARD_SKIP_ATTR}]`)) return;
 
-      if (anchor.target === "_blank" || anchor.hasAttribute("download"))
-        return;
+      if (anchor.target === "_blank" || anchor.hasAttribute("download")) return;
 
       const rawHref = anchor.getAttribute("href");
       if (!rawHref) return;
@@ -252,9 +251,7 @@ export function useConsultationLeaveNavigation({
       if (readOnly) {
         const resolved = parseSameOriginAppNavigationUrl(trimmed);
         if (!resolved) return;
-        router.push(
-          `${resolved.pathname}${resolved.search}${resolved.hash}`,
-        );
+        router.push(`${resolved.pathname}${resolved.search}${resolved.hash}`);
         return;
       }
       const resolution = resolveConsultationHrefNavigation(

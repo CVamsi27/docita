@@ -15,6 +15,7 @@ import {
   CompleteOnboardingDto,
   OnboardingCheckoutDto,
   OnboardingCheckoutResponseDto,
+  OnboardingTrialEligibilityResponseDto,
   OnboardingStep,
   OnboardingProgressDto,
   completeOnboardingSchema,
@@ -113,6 +114,28 @@ export class OnboardingController {
   ) {
     assertNoExistingClinicOnboarding(req, 'Onboarding checkout');
     return this.onboardingService.createCheckout(onboardingId, checkoutData);
+  }
+
+  @Post(':onboardingId/trial-eligibility')
+  @HttpCode(200)
+  @AllowNoClinic()
+  @SkipSubscriptionCheck()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
+  @ZodSerializerDto(OnboardingTrialEligibilityResponseDto)
+  getTrialEligibility(
+    @Param('onboardingId') onboardingId: string,
+    @Request() req: RequestWithUser,
+  ) {
+    if (!req.user?.email) {
+      throw new ForbiddenException(
+        'Trial eligibility requires an authenticated account',
+      );
+    }
+    return this.onboardingService.getTrialEligibility(
+      onboardingId,
+      req.user.email,
+    );
   }
 
   @Post('choose-path')

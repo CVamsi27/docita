@@ -83,6 +83,18 @@ export const queryKeys = {
     legacyDetail: (id: string) => ["invoices", id] as const,
     paymentActivity: (id: string) =>
       ["invoices", id, "payment-activity"] as const,
+    claimReadiness: (id: string) =>
+      ["invoices", id, "claim-readiness"] as const,
+  },
+  insuranceClaims: {
+    all: () => ["insurance-claims"] as const,
+    list: (params?: QueryParams) =>
+      ["insurance-claims", "list", withParams(params)] as const,
+    detail: (id: string) => ["insurance-claims", "detail", id] as const,
+    attachableDocuments: (id: string) =>
+      ["insurance-claims", "detail", id, "attachable-documents"] as const,
+    byPatient: (patientId: string) =>
+      ["insurance-claims", "patient", patientId] as const,
   },
   notifications: {
     all: () => ["notifications"] as const,
@@ -176,6 +188,7 @@ export const queryKeys = {
     members: () => ["clinic", "members"] as const,
     medicalCodingSettings: () => ["clinic", "medical-coding-settings"] as const,
     prescriptionDefaults: () => ["clinic", "prescription-defaults"] as const,
+    opdSlipSettings: () => ["clinic", "opd-slip-settings"] as const,
   },
   doctors: {
     all: () => ["doctors"] as const,
@@ -282,6 +295,9 @@ export const queryKeys = {
   whatsapp: {
     sender: () => ["whatsapp", "sender"] as const,
     stats: () => ["whatsapp", "stats"] as const,
+    customTemplates: () => ["whatsapp", "templates", "custom"] as const,
+    patientSentMessages: (patientId: string) =>
+      ["whatsapp", "sent-messages", patientId] as const,
     notifications: {
       unreadCount: () => ["whatsapp", "notifications", "unread-count"] as const,
       unread: (limit: number) =>

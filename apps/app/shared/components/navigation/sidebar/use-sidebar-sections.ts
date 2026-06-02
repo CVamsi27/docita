@@ -16,7 +16,9 @@ import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
 import {
   useUnreadNotificationCount,
   usePendingJoinRequestCount,
+  useSubscription,
 } from "@workspace/data-access";
+import { resolveCurrentPlanTier } from "@/lib/subscription/current-plan-tier";
 import {
   AI_ASSISTANT_NAV_ITEM,
   FIXED_NAV_HREFS,
@@ -70,8 +72,9 @@ export function useSidebarSections() {
 
   const canOpenBillingSettings = !!user?.role && canManageBilling(user.role);
 
-  const { data: unreadNotificationCount } =
-    useUnreadNotificationCount(canAccessNotifications);
+  const { data: unreadNotificationCount } = useUnreadNotificationCount(
+    canAccessNotifications,
+  );
   const { data: pendingJoinRequestData } = usePendingJoinRequestCount(
     isAdmin && !authLoading && Boolean(token),
   );
@@ -81,10 +84,10 @@ export function useSidebarSections() {
 
   const clinicTypeRaw = storeClinicType || getClinicSetting("clinicType");
   const clinicType = clinicTypeRaw
-    ? parseStringEnumMember(
+    ? (parseStringEnumMember(
         clinicTypeSchema.options,
         String(clinicTypeRaw).toUpperCase(),
-      ) ?? undefined
+      ) ?? undefined)
     : undefined;
 
   const specialtySections =
@@ -92,9 +95,7 @@ export function useSidebarSections() {
 
   const specialtyNavItems: NavItem[] = specialtySections.map((section) => ({
     href: SPECIALTY_URLS[section.id] || `/specialty/${section.id}`,
-    icon:
-      SPECIALTY_ICONS[section.icon] ??
-      SPECIALTY_ICONS.Smile,
+    icon: SPECIALTY_ICONS[section.icon] ?? SPECIALTY_ICONS.Smile,
     label: section.label,
     accessTarget: APP_ACCESS_TARGETS.PAGE_SPECIALTY,
   }));
@@ -162,7 +163,24 @@ export function useSidebarSections() {
 
   const orderedVisibleSections = navOrder.orderSections(visibleSections);
 
-  const tierInfo = getTierInfo();
+  // The PLAN badge shows the plan the clinic is subscribed to (billing truth),
+  // not the access tier — so an Essential trial reads "Essential", consistent
+  // with the billing page. Access gating still uses `currentTier`.
+  const { data: subscription } = useSubscription({ enabled: isAdmin });
+  const subscriptionPeriodEnd = subscription?.currentPeriodEnd
+    ? new Date(subscription.currentPeriodEnd)
+    : null;
+  const isTrialExpired =
+    subscription?.subscriptionStatus === "TRIALING" &&
+    subscriptionPeriodEnd !== null
+      ? subscriptionPeriodEnd.getTime() <= Date.now()
+      : false;
+  const currentPlanTier = resolveCurrentPlanTier({
+    subscriptionTier: subscription?.tier,
+    isTrialExpired,
+    accessTier: currentTier,
+  });
+  const tierInfo = getTierInfo(currentPlanTier);
 
   return {
     // sections

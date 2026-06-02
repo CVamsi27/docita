@@ -7,6 +7,7 @@ import {
   QueueJob,
   type QueueJobData,
 } from './queue.interface';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 
 interface PdfJobRow {
   id: string;
@@ -67,13 +68,27 @@ describe('PdfJobService', () => {
   const queue: Pick<IQueueProvider, 'enqueue'> = {
     enqueue: enqueueMock,
   };
+  const generateSignedUrlMock = jest.fn<StorageProvider['generateSignedUrl']>();
+
+  class MockStorage extends StorageProvider {
+    readonly supportsSignedUrls = true;
+    upload = jest.fn<StorageProvider['upload']>();
+    delete = jest.fn<StorageProvider['delete']>();
+    uploadBuffer = jest.fn<StorageProvider['uploadBuffer']>();
+    generateSignedUrl = generateSignedUrlMock;
+  }
+
+  const storageProvider = new MockStorage();
 
   let service: PdfJobService;
 
   beforeEach(() => {
     jest.clearAllMocks();
     createMock.mockResolvedValue(basePdfJob);
-    service = new PdfJobService(prisma, queue);
+    generateSignedUrlMock.mockResolvedValue(
+      'https://cdn.example.com/fresh-invoice.pdf',
+    );
+    service = new PdfJobService(prisma, queue, storageProvider);
   });
 
   describe('enqueue', () => {
@@ -151,13 +166,30 @@ describe('PdfJobService', () => {
       findFirstMock.mockResolvedValue({
         ...basePdfJob,
         status: 'COMPLETED',
-        pdfUrl: 'https://cdn.example.com/invoice.pdf',
+        pdfUrl: 'pdfs/invoices/invoice.pdf',
       });
 
       const result = await service.getStatus('pdf-job-1', 'clinic-1');
 
       expect(result.status).toBe('COMPLETED');
-      expect(result.pdfUrl).toBe('https://cdn.example.com/invoice.pdf');
+      expect(generateSignedUrlMock).toHaveBeenCalledWith(
+        'pdfs/invoices/invoice.pdf',
+        15 * 60,
+      );
+      expect(result.pdfUrl).toBe('https://cdn.example.com/fresh-invoice.pdf');
+    });
+
+    it('does not return legacy persisted signed URLs', async () => {
+      findFirstMock.mockResolvedValue({
+        ...basePdfJob,
+        status: 'COMPLETED',
+        pdfUrl: 'https://cdn.example.com/expired-invoice.pdf',
+      });
+
+      const result = await service.getStatus('pdf-job-1', 'clinic-1');
+
+      expect(generateSignedUrlMock).not.toHaveBeenCalled();
+      expect(result.pdfUrl).toBeUndefined();
     });
 
     it('throws NotFoundException when job is not found', async () => {

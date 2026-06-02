@@ -20,45 +20,48 @@ export function SLAContent() {
           <li>
             <h3 className="mt-0 mb-2">1. Service Availability</h3>
             <p>
-              Docita commits to maintaining <strong>99.9% uptime</strong> for all
-              core services, measured on a monthly basis. Scheduled maintenance
-              windows will be communicated at least 72 hours in advance.
+              Docita commits to maintaining <strong>99.9% uptime</strong> for
+              all core services, measured on a monthly basis. Scheduled
+              maintenance windows will be communicated at least 72 hours in
+              advance.
             </p>
           </li>
 
           <li>
             <h3 className="mt-0 mb-2">2. Support Response Times</h3>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Response time</TableHead>
-                  <TableHead>Resolution target</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell>Critical (P1)</TableCell>
-                  <TableCell>1 hour</TableCell>
-                  <TableCell>4 hours</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>High (P2)</TableCell>
-                  <TableCell>4 hours</TableCell>
-                  <TableCell>24 hours</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Medium (P3)</TableCell>
-                  <TableCell>1 business day</TableCell>
-                  <TableCell>3 business days</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Low (P4)</TableCell>
-                  <TableCell>2 business days</TableCell>
-                  <TableCell>7 business days</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+            <div className="overflow-x-auto overscroll-x-contain">
+              <Table className="min-w-[32rem]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Priority</TableHead>
+                    <TableHead>Response time</TableHead>
+                    <TableHead>Resolution target</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>Critical (P1)</TableCell>
+                    <TableCell>1 hour</TableCell>
+                    <TableCell>4 hours</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>High (P2)</TableCell>
+                    <TableCell>4 hours</TableCell>
+                    <TableCell>24 hours</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Medium (P3)</TableCell>
+                    <TableCell>1 business day</TableCell>
+                    <TableCell>3 business days</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Low (P4)</TableCell>
+                    <TableCell>2 business days</TableCell>
+                    <TableCell>7 business days</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
           </li>
 
           <li>
@@ -77,14 +80,22 @@ export function SLAContent() {
             <ul>
               <li>DPDP-aware privacy and consent controls</li>
               <li>India-hosted backend infrastructure (Mumbai region)</li>
-              <li>Role-based access and audit logging for sensitive workflows</li>
-              <li>Formal certifications are not claimed here unless separately documented</li>
+              <li>
+                Role-based access and audit logging for sensitive workflows
+              </li>
+              <li>
+                Formal certifications are not claimed here unless separately
+                documented
+              </li>
             </ul>
           </li>
 
           <li>
             <h3 className="mt-0 mb-2">5. Service Credits</h3>
-            <p>In the event of SLA breach, credits will be applied per the table below:</p>
+            <p>
+              In the event of SLA breach, credits will be applied per the table
+              below:
+            </p>
             <ul>
               <li>99.0% - 99.9% uptime: 10% service credit</li>
               <li>95.0% - 99.0% uptime: 25% service credit</li>
@@ -95,9 +106,9 @@ export function SLAContent() {
           <li>
             <h3 className="mt-0 mb-2">6. Exclusions</h3>
             <p>
-              SLA commitments do not apply during force majeure events, scheduled
-              maintenance, or issues caused by third-party integrations outside our
-              control.
+              SLA commitments do not apply during force majeure events,
+              scheduled maintenance, or issues caused by third-party
+              integrations outside our control.
             </p>
           </li>
         </ol>

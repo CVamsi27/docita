@@ -116,16 +116,16 @@ export function ClinicReferralShareToolbar({
         }
       >
         {leadingActions ? (
-          <div className="flex flex-wrap items-center gap-2">{leadingActions}</div>
+          <div className="flex flex-wrap items-center gap-2">
+            {leadingActions}
+          </div>
         ) : null}
 
         {showStaffBlock ? (
           <div
             className={cn(
               "flex min-w-0 max-w-full flex-col gap-2.5 rounded-[var(--radius-md)] border border-border/70 bg-muted/15 px-3.5 py-3.5 shadow-sm ring-1 ring-border/20 transition-colors duration-150",
-              isRail
-                ? "w-full"
-                : "sm:max-w-[min(100%,20rem)]",
+              isRail ? "w-full" : "sm:max-w-[min(100%,20rem)]",
             )}
             role="group"
             aria-labelledby="clinic-share-staff-label"
@@ -135,8 +135,8 @@ export function ClinicReferralShareToolbar({
                 Staff workspace
               </MicroLabel>
               <p className="text-[length:var(--fs-xs)] leading-snug text-muted-foreground">
-                For teammates joining this {facilityLabel.toLowerCase()} in Docita.
-                Not for patients.
+                For teammates joining this {facilityLabel.toLowerCase()} in
+                Docita. Not for patients.
               </p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
@@ -151,7 +151,8 @@ export function ClinicReferralShareToolbar({
                       size="sm"
                       className={cn(
                         "h-10 gap-1.5 px-3 text-[length:var(--fs-xs)] touch-manipulation transition-colors duration-150 sm:h-9",
-                        isRail && "w-full justify-center sm:w-auto sm:justify-start",
+                        isRail &&
+                          "w-full justify-center sm:w-auto sm:justify-start",
                       )}
                     >
                       {copiedInvite ? (
@@ -165,8 +166,8 @@ export function ClinicReferralShareToolbar({
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs text-left">
-                    Copies the staff join code and the patient booking link in one
-                    block for email or chat.
+                    Copies the staff join code and the patient booking link in
+                    one block for email or chat.
                   </TooltipContent>
                 </Tooltip>
               ) : null}
@@ -180,9 +181,9 @@ export function ClinicReferralShareToolbar({
                       size="sm"
                       className={cn(
                         "h-10 min-w-0 max-w-full gap-1.5 px-3 text-[length:var(--fs-xs)] touch-manipulation transition-colors duration-150 sm:h-9",
-                        isRail && "w-full justify-center sm:w-auto sm:justify-start",
+                        isRail &&
+                          "w-full justify-center sm:w-auto sm:justify-start",
                       )}
-                      title={clinicCode}
                     >
                       <Users className="h-3.5 w-3.5 shrink-0" aria-hidden />
                       <span className="min-w-0 truncate font-mono font-medium tracking-wide">
@@ -218,8 +219,8 @@ export function ClinicReferralShareToolbar({
                 Patient booking
               </MicroLabel>
               <p className="text-[length:var(--fs-xs)] leading-snug text-muted-foreground">
-                Public page to request an appointment. Patients do not use the join
-                code above.
+                Public page to request an appointment. Patients do not use the
+                join code above.
               </p>
             </div>
             <Tooltip>
@@ -231,11 +232,8 @@ export function ClinicReferralShareToolbar({
                   size="sm"
                   className={cn(
                     "h-10 min-w-0 justify-start gap-2 px-3 text-[length:var(--fs-xs)] touch-manipulation transition-colors duration-150 sm:h-9",
-                    isRail
-                      ? "w-full"
-                      : "w-full sm:w-auto sm:max-w-full",
+                    isRail ? "w-full" : "w-full sm:w-auto sm:max-w-full",
                   )}
-                  title={publicOnlineBookingUrl}
                 >
                   <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden />
                   <span className="min-w-0 truncate font-mono">

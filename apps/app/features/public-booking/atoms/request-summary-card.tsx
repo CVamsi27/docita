@@ -1,7 +1,12 @@
 "use client";
 
 import { Calendar as CalendarIcon, CheckCircle2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { formatDate } from "@workspace/utils";
 import { formatTime } from "@/lib/formatters";
@@ -107,7 +112,8 @@ export function RequestSummaryCard({
           className={cn(
             "rounded-[var(--radius-md)] border border-border/70 bg-card shadow-sm transition-colors duration-150",
             compact ? "p-2.5" : "p-3.5",
-            selectedDoctorName && "border-primary/50 bg-primary/[0.06] shadow-md",
+            selectedDoctorName &&
+              "border-primary/50 bg-primary/[0.06] shadow-md",
           )}
         >
           <MicroLabel as="p" className="mt-0">
@@ -116,7 +122,9 @@ export function RequestSummaryCard({
           <p
             className={cn(
               "mt-0.5 font-medium text-foreground",
-              compact ? "text-[length:var(--fs-xs)]" : "text-[length:var(--fs-sm)]",
+              compact
+                ? "text-[length:var(--fs-xs)]"
+                : "text-[length:var(--fs-sm)]",
             )}
           >
             {selectedDoctorName ?? "Select a doctor"}
@@ -138,7 +146,9 @@ export function RequestSummaryCard({
             <p
               className={cn(
                 "mt-0.5 font-medium text-foreground",
-                compact ? "text-[length:var(--fs-xs)]" : "text-[length:var(--fs-sm)]",
+                compact
+                  ? "text-[length:var(--fs-xs)]"
+                  : "text-[length:var(--fs-sm)]",
               )}
             >
               {formatDate(selectedCalendarDay, "EEE d MMM")} &middot;{" "}
@@ -156,7 +166,8 @@ export function RequestSummaryCard({
               className={cn(
                 "rounded-[var(--radius-md)] border border-border/70 bg-card shadow-sm transition-colors duration-150",
                 compact ? "p-2.5" : "p-3.5",
-                selectedCalendarDay && "border-primary/50 bg-primary/[0.06] shadow-md",
+                selectedCalendarDay &&
+                  "border-primary/50 bg-primary/[0.06] shadow-md",
               )}
             >
               <MicroLabel as="p" className="mt-0">
@@ -165,7 +176,9 @@ export function RequestSummaryCard({
               <p
                 className={cn(
                   "mt-0.5 font-medium text-foreground",
-                  compact ? "text-[length:var(--fs-xs)]" : "text-[length:var(--fs-sm)]",
+                  compact
+                    ? "text-[length:var(--fs-xs)]"
+                    : "text-[length:var(--fs-sm)]",
                 )}
               >
                 {selectedCalendarDay
@@ -188,7 +201,9 @@ export function RequestSummaryCard({
               <p
                 className={cn(
                   "mt-0.5 font-medium text-foreground",
-                  compact ? "text-[length:var(--fs-xs)]" : "text-[length:var(--fs-sm)]",
+                  compact
+                    ? "text-[length:var(--fs-xs)]"
+                    : "text-[length:var(--fs-sm)]",
                 )}
               >
                 {selectedStart && selectedEnd

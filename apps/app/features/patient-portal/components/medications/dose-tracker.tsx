@@ -12,7 +12,10 @@ import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Check, Clock, X } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate } from "@workspace/utils";
-import { usePortalDoseHistory, useRecordPortalDose } from "@workspace/data-access";
+import {
+  usePortalDoseHistory,
+  useRecordPortalDose,
+} from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   mapPortalDoseRow,
@@ -127,34 +130,34 @@ export function DoseTracker({
                 .slice(0, 5)
                 .filter(isRecord)
                 .map((dose) => {
-                const doseRecord = mapPortalDoseRow(dose);
-                const config =
-                  statusConfig[doseRecord.status] ?? statusConfig.PENDING;
-                const Icon = config.icon;
-                return (
-                  <div
-                    key={doseRecord.id}
-                    className="flex items-center justify-between text-sm"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`h-6 w-6 rounded-full flex items-center justify-center ${config.bg}`}
-                      >
-                        <Icon className={`h-3.5 w-3.5 ${config.color}`} />
-                      </div>
-                      <span className="text-muted-foreground">
-                        {formatDate(doseRecord.scheduledAt, "d MMM, hh:mm a")}
-                      </span>
-                    </div>
-                    <Badge
-                      variant="outline"
-                      className={`text-xs capitalize ${config.color}`}
+                  const doseRecord = mapPortalDoseRow(dose);
+                  const config =
+                    statusConfig[doseRecord.status] ?? statusConfig.PENDING;
+                  const Icon = config.icon;
+                  return (
+                    <div
+                      key={doseRecord.id}
+                      className="flex items-center justify-between text-sm"
                     >
-                      {doseRecord.status.toLowerCase()}
-                    </Badge>
-                  </div>
-                );
-              })}
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`h-6 w-6 rounded-full flex items-center justify-center ${config.bg}`}
+                        >
+                          <Icon className={`h-3.5 w-3.5 ${config.color}`} />
+                        </div>
+                        <span className="text-muted-foreground">
+                          {formatDate(doseRecord.scheduledAt, "d MMM, hh:mm a")}
+                        </span>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className={`text-xs capitalize ${config.color}`}
+                      >
+                        {doseRecord.status.toLowerCase()}
+                      </Badge>
+                    </div>
+                  );
+                })}
             </div>
           </div>
         )}

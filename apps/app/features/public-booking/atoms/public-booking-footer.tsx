@@ -27,7 +27,11 @@ export function PublicBookingPageFooter({ className }: { className?: string }) {
   );
 }
 
-export function PublicBookingPoweredByFooter({ className }: { className?: string }) {
+export function PublicBookingPoweredByFooter({
+  className,
+}: {
+  className?: string;
+}) {
   return (
     <footer
       className={cn(

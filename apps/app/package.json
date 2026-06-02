@@ -98,7 +98,7 @@
     "require-in-the-middle": "^8.0.1",
     "typescript": "5.7.3",
     "vite": "^6.4.2",
-    "vitest": "^4.0.16",
+    "vitest": "^4.1.8",
     "wrangler": "^4.90.0"
   }
 }

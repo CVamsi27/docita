@@ -94,7 +94,9 @@ function LabsTabContent({ patientId }: LabsTabProps) {
                   </CardTitle>
                   <p className="text-xs text-muted-foreground mt-1">
                     Ordered {orderedAt}
-                    {order.doctor?.name ? ` \u00b7 Dr. ${order.doctor.name}` : ""}
+                    {order.doctor?.name
+                      ? ` \u00b7 Dr. ${order.doctor.name}`
+                      : ""}
                   </p>
                 </div>
                 <Badge variant={variant} className="shrink-0 text-xs">
@@ -123,7 +125,11 @@ function LabsTabContent({ patientId }: LabsTabProps) {
                   size="sm"
                   className="h-8 text-xs"
                 >
-                  <a href={order.resultUrl} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={order.resultUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <ExternalLink className="h-3 w-3 mr-1.5" />
                     View result
                   </a>

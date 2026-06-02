@@ -18,10 +18,7 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import type { InventoryItem } from "@workspace/types";
 import type { StockStatus } from "@/features/inventory/hooks/use-inventory-logic";
-import {
-  DATE_FORMAT_OPTIONS_US_SHORT,
-  formatDateSafe,
-} from "@/lib/formatters";
+import { DATE_FORMAT_OPTIONS_US_SHORT, formatDateSafe } from "@/lib/formatters";
 
 interface InventoryTableProps {
   items: InventoryItem[];
@@ -47,7 +44,9 @@ export function InventoryTable({
       header: "Category",
       hiddenOnMobile: true,
       cell: (item) => (
-        <span className="capitalize text-muted-foreground">{item.category}</span>
+        <span className="capitalize text-muted-foreground">
+          {item.category}
+        </span>
       ),
     },
     {

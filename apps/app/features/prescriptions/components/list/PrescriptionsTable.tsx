@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { formatDate } from "@workspace/utils";
+import { formatDate, getPatientFullName } from "@workspace/utils";
 import {
   ArrowDown,
   ArrowUp,
@@ -76,7 +76,7 @@ function SortableHeader({
 }
 
 function getPatientName(prescription: Prescription) {
-  return `${prescription.patient?.firstName ?? ""} ${prescription.patient?.lastName ?? ""}`.trim();
+  return getPatientFullName(prescription.patient);
 }
 
 export function PrescriptionsTable({
@@ -270,7 +270,12 @@ export function PrescriptionsTable({
                   }
                 />
                 <div className="flex flex-wrap gap-2 border-t border-border/60 pt-3">
-                  <Button variant="outline" size="sm" asChild className="flex-1 touch-manipulation">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="flex-1 touch-manipulation"
+                  >
                     <Link href={`/prescriptions/${prescription.id}`}>
                       <Eye className="mr-1.5 h-4 w-4" />
                       View

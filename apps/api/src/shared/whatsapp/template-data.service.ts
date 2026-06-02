@@ -155,6 +155,7 @@ export class TemplateDataService {
     id: string,
     data: {
       content?: string;
+      category?: WhatsappTemplateCategory;
       variables?: Record<string, unknown>;
       buttons?: unknown;
       status?: WhatsappTemplateStatus;

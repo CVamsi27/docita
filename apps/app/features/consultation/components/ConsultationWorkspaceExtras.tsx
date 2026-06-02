@@ -32,10 +32,7 @@ export function ConsultationVisitOverviewStrip({
     ? humanizeUiLabel(appointment.type)
     : "Consultation";
   const when = appointment.startTime
-    ? formatDate(
-        appointment.startTime,
-        DATE_FORMAT_OPTIONS_US_LONG,
-      )
+    ? formatDate(appointment.startTime, DATE_FORMAT_OPTIONS_US_LONG)
     : null;
   const complaint = formatChiefComplaintSummary(
     appointment.chiefComplaint ?? undefined,
@@ -86,13 +83,9 @@ export function ConsultationAfterVisitStrip({
   onGoToPlan,
 }: ConsultationAfterVisitStripProps) {
   const { user } = useAuth();
-  const { canAccess, currentTier, hasIntelligence } =
-    usePermissionStore();
-  const {
-    canViewInvoices,
-    canViewPrescriptions,
-    canCreatePrescription,
-  } = usePermissions();
+  const { canAccess, currentTier, hasIntelligence } = usePermissionStore();
+  const { canViewInvoices, canViewPrescriptions, canCreatePrescription } =
+    usePermissions();
 
   const patientId = appointment.patientId ?? "";
   const canWhatsapp = canAccess(Feature.WHATSAPP_MESSAGING);
@@ -123,7 +116,12 @@ export function ConsultationAfterVisitStrip({
       <MicroLabel className="mb-2 block">After this visit</MicroLabel>
       <div className="flex flex-wrap gap-2">
         {(canCreatePrescription || canViewPrescriptions) && (
-          <Button type="button" variant="outline" size="sm" onClick={onGoToPlan}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onGoToPlan}
+          >
             Plan &amp; Rx
           </Button>
         )}

@@ -1,6 +1,10 @@
 import type { QueueItem } from "@workspace/data-access";
 import { appClinicSchema } from "@workspace/types";
-import { formatUtcInstantAsClinicPickerIso } from "@workspace/utils";
+import {
+  DEFAULT_SLOT_DURATION,
+  formatUtcInstantAsClinicPickerIso,
+  getPatientFullName,
+} from "@workspace/utils";
 import { isQueueTokenWaiting } from "@/lib/utils/queue-token-status";
 
 /** Minimal appointment fields used by the doctor-now-next algorithm. */
@@ -68,15 +72,11 @@ export function isQueueItemForTodayFn(
   );
 }
 
-const DEFAULT_SLOT_MINUTES = 15;
-
-/** Extracts `slotDuration` from clinic settings; falls back to {@link DEFAULT_SLOT_MINUTES}. */
+/** Extracts `slotDuration` from clinic settings. */
 export function getClinicSlotMinutes(clinic: unknown): number {
-  const parsed = appClinicSchema
-    .pick({ slotDuration: true })
-    .safeParse(clinic);
+  const parsed = appClinicSchema.pick({ slotDuration: true }).safeParse(clinic);
   const value = parsed.success ? parsed.data.slotDuration : undefined;
-  return typeof value === "number" ? value : DEFAULT_SLOT_MINUTES;
+  return typeof value === "number" ? value : DEFAULT_SLOT_DURATION;
 }
 
 interface BuildDoctorNowNextParams {
@@ -130,9 +130,7 @@ export function buildDoctorNowNext({
   // If there is no schedule today, fall back to FCFS (queue order).
   if (todayAppointmentsSorted.length === 0) {
     for (const q of todayQueueRows) {
-      const name = q.patient
-        ? `${q.patient.firstName} ${q.patient.lastName}`
-        : "Patient";
+      const name = q.patient ? getPatientFullName(q.patient) : "Patient";
       combinedUpcoming.push({
         kind: "queue",
         appointmentId: q.appointmentId,
@@ -153,9 +151,7 @@ export function buildDoctorNowNext({
 
   for (let i = 0; i < appts.length; i++) {
     const apt = appts[i];
-    const aptName = apt.patient
-      ? `${apt.patient.firstName} ${apt.patient.lastName}`
-      : "Patient";
+    const aptName = apt.patient ? getPatientFullName(apt.patient) : "Patient";
     const visitSummary =
       apt.chiefComplaint?.trim() || apt.type?.trim() || undefined;
     combinedUpcoming.push({
@@ -178,9 +174,7 @@ export function buildDoctorNowNext({
     const gapSlots = Math.max(0, Math.floor(gapMs / slotMs) - 1);
     for (let s = 0; s < gapSlots && walkInIdx < walkInSorted.length; s++) {
       const q = walkInSorted[walkInIdx++];
-      const name = q.patient
-        ? `${q.patient.firstName} ${q.patient.lastName}`
-        : "Patient";
+      const name = q.patient ? getPatientFullName(q.patient) : "Patient";
       combinedUpcoming.push({
         kind: "queue",
         appointmentId: q.appointmentId,
@@ -200,9 +194,7 @@ export function buildDoctorNowNext({
 
   while (walkInIdx < walkInSorted.length) {
     const q = walkInSorted[walkInIdx++];
-    const name = q.patient
-      ? `${q.patient.firstName} ${q.patient.lastName}`
-      : "Patient";
+    const name = q.patient ? getPatientFullName(q.patient) : "Patient";
     combinedUpcoming.push({
       kind: "queue",
       appointmentId: q.appointmentId,

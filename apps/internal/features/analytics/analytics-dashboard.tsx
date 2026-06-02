@@ -34,7 +34,11 @@ import { DatePicker } from "@workspace/ui/components/form/date-picker";
 import { Section } from "@workspace/ui/components/layout/section";
 import { cn } from "@workspace/ui/lib/utils";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { formatAmountLocale, getUserFacingErrorMessage } from "@workspace/utils";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import {
+  formatAmountLocale,
+  getUserFacingErrorMessage,
+} from "@workspace/utils";
 import type { DetailedMetricsRow } from "@/features/analytics/analytics-detailed-metrics-table";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
@@ -101,15 +105,11 @@ export function AnalyticsDashboard() {
   const errorMessage = queryError
     ? getUserFacingErrorMessage(queryError, {
         context: "load",
-        fallback:
-          "We could not load this analytics view. Please try again.",
+        fallback: "We could not load this analytics view. Please try again.",
       })
     : undefined;
-  const pageStatus = !token || (loading && !data)
-    ? "loading"
-    : queryError
-      ? "error"
-      : "success";
+  const pageStatus =
+    !token || (loading && !data) ? "loading" : queryError ? "error" : "success";
 
   const handleExport = useCallback(async () => {
     if (!token) return;
@@ -235,314 +235,320 @@ export function AnalyticsDashboard() {
         void billingQuery.refetch();
       }}
     >
-    <div className="space-y-6 md:space-y-8">
-      <div className="flex justify-end">
-        <Button onClick={() => void handleExport()}>
-          <Download className="h-4 w-4" />
-          Export Report
-        </Button>
-      </div>
-      {billing && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Card density="compact">
-            <CardHeader className="border-b">
-              <div className="flex items-center justify-between gap-3">
-                <div className="ui-copy-stack">
-                  <CardTitle>MRR</CardTitle>
-                  <CardDescription>
-                    Recurring monthly revenue snapshot
-                  </CardDescription>
-                </div>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent className="ui-copy-stack">
-              <p className="ui-page-title">{formatCurrency(billing.mrr)}</p>
-              <p className="ui-helper-text">
-                ARR: {formatCurrency(billing.arr)}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card density="compact">
-            <CardHeader className="border-b">
-              <div className="flex items-center justify-between gap-3">
-                <div className="ui-copy-stack">
-                  <CardTitle>Active Subscriptions</CardTitle>
-                  <CardDescription>
-                    Paid customers across all tiers
-                  </CardDescription>
-                </div>
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent className="ui-copy-stack">
-              <p className="ui-page-title">{billing.activeSubscriptions}</p>
-              <p className="ui-helper-text">
-                Churn rate: {(billing.churnRate * 100).toFixed(1)}% (30d)
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card density="compact">
-            <CardHeader className="border-b">
-              <div className="flex items-center justify-between gap-3">
-                <div className="ui-copy-stack">
-                  <CardTitle>Tier Distribution</CardTitle>
-                  <CardDescription>
-                    Subscription share by plan tier
-                  </CardDescription>
-                </div>
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {tierEntries.map(([tier, count]) => (
-                <div key={tier} className="flex items-center gap-2">
-                  <span className="w-16 truncate ui-helper-text">{tier}</span>
-                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className={`h-full rounded-full ${getInternalTierChartColorClass(tier)}`}
-                      style={{
-                        width: `${totalTierCount > 0 ? (count / totalTierCount) * 100 : 0}%`,
-                      }}
-                    />
+      <div className="space-y-6 md:space-y-8">
+        <div className="flex justify-end">
+          <Button onClick={() => void handleExport()}>
+            <Download className="h-4 w-4" />
+            Export Report
+          </Button>
+        </div>
+        {billing && (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Card density="compact">
+              <CardHeader className="border-b">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="ui-copy-stack">
+                    <CardTitle>MRR</CardTitle>
+                    <CardDescription>
+                      Recurring monthly revenue snapshot
+                    </CardDescription>
                   </div>
-                  <span className="w-6 text-right text-sm font-medium text-foreground">
-                    {count}
-                  </span>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      <Section
-        title="Reporting Window"
-        description="Filter the dashboard by time range without breaking the shared page rhythm."
-        contentClassName="space-y-4"
-      >
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap gap-2">
-            {(["daily", "weekly", "monthly"] as const).map((p) => (
-              <Button
-                key={p}
-                onClick={() => setPeriod(p)}
-                size="sm"
-                variant={period === p ? "default" : "outline"}
-              >
-                {p.charAt(0).toUpperCase() + p.slice(1)}
-              </Button>
-            ))}
-          </div>
-
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <DatePicker
-                value={startDate || undefined}
-                onChange={(date) =>
-                  setStartDate(date?.toISOString().slice(0, 10) ?? "")
-                }
-                placeholder="Start date"
-                className="w-40"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="ui-helper-text">to</span>
-              <DatePicker
-                value={endDate || undefined}
-                onChange={(date) =>
-                  setEndDate(date?.toISOString().slice(0, 10) ?? "")
-                }
-                placeholder="End date"
-                className="w-40"
-              />
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {metrics.map((metric, idx) => (
-          <Card key={idx} density="compact">
-            <CardHeader className="border-b">
-              <div className="flex items-center justify-between gap-3">
-                <CardDescription className="text-sm font-medium text-muted-foreground">
-                  {metric.title}
-                </CardDescription>
-                <div className="text-muted-foreground">{metric.icon}</div>
-              </div>
-            </CardHeader>
-            <CardContent className="ui-copy-stack">
-              <p className="ui-page-title">{metric.value}</p>
-              {metric.change && (
-                <p
-                  className={cn(
-                    "text-sm font-medium",
-                    trendToneClassNames[metric.trend ?? "neutral"],
-                  )}
-                >
-                  {metric.trend === "up"
-                    ? "↑"
-                    : metric.trend === "down"
-                      ? "↓"
-                      : "→"}{" "}
-                  {metric.change} from last period
+              </CardHeader>
+              <CardContent className="ui-copy-stack">
+                <p className="ui-page-title">{formatCurrency(billing.mrr)}</p>
+                <p className="ui-helper-text">
+                  ARR: {formatCurrency(billing.arr)}
                 </p>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {revenueByMonth.length > 0 && (
-          <Section
-            title="MRR Trend (6 months)"
-            description="Recent recurring revenue performance"
-            contentClassName="space-y-4"
-          >
-            <div className="flex items-end gap-2 h-40">
-              {revenueByMonth.map((item) => (
-                <div
-                  key={item.month}
-                  className="flex flex-1 flex-col items-center gap-1"
-                >
-                  <div
-                    className="w-full bg-primary rounded-t-sm min-h-[4px]"
-                    style={{
-                      height: `${Math.round((item.revenue / maxRevenue) * 100)}%`,
-                    }}
-                    title={`${item.month}: ₹${formatAmountLocale(
-                      item.revenue,
-                      "en-IN",
-                      {
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      },
-                    )}`}
-                  />
-                  <span className="text-xs text-muted-foreground truncate w-full text-center">
-                    {item.month.split(" ")[0]}
-                  </span>
+            <Card density="compact">
+              <CardHeader className="border-b">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="ui-copy-stack">
+                    <CardTitle>Active Subscriptions</CardTitle>
+                    <CardDescription>
+                      Paid customers across all tiers
+                    </CardDescription>
+                  </div>
+                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
                 </div>
-              ))}
-            </div>
-          </Section>
-        )}
+              </CardHeader>
+              <CardContent className="ui-copy-stack">
+                <p className="ui-page-title">{billing.activeSubscriptions}</p>
+                <p className="ui-helper-text">
+                  Churn rate: {(billing.churnRate * 100).toFixed(1)}% (30d)
+                </p>
+              </CardContent>
+            </Card>
 
-        {tierEntries.length > 0 && (
-          <Section
-            title="Subscription Breakdown"
-            description="Customer mix across Docita plans"
-            contentClassName="space-y-3"
-          >
-            <div className="space-y-3">
-              {tierEntries.map(([tier, count]) => (
-                <div key={tier} className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-foreground font-medium">{tier}</span>
-                    <span className="text-muted-foreground">
-                      {count} (
-                      {totalTierCount > 0
-                        ? ((count / totalTierCount) * 100).toFixed(0)
-                        : 0}
-                      %)
+            <Card density="compact">
+              <CardHeader className="border-b">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="ui-copy-stack">
+                    <CardTitle>Tier Distribution</CardTitle>
+                    <CardDescription>
+                      Subscription share by plan tier
+                    </CardDescription>
+                  </div>
+                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {tierEntries.map(([tier, count]) => (
+                  <div key={tier} className="flex items-center gap-2">
+                    <span className="w-16 truncate ui-helper-text">{tier}</span>
+                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className={`h-full rounded-full ${getInternalTierChartColorClass(tier)}`}
+                        style={{
+                          width: `${totalTierCount > 0 ? (count / totalTierCount) * 100 : 0}%`,
+                        }}
+                      />
+                    </div>
+                    <span className="w-6 text-right text-sm font-medium text-foreground">
+                      {count}
                     </span>
                   </div>
-                  <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${getInternalTierChartColorClass(tier)}`}
-                      style={{
-                        width: `${totalTierCount > 0 ? (count / totalTierCount) * 100 : 0}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Section>
-        )}
-
-        {data?.newPatients ? (
-          <Section
-            title="Patient Growth"
-            description="New-patient momentum in the current period"
-            contentClassName="flex h-40 items-center justify-center"
-          >
-            <div className="text-center">
-              <p className="text-[var(--fs-4xl)] font-bold text-foreground">
-                {data.newPatients}
-              </p>
-              <p className="ui-section-subtitle mt-1">
-                new patients this period
-              </p>
-              {data.patientsChange !== undefined && (
-                <p
-                  className={cn(
-                    "mt-1 text-sm font-medium",
-                    data.patientsChange >= 0
-                      ? "text-success"
-                      : "text-destructive",
-                  )}
-                >
-                  {data.patientsChange >= 0 ? "↑" : "↓"}{" "}
-                  {Math.abs(data.patientsChange).toFixed(1)}% vs last period
-                </p>
-              )}
-            </div>
-          </Section>
-        ) : null}
-
-        {data?.appointments ? (
-          <Section
-            title="Appointment Volume"
-            description="Booked appointment activity in the selected range"
-            contentClassName="flex h-40 items-center justify-center"
-          >
-            <div className="text-center">
-              <p className="text-[var(--fs-4xl)] font-bold text-foreground">
-                {data.appointments}
-              </p>
-              <p className="ui-section-subtitle mt-1">
-                appointments this period
-              </p>
-              {data.appointmentsChange !== undefined && (
-                <p
-                  className={cn(
-                    "mt-1 text-sm font-medium",
-                    data.appointmentsChange >= 0
-                      ? "text-success"
-                      : "text-destructive",
-                  )}
-                >
-                  {data.appointmentsChange >= 0 ? "↑" : "↓"}{" "}
-                  {Math.abs(data.appointmentsChange).toFixed(1)}% vs last period
-                </p>
-              )}
-            </div>
-          </Section>
-        ) : null}
-      </div>
-
-      <Section
-        title="Detailed Metrics"
-        description="Expanded operational metrics for the selected time range."
-        contentClassName="space-y-4"
-      >
-        {data?.detailedMetrics && data.detailedMetrics.length > 0 ? (
-          <AnalyticsDetailedMetricsTable
-            rows={data.detailedMetrics as unknown as DetailedMetricsRow[]}
-          />
-        ) : (
-          <div className="ui-section-stack py-8 text-center text-muted-foreground">
-            <p>No detailed metrics available for this period</p>
+                ))}
+              </CardContent>
+            </Card>
           </div>
         )}
-      </Section>
-    </div>
+
+        <Section
+          title="Reporting Window"
+          description="Filter the dashboard by time range without breaking the shared page rhythm."
+          contentClassName="space-y-4"
+        >
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap gap-2">
+              {(["daily", "weekly", "monthly"] as const).map((p) => (
+                <Button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  size="sm"
+                  variant={period === p ? "default" : "outline"}
+                >
+                  {p.charAt(0).toUpperCase() + p.slice(1)}
+                </Button>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <DatePicker
+                  value={startDate || undefined}
+                  onChange={(date) =>
+                    setStartDate(date?.toISOString().slice(0, 10) ?? "")
+                  }
+                  placeholder="Start date"
+                  className="w-40"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="ui-helper-text">to</span>
+                <DatePicker
+                  value={endDate || undefined}
+                  onChange={(date) =>
+                    setEndDate(date?.toISOString().slice(0, 10) ?? "")
+                  }
+                  placeholder="End date"
+                  className="w-40"
+                />
+              </div>
+            </div>
+          </div>
+        </Section>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {metrics.map((metric, idx) => (
+            <Card key={idx} density="compact">
+              <CardHeader className="border-b">
+                <div className="flex items-center justify-between gap-3">
+                  <CardDescription className="text-sm font-medium text-muted-foreground">
+                    {metric.title}
+                  </CardDescription>
+                  <div className="text-muted-foreground">{metric.icon}</div>
+                </div>
+              </CardHeader>
+              <CardContent className="ui-copy-stack">
+                <p className="ui-page-title">{metric.value}</p>
+                {metric.change && (
+                  <p
+                    className={cn(
+                      "text-sm font-medium",
+                      trendToneClassNames[metric.trend ?? "neutral"],
+                    )}
+                  >
+                    {metric.trend === "up"
+                      ? "↑"
+                      : metric.trend === "down"
+                        ? "↓"
+                        : "→"}{" "}
+                    {metric.change} from last period
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {revenueByMonth.length > 0 && (
+            <Section
+              title="MRR Trend (6 months)"
+              description="Recent recurring revenue performance"
+              contentClassName="space-y-4"
+            >
+              <div className="flex items-end gap-2 h-40">
+                {revenueByMonth.map((item) => (
+                  <div
+                    key={item.month}
+                    className="flex flex-1 flex-col items-center gap-1"
+                  >
+                    <SymbolTooltip
+                      label={`${item.month}: ₹${formatAmountLocale(
+                        item.revenue,
+                        "en-IN",
+                        {
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        },
+                      )}`}
+                    >
+                      <div
+                        className="w-full bg-primary rounded-t-sm min-h-[4px]"
+                        style={{
+                          height: `${Math.round((item.revenue / maxRevenue) * 100)}%`,
+                        }}
+                      />
+                    </SymbolTooltip>
+                    <span className="text-xs text-muted-foreground truncate w-full text-center">
+                      {item.month.split(" ")[0]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {tierEntries.length > 0 && (
+            <Section
+              title="Subscription Breakdown"
+              description="Customer mix across Docita plans"
+              contentClassName="space-y-3"
+            >
+              <div className="space-y-3">
+                {tierEntries.map(([tier, count]) => (
+                  <div key={tier} className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-foreground font-medium">
+                        {tier}
+                      </span>
+                      <span className="text-muted-foreground">
+                        {count} (
+                        {totalTierCount > 0
+                          ? ((count / totalTierCount) * 100).toFixed(0)
+                          : 0}
+                        %)
+                      </span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${getInternalTierChartColorClass(tier)}`}
+                        style={{
+                          width: `${totalTierCount > 0 ? (count / totalTierCount) * 100 : 0}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {data?.newPatients ? (
+            <Section
+              title="Patient Growth"
+              description="New-patient momentum in the current period"
+              contentClassName="flex h-40 items-center justify-center"
+            >
+              <div className="text-center">
+                <p className="text-[var(--fs-4xl)] font-bold text-foreground">
+                  {data.newPatients}
+                </p>
+                <p className="ui-section-subtitle mt-1">
+                  new patients this period
+                </p>
+                {data.patientsChange !== undefined && (
+                  <p
+                    className={cn(
+                      "mt-1 text-sm font-medium",
+                      data.patientsChange >= 0
+                        ? "text-success"
+                        : "text-destructive",
+                    )}
+                  >
+                    {data.patientsChange >= 0 ? "↑" : "↓"}{" "}
+                    {Math.abs(data.patientsChange).toFixed(1)}% vs last period
+                  </p>
+                )}
+              </div>
+            </Section>
+          ) : null}
+
+          {data?.appointments ? (
+            <Section
+              title="Appointment Volume"
+              description="Booked appointment activity in the selected range"
+              contentClassName="flex h-40 items-center justify-center"
+            >
+              <div className="text-center">
+                <p className="text-[var(--fs-4xl)] font-bold text-foreground">
+                  {data.appointments}
+                </p>
+                <p className="ui-section-subtitle mt-1">
+                  appointments this period
+                </p>
+                {data.appointmentsChange !== undefined && (
+                  <p
+                    className={cn(
+                      "mt-1 text-sm font-medium",
+                      data.appointmentsChange >= 0
+                        ? "text-success"
+                        : "text-destructive",
+                    )}
+                  >
+                    {data.appointmentsChange >= 0 ? "↑" : "↓"}{" "}
+                    {Math.abs(data.appointmentsChange).toFixed(1)}% vs last
+                    period
+                  </p>
+                )}
+              </div>
+            </Section>
+          ) : null}
+        </div>
+
+        <Section
+          title="Detailed Metrics"
+          description="Expanded operational metrics for the selected time range."
+          contentClassName="space-y-4"
+        >
+          {data?.detailedMetrics && data.detailedMetrics.length > 0 ? (
+            <AnalyticsDetailedMetricsTable
+              rows={data.detailedMetrics as unknown as DetailedMetricsRow[]}
+            />
+          ) : (
+            <div className="ui-section-stack py-8 text-center text-muted-foreground">
+              <p>No detailed metrics available for this period</p>
+            </div>
+          )}
+        </Section>
+      </div>
     </DataState>
   );
 }

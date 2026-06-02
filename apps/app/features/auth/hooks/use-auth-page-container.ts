@@ -48,7 +48,8 @@ export function useAuthPageContainer() {
   const lockoutMessage = isLoginLocked
     ? formatLoginLockoutMessage(loginLockoutUntil ?? 0)
     : "";
-  const contentAlignment = step === "signup" ? ("start" as const) : ("center" as const);
+  const contentAlignment =
+    step === "signup" ? ("start" as const) : ("center" as const);
   const contentMaxWidth = step === "signup" ? "max-w-3xl" : "max-w-md";
   const copyAlignment =
     step === "signup" ? "text-center lg:text-left" : "text-center";

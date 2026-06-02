@@ -10,6 +10,7 @@ import {
   Role as _Role,
   Prisma,
   DayOfWeek,
+  FacilityType,
 } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import {
@@ -23,6 +24,7 @@ import {
 import { OnboardingValidationService } from './onboarding-validation.service';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { isFrontDeskPlanMode, SUBSCRIPTION_TRIAL_DAYS } from '@workspace/types';
+import { DEFAULT_TIMEZONE } from '@workspace/utils';
 
 import {
   getDefaultClinicWeeklyHoursInput,
@@ -91,14 +93,17 @@ export class OnboardingWorkflowService {
       phone: clinicData.phone,
       address: clinicData.address,
       type: clinicData.type ?? ClinicType.GENERAL,
+      facilityType:
+        clinicData.facilityLabel === 'HOSPITAL'
+          ? FacilityType.HOSPITAL
+          : FacilityType.CLINIC,
       website: clinicData.website,
       mrnPrefix: clinicData.mrnPrefix || 'CLI',
-      timezone: clinicData.timezone || 'Asia/Kolkata',
+      timezone: clinicData.timezone || DEFAULT_TIMEZONE,
       referralCode,
       settings: toPrismaInputJsonValue({
         dataResidency: clinicData.dataResidency || 'IN',
         operatingCountryCode: clinicData.countryCode || 'IN',
-        facilityLabel: clinicData.facilityLabel || 'CLINIC',
         gstin: clinicData.gstin || undefined,
         privacyComplianceVersion: '1.0',
         onboardedAt: this.clock.now().toISOString(),

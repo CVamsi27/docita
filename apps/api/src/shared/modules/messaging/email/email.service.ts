@@ -9,6 +9,7 @@ import {
 import { DATE_FORMATS, escapeHtml, formatDateTime } from '@workspace/utils';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { formatPasswordResetTtlLabel } from '@/shared/modules/config/app-constants';
+import { SUPPORT_EMAIL } from '@/shared/common/constants/support-contact.constants';
 import {
   EmailSuppressionService,
   maskEmail,
@@ -17,7 +18,7 @@ import {
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private readonly supportEmail = 'support@docita.work';
+  private readonly supportEmail = SUPPORT_EMAIL;
 
   constructor(
     @Inject(EMAIL_PROVIDER)

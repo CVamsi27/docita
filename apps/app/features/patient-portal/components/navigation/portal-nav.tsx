@@ -61,9 +61,7 @@ function NavLink({
       onClick={onNavigate}
       className={cn(
         "inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius)] font-medium transition-colors",
-        compact
-          ? "px-2.5 py-1.5 text-xs"
-          : "gap-2 px-3 py-2 text-sm",
+        compact ? "px-2.5 py-1.5 text-xs" : "gap-2 px-3 py-2 text-sm",
         isActive
           ? "bg-foreground text-background shadow-sm"
           : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",

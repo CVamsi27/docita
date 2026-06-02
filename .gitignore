@@ -115,7 +115,7 @@ eng.traineddata
 
 # Generated audit reports
 lighthouse-audit*.json
+docs/api/openapi.json
 
 # Local planning scratch docs
 docs/UpcomingPlans/
-docs/architecture/SYSTEM_DESIGN_AND_PATTERNS.md

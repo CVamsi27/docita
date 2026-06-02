@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SearchFullTextSupportService } from '../search-full-text-support.service';
@@ -94,7 +95,7 @@ export class AppointmentSearchStrategy implements ISearchStrategy {
     return appointments.map((appointment) => ({
       id: appointment.id,
       type: 'appointment' as const,
-      title: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
+      title: getPatientFullName(appointment.patient),
       subtitle:
         appointment.chiefComplaint || appointment.notes || 'Appointment',
       meta: { startTime: appointment.startTime },

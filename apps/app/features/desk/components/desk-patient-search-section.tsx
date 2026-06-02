@@ -1,5 +1,7 @@
 "use client";
 
+import { getPatientFullName } from "@workspace/utils";
+
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { Section } from "@workspace/ui/components/layout/section";
 import { Input } from "@workspace/ui/components/form/input";
@@ -77,7 +79,7 @@ export function PatientSearchSection({
                       }`}
                     >
                       <span className="font-medium text-[var(--fs-sm)]">
-                        {p.firstName} {p.lastName}
+                        {getPatientFullName(p)}
                       </span>
                       {p.phoneNumber ? (
                         <span className="text-[var(--fs-xs)] text-muted-foreground">

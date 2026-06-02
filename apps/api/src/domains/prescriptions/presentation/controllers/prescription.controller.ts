@@ -46,6 +46,7 @@ import {
   logClinicPhiListRead,
   logPatientPhiRead,
 } from '@/shared/modules/audit/audit/patient-access-audit.util';
+import { setPrivateNoStoreHeaders } from '@/shared/common/http/private-download-response';
 
 @Controller('prescriptions')
 @UseGuards(TierGuard, FrontDeskClinicalBlockGuard)
@@ -140,7 +141,9 @@ export class PrescriptionsController {
     @Request() req: RequestWithUser,
     @Param('id') id: string,
     @Query('jobId') jobId: string,
+    @Res({ passthrough: true }) res: Response,
   ) {
+    setPrivateNoStoreHeaders(res);
     const { clinicId } = getClinicStaffRequestContext(req);
     const prescription = await this.prescriptionsService.findOne(id, clinicId);
     await logPatientPhiRead(
@@ -160,6 +163,7 @@ export class PrescriptionsController {
     @Query('async') isAsync: string,
     @Res() res: Response,
   ) {
+    setPrivateNoStoreHeaders(res);
     const { clinicId } = getClinicStaffRequestContext(req);
     const prescription = await this.prescriptionsService.findOne(id, clinicId);
     await logPatientPhiRead(

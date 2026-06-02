@@ -39,8 +39,7 @@ export const InvoicesPageUI: FC = () => {
     return "success";
   }, [loading, isError, filteredInvoices.length]);
 
-  const hasActiveFilters =
-    filter !== "all" || searchQuery.trim().length > 0;
+  const hasActiveFilters = filter !== "all" || searchQuery.trim().length > 0;
 
   return (
     <AppPageScaffold
@@ -50,7 +49,11 @@ export const InvoicesPageUI: FC = () => {
           description="Recent invoices, newest first, with payment status. Record cash or card at Payment desk when needed."
           actions={
             <div className="flex gap-2">
-              <Button variant="outline" className="gap-2" onClick={handleRefresh}>
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={handleRefresh}
+              >
                 <RefreshCw
                   className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
                 />

@@ -32,11 +32,7 @@ function getBarColor(score: number, index: number): string {
   return "bg-success";
 }
 
-export function PasswordStrengthIndicator({
-  password,
-}: {
-  password: string;
-}) {
+export function PasswordStrengthIndicator({ password }: { password: string }) {
   if (!password) return null;
   const score = getPasswordScore(password);
   return (
