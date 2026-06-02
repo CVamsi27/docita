@@ -83,7 +83,7 @@ export function WhatsAppDeliveryBadge({
           WhatsApp · {config.label}
         </Badge>
       </SymbolTooltip>
-      {state === "failed" && onRetry ? (
+      {(state === "failed" || state === "unknown") && onRetry ? (
         <Button
           type="button"
           variant="outline"
@@ -94,10 +94,12 @@ export function WhatsAppDeliveryBadge({
         >
           {isRetrying ? (
             <DocitaLoadingIndicator variant="inline" decorative />
-          ) : (
+          ) : state === "failed" ? (
             <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+          ) : (
+            <Send className="h-3.5 w-3.5" aria-hidden />
           )}
-          Retry
+          {state === "failed" ? "Retry" : "Send"}
         </Button>
       ) : null}
     </div>
