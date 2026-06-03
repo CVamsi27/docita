@@ -185,13 +185,25 @@ export function ConsultationMainPanel({
           />
 
           {activeSection ? (
-            <div className="flex items-center justify-between gap-3">
-              <MicroLabel className="text-muted-foreground">
+            <div className="flex items-center gap-3">
+              <MicroLabel className="shrink-0 text-muted-foreground">
                 Step {activeIndex + 1} of {sections.length}
               </MicroLabel>
-              <span className="text-xs font-medium text-muted-foreground">
-                {activeSection.label}
-              </span>
+              <div
+                className="h-1 flex-1 overflow-hidden rounded-full bg-border"
+                role="progressbar"
+                aria-valuenow={activeIndex + 1}
+                aria-valuemin={1}
+                aria-valuemax={sections.length}
+                aria-label="Consultation step progress"
+              >
+                <div
+                  className="h-full rounded-full bg-primary transition-[width] duration-300 ease-out"
+                  style={{
+                    width: `${((activeIndex + 1) / sections.length) * 100}%`,
+                  }}
+                />
+              </div>
             </div>
           ) : null}
 
