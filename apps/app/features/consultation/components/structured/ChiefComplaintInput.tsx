@@ -5,6 +5,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { useSpeechToText } from "@workspace/hooks";
 import { Activity, Plus } from "lucide-react";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { ChiefComplaintItemRow } from "./chief-complaint-item-row";
 import type { ChiefComplaintItem } from "./chief-complaint.types";
 
@@ -38,6 +39,10 @@ export function ChiefComplaintInput({
           : text,
       };
       onChange(newItems);
+    },
+    onError: (message) => {
+      setListeningIndex(null);
+      showUserFacingErrorToast(message);
     },
   });
 

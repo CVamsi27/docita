@@ -57,7 +57,7 @@ export function resolveAttachmentUrl(fileUrl: string): string {
 }
 
 export function validateAttachmentFile(file: File): string | null {
-  if (!ALLOWED_MIME_TYPES.includes(file.type as (typeof ALLOWED_MIME_TYPES)[number])) {
+  if (!ALLOWED_MIME_TYPES.some((mimeType) => mimeType === file.type)) {
     return "Only images (JPEG, PNG, WebP) and PDFs can be attached.";
   }
   if (file.size > MAX_FILE_SIZE) {
