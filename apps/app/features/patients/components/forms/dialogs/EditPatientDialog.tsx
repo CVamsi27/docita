@@ -17,11 +17,7 @@ import {
 import { updatePatientRequestSchema } from "@workspace/types";
 import { parseStringEnumMember } from "@workspace/utils";
 import { validatePatientPhoneNumberForCountry } from "@/features/patients/rules/patient-rules";
-import {
-  PatientBasicInfoFields,
-  PatientDemographicFields,
-  DialogActionButtons,
-} from "./EditPatientDialogSections";
+import { PatientBasicInfoFields, PatientDemographicFields, DialogActionButtons } from "./EditPatientDialogSections";
 import { GENDER_VALUES } from "./EditPatientDialogHelpers";
 
 interface EditPatientDialogProps {
@@ -129,7 +125,6 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
           </div>
 
           <DialogActionButtons
-            form={form}
             onCancel={() => onOpenChange?.(false)}
             isPending={updatePatient.isPending}
           />

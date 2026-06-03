@@ -1,8 +1,6 @@
 "use client";
 
-import { getPatientFullName } from "@workspace/utils";
 import { useCallback } from "react";
-import { DPDP_NOTICE_VERSION } from "@workspace/types";
 import {
   usePublicBookingOtpRequest,
   usePublicBookingOtpVerify,
@@ -12,7 +10,10 @@ import {
 import { ApiError } from "@/lib/errors";
 import { buildPublicBookingSubmitErrors } from "@/lib/utils/api-validation-errors";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { ANY_DOCTOR_ID } from "@/features/public-booking/public-booking-constants";
+import {
+  validateBookingFields,
+  buildBookingRequestBody,
+} from "./public-booking-submit-helpers";
 
 interface SubmitActionsState {
   phone: string;
@@ -151,93 +152,49 @@ export function usePublicBookingSubmitActions(
     setSubmitFieldErrors({});
     setSubmitGeneralMessage(null);
 
-    if (!slotDate) {
-      showUserFacingErrorToast(
-        null,
-        "Choose a date for your appointment request.",
-        "generic",
-      );
-      return;
-    }
-    if (!phone.trim()) {
-      showUserFacingErrorToast(
-        null,
-        "Enter your phone number before submitting.",
-        "generic",
-      );
-      return;
-    }
-
     try {
       let otpRequired = requiresOtp;
       if (otpRequired === null) {
         const check = await runPhoneCheck();
         otpRequired = check.requiresOtp;
       }
-      if (otpRequired && !verificationToken) {
-        showUserFacingErrorToast(
-          null,
-          "Verify your phone with the code we sent before submitting.",
-          "generic",
-        );
-        return;
-      }
-      if (
-        !otpRequired &&
-        (!firstName.trim() || !lastName.trim() || !dateOfBirth.trim())
-      ) {
-        showUserFacingErrorToast(
-          null,
-          "Enter your name and date of birth before submitting.",
-          "generic",
-        );
-        return;
-      }
-      if (!otpRequired && !dpdpConsentAccepted) {
-        showUserFacingErrorToast(
-          null,
-          "Please accept the data processing notice (DPDP Act, 2023) before submitting.",
-          "generic",
-        );
-        return;
-      }
 
-      const resolvedDoctorId =
-        doctorId === ANY_DOCTOR_ID ? selectedSlotDoctorId : doctorId || null;
-      const includeSlot = Boolean(selectedStart && selectedEnd);
-
-      await submit.mutateAsync({
-        body: {
-          phoneNumber: phone,
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          dateOfBirth: otpRequired
-            ? undefined
-            : dateOfBirth.trim() || undefined,
-          email: email.trim() || undefined,
-          preferredDoctorId: resolvedDoctorId ?? undefined,
-          slotCalendarDate: slotDate,
-          requestedSlotStart: includeSlot
-            ? (selectedStart ?? undefined)
-            : undefined,
-          requestedSlotEnd: includeSlot
-            ? (selectedEnd ?? undefined)
-            : undefined,
-          reason: reason.trim() || undefined,
-          notes: notes.trim() || undefined,
-          turnstileToken: turnstileToken ?? undefined,
-          bookingVerificationToken: verificationToken ?? undefined,
-          dpdpConsent: otpRequired
-            ? undefined
-            : {
-                accepted: true,
-                noticeVersion: DPDP_NOTICE_VERSION,
-                relation: "SELF",
-                givenByName: getPatientFullName({ firstName, lastName }),
-              },
-        },
-        authorization: verificationToken ?? undefined,
+      const validationError = validateBookingFields({
+        slotDate,
+        phone,
+        requiresOtp: otpRequired,
+        verificationToken,
+        firstName,
+        lastName,
+        dateOfBirth,
+        dpdpConsentAccepted,
       });
+      if (validationError) {
+        showUserFacingErrorToast(null, validationError, "generic");
+        return;
+      }
+
+      const submitPayload = buildBookingRequestBody({
+        phone,
+        firstName,
+        lastName,
+        email,
+        dateOfBirth,
+        doctorId,
+        selectedSlotDoctorId,
+        slotDate,
+        selectedStart,
+        selectedEnd,
+        reason,
+        notes,
+        turnstileToken,
+        verificationToken,
+        requiresOtp,
+        dpdpConsentAccepted,
+        otpRequired,
+      });
+
+      await submit.mutateAsync(submitPayload);
       setDone(true);
     } catch (error) {
       const built = buildPublicBookingSubmitErrors(error);

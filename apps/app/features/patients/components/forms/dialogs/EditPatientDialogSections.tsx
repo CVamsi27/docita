@@ -1,8 +1,7 @@
 "use client";
 
-import type { Control, UseFormReturn } from "react-hook-form";
+import type { Control } from "react-hook-form";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { z } from "zod";
 import { Button } from "@workspace/ui/components/form/button";
 import { DatePicker } from "@workspace/ui/components/form/date-picker";
 import { Input } from "@workspace/ui/components/form/input";
@@ -20,18 +19,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
-import { updatePatientRequestSchema } from "@workspace/types";
+import type { UpdatePatientRequest } from "@workspace/types";
 import { parseStringEnumMember } from "@workspace/utils";
 import { GENDER_OPTIONS, GENDER_VALUES } from "./EditPatientDialogHelpers";
-
-type PatientUpdateFormValues = z.infer<typeof updatePatientRequestSchema>;
 
 // ---------------------------------------------------------------------------
 // PatientBasicInfoFields
 // ---------------------------------------------------------------------------
 
 interface PatientBasicInfoFieldsProps {
-  control: Control<PatientUpdateFormValues>;
+  control: Control<UpdatePatientRequest>;
 }
 
 export function PatientBasicInfoFields({
@@ -114,7 +111,7 @@ export function PatientBasicInfoFields({
 // ---------------------------------------------------------------------------
 
 interface PatientDemographicFieldsProps {
-  control: Control<PatientUpdateFormValues>;
+  control: Control<UpdatePatientRequest>;
 }
 
 export function PatientDemographicFields({
@@ -185,13 +182,11 @@ export function PatientDemographicFields({
 // ---------------------------------------------------------------------------
 
 interface DialogActionButtonsProps {
-  form: UseFormReturn<PatientUpdateFormValues>;
   onCancel: () => void;
   isPending: boolean;
 }
 
 export function DialogActionButtons({
-  form,
   onCancel,
   isPending,
 }: DialogActionButtonsProps) {

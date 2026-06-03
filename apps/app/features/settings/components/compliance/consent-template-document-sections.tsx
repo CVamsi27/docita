@@ -1,7 +1,6 @@
 "use client";
 
 import { formatDate } from "@workspace/utils";
-import { Separator } from "@workspace/ui/components/layout/separator";
 import {
   CONSENT_DATA_CATEGORIES,
   CONSENT_RETENTION_SUMMARY,
