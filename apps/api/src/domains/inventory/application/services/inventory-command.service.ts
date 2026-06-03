@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import {
   IInventoryRepository,
   INVENTORY_REPOSITORY_TOKEN,
@@ -106,12 +106,6 @@ export class InventoryCommandService {
       notes?: string;
     },
   ) {
-    const item = await this.inventoryRepository.findItemByClinic(
-      itemId,
-      clinicId,
-    );
-    if (!item) throw new NotFoundException('Inventory item not found');
-
     const outTypes = ['OUT', 'EXPIRED', 'WASTE'];
     const delta = outTypes.includes(data.type)
       ? -Math.abs(data.quantity)

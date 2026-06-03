@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   type CreateInventoryItemData,
@@ -176,13 +180,28 @@ export class PrismaInventoryRepository implements IInventoryRepository {
     quantityDelta: number,
   ): Promise<InventoryMovement> {
     return this.prisma.$transaction(async (tx) => {
+      const where: Prisma.InventoryItemWhereInput = { id: itemId, clinicId };
+
+      if (quantityDelta < 0) {
+        where.quantity = { gte: Math.abs(quantityDelta) };
+      }
+
       const updateResult = await tx.inventoryItem.updateMany({
-        where: { id: itemId, clinicId },
+        where,
         data: { quantity: { increment: quantityDelta } },
       });
 
       if (updateResult.count === 0) {
-        throw new Error(`Inventory item ${itemId} not found`);
+        const existing = await tx.inventoryItem.findUnique({
+          where: { id: itemId },
+          select: { quantity: true },
+        });
+        if (!existing) {
+          throw new NotFoundException(`Inventory item ${itemId} not found`);
+        }
+        throw new BadRequestException(
+          `Insufficient stock: requested ${Math.abs(quantityDelta)} but only ${existing.quantity} available`,
+        );
       }
 
       return tx.inventoryMovement.create({
