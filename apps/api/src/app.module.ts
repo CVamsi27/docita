@@ -51,6 +51,7 @@ import { TenantContextInterceptor } from './shared/common/interceptors/tenant-co
 import { CacheInterceptor } from './shared/common/interceptors/cache.interceptor';
 import { PatientDataAuditInterceptor } from './shared/common/interceptors/patient-audit.interceptor';
 import { BreakTheGlassInterceptor } from './shared/common/interceptors/emergency-access.interceptor';
+import { PrismaRetryInterceptor } from './shared/common/interceptors/prisma-retry.interceptor';
 import { RequestIdInterceptor } from './shared/common/interceptors/request-id.interceptor';
 import { RequestContextInterceptor } from './shared/common/interceptors/request-context.interceptor';
 import { JwtAuthGuard } from './shared/modules/auth/auth/jwt-auth.guard';
@@ -293,6 +294,10 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
     {
       provide: APP_INTERCEPTOR,
       useClass: BreakTheGlassInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: PrismaRetryInterceptor,
     },
   ],
   exports: [WebsocketsModule],
