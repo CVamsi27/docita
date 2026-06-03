@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import {
   EmailOptions,
   EmailSendResult,
@@ -9,6 +9,7 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 import { escapeHtml, isRecord } from '@workspace/utils';
 import { formatZeptoMailErrorBody } from './zeptomail-error';
+import { CircuitBreakerRegistry } from '@/shared/common/utils/circuit-breaker.registry';
 
 type ZeptoMailAddress = {
   address: string;
@@ -36,7 +37,11 @@ export class ZeptoMailEmailProvider implements IEmailProvider {
   private readonly defaultFrom: string;
   private readonly apiUrl: string;
 
-  constructor(private configService: AppConfigService) {
+  constructor(
+    private configService: AppConfigService,
+    @Optional()
+    private readonly circuitBreakerRegistry?: CircuitBreakerRegistry,
+  ) {
     this.sendMailToken = this.configService.getZeptoMailSendMailToken();
     this.defaultFrom = this.configService.getEmailFrom();
     this.apiUrl = this.configService.getZeptoMailApiUrl();
@@ -127,15 +132,28 @@ export class ZeptoMailEmailProvider implements IEmailProvider {
     }
 
     try {
-      const response = await fetchWithTimeout(this.apiUrl, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          Authorization: this.getAuthorizationHeader(),
-        },
-        body: JSON.stringify(payload),
-      });
+      const execute = async () => {
+        const response = await fetchWithTimeout(this.apiUrl, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: this.getAuthorizationHeader(),
+          },
+          body: JSON.stringify(payload),
+        });
+        return response;
+      };
+
+      const breaker = this.circuitBreakerRegistry?.get('zeptomail-api');
+      const response = breaker
+        ? await breaker.call(execute, async () => {
+            this.logger.warn(
+              '[circuit-breaker] ZeptoMail API is OPEN — returning fallback',
+            );
+            return new Response(null, { status: 503 });
+          })
+        : await execute();
 
       const responseText = await response.text().catch(() => '');
 

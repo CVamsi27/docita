@@ -1,8 +1,10 @@
 import {
   HttpException,
+  Inject,
   Injectable,
   Logger,
   ServiceUnavailableException,
+  Optional,
 } from '@nestjs/common';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
@@ -13,6 +15,7 @@ import {
   type SendMessageResponse,
 } from '@/domains/whatsapp/application/ports/whatsapp-client.port';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
+import { CircuitBreakerRegistry } from '@/shared/common/utils/circuit-breaker.registry';
 
 type LegacySendResult = {
   success: boolean;
@@ -31,7 +34,12 @@ export class WhatsappClientAdapter implements IWhatsAppClient {
   private readonly verifyToken: string;
   private tokenExpired = false;
 
-  constructor(private readonly configService: AppConfigService) {
+  constructor(
+    private readonly configService: AppConfigService,
+    @Optional()
+    @Inject(CircuitBreakerRegistry)
+    private readonly circuitBreakerRegistry?: CircuitBreakerRegistry,
+  ) {
     const config = this.configService.getMetaConfig();
     this.phoneNumberId = config.phoneNumberId;
     this.accessToken = config.accessToken;
@@ -277,38 +285,55 @@ export class WhatsappClientAdapter implements IWhatsAppClient {
     payload: Record<string, unknown>,
     sender?: { phoneNumberId: string; accessToken: string },
   ): Promise<Record<string, unknown>> {
-    const phoneNumberId = sender?.phoneNumberId || this.phoneNumberId;
-    const accessToken = sender?.accessToken || this.accessToken;
-    const response = await fetchWithTimeout(
-      `${this.baseUrl}/${this.apiVersion}/${phoneNumberId}/messages`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
+    const breaker = this.circuitBreakerRegistry?.get('whatsapp-meta-api');
+
+    const execute = async (): Promise<Record<string, unknown>> => {
+      const phoneNumberId = sender?.phoneNumberId || this.phoneNumberId;
+      const accessToken = sender?.accessToken || this.accessToken;
+      const response = await fetchWithTimeout(
+        `${this.baseUrl}/${this.apiVersion}/${phoneNumberId}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload),
-      },
-    );
+      );
 
-    const data = this.toRecord(await response.json());
+      const data = this.toRecord(await response.json());
 
-    if (!response.ok) {
-      const errorMsg = this.extractErrorMessage(data);
-      if (this.isTokenExpiredError(data)) {
-        if (!this.tokenExpired) {
-          this.tokenExpired = true;
-          this.logger.error(
-            `WhatsApp access token expired — all sends disabled until token is refreshed. Error: ${errorMsg}`,
-          );
+      if (!response.ok) {
+        const errorMsg = this.extractErrorMessage(data);
+        if (this.isTokenExpiredError(data)) {
+          if (!this.tokenExpired) {
+            this.tokenExpired = true;
+            this.logger.error(
+              `WhatsApp access token expired — all sends disabled until token is refreshed. Error: ${errorMsg}`,
+            );
+          }
+        } else {
+          this.logger.error(`WhatsApp send failed: ${errorMsg}`, data);
         }
-      } else {
-        this.logger.error(`WhatsApp send failed: ${errorMsg}`, data);
+        throw new ServiceUnavailableException(
+          `WhatsApp API error: ${errorMsg}`,
+        );
       }
-      throw new ServiceUnavailableException(`WhatsApp API error: ${errorMsg}`);
+
+      return data;
+    };
+
+    if (breaker) {
+      return breaker.call(execute, async () => {
+        this.logger.warn(
+          '[circuit-breaker] WhatsApp API is OPEN — returning fallback',
+        );
+        return {};
+      });
     }
 
-    return data;
+    return execute();
   }
 
   private toRecord(value: unknown): Record<string, unknown> {
