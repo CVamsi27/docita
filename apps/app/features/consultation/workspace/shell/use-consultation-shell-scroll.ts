@@ -12,9 +12,12 @@ import type { ConsultationSection } from "@/features/consultation/workspace/cons
 export function useConsultationShellScroll({
   sections,
   clinicType,
+  stepMode = false,
 }: {
   sections: ConsultationSection[];
   clinicType?: string;
+  /** One-section-at-a-time mode: disable scroll-spy; selecting resets to top. */
+  stepMode?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -37,6 +40,7 @@ export function useConsultationShellScroll({
   const scrollSpySuppressedUntilRef = useRef(0);
 
   const computeActiveSectionFromScroll = useCallback(() => {
+    if (stepMode) return;
     if (pendingUrlScrollRef.current != null) return;
     if (performance.now() < scrollSpySuppressedUntilRef.current) return;
     const root = mainScrollRef.current;
@@ -51,7 +55,7 @@ export function useConsultationShellScroll({
       if (top <= activationY) chosen = s.id;
     }
     setActiveSectionId((prev) => (prev === chosen ? prev : chosen));
-  }, []);
+  }, [stepMode]);
 
   const scheduleScrollSpy = useCallback(() => {
     if (scrollSpyRaf.current != null) cancelAnimationFrame(scrollSpyRaf.current);
@@ -83,8 +87,13 @@ export function useConsultationShellScroll({
   const selectSection = useCallback(
     (id: string) => {
       setActiveSectionId(id);
-      const el = sectionRefs.current[id];
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (stepMode) {
+        // Keep the pinned past-history card in view when switching steps.
+        mainScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        const el = sectionRefs.current[id];
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
       const next = new URLSearchParams(searchParams?.toString() ?? "");
       next.delete("tab");
       const firstId = sectionsRef.current[0]?.id ?? "subjective";
@@ -95,7 +104,7 @@ export function useConsultationShellScroll({
       }
       router.replace(`?${next.toString()}`, { scroll: false });
     },
-    [router, searchParams],
+    [router, searchParams, stepMode],
   );
 
   const sectionQ = searchParams.get("section");
@@ -109,7 +118,7 @@ export function useConsultationShellScroll({
     const defaultSectionId = sections[0]?.id ?? "subjective";
     const valid = matchedResolved?.id ?? defaultSectionId;
     setActiveSectionId(valid);
-    const wantsScrollFromUrl = Boolean(sectionQ?.trim() || tabQ);
+    const wantsScrollFromUrl = Boolean(sectionQ?.trim() || tabQ) && !stepMode;
     if (wantsScrollFromUrl) {
       const urlScrollKey = `${sectionQ ?? ""}|${tabQ ?? ""}|${valid}|${sectionIdsKey}`;
       if (lastUrlScrollKeyRef.current !== urlScrollKey) {
@@ -134,7 +143,16 @@ export function useConsultationShellScroll({
       changed = true;
     }
     if (changed) router.replace(`?${next.toString()}`, { scroll: false });
-  }, [sectionQ, tabQ, clinicType, sectionIdsKey, router, searchParams, sections]);
+  }, [
+    sectionQ,
+    tabQ,
+    clinicType,
+    sectionIdsKey,
+    router,
+    searchParams,
+    sections,
+    stepMode,
+  ]);
 
   useEffect(() => {
     const targetId = pendingUrlScrollToSectionId;
@@ -210,22 +228,30 @@ export function useConsultationShellScroll({
     return () => root.removeEventListener("focusin", onFocusIn);
   }, []);
 
-  const focusNewItem = useCallback((kind: "c" | "d" | "m") => {
-    const selectorMap: Record<"c" | "d" | "m", string> = {
-      c: '[data-section-id="subjective"] input[placeholder*="complaint" i], [data-section-id="subjective"] input',
-      d: '[data-section-id="assessment"] input',
-      m: '[data-section-id="plan"] input',
-    };
-    const rootId =
-      kind === "c" ? "subjective" : kind === "d" ? "assessment" : "plan";
-    sectionRefs.current[rootId]?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-    setTimeout(() => {
-      document.querySelector<HTMLInputElement>(selectorMap[kind])?.focus();
-    }, 300);
-  }, []);
+  const focusNewItem = useCallback(
+    (kind: "c" | "d" | "m") => {
+      const selectorMap: Record<"c" | "d" | "m", string> = {
+        c: '[data-section-id="subjective"] input[placeholder*="complaint" i], [data-section-id="subjective"] input',
+        d: '[data-section-id="assessment"] input',
+        m: '[data-section-id="plan"] input',
+      };
+      const rootId =
+        kind === "c" ? "subjective" : kind === "d" ? "assessment" : "plan";
+      if (stepMode) {
+        // The target section may not be mounted; switch to it first.
+        setActiveSectionId(rootId);
+      } else {
+        sectionRefs.current[rootId]?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+      setTimeout(() => {
+        document.querySelector<HTMLInputElement>(selectorMap[kind])?.focus();
+      }, 300);
+    },
+    [stepMode],
+  );
 
   const letterNavMap = useMemo(() => {
     const map: Record<string, string> = {};

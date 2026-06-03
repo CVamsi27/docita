@@ -67,7 +67,11 @@ export function useConsultationShell({
 
   const effectivePatient = patient ?? appointmentData.patient;
 
-  const scroll = useConsultationShellScroll({ sections, clinicType });
+  const scroll = useConsultationShellScroll({
+    sections,
+    clinicType,
+    stepMode: true,
+  });
 
   const { flush, submitPrescriptions } = useConsultationAutosave({
     appointmentId,

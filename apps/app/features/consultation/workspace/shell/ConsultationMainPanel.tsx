@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, type ReactNode, type RefObject } from "react";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { Button } from "@workspace/ui/components/form/button";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { SectionTabs } from "@/features/consultation/workspace/chrome/SectionRail";
-import { cn } from "@workspace/ui/lib/utils";
 import {
   AssessmentSection,
   CardiologyExamSection,
@@ -149,6 +151,18 @@ export function ConsultationMainPanel({
     ],
   );
 
+  const activeIndex = Math.max(
+    0,
+    sections.findIndex((s) => s.id === activeSectionId),
+  );
+  const activeSection = sections[activeIndex];
+  const prevSection = activeIndex > 0 ? sections[activeIndex - 1] : undefined;
+  const nextSection =
+    activeIndex < sections.length - 1 ? sections[activeIndex + 1] : undefined;
+  const activeNode = activeSection
+    ? sectionComponents[activeSection.id]
+    : undefined;
+
   return (
     <div className="flex min-w-0 flex-1 flex-col">
       <SectionTabs
@@ -163,25 +177,70 @@ export function ConsultationMainPanel({
         aria-label="Consultation workspace"
       >
         <div className="mx-auto flex max-w-3xl flex-col gap-5">
+          {/* Pinned: patient history stays on top across every step. */}
           <ConsultationPastHistoryCard
             patient={effectivePatient}
             patientLoading={patientLoading}
             readOnly={readOnly}
           />
-          {sections.map((section) => {
-            const Node = sectionComponents[section.id];
-            if (!Node) return null;
-            return (
-              <div
-                key={section.id}
-                className={cn(
-                  section.id !== activeSectionId && "hidden md:block",
-                )}
-              >
-                {Node}
-              </div>
-            );
-          })}
+
+          {activeSection ? (
+            <div className="flex items-center justify-between gap-3">
+              <MicroLabel className="text-muted-foreground">
+                Step {activeIndex + 1} of {sections.length}
+              </MicroLabel>
+              <span className="text-xs font-medium text-muted-foreground">
+                {activeSection.label}
+              </span>
+            </div>
+          ) : null}
+
+          {/* Active step only — one section at a time. */}
+          {activeNode}
+
+          {/* Step navigation. */}
+          {sections.length > 1 ? (
+            <div className="flex items-center justify-between gap-3">
+              {prevSection ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => onSelectSection(prevSection.id)}
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+                  <span className="hidden sm:inline">
+                    {prevSection.shortLabel}
+                  </span>
+                  <span className="sm:hidden">Back</span>
+                </Button>
+              ) : (
+                <span />
+              )}
+              {nextSection ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => onSelectSection(nextSection.id)}
+                >
+                  <span className="hidden sm:inline">
+                    Next · {nextSection.shortLabel}
+                  </span>
+                  <span className="sm:hidden">Next</span>
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                </Button>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success">
+                  <Check className="h-3.5 w-3.5" aria-hidden />
+                  Last step
+                </span>
+              )}
+            </div>
+          ) : null}
+
+          {/* Pinned: after-visit actions stay at the bottom across every step. */}
           <ConsultationAfterVisitStrip
             appointment={appointmentData}
             onGoToPlan={() => onSelectSection("plan")}
