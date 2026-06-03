@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { Cache } from 'cache-manager';
 import { createHash } from 'crypto';
 import {
@@ -53,6 +54,7 @@ export class FeatureFlagsService {
   constructor(
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
     private readonly repository: FeatureFlagsRepository,
+    private readonly events: EventEmitter2,
   ) {}
 
   async isEnabled(key: string, ctx: FeatureFlagContext): Promise<boolean> {
@@ -86,6 +88,21 @@ export class FeatureFlagsService {
   async upsert(record: FeatureFlagRecord): Promise<FeatureFlagRecord> {
     const stored = await this.repository.upsert(record);
     await this.invalidateAll();
+    this.events.emit('feature-flag.changed', {
+      key: stored.key,
+      defaultEnabled: stored.defaultEnabled,
+      percentageRollout: stored.percentageRollout,
+      clinicOverridesCount: stored.clinicOverrides
+        ? Object.keys(stored.clinicOverrides).length
+        : 0,
+      userOverridesCount: stored.userOverrides
+        ? Object.keys(stored.userOverrides).length
+        : 0,
+      timestamp: new Date().toISOString(),
+    });
+    this.logger.log(
+      `Feature flag "${record.key}" upserted (default=${record.defaultEnabled})`,
+    );
     return stored;
   }
 
@@ -93,6 +110,13 @@ export class FeatureFlagsService {
     const result = await this.repository.kill(key);
     await this.invalidateAll();
     if (result) {
+      this.events.emit('feature-flag.changed', {
+        key,
+        action: 'kill',
+        defaultEnabled: false,
+        percentageRollout: null,
+        timestamp: new Date().toISOString(),
+      });
       this.logger.warn(`Feature flag "${key}" kill-switch activated`);
     }
     return result;
