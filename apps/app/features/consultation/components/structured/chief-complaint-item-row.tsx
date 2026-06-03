@@ -112,6 +112,7 @@ export function ChiefComplaintItemRow({
               isListening={isListening}
               isSupported={isSupported}
               onClick={onMicToggle}
+              withLabel
             />
           ) : null}
         </div>

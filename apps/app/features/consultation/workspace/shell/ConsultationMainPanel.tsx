@@ -18,6 +18,7 @@ import {
   VisionSpecialtySection,
 } from "@/features/consultation/workspace/sections";
 import { ConsultationAfterVisitStrip } from "@/features/consultation/components/ConsultationWorkspaceExtras";
+import { ConsultationPastHistoryCard } from "@/features/consultation/components/ConsultationPastHistoryCard";
 import type {
   ConsultationSection,
   ConsultationWorkspaceSectionId,
@@ -54,8 +55,6 @@ export function ConsultationMainPanel({
           key="subjective"
           sectionRef={setSectionRef("subjective")}
           readOnly={readOnly}
-          patient={effectivePatient}
-          patientLoading={patientLoading}
         />
       ),
       objective: (
@@ -145,7 +144,6 @@ export function ConsultationMainPanel({
       appointmentData.id,
       appointmentData.doctorId,
       effectivePatient,
-      patientLoading,
       readOnly,
       setSectionRef,
     ],
@@ -165,6 +163,11 @@ export function ConsultationMainPanel({
         aria-label="Consultation workspace"
       >
         <div className="mx-auto flex max-w-3xl flex-col gap-5">
+          <ConsultationPastHistoryCard
+            patient={effectivePatient}
+            patientLoading={patientLoading}
+            readOnly={readOnly}
+          />
           {sections.map((section) => {
             const Node = sectionComponents[section.id];
             if (!Node) return null;
