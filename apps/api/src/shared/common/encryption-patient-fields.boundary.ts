@@ -12,6 +12,12 @@ export function mapPatientRecordFields<T extends Record<string, unknown>>(
     'emergencyContactName',
     'firstName',
     'lastName',
+    'preferredName',
+    'insuranceProvider',
+    'insurancePolicyNumber',
+    'insuranceGroupNumber',
+    'allergies',
+    'abhaAddress',
   ] as const;
 
   for (const field of fields) {
