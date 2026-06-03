@@ -4,12 +4,15 @@
  */
 import "@/instrument";
 
+import * as Sentry from "@sentry/nestjs";
 import { NestFactory } from "@nestjs/core";
 import { Logger } from "nestjs-pino";
 import { AppConfigService } from "@/shared/modules/config/app-configuration.service";
 import { StartupValidationService } from "@/shared/modules/services/startup-validation.service";
 import { validateEnv } from "@/shared/modules/config/app-config";
 import { WorkerModule } from "@/worker.module";
+
+const GRACEFUL_SHUTDOWN_TIMEOUT_MS = 15_000;
 
 async function bootstrap() {
   try {
@@ -34,13 +37,41 @@ async function bootstrap() {
   app.useLogger(app.get(Logger));
   app.get(Logger).log("Worker started", "Worker");
 
-  const shutdown = () =>
-    void app.close().then(() => {
-      process.exit(0);
-    });
+  const shutdown = (signal: string) => {
+    app.get(Logger).log(`Received ${signal}, starting graceful shutdown...`, "Worker");
+    const timeout = setTimeout(() => {
+      process.stderr.write("Graceful shutdown timed out — forcing exit\n");
+      process.exit(1);
+    }, GRACEFUL_SHUTDOWN_TIMEOUT_MS);
+    timeout.unref();
 
-  process.on("SIGTERM", shutdown);
-  process.on("SIGINT", shutdown);
+    app.close().then(async () => {
+      await Sentry.close(5_000);
+      process.exit(0);
+    }).catch((err: Error) => {
+      process.stderr.write(`Shutdown error: ${err.message}\n`);
+      process.exit(1);
+    });
+  };
+
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
+
+  process.on("unhandledRejection", (reason: unknown) => {
+    app.get(Logger).error(
+      `Unhandled rejection: ${reason instanceof Error ? reason.message : String(reason)}`,
+      reason instanceof Error ? reason.stack : undefined,
+      "Worker",
+    );
+  });
+
+  process.on("uncaughtException", (error: Error) => {
+    app.get(Logger).error(
+      `Uncaught exception: ${error.message}`,
+      error.stack,
+      "Worker",
+    );
+  });
 }
 
 bootstrap().catch((err: Error) => {
