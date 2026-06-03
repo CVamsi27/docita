@@ -39,9 +39,9 @@ table's `tokenFamily` + `replacedByToken` (reuse detection revokes the family),
 so the doc's hypothetical `Session.replacedByHash` is not needed — the real
 table is `RefreshToken`, not `Session`.
 
-_Follow-up (minor):_ `replacedByToken` stores the rotated token's raw value;
-switching it to a hash is a small additional hardening, deferred to avoid
-touching reuse-detection logic in this pass.
+_Follow-up (minor):_ `replacedByToken` stored the rotated token's raw value;
+switched to `hashRefreshToken(newToken)` so the database only ever holds
+a SHA-256 hash instead of a valid credential.
 
 ## Item 5 — WebAuthn MFA
 

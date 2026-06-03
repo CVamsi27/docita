@@ -1,4 +1,4 @@
-import { Tier } from "@/lib/subscription/tier-access";
+import { getTierName, Tier } from "@/lib/subscription/tier-access";
 import {
   PRICING_CURRENCY_CONFIG,
   PRICING_CURRENCY_SYMBOLS,
@@ -39,7 +39,7 @@ export function isStarterActiveZeroBase(
   subscriptionStatus: string | undefined,
 ): boolean {
   return (
-    subscription?.tier === "STARTER" &&
+    subscription?.tier === getTierName(Tier.STARTER) &&
     subscriptionStatus === "ACTIVE" &&
     (subscription.basePriceCents ?? 0) === 0
   );
@@ -58,7 +58,7 @@ export function isComplimentaryActivePaidPlan(
 ): boolean {
   return (
     subscription?.tier != null &&
-    subscription.tier !== "STARTER" &&
+    subscription.tier !== getTierName(Tier.STARTER) &&
     subscriptionStatus === "ACTIVE" &&
     (subscription.basePriceCents ?? 0) <= 0
   );
@@ -150,7 +150,7 @@ export function starterMonthlyAccessTermMismatch(
   daysLeftInPeriod: number | null,
 ): boolean {
   return (
-    subscription?.tier === "STARTER" &&
+    subscription?.tier === getTierName(Tier.STARTER) &&
     subscription?.billingCycle === "MONTHLY" &&
     daysLeftInPeriod !== null &&
     daysLeftInPeriod > 45

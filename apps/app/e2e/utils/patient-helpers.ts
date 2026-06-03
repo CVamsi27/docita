@@ -392,13 +392,14 @@ async function setupTestUserImpl(
   requestHeaders: Record<string, string> = {},
   options: {
     clinicType?: ClinicType;
-    tier?: "ESSENTIAL" | "FRONT_DESK";
+    tier?: "ESSENTIAL" | "FRONT_DESK" | "FRONT_DESK_CLINIC" | "FRONT_DESK_HOSPITAL";
   } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
   const tier = options.tier ?? "ESSENTIAL";
   const isUnpaidEssentialTrial = tier === "ESSENTIAL";
-  const onboardingAdminRole = tier === "FRONT_DESK" ? "ADMIN" : "ADMIN_DOCTOR";
+  const isFrontDesk = tier === "FRONT_DESK" || tier === "FRONT_DESK_CLINIC" || tier === "FRONT_DESK_HOSPITAL";
+  const onboardingAdminRole = isFrontDesk ? "ADMIN" : "ADMIN_DOCTOR";
   const uniqueId = randomUUID();
   const email = `doctor-${uniqueId}@test.com`;
   const password = TEST_PASSWORD;
@@ -630,7 +631,7 @@ async function setupTestUserImpl(
     postOnboardingLoginData.userId ??
     registeredUserId;
 
-  if (tier !== "FRONT_DESK") {
+  if (!isFrontDesk) {
     const tokenRes = await request.post(
       `${API_URL}/doctors/signature/generate-token`,
       {
@@ -740,7 +741,7 @@ export async function setupTestUser(
   requestHeaders: Record<string, string> = {},
   options: {
     clinicType?: ClinicType;
-    tier?: "ESSENTIAL" | "FRONT_DESK";
+    tier?: "ESSENTIAL" | "FRONT_DESK" | "FRONT_DESK_CLINIC" | "FRONT_DESK_HOSPITAL";
   } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";

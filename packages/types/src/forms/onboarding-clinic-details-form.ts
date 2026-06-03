@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { clinicTypeSchema } from "../shared/users";
+import { clinicTypeSchema, facilityTypeSchema } from "../shared/users";
 
 const emailInputSchema = z.string().trim().optional().or(z.literal(""));
 
@@ -29,7 +29,7 @@ export const onboardingClinicDetailsBaseSchema = z.object({
     .optional()
     .or(z.literal("")),
   type: clinicTypeSchema,
-  facilityLabel: z.enum(["CLINIC", "HOSPITAL"]),
+  facilityLabel: facilityTypeSchema,
   countryCode: z
     .string()
     .trim()

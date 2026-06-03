@@ -127,3 +127,70 @@ export const paginatedInsuranceClaimListResponseSchema = z.object({
 export type PaginatedInsuranceClaimListResponse = z.infer<
   typeof paginatedInsuranceClaimListResponseSchema
 >;
+
+export const CLAIM_STATUS_LABELS: Record<ClaimStatus, string> = {
+  DRAFT: "Draft",
+  SUBMITTED: "Submitted",
+  INFO_REQUESTED: "Info requested",
+  APPROVED: "Approved",
+  PARTIALLY_APPROVED: "Partially approved",
+  DENIED: "Denied",
+  SETTLED: "Settled",
+  CANCELLED: "Cancelled",
+  APPEALED: "Appealed",
+};
+
+export const CLAIM_TYPE_LABELS: Record<ClaimType, string> = {
+  PRE_AUTH: "Pre-authorization",
+  REIMBURSEMENT: "Reimbursement",
+};
+
+export const CLAIM_STATUS_TRANSITIONS: Record<ClaimStatus, ClaimStatus[]> = {
+  DRAFT: ["SUBMITTED", "CANCELLED"],
+  SUBMITTED: [
+    "INFO_REQUESTED",
+    "APPROVED",
+    "PARTIALLY_APPROVED",
+    "DENIED",
+    "CANCELLED",
+  ],
+  INFO_REQUESTED: [
+    "SUBMITTED",
+    "APPROVED",
+    "PARTIALLY_APPROVED",
+    "DENIED",
+    "CANCELLED",
+  ],
+  APPROVED: ["SETTLED", "APPEALED", "CANCELLED"],
+  PARTIALLY_APPROVED: ["SETTLED", "APPEALED", "CANCELLED"],
+  DENIED: ["APPEALED", "CANCELLED"],
+  APPEALED: [
+    "SUBMITTED",
+    "APPROVED",
+    "PARTIALLY_APPROVED",
+    "DENIED",
+    "CANCELLED",
+  ],
+  SETTLED: [],
+  CANCELLED: [],
+};
+
+export const badgeToneSchema = z.enum([
+  "default",
+  "secondary",
+  "outline",
+  "destructive",
+]);
+export type BadgeTone = z.infer<typeof badgeToneSchema>;
+
+export const CLAIM_STATUS_TONE: Record<ClaimStatus, BadgeTone> = {
+  DRAFT: "outline",
+  SUBMITTED: "secondary",
+  INFO_REQUESTED: "secondary",
+  APPROVED: "default",
+  PARTIALLY_APPROVED: "default",
+  DENIED: "destructive",
+  SETTLED: "default",
+  CANCELLED: "outline",
+  APPEALED: "secondary",
+};

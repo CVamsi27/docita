@@ -163,7 +163,7 @@ export class StaffManagementService {
     const isFrontDesk = await isClinicFrontDesk(this.persistence, clinicId);
     if (data.role) {
       if (isFrontDesk) {
-        if (data.role === 'NURSE' || data.role === 'ADMIN_DOCTOR') {
+        if (data.role === Role.NURSE || data.role === Role.ADMIN_DOCTOR) {
           throw new BadRequestException(
             'This role is not available for the front desk workspace.',
           );
@@ -173,9 +173,9 @@ export class StaffManagementService {
 
     let appLoginDisabled: boolean | undefined;
     if (data.role !== undefined) {
-      if (data.role === 'DOCTOR' && isFrontDesk) {
+      if (data.role === Role.DOCTOR && isFrontDesk) {
         appLoginDisabled = true;
-      } else if (data.role !== 'DOCTOR') {
+      } else if (data.role !== Role.DOCTOR) {
         appLoginDisabled = false;
       }
     }

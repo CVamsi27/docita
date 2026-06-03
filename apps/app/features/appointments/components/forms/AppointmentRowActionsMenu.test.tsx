@@ -123,7 +123,7 @@ describe("getAppointmentRowActionVisibility", () => {
   });
 
   it("hides Cancel and Mark as No Show for cancelled and no-show statuses", () => {
-    for (const status of ["cancelled", "canceled", "no-show"]) {
+    for (const status of ["cancelled", "no-show"]) {
       const visibility = getAppointmentRowActionVisibility({
         appointmentId: "apt-1",
         patientId: "patient-1",

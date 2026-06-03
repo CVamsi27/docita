@@ -1,182 +1,36 @@
 "use client";
 
-import {
-  DATE_FORMATS,
-  formatDate,
-  formatDistanceToNow,
-  getUserFacingErrorMessage,
-} from "@workspace/utils";
-
-import { type ChangeEvent, type FormEvent, useMemo, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@workspace/ui/components/overlay/collapsible";
-import { WhatsAppBroadcastJobSummary } from "@workspace/types";
-import { AlertCircle, FileText, Megaphone, Send, Upload } from "lucide-react";
-import { broadcastsAPI } from "@/lib/api/api";
-import { internalQueryKeys } from "@/lib/api/query-keys";
-import { useInternalBroadcastsList } from "@workspace/data-access/internal";
-import { BROADCAST_PRESETS, type BroadcastPresetId } from "./broadcast-presets";
-import { parseRecipientsCsv } from "./parse-csv";
-
-const BROADCAST_LIST_LIMIT = 50;
-
-const STATUS_VARIANTS: Record<
-  WhatsAppBroadcastJobSummary["status"],
-  "default" | "secondary" | "destructive"
-> = {
-  PENDING: "secondary",
-  RUNNING: "default",
-  COMPLETED: "secondary",
-  FAILED: "destructive",
-  CANCELLED: "secondary",
-};
+import { useBroadcastsPage } from "./use-broadcasts-page";
+import { BroadcastsFormSection } from "./BroadcastsFormSection";
+import { BroadcastsListSection } from "./BroadcastsListSection";
 
 export function BroadcastsPage() {
-  const queryClient = useQueryClient();
-  const [presetId, setPresetId] = useState<BroadcastPresetId>(
-    BROADCAST_PRESETS[0]?.id ?? "",
-  );
-  const [title, setTitle] = useState("");
-  const [messageOverride, setMessageOverride] = useState("");
-  const [useTemplate, setUseTemplate] = useState(true);
-  const [csvFileName, setCsvFileName] = useState<string | null>(null);
-  const [parseResult, setParseResult] = useState<ReturnType<
-    typeof parseRecipientsCsv
-  > | null>(null);
-  const [csvError, setCsvError] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-
-  const selectedPreset = useMemo(
-    () => BROADCAST_PRESETS.find((preset) => preset.id === presetId) ?? null,
-    [presetId],
-  );
-
-  const listKey = internalQueryKeys.internal.broadcasts(BROADCAST_LIST_LIMIT);
-  const broadcastsQuery = useInternalBroadcastsList(BROADCAST_LIST_LIMIT);
-
-  const createMutation = useMutation({
-    mutationFn: broadcastsAPI.create,
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: listKey });
-      setCsvFileName(null);
-      setParseResult(null);
-      setTitle("");
-      setMessageOverride("");
-    },
-    onError: (error) => {
-      setSubmitError(
-        getUserFacingErrorMessage(error, {
-          context: "save",
-          fallback: "We could not start the broadcast. Please try again.",
-        }),
-      );
-    },
-  });
-
-  const handleCsvUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-
-    setCsvError(null);
-    setSubmitError(null);
-    setCsvFileName(file.name);
-
-    try {
-      const text = await file.text();
-      const result = parseRecipientsCsv(text);
-      setParseResult(result);
-      if (result.recipients.length === 0) {
-        setCsvError(
-          "No valid phone numbers were found in the CSV. Check the file and try again.",
-        );
-      }
-    } catch (error) {
-      setCsvError(
-        error instanceof Error
-          ? error.message
-          : "We could not read this CSV file.",
-      );
-    }
-  };
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSubmitError(null);
-
-    if (!selectedPreset) {
-      setSubmitError("Select an audience preset");
-      return;
-    }
-    if (!parseResult || parseResult.recipients.length === 0) {
-      setSubmitError("Upload a CSV with at least one valid phone number");
-      return;
-    }
-
-    const finalTitle =
-      title.trim() ||
-      `${selectedPreset.label} — ${formatDate(new Date(), DATE_FORMATS.DATETIME_LONG)}`;
-
-    const recipients = parseResult.recipients.map((recipient) => ({
-      phoneNumber: recipient.phoneNumber,
-      name: recipient.name,
-      variables: recipient.name ? { name: recipient.name } : undefined,
-    }));
-
-    createMutation.mutate({
-      title: finalTitle,
-      audienceLabel: selectedPreset.audienceLabel,
-      languageCode: "en",
-      templateName: useTemplate ? selectedPreset.metaTemplateName : undefined,
-      messageText: useTemplate
-        ? undefined
-        : messageOverride.trim() || selectedPreset.body,
-      recipients,
-    });
-  };
-
-  const jobs = broadcastsQuery.data ?? [];
-  const skippedRows = parseResult?.skipped ?? [];
-  const recipientCount = parseResult?.recipients.length ?? 0;
-
-  const listStatus = broadcastsQuery.isLoading
-    ? "loading"
-    : broadcastsQuery.isError
-      ? "error"
-      : "success";
-
-  const listErrorMessage = broadcastsQuery.isError
-    ? getUserFacingErrorMessage(broadcastsQuery.error, {
-        context: "load",
-        fallback: "We could not load broadcast history. Please try again.",
-      })
-    : undefined;
+  const {
+    presetId,
+    setPresetId,
+    title,
+    setTitle,
+    messageOverride,
+    setMessageOverride,
+    useTemplate,
+    setUseTemplate,
+    csvFileName,
+    csvError,
+    submitError,
+    parseResult,
+    selectedPreset,
+    createMutation,
+    handleCsvUpload,
+    handleSubmit,
+    jobs,
+    skippedRows,
+    recipientCount,
+    listStatus,
+    listErrorMessage,
+    broadcastsQuery,
+  } = useBroadcastsPage();
 
   return (
     <AppPageScaffold
@@ -189,278 +43,35 @@ export function BroadcastsPage() {
       }
     >
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">New broadcast</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="broadcast-audience">Audience preset</Label>
-                <Select
-                  value={presetId}
-                  onValueChange={(value) => {
-                    const preset = BROADCAST_PRESETS.find(
-                      (entry) => entry.id === value,
-                    );
-                    if (preset) {
-                      setPresetId(preset.id);
-                    }
-                  }}
-                >
-                  <SelectTrigger id="broadcast-audience">
-                    <SelectValue placeholder="Select audience" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {BROADCAST_PRESETS.map((preset) => (
-                      <SelectItem key={preset.id} value={preset.id}>
-                        {preset.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {selectedPreset && (
-                  <p className="text-xs text-muted-foreground">
-                    {selectedPreset.description}
-                  </p>
-                )}
-              </div>
+        <BroadcastsFormSection
+          presetId={presetId}
+          onPresetIdChange={setPresetId}
+          title={title}
+          onTitleChange={setTitle}
+          messageOverride={messageOverride}
+          onMessageOverrideChange={setMessageOverride}
+          useTemplate={useTemplate}
+          onUseTemplateChange={setUseTemplate}
+          csvFileName={csvFileName}
+          csvError={csvError}
+          submitError={submitError}
+          parseResult={parseResult}
+          recipientCount={recipientCount}
+          skippedRows={skippedRows}
+          createMutation={createMutation}
+          selectedPresetDescription={selectedPreset?.description}
+          selectedPresetMetaTemplateName={selectedPreset?.metaTemplateName}
+          selectedPresetBody={selectedPreset?.body}
+          onCsvUpload={handleCsvUpload}
+          onSubmit={handleSubmit}
+        />
 
-              <div className="space-y-2">
-                <Label htmlFor="broadcast-title">
-                  Broadcast name (optional)
-                </Label>
-                <Input
-                  id="broadcast-title"
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                  placeholder="Auto-generated from audience + timestamp"
-                />
-              </div>
-
-              <div className="space-y-2 rounded-[var(--radius)] border p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="space-y-0.5">
-                    <p className="text-sm font-medium">Send mode</p>
-                    <p className="text-xs text-muted-foreground">
-                      Templates are required when the recipient has never
-                      messaged us. Free text works only inside the 24-hour
-                      session window.
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant={useTemplate ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setUseTemplate(true)}
-                    >
-                      Meta template
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={!useTemplate ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setUseTemplate(false)}
-                    >
-                      Free text
-                    </Button>
-                  </div>
-                </div>
-                {useTemplate ? (
-                  <p className="text-xs text-muted-foreground">
-                    Will send the approved Meta template{" "}
-                    <code className="rounded bg-muted px-1.5 py-0.5">
-                      {selectedPreset?.metaTemplateName}
-                    </code>{" "}
-                    using the recipient name template variable.
-                  </p>
-                ) : (
-                  <Textarea
-                    value={messageOverride}
-                    onChange={(event) => setMessageOverride(event.target.value)}
-                    placeholder={selectedPreset?.body ?? ""}
-                    rows={10}
-                    className="resize-none font-mono text-sm"
-                  />
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="broadcast-csv">
-                  Recipients CSV (phone column required)
-                </Label>
-                <div className="flex items-center gap-3">
-                  <Button asChild type="button" variant="outline">
-                    <label
-                      htmlFor="broadcast-csv"
-                      className="flex cursor-pointer items-center gap-2"
-                    >
-                      <Upload className="h-4 w-4" />
-                      Upload CSV
-                    </label>
-                  </Button>
-                  <input
-                    id="broadcast-csv"
-                    type="file"
-                    accept=".csv,text/csv"
-                    className="hidden"
-                    onChange={handleCsvUpload}
-                  />
-                  {csvFileName && (
-                    <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-                      <FileText className="h-4 w-4" />
-                      {csvFileName}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  CSV must include a header row with a column named{" "}
-                  <code className="rounded bg-muted px-1 py-0.5">phone</code>{" "}
-                  (also accepts <code>mobile</code> / <code>number</code>).
-                  Optional <code>name</code> column is interpolated into{" "}
-                  <code>{`{{name}}`}</code>. 10-digit numbers are auto-prefixed
-                  with country code 91.
-                </p>
-              </div>
-
-              {parseResult && (
-                <div className="rounded-[var(--radius)] border bg-muted/20 p-4 text-sm">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <Badge variant="default">
-                      {recipientCount} valid recipients
-                    </Badge>
-                    {skippedRows.length > 0 && (
-                      <Badge variant="destructive">
-                        {skippedRows.length} skipped
-                      </Badge>
-                    )}
-                  </div>
-                  {skippedRows.length > 0 && (
-                    <Collapsible className="mt-3 text-xs">
-                      <CollapsibleTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-auto px-0 text-xs text-muted-foreground"
-                        >
-                          Show skipped rows
-                        </Button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <ul className="mt-2 max-h-40 list-disc space-y-1 overflow-y-auto pl-5 text-muted-foreground">
-                          {skippedRows.slice(0, 50).map((skip, idx) => (
-                            <li key={idx}>
-                              Row {skip.row}: {skip.reason}
-                            </li>
-                          ))}
-                          {skippedRows.length > 50 && (
-                            <li>
-                              … and {skippedRows.length - 50} more skipped rows
-                            </li>
-                          )}
-                        </ul>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  )}
-                </div>
-              )}
-
-              {csvError && (
-                <div className="flex items-start gap-2 rounded-[var(--radius)] border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
-                  <AlertCircle className="mt-0.5 h-4 w-4" />
-                  <span>{csvError}</span>
-                </div>
-              )}
-
-              {submitError && (
-                <div className="flex items-start gap-2 rounded-[var(--radius)] border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
-                  <AlertCircle className="mt-0.5 h-4 w-4" />
-                  <span>{submitError}</span>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between gap-3 border-t pt-4">
-                <p className="text-xs text-muted-foreground">
-                  Sending is throttled (~4 messages/sec) and runs in the
-                  background. You can close this page.
-                </p>
-                <Button
-                  type="submit"
-                  disabled={
-                    !parseResult ||
-                    parseResult.recipients.length === 0 ||
-                    createMutation.isPending
-                  }
-                  className="gap-2"
-                >
-                  {createMutation.isPending ? (
-                    <DocitaLoadingIndicator variant="inline" decorative />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                  Start broadcast
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Recent broadcasts</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DataState
-              status={
-                listStatus === "success" && jobs.length === 0
-                  ? "empty"
-                  : listStatus
-              }
-              loadingMessage="Loading broadcast history…"
-              errorMessage={listErrorMessage}
-              onRetry={() => void broadcastsQuery.refetch()}
-              emptyTitle="No broadcasts yet"
-              emptyDescription="Send your first campaign to see it here."
-              emptyIcon={Megaphone}
-            >
-              <ul className="space-y-3">
-                {jobs.map((job) => (
-                  <li
-                    key={job.id}
-                    className="rounded-[var(--radius)] border bg-background p-3"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 space-y-1">
-                        <p className="truncate text-sm font-medium">
-                          {job.title}
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {job.audienceLabel ?? "—"}
-                        </p>
-                      </div>
-                      <Badge variant={STATUS_VARIANTS[job.status]}>
-                        {job.status}
-                      </Badge>
-                    </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                      <span>
-                        Sent {job.sentCount}/{job.totalCount}
-                      </span>
-                      {job.failedCount > 0 && (
-                        <span className="text-destructive">
-                          {job.failedCount} failed
-                        </span>
-                      )}
-                      <span>{formatDistanceToNow(job.createdAt)}</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </DataState>
-          </CardContent>
-        </Card>
+        <BroadcastsListSection
+          status={listStatus}
+          jobs={jobs}
+          errorMessage={listErrorMessage}
+          onRetry={() => void broadcastsQuery.refetch()}
+        />
       </div>
     </AppPageScaffold>
   );

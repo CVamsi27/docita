@@ -38,39 +38,44 @@ async function bootstrap() {
   app.get(Logger).log("Worker started", "Worker");
 
   const shutdown = (signal: string) => {
-    app.get(Logger).log(`Received ${signal}, starting graceful shutdown...`, "Worker");
+    app
+      .get(Logger)
+      .log(`Received ${signal}, starting graceful shutdown...`, "Worker");
     const timeout = setTimeout(() => {
       process.stderr.write("Graceful shutdown timed out — forcing exit\n");
       process.exit(1);
     }, GRACEFUL_SHUTDOWN_TIMEOUT_MS);
     timeout.unref();
 
-    app.close().then(async () => {
-      await Sentry.close(5_000);
-      process.exit(0);
-    }).catch((err: Error) => {
-      process.stderr.write(`Shutdown error: ${err.message}\n`);
-      process.exit(1);
-    });
+    app
+      .close()
+      .then(async () => {
+        await Sentry.close(5_000);
+        process.exit(0);
+      })
+      .catch((err: Error) => {
+        process.stderr.write(`Shutdown error: ${err.message}\n`);
+        process.exit(1);
+      });
   };
 
   process.on("SIGTERM", () => shutdown("SIGTERM"));
   process.on("SIGINT", () => shutdown("SIGINT"));
 
   process.on("unhandledRejection", (reason: unknown) => {
-    app.get(Logger).error(
-      `Unhandled rejection: ${reason instanceof Error ? reason.message : String(reason)}`,
-      reason instanceof Error ? reason.stack : undefined,
-      "Worker",
-    );
+    app
+      .get(Logger)
+      .error(
+        `Unhandled rejection: ${reason instanceof Error ? reason.message : String(reason)}`,
+        reason instanceof Error ? reason.stack : undefined,
+        "Worker",
+      );
   });
 
   process.on("uncaughtException", (error: Error) => {
-    app.get(Logger).error(
-      `Uncaught exception: ${error.message}`,
-      error.stack,
-      "Worker",
-    );
+    app
+      .get(Logger)
+      .error(`Uncaught exception: ${error.message}`, error.stack, "Worker");
   });
 }
 

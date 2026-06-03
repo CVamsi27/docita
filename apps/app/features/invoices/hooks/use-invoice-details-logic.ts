@@ -13,6 +13,7 @@ import {
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { invoicesApi } from "@/features/invoices/api/invoices.api";
+import { safeOpenSignedUrl } from "@/lib/security/signed-url-validator";
 
 const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS = 60000;
@@ -60,7 +61,7 @@ export const useInvoiceDetailsLogic = (
         if (status.status === "COMPLETED" && status.pdfUrl) {
           toast.dismiss(toastId);
           toast.success("PDF ready");
-          window.open(status.pdfUrl, "_blank");
+          safeOpenSignedUrl(status.pdfUrl);
           return;
         }
 

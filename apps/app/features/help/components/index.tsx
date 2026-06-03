@@ -9,8 +9,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { SearchInput } from "@workspace/ui/components/form/search-input";
 import { WhatsAppButton } from "@/components/whatsapp/whatsapp-button";
 import {
   getSupportPhoneNumber,
@@ -23,8 +22,6 @@ import {
   HelpCircle,
   Mail,
   MessageCircle,
-  Search,
-  X,
 } from "lucide-react";
 
 const SUPPORT_MAILTO = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Docita support")}`;
@@ -62,35 +59,13 @@ export const HelpCenter: FC = () => {
         <h1 className="ui-page-title text-[var(--fs-2xl)] sm:text-[var(--fs-3xl)]">
           How can we help you?
         </h1>
-        <div className="relative max-w-md mx-auto">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden
-          />
-          <Input
-            placeholder="Enter topic"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={searchQuery.trim() ? "pl-10 pr-10" : "pl-10"}
-            aria-label="Search help articles"
-          />
-          {searchQuery.trim() ? (
-            <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
-              <SymbolTooltip label="Clear search">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => setSearchQuery("")}
-                  aria-label="Clear search"
-                >
-                  <X className="h-4 w-4 text-muted-foreground" aria-hidden />
-                </Button>
-              </SymbolTooltip>
-            </div>
-          ) : null}
-        </div>
+        <SearchInput
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onClear={() => setSearchQuery("")}
+          placeholder="Enter topic"
+          ariaLabel="Search help articles"
+        />
       </div>
 
       {filteredCategories.length === 0 ? (

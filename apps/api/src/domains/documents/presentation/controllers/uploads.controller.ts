@@ -109,7 +109,10 @@ export class UploadsController {
     }
 
     try {
-      await assertAllowedFileSignature(file, ['pdf', 'png', 'jpeg', 'webp']);
+      await assertAllowedFileSignature(file, ['pdf', 'png', 'jpeg', 'webp'], {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+      });
 
       return await this.uploadsService.updateSession(id, file, {
         modifiedBy: req.user?.id,

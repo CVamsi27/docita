@@ -8,10 +8,10 @@ import {
   Query,
   Request,
   UseGuards,
-  ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { Role } from '@workspace/db';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';
@@ -79,26 +79,22 @@ export class LeaveController {
   }
 
   @Patch(':id/approve')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   @ApiOperation({ summary: 'Approve a leave request (admin only)' })
   async approveLeave(@Param('id') id: string, @Request() req: RequestWithUser) {
-    const { clinicId, userId, role } = getClinicStaffRequestContext(req);
-    if (!ADMIN_ROLES.includes(role)) {
-      throw new ForbiddenException('Only admins can approve leave');
-    }
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
     return this.leaveService.approveLeave(id, userId, clinicId);
   }
 
   @Patch(':id/reject')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   @ApiOperation({ summary: 'Reject a leave request (admin only)' })
   async rejectLeave(
     @Param('id') id: string,
     @Request() req: RequestWithUser,
     @Body('rejectionReason') rejectionReason: string,
   ) {
-    const { clinicId, userId, role } = getClinicStaffRequestContext(req);
-    if (!ADMIN_ROLES.includes(role)) {
-      throw new ForbiddenException('Only admins can reject leave');
-    }
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
     return this.leaveService.rejectLeave(
       id,
       userId,

@@ -1,8 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { createHmac } from 'crypto';
+import { createHmac, randomUUID } from 'crypto';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 import { OutgoingWebhookRepository } from './outgoing-webhook.repository';
-import { v4 as uuidv4 } from 'uuid';
 
 const BACKOFF_BASE_MS = 5_000;
 const BACKOFF_CAP_MS = 300_000;
@@ -34,7 +33,7 @@ export class OutgoingWebhookService {
     if (subscriptions.length === 0) return;
 
     const payloadJson = JSON.stringify({
-      id: uuidv4(),
+      id: randomUUID(),
       event: event.eventName,
       clinicId: event.clinicId,
       aggregateType: event.aggregateType,

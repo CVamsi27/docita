@@ -269,6 +269,12 @@ export class AppConfigService {
     };
   }
 
+  getPublicDocumentSigningSecret(): string {
+    return (
+      this.getConfig().PUBLIC_DOCUMENT_SIGNING_SECRET ?? this.getJwtSecret()
+    );
+  }
+
   getEnvironment(): 'development' | 'staging' | 'production' | 'test' {
     return this.getConfig().NODE_ENV;
   }

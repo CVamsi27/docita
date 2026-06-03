@@ -68,7 +68,10 @@ export class DoctorsComplianceController {
       throw new BadRequestException('File is required');
     }
     try {
-      await assertAllowedFileSignature(file, ['pdf', 'png', 'jpeg']);
+      await assertAllowedFileSignature(file, ['pdf', 'png', 'jpeg'], {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+      });
       return await this.doctorsService.uploadRegistrationCertificate(id, file);
     } catch (error) {
       if (file.path) {

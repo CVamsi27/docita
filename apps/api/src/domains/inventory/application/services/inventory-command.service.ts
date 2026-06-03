@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import {
   IInventoryRepository,
   INVENTORY_REPOSITORY_TOKEN,

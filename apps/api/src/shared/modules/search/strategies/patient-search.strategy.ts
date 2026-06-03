@@ -38,6 +38,7 @@ export class PatientSearchStrategy extends SearchStrategyBase {
     const combined: SearchResult[] = [];
 
     for (const patient of ftsResults) {
+      if (combined.length >= limit) break;
       seen.add(patient.id);
       combined.push({
         id: patient.id,
@@ -50,6 +51,7 @@ export class PatientSearchStrategy extends SearchStrategyBase {
     }
 
     for (const patient of fuzzyResults) {
+      if (combined.length >= limit) break;
       if (seen.has(patient.id)) continue;
       seen.add(patient.id);
       combined.push({
@@ -60,10 +62,9 @@ export class PatientSearchStrategy extends SearchStrategyBase {
         relevanceScore: patient.rank * 0.5,
         meta: { mrn: patient.mrn || undefined },
       });
-      if (combined.length >= limit) break;
     }
 
-    return combined.slice(0, limit);
+    return combined;
   }
 
   protected async searchFallback(

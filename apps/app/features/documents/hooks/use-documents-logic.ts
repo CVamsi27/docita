@@ -4,6 +4,7 @@ import type { Document } from "@workspace/types";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { browserRequest } from "@/lib/auth/browser-request";
 import { logger } from "@/lib/monitoring/logger";
+import { validateSignedUrl } from "@/lib/security/signed-url-validator";
 
 export type SortKey = "date" | "patient" | "type" | "filename";
 export type SortDirection = "asc" | "desc";
@@ -43,6 +44,15 @@ export const useDocumentsLogic = () => {
 
   const handleDownload = async (document: Document) => {
     if (document.url) {
+      const validation = validateSignedUrl(document.url);
+      if (!validation.valid) {
+        logger.warn("Blocked download of document with invalid URL", {
+          documentId: document.id,
+          reason: validation.reason,
+        });
+        return;
+      }
+
       try {
         const response = await browserRequest(document.url);
         const blob = await response.blob();

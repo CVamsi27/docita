@@ -41,7 +41,7 @@ vi.mock("sonner", () => ({
   },
 }));
 
-vi.mock("@/components/theme-toggle", () => ({
+vi.mock("@workspace/ui/components/theme-toggle", () => ({
   ThemeToggle: () => (
     <button type="button" aria-label="Toggle theme">
       Toggle theme

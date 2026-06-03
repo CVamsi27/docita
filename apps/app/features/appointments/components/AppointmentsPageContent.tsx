@@ -13,9 +13,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CalendarDays, Clock } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
-import { cn } from "@workspace/ui/lib/utils";
-import { getStatusColor } from "@workspace/ui/components/indicators/status-badge";
-import type { StatusType } from "@workspace/ui/components/indicators/status-badge";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { FeatureGate } from "@/components/auth/feature-gate";
@@ -29,14 +26,18 @@ import {
   AppointmentsPageHeaderUI,
   AppointmentsWeekView,
 } from "@/features/appointments/components";
+import { AppointmentSummaryBar } from "@/features/appointments/components/AppointmentSummaryBar";
+import { CalendarViewToggle } from "@/features/appointments/components/CalendarViewToggle";
 import { DoctorDelayBanner } from "@/features/appointments/components/DoctorDelayBanner";
 import { MarkDoctorDelayDialog } from "@/features/appointments/components/dialogs/MarkDoctorDelayDialog";
 import { useMarkDoctorDelay } from "@workspace/data-access";
 import type { AppointmentListItem } from "@workspace/data-access";
 import { useScrollBehavior } from "@workspace/hooks";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
-
-const REQUESTS_PANEL_FOCUS_PARAM = "requestsPanel";
+import {
+  computeAppointmentSummary,
+  REQUESTS_PANEL_FOCUS_PARAM,
+} from "@/features/appointments/lib/appointments-page-helpers";
 
 const AppointmentRequestsPanel = dynamicImport(
   () =>
@@ -134,44 +135,10 @@ function AppointmentsContent() {
     refetch,
   } = handlers;
 
-  const appointmentSummary = useMemo(() => {
-    const counts = filteredAppointments.reduce(
-      (acc, appointment) => {
-        acc.total += 1;
-        acc[appointment.status] = (acc[appointment.status] ?? 0) + 1;
-        return acc;
-      },
-      {
-        total: 0,
-        scheduled: 0,
-        confirmed: 0,
-        "checked-in": 0,
-        "in-progress": 0,
-        completed: 0,
-      } as Record<string, number>,
-    );
-
-    const breakdown: Array<{
-      label: string;
-      value: number;
-      status: StatusType;
-    }> = [
-      { label: "Scheduled", value: counts.scheduled, status: "scheduled" },
-      { label: "Confirmed", value: counts.confirmed, status: "confirmed" },
-      { label: "Checked in", value: counts["checked-in"], status: "success" },
-      {
-        label: "In progress",
-        value: counts["in-progress"],
-        status: "in-progress",
-      },
-      { label: "Completed", value: counts.completed, status: "completed" },
-    ];
-
-    return {
-      total: counts.total,
-      breakdown: breakdown.filter((item) => item.value > 0),
-    };
-  }, [filteredAppointments]);
+  const appointmentSummary = useMemo(
+    () => computeAppointmentSummary(filteredAppointments),
+    [filteredAppointments],
+  );
 
   return (
     <FeatureGate
@@ -218,62 +185,13 @@ function AppointmentsContent() {
 
         <DoctorDelayBanner filterDoctorId={selectedDoctorId ?? undefined} />
 
-        {appointmentSummary.total > 0 ? (
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-md border border-border/60 bg-background/60 px-3 py-2 text-xs">
-            <span className="font-semibold text-foreground">
-              {appointmentSummary.total} appointment
-              {appointmentSummary.total !== 1 ? "s" : ""}
-            </span>
-            {appointmentSummary.breakdown.length > 0 ? (
-              <span
-                className="hidden text-muted-foreground sm:inline"
-                aria-hidden
-              >
-                ·
-              </span>
-            ) : null}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              {appointmentSummary.breakdown.map((item) => (
-                <span
-                  key={item.label}
-                  className="inline-flex items-center gap-1.5 text-muted-foreground"
-                >
-                  <span
-                    className={cn(
-                      "inline-flex h-1.5 w-1.5 shrink-0 rounded-full",
-                      getStatusColor(item.status),
-                    )}
-                    aria-hidden
-                  />
-                  <span>
-                    {item.label}{" "}
-                    <span className="font-medium tabular-nums text-foreground">
-                      {item.value}
-                    </span>
-                  </span>
-                </span>
-              ))}
-            </div>
-          </div>
-        ) : null}
+        <AppointmentSummaryBar summary={appointmentSummary} />
 
         {isV2Design ? (
-          <div className="flex w-fit items-center gap-0.5 rounded-[var(--radius-md)] border border-border/60 bg-muted/30 p-0.5">
-            <Button
-              size="sm"
-              variant={calendarView === "day" ? "default" : "ghost"}
-              onClick={() => setCalendarView("day")}
-            >
-              Day
-            </Button>
-            <Button
-              size="sm"
-              variant={calendarView === "week" ? "default" : "ghost"}
-              onClick={() => setCalendarView("week")}
-            >
-              Week
-            </Button>
-          </div>
+          <CalendarViewToggle
+            view={calendarView}
+            onChange={setCalendarView}
+          />
         ) : null}
 
         {isV2Design && calendarView === "week" ? (

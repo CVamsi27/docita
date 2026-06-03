@@ -59,7 +59,10 @@ export class ImportsOcrController {
     }
 
     try {
-      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp', 'gif']);
+      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp', 'gif'], {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+      });
       return await this.importsService.processMedicalDocumentOcr(
         file.path,
         req.user?.clinicId,

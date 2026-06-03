@@ -10,7 +10,6 @@ import {
 import { apiFetch } from "@/lib/api/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
 import { buildCsrfHeaders, buildJsonHeaders } from "@/lib/auth/csrf";
-import { ApiError } from "@/lib/errors";
 import {
   type ClinicDetails,
   type ClinicRegistrationData,
@@ -18,30 +17,32 @@ import {
   defaultClinicRegistrationData,
   type TeamMember,
 } from "@/features/onboarding/components/types";
-import { DEFAULT_CURRENCY, getUserFacingErrorMessage } from "@workspace/utils";
-import type { MultiCurrencyTierPricing, PlanMode } from "@workspace/types";
+import { getTierName } from "@workspace/utils";
+import { Tier, type MultiCurrencyTierPricing } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { parseClinicDetailsDraft } from "@/features/onboarding/components/forms/clinic-registration-form-helpers";
 import {
   clearOnboardingSession,
   getPersistedFormData,
   getPersistedOnboardingId,
   getPersistedStep,
-  isRestartableOnboardingError,
   persistFormData,
   persistOnboardingId,
   persistStep,
 } from "./onboarding-session-storage";
-import {
-  buildRegistrationPayload,
-  validateRegistrationRequirements,
-} from "./onboarding-payload";
-import {
-  getOnboardingTrialEligibility,
-  openOnboardingPlanCheckout,
-  type PlanSelectionOptions,
-} from "./onboarding-plan-checkout";
+import { buildRegistrationPayload } from "./onboarding-payload";
+import type { PlanSelectionOptions } from "./onboarding-plan-checkout";
 import { completeOnboardingRegistration } from "./onboarding-completion";
+import {
+  ERROR_ACCOUNT_DETAILS,
+  ERROR_ENTERPRISE_SALES,
+  ERROR_PAYMENT_START,
+  handleOnboardingValidateError,
+  handleSubmitRegistrationError,
+  processPlanPaymentFlow,
+  resolveOwnerRole,
+  resolvePlanPricing,
+  validateRegistrationData,
+} from "./clinic-registration-helpers";
 
 export function useClinicRegistrationFlow() {
   const { user, refreshUser } = useAuth();
@@ -104,16 +105,7 @@ export function useClinicRegistrationFlow() {
           validatedOnboardingIdRef.current = onboardingId;
           return onboardingId;
         } catch (error) {
-          if (
-            error instanceof ApiError &&
-            error.statusCode !== 400 &&
-            error.statusCode !== 404
-          ) {
-            throw new Error(
-              "We could not continue setup right now. Please try again.",
-            );
-          }
-          if (!isRestartableOnboardingError(error)) throw error;
+          handleOnboardingValidateError(error);
         }
         setOnboardingId(null);
       }
@@ -173,98 +165,76 @@ export function useClinicRegistrationFlow() {
       pricing: MultiCurrencyTierPricing,
       options?: PlanSelectionOptions,
     ) => {
-      const price =
-        billingCycle === "YEARLY" ? pricing.yearly : pricing.monthly;
-      const resolvedCurrency = options?.currency || DEFAULT_CURRENCY;
-      const resolvedMode: PlanMode = options?.mode ?? "FULL";
+      const { price, currency, mode } = resolvePlanPricing(
+        billingCycle,
+        pricing,
+        options,
+      );
 
       setFormData((prev) => ({
         ...prev,
         planSelection: {
           tier,
           billingCycle,
-          price: typeof price === "number" ? price : 0,
-          currency: resolvedCurrency,
+          price,
+          currency,
           isCoreTrial: false,
-          planMode: resolvedMode,
+          planMode: mode,
         },
       }));
 
-      if (tier === "ENTERPRISE") {
-        toast.info("Enterprise plans are handled by our sales team");
+      if (tier === getTierName(Tier.ENTERPRISE)) {
+        toast.info(ERROR_ENTERPRISE_SALES);
         return;
       }
       if (!user?.email) {
-        showUserFacingErrorToast(
-          null,
-          "Please complete your account details before starting payment",
-          "form",
-        );
+        showUserFacingErrorToast(null, ERROR_ACCOUNT_DETAILS, "form");
         return;
       }
 
       try {
         setIsProcessingPayment(true);
         const oid = await ensureOnboardingId();
-        if (tier === "ESSENTIAL") {
-          const trialEligible = await getOnboardingTrialEligibility(oid);
-          if (trialEligible) {
-            setFormData((prev) => ({
-              ...prev,
-              paymentDetails: { skipPayment: true, autoPay: true },
-            }));
-            setStep(5);
-            return;
-          }
-          toast.info(
-            "Your free trial has already been used. Complete payment to continue with Essential.",
-          );
-        }
-        const checkoutResult = await openOnboardingPlanCheckout({
-          onboardingId: oid,
-          tier,
-          billingCycle,
-          currency: resolvedCurrency,
-          planMode: resolvedMode,
-          clinicDetails: formData.clinicDetails,
-          customer: { email: user.email, name: user.name },
-          openCheckout,
-          onPaymentCompleted: (response) => {
-            setFormData((prev) => ({
-              ...prev,
-              paymentDetails: {
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpayOrderId: response.razorpay_order_id,
-                razorpaySignature: response.razorpay_signature,
-                autoPay: true,
-                skipPayment: false,
-              },
-            }));
-            setStep(5);
+        await processPlanPaymentFlow(
+          {
+            onboardingId: oid,
+            tier,
+            billingCycle,
+            currency,
+            planMode: mode,
+            clinicDetails: formData.clinicDetails,
+            customer: { email: user.email, name: user.name },
           },
-        });
-
-        if (checkoutResult.status === "canceled") {
-          return;
-        }
-        if (checkoutResult.status === "failed") {
-          showUserFacingErrorToast(
-            undefined,
-            "We could not complete this payment. Please try again.",
-            "payment",
-          );
-          return;
-        }
+          {
+            openCheckout: (opts) => openCheckout(opts as never),
+            onTrialEligible: () => {
+              setFormData((prev) => ({
+                ...prev,
+                paymentDetails: { skipPayment: true, autoPay: true },
+              }));
+              setStep(5);
+            },
+            onPaymentCompleted: (response) => {
+              setFormData((prev) => ({
+                ...prev,
+                paymentDetails: {
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpaySignature: response.razorpay_signature,
+                  autoPay: true,
+                  skipPayment: false,
+                },
+              }));
+              setStep(5);
+            },
+          },
+        );
       } catch (error) {
         if (isPaymentCanceledError(error)) {
           notifyPaymentCanceled();
           return;
         }
-        showUserFacingErrorToast(
-          error,
-          "We could not start payment right now. Please try again.",
-          "payment",
-        );
+        showUserFacingErrorToast(error, ERROR_PAYMENT_START, "payment");
       } finally {
         setIsProcessingPayment(false);
       }
@@ -283,7 +253,6 @@ export function useClinicRegistrationFlow() {
 
   const goBackFromCompliance = useCallback(() => setStep(4), [setStep]);
 
-  // Persist compliance edits across remounts, including phone signature returns.
   const setComplianceDraft = useCallback(
     (compliance: Partial<ComplianceSettings>) => {
       setFormData((prev) => ({
@@ -296,35 +265,25 @@ export function useClinicRegistrationFlow() {
 
   const submitRegistration = useCallback(
     async (complianceData: ComplianceSettings, onSuccess: () => void) => {
-      const ownerRole =
-        user?.role === "ADMIN_DOCTOR" ? "ADMIN_DOCTOR" : "ADMIN";
+      const ownerRole = resolveOwnerRole(user?.role);
       const ownerName = user?.name ?? "";
       const ownerEmail = user?.email ?? "";
 
-      const { stepOneMissing, all: missing } = validateRegistrationRequirements(
+      const validation = validateRegistrationData(
         formData.clinicDetails,
         user?.name,
         user?.email,
         complianceData,
       );
-      if (missing.length > 0) {
-        setStep(stepOneMissing.length > 0 ? 1 : 5);
-        throw new Error(
-          `Complete the pending onboarding items before continuing: ${missing.join(", ")}`,
-        );
-      }
-      const details = parseClinicDetailsDraft(formData.clinicDetails);
-      if (!details) {
-        setStep(1);
-        throw new Error(
-          "Complete the pending onboarding items before continuing: valid facility details",
-        );
+      if (!validation.valid) {
+        setStep(validation.targetStep);
+        throw new Error(validation.errorMessage!);
       }
 
       try {
         const payload = buildRegistrationPayload(
           formData,
-          details,
+          validation.parsedDetails!,
           { name: ownerName, email: ownerEmail, role: ownerRole },
           complianceData,
         );
@@ -347,23 +306,7 @@ export function useClinicRegistrationFlow() {
         clearOnboardingSession();
         onSuccess();
       } catch (error) {
-        if (isRestartableOnboardingError(error)) {
-          restartOnboarding();
-          showUserFacingErrorToast(
-            null,
-            "We could not finish setup. Please start again.",
-            "form",
-          );
-          return;
-        }
-        showUserFacingErrorToast(
-          error,
-          getUserFacingErrorMessage(error, {
-            fallback: "We could not finish setup. Please try again.",
-            context: "form",
-          }),
-          "form",
-        );
+        handleSubmitRegistrationError(error, restartOnboarding);
       }
     },
     [

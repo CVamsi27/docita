@@ -3,6 +3,7 @@ import { planModeSchema } from "../billing/tier";
 import { taxRegimeSchema } from "../billing/tax";
 import { jsonObjectSchema } from "../shared/json-schema";
 import { sidebarNavOrderSchema } from "../shared/sidebar-nav";
+import { facilityTypeSchema } from "../shared/users";
 
 const customFieldSchema = z.object({
   name: z.string(),
@@ -118,7 +119,7 @@ export const updateClinicSettingsRequestSchema = z.object({
   subscriptionPaymentBankAccount: bankAccountSchema.optional(),
   paymentReceivingBankAccount: bankAccountSchema.optional(),
   taxSettings: taxSettingsSchema.optional(),
-  facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
+  facilityLabel: facilityTypeSchema.optional(),
   sidebarNavOrder: sidebarNavOrderSchema.optional(),
   mapsLocation: mapsLocationSchema.optional(),
   mapsLink: z.union([z.string().url(), z.literal("")]).optional(),
@@ -198,7 +199,7 @@ export const updateClinicMemberRequestSchema = z.object({
 export const clinicResponseSchema = createClinicRequestSchema.extend({
   id: z.string(),
   planMode: planModeSchema.optional(),
-  facilityType: z.enum(["CLINIC", "HOSPITAL"]).optional(),
+  facilityType: facilityTypeSchema.optional(),
   active: z.boolean().optional(),
   createdAt: z.union([z.string(), z.date()]).optional(),
   referralCode: z.string().optional(),

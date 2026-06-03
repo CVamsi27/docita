@@ -15,7 +15,6 @@ import { FeedbackService } from '@/domains/feedback/application/services/feedbac
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 import { RequestWithUser } from '@/shared/common/types/common.types';
-import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 
 import {
   CreateFeedbackDto,
@@ -71,16 +70,13 @@ export class FeedbackController {
   }
 
   @Get('stats')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   getStats(
     @Request() req: RequestWithUser,
     @Query('clinicId') clinicId?: string,
   ) {
     if (!req.user) {
       throw new ForbiddenException('User session required');
-    }
-
-    if (req.user.role !== Role.ADMIN) {
-      throw new ForbiddenException('Only admins can view feedback statistics');
     }
 
     if (!req.user.clinicId) {
@@ -95,12 +91,10 @@ export class FeedbackController {
   }
 
   @Get('clinic')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   @ZodSerializerDto(FeedbackListResponseDto)
   findForClinic(@Request() req: RequestWithUser) {
     if (!req.user) throw new ForbiddenException('User session required');
-    if (req.user.role !== Role.ADMIN) {
-      throw new ForbiddenException('Only admins can view clinic feedback');
-    }
 
     return this.feedbackService.findAllForClinic(req.user.clinicId || '');
   }
@@ -112,6 +106,7 @@ export class FeedbackController {
   }
 
   @Patch(':id/status')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   @ZodSerializerDto(FeedbackResponseDto)
   @UsePipes(new ZodValidationPipe(UpdateFeedbackStatusSchema))
   updateStatus(
@@ -119,10 +114,6 @@ export class FeedbackController {
     @Param('id') id: string,
     @Body() dto: UpdateFeedbackStatusDto,
   ) {
-    if (getClinicStaffRequestContext(req).role !== Role.ADMIN) {
-      throw new ForbiddenException('Only admins can update feedback status');
-    }
-
     return this.feedbackService.updateStatus(
       id,
       dto,
@@ -131,11 +122,8 @@ export class FeedbackController {
   }
 
   @Delete(':id')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   delete(@Request() req: RequestWithUser, @Param('id') id: string) {
-    if (getClinicStaffRequestContext(req).role !== Role.ADMIN) {
-      throw new ForbiddenException('Only admins can delete feedback');
-    }
-
     return this.feedbackService.delete(id, req.user?.clinicId || undefined);
   }
 }

@@ -62,6 +62,15 @@ export abstract class StorageProvider {
     expiresInSeconds: number,
   ): Promise<string>;
 
+  /**
+   * Fetch the raw object (buffer + content type) from storage.
+   * Used by proxy routes that read server-side instead of redirecting
+   * to a signed URL.
+   */
+  abstract getObject(
+    objectKey: string,
+  ): Promise<{ buffer: Buffer; contentType: string }>;
+
   protected sanitizeFilename(filename: string): string {
     return filename
       .replace(/[^a-zA-Z0-9.\-_]/g, '_')

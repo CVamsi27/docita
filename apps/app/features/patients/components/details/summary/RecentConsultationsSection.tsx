@@ -32,7 +32,7 @@ export function RecentConsultationsSection({
         .flatMap((event) => {
           const metadata = parseVisitCardMetadata(event.metadata);
           const status = metadata.status?.toLowerCase();
-          const isCancelled = status === "cancelled" || status === "canceled";
+          const isCancelled = status === "cancelled";
           const isFuture =
             new Date(event.date).getTime() > Date.parse(timelineCutoff);
           return isCancelled || isFuture ? [] : [{ event, metadata }];

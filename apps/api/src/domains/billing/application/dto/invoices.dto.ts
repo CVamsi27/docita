@@ -1,15 +1,14 @@
 import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
 import {
   createInvoiceRequestSchema,
   invoiceResponseSchema,
   invoicePaymentActivityResponseSchema,
   listInvoicesQuerySchema,
   paginatedInvoiceListResponseSchema,
-  stripHtmlTags,
   updateInvoiceRequestSchema,
 } from '@workspace/types';
 import { InvoiceStatus as _InvoiceStatus } from '@workspace/db';
+import { doctorFieldsSchema } from './doctor-fields.shared';
 
 export const CreateInvoiceSchema = createInvoiceRequestSchema
   .omit({
@@ -18,48 +17,12 @@ export const CreateInvoiceSchema = createInvoiceRequestSchema
     paidAt: true,
     totalAmount: true,
   })
-  .extend({
-    doctorName: z.string().max(100).transform(stripHtmlTags).optional(),
-    doctorEmail: z
-      .string()
-      .email()
-      .max(255)
-      .transform(stripHtmlTags)
-      .optional(),
-    doctorPhone: z.string().max(20).transform(stripHtmlTags).optional(),
-    doctorSpecialization: z
-      .string()
-      .max(100)
-      .transform(stripHtmlTags)
-      .optional(),
-    doctorRole: z.string().max(50).transform(stripHtmlTags).optional(),
-    doctorRegistrationNumber: z
-      .string()
-      .max(100)
-      .transform(stripHtmlTags)
-      .optional(),
-    doctorLicenseNumber: z
-      .string()
-      .max(100)
-      .transform(stripHtmlTags)
-      .optional(),
-  });
+  .merge(doctorFieldsSchema);
 
 export class CreateInvoiceDto extends createZodDto(CreateInvoiceSchema) {}
 
-export const UpdateInvoiceSchema = updateInvoiceRequestSchema.extend({
-  doctorName: z.string().max(100).transform(stripHtmlTags).optional(),
-  doctorEmail: z.string().email().max(255).transform(stripHtmlTags).optional(),
-  doctorPhone: z.string().max(20).transform(stripHtmlTags).optional(),
-  doctorSpecialization: z.string().max(100).transform(stripHtmlTags).optional(),
-  doctorRole: z.string().max(50).transform(stripHtmlTags).optional(),
-  doctorRegistrationNumber: z
-    .string()
-    .max(100)
-    .transform(stripHtmlTags)
-    .optional(),
-  doctorLicenseNumber: z.string().max(100).transform(stripHtmlTags).optional(),
-});
+export const UpdateInvoiceSchema =
+  updateInvoiceRequestSchema.merge(doctorFieldsSchema);
 
 export class UpdateInvoiceDto extends createZodDto(UpdateInvoiceSchema) {}
 

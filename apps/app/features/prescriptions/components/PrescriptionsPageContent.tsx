@@ -19,6 +19,7 @@ import {
   usePrescriptions,
 } from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth-context";
+import { isDoctor } from "@/lib/auth/permissions";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { Feature } from "@/lib/stores/permission-store";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
@@ -34,7 +35,7 @@ export function PrescriptionsPageContent() {
   const patientIdFromUrl = searchParams.get("patientId") ?? "";
   const { user } = useAuth();
   const { clinic } = useClinic();
-  const isDoctorRole = user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
+  const isDoctorRole = isDoctor(user?.role);
   const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
   const clinicToday = formatClinicTodayPickerIso(clinicTz);
   const [searchQuery, setSearchQuery] = useState("");

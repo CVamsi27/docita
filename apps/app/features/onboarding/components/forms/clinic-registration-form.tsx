@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle } from "lucide-react";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import type { PlanMode } from "@workspace/types";
 import { useClinicRegistrationFlow } from "@/features/onboarding/hooks/use-clinic-registration-flow";
@@ -24,11 +23,6 @@ import {
   defaultComplianceValues,
 } from "@/features/onboarding/components/types";
 import {
-  Alert,
-  AlertDescription,
-} from "@workspace/ui/components/feedback/alert";
-import { Button } from "@workspace/ui/components/form/button";
-import {
   DEFAULT_COUNTRY_CODE,
   getFacilityLabel,
   recommendTierForTeamSize,
@@ -42,6 +36,7 @@ import { useOnboardingDraft } from "./use-onboarding-draft";
 import {
   DraftRestoreDialog,
   OnboardingProgressCard,
+  StepErrorAlert,
 } from "./clinic-registration-form-sections";
 
 export function ClinicRegistrationForm({
@@ -245,31 +240,10 @@ export function ClinicRegistrationForm({
         onRestore={handleRestoreDraft}
       />
 
-      {stepError && (
-        <Alert
-          variant="destructive"
-          role="alert"
-          aria-live="assertive"
-          aria-atomic="true"
-        >
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="flex items-center justify-between gap-4">
-            <span>{stepError}</span>
-            <Button
-              variant="outline"
-              size="sm"
-              className="shrink-0"
-              onClick={() => setStepError(null)}
-            >
-              Dismiss
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {stepError ? `Error: ${stepError}` : ""}
-      </div>
+      <StepErrorAlert
+        message={stepError}
+        onDismiss={() => setStepError(null)}
+      />
 
       <OnboardingProgressCard step={step} />
 
@@ -301,7 +275,7 @@ export function ClinicRegistrationForm({
           onComplete={handleSetTeamMembers}
           ownerName={user?.name}
           ownerEmail={user?.email}
-          ownerRole={user?.role === "ADMIN_DOCTOR" ? "ADMIN_DOCTOR" : "ADMIN"}
+          ownerRole={user?.role === "ADMIN_DOCTOR" ? ("ADMIN_DOCTOR" as const) : ("ADMIN" as const)}
         />
       )}
 

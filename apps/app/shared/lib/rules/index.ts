@@ -60,28 +60,6 @@ export const validationRules = {
   },
 };
 
-export const permissionRules = {
-  canAccessFeature: (userRole: string, requiredRoles: string[]): boolean => {
-    return requiredRoles.includes(userRole);
-  },
-
-  isAdmin: (userRole: string): boolean => {
-    return userRole === "admin";
-  },
-
-  isDoctor: (userRole: string): boolean => {
-    return userRole === "doctor";
-  },
-
-  canViewPatientData: (userRole: string): boolean => {
-    return ["admin", "doctor", "nurse"].includes(userRole);
-  },
-
-  canModifySettings: (userRole: string): boolean => {
-    return userRole === "admin";
-  },
-};
-
 export const medicalRules = {
   calculateAge: (dateOfBirth: Date | string): number => {
     return getAgeInYears(dateOfBirth) ?? 0;

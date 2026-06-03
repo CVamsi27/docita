@@ -390,7 +390,9 @@ describe('SearchService', () => {
       expect(mockSearchPatientsFullText).toHaveBeenCalledTimes(1);
       // FTS fails on first search → fuzzy is called both in searchFullText (parallel with FTS)
       // and in searchFallback. Second search goes directly to searchFallback.
-      expect(mockSearchPatientsFuzzy.mock.calls.length).toBeGreaterThanOrEqual(2);
+      expect(mockSearchPatientsFuzzy.mock.calls.length).toBeGreaterThanOrEqual(
+        2,
+      );
     });
 
     it('should prioritize exact title matches over partial matches', async () => {

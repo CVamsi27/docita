@@ -1,11 +1,15 @@
 import type { QueueItem } from "@workspace/data-access";
-import { appClinicSchema } from "@workspace/types";
+import { appClinicSchema, type AppointmentListItemContractResponse } from "@workspace/types";
 import {
   DEFAULT_SLOT_DURATION,
   formatUtcInstantAsClinicPickerIso,
   getPatientFullName,
 } from "@workspace/utils";
-import { isQueueTokenWaiting } from "@/lib/utils/queue-token-status";
+import {
+  isQueueTokenCompleted,
+  isQueueTokenInProgress,
+  isQueueTokenWaiting,
+} from "@/lib/utils/queue-token-status";
 
 /** Minimal appointment fields used by the doctor-now-next algorithm. */
 export interface DashboardAppointment {
@@ -212,4 +216,154 @@ export function buildDoctorNowNext({
   }
 
   return { inProgress, combinedUpcoming, mode: "schedule" };
+}
+
+/* ------------------------------------------------------------------ */
+/* Dashboard stats, sort, and queue-view extraction                   */
+/* ------------------------------------------------------------------ */
+
+export interface DashboardStats {
+  scheduledToday: number;
+  waiting: number;
+  inProgress: number;
+  completed: number;
+}
+
+export function buildStats(
+  todayAppointments: AppointmentListItemContractResponse[],
+  inProgressAppointments: AppointmentListItemContractResponse[],
+  todayQueue: QueueItem[],
+): DashboardStats {
+  const appointmentIdsWithQueueToken = new Set(
+    todayQueue
+      .map((q) => q.appointmentId)
+      .filter((id): id is string => Boolean(id)),
+  );
+  const inProgressFromQueue = todayQueue.filter((q) =>
+    isQueueTokenInProgress(q.status),
+  ).length;
+  const inProgressAppointmentsOnly = inProgressAppointments.filter(
+    (a) =>
+      a.status === "in-progress" &&
+      a.id &&
+      !appointmentIdsWithQueueToken.has(a.id),
+  ).length;
+
+  return {
+    scheduledToday: todayAppointments.length,
+    waiting: todayQueue.filter((q) => isQueueTokenWaiting(q.status)).length,
+    inProgress: inProgressFromQueue + inProgressAppointmentsOnly,
+    completed: todayQueue.filter((q) => isQueueTokenCompleted(q.status)).length,
+  };
+}
+
+export function sortAppointmentsByStartTime(
+  items: AppointmentListItemContractResponse[],
+): AppointmentListItemContractResponse[] {
+  return [...items].sort((a, b) => {
+    const ta = new Date(a.startTime).getTime();
+    const tb = new Date(b.startTime).getTime();
+    return ta - tb;
+  });
+}
+
+export function buildActiveConsultations(
+  todayQueue: QueueItem[],
+  inProgressAppointments: AppointmentListItemContractResponse[],
+  isLocalToday: (value: string | Date | null | undefined) => boolean,
+): QueueItem[] {
+  const fromQueue = todayQueue.filter((q) => isQueueTokenInProgress(q.status));
+  const coveredAppointmentIds = new Set(
+    fromQueue
+      .map((q) => q.appointmentId)
+      .filter((id): id is string => Boolean(id)),
+  );
+  const withoutQueueToken: QueueItem[] = [];
+
+  for (const a of inProgressAppointments) {
+    if (
+      a.status !== "in-progress" ||
+      !a.id ||
+      coveredAppointmentIds.has(a.id) ||
+      !isLocalToday(a.startTime)
+    ) {
+      continue;
+    }
+
+    const updatedAt =
+      typeof a.updatedAt === "string"
+        ? a.updatedAt
+        : new Date(a.updatedAt).toISOString();
+
+    withoutQueueToken.push({
+      id: `in-progress-appt-${a.id}`,
+      clinicId: a.clinicId,
+      patientId: a.patientId,
+      appointmentId: a.id,
+      doctorId: a.doctorId,
+      tokenNumber: 0,
+      status: "IN_PROGRESS",
+      priority: 0,
+      createdAt: updatedAt,
+      tokenType: "scheduled",
+      estimatedDuration: 30,
+      estimatedWaitTime: 0,
+      patient: a.patient
+        ? {
+            id: a.patient.id ?? a.patientId,
+            firstName: a.patient.firstName,
+            lastName: a.patient.lastName,
+            phoneNumber: a.patient.phoneNumber ?? "",
+          }
+        : undefined,
+      appointment: a.id
+        ? {
+            id: a.id,
+            doctor: {
+              id: a.doctor?.id ?? "",
+              name: a.doctor?.name ?? "",
+            },
+            type: a.type ?? null,
+            chiefComplaint: a.chiefComplaint ?? null,
+          }
+        : undefined,
+    });
+  }
+
+  return [...fromQueue, ...withoutQueueToken];
+}
+
+export function buildWaitingList(todayQueue: QueueItem[]): QueueItem[] {
+  return todayQueue.filter((q) => isQueueTokenWaiting(q.status));
+}
+
+export function buildOpdQueueRows(
+  activeConsultations: QueueItem[],
+  waitingList: QueueItem[],
+): QueueItem[] {
+  const byId = new Map<string, QueueItem>();
+  for (const q of activeConsultations) {
+    byId.set(q.id, q);
+  }
+  for (const q of waitingList) {
+    byId.set(q.id, q);
+  }
+  const patientKey = (q: QueueItem) =>
+    `${q.patient?.lastName ?? ""}\u0000${q.patient?.firstName ?? ""}`;
+  const rank = (q: QueueItem): number => {
+    if (isQueueTokenInProgress(q.status)) return 0;
+    if (isQueueTokenWaiting(q.status)) return 1;
+    return 2;
+  };
+  const tokenSort = (q: QueueItem) =>
+    q.tokenNumber > 0 ? q.tokenNumber : 10_000;
+  return Array.from(byId.values()).sort((a, b) => {
+    const ra = rank(a);
+    const rb = rank(b);
+    if (ra !== rb) return ra - rb;
+    const ta = tokenSort(a);
+    const tb = tokenSort(b);
+    if (ta !== tb) return ta - tb;
+    return patientKey(a).localeCompare(patientKey(b));
+  });
 }

@@ -2,7 +2,6 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import {
   invoiceSchema,
-  stripHtmlTags,
   createPaymentLinkSchema as _baseCreatePaymentLinkSchema,
   paymentLinkResponseSchema,
   paymentSessionSchema,
@@ -10,6 +9,7 @@ import {
   PaymentMode,
 } from '@workspace/types';
 import { DEFAULT_CURRENCY } from '@workspace/utils';
+import { doctorFieldsSchema } from './doctor-fields.shared';
 
 export const CreateInvoiceSchema = invoiceSchema
   .omit({
@@ -23,48 +23,13 @@ export const CreateInvoiceSchema = invoiceSchema
     paidAt: true,
     totalAmount: true,
   })
-  .extend({
-    doctorName: z.string().max(100).transform(stripHtmlTags).optional(),
-    doctorEmail: z
-      .string()
-      .email()
-      .max(255)
-      .transform(stripHtmlTags)
-      .optional(),
-    doctorPhone: z.string().max(20).transform(stripHtmlTags).optional(),
-    doctorSpecialization: z
-      .string()
-      .max(100)
-      .transform(stripHtmlTags)
-      .optional(),
-    doctorRole: z.string().max(50).transform(stripHtmlTags).optional(),
-    doctorRegistrationNumber: z
-      .string()
-      .max(100)
-      .transform(stripHtmlTags)
-      .optional(),
-    doctorLicenseNumber: z
-      .string()
-      .max(100)
-      .transform(stripHtmlTags)
-      .optional(),
-  });
+  .merge(doctorFieldsSchema);
 
 export class CreateInvoiceDto extends createZodDto(CreateInvoiceSchema) {}
 
-export const UpdateInvoiceSchema = invoiceSchema.partial().extend({
-  doctorName: z.string().max(100).transform(stripHtmlTags).optional(),
-  doctorEmail: z.string().email().max(255).transform(stripHtmlTags).optional(),
-  doctorPhone: z.string().max(20).transform(stripHtmlTags).optional(),
-  doctorSpecialization: z.string().max(100).transform(stripHtmlTags).optional(),
-  doctorRole: z.string().max(50).transform(stripHtmlTags).optional(),
-  doctorRegistrationNumber: z
-    .string()
-    .max(100)
-    .transform(stripHtmlTags)
-    .optional(),
-  doctorLicenseNumber: z.string().max(100).transform(stripHtmlTags).optional(),
-});
+export const UpdateInvoiceSchema = invoiceSchema
+  .partial()
+  .merge(doctorFieldsSchema);
 
 export class UpdateInvoiceDto extends createZodDto(UpdateInvoiceSchema) {}
 

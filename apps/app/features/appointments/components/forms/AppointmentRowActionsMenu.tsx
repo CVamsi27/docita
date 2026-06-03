@@ -63,7 +63,6 @@ const TERMINAL_STATUSES = new Set([
   "completed",
   "no-show",
   "cancelled",
-  "canceled",
 ]);
 
 const NO_SHOW_BLOCKED_STATUSES = new Set([
@@ -71,7 +70,6 @@ const NO_SHOW_BLOCKED_STATUSES = new Set([
   "completed",
   "no-show",
   "cancelled",
-  "canceled",
 ]);
 
 /** OPD slips are only printable before/at the visit, not after it concludes. */

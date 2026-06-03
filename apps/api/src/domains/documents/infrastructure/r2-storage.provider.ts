@@ -182,4 +182,24 @@ export class R2StorageProvider extends StorageProvider {
 
     return getSignedUrl(this.client, command, { expiresIn: ttl });
   }
+
+  async getObject(
+    objectKey: string,
+  ): Promise<{ buffer: Buffer; contentType: string }> {
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: objectKey,
+    });
+
+    const response = await this.client.send(command);
+    const chunks: Uint8Array[] = [];
+    for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
+      chunks.push(chunk);
+    }
+
+    return {
+      buffer: Buffer.concat(chunks),
+      contentType: response.ContentType ?? 'application/octet-stream',
+    };
+  }
 }

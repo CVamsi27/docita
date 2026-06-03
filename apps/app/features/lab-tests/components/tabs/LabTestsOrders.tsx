@@ -8,9 +8,9 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
+import { SearchInput } from "@workspace/ui/components/form/search-input";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Input } from "@workspace/ui/components/form/input";
-import { FileText, Filter, Search, X } from "lucide-react";
+import { FileText, Filter } from "lucide-react";
 import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
 import {
@@ -103,35 +103,13 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 md:flex-row">
-        <div className="relative flex-1">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden
-          />
-          <Input
-            placeholder="Enter patient, test, or doctor"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={searchQuery.trim() ? "pl-9 pr-10" : "pl-9"}
-            aria-label="Search lab test orders"
-          />
-          {searchQuery.trim() ? (
-            <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
-              <SymbolTooltip label="Clear search">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => setSearchQuery("")}
-                  aria-label="Clear search"
-                >
-                  <X className="h-4 w-4 text-muted-foreground" aria-hidden />
-                </Button>
-              </SymbolTooltip>
-            </div>
-          ) : null}
-        </div>
+        <SearchInput
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onClear={() => setSearchQuery("")}
+          placeholder="Enter patient, test, or doctor"
+          ariaLabel="Search lab test orders"
+        />
         <Button variant="outline" className="gap-2">
           <Filter className="h-4 w-4" />
           Filter

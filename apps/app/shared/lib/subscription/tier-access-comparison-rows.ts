@@ -3,12 +3,16 @@ import {
   Tier,
   TIER_LIMITS,
   WHATSAPP_ADDON_PRICING,
+  type TierName,
 } from "@workspace/types";
 import {
   formatCountLocale,
   getTierName,
   hasFeatureAccess,
 } from "@workspace/utils";
+
+const STARTER = "STARTER" satisfies TierName;
+const INTELLIGENCE = "INTELLIGENCE" satisfies TierName;
 
 const PLAN_LIMITS = TIER_LIMITS;
 
@@ -45,9 +49,8 @@ function tierRecord<V extends string | boolean | number>(
 }
 
 function whatsappIncludedQuota(tier: Tier): number | undefined {
-  if (tier === Tier.STARTER) return undefined;
   const tierName = getTierName(tier);
-  if (tierName === "STARTER" || tierName === "INTELLIGENCE") {
+  if (tierName === STARTER || tierName === INTELLIGENCE) {
     return undefined;
   }
   return WHATSAPP_ADDON_PRICING[tierName].includedQuota;

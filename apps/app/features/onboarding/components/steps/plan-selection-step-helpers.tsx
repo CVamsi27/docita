@@ -78,42 +78,27 @@ export function buildTierCardConfig(
       ? `then ${formatRateWithCurrency(overageRates.appointmentRate, currencyKey)} per extra consultation`
       : undefined;
 
+  // Every plan except Enterprise offers a free trial to new customers.
+  const trialLine = `${formatPriceWithCurrency(0, currencyKey)} for the first ${SUBSCRIPTION_TRIAL_DAYS} days, then regular billing`;
   let overageHint: string | undefined;
-  if (tierName === "ESSENTIAL") {
-    overageHint = `${formatPriceWithCurrency(0, currencyKey)} for the first ${SUBSCRIPTION_TRIAL_DAYS} days, then regular billing`;
-  } else if (tierName === "STARTER") {
-    overageHint = [
-      "Payment at signup (Razorpay). No unpaid trial on Starter.",
-      overageFromRates,
-    ]
-      .filter(Boolean)
-      .join(" ");
+  if (tierName === "ENTERPRISE") {
+    overageHint = "Custom pricing and deployment. Contact sales to continue.";
   } else if (tierName === "HOSPITAL") {
     overageHint = [
+      trialLine,
       "Multi-branch billing. Annual contracts available.",
       overageFromRates,
     ]
       .filter(Boolean)
       .join(" ");
-  } else if (tierName === "PROFESSIONAL") {
-    overageHint = [
-      "Payment required at signup. Unpaid trial is only on Essential.",
-      overageFromRates,
-    ]
-      .filter(Boolean)
-      .join(" ");
-  } else if (tierName === "ENTERPRISE") {
-    overageHint = "Custom pricing and deployment. Contact sales to continue.";
   } else {
-    overageHint = overageFromRates;
+    overageHint = [trialLine, overageFromRates].filter(Boolean).join(" ");
   }
 
   const buttonLabel =
-    tierName === "ESSENTIAL"
-      ? `Start free ${SUBSCRIPTION_TRIAL_DAYS}-day trial`
-      : tierName === "ENTERPRISE"
-        ? "Contact sales"
-        : "Select and pay";
+    tierName === "ENTERPRISE"
+      ? "Contact sales"
+      : `Start free ${SUBSCRIPTION_TRIAL_DAYS}-day trial`;
 
   return { cardPricing, currencySymbol, overageHint, buttonLabel };
 }
@@ -187,3 +172,24 @@ export const PlanComparisonCollapsible: FC<PlanComparisonCollapsibleProps> = ({
     </CollapsibleContent>
   </Collapsible>
 );
+
+// ---------------------------------------------------------------------------
+// Pure UI helpers
+// ---------------------------------------------------------------------------
+
+export function getPricingRegionLabel(resolvedCurrency: string): string {
+  return resolvedCurrency === "INR"
+    ? "India-competitive pricing"
+    : "Premium international pricing";
+}
+
+export function getEnterpriseContactMessage(billingCycle: string): string {
+  return `Hi Docita Sales Team,
+
+I am interested in the Enterprise plan from onboarding.
+
+Selected tier: Enterprise
+Billing preference: ${billingCycle}
+
+Please contact me with deployment and commercial details.`;
+}

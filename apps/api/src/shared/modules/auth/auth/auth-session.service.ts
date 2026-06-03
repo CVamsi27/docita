@@ -143,7 +143,7 @@ export class AuthSessionService {
       },
       data: {
         revokedAt: this.clock.now(),
-        replacedByToken: newTokens.refresh_token,
+        replacedByToken: hashRefreshToken(newTokens.refresh_token),
       },
     });
 

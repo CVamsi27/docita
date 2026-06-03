@@ -1,7 +1,8 @@
 /** Pure OCR field-mapping helpers — no React hooks. */
+import type { ParsedMedicalFields } from "@workspace/types";
 import { importInvoiceDraftSchema, type OcrImportCommitRequest } from "@workspace/types";
-import { isRecord } from "@workspace/utils";
-import type { OCRInvoiceForm } from "@/features/ocr/types";
+import { isRecord, parseStringEnumMember } from "@workspace/utils";
+import type { OCRFormData, OCRInvoiceForm } from "@/features/ocr/types";
 
 export function emptyOcrInvoiceForm(): OCRInvoiceForm {
   return { saveAsPending: false, grandTotal: "", subtotal: "", taxTotal: "", items: [] };
@@ -44,6 +45,97 @@ export function mapOcrFieldsToInvoiceForm(fields: unknown): OCRInvoiceForm {
     if (any) grandTotal = String(sum);
   }
   return { saveAsPending: false, grandTotal, subtotal: numStr(inv.subtotal), taxTotal: numStr(inv.tax), items };
+}
+
+export function buildOcrFormData(
+  fields: ParsedMedicalFields | undefined,
+  resultFirstName: string | undefined,
+  resultLastName: string | undefined,
+  resultAge: string | undefined,
+  resultGender: string | undefined,
+  resultDiagnosis: string | undefined,
+  resultPhoneNumber: string | undefined,
+): OCRFormData {
+  const invoiceFromScan = mapOcrFieldsToInvoiceForm(fields);
+  return {
+    firstName: fields?.firstName || resultFirstName || "",
+    lastName: fields?.lastName || resultLastName || "",
+    age: fields?.age || resultAge || "",
+    gender: fields?.gender || resultGender || "MALE",
+    phoneNumber: fields?.phoneNumber || resultPhoneNumber || "",
+    email: fields?.email || "",
+    dateOfBirth: "",
+    address: "",
+    bloodType: fields?.bloodType || "",
+    diagnosis: fields?.diagnosis || resultDiagnosis || "",
+    symptoms: fields?.symptoms || [],
+    allergies: fields?.allergies || [],
+    medicalHistory: fields?.medicalHistory || [],
+    medications: fields?.medications || [],
+    vitals: {
+      bp: fields?.vitals?.bp || "",
+      temp: fields?.vitals?.temp || "",
+      pulse: fields?.vitals?.pulse || "",
+      respiratoryRate: fields?.vitals?.respiratoryRate || "",
+      spO2: fields?.vitals?.spO2 || "",
+      glucose: fields?.vitals?.glucose || "",
+    },
+    labValues: { glucose: "", hemoglobin: "", creatinine: "" },
+    invoice: invoiceFromScan,
+  };
+}
+
+export function buildOcrVitalsPayload(formVitals: OCRFormData["vitals"]): Record<string, number | undefined> {
+  const bpParts = formVitals.bp ? formVitals.bp.split("/") : [];
+  const payload: Record<string, number | undefined> = {};
+  if (bpParts[0]) payload.systolicBP = parseInt(bpParts[0], 10);
+  if (bpParts[1]) payload.diastolicBP = parseInt(bpParts[1], 10);
+  if (formVitals.temp.trim()) payload.temperature = parseFloat(formVitals.temp);
+  if (formVitals.pulse.trim()) payload.pulse = parseInt(formVitals.pulse, 10);
+  return payload;
+}
+
+export function buildOcrSavePayload(
+  formData: OCRFormData,
+  clinicId: string,
+  userId: string,
+  needsReviewAcknowledgement: boolean,
+  reviewAcknowledged: boolean,
+): OcrImportCommitRequest {
+  const dobDate = formData.dateOfBirth.trim()
+    ? new Date(formData.dateOfBirth)
+    : new Date(new Date().getFullYear() - (parseInt(formData.age, 10) || 0), 0, 1);
+  const dobIso = dobDate.toISOString();
+  const vitalsPayload = buildOcrVitalsPayload(formData.vitals);
+  const hasVitals = Object.values(vitalsPayload).some((v) => v !== undefined);
+  const medications = formData.medications.length > 0
+    ? formData.medications.map((m) => ({
+        name: m.name.trim(),
+        dosage: m.dosage.trim() || "—",
+        frequency: m.frequency.trim() || "—",
+        route: "PO" as const,
+        duration: "",
+      }))
+    : undefined;
+  const invoiceDraft = buildInvoiceDraftForCommit(formData.invoice);
+
+  return {
+    clinicId,
+    doctorId: userId,
+    firstName: formData.firstName.trim(),
+    lastName: formData.lastName.trim(),
+    phoneNumber: formData.phoneNumber.trim(),
+    gender: parseStringEnumMember(["MALE", "FEMALE", "OTHER"] as const, formData.gender) ?? "OTHER",
+    dateOfBirth: dobIso,
+    address: formData.address.trim() || undefined,
+    diagnosis: formData.diagnosis.trim() || undefined,
+    allergies: formData.allergies.length > 0 ? formData.allergies : undefined,
+    medications,
+    vitals: hasVitals ? vitalsPayload as OcrImportCommitRequest["vitals"] : undefined,
+    consultationNotes: formData.diagnosis.trim() || undefined,
+    acknowledgeReview: needsReviewAcknowledgement ? reviewAcknowledged : undefined,
+    invoiceDraft,
+  };
 }
 
 export function buildInvoiceDraftForCommit(

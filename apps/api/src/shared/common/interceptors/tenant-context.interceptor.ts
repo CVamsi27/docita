@@ -9,6 +9,7 @@ import { lastValueFrom } from 'rxjs';
 import { tenantStorage } from '@/shared/common/middleware/tenant.middleware';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { Role } from '@workspace/db';
 import { applyRlsScope } from '@/shared/modules/rls/apply-rls-scope';
 import { runWithActiveTx } from '@/shared/modules/rls/active-tx.storage';
 import { getRlsRequestTransactionOptions } from '@/shared/common/database-transaction-options';
@@ -28,7 +29,7 @@ export class TenantContextInterceptor implements NestInterceptor {
     const user = request.user;
 
     if (user) {
-      const isInternal = user.role === 'INTERNAL';
+      const isInternal = user.role === Role.INTERNAL;
 
       if (user.clinicId || isInternal) {
         const tenantContext = {

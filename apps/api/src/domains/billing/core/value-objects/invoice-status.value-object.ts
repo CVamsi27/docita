@@ -1,15 +1,11 @@
 import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
 export enum InvoiceStatusEnum {
-  DRAFT = 'DRAFT',
-  ISSUED = 'ISSUED',
-  SENT = 'SENT',
-  VIEWED = 'VIEWED',
+  PENDING = 'PENDING',
   PARTIALLY_PAID = 'PARTIALLY_PAID',
   PAID = 'PAID',
   OVERDUE = 'OVERDUE',
   CANCELLED = 'CANCELLED',
-  CREDIT_MEMO = 'CREDIT_MEMO',
 }
 
 export class InvoiceStatus {
@@ -17,25 +13,11 @@ export class InvoiceStatus {
     string,
     InvoiceStatusEnum[]
   > = {
-    [InvoiceStatusEnum.DRAFT]: [
-      InvoiceStatusEnum.ISSUED,
-      InvoiceStatusEnum.CANCELLED,
-    ],
-    [InvoiceStatusEnum.ISSUED]: [
-      InvoiceStatusEnum.SENT,
-      InvoiceStatusEnum.CANCELLED,
-      InvoiceStatusEnum.CREDIT_MEMO,
-    ],
-    [InvoiceStatusEnum.SENT]: [
-      InvoiceStatusEnum.VIEWED,
+    [InvoiceStatusEnum.PENDING]: [
       InvoiceStatusEnum.PAID,
       InvoiceStatusEnum.PARTIALLY_PAID,
       InvoiceStatusEnum.OVERDUE,
-    ],
-    [InvoiceStatusEnum.VIEWED]: [
-      InvoiceStatusEnum.PAID,
-      InvoiceStatusEnum.PARTIALLY_PAID,
-      InvoiceStatusEnum.OVERDUE,
+      InvoiceStatusEnum.CANCELLED,
     ],
     [InvoiceStatusEnum.PARTIALLY_PAID]: [
       InvoiceStatusEnum.PAID,
@@ -47,7 +29,6 @@ export class InvoiceStatus {
       InvoiceStatusEnum.PARTIALLY_PAID,
     ],
     [InvoiceStatusEnum.CANCELLED]: [],
-    [InvoiceStatusEnum.CREDIT_MEMO]: [],
   };
 
   constructor(readonly value: InvoiceStatusEnum) {}
@@ -82,7 +63,7 @@ export class InvoiceStatus {
     return this.value === InvoiceStatusEnum.CANCELLED;
   }
 
-  isDraft(): boolean {
-    return this.value === InvoiceStatusEnum.DRAFT;
+  isPending(): boolean {
+    return this.value === InvoiceStatusEnum.PENDING;
   }
 }

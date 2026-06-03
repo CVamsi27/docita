@@ -4,10 +4,10 @@ import { withSentryConfig } from "@sentry/nextjs";
 import bundleAnalyzer from "@next/bundle-analyzer";
 const require = createRequire(import.meta.url);
 const nextCloudflareEmptyStub = require.resolve(
-  "../../scripts/deploy/cloudflare-stubs/empty-module.cjs",
+  "./scripts/deploy/cloudflare-stubs/empty-module.cjs",
 );
 const nextCloudflareSentryStub = require.resolve(
-  "../../scripts/deploy/cloudflare-stubs/sentry-nextjs-cloudflare.ts",
+  "./scripts/deploy/cloudflare-stubs/sentry-nextjs-cloudflare.ts",
 );
 
 const withBundleAnalyzer = bundleAnalyzer({

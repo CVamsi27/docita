@@ -6,6 +6,7 @@ import {
   useClinicMembers,
   useDoctorSchedules,
 } from "@workspace/data-access";
+import { isDoctor } from "@/lib/auth/permissions";
 import { useAuth } from "@/lib/auth/auth-context";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
@@ -22,7 +23,7 @@ export function useDoctorAvailabilitySettings() {
 
   const doctors = useMemo(
     () =>
-      members.filter((m) => m.role === "DOCTOR" || m.role === "ADMIN_DOCTOR"),
+      members.filter((m) => isDoctor(m.role)),
     [members],
   );
 

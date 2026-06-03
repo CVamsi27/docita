@@ -15,9 +15,9 @@ import {
   UserCircle,
   Users,
 } from "lucide-react";
-import { Feature } from "@workspace/types";
+import { CLINIC_ADMIN_ROLES, Feature } from "@workspace/types";
 
-const ADMIN_ROLES = ["ADMIN", "ADMIN_DOCTOR", "INTERNAL"] as const;
+const ADMIN_ROLES = [...CLINIC_ADMIN_ROLES, "INTERNAL"] as const;
 const DOCTOR_ROLES = [...ADMIN_ROLES, "DOCTOR"] as const;
 const QUEUE_ROLES = [...ADMIN_ROLES, "RECEPTIONIST"] as const;
 

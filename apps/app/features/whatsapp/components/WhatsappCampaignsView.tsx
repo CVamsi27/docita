@@ -25,6 +25,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
 import { useAuth } from "@/lib/auth/auth-context";
+import { isAdmin } from "@/lib/auth/permissions";
 import { getPatientFullName } from "@workspace/utils";
 
 export function WhatsappCampaignsView() {
@@ -38,7 +39,7 @@ export function WhatsappCampaignsView() {
   const [title, setTitle] = useState("");
   const [templateName, setTemplateName] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const canManage = user?.role === "ADMIN" || user?.role === "ADMIN_DOCTOR";
+  const canManage = isAdmin(user?.role);
   const selected = useMemo(() => new Set(selectedIds), [selectedIds]);
 
   if (campaigns.isLoading) {

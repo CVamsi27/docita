@@ -3,7 +3,7 @@ import {
   DOCTOR_PERSISTENCE_PORT,
   type DoctorPersistencePort,
 } from '@/domains/doctors/application/ports/doctor-persistence.port';
-import { Specialization, HospitalRole } from '@workspace/db';
+import { Role, Specialization, HospitalRole } from '@workspace/db';
 import {
   DOCTOR_LIST_SELECT,
   DOCTOR_CARD_SELECT,
@@ -64,7 +64,7 @@ export class DoctorsQueryService {
       this.persistence.user.findMany({
         where: {
           clinicId,
-          role: { in: ['DOCTOR', 'ADMIN_DOCTOR'] },
+          role: { in: [Role.DOCTOR, Role.ADMIN_DOCTOR] },
         },
         select: {
           ...DOCTOR_LIST_SELECT,
@@ -86,7 +86,8 @@ export class DoctorsQueryService {
     const doctorClinicIds = new Set(doctorClinics.map((dc) => dc.doctor.id));
 
     const validDoctorClinics = doctorClinics.filter(
-      (dc) => dc.doctor.role === 'DOCTOR' || dc.doctor.role === 'ADMIN_DOCTOR',
+      (dc) =>
+        dc.doctor.role === Role.DOCTOR || dc.doctor.role === Role.ADMIN_DOCTOR,
     );
 
     const directUsers = clinicUsers.filter((u) => !doctorClinicIds.has(u.id));

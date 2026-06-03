@@ -6,6 +6,7 @@ import {
 import { formatDate, getPatientFullName } from "@workspace/utils";
 import type { Medication, Patient } from "@workspace/types";
 import { formatGenderLabel } from "@/lib/formatters";
+import { SUPPORT_EMAIL } from "@/lib/constants/support-contact";
 
 interface DoctorInfo {
   name?: string;
@@ -91,7 +92,7 @@ export function PrescriptionDocument({
                 {!clinicInfo?.email && (
                   <span className="flex items-center gap-1">
                     <span className="opacity-70">Support:</span>{" "}
-                    support@docita.work
+                    {SUPPORT_EMAIL}
                   </span>
                 )}
               </div>
@@ -227,7 +228,7 @@ export function PrescriptionDocument({
           <p className="font-medium">
             This is a digitally generated prescription
           </p>
-          <p>Prescription support: support@docita.work</p>
+          <p>Prescription support: {SUPPORT_EMAIL}</p>
           <p>
             Valid for dispensing within 30 days from the date of issue unless
             otherwise specified

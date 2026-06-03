@@ -11,7 +11,7 @@ import {
   StorageFile,
 } from '@/domains/documents/application/ports/storage-provider.port';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
-import { SignaturePurpose } from '@workspace/db';
+import { Role, SignaturePurpose } from '@workspace/db';
 import {
   ISignatureUploadRepository,
   SIGNATURE_UPLOAD_REPOSITORY_TOKEN,
@@ -96,7 +96,7 @@ export class SignatureUploadService {
         throw new NotFoundException('Doctor not found');
       }
 
-      if (doctor.role !== 'DOCTOR' && doctor.role !== 'ADMIN_DOCTOR') {
+      if (doctor.role !== Role.DOCTOR && doctor.role !== Role.ADMIN_DOCTOR) {
         throw new BadRequestException(
           'Only doctors can upload prescription signatures',
         );

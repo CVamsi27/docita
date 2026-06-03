@@ -15,6 +15,7 @@ import {
   useGenerateSignatureToken,
 } from "@workspace/data-access";
 import { toAbsoluteApiUrl, toAbsoluteAppUrl } from "@/lib/utils/url";
+import { isDoctor as checkIsDoctor } from "@/lib/auth/permissions";
 import { usePhoneSignatureQrFlow } from "@/hooks/use-phone-signature-qr-flow";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { shouldRedirectToWorkspace } from "@/features/onboarding/lib/redirect-logic";
@@ -40,8 +41,8 @@ export function useVerifyDoctor() {
     useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  const isDoctor = user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
-  const isAdminDoctor = user?.role === "ADMIN_DOCTOR";
+  const isDoctor = checkIsDoctor(user?.role);
+  const isAdminDoctor = checkIsDoctor(user?.role) && user?.role === "ADMIN_DOCTOR";
   const generateSignatureToken = useGenerateSignatureToken();
 
   const {

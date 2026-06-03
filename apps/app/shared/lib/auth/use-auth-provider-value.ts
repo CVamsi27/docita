@@ -17,6 +17,7 @@ import {
   readLoginLockoutUntil,
 } from "./auth-lockout";
 import { clearStoredReturnPathBeforeLogin } from "./safe-return-path";
+import { isAdmin, isDoctor } from "@/lib/auth/permissions";
 import { appSession } from "./session";
 import {
   useAuthCredentialActions,
@@ -164,8 +165,8 @@ export function useAuthProviderValue(): AuthContextType {
     isLoading,
     isApiStarting,
     refreshUser,
-    isAdmin: user?.role === "ADMIN" || user?.role === "ADMIN_DOCTOR",
-    isDoctor: user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR",
+    isAdmin: isAdmin(user?.role),
+    isDoctor: isDoctor(user?.role),
     isLoginLocked,
     loginLockoutUntil,
     login,

@@ -3,7 +3,7 @@
 import { Button } from "@workspace/ui/components/form/button";
 import { X } from "lucide-react";
 import { ContactSalesModal } from "@/features/dialogs";
-import { getTierInfo } from "@/lib/subscription/tier-access";
+import { getTierInfo, getTierName, Tier } from "@/lib/subscription/tier-access";
 import { tierSchema } from "@workspace/types";
 import { parseSupportedCurrency } from "@workspace/utils";
 import type { BillingSubscriptionWorkspaceState } from "@/features/subscription/hooks/use-billing-subscription-workspace";
@@ -104,7 +104,7 @@ export function BillingSubscriptionWorkspaceView({
         isUsageLoading={ws.isUsageLoading}
         hasUsageError={!!ws.usageError}
         statusNotice={ws.currentPlanStatusNotice}
-        showWhatsAppUsageMeter={ws.subscription?.tier !== "STARTER"}
+        showWhatsAppUsageMeter={ws.subscription?.tier !== getTierName(Tier.STARTER)}
       />
 
       <UsageDashboard />

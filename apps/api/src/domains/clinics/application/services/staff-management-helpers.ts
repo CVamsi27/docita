@@ -1,4 +1,5 @@
 import { Role } from '@workspace/db';
+import { isFrontDeskTier } from '@workspace/types';
 import { type ClinicPersistencePort } from '@/domains/clinics/application/ports/clinic-persistence.port';
 
 export type ClinicMemberRole =
@@ -30,7 +31,7 @@ export async function isClinicFrontDesk(
     where: { id: clinicId },
     select: { tier: true },
   });
-  return clinic?.tier === 'FRONT_DESK';
+  return isFrontDeskTier(clinic?.tier);
 }
 
 export interface CreateDoctorData {

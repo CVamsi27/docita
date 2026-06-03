@@ -1,46 +1,22 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-
 import dynamic from "next/dynamic";
-import React, { useCallback, useMemo, useState } from "react";
-import {
-  Activity,
-  BarChart3,
-  Calendar,
-  DollarSign,
-  Download,
-  TrendingUp,
-  Users,
-} from "lucide-react";
-import { API_URL } from "@/lib/api/api-config";
-import { useAuth } from "@/lib/auth/auth";
+import { Calendar, Download } from "lucide-react";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { getInternalTierChartColorClass } from "@/lib/tier-display";
-import { toast } from "sonner";
-import {
-  downloadInternalAnalyticsExport,
-  useInternalAnalytics,
-  useInternalBillingMetrics,
-} from "@workspace/data-access/internal";
 import { Button } from "@workspace/ui/components/form/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
 import { DatePicker } from "@workspace/ui/components/form/date-picker";
 import { Section } from "@workspace/ui/components/layout/section";
-import { cn } from "@workspace/ui/lib/utils";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import {
-  formatAmountLocale,
-  getUserFacingErrorMessage,
-} from "@workspace/utils";
+import { formatAmountLocale } from "@workspace/utils";
+import { cn } from "@workspace/ui/lib/utils";
 import type { DetailedMetricsRow } from "@/features/analytics/analytics-detailed-metrics-table";
-import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import {
+  BillingOverviewCards,
+  MetricCardsGrid,
+} from "@/features/analytics";
+import { useAnalyticsDashboard } from "./use-analytics-dashboard";
 
 const AnalyticsDetailedMetricsTable = dynamic(
   () =>
@@ -67,173 +43,34 @@ const AnalyticsDetailedMetricsTable = dynamic(
   },
 );
 
-interface MetricCard {
-  title: string;
-  value: string | number;
-  change?: string;
-  icon: React.ReactNode;
-  trend?: "up" | "down" | "neutral";
-}
-
-const trendToneClassNames: Record<NonNullable<MetricCard["trend"]>, string> = {
-  up: "text-success",
-  down: "text-destructive",
-  neutral: "text-muted-foreground",
-};
-
 export function AnalyticsDashboard() {
-  const [period, setPeriod] = useState<"daily" | "weekly" | "monthly">(
-    "monthly",
-  );
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
-  const { token } = useAuth();
-  const analyticsParams = useMemo(() => {
-    const params = new URLSearchParams({ period });
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
-    return params.toString();
-  }, [endDate, period, startDate]);
-
-  const analyticsQuery = useInternalAnalytics(token, analyticsParams);
-  const billingQuery = useInternalBillingMetrics(token);
-
-  const data = analyticsQuery.data ?? null;
-  const billing = billingQuery.data ?? null;
-  const loading = analyticsQuery.isLoading || billingQuery.isLoading;
-  const queryError = analyticsQuery.error ?? billingQuery.error;
-  const errorMessage = queryError
-    ? getUserFacingErrorMessage(queryError, {
-        context: "load",
-        fallback: "We could not load this analytics view. Please try again.",
-      })
-    : undefined;
-  const pageStatus =
-    !token || (loading && !data) ? "loading" : queryError ? "error" : "success";
-
-  const handleExport = useCallback(async () => {
-    if (!token) return;
-
-    try {
-      const blob = await downloadInternalAnalyticsExport(
-        API_URL,
-        { Authorization: `Bearer ${token}` },
-        { period, startDate, endDate },
-      );
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `analytics-report-${new Date().toISOString().split("T")[0]}.pdf`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      toast.success("Report exported successfully");
-    } catch {
-      showUserFacingErrorToast(
-        "We could not export the report. Please try again.",
-      );
-    }
-  }, [endDate, period, startDate, token]);
-
-  const formatCurrency = useCallback((amount: number) => {
-    if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`;
-    if (amount >= 1000) return `₹${(amount / 1000).toFixed(1)}K`;
-    return `₹${amount.toFixed(0)}`;
-  }, []);
-
-  const metrics = useMemo<MetricCard[]>(
-    () => [
-      {
-        title: "Total Revenue",
-        value: data ? `₹${((data.revenue || 0) / 1000).toFixed(1)}K` : "₹0",
-        change: data?.revenueChange
-          ? `${data.revenueChange > 0 ? "+" : ""}${data.revenueChange.toFixed(1)}%`
-          : undefined,
-        icon: <DollarSign className="h-6 w-6" />,
-        trend:
-          data?.revenueChange && data.revenueChange > 0
-            ? "up"
-            : data?.revenueChange && data.revenueChange < 0
-              ? "down"
-              : "neutral",
-      },
-      {
-        title: "Appointments",
-        value: data?.appointments || 0,
-        change: data?.appointmentsChange
-          ? `${data.appointmentsChange > 0 ? "+" : ""}${data.appointmentsChange.toFixed(1)}%`
-          : undefined,
-        icon: <Activity className="h-6 w-6" />,
-        trend:
-          data?.appointmentsChange && data.appointmentsChange > 0
-            ? "up"
-            : data?.appointmentsChange && data.appointmentsChange < 0
-              ? "down"
-              : "neutral",
-      },
-      {
-        title: "New Patients",
-        value: data?.newPatients || 0,
-        change: data?.patientsChange
-          ? `${data.patientsChange > 0 ? "+" : ""}${data.patientsChange.toFixed(1)}%`
-          : undefined,
-        icon: <Users className="h-6 w-6" />,
-        trend:
-          data?.patientsChange && data.patientsChange > 0
-            ? "up"
-            : data?.patientsChange && data.patientsChange < 0
-              ? "down"
-              : "neutral",
-      },
-      {
-        title: "Avg Invoice Value",
-        value: data ? `₹${(data.avgInvoiceValue || 0).toFixed(2)}` : "₹0.00",
-        change: data?.invoiceValueChange
-          ? `${data.invoiceValueChange > 0 ? "+" : ""}${data.invoiceValueChange.toFixed(1)}%`
-          : undefined,
-        icon: <TrendingUp className="h-6 w-6" />,
-        trend:
-          data?.invoiceValueChange && data.invoiceValueChange > 0
-            ? "up"
-            : data?.invoiceValueChange && data.invoiceValueChange < 0
-              ? "down"
-              : "neutral",
-      },
-    ],
-    [data],
-  );
-
-  const tierEntries = useMemo(
-    () =>
-      billing?.subscriptionsByTier
-        ? Object.entries(billing.subscriptionsByTier).sort(
-            (a, b) => b[1] - a[1],
-          )
-        : [],
-    [billing?.subscriptionsByTier],
-  );
-  const totalTierCount = useMemo(
-    () => tierEntries.reduce((sum, [, value]) => sum + value, 0),
-    [tierEntries],
-  );
-
-  const revenueByMonth = useMemo(
-    () => billing?.revenueByMonth || [],
-    [billing?.revenueByMonth],
-  );
-  const maxRevenue = useMemo(
-    () => Math.max(...revenueByMonth.map((row) => row.revenue), 1),
-    [revenueByMonth],
-  );
+  const {
+    period,
+    setPeriod,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+    data,
+    billing,
+    pageStatus,
+    errorMessage,
+    handleExport,
+    formatCurrency,
+    metrics,
+    tierEntries,
+    totalTierCount,
+    revenueByMonth,
+    maxRevenue,
+    refetch,
+  } = useAnalyticsDashboard();
 
   return (
     <DataState
       status={pageStatus}
       loadingMessage="Loading analytics…"
       errorMessage={errorMessage}
-      onRetry={() => {
-        void analyticsQuery.refetch();
-        void billingQuery.refetch();
-      }}
+      onRetry={refetch}
     >
       <div className="space-y-6 md:space-y-8">
         <div className="flex justify-end">
@@ -242,80 +79,14 @@ export function AnalyticsDashboard() {
             Export Report
           </Button>
         </div>
+
         {billing && (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Card density="compact">
-              <CardHeader className="border-b">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="ui-copy-stack">
-                    <CardTitle>MRR</CardTitle>
-                    <CardDescription>
-                      Recurring monthly revenue snapshot
-                    </CardDescription>
-                  </div>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </CardHeader>
-              <CardContent className="ui-copy-stack">
-                <p className="ui-page-title">{formatCurrency(billing.mrr)}</p>
-                <p className="ui-helper-text">
-                  ARR: {formatCurrency(billing.arr)}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card density="compact">
-              <CardHeader className="border-b">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="ui-copy-stack">
-                    <CardTitle>Active Subscriptions</CardTitle>
-                    <CardDescription>
-                      Paid customers across all tiers
-                    </CardDescription>
-                  </div>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </CardHeader>
-              <CardContent className="ui-copy-stack">
-                <p className="ui-page-title">{billing.activeSubscriptions}</p>
-                <p className="ui-helper-text">
-                  Churn rate: {(billing.churnRate * 100).toFixed(1)}% (30d)
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card density="compact">
-              <CardHeader className="border-b">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="ui-copy-stack">
-                    <CardTitle>Tier Distribution</CardTitle>
-                    <CardDescription>
-                      Subscription share by plan tier
-                    </CardDescription>
-                  </div>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {tierEntries.map(([tier, count]) => (
-                  <div key={tier} className="flex items-center gap-2">
-                    <span className="w-16 truncate ui-helper-text">{tier}</span>
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className={`h-full rounded-full ${getInternalTierChartColorClass(tier)}`}
-                        style={{
-                          width: `${totalTierCount > 0 ? (count / totalTierCount) * 100 : 0}%`,
-                        }}
-                      />
-                    </div>
-                    <span className="w-6 text-right text-sm font-medium text-foreground">
-                      {count}
-                    </span>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
+          <BillingOverviewCards
+            billing={billing}
+            formatCurrency={formatCurrency}
+            tierEntries={tierEntries}
+            totalTierCount={totalTierCount}
+          />
         )}
 
         <Section
@@ -364,38 +135,7 @@ export function AnalyticsDashboard() {
           </div>
         </Section>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {metrics.map((metric, idx) => (
-            <Card key={idx} density="compact">
-              <CardHeader className="border-b">
-                <div className="flex items-center justify-between gap-3">
-                  <CardDescription className="text-sm font-medium text-muted-foreground">
-                    {metric.title}
-                  </CardDescription>
-                  <div className="text-muted-foreground">{metric.icon}</div>
-                </div>
-              </CardHeader>
-              <CardContent className="ui-copy-stack">
-                <p className="ui-page-title">{metric.value}</p>
-                {metric.change && (
-                  <p
-                    className={cn(
-                      "text-sm font-medium",
-                      trendToneClassNames[metric.trend ?? "neutral"],
-                    )}
-                  >
-                    {metric.trend === "up"
-                      ? "↑"
-                      : metric.trend === "down"
-                        ? "↓"
-                        : "→"}{" "}
-                    {metric.change} from last period
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <MetricCardsGrid metrics={metrics} />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {revenueByMonth.length > 0 && (

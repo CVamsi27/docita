@@ -50,11 +50,23 @@ re-run the same searches and record the reduction.
 ## Count Commands
 
 ```sh
-rg -n '\$\{[^}]*firstName[^}]*\}[^\n]*\$\{[^}]*lastName[^}]*\}' apps/app apps/api --glob '*.{ts,tsx}' --glob '!**/*.spec.*' --glob '!**/*.test.*' --glob '!**/e2e/**'
-rg -n 'firstName(?:\.charAt\(0\)|\?\.\[0\]|\.\[0\])|lastName(?:\.charAt\(0\)|\?\.\[0\]|\.\[0\])' apps/app --glob '*.{ts,tsx}' --glob '!**/*.spec.*' --glob '!**/*.test.*' --glob '!**/e2e/**'
-rg -n 'DEFAULT_SLOT_MINUTES|\?\? 15|\|\| 15|slotDurationMinutes = 15|slotDuration: 15' apps packages --glob '*.{ts,tsx}' --glob '!**/*.spec.*' --glob '!**/*.test.*' --glob '!**/e2e/**'
-rg -n 'Asia/Kolkata' apps packages --glob '*.{ts,tsx}' --glob '!**/*.spec.*' --glob '!**/*.test.*' --glob '!**/e2e/**'
-rg -n 'clinic\.gstin' apps packages --glob '*.{ts,tsx}' --glob '!**/*.spec.*' --glob '!**/*.test.*' --glob '!**/e2e/**'
-rg -n 'facilityLabel' apps packages --glob '*.{ts,tsx}'
 rg -n '₹|toLocaleString\(' apps/app/features --glob '*.{ts,tsx}'
 ```
+
+---
+
+## Phase 4: 2026-06 SSOT Audit Sweep (Completed June 2026)
+
+| Done | Gap                                    | Key changes                                                                                                                                                          |
+| ---- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [x]  | InvoiceStatus dead 9-state model       | Deleted 10 dead files; pruned domain VO to 5 states matching Zod/Prisma (`PENDING`, `PARTIALLY_PAID`, `PAID`, `OVERDUE`, `CANCELLED`).                               |
+| [x]  | AppointmentStatus duplicate mappers    | Deleted 2 mapper files; consolidated all status mapping into `appointment.mapper.ts`. Fixed public booking context leak (raw Prisma status).                        |
+| [x]  | Status label maps                      | Added `APPOINTMENT_STATUS_LABELS`, `INVOICE_STATUS_LABELS`, `CLAIM_STATUS_*` maps to `packages/types`. Centralized from 2+ divergent implementations.                |
+| [x]  | Email / phone validation               | Centralized `isValidEmail()` in `@workspace/utils`, `validatePhoneForCountry()` in `@/lib/validation`. Deleted 4 dead/orphaned validator implementations.            |
+| [x]  | DiscountType divergence                | Consolidated 3 definitions into `discountTypeSchema` in `@workspace/types`. Fixed `discountTypeFromStored()` silently dropping non-PROMOTIONAL discounts.            |
+| [x]  | Hardcoded tier strings                 | Fixed `isClinicFrontDesk()` missing FD variants; fixed `'PRO'` dead tier name in `internal-ai.service.ts`; widened E2E tier types; narrowed `PaymentClinic.tier`.    |
+| [x]  | Prescription status schema             | Added `prescriptionStatusSchema` (`ACTIVE`, `COMPLETED`) to `packages/types` for the patient portal type.                                                            |
+| [x]  | Claim status maps                      | Moved `CLAIM_STATUS_LABELS`, `CLAIM_TYPE_LABELS`, `CLAIM_STATUS_TRANSITIONS`, `CLAIM_STATUS_TONE` to `packages/types`.                                              |
+| [x]  | Support email hardcodes                | Replaced `"support@docita.work"` with `{SUPPORT_EMAIL}` in `PrescriptionDocument.tsx` (last hardcoded instance in production code).                                  |
+| [x]  | Facility type handling                 | Replaced `["CLINIC", "HOSPITAL"]` with `facilityTypeSchema.options` in `use-clinic-general-settings.ts`.                                                             |
+| [x]  | AGENTS.md instructions                 | Added "15.12 SSOT Cleanup Patterns (2026-06)" documenting canonical sources for all centralized data points.                                                        |

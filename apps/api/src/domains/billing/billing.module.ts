@@ -128,6 +128,8 @@ import { InvoiceEventsListener } from './infrastructure/listeners/invoice-events
     InvoiceEventsListener,
   ],
   exports: [
+    InvoicesQueryService,
+    InvoicesCommandService,
     InvoicesService,
     PaymentsService,
     BillingCalculatorService,

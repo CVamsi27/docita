@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { DEFAULT_TIMEZONE } from "../shared/defaults";
 import {
+  type AppointmentStatus,
   appointmentStatusSchema,
   appointmentTypeSchema,
 } from "../shared/users";
@@ -43,6 +44,32 @@ export const APPOINTMENT_PRIORITY_COLORS: Record<AppointmentPriority, string> =
     URGENT: "badge-warning",
     EMERGENCY: "badge-danger",
   };
+
+export const APPOINTMENT_STATUS_LABELS: Record<
+  AppointmentStatus,
+  string
+> = {
+  scheduled: "Scheduled",
+  confirmed: "Confirmed",
+  "checked-in": "Checked In",
+  "in-progress": "Active",
+  completed: "Completed",
+  cancelled: "Cancelled",
+  "no-show": "No Show",
+};
+
+export const APPOINTMENT_STATUS_COLORS: Record<
+  AppointmentStatus,
+  string
+> = {
+  scheduled: "badge-info",
+  confirmed: "badge-info",
+  "checked-in": "badge-success",
+  "in-progress": "badge-warning",
+  completed: "badge-success",
+  cancelled: "badge-danger",
+  "no-show": "badge-danger",
+};
 
 export const appointmentSchema = z.object({
   id: z.string().optional(),

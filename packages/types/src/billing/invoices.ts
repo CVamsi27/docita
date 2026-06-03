@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { invoiceStatusSchema } from "../shared/users";
+import { type InvoiceStatus, invoiceStatusSchema } from "../shared/users";
 import { PaymentMethod } from "./payments";
 import { patientSchema } from "../patient/patients";
 import { stripHtmlTags } from "../api/sanitization";
@@ -10,6 +10,14 @@ import {
   taxRegistrationSnapshotSchema,
   taxTreatmentSchema,
 } from "./tax";
+
+export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
+  PENDING: "Pending",
+  PAID: "Paid",
+  OVERDUE: "Overdue",
+  CANCELLED: "Cancelled",
+  PARTIALLY_PAID: "Partially Paid",
+};
 
 const moneyAmountSchema = z
   .number()

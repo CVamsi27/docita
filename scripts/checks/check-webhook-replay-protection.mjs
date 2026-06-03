@@ -5,16 +5,13 @@
  * RequiresIdempotency (client-initiated idempotency keys).
  */
 
-import { execSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import process from "node:process";
+import { listSourceFiles } from "../lib/list-source-files.mjs";
 
-const files = execSync("git ls-files apps/api/src", { encoding: "utf8" })
-  .split("\n")
-  .filter(Boolean)
-  .filter((file) => /webhook/i.test(file) && /\.controller\.ts$/.test(file))
-  .filter((file) => !/\.(spec|test)\.[tj]sx?$/.test(file))
-  .filter((file) => existsSync(file));
+const files = listSourceFiles(["apps/api/src"])
+  .filter((file) => /\.ts$/.test(file))
+  .filter((file) => /webhook/i.test(file) && /\.controller\.ts$/.test(file));
 
 const findings = [];
 

@@ -3,6 +3,7 @@ import { Role, SubscriptionStatus } from '@workspace/db';
 import {
   APP_PERMISSIONS_BY_ROLE,
   Feature,
+  BILLING_ROLES,
   getAccessRoles,
   getAccessFeature,
   mapDbClinicTierStringToTierName,
@@ -134,7 +135,7 @@ export class AuthorizationService {
 }
 
 function isBillingAdmin(role: Role): boolean {
-  return role === Role.ADMIN || role === Role.ADMIN_DOCTOR;
+  return BILLING_ROLES.has(role as never);
 }
 
 function inferFeatureFromTarget(

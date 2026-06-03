@@ -15,7 +15,10 @@ import {
   SUBSCRIPTION_BILLING_RESOLVE_PATH,
   SUBSCRIPTION_SETTINGS_PATH,
 } from "@/lib/subscription/subscription-settings-path";
-import { resolveSubscriptionLockNotice } from "./subscription-lock-notice-helpers";
+import {
+  resolveSubscriptionLockNotice,
+  TRIAL_NOTICE_REMINDER_DAYS,
+} from "./subscription-lock-notice-helpers";
 
 const DISMISS_STORAGE_PREFIX = "subscription-notice-dismissed";
 
@@ -34,9 +37,19 @@ export function SubscriptionLockNotice() {
   // Only the non-blocking trial-active notice may be dismissed. Payment-blocking
   // states (expired, grace, paused, payment-required) must stay visible.
   const dismissible = copy?.kind === "trial-active";
+  // Two dismiss phases per trial: "early" (plenty of runway) and "ending" (final
+  // TRIAL_NOTICE_REMINDER_DAYS). Keying the dismissal on the phase means an early
+  // dismissal is forgotten once the trial enters its last stretch, so the notice
+  // resurfaces as a final reminder — and can be dismissed again independently.
+  const trialDaysLeft =
+    copy?.kind === "trial-active" ? (copy.trialDaysLeft ?? null) : null;
+  const dismissPhase =
+    trialDaysLeft !== null && trialDaysLeft <= TRIAL_NOTICE_REMINDER_DAYS
+      ? "ending"
+      : "early";
   const dismissKey =
     dismissible && clinic?.id
-      ? `${DISMISS_STORAGE_PREFIX}:${clinic.id}:${clinic.trialEndsAt ?? ""}`
+      ? `${DISMISS_STORAGE_PREFIX}:${clinic.id}:${clinic.trialEndsAt ?? ""}:${dismissPhase}`
       : null;
   const [dismissed, setDismissed] = useState(false);
 

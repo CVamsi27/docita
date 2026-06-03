@@ -7,7 +7,7 @@ export { BillingCycle, BillingCycleEnum } from './billing-cycle.value-object';
 export { SubscriptionPrice } from './subscription-price.value-object';
 export {
   Discount,
-  DiscountType,
   DiscountAggregate,
   type DiscountProps,
 } from './discount.value-object';
+export type { DiscountType } from '@workspace/types';

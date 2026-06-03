@@ -3,7 +3,6 @@ import {
   dateRules,
   formattingRules,
   medicalRules,
-  permissionRules,
   validationRules,
 } from "./index";
 
@@ -41,11 +40,6 @@ describe("Shared Business Rules", () => {
   });
 
   describe("permissionRules", () => {
-    it("should check admin role", () => {
-      expect(permissionRules.isAdmin("admin")).toBe(true);
-      expect(permissionRules.isAdmin("doctor")).toBe(false);
-    });
-
     it("should check patient data access", () => {
       expect(permissionRules.canViewPatientData("doctor")).toBe(true);
       expect(permissionRules.canViewPatientData("admin")).toBe(true);

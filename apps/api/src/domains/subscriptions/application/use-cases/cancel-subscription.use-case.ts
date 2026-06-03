@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException, Inject } from '@nestjs/common';
+import { ClinicTier } from '@workspace/db';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
@@ -65,14 +66,14 @@ export class CancelSubscriptionUseCase {
     if (!cancelAtPeriodEnd) {
       await this.clinicOps.updateTierAndFeatures(
         request.clinicId,
-        'STARTER',
+        ClinicTier.STARTER,
         SubscriptionStatusEnum.CANCELLED,
         {},
       );
 
       await this.clinicOps.emitUpdate(request.clinicId, {
         clinicId: request.clinicId,
-        tier: 'STARTER',
+        tier: ClinicTier.STARTER,
         subscriptionStatus: SubscriptionStatusEnum.CANCELLED,
         subscriptionGraceUntil: null,
       });

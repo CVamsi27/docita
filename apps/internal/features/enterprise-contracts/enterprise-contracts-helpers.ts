@@ -1,5 +1,7 @@
 import type { InternalEnterpriseContractRow as EnterpriseContractRow } from "@workspace/data-access/internal";
+import type { DataStateStatus } from "@workspace/ui/components/data-display/data-state";
 import { enterpriseContractStatusSchema } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/utils";
 
 export type ContractFormState = {
   primaryClinicId: string;
@@ -245,4 +247,86 @@ export function buildEnterpriseContractUpsertPayload(form: ContractFormState) {
     signedDocumentUrl: form.signedDocumentUrl || null,
     changeSummary: form.changeSummary || undefined,
   } satisfies Partial<EnterpriseContractRow> & { changeSummary?: string };
+}
+
+// --- Pure computed values extracted from the hook ---
+
+export function computeContractTotals(rows: EnterpriseContractRow[]) {
+  const active = rows.filter((r) => r.status === "ACTIVE");
+  const platformFeeMrr = active.reduce((sum, r) => sum + r.platformFeeCents, 0);
+  return {
+    total: rows.length,
+    active: active.length,
+    draft: rows.filter((r) => r.status === "DRAFT").length,
+    mrrCents: platformFeeMrr,
+  };
+}
+
+export function deriveContractsLoadError(
+  isError: boolean,
+  error: unknown,
+): string | null {
+  if (!isError) return null;
+  return getUserFacingErrorMessage(error, {
+    context: "load",
+    fallback: "We could not load enterprise contracts. Please try again.",
+  });
+}
+
+export function deriveContractsTableStatus(
+  loading: boolean,
+  loadError: string | null,
+  rows: unknown[],
+): DataStateStatus {
+  if (loading) return "loading";
+  if (loadError) return "error";
+  return rows.length === 0 ? "empty" : "success";
+}
+
+export function validateContractForm(
+  form: ContractFormState,
+): string | null {
+  if (
+    !form.primaryClinicId ||
+    !form.contractNumber ||
+    !form.startDate ||
+    !form.endDate
+  ) {
+    return "primaryClinicId, contractNumber, start and end dates are required";
+  }
+  return null;
+}
+
+export const LOAD_CONTRACTS_ERROR = "We couldn't load enterprise contracts. Please try again.";
+export const SAVE_CONTRACT_ERROR = "We couldn't save the contract. Please try again.";
+export const LOAD_ESTIMATE_ERROR = "We couldn't load the estimate. Please try again.";
+export const LOAD_REVISIONS_ERROR = "We couldn't load revisions. Please try again.";
+export const ADD_CLINIC_ERROR = "We couldn't add that clinic. Please try again.";
+export const REMOVE_CLINIC_ERROR = "We couldn't remove that clinic. Please try again.";
+export const PREPAY_ERROR = "We couldn't generate the prepay invoice. Please try again.";
+export const LOAD_INVOICES_ERROR = "We couldn't load invoices. Please try again.";
+export const TRUEUP_ERROR = "We couldn't evaluate true-up. Please try again.";
+export const LOAD_ALERTS_ERROR = "We couldn't load alerts. Please try again.";
+
+export const GENERATE_PREPAY_CONFIRM_MESSAGE =
+  "Generate annual prepay invoice for this contract? This creates a SubscriptionPayment for the 12-month commitment minus any discount.";
+
+export const CANNOT_REMOVE_PRIMARY_CLINIC_ERROR =
+  "Cannot remove the primary clinic";
+
+export function formatPrepayResult(inv: {
+  id: string;
+  amountCents: number;
+  discountPercent: number;
+}): string {
+  return `Prepay invoice generated: ${inv.id}\nAmount: ₹${(inv.amountCents / 100).toFixed(2)}\nDiscount: ${inv.discountPercent}%`;
+}
+
+export function formatEvaluateTrueUpResult(res: {
+  alerted: boolean;
+  observedPercent: number;
+}): string {
+  return res.alerted
+    ? `True-up alert raised: ${res.observedPercent}% of commit (recipients emailed).`
+    : `No alert: usage at ${res.observedPercent}% (below threshold or already alerted this month).`;
 }

@@ -1,36 +1,12 @@
 "use client";
 
-import { formatDate, getUserFacingErrorMessage } from "@workspace/utils";
-
-import { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshCw } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "@/lib/auth/auth";
-import {
-  type InternalSystemLog as SystemLog,
-  useInternalSystemLogs,
-} from "@workspace/data-access/internal";
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+import { useSystemLogs } from "./use-system-logs";
+import { SystemLogsTable } from "./system-logs-table";
 
 interface SystemLogsPageProps {
   title: string;
@@ -39,220 +15,13 @@ interface SystemLogsPageProps {
   moduleColumnWidthClass: string;
 }
 
-const EMPTY_LOGS: SystemLog[] = [];
-
-function parseLogLimit(value: string | null, fallback: 25 | 50 | 100): 25 | 50 | 100 {
-  if (value === "25") return 25;
-  if (value === "50") return 50;
-  if (value === "100") return 100;
-  return fallback;
-}
-
-function parseLogLevel(
-  value: string | null,
-): "ALL" | SystemLog["level"] {
-  if (
-    value === "INFO" ||
-    value === "WARNING" ||
-    value === "ERROR" ||
-    value === "DEBUG"
-  ) {
-    return value;
-  }
-  return "ALL";
-}
-
 export function SystemLogsPage({
   title,
   description,
   defaultLimit,
   moduleColumnWidthClass,
 }: SystemLogsPageProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const [refreshing, setRefreshing] = useState(false);
-  const [selectedLevel, setSelectedLevel] = useState<
-    "ALL" | SystemLog["level"]
-  >("ALL");
-  const [selectedModule, setSelectedModule] = useState<string>("ALL");
-  const [searchText, setSearchText] = useState("");
-  const [selectedLimit, setSelectedLimit] = useState<25 | 50 | 100>(
-    defaultLimit,
-  );
-  const [selectedOffset, setSelectedOffset] = useState(0);
-
-  useEffect(() => {
-    const level = searchParams.get("level");
-    const moduleParam = searchParams.get("module");
-    const search = searchParams.get("q");
-    const limit = searchParams.get("limit");
-    const offset = searchParams.get("offset");
-
-    setSelectedLevel(parseLogLevel(level));
-    setSelectedModule(moduleParam || "ALL");
-    setSearchText(search || "");
-    setSelectedLimit(parseLogLimit(limit, defaultLimit));
-    setSelectedOffset(
-      offset && Number.isFinite(Number(offset)) && Number(offset) >= 0
-        ? Number(offset)
-        : 0,
-    );
-  }, [defaultLimit, searchParams]);
-
-  const updateFilterParams = useCallback(
-    (next: {
-      level?: "ALL" | SystemLog["level"];
-      module?: string;
-      q?: string;
-      limit?: 25 | 50 | 100;
-      offset?: number;
-    }) => {
-      const params = new URLSearchParams(searchParams.toString());
-
-      const nextLevel = next.level ?? selectedLevel;
-      const nextModule = next.module ?? selectedModule;
-      const nextSearch = next.q ?? searchText;
-      const nextLimit = next.limit ?? selectedLimit;
-      const nextOffset = next.offset ?? selectedOffset;
-
-      if (nextLevel === "ALL") params.delete("level");
-      else params.set("level", nextLevel);
-
-      if (!nextModule || nextModule === "ALL") params.delete("module");
-      else params.set("module", nextModule);
-
-      if (!nextSearch.trim()) params.delete("q");
-      else params.set("q", nextSearch.trim());
-
-      if (nextLimit === defaultLimit) params.delete("limit");
-      else params.set("limit", String(nextLimit));
-
-      if (nextOffset <= 0) params.delete("offset");
-      else params.set("offset", String(nextOffset));
-
-      const query = params.toString();
-      const currentQuery = searchParams.toString();
-      if (query === currentQuery) return;
-
-      router.replace(query ? `${pathname}?${query}` : pathname, {
-        scroll: false,
-      });
-    },
-    [
-      defaultLimit,
-      pathname,
-      router,
-      searchParams,
-      selectedLevel,
-      selectedModule,
-      searchText,
-      selectedLimit,
-      selectedOffset,
-    ],
-  );
-
-  const logsParams = useMemo(() => {
-    const normalizedSearch = searchText.trim();
-    const params = new URLSearchParams();
-    params.set("limit", String(selectedLimit));
-    params.set("offset", String(selectedOffset));
-    if (selectedLevel !== "ALL") params.set("level", selectedLevel);
-    if (selectedModule !== "ALL") params.set("module", selectedModule);
-    if (normalizedSearch) params.set("q", normalizedSearch);
-    return params.toString();
-  }, [
-    selectedLimit,
-    selectedOffset,
-    selectedLevel,
-    selectedModule,
-    searchText,
-  ]);
-
-  const { token } = useAuth();
-  const logsQuery = useInternalSystemLogs(token, logsParams);
-
-  const logs = useMemo(
-    () => logsQuery.data?.logs ?? EMPTY_LOGS,
-    [logsQuery.data],
-  );
-  const totalCount = logsQuery.data?.total ?? 0;
-  const loading = logsQuery.isLoading;
-  const errorMessage = logsQuery.isError
-    ? getUserFacingErrorMessage(logsQuery.error, {
-        context: "load",
-        fallback: "We could not load these logs. Please try again.",
-      })
-    : null;
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    logsQuery.refetch().finally(() => setRefreshing(false));
-  };
-
-  const getLevelBadge = (level: string) => {
-    switch (level) {
-      case "DEBUG":
-        return (
-          <Badge variant="outline" className="badge-muted">
-            DEBUG
-          </Badge>
-        );
-      case "INFO":
-        return <Badge variant="secondary">INFO</Badge>;
-      case "WARNING":
-        return (
-          <Badge variant="outline" className="badge-warning">
-            WARNING
-          </Badge>
-        );
-      case "ERROR":
-        return <Badge variant="destructive">ERROR</Badge>;
-      default:
-        return <Badge variant="outline">{level}</Badge>;
-    }
-  };
-
-  const moduleOptions = useMemo(() => {
-    return Array.from(new Set(logs.map((log) => log.module))).sort((a, b) =>
-      a.localeCompare(b),
-    );
-  }, [logs]);
-
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (selectedLevel !== "ALL") count += 1;
-    if (selectedModule !== "ALL") count += 1;
-    if (searchText.trim()) count += 1;
-    return count;
-  }, [selectedLevel, selectedModule, searchText]);
-
-  const hasActiveFilters = activeFilterCount > 0;
-  const canGoPrevious = selectedOffset > 0;
-  const canGoNext = selectedOffset + selectedLimit < totalCount;
-  const pageStart = totalCount === 0 ? 0 : selectedOffset + 1;
-  const pageEnd = totalCount === 0 ? 0 : selectedOffset + logs.length;
-
-  const handleResetFilters = () => {
-    setSelectedLevel("ALL");
-    setSelectedModule("ALL");
-    setSearchText("");
-    updateFilterParams({ level: "ALL", module: "ALL", q: "", offset: 0 });
-  };
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      updateFilterParams({ q: searchText, offset: 0 });
-    }, 250);
-
-    return () => clearTimeout(timeout);
-  }, [searchText, updateFilterParams]);
-
-  const pageStatus = loading
-    ? "loading"
-    : errorMessage
-      ? "error"
-      : "success";
+  const logs = useSystemLogs({ defaultLimit });
 
   return (
     <AppPageScaffold
@@ -265,11 +34,11 @@ export function SystemLogsPage({
             <Button
               variant="outline"
               size="sm"
-              onClick={handleRefresh}
-              disabled={refreshing}
+              onClick={logs.handleRefresh}
+              disabled={logs.refreshing}
             >
               <RefreshCw
-                className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+                className={`mr-2 h-4 w-4 ${logs.refreshing ? "animate-spin" : ""}`}
               />
               Refresh
             </Button>
@@ -278,196 +47,35 @@ export function SystemLogsPage({
       }
     >
       <DataState
-        status={pageStatus}
+        status={logs.pageStatus}
         loadingMessage="Loading logs…"
-        errorMessage={errorMessage ?? undefined}
-        onRetry={() => void logsQuery.refetch()}
+        errorMessage={logs.errorMessage ?? undefined}
+        onRetry={() => void logs.refetch()}
       >
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">
-            Severity
-          </label>
-          <Select
-            value={selectedLevel}
-            onValueChange={(nextValue) => {
-              const value = parseLogLevel(nextValue);
-              setSelectedLevel(value);
-              updateFilterParams({ level: value, offset: 0 });
-            }}
-          >
-            <SelectTrigger aria-label="Severity" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All severities</SelectItem>
-              <SelectItem value="ERROR">ERROR</SelectItem>
-              <SelectItem value="WARNING">WARNING</SelectItem>
-              <SelectItem value="INFO">INFO</SelectItem>
-              <SelectItem value="DEBUG">DEBUG</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">
-            Module / Source
-          </label>
-          <Select
-            value={selectedModule}
-            onValueChange={(value) => {
-              setSelectedModule(value);
-              updateFilterParams({ module: value, offset: 0 });
-            }}
-          >
-            <SelectTrigger aria-label="Module / Source" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All modules</SelectItem>
-              {moduleOptions.map((module) => (
-                <SelectItem key={module} value={module}>
-                  {module}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">
-            Search
-          </label>
-          <Input
-            value={searchText}
-            onChange={(e) => {
-              const value = e.target.value;
-              setSearchText(value);
-            }}
-            placeholder="Message"
-          />
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">
-            Page size
-          </label>
-          <Select
-            value={String(selectedLimit)}
-            onValueChange={(nextValue) => {
-              const value = parseLogLimit(nextValue, defaultLimit);
-              setSelectedLimit(value);
-              updateFilterParams({ limit: value, offset: 0 });
-            }}
-          >
-            <SelectTrigger aria-label="Page size" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="25">25</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-              <SelectItem value="100">100</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="flex justify-end">
-        {hasActiveFilters && (
-          <Badge variant="outline" className="mr-2 badge-muted">
-            {activeFilterCount} filter{activeFilterCount === 1 ? "" : "s"}{" "}
-            active
-          </Badge>
-        )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleResetFilters}
-          disabled={!hasActiveFilters}
-        >
-          Reset filters
-        </Button>
-      </div>
-
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[180px]">Timestamp</TableHead>
-              <TableHead className="w-[100px]">Level</TableHead>
-              <TableHead className={moduleColumnWidthClass}>Module</TableHead>
-              <TableHead>Message</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
-                  Loading logs…
-                </TableCell>
-              </TableRow>
-            ) : logs.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
-                  No matching logs found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              logs.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell className="font-mono text-xs">
-                    {formatDate(log.timestamp, "dd MMM yyyy, HH:mm:ss.SSS")}
-                  </TableCell>
-                  <TableCell>{getLevelBadge(log.level)}</TableCell>
-                  <TableCell className="font-medium">{log.module}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <span>{log.message}</span>
-                      {log.details && (
-                        <span className="text-xs text-muted-foreground font-mono bg-muted p-1 rounded w-fit">
-                          {log.details}
-                        </span>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Showing {pageStart}-{pageEnd} of {totalCount}
-        </p>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={loading || !canGoPrevious}
-            onClick={() => {
-              const nextOffset = Math.max(0, selectedOffset - selectedLimit);
-              setSelectedOffset(nextOffset);
-              updateFilterParams({ offset: nextOffset });
-            }}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={loading || !canGoNext}
-            onClick={() => {
-              const nextOffset = selectedOffset + selectedLimit;
-              setSelectedOffset(nextOffset);
-              updateFilterParams({ offset: nextOffset });
-            }}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+        <SystemLogsTable
+          logs={logs.logs}
+          loading={logs.loading}
+          totalCount={logs.totalCount}
+          pageStart={logs.pageStart}
+          pageEnd={logs.pageEnd}
+          canGoPrevious={logs.canGoPrevious}
+          canGoNext={logs.canGoNext}
+          selectedLevel={logs.selectedLevel}
+          selectedModule={logs.selectedModule}
+          searchText={logs.searchText}
+          selectedLimit={logs.selectedLimit}
+          moduleOptions={logs.moduleOptions}
+          activeFilterCount={logs.activeFilterCount}
+          hasActiveFilters={logs.hasActiveFilters}
+          moduleColumnWidthClass={moduleColumnWidthClass}
+          onLevelChange={logs.handleLevelChange}
+          onModuleChange={logs.handleModuleChange}
+          onSearchChange={logs.handleSearchChange}
+          onLimitChange={logs.handleLimitChange}
+          onPreviousPage={logs.goToPreviousPage}
+          onNextPage={logs.goToNextPage}
+          onResetFilters={logs.handleResetFilters}
+        />
       </DataState>
     </AppPageScaffold>
   );

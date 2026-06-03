@@ -6,11 +6,13 @@ import { PublicStatsService } from './public-stats.service';
 import { PublicDailyThoughtService } from './public-daily-thought.service';
 import { PublicPatientDocumentsController } from './public-patient-documents.controller';
 import { PublicPatientDocumentsService } from './public-patient-documents.service';
+import { PublicDocumentTokenService } from './public-document-token.service';
 import { PrescriptionsModule } from '@/domains/prescriptions/prescriptions.module';
 import { BillingModule } from '@/domains/billing/billing.module';
+import { DocumentsModule } from '@/domains/documents/documents.module';
 
 @Module({
-  imports: [PrismaModule, PrescriptionsModule, BillingModule],
+  imports: [PrismaModule, PrescriptionsModule, BillingModule, DocumentsModule],
   controllers: [
     PublicStatsController,
     PublicDailyThoughtController,
@@ -20,6 +22,7 @@ import { BillingModule } from '@/domains/billing/billing.module';
     PublicStatsService,
     PublicDailyThoughtService,
     PublicPatientDocumentsService,
+    PublicDocumentTokenService,
   ],
 })
 export class PublicModule {}

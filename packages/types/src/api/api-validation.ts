@@ -9,7 +9,7 @@ import {
   createPrescriptionRequestSchema,
 } from "../contracts/prescriptions";
 import { createLabTestRequestSchema } from "../contracts/lab-tests";
-import { clinicTypeSchema } from "../shared/users";
+import { appointmentStatusSchema, clinicTypeSchema } from "../shared/users";
 
 export const IdSchema = z.string().uuid("Enter a valid ID.");
 export const EmailSchema = z
@@ -55,16 +55,7 @@ export const CreateAppointmentSchema = z.object({
   doctorId: IdSchema,
   appointmentDateTime: DateTimeSchema,
   reason: z.string().min(1).max(500),
-  status: z
-    .enum([
-      "SCHEDULED",
-      "CONFIRMED",
-      "IN_PROGRESS",
-      "COMPLETED",
-      "CANCELLED",
-      "NO_SHOW",
-    ])
-    .default("SCHEDULED"),
+  status: appointmentStatusSchema.default("scheduled"),
   notes: z.string().optional(),
   type: z.enum(["IN_PERSON", "TELEHEALTH"]).default("IN_PERSON"),
   duration: PositiveIntSchema.default(30),

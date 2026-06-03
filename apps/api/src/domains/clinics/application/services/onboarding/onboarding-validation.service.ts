@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { Specialization } from '@workspace/db';
+import { Role, Specialization } from '@workspace/db';
 import {
   isFrontDeskPlanMode,
   mapDbClinicTierStringToTierName,
@@ -15,14 +15,12 @@ import {
 } from '@workspace/types';
 import { parseStringEnumMember } from '@workspace/utils';
 import { z } from 'zod';
-import {
-  CompleteOnboardingDto,
-  ClinicTier,
-} from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
+import { CompleteOnboardingDto } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import {
   validateSpecializationForOnboarding,
   validateClinicTier,
   validateBillingCycle,
+  isTrialEligibleTier,
 } from './type-helpers';
 
 function billingCycleEnumToCatalogKey(
@@ -131,11 +129,11 @@ export class OnboardingValidationService {
         !!data.paymentDetails?.razorpayOrderId &&
         !!data.paymentDetails?.razorpaySignature;
 
-      const unpaidEssentialTrial =
-        data.planSelection.tier === ClinicTier.ESSENTIAL &&
+      const unpaidTrial =
+        isTrialEligibleTier(data.planSelection.tier) &&
         data.paymentDetails?.skipPayment === true;
 
-      if (!unpaidEssentialTrial && !hasProcessedPayment) {
+      if (!unpaidTrial && !hasProcessedPayment) {
         errors.push('Payment details are required for paid plans');
       }
 
@@ -165,7 +163,7 @@ export class OnboardingValidationService {
       : false;
     if (isFrontDeskPlan && data.staffSetup?.staffMembers) {
       for (const member of data.staffSetup.staffMembers) {
-        if (member.role === 'NURSE' || member.role === 'ADMIN_DOCTOR') {
+        if (member.role === Role.NURSE || member.role === Role.ADMIN_DOCTOR) {
           errors.push(
             'The Front Desk plan does not support nurse or admin-doctor staff roles during onboarding.',
           );
@@ -174,7 +172,7 @@ export class OnboardingValidationService {
       }
     }
 
-    if (isFrontDeskPlan && data.adminAccount?.role === 'ADMIN_DOCTOR') {
+    if (isFrontDeskPlan && data.adminAccount?.role === Role.ADMIN_DOCTOR) {
       errors.push(
         'The front desk plan does not support the admin-doctor role for the primary admin account.',
       );

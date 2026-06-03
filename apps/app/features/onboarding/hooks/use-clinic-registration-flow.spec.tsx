@@ -311,7 +311,7 @@ describe("useClinicRegistrationFlow", () => {
     });
 
     expect(mocks.toast.info).toHaveBeenCalledWith(
-      "Your free trial has already been used. Complete payment to continue with Essential.",
+      "Your free trial has already been used. Complete payment to continue.",
     );
     expect(mocks.openCheckout).toHaveBeenCalledWith(
       expect.objectContaining({

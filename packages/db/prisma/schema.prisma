@@ -2201,15 +2201,16 @@ model EmailSuppression {
 }
 
 model WebhookSubscription {
-  id             String   @id @default(cuid())
+  id             String                        @id @default(cuid())
   clinicId       String
   eventName      String
   targetUrl      String
   signingSecret  String
-  active         Boolean  @default(true)
+  active         Boolean                       @default(true)
   description    String?
-  createdAt      DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt      DateTime @updatedAt @db.Timestamptz(3)
+  createdAt      DateTime                      @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime                      @updatedAt @db.Timestamptz(3)
+  deliveries     OutgoingWebhookDelivery[]
 
   @@unique([clinicId, eventName, targetUrl])
   @@index([clinicId])
@@ -2247,6 +2248,32 @@ model OutgoingWebhookDelivery {
   @@index([status, scheduledAt])
   @@index([clinicId])
   @@index([subscriptionId])
+}
+
+model LabTest {
+  id                     String  @id @default(cuid())
+  clinicId               String
+  name                   String
+  code                   String?
+  loincCode              String?
+  category               String
+  price                  Float?
+  description            String?
+  referenceRangeLow      Float?
+  referenceRangeHigh     Float?
+  referenceRangeUnit     String?
+  referenceRangeText     String?
+  specimenType           String?
+  collectionRequirements String?
+  active                 Boolean        @default(true)
+  createdAt              DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt              DateTime       @updatedAt @db.Timestamptz(3)
+  orders                 LabTestOrder[]
+  loincRef               LoincCode?     @relation(fields: [loincCode], references: [code])
+
+  @@index([clinicId])
+  @@index([category])
+  @@index([loincCode])
 }
 
 model LabTestOrder {
@@ -4347,17 +4374,3 @@ enum EmailSuppressionReason {
 }
 
 /// Addresses we must not email again (hard bounces, spam complaints,
-/// unsubscribes), populated from the ESP delivery webhook. Stored as a hash so
-/// no raw PHI email lives here; the masked form is for operator visibility.
-model EmailSuppression {
-  id          String                 @id @default(cuid())
-  emailHash   String                 @unique
-  maskedEmail String
-  reason      EmailSuppressionReason
-  detail      String?
-  provider    String                 @default("zeptomail")
-  createdAt   DateTime               @default(now()) @db.Timestamptz(3)
-  updatedAt   DateTime               @updatedAt @db.Timestamptz(3)
-
-  @@index([createdAt])
-}

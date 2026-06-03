@@ -51,7 +51,7 @@ export function ClinicOnboardingWizard() {
       onSuccess={() => {
         setIsFinalizingRedirect(true);
         const destination =
-          user?.role === "ADMIN_DOCTOR" ? "/verify-doctor" : "/today";
+          user?.role === "ADMIN_DOCTOR" ? ("/verify-doctor" as const) : ("/today" as const);
         router.replace(destination);
       }}
     />

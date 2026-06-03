@@ -15,6 +15,7 @@ import { getWebSocketCorsOrigins } from '@/shared/modules/config/app-config';
 import { WsJwtAuthGuard } from '@/shared/modules/auth/auth/ws-jwt-auth.guard';
 import {
   ClinicTier,
+  Role,
   SubscriptionStatus,
   InvoiceStatus as _InvoiceStatus,
   PaymentSessionStatus,
@@ -133,7 +134,7 @@ export class PaymentWebSocketGateway
 
     const user = client.data.user;
 
-    if (user.role !== 'INTERNAL' && user.clinicId !== clinicId) {
+    if (user.role !== Role.INTERNAL && user.clinicId !== clinicId) {
       this.logger.warn(
         `Unauthorized subscription attempt: User ${user.email} (clinic: ${user.clinicId}) tried to subscribe to clinic: ${clinicId}`,
       );
@@ -154,7 +155,7 @@ export class PaymentWebSocketGateway
 
     const user = client.data.user;
 
-    if (user.role !== 'INTERNAL') {
+    if (user.role !== Role.INTERNAL) {
       const invoice = await this.prisma.invoice.findFirst({
         where: {
           id: invoiceId,

@@ -19,7 +19,7 @@ import type {
   OnboardingProgressDto,
   OnboardingStep,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
-import { ClinicTier } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
+import { isTrialEligibleTier } from './type-helpers';
 import { OnboardingDataService } from './onboarding-data.service';
 import { OnboardingValidationService } from './onboarding-validation.service';
 import { OnboardingWorkflowService } from './onboarding-workflow.service';
@@ -167,14 +167,14 @@ export class OnboardingService {
         completeData.planSelection.planMode,
       );
 
-      const isUnpaidEssentialTrial =
-        completeData.planSelection.tier === ClinicTier.ESSENTIAL &&
+      const isUnpaidTrial =
+        isTrialEligibleTier(completeData.planSelection.tier) &&
         completeData.paymentDetails?.skipPayment === true;
 
       // Free-trial re-use prevention: an email that has ever onboarded a clinic
       // — whether it paid or only consumed a prior 30-day trial — must use
       // checkout instead of starting another free trial.
-      if (isUnpaidEssentialTrial) {
+      if (isUnpaidTrial) {
         const hasPriorSubscription = await hasPriorSubscriptionForEmail(
           this.persistence,
           completeData.adminAccount.email,
@@ -186,7 +186,7 @@ export class OnboardingService {
         }
       }
 
-      if (listPriceCents > 0 && !isUnpaidEssentialTrial) {
+      if (listPriceCents > 0 && !isUnpaidTrial) {
         const paymentDetails = completeData.paymentDetails;
         const razorpayPaymentId = paymentDetails?.razorpayPaymentId;
         const razorpayOrderId = paymentDetails?.razorpayOrderId;

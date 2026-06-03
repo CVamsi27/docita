@@ -14,13 +14,17 @@ describe('OutboxRelayScheduler', () => {
 
   it('atomically claims a batch and finalizes successful dispatches', async () => {
     const queryRaw = jest.fn().mockResolvedValue([row]);
-    const txQueryRaw = jest.fn().mockResolvedValue([{ pg_try_advisory_xact_lock: true }]);
+    const txQueryRaw = jest
+      .fn()
+      .mockResolvedValue([{ pg_try_advisory_xact_lock: true }]);
     const update = jest.fn().mockResolvedValue(undefined);
     const emit = jest.fn().mockReturnValue(true);
-    const txFn = jest.fn().mockImplementation(
-      (cb: (tx: Record<string, unknown>) => Promise<unknown>) =>
-        cb({ $queryRaw: txQueryRaw }),
-    );
+    const txFn = jest
+      .fn()
+      .mockImplementation(
+        (cb: (tx: Record<string, unknown>) => Promise<unknown>) =>
+          cb({ $queryRaw: txQueryRaw }),
+      );
     const scheduler = new OutboxRelayScheduler(
       asType<PrismaService>({
         $queryRaw: queryRaw,
@@ -53,11 +57,15 @@ describe('OutboxRelayScheduler', () => {
 
   it('records a bounded retry delay when synchronous dispatch fails', async () => {
     const update = jest.fn().mockResolvedValue(undefined);
-    const txQueryRaw = jest.fn().mockResolvedValue([{ pg_try_advisory_xact_lock: true }]);
-    const txFn = jest.fn().mockImplementation(
-      (cb: (tx: Record<string, unknown>) => Promise<unknown>) =>
-        cb({ $queryRaw: txQueryRaw }),
-    );
+    const txQueryRaw = jest
+      .fn()
+      .mockResolvedValue([{ pg_try_advisory_xact_lock: true }]);
+    const txFn = jest
+      .fn()
+      .mockImplementation(
+        (cb: (tx: Record<string, unknown>) => Promise<unknown>) =>
+          cb({ $queryRaw: txQueryRaw }),
+      );
     const scheduler = new OutboxRelayScheduler(
       asType<PrismaService>({
         $queryRaw: jest.fn().mockResolvedValue([row]),

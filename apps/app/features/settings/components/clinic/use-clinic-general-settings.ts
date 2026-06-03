@@ -16,10 +16,11 @@ import {
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   clinicSettingsFormSchema,
+  facilityTypeSchema,
   type ClinicSettingsFormValues,
 } from "@workspace/types";
 
-const FACILITY_LABEL_VALUES = ["CLINIC", "HOSPITAL"] as const;
+const FACILITY_LABEL_VALUES = facilityTypeSchema.options;
 
 export function useClinicGeneralSettings() {
   const { data: clinic, isLoading } = useClinicSettings();

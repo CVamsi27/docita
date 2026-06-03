@@ -9,17 +9,15 @@ import {
   BadRequestException,
   Request,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { SignatureUploadService } from '@/domains/doctors/application/services/signature-upload.service';
 import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import {
-  assertAllowedFileSignature,
-  createTempDiskStorage,
-} from '@/shared/common/utils/upload.utils';
-import { unlink } from 'fs/promises';
+  createSignatureFileInterceptor,
+  handleSignatureUpload,
+} from '@/shared/common/utils/signature-controller.utils';
 
 @Controller('doctors/signature')
 export class SignatureUploadController {
@@ -47,49 +45,12 @@ export class SignatureUploadController {
 
   @Post('upload/:token')
   @Public()
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: createTempDiskStorage(),
-      limits: {
-        fileSize: 5 * 1024 * 1024,
-      },
-      fileFilter: (_req, file, cb) => {
-        const allowedMimes = [
-          'image/jpeg',
-          'image/jpg',
-          'image/png',
-          'image/webp',
-        ];
-        if (!allowedMimes.includes(file.mimetype)) {
-          return cb(
-            new BadRequestException(
-              'Only images (JPEG, PNG, WebP) are allowed',
-            ),
-            false,
-          );
-        }
-
-        cb(null, true);
-      },
-    }),
-  )
+  @UseInterceptors(createSignatureFileInterceptor())
   async uploadSignature(
     @Param('token') token: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    if (!file) {
-      throw new BadRequestException('File is required');
-    }
-
-    try {
-      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp']);
-      return await this.signatureUploadService.uploadSignature(token, file);
-    } catch (error) {
-      if (file.path) {
-        await unlink(file.path).catch(() => {});
-      }
-      throw error;
-    }
+    return handleSignatureUpload(this.signatureUploadService, token, file);
   }
 
   @Get('active-tokens')

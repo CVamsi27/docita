@@ -9,7 +9,7 @@ import {
   usePatientSelectedMetrics,
   useRecordPatientMetricValue,
   useUpdatePatientSelectedMetrics,
-} from "@/features/patients/hooks/usePatients";
+} from "@/features/patients/hooks/use-patients";
 import {
   buildMetricSelectionMap,
   filterMetricCategories,

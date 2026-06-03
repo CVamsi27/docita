@@ -1,4 +1,4 @@
-export * from "./hooks/usePatients";
+export * from "./hooks/use-patients";
 export * from "./hooks/use-patient-history";
 
 export * from "./rules/patient-rules";

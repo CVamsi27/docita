@@ -1,7 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
 import { Reflector } from '@nestjs/core';
-import { SubscriptionStatus, IntelligenceAddon } from '@workspace/db';
+import { Role, SubscriptionStatus, IntelligenceAddon } from '@workspace/db';
 import { bypassesSessionGuards } from './auth-route-metadata.util';
 import {
   isBillingAdminRole,
@@ -45,13 +45,13 @@ export class TierGuard implements CanActivate {
     const user = request.user;
 
     if (!user || !user.clinicId) {
-      if (user?.role === 'INTERNAL') {
+      if (user?.role === Role.INTERNAL) {
         return true;
       }
       throw forbiddenProblem('NO_CLINIC', 'User not associated with a clinic');
     }
 
-    if (user.role === 'INTERNAL') {
+    if (user.role === Role.INTERNAL) {
       return true;
     }
 

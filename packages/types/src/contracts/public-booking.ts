@@ -2,6 +2,7 @@ import { z } from "zod";
 import { stripHtmlTags } from "../api/sanitization";
 import { pastDateOfBirthSchema } from "./patients";
 import { dpdpConsentPayloadSchema } from "./dpdp";
+import { facilityTypeSchema } from "../shared/users";
 
 export const publicBookingClinicResponseSchema = z
   .object({
@@ -17,7 +18,7 @@ export const publicBookingClinicResponseSchema = z
     email: z.string().optional(),
     website: z.string().nullable().optional(),
     /** How the organization is labeled in product copy (clinic vs hospital). */
-    facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
+    facilityLabel: facilityTypeSchema.optional(),
   })
   .strict();
 

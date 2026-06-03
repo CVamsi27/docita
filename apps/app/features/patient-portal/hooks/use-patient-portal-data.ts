@@ -16,25 +16,9 @@ import type {
   PatientPrescriptionStatus,
 } from "@/features/patient-portal/types/patient-portal-types";
 import { summarizePortalSnapshot } from "@/features/patient-portal/rules/patient-portal-rules";
+import { mapAppointmentStatus } from "@/features/patient-portal/lib/map-portal-records";
 
 type AppointmentWithPortalRelations = AppointmentListItem;
-
-function mapAppointmentStatus(
-  status: string | undefined,
-): "CONFIRMED" | "PENDING" | "COMPLETED" {
-  const normalized = (status || "").toLowerCase();
-  if (normalized === "completed") {
-    return "COMPLETED";
-  }
-  if (
-    normalized === "confirmed" ||
-    normalized === "checked-in" ||
-    normalized === "in-progress"
-  ) {
-    return "CONFIRMED";
-  }
-  return "PENDING";
-}
 
 function mapInvoiceStatus(
   status: string | undefined,

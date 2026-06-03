@@ -1,6 +1,8 @@
+import type { PrescriptionStatus } from "@workspace/types";
+
 export type PatientAppointmentStatus = "CONFIRMED" | "PENDING" | "COMPLETED";
 
-export type PatientPrescriptionStatus = "ACTIVE" | "COMPLETED";
+export type PatientPrescriptionStatus = PrescriptionStatus;
 
 export type PatientInvoiceStatus = "PENDING" | "PAID" | "OVERDUE";
 

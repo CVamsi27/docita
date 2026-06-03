@@ -1,18 +1,9 @@
 import { z } from "zod";
 import { genderSchema } from "../shared/users";
 import { dpdpConsentPayloadSchema } from "./dpdp";
+import { pastDateOfBirthSchema } from "../patient/patients";
 
-export const pastDateOfBirthSchema = z
-  .union([z.string(), z.date()])
-  .refine(
-    (value) => {
-      const date = new Date(value);
-      return !Number.isNaN(date.getTime()) && date < new Date();
-    },
-    {
-      message: "Date of birth must be in the past",
-    },
-  );
+export { pastDateOfBirthSchema };
 
 export const patientResponseSchema = z
   .object({

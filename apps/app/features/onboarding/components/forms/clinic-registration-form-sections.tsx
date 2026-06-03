@@ -1,5 +1,6 @@
 "use client";
 
+import { AlertCircle } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import {
   Dialog,
@@ -9,6 +10,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
+import {
+  Alert,
+  AlertDescription,
+} from "@workspace/ui/components/feedback/alert";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatDateTime } from "@/lib/formatters";
@@ -121,5 +126,45 @@ export function OnboardingProgressCard({ step }: OnboardingProgressCardProps) {
         ))}
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// StepErrorAlert
+// ---------------------------------------------------------------------------
+
+interface StepErrorAlertProps {
+  message: string | null;
+  onDismiss: () => void;
+}
+
+export function StepErrorAlert({ message, onDismiss }: StepErrorAlertProps) {
+  if (!message) return null;
+
+  return (
+    <>
+      <Alert
+        variant="destructive"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+      >
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription className="flex items-center justify-between gap-4">
+          <span>{message}</span>
+          <Button
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+            onClick={onDismiss}
+          >
+            Dismiss
+          </Button>
+        </AlertDescription>
+      </Alert>
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {message ? `Error: ${message}` : ""}
+      </div>
+    </>
   );
 }

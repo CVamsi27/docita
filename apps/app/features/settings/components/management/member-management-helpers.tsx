@@ -13,6 +13,7 @@ import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { Copy, UserPlus } from "lucide-react";
 import { User } from "@workspace/types";
+import { isDoctor } from "@/lib/auth/permissions";
 import { memberRoleDisplayLabel } from "@/features/settings/components/management/member-management-schemas";
 
 // ---------------------------------------------------------------------------
@@ -81,7 +82,7 @@ interface MemberListRowProps {
 }
 
 export const MemberListRow: FC<MemberListRowProps> = ({ member, onManage }) => {
-  const isDoctor = member.role === "DOCTOR" || member.role === "ADMIN_DOCTOR";
+  const isDoctorUser = isDoctor(member.role);
 
   return (
     <div className="flex items-center justify-between rounded-[calc(var(--radius)-4px)] border border-transparent p-3 transition-colors hover:border-border/60 hover:bg-muted/50">
@@ -100,7 +101,7 @@ export const MemberListRow: FC<MemberListRowProps> = ({ member, onManage }) => {
             <Badge variant="outline">
               {memberRoleDisplayLabel(member.role)}
             </Badge>
-            {isDoctor && (
+            {isDoctorUser && (
               <>
                 <Badge
                   variant={getVerificationBadgeVariant(

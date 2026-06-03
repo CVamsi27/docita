@@ -1,5 +1,9 @@
 import { AppointmentStatus, Prisma } from '@workspace/db';
 import { type UpdateAppointmentRequest } from '@workspace/types';
+import {
+  parseAppointmentStatus,
+  APPOINTMENT_STATUS_TO_PRISMA,
+} from '@/domains/appointments/infrastructure/mappers/appointment.mapper';
 
 /** Safely coerce an unknown value to a Date, falling back to `fallback`. */
 export function coerceAppointmentDate(
@@ -24,23 +28,10 @@ export function coerceAppointmentDate(
 function mapStatusToPrisma(
   status: UpdateAppointmentRequest['status'] | undefined,
 ): AppointmentStatus | undefined {
-  switch (status) {
-    case 'scheduled':
-      return AppointmentStatus.SCHEDULED;
-    case 'confirmed':
-    case 'checked-in':
-      return AppointmentStatus.CONFIRMED;
-    case 'in-progress':
-      return AppointmentStatus.IN_PROGRESS;
-    case 'completed':
-      return AppointmentStatus.COMPLETED;
-    case 'cancelled':
-      return AppointmentStatus.CANCELLED;
-    case 'no-show':
-      return AppointmentStatus.NO_SHOW;
-    default:
-      return undefined;
-  }
+  if (!status) return undefined;
+  const domainStatus = parseAppointmentStatus(status);
+  if (!domainStatus) return undefined;
+  return APPOINTMENT_STATUS_TO_PRISMA[domainStatus];
 }
 
 /** Build a Prisma `AppointmentUpdateInput` patch from a partial domain update request. */

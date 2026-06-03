@@ -1,4 +1,5 @@
 import { SubscriptionStatus } from '@workspace/db';
+import { BILLING_ROLES } from '@workspace/types';
 
 export function isSubscriptionPastGraceDeadline(params: {
   subscriptionStatus: SubscriptionStatus;
@@ -72,5 +73,5 @@ export function isSubscriptionBillingHardLocked(params: {
 }
 
 export function isBillingAdminRole(role: string | undefined): boolean {
-  return role === 'ADMIN' || role === 'ADMIN_DOCTOR';
+  return typeof role === 'string' ? BILLING_ROLES.has(role as never) : false;
 }

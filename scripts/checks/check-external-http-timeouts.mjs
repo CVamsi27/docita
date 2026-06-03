@@ -4,20 +4,15 @@
  * Ω3/Ω4: outbound HTTP in the API must use fetchWithTimeout (or documented allow).
  */
 
-import { execSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import process from "node:process";
+import { listSourceFiles } from "../lib/list-source-files.mjs";
 
 const ALLOW_FILE = "check-external-http-timeouts: allow-file";
 const ALLOW_LINE = "check-external-http-timeouts: allow";
 const FETCH_RE = /\bfetch\s*\(/g;
 
-const files = execSync("git ls-files apps/api/src", { encoding: "utf8" })
-  .split("\n")
-  .filter(Boolean)
-  .filter((file) => /\.ts$/.test(file))
-  .filter((file) => !/\.(spec|test)\.ts$/.test(file))
-  .filter((file) => existsSync(file));
+const files = listSourceFiles(["apps/api/src"]).filter((file) => /\.ts$/.test(file));
 
 const findings = [];
 

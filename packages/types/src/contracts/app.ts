@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { clinicSchema, enterpriseBrandingSchema } from "../shared/clinics";
-import { userSchema } from "../shared/users";
+import { facilityTypeSchema, userSchema } from "../shared/users";
 
 export const appAuthUserSchema = userSchema
   .pick({
@@ -75,7 +75,7 @@ export const appClinicSettingsSchema = z.object({
   scheduleNotificationUnit: z.string().optional(),
   whatsappPreAppointmentEnabled: z.boolean().optional(),
   whatsappPreAppointmentMinutes: z.number().optional(),
-  facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
+  facilityLabel: facilityTypeSchema.optional(),
 });
 
 export const appClinicSchema = clinicSchema.extend({
@@ -87,7 +87,7 @@ export const appClinicSchema = clinicSchema.extend({
   consultationDuration: z.number().optional(),
   slotDuration: z.number().optional(),
   countryCode: z.string().optional(),
-  facilityType: z.enum(["CLINIC", "HOSPITAL"]).optional(),
+  facilityType: facilityTypeSchema.optional(),
   enterpriseBranding: enterpriseBrandingSchema.optional(),
 });
 

@@ -5,12 +5,11 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { useRouter } from "next/navigation";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import type { OcrImportCommitRequest } from "@workspace/types";
-import { parseStringEnumMember } from "@workspace/utils";
 import type { OCRFormData } from "@/features/ocr/types";
 import {
   emptyOcrInvoiceForm,
-  mapOcrFieldsToInvoiceForm,
+  buildOcrFormData,
+  buildOcrSavePayload,
   buildInvoiceDraftForCommit,
 } from "./use-ocr-helpers";
 
@@ -58,31 +57,10 @@ export const useOCR = () => {
       const formDataObj = new FormData();
       formDataObj.append("file", file);
       const result = await processOCRMutation.mutateAsync(formDataObj);
-      const invoiceFromScan = mapOcrFieldsToInvoiceForm(result.fields);
-      setFormData({
-        firstName: result.fields?.firstName || result.firstName || "",
-        lastName: result.fields?.lastName || result.lastName || "",
-        age: result.fields?.age || result.age || "",
-        gender: result.fields?.gender || result.gender || "MALE",
-        phoneNumber: result.fields?.phoneNumber || result.phoneNumber || "",
-        email: result.fields?.email || "",
-        dateOfBirth: "", address: "",
-        bloodType: result.fields?.bloodType || "",
-        diagnosis: result.fields?.diagnosis || result.diagnosis || "",
-        symptoms: result.fields?.symptoms || [],
-        allergies: result.fields?.allergies || [],
-        medicalHistory: result.fields?.medicalHistory || [],
-        medications: result.fields?.medications || [],
-        vitals: {
-          bp: result.fields?.vitals?.bp || result.vitals?.bp || "",
-          temp: result.fields?.vitals?.temp || result.vitals?.temp || "",
-          pulse: result.fields?.vitals?.pulse || result.vitals?.pulse || "",
-          respiratoryRate: result.fields?.vitals?.respiratoryRate || "",
-          spO2: result.fields?.vitals?.spO2 || "", glucose: result.fields?.vitals?.glucose || "",
-        },
-        labValues: { glucose: "", hemoglobin: "", creatinine: "" },
-        invoice: invoiceFromScan,
-      });
+      setFormData(buildOcrFormData(
+        result.fields, result.firstName, result.lastName,
+        result.age, result.gender, result.diagnosis, result.phoneNumber,
+      ));
       setExpandedSections((prev) => ({
         ...prev,
         invoice: invoiceFromScan.items.length > 0 || invoiceFromScan.grandTotal.trim().length > 0,
@@ -120,41 +98,19 @@ export const useOCR = () => {
       if (formData.invoice.saveAsPending && !invoiceDraft) {
         showUserFacingErrorToast(null, "To save a pending invoice, add at least one line with description, quantity, unit price, and total (or leave total blank when quantity and unit price are set), and enter a positive grand total.", "form"); return;
       }
-      const dobDate = formData.dateOfBirth.trim().length > 0
-        ? new Date(formData.dateOfBirth)
-        : new Date(new Date().getFullYear() - (parseInt(formData.age, 10) || 0), 0, 1);
-      if (Number.isNaN(dobDate.getTime())) {
-        showUserFacingErrorToast(null, "Enter a valid date of birth or age", "form"); return;
+      if (formData.dateOfBirth.trim() || formData.age.trim()) {
+        const dobTest = formData.dateOfBirth.trim()
+          ? new Date(formData.dateOfBirth)
+          : new Date(new Date().getFullYear() - (parseInt(formData.age, 10) || 0), 0, 1);
+        if (Number.isNaN(dobTest.getTime())) {
+          showUserFacingErrorToast(null, "Enter a valid date of birth or age", "form"); return;
+        }
       }
-      const dobIso = dobDate.toISOString();
-      const bpParts = formData.vitals.bp ? formData.vitals.bp.split("/") : [];
-      const vitalsPayload: OcrImportCommitRequest["vitals"] = {};
-      if (bpParts[0]) vitalsPayload.systolicBP = parseInt(bpParts[0], 10);
-      if (bpParts[1]) vitalsPayload.diastolicBP = parseInt(bpParts[1], 10);
-      if (formData.vitals.temp.trim()) vitalsPayload.temperature = parseFloat(formData.vitals.temp);
-      if (formData.vitals.pulse.trim()) vitalsPayload.pulse = parseInt(formData.vitals.pulse, 10);
-      const hasVitals = vitalsPayload.systolicBP !== undefined || vitalsPayload.diastolicBP !== undefined ||
-        vitalsPayload.temperature !== undefined || vitalsPayload.pulse !== undefined;
-      const medications = formData.medications.length > 0
-        ? formData.medications.map((m) => ({ name: m.name.trim(), dosage: m.dosage.trim() || "—", frequency: m.frequency.trim() || "—", route: "PO", duration: "" }))
-        : undefined;
-      const payload: OcrImportCommitRequest = {
-        clinicId, doctorId: user.id,
-        firstName: formData.firstName.trim(), lastName: formData.lastName.trim(),
-        phoneNumber: formData.phoneNumber.trim(),
-        gender:
-          parseStringEnumMember(
-            ["MALE", "FEMALE", "OTHER"] as const,
-            formData.gender,
-          ) ?? "OTHER",
-        dateOfBirth: dobIso, address: formData.address.trim() || undefined,
-        diagnosis: formData.diagnosis.trim() || undefined,
-        allergies: formData.allergies.length > 0 ? formData.allergies : undefined,
-        medications, vitals: hasVitals ? vitalsPayload : undefined,
-        consultationNotes: formData.diagnosis.trim() || undefined,
-        acknowledgeReview: needsReviewAcknowledgement ? reviewAcknowledged : undefined,
-        invoiceDraft,
-      };
+      const payload = buildOcrSavePayload(
+        formData, clinicId, user.id,
+        needsReviewAcknowledgement, reviewAcknowledged,
+      );
+      if (payload.invoiceDraft === undefined && formData.invoice.saveAsPending) return;
       const result = await commitOcrMutation.mutateAsync(payload);
       toast.success("Patient and visit created successfully");
       router.push(`/patients/${result.patientId}`);

@@ -19,6 +19,7 @@ import { createAppointmentFormResolver } from "@/features/appointments/lib/appoi
 import { defaultStartIsoForSelectedCalendarDay } from "@/features/appointments/lib/calendar-slot-local-iso";
 import { useAppConfig } from "@/lib/contexts/app-config-context";
 import { useAuth } from "@/lib/auth/auth-context";
+import { isDoctor } from "@/lib/auth/permissions";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { useAutoPickStartTime } from "./use-auto-pick-start-time";
 import { useSnapStartTimeToSlot } from "./use-snap-start-time-to-slot";
@@ -119,7 +120,7 @@ export function useAppointmentForm({
     let resolvedDoctorId = "";
     if (defaultDoctorId && !unavailableIds.has(defaultDoctorId)) {
       resolvedDoctorId = defaultDoctorId;
-    } else if (user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR") {
+    } else if (isDoctor(user?.role)) {
       resolvedDoctorId = user.id && !unavailableIds.has(user.id) ? user.id : "";
     } else if (filteredDoctors.length > 0) {
       resolvedDoctorId = filteredDoctors[0]?.id || "";

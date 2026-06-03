@@ -28,6 +28,15 @@ export function validateBillingCycle(value: string | undefined): BillingCycle {
   return parsed.success ? parsed.data : BillingCycle.MONTHLY;
 }
 
+/**
+ * Plans eligible for the unpaid free trial: every published tier except
+ * Enterprise, which is custom-priced and routed through sales (no self-serve
+ * trial). Front Desk / Core variants of trial-eligible tiers stay eligible.
+ */
+export function isTrialEligibleTier(tier: ClinicTier): boolean {
+  return tier !== ClinicTier.ENTERPRISE;
+}
+
 export type ClinicSettings = Record<string, unknown>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {

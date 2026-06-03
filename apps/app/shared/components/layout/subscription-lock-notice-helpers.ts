@@ -19,6 +19,13 @@ export type NoticeKind =
   | "trial-active"
   | "payment-required";
 
+/**
+ * Once the trial notice is dismissed it stays hidden until the trial enters its
+ * final stretch (this many days left), at which point it surfaces again as a
+ * last reminder. See {@link SubscriptionLockNotice}.
+ */
+export const TRIAL_NOTICE_REMINDER_DAYS = 5 as const;
+
 export interface SubscriptionLockNoticeCopy {
   kind: NoticeKind;
   title: string;
@@ -26,6 +33,8 @@ export interface SubscriptionLockNoticeCopy {
   ctaLabel: string;
   variant: "destructive" | "default";
   toneClass?: string;
+  /** Whole days left in an active trial; null for non-trial notices. */
+  trialDaysLeft?: number | null;
 }
 
 type ClinicShape = Pick<
@@ -188,6 +197,7 @@ export function resolveSubscriptionLockNotice(
       ctaLabel: "Billing & subscription",
       variant: "default",
       toneClass: "border-info/40 bg-info/10",
+      trialDaysLeft,
     };
   }
 

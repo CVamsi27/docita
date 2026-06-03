@@ -1,6 +1,60 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ParsedMedicalFields } from '@workspace/types';
 
+type FieldResolver = (fields: ParsedMedicalFields) => unknown;
+
+const CONFIDENCE_SCORING: Record<
+  string,
+  { score: number; resolver: FieldResolver }
+> = {
+  firstName: { score: 0.7, resolver: (f) => f.firstName },
+  lastName: { score: 0.7, resolver: (f) => f.lastName },
+  mrn: { score: 0.85, resolver: (f) => f.mrn },
+  preferredName: { score: 0.7, resolver: (f) => f.preferredName },
+  pronouns: { score: 0.8, resolver: (f) => f.pronouns },
+  address: { score: 0.7, resolver: (f) => f.address },
+  maritalStatus: { score: 0.7, resolver: (f) => f.maritalStatus },
+  preferredLanguage: { score: 0.7, resolver: (f) => f.preferredLanguage },
+  race: { score: 0.7, resolver: (f) => f.race },
+  ethnicity: { score: 0.7, resolver: (f) => f.ethnicity },
+  age: { score: 0.8, resolver: (f) => f.age },
+  phoneNumber: { score: 0.85, resolver: (f) => f.phoneNumber },
+  email: { score: 0.9, resolver: (f) => f.email },
+  bloodType: { score: 0.75, resolver: (f) => f.bloodType },
+  emergencyContact: { score: 0.8, resolver: (f) => f.emergencyContact },
+  dateOfBirth: { score: 0.9, resolver: (f) => f.dateOfBirth },
+  visitDate: { score: 0.8, resolver: (f) => f.visitDate },
+  invoiceDate: { score: 0.8, resolver: (f) => f.invoiceDate },
+  admissionDate: { score: 0.8, resolver: (f) => f.admissionDate },
+  clinicName: { score: 0.7, resolver: (f) => f.clinicName },
+  doctorName: { score: 0.7, resolver: (f) => f.doctorName },
+  diagnosis: { score: 0.65, resolver: (f) => f.diagnosis },
+  'vitals.bp': { score: 0.8, resolver: (f) => f.vitals?.bp },
+  'vitals.temp': { score: 0.75, resolver: (f) => f.vitals?.temp },
+  'vitals.pulse': { score: 0.8, resolver: (f) => f.vitals?.pulse },
+  'vitals.spO2': { score: 0.8, resolver: (f) => f.vitals?.spO2 },
+  'labValues.glucose': { score: 0.8, resolver: (f) => f.labValues?.glucose },
+  'labValues.hemoglobin': {
+    score: 0.8,
+    resolver: (f) => f.labValues?.hemoglobin,
+  },
+  'labValues.creatinine': {
+    score: 0.8,
+    resolver: (f) => f.labValues?.creatinine,
+  },
+  medications: {
+    score: 0.7,
+    resolver: (f) => (f.medications?.length ?? 0) > 0,
+  },
+  symptoms: { score: 0.5, resolver: (f) => (f.symptoms?.length ?? 0) > 0 },
+  allergies: { score: 0.5, resolver: (f) => (f.allergies?.length ?? 0) > 0 },
+  'invoice.total': { score: 0.85, resolver: (f) => f.invoice?.total !== null },
+  'invoice.items': {
+    score: 0.7,
+    resolver: (f) => (f.invoice?.items?.length ?? 0) > 0,
+  },
+};
+
 @Injectable()
 export class ConfidenceScorerService {
   private readonly logger = new Logger(ConfidenceScorerService.name);
@@ -11,47 +65,9 @@ export class ConfidenceScorerService {
   ): Record<string, number> {
     const scores: Record<string, number> = {};
 
-    scores.firstName = fields.firstName ? 0.7 : 0.2;
-    scores.lastName = fields.lastName ? 0.7 : 0.2;
-    scores.mrn = fields.mrn ? 0.85 : 0.2;
-    scores.preferredName = fields.preferredName ? 0.7 : 0.2;
-    scores.pronouns = fields.pronouns ? 0.8 : 0.2;
-    scores.address = fields.address ? 0.7 : 0.2;
-    scores.maritalStatus = fields.maritalStatus ? 0.7 : 0.2;
-    scores.preferredLanguage = fields.preferredLanguage ? 0.7 : 0.2;
-    scores.race = fields.race ? 0.7 : 0.2;
-    scores.ethnicity = fields.ethnicity ? 0.7 : 0.2;
-    scores.age = fields.age ? 0.8 : 0.2;
-    scores.phoneNumber = fields.phoneNumber ? 0.85 : 0.2;
-    scores.email = fields.email ? 0.9 : 0.2;
-    scores.bloodType = fields.bloodType ? 0.75 : 0.2;
-    scores.emergencyContact = fields.emergencyContact ? 0.8 : 0.2;
-
-    scores.dateOfBirth = fields.dateOfBirth ? 0.9 : 0.2;
-    scores.visitDate = fields.visitDate ? 0.8 : 0.2;
-    scores.invoiceDate = fields.invoiceDate ? 0.8 : 0.2;
-    scores.admissionDate = fields.admissionDate ? 0.8 : 0.2;
-
-    scores.clinicName = fields.clinicName ? 0.7 : 0.2;
-    scores.doctorName = fields.doctorName ? 0.7 : 0.2;
-
-    scores.diagnosis = fields.diagnosis ? 0.65 : 0.2;
-
-    scores['vitals.bp'] = fields.vitals?.bp ? 0.8 : 0.2;
-    scores['vitals.temp'] = fields.vitals?.temp ? 0.75 : 0.2;
-    scores['vitals.pulse'] = fields.vitals?.pulse ? 0.8 : 0.2;
-    scores['vitals.spO2'] = fields.vitals?.spO2 ? 0.8 : 0.2;
-
-    scores['labValues.glucose'] = fields.labValues?.glucose ? 0.8 : 0.2;
-    scores['labValues.hemoglobin'] = fields.labValues?.hemoglobin ? 0.8 : 0.2;
-    scores['labValues.creatinine'] = fields.labValues?.creatinine ? 0.8 : 0.2;
-
-    scores.medications = fields.medications?.length > 0 ? 0.7 : 0.2;
-    scores.symptoms = fields.symptoms?.length > 0 ? 0.5 : 0.2;
-    scores.allergies = fields.allergies?.length > 0 ? 0.5 : 0.2;
-
-    scores['invoice.total'] = fields.invoice?.total !== null ? 0.85 : 0.2;
-    scores['invoice.items'] = fields.invoice?.items?.length > 0 ? 0.7 : 0.2;
+    for (const [key, config] of Object.entries(CONFIDENCE_SCORING)) {
+      scores[key] = config.resolver(fields) ? config.score : 0.2;
+    }
 
     this.logger.debug(
       `[OCR] Generated confidence scores for ${Object.keys(scores).length} fields`,

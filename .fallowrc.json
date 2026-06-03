@@ -1,0 +1,42 @@
+{
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+  "entry": [
+    "src/index.{ts,tsx,js,jsx}",
+    "src/main.{ts,tsx,js,jsx}"
+  ],
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ]
+  },
+  "duplicates": {
+    "minOccurrences": 5,
+    "ignore": [
+      "**/*.spec.ts",
+      "**/*.spec.tsx",
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/e2e/**"
+    ]
+  },
+  "rules": {
+    "unused-dependencies": "off",
+    "circular-dependencies": "off",
+    "unlisted-dependencies": "off"
+  },
+  "ignoreDependencies": ["@workspace/db", "supertest"],
+  "ignorePatterns": [
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/e2e/**",
+    "**/test/**"
+  ],
+  "health": {
+    "maxCyclomatic": 9999,
+    "maxCognitive": 9999,
+    "maxCrap": 999999
+  }
+}

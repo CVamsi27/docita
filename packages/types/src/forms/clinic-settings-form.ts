@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { phoneSchema, requiredStringSchema } from "./common";
+import { facilityTypeSchema } from "../shared/users";
 
 export const clinicSettingsFormSchema = z.object({
   name: requiredStringSchema("Facility Name"),
@@ -9,7 +10,7 @@ export const clinicSettingsFormSchema = z.object({
   legalName: z
     .union([z.string().trim().max(160), z.literal("")])
     .optional(),
-  facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
+  facilityLabel: facilityTypeSchema.optional(),
   mapsLink: z
     .union([
       z.string().trim().url({ message: "Enter a valid Google Maps URL" }),

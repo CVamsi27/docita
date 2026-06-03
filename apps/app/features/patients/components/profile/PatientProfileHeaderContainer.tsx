@@ -1,4 +1,4 @@
-import { usePatient } from "@/features/patients/hooks/usePatients";
+import { usePatient } from "@/features/patients/hooks/use-patients";
 import { getPatientAgeDisplay } from "@/features/patients/rules/patient-rules";
 import { getInitials } from "@/lib/formatters/text-helpers";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";

@@ -572,6 +572,8 @@ Before finalizing changes:
 
 ## 15) Pattern Catalogue
 
+> **Worked-examples companion:** [`docs/architecture/DESIGN_PRINCIPLES_AND_PATTERNS.md`](docs/architecture/DESIGN_PRINCIPLES_AND_PATTERNS.md) provides before→after fixes for every principle and pattern listed below, with real code-snippet pairs.
+
 When this file says to follow existing patterns, use these concrete references before adding a new instance. Subsections 15.1–15.3 are stable references; subsections 15.4–15.10 codify patterns validated during the 2026-05 audit sprint.
 
 ### 15.1 Backend Patterns
@@ -735,3 +737,23 @@ Mechanical checks catch **boundary violations**; they do not fully enforce SOLID
 | **Rules unit tests** | `pnpm check:domain-rules-tests` | Feature `rules/*.test.ts` present where required |
 
 **Bundle:** `pnpm verify:standard` runs the production guardrail set above (plus hygiene, deployment contracts, PHI/audit checks). Run it before push when touching architecture, auth, data access, or large feature surfaces.
+
+### 15.12 SSOT Cleanup Patterns (2026-06)
+
+These patterns were established during the SSOT cleanup sweep. Follow them for new code and refactors.
+
+| Category | Canonical source | Notes |
+|----------|-----------------|-------|
+| **Appointment status labels** | `APPOINTMENT_STATUS_LABELS` / `APPOINTMENT_STATUS_COLORS` in `packages/types/src/operations/appointments.ts` | 7 kebab-case keys (`scheduled`→`"Scheduled"`, `confirmed`→`"Confirmed"`, `checked-in`→`"Checked In"`, `in-progress`→`"Active"`, `completed`→`"Completed"`, `cancelled`→`"Cancelled"`, `no-show`→`"No Show"`) |
+| **Appointment status mapper** | `appointments/infrastructure/mappers/appointment.mapper.ts` — exports `PRISMA_TO_DOMAIN_STATUS`, `DOMAIN_TO_PRISMA_STATUS`, `APPOINTMENT_STATUS_TO_PRISMA`, `parseAppointmentStatus` | Single canonical mapper; all 4 maps live in one file |
+| **Invoice status model** | 5 states only: `PENDING`, `PARTIALLY_PAID`, `PAID`, `OVERDUE`, `CANCELLED` | The 9-state domain model (`DRAFT`, `ISSUED`, `SENT`, `VIEWED`, `CREDIT_MEMO`) was dead code — do not reintroduce |
+| **Invoice status labels** | `INVOICE_STATUS_LABELS` in `packages/types/src/billing/invoices.ts` | 5 entries matching the 5-state model |
+| **Claim status labels** | `CLAIM_STATUS_LABELS`, `CLAIM_TYPE_LABELS`, `CLAIM_STATUS_TRANSITIONS`, `CLAIM_STATUS_TONE` in `packages/types/src/billing/insurance-claims.ts` | Centralized from `apps/app/features/insurance-claims/lib/claim-display.ts`; app now re-exports from types |
+| **Discount type** | `discountTypeSchema` in `packages/types/src/billing/tier.ts` (Zod enum); 11 values | The old API domain `DiscountType` (PROMOTIONAL-only) was a 1-value enum that caused `discountTypeFromStored()` to silently drop non-promotional discounts. Always import from `@workspace/types`. |
+| **Prescription status** | `prescriptionStatusSchema` in `packages/types/src/clinical/medications.ts` | Values: `ACTIVE`, `COMPLETED` |
+| **Facility type labels** | Use `facilityTypeSchema.options` from `@workspace/types` instead of `["CLINIC", "HOSPITAL"]` | Rather than duplicating the list of facility types, read them from the canonical Zod schema. |
+| **Email validation** | `isValidEmail()` in `@workspace/utils` | Single regex: `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`. Do not define additional email validators. |
+| **Phone validation** | `validatePhoneForCountry()` in `@/lib/validation/phone` | Uses `react-phone-number-input` for country-aware validation via `isPossiblePhoneNumber()`, `parsePhoneNumber()`, and `getCountryCallingCode()`. Validates against the clinic's `operatingCountryCode` (defaults to `"IN"`). Always country-aware; never use India-only regex patterns. |
+| **Support email** | `SUPPORT_EMAIL` = `"support@docita.work"` in both `apps/app/shared/lib/constants/support-contact.ts` and `apps/api/src/shared/common/constants/support-contact.constants.ts` | Do not hardcode the email string elsewhere; import the constant. |
+| **Tier string comparisons** | Variables typed as `TierName` (string union) from `@workspace/types` are canonical | `Tier` enum is **numeric** (STARTER=0, ESSENTIAL=1, etc.), never compare strings against `Tier.STARTER`. Use `TierName` type for string comparisons, `getTierName(Tier.STARTER)` for enum→string conversion, or `ClinicTier.STARTER` from `@workspace/db` for Prisma writes. Prefer typed helpers like `isFrontDeskTier()` over ad-hoc `=== "FRONT_DESK"` checks. |
+| **Front Desk tier check** | `isFrontDeskTier(tier)` from `@workspace/types` | Always use the helper — never inline `=== 'FRONT_DESK'` alone, as there are three Front Desk tier variants. |

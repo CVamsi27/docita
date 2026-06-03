@@ -4,12 +4,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Role } from '@workspace/db';
-import type { CreateClinicWhatsappCampaignRequest } from '@workspace/types';
+import type { CreateClinicWhatsappCampaignRequest, UserRole } from '@workspace/types';
+import { CLINIC_ADMIN_ROLES } from '@/shared/common/constants/role-groups';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { PrismaWhatsappOperationsRepository } from '@/domains/whatsapp/infrastructure/repositories/prisma-whatsapp-operations.repository';
-
-const CAMPAIGN_ROLES = new Set<Role>([Role.ADMIN, Role.ADMIN_DOCTOR]);
 
 @Injectable()
 export class WhatsappOperationsService {
@@ -46,7 +44,7 @@ export class WhatsappOperationsService {
     });
   }
 
-  previewCampaign(clinicId: string, patientIds: string[], role: Role) {
+  previewCampaign(clinicId: string, patientIds: string[], role: UserRole) {
     this.assertCampaignRole(role);
     return this.repository.previewCampaign(clinicId, patientIds);
   }
@@ -54,7 +52,7 @@ export class WhatsappOperationsService {
   async createCampaign(
     clinicId: string,
     userId: string,
-    role: Role,
+    role: UserRole,
     input: CreateClinicWhatsappCampaignRequest,
   ) {
     this.assertCampaignRole(role);
@@ -76,7 +74,7 @@ export class WhatsappOperationsService {
   async cancelCampaign(
     clinicId: string,
     userId: string,
-    role: Role,
+    role: UserRole,
     id: string,
   ) {
     this.assertCampaignRole(role);
@@ -86,8 +84,8 @@ export class WhatsappOperationsService {
     return { cancelled: true as const };
   }
 
-  private assertCampaignRole(role: Role): void {
-    if (!CAMPAIGN_ROLES.has(role)) {
+  private assertCampaignRole(role: UserRole): void {
+    if (!CLINIC_ADMIN_ROLES.includes(role)) {
       throw new ForbiddenException(
         'Only clinic administrators can manage campaigns',
       );

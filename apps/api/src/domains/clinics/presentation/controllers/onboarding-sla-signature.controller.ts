@@ -96,7 +96,10 @@ export class OnboardingSlaSignatureController {
     }
 
     try {
-      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp']);
+      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp'], {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+      });
       assertNoExistingClinicOnboarding(req, 'Signature upload');
 
       return await this.onboardingService.uploadSlaSignature(

@@ -3,7 +3,6 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useCurrentUsage } from "@/features/subscription/hooks/use-pricing";
-import { useSubscription } from "@workspace/data-access";
 import {
   PRICING_CURRENCY_CONFIG,
   PRICING_CURRENCY_SYMBOLS,
@@ -14,6 +13,7 @@ import {
   parseSupportedCurrency,
 } from "@workspace/utils";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
+import { usePermissionStore } from "@/lib/stores/permission-store";
 import {
   formatLocaleDateShortMonth,
   formatLocaleDateShortMonthYear,
@@ -115,9 +115,9 @@ function UsageMeter({
 
 export function UsageDashboard() {
   const { usage, isLoading } = useCurrentUsage();
-  const { data: subscription } = useSubscription();
   const { currency, locale } = useClinicCurrency();
-  const showWhatsAppMeter = subscription?.tier !== "STARTER";
+  const canAccess = usePermissionStore((state) => state.canAccess);
+  const showWhatsAppMeter = canAccess("WHATSAPP_MESSAGING");
   const resolvedCurrency = parseSupportedCurrency(currency);
   const currencyCfg = PRICING_CURRENCY_CONFIG[resolvedCurrency];
   const amountFractionDigits = currencyCfg?.decimalPlaces ?? 2;

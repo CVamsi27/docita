@@ -14,24 +14,6 @@ interface RoleGuardProps {
   fallback?: ReactNode;
 }
 
-const ROLE_HIERARCHY: Record<UserRole, number> = {
-  INTERNAL: 5,
-  ADMIN: 4,
-  ADMIN_DOCTOR: 3,
-  DOCTOR: 2,
-  NURSE: 1.5,
-  RECEPTIONIST: 1,
-  PATIENT: 0,
-};
-
-function hasRoleAccess(
-  userRole: UserRole | undefined,
-  requiredRole: UserRole,
-): boolean {
-  if (!userRole) return false;
-  return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole];
-}
-
 export function RoleGuard({
   children,
   requiredPermission,

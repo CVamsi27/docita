@@ -6,6 +6,14 @@ import { open } from 'fs/promises';
 import { randomBytes } from 'crypto';
 import { diskStorage } from 'multer';
 
+const MIME_TO_EXT: Record<string, string[]> = {
+  'image/jpeg': ['.jpg', '.jpeg'],
+  'image/png': ['.png'],
+  'image/webp': ['.webp'],
+  'image/gif': ['.gif'],
+  'application/pdf': ['.pdf'],
+};
+
 const TEMP_UPLOAD_DIR = join(process.cwd(), 'uploads', 'temp');
 
 export function createTempDiskStorage() {
@@ -43,9 +51,20 @@ async function readFileSignature(
   }
 }
 
+/**
+ * Validates a file's content signatures (magic bytes) and optionally its
+ * extension against the declared MIME type.
+ *
+ * @param file - The uploaded file (buffer or path)
+ * @param allowedTypes - Allowed content types (pdf, png, jpeg, webp, gif)
+ * @param originalname - Optional original filename to validate extension
+ * @param mimetype - Optional MIME type to validate extension
+ * @throws BadRequestException if content or extension validation fails
+ */
 export async function assertAllowedFileSignature(
   file: Pick<StorageFile, 'buffer' | 'path'>,
   allowedTypes: Array<'pdf' | 'png' | 'jpeg' | 'webp' | 'gif'>,
+  options?: { originalname?: string; mimetype?: string },
 ): Promise<void> {
   const signature = await readFileSignature(file);
   const header = signature.toString('hex', 0, 4).toUpperCase();
@@ -59,19 +78,32 @@ export async function assertAllowedFileSignature(
   const isWebp = header === '52494646' && webpHeader === '57454250';
   const isGif = shortHeader === '474946';
 
-  if (
-    (allowed.has('pdf') && isPdf) ||
-    (allowed.has('png') && isPng) ||
-    (allowed.has('jpeg') && isJpeg) ||
-    (allowed.has('webp') && isWebp) ||
-    (allowed.has('gif') && isGif)
-  ) {
-    return;
+  const detectedType =
+    (isPdf && 'pdf') ||
+    (isPng && 'png') ||
+    (isJpeg && 'jpeg') ||
+    (isWebp && 'webp') ||
+    (isGif && 'gif') ||
+    null;
+
+  if (!detectedType || !allowed.has(detectedType)) {
+    throw new BadRequestException(
+      'Invalid file content. The file type does not match its extension/MIME type.',
+    );
   }
 
-  throw new BadRequestException(
-    'Invalid file content. The file type does not match its extension/MIME type.',
-  );
+  if (options?.originalname) {
+    const extension = extname(options.originalname).toLowerCase();
+    const mimeKey = options.mimetype ?? '';
+    const allowedExtensions = MIME_TO_EXT[mimeKey];
+
+    if (allowedExtensions && !allowedExtensions.includes(extension)) {
+      throw new BadRequestException(
+        `File extension "${extension}" does not match declared MIME type "${mimeKey}". ` +
+          `Allowed: ${allowedExtensions.join(', ')}.`,
+      );
+    }
+  }
 }
 
 export async function assertAllowedImportFileSignature(

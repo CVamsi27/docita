@@ -42,4 +42,17 @@ describe("resolveSubscriptionLockNotice", () => {
     expect(copy?.kind).toBe("expired");
     expect(copy?.ctaLabel).toBe("Resolve Payment");
   });
+
+  it("exposes whole days left on an active trial so the notice can resurface near the end", () => {
+    const trialEndsAt = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
+    const copy = resolveSubscriptionLockNotice({
+      subscriptionStatus: "TRIALING",
+      tier: "ESSENTIAL",
+      trialEndsAt: trialEndsAt.toISOString(),
+      subscriptionGraceUntil: null,
+    });
+
+    expect(copy?.kind).toBe("trial-active");
+    expect(copy?.trialDaysLeft).toBe(10);
+  });
 });

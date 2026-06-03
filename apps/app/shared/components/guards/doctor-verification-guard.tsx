@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
+import { isDoctor as checkIsDoctorRole } from "@/lib/auth/permissions";
 import { appQueryKeys } from "@workspace/data-access";
 import { useAPIQuery } from "@/lib/api/api-core";
 import type { User } from "@workspace/types";
@@ -18,7 +19,7 @@ export function DoctorVerificationGuard({
   const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const isDoctor = user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
+  const isDoctor = checkIsDoctorRole(user?.role);
   const isVerificationAllowedPath = VERIFICATION_ALLOWED_PATHS.some((p) =>
     pathname?.startsWith(p),
   );

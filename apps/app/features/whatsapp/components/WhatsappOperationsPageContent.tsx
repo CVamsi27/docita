@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/navigation/page-tabs";
 import { WhatsappTemplatesSettings } from "@/features/settings/components/whatsapp/WhatsappTemplatesSettings";
 import { useAuth } from "@/lib/auth/auth-context";
+import { isAdmin } from "@/lib/auth/permissions";
 import { WhatsappCampaignsView } from "./WhatsappCampaignsView";
 import { WhatsappConversationsView } from "./WhatsappConversationsView";
 import { WhatsappDeliveryView } from "./WhatsappDeliveryView";
@@ -34,8 +35,7 @@ function WhatsappOperationsContent() {
       ? (requested ?? "conversations")
       : "conversations";
   }, [searchParams]);
-  const canManageSender =
-    user?.role === "ADMIN" || user?.role === "ADMIN_DOCTOR";
+  const canManageSender = isAdmin(user?.role);
 
   return (
     <AppPageScaffold
