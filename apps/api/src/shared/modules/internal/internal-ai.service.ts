@@ -1,10 +1,9 @@
-import {
-  Injectable,
-  BadRequestException,
-  InternalServerErrorException as _InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import type { UpdateClinicAIFeaturesDto } from '@workspace/types';
+import { Tier } from '@workspace/types';
+import { mapDbClinicTierStringToTierName } from '@workspace/types';
+import { meetsMinimumTier } from '@workspace/utils';
+import type { UpdateClinicAIFeaturesDto, TierName } from '@workspace/types';
 
 @Injectable()
 export class InternalAiService {
@@ -63,10 +62,10 @@ export class InternalAiService {
     });
     if (!clinic) throw new BadRequestException('Clinic not found');
 
-    const allowedTiers = ['PRO', 'ENTERPRISE'];
-    if (!allowedTiers.includes(clinic.tier)) {
+    const tierName = mapDbClinicTierStringToTierName(clinic.tier) as TierName;
+    if (!meetsMinimumTier(tierName, Tier.PROFESSIONAL)) {
       throw new BadRequestException(
-        `AI features are only available for ${allowedTiers.join(', ')} tiers.`,
+        'AI features are only available for PROFESSIONAL, HOSPITAL, or ENTERPRISE tiers.',
       );
     }
 
@@ -113,35 +112,35 @@ export class InternalAiService {
           id: 'predictiveAnalytics',
           name: 'Predictive Analytics',
           description: 'Analyze patient patterns and predict health trends.',
-          availableIn: ['PRO', 'ENTERPRISE'],
+          availableIn: ['PROFESSIONAL', 'ENTERPRISE'],
           icon: 'activity',
         },
         {
           id: 'automatedDiagnosis',
           name: 'Automated Diagnosis Assistant',
           description: 'AI-powered suggestions for diagnosis.',
-          availableIn: ['PRO', 'ENTERPRISE'],
+          availableIn: ['PROFESSIONAL', 'ENTERPRISE'],
           icon: 'microscope',
         },
         {
           id: 'patientInsights',
           name: 'Patient Health Insights',
           description: 'Deep insights into patient health metrics.',
-          availableIn: ['PRO', 'ENTERPRISE'],
+          availableIn: ['PROFESSIONAL', 'ENTERPRISE'],
           icon: 'pie-chart',
         },
         {
           id: 'appointmentOptimization',
           name: 'Appointment Optimization',
           description: 'AI-optimized scheduling.',
-          availableIn: ['PLUS', 'PRO', 'ENTERPRISE'],
+          availableIn: ['ESSENTIAL', 'PROFESSIONAL', 'ENTERPRISE'],
           icon: 'calendar',
         },
         {
           id: 'prescriptionAssistant',
           name: 'Smart Prescription Assistant',
           description: 'AI-assisted prescription generation.',
-          availableIn: ['PRO', 'ENTERPRISE'],
+          availableIn: ['PROFESSIONAL', 'ENTERPRISE'],
           icon: 'pill',
         },
       ],

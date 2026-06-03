@@ -1,25 +1,10 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import { PrismaService } from '@/prisma/prisma.service';
-import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { Injectable } from '@nestjs/common';
 import { Prisma, AppointmentStatus } from '@workspace/db';
 import { DiseaseTrendPoint, TopCondition } from '@workspace/types';
+import { BaseAnalyticsFactory } from './base-analytics.factory';
 
 @Injectable()
-export class ClinicalAnalyticsFactory {
-  private readonly logger = new Logger(ClinicalAnalyticsFactory.name);
-
-  constructor(
-    private prisma: PrismaService,
-    private configService: AppConfigService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
-
-  private getReadClient() {
-    return this.prisma.getReadClient();
-  }
-
+export class ClinicalAnalyticsFactory extends BaseAnalyticsFactory {
   async getTopDiagnoses(clinicId: string, limit: number = 10) {
     const cacheKey = `top-diagnoses-${clinicId}-${limit}`;
     const cached =
@@ -69,11 +54,7 @@ export class ClinicalAnalyticsFactory {
       appointment: { clinicId },
     };
 
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = startDate;
-      if (endDate) where.createdAt.lte = endDate;
-    }
+    this.addDateRangeFilter(where, startDate, endDate);
 
     const readClient = this.getReadClient();
 
@@ -163,7 +144,6 @@ export class ClinicalAnalyticsFactory {
             )`
           : Prisma.sql`TO_CHAR(DATE_TRUNC('month', d."createdAt"), 'YYYY-MM')`;
 
-    // Aggregate entirely in the DB — no row limit, no data loss.
     const rows = await readClient.$queryRaw<
       Array<{ period: string; icd_code: string; count: number }>
     >`
@@ -213,11 +193,7 @@ export class ClinicalAnalyticsFactory {
       status: AppointmentStatus.COMPLETED,
     };
 
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = startDate;
-      if (endDate) where.createdAt.lte = endDate;
-    }
+    this.addDateRangeFilter(where, startDate, endDate);
 
     const readClient = this.getReadClient();
     const appointmentScope: Prisma.AppointmentWhereInput = where;

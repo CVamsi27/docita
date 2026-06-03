@@ -1,8 +1,4 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import { PrismaService } from '@/prisma/prisma.service';
-import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@workspace/db';
 import { getLastNDaysRange, DEFAULT_TIMEZONE } from '@workspace/utils';
 import {
@@ -14,21 +10,10 @@ import {
   toAnalyticsPeriodKey,
   toTimeSeriesBucketKey,
 } from '@/domains/analytics/factories/period-bucket.util';
+import { BaseAnalyticsFactory } from './base-analytics.factory';
 
 @Injectable()
-export class FinancialAnalyticsFactory {
-  private readonly logger = new Logger(FinancialAnalyticsFactory.name);
-
-  constructor(
-    private prisma: PrismaService,
-    private configService: AppConfigService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
-
-  private getReadClient() {
-    return this.prisma.getReadClient();
-  }
-
+export class FinancialAnalyticsFactory extends BaseAnalyticsFactory {
   async getRevenueTrends(
     clinicId: string,
     period: 'daily' | 'weekly' | 'monthly' = 'daily',
@@ -93,11 +78,7 @@ export class FinancialAnalyticsFactory {
       appointment: { clinicId },
     };
 
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = startDate;
-      if (endDate) where.createdAt.lte = endDate;
-    }
+    this.addDateRangeFilter(where, startDate, endDate);
 
     const readClient = this.getReadClient();
 
@@ -240,11 +221,7 @@ export class FinancialAnalyticsFactory {
     if (cached) return cached;
 
     const where: Prisma.InvoiceWhereInput = { patient: { clinicId } };
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = startDate;
-      if (endDate) where.createdAt.lte = endDate;
-    }
+    this.addDateRangeFilter(where, startDate, endDate);
 
     const readClient = this.getReadClient();
 
