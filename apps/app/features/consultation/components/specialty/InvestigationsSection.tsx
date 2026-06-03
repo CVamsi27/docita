@@ -91,11 +91,11 @@ export function InvestigationsSection({
   ) => {
     const validationError = validateAttachmentFile(file);
     if (validationError) {
-      toast.error(validationError);
+      showUserFacingErrorToast(validationError);
       return;
     }
     if (!patientId || !appointmentId || !doctorId) {
-      toast.error("Cannot attach a file for this visit right now.");
+      showUserFacingErrorToast("Cannot attach a file for this visit right now.");
       return;
     }
     const rowKey = row.id ?? `inv-${index}`;
