@@ -12,6 +12,12 @@ interface SectionProps {
   sectionRef?: React.Ref<HTMLElement>;
 }
 
+export interface InvestigationsSectionProps extends SectionProps {
+  patientId?: string;
+  appointmentId?: string;
+  doctorId?: string;
+}
+
 function SectionLoading() {
   return (
     <div
@@ -165,6 +171,6 @@ export function GynecologyExamSection(props: SectionProps) {
 export function PsychiatryExamSection(props: SectionProps) {
   return <PsychiatryExamSectionLazy {...props} />;
 }
-export function InvestigationsSection(props: SectionProps) {
+export function InvestigationsSection(props: InvestigationsSectionProps) {
   return <InvestigationsSectionLazy {...props} />;
 }

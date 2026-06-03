@@ -1,6 +1,7 @@
 "use client";
 
-import { Plus, Trash2 } from "lucide-react";
+import { Loader2, Paperclip, Plus, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Input } from "@workspace/ui/components/form/input";
@@ -16,8 +17,15 @@ import { Textarea } from "@workspace/ui/components/form/textarea";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
 import { useConsultationSectionSubtitle } from "@/features/consultation/workspace/consultation-workspace-context";
-import { type ClinicalInvestigation } from "@workspace/types";
+import { Feature, type ClinicalInvestigation } from "@workspace/types";
 import { parseStringEnumMember } from "@workspace/utils";
+import { usePermissionStore } from "@/lib/stores/permission-store";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import {
+  resolveAttachmentUrl,
+  useInvestigationAttachment,
+  validateAttachmentFile,
+} from "@/features/consultation/hooks/use-investigation-attachment";
 
 const INVESTIGATION_CATEGORIES = [
   "LABORATORY",
@@ -35,6 +43,9 @@ const INVESTIGATION_STATUSES = [
 interface InvestigationsSectionProps {
   readOnly?: boolean;
   sectionRef?: React.Ref<HTMLElement>;
+  patientId?: string;
+  appointmentId?: string;
+  doctorId?: string;
 }
 
 function newInvestigation(): ClinicalInvestigation {
@@ -50,10 +61,18 @@ function newInvestigation(): ClinicalInvestigation {
 export function InvestigationsSection({
   readOnly,
   sectionRef,
+  patientId,
+  appointmentId,
+  doctorId,
 }: InvestigationsSectionProps) {
   const subtitle = useConsultationSectionSubtitle("specialty-investigations");
   const investigations = useConsultationDraft((s) => s.investigations);
   const setInvestigations = useConsultationDraft((s) => s.setInvestigations);
+  const canAttach = usePermissionStore((s) =>
+    s.canAccess(Feature.DOCUMENT_ARCHIVAL),
+  );
+  const { upload, uploadingId, setUploadingId } = useInvestigationAttachment();
+  const hasUploadContext = Boolean(patientId && appointmentId && doctorId);
 
   const updateAt = (index: number, patch: Partial<ClinicalInvestigation>) => {
     setInvestigations((prev) =>
@@ -63,6 +82,51 @@ export function InvestigationsSection({
 
   const removeAt = (index: number) => {
     setInvestigations((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAttach = async (
+    index: number,
+    row: ClinicalInvestigation,
+    file: File,
+  ) => {
+    const validationError = validateAttachmentFile(file);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+    if (!patientId || !appointmentId || !doctorId) {
+      toast.error("Cannot attach a file for this visit right now.");
+      return;
+    }
+    const rowKey = row.id ?? `inv-${index}`;
+    try {
+      setUploadingId(rowKey);
+      const result = await upload({
+        file,
+        patientId,
+        appointmentId,
+        doctorId,
+        investigationName: row.name,
+      });
+      updateAt(index, {
+        attachmentUrl: result.attachmentUrl,
+        attachmentName: result.attachmentName,
+        attachmentDocumentId: result.attachmentDocumentId,
+      });
+      if (result.attachmentDocumentId) {
+        toast.success("File attached");
+      } else {
+        toast.message("File attached", {
+          description: "Saved to this visit, but it may not appear in Documents.",
+        });
+      }
+    } catch {
+      showUserFacingErrorToast(
+        "We couldn't attach this file. Please try again.",
+      );
+    } finally {
+      setUploadingId(null);
+    }
   };
 
   return (
@@ -190,6 +254,71 @@ export function InvestigationsSection({
                   onChange={(e) => updateAt(index, { notes: e.target.value })}
                 />
               </div>
+
+              {row.attachmentUrl ? (
+                <div className="flex items-center gap-2 rounded-md border border-border/70 bg-background px-3 py-2">
+                  <Paperclip
+                    className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+                    aria-hidden
+                  />
+                  <a
+                    href={resolveAttachmentUrl(row.attachmentUrl)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="min-w-0 flex-1 truncate text-sm text-primary underline-offset-2 hover:underline"
+                  >
+                    {row.attachmentName ?? "View attachment"}
+                  </a>
+                  {!readOnly ? (
+                    <SymbolTooltip label="Remove attachment">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
+                        aria-label="Remove attachment"
+                        onClick={() =>
+                          updateAt(index, {
+                            attachmentUrl: undefined,
+                            attachmentName: undefined,
+                            attachmentDocumentId: undefined,
+                          })
+                        }
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </SymbolTooltip>
+                  ) : null}
+                </div>
+              ) : !readOnly && canAttach && hasUploadContext ? (
+                <label
+                  className="inline-flex w-fit cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors duration-150 hover:border-primary/50 hover:text-primary has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60"
+                  aria-label="Attach a report or scan"
+                >
+                  {uploadingId === (row.id ?? `inv-${index}`) ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                      Uploading…
+                    </>
+                  ) : (
+                    <>
+                      <Paperclip className="h-3.5 w-3.5" aria-hidden />
+                      Attach report
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    className="sr-only"
+                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                    disabled={uploadingId !== null}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      e.target.value = "";
+                      if (file) void handleAttach(index, row, file);
+                    }}
+                  />
+                </label>
+              ) : null}
             </li>
           ))}
         </ul>

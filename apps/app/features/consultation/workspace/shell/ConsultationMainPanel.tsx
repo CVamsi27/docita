@@ -119,6 +119,9 @@ export function ConsultationMainPanel({
           key="specialty-investigations"
           sectionRef={setSectionRef("specialty-investigations")}
           readOnly={readOnly}
+          patientId={appointmentData.patientId}
+          appointmentId={appointmentData.id}
+          doctorId={appointmentData.doctorId}
         />
       ),
       assessment: (
@@ -137,7 +140,15 @@ export function ConsultationMainPanel({
         />
       ),
     }),
-    [effectivePatient, patientLoading, readOnly, setSectionRef],
+    [
+      appointmentData.patientId,
+      appointmentData.id,
+      appointmentData.doctorId,
+      effectivePatient,
+      patientLoading,
+      readOnly,
+      setSectionRef,
+    ],
   );
 
   return (
