@@ -2187,31 +2187,66 @@ model InventoryMovement {
   @@index([createdAt])
 }
 
-model LabTest {
-  id                     String  @id @default(cuid())
-  clinicId               String
-  name                   String
-  code                   String?
-  loincCode              String?
-  category               String
-  price                  Float?
-  description            String?
-  referenceRangeLow      Float?
-  referenceRangeHigh     Float?
-  referenceRangeUnit     String?
-  referenceRangeText     String?
-  specimenType           String?
-  collectionRequirements String?
+model EmailSuppression {
+  id          String                 @id @default(cuid())
+  emailHash   String                 @unique
+  maskedEmail String
+  reason      EmailSuppressionReason
+  detail      String?
+  provider    String                 @default("zeptomail")
+  createdAt   DateTime               @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime               @updatedAt @db.Timestamptz(3)
 
-  active    Boolean        @default(true)
-  createdAt DateTime       @default(now()) @db.Timestamptz(3)
-  updatedAt DateTime       @updatedAt @db.Timestamptz(3)
-  orders    LabTestOrder[]
-  loincRef  LoincCode?     @relation(fields: [loincCode], references: [code])
+  @@index([createdAt])
+}
 
+model WebhookSubscription {
+  id             String   @id @default(cuid())
+  clinicId       String
+  eventName      String
+  targetUrl      String
+  signingSecret  String
+  active         Boolean  @default(true)
+  description    String?
+  createdAt      DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([clinicId, eventName, targetUrl])
   @@index([clinicId])
-  @@index([category])
-  @@index([loincCode])
+  @@index([eventName])
+  @@index([active])
+}
+
+enum WebhookDeliveryStatus {
+  PENDING
+  IN_FLIGHT
+  DELIVERED
+  FAILED
+  DEAD_LETTERED
+}
+
+model OutgoingWebhookDelivery {
+  id              String                @id @default(cuid())
+  subscriptionId  String
+  clinicId        String
+  eventName       String
+  targetUrl       String
+  payload         Json
+  status          WebhookDeliveryStatus @default(PENDING)
+  attemptCount    Int                   @default(0)
+  maxAttempts     Int                   @default(5)
+  lastStatusCode  Int?
+  lastError       String?
+  idempotencyKey  String                @unique
+  scheduledAt     DateTime?
+  completedAt     DateTime?             @db.Timestamptz(3)
+  createdAt       DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime              @updatedAt @db.Timestamptz(3)
+  subscription    WebhookSubscription   @relation(fields: [subscriptionId], references: [id])
+
+  @@index([status, scheduledAt])
+  @@index([clinicId])
+  @@index([subscriptionId])
 }
 
 model LabTestOrder {
@@ -2278,6 +2313,7 @@ model WhatsappConversation {
   @@index([status])
   @@unique([clinicId, contactPhone])
   @@index([clinicId, status, lastMessageAt])
+  @@index([contactPhone])
 }
 
 model WhatsappMessage {
@@ -2297,6 +2333,8 @@ model WhatsappMessage {
   @@index([createdAt])
   @@index([providerMsgId])
   @@index([conversationId, createdAt])
+  @@index([direction])
+  @@index([conversationId, direction])
 }
 
 enum WhatsappMessageDirection {
@@ -2899,6 +2937,7 @@ model ErrorLog {
   @@index([createdAt])
   @@index([clinicId, createdAt])
   @@index([type, severity])
+  @@index([path, method])
 }
 
 model SystemMetric {
