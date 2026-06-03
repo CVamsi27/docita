@@ -1,0 +1,66 @@
+import { Logger } from '@nestjs/common';
+import { PrismaService } from '@/prisma/prisma.service';
+import { SearchFullTextSupportService } from '../search-full-text-support.service';
+import {
+  SEARCH_QUERY_REPOSITORY_TOKEN,
+  type SearchQueryRepository,
+} from '@/shared/modules/search/ports/search-query.repository.port';
+import type { SearchResult } from '../search.types';
+import type { ISearchStrategy } from './search-strategy.interface';
+import { Inject } from '@nestjs/common';
+
+export abstract class SearchStrategyBase implements ISearchStrategy {
+  protected abstract readonly entityType: string;
+  protected abstract readonly fullTextKey:
+    | 'appointment'
+    | 'patient'
+    | 'prescription';
+
+  protected abstract searchFullText(
+    clinicId: string,
+    query: string,
+    limit: number,
+  ): Promise<SearchResult[]>;
+
+  protected abstract searchFallback(
+    clinicId: string,
+    query: string,
+    limit: number,
+  ): Promise<SearchResult[]>;
+
+  protected readonly logger: Logger;
+
+  constructor(
+    protected readonly prisma: PrismaService,
+    protected readonly fullTextSupport: SearchFullTextSupportService,
+    @Inject(SEARCH_QUERY_REPOSITORY_TOKEN)
+    protected readonly searchQueries: SearchQueryRepository,
+  ) {
+    this.logger = new Logger(
+      this.entityType.charAt(0).toUpperCase() +
+        this.entityType.slice(1) +
+        'SearchStrategy',
+    );
+  }
+
+  async search(
+    clinicId: string,
+    query: string,
+    limit: number,
+  ): Promise<SearchResult[]> {
+    const support = await this.fullTextSupport.getSupport();
+    if (!support[this.fullTextKey]) {
+      return this.searchFallback(clinicId, query, limit);
+    }
+
+    try {
+      return await this.searchFullText(clinicId, query, limit);
+    } catch (error) {
+      this.fullTextSupport.disable(this.fullTextKey);
+      this.logger.warn(
+        `Full-text search failed for ${this.entityType}s, falling back to ILIKE: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      return this.searchFallback(clinicId, query, limit);
+    }
+  }
+}
