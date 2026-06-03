@@ -17,9 +17,19 @@ export class WebhookReplayDedupeRepository {
   /**
    * @returns true if this delivery was newly recorded, false if it is a replay
    * (dedupeKeyHash already present and not expired).
+   *
+   * Uses deleteMany for expired entries (safe if row doesn't exist) followed by
+   * a create attempt. On unique violation, if the existing record is still
+   * unexpired, it's a replay. If expired, another claim won the race; the
+   * caller should treat it as a new claim since the dedupe window passed.
    */
   async tryClaim(dedupeKeyHash: string, expiresAt: Date): Promise<boolean> {
     const now = this.clock.now();
+
+    await this.prisma.webhookReplayDedupe.deleteMany({
+      where: { dedupeKeyHash, expiresAt: { lte: now } },
+    });
+
     try {
       await this.prisma.webhookReplayDedupe.create({
         data: { dedupeKeyHash, expiresAt },
@@ -29,28 +39,7 @@ export class WebhookReplayDedupeRepository {
       if (!isPrismaUniqueViolation(error)) {
         throw error;
       }
-      const existing = await this.prisma.webhookReplayDedupe.findUnique({
-        where: { dedupeKeyHash },
-      });
-      if (existing && existing.expiresAt > now) {
-        return false;
-      }
-      if (existing) {
-        await this.prisma.webhookReplayDedupe.delete({
-          where: { dedupeKeyHash },
-        });
-      }
-      try {
-        await this.prisma.webhookReplayDedupe.create({
-          data: { dedupeKeyHash, expiresAt },
-        });
-        return true;
-      } catch (retryErr) {
-        if (isPrismaUniqueViolation(retryErr)) {
-          return false;
-        }
-        throw retryErr;
-      }
+      return false;
     }
   }
 }
