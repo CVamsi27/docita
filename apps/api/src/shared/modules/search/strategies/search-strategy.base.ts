@@ -28,19 +28,24 @@ export abstract class SearchStrategyBase implements ISearchStrategy {
     limit: number,
   ): Promise<SearchResult[]>;
 
-  protected readonly logger: Logger;
+  protected logger!: Logger;
 
   constructor(
     protected readonly prisma: PrismaService,
     protected readonly fullTextSupport: SearchFullTextSupportService,
     @Inject(SEARCH_QUERY_REPOSITORY_TOKEN)
     protected readonly searchQueries: SearchQueryRepository,
-  ) {
-    this.logger = new Logger(
-      this.entityType.charAt(0).toUpperCase() +
-        this.entityType.slice(1) +
-        'SearchStrategy',
-    );
+  ) {}
+
+  protected getLogger(): Logger {
+    if (!this.logger) {
+      this.logger = new Logger(
+        this.entityType.charAt(0).toUpperCase() +
+          this.entityType.slice(1) +
+          'SearchStrategy',
+      );
+    }
+    return this.logger;
   }
 
   async search(
@@ -57,7 +62,7 @@ export abstract class SearchStrategyBase implements ISearchStrategy {
       return await this.searchFullText(clinicId, query, limit);
     } catch (error) {
       this.fullTextSupport.disable(this.fullTextKey);
-      this.logger.warn(
+      this.getLogger().warn(
         `Full-text search failed for ${this.entityType}s, falling back to ILIKE: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
       return this.searchFallback(clinicId, query, limit);
