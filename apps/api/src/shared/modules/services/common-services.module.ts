@@ -13,6 +13,7 @@ import { ClinicScopedGuard } from '@/shared/modules/auth/decorators/clinic-scope
 import { PrismaModule } from '@/prisma/prisma.module';
 import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
 import { EncryptionService } from '@/shared/common/encryption.service';
+import { CircuitBreakerRegistry } from '@/shared/common/utils/circuit-breaker.registry';
 import { UserRateLimitService } from './user-rate-limit.service';
 import { UserRateLimitGuard } from '@/shared/modules/auth/guards/user-rate-limit.guard';
 import { DPDPComplianceService as _DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
@@ -43,6 +44,7 @@ import { SystemClockService } from '@/shared/modules/time/system-clock.service';
     WhatsAppNotificationService,
     ClinicScopedGuard,
     EncryptionService,
+    CircuitBreakerRegistry,
     BasePdfService,
     UserRateLimitService,
     UserRateLimitGuard,
@@ -53,6 +55,7 @@ import { SystemClockService } from '@/shared/modules/time/system-clock.service';
     WhatsAppNotificationService,
     ClinicScopedGuard,
     EncryptionService,
+    CircuitBreakerRegistry,
     ComplianceModule,
     BasePdfService,
     UserRateLimitService,

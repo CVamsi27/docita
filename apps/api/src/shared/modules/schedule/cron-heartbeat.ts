@@ -19,6 +19,7 @@ import {
 } from '@nestjs/common';
 import 'reflect-metadata';
 import { PrismaService } from '@/prisma/prisma.service';
+import { Gauge, register } from 'prom-client';
 
 export const CRON_HEARTBEAT_KEY = Symbol('CRON_HEARTBEAT_NAME');
 
@@ -64,8 +65,21 @@ export class PrismaCronHeartbeatService
 {
   private readonly logger = new Logger(PrismaCronHeartbeatService.name);
   private unregister?: () => void;
+  private readonly heartbeatStalenessGauge: Gauge<string>;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {
+    const existing = register.getSingleMetric(
+      'cron_heartbeat_staleness_seconds',
+    );
+    this.heartbeatStalenessGauge =
+      existing instanceof Gauge
+        ? existing
+        : new Gauge({
+            name: 'cron_heartbeat_staleness_seconds',
+            help: 'Seconds since last successful cron heartbeat, by job name',
+            labelNames: ['job_name', 'status'],
+          });
+  }
 
   onModuleInit(): void {
     this.unregister = registerCronHeartbeatService(this);
@@ -86,6 +100,10 @@ export class PrismaCronHeartbeatService
           lastError: null,
         },
       });
+      this.heartbeatStalenessGauge.set(
+        { job_name: name, status: 'SUCCESS' },
+        0,
+      );
     } catch (error) {
       this.logger.warn(
         `Failed to record cron heartbeat success for ${name}: ${
@@ -113,12 +131,33 @@ export class PrismaCronHeartbeatService
           lastError: message.slice(0, 1000),
         },
       });
+      this.heartbeatStalenessGauge.set(
+        { job_name: name, status: 'FAILURE' },
+        0,
+      );
     } catch (writeError) {
       this.logger.warn(
         `Failed to record cron heartbeat failure for ${name}: ${
           writeError instanceof Error ? writeError.message : String(writeError)
         }`,
       );
+    }
+  }
+
+  async getStaleJobs(
+    thresholdSeconds: number,
+  ): Promise<Array<{ name: string; lastRunAt: Date; lastStatus: string }>> {
+    try {
+      const threshold = new Date(Date.now() - thresholdSeconds * 1000);
+      return await this.prisma.cronHeartbeat.findMany({
+        where: { lastRunAt: { lt: threshold } },
+        select: { name: true, lastRunAt: true, lastStatus: true },
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Failed to query stale cron jobs: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return [];
     }
   }
 }
