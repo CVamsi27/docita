@@ -31,6 +31,8 @@ export function buildValidationFailureResult(
   }
   return {
     success: false,
+    clinicId: '',
+    userId: '',
     message: 'Onboarding validation failed',
     errors: validation.errors,
   };
@@ -62,7 +64,7 @@ export async function buildSuccessfulOnboardingResult(
     id: result.adminUser.id,
     email: result.adminUser.email,
     name: result.adminUser.name,
-    role: result.adminUser.role,
+    role: result.adminUser.role as any,
     clinicId: result.clinic.id,
     createdAt: result.adminUser.createdAt,
     updatedAt: result.adminUser.updatedAt,
