@@ -95,6 +95,7 @@ describe('InvoicesService', () => {
     delete = jest.fn<StorageProvider['delete']>();
     uploadBuffer = jest.fn<StorageProvider['uploadBuffer']>();
     generateSignedUrl = jest.fn<StorageProvider['generateSignedUrl']>();
+    getObject = jest.fn<StorageProvider['getObject']>();
   }
 
   const storageProvider = new MockStorageProvider();

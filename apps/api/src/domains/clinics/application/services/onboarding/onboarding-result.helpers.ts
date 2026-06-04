@@ -23,11 +23,11 @@ const logger = new Logger('onboarding-result');
 export function buildValidationFailureResult(
   validationService: OnboardingValidationService,
   completeData: CompleteOnboardingDto,
-): OnboardingResult {
+): OnboardingResult | null {
   const validation =
     validationService.validateOnboardingCompletion(completeData);
   if (validation.valid) {
-    throw new Error('Cannot build validation failure for valid data');
+    return null;
   }
   return {
     success: false,

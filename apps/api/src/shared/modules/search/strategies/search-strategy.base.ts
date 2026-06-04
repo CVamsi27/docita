@@ -5,16 +5,13 @@ import {
   SEARCH_QUERY_REPOSITORY_TOKEN,
   type SearchQueryRepository,
 } from '@/shared/modules/search/ports/search-query.repository.port';
-import type { SearchResult } from '../search.types';
+import type { SearchResult, SearchEntityType, FullTextCapableEntity } from '../search.types';
 import type { ISearchStrategy } from './search-strategy.interface';
 import { Inject } from '@nestjs/common';
 
 export abstract class SearchStrategyBase implements ISearchStrategy {
-  protected abstract readonly entityType: string;
-  protected abstract readonly fullTextKey:
-    | 'appointment'
-    | 'patient'
-    | 'prescription';
+  abstract readonly entityType: Exclude<SearchEntityType, 'all'>;
+  protected abstract readonly fullTextKey: FullTextCapableEntity;
 
   protected abstract searchFullText(
     clinicId: string,

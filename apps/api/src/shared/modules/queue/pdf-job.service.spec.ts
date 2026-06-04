@@ -76,6 +76,7 @@ describe('PdfJobService', () => {
     delete = jest.fn<StorageProvider['delete']>();
     uploadBuffer = jest.fn<StorageProvider['uploadBuffer']>();
     generateSignedUrl = generateSignedUrlMock;
+    getObject = jest.fn<StorageProvider['getObject']>();
   }
 
   const storageProvider = new MockStorage();

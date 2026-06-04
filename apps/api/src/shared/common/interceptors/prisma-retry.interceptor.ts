@@ -5,8 +5,8 @@ import {
   CallHandler,
   Logger,
 } from '@nestjs/common';
-import { Observable, throwError } from 'rxjs';
-import { catchError, retryWhen, delay, take, tap } from 'rxjs/operators';
+import { Observable, throwError, of, timer } from 'rxjs';
+import { catchError, retryWhen, delayWhen, take, tap, mergeMap } from 'rxjs/operators';
 import { Prisma } from '@workspace/db';
 
 const TRANSIENT_ERROR_CODES = new Set([
@@ -25,18 +25,21 @@ export class PrismaRetryInterceptor implements NestInterceptor {
   private readonly logger = new Logger(PrismaRetryInterceptor.name);
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+    let attemptCount = 0;
     return next.handle().pipe(
       retryWhen((errors) =>
         errors.pipe(
-          tap((error) => {
+          mergeMap((error) => {
             if (!this.isTransientPrismaError(error)) {
-              throw error;
+              return throwError(() => error);
             }
+            attemptCount++;
+            if (attemptCount > MAX_RETRIES) {
+              return throwError(() => error);
+            }
+            const delayMs = Math.min(BASE_DELAY_MS * Math.pow(2, attemptCount - 1), 2000);
+            return timer(delayMs);
           }),
-          delay((attempt) =>
-            Math.min(BASE_DELAY_MS * Math.pow(2, attempt), 2000),
-          ),
-          take(MAX_RETRIES),
           tap({
             error: (error) => {
               this.logger.warn(

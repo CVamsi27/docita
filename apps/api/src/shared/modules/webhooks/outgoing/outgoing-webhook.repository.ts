@@ -63,7 +63,7 @@ export class OutgoingWebhookRepository {
     clinicId: string;
     eventName: string;
     targetUrl: string;
-    payload: Prisma.JsonValue;
+    payload: Prisma.InputJsonValue;
     idempotencyKey: string;
   }): Promise<OutgoingDeliveryRecord> {
     return this.prisma.outgoingWebhookDelivery.create({ data });

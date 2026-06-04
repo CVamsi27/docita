@@ -165,7 +165,7 @@ export class OnboardingService {
         this.validationService,
         completeData,
       );
-      if (validationFailure) return validationFailure;
+      if (validationFailure !== null) return validationFailure;
 
       await this.paymentValidator.validatePayment(completeData);
 
