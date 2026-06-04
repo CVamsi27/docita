@@ -73,7 +73,10 @@ export class OnboardingService {
     this.paymentValidator = new OnboardingPaymentValidator(
       persistence,
       paymentGateway,
-      validationService as any,
+      {
+        getTierPricing:
+          validationService.getTierPricing.bind(validationService),
+      },
     );
   }
 

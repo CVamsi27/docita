@@ -16,7 +16,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@workspace/ui/components/overlay/tooltip";
-import { FEATURE_TIER_MAP, TIER_INFO, type Feature, type Tier } from "@workspace/types";
+import {
+  FEATURE_TIER_MAP,
+  TIER_INFO,
+  Tier,
+  type Feature,
+} from "@workspace/types";
 import { getTierName } from "@workspace/utils";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 

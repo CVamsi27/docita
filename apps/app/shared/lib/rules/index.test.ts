@@ -3,6 +3,7 @@ import {
   dateRules,
   formattingRules,
   medicalRules,
+  permissionRules,
   validationRules,
 } from "./index";
 

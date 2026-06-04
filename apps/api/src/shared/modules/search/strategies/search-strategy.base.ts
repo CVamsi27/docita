@@ -5,7 +5,11 @@ import {
   SEARCH_QUERY_REPOSITORY_TOKEN,
   type SearchQueryRepository,
 } from '@/shared/modules/search/ports/search-query.repository.port';
-import type { SearchResult, SearchEntityType, FullTextCapableEntity } from '../search.types';
+import type {
+  SearchResult,
+  SearchEntityType,
+  FullTextCapableEntity,
+} from '../search.types';
 import type { ISearchStrategy } from './search-strategy.interface';
 import { Inject } from '@nestjs/common';
 
