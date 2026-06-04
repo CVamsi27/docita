@@ -204,7 +204,11 @@ export class OnboardingService {
       completeData.paymentDetails?.skipPayment === true;
 
     await this.ensureFreeTrialIsAvailable(completeData, isUnpaidTrial);
-    await this.verifyPaidPlanPayment(completeData, listPriceCents, isUnpaidTrial);
+    await this.verifyPaidPlanPayment(
+      completeData,
+      listPriceCents,
+      isUnpaidTrial,
+    );
   }
 
   private async ensureFreeTrialIsAvailable(
@@ -342,8 +346,17 @@ export class OnboardingService {
       completeData.consentManagement,
     );
 
-    await this.createStaffMembersIfProvided(tx, completeData, clinicId, ipAddress);
-    await this.ensureFrontDeskScheduleDoctorIfNeeded(tx, completeData, clinicId);
+    await this.createStaffMembersIfProvided(
+      tx,
+      completeData,
+      clinicId,
+      ipAddress,
+    );
+    await this.ensureFrontDeskScheduleDoctorIfNeeded(
+      tx,
+      completeData,
+      clinicId,
+    );
     await this.workflowService.initializeClinicSettings(tx, clinicId);
     await this.replaceClinicWeeklySchedules(tx, completeData, clinicId);
   }

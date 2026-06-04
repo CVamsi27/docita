@@ -11,7 +11,7 @@ export interface ErrorPageShellProps {
   reset?: () => void;
 }
 
-export function ErrorPageShell({ title, description, error, reset }: ErrorPageShellProps) {
+export function ErrorPageShell({ title, description, _error, reset }: ErrorPageShellProps) {
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center p-4">
       <div className="mx-auto max-w-md text-center">

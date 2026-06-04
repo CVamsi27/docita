@@ -1,6 +1,8 @@
 import type { OnboardingWorkflowService } from './onboarding-workflow.service';
 
-export type OnboardingTx = Parameters<OnboardingWorkflowService['createClinic']>[0];
+export type OnboardingTx = Parameters<
+  OnboardingWorkflowService['createClinic']
+>[0];
 
 export type CreatedClinic = Awaited<
   ReturnType<OnboardingWorkflowService['createClinic']>

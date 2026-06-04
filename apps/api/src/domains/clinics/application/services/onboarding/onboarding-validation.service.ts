@@ -197,7 +197,11 @@ export class OnboardingValidationService {
   ): void {
     if (!this.isFrontDeskPlan(data)) return;
 
-    if (data.staffSetup?.staffMembers?.some((member) => this.isUnsupportedFrontDeskStaffRole(member.role))) {
+    if (
+      data.staffSetup?.staffMembers?.some((member) =>
+        this.isUnsupportedFrontDeskStaffRole(member.role),
+      )
+    ) {
       errors.push(
         'The Front Desk plan does not support nurse or admin-doctor staff roles during onboarding.',
       );
