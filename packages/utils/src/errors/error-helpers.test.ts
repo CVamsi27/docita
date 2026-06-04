@@ -3,7 +3,7 @@ import {
   getErrorMessage,
   isErrorWithMessage,
   toErrorWithMessage,
-} from "./error-helpers";
+} from "./error-helpers.js";
 
 describe("error helpers", () => {
   it("narrows error-like objects with string messages", () => {
