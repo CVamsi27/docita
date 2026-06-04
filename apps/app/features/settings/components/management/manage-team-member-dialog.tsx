@@ -12,7 +12,6 @@ import {
 import {
   Form,
 } from "@workspace/ui/components/form/form";
-import { Button } from "@workspace/ui/components/form/button";
 import { User } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {

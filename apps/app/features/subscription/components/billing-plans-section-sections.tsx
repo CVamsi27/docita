@@ -26,7 +26,6 @@ import { TierCard } from "@/features/subscription/components/cards/tier-card";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription/config/plan-onboarding-highlights";
-import { PLAN_ORDER } from "./billing-subscription-helpers";
 import type { recommendTier } from "@/features/subscription/lib/recommend-tier";
 
 type Recommendation = ReturnType<typeof recommendTier>;
