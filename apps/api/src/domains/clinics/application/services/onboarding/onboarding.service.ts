@@ -31,6 +31,11 @@ import {
   uploadSlaSignature,
   getSlaSignatureSessionStatus,
 } from './onboarding-helpers';
+import {
+  logOnboardingSuccess,
+  buildSuccessfulOnboardingResult,
+  handleOnboardingFailure,
+} from './onboarding-result.helpers';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { OnboardingPaymentService } from './onboarding-payment.service';
 import type { OnboardingResult } from './onboarding-result.types';
@@ -173,15 +178,25 @@ export class OnboardingService {
       );
 
       await this.dataService.clearSession(onboardingId);
-      await this.logOnboardingSuccess(result, completeData, onboardingId);
+      await logOnboardingSuccess(
+        this.complianceService,
+        result,
+        completeData,
+        onboardingId,
+      );
 
       this.logger.log(
         `Onboarding completed successfully for clinic: ${result.clinic.id}`,
       );
 
-      return this.buildSuccessfulOnboardingResult(result);
+      return await buildSuccessfulOnboardingResult(this.authService, result);
     } catch (error) {
-      return this.handleOnboardingFailure(error, onboardingId, created);
+      return await handleOnboardingFailure(
+        this.complianceService,
+        error,
+        onboardingId,
+        created,
+      );
     }
   }
 
@@ -410,79 +425,5 @@ export class OnboardingService {
       clinicId,
       weeklyRows,
     );
-  }
-
-  private async logOnboardingSuccess(
-    result: CompletedOnboardingRecords,
-    completeData: CompleteOnboardingDto,
-    onboardingId: string,
-  ): Promise<void> {
-    await this.complianceService.logOnboardingEvent(
-      result.adminUser.id,
-      result.clinic.id,
-      'CLINIC_ONBOARDED',
-      {
-        tier: completeData.planSelection.tier,
-        billingCycle: completeData.planSelection.billingCycle,
-        onboardingId,
-      },
-    );
-  }
-
-  private async buildSuccessfulOnboardingResult(
-    result: CompletedOnboardingRecords,
-  ): Promise<OnboardingResult> {
-    const authCredentials = await this.authService.login({
-      id: result.adminUser.id,
-      email: result.adminUser.email,
-      name: result.adminUser.name,
-      role: result.adminUser.role,
-      clinicId: result.clinic.id,
-      createdAt: result.adminUser.createdAt,
-      updatedAt: result.adminUser.updatedAt,
-    });
-
-    return {
-      success: true,
-      clinicId: result.clinic.id,
-      userId: result.adminUser.id,
-      subscriptionId: result.subscriptionId,
-      message: 'Clinic onboarded successfully. Welcome to Docita!',
-      access_token: authCredentials.access_token,
-      user: authCredentials.user,
-    };
-  }
-
-  private async handleOnboardingFailure(
-    error: unknown,
-    onboardingId: string,
-    created: OnboardingCreationMarkers,
-  ): Promise<OnboardingResult> {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-
-    this.logger.error(
-      `Onboarding failed: ${message}`,
-      error instanceof Error ? error.stack : undefined,
-    );
-
-    if (created.clinicId && created.userId) {
-      await this.complianceService.logOnboardingEvent(
-        created.userId,
-        created.clinicId,
-        'CLINIC_ONBOARDING_FAILED',
-        {
-          error: message,
-          onboardingId,
-        },
-      );
-    }
-
-    return {
-      success: false,
-      clinicId: created.clinicId || '',
-      userId: created.userId || '',
-      message: 'Onboarding failed. Please try again.',
-      errors: [message],
-    };
   }
 }
