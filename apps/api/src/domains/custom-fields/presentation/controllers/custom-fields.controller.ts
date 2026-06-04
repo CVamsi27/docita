@@ -17,7 +17,7 @@ import {
   CustomFieldListResponseDto,
   CreateCustomFieldSchema,
   UpdateCustomFieldSchema,
-} from '@/domains/custom-fields/dto/custom-fields.dto';
+} from '@/domains/custom-fields/application/dto/custom-fields.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { Role } from '@workspace/db';

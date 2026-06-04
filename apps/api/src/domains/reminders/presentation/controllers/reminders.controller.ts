@@ -21,7 +21,7 @@ import {
   ManualReminderResponseDto,
   UpdateReminderSettingsSchema,
   sendReminderSchema,
-} from '@/domains/reminders/dto/reminder-settings.dto';
+} from '@/domains/reminders/application/dto/reminder-settings.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { RequestWithUser } from '@/shared/common/types/common.types';

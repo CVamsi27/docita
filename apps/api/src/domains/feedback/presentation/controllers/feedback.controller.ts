@@ -23,7 +23,7 @@ import {
   FeedbackListResponseDto,
   CreateFeedbackSchema,
   UpdateFeedbackStatusSchema,
-} from '@/domains/feedback/dto/feedback.dto';
+} from '@/domains/feedback/application/dto/feedback.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 

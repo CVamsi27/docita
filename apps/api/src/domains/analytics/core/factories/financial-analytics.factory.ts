@@ -9,7 +9,7 @@ import {
 import {
   toAnalyticsPeriodKey,
   toTimeSeriesBucketKey,
-} from '@/domains/analytics/factories/period-bucket.util';
+} from '@/domains/analytics/core/factories/period-bucket.util';
 import { BaseAnalyticsFactory } from './base-analytics.factory';
 
 @Injectable()

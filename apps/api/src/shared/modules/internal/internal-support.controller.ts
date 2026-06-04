@@ -40,7 +40,7 @@ import {
   FeedbackResponseDto,
   UpdateFeedbackStatusDto,
   UpdateFeedbackStatusSchema,
-} from '@/domains/feedback/dto/feedback.dto';
+} from '@/domains/feedback/application/dto/feedback.dto';
 import { ContactInquiryListResponseDto } from '@/shared/modules/contact/dto/contact.dto';
 import { InternalApiAccess } from './internal.controller.access';
 

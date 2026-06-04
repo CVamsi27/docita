@@ -25,7 +25,7 @@ import {
   CodingTimelinessResponseDto,
   UncodedVisitsStatsResponseDto,
   PatientDemographicsResponseDto,
-} from '@/domains/analytics/dto/analytics.dto';
+} from '@/domains/analytics/application/dto/analytics.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { requireClinicIdFromRequest } from '@/shared/modules/auth/auth/clinic-request-context';

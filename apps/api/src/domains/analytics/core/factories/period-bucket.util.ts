@@ -1,5 +1,5 @@
-export type AnalyticsPeriod = 'daily' | 'weekly' | 'monthly';
-export type TimeSeriesGroupBy = 'day' | 'week' | 'month';
+type AnalyticsPeriod = 'daily' | 'weekly' | 'monthly';
+type TimeSeriesGroupBy = 'day' | 'week' | 'month';
 
 const ISO_DATE_SLICE_END = 10;
 
