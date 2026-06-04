@@ -18,7 +18,7 @@ import {
   SLAAgreementDto,
   ConsentManagementDto,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
-import { getClinicSettings } from './type-helpers';
+import { getClinicSettings } from './onboarding-settings';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()

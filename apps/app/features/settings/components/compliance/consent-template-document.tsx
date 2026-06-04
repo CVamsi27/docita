@@ -19,15 +19,8 @@ import {
   ConsentSection,
   SignatureSection,
   DocumentFooter,
+  type ConsentDocumentClinicInfo,
 } from "./consent-template-document-sections";
-
-export interface ConsentDocumentClinicInfo {
-  name?: string | null;
-  address?: string | null;
-  phone?: string | null;
-  email?: string | null;
-  logo?: string | null;
-}
 
 interface ConsentTemplateDocumentProps {
   clinic: ConsentDocumentClinicInfo | null | undefined;

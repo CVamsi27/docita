@@ -2,9 +2,13 @@
 
 import {
   collectBackendAudit,
+} from "../lib/structure-audit-backend.mjs";
+import {
   printReport,
+} from "../lib/structure-audit-report.mjs";
+import {
   writeStructureEvidence,
-} from "../lib/structure-audit.mjs";
+} from "../lib/structure-audit-evidence.mjs";
 
 const args = new Set(process.argv.slice(2));
 const enforce = args.has("--enforce");

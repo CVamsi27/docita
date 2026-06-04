@@ -38,7 +38,7 @@ import {
   type ImportsAuthRequest,
 } from './imports.controller.access';
 import { ocrImageUploadOptions } from './imports.controller.upload';
-import { readRequestHeaderString } from '@/shared/common/http/client-ip';
+import { readRequestHeaderString } from '@/shared/common/http/request-headers';
 
 @Controller('imports')
 @ImportsApiAccess()

@@ -14,7 +14,7 @@ import {
   appQueryKeys,
   useGenerateSignatureToken,
 } from "@workspace/data-access";
-import { toAbsoluteAppUrl } from "@/lib/utils/url";
+import { toAbsoluteAppUrl } from "@/lib/utils/app-url";
 import { isDoctor as checkIsDoctor } from "@/lib/auth/permissions";
 import { usePhoneSignatureQrFlow } from "@/hooks/use-phone-signature-qr-flow";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";

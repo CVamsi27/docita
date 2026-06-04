@@ -95,6 +95,15 @@ export function formatPhoneNumber(phone: string): string {
   return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
 }
 
+export function getInitials(firstName: string, lastName?: string): string {
+  if (!firstName) return "";
+
+  const first = firstName.charAt(0).toUpperCase();
+  const last = lastName ? lastName.charAt(0).toUpperCase() : "";
+
+  return `${first}${last}`;
+}
+
 export function truncate(text: string, length: number = 50): string {
   if (text.length <= length) return text;
   return text.slice(0, length) + "…";

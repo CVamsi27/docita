@@ -16,7 +16,16 @@ import { LiveDot } from "@workspace/ui/components/indicators/live-dot";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { Section } from "@workspace/ui/components/layout/section";
 import { cn } from "@workspace/ui/lib/utils";
-import type { DeskFloorRow } from "./DeskFloorPanelUI";
+
+export interface DeskFloorRow {
+  id: string;
+  tokenNumber: number;
+  patientName: string;
+  scheduledTime?: string | null;
+  doctorName?: string | null;
+  visitSummary?: string | null;
+  isWalkIn: boolean;
+}
 
 export function initialsOf(name: string): string {
   return name

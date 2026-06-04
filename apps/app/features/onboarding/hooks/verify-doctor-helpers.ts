@@ -1,7 +1,7 @@
 "use client";
 
 import type { Clinic, UpdateDoctorRegistrationRequest, User } from "@workspace/types";
-import { toAbsoluteApiUrl } from "@/lib/utils/url";
+import { toAbsoluteApiUrl } from "@/lib/utils/api-url";
 import { shouldRedirectToWorkspace } from "@/features/onboarding/lib/redirect-logic";
 
 export interface ResolvedSignatureUrls {

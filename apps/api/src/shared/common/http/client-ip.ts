@@ -1,4 +1,5 @@
 import type { Request } from 'express';
+import { firstHeaderValue } from './request-headers';
 
 /** Minimal request shape for IP extraction (Express + Nest throttler). */
 type ClientIpRequest = {
@@ -8,32 +9,6 @@ type ClientIpRequest = {
     remoteAddress?: string;
   };
 };
-
-export function readRequestHeaderString(
-  headers: Request['headers'] | undefined,
-  name: string,
-): string | undefined {
-  if (!headers) {
-    return undefined;
-  }
-
-  const normalized = name.toLowerCase();
-  return firstHeaderValue(headers[normalized] ?? headers[name]);
-}
-
-function firstHeaderValue(
-  value: string | string[] | undefined,
-): string | undefined {
-  if (typeof value === 'string') {
-    return value;
-  }
-
-  if (Array.isArray(value) && value.length > 0) {
-    return value.find((entry) => entry.trim().length > 0);
-  }
-
-  return undefined;
-}
 
 function firstForwardedForIp(value: string | undefined): string | undefined {
   const candidate = value?.split(',')[0]?.trim();

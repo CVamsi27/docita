@@ -7,7 +7,7 @@
     "enumMembers": "warn",
     "types": "warn"
   },
-  "ignoreBinaries": ["printf", "tsx", "vitest"],
+  "ignoreBinaries": ["fallow", "printf", "tsx"],
   "ignoreWorkspaces": ["apps/worker"],
   "workspaces": {
     "apps/api": {
@@ -89,7 +89,7 @@
         "src/shared/modules/rls/active-tx.storage.ts",
         "src/domains/appointments/application/types/appointment-access-context.ts"
       ],
-      "ignoreDependencies": ["pino-pretty"]
+      "ignoreDependencies": []
     },
     "packages/types": {
       "ignore": ["src/auth/mfa.ts"]
@@ -116,10 +116,7 @@
       "ignoreDependencies": [
         "@tailwindcss/postcss",
         "@types/react-signature-canvas",
-        "baseline-browser-mapping",
-        "globals",
-        "import-in-the-middle",
-        "require-in-the-middle"
+        "globals"
       ]
     },
     "apps/internal": {
@@ -135,17 +132,13 @@
         "@/hooks/*": ["./shared/hooks/*"],
         "@/lib/*": ["./shared/lib/*"]
       },
-      "ignoreDependencies": ["@axe-core/playwright", "eslint-config-next", "@fontsource/fraunces", "@fontsource/inter", "@fontsource/jetbrains-mono"]
+      "ignoreDependencies": ["@fontsource/fraunces", "@fontsource/inter", "@fontsource/jetbrains-mono"]
     },
     "apps/landing": {
       "ignoreDependencies": ["tailwindcss", "sharp"]
     },
     ".": {
       "ignoreDependencies": [
-        "@axe-core/playwright",
-        "axe-core",
-        "axe-playwright",
-        "baseline-browser-mapping",
         "madge",
         "playwright",
         "ts-node"
@@ -153,7 +146,6 @@
     },
     "packages/eslint-config": {
       "ignoreDependencies": [
-        "@typescript-eslint/eslint-plugin",
         "@typescript-eslint/parser"
       ]
     },
@@ -161,8 +153,7 @@
       "ignoreDependencies": [
         "@hookform/resolvers",
         "zod",
-        "@tailwindcss/postcss",
-        "@turbo/gen"
+        "@tailwindcss/postcss"
       ]
     }
   }

@@ -7,13 +7,13 @@ import { StorageProvider } from '@/domains/documents/application/ports/storage-p
 import { PublicDocumentTokenService } from './public-document-token.service';
 import { PaymentSessionStatus } from '@workspace/db';
 
-export interface PublicPdfResult {
+interface PublicPdfResult {
   buffer: Buffer;
   filename: string;
   contentType: string;
 }
 
-export interface PublicDocumentAccessEvent {
+interface PublicDocumentAccessEvent {
   type: string;
   documentId: string;
   clinicId: string;

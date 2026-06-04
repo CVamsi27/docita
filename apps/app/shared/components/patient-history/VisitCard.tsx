@@ -3,42 +3,36 @@
 import { useState } from "react";
 import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { cn } from "@workspace/ui/lib/utils";
-import { formatDate } from "@workspace/utils";
-import { EVENT_TYPE_CONFIG, type VisitCardProps, capitalizeFirstLetter, parseVisitCardMetadata } from "./visit-card-config";
+import { EVENT_TYPE_CONFIG, type VisitCardProps } from "./visit-card-config";
 import { CompactVisitCard, VisitCardHeader, VisitCardVitalsSection, VisitCardDiagnosisSection, VisitCardMedicationsSection, VisitCardProceduresSection } from "./VisitCardSections";
+import { buildVisitCardViewModel } from "./visit-card-view-model";
 
 export { EVENT_TYPE_CONFIG, type VisitCardProps } from "./visit-card-config";
 
 export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
-  const config = EVENT_TYPE_CONFIG[event.type];
-  const Icon = config.icon;
   const canExpand = mode !== "compact";
-  const d = new Date(event.date);
-  const dateStr = mode === "compact" ? formatDate(d, "d MMM") : mode === "portal" ? formatDate(d, "EEEE, d MMMM yyyy") : formatDate(d, "EEE, d MMM yyyy");
-
-  const { doctorName, consultationId, vitals, medications, diagnoses, treatmentPlan, observations, status: statusBadge } = parseVisitCardMetadata(event.metadata);
-  const primaryDiagnosis = diagnoses.find((dl) => dl.isPrimary) ?? diagnoses[0];
-  const displayTitle = capitalizeFirstLetter(event.title);
-  const displayPrimaryDiagnosis = capitalizeFirstLetter(primaryDiagnosis?.description ?? null);
-  const displayEventDescription = capitalizeFirstLetter(event.description);
-
-  const statusKey = (statusBadge ?? "").toLowerCase().replace(/_/g, "-");
-  const isFutureAppointment = event.type === "APPOINTMENT" && d.getTime() > Date.now();
-  const consultationHref = consultationId ? `/consultation/${consultationId}?from=patient` : `/consultation/${event.id}?from=patient`;
-  const hasConsultation = Boolean(consultationId) || statusKey.includes("in-progress") || statusKey.includes("completed");
-
-  const appointmentAction = event.type !== "APPOINTMENT" || mode !== "full" ? null
-    : isFutureAppointment ? { label: "View appointment", href: `/appointments?id=${event.id}`, variant: "default" as const, disabled: false }
-    : statusKey.includes("in-progress") || statusKey.includes("in progress") ? { label: "Edit consultation", href: `/consultation/${event.id}?from=patient`, variant: "default" as const, disabled: false }
-    : statusKey.includes("completed") ? { label: "View consultation", href: `/consultation/${event.id}?from=patient`, variant: "outline" as const, disabled: false }
-    : { label: "Start consultation", href: `/consultation/${event.id}?from=patient`, variant: "default" as const, disabled: false };
-
-  const consultationAction = event.type === "APPOINTMENT" && mode === "full" && appointmentAction?.label !== "View consultation"
-    ? { label: "View consultation", href: hasConsultation ? consultationHref : undefined, variant: "default" as const, disabled: !hasConsultation }
-    : null;
-
-  const typeLabel = mode === "portal" ? config.friendlyName : config.label.slice(0, -1);
+  const {
+    config,
+    Icon,
+    dateStr,
+    metadata,
+    displayTitle,
+    displayPrimaryDiagnosis,
+    displayEventDescription,
+    appointmentAction,
+    consultationAction,
+    typeLabel,
+  } = buildVisitCardViewModel(event, mode);
+  const {
+    doctorName,
+    vitals,
+    medications,
+    diagnoses,
+    treatmentPlan,
+    observations,
+    status: statusBadge,
+  } = metadata;
 
   if (mode === "compact") {
     return (

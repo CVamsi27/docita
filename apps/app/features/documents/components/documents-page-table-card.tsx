@@ -9,7 +9,7 @@ import {
   DataTable,
 } from "@workspace/ui/components/data-display/data-table";
 import type { Document } from "@workspace/types";
-import type { SortConfig, SortKey } from "@/features/documents/hooks/use-documents-logic";
+import type { SortConfig, SortKey } from "@/features/documents/hooks/document-sort-types";
 import {
   buildDocumentsTableColumns,
   DocumentMobileRow,

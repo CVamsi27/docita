@@ -24,7 +24,7 @@ import {
 import { PatientSnapshotStrip } from "@/components/patient-history/PatientSnapshotStrip";
 import { PatientTimeline } from "@/components/patient-history/PatientTimeline";
 import { formatGenderLabel } from "@/lib/formatters";
-import { getInitials } from "@/lib/formatters/text-helpers";
+import { getInitials } from "@/lib/formatters";
 import { getPatientFullName } from "@workspace/utils";
 import { FollowUpWidget } from "./FollowUpWidget";
 

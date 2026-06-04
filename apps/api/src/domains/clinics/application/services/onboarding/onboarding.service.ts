@@ -19,7 +19,7 @@ import type {
   OnboardingProgressDto,
   OnboardingStep,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
-import { isTrialEligibleTier } from './type-helpers';
+import { isTrialEligibleTier } from './onboarding-trial-eligibility';
 import { OnboardingDataService } from './onboarding-data.service';
 import { OnboardingValidationService } from './onboarding-validation.service';
 import { OnboardingWorkflowService } from './onboarding-workflow.service';
@@ -35,6 +35,25 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { OnboardingPaymentService } from './onboarding-payment.service';
 import type { OnboardingResult } from './onboarding-result.types';
 import { isFrontDeskPlanMode } from '@workspace/types';
+
+type OnboardingTx = Parameters<OnboardingWorkflowService['createClinic']>[0];
+type CreatedClinic = Awaited<
+  ReturnType<OnboardingWorkflowService['createClinic']>
+>;
+type CreatedAdminUser = Awaited<
+  ReturnType<OnboardingWorkflowService['createAdminUser']>
+>;
+
+interface OnboardingCreationMarkers {
+  clinicId?: string;
+  userId?: string;
+}
+
+interface CompletedOnboardingRecords {
+  clinic: CreatedClinic;
+  adminUser: CreatedAdminUser;
+  subscriptionId: string;
+}
 
 /**
  * Facade — delegates checkout, progress, and compliance to onboarding specialists;
@@ -139,227 +158,331 @@ export class OnboardingService {
       throw new BadRequestException('Onboarding session not found or expired');
     }
 
-    let clinicId: string | undefined;
-    let userId: string | undefined;
+    const created: OnboardingCreationMarkers = {};
 
     try {
-      const validation =
-        this.validationService.validateOnboardingCompletion(completeData);
-      if (!validation.valid) {
-        return {
-          success: false,
-          clinicId: '',
-          userId: '',
-          message: 'Onboarding validation failed',
-          errors: validation.errors,
-        };
-      }
+      const validationFailure = this.getValidationFailureResult(completeData);
+      if (validationFailure) return validationFailure;
 
-      const hasRazorpayPayment =
-        !!completeData.paymentDetails?.razorpayPaymentId &&
-        !!completeData.paymentDetails?.razorpayOrderId &&
-        !!completeData.paymentDetails?.razorpaySignature;
+      await this.ensurePaymentCanComplete(completeData);
 
-      const listPriceCents = this.validationService.getTierPricing(
-        completeData.planSelection.tier,
-        completeData.planSelection.billingCycle,
-        completeData.planSelection.currency,
-        completeData.planSelection.planMode,
+      const result = await this.createOnboardingRecords(
+        completeData,
+        ipAddress,
+        created,
       );
-
-      const isUnpaidTrial =
-        isTrialEligibleTier(completeData.planSelection.tier) &&
-        completeData.paymentDetails?.skipPayment === true;
-
-      // Free-trial re-use prevention: an email that has ever onboarded a clinic
-      // — whether it paid or only consumed a prior 30-day trial — must use
-      // checkout instead of starting another free trial.
-      if (isUnpaidTrial) {
-        const hasPriorSubscription = await hasPriorSubscriptionForEmail(
-          this.persistence,
-          completeData.adminAccount.email,
-        );
-        if (hasPriorSubscription) {
-          throw new BadRequestException(
-            'The 30-day free trial is only available to new customers. Please choose a paid plan to continue.',
-          );
-        }
-      }
-
-      if (listPriceCents > 0 && !isUnpaidTrial) {
-        const paymentDetails = completeData.paymentDetails;
-        const razorpayPaymentId = paymentDetails?.razorpayPaymentId;
-        const razorpayOrderId = paymentDetails?.razorpayOrderId;
-        const razorpaySignature = paymentDetails?.razorpaySignature;
-        if (
-          !hasRazorpayPayment ||
-          !razorpayPaymentId ||
-          !razorpayOrderId ||
-          !razorpaySignature
-        ) {
-          throw new BadRequestException('Payment details are required');
-        }
-        const verification = await this.paymentGateway.verifyPayment({
-          razorpayPaymentId,
-          razorpayOrderId,
-          razorpaySignature,
-        });
-
-        if (!verification.verified) {
-          throw new BadRequestException('Unable to verify payment');
-        }
-
-        if (verification.amountCents !== listPriceCents) {
-          throw new BadRequestException(
-            'Payment amount does not match selected plan',
-          );
-        }
-      }
-
-      // RLS-BYPASS: onboarding creates clinic records before membership tenant binding
-      const result = await this.persistence.runUnrestricted(async () => {
-        return this.persistence.$transaction(async (tx) => {
-          const clinic = await this.workflowService.createClinic(
-            tx,
-            completeData.clinicDetails,
-            ipAddress,
-          );
-          clinicId = clinic.id;
-
-          const adminUser = await this.workflowService.createAdminUser(
-            tx,
-            completeData.adminAccount,
-            clinic.id,
-            ipAddress,
-            completeData.planSelection.tier,
-            completeData.planSelection.planMode,
-          );
-          userId = adminUser.id;
-
-          const subscription = await this.workflowService.createSubscription(
-            tx,
-            clinic.id,
-            completeData.planSelection,
-            completeData.paymentDetails,
-          );
-          const subscriptionId = subscription.id;
-
-          await this.complianceService.recordSLAAgreement(
-            tx,
-            clinic.id,
-            adminUser.id,
-            completeData.slaAgreement,
-            ipAddress,
-          );
-
-          await this.complianceService.configureConsentManagement(
-            tx,
-            clinic.id,
-            completeData.consentManagement,
-          );
-
-          if (completeData.staffSetup?.staffMembers?.length) {
-            const staffCount = await this.workflowService.createStaffMembers(
-              tx,
-              clinic.id,
-              completeData.staffSetup,
-              ipAddress,
-              completeData.planSelection.tier,
-              completeData.planSelection.planMode,
-            );
-            this.logger.log(`Created ${staffCount} staff members`);
-          }
-
-          if (
-            isFrontDeskPlanMode(
-              completeData.planSelection.tier,
-              completeData.planSelection.planMode,
-            )
-          ) {
-            await this.workflowService.ensureFrontDeskScheduleDoctor(
-              tx,
-              clinic.id,
-            );
-          }
-
-          await this.workflowService.initializeClinicSettings(tx, clinic.id);
-
-          const weeklyRows =
-            completeData.clinicWeeklyHours &&
-            completeData.clinicWeeklyHours.length === 7
-              ? completeData.clinicWeeklyHours
-              : this.workflowService.getDefaultClinicWeeklyHoursInput();
-          await this.workflowService.replaceClinicWeeklySchedules(
-            tx,
-            clinic.id,
-            weeklyRows,
-          );
-
-          return { clinic, adminUser, subscriptionId };
-        });
-      });
 
       await this.dataService.clearSession(onboardingId);
-
-      await this.complianceService.logOnboardingEvent(
-        result.adminUser.id,
-        result.clinic.id,
-        'CLINIC_ONBOARDED',
-        {
-          tier: completeData.planSelection.tier,
-          billingCycle: completeData.planSelection.billingCycle,
-          onboardingId,
-        },
-      );
+      await this.logOnboardingSuccess(result, completeData, onboardingId);
 
       this.logger.log(
         `Onboarding completed successfully for clinic: ${result.clinic.id}`,
       );
 
-      const authCredentials = await this.authService.login({
-        id: result.adminUser.id,
-        email: result.adminUser.email,
-        name: result.adminUser.name,
-        role: result.adminUser.role,
-        clinicId: result.clinic.id,
-        createdAt: result.adminUser.createdAt,
-        updatedAt: result.adminUser.updatedAt,
-      });
-
-      return {
-        success: true,
-        clinicId: result.clinic.id,
-        userId: result.adminUser.id,
-        subscriptionId: result.subscriptionId,
-        message: 'Clinic onboarded successfully. Welcome to Docita!',
-        access_token: authCredentials.access_token,
-        user: authCredentials.user,
-      };
+      return this.buildSuccessfulOnboardingResult(result);
     } catch (error) {
-      this.logger.error(
-        `Onboarding failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        error instanceof Error ? error.stack : undefined,
-      );
-
-      if (clinicId && userId) {
-        await this.complianceService.logOnboardingEvent(
-          userId,
-          clinicId,
-          'CLINIC_ONBOARDING_FAILED',
-          {
-            error: error instanceof Error ? error.message : 'Unknown error',
-            onboardingId,
-          },
-        );
-      }
-
-      return {
-        success: false,
-        clinicId: clinicId || '',
-        userId: userId || '',
-        message: 'Onboarding failed. Please try again.',
-        errors: [error instanceof Error ? error.message : 'Unknown error'],
-      };
+      return this.handleOnboardingFailure(error, onboardingId, created);
     }
+  }
+
+  private getValidationFailureResult(
+    completeData: CompleteOnboardingDto,
+  ): OnboardingResult | null {
+    const validation =
+      this.validationService.validateOnboardingCompletion(completeData);
+    if (validation.valid) return null;
+
+    return {
+      success: false,
+      clinicId: '',
+      userId: '',
+      message: 'Onboarding validation failed',
+      errors: validation.errors,
+    };
+  }
+
+  private async ensurePaymentCanComplete(
+    completeData: CompleteOnboardingDto,
+  ): Promise<void> {
+    const listPriceCents = this.validationService.getTierPricing(
+      completeData.planSelection.tier,
+      completeData.planSelection.billingCycle,
+      completeData.planSelection.currency,
+      completeData.planSelection.planMode,
+    );
+    const isUnpaidTrial =
+      isTrialEligibleTier(completeData.planSelection.tier) &&
+      completeData.paymentDetails?.skipPayment === true;
+
+    await this.ensureFreeTrialIsAvailable(completeData, isUnpaidTrial);
+    await this.verifyPaidPlanPayment(completeData, listPriceCents, isUnpaidTrial);
+  }
+
+  private async ensureFreeTrialIsAvailable(
+    completeData: CompleteOnboardingDto,
+    isUnpaidTrial: boolean,
+  ): Promise<void> {
+    if (!isUnpaidTrial) return;
+
+    const hasPriorSubscription = await hasPriorSubscriptionForEmail(
+      this.persistence,
+      completeData.adminAccount.email,
+    );
+    if (hasPriorSubscription) {
+      throw new BadRequestException(
+        'The 30-day free trial is only available to new customers. Please choose a paid plan to continue.',
+      );
+    }
+  }
+
+  private async verifyPaidPlanPayment(
+    completeData: CompleteOnboardingDto,
+    listPriceCents: number,
+    isUnpaidTrial: boolean,
+  ): Promise<void> {
+    if (listPriceCents <= 0 || isUnpaidTrial) return;
+
+    const payment = this.getVerifiedRazorpayPaymentInput(completeData);
+    const verification = await this.paymentGateway.verifyPayment(payment);
+
+    if (!verification.verified) {
+      throw new BadRequestException('Unable to verify payment');
+    }
+
+    if (verification.amountCents !== listPriceCents) {
+      throw new BadRequestException(
+        'Payment amount does not match selected plan',
+      );
+    }
+  }
+
+  private getVerifiedRazorpayPaymentInput(completeData: CompleteOnboardingDto) {
+    const paymentDetails = completeData.paymentDetails;
+    const razorpayPaymentId = paymentDetails?.razorpayPaymentId;
+    const razorpayOrderId = paymentDetails?.razorpayOrderId;
+    const razorpaySignature = paymentDetails?.razorpaySignature;
+
+    if (!razorpayPaymentId || !razorpayOrderId || !razorpaySignature) {
+      throw new BadRequestException('Payment details are required');
+    }
+
+    return {
+      razorpayPaymentId,
+      razorpayOrderId,
+      razorpaySignature,
+    };
+  }
+
+  private async createOnboardingRecords(
+    completeData: CompleteOnboardingDto,
+    ipAddress: string | undefined,
+    created: OnboardingCreationMarkers,
+  ): Promise<CompletedOnboardingRecords> {
+    // RLS-BYPASS: onboarding creates clinic records before membership tenant binding
+    return this.persistence.runUnrestricted(async () =>
+      this.persistence.$transaction((tx) =>
+        this.createOnboardingRecordsInTransaction(
+          tx,
+          completeData,
+          ipAddress,
+          created,
+        ),
+      ),
+    );
+  }
+
+  private async createOnboardingRecordsInTransaction(
+    tx: OnboardingTx,
+    completeData: CompleteOnboardingDto,
+    ipAddress: string | undefined,
+    created: OnboardingCreationMarkers,
+  ): Promise<CompletedOnboardingRecords> {
+    const clinic = await this.workflowService.createClinic(
+      tx,
+      completeData.clinicDetails,
+      ipAddress,
+    );
+    created.clinicId = clinic.id;
+
+    const adminUser = await this.workflowService.createAdminUser(
+      tx,
+      completeData.adminAccount,
+      clinic.id,
+      ipAddress,
+      completeData.planSelection.tier,
+      completeData.planSelection.planMode,
+    );
+    created.userId = adminUser.id;
+
+    const subscription = await this.workflowService.createSubscription(
+      tx,
+      clinic.id,
+      completeData.planSelection,
+      completeData.paymentDetails,
+    );
+
+    await this.configureClinicAfterCreation(
+      tx,
+      completeData,
+      clinic.id,
+      adminUser.id,
+      ipAddress,
+    );
+
+    return { clinic, adminUser, subscriptionId: subscription.id };
+  }
+
+  private async configureClinicAfterCreation(
+    tx: OnboardingTx,
+    completeData: CompleteOnboardingDto,
+    clinicId: string,
+    adminUserId: string,
+    ipAddress: string | undefined,
+  ): Promise<void> {
+    await this.complianceService.recordSLAAgreement(
+      tx,
+      clinicId,
+      adminUserId,
+      completeData.slaAgreement,
+      ipAddress,
+    );
+
+    await this.complianceService.configureConsentManagement(
+      tx,
+      clinicId,
+      completeData.consentManagement,
+    );
+
+    await this.createStaffMembersIfProvided(tx, completeData, clinicId, ipAddress);
+    await this.ensureFrontDeskScheduleDoctorIfNeeded(tx, completeData, clinicId);
+    await this.workflowService.initializeClinicSettings(tx, clinicId);
+    await this.replaceClinicWeeklySchedules(tx, completeData, clinicId);
+  }
+
+  private async createStaffMembersIfProvided(
+    tx: OnboardingTx,
+    completeData: CompleteOnboardingDto,
+    clinicId: string,
+    ipAddress: string | undefined,
+  ): Promise<void> {
+    if (!completeData.staffSetup?.staffMembers?.length) return;
+
+    const staffCount = await this.workflowService.createStaffMembers(
+      tx,
+      clinicId,
+      completeData.staffSetup,
+      ipAddress,
+      completeData.planSelection.tier,
+      completeData.planSelection.planMode,
+    );
+    this.logger.log(`Created ${staffCount} staff members`);
+  }
+
+  private async ensureFrontDeskScheduleDoctorIfNeeded(
+    tx: OnboardingTx,
+    completeData: CompleteOnboardingDto,
+    clinicId: string,
+  ): Promise<void> {
+    if (
+      !isFrontDeskPlanMode(
+        completeData.planSelection.tier,
+        completeData.planSelection.planMode,
+      )
+    ) {
+      return;
+    }
+
+    await this.workflowService.ensureFrontDeskScheduleDoctor(tx, clinicId);
+  }
+
+  private async replaceClinicWeeklySchedules(
+    tx: OnboardingTx,
+    completeData: CompleteOnboardingDto,
+    clinicId: string,
+  ): Promise<void> {
+    const weeklyRows =
+      completeData.clinicWeeklyHours &&
+      completeData.clinicWeeklyHours.length === 7
+        ? completeData.clinicWeeklyHours
+        : this.workflowService.getDefaultClinicWeeklyHoursInput();
+    await this.workflowService.replaceClinicWeeklySchedules(
+      tx,
+      clinicId,
+      weeklyRows,
+    );
+  }
+
+  private async logOnboardingSuccess(
+    result: CompletedOnboardingRecords,
+    completeData: CompleteOnboardingDto,
+    onboardingId: string,
+  ): Promise<void> {
+    await this.complianceService.logOnboardingEvent(
+      result.adminUser.id,
+      result.clinic.id,
+      'CLINIC_ONBOARDED',
+      {
+        tier: completeData.planSelection.tier,
+        billingCycle: completeData.planSelection.billingCycle,
+        onboardingId,
+      },
+    );
+  }
+
+  private async buildSuccessfulOnboardingResult(
+    result: CompletedOnboardingRecords,
+  ): Promise<OnboardingResult> {
+    const authCredentials = await this.authService.login({
+      id: result.adminUser.id,
+      email: result.adminUser.email,
+      name: result.adminUser.name,
+      role: result.adminUser.role,
+      clinicId: result.clinic.id,
+      createdAt: result.adminUser.createdAt,
+      updatedAt: result.adminUser.updatedAt,
+    });
+
+    return {
+      success: true,
+      clinicId: result.clinic.id,
+      userId: result.adminUser.id,
+      subscriptionId: result.subscriptionId,
+      message: 'Clinic onboarded successfully. Welcome to Docita!',
+      access_token: authCredentials.access_token,
+      user: authCredentials.user,
+    };
+  }
+
+  private async handleOnboardingFailure(
+    error: unknown,
+    onboardingId: string,
+    created: OnboardingCreationMarkers,
+  ): Promise<OnboardingResult> {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+
+    this.logger.error(
+      `Onboarding failed: ${message}`,
+      error instanceof Error ? error.stack : undefined,
+    );
+
+    if (created.clinicId && created.userId) {
+      await this.complianceService.logOnboardingEvent(
+        created.userId,
+        created.clinicId,
+        'CLINIC_ONBOARDING_FAILED',
+        {
+          error: message,
+          onboardingId,
+        },
+      );
+    }
+
+    return {
+      success: false,
+      clinicId: created.clinicId || '',
+      userId: created.userId || '',
+      message: 'Onboarding failed. Please try again.',
+      errors: [message],
+    };
   }
 }

@@ -5,7 +5,7 @@ import {
   AvatarFallback,
 } from "@workspace/ui/components/indicators/avatar";
 import { formatGenderLabel } from "@/lib/formatters";
-import { getInitials } from "@/lib/formatters/text-helpers";
+import { getInitials } from "@/lib/formatters";
 import { getPatientFullName } from "@workspace/utils";
 import {
   ArrowDown,

@@ -14,7 +14,7 @@ import {
 } from "@workspace/ui/components/indicators/avatar";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
-import { getInitials } from "@/lib/formatters/text-helpers";
+import { getInitials } from "@/lib/formatters";
 
 export interface RecentPatient {
   id: string;

@@ -1,5 +1,5 @@
 import { getPatientAgeDisplay } from "@/features/patients/rules/patient-rules";
-import { getInitials } from "@/lib/formatters/text-helpers";
+import { getInitials } from "@/lib/formatters";
 import { PatientFaceSheetHeaderUI } from "./PatientFaceSheetHeaderUI";
 import {
   CODE_STATUS_LABELS,

@@ -1,5 +1,57 @@
 import { isRecord } from '@workspace/utils';
 
+function readStringField(
+  row: Record<string, unknown>,
+  key: string,
+): string | undefined {
+  return typeof row[key] === 'string' ? row[key] : undefined;
+}
+
+function formatErrorDetail(detail: unknown): string | null {
+  if (!isRecord(detail)) return null;
+  const line = [
+    readStringField(detail, 'code'),
+    readStringField(detail, 'target'),
+    readStringField(detail, 'message'),
+  ]
+    .filter(Boolean)
+    .join(': ');
+
+  return line || null;
+}
+
+function collectNestedErrorParts(error: Record<string, unknown>): string[] {
+  const parts: string[] = [];
+  const message = readStringField(error, 'message');
+  if (message) {
+    parts.push(message);
+  }
+
+  if (Array.isArray(error.details)) {
+    parts.push(
+      ...error.details.flatMap((detail) => {
+        const line = formatErrorDetail(detail);
+        return line ? [line] : [];
+      }),
+    );
+  }
+
+  return parts;
+}
+
+function formatParsedZeptoMailError(
+  parsed: Record<string, unknown>,
+): string | null {
+  if (isRecord(parsed.error)) {
+    const parts = collectNestedErrorParts(parsed.error);
+    if (parts.length > 0) {
+      return parts.join(' | ');
+    }
+  }
+
+  return readStringField(parsed, 'message') ?? null;
+}
+
 /** Normalizes ZeptoMail HTTP error bodies into a single log-safe string. */
 export function formatZeptoMailErrorBody(body: string): string {
   const trimmed = body.trim();
@@ -13,32 +65,7 @@ export function formatZeptoMailErrorBody(body: string): string {
       return trimmed;
     }
 
-    if (isRecord(parsed.error)) {
-      const parts: string[] = [];
-      if (typeof parsed.error.message === 'string') {
-        parts.push(parsed.error.message);
-      }
-      if (Array.isArray(parsed.error.details)) {
-        for (const detail of parsed.error.details) {
-          if (!isRecord(detail)) continue;
-          const code =
-            typeof detail.code === 'string' ? detail.code : undefined;
-          const message =
-            typeof detail.message === 'string' ? detail.message : undefined;
-          const target =
-            typeof detail.target === 'string' ? detail.target : undefined;
-          const line = [code, target, message].filter(Boolean).join(': ');
-          if (line) parts.push(line);
-        }
-      }
-      if (parts.length > 0) {
-        return parts.join(' | ');
-      }
-    }
-
-    if (typeof parsed.message === 'string') {
-      return parsed.message;
-    }
+    return formatParsedZeptoMailError(parsed) ?? trimmed;
   } catch {
     // Fall through to raw body.
   }

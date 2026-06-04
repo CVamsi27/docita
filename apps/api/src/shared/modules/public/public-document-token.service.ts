@@ -2,7 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
-export interface VerifiedToken {
+interface VerifiedToken {
   type: string;
   id: string;
 }

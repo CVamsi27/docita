@@ -6,7 +6,7 @@ import { FileText } from "lucide-react";
 import type {
   SortConfig,
   SortKey,
-} from "@/features/documents/hooks/use-documents-logic";
+} from "@/features/documents/hooks/document-sort-types";
 import { DocumentsPageSearchBar } from "@/features/documents/components/documents-page-search-bar";
 import { DocumentsPageTableCard } from "@/features/documents/components/documents-page-table-card";
 

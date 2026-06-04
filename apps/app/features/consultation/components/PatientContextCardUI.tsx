@@ -13,44 +13,8 @@ import {
   PatientVitalsSection,
   PatientLastVisitSection,
   PatientCardActions,
+  type PatientContextData,
 } from "./PatientContextCardUISections";
-
-export interface PatientCondition {
-  name: string;
-  duration?: string;
-  isChronic?: boolean;
-}
-
-export interface PatientMedication {
-  name: string;
-  dosage: string;
-  frequency: string;
-}
-
-export interface VitalReading {
-  value: string;
-  date: Date;
-  isNormal?: boolean;
-}
-
-export interface PatientContextData {
-  id: string;
-  firstName: string;
-  lastName: string;
-  age?: number;
-  gender?: "male" | "female" | "other";
-  bloodGroup?: string;
-  allergies?: string[];
-  conditions?: PatientCondition[];
-  currentMedications?: PatientMedication[];
-  lastVisit?: Date;
-  lastVisitReason?: string;
-  recentVitals?: {
-    bp?: VitalReading[];
-    weight?: VitalReading[];
-    hba1c?: VitalReading[];
-  };
-}
 
 export interface PatientContextCardUIProps {
   patient: PatientContextData;

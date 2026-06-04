@@ -1,5 +1,5 @@
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
-import { getInitials } from "@/lib/formatters/text-helpers";
+import { getInitials } from "@/lib/formatters";
 
 export const CONSULTATION_STATUS_STYLES: Record<string, string> = {
   scheduled: "badge-info",

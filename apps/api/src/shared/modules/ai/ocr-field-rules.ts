@@ -3,9 +3,9 @@ import { parseStringEnumMember } from '@workspace/utils';
 
 const OCR_GENDER_VALUES = ['MALE', 'FEMALE', 'OTHER'] as const;
 
-export type ConfidenceGroup = 'medical' | 'contact';
+type ConfidenceGroup = 'medical' | 'contact';
 
-export interface FieldRule {
+interface FieldRule {
   key: string;
   extract: (data: OcrRawData | null | undefined) => unknown;
   confidenceGroup?: ConfidenceGroup;

@@ -5,7 +5,14 @@ import {
   CONSENT_DATA_CATEGORIES,
   CONSENT_RETENTION_SUMMARY,
 } from "./consent-template-data-categories";
-import type { ConsentDocumentClinicInfo } from "./consent-template-document";
+
+export interface ConsentDocumentClinicInfo {
+  name?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  logo?: string | null;
+}
 
 // ---------------------------------------------------------------------------
 // DocumentHeader

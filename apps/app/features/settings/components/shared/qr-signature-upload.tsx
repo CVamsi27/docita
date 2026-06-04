@@ -22,7 +22,7 @@ import {
 import { DATE_FORMATS, formatDate } from "@workspace/utils";
 import { QrCodeCard } from "@/components/signature/qr-code-card";
 import { CopyableLinkField } from "@/components/signature/copyable-link-field";
-import { toAbsoluteAppUrl } from "@/lib/utils/url";
+import { toAbsoluteAppUrl } from "@/lib/utils/app-url";
 
 interface QrSignatureUploadProps {
   onGenerate: () => Promise<SignatureUploadToken>;

@@ -23,7 +23,7 @@ import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-l
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 import type { AppointmentListItem } from "@workspace/data-access";
-import { getInitials } from "@/lib/formatters/text-helpers";
+import { getInitials } from "@/lib/formatters";
 
 export interface TodayScheduleUIProps {
   appointments: AppointmentListItem[];

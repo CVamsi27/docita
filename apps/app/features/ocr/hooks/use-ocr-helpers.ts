@@ -17,17 +17,29 @@ export function parseMoneyInput(raw: string): number {
 
 function parseInvoiceItems(rawItems: unknown): OCRInvoiceForm["items"] {
   if (!Array.isArray(rawItems)) return [];
-  const items: OCRInvoiceForm["items"] = [];
-  for (const row of rawItems) {
-    if (!isRecord(row)) continue;
-    const r = row;
-    const description = typeof r.description === "string" ? r.description : String(r.description ?? "");
-    const quantity = typeof r.quantity === "number" && Number.isFinite(r.quantity) ? String(r.quantity) : String(r.quantity ?? "");
-    const unitPrice = typeof r.unitPrice === "number" && Number.isFinite(r.unitPrice) ? String(r.unitPrice) : String(r.unitPrice ?? "");
-    const total = typeof r.total === "number" && Number.isFinite(r.total) ? String(r.total) : String(r.total ?? "");
-    items.push({ description, quantity, unitPrice, total });
-  }
-  return items;
+  return rawItems.flatMap((row) => {
+    const item = parseInvoiceItem(row);
+    return item ? [item] : [];
+  });
+}
+
+function invoiceFieldToString(value: unknown): string {
+  return typeof value === "number" && Number.isFinite(value)
+    ? String(value)
+    : String(value ?? "");
+}
+
+function parseInvoiceItem(row: unknown): OCRInvoiceForm["items"][number] | null {
+  if (!isRecord(row)) return null;
+  return {
+    description:
+      typeof row.description === "string"
+        ? row.description
+        : String(row.description ?? ""),
+    quantity: invoiceFieldToString(row.quantity),
+    unitPrice: invoiceFieldToString(row.unitPrice),
+    total: invoiceFieldToString(row.total),
+  };
 }
 
 function numStr(v: unknown): string {
@@ -76,31 +88,35 @@ export function buildOcrFormData(
 ): OCRFormData {
   const invoiceFromScan = mapOcrFieldsToInvoiceForm(fields);
   return {
-    firstName: fields?.firstName || resultFirstName || "",
-    lastName: fields?.lastName || resultLastName || "",
-    age: fields?.age || resultAge || "",
-    gender: fields?.gender || resultGender || "MALE",
-    phoneNumber: fields?.phoneNumber || resultPhoneNumber || "",
-    email: fields?.email || "",
+    firstName: firstNonEmpty(fields?.firstName, resultFirstName),
+    lastName: firstNonEmpty(fields?.lastName, resultLastName),
+    age: firstNonEmpty(fields?.age, resultAge),
+    gender: firstNonEmpty(fields?.gender, resultGender, "MALE"),
+    phoneNumber: firstNonEmpty(fields?.phoneNumber, resultPhoneNumber),
+    email: firstNonEmpty(fields?.email),
     dateOfBirth: "",
     address: "",
-    bloodType: fields?.bloodType || "",
-    diagnosis: fields?.diagnosis || resultDiagnosis || "",
+    bloodType: firstNonEmpty(fields?.bloodType),
+    diagnosis: firstNonEmpty(fields?.diagnosis, resultDiagnosis),
     symptoms: fields?.symptoms || [],
     allergies: fields?.allergies || [],
     medicalHistory: fields?.medicalHistory || [],
     medications: fields?.medications || [],
     vitals: {
-      bp: fields?.vitals?.bp || "",
-      temp: fields?.vitals?.temp || "",
-      pulse: fields?.vitals?.pulse || "",
-      respiratoryRate: fields?.vitals?.respiratoryRate || "",
-      spO2: fields?.vitals?.spO2 || "",
-      glucose: fields?.vitals?.glucose || "",
+      bp: firstNonEmpty(fields?.vitals?.bp),
+      temp: firstNonEmpty(fields?.vitals?.temp),
+      pulse: firstNonEmpty(fields?.vitals?.pulse),
+      respiratoryRate: firstNonEmpty(fields?.vitals?.respiratoryRate),
+      spO2: firstNonEmpty(fields?.vitals?.spO2),
+      glucose: firstNonEmpty(fields?.vitals?.glucose),
     },
     labValues: { glucose: "", hemoglobin: "", creatinine: "" },
     invoice: invoiceFromScan,
   };
+}
+
+function firstNonEmpty(...values: Array<string | undefined>): string {
+  return values.find((value) => value && value.length > 0) ?? "";
 }
 
 export function buildOcrVitalsPayload(formVitals: OCRFormData["vitals"]): Record<string, number | undefined> {

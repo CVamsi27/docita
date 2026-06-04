@@ -15,34 +15,32 @@ function parseDiagnosisArray(values: unknown[]): DiagnosisItem[] {
   return values.filter(isDiagnosisItem);
 }
 
+function legacyDiagnosis(condition: string): DiagnosisItem[] {
+  return condition.trim()
+    ? [
+        {
+          id: "legacy-dx",
+          condition,
+          type: "provisional",
+          status: "active",
+        },
+      ]
+    : [];
+}
+
+function parseDiagnosisJson(raw: string): DiagnosisItem[] | null {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parseDiagnosisArray(parsed);
+    return typeof parsed === "string" ? legacyDiagnosis(parsed) : [];
+  } catch {
+    return null;
+  }
+}
+
 export function parseDiagnosis(raw: unknown): DiagnosisItem[] {
   if (!raw) return [];
   if (Array.isArray(raw)) return parseDiagnosisArray(raw);
   if (typeof raw !== "string") return [];
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parseDiagnosisArray(parsed);
-    if (typeof parsed === "string" && parsed.trim()) {
-      return [
-        {
-          id: "legacy-dx",
-          condition: parsed,
-          type: "provisional",
-          status: "active",
-        },
-      ];
-    }
-  } catch {
-    if (raw.trim()) {
-      return [
-        {
-          id: "legacy-dx",
-          condition: raw,
-          type: "provisional",
-          status: "active",
-        },
-      ];
-    }
-  }
-  return [];
+  return parseDiagnosisJson(raw) ?? legacyDiagnosis(raw);
 }

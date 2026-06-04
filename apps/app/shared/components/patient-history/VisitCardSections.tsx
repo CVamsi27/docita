@@ -12,14 +12,14 @@ import { VisitCardMedicationList } from "./visit-card-medication-list";
 import { medicationSummaryLine } from "./visit-card-config";
 import type { VitalsMetadata, DiagnosisMetadata, MedicationMetadata } from "./visit-card-config";
 
-type Action = {
+export type VisitCardAction = {
   label: string;
   href?: string;
   variant: "default" | "outline";
   disabled: boolean;
 };
 
-function ActionButton({ action }: { action: Action }) {
+function ActionButton({ action }: { action: VisitCardAction }) {
   if (action.href) {
     return (
       <Button asChild size="sm" variant={action.variant} className="h-9 px-3 text-xs font-medium" onClick={(e) => e.stopPropagation()}>
@@ -100,8 +100,8 @@ export function VisitCardHeader({
   dateStr: string;
   canExpand: boolean;
   expanded: boolean;
-  mainAction: Action | null;
-  consultationAction: Action | null;
+  mainAction: VisitCardAction | null;
+  consultationAction: VisitCardAction | null;
   typeLabel: string;
   statusBadge: string | null | undefined;
   medicationsCount: number;

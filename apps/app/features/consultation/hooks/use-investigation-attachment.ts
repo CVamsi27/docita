@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { MAX_FILE_SIZE } from "@workspace/utils";
 import { api, apiFetch } from "@/lib/api/api-client";
 import { buildCsrfHeaders } from "@/lib/auth/csrf";
-import { toAbsoluteAppUrl } from "@/lib/utils/url";
+import { toAbsoluteAppUrl } from "@/lib/utils/app-url";
 
 const ALLOWED_MIME_TYPES = [
   "image/jpeg",

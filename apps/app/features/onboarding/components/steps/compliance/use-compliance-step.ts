@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import type { UseFormReturn } from "react-hook-form";
 import { apiFetch } from "@/lib/api/api-client";
 import { buildJsonHeaders } from "@/lib/auth/csrf";
-import { toAbsoluteAppUrl } from "@/lib/utils/url";
+import { toAbsoluteAppUrl } from "@/lib/utils/app-url";
 import { usePhoneSignatureQrFlow } from "@/hooks/use-phone-signature-qr-flow";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";

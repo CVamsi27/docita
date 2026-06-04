@@ -12,17 +12,8 @@ import {
   WaitingListSection,
   RecentlyCompletedSection,
   formatToken,
+  type DeskFloorRow,
 } from "./DeskFloorPanelUISections";
-
-export interface DeskFloorRow {
-  id: string;
-  tokenNumber: number;
-  patientName: string;
-  scheduledTime?: string | null;
-  doctorName?: string | null;
-  visitSummary?: string | null;
-  isWalkIn: boolean;
-}
 
 export interface DeskFloorCurrent {
   tokenNumber: number;

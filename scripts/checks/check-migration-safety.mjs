@@ -13,7 +13,6 @@
 
 import { readFileSync, readdirSync } from 'fs';
 import { join, resolve } from 'path';
-import { execSync } from 'child_process';
 
 const MIGRATIONS_DIR = resolve(import.meta.dirname, '../../packages/db/prisma/migrations');
 
@@ -84,33 +83,46 @@ function getLatestMigrationDir() {
   return join(MIGRATIONS_DIR, dirs[0]);
 }
 
-function main() {
-  const migrationDir = getLatestMigrationDir();
-  const sqlFiles = readdirSync(migrationDir).filter((f) => f.endsWith('.sql'));
+function levelPrefix(level) {
+  if (level === 'error') return '❌';
+  if (level === 'warning') return '⚠️';
+  return 'ℹ️';
+}
 
-  let hasError = false;
-  let hasWarning = false;
+function scanSqlLine(file, line, lineIndex) {
+  return DANGEROUS_PATTERNS.flatMap(({ pattern, message, level }) =>
+    pattern.test(line)
+      ? [
+          {
+            file,
+            lineNumber: lineIndex + 1,
+            line,
+            message,
+            level,
+          },
+        ]
+      : [],
+  );
+}
 
-  console.log(`\nChecking migration: ${migrationDir.split('/').pop()}\n`);
+function scanMigrationFile(migrationDir, file) {
+  const content = readFileSync(join(migrationDir, file), 'utf-8');
+  return content
+    .split('\n')
+    .flatMap((line, index) => scanSqlLine(file, line, index));
+}
 
-  for (const file of sqlFiles) {
-    const content = readFileSync(join(migrationDir, file), 'utf-8');
-    const lines = content.split('\n');
+function reportFinding({ file, lineNumber, line, message, level }) {
+  console.log(`  ${levelPrefix(level)} [${level.toUpperCase()}] ${file}:${lineNumber}`);
+  console.log(`      ${message}`);
+  console.log(`      ${line.trim().slice(0, 120)}`);
+}
 
-    for (const { pattern, message, level } of DANGEROUS_PATTERNS) {
-      for (let i = 0; i < lines.length; i++) {
-        if (pattern.test(lines[i])) {
-          const prefix = level === 'error' ? '❌' : level === 'warning' ? '⚠️' : 'ℹ️';
-          console.log(`  ${prefix} [${level.toUpperCase()}] ${file}:${i + 1}`);
-          console.log(`      ${message}`);
-          console.log(`      ${lines[i].trim().slice(0, 120)}`);
+function reportScanResult(findings) {
+  const hasError = findings.some((finding) => finding.level === 'error');
+  const hasWarning = findings.some((finding) => finding.level === 'warning');
 
-          if (level === 'error') hasError = true;
-          if (level === 'warning') hasWarning = true;
-        }
-      }
-    }
-  }
+  findings.forEach(reportFinding);
 
   if (hasError) {
     console.log(`\n❌ Found potential breaking changes in migration. Review flagged statements and split into expand/contract phases.\n`);
@@ -124,6 +136,13 @@ function main() {
   }
 
   process.exit(0);
+}
+
+function main() {
+  const migrationDir = getLatestMigrationDir();
+  const sqlFiles = readdirSync(migrationDir).filter((f) => f.endsWith('.sql'));
+  console.log(`\nChecking migration: ${migrationDir.split('/').pop()}\n`);
+  reportScanResult(sqlFiles.flatMap((file) => scanMigrationFile(migrationDir, file)));
 }
 
 main();

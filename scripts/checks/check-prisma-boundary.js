@@ -35,7 +35,7 @@ const prismaServiceLeaks = [];
 const enforcePrismaService = process.argv.includes('--enforce-prisma-service');
 
 for (const file of files) {
-  if (file.startsWith('node_modules/') || file.includes('/dist/') || file.includes('.next/') || file.endsWith('.tsbuildinfo') || file.endsWith('.js.map') || file.endsWith('.md') || file === 'pnpm-lock.yaml' || file === 'scripts/checks/check-prisma-boundary.js') continue;
+  if (file.startsWith('node_modules/') || file.includes('/dist/') || file.includes('.next/') || file.includes('/test-utils/') || file.endsWith('.tsbuildinfo') || file.endsWith('.js.map') || file.endsWith('.md') || file === 'pnpm-lock.yaml' || file === 'scripts/checks/check-prisma-boundary.js') continue;
   const full = path.join(repoRoot, file);
   let content;
   try {

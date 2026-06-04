@@ -25,7 +25,7 @@ import { Play, Stethoscope } from "lucide-react";
 import type { AppointmentListItem } from "@workspace/data-access";
 import { useStartConsultation } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { getInitials } from "@/lib/formatters/text-helpers";
+import { getInitials } from "@/lib/formatters";
 import { getPatientFullName } from "@workspace/utils";
 
 interface DoctorDashboardCardsProps {

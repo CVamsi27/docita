@@ -16,7 +16,7 @@ import {
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import type { Document } from "@workspace/types";
 import { formatDate } from "@workspace/utils";
-import type { SortConfig, SortKey } from "@/features/documents/hooks/use-documents-logic";
+import type { SortConfig, SortKey } from "@/features/documents/hooks/document-sort-types";
 
 export function DocumentsSortableHeader({
   column,

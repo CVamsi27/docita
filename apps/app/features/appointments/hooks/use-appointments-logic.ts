@@ -1,8 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
-  DEFAULT_TIMEZONE, formatClinicHalfHourSlotKey,
-  formatClinicPickerDayIsoFromSelection, formatClinicTodayPickerIso,
-  pickerIsoToLocalDate, startOfMonth,
+  formatClinicHalfHourSlotKey,
 } from "@workspace/utils";
 import { useDoctors, useUnavailableDoctorIdsForDate, useAppointments } from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -16,61 +14,35 @@ import {
   computeAppointmentCountsByDay, computeDayQueryOptions,
   computeMonthRangeQueryOptions, deduplicateAppointments, filterAndSortAppointments,
 } from "@/features/appointments/lib/appointments-logic-helpers";
+import { useAppointmentsDateState } from "./use-appointments-date-state";
+import {
+  useClearUnavailableDoctorSelection,
+  useDefaultDoctorSelection,
+  useScrollToCurrentTimeSlot,
+} from "./use-appointments-selection-effects";
 
 export const useAppointmentsLogic = () => {
-  const [selectedPickerIso, setSelectedPickerIso] = useState(() =>
-    formatClinicTodayPickerIso(DEFAULT_TIMEZONE),
-  );
-  const [calendarMonth, setCalendarMonth] = useState<Date>(() =>
-    startOfMonth(pickerIsoToLocalDate(formatClinicTodayPickerIso(DEFAULT_TIMEZONE))),
-  );
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | undefined>(undefined);
-  const appliedDefaultDoctorRef = useRef(false);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   const { user } = useAuth();
   const { clinic, clinicId: contextClinicId } = useClinic();
 
-  useEffect(() => {
-    if (appliedDefaultDoctorRef.current || !user?.id) return;
-    if (user.role === "ADMIN_DOCTOR" || user.role === "DOCTOR") setSelectedDoctorId(user.id);
-    appliedDefaultDoctorRef.current = true;
-  }, [user?.id, user?.role]);
+  useDefaultDoctorSelection(user, setSelectedDoctorId);
 
   const resolvedClinicId = clinic?.id ?? contextClinicId ?? user?.clinicId ?? undefined;
   const clinicReady = Boolean(resolvedClinicId);
-  const clinicTz = useMemo(() => clinic?.timezone?.trim() || DEFAULT_TIMEZONE, [clinic?.timezone]);
   const currentTimeSlotRef = useRef<HTMLDivElement>(null);
-  const syncedClinicTzRef = useRef<string | null>(null);
-  const userPickedDateRef = useRef(false);
-
-  const date = useMemo(() => pickerIsoToLocalDate(selectedPickerIso), [selectedPickerIso]);
-
-  useEffect(() => {
-    if (!clinic?.timezone || syncedClinicTzRef.current === clinicTz) return;
-    syncedClinicTzRef.current = clinicTz;
-    if (userPickedDateRef.current) return;
-    const todayIso = formatClinicTodayPickerIso(clinicTz);
-    setSelectedPickerIso(todayIso);
-    setCalendarMonth(startOfMonth(pickerIsoToLocalDate(todayIso)));
-  }, [clinic?.timezone, clinicTz]);
-
-  const handleDateSelect = useCallback((next: Date | undefined) => {
-    userPickedDateRef.current = true;
-    const pickerIso = next
-      ? formatClinicPickerDayIsoFromSelection(next, clinicTz)
-      : formatClinicTodayPickerIso(clinicTz);
-    setSelectedPickerIso(pickerIso);
-    const normalized = pickerIsoToLocalDate(pickerIso);
-    setCalendarMonth((prev) => {
-      const target = startOfMonth(normalized);
-      if (prev.getFullYear() === target.getFullYear() && prev.getMonth() === target.getMonth()) return prev;
-      return target;
-    });
-  }, [clinicTz]);
-
-  const handleCalendarMonthChange = useCallback((month: Date) => { setCalendarMonth(month); }, []);
+  const {
+    date,
+    selectedPickerIso,
+    clinicTz,
+    setDate,
+    calendarMonth,
+    onCalendarMonthChange,
+    isToday,
+  } = useAppointmentsDateState(clinic?.timezone);
 
   const canViewAllDoctors = useMemo(() => isClinicWideAppointmentRole(user?.role), [user?.role]);
 
@@ -92,9 +64,11 @@ export const useAppointmentsLogic = () => {
     [doctors, unavailableDoctorIds],
   );
 
-  useEffect(() => {
-    if (selectedDoctorId && unavailableDoctorIds.has(selectedDoctorId)) setSelectedDoctorId(undefined);
-  }, [selectedDoctorId, unavailableDoctorIds]);
+  useClearUnavailableDoctorSelection(
+    selectedDoctorId,
+    unavailableDoctorIds,
+    setSelectedDoctorId,
+  );
 
   const monthRangeQueryOptions = useMemo(
     () => computeMonthRangeQueryOptions(calendarMonth, clinicTz, doctorScope.scopedDoctorId),
@@ -128,18 +102,11 @@ export const useAppointmentsLogic = () => {
   const filteredAppointments = useMemo(() => filterAndSortAppointments(uniqueAppointments), [uniqueAppointments]);
 
   const currentTimeSlot = useMemo(() => formatClinicHalfHourSlotKey(new Date(), clinicTz), [clinicTz]);
-  const isToday = useMemo(
-    () => selectedPickerIso === formatClinicTodayPickerIso(clinicTz),
-    [selectedPickerIso, clinicTz],
-  );
-
-  useEffect(() => {
-    if (isToday && currentTimeSlotRef.current) {
-      setTimeout(() => {
-        currentTimeSlotRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
-    }
-  }, [isToday, filteredAppointments]);
+  useScrollToCurrentTimeSlot({
+    isToday,
+    currentTimeSlotRef,
+    dependencyToken: filteredAppointments,
+  });
 
   const {
     checkingIn, startingConsultationId, handleCheckIn, handleStartConsultation, handleAppointmentAdded,
@@ -147,8 +114,8 @@ export const useAppointmentsLogic = () => {
 
   return {
     state: {
-      date, selectedPickerIso, clinicTz, setDate: handleDateSelect,
-      calendarMonth, onCalendarMonthChange: handleCalendarMonthChange,
+      date, selectedPickerIso, clinicTz, setDate,
+      calendarMonth, onCalendarMonthChange,
       appointmentCountsByDay, monthRangeAppointments, checkingIn, startingConsultationId,
       rowActionDialogProps: rowActions.dialogProps, isAddDialogOpen, handleDialogChange,
       selectedDoctorId, setSelectedDoctorId, searchQuery, setSearchQuery,

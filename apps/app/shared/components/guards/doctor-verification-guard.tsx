@@ -1,68 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { useAuth } from "@/lib/auth/auth-context";
-import { isDoctor as checkIsDoctorRole } from "@/lib/auth/permissions";
-import { appQueryKeys } from "@workspace/data-access";
-import { useAPIQuery } from "@/lib/api/api-core";
-import type { User } from "@workspace/types";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
-
-const VERIFICATION_ALLOWED_PATHS = ["/verify-doctor", "/login"];
+import { useDoctorVerificationGuardState } from "./use-doctor-verification-guard-state";
 
 export function DoctorVerificationGuard({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = useAuth();
-  const router = useRouter();
-  const pathname = usePathname();
-  const isDoctor = checkIsDoctorRole(user?.role);
-  const isVerificationAllowedPath = VERIFICATION_ALLOWED_PATHS.some((p) =>
-    pathname?.startsWith(p),
-  );
-
-  const {
-    data: doctorProfile,
-    isLoading: profileLoading,
-    isFetching: profileFetching,
-    isError: profileError,
-  } = useAPIQuery<User>(
-    appQueryKeys.doctorProfile.detail(user?.id ?? ""),
-    `/doctors/${user?.id}`,
-    { enabled: !!user?.id && isDoctor, staleTime: 5 * 60 * 1000 },
-  );
-
-  const needsVerification =
-    !!doctorProfile &&
-    (!doctorProfile.signatureUrl || !doctorProfile.registrationNumber);
-
-  const shouldRedirectToVerify =
-    !!user && isDoctor && needsVerification && !isVerificationAllowedPath;
-
-  useEffect(() => {
-    if (!user || !isDoctor || profileLoading) return;
-    if (!doctorProfile) return;
-    if (shouldRedirectToVerify) {
-      router.replace("/verify-doctor");
-    }
-  }, [
-    user,
-    isDoctor,
-    doctorProfile,
-    profileLoading,
-    router,
-    shouldRedirectToVerify,
-  ]);
-
-  const isCheckingVerification =
-    !!user &&
-    isDoctor &&
-    !isVerificationAllowedPath &&
-    !profileError &&
-    (profileLoading || (profileFetching && !doctorProfile));
+  const { isCheckingVerification, shouldRedirectToVerify } =
+    useDoctorVerificationGuardState();
 
   if (isCheckingVerification || shouldRedirectToVerify) {
     return (

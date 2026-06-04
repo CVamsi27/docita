@@ -25,7 +25,12 @@
     "circular-dependencies": "off",
     "unlisted-dependencies": "off"
   },
-  "ignoreDependencies": ["@workspace/db", "supertest"],
+  "ignoreDependencies": [
+    "@nestjs/schematics",
+    "@workspace/db",
+    "supertest",
+    "tsconfig-paths"
+  ],
   "ignorePatterns": [
     "**/*.spec.ts",
     "**/*.spec.tsx",

@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/data-display/table";
 import { CalendarDays, TrendingUp, Users } from "lucide-react";
+import type { AppointmentSnapshot } from "@workspace/types";
 import {
   Bar,
   BarChart,
@@ -36,15 +37,7 @@ export interface RevenueMetricsPoint {
   avgInvoiceAmount: number;
 }
 
-export interface AppointmentMetricsData {
-  total: number;
-  booked: number;
-  completed: number;
-  cancelled: number;
-  noShow: number;
-  fillRate: number;
-  completionRate: number;
-}
+export type AppointmentMetricsData = AppointmentSnapshot;
 
 export interface PatientDemographicsData {
   totalPatients: number;
