@@ -39,26 +39,12 @@ import {
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { OnboardingPaymentService } from './onboarding-payment.service';
 import type { OnboardingResult } from './onboarding-result.types';
+import type {
+  OnboardingTx,
+  CompletedOnboardingRecords,
+  OnboardingCreationMarkers,
+} from './onboarding.types';
 import { isFrontDeskPlanMode } from '@workspace/types';
-
-type OnboardingTx = Parameters<OnboardingWorkflowService['createClinic']>[0];
-type CreatedClinic = Awaited<
-  ReturnType<OnboardingWorkflowService['createClinic']>
->;
-type CreatedAdminUser = Awaited<
-  ReturnType<OnboardingWorkflowService['createAdminUser']>
->;
-
-interface OnboardingCreationMarkers {
-  clinicId?: string;
-  userId?: string;
-}
-
-interface CompletedOnboardingRecords {
-  clinic: CreatedClinic;
-  adminUser: CreatedAdminUser;
-  subscriptionId: string;
-}
 
 /**
  * Facade — delegates checkout, progress, and compliance to onboarding specialists;
