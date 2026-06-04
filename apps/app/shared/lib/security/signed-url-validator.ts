@@ -102,11 +102,6 @@ export function safeOpenSignedUrl(
 
   const result = validateSignedUrl(url);
   if (!result.valid) {
-    if (typeof console !== "undefined" && console.warn) {
-      console.warn(
-        `[Security] Blocked opening invalid signed URL: ${result.reason}`,
-      );
-    }
     return false;
   }
 

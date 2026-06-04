@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
 import { AlertCircle, Home, RefreshCw } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 
@@ -13,12 +12,6 @@ export interface ErrorPageShellProps {
 }
 
 export function ErrorPageShell({ title, description, error, reset }: ErrorPageShellProps) {
-  useEffect(() => {
-    if (error) {
-      console.error(error);
-    }
-  }, [error]);
-
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center p-4">
       <div className="mx-auto max-w-md text-center">
