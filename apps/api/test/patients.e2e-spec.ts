@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
@@ -21,6 +20,23 @@ import {
 } from '@workspace/types';
 import { expectMatchesSchema } from './contract-assertions';
 
+async function getCsrfHeaders(server: string) {
+  const response = await request(server).get('/health').expect(200);
+  const cookies = response.get('Set-Cookie') ?? [];
+  const csrfCookie = cookies.find((cookie) => cookie.startsWith('XSRF-TOKEN='));
+  if (!csrfCookie) {
+    throw new Error('CSRF cookie was not issued by /health');
+  }
+  const token = csrfCookie.split(';')[0]?.split('=')[1];
+  if (!token) {
+    throw new Error('CSRF cookie did not contain a token');
+  }
+  return {
+    cookie: `XSRF-TOKEN=${token}`,
+    token,
+  };
+}
+
 describe('Patients (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -38,13 +54,6 @@ describe('Patients (e2e)', () => {
       .useValue(getPrismaInstance())
       .overrideProvider(WhatsappService)
       .useValue(mockWhatsappService)
-      .overrideProvider(APP_INTERCEPTOR)
-      .useValue({
-        intercept: (
-          _context: { switchToHttp: () => { getRequest: () => unknown } },
-          next: { handle: () => unknown },
-        ) => next.handle(),
-      })
       .overrideProvider(CACHE_MANAGER)
       .useValue({
         get: () => Promise.resolve(null),
@@ -120,8 +129,12 @@ describe('Patients (e2e)', () => {
     });
 
     it('should reject unauthenticated request', async () => {
+      const csrf = await getCsrfHeaders(app.getHttpServer());
+
       await request(app.getHttpServer())
         .post('/patients')
+        .set('Cookie', [csrf.cookie])
+        .set('X-XSRF-TOKEN', csrf.token)
         .send({
           firstName: 'Jane',
           lastName: 'Doe',

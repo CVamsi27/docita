@@ -11,6 +11,26 @@ import {
 } from './setup';
 import { setPrismaInstance } from './factories';
 import cookieParser from 'cookie-parser';
+import { randomUUID } from 'crypto';
+
+async function fetchCsrfToken(server: string) {
+  const response = await request(server)
+    .get(`/health?csrfProbe=${randomUUID()}`)
+    .expect(200);
+
+  const cookies = response.get('Set-Cookie') ?? [];
+  const csrfCookie = cookies.find((cookie) => cookie.startsWith('XSRF-TOKEN='));
+  if (!csrfCookie) {
+    throw new Error('XSRF-TOKEN cookie was not issued');
+  }
+
+  const token = csrfCookie.split(';')[0]?.split('=')[1];
+  if (!token) {
+    throw new Error('XSRF-TOKEN cookie did not contain a token');
+  }
+
+  return { cookies, token };
+}
 
 describe('CSRF Protection (e2e)', () => {
   let app: INestApplication;
@@ -45,36 +65,29 @@ describe('CSRF Protection (e2e)', () => {
   });
 
   it('should set XSRF-TOKEN cookie on GET request', async () => {
-    const response = await request(app.getHttpServer()).get('/health');
-
-    const cookies = response.get('Set-Cookie');
-    expect(cookies).toBeDefined();
-    expect(cookies!.some((c) => c.startsWith('XSRF-TOKEN='))).toBe(true);
+    const { cookies } = await fetchCsrfToken(app.getHttpServer());
+    expect(cookies.some((cookie) => cookie.startsWith('XSRF-TOKEN='))).toBe(
+      true,
+    );
   });
 
   it('should allow first-touch auth POST requests without X-XSRF-TOKEN header', async () => {
-    const getRes = await request(app.getHttpServer()).get('/health');
-    const cookies = getRes.get('Set-Cookie');
-    const csrfCookie = cookies!.find((c) => c.startsWith('XSRF-TOKEN='));
-    const tokenValue = csrfCookie!.split(';')[0].split('=')[1];
+    const { token } = await fetchCsrfToken(app.getHttpServer());
 
     await request(app.getHttpServer())
       .post('/auth/check-email')
-      .set('Cookie', [`XSRF-TOKEN=${tokenValue}`])
+      .set('Cookie', [`XSRF-TOKEN=${token}`])
       .send({ email: 'test@test.com' })
       .expect(201);
   });
 
   it('should allow POST request with valid X-XSRF-TOKEN header', async () => {
-    const getRes = await request(app.getHttpServer()).get('/health');
-    const cookies = getRes.get('Set-Cookie');
-    const csrfCookie = cookies!.find((c) => c.startsWith('XSRF-TOKEN='));
-    const tokenValue = csrfCookie!.split(';')[0].split('=')[1];
+    const { token } = await fetchCsrfToken(app.getHttpServer());
 
     await request(app.getHttpServer())
       .post('/auth/check-email')
-      .set('Cookie', [`XSRF-TOKEN=${tokenValue}`])
-      .set('X-XSRF-TOKEN', tokenValue)
+      .set('Cookie', [`XSRF-TOKEN=${token}`])
+      .set('X-XSRF-TOKEN', token)
       .send({ email: 'test@test.com' })
       .expect(201);
   });

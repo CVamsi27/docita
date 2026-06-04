@@ -17,20 +17,19 @@ import {
   CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN,
   DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN,
 } from '@/domains/payments/core/ports/payment-link-provider.port';
+import {
+  clearMockPaymentLinkProvider,
+  createMockPaymentLinkProvider,
+} from './payment-link-provider.mock';
+
+const mockPaymentProvider = createMockPaymentLinkProvider({
+  idFactory: () => 'plink_test123',
+});
 
 describe('Idempotency (e2e)', () => {
   let app: INestApplication;
   let token: string;
   let testClinicId: string;
-
-  const mockPaymentProvider = {
-    createPaymentLink: jest.fn().mockResolvedValue({
-      id: 'plink_test123',
-      shortUrl: 'https://rzp.io/i/plink_test123',
-      raw: {},
-    }),
-    verifySignature: jest.fn().mockReturnValue(true),
-  };
 
   beforeAll(async () => {
     setupTestDatabase();
@@ -56,6 +55,7 @@ describe('Idempotency (e2e)', () => {
 
   beforeEach(async () => {
     await resetDatabase();
+    clearMockPaymentLinkProvider(mockPaymentProvider);
 
     const clinic = await factories.clinic();
     testClinicId = clinic.id;

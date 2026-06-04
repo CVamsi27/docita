@@ -5,15 +5,16 @@ import {
   redactSerializer,
 } from './phi-redactor';
 
-/**
- * Construct the pino options bag the API uses. Extracted from the LoggerModule
- * factory so the same configuration can be exercised by unit tests
- * (apps/api/test/phi-leak-guard.spec.ts) without bringing up the full Nest app.
- */
-export function buildPinoOptions(opts: { isProduction: boolean }) {
+export function buildPinoOptions(opts: {
+  isProduction: boolean;
+  isTest?: boolean;
+}) {
   return {
     level: opts.isProduction ? 'info' : 'debug',
-    transport: !opts.isProduction ? { target: 'pino-pretty' } : undefined,
+    transport:
+      !opts.isProduction && !opts.isTest
+        ? { target: 'pino-pretty' }
+        : undefined,
     autoLogging: false,
     redact: {
       paths: PINO_REDACT_PATHS.slice(),

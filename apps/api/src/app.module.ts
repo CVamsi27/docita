@@ -106,6 +106,7 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
       useFactory: (configService: AppConfigService) => ({
         pinoHttp: buildPinoOptions({
           isProduction: configService.isProduction(),
+          isTest: configService.isTest(),
         }),
       }),
     }),

@@ -22,6 +22,7 @@ describe('ReminderSchedulerService', () => {
     },
     appointmentReminder: {
       findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<unknown[]>>(),
     },
     reminderSettings: {
       findMany: jest.fn<(...args: unknown[]) => Promise<unknown[]>>(),
@@ -74,7 +75,7 @@ describe('ReminderSchedulerService', () => {
 
     prisma.reminderSettings.findMany.mockResolvedValue([]);
     prisma.appointment.findMany.mockResolvedValue([]);
-    prisma.appointmentReminder.findFirst.mockResolvedValue(null);
+    prisma.appointmentReminder.findMany.mockResolvedValue([]);
     prisma.clinic.findUnique.mockResolvedValue(essentialClinicPolicy);
 
     const module: TestingModule = await Test.createTestingModule({
@@ -157,7 +158,7 @@ describe('ReminderSchedulerService', () => {
       };
       prisma.reminderSettings.findMany.mockResolvedValue([settings]);
       prisma.appointment.findMany.mockResolvedValue([mockAppointment]);
-      prisma.appointmentReminder.findFirst.mockResolvedValue(null);
+      prisma.appointmentReminder.findMany.mockResolvedValue([]);
 
       await service.checkAndSend30MinReminders();
 
@@ -179,11 +180,9 @@ describe('ReminderSchedulerService', () => {
       };
       prisma.reminderSettings.findMany.mockResolvedValue([settings]);
       prisma.appointment.findMany.mockResolvedValue([mockAppointment]);
-      prisma.appointmentReminder.findFirst.mockResolvedValue({
-        id: 'r1',
-        status: 'sent',
-        type: 'whatsapp_30min',
-      });
+      prisma.appointmentReminder.findMany.mockResolvedValue([
+        { appointmentId: 'appt-1', status: 'sent' },
+      ]);
 
       await service.checkAndSend30MinReminders();
 
@@ -209,7 +208,7 @@ describe('ReminderSchedulerService', () => {
           },
         },
       ]);
-      prisma.appointmentReminder.findFirst.mockResolvedValue(null);
+      prisma.appointmentReminder.findMany.mockResolvedValue([]);
 
       await service.checkAndSend30MinReminders();
 
@@ -226,7 +225,7 @@ describe('ReminderSchedulerService', () => {
       };
       prisma.reminderSettings.findMany.mockResolvedValue([settings]);
       prisma.appointment.findMany.mockResolvedValue([mockAppointment]);
-      prisma.appointmentReminder.findFirst.mockResolvedValue(null);
+      prisma.appointmentReminder.findMany.mockResolvedValue([]);
       prisma.clinic.findUnique.mockResolvedValue({
         tier: ClinicTier.STARTER,
         intelligenceAddon: IntelligenceAddon.NONE,

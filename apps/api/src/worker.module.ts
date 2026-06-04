@@ -23,6 +23,7 @@ import { AdminAlertsSchedulerModule } from '@/shared/modules/messaging/admin-ale
 import { EphemeralStoreSchedulerModule } from '@/shared/modules/ephemeral-store/ephemeral-store.scheduler.module';
 import { OutboxModule } from '@/shared/modules/outbox/outbox.module';
 import { CronHeartbeatModule } from '@/shared/modules/schedule/cron-heartbeat.module';
+import { buildPinoOptions } from '@/shared/modules/observability/pino-options.factory';
 
 const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
 
@@ -37,13 +38,10 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
       imports: [AppConfigModule],
       inject: [AppConfigService],
       useFactory: (configService: AppConfigService) => ({
-        pinoHttp: {
-          level: configService.isProduction() ? 'info' : 'debug',
-          transport: !configService.isProduction()
-            ? { target: 'pino-pretty' }
-            : undefined,
-          autoLogging: false,
-        },
+        pinoHttp: buildPinoOptions({
+          isProduction: configService.isProduction(),
+          isTest: configService.isTest(),
+        }),
       }),
     }),
     CacheConfigModule,

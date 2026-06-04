@@ -488,7 +488,7 @@ export class AppConfigService {
   }
 
   getJwtExpiration(): string {
-    return this.getConfig().JWT_EXPIRATION || '30d';
+    return this.getConfig().JWT_EXPIRATION ?? '15m';
   }
 
   getTurnstileSecretKey(): string | undefined {

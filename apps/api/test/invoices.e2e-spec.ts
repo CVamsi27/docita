@@ -15,6 +15,13 @@ import {
 import { factories, setPrismaInstance } from './factories';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
 import { mockWhatsappService } from './whatsapp.provider';
+import { CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN } from '@/domains/payments/core/ports/payment-link-provider.port';
+import {
+  clearMockPaymentLinkProvider,
+  createMockPaymentLinkProvider,
+} from './payment-link-provider.mock';
+
+const mockPaymentLinkProvider = createMockPaymentLinkProvider();
 
 function postInvoice(
   server: string,
@@ -45,6 +52,8 @@ describe('Invoices (e2e)', () => {
       .useValue(getPrismaInstance())
       .overrideProvider(WhatsappService)
       .useValue(mockWhatsappService)
+      .overrideProvider(CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN)
+      .useValue(mockPaymentLinkProvider)
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -59,6 +68,7 @@ describe('Invoices (e2e)', () => {
 
   beforeEach(async () => {
     await resetDatabase();
+    clearMockPaymentLinkProvider(mockPaymentLinkProvider);
 
     const clinic = await factories.clinic({ tier: 'PRO' });
     clinicId = clinic.id;
@@ -212,6 +222,11 @@ describe('Invoices (e2e)', () => {
 
   describe('GET /invoices/:id/payment-activity', () => {
     it('returns empty items when there are no payment sessions', async () => {
+      await prisma.patient.update({
+        where: { id: patientId },
+        data: { phoneNumber: '' },
+      });
+
       const createRes = await postInvoice(app.getHttpServer(), token, {
         patientId,
         items: [{ description: 'Consultation', quantity: 1, price: 500 }],
@@ -230,6 +245,11 @@ describe('Invoices (e2e)', () => {
     });
 
     it('includes manual desk settlement in activity', async () => {
+      await prisma.patient.update({
+        where: { id: patientId },
+        data: { phoneNumber: '' },
+      });
+
       const createRes = await postInvoice(app.getHttpServer(), token, {
         patientId,
         items: [{ description: 'Consultation', quantity: 1, price: 500 }],

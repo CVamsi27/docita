@@ -2,7 +2,10 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { SUPPORT_EMAIL } from '@/shared/common/constants/support-contact.constants';
+import {
+  ADMIN_EMAIL,
+  SUPPORT_EMAIL,
+} from '@/shared/common/constants/support-contact.constants';
 import { PrismaService } from '@/prisma/prisma.service';
 
 export type AdminAlertSeverity = 'info' | 'warn' | 'critical';
@@ -24,7 +27,7 @@ export interface AdminAlertOptions {
 export class AdminAlertsService {
   private readonly logger = new Logger(AdminAlertsService.name);
 
-  private readonly primaryAdminEmail = 'admin@docita.work';
+  private readonly primaryAdminEmail = ADMIN_EMAIL;
   private readonly ceoEmail = 'vkc@docita.work';
   private readonly defaultDedupeWindowMs = 30 * 60 * 1000;
 

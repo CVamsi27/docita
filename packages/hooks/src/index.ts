@@ -13,3 +13,5 @@ export * from "./use-loading.js";
 export * from "./use-prefers-reduced-motion.js";
 export * from "./use-breakpoint.js";
 export * from "./use-media-query.js";
+export * from "./use-click-outside.js";
+export * from "./use-intersection-observer.js";

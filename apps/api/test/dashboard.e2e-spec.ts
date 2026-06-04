@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
@@ -32,13 +31,6 @@ describe('Dashboard (e2e)', () => {
       .useValue(getPrismaInstance())
       .overrideProvider(WhatsappService)
       .useValue(mockWhatsappService)
-      .overrideProvider(APP_INTERCEPTOR)
-      .useValue({
-        intercept: (
-          _context: { switchToHttp: () => { getRequest: () => unknown } },
-          next: { handle: () => unknown },
-        ) => next.handle(),
-      })
       .overrideProvider(CACHE_MANAGER)
       .useValue({
         get: () => Promise.resolve(null),

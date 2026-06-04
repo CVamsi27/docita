@@ -1,5 +1,7 @@
 "use client";
 
+import { ADMIN_EMAIL } from "@/lib/constants/support-contact";
+
 export function PrivacyPolicyContent() {
   return (
     <div className="rounded-lg border bg-background p-4 md:p-5">
@@ -123,7 +125,7 @@ export function PrivacyPolicyContent() {
             <div className="bg-muted p-3 rounded-md text-sm">
               <strong>Data Protection Officer</strong>
               <br />
-              Email: <a href="mailto:admin@docita.work">admin@docita.work</a>
+              Email: <a href={`mailto:${ADMIN_EMAIL}`}>{ADMIN_EMAIL}</a>
               <br />
               Address: Docita HQ, Hyderabad, India
             </div>
