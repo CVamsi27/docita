@@ -27,8 +27,7 @@ All backend infrastructure is co-located in Mumbai for Indian data residency (DP
 - Keep API health checks on `GET /api/health/live`.
 - Keep frontend `NEXT_PUBLIC_API_URL` pointed to the Fly.io app URL.
 - Keep `ENABLE_SCHEDULERS=false` on the API and `ENABLE_SCHEDULERS=true` on the worker once the split is live.
-- Keep each Worker entry bundle under Cloudflare's 3 MB limit. Use
-  `node scripts/checks/check-worker-size.mjs` after OpenNext builds.
+- Keep each Worker entry bundle within the deployed Cloudflare plan limit: 3 MB gzip on Workers Free and 10 MB gzip on Workers Paid. `apps/app` production and staging builds are gated against the paid Worker limit; other OpenNext builds keep the default 3 MB guard unless their deployment plan changes. Use `node scripts/checks/check-worker-size.mjs` after OpenNext builds.
 - Deploy order: run DB migrations first, then deploy API and worker, then deploy frontends.
 - Keep `open-next.config.ts` and `wrangler.toml` in sync for Next.js frontend apps.
 - Keep `astro.config.mjs` and `wrangler.toml` in sync for `apps/landing`.
