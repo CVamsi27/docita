@@ -19,7 +19,6 @@ import type {
   OnboardingProgressDto,
   OnboardingStep,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
-import { isTrialEligibleTier } from './onboarding-trial-eligibility';
 import { OnboardingDataService } from './onboarding-data.service';
 import { OnboardingValidationService } from './onboarding-validation.service';
 import { OnboardingWorkflowService } from './onboarding-workflow.service';
@@ -37,6 +36,7 @@ import {
   handleOnboardingFailure,
   buildValidationFailureResult,
 } from './onboarding-result.helpers';
+import { OnboardingPaymentValidator } from './onboarding-payment-validation';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { OnboardingPaymentService } from './onboarding-payment.service';
 import type { OnboardingResult } from './onboarding-result.types';
@@ -54,6 +54,8 @@ import { isFrontDeskPlanMode } from '@workspace/types';
 @Injectable()
 export class OnboardingService {
   private readonly logger = new Logger(OnboardingService.name);
+  private paymentValidator: OnboardingPaymentValidator;
+
   constructor(
     @Inject(CLINIC_PERSISTENCE_PORT)
     private persistence: ClinicPersistencePort,
@@ -67,7 +69,13 @@ export class OnboardingService {
     @Inject(PAYMENT_GATEWAY_TOKEN)
     private paymentGateway: IPaymentGateway,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
-  ) {}
+  ) {
+    this.paymentValidator = new OnboardingPaymentValidator(
+      persistence,
+      paymentGateway,
+      validationService as any,
+    );
+  }
 
   createCheckout(onboardingId: string, data: OnboardingCheckoutDto) {
     return this.paymentService.createCheckout(onboardingId, data);
@@ -159,7 +167,7 @@ export class OnboardingService {
       );
       if (validationFailure) return validationFailure;
 
-      await this.ensurePaymentCanComplete(completeData);
+      await this.paymentValidator.validatePayment(completeData);
 
       const result = await this.createOnboardingRecords(
         completeData,
@@ -188,82 +196,6 @@ export class OnboardingService {
         created,
       );
     }
-  }
-
-  private async ensurePaymentCanComplete(
-    completeData: CompleteOnboardingDto,
-  ): Promise<void> {
-    const listPriceCents = this.validationService.getTierPricing(
-      completeData.planSelection.tier,
-      completeData.planSelection.billingCycle,
-      completeData.planSelection.currency,
-      completeData.planSelection.planMode,
-    );
-    const isUnpaidTrial =
-      isTrialEligibleTier(completeData.planSelection.tier) &&
-      completeData.paymentDetails?.skipPayment === true;
-
-    await this.ensureFreeTrialIsAvailable(completeData, isUnpaidTrial);
-    await this.verifyPaidPlanPayment(
-      completeData,
-      listPriceCents,
-      isUnpaidTrial,
-    );
-  }
-
-  private async ensureFreeTrialIsAvailable(
-    completeData: CompleteOnboardingDto,
-    isUnpaidTrial: boolean,
-  ): Promise<void> {
-    if (!isUnpaidTrial) return;
-
-    const hasPriorSubscription = await hasPriorSubscriptionForEmail(
-      this.persistence,
-      completeData.adminAccount.email,
-    );
-    if (hasPriorSubscription) {
-      throw new BadRequestException(
-        'The 30-day free trial is only available to new customers. Please choose a paid plan to continue.',
-      );
-    }
-  }
-
-  private async verifyPaidPlanPayment(
-    completeData: CompleteOnboardingDto,
-    listPriceCents: number,
-    isUnpaidTrial: boolean,
-  ): Promise<void> {
-    if (listPriceCents <= 0 || isUnpaidTrial) return;
-
-    const payment = this.getVerifiedRazorpayPaymentInput(completeData);
-    const verification = await this.paymentGateway.verifyPayment(payment);
-
-    if (!verification.verified) {
-      throw new BadRequestException('Unable to verify payment');
-    }
-
-    if (verification.amountCents !== listPriceCents) {
-      throw new BadRequestException(
-        'Payment amount does not match selected plan',
-      );
-    }
-  }
-
-  private getVerifiedRazorpayPaymentInput(completeData: CompleteOnboardingDto) {
-    const paymentDetails = completeData.paymentDetails;
-    const razorpayPaymentId = paymentDetails?.razorpayPaymentId;
-    const razorpayOrderId = paymentDetails?.razorpayOrderId;
-    const razorpaySignature = paymentDetails?.razorpaySignature;
-
-    if (!razorpayPaymentId || !razorpayOrderId || !razorpaySignature) {
-      throw new BadRequestException('Payment details are required');
-    }
-
-    return {
-      razorpayPaymentId,
-      razorpayOrderId,
-      razorpaySignature,
-    };
   }
 
   private async createOnboardingRecords(
