@@ -14,10 +14,13 @@ import { extractClinicGstin } from './invoices-helpers';
 import type { InvoiceDetail } from '@/domains/billing/core/repositories/invoice.repository';
 
 export function buildProcedureCptMap(
-  procedures: Array<{
-    description: string;
-    cptCode: { code: string; description: string } | null;
-  }> | null | undefined,
+  procedures:
+    | Array<{
+        description: string;
+        cptCode: { code: string; description: string } | null;
+      }>
+    | null
+    | undefined,
 ): Record<string, string> {
   const map: Record<string, string> = {};
   if (procedures) {

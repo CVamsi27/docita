@@ -11,11 +11,11 @@ import {
 } from "@/features/analytics";
 import { useAnalyticsDashboard } from "./use-analytics-dashboard";
 import {
-  AnalyticsReportingWindowSection,
-  AnalyticsMrrTrendSection,
-  AnalyticsSubscriptionBreakdownSection,
-  AnalyticsGrowthMetricSection,
   AnalyticsDetailedMetricsSection,
+  AnalyticsGrowthMetricSection,
+  AnalyticsMrrTrendSection,
+  AnalyticsReportingWindowSection,
+  AnalyticsSubscriptionBreakdownSection,
 } from "./analytics-dashboard-sections";
 
 export function AnalyticsDashboard() {

@@ -3,10 +3,7 @@
 import React from "react";
 import { Feature, FEATURE_TIER_MAP, Tier } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import {
-  LockedFeatureCard,
-  type LockedFeatureCardProps,
-} from "./feature-gate-sections";
+import { LockedFeatureCard } from "./feature-gate-sections";
 
 export { Feature, Tier };
 

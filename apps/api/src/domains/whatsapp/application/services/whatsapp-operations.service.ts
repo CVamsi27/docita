@@ -4,7 +4,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { CreateClinicWhatsappCampaignRequest, UserRole } from '@workspace/types';
+import type {
+  CreateClinicWhatsappCampaignRequest,
+  UserRole,
+} from '@workspace/types';
 import { CLINIC_ADMIN_ROLES } from '@/shared/common/constants/role-groups';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { PrismaWhatsappOperationsRepository } from '@/domains/whatsapp/infrastructure/repositories/prisma-whatsapp-operations.repository';

@@ -1,5 +1,3 @@
-import { logger } from "@/lib/monitoring/logger";
-
 export type RazorpayCheckoutResult =
   | { status: "completed" }
   | { status: "canceled" }

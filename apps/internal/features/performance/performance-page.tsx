@@ -12,9 +12,9 @@ import {
   useInternalPerformanceMetrics,
 } from "@workspace/data-access/internal";
 import {
-  TopMetricsCards,
   MiddleMetricsCards,
   ServiceHealthSection,
+  TopMetricsCards,
 } from "./performance-page-sections";
 
 export default function PerformancePage() {

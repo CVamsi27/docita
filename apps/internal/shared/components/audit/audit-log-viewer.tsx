@@ -6,10 +6,10 @@ import { toast } from "sonner";
 import { formatInternalTimestamp } from "@/lib/formatters/format-display-date";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
-  AuditLogToolbarSection,
   AuditLogFiltersSection,
-  AuditLogTableSection,
   AuditLogFooterSection,
+  AuditLogTableSection,
+  AuditLogToolbarSection,
 } from "./audit-log-viewer-sections";
 
 export function AuditLogViewer() {

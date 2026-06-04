@@ -6,10 +6,10 @@ import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { Users } from "lucide-react";
 import { useUsersData } from "./use-users-data";
 import {
-  UserStatsCards,
   SearchFilterBar,
-  UsersTableSection,
   UserDetailsDialog,
+  UsersTableSection,
+  UserStatsCards,
 } from "./users-page-container-sections";
 
 export function UsersPageContainer() {

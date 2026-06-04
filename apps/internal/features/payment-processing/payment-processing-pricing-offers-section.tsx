@@ -12,8 +12,8 @@ import { Percent } from "lucide-react";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { PaymentProcessingPageViewModel } from "@/features/payment-processing/use-payment-processing-page";
 import {
-  PricingOffersTableSection,
   PricingOfferFormSection,
+  PricingOffersTableSection,
 } from "./payment-processing-pricing-offers-section-sections";
 
 type PaymentProcessingPricingOffersSectionProps = Pick<
