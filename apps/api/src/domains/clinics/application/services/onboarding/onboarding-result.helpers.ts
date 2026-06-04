@@ -1,6 +1,7 @@
 import type { AuthService } from '@/shared/modules/auth/auth/auth.service';
 import { Logger } from '@nestjs/common';
 import type { OnboardingComplianceService } from './onboarding-compliance.service';
+import type { OnboardingValidationService } from './onboarding-validation.service';
 import type { CompleteOnboardingDto } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import type { OnboardingResult } from './onboarding-result.types';
 
@@ -18,6 +19,22 @@ interface CompletedOnboardingRecords {
 }
 
 const logger = new Logger('onboarding-result');
+
+export function buildValidationFailureResult(
+  validationService: OnboardingValidationService,
+  completeData: CompleteOnboardingDto,
+): OnboardingResult {
+  const validation =
+    validationService.validateOnboardingCompletion(completeData);
+  if (validation.valid) {
+    throw new Error('Cannot build validation failure for valid data');
+  }
+  return {
+    success: false,
+    message: 'Onboarding validation failed',
+    errors: validation.errors,
+  };
+}
 
 export async function logOnboardingSuccess(
   complianceService: OnboardingComplianceService,

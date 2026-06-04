@@ -35,6 +35,7 @@ import {
   logOnboardingSuccess,
   buildSuccessfulOnboardingResult,
   handleOnboardingFailure,
+  buildValidationFailureResult,
 } from './onboarding-result.helpers';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { OnboardingPaymentService } from './onboarding-payment.service';
@@ -152,7 +153,10 @@ export class OnboardingService {
     const created: OnboardingCreationMarkers = {};
 
     try {
-      const validationFailure = this.getValidationFailureResult(completeData);
+      const validationFailure = buildValidationFailureResult(
+        this.validationService,
+        completeData,
+      );
       if (validationFailure) return validationFailure;
 
       await this.ensurePaymentCanComplete(completeData);
@@ -184,22 +188,6 @@ export class OnboardingService {
         created,
       );
     }
-  }
-
-  private getValidationFailureResult(
-    completeData: CompleteOnboardingDto,
-  ): OnboardingResult | null {
-    const validation =
-      this.validationService.validateOnboardingCompletion(completeData);
-    if (validation.valid) return null;
-
-    return {
-      success: false,
-      clinicId: '',
-      userId: '',
-      message: 'Onboarding validation failed',
-      errors: validation.errors,
-    };
   }
 
   private async ensurePaymentCanComplete(
