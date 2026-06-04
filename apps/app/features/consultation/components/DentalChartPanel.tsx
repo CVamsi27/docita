@@ -10,7 +10,7 @@ import {
 
 interface DentalChartPanelProps {
   selectedAppointmentId: string | null;
-  selectedPatient: { id: string } | null;
+  selectedPatient: { id?: string } | null;
   chartData: DentalChartValue;
   onChartChange: (value: DentalChartValue) => void;
 }

@@ -16,6 +16,8 @@ import {
   type PatientContextData,
 } from "./PatientContextCardUISections";
 
+export type { PatientContextData } from "./PatientContextCardUISections";
+
 export interface PatientContextCardUIProps {
   patient: PatientContextData;
   isExpanded: boolean;

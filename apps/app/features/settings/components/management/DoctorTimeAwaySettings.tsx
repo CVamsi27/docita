@@ -181,7 +181,7 @@ export function DoctorTimeAwaySettings() {
           isLoading={isLoading}
           currentUserId={user?.id}
           userRole={user?.role}
-          isAdminCheck={isAdmin(user?.role)}
+          isAdminCheck={isAdmin}
           onDelete={handleDelete}
           isDeleting={deleteMutation.isPending}
         />

@@ -58,7 +58,7 @@ export interface ManageMemberNameRoleFieldsProps {
 export function ManageMemberNameRoleFields({
   memberForm,
   canChangeSelectedMemberRole,
-  _selectedMemberRole,
+  selectedMemberRole: _selectedMemberRole,
   roleLabels,
 }: ManageMemberNameRoleFieldsProps) {
   return (

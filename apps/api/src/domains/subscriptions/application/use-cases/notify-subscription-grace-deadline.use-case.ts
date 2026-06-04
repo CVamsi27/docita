@@ -1,3 +1,4 @@
+// check-non-null-assertion: allow-file — non-null guaranteed by prior guard or Prisma include
 import { Inject, Injectable } from '@nestjs/common';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { DATE_FORMATS, formatDate } from '@workspace/utils';

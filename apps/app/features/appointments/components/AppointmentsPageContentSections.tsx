@@ -60,14 +60,14 @@ export function AppointmentsWeekViewSection({
 interface AppointmentsDayViewSectionProps {
   selectedPickerIso: string;
   date: Date;
-  onDateSelect: (date: Date) => void;
+  onDateSelect: (date: Date | undefined) => void;
   calendarMonth: Date;
   onCalendarMonthChange: (date: Date) => void;
-  appointmentCountsByDay: Record<string, number>;
+  appointmentCountsByDay: Map<string, number>;
   canViewAllDoctors: boolean;
-  doctorsList?: { id: string; name: string }[];
-  selectedDoctorId: string | null;
-  onDoctorSelect: (doctorId: string | null) => void;
+  doctorsList: { id: string; name: string; role: string }[];
+  selectedDoctorId: string | undefined;
+  onDoctorSelect: (doctorId: string | undefined) => void;
   clinicTz: string;
   loading: boolean;
   isError: boolean;
@@ -77,7 +77,7 @@ interface AppointmentsDayViewSectionProps {
   isToday: boolean;
   currentTimeSlot: string;
   currentTimeSlotRef: React.RefObject<HTMLDivElement | null>;
-  checkingIn: Set<string>;
+  checkingIn: string | null;
   startingConsultationId: string | null;
   onCheckIn: (appointmentId: string) => void;
   onStartConsultation: (appointmentId: string) => Promise<void>;

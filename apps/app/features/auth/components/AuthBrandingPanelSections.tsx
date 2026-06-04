@@ -70,7 +70,7 @@ export function AuthBrandingHero({
 }
 
 export function AuthBrandingContentCard({
-  _currentStep,
+  currentStep: _currentStep,
   isEmailFirst,
   isLogin,
   activeStepIndex,

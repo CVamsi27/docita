@@ -10,11 +10,11 @@ import {
 } from "@workspace/data-access";
 import {
   Tier,
-  getTierName,
   tierSchema,
   type SubscriptionCurrentResponse,
   type TierName,
 } from "@workspace/types";
+import { getTierName } from "@workspace/utils";
 import type { TierCheckoutParams } from "@/hooks/use-subscription-checkout";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { findRecoverableSubscriptionPayment } from "@/features/subscription/lib/recoverable-subscription-payment";

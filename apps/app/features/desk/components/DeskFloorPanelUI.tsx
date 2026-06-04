@@ -15,6 +15,8 @@ import {
   type DeskFloorRow,
 } from "./DeskFloorPanelUISections";
 
+export type { DeskFloorRow } from "./DeskFloorPanelUISections";
+
 export interface DeskFloorCurrent {
   tokenNumber: number;
   patientName: string;

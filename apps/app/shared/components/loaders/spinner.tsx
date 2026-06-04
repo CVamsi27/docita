@@ -3,7 +3,7 @@
 import * as React from "react";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@workspace/ui/lib/utils";
 
 export interface LoaderProps extends React.HTMLAttributes<HTMLDivElement> {
   size?: "sm" | "md" | "lg";

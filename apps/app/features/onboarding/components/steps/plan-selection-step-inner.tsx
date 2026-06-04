@@ -20,11 +20,11 @@ import {
 import {
   Tier,
   applyModeToPricing,
-  getTierName,
   planModeSchema,
   tierSchema,
   type PlanMode,
 } from "@workspace/types";
+import { getTierName } from "@workspace/utils";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import {
   DISPLAY_TIERS,

@@ -83,14 +83,14 @@ export function ConsultationListItem({
   appointment: {
     id?: string;
     patientId?: string;
-    startTime: string;
+    startTime: string | Date;
     status: string;
     patient?: {
       firstName?: string;
       lastName?: string;
       [key: string]: unknown;
     } | null;
-    doctor?: { id?: string; name?: string } | null;
+    doctor?: { id?: string; name?: string | null } | null;
     doctorId?: string;
     prescription?: { id?: string } | null;
     invoice?: { id?: string } | null;

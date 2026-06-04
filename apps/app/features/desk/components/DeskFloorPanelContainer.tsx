@@ -15,8 +15,8 @@ import { getOpdQueueSummaryLine } from "@/features/consultation";
 import {
   DeskFloorPanelUI,
   type DeskFloorCurrent,
-  type DeskFloorRow,
 } from "./DeskFloorPanelUI";
+import type { DeskFloorRow } from "./DeskFloorPanelUISections";
 
 const RECENTLY_COMPLETED_LIMIT = 6;
 

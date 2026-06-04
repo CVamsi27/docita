@@ -47,8 +47,8 @@ TimeSlotStatus.displayName = "TimeSlotStatus";
 // ─── TimeSlotLabel ──────────────────────────────────────────────────────────
 
 interface TimeSlotLabelProps {
-  startTime: string;
-  endTime: string;
+  startTime: string | Date;
+  endTime: string | Date;
 }
 
 export const TimeSlotLabel = memo<TimeSlotLabelProps>(
@@ -75,7 +75,7 @@ interface TimeSlotPatientInfoProps {
   phone: string | null;
   reason: AppointmentListItem["reason"];
   doctorName: string | null | undefined;
-  latestPatientResponse: AppointmentListItem["latestPatientResponse"];
+  latestPatientResponse: AppointmentListItem["latestPatientResponse"] | null;
   lastReminder: NonNullable<AppointmentListItem["reminders"]>[number] | null;
   onReminderRetry: () => void;
   isRetryingReminder: boolean;

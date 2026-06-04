@@ -1,7 +1,8 @@
 "use client";
 
 import type { Control } from "react-hook-form";
-import type { SecuritySettingsFormValues, Feature } from "@workspace/types";
+import type { SecuritySettingsFormValues } from "@workspace/types";
+import { Feature } from "@workspace/types";
 import {
   FormControl,
   FormField,

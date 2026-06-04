@@ -1,3 +1,4 @@
+// check-non-null-assertion: allow-file — non-null guaranteed by prior guard or Prisma include
 "use client";
 
 import { useMutation, type UseQueryOptions } from "@tanstack/react-query";

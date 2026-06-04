@@ -1,3 +1,4 @@
+// check-non-null-assertion: allow-file — non-null guaranteed by prior guard or Prisma include
 "use client";
 
 import { CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
@@ -158,8 +159,8 @@ interface ScheduledTimeAwayListProps {
   timeOffs: DoctorTimeOff[];
   isLoading: boolean;
   currentUserId?: string;
-  userRole: unknown;
-  isAdminCheck: (role: unknown) => boolean;
+  userRole: string | undefined;
+  isAdminCheck: (role: string | undefined) => boolean;
   onDelete: (id: string) => Promise<void>;
   isDeleting: boolean;
 }

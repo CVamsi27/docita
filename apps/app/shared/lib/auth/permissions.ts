@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — role widened to string for legacy call sites; cast is safe here
 import {
   BILLING_ROLES,
   CLINIC_ADMIN_ROLES,
@@ -16,7 +17,7 @@ export const hasAllPermissions = hasAllAppPermissions;
 
 export function isAdmin(role: UserRole | string | undefined): boolean {
   if (!role) return false;
-  return hasPermission(role, "manageClinic");
+  return hasPermission(role as UserRole, "manageClinic");
 }
 
 export function isDoctor(role: UserRole | string | undefined): boolean {

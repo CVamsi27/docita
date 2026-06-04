@@ -34,6 +34,7 @@ import {
   PLAN_MODES,
   type PlanMode,
   type TierInfo,
+  type TierName,
 } from "@workspace/types";
 import {
   buildTierCardConfig,
@@ -95,7 +96,7 @@ export const PlanSelectionError: FC<ErrorStateProps> = ({ stepHeader }) => (
 // ---------------------------------------------------------------------------
 
 interface TeamRecommendation {
-  tier: string;
+  tier: TierName;
   totalUsers: number;
   includedUsers: number;
 }
@@ -188,7 +189,7 @@ export const PlanModeBar: FC<PlanModeBarProps> = ({
 // ---------------------------------------------------------------------------
 
 interface FeaturesByTierEntry {
-  tierName: string;
+  tierName: TierName;
   tier: number;
   info: TierInfo;
   features: PlanFeature[];
@@ -203,7 +204,7 @@ interface TierCardGridProps {
   billingCycle: "MONTHLY" | "YEARLY";
   teamRecommendation: TeamRecommendation | null;
   isSubmitting: boolean;
-  onSelectCard: (tier: string, mode: PlanMode) => void;
+  onSelectCard: (tier: TierName, mode: PlanMode) => void;
 }
 
 export const TierCardGrid: FC<TierCardGridProps> = ({
@@ -218,7 +219,7 @@ export const TierCardGrid: FC<TierCardGridProps> = ({
   onSelectCard,
 }) => (
   <div className="grid auto-rows-fr items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    {featuresByTier.map(({ tierName, tier, info, features }) => {
+    {featuresByTier.map(({ tierName, tier, info, features }: FeaturesByTierEntry) => {
       const { cardPricing, currencySymbol, overageHint, buttonLabel } =
         buildTierCardConfig(tierName, resolvedCurrency, pricingConfigTiers);
 

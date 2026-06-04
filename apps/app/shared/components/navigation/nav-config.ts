@@ -2,7 +2,8 @@ import { Bed, Bell, HelpCircle, Settings2, SmilePlus, Sparkles, type LucideIcon 
 import { APP_ACCESS_TARGETS, Feature } from "@workspace/types";
 import type { NavItem } from "./nav-config-sections";
 
-export { NavItem, NavSectionId, NavSection, navSections, navItems } from "./nav-config-sections";
+export type { NavItem, NavSectionId, NavSection } from "./nav-config-sections";
+export { navSections, navItems } from "./nav-config-sections";
 
 export const SETTINGS_NAV_ITEM: NavItem = {
   href: "/settings",

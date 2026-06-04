@@ -63,6 +63,12 @@ const PHI_FIELDS: ReadonlySet<string> = new Set([
   "chiefcomplaint",
   "symptoms",
   "diagnosis",
+  "preferredname",
+  "insuranceprovider",
+  "insurancepolicynumber",
+  "insurancegroupnumber",
+  "allergies",
+  "abhaaddress",
 ]);
 
 const SAFE_FIELDS: ReadonlySet<string> = new Set([

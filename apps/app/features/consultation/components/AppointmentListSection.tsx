@@ -11,13 +11,13 @@ import { formatDate } from "@/lib/formatters";
 
 interface AppointmentItem {
   id: string;
-  startTime: string;
+  startTime: string | Date;
   status: string;
-  dentalChart: unknown;
+  dentalChart?: unknown;
 }
 
 interface AppointmentListSectionProps {
-  selectedPatient: { id: string } | null;
+  selectedPatient: { id?: string } | null;
   appointmentsLoading: boolean;
   appointments: AppointmentItem[];
   selectedAppointmentId: string | null;

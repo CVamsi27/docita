@@ -2,11 +2,8 @@
 
 import { useInventoryItem } from "@workspace/data-access";
 import { isRecord } from "@workspace/utils";
-import {
-  InventoryItem,
-  InventoryItemDetailsUI,
-  InventoryMovement,
-} from "./InventoryItemDetailsUI";
+import type { ItemDetail, ItemMovement } from "./InventoryItemDetailsUI";
+import { InventoryItemDetailsUI } from "./InventoryItemDetailsUI";
 
 interface InventoryItemDetailsContainerProps {
   itemId: string | null;
@@ -27,7 +24,7 @@ export function InventoryItemDetailsContainer({
 
   const movements = Array.isArray(rawData?.movements)
     ? rawData.movements
-        .map((entry): InventoryMovement | null => {
+        .map((entry): ItemMovement | null => {
           if (!isRecord(entry)) return null;
           if (
             typeof entry.id !== "string" ||
@@ -51,10 +48,10 @@ export function InventoryItemDetailsContainer({
             notes: typeof entry.notes === "string" ? entry.notes : undefined,
           };
         })
-        .filter((entry): entry is InventoryMovement => entry !== null)
+        .filter((entry): entry is ItemMovement => entry !== null)
     : [];
 
-  const item: InventoryItem | null = rawData
+  const item: ItemDetail | null = rawData
     ? {
         name: String(rawData.name || ""),
         category: String(rawData.category || ""),

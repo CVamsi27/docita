@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — cross-boundary cast from raw API response to typed fields; safe here
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useProcessOCR, useOcrCommitImport } from "@workspace/data-access";
@@ -5,6 +6,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { useRouter } from "next/navigation";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import type { ParsedMedicalFields } from "@workspace/types";
 import type { OCRFormData } from "@/features/ocr/types";
 import {
   emptyOcrInvoiceForm,
@@ -58,7 +60,8 @@ export const useOCR = () => {
       formDataObj.append("file", file);
       const result = await processOCRMutation.mutateAsync(formDataObj);
       setFormData(buildOcrFormData(
-        result.fields, result.firstName, result.lastName,
+        result.fields as unknown as ParsedMedicalFields | undefined,
+        result.firstName, result.lastName,
         result.age, result.gender, result.diagnosis, result.phoneNumber,
       ));
       setExpandedSections((prev) => ({

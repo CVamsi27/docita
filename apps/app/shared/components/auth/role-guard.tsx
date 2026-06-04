@@ -4,7 +4,7 @@ import React, { ReactNode, useEffect } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useRouter } from "next/navigation";
 import type { UserRole } from "@workspace/types";
-import { hasPermission, type Permission } from "@/lib/auth/permissions";
+import { hasPermission, meetsRoleHierarchy, type Permission } from "@/lib/auth/permissions";
 import { persistReturnPathBeforeLogin } from "@/lib/auth/safe-return-path";
 
 interface RoleGuardProps {
@@ -49,7 +49,7 @@ export function RoleGuard({
     return fallback ? <>{fallback}</> : null;
   }
 
-  if (requiredRole && !hasRoleAccess(user.role, requiredRole)) {
+  if (requiredRole && !meetsRoleHierarchy(user.role, requiredRole)) {
     return fallback ? <>{fallback}</> : null;
   }
 

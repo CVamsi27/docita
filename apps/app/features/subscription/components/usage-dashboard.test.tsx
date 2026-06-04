@@ -63,10 +63,10 @@ vi.mock("@workspace/data-access", async (importOriginal) => {
 });
 
 vi.mock("@/lib/stores/permission-store", () => ({
-  usePermissionStore: (selector: (state: { canAccess: (feature: string) => boolean }) => boolean) => {
+  usePermissionStore: (selector: (state: { canAccess: (feature: unknown) => boolean }) => boolean) => {
     return selector({
-      canAccess: (feature: string) => {
-        if (feature === "WHATSAPP_MESSAGING") {
+      canAccess: (feature: unknown) => {
+        if (String(feature) === "WHATSAPP_MESSAGING") {
           return currentTierForMock !== "STARTER";
         }
         return true;

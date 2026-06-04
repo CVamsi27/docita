@@ -2,6 +2,7 @@
 
 import { useCurrentUsage } from "@/features/subscription/hooks/use-pricing";
 import {
+  Feature,
   PRICING_CURRENCY_CONFIG,
   PRICING_CURRENCY_SYMBOLS,
 } from "@workspace/types";
@@ -21,7 +22,7 @@ export function UsageDashboard() {
   const { usage, isLoading } = useCurrentUsage();
   const { currency, locale } = useClinicCurrency();
   const canAccess = usePermissionStore((state) => state.canAccess);
-  const showWhatsAppMeter = canAccess("WHATSAPP_MESSAGING");
+  const showWhatsAppMeter = canAccess(Feature.WHATSAPP_MESSAGING);
   const resolvedCurrency = parseSupportedCurrency(currency);
   const currencyCfg = PRICING_CURRENCY_CONFIG[resolvedCurrency];
   const amountFractionDigits = currencyCfg?.decimalPlaces ?? 2;

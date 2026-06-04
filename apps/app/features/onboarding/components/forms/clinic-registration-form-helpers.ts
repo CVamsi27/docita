@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DEFAULT_COUNTRY_CODE, getUserFacingErrorMessage, isRecord } from "@workspace/utils";
+import { DEFAULT_COUNTRY_CODE, getUserFacingErrorMessage, isRecord, type UserFacingErrorContext } from "@workspace/utils";
 import type {
   ClinicDetails,
   ComplianceSettings,
@@ -127,7 +127,7 @@ export async function withStepErrorHandling<T>(
   action: () => Promise<T>,
   setStepError: (error: string | null) => void,
   fallback: string,
-  context: string,
+  context: UserFacingErrorContext,
 ): Promise<T | undefined> {
   setStepError(null);
   try {
