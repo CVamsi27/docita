@@ -112,3 +112,10 @@ export const formattingRules = {
     return text.replace(/\b\w/g, (char) => char.toUpperCase());
   },
 };
+
+export const permissionRules = {
+  canViewPatientData: (role: string): boolean => {
+    const viewableRoles = ["doctor", "admin", "nurse"];
+    return viewableRoles.includes(role.toLowerCase());
+  },
+};
