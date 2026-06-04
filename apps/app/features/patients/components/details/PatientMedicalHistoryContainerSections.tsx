@@ -1,0 +1,230 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { usePatientHistory } from "@/features/patients/hooks/use-patient-history";
+import {
+  PatientAllergy,
+  patientSocialHistorySchema,
+  type PatientSocialHistory,
+  type PatientWithMedicalHistory,
+} from "@workspace/types";
+
+const SOCIAL_HISTORY_DEBOUNCE_MS = 500;
+const CUSTOM_DATA_DEBOUNCE_MS = 500;
+
+export function usePatientMedicalHistoryForm(
+  initialPatient: PatientWithMedicalHistory,
+) {
+  const { operations, patient: freshPatient } = usePatientHistory(
+    initialPatient.id || "",
+  );
+
+  const [editingAllergy, setEditingAllergy] = useState<PatientAllergy | null>(
+    null,
+  );
+
+  const [newCondition, setNewCondition] = useState("");
+  const [newAllergy, setNewAllergy] = useState("");
+  const [newSurgery, setNewSurgery] = useState("");
+  const [newSurgeryDate, setNewSurgeryDate] = useState("");
+  const [newFamilyCondition, setNewFamilyCondition] = useState("");
+  const [newFamilyRelation, setNewFamilyRelation] = useState("");
+
+  const [socialOverrides, setSocialOverrides] = useState<
+    Partial<PatientSocialHistory>
+  >({});
+  const [customDataOverrides, setCustomDataOverrides] = useState<
+    Record<string, unknown>
+  >({});
+
+  const pendingTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(
+    new Map(),
+  );
+  const syncedPatientIdRef = useRef<string | undefined>(initialPatient.id);
+
+  useEffect(() => {
+    const nextId = initialPatient.id;
+    if (nextId && nextId !== syncedPatientIdRef.current) {
+      syncedPatientIdRef.current = nextId;
+      setSocialOverrides({});
+      setCustomDataOverrides({});
+    }
+  }, [initialPatient]);
+
+  useEffect(() => {
+    const timers = pendingTimersRef.current;
+    return () => {
+      timers.forEach((timer) => clearTimeout(timer));
+      timers.clear();
+    };
+  }, []);
+
+  const scheduleDebounced = useCallback(
+    (key: string, fn: () => void, delay: number) => {
+      const existing = pendingTimersRef.current.get(key);
+      if (existing) clearTimeout(existing);
+      const timer = setTimeout(() => {
+        pendingTimersRef.current.delete(key);
+        fn();
+      }, delay);
+      pendingTimersRef.current.set(key, timer);
+    },
+    [],
+  );
+
+  const sourcePatient = freshPatient || initialPatient;
+
+  const displayPatient = useMemo<PatientWithMedicalHistory>(() => {
+    const baseSocial = sourcePatient.socialHistory;
+    const mergedSocial =
+      Object.keys(socialOverrides).length > 0 || baseSocial
+        ? patientSocialHistorySchema.parse({
+            ...(baseSocial ?? {
+              patientId: sourcePatient.id || "",
+            }),
+            ...socialOverrides,
+          })
+        : undefined;
+
+    const baseCustomData =
+      sourcePatient.customData &&
+      typeof sourcePatient.customData === "object" &&
+      !Array.isArray(sourcePatient.customData)
+        ? Object.fromEntries(Object.entries(sourcePatient.customData))
+        : {};
+
+    const mergedCustomData: PatientWithMedicalHistory["customData"] = {
+      ...baseCustomData,
+      ...Object.fromEntries(
+        Object.entries(customDataOverrides).filter(
+          (entry): entry is [string, string | number | boolean | null] => {
+            const value = entry[1];
+            return (
+              typeof value === "string" ||
+              typeof value === "number" ||
+              typeof value === "boolean" ||
+              value === null
+            );
+          },
+        ),
+      ),
+    };
+
+    return {
+      ...sourcePatient,
+      socialHistory: mergedSocial,
+      customData: mergedCustomData,
+    };
+  }, [sourcePatient, socialOverrides, customDataOverrides]);
+
+  const updateCustomData = useCallback(
+    (
+      key: string,
+      value: string | number | boolean | Record<string, unknown>,
+    ) => {
+      setCustomDataOverrides((prev) => ({ ...prev, [key]: value }));
+      scheduleDebounced(
+        `customData:${key}`,
+        () => operations.updateCustomData(key, value),
+        CUSTOM_DATA_DEBOUNCE_MS,
+      );
+    },
+    [operations, scheduleDebounced],
+  );
+
+  const updateSocialHistory = useCallback(
+    (field: keyof PatientSocialHistory, value: string) => {
+      setSocialOverrides((prev) => ({ ...prev, [field]: value }));
+      scheduleDebounced(
+        `socialHistory:${String(field)}`,
+        () => operations.updateSocialHistory(field, value),
+        SOCIAL_HISTORY_DEBOUNCE_MS,
+      );
+    },
+    [operations, scheduleDebounced],
+  );
+
+  const addCondition = useCallback(() => {
+    if (!newCondition.trim()) return;
+    operations.addCondition(newCondition.trim());
+    setNewCondition("");
+  }, [newCondition, operations]);
+
+  const addAllergy = useCallback(() => {
+    if (!newAllergy.trim()) return;
+    operations.addAllergy(newAllergy.trim());
+    setNewAllergy("");
+  }, [newAllergy, operations]);
+
+  const removeCondition = useCallback(
+    (id: string) => operations.removeCondition(id),
+    [operations],
+  );
+
+  const removeAllergy = useCallback(
+    (id: string) => operations.removeAllergy(id),
+    [operations],
+  );
+
+  const handleUpdateAllergy = useCallback(() => {
+    if (!editingAllergy) return;
+    operations.updateAllergy(editingAllergy);
+    setEditingAllergy(null);
+  }, [editingAllergy, operations]);
+
+  const addSurgery = useCallback(() => {
+    if (!newSurgery.trim()) return;
+    operations.addSurgery(newSurgery.trim(), newSurgeryDate || undefined);
+    setNewSurgery("");
+    setNewSurgeryDate("");
+  }, [newSurgery, newSurgeryDate, operations]);
+
+  const removeSurgery = useCallback(
+    (id: string) => operations.removeSurgery(id),
+    [operations],
+  );
+
+  const addFamilyHistory = useCallback(() => {
+    if (!newFamilyCondition.trim() || !newFamilyRelation.trim()) return;
+    operations.addFamilyHistory(
+      newFamilyCondition.trim(),
+      newFamilyRelation.trim(),
+    );
+    setNewFamilyCondition("");
+    setNewFamilyRelation("");
+  }, [newFamilyCondition, newFamilyRelation, operations]);
+
+  const removeFamilyHistory = useCallback(
+    (id: string) => operations.removeFamilyHistory(id),
+    [operations],
+  );
+
+  return {
+    displayPatient,
+    editingAllergy,
+    setEditingAllergy,
+    newCondition,
+    setNewCondition,
+    newAllergy,
+    setNewAllergy,
+    newSurgery,
+    setNewSurgery,
+    newSurgeryDate,
+    setNewSurgeryDate,
+    newFamilyCondition,
+    setNewFamilyCondition,
+    newFamilyRelation,
+    setNewFamilyRelation,
+    updateCustomData,
+    updateSocialHistory,
+    addCondition,
+    addAllergy,
+    removeCondition,
+    removeAllergy,
+    handleUpdateAllergy,
+    addSurgery,
+    removeSurgery,
+    addFamilyHistory,
+    removeFamilyHistory,
+  };
+}

@@ -19,23 +19,15 @@ import {
   usePricingConfig,
 } from "@/features/subscription/hooks/use-pricing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import {
-  type PlanMode,
-  PLAN_MODE_INFO,
-  TIER_INFO,
-  type TierName,
-  tierSchema,
-} from "@workspace/types";
-import { getDisplayBillingPeriodEndAndDaysLeft } from "@/features/subscription/lib/billing-period-display";
-import { recommendTier } from "@/features/subscription/lib/recommend-tier";
+import { type PlanMode, type TierName } from "@workspace/types";
 import { getTierName } from "@workspace/utils";
-import {
-  formatPlanDate,
-  formatStatusLabel,
-  formatPlanBillingDetail,
-  starterMonthlyAccessTermMismatch,
-} from "@/features/subscription/components/billing-subscription-helpers";
+import { recommendTier } from "@/features/subscription/lib/recommend-tier";
 import { buildCurrentPlanStatusNotice } from "@/features/subscription/lib/billing-workspace-status-notice";
+import {
+  computeSubscriptionDerivedState,
+  buildBilledTierLabel,
+  buildPlanDetails,
+} from "./billing-subscription-workspace-helpers";
 
 /** Subscription billing hooks in one module so Fast Refresh cannot desync parent/child hook order. */
 export function useBillingSubscriptionWorkspace() {
@@ -93,39 +85,22 @@ export function useBillingSubscriptionWorkspace() {
   );
   const plansRef = useRef<HTMLDivElement>(null);
 
-  const subscriptionStatus = subscription?.subscriptionStatus;
-  const subscriptionPeriodEnd = subscription?.currentPeriodEnd
-    ? new Date(subscription.currentPeriodEnd)
-    : null;
-  const daysLeftInPeriod = subscription?.daysRemaining ?? null;
-  const displayBillingPeriod =
-    subscription?.subscriptionStatus === "ACTIVE"
-      ? getDisplayBillingPeriodEndAndDaysLeft(subscription)
-      : null;
-  const planStripPeriodEnd =
-    displayBillingPeriod?.periodEnd ?? subscriptionPeriodEnd;
-  const planStripDaysLeft = displayBillingPeriod?.daysLeft ?? daysLeftInPeriod;
-  const isTrialing = subscriptionStatus === "TRIALING";
-  const isTrialExpired =
-    isTrialing && subscription?.trialWindowState === "EXPIRED";
-  const isSubscriptionExpired = subscriptionStatus === "EXPIRED";
-  const hasOutstandingPendingPayment =
-    subscription?.hasOutstandingPendingPayment === true;
-  const renewalPeriodLapsed =
-    planStripPeriodEnd !== null
-      ? planStripPeriodEnd.getTime() <= Date.now()
-      : false;
-  const isPaymentPastDue =
-    subscriptionStatus === "PAST_DUE" ||
-    subscriptionStatus === "PAYMENT_DUE" ||
-    (hasOutstandingPendingPayment && renewalPeriodLapsed);
-  const isInGracePeriod = subscriptionStatus === "GRACE";
-  const effectiveCurrentTier = isTrialExpired ? Tier.STARTER : currentTier;
-  const starterLongMonthlyWindow = starterMonthlyAccessTermMismatch(
-    subscription,
+  const derived = computeSubscriptionDerivedState(subscription, currentTier);
+  const {
+    isTrialing,
+    isTrialExpired,
+    planStripPeriodEnd,
     planStripDaysLeft,
-  );
-  const showStarterAccessThroughLabel = starterLongMonthlyWindow;
+    subscriptionStatus,
+    hasOutstandingPendingPayment,
+    renewalPeriodLapsed,
+    isSubscriptionExpired,
+    isInGracePeriod,
+    isPaymentPastDue,
+    effectiveCurrentTier,
+    showStarterAccessThroughLabel,
+    daysLeftInPeriod,
+  } = derived;
 
   const handleSelectTier = useCallback(
     (tier: TierName, cycle: "MONTHLY" | "YEARLY", mode: PlanMode = "FULL") => {
@@ -185,25 +160,12 @@ export function useBillingSubscriptionWorkspace() {
     scrollToPlans,
   });
 
-  // Show the plan label the customer is actually paying for (subscription.tier),
-  // not the access-downgraded `effectiveCurrentTier` (which falls back to Starter
-  // when a trial expires). Mode suffix appears when the clinic is on a non-Full
-  // PlanMode so "Hospital · Front Desk" reads consistently with the upgrade UI.
-  const billedTierName: TierName | null = (() => {
-    const parsed = tierSchema.safeParse(subscription?.tier);
-    return parsed.success ? parsed.data : null;
-  })();
-  const billedTierLabel = billedTierName
-    ? (TIER_INFO[billedTierName]?.name ?? currentTierInfo.name)
-    : currentTierInfo.name;
-  const billedModeLabel =
-    currentMode !== "FULL" ? ` · ${PLAN_MODE_INFO[currentMode].name}` : "";
+  const { billedTierLabel, billedModeLabel } = buildBilledTierLabel(
+    subscription?.tier,
+    currentMode,
+    currentTierInfo.name,
+  );
 
-  // The plan the customer is actually subscribed to — drives every "current
-  // plan" display (header card, plan-grid badge, compare table, change dialog)
-  // so a trialing Essential reads as Essential, not the access-tier Starter
-  // that `effectiveCurrentTier` falls back to. Once a trial expires we defer to
-  // the access tier so the downgrade is reflected honestly.
   const currentPlanTier: Tier = resolveCurrentPlanTier({
     subscriptionTier: subscription?.tier,
     isTrialExpired,
@@ -211,38 +173,19 @@ export function useBillingSubscriptionWorkspace() {
   });
   const currentPlanTierInfo = getTierInfo(currentPlanTier);
 
-  const planDetails = [
-    { label: "Plan", value: `${billedTierLabel}${billedModeLabel}` },
-    {
-      label: "Status",
-      value:
-        hasOutstandingPendingPayment && renewalPeriodLapsed
-          ? "Payment pending"
-          : formatStatusLabel(subscriptionStatus),
-    },
-    {
-      label: "Billing",
-      value: formatPlanBillingDetail(subscription, subscriptionStatus),
-    },
-    {
-      label:
-        isTrialing && !isTrialExpired
-          ? "Trial Ends"
-          : subscription?.cancelAtPeriodEnd
-            ? "Ends On"
-            : showStarterAccessThroughLabel
-              ? "Access through"
-              : "Renews On",
-      value:
-        planStripPeriodEnd !== null
-          ? `${formatPlanDate(planStripPeriodEnd.toISOString())}${
-              planStripDaysLeft !== null
-                ? ` (${planStripDaysLeft} day${planStripDaysLeft === 1 ? "" : "s"} left)`
-                : ""
-            }`
-          : "Not scheduled",
-    },
-  ];
+  const planDetails = buildPlanDetails({
+    billedTierLabel,
+    billedModeLabel,
+    hasOutstandingPendingPayment,
+    renewalPeriodLapsed,
+    subscriptionStatus,
+    subscription,
+    isTrialing,
+    isTrialExpired,
+    showStarterAccessThroughLabel,
+    planStripPeriodEnd,
+    planStripDaysLeft,
+  });
 
   return {
     isSubscriptionLoading,

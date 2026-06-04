@@ -2,12 +2,20 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePublicBookingContext } from "@workspace/data-access";
-import {
-  type PublicBookingMobileStep,
-  PUBLIC_BOOKING_SUBMIT_FIELD_KEYS,
-} from "@/features/public-booking/public-booking-constants";
+import { type PublicBookingMobileStep } from "@/features/public-booking/public-booking-constants";
 import { usePublicBookingSubmitActions } from "@/features/public-booking/hooks/use-public-booking-submit-actions";
 import { usePublicBookingSlotState } from "@/features/public-booking/use-public-booking-slot-state";
+import {
+  clearDateOfBirthError,
+  clearSlotErrors,
+  computeContactCanContinue,
+  computeSlotRangeSubmitError,
+  computeSubmitRequestReady,
+  computeUnknownSubmitErrors,
+  computeVisitCanContinue,
+  focusAndScrollToField,
+  scrollToTop,
+} from "@/features/public-booking/public-booking-page-state-helpers";
 
 export function usePublicBookingPageState(referralCode: string) {
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -41,22 +49,17 @@ export function usePublicBookingPageState(referralCode: string) {
     useState<PublicBookingMobileStep>("visit");
 
   const unknownSubmitErrors = useMemo(
-    () =>
-      Object.entries(submitFieldErrors).filter(
-        ([key]) => !PUBLIC_BOOKING_SUBMIT_FIELD_KEYS.has(key),
-      ),
+    () => computeUnknownSubmitErrors(submitFieldErrors),
     [submitFieldErrors],
   );
 
-  const slotRangeSubmitError = useMemo(() => {
-    const start = submitFieldErrors.requestedSlotStart;
-    const end = submitFieldErrors.requestedSlotEnd;
-    if (start && end && start !== end) return `${start} · ${end}`;
-    return start ?? end ?? "";
-  }, [
-    submitFieldErrors.requestedSlotEnd,
-    submitFieldErrors.requestedSlotStart,
-  ]);
+  const slotRangeSubmitError = useMemo(
+    () => computeSlotRangeSubmitError(submitFieldErrors),
+    [
+      submitFieldErrors.requestedSlotEnd,
+      submitFieldErrors.requestedSlotStart,
+    ],
+  );
 
   const contextQuery = usePublicBookingContext(referralCode, verificationToken);
 
@@ -99,20 +102,21 @@ export function usePublicBookingPageState(referralCode: string) {
   });
 
   const visitCanContinue = useMemo(
-    () => !siteKey || Boolean(turnstileToken),
+    () => computeVisitCanContinue(siteKey, turnstileToken),
     [siteKey, turnstileToken],
   );
 
   const contactCanContinue = useMemo(
     () =>
-      Boolean(phone.trim()) &&
-      requiresOtp !== null &&
-      (requiresOtp !== true || Boolean(verificationToken)) &&
-      (requiresOtp === true ||
-        (Boolean(firstName.trim()) &&
-          Boolean(lastName.trim()) &&
-          Boolean(dateOfBirth.trim()) &&
-          dpdpConsentAccepted)),
+      computeContactCanContinue({
+        phone,
+        requiresOtp,
+        verificationToken,
+        firstName,
+        lastName,
+        dateOfBirth,
+        dpdpConsentAccepted,
+      }),
     [
       dateOfBirth,
       dpdpConsentAccepted,
@@ -124,43 +128,39 @@ export function usePublicBookingPageState(referralCode: string) {
     ],
   );
 
-  const submitRequestReady = useMemo(() => {
-    if (!slots.slotDate?.trim()) return false;
-    if (!visitCanContinue) return false;
-    if (!phone.trim()) return false;
-    if (requiresOtp === null) return false;
-    if (requiresOtp === true) {
-      if (!verificationToken) return false;
-    } else {
-      if (!firstName.trim() || !lastName.trim() || !dateOfBirth.trim()) {
-        return false;
-      }
-      if (!dpdpConsentAccepted) return false;
-    }
-    return true;
-  }, [
-    slots.slotDate,
-    visitCanContinue,
-    phone,
-    requiresOtp,
-    verificationToken,
-    firstName,
-    lastName,
-    dateOfBirth,
-    dpdpConsentAccepted,
-  ]);
+  const submitRequestReady = useMemo(
+    () =>
+      computeSubmitRequestReady({
+        slotDate: slots.slotDate,
+        visitCanContinue,
+        phone,
+        requiresOtp,
+        verificationToken,
+        firstName,
+        lastName,
+        dateOfBirth,
+        dpdpConsentAccepted,
+      }),
+    [
+      slots.slotDate,
+      visitCanContinue,
+      phone,
+      requiresOtp,
+      verificationToken,
+      firstName,
+      lastName,
+      dateOfBirth,
+      dpdpConsentAccepted,
+    ],
+  );
 
   const goToStep = useCallback(
     (step: PublicBookingMobileStep, focusFieldId?: string) => {
       setMobileStep(step);
       if (focusFieldId) {
-        window.setTimeout(() => {
-          const el = document.getElementById(focusFieldId);
-          el?.focus({ preventScroll: true });
-          el?.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 120);
+        focusAndScrollToField(focusFieldId);
       } else {
-        window.scrollTo({ top: 0, behavior: "auto" });
+        scrollToTop();
       }
     },
     [],
@@ -170,23 +170,14 @@ export function usePublicBookingPageState(referralCode: string) {
     if (requiresOtp === true) {
       setDateOfBirth("");
       setDpdpConsentAccepted(false);
-      setSubmitFieldErrors((prev) => {
-        const next = { ...prev };
-        delete next.dateOfBirth;
-        return next;
-      });
+      setSubmitFieldErrors(clearDateOfBirthError);
     }
   }, [requiresOtp]);
 
   const handleSelectSlot = useCallback(
     (startIso: string, endIso: string) => {
       slots.handleSelectSlot(startIso, endIso);
-      setSubmitFieldErrors((prev) => {
-        const next = { ...prev };
-        delete next.requestedSlotStart;
-        delete next.requestedSlotEnd;
-        return next;
-      });
+      setSubmitFieldErrors(clearSlotErrors);
     },
     [slots],
   );
@@ -194,12 +185,7 @@ export function usePublicBookingPageState(referralCode: string) {
   const handleSelectSlotWithDoctor = useCallback(
     (startIso: string, endIso: string, slotDoctorId: string) => {
       slots.handleSelectSlotWithDoctor(startIso, endIso, slotDoctorId);
-      setSubmitFieldErrors((prev) => {
-        const next = { ...prev };
-        delete next.requestedSlotStart;
-        delete next.requestedSlotEnd;
-        return next;
-      });
+      setSubmitFieldErrors(clearSlotErrors);
     },
     [slots],
   );

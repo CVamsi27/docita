@@ -1,63 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { NavItem, NavSection, NavSectionId } from "@/components/navigation/nav-config";
-import { FIXED_NAV_HREFS, navSections } from "@/components/navigation/nav-config";
+import type { NavItem, NavSection } from "@/components/navigation/nav-config";
+import { navSections } from "@/components/navigation/nav-config";
 import { sidebarNavOrderSchema } from "@workspace/types";
 import { useOptionalAppConfig } from "@/lib/contexts/app-config-context";
 import { useUpdateClinicSettings, useUpdateProfile, useUserProfile } from "@workspace/data-access";
-
-type SidebarNavOrder = Record<NavSectionId, string[]>;
-
-const CLINIC_ORDER_KEY = "sidebar_nav_order_clinic";
-const USER_ORDER_KEY = "sidebar_nav_order_user";
-
-function safeParseSidebarNavOrder(raw: string | null): SidebarNavOrder | null {
-  if (!raw) return null;
-  try {
-    const parsed = sidebarNavOrderSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : null;
-  } catch {
-    return null;
-  }
-}
-
-function normalizeOrderForSection(items: NavItem[], desiredHrefs: string[] | undefined): string[] {
-  const allowed = new Set(items.map((i) => i.href));
-  const out: string[] = [];
-
-  for (const href of desiredHrefs ?? []) {
-    if (allowed.has(href)) out.push(href);
-  }
-  for (const item of items) {
-    if (!out.includes(item.href)) out.push(item.href);
-  }
-
-  // Ensure fixed items are always present.
-  for (const item of items) {
-    if (FIXED_NAV_HREFS.has(item.href) && !out.includes(item.href)) {
-      out.unshift(item.href);
-    }
-  }
-
-  return out;
-}
-
-function buildDefaultOrder(sections: NavSection[]): SidebarNavOrder {
-  return sections.reduce<SidebarNavOrder>(
-    (order, section) => {
-      order[section.id] = section.items.map((item) => item.href);
-      return order;
-    },
-    { track: [], services: [] },
-  );
-}
-
-function getClinicStorageKey(clinicId: string) {
-  return `${CLINIC_ORDER_KEY}_${clinicId}`;
-}
-
-function getUserStorageKey(clinicId: string, userId: string) {
-  return `${USER_ORDER_KEY}_${clinicId}_${userId}`;
-}
+import {
+  buildDefaultOrder,
+  getClinicStorageKey,
+  getUserStorageKey,
+  normalizeOrderForSection,
+  safeParseSidebarNavOrder,
+  type SidebarNavOrder,
+} from "@/hooks/use-sidebar-nav-order-helpers";
 
 export function useSidebarNavOrder(args: {
   clinicId: string | null;

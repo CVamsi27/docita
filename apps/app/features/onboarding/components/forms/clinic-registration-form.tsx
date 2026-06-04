@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { getUserFacingErrorMessage } from "@workspace/utils";
 import type { PlanMode } from "@workspace/types";
 import { useClinicRegistrationFlow } from "@/features/onboarding/hooks/use-clinic-registration-flow";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -31,12 +30,15 @@ import {
 import {
   DRAFT_KEY,
   getMissingClinicDetailsForProgress,
+  withStepErrorHandling,
 } from "./clinic-registration-form-helpers";
 import { useOnboardingDraft } from "./use-onboarding-draft";
 import {
+  ComplianceDraftWatcher,
   DraftRestoreDialog,
   OnboardingProgressCard,
   StepErrorAlert,
+  StepGuard,
 } from "./clinic-registration-form-sections";
 
 export function ClinicRegistrationForm({
@@ -102,22 +104,6 @@ export function ClinicRegistrationForm({
     },
   });
 
-  // Persist agreement acceptance + signature session into the onboarding draft
-  // so they survive a remount (e.g. coming back after a phone signature upload).
-  useEffect(() => {
-    const subscription = complianceForm.watch((values) => {
-      setComplianceDraft({
-        acceptedSLA: values.acceptedSLA,
-        acceptedPrivacyPolicy: values.acceptedPrivacyPolicy,
-        acceptedDataProcessing: values.acceptedDataProcessing,
-        enableWhatsApp: values.enableWhatsApp,
-        requireConsent: values.requireConsent,
-        slaSignatureSessionId: values.slaSignatureSessionId,
-      });
-    });
-    return () => subscription.unsubscribe();
-  }, [complianceForm, setComplianceDraft]);
-
   const {
     showDraftDialog,
     setShowDraftDialog,
@@ -138,7 +124,7 @@ export function ClinicRegistrationForm({
     setClinicDetails(data);
   };
 
-  const handleSetPlanSelection = async (
+  const handleSetPlanSelection = (
     tier: string,
     billingCycle: "MONTHLY" | "YEARLY",
     pricing: { monthly: number | "custom"; yearly: number | "custom" },
@@ -146,92 +132,53 @@ export function ClinicRegistrationForm({
       currency?: string;
       mode?: PlanMode;
     },
-  ) => {
-    setStepError(null);
+  ) => withStepErrorHandling(
+    () => setPlanSelection(tier, billingCycle, pricing, { ...options, currency }),
+    setStepError,
+    "We could not continue with this plan right now. Please try again.",
+    "save",
+  );
 
-    // GSTIN is optional during onboarding; it is collected later in
-    // Settings → Billing before the first paid GST invoice. No mid-flow block.
-    try {
-      await setPlanSelection(tier, billingCycle, pricing, {
-        ...options,
-        currency,
-      });
-    } catch (error) {
-      setStepError(
-        getUserFacingErrorMessage(error, {
-          fallback:
-            "We could not continue with this plan right now. Please try again.",
-          context: "save",
-        }),
-      );
-    }
-  };
-
-  const handleSetTeamMembers = async (
+  const handleSetTeamMembers = (
     members: Parameters<typeof setTeamMembers>[0],
-  ) => {
-    setStepError(null);
-    try {
-      await setTeamMembers(members);
-    } catch (error) {
-      setStepError(
-        getUserFacingErrorMessage(error, {
-          fallback: "We could not continue setup. Please try again.",
-          context: "save",
-        }),
-      );
-    }
-  };
+  ) => withStepErrorHandling(
+    () => setTeamMembers(members),
+    setStepError,
+    "We could not continue setup. Please try again.",
+    "save",
+  );
 
-  const handleSkipTeamStep = async () => {
-    setStepError(null);
-    try {
-      await setTeamMembers([]);
-    } catch (error) {
-      setStepError(
-        getUserFacingErrorMessage(error, {
-          fallback: "We could not continue setup. Please try again.",
-          context: "save",
-        }),
-      );
-    }
-  };
+  const handleSkipTeamStep = () => withStepErrorHandling(
+    () => setTeamMembers([]),
+    setStepError,
+    "We could not continue setup. Please try again.",
+    "save",
+  );
 
-  const handleSubmitRegistration = async (
+  const handleSubmitRegistration = (
     data: ComplianceSettings,
     successCallback: () => void,
-  ) => {
-    setStepError(null);
-    try {
-      await submitRegistration(data, successCallback);
-    } catch (error) {
-      setStepError(
-        getUserFacingErrorMessage(error, {
-          fallback:
-            "We could not complete setup. Please check your details and try again.",
-          context: "form",
-        }),
-      );
-    }
-  };
-
-  // Guard: restart if required clinic data is missing while past step 1
-  useEffect(() => {
-    if (step <= 1) return;
-    const missingClinicData = getMissingClinicDetailsForProgress(
-      formData.clinicDetails,
-    );
-    if (missingClinicData.length === 0) return;
-
-    restartOnboarding();
-    localStorage.removeItem(DRAFT_KEY);
-    setStepError(
-      `Onboarding progress was incomplete (${missingClinicData.join(", ")}), so we started over from Step 1`,
-    );
-  }, [formData.clinicDetails, restartOnboarding, step]);
+  ) => withStepErrorHandling(
+    () => submitRegistration(data, successCallback),
+    setStepError,
+    "We could not complete setup. Please check your details and try again.",
+    "form",
+  );
 
   return (
     <div className="space-y-6">
+      <ComplianceDraftWatcher
+        complianceForm={complianceForm}
+        setComplianceDraft={setComplianceDraft}
+      />
+
+      <StepGuard
+        step={step}
+        formData={formData}
+        restartOnboarding={restartOnboarding}
+        setStepError={setStepError}
+      />
+
       <DraftRestoreDialog
         open={showDraftDialog}
         onOpenChange={setShowDraftDialog}

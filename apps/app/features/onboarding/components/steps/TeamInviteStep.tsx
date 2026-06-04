@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Plus, UserPlus } from "lucide-react";
 import type { TeamMember } from "@/features/onboarding/components/types";
 import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   OnboardingStepBody,
   OnboardingStepCard,
@@ -13,11 +12,16 @@ import {
 } from "@/features/onboarding/components/shared";
 import {
   type TeamInviteStepProps,
-  ROLE_OPTIONS,
   createEmptyMember,
   isDoctorRole,
 } from "./team-invite-step-constants";
 import { TeamMemberRow } from "./TeamMemberRow";
+import {
+  hasRowContent,
+  getMemberIssue,
+  TeamGuidanceSection,
+  MemberSummarySection,
+} from "./TeamInviteStepSections";
 
 export function TeamInviteStep({
   onComplete,
@@ -30,30 +34,6 @@ export function TeamInviteStep({
 }: TeamInviteStepProps) {
   const [members, setMembers] = useState<TeamMember[]>([createEmptyMember()]);
   const [emailErrors, setEmailErrors] = useState<Record<number, string>>({});
-
-  const hasRowContent = (member: TeamMember) =>
-    member.email.trim() !== "" ||
-    (member.name?.trim() ?? "") !== "" ||
-    (member.password?.trim() ?? "") !== "" ||
-    (member.phoneNumber?.trim() ?? "") !== "" ||
-    (member.specialization?.trim() ?? "") !== "" ||
-    (member.qualification?.trim() ?? "") !== "" ||
-    (member.registrationNumber?.trim() ?? "") !== "";
-
-  const getMemberIssue = (member: TeamMember, index: number) => {
-    if (!hasRowContent(member)) return null;
-    if (!member.name?.trim()) return "Enter the member's name";
-    if (!member.email.trim()) return "Enter the member's email";
-    if (!member.email.includes("@")) return "Enter a valid email address";
-    if (emailErrors[index]) return emailErrors[index];
-    if (!member.password?.trim() || member.password.trim().length < 8) {
-      return "Use a temporary password with at least 8 characters";
-    }
-    if (isDoctorRole(member.role) && !member.registrationNumber?.trim()) {
-      return "Enter the medical registration number";
-    }
-    return null;
-  };
 
   const addMember = () => {
     if (members.length < maxMembers) {
@@ -123,7 +103,7 @@ export function TeamInviteStep({
 
   const handleSubmit = () => {
     const validMembers = members.flatMap((member, index) => {
-      if (getMemberIssue(member, index) || !hasRowContent(member)) return [];
+      if (getMemberIssue(member, index, emailErrors) || !hasRowContent(member)) return [];
       return [
         {
           ...member,
@@ -147,7 +127,7 @@ export function TeamInviteStep({
   };
 
   const validMembers = members.filter(
-    (member, index) => !getMemberIssue(member, index) && hasRowContent(member),
+    (member, index) => !getMemberIssue(member, index, emailErrors) && hasRowContent(member),
   );
 
   const hasValidMembers = validMembers.length > 0;
@@ -162,39 +142,11 @@ export function TeamInviteStep({
         description="Add the first team members you want to invite now. We will suggest a plan on the next step based on your team size."
       />
       <OnboardingStepBody className="space-y-6">
-        <div className="ui-panel-muted p-4 space-y-2">
-          <p className="text-sm font-medium">Team guidance</p>
-          <p className="text-xs text-muted-foreground">
-            Your logged-in account is the clinic owner during onboarding. You
-            selected
-            <span className="font-medium">
-              {" "}
-              {ownerRole === "ADMIN_DOCTOR" ? "Admin doctor" : "Admin"}
-            </span>
-            , and you can add more members now and update permissions later in
-            Settings
-          </p>
-          {(ownerName || ownerEmail) && (
-            <div className="rounded-[var(--radius)] border border-border/70 bg-background/70 px-3 py-2">
-              <p className="text-xs text-muted-foreground">
-                Clinic Owner (already added)
-              </p>
-              <div className="mt-1 flex items-center justify-between gap-2">
-                <div>
-                  <p className="text-sm font-medium text-foreground">
-                    {ownerName || "Owner"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {ownerEmail || ""}
-                  </p>
-                </div>
-                <Badge variant="outline">
-                  {ownerRole === "ADMIN_DOCTOR" ? "Admin doctor" : "Admin"}
-                </Badge>
-              </div>
-            </div>
-          )}
-        </div>
+        <TeamGuidanceSection
+          ownerName={ownerName}
+          ownerEmail={ownerEmail}
+          ownerRole={ownerRole}
+        />
 
         <div className="space-y-4">
           {members.map((member, index) => (
@@ -204,7 +156,9 @@ export function TeamInviteStep({
               index={index}
               emailError={emailErrors[index]}
               hasRowContent={hasRowContent}
-              getMemberIssue={getMemberIssue}
+              getMemberIssue={(member, index) =>
+                getMemberIssue(member, index, emailErrors)
+              }
               updateMember={updateMember}
               removeMember={removeMember}
               membersCount={members.length}
@@ -224,46 +178,11 @@ export function TeamInviteStep({
           </Button>
         )}
 
-        {validMembers.length > 0 && (
-          <div className="rounded-lg border p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold">Members to be added</h4>
-              <Badge variant="secondary">
-                {validMembers.length + (ownerEmail ? 1 : 0)}
-              </Badge>
-            </div>
-            <div className="space-y-2">
-              {ownerEmail && (
-                <div className="flex items-center justify-between rounded-md border bg-muted/20 px-3 py-2 opacity-90">
-                  <span className="text-sm text-foreground">{ownerEmail}</span>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">
-                      {ownerRole === "ADMIN_DOCTOR" ? "Admin doctor" : "Admin"}
-                    </Badge>
-                    <Badge variant="secondary">Owner</Badge>
-                  </div>
-                </div>
-              )}
-              {validMembers.map((member) => (
-                <div
-                  key={`${member.email}-${member.role}`}
-                  className="flex items-center justify-between rounded-md border bg-muted/20 px-3 py-2"
-                >
-                  <span className="text-sm text-foreground">
-                    {member.email}
-                  </span>
-                  <Badge variant="outline">
-                    {
-                      ROLE_OPTIONS.find(
-                        (option) => option.value === member.role,
-                      )?.label
-                    }
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <MemberSummarySection
+          validMembers={validMembers}
+          ownerEmail={ownerEmail}
+          ownerRole={ownerRole}
+        />
       </OnboardingStepBody>
       <OnboardingStepFooter
         back={

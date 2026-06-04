@@ -5,7 +5,6 @@ import {
   useEffect,
   useRef,
   useState,
-  type MutableRefObject,
   type RefObject,
 } from "react";
 import { useRouter } from "next/navigation";
@@ -20,6 +19,11 @@ import {
   parseSameOriginAppNavigationUrl,
   resolveConsultationHrefNavigation,
 } from "@/features/consultation/workspace/consultation-leave-navigation-helpers";
+import {
+  armHistoryTrap,
+  peelConsultationLeaveHistoryTraps,
+  type NavigateAwayKind,
+} from "@/features/consultation/workspace/consultation-leave-helpers";
 
 export { CONSULTATION_LEAVE_GUARD_SKIP_ATTR };
 
@@ -27,26 +31,6 @@ export type ConsultationSaveHandles = {
   flush: (opts?: { force?: boolean }) => Promise<boolean>;
   submitPrescriptions: () => Promise<boolean>;
 };
-
-type NavigateAwayKind = "default" | "leaveDialogCompleted";
-
-function peelConsultationLeaveHistoryTraps(
-  pendingRef: MutableRefObject<number>,
-  peelingRef: MutableRefObject<boolean>,
-): void {
-  if (typeof window === "undefined") return;
-  const moves = pendingRef.current;
-  if (moves <= 0) return;
-  pendingRef.current = 0;
-  peelingRef.current = true;
-  try {
-    for (let i = 0; i < moves; i += 1) {
-      window.history.back();
-    }
-  } finally {
-    peelingRef.current = false;
-  }
-}
 
 interface UseConsultationLeaveNavigationOptions {
   readOnly: boolean;
@@ -130,22 +114,19 @@ export function useConsultationLeaveNavigation({
 
   useEffect(() => {
     if (readOnly) return;
-    const armTrapIfGuardedAndNonePending = () => {
-      if (readOnlyRef.current) return;
-      if (pendingLeaveHistoryTrapsRef.current > 0) return;
-      const st = useConsultationDraft.getState();
-      if (!consultationDraftNeedsLeaveGuard(st)) return;
-      window.history.pushState(null, "", window.location.href);
-      pendingLeaveHistoryTrapsRef.current += 1;
-    };
-    armTrapIfGuardedAndNonePending();
+    if (
+      !readOnlyRef.current &&
+      pendingLeaveHistoryTrapsRef.current === 0 &&
+      consultationDraftNeedsLeaveGuard(useConsultationDraft.getState())
+    ) {
+      armHistoryTrap(pendingLeaveHistoryTrapsRef);
+    }
     return useConsultationDraft.subscribe((state, prev) => {
       if (readOnlyRef.current) return;
       const need = consultationDraftNeedsLeaveGuard(state);
       const prevNeed = consultationDraftNeedsLeaveGuard(prev);
       if (need && !prevNeed) {
-        window.history.pushState(null, "", window.location.href);
-        pendingLeaveHistoryTrapsRef.current += 1;
+        armHistoryTrap(pendingLeaveHistoryTrapsRef);
       } else if (!need && prevNeed) {
         peelConsultationLeaveHistoryTraps(
           pendingLeaveHistoryTrapsRef,
@@ -164,8 +145,7 @@ export function useConsultationLeaveNavigation({
         return;
       }
       pendingLinkNavigationHrefRef.current = null;
-      window.history.pushState(null, "", window.location.href);
-      pendingLeaveHistoryTrapsRef.current += 1;
+      armHistoryTrap(pendingLeaveHistoryTrapsRef);
       setLeaveDialogOpenInternal(true);
     };
     window.addEventListener("popstate", onPopState);

@@ -15,36 +15,54 @@ export function parseMoneyInput(raw: string): number {
   return Number.isFinite(n) ? n : Number.NaN;
 }
 
+function parseInvoiceItems(rawItems: unknown): OCRInvoiceForm["items"] {
+  if (!Array.isArray(rawItems)) return [];
+  const items: OCRInvoiceForm["items"] = [];
+  for (const row of rawItems) {
+    if (!isRecord(row)) continue;
+    const r = row;
+    const description = typeof r.description === "string" ? r.description : String(r.description ?? "");
+    const quantity = typeof r.quantity === "number" && Number.isFinite(r.quantity) ? String(r.quantity) : String(r.quantity ?? "");
+    const unitPrice = typeof r.unitPrice === "number" && Number.isFinite(r.unitPrice) ? String(r.unitPrice) : String(r.unitPrice ?? "");
+    const total = typeof r.total === "number" && Number.isFinite(r.total) ? String(r.total) : String(r.total ?? "");
+    items.push({ description, quantity, unitPrice, total });
+  }
+  return items;
+}
+
+function numStr(v: unknown): string {
+  return typeof v === "number" && Number.isFinite(v) ? String(v) : "";
+}
+
+function computeGrandTotal(invoiceTotal: unknown, items: OCRInvoiceForm["items"]): string {
+  const fromInvoice = numStr(invoiceTotal);
+  if (fromInvoice) return fromInvoice;
+  if (items.length === 0) return "";
+  let sum = 0;
+  let any = false;
+  for (const it of items) {
+    const t = parseMoneyInput(it.total);
+    if (Number.isFinite(t)) {
+      sum += t;
+      any = true;
+    }
+  }
+  return any ? String(sum) : "";
+}
+
 export function mapOcrFieldsToInvoiceForm(fields: unknown): OCRInvoiceForm {
   const empty = emptyOcrInvoiceForm();
   if (!isRecord(fields)) return empty;
-  const invUnknown = fields.invoice;
-  if (!isRecord(invUnknown)) return empty;
-  const inv = invUnknown;
-  const itemsRaw = inv.items;
-  const items: OCRInvoiceForm["items"] = [];
-  if (Array.isArray(itemsRaw)) {
-    for (const row of itemsRaw) {
-      if (!isRecord(row)) continue;
-      const r = row;
-      const description = typeof r.description === "string" ? r.description : String(r.description ?? "");
-      const quantity = typeof r.quantity === "number" && Number.isFinite(r.quantity) ? String(r.quantity) : String(r.quantity ?? "");
-      const unitPrice = typeof r.unitPrice === "number" && Number.isFinite(r.unitPrice) ? String(r.unitPrice) : String(r.unitPrice ?? "");
-      const total = typeof r.total === "number" && Number.isFinite(r.total) ? String(r.total) : String(r.total ?? "");
-      items.push({ description, quantity, unitPrice, total });
-    }
-  }
-  const numStr = (v: unknown) => typeof v === "number" && Number.isFinite(v) ? String(v) : "";
-  let grandTotal = numStr(inv.total);
-  if (!grandTotal && items.length > 0) {
-    let sum = 0; let any = false;
-    for (const it of items) {
-      const t = parseMoneyInput(it.total);
-      if (Number.isFinite(t)) { sum += t; any = true; }
-    }
-    if (any) grandTotal = String(sum);
-  }
-  return { saveAsPending: false, grandTotal, subtotal: numStr(inv.subtotal), taxTotal: numStr(inv.tax), items };
+  const inv = fields.invoice;
+  if (!isRecord(inv)) return empty;
+  const items = parseInvoiceItems(inv.items);
+  return {
+    saveAsPending: false,
+    grandTotal: computeGrandTotal(inv.total, items),
+    subtotal: numStr(inv.subtotal),
+    taxTotal: numStr(inv.tax),
+    items,
+  };
 }
 
 export function buildOcrFormData(

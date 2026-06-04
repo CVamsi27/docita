@@ -14,12 +14,18 @@ import {
   appQueryKeys,
   useGenerateSignatureToken,
 } from "@workspace/data-access";
-import { toAbsoluteApiUrl, toAbsoluteAppUrl } from "@/lib/utils/url";
+import { toAbsoluteAppUrl } from "@/lib/utils/url";
 import { isDoctor as checkIsDoctor } from "@/lib/auth/permissions";
 import { usePhoneSignatureQrFlow } from "@/hooks/use-phone-signature-qr-flow";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { shouldRedirectToWorkspace } from "@/features/onboarding/lib/redirect-logic";
 import { extractRegistrationFieldError } from "@/features/onboarding/components/verify-doctor/helpers";
+import {
+  resolveDoctorSignatureUrls,
+  getDoctorRegistrationState,
+  getIsInitialLoading,
+  buildRegistrationPayload,
+  REGISTRATION_NUMBER_REQUIRED_ERROR,
+} from "./verify-doctor-helpers";
 
 /**
  * Owns all data, state, and effects for the verify-doctor page.
@@ -75,29 +81,29 @@ export function useVerifyDoctor() {
   );
 
   const profile = doctorProfile ?? user;
-  const hasSignature = !!profile?.signatureUrl;
-  const hasSavedRegistration = !!profile?.registrationNumber;
-  const hasDraftRegistration = registrationNumber.trim().length > 0;
-  const hasRegistrationProgress = hasSavedRegistration || hasDraftRegistration;
-  const canContinue = hasSignature && hasRegistrationProgress;
-  const canAutoRedirect = shouldRedirectToWorkspace(
+
+  const {
     hasSignature,
     hasSavedRegistration,
-  );
+    hasDraftRegistration,
+    hasRegistrationProgress,
+    canContinue,
+    canAutoRedirect,
+  } = getDoctorRegistrationState(profile, registrationNumber);
 
-  const onboardingSignatureUrl = clinic?.slaSignatureUrl ?? null;
-  const onboardingSignatureStoredUrl = clinic?.slaSignatureStoredUrl ?? null;
-  const onboardingSignatureSourceUrl =
-    onboardingSignatureStoredUrl ?? onboardingSignatureUrl;
-  const resolvedOnboardingSignatureUrl = onboardingSignatureSourceUrl
-    ? toAbsoluteApiUrl(onboardingSignatureSourceUrl)
-    : null;
-  const resolvedProfileSignatureUrl = profile?.signatureUrl
-    ? toAbsoluteApiUrl(profile.signatureUrl)
-    : null;
-  const canUseOnboardingSignature =
-    isAdminDoctor && Boolean(onboardingSignatureSourceUrl) && !hasSignature;
-  const shouldDeferQrAutoStart = isAdminDoctor && clinicLoading;
+  const {
+    onboardingSignatureSourceUrl,
+    resolvedOnboardingSignatureUrl,
+    resolvedProfileSignatureUrl,
+    canUseOnboardingSignature,
+    shouldDeferQrAutoStart,
+  } = resolveDoctorSignatureUrls({
+    clinic,
+    profile,
+    isAdminDoctor,
+    hasSignature,
+    clinicLoading,
+  });
 
   useEffect(() => {
     if (!doctorProfile) return;
@@ -177,13 +183,11 @@ export function useVerifyDoctor() {
     setIsSavingReg(true);
     setRegistrationError(null);
     try {
-      const payload: UpdateDoctorRegistrationRequest = {
-        registrationNumber: registrationNumber.trim(),
-      };
-      const council = registrationCouncil.trim();
-      const region = registrationStateCode.trim();
-      if (council) payload.registrationCouncil = council;
-      if (region) payload.registrationStateCode = region;
+      const payload = buildRegistrationPayload({
+        registrationNumber,
+        registrationCouncil,
+        registrationStateCode,
+      });
 
       await updateDoctorRegistration.mutateAsync(payload);
       await refetch();
@@ -217,7 +221,7 @@ export function useVerifyDoctor() {
   const handleContinue = useCallback(async () => {
     if (!hasSignature) return;
     if (!hasSavedRegistration && !registrationNumber.trim()) {
-      setRegistrationError("Please enter your registration number");
+      setRegistrationError(REGISTRATION_NUMBER_REQUIRED_ERROR);
       return;
     }
 
@@ -245,12 +249,14 @@ export function useVerifyDoctor() {
     router,
   ]);
 
-  const isInitialLoading =
-    authLoading ||
-    (!!user?.id && isDoctor && profileLoading && !doctorProfile) ||
-    !user ||
-    !isDoctor ||
-    canAutoRedirect;
+  const isInitialLoading = getIsInitialLoading({
+    authLoading,
+    user,
+    isDoctor,
+    profileLoading,
+    doctorProfile,
+    canAutoRedirect,
+  });
 
   return {
     isRedirecting,

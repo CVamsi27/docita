@@ -5,10 +5,15 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { formatLoginLockoutMessage } from "@/lib/auth/auth-lockout";
 import { ApiValidationError } from "@/lib/api/api-error";
-import { checkEmailSchema, passwordSchema } from "@workspace/types";
+import { checkEmailSchema } from "@workspace/types";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import type { AuthStep, FieldErrors } from "@/features/auth/types/auth";
 import { getAuthenticatedLandingPath } from "@/features/auth/lib/auth-landing-path";
+import {
+  computeAuthPageLayout,
+  validateSignupForm,
+  clearFieldErrorFrom,
+} from "./auth-page-container-helpers";
 
 export function useAuthPageContainer() {
   const [step, setStep] = useState<AuthStep>("email");
@@ -48,11 +53,8 @@ export function useAuthPageContainer() {
   const lockoutMessage = isLoginLocked
     ? formatLoginLockoutMessage(loginLockoutUntil ?? 0)
     : "";
-  const contentAlignment =
-    step === "signup" ? ("start" as const) : ("center" as const);
-  const contentMaxWidth = step === "signup" ? "max-w-3xl" : "max-w-md";
-  const copyAlignment =
-    step === "signup" ? "text-center lg:text-left" : "text-center";
+  const { contentAlignment, contentMaxWidth, copyAlignment } =
+    computeAuthPageLayout(step);
 
   const resetErrors = () => {
     setError("");
@@ -60,15 +62,7 @@ export function useAuthPageContainer() {
   };
 
   const clearFieldError = (field: string) => {
-    setFieldErrors((prev) => {
-      if (!prev[field]) {
-        return prev;
-      }
-
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
+    setFieldErrors((prev) => clearFieldErrorFrom(field, prev));
   };
 
   const handleOwnerRoleChange = (value: "ADMIN" | "ADMIN_DOCTOR") => {
@@ -160,28 +154,11 @@ export function useAuthPageContainer() {
     e.preventDefault();
     resetErrors();
 
-    const nextFieldErrors: FieldErrors = {};
-
-    if (!password.trim()) {
-      nextFieldErrors.password = "Enter password";
-    } else {
-      const passwordValidation = passwordSchema.safeParse(password);
-      if (!passwordValidation.success) {
-        const firstIssue = passwordValidation.error.issues[0];
-        nextFieldErrors.password =
-          firstIssue?.message ?? "Enter a valid password";
-      }
-    }
-
-    if (!confirmPassword) {
-      nextFieldErrors.confirmPassword = "Confirm password";
-    } else if (password !== confirmPassword) {
-      nextFieldErrors.confirmPassword = "Passwords do not match";
-    }
-
-    if (!ownerRole) {
-      nextFieldErrors.ownerRole = "Choose how you will use this owner account";
-    }
+    const nextFieldErrors = validateSignupForm(
+      password,
+      confirmPassword,
+      ownerRole,
+    );
 
     if (Object.keys(nextFieldErrors).length > 0) {
       setFieldErrors(nextFieldErrors);

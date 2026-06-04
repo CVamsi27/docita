@@ -8,11 +8,11 @@ import {
   usePublicBookingSubmit,
 } from "@workspace/data-access";
 import { ApiError } from "@/lib/errors";
-import { buildPublicBookingSubmitErrors } from "@/lib/utils/api-validation-errors";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   validateBookingFields,
   buildBookingRequestBody,
+  processPublicBookingSubmitError,
 } from "./public-booking-submit-helpers";
 
 interface SubmitActionsState {
@@ -197,16 +197,10 @@ export function usePublicBookingSubmitActions(
       await submit.mutateAsync(submitPayload);
       setDone(true);
     } catch (error) {
-      const built = buildPublicBookingSubmitErrors(error);
-      let fieldErrors = built.fieldErrors;
-      let generalMessage = built.generalMessage;
-
-      if (fieldErrors.turnstileToken && !siteKey) {
-        generalMessage = generalMessage ?? fieldErrors.turnstileToken;
-        const next = { ...fieldErrors };
-        delete next.turnstileToken;
-        fieldErrors = next;
-      }
+      const { fieldErrors, generalMessage } = processPublicBookingSubmitError(
+        error,
+        siteKey,
+      );
 
       setSubmitFieldErrors(fieldErrors);
       setSubmitGeneralMessage(generalMessage);

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DEFAULT_COUNTRY_CODE, isRecord } from "@workspace/utils";
+import { DEFAULT_COUNTRY_CODE, getUserFacingErrorMessage, isRecord } from "@workspace/utils";
 import type {
   ClinicDetails,
   ComplianceSettings,
@@ -121,4 +121,20 @@ export function getMissingClinicDetailsForProgress(
   if (!clinicDetails?.address?.trim()) missing.push("facility address");
   if (!clinicDetails?.type) missing.push("facility type");
   return missing;
+}
+
+export async function withStepErrorHandling<T>(
+  action: () => Promise<T>,
+  setStepError: (error: string | null) => void,
+  fallback: string,
+  context: string,
+): Promise<T | undefined> {
+  setStepError(null);
+  try {
+    return await action();
+  } catch (error) {
+    setStepError(
+      getUserFacingErrorMessage(error, { fallback, context }),
+    );
+  }
 }

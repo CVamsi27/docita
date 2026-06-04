@@ -3,35 +3,16 @@ import { toast } from "sonner";
 import { useAppConfig } from "@/lib/contexts/app-config-context";
 import { fetchWithSession } from "@/lib/auth/fetch-with-session";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import {
+  DEFAULT_PATIENT_IMPORT_FIELDS,
+  hasRequiredMappings as hasRequiredMappingsHelper,
+  type ColumnMapping,
+  type ImportPreview,
+  type ImportResult,
+  type Step,
+} from "./excel-import-helpers";
 
-export interface ColumnMapping {
-  excelColumn: string;
-  dbField: string | null;
-  sampleValues: string[];
-}
-
-export interface ImportPreview {
-  sessionId: string;
-  columns: ColumnMapping[];
-  suggestedMappings: Record<string, string>;
-  totalRows: number;
-  sampleData: Record<string, string | number | null>[];
-}
-
-export interface ImportResult {
-  total: number;
-  success: number;
-  failed: number;
-  duplicates: number;
-  errors: string[];
-  duplicateDetails: Array<{
-    row: number;
-    reason: string;
-    existingPatient?: { id: string; name: string; phone: string };
-  }>;
-}
-
-export type Step = "upload" | "mapping" | "importing" | "results";
+export type { ColumnMapping, ImportPreview, ImportResult, Step };
 
 export const useExcelImport = () => {
   const { config } = useAppConfig();
@@ -39,58 +20,7 @@ export const useExcelImport = () => {
   const DB_FIELDS =
     config.patientImportFields.length > 0
       ? config.patientImportFields
-      : [
-          {
-            field: "firstName",
-            label: "First Name",
-            required: true,
-            type: "text",
-          },
-          {
-            field: "lastName",
-            label: "Last Name",
-            required: false,
-            type: "text",
-          },
-          {
-            field: "phoneNumber",
-            label: "Phone Number",
-            required: true,
-            type: "phone",
-          },
-          { field: "email", label: "Email", required: false, type: "email" },
-          {
-            field: "dateOfBirth",
-            label: "Date of Birth",
-            required: false,
-            type: "date",
-          },
-          { field: "gender", label: "Gender", required: false, type: "select" },
-          {
-            field: "bloodGroup",
-            label: "Blood Group",
-            required: false,
-            type: "select",
-          },
-          {
-            field: "address",
-            label: "Address",
-            required: false,
-            type: "textarea",
-          },
-          {
-            field: "allergies",
-            label: "Allergies",
-            required: false,
-            type: "text",
-          },
-          {
-            field: "medicalHistory",
-            label: "Medical History",
-            required: false,
-            type: "textarea",
-          },
-        ];
+      : DEFAULT_PATIENT_IMPORT_FIELDS;
 
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
@@ -160,12 +90,10 @@ export const useExcelImport = () => {
     });
   };
 
-  const hasRequiredMappings = () => {
-    const mappedFields = Object.values(columnMappings);
-    return (
-      mappedFields.includes("firstName") && mappedFields.includes("phoneNumber")
-    );
-  };
+  const hasRequiredMappings = useCallback(
+    () => hasRequiredMappingsHelper(columnMappings),
+    [columnMappings],
+  );
 
   const handleImport = async () => {
     if (!preview) return;

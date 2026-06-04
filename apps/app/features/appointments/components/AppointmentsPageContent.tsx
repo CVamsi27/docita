@@ -21,11 +21,12 @@ import { Feature } from "@/lib/stores/permission-store";
 import { useAppointmentsLogic } from "@/features/appointments/hooks/use-appointments-logic";
 import {
   AppointmentRowActionDialogs,
-  AppointmentsCalendarUI,
-  AppointmentsListUI,
   AppointmentsPageHeaderUI,
-  AppointmentsWeekView,
 } from "@/features/appointments/components";
+import {
+  AppointmentsWeekViewSection,
+  AppointmentsDayViewSection,
+} from "./AppointmentsPageContentSections";
 import { AppointmentSummaryBar } from "@/features/appointments/components/AppointmentSummaryBar";
 import { CalendarViewToggle } from "@/features/appointments/components/CalendarViewToggle";
 import { DoctorDelayBanner } from "@/features/appointments/components/DoctorDelayBanner";
@@ -195,68 +196,48 @@ function AppointmentsContent() {
         ) : null}
 
         {isV2Design && calendarView === "week" ? (
-          isError ? (
-            <DataState
-              status="error"
-              className="min-h-[40vh]"
-              errorMessage="We could not load this week's appointments. Please try again."
-              onRetry={refetch}
-            />
-          ) : (
-            <AppointmentsWeekView
-              appointments={monthRangeAppointments}
-              selectedPickerIso={selectedPickerIso}
-              clinicTz={clinicTz}
-              onSelectDay={setDate}
-              onOpenAppointment={(appointment) => {
-                setDate(new Date(appointment.startTime));
-                setCalendarView("day");
-              }}
-            />
-          )
+          <AppointmentsWeekViewSection
+            monthRangeAppointments={monthRangeAppointments}
+            selectedPickerIso={selectedPickerIso}
+            clinicTz={clinicTz}
+            onSelectDay={setDate}
+            onOpenAppointment={(appointment) => {
+              setDate(new Date(appointment.startTime));
+              setCalendarView("day");
+            }}
+            isError={isError}
+            onRetry={refetch}
+          />
         ) : (
-          <div className="grid gap-4 md:gap-6 lg:grid-cols-[minmax(320px,360px)_minmax(0,1fr)]">
-            <div className="order-2 lg:order-1">
-              <AppointmentsCalendarUI
-                selectedPickerIso={selectedPickerIso}
-                date={date}
-                onDateSelect={setDate}
-                calendarMonth={calendarMonth}
-                onCalendarMonthChange={onCalendarMonthChange}
-                appointmentCountsByDay={appointmentCountsByDay}
-                canViewAllDoctors={canViewAllDoctors || false}
-                doctorsList={doctorsList}
-                selectedDoctorId={selectedDoctorId}
-                onDoctorSelect={setSelectedDoctorId}
-              />
-            </div>
-
-            <div className="order-1 min-w-0 lg:order-2">
-              <AppointmentsListUI
-                selectedPickerIso={selectedPickerIso}
-                clinicTz={clinicTz}
-                canViewAllDoctors={canViewAllDoctors || false}
-                loading={loading}
-                isError={isError}
-                onRetry={refetch}
-                doctorsList={doctorsList}
-                selectedDoctorId={selectedDoctorId}
-                filteredAppointments={filteredAppointments}
-                hasMoreAppointments={hasMoreAppointments}
-                isToday={isToday}
-                currentTimeSlot={currentTimeSlot}
-                currentTimeSlotRef={currentTimeSlotRef}
-                checkingIn={checkingIn}
-                startingConsultationId={startingConsultationId}
-                onCheckIn={handleCheckIn}
-                onStartConsultation={handleStartConsultation}
-                onCancelClick={onCancelClick}
-                onNoShowClick={onNoShowClick}
-                onScheduleFollowUp={handleScheduleFollowUp}
-                currentUserId={user?.id}
-              />
-            </div>
-          </div>
+          <AppointmentsDayViewSection
+            selectedPickerIso={selectedPickerIso}
+            date={date}
+            onDateSelect={setDate}
+            calendarMonth={calendarMonth}
+            onCalendarMonthChange={onCalendarMonthChange}
+            appointmentCountsByDay={appointmentCountsByDay}
+            canViewAllDoctors={canViewAllDoctors || false}
+            doctorsList={doctorsList}
+            selectedDoctorId={selectedDoctorId}
+            onDoctorSelect={setSelectedDoctorId}
+            clinicTz={clinicTz}
+            loading={loading}
+            isError={isError}
+            onRetry={refetch}
+            filteredAppointments={filteredAppointments}
+            hasMoreAppointments={hasMoreAppointments}
+            isToday={isToday}
+            currentTimeSlot={currentTimeSlot}
+            currentTimeSlotRef={currentTimeSlotRef}
+            checkingIn={checkingIn}
+            startingConsultationId={startingConsultationId}
+            onCheckIn={handleCheckIn}
+            onStartConsultation={handleStartConsultation}
+            onCancelClick={onCancelClick}
+            onNoShowClick={onNoShowClick}
+            onScheduleFollowUp={handleScheduleFollowUp}
+            currentUserId={user?.id}
+          />
         )}
 
         <div

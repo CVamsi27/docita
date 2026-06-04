@@ -2,16 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/navigation/tabs";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { BellIcon, TrashIcon } from "lucide-react";
+import { BellIcon } from "lucide-react";
 import {
   queryKeys,
   useAllNotifications,
@@ -27,11 +19,11 @@ import {
   NOTIFICATION_CATEGORIES,
   type NotificationCategoryId,
 } from "@/components/navigation/notification-href";
+import { filterByCategory } from "./notification-inbox-row";
 import {
-  NotificationRow,
-  categorize,
-  filterByCategory,
-} from "./notification-inbox-row";
+  NotificationsInboxHeader,
+  NotificationsInboxTabs,
+} from "./NotificationsInboxViewSections";
 
 export function NotificationsInboxView() {
   const {
@@ -104,6 +96,16 @@ export function NotificationsInboxView() {
     await deleteOne.mutateAsync({ id });
   };
 
+  const handleClearAll = async () => {
+    if (isDeleting) return;
+    setIsDeleting(true);
+    try {
+      await deleteAll.mutateAsync();
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const active = notifications.filter((n) => !n.deletedAt);
   const unreadCount = active.filter((n) => !n.isRead).length;
 
@@ -155,126 +157,22 @@ export function NotificationsInboxView() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[length:var(--fs-sm)] text-muted-foreground">
-          {unreadCount > 0
-            ? `${unreadCount} unread`
-            : "All caught up — review history below."}
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={isDeleting}
-          onClick={async () => {
-            if (isDeleting) return;
-            setIsDeleting(true);
-            try {
-              await deleteAll.mutateAsync();
-            } finally {
-              setIsDeleting(false);
-            }
-          }}
-        >
-          <TrashIcon className="mr-2 h-4 w-4" />
-          Clear all
-        </Button>
-      </div>
-      <Tabs
-        value={activeTab}
-        onValueChange={(v) => {
+      <NotificationsInboxHeader
+        unreadCount={unreadCount}
+        isDeleting={isDeleting}
+        onClearAll={handleClearAll}
+      />
+      <NotificationsInboxTabs
+        activeTab={activeTab}
+        onTabChange={(v) => {
           if (isNotificationCategoryId(v)) setActiveTab(v);
         }}
-      >
-        <TabsList className="w-full justify-start overflow-x-auto">
-          {visibleCategories.map((cat) => {
-            const count = unreadByTab[cat.id] ?? 0;
-            return (
-              <TabsTrigger key={cat.id} value={cat.id} className="gap-2">
-                <span>{cat.label}</span>
-                {count > 0 && (
-                  <Badge variant="secondary" className="h-5 px-1.5">
-                    {count}
-                  </Badge>
-                )}
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
-        {visibleCategories.map((cat) => {
-          const items = byTab[cat.id] ?? [];
-          const grouped = categorize(items);
-          const empty =
-            grouped.today.length === 0 &&
-            grouped.yesterday.length === 0 &&
-            grouped.older.length === 0;
-          return (
-            <TabsContent key={cat.id} value={cat.id} className="mt-4">
-              {empty ? (
-                <DataState
-                  status="empty"
-                  emptyIcon={BellIcon}
-                  emptyTitle={`No ${cat.label.toLowerCase()} notifications`}
-                  className="min-h-[30vh]"
-                />
-              ) : (
-                <div className="space-y-6">
-                  {grouped.today.length > 0 && (
-                    <section>
-                      <h3 className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
-                        Today
-                      </h3>
-                      <div className="overflow-hidden rounded-md border">
-                        {grouped.today.map((n) => (
-                          <NotificationRow
-                            key={n.id}
-                            notification={n}
-                            onMarkRead={handleMarkRead}
-                            onDelete={handleDelete}
-                          />
-                        ))}
-                      </div>
-                    </section>
-                  )}
-                  {grouped.yesterday.length > 0 && (
-                    <section>
-                      <h3 className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
-                        Yesterday
-                      </h3>
-                      <div className="overflow-hidden rounded-md border">
-                        {grouped.yesterday.map((n) => (
-                          <NotificationRow
-                            key={n.id}
-                            notification={n}
-                            onMarkRead={handleMarkRead}
-                            onDelete={handleDelete}
-                          />
-                        ))}
-                      </div>
-                    </section>
-                  )}
-                  {grouped.older.length > 0 && (
-                    <section>
-                      <h3 className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
-                        Older
-                      </h3>
-                      <div className="overflow-hidden rounded-md border">
-                        {grouped.older.map((n) => (
-                          <NotificationRow
-                            key={n.id}
-                            notification={n}
-                            onMarkRead={handleMarkRead}
-                            onDelete={handleDelete}
-                          />
-                        ))}
-                      </div>
-                    </section>
-                  )}
-                </div>
-              )}
-            </TabsContent>
-          );
-        })}
-      </Tabs>
+        visibleCategories={visibleCategories}
+        unreadByTab={unreadByTab}
+        byTab={byTab}
+        onMarkRead={handleMarkRead}
+        onDelete={handleDelete}
+      />
     </div>
   );
 }

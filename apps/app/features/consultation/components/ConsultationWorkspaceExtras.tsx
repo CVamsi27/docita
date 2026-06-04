@@ -2,17 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MoreHorizontal } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/overlay/dropdown-menu";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatChiefComplaintSummary } from "@workspace/utils";
 import { formatDate, DATE_FORMAT_OPTIONS_US_LONG } from "@/lib/formatters";
@@ -26,6 +17,11 @@ import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { isConsultationReadOnlyStatus } from "@/features/appointments";
+import {
+  PrimaryActionButtons,
+  ViewActionsInline,
+  ViewActionsOverflow,
+} from "./ConsultationWorkspaceExtrasSections";
 
 interface ConsultationVisitOverviewStripProps {
   appointment: Appointment;
@@ -123,137 +119,33 @@ export function ConsultationAfterVisitStrip({
       aria-label="After this visit"
     >
       <MicroLabel className="mb-2 block">After this visit</MicroLabel>
-      {/* Single row — wraps naturally on wide screens, overflow into "More" on narrow */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* Primary actions — always visible */}
-        {(canCreatePrescription || canViewPrescriptions) && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onGoToPlan}
-          >
-            Plan &amp; Rx
-          </Button>
-        )}
-        {canViewInvoices ? (
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/desk/collect-payment">Collect payment</Link>
-          </Button>
-        ) : null}
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/follow-ups">Schedule follow-up</Link>
-        </Button>
+        <PrimaryActionButtons
+          canCreatePrescription={canCreatePrescription}
+          canViewPrescriptions={canViewPrescriptions}
+          canViewInvoices={canViewInvoices}
+          onGoToPlan={onGoToPlan}
+        />
 
-        {/* View buttons — shown inline on md+, collapsed into dropdown on smaller screens */}
-        {canViewPrescriptions ? (
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden md:inline-flex"
-            asChild
-          >
-            <Link href={`/prescriptions?patientId=${encodeURIComponent(patientId)}`}>
-              View prescriptions
-            </Link>
-          </Button>
-        ) : null}
-        {canViewInvoices ? (
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden md:inline-flex"
-            asChild
-          >
-            <Link href={`/patients/${patientId}?tab=billing`}>View invoices</Link>
-          </Button>
-        ) : null}
-        {canLab ? (
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden lg:inline-flex"
-            asChild
-          >
-            <Link href={`/patients/${patientId}?tab=records&subtab=labs`}>
-              View lab tests
-            </Link>
-          </Button>
-        ) : null}
-        {canWhatsapp ? (
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden lg:inline-flex"
-            asChild
-          >
-            <Link href={`/patients/${patientId}?tab=communication`}>
-              View messages
-            </Link>
-          </Button>
-        ) : null}
-        {completed && canCodingQueue ? (
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden lg:inline-flex"
-            asChild
-          >
-            <Link href="/coding-queue">Coding queue</Link>
-          </Button>
-        ) : null}
+        <ViewActionsInline
+          patientId={patientId}
+          canViewPrescriptions={canViewPrescriptions}
+          canViewInvoices={canViewInvoices}
+          canLab={canLab}
+          canWhatsapp={canWhatsapp}
+          completed={completed}
+          canCodingQueue={canCodingQueue}
+        />
 
-        {/* Overflow dropdown — visible below md, collects all view buttons */}
-        {(canViewPrescriptions || canViewInvoices || canLab || canWhatsapp || (completed && canCodingQueue)) ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="md:hidden gap-1.5"
-                aria-label="More options"
-              >
-                <MoreHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
-                More
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuLabel>Patient records</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {canViewPrescriptions ? (
-                <DropdownMenuItem asChild>
-                  <Link href={`/prescriptions?patientId=${encodeURIComponent(patientId)}`}>
-                    View prescriptions
-                  </Link>
-                </DropdownMenuItem>
-              ) : null}
-              {canViewInvoices ? (
-                <DropdownMenuItem asChild>
-                  <Link href={`/patients/${patientId}?tab=billing`}>View invoices</Link>
-                </DropdownMenuItem>
-              ) : null}
-              {canLab ? (
-                <DropdownMenuItem asChild>
-                  <Link href={`/patients/${patientId}?tab=records&subtab=labs`}>
-                    View lab tests
-                  </Link>
-                </DropdownMenuItem>
-              ) : null}
-              {canWhatsapp ? (
-                <DropdownMenuItem asChild>
-                  <Link href={`/patients/${patientId}?tab=communication`}>
-                    View messages
-                  </Link>
-                </DropdownMenuItem>
-              ) : null}
-              {completed && canCodingQueue ? (
-                <DropdownMenuItem asChild>
-                  <Link href="/coding-queue">Coding queue</Link>
-                </DropdownMenuItem>
-              ) : null}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : null}
+        <ViewActionsOverflow
+          patientId={patientId}
+          canViewPrescriptions={canViewPrescriptions}
+          canViewInvoices={canViewInvoices}
+          canLab={canLab}
+          canWhatsapp={canWhatsapp}
+          completed={completed}
+          canCodingQueue={canCodingQueue}
+        />
       </div>
     </div>
   );

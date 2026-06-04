@@ -1,6 +1,7 @@
 import { getPatientFullName } from "@workspace/utils";
 import { DPDP_NOTICE_VERSION } from "@workspace/types";
 import { ANY_DOCTOR_ID } from "@/features/public-booking/public-booking-constants";
+import { buildPublicBookingSubmitErrors } from "@/lib/utils/api-validation-errors";
 
 export interface BookingValidationState {
   slotDate: string;
@@ -102,4 +103,21 @@ export function buildBookingRequestBody(input: BookingBodyInput) {
     },
     authorization: input.verificationToken ?? undefined,
   } as const;
+}
+
+export function processPublicBookingSubmitError(
+  error: unknown,
+  siteKey: string | undefined,
+): { fieldErrors: Record<string, string>; generalMessage: string | null } {
+  const built = buildPublicBookingSubmitErrors(error);
+  let { fieldErrors, generalMessage } = built;
+
+  if (fieldErrors.turnstileToken && !siteKey) {
+    generalMessage = generalMessage ?? fieldErrors.turnstileToken;
+    const next = { ...fieldErrors };
+    delete next.turnstileToken;
+    fieldErrors = next;
+  }
+
+  return { fieldErrors, generalMessage };
 }

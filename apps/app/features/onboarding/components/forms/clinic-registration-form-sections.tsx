@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import type { UseFormReturn } from "react-hook-form";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import {
@@ -17,7 +19,76 @@ import {
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatDateTime } from "@/lib/formatters";
-import { STEPS, TOTAL_STEPS } from "./clinic-registration-form-helpers";
+import type {
+  ClinicDetails,
+  ComplianceSettings,
+} from "@/features/onboarding/components/types";
+import {
+  getMissingClinicDetailsForProgress,
+  DRAFT_KEY,
+  STEPS,
+  TOTAL_STEPS,
+} from "./clinic-registration-form-helpers";
+
+// ---------------------------------------------------------------------------
+// ComplianceDraftWatcher
+// ---------------------------------------------------------------------------
+
+export function ComplianceDraftWatcher({
+  complianceForm,
+  setComplianceDraft,
+}: {
+  complianceForm: UseFormReturn<ComplianceSettings>;
+  setComplianceDraft: (draft: Partial<ComplianceSettings>) => void;
+}) {
+  useEffect(() => {
+    const subscription = complianceForm.watch((values) => {
+      setComplianceDraft({
+        acceptedSLA: values.acceptedSLA,
+        acceptedPrivacyPolicy: values.acceptedPrivacyPolicy,
+        acceptedDataProcessing: values.acceptedDataProcessing,
+        enableWhatsApp: values.enableWhatsApp,
+        requireConsent: values.requireConsent,
+        slaSignatureSessionId: values.slaSignatureSessionId,
+      });
+    });
+    return () => subscription.unsubscribe();
+  }, [complianceForm, setComplianceDraft]);
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// StepGuard
+// ---------------------------------------------------------------------------
+
+export function StepGuard({
+  step,
+  formData,
+  restartOnboarding,
+  setStepError,
+}: {
+  step: number;
+  formData: { clinicDetails: Partial<ClinicDetails> };
+  restartOnboarding: () => void;
+  setStepError: (error: string | null) => void;
+}) {
+  useEffect(() => {
+    if (step <= 1) return;
+    const missingClinicData = getMissingClinicDetailsForProgress(
+      formData.clinicDetails,
+    );
+    if (missingClinicData.length === 0) return;
+
+    restartOnboarding();
+    localStorage.removeItem(DRAFT_KEY);
+    setStepError(
+      `Onboarding progress was incomplete (${missingClinicData.join(", ")}), so we started over from Step 1`,
+    );
+  }, [formData.clinicDetails, restartOnboarding, step, setStepError]);
+
+  return null;
+}
 
 // ---------------------------------------------------------------------------
 // DraftRestoreDialog

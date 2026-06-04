@@ -3,39 +3,23 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Button } from "@workspace/ui/components/form/button";
-import { DatePicker } from "@workspace/ui/components/form/date-picker";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Textarea } from "@workspace/ui/components/form/textarea";
+import { Form } from "@workspace/ui/components/form/form";
 import { useApplyLeave } from "@workspace/data-access";
 import { createLeaveRequestSchema } from "@workspace/types";
 import type { User } from "@workspace/types";
 import type { z } from "zod";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { LEAVE_TYPE_LABELS } from "./LeaveBalanceCard";
-import { labelMapKeys } from "@workspace/utils";
+import {
+  ApplyLeaveStaffField,
+  ApplyLeaveFormFields,
+  ApplyLeaveDialogFooter,
+} from "./ApplyLeaveDialogSections";
 
 type ApplyLeaveFormValues = z.infer<typeof createLeaveRequestSchema>;
 
@@ -101,145 +85,13 @@ export function ApplyLeaveDialog({
         <Form {...form}>
           <form onSubmit={submitApplyLeave} className="space-y-4 py-2">
             {userIsAdmin && staffMembers.length > 0 && (
-              <FormField
-                control={form.control}
-                name="staffId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>On behalf of (optional)</FormLabel>
-                    <Select
-                      value={field.value || "self"}
-                      onValueChange={(v) =>
-                        field.onChange(v === "self" ? undefined : v)
-                      }
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Staff member" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="self">Myself</SelectItem>
-                        {staffMembers.map((m) => (
-                          <SelectItem key={m.id} value={m.id}>
-                            {m.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <ApplyLeaveStaffField form={form} staffMembers={staffMembers} />
             )}
-            <FormField
-              control={form.control}
-              name="leaveType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Leave Type</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Leave type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {labelMapKeys(LEAVE_TYPE_LABELS).map((lt) => (
-                        <SelectItem key={lt} value={lt}>
-                          {LEAVE_TYPE_LABELS[lt]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <ApplyLeaveFormFields form={form} />
+            <ApplyLeaveDialogFooter
+              onCancel={() => handleOpenChange(false)}
+              isPending={applyLeaveMutation.isPending}
             />
-            <div className="grid grid-cols-2 gap-3">
-              <FormField
-                control={form.control}
-                name="startDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Start Date</FormLabel>
-                    <FormControl>
-                      <DatePicker
-                        value={field.value || undefined}
-                        onChange={(date) => {
-                          const next = date?.toISOString().slice(0, 10) ?? "";
-                          field.onChange(next);
-                          const end = form.getValues("endDate");
-                          if (end && date && new Date(end) < new Date(next)) {
-                            form.setValue("endDate", "");
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="endDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>End Date</FormLabel>
-                    <FormControl>
-                      <DatePicker
-                        value={field.value || undefined}
-                        minDate={
-                          form.watch("startDate")
-                            ? new Date(form.watch("startDate"))
-                            : undefined
-                        }
-                        onChange={(date) =>
-                          field.onChange(date?.toISOString().slice(0, 10) ?? "")
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormField
-              control={form.control}
-              name="reason"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Reason (optional)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Reason for leave"
-                      rows={3}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => handleOpenChange(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={applyLeaveMutation.isPending}>
-                {applyLeaveMutation.isPending && (
-                  <DocitaLoadingIndicator
-                    variant="inline"
-                    decorative
-                    className="mr-2"
-                  />
-                )}
-                Submit Request
-              </Button>
-            </DialogFooter>
           </form>
         </Form>
       </DialogContent>

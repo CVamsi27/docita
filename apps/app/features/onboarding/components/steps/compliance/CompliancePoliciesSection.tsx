@@ -11,7 +11,7 @@ import {
 } from "@/features/legal";
 import { OnboardingSection } from "@/features/onboarding/components/shared";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
-import type { LegalDocumentType } from "./use-compliance-step";
+import type { LegalDocumentType } from "./compliance-step-helpers";
 import { ComplianceLegalCard } from "./compliance-legal-card";
 import { ComplianceLegalDocumentDialog } from "./compliance-legal-document-dialog";
 

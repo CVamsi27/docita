@@ -3,32 +3,11 @@
 import { FC, type ReactNode } from "react";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import {
   Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
 } from "@workspace/ui/components/form/form";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import { FileText, Plus, Save } from "lucide-react";
-import { editInvoiceItemFieldPath } from "@/features/invoices/lib/invoice-form-paths";
+import { FileText, Save } from "lucide-react";
 import { useInvoiceEditLogic } from "@/features/invoices/hooks/use-invoice-edit-logic";
 import { BackButton } from "@/components/navigation/back-button";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
@@ -36,9 +15,9 @@ import {
   EmptyState,
   LoadingState,
 } from "@workspace/ui/components/feedback/empty-state";
-import { InvoiceItemsTable } from "./InvoiceItemsTable";
-import { InvoiceSubtotal } from "./InvoiceSubtotal";
-import { formatCurrency } from "@workspace/utils";
+import { InvoiceEditDetailsSection } from "./InvoiceEditUISections";
+import { InvoiceEditLineItemsSection } from "./InvoiceEditUISections";
+import { InvoiceEditNotesSection } from "./InvoiceEditUISections";
 
 interface InvoiceEditUIProps {
   invoiceId: string;
@@ -103,136 +82,18 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
           noValidate
           className="space-y-6"
         >
-          <Card>
-            <CardHeader>
-              <CardTitle>Invoice details</CardTitle>
-            </CardHeader>
-            <CardContent className="grid md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value ?? ""}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="PENDING">Pending</SelectItem>
-                        <SelectItem value="PAID">Paid</SelectItem>
-                        <SelectItem value="OVERDUE">Overdue</SelectItem>
-                        <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
+          <InvoiceEditDetailsSection control={form.control} />
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Line items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <InvoiceItemsTable
-                items={fields.map((field, index) => ({
-                  id: field.id,
-                  description: form.watch(`items.${index}.description`),
-                  quantity: form.watch(`items.${index}.quantity`) || 0,
-                  unitPrice: form.watch(`items.${index}.price`) || 0,
-                  taxTreatment:
-                    form.watch(`items.${index}.taxTreatment`) ||
-                    "EXEMPT_HEALTHCARE",
-                  taxRate: form.watch(`items.${index}.taxRate`) || 0,
-                  hsnCode: form.watch(`items.${index}.hsnCode`) || "",
-                  sacCode: form.watch(`items.${index}.sacCode`) || "",
-                  total:
-                    (form.watch(`items.${index}.quantity`) || 0) *
-                      (form.watch(`items.${index}.price`) || 0) +
-                    ((form.watch(`items.${index}.taxTreatment`) === "TAXABLE"
-                      ? form.watch(`items.${index}.taxRate`) || 0
-                      : 0) /
-                      100) *
-                      ((form.watch(`items.${index}.quantity`) || 0) *
-                        (form.watch(`items.${index}.price`) || 0)),
-                }))}
-                onUpdateItem={(index, key, value) => {
-                  const fieldName = key === "unitPrice" ? "price" : key;
-                  form.setValue(
-                    editInvoiceItemFieldPath(index, fieldName),
-                    value,
-                  );
-                  if (key === "taxTreatment" && value !== "TAXABLE") {
-                    form.setValue(
-                      editInvoiceItemFieldPath(index, "taxRate"),
-                      0,
-                    );
-                  }
-                }}
-                onRemoveItem={remove}
-                formatCurrency={formatCurrency}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  append({
-                    description: "",
-                    quantity: 1,
-                    price: 0,
-                    taxTreatment: "EXEMPT_HEALTHCARE",
-                    taxRate: 0,
-                  })
-                }
-                className="mt-4"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Item
-              </Button>
+          <InvoiceEditLineItemsSection
+            control={form.control}
+            setValue={form.setValue}
+            fields={fields}
+            append={append}
+            remove={remove}
+            totalAmount={totalAmount}
+          />
 
-              <InvoiceSubtotal
-                control={form.control}
-                totalAmount={totalAmount}
-                formatCurrency={formatCurrency}
-              />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Notes</CardTitle>
-              <CardDescription>
-                Add any additional notes or payment instructions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Notes"
-                        className="min-h-[100px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
+          <InvoiceEditNotesSection control={form.control} />
 
           <div className="flex justify-end gap-4">
             <Button type="button" variant="outline" onClick={goBack}>

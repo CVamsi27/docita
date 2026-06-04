@@ -1,52 +1,23 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import type { UseFormReturn } from "react-hook-form";
-import { APIRequestError } from "@workspace/data-access";
 import { apiFetch } from "@/lib/api/api-client";
-import { getAppApiUrl } from "@/lib/api/api-config";
 import { buildJsonHeaders } from "@/lib/auth/csrf";
 import { toAbsoluteAppUrl } from "@/lib/utils/url";
 import { usePhoneSignatureQrFlow } from "@/hooks/use-phone-signature-qr-flow";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
-
-export type LegalDocumentType = "sla" | "privacy" | "dpa";
-
-interface QrSessionStatusResponse {
-  status?: string;
-  uploaded?: boolean;
-  fileUrl?: string | null;
-}
-
-export function resolveSignaturePreviewUrl(fileUrl: string): string {
-  const trimmed = fileUrl.trim();
-  if (!trimmed) return "";
-
-  if (
-    trimmed.startsWith("data:") ||
-    trimmed.startsWith("blob:") ||
-    /^https?:\/\//i.test(trimmed)
-  ) {
-    return trimmed;
-  }
-
-  if (trimmed.startsWith("/")) {
-    const apiOrigin = new URL(getAppApiUrl()).origin;
-    return `${apiOrigin}${trimmed}`;
-  }
-
-  return trimmed;
-}
-
-function isStaleOnboardingSessionError(error: unknown): boolean {
-  if (!(error instanceof APIRequestError)) {
-    return false;
-  }
-  if (error.status !== 400 && error.status !== 404) {
-    return false;
-  }
-  return /onboarding session not found|expired/i.test(error.message);
-}
+import {
+  isStaleOnboardingSessionError,
+  resolveSignaturePreviewUrl,
+  fetchQrSessionStatus,
+  buildSignatureUploadRedirectUrl,
+  buildQrSessionStatusUrl,
+  buildCreateSignatureSessionUrl,
+  LEGAL_DOCS_CONFIG,
+  type LegalDocumentType,
+  type QrSessionStatusResponse,
+} from "./compliance-step-helpers";
 
 export interface UseComplianceStepProps {
   complianceForm: UseFormReturn<ComplianceSettings>;
@@ -67,24 +38,10 @@ export function useComplianceStep({
   const [signaturePreviewFailed, setSignaturePreviewFailed] = useState(false);
   const [signaturePreviewLoading, setSignaturePreviewLoading] = useState(false);
 
-  const fetchQrSessionStatus = useCallback(
-    async (activeOnboardingId: string, sessionId: string): Promise<boolean> => {
-      const data = await apiFetch<QrSessionStatusResponse>(
-        `/onboarding/${activeOnboardingId}/sla-signature-session/${sessionId}/status?ts=${Date.now()}`,
-        { method: "GET", cache: "no-store" },
-      );
-      const status = data.status?.toLowerCase();
-      return Boolean(
-        data.uploaded || data.fileUrl || status === "uploaded" || status === "completed",
-      );
-    },
-    [],
-  );
-
   const createQrSession = useCallback(async () => {
     const createSession = async (resolvedOnboardingId: string) => {
       return await apiFetch<{ id: string; uploadSecret: string }>(
-        `/onboarding/${resolvedOnboardingId}/sla-signature-session`,
+        buildCreateSignatureSessionUrl(resolvedOnboardingId),
         {
           method: "POST",
           headers: buildJsonHeaders(),
@@ -132,7 +89,11 @@ export function useComplianceStep({
       sessionId: sessionData.id,
       contextId: activeOnboardingId,
       qrUrl: toAbsoluteAppUrl(
-        `/upload-signature/onboarding?onboardingId=${encodeURIComponent(activeOnboardingId)}&sessionId=${encodeURIComponent(sessionData.id)}&uploadSecret=${encodeURIComponent(sessionData.uploadSecret)}`,
+        buildSignatureUploadRedirectUrl(
+          activeOnboardingId,
+          sessionData.id,
+          sessionData.uploadSecret,
+        ),
       ),
     };
   }, [ensureOnboardingId, onboardingId]);
@@ -142,7 +103,7 @@ export function useComplianceStep({
       if (!session.contextId) return false;
       return fetchQrSessionStatus(session.contextId, session.sessionId);
     },
-    [fetchQrSessionStatus],
+    [],
   );
 
   const qrFlow = usePhoneSignatureQrFlow({
@@ -171,7 +132,7 @@ export function useComplianceStep({
       setSignaturePreviewLoading(true);
       try {
         const data = await apiFetch<QrSessionStatusResponse>(
-          `/onboarding/${activeOnboardingId}/sla-signature-session/${sessionId}/status?ts=${Date.now()}`,
+          buildQrSessionStatusUrl(activeOnboardingId, sessionId),
           { method: "GET", cache: "no-store" },
         );
         if (data.fileUrl) {
@@ -253,36 +214,10 @@ export function useComplianceStep({
     }
   }, [qrFlow]);
 
-  const legalDocs: Array<{
-    key: LegalDocumentType;
-    title: string;
-    summary: string;
-    accepted: boolean;
-    fieldKey: "acceptedSLA" | "acceptedPrivacyPolicy" | "acceptedDataProcessing";
-  }> = [
-    {
-      key: "sla",
-      title: "Service Level Agreement",
-      summary: "Platform uptime, support timelines, incident response, and governance commitments",
-      accepted: !!complianceForm.watch("acceptedSLA"),
-      fieldKey: "acceptedSLA" as const,
-    },
-    {
-      key: "privacy",
-      title: "Privacy Policy & Data Consent",
-      summary: "How patient data is collected, stored, and processed under DPDP regulations",
-      accepted: !!complianceForm.watch("acceptedPrivacyPolicy"),
-      fieldKey: "acceptedPrivacyPolicy" as const,
-    },
-    {
-      key: "dpa",
-      title: "Data Processing Agreement",
-      summary:
-        "Your obligations in the data fiduciary role and our role in the data processor role",
-      accepted: !!complianceForm.watch("acceptedDataProcessing"),
-      fieldKey: "acceptedDataProcessing" as const,
-    },
-  ];
+  const legalDocs = LEGAL_DOCS_CONFIG.map((doc) => ({
+    ...doc,
+    accepted: !!complianceForm.watch(doc.fieldKey),
+  }));
 
   const acceptedCount = legalDocs.filter((d) => d.accepted).length;
 

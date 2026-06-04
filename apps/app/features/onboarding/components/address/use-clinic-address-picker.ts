@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useJsApiLoader } from "@react-google-maps/api";
-import type { LatLngExpression } from "leaflet";
 import type { Map as LeafletMapInstance } from "leaflet";
 import {
   type ClinicAddressDetails,
@@ -19,6 +18,13 @@ import {
   searchOSM,
 } from "./geocoding";
 import { useMapLifecycle } from "./use-map-lifecycle";
+import {
+  getAddressValue,
+  getCenter,
+  getMapZoom,
+  getCenterExpression,
+  triggerGoogleMapResize,
+} from "./clinic-address-picker-helpers";
 
 export function useClinicAddressPicker({
   open,
@@ -60,18 +66,16 @@ export function useClinicAddressPicker({
     });
   const shouldUseGoogle = hasGoogleKey && isGoogleLoaded && !googleLoadError;
 
-  const addressValue = addressDraft || resolvedAddress || initialAddress;
-  const center = useMemo(() => picked ?? DEFAULT_CENTER, [picked]);
-  const mapZoom = picked ? 16 : 5;
-  const centerExpression = useMemo<LatLngExpression>(
-    () => [center.lat, center.lng],
+  const addressValue = getAddressValue(addressDraft, resolvedAddress, initialAddress);
+  const center = useMemo(() => getCenter(picked, DEFAULT_CENTER), [picked]);
+  const mapZoom = getMapZoom(picked);
+  const centerExpression = useMemo<ReturnType<typeof getCenterExpression>>(
+    () => getCenterExpression(center),
     [center],
   );
 
   const triggerGoogleResize = useCallback(() => {
-    if (!shouldUseGoogle || !googleMap) return;
-    window.google.maps.event.trigger(googleMap, "resize");
-    googleMap.setCenter(center);
+    triggerGoogleMapResize(googleMap, center, shouldUseGoogle);
   }, [center, googleMap, shouldUseGoogle]);
 
   useMapLifecycle({

@@ -1,6 +1,14 @@
 import { useCallback, useRef, useState } from "react";
 import { logger } from "@/lib/monitoring/logger";
 import {
+  clearStaleRazorpayGlobal,
+  isRazorpayConstructibleFn,
+  type RazorpayCheckoutResult,
+  type RazorpayOptions,
+  type RazorpayResponse,
+  type RazorpayInstance,
+} from "./razorpay-helpers";
+import {
   type RazorpayCheckoutError,
   isPaymentCanceledError,
   notifyPaymentCanceled,
@@ -12,76 +20,7 @@ export {
   type RazorpayCheckoutError,
 };
 
-export type RazorpayCheckoutResult =
-  | { status: "completed" }
-  | { status: "canceled" }
-  | { status: "failed" };
-
-interface RazorpayInstance {
-  open(): void;
-  close(): void;
-  on?(event: string, handler: (...args: unknown[]) => void): void;
-}
-
-declare global {
-  interface Window {
-    Razorpay?: {
-      new (options: RazorpayOptions): RazorpayInstance;
-    };
-  }
-
-  var __docitaRazorpayLoadPromise: Promise<boolean> | undefined;
-}
-
-interface RazorpayOptions {
-  key: string;
-  amount: number;
-  currency: string;
-  name: string;
-  description?: string;
-  image?: string;
-  order_id: string;
-  handler: (response: RazorpayResponse) => void | Promise<void>;
-  prefill?: {
-    name?: string;
-    email?: string;
-    contact?: string;
-  };
-  theme?: {
-    color?: string;
-  };
-  modal?: {
-    ondismiss?: () => void;
-    /** Show a built-in close (X) on the modal (Razorpay default: true). */
-    escape?: boolean;
-    /** Allow clicking outside to dismiss (Razorpay default: false). */
-    backdropclose?: boolean;
-    /** Ask the user before closing (Razorpay default: false). */
-    confirm_close?: boolean;
-    /** Razorpay modal animation. */
-    animation?: boolean;
-  };
-}
-
-export interface RazorpayResponse {
-  razorpay_payment_id: string;
-  razorpay_order_id: string;
-  razorpay_signature: string;
-
-  [key: string]: unknown;
-}
-
-function clearStaleRazorpayGlobal(): void {
-  if (!("Razorpay" in window)) {
-    return;
-  }
-
-  try {
-    Reflect.deleteProperty(window, "Razorpay");
-  } catch {
-    window.Razorpay = undefined;
-  }
-}
+export type { RazorpayCheckoutResult, RazorpayResponse };
 
 export function useRazorpay() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -107,27 +46,6 @@ export function useRazorpay() {
     settle(result);
   }, []);
 
-  const isRazorpayConstructible = useCallback((): boolean => {
-    const RazorpayCtor = window.Razorpay;
-    if (typeof RazorpayCtor !== "function") return false;
-
-    // Some environments can end up with a non-constructible function assigned to window.Razorpay.
-    // We do a minimal construct attempt without calling open().
-    try {
-      const instance = new RazorpayCtor({
-        key: "dummy",
-        amount: 0,
-        currency: "INR",
-        name: "Docita",
-        order_id: "dummy",
-        handler: () => {},
-      });
-      return Boolean(instance && typeof instance.open === "function");
-    } catch {
-      return false;
-    }
-  }, []);
-
   const loadRazorpay = useCallback(() => {
     const existingPromise = globalThis.__docitaRazorpayLoadPromise;
     if (existingPromise) return existingPromise;
@@ -138,7 +56,7 @@ export function useRazorpay() {
         return;
       }
 
-      if (isRazorpayConstructible()) {
+      if (isRazorpayConstructibleFn()) {
         setIsLoaded(true);
         resolve(true);
         return;
@@ -156,7 +74,7 @@ export function useRazorpay() {
       script.src = "https://checkout.razorpay.com/v1/checkout.js";
       script.async = true;
       script.onload = () => {
-        const loaded = isRazorpayConstructible();
+        const loaded = isRazorpayConstructibleFn();
         if (!loaded) {
           logger.warn("Razorpay SDK loaded but constructor unavailable", {
             razorpayType: typeof window.Razorpay,
@@ -176,7 +94,7 @@ export function useRazorpay() {
     });
 
     return promise;
-  }, [isRazorpayConstructible]);
+  }, []);
 
   const openCheckout = useCallback(
     async (options: RazorpayOptions): Promise<RazorpayCheckoutResult> => {

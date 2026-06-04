@@ -8,6 +8,13 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { resolveConsultationSectionFromUrl } from "@/features/consultation/rules/consultationTabRouting";
 import type { ConsultationSection } from "@/features/consultation/workspace/consultation-section-registry";
+import {
+  buildLetterNavMap,
+  buildScrollSpyRootId,
+  buildScrollSpySelectorMap,
+  buildSectionUrlParams,
+  cleanSectionUrlParams,
+} from "./consultation-shell-scroll-helpers";
 
 export function useConsultationShellScroll({
   sections,
@@ -94,15 +101,12 @@ export function useConsultationShellScroll({
         const el = sectionRefs.current[id];
         if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
       }
-      const next = new URLSearchParams(searchParams?.toString() ?? "");
-      next.delete("tab");
-      const firstId = sectionsRef.current[0]?.id ?? "subjective";
-      if (id !== firstId) {
-        next.set("section", id);
-      } else {
-        next.delete("section");
-      }
-      router.replace(`?${next.toString()}`, { scroll: false });
+      const next = buildSectionUrlParams(
+        searchParams?.toString(),
+        id,
+        sectionsRef.current[0]?.id ?? "subjective",
+      );
+      router.replace(`?${next}`, { scroll: false });
     },
     [router, searchParams, stepMode],
   );
@@ -127,22 +131,13 @@ export function useConsultationShellScroll({
         setPendingUrlScrollToSectionId(valid);
       }
     }
-    const next = new URLSearchParams(searchParams.toString());
-    let changed = false;
-    if (tabQ) {
-      next.delete("tab");
-      changed = true;
-    }
-    if (valid !== defaultSectionId) {
-      if (next.get("section") !== valid) {
-        next.set("section", valid);
-        changed = true;
-      }
-    } else if (next.has("section")) {
-      next.delete("section");
-      changed = true;
-    }
-    if (changed) router.replace(`?${next.toString()}`, { scroll: false });
+    const { params: cleanedParams, changed } = cleanSectionUrlParams(
+      searchParams.toString(),
+      valid,
+      defaultSectionId,
+      tabQ,
+    );
+    if (changed) router.replace(`?${cleanedParams}`, { scroll: false });
   }, [
     sectionQ,
     tabQ,
@@ -230,15 +225,9 @@ export function useConsultationShellScroll({
 
   const focusNewItem = useCallback(
     (kind: "c" | "d" | "m") => {
-      const selectorMap: Record<"c" | "d" | "m", string> = {
-        c: '[data-section-id="subjective"] input[placeholder*="complaint" i], [data-section-id="subjective"] input',
-        d: '[data-section-id="assessment"] input',
-        m: '[data-section-id="plan"] input',
-      };
-      const rootId =
-        kind === "c" ? "subjective" : kind === "d" ? "assessment" : "plan";
+      const selectorMap = buildScrollSpySelectorMap();
+      const rootId = buildScrollSpyRootId(kind);
       if (stepMode) {
-        // The target section may not be mounted; switch to it first.
         setActiveSectionId(rootId);
       } else {
         sectionRefs.current[rootId]?.scrollIntoView({
@@ -253,11 +242,7 @@ export function useConsultationShellScroll({
     [stepMode],
   );
 
-  const letterNavMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    for (const s of sections) map[s.letter.toLowerCase()] = s.id;
-    return map;
-  }, [sections]);
+  const letterNavMap = useMemo(() => buildLetterNavMap(sections), [sections]);
 
   return {
     activeSectionId,

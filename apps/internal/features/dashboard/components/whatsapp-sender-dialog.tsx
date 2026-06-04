@@ -1,19 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { MessageCircle } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import {
   type WhatsappSenderConfigResponse,
   whatsappSenderConfigResponseSchema,
@@ -29,18 +16,14 @@ import {
 } from "@workspace/types";
 import { client } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-
-const MODE_LABELS: Record<WhatsappSenderMode, string> = {
-  SHARED: "Shared Docita number",
-  BYO: "Clinic's own number",
-  MANAGED: "Docita-managed dedicated",
-};
-
-const MODE_OPTIONS: readonly WhatsappSenderMode[] = ["SHARED", "BYO", "MANAGED"];
-
-function isWhatsappSenderMode(value: string): value is WhatsappSenderMode {
-  return value === "SHARED" || value === "BYO" || value === "MANAGED";
-}
+import {
+  WhatsappSenderActions,
+  WhatsappSenderByoFields,
+  WhatsappSenderError,
+  WhatsappSenderModeSelector,
+  WhatsappSenderStatus,
+  WhatsappSenderTrigger,
+} from "./whatsapp-sender-dialog-sections";
 
 type WhatsappSenderDialogProps = {
   clinicId: string;
@@ -161,16 +144,7 @@ export function WhatsappSenderDialog({
 
   return (
     <>
-      <SymbolTooltip label="WhatsApp sender">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setOpen(true)}
-          aria-label="WhatsApp sender"
-        >
-          <MessageCircle className="h-4 w-4" />
-        </Button>
-      </SymbolTooltip>
+      <WhatsappSenderTrigger onOpen={() => setOpen(true)} />
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
@@ -181,111 +155,34 @@ export function WhatsappSenderDialog({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            {config ? (
-              <div className="flex flex-wrap items-center gap-2 text-sm">
-                <span className="text-muted-foreground">Current status:</span>
-                <Badge variant={config.status === "VERIFIED" ? "default" : "secondary"}>
-                  {config.status.replace(/_/g, " ")}
-                </Badge>
-                {config.displayName ? (
-                  <span className="text-muted-foreground">
-                    · {config.displayName}
-                  </span>
-                ) : null}
-                {config.fallbackActive ? (
-                  <Badge variant="destructive">Falling back to shared</Badge>
-                ) : null}
-              </div>
-            ) : null}
+            <WhatsappSenderStatus config={config} />
 
-            <div className="space-y-2">
-              <Label htmlFor="ws-mode">Mode</Label>
-              <Select
-                value={mode}
-                onValueChange={(val) => {
-                  if (isWhatsappSenderMode(val)) setMode(val);
-                }}
-              >
-                <SelectTrigger id="ws-mode">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {MODE_OPTIONS.map((m) => (
-                    <SelectItem key={m} value={m}>
-                      {MODE_LABELS[m]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <WhatsappSenderModeSelector
+              mode={mode}
+              onModeChange={setMode}
+            />
 
             {mode === "BYO" ? (
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label htmlFor="ws-phone-id">Phone number ID</Label>
-                  <Input
-                    id="ws-phone-id"
-                    value={phoneNumberId}
-                    onChange={(e) => setPhoneNumberId(e.target.value)}
-                    placeholder="From Meta business → WhatsApp manager"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ws-waba-id">WABA ID (optional)</Label>
-                  <Input
-                    id="ws-waba-id"
-                    value={wabaId}
-                    onChange={(e) => setWabaId(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ws-token">Access token</Label>
-                  <Input
-                    id="ws-token"
-                    type="password"
-                    value={accessToken}
-                    onChange={(e) => setAccessToken(e.target.value)}
-                    placeholder={
-                      config?.phoneNumberId
-                        ? "Leave blank to keep existing token"
-                        : "Paste Meta system-user token"
-                    }
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Stored encrypted in ClinicSecret. Existing token stays in
-                    place unless you replace it here.
-                  </p>
-                </div>
-              </div>
+              <WhatsappSenderByoFields
+                phoneNumberId={phoneNumberId}
+                onPhoneNumberIdChange={setPhoneNumberId}
+                wabaId={wabaId}
+                onWabaIdChange={setWabaId}
+                accessToken={accessToken}
+                onAccessTokenChange={setAccessToken}
+                hasExistingPhoneNumber={!!config?.phoneNumberId}
+              />
             ) : null}
 
-            {config?.lastVerifyError ? (
-              <p className="text-sm text-destructive">
-                Last verify error: {config.lastVerifyError}
-              </p>
-            ) : null}
+            <WhatsappSenderError lastVerifyError={config?.lastVerifyError} />
 
-            <div className="flex flex-wrap justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={revoke}
-                disabled={loading || config?.mode === "SHARED"}
-              >
-                Reset to shared
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={verify}
-                disabled={loading || config?.mode === "SHARED"}
-              >
-                Verify with Meta
-              </Button>
-              <Button type="button" onClick={save} disabled={loading}>
-                Save
-              </Button>
-            </div>
+            <WhatsappSenderActions
+              loading={loading}
+              canVerifyOrRevoke={config?.mode !== "SHARED"}
+              onSave={save}
+              onVerify={verify}
+              onRevoke={revoke}
+            />
           </div>
         </DialogContent>
       </Dialog>
