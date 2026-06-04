@@ -2232,6 +2232,7 @@ model OutgoingWebhookDelivery {
   clinicId        String
   eventName       String
   targetUrl       String
+  /// @json:jsonObjectSchema
   payload         Json
   status          WebhookDeliveryStatus @default(PENDING)
   attemptCount    Int                   @default(0)

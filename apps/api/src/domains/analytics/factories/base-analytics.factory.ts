@@ -25,9 +25,10 @@ export abstract class BaseAnalyticsFactory {
     endDate?: Date,
   ): void {
     if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) (where.createdAt as { gte: Date }).gte = startDate;
-      if (endDate) (where.createdAt as { lte: Date }).lte = endDate;
+      const range: { gte?: Date; lte?: Date } = {};
+      if (startDate) range.gte = startDate;
+      if (endDate) range.lte = endDate;
+      where.createdAt = range;
     }
   }
 }

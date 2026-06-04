@@ -4,19 +4,7 @@ import type { OnboardingComplianceService } from './onboarding-compliance.servic
 import type { OnboardingValidationService } from './onboarding-validation.service';
 import type { CompleteOnboardingDto } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import type { OnboardingResult } from './onboarding-result.types';
-
-interface CompletedOnboardingRecords {
-  clinic: { id: string };
-  adminUser: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-    createdAt: Date;
-    updatedAt: Date;
-  };
-  subscriptionId: string;
-}
+import type { CompletedOnboardingRecords } from './onboarding.types';
 
 const logger = new Logger('onboarding-result');
 
@@ -64,8 +52,7 @@ export async function buildSuccessfulOnboardingResult(
     id: result.adminUser.id,
     email: result.adminUser.email,
     name: result.adminUser.name,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    role: result.adminUser.role as any,
+    role: result.adminUser.role,
     clinicId: result.clinic.id,
     createdAt: result.adminUser.createdAt,
     updatedAt: result.adminUser.updatedAt,

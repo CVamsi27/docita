@@ -1,7 +1,7 @@
 "use client";
 
 import { useWatch, type Control, type UseFormSetValue, type UseFieldArrayAppend, type UseFieldArrayRemove, type FieldArrayWithId } from "react-hook-form";
-import type { InvoiceEditFormValues } from "@workspace/types";
+import type { InvoiceEditFormValues, InvoiceLineItemFormValues } from "@workspace/types";
 import {
   Card,
   CardContent,
@@ -147,8 +147,7 @@ export function InvoiceEditLineItemsSection({
               price: 0,
               taxTreatment: "EXEMPT_HEALTHCARE",
               taxRate: 0,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any)
+            } satisfies InvoiceLineItemFormValues)
           }
           className="mt-4"
         >

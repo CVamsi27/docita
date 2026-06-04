@@ -1,7 +1,7 @@
 "use client";
 
 import { useWatch, type Control, type UseFormSetValue, type UseFieldArrayAppend, type UseFieldArrayRemove, type FieldArrayWithId } from "react-hook-form";
-import type { CreateInvoiceFormValues } from "@workspace/types";
+import type { CreateInvoiceFormValues, InvoiceLineItemFormValues } from "@workspace/types";
 import {
   Card,
   CardContent,
@@ -177,16 +177,16 @@ export function InvoiceCreateLineItemsSection({
           type="button"
           variant="outline"
           size="sm"
-          onClick={() =>
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            append({
+          onClick={() => {
+            const newItem: InvoiceLineItemFormValues = {
               description: "",
               quantity: 1,
               price: 0,
               taxTreatment: "EXEMPT_HEALTHCARE",
               taxRate: 0,
-            } as any)
-          }
+            };
+            append(newItem);
+          }}
           className="mt-4"
         >
           <Plus className="h-4 w-4 mr-2" />
