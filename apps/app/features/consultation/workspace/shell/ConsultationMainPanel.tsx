@@ -35,7 +35,9 @@ export function ConsultationMainPanel({
   patientLoading,
   appointmentData,
 }: ConsultationMainPanelProps) {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Destructure the identity fields used as memo keys — avoids re-running
+  // buildConsultationSectionComponents when unrelated appointment fields change.
+  const { id: apptId, patientId, doctorId } = appointmentData;
   const sectionComponents = useMemo(
     () =>
       buildConsultationSectionComponents(
@@ -44,14 +46,11 @@ export function ConsultationMainPanel({
         appointmentData,
         effectivePatient,
       ),
-    [
-      appointmentData.patientId,
-      appointmentData.id,
-      appointmentData.doctorId,
-      effectivePatient,
-      readOnly,
-      setSectionRef,
-    ],
+    // appointmentData object reference changes on every render; key on stable
+    // primitive identity fields instead so sections only rebuild when relevant
+    // data actually changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [apptId, patientId, doctorId, effectivePatient, readOnly, setSectionRef],
   );
 
   const activeIndex = Math.max(

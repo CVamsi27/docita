@@ -9,12 +9,12 @@ export function computeUnknownSubmitErrors(
 }
 
 export function computeSlotRangeSubmitError(
-  submitFieldErrors: Record<string, string>,
+  slotStart: string | undefined,
+  slotEnd: string | undefined,
 ): string {
-  const start = submitFieldErrors.requestedSlotStart;
-  const end = submitFieldErrors.requestedSlotEnd;
-  if (start && end && start !== end) return `${start} \u00B7 ${end}`;
-  return start ?? end ?? "";
+  if (slotStart && slotEnd && slotStart !== slotEnd)
+    return `${slotStart} \u00B7 ${slotEnd}`;
+  return slotStart ?? slotEnd ?? "";
 }
 
 export function clearSlotErrors(

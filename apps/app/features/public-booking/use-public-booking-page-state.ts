@@ -53,13 +53,11 @@ export function usePublicBookingPageState(referralCode: string) {
     [submitFieldErrors],
   );
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const slotStart = submitFieldErrors.requestedSlotStart;
+  const slotEnd = submitFieldErrors.requestedSlotEnd;
   const slotRangeSubmitError = useMemo(
-    () => computeSlotRangeSubmitError(submitFieldErrors),
-    [
-      submitFieldErrors.requestedSlotEnd,
-      submitFieldErrors.requestedSlotStart,
-    ],
+    () => computeSlotRangeSubmitError(slotStart, slotEnd),
+    [slotStart, slotEnd],
   );
 
   const contextQuery = usePublicBookingContext(referralCode, verificationToken);
