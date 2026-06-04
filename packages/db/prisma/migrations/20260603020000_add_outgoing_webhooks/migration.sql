@@ -1,9 +1,3 @@
--- Add outgoing webhook subscription and delivery tracking models.
---
--- WebhookSubscription stores subscriber endpoints per clinic per event type.
--- OutgoingWebhookDelivery tracks each delivery attempt with status, retry
--- count, and exponential backoff scheduling.
-
 CREATE TABLE "WebhookSubscription" (
     "id" TEXT NOT NULL,
     "clinicId" TEXT NOT NULL,

@@ -283,76 +283,76 @@ model DoctorTimeOff {
 }
 
 model Patient {
-  id                       String                    @id @default(cuid())
-  mrn                      String?
-  firstName                String
-  lastName                 String
-  preferredName            String?
-  pronouns                 String?
-  dateOfBirth              DateTime                  @db.Timestamptz(3)
-  phoneNumber              String
-  email                    String?
-  address                  String?
-  insuranceProvider        String?
-  insurancePolicyNumber    String?
-  insuranceGroupNumber     String?
-  medicalHistory           String[]
-  createdAt                DateTime                  @default(now()) @db.Timestamptz(3)
-  updatedAt                DateTime                  @updatedAt @db.Timestamptz(3)
-  version                  Int                       @default(1)
-  allergies                String?
-  bloodGroup               String?
-  clinicId                 String
+  id                          String                       @id @default(cuid())
+  mrn                         String?
+  firstName                   String
+  lastName                    String
+  preferredName               String?
+  pronouns                    String?
+  dateOfBirth                 DateTime                     @db.Timestamptz(3)
+  phoneNumber                 String
+  email                       String?
+  address                     String?
+  insuranceProvider           String?
+  insurancePolicyNumber       String?
+  insuranceGroupNumber        String?
+  medicalHistory              String[]
+  createdAt                   DateTime                     @default(now()) @db.Timestamptz(3)
+  updatedAt                   DateTime                     @updatedAt @db.Timestamptz(3)
+  version                     Int                          @default(1)
+  allergies                   String?
+  bloodGroup                  String?
+  clinicId                    String
   /// @json:jsonObjectSchema
-  customData               Json?                     @default("{}")
-  gender                   Gender
-  userId                   String?                   @unique
-  user                     User?                     @relation(fields: [userId], references: [id], onDelete: SetNull)
-  race                     String?
-  ethnicity                String?
-  preferredLanguage        String?                   @default("en")
-  maritalStatus            String?
-  emergencyContactName     String?
-  emergencyContactPhone    String?
-  emergencyContactRelation String?
-  codeStatus               CodeStatus                @default(FULL_CODE)
-  codeStatusUpdatedAt      DateTime?                 @db.Timestamptz(3)
-  codeStatusUpdatedBy      String?
-  advanceDirectiveUrl      String?
-  whatsappConsent          Boolean                   @default(false)
-  whatsappConsentAt        DateTime?                 @db.Timestamptz(3)
-  appointments             Appointment[]
-  appointmentRequests      AppointmentRequest[]
-  documents                Document[]
-  invoices                 Invoice[]
-  clinic                   Clinic                    @relation(fields: [clinicId], references: [id])
-  tags                     PatientTag[]
-  paymentSessions          PaymentSession[]
-  prescriptions            Prescription[]
-  queueTokens              QueueToken[]
-  whatsappLogs             WhatsappLog[]
-  whatsappConversations    WhatsappConversation[]
+  customData                  Json?                        @default("{}")
+  gender                      Gender
+  userId                      String?                      @unique
+  user                        User?                        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  race                        String?
+  ethnicity                   String?
+  preferredLanguage           String?                      @default("en")
+  maritalStatus               String?
+  emergencyContactName        String?
+  emergencyContactPhone       String?
+  emergencyContactRelation    String?
+  codeStatus                  CodeStatus                   @default(FULL_CODE)
+  codeStatusUpdatedAt         DateTime?                    @db.Timestamptz(3)
+  codeStatusUpdatedBy         String?
+  advanceDirectiveUrl         String?
+  whatsappConsent             Boolean                      @default(false)
+  whatsappConsentAt           DateTime?                    @db.Timestamptz(3)
+  appointments                Appointment[]
+  appointmentRequests         AppointmentRequest[]
+  documents                   Document[]
+  invoices                    Invoice[]
+  clinic                      Clinic                       @relation(fields: [clinicId], references: [id])
+  tags                        PatientTag[]
+  paymentSessions             PaymentSession[]
+  prescriptions               Prescription[]
+  queueTokens                 QueueToken[]
+  whatsappLogs                WhatsappLog[]
+  whatsappConversations       WhatsappConversation[]
   whatsappBroadcastRecipients WhatsAppBroadcastRecipient[]
-  abhaAddress              String?
-  deletedAt                DateTime?                 @db.Timestamptz(3)
-  medicalConditions        PatientMedicalCondition[]
-  patientAllergies         PatientAllergy[]
-  familyHistory            PatientFamilyHistory[]
-  socialHistory            PatientSocialHistory?
-  surgicalHistory          PatientSurgicalHistory[]
-  immunizations            Immunization[]
-  consents                 Consent[]
-  admissions               Admission[]
-  metricDefinitions        MetricDefinition[]
-  metricRecords            PatientMetricRecord[]
-  metricSelections         PatientMetricSelection[]
-  medicalDocuments         MedicalDocument[]
-  followUps                FollowUp[]
-  medicationDoses          MedicationDose[]
-  labTestOrders            LabTestOrder[]
-  patientDoctors           PatientDoctor[]
-  dataSubjectRequests      DataSubjectRequest[]
-  insuranceClaims          InsuranceClaim[]
+  abhaAddress                 String?
+  deletedAt                   DateTime?                    @db.Timestamptz(3)
+  medicalConditions           PatientMedicalCondition[]
+  patientAllergies            PatientAllergy[]
+  familyHistory               PatientFamilyHistory[]
+  socialHistory               PatientSocialHistory?
+  surgicalHistory             PatientSurgicalHistory[]
+  immunizations               Immunization[]
+  consents                    Consent[]
+  admissions                  Admission[]
+  metricDefinitions           MetricDefinition[]
+  metricRecords               PatientMetricRecord[]
+  metricSelections            PatientMetricSelection[]
+  medicalDocuments            MedicalDocument[]
+  followUps                   FollowUp[]
+  medicationDoses             MedicationDose[]
+  labTestOrders               LabTestOrder[]
+  patientDoctors              PatientDoctor[]
+  dataSubjectRequests         DataSubjectRequest[]
+  insuranceClaims             InsuranceClaim[]
 
   @@unique([clinicId, mrn], map: "Patient_clinicId_mrn_key")
   @@index([mrn])
@@ -369,6 +369,10 @@ model Patient {
   @@index([userId])
   @@index([phoneNumber, deletedAt], map: "Patient_phoneNumber_deletedAt_idx")
   @@index([userId, deletedAt], map: "Patient_userId_deletedAt_idx")
+  @@index([firstName(ops: raw("gin_trgm_ops"))], type: Gin, map: "Patient_firstName_trgm_idx")
+  @@index([lastName(ops: raw("gin_trgm_ops"))], type: Gin, map: "Patient_lastName_trgm_idx")
+  @@index([phoneNumber(ops: raw("gin_trgm_ops"))], type: Gin, map: "Patient_phoneNumber_trgm_idx")
+  @@index([mrn(ops: raw("gin_trgm_ops"))], type: Gin, map: "Patient_mrn_trgm_idx")
 }
 
 model PatientMedicalCondition {
@@ -650,6 +654,8 @@ model Appointment {
   @@index([clinicId, startTime(sort: Desc), id(sort: Desc)], map: "Appointment_clinicId_startTime_id_idx")
   @@index([patientId, clinicId, startTime(sort: Desc)], map: "Appointment_patientId_clinicId_startTime_idx")
   @@index([doctorId, clinicId, startTime(sort: Desc)], map: "Appointment_doctorId_clinicId_startTime_idx")
+  @@index([notes(ops: raw("gin_trgm_ops"))], type: Gin, map: "Appointment_notes_trgm_idx")
+  @@index([chiefComplaint(ops: raw("gin_trgm_ops"))], type: Gin, map: "Appointment_chiefComplaint_trgm_idx")
 }
 
 model DoctorDelay {
@@ -1661,31 +1667,31 @@ model WhatsappTemplate {
 }
 
 model WhatsAppBroadcastJob {
-  id            String                       @id @default(cuid())
-  clinicId      String?
-  title         String
-  audienceLabel String?
-  templateName  String?
-  languageCode  String                       @default("en")
-  messageText   String?
-  totalCount    Int                          @default(0)
-  sentCount     Int                          @default(0)
-  failedCount   Int                          @default(0)
-  status        WhatsAppBroadcastJobStatus   @default(PENDING)
-  source        WhatsAppBroadcastSource      @default(INTERNAL)
-  createdBy     String?
-  startedAt     DateTime?                    @db.Timestamptz(3)
-  completedAt   DateTime?                    @db.Timestamptz(3)
-  errorMessage  String?
-  attempts      Int                          @default(0)
-  nextAttemptAt DateTime?                    @db.Timestamptz(3)
-  lastAttemptAt DateTime?                    @db.Timestamptz(3)
-  leaseExpiresAt DateTime?                   @db.Timestamptz(3)
-  cancelRequestedAt DateTime?                @db.Timestamptz(3)
-  createdAt     DateTime                     @default(now()) @db.Timestamptz(3)
-  updatedAt     DateTime                     @updatedAt @db.Timestamptz(3)
-  recipients    WhatsAppBroadcastRecipient[]
-  clinic        Clinic?                      @relation(fields: [clinicId], references: [id])
+  id                String                       @id @default(cuid())
+  clinicId          String?
+  title             String
+  audienceLabel     String?
+  templateName      String?
+  languageCode      String                       @default("en")
+  messageText       String?
+  totalCount        Int                          @default(0)
+  sentCount         Int                          @default(0)
+  failedCount       Int                          @default(0)
+  status            WhatsAppBroadcastJobStatus   @default(PENDING)
+  source            WhatsAppBroadcastSource      @default(INTERNAL)
+  createdBy         String?
+  startedAt         DateTime?                    @db.Timestamptz(3)
+  completedAt       DateTime?                    @db.Timestamptz(3)
+  errorMessage      String?
+  attempts          Int                          @default(0)
+  nextAttemptAt     DateTime?                    @db.Timestamptz(3)
+  lastAttemptAt     DateTime?                    @db.Timestamptz(3)
+  leaseExpiresAt    DateTime?                    @db.Timestamptz(3)
+  cancelRequestedAt DateTime?                    @db.Timestamptz(3)
+  createdAt         DateTime                     @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime                     @updatedAt @db.Timestamptz(3)
+  recipients        WhatsAppBroadcastRecipient[]
+  clinic            Clinic?                      @relation(fields: [clinicId], references: [id])
 
   @@index([status])
   @@index([createdAt])
@@ -2201,16 +2207,16 @@ model EmailSuppression {
 }
 
 model WebhookSubscription {
-  id             String                        @id @default(cuid())
-  clinicId       String
-  eventName      String
-  targetUrl      String
-  signingSecret  String
-  active         Boolean                       @default(true)
-  description    String?
-  createdAt      DateTime                      @default(now()) @db.Timestamptz(3)
-  updatedAt      DateTime                      @updatedAt @db.Timestamptz(3)
-  deliveries     OutgoingWebhookDelivery[]
+  id            String                    @id @default(cuid())
+  clinicId      String
+  eventName     String
+  targetUrl     String
+  signingSecret String
+  active        Boolean                   @default(true)
+  description   String?
+  createdAt     DateTime                  @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime                  @updatedAt @db.Timestamptz(3)
+  deliveries    OutgoingWebhookDelivery[]
 
   @@unique([clinicId, eventName, targetUrl])
   @@index([clinicId])
@@ -2227,24 +2233,24 @@ enum WebhookDeliveryStatus {
 }
 
 model OutgoingWebhookDelivery {
-  id              String                @id @default(cuid())
-  subscriptionId  String
-  clinicId        String
-  eventName       String
-  targetUrl       String
+  id             String                @id @default(cuid())
+  subscriptionId String
+  clinicId       String
+  eventName      String
+  targetUrl      String
   /// @json:jsonObjectSchema
-  payload         Json
-  status          WebhookDeliveryStatus @default(PENDING)
-  attemptCount    Int                   @default(0)
-  maxAttempts     Int                   @default(5)
-  lastStatusCode  Int?
-  lastError       String?
-  idempotencyKey  String                @unique
-  scheduledAt     DateTime?
-  completedAt     DateTime?             @db.Timestamptz(3)
-  createdAt       DateTime              @default(now()) @db.Timestamptz(3)
-  updatedAt       DateTime              @updatedAt @db.Timestamptz(3)
-  subscription    WebhookSubscription   @relation(fields: [subscriptionId], references: [id])
+  payload        Json
+  status         WebhookDeliveryStatus @default(PENDING)
+  attemptCount   Int                   @default(0)
+  maxAttempts    Int                   @default(5)
+  lastStatusCode Int?
+  lastError      String?
+  idempotencyKey String                @unique
+  scheduledAt    DateTime?             @db.Timestamptz(3)
+  completedAt    DateTime?             @db.Timestamptz(3)
+  createdAt      DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime              @updatedAt @db.Timestamptz(3)
+  subscription   WebhookSubscription   @relation(fields: [subscriptionId], references: [id])
 
   @@index([status, scheduledAt])
   @@index([clinicId])
@@ -2252,7 +2258,7 @@ model OutgoingWebhookDelivery {
 }
 
 model LabTest {
-  id                     String  @id @default(cuid())
+  id                     String         @id @default(cuid())
   clinicId               String
   name                   String
   code                   String?
@@ -2336,26 +2342,26 @@ model WhatsappConversation {
   clinic        Clinic                     @relation(fields: [clinicId], references: [id])
   patient       Patient?                   @relation(fields: [patientId], references: [id], onDelete: SetNull)
 
+  @@unique([clinicId, contactPhone])
   @@index([clinicId])
   @@index([patientId])
   @@index([status])
-  @@unique([clinicId, contactPhone])
   @@index([clinicId, status, lastMessageAt])
   @@index([contactPhone])
 }
 
 model WhatsappMessage {
-  id             String                @id @default(cuid())
+  id             String                   @id @default(cuid())
   conversationId String
   direction      WhatsappMessageDirection
   messageType    String
   content        String
   mediaUrl       String?
-  status         WhatsappMessageStatus @default(SENT)
+  status         WhatsappMessageStatus    @default(SENT)
   providerMsgId  String?
   errorMessage   String?
-  createdAt      DateTime              @default(now()) @db.Timestamptz(3)
-  conversation   WhatsappConversation  @relation(fields: [conversationId], references: [id])
+  createdAt      DateTime                 @default(now()) @db.Timestamptz(3)
+  conversation   WhatsappConversation     @relation(fields: [conversationId], references: [id])
 
   @@index([conversationId])
   @@index([createdAt])
