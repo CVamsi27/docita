@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
 import { DashboardRefreshControl } from "@/features/dashboard/components/layout/dashboard-refresh-control";
 import { ClinicReferralShareToolbar } from "@/features/dashboard/components/layout/clinic-referral-share-toolbar";
 import { TodayAdvisorRail } from "@/features/dashboard/components/advisor/today-advisor-rail";

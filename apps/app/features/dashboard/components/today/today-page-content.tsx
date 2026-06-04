@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DashboardSharedWorkspace } from "@/features/dashboard/components/layout/dashboard-shared-workspace";
@@ -16,7 +15,6 @@ import { useClinic } from "@/lib/contexts/clinic-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { Button } from "@workspace/ui/components/form/button";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { useStartConsultation } from "@workspace/data-access";

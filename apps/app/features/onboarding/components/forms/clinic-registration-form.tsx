@@ -28,8 +28,6 @@ import {
 } from "@workspace/utils";
 
 import {
-  DRAFT_KEY,
-  getMissingClinicDetailsForProgress,
   withStepErrorHandling,
 } from "./clinic-registration-form-helpers";
 import { useOnboardingDraft } from "./use-onboarding-draft";

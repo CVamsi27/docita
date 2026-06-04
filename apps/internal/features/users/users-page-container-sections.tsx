@@ -37,13 +37,12 @@ import {
   formatInternalListDate,
   formatInternalTimestamp,
 } from "@/lib/formatters/format-display-date";
-import { ROLE_CONFIG } from "./types";
+import { ROLE_CONFIG, type RoleFilter, type User } from "./types";
 import {
   getRoleBadgeColor,
   getSpecializationLabel,
   isRoleConfigKey,
 } from "./utils";
-import type { RoleFilter, User } from "./types";
 
 interface UserStatsCardsProps {
   roleStats: Record<string, number>;

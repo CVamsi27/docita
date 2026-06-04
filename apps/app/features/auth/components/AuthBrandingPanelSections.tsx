@@ -1,5 +1,4 @@
 import { Building2, Check, FileCheck2, KeyRound, UserCheck, type LucideIcon } from "lucide-react";
-import { DocitaIcon } from "@workspace/ui/components/indicators/docita-logo";
 import { cn } from "@workspace/ui/lib/utils";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";
 import { LoginDailyThought } from "@/features/auth/components/LoginDailyThought";
@@ -71,7 +70,7 @@ export function AuthBrandingHero({
 }
 
 export function AuthBrandingContentCard({
-  currentStep,
+  _currentStep,
   isEmailFirst,
   isLogin,
   activeStepIndex,

@@ -1,6 +1,5 @@
 "use client";
 
-import { type FC } from "react";
 import { getPatientFullName } from "@workspace/utils";
 import { Input } from "@workspace/ui/components/form/input";
 import { Textarea } from "@workspace/ui/components/form/textarea";

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { cn } from "@workspace/ui/lib/utils";
-import { EVENT_TYPE_CONFIG, type VisitCardProps } from "./visit-card-config";
+import { type VisitCardProps } from "./visit-card-config";
 import { CompactVisitCard, VisitCardHeader, VisitCardVitalsSection, VisitCardDiagnosisSection, VisitCardMedicationsSection, VisitCardProceduresSection } from "./VisitCardSections";
 import { buildVisitCardViewModel } from "./visit-card-view-model";
 

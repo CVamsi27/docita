@@ -53,7 +53,7 @@ export function EmailVerifiedContent({
   );
 }
 
-export function CheckEmailHero({ email }: { email: string }) {
+export function CheckEmailHero({ _email }: { email: string }) {
   return (
     <div className="relative mx-auto w-fit">
       <div

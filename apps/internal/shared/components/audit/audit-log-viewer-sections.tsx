@@ -54,7 +54,7 @@ interface TableSectionProps {
 
 export function AuditLogToolbarSection({
   isLoading,
-  showFilters,
+  _showFilters,
   onToggleFilters,
   onRefresh,
   onExport,

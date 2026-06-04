@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { CreditCard } from "lucide-react";
 import {
   Card,
   CardContent,

@@ -45,7 +45,7 @@ interface WhatsappComposerFormProps {
 }
 
 export function WhatsappComposerForm({
-  patientName,
+  _patientName,
   message,
   onMessageChange,
   selectedTemplateId,
