@@ -42,6 +42,7 @@ export function InvoiceCreateDetailsSection({
   setPatientComboboxOpen,
 }: {
   control: Control<CreateInvoiceFormValues>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   patients: any[];
   patientsLoading: boolean;
   patientSearch: string;
@@ -177,6 +178,7 @@ export function InvoiceCreateLineItemsSection({
           variant="outline"
           size="sm"
           onClick={() =>
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             append({
               description: "",
               quantity: 1,

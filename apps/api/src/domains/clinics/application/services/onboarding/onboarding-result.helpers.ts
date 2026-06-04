@@ -64,6 +64,7 @@ export async function buildSuccessfulOnboardingResult(
     id: result.adminUser.id,
     email: result.adminUser.email,
     name: result.adminUser.name,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     role: result.adminUser.role as any,
     clinicId: result.clinic.id,
     createdAt: result.adminUser.createdAt,

@@ -147,6 +147,7 @@ export function InvoiceEditLineItemsSection({
               price: 0,
               taxTreatment: "EXEMPT_HEALTHCARE",
               taxRate: 0,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as any)
           }
           className="mt-4"

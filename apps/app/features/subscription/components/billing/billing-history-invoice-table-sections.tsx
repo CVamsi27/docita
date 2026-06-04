@@ -121,7 +121,7 @@ export function BillingInvoiceDesktopRow({
   resumePaymentPending: boolean;
   onResumePayment: (invoice: BillingHistoryItem, payUrl?: string) => Promise<void>;
 }) {
-  const { status, isPaid, receiptUrl, payUrl, showPayNow, label, detail } = getInvoiceRowData(invoice);
+  const { status, isPaid: _isPaid, receiptUrl, payUrl, showPayNow, label, detail } = getInvoiceRowData(invoice);
 
   const dateCell = <span>{formatDate(invoice.createdAt)}</span>;
 
