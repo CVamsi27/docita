@@ -38,7 +38,7 @@ export function PaymentProcessingPricingOffersSection({
     try {
       await deletePricingOfferMutation.mutateAsync(clinicId);
     } catch {
-      showUserFacingErrorToast("Could not remove checkout discount.");
+      showUserFacingErrorToast("We couldn't remove the discount. Please try again.");
     }
   };
 
