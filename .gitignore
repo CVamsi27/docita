@@ -99,6 +99,8 @@ apps/api/src/seed-admin.ts
 *.log
 *.js.map
 logs/
+!apps/internal/features/logs/
+!apps/internal/features/logs/**
 logs/performance/*.json
 # Note: loadtest/k6/ holds the tracked k6 perf scenarios. Do not blanket-ignore
 # loadtest/ — only ignore runtime outputs the scenarios produce.
