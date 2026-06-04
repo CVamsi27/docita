@@ -184,6 +184,26 @@ Once the remaining gates (lint, test, build, knip, verify:standard) pass, mark t
 - **Do not** leave the closed branches as tombstones — delete the remote refs.
 - **Do not** treat consolidation as a regular flow. It is a recovery operation. The default flow is "one PR, land it, delete the branch."
 
+## Stale git stash cleanup (after merges)
+
+Local stashes are not pushed with PRs. They often linger after a branch is squash-merged into `main`, which makes `git branch --merged` and `git stash apply` misleading (duplicate SHAs vs patch-equivalent commits on `main`).
+
+After landing or closing PRs, audit stashes before dropping them:
+
+```bash
+pnpm audit:stashes
+# optional gate for agents/CI prep on a dirty dev machine:
+pnpm audit:stashes --enforce
+```
+
+Classify each entry from the script output:
+
+- **STALE** — branch tip is merged into `main`, or `git cherry main <branch>` shows no `+` patches. Drop with `git stash drop stash@{n}` once `git stash show -p` confirms nothing worth keeping.
+- **REVIEW** — branch is gone but the stash still has file changes, or `git cherry` reports unique patches. Recover onto a fresh branch from `main` (`git checkout -b fix/recover-<topic> main` then `git stash apply stash@{n}`), open a PR if the tree diff is non-empty, then drop the stash.
+- **Index-only** stashes (empty `git stash show --stat`) — safe to drop.
+
+Example (2026-05-31): 17 stashes from merged work (#163–#172) were all STALE; contents were already on `main` (allergy banner, daybook, FloatingInput removal, consultation subtitles, etc.).
+
 ## Reference
 
 - AGENTS.md §11.3 — Branch model and concurrent branch / PR cap
