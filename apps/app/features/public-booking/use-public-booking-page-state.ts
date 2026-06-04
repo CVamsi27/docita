@@ -53,6 +53,7 @@ export function usePublicBookingPageState(referralCode: string) {
     [submitFieldErrors],
   );
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const slotRangeSubmitError = useMemo(
     () => computeSlotRangeSubmitError(submitFieldErrors),
     [

@@ -35,6 +35,7 @@ export function ConsultationMainPanel({
   patientLoading,
   appointmentData,
 }: ConsultationMainPanelProps) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const sectionComponents = useMemo(
     () =>
       buildConsultationSectionComponents(
