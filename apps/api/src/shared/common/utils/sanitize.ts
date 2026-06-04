@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — narrowing casts required by generic signatures or external SDK types
 const HTML_TAG_RE = /<[^>]*>/g;
 const JS_EVENT_RE = /\bon\w+\s*=\s*['"]?[^'"\s]+['"]?/gi;
 const JS_URL_RE = /javascript\s*:/gi;

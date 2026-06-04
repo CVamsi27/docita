@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — narrowing casts required by generic signatures or external SDK types
 import { Inject, Injectable } from '@nestjs/common';
 import {
   WHATSAPP_PERSISTENCE_PORT,

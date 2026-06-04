@@ -83,7 +83,10 @@ export class OnboardingValidationService {
     errors?: string[];
   } {
     const errors: string[] = [];
-    const onboardingData = data ?? ({} as CompleteOnboardingDto);
+    if (!data) {
+      return { valid: false, errors: ['Clinic details are required'] };
+    }
+    const onboardingData = data;
 
     this.addRequiredSectionErrors(onboardingData, errors);
     this.addSlaAgreementErrors(onboardingData, errors);

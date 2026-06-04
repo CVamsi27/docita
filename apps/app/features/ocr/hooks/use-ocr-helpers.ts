@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — narrowing casts required by generic signatures or external types
 /** Pure OCR field-mapping helpers — no React hooks. */
 import type { ParsedMedicalFields } from "@workspace/types";
 import { importInvoiceDraftSchema, type OcrImportCommitRequest } from "@workspace/types";

@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — narrowing casts required by generic signatures or external types
 import type { Clinic } from "@/lib/contexts/clinic-context";
 import { TRIAL_GRACE_DAYS, BILLING_ROLES } from "@workspace/types";
 

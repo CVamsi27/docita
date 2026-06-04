@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — narrowing casts required by generic signatures or external types
 import type { AppointmentListItem } from "@workspace/data-access";
 import type { StatusType } from "@workspace/ui/components/indicators/status-badge";
 

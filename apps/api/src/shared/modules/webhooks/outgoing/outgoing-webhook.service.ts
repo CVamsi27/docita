@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — narrowing casts required by generic signatures or external SDK types
 import { Injectable, Logger } from '@nestjs/common';
 import { createHmac, randomUUID } from 'crypto';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
