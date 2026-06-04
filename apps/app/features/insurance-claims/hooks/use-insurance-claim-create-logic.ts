@@ -17,12 +17,15 @@ import {
   type CreateInsuranceClaimFormValues,
 } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import {
+  applyInvoiceClaimAmountDefault,
+  applyPatientInsuranceDefaults,
+  buildClaimCreateDefaultValues,
+  buildCreateClaimPayload,
+} from "./insurance-claim-create-helpers";
+import type { ClaimCreatePresets } from "./insurance-claim-create-types";
 
-export interface ClaimCreatePresets {
-  patientId?: string;
-  invoiceId?: string;
-  claimType?: CreateInsuranceClaimFormValues["claimType"];
-}
+export type { ClaimCreatePresets };
 
 export const useInsuranceClaimCreateLogic = (presets?: ClaimCreatePresets) => {
   const router = useRouter();
@@ -43,56 +46,23 @@ export const useInsuranceClaimCreateLogic = (presets?: ClaimCreatePresets) => {
 
   const form = useForm<CreateInsuranceClaimFormValues>({
     resolver: zodResolver(createInsuranceClaimFormSchema),
-    defaultValues: {
-      patientId: presets?.patientId ?? "",
-      claimType:
-        presets?.claimType ?? (presets?.invoiceId ? "REIMBURSEMENT" : "PRE_AUTH"),
-      invoiceId: presets?.invoiceId ?? "",
-      appointmentId: "",
-      insurerName: "",
-      tpaName: "",
-      policyNumber: "",
-      groupNumber: "",
-      claimedAmount: 0,
-      notes: "",
-    },
+    defaultValues: buildClaimCreateDefaultValues(presets),
   });
 
   useEffect(() => {
-    if (!presetPatient) return;
-    if (presetPatient.insuranceProvider) {
-      form.setValue("insurerName", presetPatient.insuranceProvider);
-    }
-    if (presetPatient.insurancePolicyNumber) {
-      form.setValue("policyNumber", presetPatient.insurancePolicyNumber);
-    }
-    if (presetPatient.insuranceGroupNumber) {
-      form.setValue("groupNumber", presetPatient.insuranceGroupNumber);
-    }
+    applyPatientInsuranceDefaults(form, presetPatient);
   }, [form, presetPatient]);
 
   useEffect(() => {
-    const amount = presetInvoice?.grandTotal ?? presetInvoice?.total;
-    if (typeof amount === "number" && amount >= 0) {
-      form.setValue("claimedAmount", amount);
-    }
+    applyInvoiceClaimAmountDefault(form, presetInvoice);
   }, [form, presetInvoice]);
 
   const onSubmit = async (data: CreateInsuranceClaimFormValues) => {
     try {
       setIsSaving(true);
-      const result = await createClaim.mutateAsync({
-        patientId: data.patientId,
-        claimType: data.claimType,
-        invoiceId: data.invoiceId || undefined,
-        appointmentId: data.appointmentId || undefined,
-        insurerName: data.insurerName,
-        tpaName: data.tpaName || undefined,
-        policyNumber: data.policyNumber,
-        groupNumber: data.groupNumber || undefined,
-        claimedAmountCents: Math.round((data.claimedAmount || 0) * 100),
-        notes: data.notes || undefined,
-      });
+      const result = await createClaim.mutateAsync(
+        buildCreateClaimPayload(data),
+      );
       toast.success("Insurance claim created");
       requestAnimationFrame(() => {
         router.push(`/insurance-claims/${result.id}`);

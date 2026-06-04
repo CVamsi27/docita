@@ -19,7 +19,7 @@ import type {
   WhatsAppUnreadCountResponse,
 } from "@workspace/types";
 import { Feature } from "@workspace/types";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import { useDataAccessContext } from "../provider/hooks";

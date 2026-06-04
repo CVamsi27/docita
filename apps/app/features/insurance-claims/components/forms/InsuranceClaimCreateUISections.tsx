@@ -21,7 +21,7 @@ import {
 import { Button } from "@workspace/ui/components/form/button";
 import { CLAIM_TYPE_LABELS } from "@/features/insurance-claims/lib/claim-display";
 import type { ClaimCreatePresets } from "@/features/insurance-claims/hooks/use-insurance-claim-create-logic";
-import type { Patient } from "@workspace/types";
+import type { CreateInsuranceClaimFormValues, Patient } from "@workspace/types";
 import type { Control } from "react-hook-form";
 import type { PatientNameParts } from "@workspace/utils";
 
@@ -86,8 +86,7 @@ export function ClaimReadinessCard({
 }
 
 interface ClaimFormFieldGridProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  control: Control<any>;
+  control: Control<CreateInsuranceClaimFormValues>;
   presets?: ClaimCreatePresets;
   patientSearch: string;
   setPatientSearch: (search: string) => void;
@@ -119,17 +118,12 @@ export function ClaimFormFieldGrid({
                   onChange={(e) => setPatientSearch(e.target.value)}
                   className="mb-2"
                 />
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                >
+                <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue
                         placeholder={
-                          patientsLoading
-                            ? "Loading…"
-                            : "Select a patient"
+                          patientsLoading ? "Loading…" : "Select a patient"
                         }
                       />
                     </SelectTrigger>
@@ -189,9 +183,7 @@ export function ClaimFormFieldGrid({
                   min={0}
                   step="0.01"
                   value={field.value}
-                  onChange={(e) =>
-                    field.onChange(e.target.valueAsNumber || 0)
-                  }
+                  onChange={(e) => field.onChange(e.target.valueAsNumber || 0)}
                 />
               </FormControl>
               <FormMessage />
@@ -220,10 +212,7 @@ export function ClaimFormFieldGrid({
             <FormItem>
               <FormLabel>TPA (optional)</FormLabel>
               <FormControl>
-                <Input
-                  {...field}
-                  placeholder="Third-party administrator"
-                />
+                <Input {...field} placeholder="Third-party administrator" />
               </FormControl>
               <FormMessage />
             </FormItem>

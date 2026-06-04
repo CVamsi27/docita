@@ -18,6 +18,7 @@ import {
 import {
   WHATSAPP_CLIENT_TOKEN,
   IWhatsAppClient,
+  ResolvedWhatsappSender,
 } from '@/domains/whatsapp/application/ports/whatsapp-client.port';
 import { WhatsAppMessage } from '@/domains/whatsapp/core/entities/whatsapp-message.entity';
 import {
@@ -45,6 +46,23 @@ export type SendMessageResult = {
   senderMode?: 'SHARED' | 'BYO' | 'MANAGED';
   senderPhoneNumberId?: string | null;
 };
+
+interface DeliveryContext {
+  clinicId: string;
+  recipientPhone: string;
+  templateName?: string;
+  text?: string;
+  languageCode: string;
+  messageVariables: Record<string, string>;
+  clinicDisplayName: string;
+  sender: ResolvedWhatsappSender;
+  resolvedSender?: ResolvedWhatsappSender;
+}
+
+interface DeliveredMessage {
+  externalId: string;
+  finalContent: string;
+}
 
 @Injectable()
 export class SendMessageUseCase {
@@ -110,82 +128,17 @@ export class SendMessageUseCase {
       ...variables,
     };
 
-    let resolved: ResolvedTemplate | null = null;
-    if (templateName) {
-      resolved = await this.templateResolver.resolveTemplate(
-        templateName,
-        messageVariables,
-        clinicId,
-      );
-    }
-
-    let externalId: string;
-    let finalContent: string;
-
-    if (resolved) {
-      const useApprovedMetaTemplate =
-        this.useProductionMode && !!resolved.metaTemplateId && !!templateName;
-      const messageBody = useApprovedMetaTemplate
-        ? resolved.content
-        : resolved.buttonType === 'CALL_TO_ACTION'
-          ? resolved.textFallback
-          : resolved.content;
-      finalContent = this.withSharedSenderPrefix(
-        messageBody,
-        sender.mode,
-        clinicDisplayName,
-      );
-      if (useApprovedMetaTemplate) {
-        const components = buildMetaTemplateComponents(
-          resolved.variables,
-          messageVariables,
-          resolved.buttonUrlVariable,
-        );
-        const result = await this.client.sendMessage({
-          to: recipientPhone,
-          templateName,
-          languageCode,
-          components,
-          ...(resolvedSender ? { sender } : {}),
-        });
-        externalId = result.externalId;
-      } else if (
-        resolved.buttonType === 'QUICK_REPLY' &&
-        resolved.buttons &&
-        resolved.buttons.length > 0
-      ) {
-        const result = await this.client.sendInteractiveMessage({
-          to: recipientPhone,
-          bodyText: finalContent,
-          buttons: resolved.buttons.map((b) => ({ id: b.id, title: b.text })),
-          ...(resolvedSender ? { sender } : {}),
-        });
-        externalId = result.externalId;
-      } else {
-        const result = await this.client.sendMessage({
-          to: recipientPhone,
-          text: finalContent,
-          ...(resolvedSender ? { sender } : {}),
-        });
-        externalId = result.externalId;
-      }
-    } else if (text) {
-      finalContent = this.withSharedSenderPrefix(
-        text,
-        sender.mode,
-        clinicDisplayName,
-      );
-      const result = await this.client.sendMessage({
-        to: recipientPhone,
-        text: finalContent,
-        ...(resolvedSender ? { sender } : {}),
-      });
-      externalId = result.externalId;
-    } else {
-      throw new InvariantViolationError(
-        'Either templateName or text must be provided',
-      );
-    }
+    const { externalId, finalContent } = await this.deliverMessage({
+      clinicId,
+      recipientPhone,
+      templateName,
+      text,
+      languageCode,
+      messageVariables,
+      clinicDisplayName,
+      sender,
+      ...(resolvedSender ? { resolvedSender } : {}),
+    });
 
     const conversationId = await this.repository.ensureConversation(
       clinicId,
@@ -220,6 +173,131 @@ export class SendMessageUseCase {
       senderMode: sender.mode,
       senderPhoneNumberId: sender.senderPhoneNumberId,
     };
+  }
+
+  private async deliverMessage(
+    context: DeliveryContext,
+  ): Promise<DeliveredMessage> {
+    const resolved = await this.resolveTemplate(context);
+    if (resolved && context.templateName) {
+      return this.deliverResolvedTemplate(context, resolved);
+    }
+    if (context.text) {
+      return this.deliverTextMessage(context, context.text);
+    }
+    throw new InvariantViolationError(
+      'Either templateName or text must be provided',
+    );
+  }
+
+  private async resolveTemplate(
+    context: DeliveryContext,
+  ): Promise<ResolvedTemplate | null> {
+    if (!context.templateName) return null;
+    return this.templateResolver.resolveTemplate(
+      context.templateName,
+      context.messageVariables,
+      context.clinicId,
+    );
+  }
+
+  private async deliverResolvedTemplate(
+    context: DeliveryContext,
+    resolved: ResolvedTemplate,
+  ): Promise<DeliveredMessage> {
+    const useApprovedMetaTemplate = this.shouldUseApprovedMetaTemplate(
+      context,
+      resolved,
+    );
+    const finalContent = this.withSharedSenderPrefix(
+      useApprovedMetaTemplate
+        ? resolved.content
+        : this.resolveTemplateBody(resolved),
+      context.sender.mode,
+      context.clinicDisplayName,
+    );
+    if (useApprovedMetaTemplate) {
+      const result = await this.client.sendMessage({
+        to: context.recipientPhone,
+        templateName: context.templateName,
+        languageCode: context.languageCode,
+        components: buildMetaTemplateComponents(
+          resolved.variables,
+          context.messageVariables,
+          resolved.buttonUrlVariable,
+        ),
+        ...this.senderOption(context),
+      });
+      return { externalId: result.externalId, finalContent };
+    }
+    if (this.hasQuickReplyButtons(resolved)) {
+      const result = await this.client.sendInteractiveMessage({
+        to: context.recipientPhone,
+        bodyText: finalContent,
+        buttons: resolved.buttons.map((button) => ({
+          id: button.id,
+          title: button.text,
+        })),
+        ...this.senderOption(context),
+      });
+      return { externalId: result.externalId, finalContent };
+    }
+    return this.deliverTextMessage(context, finalContent, false);
+  }
+
+  private async deliverTextMessage(
+    context: DeliveryContext,
+    text: string,
+    applyPrefix = true,
+  ): Promise<DeliveredMessage> {
+    const finalContent = applyPrefix
+      ? this.withSharedSenderPrefix(
+          text,
+          context.sender.mode,
+          context.clinicDisplayName,
+        )
+      : text;
+    const result = await this.client.sendMessage({
+      to: context.recipientPhone,
+      text: finalContent,
+      ...this.senderOption(context),
+    });
+    return { externalId: result.externalId, finalContent };
+  }
+
+  private resolveTemplateBody(resolved: ResolvedTemplate): string {
+    return resolved.buttonType === 'CALL_TO_ACTION'
+      ? resolved.textFallback
+      : resolved.content;
+  }
+
+  private shouldUseApprovedMetaTemplate(
+    context: DeliveryContext,
+    resolved: ResolvedTemplate,
+  ): boolean {
+    return (
+      this.useProductionMode &&
+      !!resolved.metaTemplateId &&
+      !!context.templateName
+    );
+  }
+
+  private hasQuickReplyButtons(
+    resolved: ResolvedTemplate,
+  ): resolved is ResolvedTemplate & {
+    buttons: Array<{ id: string; text: string }>;
+  } {
+    return (
+      resolved.buttonType === 'QUICK_REPLY' &&
+      Array.isArray(resolved.buttons) &&
+      resolved.buttons.length > 0
+    );
+  }
+
+  private senderOption(
+    context: DeliveryContext,
+  ): { sender: ResolvedWhatsappSender } | Record<string, never> {
+    return context.resolvedSender ? { sender: context.sender } : {};
   }
 
   private withSharedSenderPrefix(

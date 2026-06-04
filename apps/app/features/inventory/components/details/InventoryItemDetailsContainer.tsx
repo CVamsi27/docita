@@ -1,9 +1,8 @@
 "use client";
 
 import { useInventoryItem } from "@workspace/data-access";
-import { isRecord } from "@workspace/utils";
-import type { ItemDetail, ItemMovement } from "./InventoryItemDetailsUI";
 import { InventoryItemDetailsUI } from "./InventoryItemDetailsUI";
+import { toInventoryItemDetail } from "./inventory-item-details-mapper";
 
 interface InventoryItemDetailsContainerProps {
   itemId: string | null;
@@ -17,57 +16,7 @@ export function InventoryItemDetailsContainer({
   onOpenChange,
 }: InventoryItemDetailsContainerProps) {
   const { data: rawItem, isLoading } = useInventoryItem(itemId || "");
-  const rawData =
-    rawItem && typeof rawItem === "object" && !Array.isArray(rawItem)
-      ? Object.fromEntries(Object.entries(rawItem))
-      : null;
-
-  const movements = Array.isArray(rawData?.movements)
-    ? rawData.movements
-        .map((entry): ItemMovement | null => {
-          if (!isRecord(entry)) return null;
-          if (
-            typeof entry.id !== "string" ||
-            typeof entry.type !== "string" ||
-            typeof entry.quantity !== "number"
-          ) {
-            return null;
-          }
-          const createdAt =
-            entry.createdAt instanceof Date
-              ? entry.createdAt.toISOString()
-              : typeof entry.createdAt === "string"
-                ? entry.createdAt
-                : null;
-          if (!createdAt) return null;
-          return {
-            id: entry.id,
-            type: entry.type,
-            quantity: entry.quantity,
-            createdAt,
-            notes: typeof entry.notes === "string" ? entry.notes : undefined,
-          };
-        })
-        .filter((entry): entry is ItemMovement => entry !== null)
-    : [];
-
-  const item: ItemDetail | null = rawData
-    ? {
-        name: String(rawData.name || ""),
-        category: String(rawData.category || ""),
-        sku: String(rawData.sku || ""),
-        quantity: Number(rawData.quantity || 0),
-        minQuantity: Number(rawData.minQuantity || 0),
-        unit: String(rawData.unit || ""),
-        purchasePrice: Number(rawData.purchasePrice || 0),
-        sellingPrice: Number(rawData.sellingPrice || 0),
-        expiryDate:
-          typeof rawData.expiryDate === "string"
-            ? rawData.expiryDate
-            : undefined,
-        movements,
-      }
-    : null;
+  const item = toInventoryItemDetail(rawItem);
 
   return (
     <InventoryItemDetailsUI

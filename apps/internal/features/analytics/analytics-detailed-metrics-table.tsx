@@ -11,15 +11,9 @@ import {
   TableRow,
 } from "@workspace/ui/components/data-display/table";
 import { formatAmountLocale } from "@workspace/utils";
+import type { InternalDetailedMetricsRow } from "@workspace/data-access/internal";
 
-export interface DetailedMetricsRow {
-  period: string;
-  revenue: number;
-  invoices: number;
-  avgAmount: number;
-  appointments: number;
-  fillRate: number;
-}
+export type DetailedMetricsRow = InternalDetailedMetricsRow;
 
 interface AnalyticsDetailedMetricsTableProps {
   rows: DetailedMetricsRow[];

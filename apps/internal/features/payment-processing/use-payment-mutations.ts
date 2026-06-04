@@ -23,6 +23,9 @@ export function usePaymentMutations(
         `/internal/clinics/${selectedClinic?.id}/process-payment`,
         buildPaymentRequestPayload(selectedClinic, data),
       ),
+    onSuccess: () => {
+      toast.success("Payment processed and tier updated successfully");
+    },
   });
 
   const recordAdditionalChargeMutation = useMutation({
@@ -31,6 +34,9 @@ export function usePaymentMutations(
         `/internal/clinics/${additionalChargeClinic?.id}/additional-charge`,
         data,
       ),
+    onSuccess: () => {
+      toast.success("Additional charge recorded");
+    },
   });
 
   const savePricingOfferMutation = useMutation({

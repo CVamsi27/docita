@@ -1,5 +1,5 @@
 import { useAPIMutation } from "../core/use-api-mutation";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { useAPIQuery } from "../core/use-api-query";
 
 export interface OpdSlipSettings {

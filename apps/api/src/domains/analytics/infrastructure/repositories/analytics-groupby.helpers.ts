@@ -1,4 +1,6 @@
 import { isRecord } from '@workspace/utils';
+import { readGroupCount } from './analytics-groupby-count';
+import { normalizeGender } from './analytics-gender-groupby';
 
 export function mapAppointmentStatusGroupRows(
   rows: unknown[],
@@ -7,12 +9,7 @@ export function mapAppointmentStatusGroupRows(
     if (!isRecord(row) || typeof row.status !== 'string') {
       return [];
     }
-    const countBlock = row._count;
-    const count =
-      isRecord(countBlock) && typeof countBlock.id === 'number'
-        ? countBlock.id
-        : 0;
-    return [{ status: row.status, count }];
+    return [{ status: row.status, count: readGroupCount(row, 'id') }];
   });
 }
 
@@ -23,12 +20,7 @@ export function mapAppointmentTypeGroupRows(
     if (!isRecord(row) || typeof row.type !== 'string') {
       return [];
     }
-    const countBlock = row._count;
-    const count =
-      isRecord(countBlock) && typeof countBlock.id === 'number'
-        ? countBlock.id
-        : 0;
-    return [{ type: row.type, count }];
+    return [{ type: row.type, count: readGroupCount(row, 'id') }];
   });
 }
 
@@ -39,18 +31,11 @@ export function mapPatientGenderGroupRows(
     if (!isRecord(row) || !('gender' in row)) {
       return [];
     }
-    const gender = row.gender;
-    const normalizedGender =
-      gender === 'MALE' || gender === 'FEMALE' || gender === 'OTHER'
-        ? gender
-        : gender === null
-          ? null
-          : null;
-    const countBlock = row._count;
-    const count =
-      isRecord(countBlock) && typeof countBlock._all === 'number'
-        ? countBlock._all
-        : 0;
-    return [{ gender: normalizedGender, count }];
+    return [
+      {
+        gender: normalizeGender(row.gender),
+        count: readGroupCount(row, '_all'),
+      },
+    ];
   });
 }

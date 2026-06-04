@@ -233,88 +233,124 @@ async function probeStaffLogin({ apiReachable = true } = {}) {
     ? POST_DEPLOY_STAFF_LOGIN_DELAY_MS
     : SCHEDULED_PROBE_RETRY_DELAY_MS;
 
-  return runProbe("staff-login", async () => {
-    let lastError = "Expected 2xx login";
+  return runProbe("staff-login", () =>
+    runStaffLoginAttempts({ email, password, attempts, retryDelayMs }),
+  );
+}
 
-    for (let attempt = 1; attempt <= attempts; attempt += 1) {
-      let response;
-      let latencyMs;
+async function runStaffLoginAttempts({
+  email,
+  password,
+  attempts,
+  retryDelayMs,
+}) {
+  let lastError = "Expected 2xx login";
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const result = await runStaffLoginAttempt({
+      email,
+      password,
+      attempt,
+      attempts,
+    });
+    if (result.ok) return result.value;
+    lastError = result.error;
+    if (!result.retryable || attempt >= attempts) break;
+    await retryStaffLogin(attempt, attempts, retryDelayMs, lastError);
+  }
+  throw new Error(
+    `${lastError}. Verify SYNTHETIC_MONITOR_EMAIL and SYNTHETIC_MONITOR_PASSWORD GitHub secrets match the production monitor user (no trailing whitespace; account not locked; MFA disabled).`,
+  );
+}
 
-      try {
-        ({ response, latencyMs } = await fetchWithTimeout(
-          `${API_V1}/auth/login`,
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email, password }),
-          },
-          FETCH_TIMEOUT_MS,
-        ));
-      } catch (error) {
-        lastError = error instanceof Error ? error.message : String(error);
-        if (!isRetryableStaffLoginFailure(null, error) || attempt >= attempts) {
-          break;
-        }
-        process.stdout.write(
-          `staff-login: attempt ${attempt}/${attempts} failed (${lastError}); retrying in ${retryDelayMs}ms...\n`,
-        );
-        await sleep(retryDelayMs);
-        continue;
-      }
-
-      if (response.status === 200 || response.status === 201) {
-        const body = await response.json().catch(() => null);
-        if (body && typeof body === "object" && body.mfa_required === true) {
-          throw new Error(
-            "Monitor account has MFA enabled; disable MFA on the synthetic monitor user or extend the probe to verify MFA",
-          );
-        }
-
-        const setCookie = response.headers.get("set-cookie") ?? "";
-        if (!setCookie.includes("access_token=")) {
-          throw new Error("Login response missing access_token cookie");
-        }
-
-        if (!IS_POST_DEPLOY && latencyMs > LATENCY_TARGETS_MS["staff-login"]) {
-          throw new Error(
-            `Latency ${latencyMs}ms exceeds ${LATENCY_TARGETS_MS["staff-login"]}ms target`,
-          );
-        }
-
-        if (attempt > 1) {
-          process.stdout.write(
-            `staff-login: succeeded on attempt ${attempt}/${attempts} (${latencyMs}ms)\n`,
-          );
-        }
-
-        return { latencyMs };
-      }
-
-      const detail = await readHttpErrorDetail(response);
-      lastError = detail
-        ? `Expected 2xx login, got ${response.status} (${detail})`
-        : `Expected 2xx login, got ${response.status}`;
-
-      if (
-        !isRetryableStaffLoginFailure(response, null) ||
-        attempt >= attempts
-      ) {
-        break;
-      }
-
-      process.stdout.write(
-        `staff-login: attempt ${attempt}/${attempts} failed (${lastError}); retrying in ${retryDelayMs}ms...\n`,
-      );
-      await sleep(retryDelayMs);
-    }
-
-    throw new Error(
-      `${lastError}. Verify SYNTHETIC_MONITOR_EMAIL and SYNTHETIC_MONITOR_PASSWORD GitHub secrets match the production monitor user (no trailing whitespace; account not locked; MFA disabled).`,
+async function runStaffLoginAttempt({ email, password, attempt, attempts }) {
+  try {
+    const { response, latencyMs } = await fetchWithTimeout(
+      `${API_V1}/auth/login`,
+      staffLoginRequest(email, password),
+      FETCH_TIMEOUT_MS,
     );
-  });
+    return await evaluateStaffLoginResponse(
+      response,
+      latencyMs,
+      attempt,
+      attempts,
+    );
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+      retryable: isRetryableStaffLoginFailure(null, error),
+    };
+  }
+}
+
+function staffLoginRequest(email, password) {
+  return {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, password }),
+  };
+}
+
+async function evaluateStaffLoginResponse(
+  response,
+  latencyMs,
+  attempt,
+  attempts,
+) {
+  if (response.status !== 200 && response.status !== 201) {
+    return {
+      ok: false,
+      error: await staffLoginHttpError(response),
+      retryable: isRetryableStaffLoginFailure(response, null),
+    };
+  }
+  await assertStaffLoginBody(response);
+  assertStaffLoginLatency(latencyMs);
+  if (attempt > 1) {
+    process.stdout.write(
+      `staff-login: succeeded on attempt ${attempt}/${attempts} (${latencyMs}ms)\n`,
+    );
+  }
+  return { ok: true, value: { latencyMs } };
+}
+
+async function staffLoginHttpError(response) {
+  const detail = await readHttpErrorDetail(response);
+  return detail
+    ? `Expected 2xx login, got ${response.status} (${detail})`
+    : `Expected 2xx login, got ${response.status}`;
+}
+
+async function assertStaffLoginBody(response) {
+  const body = await response.json().catch(() => null);
+  if (body && typeof body === "object" && body.mfa_required === true) {
+    throw new Error(
+      "Monitor account has MFA enabled; disable MFA on the synthetic monitor user or extend the probe to verify MFA",
+    );
+  }
+  const setCookie = response.headers.get("set-cookie") ?? "";
+  if (!setCookie.includes("access_token=")) {
+    throw new Error("Login response missing access_token cookie");
+  }
+}
+
+function assertStaffLoginLatency(latencyMs) {
+  if (!IS_POST_DEPLOY && latencyMs > LATENCY_TARGETS_MS["staff-login"]) {
+    throw new Error(
+      `Latency ${latencyMs}ms exceeds ${LATENCY_TARGETS_MS["staff-login"]}ms target`,
+    );
+  }
+}
+
+async function retryStaffLogin(attempt, attempts, retryDelayMs, lastError) {
+  process.stdout.write(
+    `staff-login: attempt ${attempt}/${attempts} failed (${lastError}); retrying in ${retryDelayMs}ms...\n`,
+  );
+  await sleep(retryDelayMs);
 }
 
 async function waitForEndpointReady({

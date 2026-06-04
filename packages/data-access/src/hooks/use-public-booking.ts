@@ -8,7 +8,7 @@ import type {
   PublicBookingSlotsResponse,
   PublicBookingSubmitResponse,
 } from "@workspace/types";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { useDataAccessContext } from "../provider/hooks";
 
 function clinicsBase(referralCode: string) {

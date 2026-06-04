@@ -1,4 +1,4 @@
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import type {
@@ -8,54 +8,74 @@ import type {
   OcrImportCommitResponse,
 } from "@workspace/types";
 
+export interface ProcessOcrMedication {
+  name: string;
+  dosage: string;
+  frequency: string;
+  route?: string;
+  duration?: string;
+}
+
+export interface ProcessOcrVitals {
+  bp?: string;
+  temp?: string;
+  pulse?: string;
+  respiratoryRate?: string;
+  spO2?: string;
+  glucose?: string;
+}
+
+export interface ProcessOcrInvoiceItem {
+  description?: string;
+  quantity?: number | string;
+  unitPrice?: number | string;
+  total?: number | string;
+}
+
+export interface ProcessOcrInvoice {
+  total?: number | string | null;
+  tax?: number | string | null;
+  subtotal?: number | string | null;
+  items?: ProcessOcrInvoiceItem[];
+}
+
+export interface ProcessOcrFields {
+  firstName?: string;
+  lastName?: string;
+  age?: string;
+  gender?: string;
+  phoneNumber?: string;
+  email?: string;
+  bloodType?: string;
+  diagnosis?: string;
+  symptoms?: string[];
+  allergies?: string[];
+  medicalHistory?: string[];
+  vitals?: ProcessOcrVitals;
+  medications?: ProcessOcrMedication[];
+  fieldConfidence?: Record<string, number>;
+  invoice?: ProcessOcrInvoice;
+}
+
+export interface ProcessOcrResponse {
+  text?: string;
+  documentType?: "PRESCRIPTION" | "CASE_SHEET" | "LAB_REPORT" | "GENERAL";
+  confidence?: number;
+  method?: string;
+  message?: string;
+  fields?: ProcessOcrFields;
+  suggestedCorrections?: Record<string, string>;
+  firstName?: string;
+  lastName?: string;
+  age?: string;
+  gender?: string;
+  phoneNumber?: string;
+  diagnosis?: string;
+  vitals?: Pick<ProcessOcrVitals, "bp" | "temp" | "pulse">;
+}
+
 export const useProcessOCR = () =>
-  useAPIMutation<
-    {
-      text?: string;
-      documentType?: "PRESCRIPTION" | "CASE_SHEET" | "LAB_REPORT" | "GENERAL";
-      confidence?: number;
-      method?: string;
-      message?: string;
-      fields?: {
-        firstName?: string;
-        lastName?: string;
-        age?: string;
-        gender?: string;
-        phoneNumber?: string;
-        email?: string;
-        bloodType?: string;
-        diagnosis?: string;
-        symptoms?: string[];
-        allergies?: string[];
-        medicalHistory?: string[];
-        vitals?: {
-          bp?: string;
-          temp?: string;
-          pulse?: string;
-          respiratoryRate?: string;
-          spO2?: string;
-          glucose?: string;
-        };
-        medications?: Array<{
-          name: string;
-          dosage: string;
-          frequency: string;
-          route?: string;
-          duration?: string;
-        }>;
-        fieldConfidence?: Record<string, number>;
-      };
-      suggestedCorrections?: Record<string, string>;
-      firstName?: string;
-      lastName?: string;
-      age?: string;
-      gender?: string;
-      phoneNumber?: string;
-      diagnosis?: string;
-      vitals?: { bp?: string; temp?: string; pulse?: string };
-    },
-    FormData
-  >("/imports/ocr/process", "POST");
+  useAPIMutation<ProcessOcrResponse, FormData>("/imports/ocr/process", "POST");
 
 export const useOcrCommitImport = () =>
   useAPIMutation<OcrImportCommitResponse, OcrImportCommitRequest>(

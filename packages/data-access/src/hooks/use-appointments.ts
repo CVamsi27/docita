@@ -3,7 +3,7 @@ import {
   useInfiniteQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import {
   Appointment,
   AppointmentRequestListResponse,
@@ -27,10 +27,7 @@ import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import { useAPIQueryValidated } from "../core/use-api-query-validated";
 import { omitEmptyQueryParams, withQueryString } from "../lib/query-string";
-import {
-  DEFAULT_TIMEZONE,
-  formatClinicTodayPickerIso,
-} from "@workspace/utils";
+import { DEFAULT_TIMEZONE, formatClinicTodayPickerIso } from "@workspace/utils";
 import { useDataAccessContext } from "../provider/hooks";
 export type AppointmentListItem = AppointmentListItemContractResponse;
 
@@ -129,12 +126,18 @@ export const useTodayAppointments = (enabled: boolean = true) => {
     queryKeys.appointments.list({ date: today }),
     `/appointments?date=${today}`,
     listAppointmentsResponseSchema,
-    { enabled: calendarOk && enabled, staleTime: 30_000, gcTime: 5 * 60 * 1000 },
+    {
+      enabled: calendarOk && enabled,
+      staleTime: 30_000,
+      gcTime: 5 * 60 * 1000,
+    },
   );
 };
 
 export const useAppointment = (id: string) => {
-  const calendarOk = useDataAccessContext().isTierFeatureEnabled(Feature.CALENDAR_SLOTS);
+  const calendarOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.CALENDAR_SLOTS,
+  );
   return useAPIQuery<AppointmentWithRelations>(
     queryKeys.appointments.detail(id),
     `/appointments/${id}`,
@@ -143,7 +146,9 @@ export const useAppointment = (id: string) => {
 };
 
 export const usePatientAppointments = (patientId: string) => {
-  const calendarOk = useDataAccessContext().isTierFeatureEnabled(Feature.CALENDAR_SLOTS);
+  const calendarOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.CALENDAR_SLOTS,
+  );
   return useAPIQueryValidated(
     queryKeys.appointments.byPatient(patientId),
     `/appointments?patientId=${patientId}`,
@@ -295,7 +300,9 @@ export const useCheckInAppointment = () =>
   );
 
 export const useFollowUps = (options?: ListFollowUpsQuery | null) => {
-  const calendarOk = useDataAccessContext().isTierFeatureEnabled(Feature.CALENDAR_SLOTS);
+  const calendarOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.CALENDAR_SLOTS,
+  );
   const normalizedOptions = normalizeAppointmentQueryOptions(options);
   return useAPIQuery<FollowUpResponse[]>(
     queryKeys.followUps.list(normalizedOptions ?? {}),
@@ -340,7 +347,9 @@ export const useBookFollowUp = () =>
 export const useAppointmentRequests = (
   options?: ListAppointmentRequestsQuery | null,
 ) => {
-  const calendarOk = useDataAccessContext().isTierFeatureEnabled(Feature.CALENDAR_SLOTS);
+  const calendarOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.CALENDAR_SLOTS,
+  );
   const normalizedOptions = normalizeAppointmentQueryOptions(options);
   return useAPIQuery<AppointmentRequestListResponse>(
     queryKeys.appointmentRequests.list(normalizedOptions ?? {}),
@@ -378,7 +387,9 @@ export const useRejectAppointmentRequest = () =>
   });
 
 export const useQueue = (options?: { search?: string }) => {
-  const queueOk = useDataAccessContext().isTierFeatureEnabled(Feature.QUEUE_MANAGEMENT);
+  const queueOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.QUEUE_MANAGEMENT,
+  );
   const params = options?.search ? { search: options.search } : undefined;
   return useAPIQuery<QueueItem[]>(
     queryKeys.queue.list(params),
@@ -394,7 +405,9 @@ export const useQueueByDoctor = (
   search?: string,
   enabled: boolean = true,
 ) => {
-  const queueOk = useDataAccessContext().isTierFeatureEnabled(Feature.QUEUE_MANAGEMENT);
+  const queueOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.QUEUE_MANAGEMENT,
+  );
   const params =
     doctorId || search
       ? {

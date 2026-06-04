@@ -12,9 +12,10 @@ export function computeSlotRangeSubmitError(
   slotStart: string | undefined,
   slotEnd: string | undefined,
 ): string {
-  if (slotStart && slotEnd && slotStart !== slotEnd)
-    return `${slotStart} \u00B7 ${slotEnd}`;
-  return slotStart ?? slotEnd ?? "";
+  const values = [slotStart, slotEnd].filter(isNonEmptyString);
+  return values.length === 2 && values[0] !== values[1]
+    ? `${values[0]} \u00B7 ${values[1]}`
+    : (values[0] ?? "");
 }
 
 export function clearSlotErrors(
@@ -42,16 +43,11 @@ export function computeContactCanContinue(params: {
   dateOfBirth: string;
   dpdpConsentAccepted: boolean;
 }): boolean {
-  return (
-    Boolean(params.phone.trim()) &&
-    params.requiresOtp !== null &&
-    (params.requiresOtp !== true || Boolean(params.verificationToken)) &&
-    (params.requiresOtp === true ||
-      (Boolean(params.firstName.trim()) &&
-        Boolean(params.lastName.trim()) &&
-        Boolean(params.dateOfBirth.trim()) &&
-        params.dpdpConsentAccepted))
-  );
+  return [
+    hasPhone(params),
+    params.requiresOtp !== null,
+    contactVerificationReady(params),
+  ].every(Boolean);
 }
 
 export function clearDateOfBirthError(
@@ -89,17 +85,46 @@ export function computeSubmitRequestReady(params: {
   dateOfBirth: string;
   dpdpConsentAccepted: boolean;
 }): boolean {
-  if (!params.slotDate?.trim()) return false;
-  if (!params.visitCanContinue) return false;
-  if (!params.phone.trim()) return false;
-  if (params.requiresOtp === null) return false;
-  if (params.requiresOtp === true) {
-    if (!params.verificationToken) return false;
-  } else {
-    if (!params.firstName.trim() || !params.lastName.trim() || !params.dateOfBirth.trim()) {
-      return false;
-    }
-    if (!params.dpdpConsentAccepted) return false;
-  }
-  return true;
+  return [
+    Boolean(params.slotDate?.trim()),
+    params.visitCanContinue,
+    hasPhone(params),
+    params.requiresOtp !== null,
+    contactVerificationReady(params),
+  ].every(Boolean);
+}
+
+function contactVerificationReady(params: {
+  requiresOtp: boolean | null;
+  verificationToken: string | null;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  dpdpConsentAccepted: boolean;
+}): boolean {
+  return params.requiresOtp === true
+    ? Boolean(params.verificationToken)
+    : demographicDetailsReady(params);
+}
+
+function demographicDetailsReady(params: {
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  dpdpConsentAccepted: boolean;
+}): boolean {
+  return [
+    Boolean(params.firstName.trim()),
+    Boolean(params.lastName.trim()),
+    Boolean(params.dateOfBirth.trim()),
+    params.dpdpConsentAccepted,
+  ].every(Boolean);
+}
+
+function hasPhone(params: { phone: string }): boolean {
+  return Boolean(params.phone.trim());
+}
+
+function isNonEmptyString(value: string | undefined): value is string {
+  return Boolean(value);
 }

@@ -16,6 +16,10 @@ import type {
   PDFDocumentType,
   PDFContext,
 } from './pdf.types';
+import {
+  renderDoctorInfoColumn,
+  renderPatientInfoColumn,
+} from './pdf-party-layout';
 
 @Injectable()
 export class PdfLayoutService {
@@ -160,94 +164,18 @@ export class PdfLayoutService {
     let maxY = y;
 
     if (patient) {
-      let patientY = y;
-      doc
-        .fontSize(11)
-        .font('Helvetica-Bold')
-        .fillColor('#1e3a5f')
-        .text('Patient Details', margin, patientY)
-        .fillColor('#000000');
-      patientY += 16;
-
-      doc.fontSize(9).font('Helvetica');
-
-      doc.font('Helvetica-Bold').text(patient.name, margin, patientY);
-      patientY += 13;
-      doc.font('Helvetica');
-
-      const patientDetails: string[] = [];
-      if (patient.age !== undefined) patientDetails.push(`${patient.age} yrs`);
-      if (patient.gender) patientDetails.push(patient.gender);
-      if (patient.bloodGroup)
-        patientDetails.push(`Blood: ${patient.bloodGroup}`);
-
-      if (patientDetails.length > 0) {
-        doc.text(patientDetails.join(' | '), margin, patientY);
-        patientY += 12;
-      }
-
-      if (patient.phoneNumber) {
-        doc.text(`Phone: ${patient.phoneNumber}`, margin, patientY);
-        patientY += 12;
-      }
-
-      if (patient.patientId) {
-        doc
-          .fillColor('#666666')
-          .text(`ID: ${patient.patientId}`, margin, patientY)
-          .fillColor('#000000');
-        patientY += 12;
-      }
-
-      if (patient.weight || patient.height) {
-        const vitals: string[] = [];
-        if (patient.weight) vitals.push(`Wt: ${patient.weight}kg`);
-        if (patient.height) vitals.push(`Ht: ${patient.height}cm`);
-        doc.text(vitals.join(' | '), margin, patientY);
-        patientY += 12;
-      }
-
-      maxY = Math.max(maxY, patientY);
+      maxY = Math.max(
+        maxY,
+        renderPatientInfoColumn({ doc, patient, x: margin, y }),
+      );
     }
 
     if (doctor) {
-      let doctorY = y;
       const rightX = margin + colWidth + 20;
-
-      doc
-        .fontSize(11)
-        .font('Helvetica-Bold')
-        .fillColor('#1e3a5f')
-        .text('Treating Physician', rightX, doctorY)
-        .fillColor('#000000');
-      doctorY += 16;
-
-      doc
-        .fontSize(9)
-        .font('Helvetica-Bold')
-        .text(`Dr. ${doctor.name}`, rightX, doctorY);
-      doctorY += 13;
-      doc.font('Helvetica');
-
-      if (doctor.qualification) {
-        doc.text(doctor.qualification, rightX, doctorY);
-        doctorY += 12;
-      }
-
-      if (doctor.specialization) {
-        doc.text(doctor.specialization, rightX, doctorY);
-        doctorY += 12;
-      }
-
-      if (doctor.registrationNumber) {
-        doc
-          .fillColor('#666666')
-          .text(`Reg. No: ${doctor.registrationNumber}`, rightX, doctorY)
-          .fillColor('#000000');
-        doctorY += 12;
-      }
-
-      maxY = Math.max(maxY, doctorY);
+      maxY = Math.max(
+        maxY,
+        renderDoctorInfoColumn({ doc, doctor, x: rightX, y }),
+      );
     }
 
     maxY += 8;

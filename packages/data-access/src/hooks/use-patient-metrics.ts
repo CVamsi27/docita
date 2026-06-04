@@ -24,7 +24,7 @@ import {
 } from "@workspace/types";
 import { useAPIQueryValidated } from "../core/use-api-query-validated";
 import { useAPIMutation } from "../core/use-api-mutation";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { withQueryString } from "../lib/query-string";
 import { useDataAccessContext } from "../provider/hooks";
 
@@ -97,14 +97,13 @@ export function useCreatePatientMetricDefinition(patientId: string) {
 }
 
 export function useUpdatePatientSelectedMetrics(patientId: string) {
-  return useAPIMutation<MetricDefinitionResponse[], UpsertMetricSelectionsInput>(
-    `/patients/${patientId}/metrics/selected`,
-    "PUT",
-    {
-      body: (data) => upsertMetricSelectionsSchema.parse(data),
-      invalidateKeys: [queryKeys.patients.metrics.selected(patientId)],
-    },
-  );
+  return useAPIMutation<
+    MetricDefinitionResponse[],
+    UpsertMetricSelectionsInput
+  >(`/patients/${patientId}/metrics/selected`, "PUT", {
+    body: (data) => upsertMetricSelectionsSchema.parse(data),
+    invalidateKeys: [queryKeys.patients.metrics.selected(patientId)],
+  });
 }
 
 export function useRecordPatientMetricValue(patientId: string) {

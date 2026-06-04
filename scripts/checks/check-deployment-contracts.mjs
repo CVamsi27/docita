@@ -19,6 +19,10 @@ function assertIncludes(source, snippet, message) {
   assert(source.includes(snippet), message);
 }
 
+function assertMatches(source, pattern, message) {
+  assert(pattern.test(source), message);
+}
+
 function assertMissing(relativePath, message) {
   assert(!existsSync(join(repoRoot, relativePath)), message);
 }
@@ -40,8 +44,7 @@ try {
   const appLayoutPath = "apps/app/app/layout.tsx";
   const flyTomlPath = "fly.toml";
   const workerFlyTomlPath = "apps/worker/fly.toml";
-  const flyDeployScriptPath =
-    "scripts/deploy/fly-deploy-in-primary-region.sh";
+  const flyDeployScriptPath = "scripts/deploy/fly-deploy-in-primary-region.sh";
   const stagingMirrorWorkflowPath =
     ".github/workflows/sync-staging-after-promotion.yml";
 
@@ -67,6 +70,9 @@ try {
   const appLayoutSource = read(appLayoutPath);
   const deployWorkflowSource = read(deployWorkflowPath);
   const detectScopeSource = read(detectScopePath);
+  const deployScopeSource = `${detectScopeSource}\n${read(
+    "scripts/workflow/detect-workflow-deploy.mjs",
+  )}`;
   const ciWorkflowSource = read(".github/workflows/ci.yml");
   const apiE2eWorkflowSource = read(".github/workflows/api-e2e.yml");
   const frontendCriticalE2eWorkflowSource = read(
@@ -118,15 +124,15 @@ try {
     'file === "scripts/deploy/fly-deploy-in-primary-region.sh"',
   ]) {
     assertIncludes(
-      detectScopeSource,
+      deployScopeSource,
       requiredDeployInput,
       `Deploy scope detector must treat ${requiredDeployInput} as an API deploy change.`,
     );
   }
 
-  assertIncludes(
-    detectScopeSource,
-    "isWorkerSpecificChange(file) ||\n    isFlyDeployChange(file)",
+  assertMatches(
+    deployScopeSource,
+    /isWorkerSpecificChange\(file\)\s*\|\|\s*isFlyDeployChange\(file\)/,
     "Deploy scope detector must redeploy the worker when shared Fly deployment logic changes.",
   );
 

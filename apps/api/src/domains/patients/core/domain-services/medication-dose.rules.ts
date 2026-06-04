@@ -1,3 +1,6 @@
+import { parseDurationDays } from './medication-duration.rules';
+import { parseFrequencyDoses } from './medication-frequency.rules';
+
 const SIG_MAP: Record<string, number> = {
   QD: 1,
   BID: 2,
@@ -24,32 +27,6 @@ export function parseDosesPerDay(
   if (sigCode && SIG_MAP[sigCode] !== undefined) {
     return SIG_MAP[sigCode];
   }
-
-  const lower = frequency.toLowerCase();
-  if (lower.includes('twice') || lower.includes('bid')) return 2;
-  if (
-    lower.includes('three') ||
-    lower.includes('tid') ||
-    lower.includes('thrice')
-  )
-    return 3;
-  if (lower.includes('four') || lower.includes('qid')) return 4;
-  if (lower.includes('once') || lower.includes('daily') || lower.includes('od'))
-    return 1;
-  return null;
+  return parseFrequencyDoses(frequency);
 }
-
-export function parseDurationDays(duration: string): number | null {
-  const lower = duration.toLowerCase();
-  const match = lower.match(/(\d+)\s*(day|week|month)/);
-  if (!match) return null;
-
-  const value = parseInt(match[1], 10);
-  const unit = match[2];
-
-  if (unit === 'day') return value;
-  if (unit === 'week') return value * 7;
-  if (unit === 'month') return value * 30;
-
-  return null;
-}
+export { parseDurationDays };

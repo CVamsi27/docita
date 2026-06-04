@@ -561,9 +561,6 @@ importers:
       web-vitals:
         specifier: ^5.1.0
         version: 5.1.0
-      zod:
-        specifier: ^3.25.76
-        version: 3.25.76
       zustand:
         specifier: ^5.0.8
         version: 5.0.8(@types/react@19.2.7)(immer@11.0.1)(react@19.2.1)(use-sync-external-store@1.6.0(react@19.2.1))

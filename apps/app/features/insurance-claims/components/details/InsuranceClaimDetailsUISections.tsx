@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { getPatientFullName } from "@workspace/utils";
-import type { ClaimStatus } from "@workspace/types";
+import type { ClaimStatus, ClaimType } from "@workspace/types";
 import {
   CLAIM_STATUS_LABELS,
   CLAIM_STATUS_TONE,
@@ -39,10 +39,10 @@ const Row: FC<{ label: string; value: React.ReactNode }> = ({
 );
 
 interface ClaimDetailsCardProps {
-  patient: { firstName: string; lastName: string };
+  patient: { firstName: string; lastName: string } | null | undefined;
   insurerName: string;
   status: ClaimStatus;
-  claimType: string;
+  claimType: ClaimType;
   policyNumber: string;
   tpaName: string | null | undefined;
   claimedAmountCents: number;
@@ -76,10 +76,7 @@ export function ClaimDetailsCard({
         </Badge>
       </CardHeader>
       <CardContent>
-        <Row
-          label="Patient"
-          value={getPatientFullName(patient, "—")}
-        />
+        <Row label="Patient" value={getPatientFullName(patient, "—")} />
         <Row label="Type" value={CLAIM_TYPE_LABELS[claimType]} />
         <Row label="Policy number" value={policyNumber} />
         {tpaName && <Row label="TPA" value={tpaName} />}
@@ -99,9 +96,7 @@ export function ClaimDetailsCard({
             value={formatCurrency(centsToMajor(patientResponsibilityCents))}
           />
         )}
-        {denialReason && (
-          <Row label="Denial reason" value={denialReason} />
-        )}
+        {denialReason && <Row label="Denial reason" value={denialReason} />}
         {notes && <Row label="Notes" value={notes} />}
       </CardContent>
     </Card>

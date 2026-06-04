@@ -9,7 +9,17 @@ import { useFormOptions } from "@/lib/contexts/app-config-context";
 import { EditInvoiceDialogUI } from "./EditInvoiceDialogUI";
 import type { Invoice, InvoiceItem, Patient } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import {
+  calculateInvoiceTotal,
+  createBlankInvoiceItem,
+  parseInvoiceStatus,
+  removeInvoiceItem,
+  updateInvoiceItems,
+  type EditableInvoiceItemField,
+} from "./edit-invoice-dialog-state";
+
 type InvoiceWithPatient = Invoice & { patient: Patient };
+
 interface EditInvoiceDialogContainerProps {
   invoice: InvoiceWithPatient | null;
   open: boolean;
@@ -38,40 +48,21 @@ export function EditInvoiceDialogContainer({
     }
   }
   const addItem = () =>
-    setItems([...items, { description: "", quantity: 1, price: 0 }]);
+    setItems((currentItems) => [...currentItems, createBlankInvoiceItem()]);
   const removeItem = (index: number) =>
-    setItems(items.filter((_, i) => i !== index));
+    setItems((currentItems) => removeInvoiceItem(currentItems, index));
   const updateItem = (
     index: number,
-    field: keyof InvoiceItem,
+    field: EditableInvoiceItemField,
     value: string | number,
-  ) => {
-    const newItems = [...items];
-    const item = newItems[index];
-    if (item) {
-      if (field === "description" && typeof value === "string") {
-        item.description = value;
-      } else if (field === "quantity" && typeof value === "number") {
-        item.quantity = value;
-      } else if (field === "price" && typeof value === "number") {
-        item.price = value;
-      }
-    }
-    setItems(newItems);
-  };
-  const calculateTotal = () =>
-    items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+  ) =>
+    setItems((currentItems) =>
+      updateInvoiceItems(currentItems, index, field, value),
+    );
+  const calculateTotal = () => calculateInvoiceTotal(items);
   const handleStatusChange = (nextStatus: string) => {
-    const normalized = nextStatus.toUpperCase();
-    if (
-      normalized === "PAID" ||
-      normalized === "PENDING" ||
-      normalized === "OVERDUE" ||
-      normalized === "CANCELLED" ||
-      normalized === "PARTIALLY_PAID"
-    ) {
-      setStatus(normalized);
-    }
+    const nextInvoiceStatus = parseInvoiceStatus(nextStatus);
+    if (nextInvoiceStatus) setStatus(nextInvoiceStatus);
   };
   const handleSubmit = () => {
     if (!invoice?.id) return;

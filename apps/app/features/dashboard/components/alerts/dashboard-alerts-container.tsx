@@ -1,15 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import {
-  Calendar,
-  CheckCircle2,
-  Clock,
-  FileText,
-  UserPlus,
-  Users,
-  Zap,
-} from "lucide-react";
 import { useLocalStorage } from "@workspace/hooks";
 import { Feature } from "@workspace/types";
 import {
@@ -18,9 +9,11 @@ import {
 } from "@workspace/utils";
 import { usePermissions } from "@/hooks/use-permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { AlertItem, DashboardAlertsUI } from "./dashboard-alerts-ui";
+import { DashboardAlertsUI } from "./dashboard-alerts-ui";
+import { buildDashboardAlerts } from "./dashboard-alerts-builder";
+import type { DashboardAlertDensity } from "./dashboard-alerts-types";
 
-export type DashboardAlertDensity = "full" | "urgent-only";
+export type { DashboardAlertDensity };
 
 interface DashboardAlertsContainerProps {
   density?: DashboardAlertDensity;
@@ -59,118 +52,23 @@ export function DashboardAlertsContainer({
       ? Math.round((completedAppointments / todayAppointments) * 100)
       : 0;
 
-  const alerts = useMemo<AlertItem[]>(() => {
-    const items: AlertItem[] = [];
+  const alerts = useMemo(() => {
     const now = new Date();
     const { hour } = clinicWallHourMinuteFromUtcInstant(now, DEFAULT_TIMEZONE);
-
-    if (density === "full") {
-      if (hour < 12 && todayAppointments > 0) {
-        items.push({
-          id: "morning-overview",
-          type: "info",
-          icon: Calendar,
-          title: `Good morning! You have ${todayAppointments} appointment${todayAppointments !== 1 ? "s" : ""} today`,
-          description:
-            patientsWaiting > 0
-              ? `${patientsWaiting} patient${patientsWaiting !== 1 ? "s" : ""} currently waiting`
-              : undefined,
-          action: { label: "View Schedule", href: "/consultation" },
-          dismissible: true,
-        });
-      }
-    }
-
-    if (patientsWaiting > 3) {
-      items.push({
-        id: "patients-waiting",
-        type: "urgent",
-        icon: Users,
-        title: `${patientsWaiting} patients are waiting`,
-        description: "Consider expediting consultations",
-        action: { label: "Open Queue", href: "/consultation" },
-      });
-    }
-
-    if (density === "full" && nextPatientName && nextPatientId) {
-      items.push({
-        id: "next-patient",
-        type: "info",
-        icon: Zap,
-        title: `Next: ${nextPatientName}`,
-        description: "Ready for consultation",
-        action: {
-          label: "Start Consultation",
-          href: `/consultation/${nextPatientId}`,
-        },
-      });
-    }
-
-    if (pendingReports > 0 && medicalCodingEnabled) {
-      items.push({
-        id: "pending-reports",
-        type: "warning",
-        icon: FileText,
-        title: `${pendingReports} report${pendingReports !== 1 ? "s" : ""} pending coding`,
-        action: { label: "Review", href: "/coding-queue" },
-        dismissible: density === "full",
-      });
-    }
-
-    if (pendingJoinRequests > 0) {
-      items.push({
-        id: "pending-join-requests",
-        type: "urgent",
-        icon: UserPlus,
-        title: `${pendingJoinRequests} join request${pendingJoinRequests !== 1 ? "s" : ""} waiting for approval`,
-        description:
-          "Open the review queue to approve or reject new staff requests",
-        action: {
-          label: "Review requests",
-          href: "/settings/team/join-requests",
-        },
-        dismissible: density === "full",
-      });
-    }
-
-    if (density === "full") {
-      if (progressPercentage === 50 && todayAppointments >= 4) {
-        items.push({
-          id: "halfway-done",
-          type: "success",
-          icon: CheckCircle2,
-          title: "Halfway through today's schedule!",
-          description: `${completedAppointments} of ${todayAppointments} appointments completed`,
-          dismissible: true,
-        });
-      }
-
-      if (progressPercentage === 100 && todayAppointments > 0) {
-        items.push({
-          id: "all-done",
-          type: "success",
-          icon: CheckCircle2,
-          title: "All appointments completed for today!",
-          description: "Great work!",
-          dismissible: true,
-        });
-      }
-
-      if (hour >= 17 && completedAppointments < todayAppointments) {
-        const remaining = todayAppointments - completedAppointments;
-        items.push({
-          id: "eod-reminder",
-          type: "warning",
-          icon: Clock,
-          title: `${remaining} appointment${remaining !== 1 ? "s" : ""} remaining`,
-          description: "End of day approaching",
-          action: { label: "View Queue", href: "/consultation" },
-          dismissible: true,
-        });
-      }
-    }
-
-    return items.filter((alert) => !dismissedAlerts.includes(alert.id));
+    return buildDashboardAlerts({
+      density,
+      todayAppointments,
+      completedAppointments,
+      pendingReports,
+      pendingJoinRequests,
+      patientsWaiting,
+      progressPercentage,
+      dismissedAlerts,
+      medicalCodingEnabled,
+      hour,
+      ...(nextPatientName ? { nextPatientName } : {}),
+      ...(nextPatientId ? { nextPatientId } : {}),
+    });
   }, [
     density,
     todayAppointments,

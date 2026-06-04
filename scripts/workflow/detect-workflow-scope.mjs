@@ -1,10 +1,24 @@
 #!/usr/bin/env node
 import { appendFileSync, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
+import {
+  isDependenciesChange,
+  isKnipChange,
+} from "./detect-workflow-dependencies.mjs";
+import { resolveRange } from "./detect-workflow-range.mjs";
+import {
+  isApiChange,
+  isDbChange,
+  isDeployApiChange,
+  isDeployWorkerChange,
+  isWorkerChange,
+} from "./detect-workflow-api.mjs";
 
 const scope = process.argv[2];
 if (scope !== "ci" && scope !== "deploy") {
-  throw new Error("Usage: node scripts/workflow/detect-workflow-scope.mjs <ci|deploy>");
+  throw new Error(
+    "Usage: node scripts/workflow/detect-workflow-scope.mjs <ci|deploy>",
+  );
 }
 
 const eventPath = process.env.GITHUB_EVENT_PATH;
@@ -57,84 +71,6 @@ appendFileSync(
     .join("\n")}\n`,
 );
 
-function resolveRange(event, cwd) {
-  const baseSha = event.pull_request?.base?.sha;
-  const headSha = event.pull_request?.head?.sha;
-  if (baseSha && headSha) {
-    const mergeBase = execFileSync("git", ["merge-base", baseSha, headSha], {
-      cwd,
-      encoding: "utf8",
-    }).trim();
-    if (!mergeBase) {
-      throw new Error(
-        "Unable to determine merge base for pull request changes.",
-      );
-    }
-    return { baseSha: mergeBase, headSha };
-  }
-
-  if (event.before && event.after) {
-    return { baseSha: event.before, headSha: event.after };
-  }
-
-  throw new Error(
-    "Unable to resolve diff range from the GitHub event payload.",
-  );
-}
-
-function isDependenciesChange(file) {
-  return (
-    file === "package.json" ||
-    file === "pnpm-lock.yaml" ||
-    file === "pnpm-workspace.yaml" ||
-    (file.startsWith("apps/") && file.endsWith("/package.json")) ||
-    (file.startsWith("packages/") && file.endsWith("/package.json"))
-  );
-}
-
-function isKnipChange(file) {
-  return (
-    isDependenciesChange(file) ||
-    file === "knip.json" ||
-    file === "turbo.json" ||
-    file.startsWith("apps/") ||
-    file.startsWith("packages/") ||
-    file.startsWith("scripts/")
-  );
-}
-
-function isApiChange(file) {
-  return (
-    isSharedApiChange(file) ||
-    file.startsWith("apps/api/") ||
-    file.startsWith("packages/auth/")
-  );
-}
-
-function isDeployApiChange(file) {
-  return (
-    isApiChange(file) ||
-    isFlyDeployChange(file) ||
-    file === "scripts/deploy/test-api-startup.sh"
-  );
-}
-
-function isDeployWorkerChange(file) {
-  return (
-    isApiChange(file) ||
-    isWorkerSpecificChange(file) ||
-    isFlyDeployChange(file)
-  );
-}
-
-function isFlyDeployChange(file) {
-  return (
-    file === ".github/workflows/deploy.yml" ||
-    file === "scripts/workflow/detect-workflow-scope.mjs" ||
-    file === "scripts/deploy/fly-deploy-in-primary-region.sh"
-  );
-}
-
 function isAppChange(file) {
   return (
     file === "package.json" ||
@@ -178,56 +114,10 @@ function isLandingChange(file) {
   );
 }
 
-function isDbChange(file) {
-  return (
-    isSharedApiChange(file) ||
-    file.startsWith("apps/api/") ||
-    file.startsWith("packages/auth/")
-  );
-}
-
 function isDbMigrationChange(file) {
   return (
     file.startsWith("packages/db/prisma/") ||
     file.startsWith("packages/db/scripts/") ||
     file === "packages/db/package.json"
-  );
-}
-
-function isSharedApiRootChange(file) {
-  return (
-    file === "package.json" ||
-    file === "pnpm-lock.yaml" ||
-    file === "pnpm-workspace.yaml" ||
-    file === "turbo.json" ||
-    file === "fly.toml"
-  );
-}
-
-function isWorkerChange(file) {
-  return (
-    isSharedApiChange(file) ||
-    file.startsWith("apps/api/") ||
-    isWorkerSpecificChange(file)
-  );
-}
-
-function isSharedApiChange(file) {
-  return (
-    isSharedApiRootChange(file) ||
-    file.startsWith("packages/db/") ||
-    file.startsWith("packages/types/") ||
-    file.startsWith("packages/utils/")
-  );
-}
-
-function isWorkerSpecificChange(file) {
-  return (
-    file === "apps/worker/fly.toml" ||
-    file === "apps/worker/Dockerfile" ||
-    file === "apps/api/Dockerfile" ||
-    file === "packages/typescript-config/nestjs.json" ||
-    file.startsWith("apps/worker/") ||
-    file === "apps/api/src/worker.module.ts"
   );
 }

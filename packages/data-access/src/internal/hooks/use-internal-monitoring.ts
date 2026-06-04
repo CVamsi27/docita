@@ -8,7 +8,7 @@ import {
   type TenantScopeDiagnostics,
   tenantScopeDiagnosticsSchema,
 } from "@workspace/types";
-import { internalQueryKeys } from "../../lib/query-keys";
+import { internalQueryKeys } from "../../lib/query-keys-internal";
 import { useDataAccessFetcher } from "../../provider/hooks";
 import type {
   InternalHealthCheckResult,
@@ -41,10 +41,7 @@ export function useInternalPerformanceMetrics(
 }
 
 export function useInternalPerformanceDatabaseStats(
-  options?: Omit<
-    UseQueryOptions<DatabaseStats, Error>,
-    "queryKey" | "queryFn"
-  >,
+  options?: Omit<UseQueryOptions<DatabaseStats, Error>, "queryKey" | "queryFn">,
 ) {
   const fetcher = useDataAccessFetcher();
 
@@ -100,7 +97,8 @@ export function useInternalMonitoringDashboard(
 
   return useQuery({
     queryKey: internalQueryKeys.internal.monitoringDashboard(),
-    queryFn: () => fetcher<InternalMonitoringDashboard>("/monitoring/dashboard"),
+    queryFn: () =>
+      fetcher<InternalMonitoringDashboard>("/monitoring/dashboard"),
     ...options,
   });
 }
@@ -185,10 +183,7 @@ export function useInternalMonitoringSecuritySummary(
 
 export function useInternalMonitoringQueueHealth(
   options?: Omit<
-    UseQueryOptions<
-      ReturnType<typeof queueHealthSummarySchema.parse>,
-      Error
-    >,
+    UseQueryOptions<ReturnType<typeof queueHealthSummarySchema.parse>, Error>,
     "queryKey" | "queryFn"
   >,
 ) {
@@ -197,9 +192,7 @@ export function useInternalMonitoringQueueHealth(
   return useQuery({
     queryKey: internalQueryKeys.internal.monitoringQueueHealth(),
     queryFn: async () =>
-      queueHealthSummarySchema.parse(
-        await fetcher("/monitoring/queue-health"),
-      ),
+      queueHealthSummarySchema.parse(await fetcher("/monitoring/queue-health")),
     ...options,
   });
 }

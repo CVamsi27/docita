@@ -7,7 +7,7 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
-import type { User } from "@workspace/types";
+import type { AppAuthUser, User } from "@workspace/types";
 import { SignatureUploadQR } from "@/features/settings/components/signature-upload-qr";
 import Link from "next/link";
 import {
@@ -26,10 +26,11 @@ type RegistrationStatusBadge = {
   className: string;
   Icon: LucideIcon;
 };
+type DoctorProfile = User | AppAuthUser;
 
 export function resolveRegistrationStatusBadge(
   hasRegistration: boolean,
-  verificationStatus: User["verificationStatus"] | undefined,
+  verificationStatus: DoctorProfile["verificationStatus"] | undefined,
 ): RegistrationStatusBadge | null {
   if (!hasRegistration) return null;
   if (verificationStatus === "VERIFIED") {
@@ -70,7 +71,9 @@ export function DigitalSignatureCard({
   signatureUrl: string | null | undefined;
 }) {
   const hasSignature = !!signatureUrl;
-  const resolvedSignatureUrl = signatureUrl ? toAbsoluteApiUrl(signatureUrl) : null;
+  const resolvedSignatureUrl = signatureUrl
+    ? toAbsoluteApiUrl(signatureUrl)
+    : null;
 
   return (
     <Card>
@@ -120,7 +123,11 @@ export function DigitalSignatureCard({
   );
 }
 
-export function MedicalRegistrationCard({ profile }: { profile: User | null | undefined }) {
+export function MedicalRegistrationCard({
+  profile,
+}: {
+  profile: DoctorProfile | null | undefined;
+}) {
   const hasRegistration = !!profile?.registrationNumber;
   const registrationProfile = hasRegistration && profile ? profile : null;
   const verificationStatus = profile?.verificationStatus;
@@ -182,7 +189,7 @@ function RegistrationDetails({
   profile,
   registrationVerificationNote,
 }: {
-  profile: User;
+  profile: DoctorProfile;
   registrationVerificationNote: string | null;
 }) {
   return (

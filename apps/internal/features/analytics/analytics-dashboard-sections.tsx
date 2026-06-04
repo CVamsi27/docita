@@ -218,7 +218,9 @@ export function AnalyticsGrowthMetricSection({
         <p className="text-[var(--fs-4xl)] font-bold text-foreground">
           {value}
         </p>
-        <p className="ui-section-subtitle mt-1">{label.toLowerCase()} this period</p>
+        <p className="ui-section-subtitle mt-1">
+          {label.toLowerCase()} this period
+        </p>
         {change !== undefined && (
           <p
             className={cn(
@@ -226,8 +228,8 @@ export function AnalyticsGrowthMetricSection({
               change >= 0 ? "text-success" : "text-destructive",
             )}
           >
-            {change >= 0 ? "\u2191" : "\u2193"}{" "}
-            {Math.abs(change).toFixed(1)}% vs last period
+            {change >= 0 ? "\u2191" : "\u2193"} {Math.abs(change).toFixed(1)}%
+            vs last period
           </p>
         )}
       </div>
@@ -236,7 +238,7 @@ export function AnalyticsGrowthMetricSection({
 }
 
 interface DetailedMetricsSectionProps {
-  detailedMetrics: unknown[] | undefined;
+  detailedMetrics: DetailedMetricsRow[] | undefined;
 }
 
 export function AnalyticsDetailedMetricsSection({
@@ -249,9 +251,7 @@ export function AnalyticsDetailedMetricsSection({
       contentClassName="space-y-4"
     >
       {detailedMetrics && detailedMetrics.length > 0 ? (
-        <AnalyticsDetailedMetricsTable
-          rows={detailedMetrics as unknown as DetailedMetricsRow[]}
-        />
+        <AnalyticsDetailedMetricsTable rows={detailedMetrics} />
       ) : (
         <div className="ui-section-stack py-8 text-center text-muted-foreground">
           <p>No detailed metrics available for this period</p>

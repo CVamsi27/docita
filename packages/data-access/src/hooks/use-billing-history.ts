@@ -2,14 +2,15 @@ import {
   type SubscriptionBillingPaymentHistoryItem,
   subscriptionBillingPaymentHistoryResponseSchema,
 } from "@workspace/types";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { useAPIQueryValidated } from "../core/use-api-query-validated";
 
 export type BillingHistoryItem = SubscriptionBillingPaymentHistoryItem;
 
-const billingHistorySchema = subscriptionBillingPaymentHistoryResponseSchema.transform(
-  (items) => [...items],
-);
+const billingHistorySchema =
+  subscriptionBillingPaymentHistoryResponseSchema.transform((items) => [
+    ...items,
+  ]);
 
 export function useBillingHistory(enabled = true) {
   return useAPIQueryValidated(

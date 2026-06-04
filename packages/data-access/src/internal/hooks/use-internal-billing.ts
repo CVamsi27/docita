@@ -4,7 +4,7 @@ import type {
   InternalBillingPaymentsQuery,
   InternalBillingSubscriptionsQuery,
 } from "@workspace/types";
-import { internalQueryKeys } from "../../lib/query-keys";
+import { internalQueryKeys } from "../../lib/query-keys-internal";
 import { useDataAccessFetcher } from "../../provider/hooks";
 import type {
   InternalBillingMetrics,

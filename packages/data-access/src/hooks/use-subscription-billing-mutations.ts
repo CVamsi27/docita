@@ -6,7 +6,7 @@ import {
   subscriptionBillingResumePaymentResponseSchema,
   type TierName,
 } from "@workspace/types";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useDataAccessFetcher } from "../provider/hooks";
 

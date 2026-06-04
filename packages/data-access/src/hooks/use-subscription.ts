@@ -2,7 +2,7 @@ import {
   type SubscriptionCurrentResponse,
   subscriptionCurrentResponseSchema,
 } from "@workspace/types";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { useAPIQuery } from "../core/use-api-query";
 
 export const useSubscription = (queryOptions?: { enabled?: boolean }) => {

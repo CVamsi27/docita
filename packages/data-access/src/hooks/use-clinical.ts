@@ -25,7 +25,7 @@ import {
 import { useAPIQuery } from "../core/use-api-query";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { APIRequestError } from "../lib/errors";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { withQueryString } from "../lib/query-string";
 import { useDataAccessContext, useDataAccessFetcher } from "../provider/hooks";
 
@@ -231,26 +231,28 @@ export const useLabTestsStats = () => {
 };
 
 export const useCreateLabTestOrder = () =>
-  useAPIMutation<
-    { id: string; status: string },
-    CreateLabTestOrderRequest
-  >("/clinical/lab-tests/orders", "POST", {
-    invalidateKeys: [
-      queryKeys.clinical.labTests.orders(),
-      queryKeys.clinical.labTests.ordersInvalidation(),
-    ],
-  });
+  useAPIMutation<{ id: string; status: string }, CreateLabTestOrderRequest>(
+    "/clinical/lab-tests/orders",
+    "POST",
+    {
+      invalidateKeys: [
+        queryKeys.clinical.labTests.orders(),
+        queryKeys.clinical.labTests.ordersInvalidation(),
+      ],
+    },
+  );
 
 export const useUpdateLabTestOrder = (id: string) =>
-  useAPIMutation<
-    { id: string; status: string },
-    UpdateLabTestOrderRequest
-  >(`/clinical/lab-tests/orders/${id}/status`, "PUT", {
-    invalidateKeys: [
-      queryKeys.clinical.labTests.orders(),
-      queryKeys.clinical.labTests.ordersInvalidation(),
-    ],
-  });
+  useAPIMutation<{ id: string; status: string }, UpdateLabTestOrderRequest>(
+    `/clinical/lab-tests/orders/${id}/status`,
+    "PUT",
+    {
+      invalidateKeys: [
+        queryKeys.clinical.labTests.orders(),
+        queryKeys.clinical.labTests.ordersInvalidation(),
+      ],
+    },
+  );
 
 export const useLabTestOrders = (filters?: {
   search?: string;
@@ -274,9 +276,13 @@ export const useLabTestStats = () => {
     completed: number;
     urgent: number;
     total: number;
-  }>(queryKeys.clinical.labTests.statsDashboard(), "/clinical/lab-tests/stats", {
-    enabled: labOk,
-  });
+  }>(
+    queryKeys.clinical.labTests.statsDashboard(),
+    "/clinical/lab-tests/stats",
+    {
+      enabled: labOk,
+    },
+  );
 };
 
 export const useLabTestCatalog = () => {
@@ -398,14 +404,13 @@ export const useCreateTemplate = () =>
   );
 
 export const useUpdateTemplate = () =>
-  useAPIMutation<TemplateContractResponse, UpdateTemplateRequest & { id: string }>(
-    (template) => `/templates/${template.id}`,
-    "PATCH",
-    {
-      body: ({ id: _id, ...body }) => body,
-      invalidateKeys: [queryKeys.clinical.templates.all()],
-    },
-  );
+  useAPIMutation<
+    TemplateContractResponse,
+    UpdateTemplateRequest & { id: string }
+  >((template) => `/templates/${template.id}`, "PATCH", {
+    body: ({ id: _id, ...body }) => body,
+    invalidateKeys: [queryKeys.clinical.templates.all()],
+  });
 
 export const useDeleteTemplate = () =>
   useAPIMutation<void, { id: string }>(

@@ -1,9 +1,11 @@
 import { z } from "zod";
+import { parseProblemDetailsFromJson } from "./api-error-body";
 import {
-  getErrorMessage,
-  isAbortError,
-  parseProblemDetailsFromJson,
-} from "./api-error-body";
+  buildApiRequestError,
+  handleFetchFailure,
+  notifyApiError,
+  readResponseData,
+} from "./client-response-handler";
 import { APIRequestError, ErrorCodes, getErrorCode } from "./errors";
 import { buildURL, dedupeHeaders, normalizeHeaders } from "./request-helpers";
 import { executeWithRetry } from "./retry";
@@ -71,12 +73,6 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       },
     };
 
-    // Authorization: Bearer is intentionally NOT attached here.
-    // Same-origin callers ride the httpOnly access_token cookie via
-    // `credentials: "include"` below; CSRF protection on mutating
-    // methods is provided by the X-XSRF-TOKEN header (see onRequest).
-    // Non-cookie channels (e.g. wss:// socket auth) attach the token
-    // themselves outside this client.
     void getToken;
 
     if (validateRequest) {
@@ -113,9 +109,6 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       try {
         const response = await fetch(url, {
           ...requestConfig,
-          // Dedupe case-variant header keys (e.g. a manual `X-XSRF-TOKEN` plus
-          // the interceptor's `x-xsrf-token`) so `fetch` cannot combine them
-          // into a doubled value that fails the backend CSRF check.
           headers: dedupeHeaders(requestConfig.headers),
           credentials: "include",
           signal: controller.signal,
@@ -123,98 +116,30 @@ export function createAPIClient(config: APIClientConfig): APIClient {
 
         clearTimeout(timeoutId);
 
-        // Capture refreshed session/CSRF headers from EVERY response, including
-        // error responses. The API mints a fresh X-CSRF-Token on each reply, so
-        // a 403 INVALID_CSRF_TOKEN still carries the token the client needs to
-        // recover. Capturing only on response.ok meant the first mutating call
-        // on a route that never warmed the token (e.g. onboarding "Skip for
-        // now") could fail CSRF and never pick the new token up — looping.
         if (onFetchResponse) {
           onFetchResponse(response);
         }
 
         if (!response.ok) {
-          let errorData: Record<string, unknown> | null = null;
-          try {
-            errorData = await response.json();
-          } catch {
-            errorData = null;
-          }
-
-          const problem = parseProblemDetailsFromJson(errorData);
-
-          const responseCode =
-            problem.raw && typeof problem.raw["code"] === "string"
-              ? problem.raw["code"]
-              : undefined;
-
-          const error = new APIRequestError(
-            problem.detail ||
-              problem.message ||
-              response.statusText ||
-              "Request failed",
-            {
-              status: response.status,
-              statusText: response.statusText,
-              code: responseCode ?? getErrorCode(response.status),
-              ...(problem.raw ? { data: problem.raw } : {}),
-              ...(problem.validationErrors
-                ? { validationErrors: problem.validationErrors }
-                : {}),
-            },
-          );
-
-          // One-shot self-heal for a CSRF token that was never warmed (e.g. the
-          // first mutating call on a pre-clinic onboarding route). The API
-          // re-issues a fresh token on this 403, captured above via
-          // onFetchResponse; re-run onRequest to echo it and replay once.
-          if (error.code === "INVALID_CSRF_TOKEN" && !csrfRetried && onRequest) {
+          const error = await buildApiRequestError(response);
+          if (
+            error.code === "INVALID_CSRF_TOKEN" &&
+            !csrfRetried &&
+            onRequest
+          ) {
             csrfRetried = true;
             requestConfig = await onRequest(requestConfig);
             return makeRequest();
           }
 
-          if (onError && shouldNotifyGlobalError) {
-            await onError(error);
-          }
-
+          await notifyApiError(onError, shouldNotifyGlobalError, error);
           throw error;
         }
 
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          return assertTyped<T>({});
-        }
-
-        let data: unknown = await response.json();
-
-        if (onResponse) {
-          data = await onResponse(data);
-        }
-
-        return assertTyped<T>(data);
+        return readResponseData<T>(response, onResponse);
       } catch (error) {
         clearTimeout(timeoutId);
-
-        if (error instanceof APIRequestError) {
-          throw error;
-        }
-
-        if (isAbortError(error)) {
-          const timeoutError = new APIRequestError("Request timeout", {
-            isTimeout: true,
-            code: ErrorCodes.TIMEOUT,
-          });
-          if (onError && shouldNotifyGlobalError) await onError(timeoutError);
-          throw timeoutError;
-        }
-
-        const networkError = new APIRequestError(getErrorMessage(error), {
-          isNetworkError: true,
-          code: ErrorCodes.NETWORK_ERROR,
-        });
-        if (onError && shouldNotifyGlobalError) await onError(networkError);
-        throw networkError;
+        return handleFetchFailure(error, onError, shouldNotifyGlobalError);
       }
     };
 
@@ -345,8 +270,6 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       }
 
       const { headers, ...restOptions } = options || {};
-      // Authorization: Bearer intentionally omitted — see request() above.
-      // The httpOnly access_token cookie rides via credentials: "include".
 
       const response = await fetch(buildURL(baseURL, endpoint), {
         ...restOptions,

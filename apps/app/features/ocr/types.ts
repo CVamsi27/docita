@@ -17,7 +17,6 @@ export interface Vitals {
   glucose: string;
 }
 
-/** Editable OCR invoice lines before optional commit as PENDING invoice. */
 export interface OCRInvoiceLineForm {
   description: string;
   quantity: string;
@@ -26,7 +25,6 @@ export interface OCRInvoiceLineForm {
 }
 
 export interface OCRInvoiceForm {
-  /** User must opt in; creates a PENDING invoice on the server. */
   saveAsPending: boolean;
   grandTotal: string;
   subtotal: string;

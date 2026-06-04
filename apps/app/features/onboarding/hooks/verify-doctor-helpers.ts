@@ -1,8 +1,15 @@
 "use client";
 
-import type { Clinic, UpdateDoctorRegistrationRequest, User } from "@workspace/types";
+import type {
+  AppAuthUser,
+  Clinic,
+  UpdateDoctorRegistrationRequest,
+  User,
+} from "@workspace/types";
 import { toAbsoluteApiUrl } from "@/lib/utils/api-url";
 import { shouldRedirectToWorkspace } from "@/features/onboarding/lib/redirect-logic";
+
+export type DoctorVerificationProfile = User | AppAuthUser;
 
 export interface ResolvedSignatureUrls {
   onboardingSignatureSourceUrl: string | null;
@@ -14,7 +21,7 @@ export interface ResolvedSignatureUrls {
 
 export function resolveDoctorSignatureUrls(params: {
   clinic: Clinic | null | undefined;
-  profile: User | null | undefined;
+  profile: DoctorVerificationProfile | null | undefined;
   isAdminDoctor: boolean;
   hasSignature: boolean;
   clinicLoading: boolean;
@@ -54,7 +61,7 @@ export interface DoctorRegistrationState {
 }
 
 export function getDoctorRegistrationState(
-  profile: User | null | undefined,
+  profile: DoctorVerificationProfile | null | undefined,
   registrationNumber: string,
 ): DoctorRegistrationState {
   const hasSignature = !!profile?.signatureUrl;
@@ -78,10 +85,10 @@ export function getDoctorRegistrationState(
 
 export function getIsInitialLoading(params: {
   authLoading: boolean;
-  user: User | null | undefined;
+  user: DoctorVerificationProfile | null | undefined;
   isDoctor: boolean;
   profileLoading: boolean;
-  doctorProfile: User | null | undefined;
+  doctorProfile: DoctorVerificationProfile | null | undefined;
   canAutoRedirect: boolean;
 }): boolean {
   return (

@@ -1,8 +1,6 @@
-// check-as-cast-density: allow-file — Prisma cursor pagination erases the claim `select` payload typing
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
-import { paginateWithCursor } from '@/shared/common/pagination.helper';
 import {
   IInsuranceClaimRepository,
   InsuranceClaimRecord,
@@ -58,6 +56,16 @@ const CLAIM_SELECT = {
     orderBy: { createdAt: 'desc' },
   },
 } satisfies Prisma.InsuranceClaimSelect;
+
+type InsuranceClaimListRow = Prisma.InsuranceClaimGetPayload<{
+  select: typeof CLAIM_SELECT;
+}>;
+
+function toInsuranceClaimRecord(
+  row: InsuranceClaimListRow,
+): InsuranceClaimRecord {
+  return row;
+}
 
 @Injectable()
 export class PrismaInsuranceClaimRepository implements IInsuranceClaimRepository {
@@ -117,22 +125,25 @@ export class PrismaInsuranceClaimRepository implements IInsuranceClaimRepository
 
     const where: Prisma.InsuranceClaimWhereInput = { AND: filters };
     const readClient = this.getReadClient();
-
-    return paginateWithCursor<InsuranceClaimRecord>({
-      model: {
-        findMany: (args) =>
-          readClient.insuranceClaim.findMany({
-            ...(args ?? {}),
-            select: CLAIM_SELECT,
-          }) as unknown as Promise<InsuranceClaimRecord[]>,
-        count: (args) =>
-          readClient.insuranceClaim.count({ where: args?.where }),
-      },
-      cursor,
-      limit: limit || 20,
+    const safeLimit = Math.min(limit || 20, 100);
+    const query = {
+      take: safeLimit + 1,
       where,
       orderBy: { createdAt: 'desc' },
-    });
+      select: CLAIM_SELECT,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    } satisfies Prisma.InsuranceClaimFindManyArgs;
+
+    const rows = await readClient.insuranceClaim.findMany(query);
+    const hasMore = rows.length > safeLimit;
+    const items = rows.slice(0, safeLimit).map(toInsuranceClaimRecord);
+
+    return {
+      items,
+      nextCursor: hasMore ? items.at(-1)?.id : undefined,
+      hasMore,
+      count: items.length,
+    };
   }
 
   async findById(

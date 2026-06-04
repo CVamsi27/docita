@@ -13,7 +13,7 @@ import {
 import { useAPIQuery } from "../core/use-api-query";
 import { useAPIQueryValidated } from "../core/use-api-query-validated";
 import { useAPIMutation } from "../core/use-api-mutation";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { withQueryString } from "../lib/query-string";
 import { useDataAccessContext } from "../provider/hooks";
 

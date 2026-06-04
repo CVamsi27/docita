@@ -24,6 +24,7 @@ import {
   getDoctorRegistrationState,
   getIsInitialLoading,
   buildRegistrationPayload,
+  type DoctorVerificationProfile,
   REGISTRATION_NUMBER_REQUIRED_ERROR,
 } from "./verify-doctor-helpers";
 
@@ -48,7 +49,8 @@ export function useVerifyDoctor() {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const isDoctor = checkIsDoctor(user?.role);
-  const isAdminDoctor = checkIsDoctor(user?.role) && user?.role === "ADMIN_DOCTOR";
+  const isAdminDoctor =
+    checkIsDoctor(user?.role) && user?.role === "ADMIN_DOCTOR";
   const generateSignatureToken = useGenerateSignatureToken();
 
   const {
@@ -80,7 +82,7 @@ export function useVerifyDoctor() {
     { invalidateKeys: [appQueryKeys.doctorProfile.detail(user?.id ?? "")] },
   );
 
-  const profile = doctorProfile ?? user;
+  const profile: DoctorVerificationProfile | null = doctorProfile ?? user;
 
   const {
     hasSignature,
