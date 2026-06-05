@@ -436,7 +436,7 @@ export const useDocuments = (filters?: ListDocumentsContractQuery) => {
   );
   return useAPIQuery<DocumentContractResponse[]>(
     queryKeys.clinical.documents.list(filters),
-    withQueryString("/medical-documents", filters),
+    withQueryString("/documents", filters),
     { enabled: docsOk },
   );
 };
@@ -447,7 +447,7 @@ export const useDocument = (id: string) => {
   );
   return useAPIQuery<Document>(
     queryKeys.clinical.documents.detail(id),
-    `/medical-documents/${id}`,
+    `/documents/${id}`,
     {
       enabled: docsOk && id.length > 0,
     },

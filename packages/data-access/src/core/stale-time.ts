@@ -1,6 +1,7 @@
 const STALE_TIME_BY_KEY_PREFIX: Record<string, number> = {
   patients: 60 * 1000,
   appointments: 60 * 1000,
+  documents: 60 * 1000,
   invoices: 60 * 1000,
   prescriptions: 60 * 1000,
   dashboard: 30 * 1000,

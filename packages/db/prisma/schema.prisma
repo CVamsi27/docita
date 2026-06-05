@@ -3706,6 +3706,7 @@ enum EnterpriseContractStatus {
 
 enum EnterpriseInvoiceKind {
   ANNUAL_PREPAY
+  SETUP_FEE
   TRUE_UP
   ADJUSTMENT
 }

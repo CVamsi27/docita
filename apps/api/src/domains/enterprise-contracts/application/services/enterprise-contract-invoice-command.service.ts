@@ -13,6 +13,9 @@ import { EnterpriseContractStatus, EnterpriseInvoiceKind } from '@workspace/db';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { nanoid } from 'nanoid';
+
+const MINIMUM_SETUP_FEE_CENTS = 2500_00;
 
 /**
  * Handles enterprise-contract financial operations: annual prepay invoice generation
@@ -118,6 +121,153 @@ export class EnterpriseContractInvoiceCommandService {
       });
       this.logger.log(
         `Annual prepay invoice generated for contract ${contract.contractNumber}: net ${netCents / 100} ${contract.currency}`,
+      );
+      return invoice;
+    });
+  }
+
+  async generateSetupFeeInvoice(contractId: string) {
+    // RLS-BYPASS: enterprise contract administration spans member clinics by design
+    return this.persistence.runUnrestricted(async () => {
+      const contract = await this.persistence.enterpriseContract.findUnique({
+        where: { id: contractId },
+      });
+      if (!contract)
+        throw new NotFoundException(`Contract ${contractId} not found`);
+      if (contract.status === EnterpriseContractStatus.TERMINATED) {
+        throw new BadRequestException(
+          'Setup fee cannot be raised for terminated contracts',
+        );
+      }
+      if (contract.setupFeeCents < MINIMUM_SETUP_FEE_CENTS) {
+        throw new BadRequestException(
+          'Setup fee must be at least INR 2,500 before raising an invoice',
+        );
+      }
+
+      const existing =
+        await this.persistence.enterpriseContractInvoice.findFirst({
+          where: {
+            contractId,
+            kind: EnterpriseInvoiceKind.SETUP_FEE,
+          },
+          include: { subscriptionPayment: true },
+        });
+      if (existing) return existing;
+
+      const { startDate: periodStart } = contract;
+      const invoiceNumber = `ENT-SETUP-${contract.contractNumber}`;
+      const description = `Enterprise setup fee for contract ${contract.contractNumber}`;
+
+      const invoice = await this.persistence.$transaction(async (tx) => {
+        const payment = await tx.subscriptionPayment.upsert({
+          where: {
+            clinicId_invoiceNumber: {
+              clinicId: contract.primaryClinicId,
+              invoiceNumber,
+            },
+          },
+          update: {
+            amountCents: contract.setupFeeCents,
+            currency: contract.currency,
+            description,
+          },
+          create: {
+            clinicId: contract.primaryClinicId,
+            amountCents: contract.setupFeeCents,
+            currency: contract.currency,
+            status: 'pending',
+            invoiceNumber,
+            description,
+          },
+        });
+
+        return tx.enterpriseContractInvoice.upsert({
+          where: { subscriptionPaymentId: payment.id },
+          update: {
+            amountCents: contract.setupFeeCents,
+            currency: contract.currency,
+            metadata: {
+              setupFeeCents: contract.setupFeeCents,
+              minimumSetupFeeCents: MINIMUM_SETUP_FEE_CENTS,
+            },
+          },
+          create: {
+            contractId,
+            kind: EnterpriseInvoiceKind.SETUP_FEE,
+            subscriptionPaymentId: payment.id,
+            amountCents: contract.setupFeeCents,
+            currency: contract.currency,
+            periodStart,
+            periodEnd: periodStart,
+            discountPercent: 0,
+            metadata: {
+              setupFeeCents: contract.setupFeeCents,
+              minimumSetupFeeCents: MINIMUM_SETUP_FEE_CENTS,
+            },
+          },
+          include: { subscriptionPayment: true },
+        });
+      });
+
+      this.logger.log(
+        `Setup fee invoice generated for contract ${contract.contractNumber}: ${contract.setupFeeCents / 100} ${contract.currency}`,
+      );
+      return invoice;
+    });
+  }
+
+  async generateAdjustmentInvoice(
+    contractId: string,
+    payload: { label: string; amountCents: number },
+  ) {
+    // RLS-BYPASS: enterprise contract administration spans member clinics by design
+    return this.persistence.runUnrestricted(async () => {
+      const contract = await this.persistence.enterpriseContract.findUnique({
+        where: { id: contractId },
+      });
+      if (!contract)
+        throw new NotFoundException(`Contract ${contractId} not found`);
+      if (contract.status === EnterpriseContractStatus.TERMINATED) {
+        throw new BadRequestException(
+          'Custom bill cannot be raised for terminated contracts',
+        );
+      }
+
+      const issuedAt = this.clock.now();
+      const invoiceNumber = `ENT-ADJ-${contract.contractNumber}-${nanoid(8)}`;
+      const description = `${payload.label} for enterprise contract ${contract.contractNumber}`;
+
+      const invoice = await this.persistence.$transaction(async (tx) => {
+        const payment = await tx.subscriptionPayment.create({
+          data: {
+            clinicId: contract.primaryClinicId,
+            amountCents: payload.amountCents,
+            currency: contract.currency,
+            status: 'pending',
+            invoiceNumber,
+            description,
+          },
+        });
+
+        return tx.enterpriseContractInvoice.create({
+          data: {
+            contractId,
+            kind: EnterpriseInvoiceKind.ADJUSTMENT,
+            subscriptionPaymentId: payment.id,
+            amountCents: payload.amountCents,
+            currency: contract.currency,
+            periodStart: issuedAt,
+            periodEnd: issuedAt,
+            discountPercent: 0,
+            metadata: { label: payload.label },
+          },
+          include: { subscriptionPayment: true },
+        });
+      });
+
+      this.logger.log(
+        `Custom enterprise bill generated for contract ${contract.contractNumber}: ${payload.amountCents / 100} ${contract.currency}`,
       );
       return invoice;
     });

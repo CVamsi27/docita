@@ -19,6 +19,7 @@ import {
   UpsertEnterpriseContractDto,
   SetEnterpriseContractStatusDto,
   AddContractMemberDto,
+  EnterpriseAdjustmentInvoiceDto,
 } from '@/domains/enterprise-contracts/application/dto/enterprise-contract.dto';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 
@@ -165,6 +166,45 @@ export class InternalEnterpriseContractsController {
   async generatePrepay(@Param('contractId') contractId: string) {
     const invoice =
       await this.contractsService.generateAnnualPrepayInvoice(contractId);
+    return {
+      ...invoice,
+      periodStart: invoice.periodStart.toISOString(),
+      periodEnd: invoice.periodEnd.toISOString(),
+      createdAt: invoice.createdAt.toISOString(),
+      updatedAt: invoice.updatedAt.toISOString(),
+    };
+  }
+
+  @Post(':contractId/setup-fee-invoice')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Generate (or fetch existing) setup fee invoice',
+  })
+  async generateSetupFee(@Param('contractId') contractId: string) {
+    const invoice =
+      await this.contractsService.generateSetupFeeInvoice(contractId);
+    return {
+      ...invoice,
+      periodStart: invoice.periodStart.toISOString(),
+      periodEnd: invoice.periodEnd.toISOString(),
+      createdAt: invoice.createdAt.toISOString(),
+      updatedAt: invoice.updatedAt.toISOString(),
+    };
+  }
+
+  @Post(':contractId/adjustment-invoice')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Generate a custom enterprise adjustment invoice',
+  })
+  async generateAdjustment(
+    @Param('contractId') contractId: string,
+    @Body() dto: EnterpriseAdjustmentInvoiceDto,
+  ) {
+    const invoice = await this.contractsService.generateAdjustmentInvoice(
+      contractId,
+      dto,
+    );
     return {
       ...invoice,
       periodStart: invoice.periodStart.toISOString(),

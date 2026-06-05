@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from '@/shared/modules/auth/auth/auth.service';
 import { AuthSessionService } from '@/shared/modules/auth/auth/auth-session.service';
 import { LabPortalLoginInput } from '../dto/lab-portal-auth.dto';

@@ -283,9 +283,7 @@ export function deriveContractsTableStatus(
   return rows.length === 0 ? "empty" : "success";
 }
 
-export function validateContractForm(
-  form: ContractFormState,
-): string | null {
+export function validateContractForm(form: ContractFormState): string | null {
   if (
     !form.primaryClinicId ||
     !form.contractNumber ||
@@ -297,19 +295,32 @@ export function validateContractForm(
   return null;
 }
 
-export const LOAD_CONTRACTS_ERROR = "We couldn't load enterprise contracts. Please try again.";
-export const SAVE_CONTRACT_ERROR = "We couldn't save the contract. Please try again.";
-export const LOAD_ESTIMATE_ERROR = "We couldn't load the estimate. Please try again.";
-export const LOAD_REVISIONS_ERROR = "We couldn't load revisions. Please try again.";
-export const ADD_CLINIC_ERROR = "We couldn't add that clinic. Please try again.";
-export const REMOVE_CLINIC_ERROR = "We couldn't remove that clinic. Please try again.";
-export const PREPAY_ERROR = "We couldn't generate the prepay invoice. Please try again.";
-export const LOAD_INVOICES_ERROR = "We couldn't load invoices. Please try again.";
+export const MINIMUM_SETUP_FEE_INR = 2500;
+export const SETUP_FEE_MINIMUM_ERROR =
+  "Setup fee must be at least ₹2,500 before raising an invoice.";
+
+export const LOAD_CONTRACTS_ERROR =
+  "We couldn't load enterprise contracts. Please try again.";
+export const SAVE_CONTRACT_ERROR =
+  "We couldn't save the contract. Please try again.";
+export const LOAD_ESTIMATE_ERROR =
+  "We couldn't load the estimate. Please try again.";
+export const LOAD_REVISIONS_ERROR =
+  "We couldn't load revisions. Please try again.";
+export const ADD_CLINIC_ERROR =
+  "We couldn't add that clinic. Please try again.";
+export const REMOVE_CLINIC_ERROR =
+  "We couldn't remove that clinic. Please try again.";
+export const PREPAY_ERROR =
+  "We couldn't generate the prepay invoice. Please try again.";
+export const SETUP_FEE_INVOICE_ERROR =
+  "We couldn't generate the setup fee invoice. Please try again.";
+export const ADJUSTMENT_INVOICE_ERROR =
+  "We couldn't generate the custom bill. Please try again.";
+export const LOAD_INVOICES_ERROR =
+  "We couldn't load invoices. Please try again.";
 export const TRUEUP_ERROR = "We couldn't evaluate true-up. Please try again.";
 export const LOAD_ALERTS_ERROR = "We couldn't load alerts. Please try again.";
-
-export const GENERATE_PREPAY_CONFIRM_MESSAGE =
-  "Generate annual prepay invoice for this contract? This creates a SubscriptionPayment for the 12-month commitment minus any discount.";
 
 export const CANNOT_REMOVE_PRIMARY_CLINIC_ERROR =
   "Cannot remove the primary clinic";
@@ -320,6 +331,20 @@ export function formatPrepayResult(inv: {
   discountPercent: number;
 }): string {
   return `Prepay invoice generated: ${inv.id}\nAmount: ₹${(inv.amountCents / 100).toFixed(2)}\nDiscount: ${inv.discountPercent}%`;
+}
+
+export function formatSetupFeeResult(inv: {
+  id: string;
+  amountCents: number;
+}): string {
+  return `Setup fee invoice generated: ${inv.id} for ₹${(inv.amountCents / 100).toFixed(2)}`;
+}
+
+export function formatAdjustmentResult(inv: {
+  id: string;
+  amountCents: number;
+}): string {
+  return `Custom bill generated: ${inv.id} for ₹${(inv.amountCents / 100).toFixed(2)}`;
 }
 
 export function formatEvaluateTrueUpResult(res: {

@@ -1,6 +1,7 @@
 "use client";
 
 import { EnterpriseContractsAlertsDialog } from "@/features/enterprise-contracts/enterprise-contracts-alerts-dialog";
+import { EnterpriseContractsCustomBillDialog } from "@/features/enterprise-contracts/enterprise-contracts-custom-bill-dialog";
 import { EnterpriseContractsEditorDialog } from "@/features/enterprise-contracts/enterprise-contracts-editor-dialog";
 import { EnterpriseContractsEstimateDialog } from "@/features/enterprise-contracts/enterprise-contracts-estimate-dialog";
 import { EnterpriseContractsInvoicesDialog } from "@/features/enterprise-contracts/enterprise-contracts-invoices-dialog";
@@ -33,6 +34,14 @@ export type EnterpriseContractsDialogsProps = Pick<
   | "invoicesOpen"
   | "setInvoicesOpen"
   | "invoices"
+  | "customBillOpen"
+  | "setCustomBillOpen"
+  | "customBillContract"
+  | "customBillLabel"
+  | "setCustomBillLabel"
+  | "customBillAmountINR"
+  | "setCustomBillAmountINR"
+  | "submitCustomBill"
   | "alertsOpen"
   | "setAlertsOpen"
   | "alerts"
@@ -41,7 +50,9 @@ export type EnterpriseContractsDialogsProps = Pick<
   | "revisions"
 >;
 
-export function EnterpriseContractsDialogs(state: EnterpriseContractsDialogsProps) {
+export function EnterpriseContractsDialogs(
+  state: EnterpriseContractsDialogsProps,
+) {
   return (
     <>
       <EnterpriseContractsEditorDialog
@@ -75,6 +86,17 @@ export function EnterpriseContractsDialogs(state: EnterpriseContractsDialogsProp
         invoicesOpen={state.invoicesOpen}
         setInvoicesOpen={state.setInvoicesOpen}
         invoices={state.invoices}
+      />
+      <EnterpriseContractsCustomBillDialog
+        customBillOpen={state.customBillOpen}
+        setCustomBillOpen={state.setCustomBillOpen}
+        customBillContract={state.customBillContract}
+        customBillLabel={state.customBillLabel}
+        setCustomBillLabel={state.setCustomBillLabel}
+        customBillAmountINR={state.customBillAmountINR}
+        setCustomBillAmountINR={state.setCustomBillAmountINR}
+        submitCustomBill={state.submitCustomBill}
+        busy={state.busy}
       />
       <EnterpriseContractsAlertsDialog
         alertsOpen={state.alertsOpen}

@@ -1,7 +1,10 @@
 "use client";
 
 import { formatCurrency, formatDate } from "@workspace/utils";
-import { enterpriseContractStatusBadgeClass } from "./enterprise-contracts-helpers";
+import {
+  enterpriseContractStatusBadgeClass,
+  MINIMUM_SETUP_FEE_INR,
+} from "./enterprise-contracts-helpers";
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
@@ -40,6 +43,8 @@ type EnterpriseContractsTableSectionProps = Pick<
   | "showEstimate"
   | "showInvoices"
   | "generatePrepay"
+  | "generateSetupFeeInvoice"
+  | "openCustomBill"
   | "evaluateTrueUp"
   | "showAlerts"
   | "showRevisions"
@@ -56,6 +61,8 @@ export function EnterpriseContractsTableSection({
   showEstimate,
   showInvoices,
   generatePrepay,
+  generateSetupFeeInvoice,
+  openCustomBill,
   evaluateTrueUp,
   showAlerts,
   showRevisions,
@@ -65,8 +72,8 @@ export function EnterpriseContractsTableSection({
       <CardHeader>
         <CardTitle>All enterprise contracts</CardTitle>
         <CardDescription>
-          Edit terms, manage member clinics for groups, generate prepay invoices,
-          run true-up evaluations.
+          Edit terms, manage member clinics for groups, generate prepay
+          invoices, run true-up evaluations.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -111,9 +118,7 @@ export function EnterpriseContractsTableSection({
                   </TableCell>
                   <TableCell>
                     <Badge
-                      className={
-                        enterpriseContractStatusBadgeClass[row.status]
-                      }
+                      className={enterpriseContractStatusBadgeClass[row.status]}
                     >
                       {row.status}
                     </Badge>
@@ -142,7 +147,7 @@ export function EnterpriseContractsTableSection({
                       size="sm"
                       variant="outline"
                       onClick={() => showMembers(row)}
-                      title="Members"
+                      aria-label="Members"
                     >
                       <UsersIcon className="h-3.5 w-3.5" />
                     </Button>
@@ -157,7 +162,7 @@ export function EnterpriseContractsTableSection({
                       size="sm"
                       variant="outline"
                       onClick={() => void showInvoices(row.id)}
-                      title="Invoices"
+                      aria-label="Invoices"
                     >
                       <Receipt className="h-3.5 w-3.5" />
                     </Button>
@@ -166,16 +171,33 @@ export function EnterpriseContractsTableSection({
                       variant="outline"
                       onClick={() => void generatePrepay(row.id)}
                       disabled={row.status !== "ACTIVE" || busy}
-                      title="Generate annual prepay invoice"
                     >
                       Prepay
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
+                      onClick={() => void generateSetupFeeInvoice(row)}
+                      disabled={
+                        row.setupFeeCents < MINIMUM_SETUP_FEE_INR * 100 || busy
+                      }
+                    >
+                      Setup fee
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => openCustomBill(row)}
+                      disabled={busy}
+                    >
+                      Custom bill
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => void evaluateTrueUp(row.id)}
                       disabled={row.status !== "ACTIVE" || busy}
-                      title="Evaluate true-up now"
+                      aria-label="Evaluate true-up now"
                     >
                       <AlertTriangle className="h-3.5 w-3.5" />
                     </Button>
@@ -183,7 +205,6 @@ export function EnterpriseContractsTableSection({
                       size="sm"
                       variant="outline"
                       onClick={() => void showAlerts(row.id)}
-                      title="Alert history"
                     >
                       Alerts
                     </Button>
@@ -191,7 +212,7 @@ export function EnterpriseContractsTableSection({
                       size="sm"
                       variant="outline"
                       onClick={() => void showRevisions(row.id)}
-                      title="Revisions"
+                      aria-label="Revisions"
                     >
                       <FileText className="h-3.5 w-3.5" />
                     </Button>

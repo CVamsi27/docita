@@ -16,6 +16,7 @@ import { FlaskConical } from "lucide-react";
 import { appSession } from "@/lib/auth/session";
 import { getAppApiUrl } from "@/lib/api/api-config";
 import { getUserFacingErrorMessage } from "@workspace/utils";
+import { browserRequest } from "@/lib/auth/browser-request";
 
 export function LabPortalLoginUI() {
   const [email, setEmail] = useState("");
@@ -30,7 +31,7 @@ export function LabPortalLoginUI() {
 
     try {
       const apiUrl = getAppApiUrl();
-      const res = await fetch(`${apiUrl}/v1/lab-portal/auth/login`, {
+      const res = await browserRequest(`${apiUrl}/v1/lab-portal/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),

@@ -281,6 +281,17 @@ export class EnterpriseContractsCommandService {
     return this.invoiceService.generateAnnualPrepayInvoice(contractId);
   }
 
+  generateSetupFeeInvoice(contractId: string) {
+    return this.invoiceService.generateSetupFeeInvoice(contractId);
+  }
+
+  generateAdjustmentInvoice(
+    contractId: string,
+    payload: { label: string; amountCents: number },
+  ) {
+    return this.invoiceService.generateAdjustmentInvoice(contractId, payload);
+  }
+
   evaluateAndAlertTrueUp(
     contractId: string,
   ): Promise<{ alerted: boolean; observedPercent: number }> {

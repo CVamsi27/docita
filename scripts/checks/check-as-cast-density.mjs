@@ -14,10 +14,11 @@ const CAST_RE = /\bas\s+(?!const\b|const\s|satisfies\b)/g;
 
 /** Import/export rename aliases and comment prose are not type assertions. */
 function countTypeAssertions(source) {
+  const code = stripStrings(source);
   let count = 0;
   let inImportStatement = false;
 
-  for (const line of source.split("\n")) {
+  for (const line of code.split("\n")) {
     const trimmed = line.trim();
 
     if (/^\s*import\b/.test(line)) {
@@ -48,6 +49,14 @@ function countTypeAssertions(source) {
   }
 
   return count;
+}
+
+function stripStrings(source) {
+  return source
+    .replace(/'[^'\\]*(?:\\.[^'\\]*)*'/g, '""')
+    .replace(/"[^"\\]*(?:\\.[^"\\]*)*"/g, '""')
+    .replace(/`[^`\\]*(?:\\.[^`\\]*)*`/g, '""')
+    .replace(/>([^<>{]*)</g, (_m, text) => `>${"*".repeat(text.length)}<`);
 }
 
 const roots = [

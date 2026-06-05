@@ -56,7 +56,7 @@ export interface InternalEnterpriseContractRow {
 export interface InternalEnterpriseContractInvoiceRow {
   id: string;
   contractId: string;
-  kind: "ANNUAL_PREPAY" | "TRUE_UP" | "ADJUSTMENT";
+  kind: "ANNUAL_PREPAY" | "SETUP_FEE" | "TRUE_UP" | "ADJUSTMENT";
   subscriptionPaymentId: string | null;
   amountCents: number;
   currency: string;

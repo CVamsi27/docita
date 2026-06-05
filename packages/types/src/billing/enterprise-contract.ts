@@ -20,7 +20,10 @@ export type EnterpriseContractStatusName = z.infer<
 
 export const enterpriseCustomLineItemSchema = z
   .object({
-    key: z.string().regex(/^[a-z0-9_:-]+$/).max(80),
+    key: z
+      .string()
+      .regex(/^[a-z0-9_:-]+$/)
+      .max(80),
     label: z.string().min(1).max(120),
     includedQty: z.number().int().nonnegative(),
     unitCents: z.number().int().nonnegative(),
@@ -275,4 +278,12 @@ export const enterpriseContractInvoicePreviewSchema = z.object({
 });
 export type EnterpriseContractInvoicePreview = z.infer<
   typeof enterpriseContractInvoicePreviewSchema
+>;
+
+export const enterpriseAdjustmentInvoiceRequestSchema = z.object({
+  label: z.string().min(1).max(120),
+  amountCents: z.number().int().positive(),
+});
+export type EnterpriseAdjustmentInvoiceRequest = z.infer<
+  typeof enterpriseAdjustmentInvoiceRequestSchema
 >;
