@@ -73,6 +73,7 @@ model User {
   onboardingStartedAt        DateTime?                @db.Timestamptz(3)
   onboardingCompletedAt      DateTime?                @db.Timestamptz(3)
   deletedAt                  DateTime?                @db.Timestamptz(3)
+  labId                      String?
 
   appointments                 Appointment[]
   auditLogs                    AuditLog[]
@@ -110,12 +111,14 @@ model User {
   recordedMetricRecords        PatientMetricRecord[]
   patientDoctors               PatientDoctor[]          @relation("DoctorPatients")
   handledDataSubjectRequests   DataSubjectRequest[]     @relation("HandledDataSubjectRequests")
+  lab                          Lab?                     @relation(fields: [labId], references: [id])
 
   @@index([clinicId])
   @@index([specialization])
   @@index([clinicId, role, createdAt], map: "User_clinicId_role_createdAt_idx")
   @@index([verificationStatus])
   @@index([deletedAt])
+  @@index([labId])
 }
 
 model NotificationPreferences {
@@ -2290,29 +2293,57 @@ model LabTest {
 }
 
 model LabTestOrder {
-  id            String             @id @default(cuid())
-  clinicId      String
-  patientId     String
-  appointmentId String?
-  labTestId     String
-  status        LabTestOrderStatus @default(ORDERED)
+  id                String             @id @default(cuid())
+  clinicId          String
+  patientId         String
+  appointmentId     String?
+  labTestId         String
+  labId             String?
+  status            LabTestOrderStatus @default(ORDERED)
   /// @json:labTestOrderResultJsonSchema
-  result        Json?
-  resultUrl     String?
-  notes         String?
-  orderedBy     String
-  collectedAt   DateTime?          @db.Timestamptz(3)
-  completedAt   DateTime?          @db.Timestamptz(3)
-  createdAt     DateTime           @default(now()) @db.Timestamptz(3)
-  updatedAt     DateTime           @updatedAt @db.Timestamptz(3)
-  labTest       LabTest            @relation(fields: [labTestId], references: [id])
-  patient       Patient            @relation(fields: [patientId], references: [id])
+  result            Json?
+  resultUrl         String?
+  notes             String?
+  orderedBy         String
+  collectedAt       DateTime?          @db.Timestamptz(3)
+  completedAt       DateTime?          @db.Timestamptz(3)
+  resultUploadedBy  String?
+  resultUploadedAt  DateTime?          @db.Timestamptz(3)
+  paidAt            DateTime?          @db.Timestamptz(3)
+  paymentVerifiedBy String?
+  paymentMethod     String?
+  paymentReference  String?
+  releasedAt        DateTime?          @db.Timestamptz(3)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(3)
+  labTest           LabTest            @relation(fields: [labTestId], references: [id])
+  patient           Patient            @relation(fields: [patientId], references: [id])
+  lab               Lab?               @relation(fields: [labId], references: [id])
 
   @@index([clinicId])
   @@index([patientId])
   @@index([status])
   @@index([patientId, clinicId, status])
   @@index([appointmentId], map: "LabTestOrder_appointmentId_idx")
+  @@index([labId])
+}
+
+model Lab {
+  id        String         @id @default(cuid())
+  clinicId  String
+  name      String
+  type      LabType        @default(INTERNAL)
+  phone     String?
+  email     String?
+  address   String?
+  active    Boolean        @default(true)
+  createdAt DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime       @updatedAt @db.Timestamptz(3)
+  orders    LabTestOrder[]
+  users     User[]
+
+  @@index([clinicId])
+  @@index([clinicId, active])
 }
 
 model WhatsappFlow {
@@ -2390,6 +2421,7 @@ enum Role {
   INTERNAL
   ADMIN_DOCTOR
   PATIENT
+  LAB
 }
 
 enum OnboardingStep {
@@ -3788,9 +3820,16 @@ model Bed {
 
 enum LabTestOrderStatus {
   ORDERED
+  SAMPLE_COLLECTED
   PENDING
+  RESULT_READY
   COMPLETED
   CANCELLED
+}
+
+enum LabType {
+  INTERNAL
+  EXTERNAL
 }
 
 enum WhatsappConversationStatus {
