@@ -111,6 +111,7 @@ function parseJwtDuration(value: string): JwtDuration | null {
   ],
   exports: [
     AuthService,
+    AuthSessionService,
     MfaService,
     ApiKeyService,
     JwtAuthGuard,
