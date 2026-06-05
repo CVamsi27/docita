@@ -191,12 +191,21 @@ function normalizeInvoiceListItems(items: unknown): unknown {
   });
 }
 
+function stripNulls(obj: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const key of Object.keys(obj)) {
+    if (obj[key] === null) continue;
+    result[key] = obj[key];
+  }
+  return result;
+}
+
 /** Coerce API list payloads before strict {@link invoiceSchema} parsing on the client. */
 export function normalizeInvoiceListRowInput(input: unknown): unknown {
   if (input === null || typeof input !== "object" || Array.isArray(input)) {
     return input;
   }
-  const row = input as Record<string, unknown>;
+  const row = stripNulls(input as Record<string, unknown>);
   const patient =
     row.patient &&
     typeof row.patient === "object" &&

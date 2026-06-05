@@ -1,8 +1,6 @@
-import React from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
@@ -36,10 +34,7 @@ export function PrescriptionsTable({
   return (
     <Card className="border-border shadow-sm">
       <CardHeader>
-        <CardTitle>All prescriptions</CardTitle>
-        <CardDescription>
-          A list of all prescriptions generated for patients
-        </CardDescription>
+        <CardTitle>Prescriptions</CardTitle>
       </CardHeader>
       <CardContent>
         <DataTable<Prescription>
