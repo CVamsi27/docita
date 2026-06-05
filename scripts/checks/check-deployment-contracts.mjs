@@ -251,10 +251,13 @@ try {
     "auto_stop_machines = 'suspend'",
     "fly.toml must suspend idle scale-out API machines instead of fully stopping them.",
   );
-  assertIncludes(
-    flyTomlSource,
-    "min_machines_running = 1",
-    "fly.toml must keep one production API machine running to avoid clinician-facing wake timeouts.",
+  assert(
+    flyTomlSource.includes("min_machines_running = 1") ||
+      (flyTomlSource.includes("min_machines_running = 0") &&
+        existsSync(
+          join(repoRoot, ".github/workflows/scale-api-hours.yml"),
+        )),
+    "fly.toml must keep one production API machine running, or set min_machines_running = 0 with .github/workflows/scale-api-hours.yml for time-based scaling.",
   );
 
   assertIncludes(
