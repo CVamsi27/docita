@@ -7,13 +7,13 @@ import {
   PlusCircle,
   Stethoscope,
 } from "lucide-react";
-import { APP_ACCESS_TARGETS } from "@workspace/types";
+import { APP_ACCESS_TARGETS } from "@workspace/types/access";
 import type {
-  UserRole,
   Feature,
   Tier,
   PlanMode,
-} from "@workspace/types";
+} from "@workspace/types/billing";
+import type { UserRole } from "@workspace/types/shared";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import type { NavItem } from "./nav-config";
 
@@ -27,7 +27,6 @@ export interface QuickAction {
   href?: string;
   kind?: "navigate" | "start-consultation";
   accessTarget?: (typeof APP_ACCESS_TARGETS)[keyof typeof APP_ACCESS_TARGETS];
-  /** Defaults to "write" (create flows); use "read" for navigation-only jumps. */
   accessMode?: "read" | "write";
   keywords?: string[];
   shortcut?: string;

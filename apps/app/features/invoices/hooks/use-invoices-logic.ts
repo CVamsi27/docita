@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useInvoices } from "@workspace/data-access";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { toast } from "sonner";
@@ -18,6 +18,13 @@ export const useInvoicesLogic = () => {
   const debouncedSearch = useDebounce(searchQuery, 300);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const pdfAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      pdfAbortRef.current?.abort();
+    };
+  }, []);
 
   const {
     data: invoicesResponse,
@@ -62,12 +69,17 @@ export const useInvoicesLogic = () => {
   }, [invoices, sortBy]);
 
   const handleDownloadPdf = async (invoiceId: string) => {
+    pdfAbortRef.current?.abort();
+    const controller = new AbortController();
+    pdfAbortRef.current = controller;
+
     const toastId = toast.loading("Preparing PDF…");
     try {
       const { jobId } = await invoicesApi.enqueuePdf(invoiceId);
 
       const deadline = Date.now() + POLL_TIMEOUT_MS;
       while (Date.now() < deadline) {
+        if (controller.signal.aborted) return;
         await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
         const status = await invoicesApi.getPdfStatus(invoiceId, jobId);
 
@@ -89,6 +101,10 @@ export const useInvoicesLogic = () => {
       showUserFacingErrorToast(
         "We could not download this invoice. Please try again.",
       );
+    } finally {
+      if (controller === pdfAbortRef.current) {
+        pdfAbortRef.current = null;
+      }
     }
   };
 

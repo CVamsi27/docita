@@ -1,5 +1,14 @@
-import { Bed, Bell, HelpCircle, Settings2, SmilePlus, Sparkles, type LucideIcon } from "lucide-react";
-import { APP_ACCESS_TARGETS, Feature } from "@workspace/types";
+import {
+  Bed,
+  Bell,
+  HelpCircle,
+  Settings2,
+  SmilePlus,
+  Sparkles,
+  type LucideIcon,
+} from "lucide-react";
+import { APP_ACCESS_TARGETS } from "@workspace/types/access";
+import { Feature } from "@workspace/types/billing";
 import type { NavItem } from "./nav-config-sections";
 
 export type { NavItem, NavSectionId, NavSection } from "./nav-config-sections";

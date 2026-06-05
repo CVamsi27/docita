@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 
 import { SocketProvider } from "@/lib/contexts/socket-context";
-import { TierConfigProvider } from "@/lib/contexts/tier-config-context";
 import { AppConfigProvider } from "@/lib/contexts/app-config-context";
 import { ConfirmProvider } from "@/hooks/use-confirm";
 import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
@@ -30,19 +29,15 @@ export function Providers({
       nonce={nonce}
     >
       <AppearanceController />
-      <TierConfigProvider>
-        <AppConfigProvider>
-          <TooltipProvider delayDuration={300}>
-            <DialogStackProvider>
-              <ConfirmProvider>
-                <NavigationHistoryProvider>
-                  {children}
-                </NavigationHistoryProvider>
-              </ConfirmProvider>
-            </DialogStackProvider>
-          </TooltipProvider>
-        </AppConfigProvider>
-      </TierConfigProvider>
+      <AppConfigProvider>
+        <TooltipProvider delayDuration={300}>
+          <DialogStackProvider>
+            <ConfirmProvider>
+              <NavigationHistoryProvider>{children}</NavigationHistoryProvider>
+            </ConfirmProvider>
+          </DialogStackProvider>
+        </TooltipProvider>
+      </AppConfigProvider>
     </NextThemesProvider>
   );
 }

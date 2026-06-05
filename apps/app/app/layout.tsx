@@ -1,5 +1,4 @@
 import "./globals.css";
-import "leaflet/dist/leaflet.css";
 import { headers } from "next/headers";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { Providers, ToasterWrapper } from "@/components";
@@ -45,6 +44,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
       <head>
+        <link rel="preconnect" href="https://api.docita.work" crossOrigin="anonymous" />
         <script
           nonce={nonce}
           suppressHydrationWarning

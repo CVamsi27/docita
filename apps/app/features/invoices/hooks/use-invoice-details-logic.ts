@@ -28,6 +28,13 @@ export const useInvoiceDetailsLogic = (
   const printRef = useRef<HTMLDivElement>(null);
   const hasAutoPrintedRef = useRef(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const pdfAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      pdfAbortRef.current?.abort();
+    };
+  }, []);
 
   const { data: invoice, isLoading, error } = useInvoice(invoiceId);
 
@@ -47,6 +54,10 @@ export const useInvoiceDetailsLogic = (
   };
 
   const handleDownload = async () => {
+    pdfAbortRef.current?.abort();
+    const controller = new AbortController();
+    pdfAbortRef.current = controller;
+
     setIsDownloading(true);
     const toastId = toast.loading("Preparing PDF…");
 
@@ -55,6 +66,7 @@ export const useInvoiceDetailsLogic = (
 
       const deadline = Date.now() + POLL_TIMEOUT_MS;
       while (Date.now() < deadline) {
+        if (controller.signal.aborted) return;
         await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
         const status = await invoicesApi.getPdfStatus(invoiceId, jobId);
 
@@ -78,6 +90,9 @@ export const useInvoiceDetailsLogic = (
       );
     } finally {
       setIsDownloading(false);
+      if (controller === pdfAbortRef.current) {
+        pdfAbortRef.current = null;
+      }
     }
   };
 

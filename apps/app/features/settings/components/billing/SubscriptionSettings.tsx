@@ -2,9 +2,6 @@
 
 import { useAuth } from "@/lib/auth/auth-context";
 import { useClinic } from "@/lib/contexts/clinic-context";
-import { getTierInfo } from "@/lib/subscription/tier-access";
-import { getTrialState } from "@/lib/subscription/subscription-lockout";
-import { getClinicGstin } from "@workspace/utils";
 import { getSupportPhoneNumber } from "@/lib/constants/support-contact";
 import { WhatsAppButton } from "@/components/whatsapp/whatsapp-button";
 import {
@@ -18,7 +15,7 @@ import {
   billingHistoryEmptyDescription,
   billingHistorySectionActions,
   billingHistorySectionDescription,
-  isFreeStarterActive,
+  deriveSubscriptionSettingsState,
 } from "./subscription-settings-helpers";
 import { BillingHistory } from "./subscription-billing-history";
 import {
@@ -48,32 +45,26 @@ export function SubscriptionSettings() {
 
   const supportPhone = getSupportPhoneNumber();
   const subscription = billing.subscription;
-  const subscriptionStatus = subscription?.subscriptionStatus;
-  const hasOutstandingPendingPayment =
-    subscription?.hasOutstandingPendingPayment === true;
-  const renewalPeriodLapsed =
-    subscription?.currentPeriodEnd != null
-      ? new Date(subscription.currentPeriodEnd).getTime() <= Date.now()
-      : false;
-  const isPaymentDue =
-    subscriptionStatus === "PAYMENT_DUE" || subscriptionStatus === "PAST_DUE";
-  const isExpired = subscriptionStatus === "EXPIRED";
-  const isInGracePeriod = subscriptionStatus === "GRACE";
-  const trialState = subscription?.trialWindowState ?? getTrialState(clinic);
-  const showRecoveryCard =
-    isPaymentDue ||
-    isInGracePeriod ||
-    trialState === "GRACE" ||
-    (hasOutstandingPendingPayment && renewalPeriodLapsed);
+  const subscriptionSettingsState = deriveSubscriptionSettingsState({
+    clinic,
+    subscription,
+  });
 
   if (billing.isSubscriptionLoading) {
     return <SubscriptionLoadingState />;
   }
 
-  const tierName = subscription?.tier
-    ? getTierInfo(subscription.tier).name
-    : "Starter";
-  const subscriptionStatusLabel = subscriptionStatus || "Inactive";
+  const {
+    tierName,
+    subscriptionStatusLabel,
+    trialDaysLeft,
+    freeStarterActive,
+    isPaymentDue,
+    isExpired,
+    isInGracePeriod,
+    showRecoveryCard,
+    needsGstinForInvoices,
+  } = subscriptionSettingsState;
 
   if (!isAdmin) {
     return (
@@ -84,18 +75,7 @@ export function SubscriptionSettings() {
     );
   }
 
-  const trialDaysLeft =
-    subscriptionStatusLabel === "TRIALING"
-      ? (subscription?.daysRemaining ?? null)
-      : null;
-
-  const freeStarterActive = isFreeStarterActive(subscription ?? undefined);
   const isResolving = billing.isCheckoutProcessing;
-
-  const needsGstinForInvoices =
-    !getClinicGstin(clinic?.settings) &&
-    (subscription?.basePriceCents ?? 0) > 0 &&
-    subscription?.currency?.toUpperCase() === "INR";
 
   return (
     <div className="space-y-6">

@@ -10,21 +10,86 @@ import {
   useRejectAppointmentRequest,
   useDoctors,
 } from "@workspace/data-access";
-import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  extractApproveAppointmentRequestFieldErrors,
-  type ApproveScheduleFieldKey,
-} from "@/lib/utils/appointment-request-approve-errors";
-import { extractProblemDetail } from "@/lib/utils/api-validation-errors";
-import { getSafeUserMessage } from "@/lib/errors/user-facing-errors";
 import { useClinic } from "@/lib/contexts/clinic-context";
-import { resolveApprovalWindow } from "./requests/approval-window-helpers";
+import {
+  useApproveRequestAction,
+  useRejectRequestAction,
+} from "./use-appointment-requests-panel-actions";
+import type {
+  AppointmentRequestQueries,
+  ApproveFieldErrorsByRequest,
+  DoctorOption,
+  RequestFormState,
+  RequestTextById,
+} from "./use-appointment-requests-panel-types";
 
 export function useAppointmentRequestsPanel() {
   const { clinic } = useClinic();
   const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
   const [showPastRequests, setShowPastRequests] = useState(false);
+  const queries = useAppointmentRequestQueries(showPastRequests);
+  const { data: doctors = [] } = useDoctors();
+  const approveRequest = useApproveAppointmentRequest();
+  const rejectRequest = useRejectAppointmentRequest();
+  const formState = useRequestFormState();
+  const [slotSuggestionGeneration, setSlotSuggestionGeneration] = useState(0);
+  const [hiddenRequestIds, setHiddenRequestIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const doctorOptions = useDoctorOptions(doctors);
+  const sortedRequests = useSortedPendingRequests(
+    queries.data?.items,
+    hiddenRequestIds,
+  );
+  const pastRequests = usePastRequests(
+    queries.approvedRequestsData?.items,
+    queries.rejectedRequestsData?.items,
+  );
+  const handleApprove = useApproveRequestAction({
+    clinicTz,
+    formState,
+    doctorOptions,
+    approveRequest,
+    showPastRequests,
+    refetch: queries.refetch,
+    refetchApprovedRequests: queries.refetchApprovedRequests,
+    setHiddenRequestIds,
+    setSlotSuggestionGeneration,
+  });
+  const handleReject = useRejectRequestAction({
+    formState,
+    rejectRequest,
+    showPastRequests,
+    refetch: queries.refetch,
+    refetchRejectedRequests: queries.refetchRejectedRequests,
+    setHiddenRequestIds,
+    setSlotSuggestionGeneration,
+  });
 
+  return {
+    pendingCount: queries.data?.count ?? 0,
+    state: getPendingRequestsState(queries, sortedRequests.length),
+    pastState: getPastRequestsState(queries, pastRequests.length),
+    sortedRequests,
+    pastRequests,
+    showPastRequests,
+    setShowPastRequests,
+    doctorOptions,
+    ...formState,
+    slotSuggestionGeneration,
+    clinicTz,
+    isMutating: approveRequest.isPending || rejectRequest.isPending,
+    handleApprove,
+    handleReject,
+    refetch: queries.refetch,
+    refetchApprovedRequests: queries.refetchApprovedRequests,
+    refetchRejectedRequests: queries.refetchRejectedRequests,
+  };
+}
+
+function useAppointmentRequestQueries(
+  showPastRequests: boolean,
+): AppointmentRequestQueries {
   const { data, isLoading, isError, refetch } = useAppointmentRequests({
     status: "PENDING",
     limit: 50,
@@ -45,209 +110,32 @@ export function useAppointmentRequestsPanel() {
   } = useAppointmentRequests(
     showPastRequests ? { status: "REJECTED", limit: 25 } : null,
   );
-
-  const { data: doctors = [] } = useDoctors();
-  const approveRequest = useApproveAppointmentRequest();
-  const rejectRequest = useRejectAppointmentRequest();
-
-  const [doctorByRequest, setDoctorByRequest] = useState<
-    Record<string, string>
-  >({});
-  const [startByRequest, setStartByRequest] = useState<Record<string, string>>(
-    {},
-  );
-  const [rejectReasonByRequest, setRejectReasonByRequest] = useState<
-    Record<string, string>
-  >({});
-  const [rejectCustomByRequest, setRejectCustomByRequest] = useState<
-    Record<string, string>
-  >({});
-  const [approveFieldErrorsByRequest, setApproveFieldErrorsByRequest] =
-    useState<Record<string, Partial<Record<ApproveScheduleFieldKey, string>>>>(
-      {},
-    );
-  const [slotSuggestionGeneration, setSlotSuggestionGeneration] = useState(0);
-  const [hiddenRequestIds, setHiddenRequestIds] = useState<Set<string>>(
-    () => new Set(),
-  );
-
-  const doctorOptions = useMemo(
-    () =>
-      doctors.filter((doctor) =>
-        ["DOCTOR", "ADMIN_DOCTOR"].includes(String(doctor.role)),
-      ),
-    [doctors],
-  );
-
-  const sortedRequests = useMemo(() => {
-    const items = data?.items ?? [];
-    return [...items]
-      .filter((r) => !hiddenRequestIds.has(r.id))
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      );
-  }, [data?.items, hiddenRequestIds]);
-
-  const pastRequests = useMemo(() => {
-    const items = [
-      ...(approvedRequestsData?.items ?? []),
-      ...(rejectedRequestsData?.items ?? []),
-    ];
-    const uniqueItems = Array.from(
-      new Map(items.map((item) => [item.id, item])).values(),
-    );
-    return uniqueItems.sort((a, b) => {
-      const aTime = new Date(a.reviewedAt ?? a.updatedAt).getTime();
-      const bTime = new Date(b.reviewedAt ?? b.updatedAt).getTime();
-      return bTime - aTime;
-    });
-  }, [approvedRequestsData?.items, rejectedRequestsData?.items]);
-
-  const state: DataStateStatus = isLoading
-    ? "loading"
-    : isError
-      ? "error"
-      : sortedRequests.length === 0
-        ? "empty"
-        : "success";
-
-  const pastState: DataStateStatus =
-    isApprovedRequestsLoading || isRejectedRequestsLoading
-      ? "loading"
-      : isApprovedRequestsError || isRejectedRequestsError
-        ? "error"
-        : pastRequests.length === 0
-          ? "empty"
-          : "success";
-
-  const isMutating = approveRequest.isPending || rejectRequest.isPending;
-
-  const handleApprove = async (request: AppointmentRequestResponse) => {
-    setApproveFieldErrorsByRequest((prev) => {
-      const next = { ...prev };
-      delete next[request.id];
-      return next;
-    });
-
-    const doctorId =
-      doctorByRequest[request.id] ??
-      request.preferredDoctorId ??
-      doctorOptions[0]?.id;
-
-    const window = await resolveApprovalWindow({
-      request,
-      doctorId,
-      manualStartLocal: startByRequest[request.id],
-      clinicTz,
-    });
-
-    if (window.kind === "missing-doctor") {
-      setApproveFieldErrorsByRequest((prev) => ({
-        ...prev,
-        [request.id]: {
-          doctorId: "Select a doctor before approving this request.",
-        },
-      }));
-      return;
-    }
-    if (window.kind === "invalid-window") {
-      showUserFacingErrorToast(
-        null,
-        "Enter valid start and end times before approving.",
-        "generic",
-      );
-      return;
-    }
-
-    if (!doctorId) {
-      return;
-    }
-
-    try {
-      await approveRequest.mutateAsync({
-        id: request.id,
-        doctorId,
-        startTime: window.startUtc,
-        endTime: window.endUtc,
-        type: "Consultation",
-        notes: request.notes ?? request.reason,
-      });
-      setHiddenRequestIds((prev) => new Set([...prev, request.id]));
-      setSlotSuggestionGeneration((g) => g + 1);
-      setStartByRequest({});
-      setRejectReasonByRequest({});
-      setRejectCustomByRequest({});
-      void refetch();
-      if (showPastRequests) void refetchApprovedRequests();
-    } catch (error) {
-      const fieldErrors = extractApproveAppointmentRequestFieldErrors(error);
-      if (Object.keys(fieldErrors).length > 0) {
-        setApproveFieldErrorsByRequest((prev) => ({
-          ...prev,
-          [request.id]: fieldErrors,
-        }));
-        return;
-      }
-      const detail = extractProblemDetail(error);
-      showUserFacingErrorToast(
-        null,
-        getSafeUserMessage(
-          detail,
-          "We could not approve this appointment request. Please try again.",
-        ),
-        "generic",
-      );
-    }
-  };
-
-  const handleReject = async (request: AppointmentRequestResponse) => {
-    const reason = rejectReasonByRequest[request.id]?.trim();
-    const REJECT_REASON_CUSTOM = "CUSTOM";
-    const responseMessage =
-      reason === REJECT_REASON_CUSTOM
-        ? (rejectCustomByRequest[request.id] ?? "").trim()
-        : reason;
-    if (!responseMessage) {
-      showUserFacingErrorToast(
-        null,
-        "Enter a response before rejecting this request.",
-        "generic",
-      );
-      return;
-    }
-
-    try {
-      await rejectRequest.mutateAsync({ id: request.id, responseMessage });
-      setHiddenRequestIds((prev) => new Set([...prev, request.id]));
-      setSlotSuggestionGeneration((g) => g + 1);
-      setStartByRequest({});
-      setRejectReasonByRequest({});
-      setRejectCustomByRequest({});
-      void refetch();
-      if (showPastRequests) void refetchRejectedRequests();
-    } catch (error) {
-      const detail = extractProblemDetail(error);
-      showUserFacingErrorToast(
-        null,
-        getSafeUserMessage(
-          detail,
-          "We could not reject this appointment request. Please try again.",
-        ),
-        "generic",
-      );
-    }
-  };
-
   return {
-    pendingCount: data?.count ?? 0,
-    state,
-    pastState,
-    sortedRequests,
-    pastRequests,
-    showPastRequests,
-    setShowPastRequests,
-    doctorOptions,
+    data,
+    isLoading,
+    isError,
+    refetch,
+    approvedRequestsData,
+    isApprovedRequestsLoading,
+    isApprovedRequestsError,
+    refetchApprovedRequests,
+    rejectedRequestsData,
+    isRejectedRequestsLoading,
+    isRejectedRequestsError,
+    refetchRejectedRequests,
+  };
+}
+
+function useRequestFormState(): RequestFormState {
+  const [doctorByRequest, setDoctorByRequest] = useState<RequestTextById>({});
+  const [startByRequest, setStartByRequest] = useState<RequestTextById>({});
+  const [rejectReasonByRequest, setRejectReasonByRequest] =
+    useState<RequestTextById>({});
+  const [rejectCustomByRequest, setRejectCustomByRequest] =
+    useState<RequestTextById>({});
+  const [approveFieldErrorsByRequest, setApproveFieldErrorsByRequest] =
+    useState<ApproveFieldErrorsByRequest>({});
+  return {
     doctorByRequest,
     setDoctorByRequest,
     startByRequest,
@@ -258,13 +146,73 @@ export function useAppointmentRequestsPanel() {
     setRejectCustomByRequest,
     approveFieldErrorsByRequest,
     setApproveFieldErrorsByRequest,
-    slotSuggestionGeneration,
-    clinicTz,
-    isMutating,
-    handleApprove,
-    handleReject,
-    refetch,
-    refetchApprovedRequests,
-    refetchRejectedRequests,
   };
+}
+
+function useDoctorOptions(
+  doctors: ReturnType<typeof useDoctors>["data"] = [],
+): DoctorOption[] {
+  return useMemo(
+    () =>
+      doctors.filter((doctor) =>
+        ["DOCTOR", "ADMIN_DOCTOR"].includes(String(doctor.role)),
+      ),
+    [doctors],
+  );
+}
+
+function useSortedPendingRequests(
+  items: AppointmentRequestResponse[] | undefined,
+  hiddenRequestIds: Set<string>,
+) {
+  return useMemo(() => {
+    return [...(items ?? [])]
+      .filter((r) => !hiddenRequestIds.has(r.id))
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+  }, [items, hiddenRequestIds]);
+}
+
+function usePastRequests(
+  approvedItems: AppointmentRequestResponse[] | undefined,
+  rejectedItems: AppointmentRequestResponse[] | undefined,
+) {
+  return useMemo(() => {
+    const items = [
+      ...(approvedItems ?? []),
+      ...(rejectedItems ?? []),
+    ];
+    const uniqueItems = Array.from(
+      new Map(items.map((item) => [item.id, item])).values(),
+    );
+    return uniqueItems.sort((a, b) => {
+      const aTime = new Date(a.reviewedAt ?? a.updatedAt).getTime();
+      const bTime = new Date(b.reviewedAt ?? b.updatedAt).getTime();
+      return bTime - aTime;
+    });
+  }, [approvedItems, rejectedItems]);
+}
+
+function getPendingRequestsState(
+  queries: AppointmentRequestQueries,
+  visibleRequestCount: number,
+): DataStateStatus {
+  if (queries.isLoading) return "loading";
+  if (queries.isError) return "error";
+  return visibleRequestCount === 0 ? "empty" : "success";
+}
+
+function getPastRequestsState(
+  queries: AppointmentRequestQueries,
+  visibleRequestCount: number,
+): DataStateStatus {
+  if (queries.isApprovedRequestsLoading || queries.isRejectedRequestsLoading) {
+    return "loading";
+  }
+  if (queries.isApprovedRequestsError || queries.isRejectedRequestsError) {
+    return "error";
+  }
+  return visibleRequestCount === 0 ? "empty" : "success";
 }

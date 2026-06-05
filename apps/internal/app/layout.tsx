@@ -35,6 +35,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://api.docita.work" crossOrigin="anonymous" />
         <script
           suppressHydrationWarning
           nonce={nonce}

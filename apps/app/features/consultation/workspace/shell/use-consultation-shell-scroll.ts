@@ -4,75 +4,168 @@ import {
   useMemo,
   useRef,
   useState,
+  type MutableRefObject,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { resolveConsultationSectionFromUrl } from "@/features/consultation/rules/consultationTabRouting";
 import type { ConsultationSection } from "@/features/consultation/workspace/consultation-section-registry";
 import {
   buildLetterNavMap,
-  buildScrollSpyRootId,
-  buildScrollSpySelectorMap,
   buildSectionUrlParams,
   cleanSectionUrlParams,
 } from "./consultation-shell-scroll-helpers";
+import {
+  useFocusSectionTracking,
+  useNewItemFocus,
+  usePendingUrlScroll,
+  useScrollListeners,
+} from "./use-consultation-shell-scroll-effects";
+import type { ShellScrollRefs } from "./use-consultation-shell-scroll-types";
+
+interface ConsultationShellScrollOptions {
+  sections: ConsultationSection[];
+  clinicType?: string;
+  stepMode?: boolean;
+}
+
+type ShellRouter = ReturnType<typeof useRouter>;
+type ShellSearchParams = ReturnType<typeof useSearchParams>;
 
 export function useConsultationShellScroll({
   sections,
   clinicType,
   stepMode = false,
-}: {
-  sections: ConsultationSection[];
-  clinicType?: string;
-  /** One-section-at-a-time mode: disable scroll-spy; selecting resets to top. */
-  stepMode?: boolean;
-}) {
+}: ConsultationShellScrollOptions) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const sectionIdsKey = sections.map((s) => s.id).join(",");
-  const sectionsRef = useRef(sections);
-  sectionsRef.current = sections;
-
+  const refs = useShellScrollRefs(sections);
   const [activeSectionId, setActiveSectionId] = useState<string>(
     () => sections[0]?.id ?? "subjective",
   );
-
-  const mainScrollRef = useRef<HTMLElement | null>(null);
-  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
-  const layoutBumpRaf = useRef<number | null>(null);
-  const scrollSpyRaf = useRef<number | null>(null);
   const [pendingUrlScrollToSectionId, setPendingUrlScrollToSectionId] =
     useState<string | null>(null);
-  const pendingUrlScrollRef = useRef<string | null>(null);
-  const lastUrlScrollKeyRef = useRef<string>("");
-  const scrollSpySuppressedUntilRef = useRef(0);
+  const computeActiveSectionFromScroll = useActiveSectionComputer({
+    stepMode,
+    refs,
+    setActiveSectionId,
+  });
+  const scheduleScrollSpy = useScrollSpyScheduler({
+    refs,
+    computeActiveSectionFromScroll,
+  });
+  const setSectionRef = useSectionRefSetter({ refs, scheduleScrollSpy });
 
-  const computeActiveSectionFromScroll = useCallback(() => {
+  useScrollSpyCleanup(refs.scrollSpyRaf);
+  useUrlSectionSync({
+    sections,
+    clinicType,
+    stepMode,
+    router,
+    searchParams,
+    refs,
+    setActiveSectionId,
+    setPendingUrlScrollToSectionId,
+  });
+  usePendingUrlScroll({
+    refs,
+    pendingUrlScrollToSectionId,
+    setPendingUrlScrollToSectionId,
+    computeActiveSectionFromScroll,
+  });
+  useScrollListeners({ refs, scheduleScrollSpy });
+  useFocusSectionTracking({ refs, setActiveSectionId });
+
+  return {
+    activeSectionId,
+    selectSection: useSectionSelector({
+      router,
+      searchParams,
+      stepMode,
+      refs,
+      setActiveSectionId,
+    }),
+    mainScrollRef: refs.mainScrollRef,
+    setSectionRef,
+    focusNewItem: useNewItemFocus({ stepMode, refs, setActiveSectionId }),
+    letterNavMap: useMemo(() => buildLetterNavMap(sections), [sections]),
+  };
+}
+
+function useShellScrollRefs(sections: ConsultationSection[]): ShellScrollRefs {
+  const sectionsRef = useRef(sections);
+  sectionsRef.current = sections;
+  return {
+    sectionsRef,
+    mainScrollRef: useRef<HTMLElement | null>(null),
+    sectionRefs: useRef<Record<string, HTMLElement | null>>({}),
+    layoutBumpRaf: useRef<number | null>(null),
+    scrollSpyRaf: useRef<number | null>(null),
+    pendingUrlScrollRef: useRef<string | null>(null),
+    lastUrlScrollKeyRef: useRef(""),
+    scrollSpySuppressedUntilRef: useRef(0),
+  };
+}
+
+function useActiveSectionComputer(params: {
+  stepMode: boolean;
+  refs: ShellScrollRefs;
+  setActiveSectionId: (value: string | ((prev: string) => string)) => void;
+}) {
+  const { stepMode, refs, setActiveSectionId } = params;
+  const {
+    mainScrollRef,
+    pendingUrlScrollRef,
+    scrollSpySuppressedUntilRef,
+    sectionRefs,
+    sectionsRef,
+  } = refs;
+  return useCallback(() => {
     if (stepMode) return;
     if (pendingUrlScrollRef.current != null) return;
     if (performance.now() < scrollSpySuppressedUntilRef.current) return;
     const root = mainScrollRef.current;
     if (!root) return;
-    const rootRect = root.getBoundingClientRect();
-    const activationY = rootRect.top + 48;
+    const activationY = root.getBoundingClientRect().top + 48;
     let chosen = sectionsRef.current[0]?.id ?? "subjective";
-    for (const s of sectionsRef.current) {
-      const el = sectionRefs.current[s.id];
+    for (const section of sectionsRef.current) {
+      const el = sectionRefs.current[section.id];
       if (!el) continue;
-      const top = el.getBoundingClientRect().top;
-      if (top <= activationY) chosen = s.id;
+      if (el.getBoundingClientRect().top <= activationY) chosen = section.id;
     }
     setActiveSectionId((prev) => (prev === chosen ? prev : chosen));
-  }, [stepMode]);
+  }, [
+    mainScrollRef,
+    pendingUrlScrollRef,
+    scrollSpySuppressedUntilRef,
+    sectionRefs,
+    sectionsRef,
+    setActiveSectionId,
+    stepMode,
+  ]);
+}
 
-  const scheduleScrollSpy = useCallback(() => {
+function useScrollSpyScheduler(params: {
+  refs: ShellScrollRefs;
+  computeActiveSectionFromScroll: () => void;
+}) {
+  const { refs, computeActiveSectionFromScroll } = params;
+  const { scrollSpyRaf } = refs;
+  return useCallback(() => {
     if (scrollSpyRaf.current != null) cancelAnimationFrame(scrollSpyRaf.current);
     scrollSpyRaf.current = requestAnimationFrame(() => {
       scrollSpyRaf.current = null;
       computeActiveSectionFromScroll();
     });
-  }, [computeActiveSectionFromScroll]);
+  }, [computeActiveSectionFromScroll, scrollSpyRaf]);
+}
 
-  const setSectionRef = useCallback(
+function useSectionRefSetter(params: {
+  refs: ShellScrollRefs;
+  scheduleScrollSpy: () => void;
+}) {
+  const { refs, scheduleScrollSpy } = params;
+  const { layoutBumpRaf, sectionRefs } = refs;
+  return useCallback(
     (id: string) => (el: HTMLElement | null) => {
       sectionRefs.current[id] = el;
       if (el === null) return;
@@ -82,24 +175,45 @@ export function useConsultationShellScroll({
         scheduleScrollSpy();
       });
     },
-    [scheduleScrollSpy],
+    [layoutBumpRaf, scheduleScrollSpy, sectionRefs],
   );
+}
 
+function useScrollSpyCleanup(
+  scrollSpyRaf: MutableRefObject<number | null>,
+): void {
   useEffect(() => {
-    return () => {
-      if (scrollSpyRaf.current != null) cancelAnimationFrame(scrollSpyRaf.current);
-    };
-  }, []);
+    return () => cancelStoredAnimationFrame(scrollSpyRaf);
+  }, [scrollSpyRaf]);
+}
 
-  const selectSection = useCallback(
+function cancelStoredAnimationFrame(
+  rafRef: MutableRefObject<number | null>,
+): void {
+  if (rafRef.current == null) return;
+  cancelAnimationFrame(rafRef.current);
+  rafRef.current = null;
+}
+
+function useSectionSelector(params: {
+  router: ShellRouter;
+  searchParams: ShellSearchParams;
+  stepMode: boolean;
+  refs: ShellScrollRefs;
+  setActiveSectionId: (value: string) => void;
+}) {
+  const { router, searchParams, stepMode, refs, setActiveSectionId } = params;
+  const { mainScrollRef, sectionRefs, sectionsRef } = refs;
+  return useCallback(
     (id: string) => {
       setActiveSectionId(id);
       if (stepMode) {
-        // Keep the pinned past-history card in view when switching steps.
         mainScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
       } else {
-        const el = sectionRefs.current[id];
-        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+        sectionRefs.current[id]?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }
       const next = buildSectionUrlParams(
         searchParams?.toString(),
@@ -108,29 +222,57 @@ export function useConsultationShellScroll({
       );
       router.replace(`?${next}`, { scroll: false });
     },
-    [router, searchParams, stepMode],
+    [
+      mainScrollRef,
+      router,
+      searchParams,
+      sectionRefs,
+      sectionsRef,
+      setActiveSectionId,
+      stepMode,
+    ],
   );
+}
 
+function useUrlSectionSync(params: {
+  sections: ConsultationSection[];
+  clinicType: string | undefined;
+  stepMode: boolean;
+  router: ShellRouter;
+  searchParams: ShellSearchParams;
+  refs: ShellScrollRefs;
+  setActiveSectionId: (value: string) => void;
+  setPendingUrlScrollToSectionId: (value: string | null) => void;
+}) {
+  const {
+    sections,
+    clinicType,
+    stepMode,
+    router,
+    searchParams,
+    refs,
+    setActiveSectionId,
+    setPendingUrlScrollToSectionId,
+  } = params;
+  const sectionIdsKey = sections.map((section) => section.id).join(",");
   const sectionQ = searchParams.get("section");
   const tabQ = searchParams.get("tab");
 
   useEffect(() => {
     const resolved = resolveConsultationSectionFromUrl(sectionQ, tabQ, clinicType);
-    const matchedResolved = resolved
-      ? sections.find((s) => s.id === resolved)
-      : undefined;
     const defaultSectionId = sections[0]?.id ?? "subjective";
-    const valid = matchedResolved?.id ?? defaultSectionId;
+    const valid =
+      sections.find((section) => section.id === resolved)?.id ?? defaultSectionId;
     setActiveSectionId(valid);
-    const wantsScrollFromUrl = Boolean(sectionQ?.trim() || tabQ) && !stepMode;
-    if (wantsScrollFromUrl) {
-      const urlScrollKey = `${sectionQ ?? ""}|${tabQ ?? ""}|${valid}|${sectionIdsKey}`;
-      if (lastUrlScrollKeyRef.current !== urlScrollKey) {
-        lastUrlScrollKeyRef.current = urlScrollKey;
-        pendingUrlScrollRef.current = valid;
-        setPendingUrlScrollToSectionId(valid);
-      }
-    }
+    queueUrlScrollIfNeeded({
+      refs,
+      sectionQ,
+      tabQ,
+      valid,
+      sectionIdsKey,
+      stepMode,
+      setPendingUrlScrollToSectionId,
+    });
     const { params: cleanedParams, changed } = cleanSectionUrlParams(
       searchParams.toString(),
       valid,
@@ -139,117 +281,34 @@ export function useConsultationShellScroll({
     );
     if (changed) router.replace(`?${cleanedParams}`, { scroll: false });
   }, [
-    sectionQ,
-    tabQ,
     clinicType,
-    sectionIdsKey,
+    refs,
     router,
     searchParams,
+    sectionIdsKey,
+    sectionQ,
     sections,
+    setActiveSectionId,
+    setPendingUrlScrollToSectionId,
     stepMode,
+    tabQ,
   ]);
+}
 
-  useEffect(() => {
-    const targetId = pendingUrlScrollToSectionId;
-    if (!targetId) return;
-    let cancelled = false;
-    let attempts = 0;
-    let rafId = 0;
-    const maxAttempts = 48;
-    const tick = () => {
-      if (cancelled) return;
-      const el = sectionRefs.current[targetId];
-      const main = mainScrollRef.current;
-      if (el && main) {
-        setPendingUrlScrollToSectionId(null);
-        el.scrollIntoView({ behavior: "auto", block: "start" });
-        requestAnimationFrame(() => {
-          pendingUrlScrollRef.current = null;
-          computeActiveSectionFromScroll();
-        });
-        return;
-      }
-      attempts += 1;
-      if (attempts < maxAttempts) {
-        rafId = requestAnimationFrame(tick);
-      } else {
-        setPendingUrlScrollToSectionId(null);
-        pendingUrlScrollRef.current = null;
-      }
-    };
-    rafId = requestAnimationFrame(tick);
-    return () => {
-      cancelled = true;
-      cancelAnimationFrame(rafId);
-    };
-  }, [pendingUrlScrollToSectionId, computeActiveSectionFromScroll]);
-
-  useEffect(() => {
-    const root = mainScrollRef.current;
-    if (!root) return;
-    const clearScrollSpySuppression = () => {
-      scrollSpySuppressedUntilRef.current = 0;
-    };
-    scheduleScrollSpy();
-    root.addEventListener("scroll", scheduleScrollSpy, { passive: true });
-    window.addEventListener("resize", scheduleScrollSpy, { passive: true });
-    root.addEventListener("wheel", clearScrollSpySuppression, { passive: true });
-    root.addEventListener("touchstart", clearScrollSpySuppression, {
-      passive: true,
-    });
-    return () => {
-      root.removeEventListener("scroll", scheduleScrollSpy);
-      window.removeEventListener("resize", scheduleScrollSpy);
-      root.removeEventListener("wheel", clearScrollSpySuppression);
-      root.removeEventListener("touchstart", clearScrollSpySuppression);
-    };
-  }, [scheduleScrollSpy]);
-
-  useEffect(() => {
-    const root = mainScrollRef.current;
-    if (!root) return;
-    const onFocusIn = (e: FocusEvent) => {
-      const target = e.target;
-      if (!(target instanceof Element)) return;
-      if (!root.contains(target)) return;
-      const sectionEl = target.closest("[data-section-id]");
-      const id = sectionEl?.getAttribute("data-section-id");
-      if (!id) return;
-      if (!sectionsRef.current.some((s) => s.id === id)) return;
-      scrollSpySuppressedUntilRef.current = performance.now() + 520;
-      setActiveSectionId((prev) => (prev === id ? prev : id));
-    };
-    root.addEventListener("focusin", onFocusIn);
-    return () => root.removeEventListener("focusin", onFocusIn);
-  }, []);
-
-  const focusNewItem = useCallback(
-    (kind: "c" | "d" | "m") => {
-      const selectorMap = buildScrollSpySelectorMap();
-      const rootId = buildScrollSpyRootId(kind);
-      if (stepMode) {
-        setActiveSectionId(rootId);
-      } else {
-        sectionRefs.current[rootId]?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }
-      setTimeout(() => {
-        document.querySelector<HTMLInputElement>(selectorMap[kind])?.focus();
-      }, 300);
-    },
-    [stepMode],
-  );
-
-  const letterNavMap = useMemo(() => buildLetterNavMap(sections), [sections]);
-
-  return {
-    activeSectionId,
-    selectSection,
-    mainScrollRef,
-    setSectionRef,
-    focusNewItem,
-    letterNavMap,
-  };
+function queueUrlScrollIfNeeded(params: {
+  refs: ShellScrollRefs;
+  sectionQ: string | null;
+  tabQ: string | null;
+  valid: string;
+  sectionIdsKey: string;
+  stepMode: boolean;
+  setPendingUrlScrollToSectionId: (value: string | null) => void;
+}): void {
+  const { refs, sectionQ, tabQ, valid, sectionIdsKey, stepMode } = params;
+  if (!(sectionQ?.trim() || tabQ) || stepMode) return;
+  const urlScrollKey = `${sectionQ ?? ""}|${tabQ ?? ""}|${valid}|${sectionIdsKey}`;
+  if (refs.lastUrlScrollKeyRef.current === urlScrollKey) return;
+  refs.lastUrlScrollKeyRef.current = urlScrollKey;
+  refs.pendingUrlScrollRef.current = valid;
+  params.setPendingUrlScrollToSectionId(valid);
 }

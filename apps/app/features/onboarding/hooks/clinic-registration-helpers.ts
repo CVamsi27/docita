@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — narrowing casts required by generic signatures or external types
 import type {
   ClinicDetails,
   ComplianceSettings,
@@ -15,9 +14,11 @@ import {
   openOnboardingPlanCheckout,
 } from "./onboarding-plan-checkout";
 import { isRestartableOnboardingError } from "./onboarding-session-storage";
-import type { RazorpayCheckoutResult, RazorpayResponse } from "@/hooks/use-razorpay";
-
-// ===== Error message constants =====
+import type {
+  RazorpayCheckoutResult,
+  RazorpayOptions,
+  RazorpayResponse,
+} from "@/hooks/razorpay-helpers";
 
 export const ERROR_CONTINUE_SETUP =
   "We could not continue setup right now. Please try again.";
@@ -36,19 +37,13 @@ export const ERROR_SETUP_RETRY =
 export const ERROR_TRIAL_USED =
   "Your free trial has already been used. Complete payment to continue.";
 
-const ERROR_PENDING_ITEMS =
+export const ERROR_PENDING_ITEMS =
   "Complete the pending onboarding items before continuing";
 const MISSING_FACILITY_DETAILS = "valid facility details";
 
-// ===== Owner role =====
-
-export function resolveOwnerRole(
-  role?: string,
-): "ADMIN_DOCTOR" | "ADMIN" {
+export function resolveOwnerRole(role?: string): "ADMIN_DOCTOR" | "ADMIN" {
   return role === "ADMIN_DOCTOR" ? "ADMIN_DOCTOR" : "ADMIN";
 }
-
-// ===== Registration validation =====
 
 export interface RegistrationValidationResult {
   valid: boolean;
@@ -89,8 +84,6 @@ export function validateRegistrationData(
   return { valid: true, targetStep: -1, parsedDetails: details };
 }
 
-// ===== Plan pricing resolution =====
-
 export interface ResolvedPricing {
   price: number;
   currency: string;
@@ -111,8 +104,6 @@ export function resolvePlanPricing(
   };
 }
 
-// ===== Trial / payment flow =====
-
 export interface PlanPaymentConfig {
   onboardingId: string;
   tier: string;
@@ -126,9 +117,7 @@ export interface PlanPaymentConfig {
 export async function processPlanPaymentFlow(
   config: PlanPaymentConfig,
   deps: {
-    openCheckout: (options: Record<string, unknown>) => Promise<RazorpayCheckoutResult>;
-    // ^ The exact type (RazorpayOptions) → Promise<RazorpayCheckoutResult> is
-    // enforced at the call site; we keep a relaxed type here for isolation.
+    openCheckout: (options: RazorpayOptions) => Promise<RazorpayCheckoutResult>;
     onTrialEligible: () => void;
     onPaymentCompleted: (response: RazorpayResponse) => void;
   },
@@ -148,7 +137,7 @@ export async function processPlanPaymentFlow(
     planMode: config.planMode,
     clinicDetails: config.clinicDetails,
     customer: config.customer,
-    openCheckout: deps.openCheckout as never,
+    openCheckout: deps.openCheckout,
     onPaymentCompleted: deps.onPaymentCompleted,
   });
 
@@ -160,8 +149,6 @@ export async function processPlanPaymentFlow(
   return "completed";
 }
 
-// ===== Onboarding ID validation error handling =====
-
 export function handleOnboardingValidateError(error: unknown): void {
   if (
     error instanceof ApiError &&
@@ -172,8 +159,6 @@ export function handleOnboardingValidateError(error: unknown): void {
   }
   if (!isRestartableOnboardingError(error)) throw error;
 }
-
-// ===== Submit registration error handling =====
 
 export function handleSubmitRegistrationError(
   error: unknown,

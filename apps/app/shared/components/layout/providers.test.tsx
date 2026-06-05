@@ -21,12 +21,6 @@ vi.mock("@/lib/contexts/socket-context", () => ({
   SocketProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
-vi.mock("@/lib/contexts/tier-config-context", () => ({
-  TierConfigProvider: ({ children }: { children: ReactNode }) => (
-    <>{children}</>
-  ),
-}));
-
 vi.mock("@/lib/contexts/app-config-context", () => ({
   AppConfigProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));

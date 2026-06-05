@@ -1,20 +1,24 @@
 import { create } from "zustand";
 import {
-  CLINIC_TYPE_FEATURES,
   clinicFeatureOverridesSchema,
   type ClinicFeatureOverrides,
-  type ClinicType,
-  clinicTypeSchema,
   Feature,
   FEATURE_TIER_MAP,
-  mapClinicTierDbStringToAccessTier,
-  mapDbClinicTierToTierAndMode,
   type PlanMode,
   planModeSchema,
   Tier,
   TIER_INFO,
+} from "@workspace/types/billing";
+import {
+  mapClinicTierDbStringToAccessTier,
+  mapDbClinicTierToTierAndMode,
+} from "@workspace/types/access";
+import {
+  CLINIC_TYPE_FEATURES,
+  type ClinicType,
+  clinicTypeSchema,
   userRoleSchema,
-} from "@workspace/types";
+} from "@workspace/types/shared";
 import {
   getTierName,
   hasFeatureAccess,
@@ -28,7 +32,6 @@ export type FacilityType = "CLINIC" | "HOSPITAL";
 
 interface PermissionState {
   currentTier: Tier;
-  /** Top-level Full / Front Desk / Core toggle attached to the clinic. */
   currentMode: PlanMode;
   hasIntelligence: boolean;
   userRole: string | null;
@@ -42,7 +45,9 @@ interface PermissionState {
   setUserRole: (role: string) => void;
   setFacilityType: (type: FacilityType) => void;
   setClinicType: (type: ClinicType | string | null) => void;
-  setFeatureOverrides: (overrides: ClinicFeatureOverrides | Record<string, boolean>) => void;
+  setFeatureOverrides: (
+    overrides: ClinicFeatureOverrides | Record<string, boolean>,
+  ) => void;
   syncFromClinic: (
     clinic: {
       tier: string;
@@ -121,7 +126,6 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
       setFeatureOverrides,
     } = get();
 
-    // Auto-map legacy FRONT_DESK_* DB tier values to a (clinical tier, FRONT_DESK mode) pair.
     const { tier: resolvedTierName, mode: resolvedMode } =
       mapDbClinicTierToTierAndMode(clinic.tier, clinic.planMode);
 
@@ -140,7 +144,13 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   },
 
   canAccess: (feature, permission?) => {
-    const { currentTier, currentMode, hasIntelligence, featureOverrides, userRole } = get();
+    const {
+      currentTier,
+      currentMode,
+      hasIntelligence,
+      featureOverrides,
+      userRole,
+    } = get();
 
     if (!isFeatureGenerallyAvailable(feature)) {
       return false;

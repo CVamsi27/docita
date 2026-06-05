@@ -18,94 +18,171 @@ import { toAbsoluteAppUrl } from "@/lib/utils/app-url";
 import { isDoctor as checkIsDoctor } from "@/lib/auth/permissions";
 import { usePhoneSignatureQrFlow } from "@/hooks/use-phone-signature-qr-flow";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { extractRegistrationFieldError } from "@/features/onboarding/components/verify-doctor/helpers";
 import {
   resolveDoctorSignatureUrls,
   getDoctorRegistrationState,
-  getIsInitialLoading,
   buildRegistrationPayload,
   type DoctorVerificationProfile,
   REGISTRATION_NUMBER_REQUIRED_ERROR,
 } from "./verify-doctor-helpers";
+import { handleRegistrationSaveError } from "./use-verify-doctor-error";
+import { buildVerifyDoctorReturn } from "./use-verify-doctor-return";
+import type {
+  RegistrationInputState,
+  VerifyDoctorQueries,
+} from "./use-verify-doctor-types";
 
-/**
- * Owns all data, state, and effects for the verify-doctor page.
- * Returns the orchestrator-friendly shape consumed by VerifyDoctorPageContent
- * and its section sub-components.
- */
+function getDoctorProfileUserId(
+  user: DoctorVerificationProfile | null | undefined,
+): string {
+  return user?.id ?? "";
+}
+
 export function useVerifyDoctor() {
   const { user, refreshUser, isLoading: authLoading } = useAuth();
   const router = useRouter();
+  const isDoctor = checkIsDoctor(user?.role);
+  const isAdminDoctor = isDoctor && user?.role === "ADMIN_DOCTOR";
+  const redirect = useRedirectingState();
+  const queries = useVerifyDoctorQueries(user, isDoctor);
+  const input = useRegistrationInputState(queries.doctorProfile);
+  const profile: DoctorVerificationProfile | null =
+    queries.doctorProfile ?? user;
 
+  const registrationState = getDoctorRegistrationState(
+    profile,
+    input.registrationNumber,
+  );
+  const signatureUrls = resolveDoctorSignatureUrls({
+    clinic: queries.clinic,
+    profile,
+    isAdminDoctor,
+    hasSignature: registrationState.hasSignature,
+    clinicLoading: queries.clinicLoading,
+  });
+
+  useVerifyDoctorRedirect({
+    authLoading,
+    user,
+    isDoctor,
+    canAutoRedirect: registrationState.canAutoRedirect,
+    routerReplace: router.replace,
+    setIsRedirecting: redirect.setIsRedirecting,
+  });
+
+  return useVerifyDoctorReturn({
+    user,
+    authLoading,
+    isDoctor,
+    routerReplace: router.replace,
+    refreshUser,
+    profile,
+    queries,
+    input,
+    registrationState,
+    signatureUrls,
+    redirect,
+  });
+}
+
+function useRedirectingState() {
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  return { isRedirecting, setIsRedirecting };
+}
+
+function useVerifyDoctorReturn(params: {
+  user: DoctorVerificationProfile | null | undefined;
+  authLoading: boolean;
+  isDoctor: boolean;
+  routerReplace: (href: string) => void;
+  refreshUser: () => Promise<DoctorVerificationProfile | null>;
+  profile: DoctorVerificationProfile | null;
+  queries: VerifyDoctorQueries;
+  input: RegistrationInputState;
+  registrationState: ReturnType<typeof getDoctorRegistrationState>;
+  signatureUrls: ReturnType<typeof resolveDoctorSignatureUrls>;
+  redirect: ReturnType<typeof useRedirectingState>;
+}) {
+  const [isSavingReg, setIsSavingReg] = useState(false);
+  const [isApplyingSignature, setIsApplyingSignature] = useState(false);
+  const signatureQrFlow = useVerifyDoctorSignatureFlow(params);
+  const handleSaveRegistration = useSaveRegistrationAction({
+    input: params.input,
+    updateDoctorRegistration: params.queries.updateDoctorRegistration,
+    refetch: params.queries.refetch,
+    setIsSavingReg,
+  });
+  const handleUseOnboardingSignature = useOnboardingSignatureAction({
+    onboardingSignatureSourceUrl:
+      params.signatureUrls.onboardingSignatureSourceUrl,
+    updateDoctorSignature: params.queries.updateDoctorSignature,
+    setIsApplyingSignature,
+  });
+  const handleContinue = useContinueVerificationAction({
+    input: params.input,
+    registrationState: params.registrationState,
+    handleSaveRegistration,
+    refreshUser: params.refreshUser,
+    routerReplace: params.routerReplace,
+    setIsRedirecting: params.redirect.setIsRedirecting,
+  });
+
+  return buildVerifyDoctorReturn({
+    ...params,
+    isRedirecting: params.redirect.isRedirecting,
+    isSavingReg,
+    isApplyingSignature,
+    signatureQrFlow,
+    handleUseOnboardingSignature,
+    handleSaveRegistration,
+    handleContinue,
+  });
+}
+
+function useVerifyDoctorQueries(
+  user: DoctorVerificationProfile | null | undefined,
+  isDoctor: boolean,
+): VerifyDoctorQueries {
+  const userId = getDoctorProfileUserId(user);
+  const doctorProfileQuery = useAPIQuery<User>(
+    appQueryKeys.doctorProfile.detail(userId),
+    `/doctors/${user?.id}`,
+    { enabled: !!user?.id && isDoctor },
+  );
+  const clinicQuery = useAPIQuery<Clinic>(
+    appQueryKeys.clinicSettings(user?.clinicId ?? ""),
+    "/clinic/settings",
+    { enabled: !!user?.clinicId && isDoctor },
+  );
+  return {
+    doctorProfile: doctorProfileQuery.data,
+    profileLoading: doctorProfileQuery.isLoading,
+    refetch: doctorProfileQuery.refetch,
+    clinic: clinicQuery.data,
+    clinicLoading: clinicQuery.isLoading,
+    updateDoctorRegistration: useAPIMutation<
+      User,
+      UpdateDoctorRegistrationRequest
+    >(`/doctors/${user?.id}/registration-number`, "PUT", {
+      invalidateKeys: [appQueryKeys.doctorProfile.detail(userId)],
+    }),
+    updateDoctorSignature: useAPIMutation<User, { signatureUrl: string }>(
+      `/doctors/${user?.id}`,
+      "PUT",
+      { invalidateKeys: [appQueryKeys.doctorProfile.detail(userId)] },
+    ),
+  };
+}
+
+function useRegistrationInputState(
+  doctorProfile: User | undefined,
+): RegistrationInputState {
   const [registrationNumber, setRegistrationNumber] = useState("");
   const [registrationCouncil, setRegistrationCouncil] = useState("");
   const [registrationStateCode, setRegistrationStateCode] = useState("");
   const [registrationError, setRegistrationError] = useState<string | null>(
     null,
   );
-  const [isSavingReg, setIsSavingReg] = useState(false);
-  const [isApplyingOnboardingSignature, setIsApplyingOnboardingSignature] =
-    useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
-
-  const isDoctor = checkIsDoctor(user?.role);
-  const isAdminDoctor =
-    checkIsDoctor(user?.role) && user?.role === "ADMIN_DOCTOR";
-  const generateSignatureToken = useGenerateSignatureToken();
-
-  const {
-    data: doctorProfile,
-    isLoading: profileLoading,
-    refetch,
-  } = useAPIQuery<User>(
-    appQueryKeys.doctorProfile.detail(user?.id ?? ""),
-    `/doctors/${user?.id}`,
-    { enabled: !!user?.id && isDoctor },
-  );
-
-  const { data: clinic, isLoading: clinicLoading } = useAPIQuery<Clinic>(
-    appQueryKeys.clinicSettings(user?.clinicId ?? ""),
-    "/clinic/settings",
-    { enabled: !!user?.clinicId && isDoctor },
-  );
-
-  const updateDoctorRegistration = useAPIMutation<
-    User,
-    UpdateDoctorRegistrationRequest
-  >(`/doctors/${user?.id}/registration-number`, "PUT", {
-    invalidateKeys: [appQueryKeys.doctorProfile.detail(user?.id ?? "")],
-  });
-
-  const updateDoctorSignature = useAPIMutation<User, { signatureUrl: string }>(
-    `/doctors/${user?.id}`,
-    "PUT",
-    { invalidateKeys: [appQueryKeys.doctorProfile.detail(user?.id ?? "")] },
-  );
-
-  const profile: DoctorVerificationProfile | null = doctorProfile ?? user;
-
-  const {
-    hasSignature,
-    hasSavedRegistration,
-    hasDraftRegistration,
-    hasRegistrationProgress,
-    canContinue,
-    canAutoRedirect,
-  } = getDoctorRegistrationState(profile, registrationNumber);
-
-  const {
-    onboardingSignatureSourceUrl,
-    resolvedOnboardingSignatureUrl,
-    resolvedProfileSignatureUrl,
-    canUseOnboardingSignature,
-    shouldDeferQrAutoStart,
-  } = resolveDoctorSignatureUrls({
-    clinic,
-    profile,
-    isAdminDoctor,
-    hasSignature,
-    clinicLoading,
-  });
 
   useEffect(() => {
     if (!doctorProfile) return;
@@ -113,6 +190,67 @@ export function useVerifyDoctor() {
     setRegistrationStateCode(doctorProfile.registrationStateCode ?? "");
   }, [doctorProfile]);
 
+  return {
+    registrationNumber,
+    setRegistrationNumber,
+    registrationCouncil,
+    setRegistrationCouncil,
+    registrationStateCode,
+    setRegistrationStateCode,
+    registrationError,
+    setRegistrationError,
+  };
+}
+
+function useVerifyDoctorRedirect(params: {
+  authLoading: boolean;
+  user: DoctorVerificationProfile | null | undefined;
+  isDoctor: boolean;
+  canAutoRedirect: boolean;
+  routerReplace: (href: string) => void;
+  setIsRedirecting: (value: boolean) => void;
+}): void {
+  const {
+    authLoading,
+    user,
+    isDoctor,
+    canAutoRedirect,
+    routerReplace,
+    setIsRedirecting,
+  } = params;
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setIsRedirecting(true);
+      routerReplace("/login?next=/verify-doctor");
+      return;
+    }
+    if (!isDoctor) {
+      setIsRedirecting(true);
+      routerReplace("/today");
+      return;
+    }
+    if (canAutoRedirect) {
+      setIsRedirecting(true);
+      routerReplace("/today");
+    }
+  }, [
+    authLoading,
+    user,
+    isDoctor,
+    canAutoRedirect,
+    routerReplace,
+    setIsRedirecting,
+  ]);
+}
+
+function useVerifyDoctorSignatureFlow(params: {
+  user: DoctorVerificationProfile | null | undefined;
+  queries: VerifyDoctorQueries;
+  registrationState: ReturnType<typeof getDoctorRegistrationState>;
+  signatureUrls: ReturnType<typeof resolveDoctorSignatureUrls>;
+}) {
+  const generateSignatureToken = useGenerateSignatureToken();
   const createSignatureSession = useCallback(async () => {
     const token = await generateSignatureToken.mutateAsync();
     return {
@@ -120,53 +258,36 @@ export function useVerifyDoctor() {
       qrUrl: toAbsoluteAppUrl(token.uploadUrl),
     };
   }, [generateSignatureToken]);
-
   const checkSignatureUploaded = useCallback(async () => {
-    const result = await refetch();
-    const refreshedProfile = result.data ?? doctorProfile ?? user;
-    return Boolean(refreshedProfile?.signatureUrl);
-  }, [doctorProfile, refetch, user]);
+    const result = await params.queries.refetch();
+    const refreshed = result.data ?? params.queries.doctorProfile ?? params.user;
+    return Boolean(refreshed?.signatureUrl);
+  }, [params]);
 
-  const signatureQrFlow = usePhoneSignatureQrFlow({
+  return usePhoneSignatureQrFlow({
     createSession: createSignatureSession,
     checkUploaded: checkSignatureUploaded,
-    onUploaded: () => {
-      toast.success("Signature received from your phone");
-    },
-    persistenceKey: `docita_verify_doctor_qr_session_${user?.id ?? "anonymous"}`,
+    onUploaded: () => toast.success("Signature received from your phone"),
+    persistenceKey: `docita_verify_doctor_qr_session_${params.user?.id ?? "anonymous"}`,
     autoStart:
-      !hasSignature && !canUseOnboardingSignature && !shouldDeferQrAutoStart,
-    initialUploaded: hasSignature,
+      !params.registrationState.hasSignature &&
+      !params.signatureUrls.canUseOnboardingSignature &&
+      !params.signatureUrls.shouldDeferQrAutoStart,
+    initialUploaded: params.registrationState.hasSignature,
   });
+}
 
-  useEffect(() => {
-    if (authLoading) return;
-
-    if (!user) {
-      setIsRedirecting(true);
-      router.replace("/login?next=/verify-doctor");
-      return;
-    }
-
-    if (!isDoctor) {
-      setIsRedirecting(true);
-      router.replace("/today");
-      return;
-    }
-
-    if (canAutoRedirect) {
-      setIsRedirecting(true);
-      router.replace("/today");
-    }
-  }, [authLoading, user, isDoctor, canAutoRedirect, router]);
-
-  const handleUseOnboardingSignature = useCallback(async () => {
-    if (!onboardingSignatureSourceUrl) return;
-
-    setIsApplyingOnboardingSignature(true);
+function useOnboardingSignatureAction(params: {
+  onboardingSignatureSourceUrl: string | null;
+  updateDoctorSignature: VerifyDoctorQueries["updateDoctorSignature"];
+  setIsApplyingSignature: (value: boolean) => void;
+}) {
+  return useCallback(async () => {
+    if (!params.onboardingSignatureSourceUrl) return;
+    params.setIsApplyingSignature(true);
     try {
-      await updateDoctorSignature.mutateAsync({
-        signatureUrl: onboardingSignatureSourceUrl,
+      await params.updateDoctorSignature.mutateAsync({
+        signatureUrl: params.onboardingSignatureSourceUrl,
       });
       toast.success("Onboarding signature added to your profile");
     } catch (error) {
@@ -176,117 +297,69 @@ export function useVerifyDoctor() {
         "save",
       );
     } finally {
-      setIsApplyingOnboardingSignature(false);
+      params.setIsApplyingSignature(false);
     }
-  }, [onboardingSignatureSourceUrl, updateDoctorSignature]);
+  }, [params]);
+}
 
-  const handleSaveRegistration = useCallback(async (): Promise<boolean> => {
-    if (!registrationNumber.trim()) return false;
-    setIsSavingReg(true);
-    setRegistrationError(null);
+function useSaveRegistrationAction(params: {
+  input: RegistrationInputState;
+  updateDoctorRegistration: VerifyDoctorQueries["updateDoctorRegistration"];
+  refetch: VerifyDoctorQueries["refetch"];
+  setIsSavingReg: (value: boolean) => void;
+}) {
+  return useCallback(async (): Promise<boolean> => {
+    if (!params.input.registrationNumber.trim()) return false;
+    params.setIsSavingReg(true);
+    params.input.setRegistrationError(null);
     try {
-      const payload = buildRegistrationPayload({
-        registrationNumber,
-        registrationCouncil,
-        registrationStateCode,
-      });
-
-      await updateDoctorRegistration.mutateAsync(payload);
-      await refetch();
+      await params.updateDoctorRegistration.mutateAsync(
+        buildRegistrationPayload(params.input),
+      );
+      await params.refetch();
       toast.success("Registration number saved");
-      setRegistrationNumber("");
+      params.input.setRegistrationNumber("");
       return true;
     } catch (error) {
-      const fieldError = extractRegistrationFieldError(error);
-      if (fieldError) {
-        setRegistrationError(fieldError);
-        showUserFacingErrorToast(null, fieldError, "form");
-        return false;
-      }
-      showUserFacingErrorToast(
-        error,
-        "We could not save this registration number. Please try again.",
-        "save",
-      );
-      return false;
+      return handleRegistrationSaveError(error, params.input);
     } finally {
-      setIsSavingReg(false);
+      params.setIsSavingReg(false);
     }
-  }, [
-    registrationNumber,
-    registrationCouncil,
-    registrationStateCode,
-    updateDoctorRegistration,
-    refetch,
-  ]);
+  }, [params]);
+}
 
-  const handleContinue = useCallback(async () => {
-    if (!hasSignature) return;
-    if (!hasSavedRegistration && !registrationNumber.trim()) {
-      setRegistrationError(REGISTRATION_NUMBER_REQUIRED_ERROR);
+function useContinueVerificationAction(params: {
+  input: RegistrationInputState;
+  registrationState: ReturnType<typeof getDoctorRegistrationState>;
+  handleSaveRegistration: () => Promise<boolean>;
+  refreshUser: () => Promise<DoctorVerificationProfile | null>;
+  routerReplace: (href: string) => void;
+  setIsRedirecting: (value: boolean) => void;
+}) {
+  return useCallback(async () => {
+    if (!params.registrationState.hasSignature) return;
+    if (
+      !params.registrationState.hasSavedRegistration &&
+      !params.input.registrationNumber.trim()
+    ) {
+      params.input.setRegistrationError(REGISTRATION_NUMBER_REQUIRED_ERROR);
       return;
     }
-
     try {
-      if (!hasSavedRegistration) {
-        const saved = await handleSaveRegistration();
+      if (!params.registrationState.hasSavedRegistration) {
+        const saved = await params.handleSaveRegistration();
         if (!saved) return;
       }
-
-      setIsRedirecting(true);
-      await refreshUser();
-      router.replace("/today");
+      params.setIsRedirecting(true);
+      await params.refreshUser();
+      params.routerReplace("/today");
     } catch {
-      setIsRedirecting(false);
+      params.setIsRedirecting(false);
       showUserFacingErrorToast(
         "We could not finish this verification step. Please try again.",
       );
     }
-  }, [
-    hasSignature,
-    hasSavedRegistration,
-    registrationNumber,
-    handleSaveRegistration,
-    refreshUser,
-    router,
-  ]);
-
-  const isInitialLoading = getIsInitialLoading({
-    authLoading,
-    user,
-    isDoctor,
-    profileLoading,
-    doctorProfile,
-    canAutoRedirect,
-  });
-
-  return {
-    isRedirecting,
-    isInitialLoading,
-    profile,
-    hasSignature,
-    hasSavedRegistration,
-    hasDraftRegistration,
-    hasRegistrationProgress,
-    canContinue,
-    canUseOnboardingSignature,
-    resolvedOnboardingSignatureUrl,
-    resolvedProfileSignatureUrl,
-    isApplyingOnboardingSignature,
-    isSavingReg,
-    registrationNumber,
-    setRegistrationNumber,
-    registrationCouncil,
-    setRegistrationCouncil,
-    registrationStateCode,
-    setRegistrationStateCode,
-    registrationError,
-    setRegistrationError,
-    signatureQrFlow,
-    handleUseOnboardingSignature,
-    handleSaveRegistration,
-    handleContinue,
-  };
+  }, [params]);
 }
 
 export type UseVerifyDoctorReturn = ReturnType<typeof useVerifyDoctor>;

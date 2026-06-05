@@ -7,7 +7,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { APP_ACCESS_TARGETS } from "@workspace/types";
+import { APP_ACCESS_TARGETS } from "@workspace/types/access";
 import type { CommandPaletteAction } from "@workspace/ui/components/overlay/command-palette-shell";
 import { Sparkles } from "lucide-react";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
