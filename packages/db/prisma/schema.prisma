@@ -1953,6 +1953,8 @@ model IcdCode {
   favorites   DoctorFavoriteCode[]
 
   @@index([description])
+  @@index([code(ops: raw("gin_trgm_ops"))], type: Gin, map: "IcdCode_code_trgm_idx")
+  @@index([description(ops: raw("gin_trgm_ops"))], type: Gin, map: "IcdCode_description_trgm_idx")
   @@index([category])
   @@index([isCommon])
 }
@@ -1970,6 +1972,8 @@ model CptCode {
   procedures  Procedure[]
 
   @@index([description])
+  @@index([code(ops: raw("gin_trgm_ops"))], type: Gin, map: "CptCode_code_trgm_idx")
+  @@index([description(ops: raw("gin_trgm_ops"))], type: Gin, map: "CptCode_description_trgm_idx")
   @@index([category])
   @@index([isCommon])
 }

@@ -37,16 +37,9 @@ export interface InvestigationRowProps {
   canAttach: boolean;
   hasUploadContext: boolean;
   uploadingId: string | null;
-  onUpdate: (
-    index: number,
-    patch: Partial<ClinicalInvestigation>,
-  ) => void;
+  onUpdate: (index: number, patch: Partial<ClinicalInvestigation>) => void;
   onRemove: (index: number) => void;
-  onAttach: (
-    index: number,
-    row: ClinicalInvestigation,
-    file: File,
-  ) => Promise<void>;
+  onAttach: (index: number, row: ClinicalInvestigation, file: File) => Promise<void>;
 }
 
 export function InvestigationList(
