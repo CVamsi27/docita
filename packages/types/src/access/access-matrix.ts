@@ -305,7 +305,7 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     feature: Feature.LAB_TESTS,
   },
   [APP_ACCESS_TARGETS.PAGE_LAB_WORKSPACE]: {
-    read: { roles: LAB_WORKSPACE_ROLES },
+    read: { roles: ["LAB"] },
     feature: Feature.LAB_TESTS,
   },
   [APP_ACCESS_TARGETS.PAGE_VACCINES]: {

@@ -3,14 +3,13 @@ import { FC } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
 import { SearchInput } from "@workspace/ui/components/form/search-input";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { FileText, Filter } from "lucide-react";
+import { FileText, ShieldCheck } from "lucide-react";
 import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
 import {
@@ -18,9 +17,14 @@ import {
   type DataTableColumn,
 } from "@workspace/ui/components/data-display/data-table";
 import { ListRow } from "@workspace/ui/components/data-display/list-row";
-
-import { LabTestOrder } from "@workspace/types";
+import type { LabTestOrder } from "@workspace/types";
+import { useVerifyLabOrderPayment } from "@workspace/data-access";
+import { useAuth } from "@/lib/auth/auth-context";
+import { toast } from "sonner";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { DATE_FORMAT_OPTIONS_US_SHORT, formatDate } from "@/lib/formatters";
+
+const PAYMENT_ROLES = new Set(["ADMIN", "ADMIN_DOCTOR", "RECEPTIONIST"]);
 
 interface LabTestsOrdersProps {
   isLoading: boolean;
@@ -35,6 +39,23 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
   searchQuery,
   setSearchQuery,
 }) => {
+  const { user } = useAuth();
+  const canVerifyPayment =
+    user?.role !== undefined && PAYMENT_ROLES.has(user.role);
+  const verifyPayment = useVerifyLabOrderPayment();
+
+  const handleVerify = (order: LabTestOrder) => {
+    verifyPayment.mutate(
+      { id: order.id, paymentMethod: "CASH" },
+      {
+        onSuccess: () => toast.success("Payment verified"),
+        onError: (error) => showUserFacingErrorToast(error),
+      },
+    );
+  };
+
+  const isPaid = (order: LabTestOrder) => Boolean(order.paidAt);
+
   const columns: DataTableColumn<LabTestOrder>[] = [
     {
       id: "patient",
@@ -82,27 +103,50 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
       cell: (test) => <StatusBadge status={test.status} />,
     },
     {
+      id: "payment",
+      header: "Payment",
+      cell: (test) => (
+        <StatusBadge
+          status={isPaid(test) ? "paid" : "unpaid"}
+        />
+      ),
+    },
+    {
       id: "actions",
       header: "Actions",
       align: "right",
       cell: (test) => (
-        <SymbolTooltip
-          label={test.status === "completed" ? "View results" : "Details"}
-        >
-          <Button variant="ghost" size="sm" className="gap-1">
-            <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">
-              {test.status === "completed" ? "View Results" : "Details"}
-            </span>
-          </Button>
-        </SymbolTooltip>
+        <div className="flex items-center justify-end gap-1">
+          {canVerifyPayment && !isPaid(test) ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1"
+              disabled={verifyPayment.isPending}
+              onClick={() => handleVerify(test)}
+            >
+              <ShieldCheck className="h-4 w-4" />
+              <span className="hidden sm:inline">Verify</span>
+            </Button>
+          ) : null}
+          <SymbolTooltip
+            label={test.status === "completed" ? "View results" : "Details"}
+          >
+            <Button variant="ghost" size="sm" className="gap-1">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">
+                {test.status === "completed" ? "View Results" : "Details"}
+              </span>
+            </Button>
+          </SymbolTooltip>
+        </div>
       ),
     },
   ];
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 md:flex-row">
+      <div className="flex items-end gap-4">
         <SearchInput
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -110,18 +154,11 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
           placeholder="Enter patient, test, or doctor"
           ariaLabel="Search lab test orders"
         />
-        <Button variant="outline" className="gap-2">
-          <Filter className="h-4 w-4" />
-          Filter
-        </Button>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Lab Test Orders</CardTitle>
-          <CardDescription>
-            A list of all laboratory test orders
-          </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (

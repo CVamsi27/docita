@@ -26,6 +26,7 @@ const PUBLIC_AUTH_PATHS = new Set([
   "/forgot-password",
   "/reset-password",
   "/portal/login",
+  "/lab-portal/login",
 ]);
 
 export function isPublicAuthPath(pathname: string | null): boolean {

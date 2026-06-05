@@ -112,13 +112,6 @@ const TRACK_ITEMS: NavItem[] = [
     accessTarget: APP_ACCESS_TARGETS.PAGE_LAB_TESTS,
   },
   {
-    href: "/lab-workspace",
-    icon: FlaskConical,
-    label: "Lab Workspace",
-    feature: Feature.LAB_TESTS,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_LAB_WORKSPACE,
-  },
-  {
     href: "/documents",
     icon: Files,
     label: "Documents",

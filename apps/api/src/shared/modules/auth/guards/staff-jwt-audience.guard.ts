@@ -2,12 +2,16 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
 import { Reflector } from '@nestjs/core';
 import { PATIENT_PORTAL_SESSION_KEY } from '@/shared/modules/auth/auth/patient-portal-session.decorator';
-import { isPatientPortalJwtAudience } from '@/shared/modules/auth/auth/jwt-audience';
+import { LAB_PORTAL_SESSION_KEY } from '@/shared/modules/auth/auth/lab-portal-session.decorator';
+import {
+  isPatientPortalJwtAudience,
+  isLabPortalJwtAudience,
+} from '@/shared/modules/auth/auth/jwt-audience';
 import { bypassesSessionGuards } from '@/shared/modules/auth/auth/auth-route-metadata.util';
 
 /**
- * Rejects patient-portal JWTs on staff API routes unless the handler is marked
- * {@link PatientPortalSession}.
+ * Rejects patient-portal and lab-portal JWTs on staff API routes unless the
+ * handler is marked with {@link PatientPortalSession} or {@link LabPortalSession}.
  */
 @Injectable()
 export class StaffJwtAudienceGuard implements CanActivate {
@@ -26,6 +30,14 @@ export class StaffJwtAudienceGuard implements CanActivate {
       return true;
     }
 
+    const allowsLabPortal = this.reflector.getAllAndOverride<boolean>(
+      LAB_PORTAL_SESSION_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+    if (allowsLabPortal) {
+      return true;
+    }
+
     const request = context.switchToHttp().getRequest<{
       user?: { jwtAudience?: string };
     }>();
@@ -35,6 +47,13 @@ export class StaffJwtAudienceGuard implements CanActivate {
       throw forbiddenProblem(
         'INSUFFICIENT_PERMISSIONS',
         'Patient portal sessions cannot access staff API routes.',
+      );
+    }
+
+    if (isLabPortalJwtAudience(audience)) {
+      throw forbiddenProblem(
+        'INSUFFICIENT_PERMISSIONS',
+        'Lab portal sessions cannot access staff API routes.',
       );
     }
 

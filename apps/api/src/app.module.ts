@@ -84,6 +84,7 @@ import { EventsModule } from './shared/common/events/events.module';
 import { CommonServicesModule } from './shared/modules/services/common-services.module';
 import { FeedbackModule } from './domains/feedback/feedback.module';
 import { PatientPortalModule } from './domains/patient-portal/patient-portal.module';
+import { LabPortalModule } from './domains/lab-portal/lab-portal.module';
 import { PublicModule } from './shared/modules/public/public.module';
 import { MedicalDocumentsModule } from './domains/medical-documents/medical-documents.module';
 import { InventoryModule } from './domains/inventory/inventory.module';
@@ -192,6 +193,7 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
     ComplianceModule,
     WebsocketsModule,
     PatientPortalModule,
+    LabPortalModule,
     PublicModule,
     MedicalDocumentsModule,
     InventoryModule,

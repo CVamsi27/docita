@@ -27,7 +27,6 @@ const ROUTE_ACCESS_RULES: RouteAccessRule[] = [
     target: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS,
   },
   { pathPrefix: "/lab-tests", target: APP_ACCESS_TARGETS.PAGE_LAB_TESTS },
-  { pathPrefix: "/lab-workspace", target: APP_ACCESS_TARGETS.PAGE_LAB_TESTS },
   { pathPrefix: "/desk/floor", target: APP_ACCESS_TARGETS.PAGE_DESK_FLOOR },
   { pathPrefix: "/desk", target: APP_ACCESS_TARGETS.PAGE_DESK_PAYMENT },
   { pathPrefix: "/invoices", target: APP_ACCESS_TARGETS.PAGE_INVOICES },

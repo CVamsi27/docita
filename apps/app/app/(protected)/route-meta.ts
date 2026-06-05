@@ -24,7 +24,6 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     parentPath: "/prescriptions",
   },
   "/lab-tests": { label: "Lab tests" },
-  "/lab-workspace": { label: "Lab workspace" },
   "/invoices": { label: "Invoices" },
   "/invoices/new": { label: "New invoice", parentPath: "/invoices" },
   "/invoices/[id]": { label: "Invoice", parentPath: "/invoices" },
