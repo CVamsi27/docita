@@ -1,8 +1,13 @@
 // check-non-null-assertion: allow-file — non-null guaranteed by prior guard or Prisma include
 "use client";
 
-import { useMutation, type UseQueryOptions } from "@tanstack/react-query";
 import {
+  useMutation,
+  useQueryClient,
+  type UseQueryOptions,
+} from "@tanstack/react-query";
+import {
+  CreateLabRequest,
   CreateLabTestOrderRequest,
   CreatePrescriptionRequest,
   CreateTemplateRequest,
@@ -10,6 +15,7 @@ import {
   DocumentContractResponse,
   enqueuePdfJobResponseSchema,
   Feature,
+  LabContractResponse,
   LabTest,
   LabTestOrder,
   ListDocumentsContractQuery,
@@ -18,8 +24,10 @@ import {
   pdfJobStatusResponseSchema,
   Prescription,
   TemplateContractResponse,
+  UpdateLabRequest,
   UpdateLabTestOrderRequest,
   UpdateTemplateRequest,
+  VerifyLabOrderPaymentRequest,
   VitalSign,
 } from "@workspace/types";
 import { useAPIQuery } from "../core/use-api-query";
@@ -293,6 +301,134 @@ export const useLabTestCatalog = () => {
     { enabled: labOk },
   );
 };
+
+/** Enriched lab-order row for the lab workspace queue. */
+export interface LabQueueItem {
+  id: string;
+  clinicId: string;
+  labId: string | null;
+  status: string;
+  notes: string | null;
+  resultUrl: string | null;
+  resultUploadedAt: string | null;
+  collectedAt: string | null;
+  completedAt: string | null;
+  paidAt: string | null;
+  paymentMethod: string | null;
+  releasedAt: string | null;
+  createdAt: string;
+  patient: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string | null;
+  };
+  labTest: {
+    id: string;
+    name: string;
+    specimenType: string | null;
+  };
+}
+
+export const useLabQueue = (filters?: {
+  labId?: string;
+  status?: string;
+  search?: string;
+}) => {
+  const labOk = useDataAccessContext().isTierFeatureEnabled(Feature.LAB_TESTS);
+  return useAPIQuery<LabQueueItem[]>(
+    queryKeys.clinical.labTests.queue(filters),
+    withQueryString("/clinical/lab-tests/queue", filters),
+    { enabled: labOk },
+  );
+};
+
+const LAB_WORKFLOW_INVALIDATION = [
+  queryKeys.clinical.labTests.queueInvalidation(),
+  queryKeys.clinical.labTests.ordersInvalidation(),
+  queryKeys.clinical.labTests.statsDashboard(),
+] as const;
+
+export const useRecordSampleCollection = () =>
+  useAPIMutation<{ success: true }, { id: string; notes?: string }>(
+    (vars) => `/clinical/lab-tests/orders/${vars.id}/sample`,
+    "PUT",
+    {
+      body: (vars) => ({ notes: vars.notes }),
+      invalidateKeys: LAB_WORKFLOW_INVALIDATION,
+    },
+  );
+
+export const useVerifyLabOrderPayment = () =>
+  useAPIMutation<
+    { success: true },
+    { id: string } & VerifyLabOrderPaymentRequest
+  >((vars) => `/clinical/lab-tests/orders/${vars.id}/payment`, "POST", {
+    body: ({ id: _id, ...body }) => body,
+    invalidateKeys: LAB_WORKFLOW_INVALIDATION,
+  });
+
+export const useReleaseLabResult = () =>
+  useAPIMutation<{ success: true }, { id: string }>(
+    (vars) => `/clinical/lab-tests/orders/${vars.id}/release`,
+    "POST",
+    {
+      body: () => ({}),
+      invalidateKeys: LAB_WORKFLOW_INVALIDATION,
+    },
+  );
+
+/** Result upload is multipart/form-data, so it bypasses the JSON mutation helper. */
+export const useUploadLabResult = () => {
+  const fetcher = useDataAccessFetcher();
+  const queryClient = useQueryClient();
+  return useMutation<
+    { success: true },
+    APIRequestError,
+    { id: string; file: File; notes?: string }
+  >({
+    mutationFn: async ({ id, file, notes }) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      if (notes) formData.append("notes", notes);
+      return await fetcher<{ success: true }>(
+        `/clinical/lab-tests/orders/${id}/result`,
+        { method: "POST", body: formData, retries: 0 },
+      );
+    },
+    onSuccess: () => {
+      LAB_WORKFLOW_INVALIDATION.forEach((queryKey) => {
+        queryClient.invalidateQueries({ queryKey });
+      });
+    },
+  });
+};
+
+export const useLabs = () => {
+  const labOk = useDataAccessContext().isTierFeatureEnabled(Feature.LAB_TESTS);
+  return useAPIQuery<LabContractResponse[]>(
+    queryKeys.clinical.labTests.labs(),
+    "/clinical/lab-tests/labs",
+    { enabled: labOk },
+  );
+};
+
+export const useCreateLab = () =>
+  useAPIMutation<LabContractResponse, CreateLabRequest>(
+    "/clinical/lab-tests/labs",
+    "POST",
+    { invalidateKeys: [queryKeys.clinical.labTests.labs()] },
+  );
+
+export const useUpdateLab = () =>
+  useAPIMutation<LabContractResponse, { id: string } & UpdateLabRequest>(
+    (vars) => `/clinical/lab-tests/labs/${vars.id}`,
+    "PUT",
+    {
+      body: ({ id: _id, ...body }) => body,
+      invalidateKeys: [queryKeys.clinical.labTests.labs()],
+    },
+  );
 
 export const useDocuments = (filters?: ListDocumentsContractQuery) => {
   const docsOk = useDataAccessContext().isTierFeatureEnabled(

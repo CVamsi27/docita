@@ -57,6 +57,11 @@ export const queryKeys = {
     list: (params?: QueryParams) =>
       ["queue", "list", withParams(params)] as const,
   },
+  desk: {
+    all: () => ["desk"] as const,
+    openInvoices: (patientId?: string) =>
+      ["desk", "open-invoices", patientId ?? ""] as const,
+  },
   consultations: {
     all: () => ["consultations"] as const,
     byAppointment: (appointmentId: string) =>
@@ -115,6 +120,10 @@ export const queryKeys = {
       ordersInvalidation: () => ["lab-test-orders"] as const,
       statsDashboard: () => ["lab-test-stats"] as const,
       catalog: () => ["lab-test-catalog"] as const,
+      queue: (filters?: QueryParams) =>
+        ["lab-queue", withParams(filters ?? {})] as const,
+      queueInvalidation: () => ["lab-queue"] as const,
+      labs: () => ["labs"] as const,
     },
     documents: {
       list: (filters?: QueryParams) =>
