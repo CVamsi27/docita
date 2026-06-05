@@ -26,8 +26,8 @@ export function InvoicesPageUI() {
     error,
     filter,
     setFilter,
-    sortBy,
-    setSortBy,
+    sortConfig,
+    handleSort,
     handleDownloadPdf,
     handleRefresh,
     searchQuery,
@@ -98,14 +98,14 @@ export function InvoicesPageUI() {
               setFilter={setFilter}
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
-              sortBy={sortBy}
-              setSortBy={setSortBy}
             />
 
             <InvoicesTable
               invoices={filteredInvoices}
               loading={loading}
               formatCurrency={formatCurrency}
+              sortConfig={sortConfig}
+              onSort={handleSort}
               onDownloadPdf={handleDownloadPdf}
             />
 

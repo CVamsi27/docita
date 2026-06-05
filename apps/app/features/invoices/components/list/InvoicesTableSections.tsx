@@ -10,9 +10,41 @@ import {
 import {
   DataTableColumn,
 } from "@workspace/ui/components/data-display/data-table";
-import { Download, Eye, Printer } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Download, Eye, Printer } from "lucide-react";
 import type { InvoiceListRow } from "@workspace/types";
 import { DATE_FORMAT_OPTIONS_US_LONG, formatDate } from "@/lib/formatters";
+import type { SortConfig, SortKey } from "@/features/invoices/hooks/use-invoices-logic";
+
+function SortableHeader({
+  label,
+  column,
+  sortConfig,
+  onSort,
+}: {
+  label: string;
+  column: SortKey;
+  sortConfig: SortConfig | null;
+  onSort: (key: SortKey) => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="inline-flex items-center gap-1 hover:text-foreground"
+      onClick={() => onSort(column)}
+    >
+      {label}
+      {sortConfig?.key === column ? (
+        sortConfig.direction === "asc" ? (
+          <ArrowUp className="h-3 w-3" />
+        ) : (
+          <ArrowDown className="h-3 w-3" />
+        )
+      ) : (
+        <ArrowUpDown className="h-3 w-3 opacity-50" />
+      )}
+    </button>
+  );
+}
 
 export function InvoiceNumberCell({ invoice }: { invoice: InvoiceListRow }) {
   return (
@@ -133,9 +165,13 @@ export function MobileCard({
 export function getInvoiceColumns({
   formatCurrency,
   onDownloadPdf,
+  sortConfig,
+  onSort,
 }: {
   formatCurrency: (amount: number | undefined) => string;
   onDownloadPdf: (id: string) => void;
+  sortConfig: SortConfig | null;
+  onSort: (key: SortKey) => void;
 }): DataTableColumn<InvoiceListRow>[] {
   return [
     {
@@ -146,25 +182,53 @@ export function getInvoiceColumns({
     },
     {
       id: "patient",
-      header: "Patient",
+      header: (
+        <SortableHeader
+          label="Patient"
+          column="patient"
+          sortConfig={sortConfig}
+          onSort={onSort}
+        />
+      ),
       cell: (invoice) => <PatientCell invoice={invoice} />,
     },
     {
       id: "date",
-      header: "Date",
+      header: (
+        <SortableHeader
+          label="Date"
+          column="date"
+          sortConfig={sortConfig}
+          onSort={onSort}
+        />
+      ),
       hiddenOnMobile: true,
       cell: (invoice) => <DateCell invoice={invoice} />,
     },
     {
       id: "amount",
-      header: "Amount",
+      header: (
+        <SortableHeader
+          label="Amount"
+          column="amount"
+          sortConfig={sortConfig}
+          onSort={onSort}
+        />
+      ),
       cell: (invoice) => (
         <AmountCell invoice={invoice} formatCurrency={formatCurrency} />
       ),
     },
     {
       id: "status",
-      header: "Payment status",
+      header: (
+        <SortableHeader
+          label="Payment status"
+          column="status"
+          sortConfig={sortConfig}
+          onSort={onSort}
+        />
+      ),
       cell: (invoice) => <StatusCell invoice={invoice} />,
     },
     {

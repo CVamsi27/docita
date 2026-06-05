@@ -17,8 +17,6 @@ export interface InvoicesFiltersProps {
   setFilter: (value: InvoiceStatusFilter) => void;
   searchQuery: string;
   setSearchQuery: (value: string) => void;
-  sortBy: string;
-  setSortBy: (value: string) => void;
 }
 
 export function InvoicesFilters({
@@ -26,8 +24,6 @@ export function InvoicesFilters({
   setFilter,
   searchQuery,
   setSearchQuery,
-  sortBy,
-  setSortBy,
 }: InvoicesFiltersProps) {
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
@@ -67,23 +63,6 @@ export function InvoicesFilters({
             <SelectItem value="PENDING">Pending</SelectItem>
             <SelectItem value="OVERDUE">Overdue</SelectItem>
             <SelectItem value="PARTIALLY_PAID">Partially Paid</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid gap-2">
-        <Label htmlFor="invoices-sort-filter" className="text-xs text-muted-foreground">
-          Sort by
-        </Label>
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger id="invoices-sort-filter" className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Newest first" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="date-desc">Newest First</SelectItem>
-            <SelectItem value="date-asc">Oldest First</SelectItem>
-            <SelectItem value="amount-desc">Highest Amount</SelectItem>
-            <SelectItem value="amount-asc">Lowest Amount</SelectItem>
           </SelectContent>
         </Select>
       </div>
