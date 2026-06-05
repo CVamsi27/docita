@@ -86,10 +86,7 @@ export class RazorpayInvoiceAdapter
         }),
       );
       return (response.items ?? [])
-        .map((item) => {
-          const record = asRazorpayInvoiceRecord(item);
-          return record ? this.toSummary(record) : null;
-        })
+        .map((item) => this.toSummary(item))
         .filter((s): s is PlatformInvoiceSummary => s !== null);
     } catch (error) {
       this.logger.warn(
@@ -101,26 +98,29 @@ export class RazorpayInvoiceAdapter
     }
   }
 
-  private toSummary(
-    invoice: Record<string, unknown>,
-  ): PlatformInvoiceSummary | null {
-    const id = readInvoiceStringField(invoice, 'id');
+  private toSummary(invoice: unknown): PlatformInvoiceSummary | null {
+    const invoiceRecord = asRazorpayInvoiceRecord(invoice);
+    if (!invoiceRecord) return null;
+
+    const id = readInvoiceStringField(invoiceRecord, 'id');
     if (!id) return null;
 
-    const amount = readInvoiceNumberField(invoice, 'amount');
-    const amountPaid = readInvoiceNumberField(invoice, 'amount_paid');
-    const createdAtUnix = readInvoiceNumberField(invoice, 'created_at');
-    const paidAtUnix = readInvoiceNumberField(invoice, 'paid_at', NaN);
+    const amount = readInvoiceNumberField(invoiceRecord, 'amount');
+    const amountPaid = readInvoiceNumberField(invoiceRecord, 'amount_paid');
+    const createdAtUnix = readInvoiceNumberField(invoiceRecord, 'created_at');
+    const paidAtUnix = readInvoiceNumberField(invoiceRecord, 'paid_at', NaN);
     const paidAtValid = Number.isFinite(paidAtUnix) && paidAtUnix > 0;
 
     return {
       id,
-      shortUrl: readInvoiceStringField(invoice, 'short_url'),
-      invoiceNumber: readInvoiceStringField(invoice, 'invoice_number'),
-      status: readInvoiceStringField(invoice, 'status', 'unknown') ?? 'unknown',
+      shortUrl: readInvoiceStringField(invoiceRecord, 'short_url'),
+      invoiceNumber: readInvoiceStringField(invoiceRecord, 'invoice_number'),
+      status:
+        readInvoiceStringField(invoiceRecord, 'status', 'unknown') ?? 'unknown',
       amountCents: amount,
       amountPaidCents: amountPaid,
-      currency: readInvoiceStringField(invoice, 'currency', 'INR') ?? 'INR',
+      currency:
+        readInvoiceStringField(invoiceRecord, 'currency', 'INR') ?? 'INR',
       createdAt: new Date(createdAtUnix * 1000),
       paidAt: paidAtValid ? new Date(paidAtUnix * 1000) : null,
     };

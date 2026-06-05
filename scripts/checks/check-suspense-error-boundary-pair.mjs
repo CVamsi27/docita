@@ -4,9 +4,9 @@
  * Λ1: client Suspense boundaries must declare a fallback (paired with route/error coverage).
  */
 
-import { execSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import process from "node:process";
+import { listSourceFiles } from "../lib/list-source-files.mjs";
 
 const ALLOW_FILE = "check-suspense-error-boundary-pair: allow-file";
 const SUSPENSE_RE = /<Suspense\b/g;
@@ -19,14 +19,7 @@ const COVERED_PREFIXES = [
   "apps/app/features/",
 ];
 
-const files = execSync("git ls-files apps/app apps/internal", {
-  encoding: "utf8",
-})
-  .split("\n")
-  .filter(Boolean)
-  .filter((file) => /\.(ts|tsx)$/.test(file))
-  .filter((file) => !/\.(spec|test)\.[tj]sx?$/.test(file))
-  .filter((file) => existsSync(file));
+const files = listSourceFiles(["apps/app", "apps/internal"]);
 
 const findings = [];
 

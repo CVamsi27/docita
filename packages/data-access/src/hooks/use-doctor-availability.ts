@@ -4,7 +4,7 @@ import {
 } from "@workspace/utils";
 import { z } from "zod";
 import { Feature, availableSlotSchema } from "@workspace/types";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import { useAPIQueryValidated } from "../core/use-api-query-validated";
@@ -169,9 +169,7 @@ export function useUnavailableDoctorIdsForDate(
     ? formatClinicPickerDayIsoFromSelection(date, clinicTz)
     : "";
   const enabled =
-    calendarOk &&
-    Boolean(date && dateStr) &&
-    (queryOptions?.enabled ?? true);
+    calendarOk && Boolean(date && dateStr) && (queryOptions?.enabled ?? true);
 
   return useAPIQueryValidated(
     queryKeys.doctorUnavailability.byDate(dateStr),
@@ -192,9 +190,7 @@ export function useDoctorAvailabilitySlots(
   const clinicTz = getClinicTimezone()?.trim() || DEFAULT_TIMEZONE;
   const calendarOk = isTierFeatureEnabled(Feature.CALENDAR_SLOTS);
   const enabled =
-    calendarOk &&
-    Boolean(date && doctorId) &&
-    (queryOptions?.enabled ?? true);
+    calendarOk && Boolean(date && doctorId) && (queryOptions?.enabled ?? true);
   const dateKey = date
     ? formatClinicPickerDayIsoFromSelection(date, clinicTz)
     : "";

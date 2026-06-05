@@ -14,7 +14,10 @@ import {
 } from "./settings-page-tab-nav";
 import { SettingsPageTabPanels } from "./settings-page-tab-panels";
 
-export type { SettingsCategory, SettingsTabItem } from "./settings-page-tab-nav";
+export type {
+  SettingsCategory,
+  SettingsTabItem,
+} from "./settings-page-tab-nav";
 
 interface SettingsPageUIProps {
   filteredTabs: SettingsCategory[];
@@ -32,7 +35,9 @@ export function SettingsPageUI({
   onTabChange,
 }: SettingsPageUIProps) {
   const visibleTabValues = new Set(
-    filteredTabs.flatMap((category) => category.items.map((item) => item.value)),
+    filteredTabs.flatMap((category) =>
+      category.items.map((item) => item.value),
+    ),
   );
 
   return (

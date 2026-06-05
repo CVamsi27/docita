@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Feature, type Patient } from "@workspace/types";
-import { getUserFacingErrorMessage } from "@workspace/utils";
+import {
+  getUserFacingErrorMessage,
+  getPatientFullName,
+} from "@workspace/utils";
 
 import { usePatients } from "@workspace/data-access";
 import { usePermissionStore } from "@/lib/stores/permission-store";
@@ -16,7 +19,7 @@ function getPatientSortValue(
   key: PatientsSortConfig["key"],
 ): string {
   if (key === "fullName") {
-    return `${patient.firstName} ${patient.lastName}`.toLowerCase();
+    return getPatientFullName(patient).toLowerCase();
   }
   if (key === "gender") {
     return patient.gender ?? "";
@@ -109,8 +112,7 @@ export function usePatientsLogic() {
     : null;
 
   const totalPatients = useMemo(
-    () =>
-      patientsResponse?.count ?? 0,
+    () => patientsResponse?.count ?? 0,
     [patientsResponse],
   );
 

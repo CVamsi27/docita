@@ -2,12 +2,13 @@ import {
   staffNotificationsListResponseSchema,
   whatsappUnreadCountResponseSchema,
 } from "@workspace/types";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import { useAPIQueryValidated } from "../core/use-api-query-validated";
 
-export type StaffNotification = typeof staffNotificationsListResponseSchema._type[number];
+export type StaffNotification =
+  (typeof staffNotificationsListResponseSchema._type)[number];
 
 export const useNotifications = (enabled: boolean = true) =>
   useAPIQueryValidated(
@@ -76,17 +77,13 @@ export const useDeleteNotification = () =>
   );
 
 export const useDeleteAllNotifications = () =>
-  useAPIMutation<void, void>(
-    "/staff-notifications/delete-all",
-    "DELETE",
-    {
-      invalidateKeys: [
-        queryKeys.notifications.all(),
-        queryKeys.notifications.listAll(),
-        queryKeys.notifications.unreadCount(),
-      ],
-    },
-  );
+  useAPIMutation<void, void>("/staff-notifications/delete-all", "DELETE", {
+    invalidateKeys: [
+      queryKeys.notifications.all(),
+      queryKeys.notifications.listAll(),
+      queryKeys.notifications.unreadCount(),
+    ],
+  });
 
 export const usePendingJoinRequestCount = (enabled = true) =>
   useAPIQuery<{ count: number }>(

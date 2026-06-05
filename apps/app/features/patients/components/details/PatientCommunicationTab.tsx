@@ -1,32 +1,27 @@
 "use client";
 
-import Link from "next/link";
-import { MessageCircle } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+import type { PatientWithMedicalHistory } from "@workspace/types";
+import { Feature } from "@workspace/types";
+import { getPatientFullName } from "@workspace/utils";
+import { FeatureGate } from "@/components/auth/feature-gate";
+import { PatientWhatsappComposer } from "./PatientWhatsappComposer";
 
 interface PatientCommunicationTabProps {
+  patient: PatientWithMedicalHistory;
   patientId: string;
 }
 
 export function PatientCommunicationTab({
+  patient,
   patientId,
 }: PatientCommunicationTabProps) {
-  const whatsappHref = `/whatsapp?patientId=${encodeURIComponent(patientId)}`;
-
   return (
-    <div data-testid="patient-communication-tab">
-      <DataState
-        status="empty"
-        emptyIcon={MessageCircle}
-        emptyTitle="No patient messages yet"
-        emptyDescription="WhatsApp replies and message follow-up for this patient will appear in the communication workspace."
+    <FeatureGate feature={Feature.WHATSAPP_MESSAGING} showLockedCard>
+      <PatientWhatsappComposer
+        patientId={patientId}
+        patientName={getPatientFullName(patient, "this patient")}
+        phoneNumber={patient.phoneNumber}
       />
-      <div className="-mt-6 flex justify-center">
-        <Button asChild>
-          <Link href={whatsappHref}>Open WhatsApp</Link>
-        </Button>
-      </div>
-    </div>
+    </FeatureGate>
   );
 }

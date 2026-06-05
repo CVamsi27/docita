@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@workspace/ui/components/indicators/badge";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import {
   formatDate,
   DATE_FORMATS,
@@ -66,13 +67,14 @@ export function PatientWhatsAppResponseBadge({
     : label;
 
   return (
-    <Badge
-      variant={variant}
-      className={`inline-flex items-center gap-1.5 text-[length:var(--fs-2xs)] ${className ?? ""}`}
-      title={tooltip}
-    >
-      <MessageCircle className="h-3.5 w-3.5" aria-hidden />
-      {label}
-    </Badge>
+    <SymbolTooltip label={tooltip}>
+      <Badge
+        variant={variant}
+        className={`inline-flex items-center gap-1.5 text-[length:var(--fs-2xs)] ${className ?? ""}`}
+      >
+        <MessageCircle className="h-3.5 w-3.5" aria-hidden />
+        {label}
+      </Badge>
+    </SymbolTooltip>
   );
 }

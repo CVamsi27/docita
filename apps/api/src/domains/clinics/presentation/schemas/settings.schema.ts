@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ClinicType as _ClinicType } from '@workspace/db';
+import { taxRegimeSchema } from '@workspace/types';
 const BankAccountSchema = z.object({
   accountHolderName: z.string().optional(),
   bankName: z.string().optional(),
@@ -14,10 +15,14 @@ const TaxSettingsSchema = z.object({
     .string()
     .trim()
     .toUpperCase()
-    .regex(/^[A-Z]{2}$/, 'countryCode must be a 2-letter ISO code'),
-  regime: z.enum(['IN_GST', 'VAT', 'SALES_TAX', 'NONE']).default('IN_GST'),
+    .regex(/^[A-Z]{2}$/, 'countryCode must be a 2-letter ISO code')
+    .optional(),
+  regime: taxRegimeSchema.optional(),
   registrationId: z.string().trim().optional(),
   registrationLabel: z.string().trim().optional(),
+  legalName: z.string().trim().max(160).optional(),
+  stateCode: z.string().trim().max(8).optional(),
+  stateName: z.string().trim().max(120).optional(),
 });
 
 const MapsLocationSchema = z
@@ -73,6 +78,13 @@ export const ClinicSettingsSchema = z.object({
   includeClinicHeader: z.boolean().optional(),
   includeDoctorSignature: z.boolean().optional(),
   includeQRCode: z.boolean().optional(),
+
+  /**
+   * Printable OPD slip (Front Desk) — free-revisit window in days (0 hides the
+   * notice) and an optional extra footer line. No clinical authoring.
+   */
+  opdSlipRevisitValidityDays: z.number().int().min(0).max(365).optional(),
+  opdSlipFooterNote: z.string().trim().max(500).optional(),
 
   facilityLabel: z.enum(['CLINIC', 'HOSPITAL']).optional(),
 

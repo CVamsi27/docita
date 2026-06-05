@@ -29,11 +29,12 @@ export function DPDPSection({ complianceForm }: DPDPSectionProps) {
         />
         <div>
           <Label htmlFor="requireConsent" className="text-sm">
-            Require explicit patient consent for WhatsApp communications (mandatory under DPDP)
+            Require explicit patient consent for WhatsApp communications
+            (mandatory under DPDP)
           </Label>
           <p className="text-xs text-muted-foreground mt-0.5">
-            WhatsApp integration is enabled by default. Patient consent is required before sending
-            any messages per DPDP regulations.
+            WhatsApp integration is enabled by default. Patient consent is
+            required before sending any messages per DPDP regulations.
           </p>
         </div>
       </div>

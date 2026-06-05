@@ -16,7 +16,10 @@ export function DataAccessBridge({ children }: { children: ReactNode }) {
   const auth = useOptionalAuth();
   const sessionClinicId = auth?.user?.clinicId ?? undefined;
   const clinicId =
-    clinicCtx?.clinic?.id ?? clinicCtx?.clinicId ?? sessionClinicId ?? undefined;
+    clinicCtx?.clinic?.id ??
+    clinicCtx?.clinicId ??
+    sessionClinicId ??
+    undefined;
   const clinicTimezone = clinicCtx?.clinic?.timezone ?? undefined;
 
   const config = useMemo<DataAccessConfig>(

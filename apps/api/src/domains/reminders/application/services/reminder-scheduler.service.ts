@@ -165,6 +165,18 @@ export class ReminderSchedulerService {
           include: APPOINTMENT_REMINDER_INCLUDE,
         });
 
+        const existingReminders =
+          await this.persistence.appointmentReminder.findMany({
+            where: {
+              appointmentId: { in: appointments.map((a) => a.id) },
+              status: 'sent',
+            },
+            select: { appointmentId: true },
+          });
+        const existingReminderIds = new Set(
+          existingReminders.map((r) => r.appointmentId),
+        );
+
         if (appointments.length > 0) {
           this.logger.log(
             `Found ${appointments.length} appointments needing 30-min reminders across ${clinicIds.length} clinics`,
@@ -177,7 +189,11 @@ export class ReminderSchedulerService {
             if (!settings) {
               return Promise.resolve();
             }
-            return this.sendThirtyMinuteWhatsappReminder(appointment, settings);
+            return this.sendThirtyMinuteWhatsappReminder(
+              appointment,
+              settings,
+              existingReminderIds,
+            );
           }),
         );
         const appointmentFailures = appointmentResults.filter(
@@ -227,6 +243,18 @@ export class ReminderSchedulerService {
       include: APPOINTMENT_REMINDER_INCLUDE,
     });
 
+    const existingReminders =
+      await this.persistence.appointmentReminder.findMany({
+        where: {
+          appointmentId: { in: appointments.map((a) => a.id) },
+          status: 'sent',
+        },
+        select: { appointmentId: true },
+      });
+    const existingReminderIds = new Set(
+      existingReminders.map((r) => r.appointmentId),
+    );
+
     if (appointments.length > 0) {
       this.logger.log(
         `Found ${appointments.length} appointments needing reminders for clinic ${settings.clinicId}`,
@@ -235,7 +263,11 @@ export class ReminderSchedulerService {
 
     const results = await Promise.allSettled(
       appointments.map((appointment) =>
-        this.sendHourlyAppointmentReminder(appointment, settings),
+        this.sendHourlyAppointmentReminder(
+          appointment,
+          settings,
+          existingReminderIds,
+        ),
       ),
     );
     const failures = results.filter((r) => r.status === 'rejected');
@@ -249,16 +281,9 @@ export class ReminderSchedulerService {
   private async sendHourlyAppointmentReminder(
     appointment: AppointmentForReminder,
     settings: _ReminderSettings,
+    existingReminderIds?: Set<string>,
   ): Promise<void> {
-    const existingReminder =
-      await this.persistence.appointmentReminder.findFirst({
-        where: {
-          appointmentId: appointment.id,
-          status: 'sent',
-        },
-      });
-
-    if (existingReminder) {
+    if (existingReminderIds?.has(appointment.id)) {
       return;
     }
 
@@ -295,17 +320,9 @@ export class ReminderSchedulerService {
   private async sendThirtyMinuteWhatsappReminder(
     appointment: AppointmentForReminder,
     settings: _ReminderSettings,
+    existingReminderIds?: Set<string>,
   ): Promise<void> {
-    const existingReminder =
-      await this.persistence.appointmentReminder.findFirst({
-        where: {
-          appointmentId: appointment.id,
-          type: 'whatsapp_30min',
-          status: 'sent',
-        },
-      });
-
-    if (existingReminder) {
+    if (existingReminderIds?.has(appointment.id)) {
       return;
     }
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ChevronRight, Users } from "lucide-react";
-import { formatDistanceToNow } from "@workspace/utils";
+import { formatDistanceToNow, getPatientFullName } from "@workspace/utils";
 import {
   Card,
   CardContent,
@@ -8,9 +8,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
-import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+} from "@workspace/ui/components/indicators/avatar";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
+import { getInitials } from "@/lib/formatters";
 
 export interface RecentPatient {
   id: string;
@@ -68,13 +72,12 @@ export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {
               >
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="border border-border/70 bg-background/70 text-foreground text-xs font-medium">
-                    {patient.firstName?.[0]}
-                    {patient.lastName?.[0]}
+                    {getInitials(patient.firstName, patient.lastName)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate">
-                    {patient.firstName} {patient.lastName}
+                    {getPatientFullName(patient)}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {patient.updatedAt

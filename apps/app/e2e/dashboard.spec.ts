@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { reuseSharedGeneralClinicUser } from "./utils/patient-helpers";
-import { seedSession } from "./utils/session";
+import {
+  loginUser,
+  reuseSharedGeneralClinicUser,
+} from "./utils/patient-helpers";
 import {
   expectPageHeader,
   expectProtectedWorkspaceLoaded,
@@ -17,15 +19,7 @@ test.describe("Dashboard redirect", () => {
 
   test.beforeEach(async ({ page }) => {
     if (!user) throw new Error("User not initialized");
-    await seedSession(page, {
-      token: user.accessToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: "ADMIN_DOCTOR",
-        clinicId: user.clinicId,
-      },
-    });
+    await loginUser(page, user);
   });
 
   test("redirects /dashboard to /today (canonical morning landing)", async ({

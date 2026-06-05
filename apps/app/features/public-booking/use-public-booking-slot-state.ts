@@ -15,7 +15,9 @@ export function usePublicBookingSlotState(referralCode: string) {
   const doctorsQuery = usePublicBookingDoctors(referralCode);
 
   const [doctorId, setDoctorId] = useState("");
-  const [slotDate, setSlotDate] = useState(() => formatPickerIsoDate(new Date()));
+  const [slotDate, setSlotDate] = useState(() =>
+    formatPickerIsoDate(new Date()),
+  );
   const [calendarMonth, setCalendarMonth] = useState(() => new Date());
 
   const slotsQuery = usePublicBookingSlots(
@@ -26,9 +28,9 @@ export function usePublicBookingSlotState(referralCode: string) {
 
   const [selectedStart, setSelectedStart] = useState<string | null>(null);
   const [selectedEnd, setSelectedEnd] = useState<string | null>(null);
-  const [selectedSlotDoctorId, setSelectedSlotDoctorId] = useState<string | null>(
-    null,
-  );
+  const [selectedSlotDoctorId, setSelectedSlotDoctorId] = useState<
+    string | null
+  >(null);
   const [timeRangeStart, setTimeRangeStart] = useState<string>("");
   const [timeRangeEnd, setTimeRangeEnd] = useState<string>("");
 
@@ -79,7 +81,10 @@ export function usePublicBookingSlotState(referralCode: string) {
       : (selectedDoctor?.name ?? null);
 
   const clinic = clinicQuery.data;
-  const allSlots = useMemo(() => slotsQuery.data?.slots ?? [], [slotsQuery.data?.slots]);
+  const allSlots = useMemo(
+    () => slotsQuery.data?.slots ?? [],
+    [slotsQuery.data?.slots],
+  );
   const availableSlots = useMemo(
     () => allSlots.filter((s) => s.isAvailable),
     [allSlots],

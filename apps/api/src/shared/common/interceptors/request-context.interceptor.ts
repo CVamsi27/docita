@@ -10,7 +10,10 @@ import * as Sentry from '@sentry/nestjs';
 import { randomUUID } from 'crypto';
 import { Request, Response } from 'express';
 import { shouldCaptureInSentry } from '@/shared/modules/error-handling/sentry.utils';
-import { runWithRequestContext } from '@/shared/common/context/request-context.store';
+import {
+  DEFAULT_QUERY_BUDGET_PER_REQUEST,
+  runWithRequestContext,
+} from '@/shared/common/context/request-context.store';
 
 function readHeaderValue(
   headers: Request['headers'],
@@ -59,21 +62,31 @@ export class RequestContextInterceptor implements NestInterceptor {
     // so EventEmitter2 `@OnEvent` handlers and other request-scoped async
     // work can log a coherent trace without having to receive the Express
     // request explicitly.
-    return runWithRequestContext({ correlationId }, () =>
-      next.handle().pipe(
-        tap(
-          () => {},
-          (error) => {
-            if (!shouldCaptureInSentry(error)) {
-              return;
-            }
+    return runWithRequestContext(
+      {
+        correlationId,
+        queryCounter: {
+          count: 0,
+          budget: DEFAULT_QUERY_BUDGET_PER_REQUEST,
+          requestId: correlationId,
+          route: request.route?.path ?? request.url,
+        },
+      },
+      () =>
+        next.handle().pipe(
+          tap(
+            () => {},
+            (error) => {
+              if (!shouldCaptureInSentry(error)) {
+                return;
+              }
 
-            Sentry.captureException(error, {
-              tags: { correlationId },
-            });
-          },
+              Sentry.captureException(error, {
+                tags: { correlationId },
+              });
+            },
+          ),
         ),
-      ),
     );
   }
 }

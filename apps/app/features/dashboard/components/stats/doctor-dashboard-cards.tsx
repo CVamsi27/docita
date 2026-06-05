@@ -10,7 +10,10 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
-import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+} from "@workspace/ui/components/indicators/avatar";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   ListRow,
@@ -22,6 +25,8 @@ import { Play, Stethoscope } from "lucide-react";
 import type { AppointmentListItem } from "@workspace/data-access";
 import { useStartConsultation } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { getInitials } from "@/lib/formatters";
+import { getPatientFullName } from "@workspace/utils";
 
 interface DoctorDashboardCardsProps {
   currentPatient?: AppointmentListItem | null;
@@ -86,14 +91,15 @@ export function DoctorDashboardCardsUI({
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
               <Avatar className="h-10 w-10 sm:h-14 sm:w-14 shrink-0">
                 <AvatarFallback className="border border-border/70 bg-background/70 text-foreground text-base sm:text-lg font-medium">
-                  {currentPatient.patient?.firstName?.[0]}
-                  {currentPatient.patient?.lastName?.[0]}
+                  {getInitials(
+                    currentPatient.patient?.firstName ?? "",
+                    currentPatient.patient?.lastName,
+                  )}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-base sm:text-xl font-semibold truncate">
-                  {currentPatient.patient?.firstName}{" "}
-                  {currentPatient.patient?.lastName}
+                  {getPatientFullName(currentPatient.patient)}
                 </p>
                 <p className="text-xs sm:text-sm text-muted-foreground capitalize truncate">
                   {humanizeUiLabel(currentPatient.type)} •{" "}
@@ -140,7 +146,7 @@ export function DoctorDashboardCardsUI({
             <ListRowGroup className="mt-4 md:hidden">
               {nextPatients.slice(0, 5).map((appt, index) => {
                 const name = appt.patient
-                  ? `${appt.patient.firstName} ${appt.patient.lastName}`.trim()
+                  ? getPatientFullName(appt.patient).trim()
                   : "Patient";
                 return (
                   <ListRow

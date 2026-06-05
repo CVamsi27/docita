@@ -46,6 +46,7 @@ export async function resolveClinicByReferralCode(
       phone: true,
       email: true,
       website: true,
+      facilityType: true,
       settings: true,
     },
   });
@@ -61,7 +62,8 @@ export async function resolveClinicByReferralCode(
     phone: clinic.phone,
     email: clinic.email,
     website: clinic.website ?? undefined,
-    facilityLabel: readFacilityLabelFromSettings(clinic.settings),
+    facilityLabel:
+      clinic.facilityType ?? readFacilityLabelFromSettings(clinic.settings),
   };
 }
 

@@ -3,7 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api/api-client";
 import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
-import { Appointment, Document, Feature, PatientWithMedicalHistory } from "@workspace/types";
+import {
+  Appointment,
+  Document,
+  Feature,
+  PatientWithMedicalHistory,
+} from "@workspace/types";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 
 export interface PatientStatistics {
@@ -66,20 +71,17 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
       setLoading(true);
       setError(null);
 
-      const [patientData, appointmentsData, documentsData] =
-        await Promise.all([
-          apiFetch<PatientWithMedicalHistory>(`/patients/${patientId}`),
-          tierCalendarOk
-            ? apiFetch<{ items: Appointment[] }>(
-                `/appointments?patientId=${patientId}&limit=100`,
-              )
-            : Promise.resolve({ items: [] satisfies Appointment[] }),
-          tierDocsOk
-            ? apiFetch<Document[]>(
-                `/medical-documents?patientId=${patientId}`,
-              )
-            : Promise.resolve([] satisfies Document[]),
-        ]);
+      const [patientData, appointmentsData, documentsData] = await Promise.all([
+        apiFetch<PatientWithMedicalHistory>(`/patients/${patientId}`),
+        tierCalendarOk
+          ? apiFetch<{ items: Appointment[] }>(
+              `/appointments?patientId=${patientId}&limit=100`,
+            )
+          : Promise.resolve({ items: [] satisfies Appointment[] }),
+        tierDocsOk
+          ? apiFetch<Document[]>(`/medical-documents?patientId=${patientId}`)
+          : Promise.resolve([] satisfies Document[]),
+      ]);
 
       if (
         patientData &&

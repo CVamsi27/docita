@@ -27,17 +27,14 @@ export function OnboardingSection({
   children,
 }: OnboardingSectionProps) {
   return (
-    <section
-      className={cn(
-        "ui-panel space-y-3 p-4 md:p-5",
-        className,
-      )}
-    >
+    <section className={cn("ui-panel space-y-3 p-4 md:p-5", className)}>
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             {icon ? (
-              <span className="text-primary [&>svg]:h-4 [&>svg]:w-4">{icon}</span>
+              <span className="text-primary [&>svg]:h-4 [&>svg]:w-4">
+                {icon}
+              </span>
             ) : null}
             <h3 className="text-sm font-semibold text-foreground">{title}</h3>
           </div>

@@ -87,19 +87,19 @@ export function SupportContact({
       <div
         className={cn(
           "flex flex-col items-center gap-3 text-center text-xs text-muted-foreground",
-          isFooter && "rounded-lg border border-border/60 bg-muted/20 px-4 py-4",
+          isFooter &&
+            "rounded-lg border border-border/60 bg-muted/20 px-4 py-4",
           className,
         )}
       >
         <p className="max-w-md">
-          <span className="font-medium text-foreground">Need help?</span> Email {emailBlock}
+          <span className="font-medium text-foreground">Need help?</span> Email{" "}
+          {emailBlock}
           {hasPhoneSupport ? "." : ""}
         </p>
         {hasPhoneSupport ? (
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <span>
-              Call {phoneCallBlock}
-            </span>
+            <span>Call {phoneCallBlock}</span>
             {whatsappBlock}
           </div>
         ) : null}
@@ -156,10 +156,7 @@ export function SupportContact({
             |
           </span>
           <span className="flex flex-wrap items-center justify-center gap-2">
-            <span>
-              Call{" "}
-              {phoneCallBlock}
-            </span>
+            <span>Call {phoneCallBlock}</span>
             {whatsappBlock}
           </span>
         </>

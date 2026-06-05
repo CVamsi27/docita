@@ -38,7 +38,7 @@ import {
   type ImportsAuthRequest,
 } from './imports.controller.access';
 import { ocrImageUploadOptions } from './imports.controller.upload';
-import { readRequestHeaderString } from '@/shared/common/http/client-ip';
+import { readRequestHeaderString } from '@/shared/common/http/request-headers';
 
 @Controller('imports')
 @ImportsApiAccess()
@@ -59,7 +59,10 @@ export class ImportsOcrController {
     }
 
     try {
-      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp', 'gif']);
+      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp', 'gif'], {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+      });
       return await this.importsService.processMedicalDocumentOcr(
         file.path,
         req.user?.clinicId,

@@ -81,7 +81,7 @@ export default function ProfilePage() {
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
-              value={user?.email || "admin@docita.work"}
+              value={user?.email || ""}
               disabled
             />
           </div>

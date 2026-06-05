@@ -39,6 +39,8 @@ const useSubscriptionMock = vi.hoisted(() =>
   vi.fn(() => ({ data: { tier: "STARTER" as const } })),
 );
 
+let currentTierForMock = "STARTER";
+
 vi.mock("@/features/subscription/hooks/use-pricing", () => ({
   useCurrentUsage: () => useCurrentUsageMock(),
 }));
@@ -60,8 +62,22 @@ vi.mock("@workspace/data-access", async (importOriginal) => {
   };
 });
 
+vi.mock("@/lib/stores/permission-store", () => ({
+  usePermissionStore: (selector: (state: { canAccess: (feature: unknown) => boolean }) => boolean) => {
+    return selector({
+      canAccess: (feature: unknown) => {
+        if (String(feature) === "WHATSAPP_MESSAGING") {
+          return currentTierForMock !== "STARTER";
+        }
+        return true;
+      },
+    });
+  },
+}));
+
 describe("UsageDashboard", () => {
   beforeEach(() => {
+    currentTierForMock = "STARTER";
     useSubscriptionMock.mockReturnValue({ data: { tier: "STARTER" } });
     useCurrentUsageMock.mockReturnValue({ usage: mockUsage, isLoading: false });
   });
@@ -76,6 +92,7 @@ describe("UsageDashboard", () => {
   });
 
   it("shows the WhatsApp meter for Essential tier", () => {
+    currentTierForMock = "ESSENTIAL";
     useSubscriptionMock.mockReturnValue({ data: { tier: "ESSENTIAL" } });
 
     render(<UsageDashboard />);

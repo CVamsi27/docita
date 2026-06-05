@@ -53,9 +53,7 @@ export function LeaveBalanceCard({ balance }: LeaveBalanceCardProps) {
                 of {b.annualQuota} days
               </p>
               {b.pending > 0 && (
-                <p className="mt-1 text-xs text-warning">
-                  {b.pending} pending
-                </p>
+                <p className="mt-1 text-xs text-warning">{b.pending} pending</p>
               )}
             </div>
           ))}

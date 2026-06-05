@@ -84,11 +84,7 @@ export function CardiologyExamSection({
             className="min-h-[88px]"
             readOnly={readOnly}
             placeholder="ECG monitoring notes"
-            value={
-              value.ecg?.interpretation ??
-              value.ecg?.findings ??
-              ""
-            }
+            value={value.ecg?.interpretation ?? value.ecg?.findings ?? ""}
             onChange={(e) =>
               setValue((prev) => ({
                 ...prev,

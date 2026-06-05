@@ -10,8 +10,15 @@ import {
   IPrescriptionRepository,
   PrescriptionDetail,
 } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
-import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
-import { calculateAge, DEFAULT_LOCALE } from '@workspace/utils';
+import {
+  GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
+  StorageProvider,
+} from '@/domains/documents/application/ports/storage-provider.port';
+import {
+  calculateAge,
+  DEFAULT_LOCALE,
+  getPatientFullName,
+} from '@workspace/utils';
 import { type EnqueuePdfJobResponse, extractPdfTheme } from '@workspace/types';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
@@ -19,8 +26,6 @@ import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 const CURRENT_PDF_TEMPLATE_VERSION = 1;
-const PDF_SIGNED_URL_TTL_SECONDS = 3600;
-
 @Injectable()
 export class PrescriptionPdfOrchestratorService {
   private readonly logger = new Logger(PrescriptionPdfOrchestratorService.name);
@@ -106,7 +111,7 @@ export class PrescriptionPdfOrchestratorService {
         signatureUrl: resolvedDoctorSignature,
       },
       patient: {
-        name: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
+        name: getPatientFullName(prescription.patient),
         phoneNumber: prescription.patient.phoneNumber,
         email: prescription.patient.email || undefined,
         gender: prescription.patient.gender || undefined,
@@ -139,7 +144,7 @@ export class PrescriptionPdfOrchestratorService {
       if (prescription.pdfUrl) {
         const url = await this.storageProvider.generateSignedUrl(
           prescription.pdfUrl,
-          PDF_SIGNED_URL_TTL_SECONDS,
+          GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
         );
         return { type: 'url', url };
       }
@@ -154,7 +159,7 @@ export class PrescriptionPdfOrchestratorService {
 
       const url = await this.storageProvider.generateSignedUrl(
         storedKey,
-        PDF_SIGNED_URL_TTL_SECONDS,
+        GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
       );
       return { type: 'url', url };
     }

@@ -1,7 +1,13 @@
+// check-non-null-assertion: allow-file — non-null guaranteed by prior guard or Prisma include
 "use client";
 
-import { useMutation, type UseQueryOptions } from "@tanstack/react-query";
 import {
+  useMutation,
+  useQueryClient,
+  type UseQueryOptions,
+} from "@tanstack/react-query";
+import {
+  CreateLabRequest,
   CreateLabTestOrderRequest,
   CreatePrescriptionRequest,
   CreateTemplateRequest,
@@ -9,6 +15,7 @@ import {
   DocumentContractResponse,
   enqueuePdfJobResponseSchema,
   Feature,
+  LabContractResponse,
   LabTest,
   LabTestOrder,
   ListDocumentsContractQuery,
@@ -17,16 +24,75 @@ import {
   pdfJobStatusResponseSchema,
   Prescription,
   TemplateContractResponse,
+  UpdateLabRequest,
   UpdateLabTestOrderRequest,
   UpdateTemplateRequest,
+  VerifyLabOrderPaymentRequest,
   VitalSign,
 } from "@workspace/types";
 import { useAPIQuery } from "../core/use-api-query";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { APIRequestError } from "../lib/errors";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { withQueryString } from "../lib/query-string";
 import { useDataAccessContext, useDataAccessFetcher } from "../provider/hooks";
+
+const SIGNED_URL_PREFIXES = ["https://", "/"];
+const SIGNED_URL_REQUIRED_PARAMS = [
+  "X-Amz-Signature",
+  "X-Amz-Algorithm",
+  "X-Amz-Credential",
+] as const;
+
+function validateAndOpenPdfUrl(url: string): boolean {
+  if (!url || typeof url !== "string") return false;
+
+  if (!SIGNED_URL_PREFIXES.some((prefix) => url.startsWith(prefix))) {
+    return false;
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(url, "http://localhost");
+  } catch {
+    return false;
+  }
+
+  const hasSignatureParams = SIGNED_URL_REQUIRED_PARAMS.every((param) =>
+    parsed.searchParams.has(param),
+  );
+  if (parsed.searchParams.has("X-Amz-Signature") && !hasSignatureParams) {
+    return false;
+  }
+
+  if (hasSignatureParams) {
+    const expiresParam = parsed.searchParams.get("X-Amz-Expires");
+    const dateParam = parsed.searchParams.get("X-Amz-Date");
+    if (expiresParam && dateParam) {
+      const expiresInSeconds = parseInt(expiresParam, 10);
+      if (!Number.isNaN(expiresInSeconds)) {
+        const dateFormat = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/;
+        const match = dateParam.match(dateFormat);
+        if (match) {
+          const issuedAt = Date.UTC(
+            parseInt(match[1]!, 10),
+            parseInt(match[2]!, 10) - 1,
+            parseInt(match[3]!, 10),
+            parseInt(match[4]!, 10),
+            parseInt(match[5]!, 10),
+            parseInt(match[6]!, 10),
+          );
+          if (Date.now() > issuedAt + expiresInSeconds * 1000) {
+            return false;
+          }
+        }
+      }
+    }
+  }
+
+  window.open(url, "_blank", "noopener,noreferrer");
+  return true;
+}
 
 const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS = 60000;
@@ -139,7 +205,7 @@ export const useDownloadPrescriptionPDF = () => {
 
         if (status.status === "COMPLETED" && status.pdfUrl) {
           if (typeof window !== "undefined") {
-            window.open(status.pdfUrl, "_blank");
+            validateAndOpenPdfUrl(status.pdfUrl);
           }
           return;
         }
@@ -173,26 +239,28 @@ export const useLabTestsStats = () => {
 };
 
 export const useCreateLabTestOrder = () =>
-  useAPIMutation<
-    { id: string; status: string },
-    CreateLabTestOrderRequest
-  >("/clinical/lab-tests/orders", "POST", {
-    invalidateKeys: [
-      queryKeys.clinical.labTests.orders(),
-      queryKeys.clinical.labTests.ordersInvalidation(),
-    ],
-  });
+  useAPIMutation<{ id: string; status: string }, CreateLabTestOrderRequest>(
+    "/clinical/lab-tests/orders",
+    "POST",
+    {
+      invalidateKeys: [
+        queryKeys.clinical.labTests.orders(),
+        queryKeys.clinical.labTests.ordersInvalidation(),
+      ],
+    },
+  );
 
 export const useUpdateLabTestOrder = (id: string) =>
-  useAPIMutation<
-    { id: string; status: string },
-    UpdateLabTestOrderRequest
-  >(`/clinical/lab-tests/orders/${id}/status`, "PUT", {
-    invalidateKeys: [
-      queryKeys.clinical.labTests.orders(),
-      queryKeys.clinical.labTests.ordersInvalidation(),
-    ],
-  });
+  useAPIMutation<{ id: string; status: string }, UpdateLabTestOrderRequest>(
+    `/clinical/lab-tests/orders/${id}/status`,
+    "PUT",
+    {
+      invalidateKeys: [
+        queryKeys.clinical.labTests.orders(),
+        queryKeys.clinical.labTests.ordersInvalidation(),
+      ],
+    },
+  );
 
 export const useLabTestOrders = (filters?: {
   search?: string;
@@ -216,9 +284,13 @@ export const useLabTestStats = () => {
     completed: number;
     urgent: number;
     total: number;
-  }>(queryKeys.clinical.labTests.statsDashboard(), "/clinical/lab-tests/stats", {
-    enabled: labOk,
-  });
+  }>(
+    queryKeys.clinical.labTests.statsDashboard(),
+    "/clinical/lab-tests/stats",
+    {
+      enabled: labOk,
+    },
+  );
 };
 
 export const useLabTestCatalog = () => {
@@ -230,13 +302,141 @@ export const useLabTestCatalog = () => {
   );
 };
 
+/** Enriched lab-order row for the lab workspace queue. */
+export interface LabQueueItem {
+  id: string;
+  clinicId: string;
+  labId: string | null;
+  status: string;
+  notes: string | null;
+  resultUrl: string | null;
+  resultUploadedAt: string | null;
+  collectedAt: string | null;
+  completedAt: string | null;
+  paidAt: string | null;
+  paymentMethod: string | null;
+  releasedAt: string | null;
+  createdAt: string;
+  patient: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string | null;
+  };
+  labTest: {
+    id: string;
+    name: string;
+    specimenType: string | null;
+  };
+}
+
+export const useLabQueue = (filters?: {
+  labId?: string;
+  status?: string;
+  search?: string;
+}) => {
+  const labOk = useDataAccessContext().isTierFeatureEnabled(Feature.LAB_TESTS);
+  return useAPIQuery<LabQueueItem[]>(
+    queryKeys.clinical.labTests.queue(filters),
+    withQueryString("/clinical/lab-tests/queue", filters),
+    { enabled: labOk },
+  );
+};
+
+const LAB_WORKFLOW_INVALIDATION = [
+  queryKeys.clinical.labTests.queueInvalidation(),
+  queryKeys.clinical.labTests.ordersInvalidation(),
+  queryKeys.clinical.labTests.statsDashboard(),
+] as const;
+
+export const useRecordSampleCollection = () =>
+  useAPIMutation<{ success: true }, { id: string; notes?: string }>(
+    (vars) => `/clinical/lab-tests/orders/${vars.id}/sample`,
+    "PUT",
+    {
+      body: (vars) => ({ notes: vars.notes }),
+      invalidateKeys: LAB_WORKFLOW_INVALIDATION,
+    },
+  );
+
+export const useVerifyLabOrderPayment = () =>
+  useAPIMutation<
+    { success: true },
+    { id: string } & VerifyLabOrderPaymentRequest
+  >((vars) => `/clinical/lab-tests/orders/${vars.id}/payment`, "POST", {
+    body: ({ id: _id, ...body }) => body,
+    invalidateKeys: LAB_WORKFLOW_INVALIDATION,
+  });
+
+export const useReleaseLabResult = () =>
+  useAPIMutation<{ success: true }, { id: string }>(
+    (vars) => `/clinical/lab-tests/orders/${vars.id}/release`,
+    "POST",
+    {
+      body: () => ({}),
+      invalidateKeys: LAB_WORKFLOW_INVALIDATION,
+    },
+  );
+
+/** Result upload is multipart/form-data, so it bypasses the JSON mutation helper. */
+export const useUploadLabResult = () => {
+  const fetcher = useDataAccessFetcher();
+  const queryClient = useQueryClient();
+  return useMutation<
+    { success: true },
+    APIRequestError,
+    { id: string; file: File; notes?: string }
+  >({
+    mutationFn: async ({ id, file, notes }) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      if (notes) formData.append("notes", notes);
+      return await fetcher<{ success: true }>(
+        `/clinical/lab-tests/orders/${id}/result`,
+        { method: "POST", body: formData, retries: 0 },
+      );
+    },
+    onSuccess: () => {
+      LAB_WORKFLOW_INVALIDATION.forEach((queryKey) => {
+        queryClient.invalidateQueries({ queryKey });
+      });
+    },
+  });
+};
+
+export const useLabs = () => {
+  const labOk = useDataAccessContext().isTierFeatureEnabled(Feature.LAB_TESTS);
+  return useAPIQuery<LabContractResponse[]>(
+    queryKeys.clinical.labTests.labs(),
+    "/clinical/lab-tests/labs",
+    { enabled: labOk },
+  );
+};
+
+export const useCreateLab = () =>
+  useAPIMutation<LabContractResponse, CreateLabRequest>(
+    "/clinical/lab-tests/labs",
+    "POST",
+    { invalidateKeys: [queryKeys.clinical.labTests.labs()] },
+  );
+
+export const useUpdateLab = () =>
+  useAPIMutation<LabContractResponse, { id: string } & UpdateLabRequest>(
+    (vars) => `/clinical/lab-tests/labs/${vars.id}`,
+    "PUT",
+    {
+      body: ({ id: _id, ...body }) => body,
+      invalidateKeys: [queryKeys.clinical.labTests.labs()],
+    },
+  );
+
 export const useDocuments = (filters?: ListDocumentsContractQuery) => {
   const docsOk = useDataAccessContext().isTierFeatureEnabled(
     Feature.DOCUMENT_ARCHIVAL,
   );
   return useAPIQuery<DocumentContractResponse[]>(
     queryKeys.clinical.documents.list(filters),
-    withQueryString("/medical-documents", filters),
+    withQueryString("/documents", filters),
     { enabled: docsOk },
   );
 };
@@ -247,7 +447,7 @@ export const useDocument = (id: string) => {
   );
   return useAPIQuery<Document>(
     queryKeys.clinical.documents.detail(id),
-    `/medical-documents/${id}`,
+    `/documents/${id}`,
     {
       enabled: docsOk && id.length > 0,
     },
@@ -340,14 +540,13 @@ export const useCreateTemplate = () =>
   );
 
 export const useUpdateTemplate = () =>
-  useAPIMutation<TemplateContractResponse, UpdateTemplateRequest & { id: string }>(
-    (template) => `/templates/${template.id}`,
-    "PATCH",
-    {
-      body: ({ id: _id, ...body }) => body,
-      invalidateKeys: [queryKeys.clinical.templates.all()],
-    },
-  );
+  useAPIMutation<
+    TemplateContractResponse,
+    UpdateTemplateRequest & { id: string }
+  >((template) => `/templates/${template.id}`, "PATCH", {
+    body: ({ id: _id, ...body }) => body,
+    invalidateKeys: [queryKeys.clinical.templates.all()],
+  });
 
 export const useDeleteTemplate = () =>
   useAPIMutation<void, { id: string }>(

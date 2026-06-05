@@ -19,6 +19,7 @@ import {
   rejectAppointmentRequestSchema,
   updateAppointmentRequestSchema,
   vitalSignSchema,
+  markDoctorDelaySchema,
 } from '@workspace/types';
 
 export const CreateAppointmentSchema = createAppointmentRequestSchema;
@@ -97,3 +98,5 @@ export class DiagnosesSyncDto extends createZodDto(
 export class DiagnosesSyncResponseDto extends createZodDto(
   diagnosesSyncResponseSchema,
 ) {}
+
+export class MarkDoctorDelayDto extends createZodDto(markDoctorDelaySchema) {}

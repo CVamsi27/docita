@@ -36,8 +36,7 @@ export function BillingModal({
     onOpenChange,
   });
 
-  const fmt = (n: number) =>
-    formatCurrency(n, { currency, fractionDigits: 2 });
+  const fmt = (n: number) => formatCurrency(n, { currency, fractionDigits: 2 });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -101,7 +100,9 @@ export function BillingModal({
             disabled={billing.createInvoice.isPending}
             className="w-32"
           >
-            {billing.createInvoice.isPending ? "Generating…" : "Generate Invoice"}
+            {billing.createInvoice.isPending
+              ? "Generating…"
+              : "Generate Invoice"}
           </Button>
         </DialogFooter>
       </DialogContent>

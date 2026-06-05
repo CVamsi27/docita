@@ -15,7 +15,8 @@ export function HelpSupportSettingsPanel() {
       <CardHeader className="border-b border-border/60 pb-5">
         <CardTitle>Help &amp; support</CardTitle>
         <CardDescription>
-          Reach the Docita team for product questions, onboarding, and account help.
+          Reach the Docita team for product questions, onboarding, and account
+          help.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 pt-5">

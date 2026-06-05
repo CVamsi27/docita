@@ -29,6 +29,9 @@ export class PatientMapper {
       gender: parsed.gender,
       dateOfBirth: parsed.dateOfBirth || undefined,
       address: parsed.address || undefined,
+      insuranceProvider: parsed.insuranceProvider || undefined,
+      insurancePolicyNumber: parsed.insurancePolicyNumber || undefined,
+      insuranceGroupNumber: parsed.insuranceGroupNumber || undefined,
       metadata,
       createdAt: parsed.createdAt,
       updatedAt: parsed.updatedAt,
@@ -49,6 +52,9 @@ export class PatientMapper {
       gender: plain.gender,
       dateOfBirth: plain.dateOfBirth,
       address: plain.address,
+      insuranceProvider: plain.insuranceProvider,
+      insurancePolicyNumber: plain.insurancePolicyNumber,
+      insuranceGroupNumber: plain.insuranceGroupNumber,
       customData: plain.metadata,
       version: plain.version,
     });
@@ -75,6 +81,9 @@ export class PatientMapper {
       gender: write.gender,
       dateOfBirth: write.dateOfBirth,
       address: write.address ?? undefined,
+      insuranceProvider: write.insuranceProvider ?? undefined,
+      insurancePolicyNumber: write.insurancePolicyNumber ?? undefined,
+      insuranceGroupNumber: write.insuranceGroupNumber ?? undefined,
       customData:
         write.customData === undefined || write.customData === null
           ? undefined
@@ -96,6 +105,9 @@ export class PatientMapper {
       gender: write.gender,
       ...(write.dateOfBirth ? { dateOfBirth: write.dateOfBirth } : {}),
       address: write.address ?? undefined,
+      insuranceProvider: write.insuranceProvider ?? undefined,
+      insurancePolicyNumber: write.insurancePolicyNumber ?? undefined,
+      insuranceGroupNumber: write.insuranceGroupNumber ?? undefined,
       customData:
         write.customData === undefined || write.customData === null
           ? undefined

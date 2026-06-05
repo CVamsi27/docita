@@ -4,27 +4,30 @@ These are the `prisma.$extends(...)` plugins applied at the
 `PrismaService` boundary. Their order matters: each extension wraps the
 next, and inversions can silently bypass tenant or PHI checks.
 
-## Application order (outermost first)
+## Application order
 
 The wrapping order is established in
 [`apps/api/src/prisma/prisma.service.ts`](../../../prisma/prisma.service.ts).
+Keep this list in the same sequence as the chained `$extends(...)` calls.
 
 ```
 PrismaClient
-  → logging.extension          (innermost — logs queries with PII redaction)
-  → audit-immutability.extension (blocks UPDATE/DELETE on AuditEvent and friends)
-  → encryption.extension       (envelope encrypt/decrypt PHI columns)
-  → tenant.extension           (auto-injects clinicId filter; throws on bypass)
-  → rls-routing.extension      (outermost — sets app.current_clinic_id when RLS enabled)
+  → rls-routing.extension        (routes to the request RLS transaction)
+  → encryption.extension         (encrypts/decrypts selected PHI columns)
+  → audit-immutability.extension (blocks mutation of append-only audit rows)
+  → tenant.extension             (injects clinicId filters; fails closed)
+  → logging.extension            (records slow queries)
+  → query-budget.extension       (counts request-scoped queries)
 ```
 
-| Extension | File | Concern | Bypass mechanism |
-| --- | --- | --- | --- |
-| `tenant` | [`tenant.extension.ts`](tenant.extension.ts) | Multi-tenant scope | `runWithTenantBypass({ reason })` |
-| `encryption` | [`encryption.extension.ts`](encryption.extension.ts) | Per-row envelope encryption of PHI columns (see `encryption-patient-fields.boundary.ts`) | n/a |
-| `audit-immutability` | [`audit-immutability.extension.ts`](audit-immutability.extension.ts) | Prevents updates to append-only tables (`AuditEvent`, `DpdpAuditEvent`) | `runWithAuditBypass({ reason })` (used during retention archival only) |
-| `logging` | [`logging.extension.ts`](logging.extension.ts) | Adds redacted query logging via `nestjs-pino` | n/a |
-| `rls-routing` | [`rls-routing.extension.ts`](rls-routing.extension.ts) | Executes `SET LOCAL app.current_clinic_id` per query when `RLS_ENABLED=true` | n/a (governs DB-level enforcement) |
+| Extension            | File                                                                 | Concern                                                                                  | Bypass mechanism                                                       |
+| -------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `tenant`             | [`tenant.extension.ts`](tenant.extension.ts)                         | Multi-tenant scope                                                                       | `runWithTenantBypass({ reason })`                                      |
+| `encryption`         | [`encryption.extension.ts`](encryption.extension.ts)                 | Per-row envelope encryption of PHI columns (see `encryption-patient-fields.boundary.ts`) | n/a                                                                    |
+| `audit-immutability` | [`audit-immutability.extension.ts`](audit-immutability.extension.ts) | Prevents updates to append-only tables (`AuditEvent`, `DpdpAuditEvent`)                  | `runWithAuditBypass({ reason })` (used during retention archival only) |
+| `logging`            | [`logging.extension.ts`](logging.extension.ts)                       | Adds redacted query logging via `nestjs-pino`                                            | n/a                                                                    |
+| `rls-routing`        | [`rls-routing.extension.ts`](rls-routing.extension.ts)               | Executes `SET LOCAL app.current_clinic_id` per query when `RLS_ENABLED=true`             | n/a (governs DB-level enforcement)                                     |
+| `query-budget`       | [`query-budget.extension.ts`](query-budget.extension.ts)             | Emits structured warnings when one request exceeds its query budget                      | n/a (observability only)                                               |
 
 ## Invariants every change must preserve
 

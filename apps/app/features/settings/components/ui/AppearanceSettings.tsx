@@ -43,7 +43,9 @@ export function AppearanceSettings() {
     <Card>
       <CardHeader className="border-b border-border/60 pb-5">
         <CardTitle>Appearance</CardTitle>
-        <CardDescription>Theme, accent, and density for this account.</CardDescription>
+        <CardDescription>
+          Theme, accent, and density for this account.
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6 pt-5">
         <div className="space-y-3">

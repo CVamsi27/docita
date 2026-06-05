@@ -11,6 +11,8 @@ import {
 } from './core/services';
 import { PricingService } from './core/services/pricing.service';
 import { UsageTrackingService } from './core/services/usage-tracking.service';
+import { UsageTrackingQueryService } from './core/services/usage-tracking-query.service';
+import { UsageTrackingCommandService } from './core/services/usage-tracking-command.service';
 import { OverageCalculationService } from './core/services/overage-calculation.service';
 import { UsageAggregationService } from './core/services/usage-aggregation.service';
 import {
@@ -61,6 +63,8 @@ import {
     ClaimValidationService,
     InvoiceValidatorService,
     PricingService,
+    UsageTrackingQueryService,
+    UsageTrackingCommandService,
     UsageTrackingService,
     OverageCalculationService,
     UsageAggregationService,

@@ -13,6 +13,7 @@ import { AuthModule } from './shared/modules/auth/auth/auth.module';
 import { AuthorizationModule } from './shared/modules/auth/authorization/authorization.module';
 import { PrescriptionsModule } from './domains/prescriptions/prescriptions.module';
 import { BillingModule } from './domains/billing/billing.module';
+import { InsuranceClaimsModule } from './domains/insurance-claims/insurance-claims.module';
 import { PaymentsModule } from './domains/payments/payments.module';
 import { ImportsModule } from './shared/modules/imports/imports.module';
 import { ConfigModule } from '@nestjs/config';
@@ -50,6 +51,7 @@ import { TenantContextInterceptor } from './shared/common/interceptors/tenant-co
 import { CacheInterceptor } from './shared/common/interceptors/cache.interceptor';
 import { PatientDataAuditInterceptor } from './shared/common/interceptors/patient-audit.interceptor';
 import { BreakTheGlassInterceptor } from './shared/common/interceptors/emergency-access.interceptor';
+import { PrismaRetryInterceptor } from './shared/common/interceptors/prisma-retry.interceptor';
 import { RequestIdInterceptor } from './shared/common/interceptors/request-id.interceptor';
 import { RequestContextInterceptor } from './shared/common/interceptors/request-context.interceptor';
 import { JwtAuthGuard } from './shared/modules/auth/auth/jwt-auth.guard';
@@ -82,6 +84,7 @@ import { EventsModule } from './shared/common/events/events.module';
 import { CommonServicesModule } from './shared/modules/services/common-services.module';
 import { FeedbackModule } from './domains/feedback/feedback.module';
 import { PatientPortalModule } from './domains/patient-portal/patient-portal.module';
+import { LabPortalModule } from './domains/lab-portal/lab-portal.module';
 import { PublicModule } from './shared/modules/public/public.module';
 import { MedicalDocumentsModule } from './domains/medical-documents/medical-documents.module';
 import { InventoryModule } from './domains/inventory/inventory.module';
@@ -104,6 +107,7 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
       useFactory: (configService: AppConfigService) => ({
         pinoHttp: buildPinoOptions({
           isProduction: configService.isProduction(),
+          isTest: configService.isTest(),
         }),
       }),
     }),
@@ -176,6 +180,7 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
     SubscriptionsModule,
     EnterpriseContractsModule,
     BillingModule,
+    InsuranceClaimsModule,
     PrescriptionTemplatesModule,
     ClinicalModule,
     FeedbackModule,
@@ -188,6 +193,7 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
     ComplianceModule,
     WebsocketsModule,
     PatientPortalModule,
+    LabPortalModule,
     PublicModule,
     MedicalDocumentsModule,
     InventoryModule,
@@ -291,6 +297,10 @@ import { PublicBookingModule } from './domains/public-booking/public-booking.mod
     {
       provide: APP_INTERCEPTOR,
       useClass: BreakTheGlassInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: PrismaRetryInterceptor,
     },
   ],
   exports: [WebsocketsModule],

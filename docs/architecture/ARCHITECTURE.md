@@ -95,7 +95,7 @@ In production the API sets `ENABLE_SCHEDULERS=false` and the worker sets it
 
 | Service | Used for |
 |---------|----------|
-| PostgreSQL (Neon in prod) | Primary datastore + durable `QueueJob` table |
+| PostgreSQL (AWS RDS in prod) | Primary datastore + durable `QueueJob` table |
 | Cloudflare R2 | Document storage (prescriptions, lab reports, uploads) |
 | Razorpay | Payment links, subscriptions, webhook verification |
 | WhatsApp Business API (Meta) | Appointment reminders, OTP, broadcast messages |

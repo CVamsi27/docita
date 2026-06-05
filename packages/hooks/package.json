@@ -34,7 +34,7 @@
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "eslint": "^9.17.0",
-    "jsdom": "^26.0.0",
+    "jsdom": "^27.4.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "typescript": "5.7.3",

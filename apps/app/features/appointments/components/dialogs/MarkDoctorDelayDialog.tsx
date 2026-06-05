@@ -131,7 +131,10 @@ export function MarkDoctorDelayDialog({
           {!preselectedDoctorId && doctors && doctors.length > 0 && (
             <div className="space-y-2">
               <Label htmlFor="delay-doctor">Doctor</Label>
-              <Select value={selectedDoctorId} onValueChange={setSelectedDoctorId}>
+              <Select
+                value={selectedDoctorId}
+                onValueChange={setSelectedDoctorId}
+              >
                 <SelectTrigger id="delay-doctor">
                   <SelectValue placeholder="Select doctor…" />
                 </SelectTrigger>
@@ -191,7 +194,11 @@ export function MarkDoctorDelayDialog({
           <Button
             variant="default"
             onClick={handleConfirm}
-            disabled={isLoading || !delayMinutes || (!preselectedDoctorId && !selectedDoctorId)}
+            disabled={
+              isLoading ||
+              !delayMinutes ||
+              (!preselectedDoctorId && !selectedDoctorId)
+            }
           >
             {isLoading ? (
               <DocitaLoadingIndicator className="mr-2 h-4 w-4" />

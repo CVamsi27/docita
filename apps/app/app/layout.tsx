@@ -1,5 +1,4 @@
 import "./globals.css";
-import "leaflet/dist/leaflet.css";
 import { headers } from "next/headers";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { Providers, ToasterWrapper } from "@/components";
@@ -8,6 +7,7 @@ import { DataAccessBridge } from "@/providers/data-access-bridge";
 import { SentryInitializer } from "@/components/monitoring/sentry-initializer";
 import { ClientErrorReporter } from "@/components/monitoring/client-error-reporter";
 import { WebVitalsReporter } from "@/components/layout/web-vitals-reporter";
+import { ApiAvailabilityOverlay } from "@/components/feedback/api-availability-overlay";
 
 export const metadata = {
   title: "Docita - Healthcare OS",
@@ -44,6 +44,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
       <head>
+        <link rel="preconnect" href="https://api.docita.work" crossOrigin="anonymous" />
         <script
           nonce={nonce}
           suppressHydrationWarning
@@ -59,6 +60,7 @@ export default async function RootLayout({
             <DataAccessBridge>
               <Providers nonce={nonce}>
                 {children}
+                <ApiAvailabilityOverlay />
                 <ToasterWrapper />
               </Providers>
             </DataAccessBridge>

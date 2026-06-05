@@ -1,40 +1,29 @@
 "use client";
 
-import { Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Textarea } from "@workspace/ui/components/form/textarea";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
 import { useConsultationSectionSubtitle } from "@/features/consultation/workspace/consultation-workspace-context";
-import { type ClinicalInvestigation } from "@workspace/types";
-import { parseStringEnumMember } from "@workspace/utils";
-
-const INVESTIGATION_CATEGORIES = [
-  "LABORATORY",
-  "IMAGING",
-  "SPECIAL",
-  "OTHER",
-] as const;
-const INVESTIGATION_STATUSES = [
-  "ORDERED",
-  "PENDING",
-  "COMPLETED",
-  "CANCELLED",
-] as const;
+import { Feature, type ClinicalInvestigation } from "@workspace/types";
+import { usePermissionStore } from "@/lib/stores/permission-store";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import {
+  useInvestigationAttachment,
+  validateAttachmentFile,
+} from "@/features/consultation/hooks/use-investigation-attachment";
+import {
+  InvestigationList,
+  type InvestigationRowProps,
+} from "./investigation-row";
 
 interface InvestigationsSectionProps {
   readOnly?: boolean;
   sectionRef?: React.Ref<HTMLElement>;
+  patientId?: string;
+  appointmentId?: string;
+  doctorId?: string;
 }
 
 function newInvestigation(): ClinicalInvestigation {
@@ -50,10 +39,18 @@ function newInvestigation(): ClinicalInvestigation {
 export function InvestigationsSection({
   readOnly,
   sectionRef,
+  patientId,
+  appointmentId,
+  doctorId,
 }: InvestigationsSectionProps) {
   const subtitle = useConsultationSectionSubtitle("specialty-investigations");
   const investigations = useConsultationDraft((s) => s.investigations);
   const setInvestigations = useConsultationDraft((s) => s.setInvestigations);
+  const canAttach = usePermissionStore((s) =>
+    s.canAccess(Feature.DOCUMENT_ARCHIVAL),
+  );
+  const { upload, uploadingId, setUploadingId } = useInvestigationAttachment();
+  const hasUploadContext = Boolean(patientId && appointmentId && doctorId);
 
   const updateAt = (index: number, patch: Partial<ClinicalInvestigation>) => {
     setInvestigations((prev) =>
@@ -64,7 +61,76 @@ export function InvestigationsSection({
   const removeAt = (index: number) => {
     setInvestigations((prev) => prev.filter((_, i) => i !== index));
   };
+  const handleAttach = useInvestigationAttachmentHandler({
+    patientId,
+    appointmentId,
+    doctorId,
+    upload,
+    setUploadingId,
+    onAttachment: updateAt,
+  });
 
+  return (
+    <InvestigationsSectionShell
+      sectionRef={sectionRef}
+      subtitle={subtitle}
+      readOnly={readOnly}
+      onAdd={() => setInvestigations((prev) => [...prev, newInvestigation()])}
+    >
+      <InvestigationList
+        investigations={investigations}
+        readOnly={readOnly}
+        canAttach={canAttach}
+        hasUploadContext={hasUploadContext}
+        uploadingId={uploadingId}
+        onUpdate={updateAt}
+        onRemove={removeAt}
+        onAttach={handleAttach}
+      />
+    </InvestigationsSectionShell>
+  );
+}
+
+function useInvestigationAttachmentHandler(params: {
+  patientId?: string;
+  appointmentId?: string;
+  doctorId?: string;
+  upload: ReturnType<typeof useInvestigationAttachment>["upload"];
+  setUploadingId: ReturnType<
+    typeof useInvestigationAttachment
+  >["setUploadingId"];
+  onAttachment: InvestigationRowProps["onUpdate"];
+}): InvestigationRowProps["onAttach"] {
+  return async (index, row, file) => {
+    const attachment = await uploadInvestigationAttachment({
+      file,
+      row,
+      index,
+      patientId: params.patientId,
+      appointmentId: params.appointmentId,
+      doctorId: params.doctorId,
+      upload: params.upload,
+      setUploadingId: params.setUploadingId,
+    });
+    if (attachment) {
+      params.onAttachment(index, attachment);
+    }
+  };
+}
+
+function InvestigationsSectionShell({
+  sectionRef,
+  subtitle,
+  readOnly,
+  onAdd,
+  children,
+}: {
+  sectionRef?: React.Ref<HTMLElement>;
+  subtitle: string | undefined;
+  readOnly?: boolean;
+  onAdd: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <SectionContainer
       ref={sectionRef}
@@ -73,127 +139,81 @@ export function InvestigationsSection({
       title="Investigations"
       subtitle={subtitle}
       description="Laboratory and imaging orders with status tracking."
-      actions={
-        !readOnly ? (
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="gap-1.5"
-            onClick={() =>
-              setInvestigations((prev) => [...prev, newInvestigation()])
-            }
-          >
-            <Plus className="h-3.5 w-3.5" aria-hidden />
-            Add
-          </Button>
-        ) : null
-      }
+      actions={!readOnly ? <AddInvestigationButton onAdd={onAdd} /> : null}
     >
-      {investigations.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No investigations recorded. Add imaging or labs when needed.
-        </p>
-      ) : (
-        <ul className="space-y-4">
-          {investigations.map((row, index) => (
-            <li
-              key={row.id ?? `inv-${index}`}
-              className="rounded-lg border border-border/70 bg-muted/5 p-4 space-y-3"
-            >
-              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-                <div className="w-full space-y-1.5 sm:min-w-[180px] sm:flex-1">
-                  <Label htmlFor={`inv-name-${index}`} className="text-xs">
-                    Name
-                  </Label>
-                  <Input
-                    id={`inv-name-${index}`}
-                    readOnly={readOnly}
-                    placeholder="Study or test name"
-                    value={row.name}
-                    onChange={(e) => updateAt(index, { name: e.target.value })}
-                  />
-                </div>
-                <div className="w-full space-y-1.5 sm:w-[140px]">
-                  <Label className="text-xs">Category</Label>
-                  <Select
-                    disabled={readOnly}
-                    value={row.category ?? "OTHER"}
-                    onValueChange={(category) => {
-                      const parsed = parseStringEnumMember(
-                        INVESTIGATION_CATEGORIES,
-                        category,
-                      );
-                      if (parsed) updateAt(index, { category: parsed });
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="LABORATORY">Laboratory</SelectItem>
-                      <SelectItem value="IMAGING">Imaging</SelectItem>
-                      <SelectItem value="SPECIAL">Special</SelectItem>
-                      <SelectItem value="OTHER">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="w-full space-y-1.5 sm:w-[140px]">
-                  <Label className="text-xs">Status</Label>
-                  <Select
-                    disabled={readOnly}
-                    value={row.status ?? "ORDERED"}
-                    onValueChange={(status) => {
-                      const parsed = parseStringEnumMember(
-                        INVESTIGATION_STATUSES,
-                        status,
-                      );
-                      if (parsed) updateAt(index, { status: parsed });
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ORDERED">Ordered</SelectItem>
-                      <SelectItem value="PENDING">Pending</SelectItem>
-                      <SelectItem value="COMPLETED">Completed</SelectItem>
-                      <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {!readOnly ? (
-                  <SymbolTooltip label="Remove investigation">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="shrink-0 text-muted-foreground hover:text-destructive"
-                      aria-label="Remove investigation"
-                      onClick={() => removeAt(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </SymbolTooltip>
-                ) : null}
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor={`inv-notes-${index}`} className="text-xs">
-                  Notes / results
-                </Label>
-                <Textarea
-                  id={`inv-notes-${index}`}
-                  readOnly={readOnly}
-                  className="min-h-[72px]"
-                  placeholder="Findings"
-                  value={row.notes ?? ""}
-                  onChange={(e) => updateAt(index, { notes: e.target.value })}
-                />
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+      {children}
     </SectionContainer>
   );
+}
+
+function AddInvestigationButton({ onAdd }: { onAdd: () => void }) {
+  return (
+    <Button
+      type="button"
+      size="sm"
+      variant="outline"
+      className="gap-1.5"
+      onClick={onAdd}
+    >
+      <Plus className="h-3.5 w-3.5" aria-hidden />
+      Add
+    </Button>
+  );
+}
+
+async function uploadInvestigationAttachment(params: {
+  file: File;
+  row: ClinicalInvestigation;
+  index: number;
+  patientId?: string;
+  appointmentId?: string;
+  doctorId?: string;
+  upload: ReturnType<typeof useInvestigationAttachment>["upload"];
+  setUploadingId: ReturnType<
+    typeof useInvestigationAttachment
+  >["setUploadingId"];
+}): Promise<Partial<ClinicalInvestigation> | null> {
+  const { file, row, index, patientId, appointmentId, doctorId } = params;
+  const validationError = validateAttachmentFile(file);
+  if (validationError) {
+    showUserFacingErrorToast(validationError);
+    return null;
+  }
+  if (!patientId || !appointmentId || !doctorId) {
+    showUserFacingErrorToast("Cannot attach a file for this visit right now.");
+    return null;
+  }
+
+  const rowKey = row.id ?? `inv-${index}`;
+  try {
+    params.setUploadingId(rowKey);
+    const result = await params.upload({
+      file,
+      patientId,
+      appointmentId,
+      doctorId,
+      investigationName: row.name,
+    });
+    showAttachmentToast(Boolean(result.attachmentDocumentId));
+    return {
+      attachmentUrl: result.attachmentUrl,
+      attachmentName: result.attachmentName,
+      attachmentDocumentId: result.attachmentDocumentId,
+    };
+  } catch {
+    showUserFacingErrorToast("We couldn't attach this file. Please try again.");
+    return null;
+  } finally {
+    params.setUploadingId(null);
+  }
+}
+
+function showAttachmentToast(hasDocumentId: boolean): void {
+  if (hasDocumentId) {
+    toast.success("File attached");
+    return;
+  }
+  toast.message("File attached", {
+    description: "Saved to this visit, but it may not appear in Documents.",
+  });
 }

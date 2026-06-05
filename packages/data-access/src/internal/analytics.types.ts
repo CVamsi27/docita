@@ -1,3 +1,12 @@
+export interface InternalDetailedMetricsRow {
+  period: string;
+  revenue: number;
+  invoices: number;
+  avgAmount: number;
+  appointments: number;
+  fillRate: number;
+}
+
 export interface InternalAnalyticsData {
   revenue: number;
   appointments: number;
@@ -7,5 +16,5 @@ export interface InternalAnalyticsData {
   appointmentsChange?: number;
   patientsChange?: number;
   invoiceValueChange?: number;
-  detailedMetrics?: Array<Record<string, unknown>>;
+  detailedMetrics?: InternalDetailedMetricsRow[];
 }

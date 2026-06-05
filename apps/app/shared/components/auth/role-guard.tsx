@@ -4,7 +4,7 @@ import React, { ReactNode, useEffect } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useRouter } from "next/navigation";
 import type { UserRole } from "@workspace/types";
-import { hasPermission, type Permission } from "@/lib/auth/permissions";
+import { hasPermission, meetsRoleHierarchy, type Permission } from "@/lib/auth/permissions";
 import { persistReturnPathBeforeLogin } from "@/lib/auth/safe-return-path";
 
 interface RoleGuardProps {
@@ -12,24 +12,6 @@ interface RoleGuardProps {
   requiredPermission?: Permission;
   requiredRole?: UserRole;
   fallback?: ReactNode;
-}
-
-const ROLE_HIERARCHY: Record<UserRole, number> = {
-  INTERNAL: 5,
-  ADMIN: 4,
-  ADMIN_DOCTOR: 3,
-  DOCTOR: 2,
-  NURSE: 1.5,
-  RECEPTIONIST: 1,
-  PATIENT: 0,
-};
-
-function hasRoleAccess(
-  userRole: UserRole | undefined,
-  requiredRole: UserRole,
-): boolean {
-  if (!userRole) return false;
-  return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole];
 }
 
 export function RoleGuard({
@@ -42,9 +24,7 @@ export function RoleGuard({
   const router = useRouter();
 
   const needsLoginRedirect =
-    !!(requiredPermission || requiredRole) &&
-    !user?.role &&
-    !fallback;
+    !!(requiredPermission || requiredRole) && !user?.role && !fallback;
 
   useEffect(() => {
     if (!needsLoginRedirect) {
@@ -69,7 +49,7 @@ export function RoleGuard({
     return fallback ? <>{fallback}</> : null;
   }
 
-  if (requiredRole && !hasRoleAccess(user.role, requiredRole)) {
+  if (requiredRole && !meetsRoleHierarchy(user.role, requiredRole)) {
     return fallback ? <>{fallback}</> : null;
   }
 

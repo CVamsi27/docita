@@ -121,6 +121,7 @@ The `shared/` folder is the home for **non-feature** code reused across features
 
 ### 3.1 Zod-first type system
 
+- **Every data point has one canonical source — see [`docs/architecture/SINGLE_SOURCE_OF_TRUTH.md`](docs/architecture/SINGLE_SOURCE_OF_TRUTH.md).** Check it before adding any new store/derivation/constant; never introduce a second source for an existing data point (tier, GSTIN, patient name, timezone, support email, URLs, etc.).
 - Zod schemas in `packages/types` are the single source of truth.
 - Define/update schema first, then infer TypeScript types via `z.infer`.
 - Do not create parallel handwritten interfaces for the same shape.
@@ -328,6 +329,15 @@ The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX
 - Use pagination for large lists; avoid unbounded `findMany` in request paths.
 - Normalize for integrity and update consistency; denormalize only with a documented read-performance rationale and a single source of truth for updates.
 
+### 9.4 Existing-user compatibility (mandatory)
+
+- Treat every release as a migration for existing paying users, not only as a clean-install flow. Before changing schemas, onboarding, defaults, feature flags, tier rules, auth routing, or required settings, trace the behavior for accounts created before the change.
+- Never reset a clinic-associated user to full onboarding. `User.clinicId` is the durable workspace boundary; clinic-associated users must keep `onboardingStep = COMPLETED`.
+- When a new setting or consent choice is required from existing users, add a targeted in-app prompt or settings modal for only that requirement. Do not reuse the initial onboarding wizard, clear existing work, or block unrelated workspace access unless a documented compliance requirement explicitly demands it.
+- Add a backfill for existing rows whenever a new required field, default, enum, or state machine transition would otherwise change historical account behavior. Prefer expand → backfill → prompt → enforce rollouts for required user choices.
+- Include regression tests for both new accounts and pre-change accounts. For onboarding or auth changes, cover a clinic-associated user with stale or missing newly introduced state and verify that the user still lands in the workspace.
+- Use [`docs/operations/REQUIRED_SETTING_ROLLOUT_CHECKLIST.md`](docs/operations/REQUIRED_SETTING_ROLLOUT_CHECKLIST.md) for required-setting release evidence.
+
 ## 10) Testing and Verification
 
 - Test strategy:
@@ -386,7 +396,7 @@ The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX
 - Fly.io API deployments must be driven by [`fly.toml`](fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
 - Fly.io worker deployments must be driven by [`apps/worker/fly.toml`](apps/worker/fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
 - Staging API deployments are handled by Render auto-deploys from the `staging` branch; GitHub Actions should not add a separate deploy hook for the staging API.
-- Cloudflare frontend deployments are not handled by GitHub Actions in this repository; manage their auto-deploy behavior through Cloudflare watch-path settings instead.
+- Cloudflare frontend deployments are handled by the path-scoped [`.github/workflows/deploy-cloudflare.yml`](.github/workflows/deploy-cloudflare.yml) workflow when repository credentials verify. Keep app watch paths scoped and use Cloudflare Git integration or dashboard deploys only as the documented fallback.
 
 ## 11.2) CI scope and cost
 
@@ -554,12 +564,15 @@ Before finalizing changes:
 - SOLID, KISS, and DRY were applied per §12.6 (not line-count alone); any new abstraction has at least one current consumer and removes at least one duplicate.
 - Required patterns in §15.6–15.7 are followed for new pages, hooks, and backend domains (or deviation is documented in the PR).
 - Changed behavior is covered by appropriate tests/checks; E2E routes and selectors updated when flows move.
+- Existing-user impact was reviewed for schema, onboarding, auth-routing, tier, feature-flag, and required-setting changes; any required historical backfill or targeted prompt is included.
 - When your change is Knip-relevant per the CI scope detector, `pnpm knip` passes locally and the Knip step runs in CI; otherwise run Knip locally before merging if you touched dependencies or exports.
 - `pnpm lint`, targeted `check-types`, tests, and Knip (when applicable) pass before push.
 - Relevant local tests/builds were run and passed before the final push.
 - If CI was red, the corresponding local workflow commands were run and passed before the final push.
 
 ## 15) Pattern Catalogue
+
+> **Worked-examples companion:** [`docs/architecture/DESIGN_PRINCIPLES_AND_PATTERNS.md`](docs/architecture/DESIGN_PRINCIPLES_AND_PATTERNS.md) provides before→after fixes for every principle and pattern listed below, with real code-snippet pairs.
 
 When this file says to follow existing patterns, use these concrete references before adding a new instance. Subsections 15.1–15.3 are stable references; subsections 15.4–15.10 codify patterns validated during the 2026-05 audit sprint.
 
@@ -711,6 +724,7 @@ Mechanical checks catch **boundary violations**; they do not fully enforce SOLID
 | **Facade / CQS** | `pnpm check:facade-delegation --enforce` | Large application services delegate instead of embedding persistence |
 | **Zod-first / contracts** | `pnpm check:contracts-strict`, `pnpm verify:contracts`, `pnpm check:type-duplicates` | Shared schemas; no duplicate DTO shapes |
 | **Data access (frontend)** | `pnpm check:frontend-fetch`, `pnpm check:legacy-app-api-hooks` | No inline client `fetch`; legacy app API hook dir stays gone |
+| **SSOT composition** | `pnpm check:patient-name-ssot` | Patient display names route through `getPatientFullName()` instead of inline recomposition |
 | **Feature / package boundaries** | `pnpm check:feature-boundaries`, `pnpm check:package-boundaries` | Imports stay inside feature and package rules |
 | **Tier / feature gating** | `pnpm check:tier-comparisons`, `pnpm check:workspace-profile-gating` | No numeric tier compares; blocks legacy `workspaceProfile` symbols; tier-only Front Desk via `isFrontDeskTier` |
 | **RBAC** | `pnpm check:controller-rbac` | Controller auth posture declared |
@@ -723,3 +737,23 @@ Mechanical checks catch **boundary violations**; they do not fully enforce SOLID
 | **Rules unit tests** | `pnpm check:domain-rules-tests` | Feature `rules/*.test.ts` present where required |
 
 **Bundle:** `pnpm verify:standard` runs the production guardrail set above (plus hygiene, deployment contracts, PHI/audit checks). Run it before push when touching architecture, auth, data access, or large feature surfaces.
+
+### 15.12 SSOT Cleanup Patterns (2026-06)
+
+These patterns were established during the SSOT cleanup sweep. Follow them for new code and refactors.
+
+| Category | Canonical source | Notes |
+|----------|-----------------|-------|
+| **Appointment status labels** | `APPOINTMENT_STATUS_LABELS` / `APPOINTMENT_STATUS_COLORS` in `packages/types/src/operations/appointments.ts` | 7 kebab-case keys (`scheduled`→`"Scheduled"`, `confirmed`→`"Confirmed"`, `checked-in`→`"Checked In"`, `in-progress`→`"Active"`, `completed`→`"Completed"`, `cancelled`→`"Cancelled"`, `no-show`→`"No Show"`) |
+| **Appointment status mapper** | `appointments/infrastructure/mappers/appointment.mapper.ts` — exports `PRISMA_TO_DOMAIN_STATUS`, `DOMAIN_TO_PRISMA_STATUS`, `APPOINTMENT_STATUS_TO_PRISMA`, `parseAppointmentStatus` | Single canonical mapper; all 4 maps live in one file |
+| **Invoice status model** | 5 states only: `PENDING`, `PARTIALLY_PAID`, `PAID`, `OVERDUE`, `CANCELLED` | The 9-state domain model (`DRAFT`, `ISSUED`, `SENT`, `VIEWED`, `CREDIT_MEMO`) was dead code — do not reintroduce |
+| **Invoice status labels** | `INVOICE_STATUS_LABELS` in `packages/types/src/billing/invoices.ts` | 5 entries matching the 5-state model |
+| **Claim status labels** | `CLAIM_STATUS_LABELS`, `CLAIM_TYPE_LABELS`, `CLAIM_STATUS_TRANSITIONS`, `CLAIM_STATUS_TONE` in `packages/types/src/billing/insurance-claims.ts` | Centralized from `apps/app/features/insurance-claims/lib/claim-display.ts`; app now re-exports from types |
+| **Discount type** | `discountTypeSchema` in `packages/types/src/billing/tier.ts` (Zod enum); 11 values | The old API domain `DiscountType` (PROMOTIONAL-only) was a 1-value enum that caused `discountTypeFromStored()` to silently drop non-promotional discounts. Always import from `@workspace/types`. |
+| **Prescription status** | `prescriptionStatusSchema` in `packages/types/src/clinical/medications.ts` | Values: `ACTIVE`, `COMPLETED` |
+| **Facility type labels** | Use `facilityTypeSchema.options` from `@workspace/types` instead of `["CLINIC", "HOSPITAL"]` | Rather than duplicating the list of facility types, read them from the canonical Zod schema. |
+| **Email validation** | `isValidEmail()` in `@workspace/utils` | Single regex: `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`. Do not define additional email validators. |
+| **Phone validation** | `validatePhoneForCountry()` in `@/lib/validation/phone` | Uses `react-phone-number-input` for country-aware validation via `isPossiblePhoneNumber()`, `parsePhoneNumber()`, and `getCountryCallingCode()`. Validates against the clinic's `operatingCountryCode` (defaults to `"IN"`). Always country-aware; never use India-only regex patterns. |
+| **Support email** | `SUPPORT_EMAIL` = `"support@docita.work"` in both `apps/app/shared/lib/constants/support-contact.ts` and `apps/api/src/shared/common/constants/support-contact.constants.ts` | Do not hardcode the email string elsewhere; import the constant. |
+| **Tier string comparisons** | Variables typed as `TierName` (string union) from `@workspace/types` are canonical | `Tier` enum is **numeric** (STARTER=0, ESSENTIAL=1, etc.), never compare strings against `Tier.STARTER`. Use `TierName` type for string comparisons, `getTierName(Tier.STARTER)` for enum→string conversion, or `ClinicTier.STARTER` from `@workspace/db` for Prisma writes. Prefer typed helpers like `isFrontDeskTier()` over ad-hoc `=== "FRONT_DESK"` checks. |
+| **Front Desk tier check** | `isFrontDeskTier(tier)` from `@workspace/types` | Always use the helper — never inline `=== 'FRONT_DESK'` alone, as there are three Front Desk tier variants. |

@@ -48,8 +48,9 @@ export function DynamicPricingEstimator({
 }: DynamicPricingEstimatorProps) {
   const { currency: detectedCurrency } = useLocaleCurrency();
   const [tier, setTier] = useState(defaultTier);
-  const [selectedCurrency, setSelectedCurrency] =
-    useState<SupportedCurrency>(currency ?? detectedCurrency);
+  const [selectedCurrency, setSelectedCurrency] = useState<SupportedCurrency>(
+    currency ?? detectedCurrency,
+  );
   const [localBillingCycle, setLocalBillingCycle] = useState<
     "monthly" | "yearly"
   >("monthly");
@@ -124,9 +125,9 @@ export function DynamicPricingEstimator({
       <CardHeader>
         <CardTitle>Estimate My Cost</CardTitle>
         <CardDescription>
-          Your base plan price is fixed. This estimator calculates any additional
-          charges if your usage exceeds the plan limits. All prices include 18%
-          GST.
+          Your base plan price is fixed. This estimator calculates any
+          additional charges if your usage exceeds the plan limits. All prices
+          include 18% GST.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">

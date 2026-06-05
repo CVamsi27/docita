@@ -183,4 +183,12 @@ export class LocalStorageProvider extends StorageProvider {
     this.assertSignedUrlTtl(expiresInSeconds);
     return this.getPublicUploadUrl(objectKey);
   }
+
+  async getObject(
+    objectKey: string,
+  ): Promise<{ buffer: Buffer; contentType: string }> {
+    const filePath = this.resolveSafeUploadPath(objectKey);
+    const buffer = await fs.promises.readFile(filePath);
+    return { buffer, contentType: 'application/pdf' };
+  }
 }

@@ -1,6 +1,6 @@
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 
 export interface DoctorDelayResponse {
   id: string;
@@ -55,7 +55,10 @@ export function useClearDoctorDelay() {
     (id) => `/doctor-delays/${id}`,
     "DELETE",
     {
-      invalidateKeys: [queryKeys.doctorDelays.all(), queryKeys.appointments.all()],
+      invalidateKeys: [
+        queryKeys.doctorDelays.all(),
+        queryKeys.appointments.all(),
+      ],
       body: () => undefined,
     },
   );

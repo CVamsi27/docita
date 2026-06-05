@@ -1,27 +1,15 @@
 "use client";
 
-import { useMemo, type ReactNode, type RefObject } from "react";
+import { useMemo, type RefObject } from "react";
 import { SectionTabs } from "@/features/consultation/workspace/chrome/SectionRail";
-import { cn } from "@workspace/ui/lib/utils";
-import {
-  AssessmentSection,
-  CardiologyExamSection,
-  DentalSpecialtySection,
-  DermatologyExamSection,
-  GrowthSpecialtySection,
-  GynecologyExamSection,
-  InvestigationsSection,
-  ObjectiveSection,
-  PlanSection,
-  PsychiatryExamSection,
-  SubjectiveSection,
-  VisionSpecialtySection,
-} from "@/features/consultation/workspace/sections";
 import { ConsultationAfterVisitStrip } from "@/features/consultation/components/ConsultationWorkspaceExtras";
-import type {
-  ConsultationSection,
-  ConsultationWorkspaceSectionId,
-} from "@/features/consultation/workspace/consultation-section-registry";
+import { ConsultationPastHistoryCard } from "@/features/consultation/components/ConsultationPastHistoryCard";
+import {
+  buildConsultationSectionComponents,
+  StepProgressBar,
+  StepNavigation,
+} from "./ConsultationMainPanelSections";
+import type { ConsultationSection } from "@/features/consultation/workspace/consultation-section-registry";
 import type { Appointment, PatientWithMedicalHistory } from "@workspace/types";
 
 interface ConsultationMainPanelProps {
@@ -47,98 +35,32 @@ export function ConsultationMainPanel({
   patientLoading,
   appointmentData,
 }: ConsultationMainPanelProps) {
+  // Destructure the identity fields used as memo keys — avoids re-running
+  // buildConsultationSectionComponents when unrelated appointment fields change.
+  const { id: apptId, patientId, doctorId } = appointmentData;
   const sectionComponents = useMemo(
-    (): Partial<Record<ConsultationWorkspaceSectionId, ReactNode>> => ({
-      subjective: (
-        <SubjectiveSection
-          key="subjective"
-          sectionRef={setSectionRef("subjective")}
-          readOnly={readOnly}
-          patient={effectivePatient}
-          patientLoading={patientLoading}
-        />
+    () =>
+      buildConsultationSectionComponents(
+        setSectionRef,
+        readOnly,
+        appointmentData,
+        effectivePatient,
       ),
-      objective: (
-        <ObjectiveSection
-          key="objective"
-          sectionRef={setSectionRef("objective")}
-          readOnly={readOnly}
-        />
-      ),
-      "specialty-dental": (
-        <DentalSpecialtySection
-          key="specialty-dental"
-          sectionRef={setSectionRef("specialty-dental")}
-          readOnly={readOnly}
-        />
-      ),
-      "specialty-vision": (
-        <VisionSpecialtySection
-          key="specialty-vision"
-          sectionRef={setSectionRef("specialty-vision")}
-          readOnly={readOnly}
-        />
-      ),
-      "specialty-growth": (
-        <GrowthSpecialtySection
-          key="specialty-growth"
-          sectionRef={setSectionRef("specialty-growth")}
-          readOnly={readOnly}
-        />
-      ),
-      "specialty-cardiology": (
-        <CardiologyExamSection
-          key="specialty-cardiology"
-          sectionRef={setSectionRef("specialty-cardiology")}
-          readOnly={readOnly}
-        />
-      ),
-      "specialty-dermatology": (
-        <DermatologyExamSection
-          key="specialty-dermatology"
-          sectionRef={setSectionRef("specialty-dermatology")}
-          readOnly={readOnly}
-        />
-      ),
-      "specialty-gynecology": (
-        <GynecologyExamSection
-          key="specialty-gynecology"
-          sectionRef={setSectionRef("specialty-gynecology")}
-          readOnly={readOnly}
-        />
-      ),
-      "specialty-psychiatry": (
-        <PsychiatryExamSection
-          key="specialty-psychiatry"
-          sectionRef={setSectionRef("specialty-psychiatry")}
-          readOnly={readOnly}
-        />
-      ),
-      "specialty-investigations": (
-        <InvestigationsSection
-          key="specialty-investigations"
-          sectionRef={setSectionRef("specialty-investigations")}
-          readOnly={readOnly}
-        />
-      ),
-      assessment: (
-        <AssessmentSection
-          key="assessment"
-          sectionRef={setSectionRef("assessment")}
-          readOnly={readOnly}
-        />
-      ),
-      plan: (
-        <PlanSection
-          key="plan"
-          sectionRef={setSectionRef("plan")}
-          readOnly={readOnly}
-          patientAllergies={effectivePatient?.patientAllergies}
-        />
-      ),
-    }),
-    [effectivePatient, patientLoading, readOnly, setSectionRef],
+    // appointmentData object reference changes on every render; key on stable
+    // primitive identity fields instead so sections only rebuild when relevant
+    // data actually changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [apptId, patientId, doctorId, effectivePatient, readOnly, setSectionRef],
   );
+
+  const activeIndex = Math.max(
+    0,
+    sections.findIndex((s) => s.id === activeSectionId),
+  );
+  const activeSection = sections[activeIndex];
+  const activeNode = activeSection
+    ? sectionComponents[activeSection.id]
+    : undefined;
 
   return (
     <div className="flex min-w-0 flex-1 flex-col">
@@ -150,24 +72,30 @@ export function ConsultationMainPanel({
 
       <main
         ref={mainScrollRef}
-        className="flex-1 overflow-y-auto px-3 py-4 md:px-6 md:py-6"
+        className="flex-1 overflow-y-auto bg-muted/40 px-3 py-4 md:px-6 md:py-6"
         aria-label="Consultation workspace"
       >
-        <div className="mx-auto flex max-w-3xl flex-col gap-4">
-          {sections.map((section) => {
-            const Node = sectionComponents[section.id];
-            if (!Node) return null;
-            return (
-              <div
-                key={section.id}
-                className={cn(
-                  section.id !== activeSectionId && "hidden md:block",
-                )}
-              >
-                {Node}
-              </div>
-            );
-          })}
+        <div className="mx-auto flex max-w-3xl flex-col gap-5">
+          <ConsultationPastHistoryCard
+            patient={effectivePatient}
+            patientLoading={patientLoading}
+            readOnly={readOnly}
+          />
+
+          <StepProgressBar
+            activeIndex={activeIndex}
+            sectionsLength={sections.length}
+            show={Boolean(activeSection)}
+          />
+
+          {activeNode}
+
+          <StepNavigation
+            sections={sections}
+            activeIndex={activeIndex}
+            onSelectSection={onSelectSection}
+          />
+
           <ConsultationAfterVisitStrip
             appointment={appointmentData}
             onGoToPlan={() => onSelectSection("plan")}

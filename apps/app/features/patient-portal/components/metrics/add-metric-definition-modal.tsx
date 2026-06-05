@@ -182,7 +182,11 @@ export function AddMetricDefinitionModal({
             <Button type="submit" disabled={isPending}>
               {isPending ? (
                 <>
-                  <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                  <DocitaLoadingIndicator
+                    variant="inline"
+                    decorative
+                    className="mr-2"
+                  />
                   Creating…
                 </>
               ) : (

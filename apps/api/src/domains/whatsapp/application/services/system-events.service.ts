@@ -6,7 +6,12 @@ import {
 } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/whatsapp/whatsapp-patient-send-policy.util';
-import { DATE_FORMATS, formatDate, formatTime } from '@workspace/utils';
+import {
+  DATE_FORMATS,
+  formatDate,
+  formatTime,
+  getPatientFullName,
+} from '@workspace/utils';
 import {
   buildAppointmentDelayVariables,
   buildInvoiceCreatedVariables,
@@ -17,9 +22,6 @@ import {
   resolveAppointmentMapsLink,
 } from './system-events.helpers';
 
-/**
- * Clinic automation event notifier. Message delivery delegates to SendMessageUseCase.
- */
 // Facade — loads appointment/prescription/invoice context then delegates sends
 @Injectable()
 export class SystemEventsService {
@@ -62,7 +64,7 @@ export class SystemEventsService {
 
     const variables = buildPrescriptionCreatedVariables({
       prescriptionId: prescription.id,
-      patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
+      patientName: getPatientFullName(prescription.patient),
       doctorName: prescription.doctor.name,
       clinicName: prescription.appointment?.clinic?.name ?? '',
     });
@@ -111,7 +113,7 @@ export class SystemEventsService {
 
     const variables = buildInvoiceCreatedVariables({
       invoiceId: invoice.id,
-      patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
+      patientName: getPatientFullName(invoice.patient),
       clinicName: invoice.appointment?.clinic?.name ?? '',
       amount: invoice.total,
       currency: invoice.currency ?? invoice.appointment?.clinic?.currency,
@@ -166,7 +168,7 @@ export class SystemEventsService {
     const mapsLink = resolveAppointmentMapsLink(appointment.clinic?.settings);
 
     const variables = {
-      patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
+      patientName: getPatientFullName(appointment.patient),
       clinicName: appointment.clinic?.name ?? '',
       doctorName: appointment.doctor.name,
       date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM),
@@ -233,7 +235,7 @@ export class SystemEventsService {
     const paidAt = session?.paidAt ?? this.clock.now();
 
     const variables = {
-      patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
+      patientName: getPatientFullName(invoice.patient),
       clinicName: invoice.appointment?.clinic?.name ?? '',
       amount: `${invoice.total}`,
       invoiceNumber: invoice.id.slice(0, 8).toUpperCase(),
@@ -292,7 +294,7 @@ export class SystemEventsService {
 
     // Appointments are shifted in DB before this event; startTime is the new slot.
     const variables = buildAppointmentDelayVariables({
-      patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
+      patientName: getPatientFullName(appointment.patient),
       clinicName: appointment.clinic?.name ?? '',
       delayMinutes,
       updatedStartTime: appointment.startTime,
@@ -363,7 +365,7 @@ export class SystemEventsService {
         : 'appointment_rescheduled';
 
     const variables = {
-      patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
+      patientName: getPatientFullName(appointment.patient),
       clinicName: appointment.clinic?.name ?? '',
       date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM),
       time: formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM),

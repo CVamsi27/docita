@@ -129,6 +129,54 @@ export const createEncryptionExtension = (
             return encryptionService.decrypt(patient.lastName);
           },
         },
+        preferredName: {
+          needs: { preferredName: true },
+          compute(patient) {
+            return patient.preferredName
+              ? encryptionService.decrypt(patient.preferredName)
+              : patient.preferredName;
+          },
+        },
+        insuranceProvider: {
+          needs: { insuranceProvider: true },
+          compute(patient) {
+            return patient.insuranceProvider
+              ? encryptionService.decrypt(patient.insuranceProvider)
+              : patient.insuranceProvider;
+          },
+        },
+        insurancePolicyNumber: {
+          needs: { insurancePolicyNumber: true },
+          compute(patient) {
+            return patient.insurancePolicyNumber
+              ? encryptionService.decrypt(patient.insurancePolicyNumber)
+              : patient.insurancePolicyNumber;
+          },
+        },
+        insuranceGroupNumber: {
+          needs: { insuranceGroupNumber: true },
+          compute(patient) {
+            return patient.insuranceGroupNumber
+              ? encryptionService.decrypt(patient.insuranceGroupNumber)
+              : patient.insuranceGroupNumber;
+          },
+        },
+        allergies: {
+          needs: { allergies: true },
+          compute(patient) {
+            return patient.allergies
+              ? encryptionService.decrypt(patient.allergies)
+              : patient.allergies;
+          },
+        },
+        abhaAddress: {
+          needs: { abhaAddress: true },
+          compute(patient) {
+            return patient.abhaAddress
+              ? encryptionService.decrypt(patient.abhaAddress)
+              : patient.abhaAddress;
+          },
+        },
       },
     },
   });

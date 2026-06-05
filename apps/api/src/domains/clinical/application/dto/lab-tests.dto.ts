@@ -1,10 +1,16 @@
 import { createZodDto } from 'nestjs-zod';
 import {
+  createLabRequestSchema,
   createLabTestOrderRequestSchema,
   createLabTestRequestSchema,
   labStatsQuerySchema,
+  listLabQueueQuerySchema,
   listLabTestOrdersQuerySchema,
+  recordSampleCollectionRequestSchema,
+  updateLabRequestSchema,
   updateLabTestOrderRequestSchema,
+  uploadLabResultRequestSchema,
+  verifyLabOrderPaymentRequestSchema,
 } from '@workspace/types';
 
 export class CreateLabTestDto extends createZodDto(
@@ -24,3 +30,23 @@ export class ListLabTestOrdersQueryDto extends createZodDto(
 ) {}
 
 export class LabStatsQueryDto extends createZodDto(labStatsQuerySchema) {}
+
+export class ListLabQueueQueryDto extends createZodDto(
+  listLabQueueQuerySchema,
+) {}
+
+export class RecordSampleCollectionDto extends createZodDto(
+  recordSampleCollectionRequestSchema,
+) {}
+
+export class UploadLabResultDto extends createZodDto(
+  uploadLabResultRequestSchema,
+) {}
+
+export class VerifyLabOrderPaymentDto extends createZodDto(
+  verifyLabOrderPaymentRequestSchema,
+) {}
+
+export class CreateLabDto extends createZodDto(createLabRequestSchema) {}
+
+export class UpdateLabDto extends createZodDto(updateLabRequestSchema) {}

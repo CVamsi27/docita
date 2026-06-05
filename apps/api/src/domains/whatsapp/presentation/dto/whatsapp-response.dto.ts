@@ -1,6 +1,12 @@
 import { createZodDto } from 'nestjs-zod';
 import {
+  clinicWhatsappSentMessageListResponseSchema,
+  clinicWhatsappTemplateListResponseSchema,
+  clinicWhatsappTemplateSchema,
+  createWhatsappTemplateRequestSchema,
+  sendWhatsAppCustomMessageResponseSchema,
   successResponseSchema,
+  updateWhatsappTemplateRequestSchema,
   whatsappDefaultTemplatesResponseSchema,
   whatsappLogListResponseSchema,
   whatsappLogsQuerySchema,
@@ -14,6 +20,21 @@ import {
 
 export class WhatsappTemplateListResponseDto extends createZodDto(
   whatsappTemplateListResponseSchema,
+) {}
+export class ClinicWhatsappTemplateResponseDto extends createZodDto(
+  clinicWhatsappTemplateSchema,
+) {}
+export class ClinicWhatsappTemplateListResponseDto extends createZodDto(
+  clinicWhatsappTemplateListResponseSchema,
+) {}
+export class CreateWhatsappTemplateDto extends createZodDto(
+  createWhatsappTemplateRequestSchema,
+) {}
+export class UpdateWhatsappTemplateDto extends createZodDto(
+  updateWhatsappTemplateRequestSchema,
+) {}
+export class SendWhatsappCustomMessageResponseDto extends createZodDto(
+  sendWhatsAppCustomMessageResponseSchema,
 ) {}
 export class WhatsappDefaultTemplatesResponseDto extends createZodDto(
   whatsappDefaultTemplatesResponseSchema,
@@ -45,3 +66,7 @@ export class WhatsappUnreadNotificationsQueryDto extends createZodDto(
 ) {}
 
 export class SuccessResponseDto extends createZodDto(successResponseSchema) {}
+
+export class ClinicWhatsappSentMessageListResponseDto extends createZodDto(
+  clinicWhatsappSentMessageListResponseSchema,
+) {}

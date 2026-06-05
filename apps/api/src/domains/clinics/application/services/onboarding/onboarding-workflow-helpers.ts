@@ -7,7 +7,9 @@ import { generateReferralCode, toStaffRole } from './onboarding-step-engine';
 import {
   StaffSetupDto,
   ClinicTier,
+  PlanMode,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
+import { isFrontDeskPlanMode } from '@workspace/types';
 
 interface ValidationDeps {
   validatePasswordStrength(p: string): { valid: boolean; error?: string };
@@ -43,6 +45,7 @@ export async function createStaffMembersInTx(
   validation: ValidationDeps,
   ipAddress?: string,
   planTier?: ClinicTier,
+  planMode?: PlanMode,
 ): Promise<number> {
   if (!staffData.staffMembers?.length) return 0;
 
@@ -61,7 +64,9 @@ export async function createStaffMembersInTx(
     const hashedPassword = await bcrypt.hash(member.password, 10);
     const prismaRole = toStaffRole(member.role);
     const anchorDoctorOnFrontDeskTier =
-      planTier === ClinicTier.FRONT_DESK && prismaRole === Role.DOCTOR;
+      !!planTier &&
+      isFrontDeskPlanMode(planTier, planMode) &&
+      prismaRole === Role.DOCTOR;
 
     const newUser = await tx.user.create({
       data: {

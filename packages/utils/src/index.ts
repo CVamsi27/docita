@@ -1,5 +1,6 @@
 export * from "./date/index.js";
 export * from "./medical/index.js";
+export * from "./patient/index.js";
 export * from "./config/index.js";
 export * from "./constants/index.js";
 export * from "./imports.js";
@@ -15,3 +16,5 @@ export * from "./billing/index.js";
 export * from "./monitoring/index.js";
 export * from "./http/upstream-api-proxy.js";
 export * from "./whatsapp-public-links.js";
+export * from "./validation/index.js";
+export * from "./async/index.js";

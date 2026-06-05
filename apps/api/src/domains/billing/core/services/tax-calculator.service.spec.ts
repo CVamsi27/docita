@@ -1,5 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 import { TaxCalculatorService } from './tax-calculator.service';
+import {
+  applyInvoiceDiscountToFirstLine,
+  calculateInvoiceTotals,
+} from '@workspace/utils';
 
 describe('TaxCalculatorService', () => {
   const service = new TaxCalculatorService();
@@ -109,5 +113,39 @@ describe('TaxCalculatorService', () => {
 
     expect(result.summary.reverseCharge).toBe(true);
     expect(result.taxTotal).toBe(18);
+  });
+
+  it('matches the client preview for line and invoice discounts', () => {
+    const items = [
+      {
+        description: 'Taxable device',
+        quantity: 1,
+        price: 1000,
+        discountRate: 10,
+        taxTreatment: 'TAXABLE' as const,
+        taxRate: 18,
+      },
+      {
+        description: 'Consultation',
+        quantity: 1,
+        price: 500,
+      },
+    ];
+    const invoiceDiscount = 50;
+    const preview = calculateInvoiceTotals(items, invoiceDiscount);
+    const result = service.calculateInvoice({
+      items: applyInvoiceDiscountToFirstLine(items, invoiceDiscount),
+      seller: { stateCode: '29' },
+      buyer: { stateCode: '29' },
+    });
+
+    expect(preview).toEqual({
+      subtotal: result.subtotal,
+      discountTotal: result.discountTotal,
+      taxableAmount: result.summary.taxableAmount,
+      exemptAmount: result.summary.exemptAmount,
+      taxTotal: result.taxTotal,
+      grandTotal: result.grandTotal,
+    });
   });
 });

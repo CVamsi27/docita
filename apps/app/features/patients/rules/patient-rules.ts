@@ -1,12 +1,7 @@
 import type { Patient, User } from "@workspace/types";
-import { calculateAge } from "@workspace/utils";
+import { calculateAge, getPatientFullName } from "@workspace/utils";
 import { hasPermission } from "@/lib/auth/permissions";
-import { resolveLibPhoneCountry } from "@/lib/phone/resolve-libphone-country";
-import {
-  getCountryCallingCode,
-  isPossiblePhoneNumber,
-  parsePhoneNumber,
-} from "react-phone-number-input";
+import { validatePhoneForCountry } from "@/lib/validation/phone";
 
 type PatientNameLike = {
   firstName?: string | null;
@@ -29,11 +24,7 @@ export const requiresGuardianConsent = (patient: Patient): boolean => {
 };
 
 export const canDeletePatient = (_patient: Patient, user: User): boolean => {
-  if (user.role !== "ADMIN" && user.role !== "ADMIN_DOCTOR") {
-    return false;
-  }
-
-  return true;
+  return hasPermission(user.role, "deletePatient");
 };
 
 export const canEditPatient = (user: User): boolean => {
@@ -45,7 +36,7 @@ export const canViewPatient = (user: User): boolean => {
 };
 
 export const getPatientDisplayName = (patient: PatientNameLike): string => {
-  return `${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim();
+  return getPatientFullName(patient);
 };
 
 export const getPatientAge = (patient: PatientDateLike): number | null => {
@@ -71,30 +62,14 @@ export const getPatientAgeDisplay = (patient: PatientDateLike): string => {
 };
 
 export const getPatientDisplayLabel = (patient: PatientNameLike): string => {
-  return `${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim();
+  return getPatientFullName(patient);
 };
 
 export const validatePatientPhoneNumberForCountry = (
   phoneNumber: string | null | undefined,
   clinicCountryCode?: string | null,
 ): string | null => {
-  const phone = phoneNumber?.trim() ?? "";
-  if (!phone) {
-    return null;
-  }
-
-  const country = resolveLibPhoneCountry(clinicCountryCode);
-  const isValidForCountry = isPossiblePhoneNumber(phone, country);
-  const parsed = parsePhoneNumber(phone, country);
-  const expectedCallingCode = getCountryCallingCode(country);
-  const matchesSelectedCountry =
-    parsed?.countryCallingCode === expectedCallingCode;
-
-  if (!isValidForCountry || !matchesSelectedCountry) {
-    return "Enter a valid phone number for the selected clinic country";
-  }
-
-  return null;
+  return validatePhoneForCountry(phoneNumber, clinicCountryCode);
 };
 
 export const validatePatientData = (

@@ -34,14 +34,8 @@ export function DentalChartUI({
 
   if (isLoading || !constants) {
     return (
-      <div
-        role="status"
-        aria-live="polite"
-        aria-label="Loading dental chart"
-      >
-        <Skeleton
-          className="h-[400px] w-full rounded-lg"
-        />
+      <div role="status" aria-live="polite" aria-label="Loading dental chart">
+        <Skeleton className="h-[400px] w-full rounded-lg" />
       </div>
     );
   }
@@ -104,7 +98,9 @@ export function DentalChartUI({
           )}
           aria-label={toothLabel}
         >
-          <span className="text-[var(--fs-2xs)] text-muted-foreground">{toothId}</span>
+          <span className="text-[var(--fs-2xs)] text-muted-foreground">
+            {toothId}
+          </span>
           <div
             className={`w-3 h-3 rounded-full mt-1 ${getConditionColor(condition.value)}`}
           />

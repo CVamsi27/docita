@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import { FhirObservation } from '@/shared/modules/fhir/interfaces/fhir.interfaces';
 import type {
   VitalObservationContext,
@@ -14,7 +15,7 @@ export function buildVitalObservationContext(
 ): VitalObservationContext {
   return {
     effectiveDateTime: vital.appointment.startTime.toISOString(),
-    patientDisplay: `${vital.appointment.patient.firstName} ${vital.appointment.patient.lastName}`,
+    patientDisplay: getPatientFullName(vital.appointment.patient),
     encounterRef: `Encounter/${vital.appointmentId}`,
     subjectRef: `Patient/${vital.appointment.patientId}`,
   };

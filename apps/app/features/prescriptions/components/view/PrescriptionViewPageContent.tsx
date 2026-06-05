@@ -167,7 +167,7 @@ export function PrescriptionViewPageContent() {
             onBack={goBack}
             onEdit={handleEdit}
             onPrint={handlePrint}
-            whatsappStatus={prescription.whatsappStatus ?? null}
+            whatsappStatus={prescription.whatsappStatus}
             whatsappSentAt={prescription.whatsappSentAt ?? null}
             onWhatsappRetry={handleWhatsappRetry}
             isWhatsappRetrying={resendWhatsApp.isPending}

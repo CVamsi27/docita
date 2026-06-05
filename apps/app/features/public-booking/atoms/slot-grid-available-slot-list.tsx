@@ -35,7 +35,11 @@ export function SlotGridAvailableSlotList({
               )}
               onClick={() =>
                 c.doctorId === ANY_DOCTOR_ID
-                  ? c.handleSelectSlotWithDoctor(s.startTime, s.endTime, s.doctorId)
+                  ? c.handleSelectSlotWithDoctor(
+                      s.startTime,
+                      s.endTime,
+                      s.doctorId,
+                    )
                   : c.handleSelectSlot(s.startTime, s.endTime)
               }
             >

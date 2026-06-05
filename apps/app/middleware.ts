@@ -21,6 +21,10 @@ import {
 
 const isProduction = process.env.NODE_ENV === "production";
 const isCloudflareBuild = process.env["DOCITA_CLOUDFLARE"] === "1";
+const APP_ROUTE_REDIRECTS = new Map([
+  ["/dashboard", "/today"],
+  ["/upgrade", "/settings?tab=subscription"],
+]);
 
 const generateNonce = (): string => {
   const bytes = new Uint8Array(16);
@@ -31,6 +35,11 @@ const generateNonce = (): string => {
 };
 
 export async function middleware(request: NextRequest) {
+  const redirectPath = APP_ROUTE_REDIRECTS.get(request.nextUrl.pathname);
+  if (redirectPath) {
+    return NextResponse.redirect(new URL(redirectPath, request.url));
+  }
+
   if (isCloudflareBuild) {
     const pathSegments = extractApiV1PathSegments(request.nextUrl.pathname);
     if (pathSegments !== null) {
@@ -41,7 +50,11 @@ export async function middleware(request: NextRequest) {
   if (!isProduction) return NextResponse.next();
 
   const nonce = generateNonce();
-  const csp = buildContentSecurityPolicy({ nonce, isProduction: true });
+  const csp = buildContentSecurityPolicy({
+    nonce,
+    isProduction: true,
+    upgradeInsecureRequests: request.nextUrl.protocol === "https:",
+  });
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);

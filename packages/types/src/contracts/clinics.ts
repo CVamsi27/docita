@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { planModeSchema } from "../billing/tier";
+import { taxRegimeSchema } from "../billing/tax";
 import { jsonObjectSchema } from "../shared/json-schema";
 import { sidebarNavOrderSchema } from "../shared/sidebar-nav";
+import { facilityTypeSchema } from "../shared/users";
 
 const customFieldSchema = z.object({
   name: z.string(),
@@ -25,7 +27,7 @@ const taxSettingsSchema = z.object({
     .toUpperCase()
     .regex(/^[A-Z]{2}$/)
     .optional(),
-  regime: z.enum(["IN_GST", "VAT", "SALES_TAX", "NONE"]).optional(),
+  regime: taxRegimeSchema.optional(),
   registrationId: z.string().optional(),
   registrationLabel: z.string().optional(),
   /** Registered legal name for tax invoices, separate from the trade/facility name. */
@@ -117,7 +119,7 @@ export const updateClinicSettingsRequestSchema = z.object({
   subscriptionPaymentBankAccount: bankAccountSchema.optional(),
   paymentReceivingBankAccount: bankAccountSchema.optional(),
   taxSettings: taxSettingsSchema.optional(),
-  facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
+  facilityLabel: facilityTypeSchema.optional(),
   sidebarNavOrder: sidebarNavOrderSchema.optional(),
   mapsLocation: mapsLocationSchema.optional(),
   mapsLink: z.union([z.string().url(), z.literal("")]).optional(),
@@ -156,6 +158,7 @@ const clinicMemberInviteRoleSchema = z.enum([
   "RECEPTIONIST",
   "ADMIN",
   "ADMIN_DOCTOR",
+  "LAB",
 ]);
 
 export const createClinicMemberRequestSchema = z
@@ -168,6 +171,7 @@ export const createClinicMemberRequestSchema = z
     specialization: z.string().optional(),
     qualification: z.string().optional(),
     registrationNumber: z.string().optional(),
+    labId: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (
@@ -187,16 +191,18 @@ export const updateClinicMemberRequestSchema = z.object({
   email: z.string().email().optional(),
   phoneNumber: z.string().optional(),
   role: z
-    .enum(["DOCTOR", "NURSE", "RECEPTIONIST", "ADMIN", "ADMIN_DOCTOR"])
+    .enum(["DOCTOR", "NURSE", "RECEPTIONIST", "ADMIN", "ADMIN_DOCTOR", "LAB"])
     .optional(),
   specialization: z.string().optional(),
   qualification: z.string().optional(),
   registrationNumber: z.string().optional(),
+  labId: z.string().optional(),
 });
 
 export const clinicResponseSchema = createClinicRequestSchema.extend({
   id: z.string(),
   planMode: planModeSchema.optional(),
+  facilityType: facilityTypeSchema.optional(),
   active: z.boolean().optional(),
   createdAt: z.union([z.string(), z.date()]).optional(),
   referralCode: z.string().optional(),

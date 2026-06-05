@@ -20,7 +20,7 @@ import {
   updatePatientAllergySchema,
 } from "@workspace/types";
 import { useAPIMutation } from "../core/use-api-mutation";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 
 function patientMedicalHistoryInvalidateKeys(patientId: string) {
   return [
@@ -69,7 +69,8 @@ export function useUpdatePatientAllergy(patientId: string) {
     PatientAllergy,
     UpdatePatientAllergyInput & { id: string }
   >(
-    (allergy) => `/patients/${patientId}/medical-history/allergies/${allergy.id}`,
+    (allergy) =>
+      `/patients/${patientId}/medical-history/allergies/${allergy.id}`,
     "PATCH",
     {
       body: ({ id: _id, ...data }) => updatePatientAllergySchema.parse(data),
@@ -113,13 +114,14 @@ export function useDeletePatientSurgicalHistory(patientId: string) {
 }
 
 export function useCreatePatientFamilyHistory(patientId: string) {
-  return useAPIMutation<
-    PatientFamilyHistory,
-    CreatePatientFamilyHistoryInput
-  >(`/patients/${patientId}/medical-history/family`, "POST", {
-    body: (data) => createPatientFamilyHistorySchema.parse(data),
-    invalidateKeys: patientMedicalHistoryInvalidateKeys(patientId),
-  });
+  return useAPIMutation<PatientFamilyHistory, CreatePatientFamilyHistoryInput>(
+    `/patients/${patientId}/medical-history/family`,
+    "POST",
+    {
+      body: (data) => createPatientFamilyHistorySchema.parse(data),
+      invalidateKeys: patientMedicalHistoryInvalidateKeys(patientId),
+    },
+  );
 }
 
 export function useDeletePatientFamilyHistory(patientId: string) {

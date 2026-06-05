@@ -355,7 +355,7 @@ export const PRICING_CURRENCY_CONFIG: Record<
   },
 };
 
-/** Free-trial length (days) for unpaid Starter/Essential onboarding and copy alignment. */
+/** Free-trial length (days) for unpaid onboarding (all plans except Enterprise) and copy alignment. */
 export const SUBSCRIPTION_TRIAL_DAYS = 30 as const;
 
 /**
@@ -1063,19 +1063,6 @@ export const WHATSAPP_ADDON_PRICING: Record<
   ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.2 },
 };
 
-export const INTELLIGENCE_ADDON_PRICING: Record<
-  Exclude<TierName, "STARTER" | "INTELLIGENCE">,
-  AddOnPricing
-> = {
-  ESSENTIAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
-  FRONT_DESK: { basePrice: 0, includedQuota: 0, overageRate: 0 },
-  FRONT_DESK_CLINIC: { basePrice: 0, includedQuota: 0, overageRate: 0 },
-  FRONT_DESK_HOSPITAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
-  PROFESSIONAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
-  HOSPITAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
-  ENTERPRISE: { basePrice: 0, includedQuota: 0, overageRate: 0 },
-};
-
 export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
   SupportedCurrency,
   Record<Exclude<TierName, "STARTER" | "INTELLIGENCE">, AddOnPricing>
@@ -1330,6 +1317,20 @@ export type DiscountType =
   | "MEDICAL_COLLEGE"
   | "RURAL_HEALTH"
   | "STARTUP_CLINIC";
+
+export const discountTypeSchema = z.enum([
+  "ANNUAL_COMMITMENT",
+  "SEMI_ANNUAL_COMMITMENT",
+  "LOYALTY_1_YEAR",
+  "LOYALTY_2_YEARS",
+  "LOYALTY_3_YEARS",
+  "REFERRAL_NEW_CUSTOMER",
+  "GOVERNMENT",
+  "NGO",
+  "MEDICAL_COLLEGE",
+  "RURAL_HEALTH",
+  "STARTUP_CLINIC",
+]);
 
 export const DISCOUNT_CONFIG: Record<
   DiscountType,

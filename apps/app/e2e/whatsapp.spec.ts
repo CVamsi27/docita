@@ -1,6 +1,6 @@
 import { expect, Page, test } from "@playwright/test";
-import { API_URL, setupTestUser } from "./utils/patient-helpers";
-import { seedSession } from "./utils/session";
+import { DPDP_NOTICE_VERSION } from "@workspace/types";
+import { API_URL, loginUser, setupTestUser } from "./utils/patient-helpers";
 import { expectPageHeader, expectRoute } from "./utils/ui-contracts";
 
 test.describe("WhatsApp Integration", () => {
@@ -25,7 +25,10 @@ test.describe("WhatsApp Integration", () => {
     };
 
     const patientRes = await request.post(`${API_URL}/patients`, {
-      headers: { Authorization: `Bearer ${cachedUser.accessToken}` },
+      headers: {
+        Authorization: `Bearer ${cachedUser.accessToken}`,
+        "x-docita-e2e": "true",
+      },
       data: {
         firstName: "WA",
         lastName: "User",
@@ -33,11 +36,16 @@ test.describe("WhatsApp Integration", () => {
         gender: "MALE",
         dateOfBirth: "1990-01-01",
         clinicId: cachedUser.clinicId,
+        dpdpConsent: {
+          accepted: true,
+          noticeVersion: DPDP_NOTICE_VERSION,
+          givenByName: "WA User",
+        },
       },
     });
     expect(
       patientRes.ok(),
-      `patient bootstrap failed: ${patientRes.status()}`,
+      `patient bootstrap failed: ${patientRes.status()} ${await patientRes.text()}`,
     ).toBeTruthy();
     cachedPatient = await patientRes.json();
 
@@ -91,14 +99,8 @@ test.describe("WhatsApp Integration", () => {
 
   async function injectAuth(page: Page) {
     if (!cachedUser) return;
-    await seedSession(page, {
-      token: cachedUser.accessToken,
-      user: {
-        id: cachedUser.id,
-        email: cachedUser.email,
-        role: cachedUser.role ?? "ADMIN_DOCTOR",
-        clinicId: cachedUser.clinicId,
-      },
+    await loginUser(page, cachedUser, {
+      role: cachedUser.role ?? "ADMIN_DOCTOR",
     });
   }
 
@@ -111,16 +113,14 @@ test.describe("WhatsApp Integration", () => {
 
     await expectRoute(page, /\/whatsapp/);
     await expectPageHeader(page, {
-      title: "WhatsApp Integration",
-      description: /WhatsApp Business API/i,
+      title: "WhatsApp",
+      description: /Patient conversations/i,
     });
 
     await expect(
-      page.getByRole("button", { name: /Manage Settings/i }),
+      page.getByRole("link", { name: /Sender settings/i }),
     ).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: /Create Campaign/i }),
-    ).toBeVisible();
+    await expect(page.getByRole("tab", { name: /Campaigns/i })).toBeVisible();
   });
 
   test("should trigger WhatsApp API when sending prescription", async ({
@@ -147,11 +147,7 @@ test.describe("WhatsApp Integration", () => {
       waitUntil: "load",
     });
 
-    const waButton = page
-      .locator(
-        'button:has-text("WhatsApp"), [aria-label*="WhatsApp"], .whatsapp-share-btn',
-      )
-      .first();
+    const waButton = page.getByRole("button", { name: "Send", exact: true });
     await expect(waButton).toBeVisible({ timeout: 15000 });
     await waButton.click();
 

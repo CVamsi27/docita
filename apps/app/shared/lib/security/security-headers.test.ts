@@ -32,6 +32,14 @@ describe("buildContentSecurityPolicy", () => {
     expect(csp).not.toContain("'unsafe-eval'");
   });
 
+  it("can suppress HTTPS upgrades for plain-HTTP local production previews", () => {
+    const csp = buildContentSecurityPolicy({
+      isProduction: true,
+      upgradeInsecureRequests: false,
+    });
+    expect(csp).not.toContain("upgrade-insecure-requests");
+  });
+
   it("blocks framing via frame-ancestors 'none'", () => {
     const csp = buildContentSecurityPolicy();
     expect(csp).toContain("frame-ancestors 'none'");

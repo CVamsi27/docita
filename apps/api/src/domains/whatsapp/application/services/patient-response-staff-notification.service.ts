@@ -15,6 +15,7 @@ import {
   formatTime,
   DATE_FORMATS,
   DEFAULT_TIMEZONE,
+  getPatientFullName,
 } from '@workspace/utils';
 import type {
   AppointmentContext,
@@ -55,7 +56,7 @@ export class PatientResponseStaffNotificationService {
 
     const variables = {
       clinicName: appointment.clinic.name,
-      patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
+      patientName: getPatientFullName(appointment.patient),
       date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM, {
         timezone: DEFAULT_TIMEZONE,
       }),

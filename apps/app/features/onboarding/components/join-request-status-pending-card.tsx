@@ -3,9 +3,17 @@
 import { Clock, Building2 } from "lucide-react";
 import { Card } from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/feedback/alert";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/feedback/alert";
 import { Badge } from "@workspace/ui/components/indicators/badge";
-import { DATE_FORMATS, formatDate, formatDistanceToNow } from "@workspace/utils";
+import {
+  DATE_FORMATS,
+  formatDate,
+  formatDistanceToNow,
+} from "@workspace/utils";
 
 export interface JoinRequestStatusItem {
   id: string;

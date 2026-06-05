@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, type RefObject } from "react";
 import { useParams } from "next/navigation";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { useConsultationHydrate } from "@/features/consultation/state/useConsultationHydrate";
-import { toRecord } from "@/features/consultation/state/consultationHydrateHelpers";
 import { useConsultationAutosave } from "@/features/consultation/state/useConsultationAutosave";
 import { usePatientWithMedicalHistory } from "@workspace/data-access";
 import { getConsultationSectionsForClinic } from "@/features/consultation/workspace/consultation-section-registry";
@@ -38,8 +37,7 @@ export function useConsultationShell({
   onPaletteOpenChange,
 }: UseConsultationShellOptions) {
   const params = useParams();
-  const appointmentId =
-    typeof params?.["id"] === "string" ? params["id"] : "";
+  const appointmentId = typeof params?.["id"] === "string" ? params["id"] : "";
   const { openVitals } = useConsultationVitals();
   const { canViewPrescriptions, canManageTemplates } = usePermissions();
   const { canAccess } = usePermissionStore();
@@ -47,7 +45,7 @@ export function useConsultationShell({
 
   useConsultationHydrate({
     appointmentId,
-    appointmentData: toRecord(appointmentData),
+    appointmentData,
   });
 
   const sections = useMemo(
@@ -69,7 +67,11 @@ export function useConsultationShell({
 
   const effectivePatient = patient ?? appointmentData.patient;
 
-  const scroll = useConsultationShellScroll({ sections, clinicType });
+  const scroll = useConsultationShellScroll({
+    sections,
+    clinicType,
+    stepMode: true,
+  });
 
   const { flush, submitPrescriptions } = useConsultationAutosave({
     appointmentId,

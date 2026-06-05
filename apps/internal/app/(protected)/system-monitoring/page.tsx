@@ -1,3 +1,3 @@
-import SystemMonitoringPage from "./system-monitoring-page";
+import SystemMonitoringPage from "@/features/system-monitoring/system-monitoring-page";
 
 export default SystemMonitoringPage;

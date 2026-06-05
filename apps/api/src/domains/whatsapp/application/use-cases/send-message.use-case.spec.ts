@@ -21,6 +21,8 @@ describe('SendMessageUseCase', () => {
   let useCase: SendMessageUseCase;
 
   const saveMessageMock = jest.fn<IWhatsAppRepository['saveMessage']>();
+  const ensureConversationMock =
+    jest.fn<IWhatsAppRepository['ensureConversation']>();
   const findMessageByIdMock = jest.fn<IWhatsAppRepository['findMessageById']>();
   const findMessageByExternalIdMock =
     jest.fn<IWhatsAppRepository['findMessageByExternalId']>();
@@ -37,6 +39,7 @@ describe('SendMessageUseCase', () => {
     jest.fn<IWhatsAppRepository['isAutomationEnabled']>();
 
   const mockRepository: IWhatsAppRepository = {
+    ensureConversation: ensureConversationMock,
     saveMessage: saveMessageMock,
     findMessageById: findMessageByIdMock,
     findMessageByExternalId: findMessageByExternalIdMock,
@@ -81,6 +84,7 @@ describe('SendMessageUseCase', () => {
     jest.clearAllMocks();
 
     saveMessageMock.mockResolvedValue();
+    ensureConversationMock.mockResolvedValue('conv-001');
     findMessageByIdMock.mockResolvedValue(null);
     findMessageByExternalIdMock.mockResolvedValue(null);
     findClinicMessageContextMock.mockResolvedValue({

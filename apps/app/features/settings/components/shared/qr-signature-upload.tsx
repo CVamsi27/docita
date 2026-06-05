@@ -10,7 +10,10 @@ import {
 } from "@workspace/ui/components/overlay/dialog";
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
+import {
+  Alert,
+  AlertDescription,
+} from "@workspace/ui/components/feedback/alert";
 import { Clock, QrCode, Smartphone, X } from "lucide-react";
 import {
   type SignatureUploadToken,
@@ -19,7 +22,7 @@ import {
 import { DATE_FORMATS, formatDate } from "@workspace/utils";
 import { QrCodeCard } from "@/components/signature/qr-code-card";
 import { CopyableLinkField } from "@/components/signature/copyable-link-field";
-import { toAbsoluteAppUrl } from "@/lib/utils/url";
+import { toAbsoluteAppUrl } from "@/lib/utils/app-url";
 
 interface QrSignatureUploadProps {
   onGenerate: () => Promise<SignatureUploadToken>;
@@ -49,7 +52,9 @@ export function QrSignatureUpload({
   dialogDescription,
 }: QrSignatureUploadProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [currentToken, setCurrentToken] = useState<SignatureUploadToken | null>(null);
+  const [currentToken, setCurrentToken] = useState<SignatureUploadToken | null>(
+    null,
+  );
 
   const handleGenerateToken = async () => {
     const token = await onGenerate();
@@ -140,7 +145,9 @@ export function QrSignatureUpload({
           </DialogHeader>
 
           <div className="flex flex-col items-center space-y-4 py-4">
-            {fullUploadUrl ? <QrCodeCard value={fullUploadUrl} size={200} /> : null}
+            {fullUploadUrl ? (
+              <QrCodeCard value={fullUploadUrl} size={200} />
+            ) : null}
 
             {fullUploadUrl ? (
               <CopyableLinkField

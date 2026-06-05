@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { WhatsappTemplateCategory } from '@workspace/db';
 import { TemplatesService } from '@/domains/whatsapp/application/services/templates.service';
 import { WhatsappResendService } from '@/domains/whatsapp/application/services/resend.service';
 import { SystemEventsService } from '@/domains/whatsapp/application/services/system-events.service';
@@ -25,6 +26,38 @@ export class WhatsappService {
     return this.templatesService.listTemplates(clinicId);
   }
 
+  async getTemplateById(id: string) {
+    return this.templatesService.getTemplateById(id);
+  }
+
+  async createCustomTemplate(
+    clinicId: string,
+    data: {
+      name: string;
+      content: string;
+      category: WhatsappTemplateCategory;
+    },
+  ) {
+    return this.templatesService.createTemplate({
+      clinicId,
+      name: data.name,
+      content: data.content,
+      category: data.category,
+      buttonType: 'NONE',
+    });
+  }
+
+  async updateCustomTemplate(
+    id: string,
+    data: { content?: string; category?: WhatsappTemplateCategory },
+  ) {
+    return this.templatesService.updateTemplate(id, data);
+  }
+
+  async deleteCustomTemplate(id: string) {
+    return this.templatesService.deleteTemplate(id);
+  }
+
   getDefaultTemplateNames() {
     return this.templatesService.getDefaultTemplateNames();
   }
@@ -39,6 +72,18 @@ export class WhatsappService {
     dto: SendTemplateDto,
   ) {
     return this.templateMessageService.handleSendTemplate(
+      clinicId,
+      userId,
+      dto,
+    );
+  }
+
+  async handleSendCustomMessage(
+    clinicId: string,
+    userId: string,
+    dto: { patientId: string; text: string },
+  ) {
+    return this.templateMessageService.handleSendCustomMessage(
       clinicId,
       userId,
       dto,

@@ -29,12 +29,7 @@ export default function PortalAppointmentsPage() {
   const [preferredTime, setPreferredTime] = useState("");
   const [reason, setReason] = useState("");
   const [notes, setNotes] = useState("");
-  const {
-    data,
-    isLoading,
-    isError,
-    refetch,
-  } = usePatientPortalAppointments();
+  const { data, isLoading, isError, refetch } = usePatientPortalAppointments();
   const requestAppointment = useRequestAppointment();
 
   const appointments = (data?.appointments ?? []).map(mapPortalAppointmentRow);
@@ -44,8 +39,8 @@ export default function PortalAppointmentsPage() {
     : isError
       ? "error"
       : appointments.length === 0
-      ? "empty"
-      : "success";
+        ? "empty"
+        : "success";
 
   const handleRequestSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -105,7 +100,10 @@ export default function PortalAppointmentsPage() {
               aria-label="Reason for visit"
             />
             <div className="flex min-w-0 flex-col gap-2">
-              <Label htmlFor="portal-preferred-date" className="text-xs text-muted-foreground">
+              <Label
+                htmlFor="portal-preferred-date"
+                className="text-xs text-muted-foreground"
+              >
                 Preferred date
               </Label>
               <IsoDatePickerField

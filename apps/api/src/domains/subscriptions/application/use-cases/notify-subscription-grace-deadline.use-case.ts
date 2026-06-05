@@ -1,42 +1,50 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+// check-non-null-assertion: allow-file — non-null guaranteed by prior guard or Prisma include
+import { Inject, Injectable } from '@nestjs/common';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { DATE_FORMATS, formatDate } from '@workspace/utils';
 import {
-  ISubscriptionRepository,
+  type ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
 } from '@/domains/subscriptions/application/ports';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { getUtcDayBounds } from '@/shared/schedule/scheduler-date.util';
+import {
+  BaseSubscriptionNotifier,
+  type SubscriptionWithClinic,
+} from './base-subscription-notifier.use-case';
 
 export interface NotifyGraceDeadlineRequest {
   targetDate: Date;
   reminderType: string;
 }
 
-export interface NotifyGraceDeadlineResult {
+export type NotifyGraceDeadlineResult = {
   reminderType: string;
   matchedSubscriptions: number;
   attemptedClinics: number;
   sent: number;
   failed: number;
-}
+};
+
+type GraceCandidate = SubscriptionWithClinic & {
+  graceUntil: Date | null;
+};
 
 @Injectable()
-export class NotifySubscriptionGraceDeadlineUseCase {
-  private readonly logger = new Logger(
-    NotifySubscriptionGraceDeadlineUseCase.name,
-  );
-
+export class NotifySubscriptionGraceDeadlineUseCase extends BaseSubscriptionNotifier {
   constructor(
     @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
-    private readonly subscriptionRepo: ISubscriptionRepository,
-    private readonly emailService: EmailService,
-    @Inject(CLOCK_PORT) private readonly clock: IClock,
-  ) {}
+    subscriptionRepo: ISubscriptionRepository,
+    emailService: EmailService,
+    @Inject(CLOCK_PORT) clock: IClock,
+  ) {
+    super(subscriptionRepo, emailService, clock);
+  }
 
-  private buildEmail(reminderType: string, clinicName: string, deadline: Date) {
+  private buildEmail(sub: GraceCandidate, reminderType: string) {
+    const clinicName = sub.clinic?.name ?? `Clinic ${sub.clinicId}`;
     const deadlineLabel = formatDate(
-      deadline,
+      sub.graceUntil!,
       DATE_FORMATS.DATE_WEEKDAY_SHORT_MEDIUM,
     );
 
@@ -78,140 +86,12 @@ export class NotifySubscriptionGraceDeadlineUseCase {
         endOfDay,
       });
 
-    if (subscriptions.length === 0) {
-      return {
-        reminderType,
-        matchedSubscriptions: 0,
-        attemptedClinics: 0,
-        sent: 0,
-        failed: 0,
-      };
-    }
-
-    const reminderCutoff = this.clock.now();
-    reminderCutoff.setDate(reminderCutoff.getDate() - 1);
-
-    const clinicIds = Array.from(
-      new Set(subscriptions.map((sub) => sub.clinicId)),
-    );
-    const existingReminderClinicIds =
-      await this.subscriptionRepo.findRecentReminderClinicIds({
-        clinicIds,
-        reminderType,
-        reminderCutoff,
-      });
-
-    const processedClinicIds = new Set(existingReminderClinicIds);
-
-    const sentAt = this.clock.now();
-    const remindersToCreate: Array<{
-      clinicId: string;
-      subscriptionId: string;
-      type: string;
-      channel: string;
-      status: string;
-      sentAt: Date | null;
-      errorMessage: string | null;
-    }> = [];
-
-    let attemptedClinics = 0;
-    let sent = 0;
-    let failed = 0;
-
-    for (const sub of subscriptions) {
-      if (processedClinicIds.has(sub.clinicId)) {
-        continue;
-      }
-
-      if (!sub.graceUntil) {
-        continue;
-      }
-
-      processedClinicIds.add(sub.clinicId);
-
-      this.logger.log(
-        `Sending grace deadline reminder ${reminderType} to clinic ${sub.clinicId}`,
-      );
-
-      attemptedClinics += 1;
-
-      const to = (sub.clinic?.users ?? [])
-        .map((u) => u.email)
-        .filter((email): email is string => Boolean(email));
-
-      if (to.length === 0) {
-        failed += 1;
-        remindersToCreate.push({
-          clinicId: sub.clinicId,
-          subscriptionId: sub.id,
-          type: reminderType,
-          channel: 'EMAIL',
-          status: 'failed',
-          sentAt: null,
-          errorMessage: 'No billing admin email recipients found for clinic',
-        });
-        continue;
-      }
-
-      const clinicName = sub.clinic?.name ?? `Clinic ${sub.clinicId}`;
-      const email = this.buildEmail(reminderType, clinicName, sub.graceUntil);
-
-      try {
-        const result = await this.emailService.send({
-          to,
-          subject: email.subject,
-          text: email.text,
-        });
-
-        if (result.success) {
-          sent += 1;
-          remindersToCreate.push({
-            clinicId: sub.clinicId,
-            subscriptionId: sub.id,
-            type: reminderType,
-            channel: 'EMAIL',
-            status: 'sent',
-            sentAt,
-            errorMessage: null,
-          });
-        } else {
-          failed += 1;
-          remindersToCreate.push({
-            clinicId: sub.clinicId,
-            subscriptionId: sub.id,
-            type: reminderType,
-            channel: 'EMAIL',
-            status: 'failed',
-            sentAt: null,
-            errorMessage: result.error ?? 'Email send failed',
-          });
-        }
-      } catch (error) {
-        failed += 1;
-        remindersToCreate.push({
-          clinicId: sub.clinicId,
-          subscriptionId: sub.id,
-          type: reminderType,
-          channel: 'EMAIL',
-          status: 'failed',
-          sentAt: null,
-          errorMessage: error instanceof Error ? error.message : String(error),
-        });
-      }
-    }
-
-    if (remindersToCreate.length > 0) {
-      await this.subscriptionRepo.createSubscriptionReminders(
-        remindersToCreate,
-      );
-    }
-
-    return {
+    return this.processReminders(
       reminderType,
-      matchedSubscriptions: subscriptions.length,
-      attemptedClinics,
-      sent,
-      failed,
-    };
+      subscriptions,
+      (sub) => this.buildEmail(sub, reminderType),
+      'No billing admin email recipients found for clinic',
+      (sub) => !sub.graceUntil,
+    );
   }
 }

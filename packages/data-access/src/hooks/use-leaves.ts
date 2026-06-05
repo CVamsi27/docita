@@ -1,4 +1,4 @@
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import {
@@ -23,7 +23,9 @@ export const useLeaves = (options?: {
   if (options?.startDate) params.append("startDate", options.startDate);
   if (options?.endDate) params.append("endDate", options.endDate);
   const qs = params.toString();
-  const leaveOk = useDataAccessContext().isTierFeatureEnabled(Feature.LEAVE_MANAGEMENT);
+  const leaveOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.LEAVE_MANAGEMENT,
+  );
   return useAPIQuery<StaffLeave[]>(
     queryKeys.leaves.list(options),
     qs ? `/leaves?${qs}` : "/leaves",
@@ -32,10 +34,16 @@ export const useLeaves = (options?: {
 };
 
 export const useLeaveBalance = () => {
-  const leaveOk = useDataAccessContext().isTierFeatureEnabled(Feature.LEAVE_MANAGEMENT);
-  return useAPIQuery<LeaveBalance[]>(queryKeys.leaves.balance(), "/leaves/balance", {
-    enabled: leaveOk,
-  });
+  const leaveOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.LEAVE_MANAGEMENT,
+  );
+  return useAPIQuery<LeaveBalance[]>(
+    queryKeys.leaves.balance(),
+    "/leaves/balance",
+    {
+      enabled: leaveOk,
+    },
+  );
 };
 
 export const useApplyLeave = () =>
@@ -61,7 +69,9 @@ export const useCancelLeave = (id: string) =>
   });
 
 export const useLeavePlans = () => {
-  const leaveOk = useDataAccessContext().isTierFeatureEnabled(Feature.LEAVE_MANAGEMENT);
+  const leaveOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.LEAVE_MANAGEMENT,
+  );
   return useAPIQuery<LeavePlan[]>(queryKeys.leavePlans.all(), "/leave-plans", {
     enabled: leaveOk,
   });

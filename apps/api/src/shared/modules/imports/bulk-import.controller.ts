@@ -21,7 +21,7 @@ type AuthedExpressRequest = AuthenticatedRequest & ExpressRequest;
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { BulkImportJobStatusResponseDto } from './dto/bulk-import.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { readRequestHeaderString } from '@/shared/common/http/client-ip';
+import { readRequestHeaderString } from '@/shared/common/http/request-headers';
 
 @Controller('imports')
 @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.INTERNAL)

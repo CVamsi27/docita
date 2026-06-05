@@ -2,22 +2,12 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { ConsultationShell } from "@/features/consultation/workspace/ConsultationShell";
 import { useConsultationLogic } from "@/features/consultation/hooks/use-consultation-logic";
-import { ConsultationPageHeaderUI } from "@/features/consultation/components/ConsultationPageHeaderUI";
-import { ConsultationSidebarContainer } from "@/features/consultation/components/ConsultationSidebarContainer";
-import { ConsultationLeaveDialog } from "@/features/consultation/components/ConsultationLeaveDialog";
-import { ConsultationVitalsProvider } from "@/features/consultation/workspace/consultation-vitals-context";
-import { ConsultationLeaveNavigationProvider } from "@/features/consultation/workspace/consultation-leave-navigation-context";
 import {
   useConsultationLeaveNavigation,
   type ConsultationSaveHandles,
 } from "@/features/consultation/workspace/use-consultation-leave-navigation";
 import { isConsultationReadOnlyStatus } from "@/features/appointments";
-import { formatChiefComplaintSummary } from "@workspace/utils";
-import { Stethoscope } from "lucide-react";
 import { useConfirm } from "@/hooks/use-confirm";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
@@ -33,6 +23,13 @@ import {
 } from "@/features/consultation/rules/consultationRules";
 import { resolveConsultationCompletionSnapshot } from "@/features/consultation/rules/consultation-completion";
 import { useSessionRecoveryRedirect } from "@/hooks/use-session-recovery-redirect";
+import {
+  ConsultationLoadingPage,
+  ConsultationErrorPage,
+  ConsultationAccessDeniedPage,
+  ConsultationNotFoundPage,
+  ConsultationMainContent,
+} from "./ConsultationDetailPageSections";
 
 export default function ConsultationPage() {
   return (
@@ -174,7 +171,9 @@ function ConsultationPageContent() {
       await queryClient.invalidateQueries({
         queryKey: queryKeys.appointments.detail(appointmentId),
       });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.appointments.all() });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.appointments.all(),
+      });
 
       toast.success("Consultation marked done");
       void retry();
@@ -196,127 +195,43 @@ function ConsultationPageContent() {
   ]);
 
   if (loading || isRecoveringSession) {
-    return (
-      <AppPageScaffold>
-        <DataState
-          status="loading"
-          className="min-h-[50vh]"
-          loadingMessage={
-            isRecoveringSession
-              ? "Restoring your session…"
-              : "Loading consultation…"
-          }
-        />
-      </AppPageScaffold>
-    );
+    return <ConsultationLoadingPage isRecoveringSession={isRecoveringSession} />;
   }
 
   if (isError) {
-    return (
-      <AppPageScaffold>
-        <DataState
-          status="error"
-          className="min-h-[50vh]"
-          errorMessage="We could not open this consultation. Please try again."
-          onRetry={retry}
-        />
-      </AppPageScaffold>
-    );
+    return <ConsultationErrorPage onRetry={retry} />;
   }
 
   if (isAccessDenied) {
-    return (
-      <AppPageScaffold>
-        <DataState
-          status="error"
-          className="min-h-[50vh]"
-          errorMessage="Only the assigned doctor can open this consultation"
-          onRetry={handleBack}
-        />
-      </AppPageScaffold>
-    );
+    return <ConsultationAccessDeniedPage onBack={handleBack} />;
   }
 
   if (!appointmentData) {
-    return (
-      <AppPageScaffold>
-        <DataState
-          status="empty"
-          className="min-h-[50vh]"
-          emptyIcon={Stethoscope}
-          emptyTitle="Appointment not found"
-          emptyDescription="This consultation is unavailable or has been removed"
-          emptyAction={{
-            label: "Back to Appointments",
-            onClick: handleBack,
-          }}
-        />
-      </AppPageScaffold>
-    );
+    return <ConsultationNotFoundPage onBack={handleBack} />;
   }
 
-  const patientName = appointmentData.patient
-    ? `${appointmentData.patient.firstName} ${appointmentData.patient.lastName}`
-    : "Patient";
-
-  const MobileSidebar = (
-    <ConsultationSidebarContainer appointmentData={appointmentData} />
-  );
-
   return (
-    <ConsultationVitalsProvider
+    <ConsultationMainContent
+      appointmentData={appointmentData}
       appointmentId={appointmentId}
-      patientName={patientName}
-    >
-      <ConsultationLeaveNavigationProvider
-        attemptNavigateToHref={attemptNavigateToHref}
-      >
-        <div className="flex h-full flex-col">
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
-            <ConsultationPageHeaderUI
-              patientName={patientName}
-              appointmentDate={appointmentData.startTime}
-              appointmentId={appointmentId}
-              patientId={appointmentData.patientId}
-              appointmentType={appointmentData.type}
-              appointmentStatus={appointmentData.status}
-              readOnly={consultationReadOnly}
-              chiefComplaint={
-                formatChiefComplaintSummary(
-                  appointmentData.chiefComplaint ?? undefined,
-                ) ?? undefined
-              }
-              onBack={tryNavigateAway}
-              MobileSidebarContent={MobileSidebar}
-              isDesktopSidebarOpen={isSidebarOpen}
-              onToggleDesktopSidebar={toggleSidebar}
-              onOpenCommandPalette={() => setPaletteOpen(true)}
-              onMarkDone={handleMarkDone}
-              isMarkingDone={isMarkingDone}
-              canMarkDone={canMarkDone}
-              markDoneDisabledReason={markDoneDisabledReason}
-            />
-
-            <ConsultationShell
-              appointmentData={appointmentData}
-              clinicType={clinic?.type}
-              readOnly={consultationReadOnly}
-              isSidebarOpen={isSidebarOpen}
-              saveHandlesRef={saveHandlesRef}
-              paletteOpen={paletteOpen}
-              onPaletteOpenChange={setPaletteOpen}
-            />
-          </div>
-        </div>
-
-        <ConsultationLeaveDialog
-          open={leaveDialogOpen}
-          onOpenChange={onLeaveDialogOpenChange}
-          leaveBusy={leaveBusy}
-          onSaveAndLeave={saveAndLeave}
-          onLeaveWithoutSaving={leaveWithoutSaving}
-        />
-      </ConsultationLeaveNavigationProvider>
-    </ConsultationVitalsProvider>
+      clinicType={clinic?.type}
+      consultationReadOnly={consultationReadOnly}
+      isSidebarOpen={isSidebarOpen}
+      onToggleSidebar={toggleSidebar}
+      saveHandlesRef={saveHandlesRef}
+      paletteOpen={paletteOpen}
+      onPaletteOpenChange={setPaletteOpen}
+      onBack={tryNavigateAway}
+      attemptNavigateToHref={attemptNavigateToHref}
+      leaveDialogOpen={leaveDialogOpen}
+      onLeaveDialogOpenChange={onLeaveDialogOpenChange}
+      leaveBusy={leaveBusy}
+      onSaveAndLeave={saveAndLeave}
+      onLeaveWithoutSaving={leaveWithoutSaving}
+      onMarkDone={handleMarkDone}
+      isMarkingDone={isMarkingDone}
+      canMarkDone={canMarkDone}
+      markDoneDisabledReason={markDoneDisabledReason}
+    />
   );
 }

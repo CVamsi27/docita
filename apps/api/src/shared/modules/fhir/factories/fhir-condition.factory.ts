@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import { Injectable } from '@nestjs/common';
 import { PatientMedicalCondition, Diagnosis, IcdCode } from '@workspace/db';
 import { FhirCondition } from '@/shared/modules/fhir/interfaces/fhir.interfaces';
@@ -25,7 +26,7 @@ export class FhirConditionFactory {
     for (const condition of conditions) {
       const patientId = condition.patientId;
       const patientRef = `Patient/${patientId}`;
-      const patientDisplay = `${condition.patient.firstName} ${condition.patient.lastName}`;
+      const patientDisplay = getPatientFullName(condition.patient);
 
       const fhirCondition: FhirCondition = {
         resourceType: 'Condition',
@@ -115,7 +116,7 @@ export class FhirConditionFactory {
 
       const _patientId = diagnosis.appointment.patientId;
       const patientRef = `Patient/${diagnosis.appointment.patientId}`;
-      const patientDisplay = `${diagnosis.appointment.patient.firstName} ${diagnosis.appointment.patient.lastName}`;
+      const patientDisplay = getPatientFullName(diagnosis.appointment.patient);
 
       fhirConditions.push({
         resourceType: 'Condition',

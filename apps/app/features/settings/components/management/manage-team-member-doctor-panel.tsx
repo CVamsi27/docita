@@ -101,9 +101,7 @@ export function ManageTeamMemberDoctorPanel({
               )}
               {getVerificationBadgeLabel(member.verificationStatus)}
             </Badge>
-            <Badge
-              variant={member.signatureUploadedAt ? "default" : "outline"}
-            >
+            <Badge variant={member.signatureUploadedAt ? "default" : "outline"}>
               Signature {member.signatureUploadedAt ? "Ready" : "Missing"}
             </Badge>
           </div>

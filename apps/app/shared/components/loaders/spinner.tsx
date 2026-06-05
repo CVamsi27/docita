@@ -3,7 +3,7 @@
 import * as React from "react";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@workspace/ui/lib/utils";
 
 export interface LoaderProps extends React.HTMLAttributes<HTMLDivElement> {
   size?: "sm" | "md" | "lg";
@@ -22,7 +22,10 @@ const Spinner = React.forwardRef<HTMLDivElement, LoaderProps>(
     return (
       <div
         ref={ref}
-        className={cn("inline-flex shrink-0 items-center justify-center", className)}
+        className={cn(
+          "inline-flex shrink-0 items-center justify-center",
+          className,
+        )}
         {...props}
       >
         <DocitaLoadingIndicator

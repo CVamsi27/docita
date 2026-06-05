@@ -8,6 +8,7 @@ export const userRoleSchema = z.enum([
   "INTERNAL",
   "ADMIN_DOCTOR",
   "PATIENT",
+  "LAB",
 ]);
 export type UserRole = z.infer<typeof userRoleSchema>;
 
@@ -46,7 +47,7 @@ export type AppointmentStatus = z.infer<typeof appointmentStatusSchema>;
 
 /** Comma-separated status filter for schedule/list views (excludes cancelled). */
 export const VISIBLE_APPOINTMENT_STATUS_QUERY =
-  "scheduled,confirmed,in_progress,completed,no-show" as const;
+  "scheduled,confirmed,in-progress,completed,no-show" as const;
 
 export const appointmentTypeSchema = z.enum([
   "consultation",
@@ -713,6 +714,7 @@ export const userSchema = z.object({
   name: z.string(),
   role: userRoleSchema,
   clinicId: z.string().optional(),
+  labId: z.string().nullable().optional(),
 
   specialization: specializationSchema.optional(),
   hospitalRole: hospitalRoleSchema.optional(),

@@ -6,11 +6,7 @@ import { ConsentBanner } from "@/features/patient-portal/components/navigation/c
 import { PatientAuthGuard } from "@/features/patient-portal/components/auth/patient-auth-guard";
 import { PortalNav } from "@/features/patient-portal/components/navigation/portal-nav";
 
-export function PortalLayoutShell({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function PortalLayoutShell({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
       <PortalLayoutFrame>{children}</PortalLayoutFrame>

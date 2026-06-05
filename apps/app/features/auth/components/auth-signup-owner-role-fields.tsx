@@ -7,7 +7,11 @@ import {
   RadioGroupItem,
 } from "@workspace/ui/components/form/radio-group";
 import { cn } from "@workspace/ui/lib/utils";
-import { getFieldError, hasFieldError, InlineFieldError } from "./AuthSharedFields";
+import {
+  getFieldError,
+  hasFieldError,
+  InlineFieldError,
+} from "./AuthSharedFields";
 import type { FieldErrors } from "@/features/auth/types/auth";
 import { parseStringEnumMember } from "@workspace/utils";
 import {
@@ -99,10 +103,7 @@ export function AuthSignupOwnerRoleFields({
         })}
       </RadioGroup>
 
-      <p
-        id="signup-owner-role-hint"
-        className="text-xs text-muted-foreground"
-      >
+      <p id="signup-owner-role-hint" className="text-xs text-muted-foreground">
         {selectedOwnerRole
           ? `${selectedOwnerRole.helper} You can update permissions later in Settings`
           : "Choose one answer to continue and you can change roles later in Settings"}

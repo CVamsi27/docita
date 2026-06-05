@@ -6,9 +6,18 @@ import {
   Clock,
   UserCircle,
 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/feedback/alert";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/feedback/alert";
 import { Button } from "@workspace/ui/components/form/button";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@workspace/ui/components/overlay/collapsible";
 import {
   publicBookingSlotEmptyMessage,
   SlotTimesScrollArea,
@@ -138,20 +147,26 @@ export function SlotGrid({
   return (
     <SlotTimesScrollArea enabled={c.filteredAvailableSlots.length > 6}>
       {collapseTimeRange ? (
-        <details className="mb-3 rounded-[var(--radius-md)] border border-border/50 bg-surface-2 open:border-border/70 open:shadow-sm">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2.5 text-[length:var(--fs-sm)] font-medium text-foreground transition-colors duration-150 hover:bg-muted/15 [&::-webkit-details-marker]:hidden">
-            <span>Filter by time of day</span>
-            <ChevronDown
-              className="size-4 shrink-0 text-muted-foreground transition-transform duration-150"
-              aria-hidden
-            />
-          </summary>
-          <div className="border-t border-border/40 px-3 pb-3 pt-2">
+        <Collapsible className="group mb-3 rounded-[var(--radius-md)] border border-border/50 bg-surface-2 data-[state=open]:border-border/70 data-[state=open]:shadow-sm">
+          <CollapsibleTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-auto w-full justify-between gap-2 rounded-[var(--radius-md)] px-3 py-2.5 text-[length:var(--fs-sm)] font-medium text-foreground transition-colors duration-150 hover:bg-muted/15"
+            >
+              <span>Filter by time of day</span>
+              <ChevronDown
+                className="size-4 shrink-0 text-muted-foreground transition-transform duration-150 group-data-[state=open]:rotate-180"
+                aria-hidden
+              />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="border-t border-border/40 px-3 pb-3 pt-2">
             <div className="grid gap-3 sm:grid-cols-2 sm:items-end">
               <SlotGridTimeRangeFilters c={c} useNoneValue />
             </div>
-          </div>
-        </details>
+          </CollapsibleContent>
+        </Collapsible>
       ) : (
         <div className="mb-3 grid gap-3 rounded-[var(--radius-md)] border border-border/50 bg-surface-2 p-3 shadow-sm sm:grid-cols-2 sm:items-end sm:p-4">
           <SlotGridTimeRangeFilters c={c} useNoneValue={false} />

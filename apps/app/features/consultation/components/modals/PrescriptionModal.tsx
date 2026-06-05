@@ -10,18 +10,24 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
 import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Input } from "@workspace/ui/components/form/input";
 import { toast } from "sonner";
 import {
   useCreatePrescription,
   usePatientPrescriptions,
 } from "@workspace/data-access";
-import { Pill, Plus, RotateCcw, X } from "lucide-react";
+import { Pill } from "lucide-react";
 import { ApiError } from "@/lib/errors";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import {
+  MedicationsSection,
+  type Medication,
+} from "./PrescriptionModalSections";
 
-const getPrescriptionComplianceErrorMessage = (error: unknown): string | null => {
+export type { Medication } from "./PrescriptionModalSections";
+
+const getPrescriptionComplianceErrorMessage = (
+  error: unknown,
+): string | null => {
   if (!(error instanceof ApiError)) {
     return null;
   }
@@ -45,15 +51,6 @@ export interface ModalProps {
   patientName?: string;
   doctorId?: string;
   onSaved?: () => void;
-}
-
-export interface Medication {
-  name: string;
-  dosage: string;
-  frequency: string;
-  duration: string;
-  route: string;
-  prnInstructions: string;
 }
 
 export function PrescriptionModal({
@@ -143,7 +140,6 @@ export function PrescriptionModal({
         complianceMessage ||
           "We could not create this prescription. Please try again.",
       );
-
     }
   };
 
@@ -173,7 +169,6 @@ export function PrescriptionModal({
 
   const removeMedication = (index: number) => {
     if (medications.length === 1) {
-
       setMedications([
         {
           name: "",
@@ -202,94 +197,14 @@ export function PrescriptionModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 min-w-0">
-          <div className="flex justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRepeatLastRx}
-              disabled={!lastRx}
-            >
-              <RotateCcw className="mr-2 h-3.5 w-3.5" />
-              Repeat Last Rx
-            </Button>
-          </div>
-
-          {medications.map((med, index) => (
-            <div
-              key={index}
-              className="flex flex-col gap-3 p-4 bg-muted/40 rounded-lg border border-border/60"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Medication #{index + 1}
-                </span>
-                {medications.length > 1 && (
-                  <SymbolTooltip label="Remove medication">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                      onClick={() => removeMedication(index)}
-                      aria-label="Remove medication"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </SymbolTooltip>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="col-span-2">
-                  <Input
-                    placeholder="Medication name"
-                    value={med.name}
-                    onChange={(e) =>
-                      updateMedication(index, "name", e.target.value)
-                    }
-                  />
-                </div>
-                <Input
-                  placeholder="Dosage"
-                  value={med.dosage}
-                  onChange={(e) =>
-                    updateMedication(index, "dosage", e.target.value)
-                  }
-                />
-                <Input
-                  placeholder="Frequency"
-                  value={med.frequency}
-                  onChange={(e) =>
-                    updateMedication(index, "frequency", e.target.value)
-                  }
-                />
-                <Input
-                  placeholder="Duration"
-                  value={med.duration}
-                  onChange={(e) =>
-                    updateMedication(index, "duration", e.target.value)
-                  }
-                />
-                <Input
-                  placeholder="Route"
-                  value={med.route}
-                  onChange={(e) =>
-                    updateMedication(index, "route", e.target.value)
-                  }
-                />
-              </div>
-            </div>
-          ))}
-
-          <Button
-            variant="outline"
-            onClick={addMedication}
-            className="w-full border-dashed"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Another Medication
-          </Button>
-        </div>
+        <MedicationsSection
+          medications={medications}
+          hasLastRx={!!lastRx}
+          onRepeatLastRx={handleRepeatLastRx}
+          onAdd={addMedication}
+          onUpdate={updateMedication}
+          onRemove={removeMedication}
+        />
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange?.(false)}>

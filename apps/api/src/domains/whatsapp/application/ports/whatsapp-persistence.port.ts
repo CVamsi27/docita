@@ -11,7 +11,9 @@ type WhatsappPersistenceKey =
   | 'prescription'
   | 'staffNotification'
   | 'user'
-  | 'whatsappLog';
+  | 'whatsappLog'
+  | 'whatsappConversation'
+  | 'whatsappMessage';
 
 export type WhatsappPersistencePort = Pick<
   PrismaDelegatePort,

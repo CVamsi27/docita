@@ -1,4 +1,4 @@
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import type {
@@ -109,7 +109,10 @@ export const usePatientPortalInvoices = (filters?: {
       offset: number;
       hasMore: boolean;
     };
-  }>(queryKeys.patientPortal.invoices.list(filters), "/patient-portal/invoices");
+  }>(
+    queryKeys.patientPortal.invoices.list(filters),
+    "/patient-portal/invoices",
+  );
 
 export const useUpdatePatientProfile = () =>
   useAPIMutation<Record<string, unknown>, UpdatePatientProfileBodyDto>(
@@ -293,7 +296,8 @@ export const usePortalDoseHistory = (filters?: {
   offset?: number;
 }) => {
   const params = new URLSearchParams();
-  if (filters?.prescriptionId) params.set("prescriptionId", filters.prescriptionId);
+  if (filters?.prescriptionId)
+    params.set("prescriptionId", filters.prescriptionId);
   if (filters?.from) params.set("from", filters.from);
   if (filters?.to) params.set("to", filters.to);
   if (filters?.status) params.set("status", filters.status);

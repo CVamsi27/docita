@@ -1,5 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { WhatsappTemplateStatus } from '@workspace/db';
+import type {
+  WhatsappButtonType,
+  WhatsappTemplateCategory,
+  WhatsappTemplateStatus,
+} from '@workspace/db';
 import { DefaultTemplatesService } from './default-templates.service';
 import { TemplateDataService } from './template-data.service';
 import { TemplateVariableService } from './template-variable.service';
@@ -54,6 +58,31 @@ export class TemplatesFacadeService {
 
   async listTemplates(clinicId: string) {
     return this.templateData.listTemplates(clinicId);
+  }
+
+  async getTemplateById(id: string) {
+    return this.templateData.getTemplateById(id);
+  }
+
+  async createTemplate(data: {
+    clinicId: string;
+    name: string;
+    category: WhatsappTemplateCategory;
+    content: string;
+    buttonType: WhatsappButtonType;
+  }) {
+    return this.templateData.createTemplate(data);
+  }
+
+  async updateTemplate(
+    id: string,
+    data: { content?: string; category?: WhatsappTemplateCategory },
+  ) {
+    return this.templateData.updateTemplate(id, data);
+  }
+
+  async deleteTemplate(id: string) {
+    return this.templateData.deleteTemplate(id);
   }
 
   async updateTemplateStatus(

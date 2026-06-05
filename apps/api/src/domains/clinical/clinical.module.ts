@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { LabTestsController } from './presentation/controllers/lab-tests.controller';
 import { MedicalCodingController } from './presentation/controllers/medical-coding.controller';
 import { ClinicalService } from './application/services/clinical.service';
+import { LabWorkflowCommandService } from './application/services/lab-workflow-command.service';
+import { LabWorkflowQueryService } from './application/services/lab-workflow-query.service';
 import { ClinicalSettingsService } from './application/services/clinical-settings.service';
 import { PrismaLabRepository } from './infrastructure/persistence/prisma-lab.repository';
 import { PrismaClinicalSettingsRepository } from './infrastructure/persistence/prisma-clinical-settings.repository';
@@ -17,13 +19,23 @@ import { CODE_CATALOG_PROVIDER } from './core/providers/code-catalog.provider';
 import { CLINICAL_SETTINGS_REPOSITORY_TOKEN } from './core/repositories/clinical-settings.repository.interface';
 import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
 import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
+import { DocumentsModule } from '@/domains/documents/documents.module';
+import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
 
 @Module({
-  imports: [PrismaModule, AuditModule, AuthModule],
+  imports: [
+    PrismaModule,
+    AuditModule,
+    AuthModule,
+    DocumentsModule,
+    WhatsAppModule,
+  ],
   controllers: [LabTestsController, MedicalCodingController],
   providers: [
     FrontDeskClinicalBlockGuard,
     ClinicalService,
+    LabWorkflowCommandService,
+    LabWorkflowQueryService,
     ClinicalSettingsService,
     ClinicalFactory,
     NlmCodingClient,
@@ -47,6 +59,6 @@ import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
       useClass: PrismaClinicalSettingsRepository,
     },
   ],
-  exports: [ClinicalService, CODE_CATALOG_PROVIDER],
+  exports: [ClinicalService, CODE_CATALOG_PROVIDER, 'IMedicalCodingRepository'],
 })
 export class ClinicalModule {}

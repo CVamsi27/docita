@@ -17,7 +17,11 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
-import { Form, FormControl, FormField } from "@workspace/ui/components/form/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+} from "@workspace/ui/components/form/form";
 import { FormFieldGroup } from "@workspace/ui/components";
 import { settingsApi } from "@/features/settings/api/settings.api";
 import { PasswordStrengthIndicator } from "@/features/auth";
@@ -135,10 +139,7 @@ export function ChangePasswordSettings() {
             />
 
             <div className="flex justify-end border-t border-border/60 pt-4">
-              <Button
-                type="submit"
-                disabled={form.formState.isSubmitting}
-              >
+              <Button type="submit" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? "Updating…" : "Update password"}
               </Button>
             </div>

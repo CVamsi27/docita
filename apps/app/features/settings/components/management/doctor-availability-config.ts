@@ -1,3 +1,5 @@
+import { DEFAULT_SLOT_DURATION } from "@workspace/utils";
+
 export const DAYS_OF_WEEK = [
   "Monday",
   "Tuesday",
@@ -21,7 +23,7 @@ export interface DaySchedule {
 export const DEFAULT_DAY_SCHEDULE: Omit<DaySchedule, "dayOfWeek"> = {
   startTime: "09:00",
   endTime: "17:00",
-  slotDuration: 15,
+  slotDuration: DEFAULT_SLOT_DURATION,
   isActive: false,
 };
 

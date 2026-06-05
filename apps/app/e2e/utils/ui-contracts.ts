@@ -1,19 +1,30 @@
 import { expect, Page } from "@playwright/test";
 
+async function expectAnyVisible(
+  locators: ReturnType<Page["locator"]>[],
+  options: { message: string; timeout: number },
+) {
+  await expect
+    .poll(async () => {
+      for (const locator of locators) {
+        if (await locator.isVisible().catch(() => false)) {
+          return true;
+        }
+      }
+      return false;
+    }, options)
+    .toBe(true);
+}
+
 /** Resolves after `(protected)/layout` finishes its initial auth/clinic load shell. */
 export async function expectProtectedWorkspaceLoaded(page: Page) {
-  const loadingWorkspace = page.getByRole("status", {
-    name: "Loading workspace",
-  });
   const mobileHeader = page.getByTestId("mobile-header");
   const mainContent = page.locator('main[aria-label="Main content"]');
 
-  await Promise.race([
-    loadingWorkspace.waitFor({ state: "hidden", timeout: 90_000 }),
-    loadingWorkspace.waitFor({ state: "detached", timeout: 90_000 }),
-    mobileHeader.waitFor({ state: "visible", timeout: 90_000 }),
-    mainContent.waitFor({ state: "visible", timeout: 90_000 }),
-  ]);
+  await expectAnyVisible([mobileHeader, mainContent], {
+    message: "Expected the protected workspace shell to finish loading",
+    timeout: 90_000,
+  });
 }
 
 export async function expectPageHeader(
@@ -24,7 +35,9 @@ export async function expectPageHeader(
 
   const heading = page.getByRole("heading", { name: title }).first();
   const fallbackText = page.getByText(title).first();
-  const headingVisible = await heading.isVisible({ timeout: 20000 }).catch(() => false);
+  const headingVisible = await heading
+    .isVisible({ timeout: 20000 })
+    .catch(() => false);
   if (!headingVisible) {
     await expect(fallbackText).toBeVisible({ timeout: 20000 });
   }
@@ -52,17 +65,15 @@ export async function expectDashboardQueueSectionReady(page: Page) {
     exact: true,
   });
   const loadError = page.getByText("We could not load your dashboard");
-  const todayLoadError = page.getByText(
-    "We could not load today's workspace",
-  );
+  const todayLoadError = page.getByText("We could not load today's workspace");
 
-  await Promise.race([
-    queue.waitFor({ state: "visible", timeout: 60000 }),
-    welcomeEmpty.waitFor({ state: "visible", timeout: 60000 }),
-    todayEmpty.waitFor({ state: "visible", timeout: 60000 }),
-    loadError.waitFor({ state: "visible", timeout: 60000 }),
-    todayLoadError.waitFor({ state: "visible", timeout: 60000 }),
-  ]);
+  await expectAnyVisible(
+    [queue, welcomeEmpty, todayEmpty, loadError, todayLoadError],
+    {
+      message: "Expected the dashboard workspace to finish loading",
+      timeout: 60_000,
+    },
+  );
 }
 
 export async function isDashboardQueueSectionVisible(page: Page) {
@@ -70,18 +81,34 @@ export async function isDashboardQueueSectionVisible(page: Page) {
 }
 
 export async function expectConsultationWorkspaceReady(page: Page) {
-  const loading = page.getByText(/Loading consultation|Restoring your session/i);
-  await loading.waitFor({ state: "hidden", timeout: 90_000 }).catch(() => {});
-
   const workspace = page.locator('main[aria-label="Consultation workspace"]');
   const sectionRail = page.getByRole("list", { name: "Consultation sections" });
+  const terminalState = page
+    .getByText(
+      /We could not open this consultation|Only the assigned doctor can open this consultation|Appointment not found/i,
+    )
+    .first();
 
-  await Promise.race([
-    workspace.waitFor({ state: "visible", timeout: 90_000 }),
-    sectionRail.waitFor({ state: "visible", timeout: 90_000 }),
-  ]);
-
-  await expect(workspace.or(sectionRail)).toBeVisible({ timeout: 15_000 });
+  await expect
+    .poll(
+      async () => {
+        if (
+          (await workspace.isVisible().catch(() => false)) ||
+          (await sectionRail.isVisible().catch(() => false))
+        ) {
+          return "ready";
+        }
+        if (await terminalState.isVisible().catch(() => false)) {
+          return `terminal: ${await terminalState.textContent()}`;
+        }
+        return "loading";
+      },
+      {
+        message: "Expected the consultation workspace to become ready",
+        timeout: 90_000,
+      },
+    )
+    .toBe("ready");
 }
 
 export async function expectDataState(
@@ -113,4 +140,3 @@ export async function expectDataState(
   const text = options.emptyText ?? /No .* yet|No results|Nothing here/i;
   await expect(page.getByText(text).first()).toBeVisible();
 }
-

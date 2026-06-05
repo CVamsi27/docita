@@ -1,9 +1,13 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  CLAIM_VALIDATION_REPOSITORY_TOKEN,
+  IClaimValidationRepository,
+} from '@/domains/billing/core/repositories/claim-validation.repository';
 
 export interface ClaimReadinessResult {
   invoiceId: string;
@@ -21,30 +25,22 @@ export interface ClaimReadinessResult {
 
 @Injectable()
 export class ClaimValidationService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(CLAIM_VALIDATION_REPOSITORY_TOKEN)
+    private readonly repo: IClaimValidationRepository,
+  ) {}
 
   async evaluateClaimReadiness(
     invoiceId: string,
     clinicId?: string,
   ): Promise<ClaimReadinessResult> {
-    const invoice = await this.prisma.invoice.findUnique({
-      where: { id: invoiceId },
-      select: {
-        id: true,
-        appointmentId: true,
-        patient: {
-          select: {
-            clinicId: true,
-          },
-        },
-      },
-    });
+    const invoice = await this.repo.findInvoiceForClaimReadiness(invoiceId);
 
     if (!invoice) {
       throw new NotFoundException(`Invoice ${invoiceId} not found`);
     }
 
-    if (clinicId && invoice.patient.clinicId !== clinicId) {
+    if (clinicId && invoice.patient?.clinicId !== clinicId) {
       throw new NotFoundException(`Invoice ${invoiceId} not found`);
     }
 
@@ -64,24 +60,9 @@ export class ClaimValidationService {
       };
     }
 
-    const appointment = await this.prisma.appointment.findUnique({
-      where: { id: invoice.appointmentId },
-      select: {
-        id: true,
-        diagnoses: {
-          select: {
-            id: true,
-            icdCodeId: true,
-          },
-        },
-        procedures: {
-          select: {
-            id: true,
-            cptCodeId: true,
-          },
-        },
-      },
-    });
+    const appointment = await this.repo.findAppointmentForClaimReadiness(
+      invoice.appointmentId,
+    );
 
     if (!appointment) {
       return {

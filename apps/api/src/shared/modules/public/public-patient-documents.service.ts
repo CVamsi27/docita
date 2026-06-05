@@ -1,35 +1,67 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { PrescriptionsService } from '@/domains/prescriptions/application/services/prescription.service';
-import { InvoicesService } from '@/domains/billing/application/services/invoices.service';
+import { PrescriptionPdfOrchestratorService } from '@/domains/prescriptions/application/services/prescription-pdf-orchestrator.service';
+import { InvoicesQueryService } from '@/domains/billing/application/services/invoices-query.service';
+import { InvoicesCommandService } from '@/domains/billing/application/services/invoices-command.service';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
+import { PublicDocumentTokenService } from './public-document-token.service';
 import { PaymentSessionStatus } from '@workspace/db';
 
-type PublicPdfResult =
-  | { type: 'redirect'; url: string }
-  | { type: 'buffer'; buffer: Buffer; filename: string };
+interface PublicPdfResult {
+  buffer: Buffer;
+  filename: string;
+  contentType: string;
+}
+
+interface PublicDocumentAccessEvent {
+  type: string;
+  documentId: string;
+  clinicId: string;
+  ipAddress: string;
+  userAgent: string;
+  success: boolean;
+  error?: string;
+}
 
 @Injectable()
 export class PublicPatientDocumentsService {
+  private readonly logger = new Logger(PublicPatientDocumentsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
-    private readonly prescriptionsService: PrescriptionsService,
-    private readonly invoicesService: InvoicesService,
+    private readonly tokenService: PublicDocumentTokenService,
+    private readonly storageProvider: StorageProvider,
+    private readonly prescriptionPdfOrchestrator: PrescriptionPdfOrchestratorService,
+    private readonly invoicesQueryService: InvoicesQueryService,
+    private readonly invoicesCommandService: InvoicesCommandService,
   ) {}
 
-  async getPrescriptionPdf(token: string): Promise<PublicPdfResult> {
-    const clinicId = await this.resolvePrescriptionClinicId(token);
-    return this.toPdfResult(
-      await this.prescriptionsService.getPdf(token, clinicId),
-      `prescription-${token}.pdf`,
-    );
+  async getPrescriptionPdf(
+    token: string,
+    ipAddress: string,
+    userAgent: string,
+  ): Promise<PublicPdfResult> {
+    const verified = this.tokenService.verify(token);
+
+    if (verified.type !== 'prescription') {
+      throw new NotFoundException('Prescription not found');
+    }
+
+    return this.proxyPrescriptionPdf(verified.id, ipAddress, userAgent);
   }
 
-  async getInvoicePdf(token: string): Promise<PublicPdfResult> {
-    const clinicId = await this.resolveInvoiceClinicId(token);
-    return this.toPdfResult(
-      await this.invoicesService.getPdf(token, clinicId),
-      `invoice-${token}.pdf`,
-    );
+  async getInvoicePdf(
+    token: string,
+    ipAddress: string,
+    userAgent: string,
+  ): Promise<PublicPdfResult> {
+    const verified = this.tokenService.verify(token);
+
+    if (verified.type !== 'invoice') {
+      throw new NotFoundException('Invoice not found');
+    }
+
+    return this.proxyInvoicePdf(verified.id, ipAddress, userAgent);
   }
 
   async resolvePaymentRedirectUrl(token: string): Promise<string> {
@@ -63,59 +95,187 @@ export class PublicPatientDocumentsService {
     return redirectUrl;
   }
 
-  private async resolvePrescriptionClinicId(
+  private async proxyPrescriptionPdf(
     prescriptionId: string,
-  ): Promise<string> {
-    const prescription = await this.prisma.prescription.findUnique({
-      where: { id: prescriptionId },
-      select: {
-        clinicId: true,
-        appointment: { select: { clinicId: true } },
-      },
-    });
+    ipAddress: string,
+    userAgent: string,
+  ): Promise<PublicPdfResult> {
+    try {
+      const prescription = await this.prisma.prescription.findUnique({
+        where: { id: prescriptionId },
+        select: {
+          pdfUrl: true,
+          clinicId: true,
+          appointment: { select: { clinicId: true } },
+        },
+      });
 
-    if (!prescription) {
-      throw new NotFoundException('Prescription not found');
+      if (!prescription) {
+        throw new NotFoundException('Prescription not found');
+      }
+
+      const clinicId =
+        prescription.clinicId ?? prescription.appointment?.clinicId;
+      if (!clinicId) {
+        throw new NotFoundException('Prescription not found');
+      }
+
+      const pdfUrl = prescription.pdfUrl;
+
+      if (pdfUrl) {
+        const { buffer, contentType } =
+          await this.storageProvider.getObject(pdfUrl);
+
+        this.logAccess({
+          type: 'prescription',
+          documentId: prescriptionId,
+          clinicId,
+          ipAddress,
+          userAgent,
+          success: true,
+        });
+
+        return {
+          buffer,
+          filename: `prescription-${prescriptionId}.pdf`,
+          contentType,
+        };
+      }
+
+      const buffer = await this.prescriptionPdfOrchestrator.generatePDF(
+        prescriptionId,
+        clinicId,
+      );
+
+      this.logAccess({
+        type: 'prescription',
+        documentId: prescriptionId,
+        clinicId,
+        ipAddress,
+        userAgent,
+        success: true,
+      });
+
+      return {
+        buffer,
+        filename: `prescription-${prescriptionId}.pdf`,
+        contentType: 'application/pdf',
+      };
+    } catch (error) {
+      this.logAccess({
+        type: 'prescription',
+        documentId: prescriptionId,
+        clinicId: '',
+        ipAddress,
+        userAgent,
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      throw error;
     }
-
-    const clinicId =
-      prescription.clinicId ?? prescription.appointment?.clinicId;
-    if (!clinicId) {
-      throw new NotFoundException('Prescription not found');
-    }
-
-    return clinicId;
   }
 
-  private async resolveInvoiceClinicId(invoiceId: string): Promise<string> {
-    const invoice = await this.prisma.invoice.findUnique({
-      where: { id: invoiceId },
-      select: {
-        clinicId: true,
-        appointment: { select: { clinicId: true } },
-      },
-    });
+  private async proxyInvoicePdf(
+    invoiceId: string,
+    ipAddress: string,
+    userAgent: string,
+  ): Promise<PublicPdfResult> {
+    try {
+      const invoice = await this.prisma.invoice.findUnique({
+        where: { id: invoiceId },
+        select: {
+          pdfUrl: true,
+          clinicId: true,
+          appointment: { select: { clinicId: true } },
+        },
+      });
 
-    if (!invoice) {
-      throw new NotFoundException('Invoice not found');
+      if (!invoice) {
+        throw new NotFoundException('Invoice not found');
+      }
+
+      const clinicId = invoice.clinicId ?? invoice.appointment?.clinicId;
+      if (!clinicId) {
+        throw new NotFoundException('Invoice not found');
+      }
+
+      const pdfUrl = invoice.pdfUrl;
+
+      if (pdfUrl) {
+        const { buffer, contentType } =
+          await this.storageProvider.getObject(pdfUrl);
+
+        this.logAccess({
+          type: 'invoice',
+          documentId: invoiceId,
+          clinicId,
+          ipAddress,
+          userAgent,
+          success: true,
+        });
+
+        return {
+          buffer,
+          filename: `invoice-${invoiceId}.pdf`,
+          contentType,
+        };
+      }
+
+      const buffer = await this.invoicesQueryService.generatePDF(
+        invoiceId,
+        clinicId,
+      );
+
+      const invoiceDetail = await this.invoicesQueryService.findOne(
+        invoiceId,
+        clinicId,
+      );
+      await this.invoicesCommandService.uploadAndPersist(
+        invoiceId,
+        clinicId,
+        buffer,
+        invoiceDetail,
+      );
+
+      this.logAccess({
+        type: 'invoice',
+        documentId: invoiceId,
+        clinicId,
+        ipAddress,
+        userAgent,
+        success: true,
+      });
+
+      return {
+        buffer,
+        filename: `invoice-${invoiceId}.pdf`,
+        contentType: 'application/pdf',
+      };
+    } catch (error) {
+      this.logAccess({
+        type: 'invoice',
+        documentId: invoiceId,
+        clinicId: '',
+        ipAddress,
+        userAgent,
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      throw error;
     }
-
-    const clinicId = invoice.clinicId ?? invoice.appointment?.clinicId;
-    if (!clinicId) {
-      throw new NotFoundException('Invoice not found');
-    }
-
-    return clinicId;
   }
 
-  private toPdfResult(
-    result: { type: 'url'; url: string } | { type: 'buffer'; buffer: Buffer },
-    filename: string,
-  ): PublicPdfResult {
-    if (result.type === 'url') {
-      return { type: 'redirect', url: result.url };
-    }
-
-    return { type: 'buffer', buffer: result.buffer, filename };
+  private logAccess(event: PublicDocumentAccessEvent): void {
+    this.logger.log({
+      event: 'PUBLIC_DOCUMENT_ACCESS',
+      type: event.type,
+      documentId: event.documentId,
+      clinicId: event.clinicId,
+      ipAddress: event.ipAddress,
+      userAgent: event.userAgent,
+      success: event.success,
+      error: event.error,
+      timestamp: new Date().toISOString(),
+    });
   }
 }

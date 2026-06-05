@@ -1,4 +1,5 @@
-export const DEFAULT_TIMEZONE = "Asia/Kolkata";
+export { DEFAULT_SLOT_DURATION, DEFAULT_TIMEZONE } from "@workspace/types";
+import { DEFAULT_TIMEZONE } from "@workspace/types";
 export const DEFAULT_LOCALE = "en-IN";
 
 export const CURRENCY_SYMBOLS: Record<string, string> = {

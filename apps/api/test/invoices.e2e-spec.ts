@@ -15,6 +15,13 @@ import {
 import { factories, setPrismaInstance } from './factories';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
 import { mockWhatsappService } from './whatsapp.provider';
+import { CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN } from '@/domains/payments/core/ports/payment-link-provider.port';
+import {
+  clearMockPaymentLinkProvider,
+  createMockPaymentLinkProvider,
+} from './payment-link-provider.mock';
+
+const mockPaymentLinkProvider = createMockPaymentLinkProvider();
 
 function postInvoice(
   server: string,
@@ -45,6 +52,8 @@ describe('Invoices (e2e)', () => {
       .useValue(getPrismaInstance())
       .overrideProvider(WhatsappService)
       .useValue(mockWhatsappService)
+      .overrideProvider(CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN)
+      .useValue(mockPaymentLinkProvider)
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -59,6 +68,7 @@ describe('Invoices (e2e)', () => {
 
   beforeEach(async () => {
     await resetDatabase();
+    clearMockPaymentLinkProvider(mockPaymentLinkProvider);
 
     const clinic = await factories.clinic({ tier: 'PRO' });
     clinicId = clinic.id;
@@ -106,6 +116,105 @@ describe('Invoices (e2e)', () => {
 
     it('should reject unauthenticated request', async () => {
       await request(app.getHttpServer()).get('/invoices').expect(401);
+    });
+
+    it('still includes paid invoices in the billing ledger', async () => {
+      const createRes = await postInvoice(app.getHttpServer(), token, {
+        patientId,
+        items: [{ description: 'Consultation', quantity: 1, price: 500 }],
+        status: 'PAID',
+        total: 500,
+      }).expect(201);
+
+      const response = await request(app.getHttpServer())
+        .get('/invoices')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(
+        response.body.items.map((item: { id: string }) => item.id),
+      ).toContain(createRes.body.id);
+    });
+  });
+
+  describe('GET /desk/invoices', () => {
+    it('returns only collectible invoices for the selected patient', async () => {
+      for (const status of [
+        'PENDING',
+        'PARTIALLY_PAID',
+        'OVERDUE',
+        'PAID',
+        'CANCELLED',
+      ]) {
+        await postInvoice(app.getHttpServer(), token, {
+          patientId,
+          items: [
+            { description: `Consultation ${status}`, quantity: 1, price: 500 },
+          ],
+          status,
+          total: 500,
+        }).expect(201);
+      }
+
+      const response = await request(app.getHttpServer())
+        .get(`/desk/invoices?patientId=${patientId}&limit=50`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      const statuses = response.body.items.map(
+        (item: { status: string }) => item.status,
+      );
+      expect(statuses).toHaveLength(3);
+      expect(statuses).toEqual(
+        expect.arrayContaining(['PENDING', 'PARTIALLY_PAID', 'OVERDUE']),
+      );
+      expect(statuses).not.toContain('PAID');
+      expect(statuses).not.toContain('CANCELLED');
+    });
+
+    it('hides an invoice after desk settlement marks it paid', async () => {
+      const createRes = await postInvoice(app.getHttpServer(), token, {
+        patientId,
+        items: [{ description: 'Consultation', quantity: 1, price: 500 }],
+        status: 'PENDING',
+        total: 500,
+      }).expect(201);
+
+      const invoiceId = createRes.body.id as string;
+
+      const { user: receptionist, plainPassword } = await factories.user({
+        clinicId,
+        role: 'RECEPTIONIST',
+      });
+
+      const loginRes = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email: receptionist.email, password: plainPassword })
+        .expect(201);
+
+      const receptionistToken = loginRes.body.access_token as string;
+
+      const beforeSettlement = await request(app.getHttpServer())
+        .get(`/desk/invoices?patientId=${patientId}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+      expect(
+        beforeSettlement.body.items.map((item: { id: string }) => item.id),
+      ).toContain(invoiceId);
+
+      await request(app.getHttpServer())
+        .post(`/desk/invoices/${invoiceId}/settlement`)
+        .set('Authorization', `Bearer ${receptionistToken}`)
+        .send({ paymentMethod: 'CASH', reference: 'RRN-1' })
+        .expect(201);
+
+      const afterSettlement = await request(app.getHttpServer())
+        .get(`/desk/invoices?patientId=${patientId}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+      expect(
+        afterSettlement.body.items.map((item: { id: string }) => item.id),
+      ).not.toContain(invoiceId);
     });
   });
 
@@ -212,6 +321,11 @@ describe('Invoices (e2e)', () => {
 
   describe('GET /invoices/:id/payment-activity', () => {
     it('returns empty items when there are no payment sessions', async () => {
+      await prisma.patient.update({
+        where: { id: patientId },
+        data: { phoneNumber: '' },
+      });
+
       const createRes = await postInvoice(app.getHttpServer(), token, {
         patientId,
         items: [{ description: 'Consultation', quantity: 1, price: 500 }],
@@ -230,6 +344,11 @@ describe('Invoices (e2e)', () => {
     });
 
     it('includes manual desk settlement in activity', async () => {
+      await prisma.patient.update({
+        where: { id: patientId },
+        data: { phoneNumber: '' },
+      });
+
       const createRes = await postInvoice(app.getHttpServer(), token, {
         patientId,
         items: [{ description: 'Consultation', quantity: 1, price: 500 }],

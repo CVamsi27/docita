@@ -42,11 +42,7 @@ export function SlotTimesScrollArea({
   if (!enabled) {
     return (
       <div
-        className={cn(
-          shell,
-          pad,
-          "flex min-h-0 flex-1 flex-col xl:min-h-0",
-        )}
+        className={cn(shell, pad, "flex min-h-0 flex-1 flex-col xl:min-h-0")}
       >
         {children}
       </div>

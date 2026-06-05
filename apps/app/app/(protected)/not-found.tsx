@@ -13,13 +13,18 @@ export default function NotFound() {
       <Card className="ui-card-surface">
         <CardContent className="p-8 text-center">
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
-            <FileQuestion className="h-7 w-7 text-muted-foreground" aria-hidden />
+            <FileQuestion
+              className="h-7 w-7 text-muted-foreground"
+              aria-hidden
+            />
           </div>
           <h1 className="ui-page-title">404</h1>
-          <h2 className="ui-section-title mt-2 text-[var(--fs-lg)]">Page not found</h2>
+          <h2 className="ui-section-title mt-2 text-[var(--fs-lg)]">
+            Page not found
+          </h2>
           <p className="ui-page-subtitle mt-2">
-            Sorry, we couldn&apos;t find the page you&apos;re looking for. The page
-            may have been moved or deleted.
+            Sorry, we couldn&apos;t find the page you&apos;re looking for. The
+            page may have been moved or deleted.
           </p>
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
             <Button asChild>

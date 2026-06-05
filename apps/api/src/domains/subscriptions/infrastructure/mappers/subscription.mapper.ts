@@ -1,4 +1,5 @@
 import {
+  discountTypeSchema,
   scheduledPlanChangeJsonSchema,
   subscriptionDiscountsAppliedJsonSchema,
 } from '@workspace/types';
@@ -32,7 +33,8 @@ interface DiscountJsonItem {
 }
 
 function discountTypeFromStored(value: string): DiscountType | null {
-  return Object.values(DiscountType).find((type) => type === value) ?? null;
+  const result = discountTypeSchema.safeParse(value);
+  return result.success ? result.data : null;
 }
 
 export class SubscriptionMapper {

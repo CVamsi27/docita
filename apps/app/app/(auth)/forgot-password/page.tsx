@@ -86,7 +86,8 @@ function ForgotPasswordPageContent() {
             <div className="ui-copy-stack">
               <h2 className="ui-section-title">Check your email</h2>
               <p className="ui-helper-text">
-                If an account with that email exists, a password reset link has been sent
+                If an account with that email exists, a password reset link has
+                been sent
               </p>
             </div>
             <BackButton
@@ -136,7 +137,11 @@ function ForgotPasswordPageContent() {
             >
               {form.formState.isSubmitting ? (
                 <>
-                  <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                  <DocitaLoadingIndicator
+                    variant="inline"
+                    decorative
+                    className="mr-2"
+                  />
                   Sending…
                 </>
               ) : (

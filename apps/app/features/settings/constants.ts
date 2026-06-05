@@ -6,17 +6,19 @@ import {
   CalendarOff,
   Crown,
   FileText,
+  FlaskConical,
   LifeBuoy,
   Lock,
   Paintbrush,
+  Printer,
   Sparkles,
   Ticket,
   UserCircle,
   Users,
 } from "lucide-react";
-import { Feature } from "@workspace/types";
+import { CLINIC_ADMIN_ROLES, Feature } from "@workspace/types";
 
-const ADMIN_ROLES = ["ADMIN", "ADMIN_DOCTOR", "INTERNAL"] as const;
+const ADMIN_ROLES = [...CLINIC_ADMIN_ROLES, "INTERNAL"] as const;
 const DOCTOR_ROLES = [...ADMIN_ROLES, "DOCTOR"] as const;
 const QUEUE_ROLES = [...ADMIN_ROLES, "RECEPTIONIST"] as const;
 
@@ -87,6 +89,21 @@ export const settingsTabs = [
         icon: FileText,
         description: "Rx defaults",
         roles: DOCTOR_ROLES,
+      },
+      {
+        value: "opd-slip",
+        label: "OPD slip",
+        icon: Printer,
+        description: "Printable OPD prescription slip",
+        roles: ADMIN_ROLES,
+      },
+      {
+        value: "labs",
+        label: "Labs",
+        icon: FlaskConical,
+        description: "In-house & external labs",
+        roles: ADMIN_ROLES,
+        feature: Feature.LAB_TESTS,
       },
     ],
   },

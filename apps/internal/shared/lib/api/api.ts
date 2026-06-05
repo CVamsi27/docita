@@ -1,6 +1,7 @@
 import { client } from "./api-client";
 import {
   CreateWhatsAppBroadcastJobRequest,
+  EnterpriseAdjustmentInvoiceRequest,
   InternalBillingPaymentItem,
   InternalBillingPaymentsQuery,
   InternalBillingSubscriptionsQuery,
@@ -65,9 +66,7 @@ export const feedbackAPI = {
 export const supportAPI = {
   getInquiries: (limit = 100): Promise<SupportInquiry[]> =>
     client.get(`/internal/support/inquiries?limit=${limit}`),
-  getWhatsAppThreads: (
-    limit = 100,
-  ): Promise<SupportWhatsAppThreadSummary[]> =>
+  getWhatsAppThreads: (limit = 100): Promise<SupportWhatsAppThreadSummary[]> =>
     client.get(`/internal/support/whatsapp?limit=${limit}`),
   getWhatsAppThreadMessages: (
     threadPhoneNumber: string,
@@ -272,7 +271,7 @@ interface EnterpriseCustomLineItem {
 interface EnterpriseContractInvoiceRow {
   id: string;
   contractId: string;
-  kind: "ANNUAL_PREPAY" | "TRUE_UP" | "ADJUSTMENT";
+  kind: "ANNUAL_PREPAY" | "SETUP_FEE" | "TRUE_UP" | "ADJUSTMENT";
   subscriptionPaymentId: string | null;
   amountCents: number;
   currency: string;
@@ -300,13 +299,48 @@ interface EnterpriseContractEstimate {
   contract: EnterpriseContractRow & { memberClinicIds: string[] };
   period: { start: string; end: string };
   meters: {
-    users: { current: number; included: number; overage: number; chargeCents: number };
-    consultations: { current: number; included: number; overage: number; chargeCents: number };
-    whatsappMessages: { current: number; included: number; overage: number; chargeCents: number };
-    storageGB: { current: number; included: number; overage: number; chargeCents: number };
-    doctors: { current: number; included: number; overage: number; chargeCents: number };
-    prescriptions: { current: number; included: number; overage: number; chargeCents: number };
-    invoices: { current: number; included: number; overage: number; chargeCents: number };
+    users: {
+      current: number;
+      included: number;
+      overage: number;
+      chargeCents: number;
+    };
+    consultations: {
+      current: number;
+      included: number;
+      overage: number;
+      chargeCents: number;
+    };
+    whatsappMessages: {
+      current: number;
+      included: number;
+      overage: number;
+      chargeCents: number;
+    };
+    storageGB: {
+      current: number;
+      included: number;
+      overage: number;
+      chargeCents: number;
+    };
+    doctors: {
+      current: number;
+      included: number;
+      overage: number;
+      chargeCents: number;
+    };
+    prescriptions: {
+      current: number;
+      included: number;
+      overage: number;
+      chargeCents: number;
+    };
+    invoices: {
+      current: number;
+      included: number;
+      overage: number;
+      chargeCents: number;
+    };
   };
   platformFeeCents: number;
   setupFeeCents: number;
@@ -379,13 +413,13 @@ export const enterpriseContractsAPI = {
     client.delete(
       `/internal/enterprise-contracts/${contractId}/members/${clinicId}`,
     ),
-  listRevisions: (contractId: string): Promise<EnterpriseContractRevisionRow[]> =>
+  listRevisions: (
+    contractId: string,
+  ): Promise<EnterpriseContractRevisionRow[]> =>
     client.get(`/internal/enterprise-contracts/${contractId}/revisions`),
   listInvoices: (contractId: string): Promise<EnterpriseContractInvoiceRow[]> =>
     client.get(`/internal/enterprise-contracts/${contractId}/invoices`),
-  listTrueUpAlerts: (
-    contractId: string,
-  ): Promise<EnterpriseTrueUpAlertRow[]> =>
+  listTrueUpAlerts: (contractId: string): Promise<EnterpriseTrueUpAlertRow[]> =>
     client.get(`/internal/enterprise-contracts/${contractId}/true-up-alerts`),
   generateAnnualPrepayInvoice: (
     contractId: string,
@@ -393,18 +427,32 @@ export const enterpriseContractsAPI = {
     client.post(
       `/internal/enterprise-contracts/${contractId}/annual-prepay-invoice`,
     ),
+  generateSetupFeeInvoice: (
+    contractId: string,
+  ): Promise<EnterpriseContractInvoiceRow> =>
+    client.post(
+      `/internal/enterprise-contracts/${contractId}/setup-fee-invoice`,
+    ),
+  generateAdjustmentInvoice: (
+    contractId: string,
+    payload: EnterpriseAdjustmentInvoiceRequest,
+  ): Promise<EnterpriseContractInvoiceRow> =>
+    client.post(
+      `/internal/enterprise-contracts/${contractId}/adjustment-invoice`,
+      payload,
+    ),
   evaluateTrueUp: (
     contractId: string,
   ): Promise<{ alerted: boolean; observedPercent: number }> =>
-    client.post(`/internal/enterprise-contracts/${contractId}/evaluate-true-up`),
+    client.post(
+      `/internal/enterprise-contracts/${contractId}/evaluate-true-up`,
+    ),
   estimate: (contractId: string): Promise<EnterpriseContractEstimate> =>
     client.get(`/internal/enterprise-contracts/${contractId}/estimate`),
   previewInvoice: (
     contractId: string,
   ): Promise<EnterpriseContractInvoicePreview> =>
-    client.post(
-      `/internal/enterprise-contracts/${contractId}/invoice-preview`,
-    ),
+    client.post(`/internal/enterprise-contracts/${contractId}/invoice-preview`),
   terminate: (contractId: string): Promise<void> =>
     client.delete(`/internal/enterprise-contracts/${contractId}`),
 };

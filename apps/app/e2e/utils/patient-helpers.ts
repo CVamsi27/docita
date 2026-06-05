@@ -1,7 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { randomUUID } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { createHmac, randomUUID } from "node:crypto";
 import { APIRequestContext, Page } from "@playwright/test";
 import {
   loginResponseSchema,
@@ -10,6 +8,7 @@ import {
 } from "@workspace/types";
 import { z } from "zod";
 import { E2E_ACCESS_TOKEN_SESSION_KEY } from "./e2e-session-token-key";
+import { findRepoRoot, requireRepoDatabaseUrl } from "./repo-root";
 
 const e2eLoginTokenFallbackSchema = z.object({
   access_token: z.string().optional(),
@@ -50,6 +49,73 @@ export const TEST_PASSWORD = "Test@123456";
 /** Valid 15-char GSTIN for paid INR onboarding in E2E (not a real taxpayer ID). */
 const E2E_PAID_PLAN_GSTIN = "29AABCU9603R1ZX";
 
+/**
+ * Builds verified Razorpay payment details for a paid-plan onboarding. Creates
+ * a real test order via the checkout endpoint, then signs `${orderId}|${paymentId}`
+ * with the test key secret — matching the API's rzp_test_ verification path,
+ * which reads the amount from the order rather than fetching a (non-existent)
+ * payment object. Requires RAZORPAY_KEY_SECRET (a test secret) in the env.
+ */
+async function createTestPaymentDetails(
+  request: APIRequestContext,
+  onboardingId: string,
+  options: {
+    headers: Record<string, string>;
+    tier: string;
+    customerEmail: string;
+  },
+): Promise<{
+  razorpayOrderId: string;
+  razorpayPaymentId: string;
+  razorpaySignature: string;
+}> {
+  const keySecret = process.env["RAZORPAY_KEY_SECRET"];
+  if (!keySecret) {
+    throw new Error(
+      "RAZORPAY_KEY_SECRET (test secret) is required to complete paid-plan onboarding in E2E",
+    );
+  }
+
+  const checkoutRes = await request.post(
+    `${API_URL}/onboarding/${onboardingId}/checkout`,
+    {
+      headers: options.headers,
+      data: {
+        tier: options.tier,
+        billingCycle: "MONTHLY",
+        currency: "INR",
+        customerEmail: options.customerEmail,
+        customerName: "Dr. History",
+        customerPhone: "1234567890",
+      },
+    },
+  );
+  if (!checkoutRes.ok()) {
+    throw new Error(`Onboarding checkout failed: ${await checkoutRes.text()}`);
+  }
+
+  const checkout = onboardingCheckoutResultSchema.parse(
+    await checkoutRes.json(),
+  );
+  const razorpayPaymentId = `pay_e2e_${randomUUID().replace(/-/g, "").slice(0, 14)}`;
+  const razorpaySignature = createHmac("sha256", keySecret)
+    .update(`${checkout.orderId}|${razorpayPaymentId}`)
+    .digest("hex");
+
+  return {
+    razorpayOrderId: checkout.orderId,
+    razorpayPaymentId,
+    razorpaySignature,
+  };
+}
+
+const onboardingCheckoutResultSchema = z.object({
+  orderId: z.string(),
+  amountCents: z.number(),
+  currency: z.string(),
+  razorpayKeyId: z.string(),
+});
+
 /** Next.js `(protected)` patient routes — keep Playwright URLs aligned with the app router. */
 export const PATIENTS_LIST_PATH = "/patients";
 
@@ -84,59 +150,6 @@ const e2eVerificationUserSchema = z.object({
   emailVerificationToken: z.string().nullable().optional(),
 });
 
-function getRepoRoot(): string {
-  // Playwright can run from repo root or package root; walk up to find the monorepo root.
-  let current = resolve(process.cwd());
-  while (true) {
-    if (
-      existsSync(resolve(current, "pnpm-workspace.yaml")) ||
-      existsSync(resolve(current, "turbo.json")) ||
-      existsSync(resolve(current, "package.json"))
-    ) {
-      // Prefer the highest directory that still looks like the repo root.
-      const parent = resolve(current, "..");
-      const parentLooksLikeRepo =
-        existsSync(resolve(parent, "pnpm-workspace.yaml")) ||
-        existsSync(resolve(parent, "turbo.json"));
-      if (!parentLooksLikeRepo) {
-        return current;
-      }
-    }
-
-    const parent = resolve(current, "..");
-    if (parent === current) {
-      return process.cwd();
-    }
-    current = parent;
-  }
-}
-
-function readDatabaseUrl(): string {
-  const fromEnv = process.env["DATABASE_URL"]?.trim();
-  if (fromEnv) {
-    return fromEnv;
-  }
-
-  const envPath = resolve(getRepoRoot(), ".env");
-  if (!existsSync(envPath)) {
-    throw new Error(
-      "DATABASE_URL was not found in process.env and repository .env is missing.",
-    );
-  }
-  const file = readFileSync(envPath, "utf8");
-
-  for (const line of file.split(/\r?\n/)) {
-    if (!line.startsWith("DATABASE_URL=")) continue;
-    const value = line.slice("DATABASE_URL=".length).trim();
-    if (!value) break;
-    return value.replace(/^"(.*)"$/, "$1");
-  }
-
-  throw new Error(
-    "DATABASE_URL was not found in process.env or the repository .env file.",
-  );
-}
-
 async function fetchVerificationToken(email: string): Promise<string | null> {
   let output = "";
   try {
@@ -148,10 +161,10 @@ async function fetchVerificationToken(email: string): Promise<string | null> {
         "apps/api/scripts/fetch-verification-token.ts",
       ],
       {
-        cwd: getRepoRoot(),
+        cwd: findRepoRoot(),
         env: {
           ...process.env,
-          DATABASE_URL: readDatabaseUrl(),
+          DATABASE_URL: requireRepoDatabaseUrl(),
           VERIFICATION_EMAIL: email,
         },
         encoding: "utf8",
@@ -175,6 +188,64 @@ async function fetchVerificationToken(email: string): Promise<string | null> {
   }
 
   return parsed.data.emailVerificationToken ?? null;
+}
+
+/**
+ * Deterministically marks a test account's email verified in the DB. Used after
+ * onboarding to close the race where the token round-trip in
+ * {@link verifyEmailIfNeeded} skips, leaving the admin unverified.
+ */
+function ensureEmailVerified(email: string): void {
+  try {
+    execFileSync(
+      "node",
+      [
+        "-r",
+        "ts-node/register/transpile-only",
+        "apps/api/scripts/ensure-email-verified.ts",
+      ],
+      {
+        cwd: findRepoRoot(),
+        env: {
+          ...process.env,
+          DATABASE_URL: requireRepoDatabaseUrl(),
+          VERIFICATION_EMAIL: email,
+        },
+        stdio: "ignore",
+      },
+    );
+  } catch {
+    // Best-effort: environments without DB access fall back to the API flow.
+  }
+}
+
+/**
+ * Local E2E has no external doctor-verification provider. Mark fixture doctors
+ * verified after they complete registration so clinical workflow tests can
+ * issue prescriptions without bypassing production guards.
+ */
+function ensureDoctorVerified(doctorId: string): void {
+  try {
+    execFileSync(
+      "node",
+      [
+        "-r",
+        "ts-node/register/transpile-only",
+        "apps/api/scripts/ensure-doctor-verified.ts",
+      ],
+      {
+        cwd: findRepoRoot(),
+        env: {
+          ...process.env,
+          DATABASE_URL: requireRepoDatabaseUrl(),
+          VERIFICATION_DOCTOR_ID: doctorId,
+        },
+        stdio: "ignore",
+      },
+    );
+  } catch {
+    // Best-effort: environments without DB access exercise the pending state.
+  }
 }
 
 export async function verifyEmailIfNeeded(
@@ -321,13 +392,14 @@ async function setupTestUserImpl(
   requestHeaders: Record<string, string> = {},
   options: {
     clinicType?: ClinicType;
-    tier?: "ESSENTIAL" | "FRONT_DESK";
+    tier?: "ESSENTIAL" | "FRONT_DESK" | "FRONT_DESK_CLINIC" | "FRONT_DESK_HOSPITAL";
   } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
   const tier = options.tier ?? "ESSENTIAL";
   const isUnpaidEssentialTrial = tier === "ESSENTIAL";
-  const onboardingAdminRole = tier === "FRONT_DESK" ? "ADMIN" : "ADMIN_DOCTOR";
+  const isFrontDesk = tier === "FRONT_DESK" || tier === "FRONT_DESK_CLINIC" || tier === "FRONT_DESK_HOSPITAL";
+  const onboardingAdminRole = isFrontDesk ? "ADMIN" : "ADMIN_DOCTOR";
   const uniqueId = randomUUID();
   const email = `doctor-${uniqueId}@test.com`;
   const password = TEST_PASSWORD;
@@ -448,6 +520,18 @@ async function setupTestUserImpl(
     );
   }
 
+  // Paid plans require a verified Razorpay payment. Create a real test order
+  // via the checkout endpoint and sign it with the test secret; the API's
+  // rzp_test_ path verifies the HMAC and reads the amount from the order
+  // (a real payment object can't be minted without the Checkout UI).
+  const paymentDetails = isUnpaidEssentialTrial
+    ? { skipPayment: true }
+    : await createTestPaymentDetails(request, onboardingId, {
+        headers: authHeaders(accessToken),
+        tier,
+        customerEmail: email,
+      });
+
   const completeRes = await request.post(
     `${API_URL}/onboarding/${onboardingId}/complete`,
     {
@@ -472,9 +556,7 @@ async function setupTestUserImpl(
           billingCycle: "MONTHLY",
           currency: "INR",
         },
-        paymentDetails: isUnpaidEssentialTrial
-          ? { skipPayment: true }
-          : { cardLast4: "4242" },
+        paymentDetails,
         slaAgreement: {
           acceptedSLA: true,
           slaVersion: "1.0",
@@ -512,6 +594,11 @@ async function setupTestUserImpl(
     throw new Error("Onboarding completion did not return a clinicId");
   }
 
+  // Guarantee the onboarding admin is email-verified. The pre-onboarding token
+  // round-trip can race under load and silently skip, which then bounces the
+  // user to the email-verification journey instead of the workspace.
+  ensureEmailVerified(email);
+
   // Always perform a fresh login after onboarding completion.
   // The API associates the user to the clinic during onboarding; using a fresh
   // login avoids relying on onboarding response token shapes and ensures JWT
@@ -544,7 +631,7 @@ async function setupTestUserImpl(
     postOnboardingLoginData.userId ??
     registeredUserId;
 
-  if (tier !== "FRONT_DESK") {
+  if (!isFrontDesk) {
     const tokenRes = await request.post(
       `${API_URL}/doctors/signature/generate-token`,
       {
@@ -598,6 +685,8 @@ async function setupTestUserImpl(
         `Doctor registration number update failed: ${await regNumberRes.text()}`,
       );
     }
+
+    ensureDoctorVerified(userId);
   }
 
   return {
@@ -652,7 +741,7 @@ export async function setupTestUser(
   requestHeaders: Record<string, string> = {},
   options: {
     clinicType?: ClinicType;
-    tier?: "ESSENTIAL" | "FRONT_DESK";
+    tier?: "ESSENTIAL" | "FRONT_DESK" | "FRONT_DESK_CLINIC" | "FRONT_DESK_HOSPITAL";
   } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
@@ -687,6 +776,9 @@ export async function loginUser(
   user: UserData,
   options: { role?: string } = {},
 ) {
+  // Keep non-production browser API traffic outside rate-limit budgets during route sweeps.
+  await page.setExtraHTTPHeaders({ "x-docita-e2e": "true" });
+
   const sessionUser = {
     id: user.id,
     email: user.email,
@@ -741,5 +833,5 @@ export async function loginUser(
     },
   );
 
-  await page.goto("/__e2e_session_seed", { waitUntil: "domcontentloaded" });
+  await page.goto("/e2e-session-seed", { waitUntil: "domcontentloaded" });
 }

@@ -7,7 +7,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { APP_ACCESS_TARGETS } from "@workspace/types";
+import { APP_ACCESS_TARGETS } from "@workspace/types/access";
 import type { CommandPaletteAction } from "@workspace/ui/components/overlay/command-palette-shell";
 import { Sparkles } from "lucide-react";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
@@ -98,7 +98,8 @@ export function useCommandPalette() {
   const handleStartConsultation = useCallback(async () => {
     const queueItems = doctorQueue.data ?? [];
     const inProgress = queueItems.find(
-      (item) => item.appointmentId && item.status.toUpperCase() === "IN_PROGRESS",
+      (item) =>
+        item.appointmentId && item.status.toUpperCase() === "IN_PROGRESS",
     )?.appointmentId;
     const waiting = queueItems.find(
       (item) => item.appointmentId && item.status.toUpperCase() === "WAITING",
@@ -191,7 +192,8 @@ export function useCommandPalette() {
         );
         if (!ok) continue;
       }
-      if (action.kind === "start-consultation" && !canStartConsultation) continue;
+      if (action.kind === "start-consultation" && !canStartConsultation)
+        continue;
 
       out.push({
         id: `action-${action.id}`,

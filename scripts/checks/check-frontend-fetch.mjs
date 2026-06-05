@@ -12,6 +12,7 @@ const allowedPatterns = [
   /^apps\/internal\/middleware\.ts$/,
   /^packages\/utils\/src\/http\/upstream-api-proxy\.ts$/,
   /^apps\/app\/shared\/lib\/api\/api-client\.ts$/,
+  /^apps\/app\/shared\/lib\/api\/api-availability\.ts$/,
   /^apps\/app\/shared\/lib\/auth\/fetch-with-session\.ts$/,
   /^apps\/app\/shared\/lib\/auth\/browser-session\.ts$/,
   /^apps\/app\/shared\/lib\/auth\/browser-request\.ts$/,

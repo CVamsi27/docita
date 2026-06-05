@@ -8,10 +8,18 @@ import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffo
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { DEFAULT_TIMEZONE, formatClinicTodayPickerIso } from "@workspace/utils";
+import {
+  DEFAULT_TIMEZONE,
+  formatClinicTodayPickerIso,
+  getPatientFullName,
+} from "@workspace/utils";
 import { FeatureGate } from "@/components/auth/feature-gate";
-import { useDownloadPrescriptionPDF, usePrescriptions } from "@workspace/data-access";
+import {
+  useDownloadPrescriptionPDF,
+  usePrescriptions,
+} from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth-context";
+import { isDoctor } from "@/lib/auth/permissions";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { Feature } from "@/lib/stores/permission-store";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
@@ -27,8 +35,7 @@ export function PrescriptionsPageContent() {
   const patientIdFromUrl = searchParams.get("patientId") ?? "";
   const { user } = useAuth();
   const { clinic } = useClinic();
-  const isDoctorRole =
-    user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
+  const isDoctorRole = isDoctor(user?.role);
   const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
   const clinicToday = formatClinicTodayPickerIso(clinicTz);
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,8 +84,7 @@ export function PrescriptionsPageContent() {
       return rows;
     }
     return rows.filter((p) => {
-      const name =
-        `${p.patient?.firstName ?? ""} ${p.patient?.lastName ?? ""}`.toLowerCase();
+      const name = getPatientFullName(p.patient).toLowerCase();
       const dx = (p.diagnosis || "").toLowerCase();
       const meds = (p.medications || [])
         .map((m) => (m.name || "").toLowerCase())
@@ -121,10 +127,8 @@ export function PrescriptionsPageContent() {
           bValue = new Date(b.createdAt).getTime();
           break;
         case "patient":
-          aValue =
-            `${a.patient?.firstName || ""} ${a.patient?.lastName || ""}`.toLowerCase();
-          bValue =
-            `${b.patient?.firstName || ""} ${b.patient?.lastName || ""}`.toLowerCase();
+          aValue = getPatientFullName(a.patient).toLowerCase();
+          bValue = getPatientFullName(b.patient).toLowerCase();
           break;
         case "diagnosis":
           aValue = (a.diagnosis || "").toLowerCase();
@@ -203,4 +207,3 @@ export function PrescriptionsPageContent() {
     </FeatureGate>
   );
 }
-

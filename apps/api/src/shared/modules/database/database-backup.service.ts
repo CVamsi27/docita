@@ -5,6 +5,7 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Gauge, Histogram, register } from 'prom-client';
 
 @Injectable()
 export class DatabaseBackupService {
@@ -16,6 +17,10 @@ export class DatabaseBackupService {
   private readonly databasePort: string;
   private readonly databaseUser: string;
   private readonly databaseName: string;
+
+  private readonly backupSuccessGauge: Gauge<string>;
+  private readonly backupSizeGauge: Gauge<string>;
+  private readonly backupDurationHistogram: Histogram<string>;
 
   constructor(
     private configService: AppConfigService,
@@ -33,6 +38,38 @@ export class DatabaseBackupService {
     this.databaseName = dbUrl.pathname.replace(/^\//, '');
 
     this.ensureBackupDirectory();
+
+    const existing = register.getSingleMetric(
+      'db_backup_last_success_timestamp',
+    );
+    this.backupSuccessGauge =
+      existing instanceof Gauge
+        ? existing
+        : new Gauge({
+            name: 'db_backup_last_success_timestamp',
+            help: 'Unix timestamp of the last successful database backup',
+          });
+
+    const sizeExisting = register.getSingleMetric('db_backup_last_size_bytes');
+    this.backupSizeGauge =
+      sizeExisting instanceof Gauge
+        ? sizeExisting
+        : new Gauge({
+            name: 'db_backup_last_size_bytes',
+            help: 'Size in bytes of the last database backup file',
+          });
+
+    const histoExisting = register.getSingleMetric(
+      'db_backup_duration_seconds',
+    );
+    this.backupDurationHistogram =
+      histoExisting instanceof Histogram
+        ? histoExisting
+        : new Histogram({
+            name: 'db_backup_duration_seconds',
+            help: 'Duration of database backup in seconds',
+            buckets: [10, 30, 60, 120, 300, 600, 1800, 3600],
+          });
   }
 
   private ensureBackupDirectory(): void {
@@ -141,6 +178,7 @@ export class DatabaseBackupService {
       filename || `backup-full-${timestamp}.dump`,
     );
     const filepath = path.join(this.backupDir, backupFilename);
+    const startTime = Date.now();
 
     try {
       await this.runPgCommand('pg_dump', [
@@ -160,6 +198,10 @@ export class DatabaseBackupService {
       ]);
 
       const stats = fs.statSync(filepath);
+      this.backupSuccessGauge.set(Date.now() / 1000);
+      this.backupSizeGauge.set(stats.size);
+      this.backupDurationHistogram.observe((Date.now() - startTime) / 1000);
+
       this.logger.log(
         `Full backup created: ${backupFilename} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`,
       );

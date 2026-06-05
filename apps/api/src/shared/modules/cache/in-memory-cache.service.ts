@@ -5,10 +5,14 @@ import { assertTypedJsonValue } from '@/shared/common/json/parse-serialized-json
 interface CacheEntry<T> {
   value: T;
   expiresAt?: number;
+  /** When set, the entry is eligible for probabilistic early recomputation
+   *  (XFetch) to prevent cache stampedes under high concurrency. */
+  recomputeAt?: number;
 }
 
 const MAX_ENTRIES = 10000;
 const CLEANUP_INTERVAL_MS = 60_000;
+const BETA = 1; // XFetch beta parameter — higher = more aggressive early refresh
 
 @Injectable()
 export class InMemoryCacheService
@@ -45,6 +49,16 @@ export class InMemoryCacheService
       return null;
     }
 
+    if (
+      entry.recomputeAt &&
+      entry.recomputeAt < Date.now() &&
+      entry.expiresAt &&
+      entry.expiresAt > Date.now()
+    ) {
+      this.cache.delete(key);
+      return null;
+    }
+
     return assertTypedJsonValue<T>(entry.value);
   }
 
@@ -59,7 +73,10 @@ export class InMemoryCacheService
       }
     }
     const expiresAt = ttl ? Date.now() + ttl * 1000 : undefined;
-    this.cache.set(key, { value, expiresAt });
+    const recomputeAt = ttl
+      ? expiresAt! - Math.abs(Math.log(Math.random()) * BETA * ttl * 1000)
+      : undefined;
+    this.cache.set(key, { value, expiresAt, recomputeAt });
     await Promise.resolve();
   }
 

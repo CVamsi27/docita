@@ -6,8 +6,8 @@ import { cn } from "@workspace/ui/lib/utils";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { StepProgress } from "@workspace/ui/components/navigation/step-progress";
 import { Button } from "@workspace/ui/components/form/button";
-import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import type { ConsultationSection } from "@/features/consultation/workspace/consultation-section-registry";
+import { findNextStep, useSectionCompletion } from "./SectionRail-sections";
 
 export type { ConsultationSection } from "@/features/consultation/workspace/consultation-section-registry";
 
@@ -16,101 +16,6 @@ interface SectionRailProps {
   activeSectionId: string;
   onSelect: (id: string) => void;
   className?: string;
-}
-
-function findNextStep(
-  sections: ConsultationSection[],
-  completion: Record<string, boolean>,
-): ConsultationSection | null {
-  // Prefer the next required section that isn't complete.
-  for (const s of sections) {
-    if (s.required && !completion[s.id]) return s;
-  }
-  // Then any optional section that isn't complete.
-  for (const s of sections) {
-    if (!completion[s.id]) return s;
-  }
-  return null;
-}
-
-function specialtyJsonFilled(value: unknown): boolean {
-  if (value == null) return false;
-  if (typeof value !== "object") return false;
-  const s = JSON.stringify(value);
-  return s.length > 2 && s !== "{}" && s !== "[]";
-}
-
-function useSectionCompletion() {
-  const chiefComplaint = useConsultationDraft((s) => s.chiefComplaint);
-  const history = useConsultationDraft((s) => s.history);
-  const examination = useConsultationDraft((s) => s.examination);
-  const diagnosis = useConsultationDraft((s) => s.diagnosis);
-  const treatment = useConsultationDraft((s) => s.treatment);
-  const prescriptions = useConsultationDraft((s) => s.prescriptions);
-  const followUpPlan = useConsultationDraft((s) => s.followUpPlan);
-  const dentalChart = useConsultationDraft((s) => s.dentalChart);
-  const eyeExam = useConsultationDraft((s) => s.eyeExam);
-  const growthData = useConsultationDraft((s) => s.growthData);
-  const cardiologyExam = useConsultationDraft((s) => s.cardiologyExam);
-  const dermatologyExam = useConsultationDraft((s) => s.dermatologyExam);
-  const gynecologyExam = useConsultationDraft((s) => s.gynecologyExam);
-  const psychiatryExam = useConsultationDraft((s) => s.psychiatryExam);
-  const investigations = useConsultationDraft((s) => s.investigations);
-
-  return useMemo(() => {
-    const examComplete =
-      !!examination.general.notes?.trim() ||
-      examination.general.pallor ||
-      examination.general.icterus ||
-      examination.general.cyanosis ||
-      examination.general.clubbing ||
-      examination.general.lymphadenopathy ||
-      examination.general.edema ||
-      !!examination.systemic.cvs?.trim() ||
-      !!examination.systemic.rs?.trim() ||
-      !!examination.systemic.pa?.trim() ||
-      !!examination.systemic.cns?.trim() ||
-      !!examination.systemic.musculoskeletal?.trim() ||
-      !!examination.systemic.notes?.trim();
-
-    const map: Record<string, boolean> = {
-      subjective:
-        (chiefComplaint.length > 0 &&
-          chiefComplaint.some((c) => c.complaint?.trim())) ||
-        !!history.trim(),
-      objective: examComplete,
-      assessment:
-        diagnosis.length > 0 &&
-        diagnosis.some((d) => (d.condition?.trim().length ?? 0) > 0),
-      plan:
-        !!treatment.trim() || prescriptions.length > 0 || !!followUpPlan.trim(),
-      "specialty-dental": Object.keys(dentalChart).length > 0,
-      "specialty-vision": Object.keys(eyeExam).length > 0,
-      "specialty-growth": (growthData?.measurements?.length ?? 0) > 0,
-      "specialty-cardiology": specialtyJsonFilled(cardiologyExam),
-      "specialty-dermatology": specialtyJsonFilled(dermatologyExam),
-      "specialty-gynecology": specialtyJsonFilled(gynecologyExam),
-      "specialty-psychiatry": specialtyJsonFilled(psychiatryExam),
-      "specialty-investigations": investigations.length > 0,
-    };
-    return map;
-  }, [
-    chiefComplaint,
-    history,
-    examination,
-    diagnosis,
-    treatment,
-    prescriptions,
-    followUpPlan,
-    dentalChart,
-    eyeExam,
-    growthData,
-    cardiologyExam,
-    dermatologyExam,
-    gynecologyExam,
-    psychiatryExam,
-    investigations,
-  ]);
 }
 
 export function SectionRail({
@@ -139,7 +44,7 @@ export function SectionRail({
       aria-label="Consultation sections"
     >
       {requiredCount > 0 ? (
-        <div className="mb-2 rounded-lg border border-border/60 bg-background/70 px-2.5 py-2">
+        <div className="mb-2 rounded-[var(--radius-md)] border border-border/60 bg-background/70 px-2.5 py-2">
           <div className="flex items-center justify-between gap-2">
             <MicroLabel className="text-muted-foreground">
               Required progress
@@ -167,11 +72,11 @@ export function SectionRail({
         </div>
       ) : null}
 
-      {sections.map((section, index) => {
+      {sections.map((section) => {
         const Icon = section.icon;
         const isActive = section.id === activeSectionId;
         const isComplete = completion[section.id] ?? false;
-        const isRequired = section.required ?? false;
+        const needsAttention = (section.required ?? false) && !isComplete;
         return (
           <button
             key={section.id}
@@ -179,104 +84,54 @@ export function SectionRail({
             onClick={() => onSelect(section.id)}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              "group flex min-h-[4.5rem] items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors duration-150",
+              "group flex items-center gap-3 rounded-md px-2.5 py-2 text-left transition-colors duration-150",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               isActive
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+                ? "bg-primary/10 text-foreground"
+                : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
             )}
           >
             <span
               className={cn(
-                "relative flex h-7 w-7 shrink-0 items-center justify-center rounded-md border text-[var(--fs-2xs)] font-semibold",
-                isActive
-                  ? "border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground"
-                  : isComplete
-                    ? "border-success/40 bg-success/10 text-success"
+                "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors duration-150",
+                isComplete
+                  ? "border-transparent bg-success text-success-foreground"
+                  : isActive
+                    ? "border-primary bg-primary/10 text-primary"
                     : "border-border bg-background text-muted-foreground",
               )}
               aria-hidden="true"
             >
-              {isComplete && !isActive ? (
-                <Check className="h-3.5 w-3.5" />
+              {isComplete ? (
+                <Check className="h-4 w-4" />
               ) : (
-                section.letter
+                <Icon className="h-4 w-4" />
               )}
+              {needsAttention ? (
+                <span
+                  className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full border border-background bg-warning"
+                  aria-label="Required"
+                />
+              ) : null}
+            </span>
+            <span className="flex flex-1 min-w-0 flex-col">
               <span
                 className={cn(
-                  "absolute -left-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full border text-[8px] font-bold tabular-nums",
-                  isActive
-                    ? "border-primary-foreground/40 bg-primary text-primary-foreground"
-                    : "border-border bg-background text-muted-foreground",
+                  "truncate text-sm leading-tight",
+                  isActive ? "font-semibold text-foreground" : "font-medium",
                 )}
               >
-                {index + 1}
-              </span>
-            </span>
-            <span className="flex flex-1 flex-col min-w-0">
-              <span className="flex items-center gap-1.5">
-                <span className="text-sm font-medium leading-tight truncate">
-                  {section.shortLabel}
-                </span>
-                {isRequired ? (
-                  <span
-                    className={cn(
-                      "shrink-0 rounded-full px-1.5 py-0 text-[8px] font-bold uppercase tracking-wide",
-                      isActive
-                        ? "bg-primary-foreground/15 text-primary-foreground"
-                        : "bg-destructive/10 text-destructive",
-                    )}
-                    aria-label="Required"
-                  >
-                    Req
-                  </span>
-                ) : (
-                  <span
-                    className={cn(
-                      "shrink-0 rounded-full px-1.5 py-0 text-[8px] font-medium uppercase tracking-wide",
-                      isActive
-                        ? "bg-primary-foreground/10 text-primary-foreground/80"
-                        : "bg-muted text-muted-foreground",
-                    )}
-                    aria-label="Optional"
-                  >
-                    Opt
-                  </span>
-                )}
+                {section.shortLabel}
               </span>
               {section.subtitle ? (
-                <span
-                  className={cn(
-                    "text-xs leading-snug truncate",
-                    isActive
-                      ? "text-primary-foreground/85"
-                      : "text-muted-foreground",
-                  )}
-                >
+                <span className="truncate text-xs leading-snug text-muted-foreground">
                   {section.subtitle}
                 </span>
               ) : null}
-              {isComplete ? (
-                <MicroLabel
-                  className={cn(
-                    "inline-flex items-center gap-1",
-                    isActive ? "text-primary-foreground/80" : "text-success",
-                  )}
-                >
-                  <Check className="h-3 w-3" aria-hidden="true" />
-                  Started
-                </MicroLabel>
-              ) : null}
             </span>
-            <Icon
-              aria-hidden
-              className={cn(
-                "h-4 w-4 shrink-0",
-                isActive
-                  ? "text-primary-foreground/90"
-                  : "text-muted-foreground/70",
-              )}
-            />
+            <span className="sr-only">
+              {isComplete ? "Started" : needsAttention ? "Required" : ""}
+            </span>
           </button>
         );
       })}
@@ -287,7 +142,7 @@ export function SectionRail({
           onClick={() => onSelect(nextStep.id)}
           aria-label="Jump to next step"
           data-testid={`consultation-next-step-${nextStep.id}`}
-          className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-primary/30 bg-primary/5 px-2.5 py-2 text-left transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="mt-3 flex items-center justify-between gap-2 rounded-[var(--radius-md)] border border-primary/30 bg-primary/5 px-2.5 py-2 text-left transition-colors duration-150 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span className="flex min-w-0 flex-col" aria-hidden="true">
             <MicroLabel className="text-primary">Next step</MicroLabel>

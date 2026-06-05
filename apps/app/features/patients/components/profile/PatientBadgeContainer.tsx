@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { calculateAge } from "@workspace/utils";
-import { getInitials } from "@/lib/formatters/text-helpers";
+import { calculateAge, getPatientFullName } from "@workspace/utils";
+import { getInitials } from "@/lib/formatters";
 import { PatientBadgeUI } from "./PatientBadgeUI";
 
 interface PatientData {
@@ -34,7 +34,7 @@ export function PatientBadgeContainer({
   onClick,
   className,
 }: PatientBadgeContainerProps) {
-  const fullName = `${patient.firstName} ${patient.lastName}`;
+  const fullName = getPatientFullName(patient);
   const initials = getInitials(patient.firstName, patient.lastName);
 
   const age = useMemo(() => {

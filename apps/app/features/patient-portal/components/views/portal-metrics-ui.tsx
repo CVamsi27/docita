@@ -1,17 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Activity } from "lucide-react";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Activity, Plus, RefreshCw } from "lucide-react";
 import {
   queryKeys,
   usePortalMetricCategories,
@@ -20,111 +11,22 @@ import {
 import { MetricCategorySection } from "@/features/patient-portal/components/metrics/metric-category-section";
 import { AddMetricDefinitionModal } from "@/features/patient-portal/components/metrics/add-metric-definition-modal";
 import { useQueryClient } from "@tanstack/react-query";
+import { metricHistoryResponseSchema } from "@workspace/types";
 import {
-  metricHistoryResponseSchema,
-  type MetricRecordResponse,
-} from "@workspace/types";
-import { isRecord } from "@workspace/utils";
-
-type PortalMetricRecord = {
-  id: string;
-  definitionId: string;
-  recordedAt: string;
-  values: Array<{
-    valueNumber?: number | null;
-    valueString?: string | null;
-    valueBoolean?: boolean | null;
-  }>;
-};
-
-function toPortalMetricRecord(
-  record: MetricRecordResponse,
-): PortalMetricRecord | null {
-  const definitionId = record.definitionId ?? record.definition.id;
-  if (!definitionId) return null;
-  const recordedAt =
-    typeof record.recordedAt === "string"
-      ? record.recordedAt
-      : record.recordedAt.toISOString();
-  return {
-    id: record.id,
-    definitionId,
-    recordedAt,
-    values: record.values.map((value) => ({
-      valueNumber: value.valueNumber,
-      valueString: value.valueString,
-      valueBoolean: value.valueBoolean,
-    })),
-  };
-}
-
-type PortalMetricDefinition = {
-  id: string;
-  key: string;
-  label: string;
-  unit?: string | null;
-  valueType: string;
-  isTracked: boolean;
-};
-
-type PortalMetricCategory = {
-  id: string;
-  name: string;
-  metricDefinitions: PortalMetricDefinition[];
-};
-
-function readPortalMetricDefinition(value: unknown): PortalMetricDefinition | null {
-  if (!isRecord(value)) return null;
-  if (typeof value.id !== "string" || typeof value.key !== "string") {
-    return null;
-  }
-  return {
-    id: value.id,
-    key: value.key,
-    label: typeof value.label === "string" ? value.label : value.key,
-    unit: typeof value.unit === "string" || value.unit === null ? value.unit : null,
-    valueType: typeof value.valueType === "string" ? value.valueType : "NUMBER",
-    isTracked: value.isTracked === true,
-  };
-}
-
-function readPortalMetricCategory(value: unknown): PortalMetricCategory | null {
-  if (!isRecord(value)) return null;
-  if (typeof value.id !== "string" || typeof value.name !== "string") {
-    return null;
-  }
-  const metricDefinitions = Array.isArray(value.metricDefinitions)
-    ? value.metricDefinitions
-        .map(readPortalMetricDefinition)
-        .filter((entry): entry is PortalMetricDefinition => entry !== null)
-    : [];
-  return { id: value.id, name: value.name, metricDefinitions };
-}
-
-const DATE_RANGE_OPTIONS = [
-  { value: "7", label: "Last 7 days" },
-  { value: "30", label: "Last 30 days" },
-  { value: "90", label: "Last 3 months" },
-  { value: "180", label: "Last 6 months" },
-];
-
-function getDateRange(days: number) {
-  const to = new Date();
-  const from = new Date();
-  from.setDate(from.getDate() - days);
-  return {
-    from: from.toISOString(),
-    to: to.toISOString(),
-  };
-}
+  PortalMetricsHeader,
+  PortalMetricsToolbar,
+  toPortalMetricRecord,
+  readPortalMetricCategory,
+  getDateRange,
+  type PortalMetricRecord,
+  type PortalMetricCategory,
+} from "./portal-metrics-ui-sections";
 
 interface PortalMetricsUIProps {
   showHeader?: boolean;
 }
 
-export function PortalMetricsUI({
-  showHeader = true,
-}: PortalMetricsUIProps) {
+export function PortalMetricsUI({ showHeader = true }: PortalMetricsUIProps) {
   const [dateRange, setDateRange] = useState("30");
   const [showAddModal, setShowAddModal] = useState(false);
   const queryClient = useQueryClient();
@@ -181,57 +83,19 @@ export function PortalMetricsUI({
 
   return (
     <div className="space-y-6">
-      {showHeader ? (
-        <div>
-          <h1 className="ui-page-title">My metrics</h1>
-          <p className="ui-page-subtitle">
-            Track and monitor your personal health metrics
-          </p>
-        </div>
-      ) : null}
+      {showHeader ? <PortalMetricsHeader /> : null}
 
-      <div className="flex items-center justify-end gap-2">
-        <div className="flex items-center gap-2">
-          <SymbolTooltip label="Refresh metrics">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => refetchHistory()}
-              disabled={isLoading}
-              aria-label="Refresh metrics"
-            >
-              <RefreshCw
-                className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
-              />
-            </Button>
-          </SymbolTooltip>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAddModal(true)}
-            className="gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add Metric
-          </Button>
-          <Select value={dateRange} onValueChange={setDateRange}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {DATE_RANGE_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <PortalMetricsToolbar
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        isLoading={isLoading}
+        onRefresh={() => refetchHistory()}
+        onAddMetric={() => setShowAddModal(true)}
+      />
 
       <DataState
         status={status}
-        loadingMessage="Loading metrics…"
+        loadingMessage="Loading metrics\u2026"
         errorMessage="We could not load your health metrics. Please try again."
         onRetry={handleRetry}
         emptyIcon={Activity}
@@ -255,7 +119,7 @@ export function PortalMetricsUI({
         </div>
       </DataState>
 
-      {showAddModal && (
+      {showAddModal ? (
         <AddMetricDefinitionModal
           categories={categoryList.map((c) => ({ id: c.id, name: c.name }))}
           open={showAddModal}
@@ -266,7 +130,7 @@ export function PortalMetricsUI({
             });
           }}
         />
-      )}
+      ) : null}
     </div>
   );
 }

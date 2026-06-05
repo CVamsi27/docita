@@ -1,5 +1,7 @@
 "use client";
 
+import { getPatientFullName } from "@workspace/utils";
+
 import { Invoice, Patient } from "@workspace/types";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
@@ -17,7 +19,7 @@ export function InvoiceBillTo({ invoice }: InvoiceBillToProps) {
         {invoice.patient ? (
           <div className="text-sm space-y-1">
             <p className="font-bold text-lg">
-              {invoice.patient.firstName} {invoice.patient.lastName}
+              {getPatientFullName(invoice.patient)}
             </p>
             <p>{invoice.patient.address || "-"}</p>
             <p>{invoice.patient.email}</p>

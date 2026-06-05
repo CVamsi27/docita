@@ -1,6 +1,17 @@
 import { z } from "zod";
 import { stripHtmlTags } from "../api/sanitization";
 
+export const DEFAULT_TAX_COUNTRY_CODE = "IN";
+export const DEFAULT_TAX_CURRENCY = "INR";
+export const DEFAULT_TAX_REGIME = "IN_GST" as const;
+
+export function extractStateCodeFromGstin(
+  gstin?: string | null,
+): string | undefined {
+  const stateCode = gstin?.slice(0, 2);
+  return stateCode && /^\d{2}$/.test(stateCode) ? stateCode : undefined;
+}
+
 export const taxRegimeSchema = z.enum(["IN_GST", "VAT", "SALES_TAX", "NONE"]);
 export type TaxRegime = z.infer<typeof taxRegimeSchema>;
 
@@ -32,15 +43,15 @@ export const taxComponentTypeSchema = z.enum([
 export type TaxComponentType = z.infer<typeof taxComponentTypeSchema>;
 
 export const placeOfSupplySchema = z.object({
-  countryCode: z.string().length(2).default("IN"),
+  countryCode: z.string().length(2).default(DEFAULT_TAX_COUNTRY_CODE),
   stateCode: z.string().max(8).optional(),
   stateName: z.string().max(120).transform(stripHtmlTags).optional(),
 });
 export type PlaceOfSupply = z.infer<typeof placeOfSupplySchema>;
 
 export const taxRegistrationSnapshotSchema = z.object({
-  countryCode: z.string().length(2).default("IN"),
-  regime: taxRegimeSchema.default("IN_GST"),
+  countryCode: z.string().length(2).default(DEFAULT_TAX_COUNTRY_CODE),
+  regime: taxRegimeSchema.default(DEFAULT_TAX_REGIME),
   registrationId: z.string().max(32).transform(stripHtmlTags).optional(),
   registrationLabel: z.string().max(32).transform(stripHtmlTags).optional(),
   legalName: z.string().max(160).transform(stripHtmlTags).optional(),
@@ -69,9 +80,9 @@ export const eInvoiceMetadataSchema = z.object({
 export type EInvoiceMetadata = z.infer<typeof eInvoiceMetadataSchema>;
 
 export const invoiceTaxSummarySchema = z.object({
-  countryCode: z.string().length(2).default("IN"),
-  regime: taxRegimeSchema.default("IN_GST"),
-  currency: z.string().length(3).default("INR"),
+  countryCode: z.string().length(2).default(DEFAULT_TAX_COUNTRY_CODE),
+  regime: taxRegimeSchema.default(DEFAULT_TAX_REGIME),
+  currency: z.string().length(3).default(DEFAULT_TAX_CURRENCY),
   subtotal: z.number().min(0),
   discountTotal: z.number().min(0).default(0),
   taxableAmount: z.number().min(0).default(0),
@@ -87,8 +98,8 @@ export const invoiceTaxSummarySchema = z.object({
 export type InvoiceTaxSummary = z.infer<typeof invoiceTaxSummarySchema>;
 
 export const taxSettingsSchema = z.object({
-  countryCode: z.string().length(2).default("IN"),
-  regime: taxRegimeSchema.default("IN_GST"),
+  countryCode: z.string().length(2).default(DEFAULT_TAX_COUNTRY_CODE),
+  regime: taxRegimeSchema.default(DEFAULT_TAX_REGIME),
   registrationId: z.string().max(32).transform(stripHtmlTags).optional(),
   registrationLabel: z.string().max(32).transform(stripHtmlTags).optional(),
   legalName: z.string().max(160).transform(stripHtmlTags).optional(),

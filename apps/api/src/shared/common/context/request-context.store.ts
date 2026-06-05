@@ -19,9 +19,19 @@ import { AsyncLocalStorage } from 'node:async_hooks';
  */
 interface RequestContext {
   readonly correlationId: string;
+  readonly queryCounter: RequestQueryCounterContext;
 }
 
 const store = new AsyncLocalStorage<RequestContext>();
+
+export const DEFAULT_QUERY_BUDGET_PER_REQUEST = 50;
+
+export interface RequestQueryCounterContext {
+  count: number;
+  budget: number;
+  requestId?: string;
+  route?: string;
+}
 
 /**
  * Run `fn` inside a request-scoped context. Intended for callers that own
@@ -41,4 +51,10 @@ export function runWithRequestContext<T>(
  */
 export function getCorrelationId(): string | undefined {
   return store.getStore()?.correlationId;
+}
+
+export function getRequestQueryCounterContext():
+  | RequestQueryCounterContext
+  | undefined {
+  return store.getStore()?.queryCounter;
 }

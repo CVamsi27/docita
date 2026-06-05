@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { invoiceStatusSchema } from "../shared/users";
+import { type InvoiceStatus, invoiceStatusSchema } from "../shared/users";
 import { PaymentMethod } from "./payments";
 import { patientSchema } from "../patient/patients";
 import { stripHtmlTags } from "../api/sanitization";
@@ -10,6 +10,14 @@ import {
   taxRegistrationSnapshotSchema,
   taxTreatmentSchema,
 } from "./tax";
+
+export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
+  PENDING: "Pending",
+  PAID: "Paid",
+  OVERDUE: "Overdue",
+  CANCELLED: "Cancelled",
+  PARTIALLY_PAID: "Partially Paid",
+};
 
 const moneyAmountSchema = z
   .number()
@@ -158,7 +166,7 @@ function normalizeInvoiceListPatient(
 
 function normalizeInvoiceListItems(items: unknown): unknown {
   if (!Array.isArray(items)) {
-    return items;
+    return [];
   }
   return items.map((entry) => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
@@ -183,12 +191,21 @@ function normalizeInvoiceListItems(items: unknown): unknown {
   });
 }
 
+function stripNulls(obj: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const key of Object.keys(obj)) {
+    if (obj[key] === null) continue;
+    result[key] = obj[key];
+  }
+  return result;
+}
+
 /** Coerce API list payloads before strict {@link invoiceSchema} parsing on the client. */
 export function normalizeInvoiceListRowInput(input: unknown): unknown {
   if (input === null || typeof input !== "object" || Array.isArray(input)) {
     return input;
   }
-  const row = input as Record<string, unknown>;
+  const row = stripNulls(input as Record<string, unknown>);
   const patient =
     row.patient &&
     typeof row.patient === "object" &&
@@ -225,8 +242,23 @@ export function normalizeInvoiceListRowInput(input: unknown): unknown {
   };
 }
 
+const listMoney = z.number().finite().nonnegative();
+
 const invoiceListRowBaseSchema = invoiceSchema.omit({ patient: true }).extend({
   patient: invoiceListPatientSchema.nullish().optional(),
+  // Coerce null/non-array items to [] and tolerate items that fail schema (not displayed on list)
+  items: z.preprocess(
+    (v) => (Array.isArray(v) ? v : []),
+    z.array(invoiceItemSchema).catch([]),
+  ),
+  // Relax money-amount refinements — IEEE 754 floats like 10.1 fail the
+  // exact-equality check (10.1 * 100 = 1009.999…); server already validated on write.
+  total: listMoney,
+  totalAmount: listMoney.optional(),
+  subtotal: listMoney.optional(),
+  discountTotal: listMoney.optional(),
+  taxTotal: listMoney.optional(),
+  grandTotal: listMoney.optional(),
 });
 
 /** Parsed invoice row for clinic-wide and patient-scoped list endpoints. */

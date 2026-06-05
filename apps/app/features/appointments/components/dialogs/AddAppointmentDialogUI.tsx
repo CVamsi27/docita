@@ -1,5 +1,3 @@
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-
 import { z } from "zod";
 import type { UseFormReturn } from "react-hook-form";
 import {
@@ -12,31 +10,22 @@ import {
 type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 import type { SelectOption } from "@/lib/contexts/app-config-context";
 
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
 } from "@workspace/ui/components/form/form";
 import { FormDialog } from "@workspace/ui/components/form/form-dialog";
 import {
-  IsoDatePickerField,
-  parseIsoDateToLocalDate,
-} from "@workspace/ui/components/form/iso-date-picker-field";
-import {
   clinicWallDatetimeLocalToUtcIso,
-  formatClinicPickerDayIsoFromSelection,
 } from "@workspace/utils";
-import { AppointmentFormFields } from "@/features/appointments/components/sections/add-dialog/AppointmentFormFields";
-import { PatientSelector } from "@/features/appointments/components/sections/add-dialog/PatientSelector";
-import { DoctorSelector } from "@/features/appointments/components/sections/add-dialog/DoctorSelector";
-import { TimeSlotPicker } from "@/features/appointments/components/sections/add-dialog/TimeSlotPicker";
 import type { SlotBlockingAppointment } from "@/features/appointments/lib/calendar-slot-local-iso";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { formatClockTime, formatLocaleDateShortMonth } from "@/lib/formatters";
+import {
+  PatientDoctorSection,
+  WalkInSlotSection,
+  ScheduleSection,
+  FormActionsSection,
+} from "./AddAppointmentDialogUISections";
 
 interface AddAppointmentDialogUIProps {
   open: boolean;
@@ -67,22 +56,6 @@ interface AddAppointmentDialogUIProps {
   availabilitySlots: AvailableSlot[];
   clinicTimezone: string;
   blockingAppointmentsForSlots: SlotBlockingAppointment[];
-}
-
-interface SectionHeaderProps {
-  title: string;
-  description?: string;
-}
-
-function SectionHeader({ title, description }: SectionHeaderProps) {
-  return (
-    <div>
-      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-      {description && (
-        <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
-      )}
-    </div>
-  );
 }
 
 export function AddAppointmentDialogUI({
@@ -160,143 +133,50 @@ export function AddAppointmentDialogUI({
     >
       <Form {...form}>
         <form onSubmit={handleSubmit} noValidate className="min-w-0 space-y-6">
-          <section className="space-y-4">
-            <SectionHeader
-              title="Patient & doctor"
-              description="Who the appointment is for and who will see them."
-            />
-            <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:gap-6">
-              <div className="min-w-0 flex-1">
-                <FormField
-                  control={form.control}
-                  name="patientId"
-                  render={({ field }) => (
-                    <FormItem className="min-w-0">
-                      <FormLabel>Patient</FormLabel>
-                      <PatientSelector
-                        value={field.value ?? ""}
-                        onChange={field.onChange}
-                        patients={patients}
-                        patientsLoading={patientsLoading}
-                        patientSearch={patientSearch}
-                        setPatientSearch={setPatientSearch}
-                        patientComboboxOpen={patientComboboxOpen}
-                        setPatientComboboxOpen={setPatientComboboxOpen}
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <DoctorSelector
-                  form={form}
-                  doctors={doctors}
-                  doctorsLoading={doctorsLoading}
-                />
-              </div>
-            </div>
-          </section>
+          <PatientDoctorSection
+            form={form}
+            patients={patients}
+            patientsLoading={patientsLoading}
+            patientSearch={patientSearch}
+            setPatientSearch={setPatientSearch}
+            patientComboboxOpen={patientComboboxOpen}
+            setPatientComboboxOpen={setPatientComboboxOpen}
+            doctors={doctors}
+            doctorsLoading={doctorsLoading}
+          />
 
           <div className="border-t border-border/60" />
 
           {mode === "walk-in" ? (
-            <section className="space-y-4">
-              <SectionHeader
-                title="Next available slot"
-                description="Auto-selected from the doctor’s availability."
-              />
-              <div className="ui-card-surface flex flex-col gap-2 rounded-[var(--radius-lg)] border border-border/60 bg-card p-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Slot
-                  </span>
-                  <Badge variant="secondary">
-                    {slotReady ? "Ready" : "Finding…"}
-                  </Badge>
-                </div>
-                <p className="text-sm text-foreground">
-                  {slotReady
-                    ? slotLabel
-                    : doctorId
-                      ? "Looking up availability for this doctor."
-                      : "Select a doctor to find the next slot."}
-                </p>
-              </div>
-            </section>
+            <WalkInSlotSection
+              slotReady={slotReady}
+              slotLabel={slotLabel}
+              doctorId={doctorId}
+            />
           ) : (
-            <section className="space-y-4">
-              <SectionHeader
-                title="Schedule & type"
-                description="Choose the appointment date, then a start time slot (defaults to the next opening)."
-              />
-              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                <div className="space-y-4">
-                  {selectedDate != null && onAdjustSchedulingDate ? (
-                    <div className="flex flex-col gap-2">
-                      <FormLabel htmlFor="add-appointment-schedule-date">
-                        Date
-                      </FormLabel>
-                      <IsoDatePickerField
-                        id="add-appointment-schedule-date"
-                        label=""
-                        showLabel={false}
-                        value={formatClinicPickerDayIsoFromSelection(
-                          selectedDate,
-                          clinicTimezone,
-                        )}
-                        onChange={(iso) => {
-                          const next = parseIsoDateToLocalDate(iso);
-                          if (next) onAdjustSchedulingDate(next);
-                        }}
-                        placeholder="Select appointment date"
-                        triggerClassName="w-full max-w-none sm:w-full"
-                        disablePastDates
-                      />
-                    </div>
-                  ) : null}
-                  <TimeSlotPicker
-                    form={form}
-                    startHour={startHour}
-                    endHour={endHour}
-                    isResolvingDefaultSlot={isResolvingDefaultSlot}
-                    selectedDate={selectedDate}
-                    doctorId={doctorId}
-                    availabilitySlotsReady={availabilitySlotsReady}
-                    availabilitySlots={availabilitySlots}
-                    clinicTimezone={clinicTimezone}
-                    blockingAppointments={blockingAppointmentsForSlots}
-                  />
-                </div>
-                <AppointmentFormFields
-                  form={form}
-                  appointmentTypeOptions={appointmentTypeOptions}
-                />
-              </div>
-            </section>
+            <ScheduleSection
+              form={form}
+              selectedDate={selectedDate}
+              onAdjustSchedulingDate={onAdjustSchedulingDate}
+              startHour={startHour}
+              endHour={endHour}
+              isResolvingDefaultSlot={isResolvingDefaultSlot}
+              doctorId={doctorId}
+              availabilitySlotsReady={availabilitySlotsReady}
+              availabilitySlots={availabilitySlots}
+              clinicTimezone={clinicTimezone}
+              blockingAppointments={blockingAppointmentsForSlots}
+              appointmentTypeOptions={appointmentTypeOptions}
+            />
           )}
 
-          <div className="flex flex-col-reverse gap-2 border-t border-border/60 pt-4 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={
-                loading ||
-                isResolvingDefaultSlot ||
-                (mode === "walk-in" && !slotReady)
-              }
-            >
-              {loading && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
-              {mode === "walk-in" ? "Add walk-in" : "Schedule"}
-            </Button>
-          </div>
+          <FormActionsSection
+            loading={loading}
+            isResolvingDefaultSlot={isResolvingDefaultSlot}
+            mode={mode}
+            slotReady={slotReady}
+            onOpenChange={onOpenChange}
+          />
         </form>
       </Form>
     </FormDialog>

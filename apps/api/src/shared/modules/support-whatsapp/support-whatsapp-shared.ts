@@ -7,7 +7,7 @@ export type WebhookValue =
   WhatsAppWebhookPayload['entry'][0]['changes'][0]['value'];
 export type WebhookMessage = NonNullable<WebhookValue['messages']>[number];
 
-export const SUPPORT_EMAIL = 'support@docita.work';
+export { SUPPORT_EMAIL } from '@/shared/common/constants/support-contact.constants';
 export const AUTO_REPLY_COOLDOWN_MS = 10 * 60 * 1000;
 
 export const threadMessageSelect = {

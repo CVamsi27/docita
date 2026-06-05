@@ -59,7 +59,9 @@ export function BillingHistoryTable({
 
   const filteredHasRows = filteredInvoices.length > 0;
   const primaryCurrency =
-    filteredInvoices[0]?.currency ?? invoices?.[0]?.currency ?? DEFAULT_CURRENCY;
+    filteredInvoices[0]?.currency ??
+    invoices?.[0]?.currency ??
+    DEFAULT_CURRENCY;
 
   const paidTotalCents = useMemo(() => {
     return filteredInvoices.reduce((sum, inv) => {

@@ -132,6 +132,12 @@ export const clinicalInvestigationSchema = z.object({
   notes: z.string().max(1000).optional(),
   orderedAt: z.string().or(z.date()).optional(),
   completedAt: z.string().or(z.date()).optional(),
+  // Optional report/scan attached on the spot during the consultation.
+  // `attachmentUrl` is the stored file URL; `attachmentDocumentId` links the
+  // medical-document record created alongside it.
+  attachmentUrl: z.string().max(2048).optional(),
+  attachmentName: z.string().max(255).optional(),
+  attachmentDocumentId: z.string().optional(),
 });
 export type ClinicalInvestigation = z.infer<typeof clinicalInvestigationSchema>;
 

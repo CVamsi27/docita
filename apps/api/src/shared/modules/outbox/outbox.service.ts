@@ -3,8 +3,8 @@
  * Transactional outbox.
  *
  * Producers in command paths call `outbox.append(tx, ...)` inside the
- * same `prisma.$transaction(...)` as the business write. The relay worker
- * (`apps/worker/src/processors/outbox.processor.ts`) drains unprocessed
+ * same `prisma.$transaction(...)` as the business write. The relay scheduler
+ * (`apps/api/src/shared/modules/outbox/outbox-relay.scheduler.ts`) drains unprocessed
  * rows via `EventEmitter2` and marks `processedAt`.
  *
  * See ADR docs/architecture/decisions/0010-transactional-outbox.md.

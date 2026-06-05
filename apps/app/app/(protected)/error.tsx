@@ -23,7 +23,9 @@ export default function Error({
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
           <AlertCircle className="h-8 w-8 text-destructive" />
         </div>
-        <h2 className="mb-2 text-xl font-semibold">We could not load this page</h2>
+        <h2 className="mb-2 text-xl font-semibold">
+          We could not load this page
+        </h2>
         <p className="mb-6 text-muted-foreground">
           We had trouble loading this page. Please try again.
         </p>

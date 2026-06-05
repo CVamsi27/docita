@@ -8,20 +8,25 @@ import {
   useClinicSettings,
   useUpdateClinicSettings,
 } from "@workspace/data-access";
-import { getFacilityLabel, parseStringEnumMember } from "@workspace/utils";
+import {
+  getClinicGstin,
+  getFacilityLabel,
+  parseStringEnumMember,
+} from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   clinicSettingsFormSchema,
+  facilityTypeSchema,
   type ClinicSettingsFormValues,
 } from "@workspace/types";
 
-const FACILITY_LABEL_VALUES = ["CLINIC", "HOSPITAL"] as const;
+const FACILITY_LABEL_VALUES = facilityTypeSchema.options;
 
 export function useClinicGeneralSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
   const { mutate: updateClinic, isPending } = useUpdateClinicSettings();
 
-  const facilityLabelSetting =
+  const legacyFacilityLabel =
     typeof clinic?.settings === "object" &&
     clinic?.settings !== null &&
     !Array.isArray(clinic.settings) &&
@@ -30,8 +35,10 @@ export function useClinicGeneralSettings() {
       : undefined;
 
   const facilityLabel = getFacilityLabel(
-    parseStringEnumMember(FACILITY_LABEL_VALUES, facilityLabelSetting ?? "") ??
-      undefined,
+    parseStringEnumMember(
+      FACILITY_LABEL_VALUES,
+      clinic?.facilityType ?? legacyFacilityLabel ?? "",
+    ) ?? undefined,
   );
 
   const form = useForm<ClinicSettingsFormValues>({
@@ -61,9 +68,10 @@ export function useClinicGeneralSettings() {
         name: clinic.name || "",
         address: clinic.address || "",
         phone: clinic.phone || "",
-        gstin: clinic.gstin || "",
+        gstin: getClinicGstin(clinic.settings) || "",
         legalName: settings?.taxSettings?.legalName ?? "",
-        facilityLabel: settings?.facilityLabel ?? "CLINIC",
+        facilityLabel:
+          clinic.facilityType ?? settings?.facilityLabel ?? "CLINIC",
         mapsLink: settings?.mapsLink ?? "",
       });
     }

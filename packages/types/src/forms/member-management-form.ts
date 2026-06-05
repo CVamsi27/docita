@@ -6,6 +6,7 @@ const memberRoleSchema = z.enum([
   "RECEPTIONIST",
   "ADMIN",
   "ADMIN_DOCTOR",
+  "LAB",
 ]);
 
 function requireDoctorRegistration(
@@ -34,6 +35,7 @@ export const inviteTeamMemberFormSchema = z
     specialization: z.string().optional(),
     qualification: z.string().optional(),
     registrationNumber: z.string().optional(),
+    labId: z.string().optional(),
   })
   .superRefine(requireDoctorRegistration);
 
@@ -46,6 +48,7 @@ export const memberManagementFormSchema = z
     specialization: z.string().optional(),
     qualification: z.string().optional(),
     registrationNumber: z.string().optional(),
+    labId: z.string().optional(),
   })
   .superRefine(requireDoctorRegistration);
 

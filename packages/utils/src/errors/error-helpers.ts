@@ -6,16 +6,11 @@ export interface ErrorWithMessage {
 }
 
 export function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
-  const errorObj =
-    typeof error === "object" && error !== null && !Array.isArray(error)
-      ? Object.fromEntries(Object.entries(error))
-      : null;
-
   return (
     typeof error === "object" &&
     error !== null &&
     "message" in error &&
-    typeof errorObj?.["message"] === "string"
+    typeof error.message === "string"
   );
 }
 

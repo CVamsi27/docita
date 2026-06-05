@@ -4,10 +4,10 @@ import { withSentryConfig } from "@sentry/nextjs";
 import bundleAnalyzer from "@next/bundle-analyzer";
 const require = createRequire(import.meta.url);
 const nextCloudflareEmptyStub = require.resolve(
-  "../../scripts/deploy/cloudflare-stubs/empty-module.cjs",
+  "./scripts/deploy/cloudflare-stubs/empty-module.cjs",
 );
 const nextCloudflareSentryStub = require.resolve(
-  "../../scripts/deploy/cloudflare-stubs/sentry-nextjs-cloudflare.ts",
+  "./scripts/deploy/cloudflare-stubs/sentry-nextjs-cloudflare.ts",
 );
 
 const withBundleAnalyzer = bundleAnalyzer({
@@ -15,9 +15,7 @@ const withBundleAnalyzer = bundleAnalyzer({
 });
 
 const isCloudflareBuild = process.env.DOCITA_CLOUDFLARE === "1";
-const DEFAULT_PUBLIC_API_URL = isCloudflareBuild
-  ? "/api/v1"
-  : "http://localhost:3001/api/v1";
+const DEFAULT_PUBLIC_API_URL = "/api/v1";
 const DEFAULT_PUBLIC_APP_URL = isCloudflareBuild
   ? "https://app.docita.work"
   : "http://localhost:3000";
@@ -25,14 +23,19 @@ const DEFAULT_PUBLIC_SOCKET_URL = isCloudflareBuild
   ? "https://api.docita.work"
   : "http://localhost:3001";
 
+function parseUrlOrigin(value: string): string | null {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
+
 function resolveApiProxyTarget(): string {
   if (process.env.API_PROXY_TARGET) return process.env.API_PROXY_TARGET;
   if (process.env.NEXT_PUBLIC_API_URL) {
-    try {
-      return new URL(process.env.NEXT_PUBLIC_API_URL).origin;
-    } catch {
-      // fall through
-    }
+    const origin = parseUrlOrigin(process.env.NEXT_PUBLIC_API_URL);
+    if (origin) return origin;
   }
   if (process.env.DOCITA_CLOUDFLARE === "1") {
     return "https://api.docita.work";
@@ -66,7 +69,7 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60 * 60 * 24 * 365, 
+    minimumCacheTTL: 60 * 60 * 24 * 365,
   },
 
   experimental: {
@@ -76,7 +79,7 @@ const nextConfig: NextConfig = {
       "@tanstack/react-query",
       "@workspace/ui",
       "@workspace/hooks",
-      "@workspace/utils"
+      "@workspace/utils",
     ],
   },
 
@@ -118,10 +121,8 @@ const nextConfig: NextConfig = {
           /^react-leaflet$/,
           /^@react-google-maps\/api$/,
           /^canvas-confetti$/,
-          // Sentry is fully no-op on Cloudflare (instrumentation.register()
-          // early-returns and @sentry/nextjs is aliased to a stub), but the
-          // heavy @sentry/node server SDK (~2.6 MB) can still leak into the
-          // server output and blow the Worker size limit. Stub it outright.
+          /^cmdk$/,
+          /^socket\.io-client(\/|$)/,
           /^@sentry\/node(\/|$)/,
           /^@sentry\/profiling-node(\/|$)/,
           /^@sentry-internal\//,

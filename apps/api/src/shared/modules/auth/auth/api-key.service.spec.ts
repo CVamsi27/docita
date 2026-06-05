@@ -6,6 +6,7 @@ import { ApiKeyService } from './api-key.service';
 
 describe('ApiKeyService', () => {
   let prisma: {
+    $transaction: <T>(fn: (tx: unknown) => Promise<T>) => Promise<T>;
     apiKey: {
       create: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
       findMany: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
@@ -17,6 +18,7 @@ describe('ApiKeyService', () => {
 
   beforeEach(() => {
     prisma = {
+      $transaction: async (fn) => fn(prisma),
       apiKey: {
         create: jest.fn(),
         findMany: jest.fn(),
@@ -36,6 +38,7 @@ describe('ApiKeyService', () => {
       name: 'Integration Key',
       keyPrefix: 'dct_abcdefgh',
       scopes: ['patients:read'],
+      allowedIps: [],
       expiresAt: null,
       createdAt: new Date('2026-01-01T00:00:00.000Z'),
     });
@@ -57,6 +60,7 @@ describe('ApiKeyService', () => {
         keyHash: expect.any(String),
         keyPrefix: expect.any(String),
         scopes: ['patients:read'],
+        allowedIps: [],
         expiresAt: null,
         updatedAt: expect.any(Date),
       }),
@@ -76,12 +80,57 @@ describe('ApiKeyService', () => {
         name: true,
         keyPrefix: true,
         scopes: true,
+        allowedIps: true,
         expiresAt: true,
         lastUsedAt: true,
         createdAt: true,
         createdBy: { select: { name: true, email: true } },
       },
       orderBy: { createdAt: 'desc' },
+    });
+  });
+
+  it('rotates an API key with a bounded overlap window', async () => {
+    const now = new Date('2026-01-15T12:00:00.000Z');
+    jest.spyOn(prisma.apiKey, 'findUnique').mockResolvedValue({
+      id: 'key-1',
+      clinicId: 'clinic-1',
+      name: 'Partner',
+      scopes: ['patients:read'],
+      allowedIps: ['203.0.113.10'],
+      expiresAt: null,
+      revokedAt: null,
+    });
+    jest.spyOn(prisma.apiKey, 'create').mockResolvedValue({
+      id: 'key-2',
+      name: 'Partner',
+      keyPrefix: 'dct_replaced',
+      scopes: ['patients:read'],
+      allowedIps: ['203.0.113.10'],
+      expiresAt: null,
+      createdAt: now,
+    });
+    jest.spyOn(prisma.apiKey, 'update').mockResolvedValue({ id: 'key-1' });
+
+    const result = await service.rotateApiKey(
+      'key-1',
+      'clinic-1',
+      'user-1',
+      60,
+    );
+
+    expect(result.id).toBe('key-2');
+    expect(result.key.startsWith('dct_')).toBe(true);
+    expect(result.previousKeyValidUntil).toEqual(
+      new Date('2026-01-15T13:00:00.000Z'),
+    );
+    expect(prisma.apiKey.update).toHaveBeenCalledWith({
+      where: { id: 'key-1' },
+      data: {
+        expiresAt: new Date('2026-01-15T13:00:00.000Z'),
+        revokedAt: null,
+        updatedAt: now,
+      },
     });
   });
 
@@ -138,6 +187,7 @@ describe('ApiKeyService', () => {
       id: 'key-1',
       clinicId: 'clinic-1',
       scopes: ['patients:read'],
+      allowedIps: [],
       revokedAt: new Date(),
       expiresAt: null,
     });
@@ -147,6 +197,7 @@ describe('ApiKeyService', () => {
       id: 'key-1',
       clinicId: 'clinic-1',
       scopes: ['patients:read'],
+      allowedIps: [],
       revokedAt: null,
       expiresAt: new Date('2026-01-01T00:00:00.000Z'),
     });
@@ -158,6 +209,7 @@ describe('ApiKeyService', () => {
       id: 'key-1',
       clinicId: 'clinic-1',
       scopes: ['patients:read', 'appointments:write'],
+      allowedIps: [],
       revokedAt: null,
       expiresAt: new Date('2027-01-01T00:00:00.000Z'),
     });
@@ -173,5 +225,21 @@ describe('ApiKeyService', () => {
       where: { id: 'key-1' },
       data: { lastUsedAt: expect.any(Date), updatedAt: expect.any(Date) },
     });
+  });
+
+  it('rejects a valid key used outside its IP allowlist', async () => {
+    jest.spyOn(prisma.apiKey, 'findUnique').mockResolvedValue({
+      id: 'key-1',
+      clinicId: 'clinic-1',
+      scopes: ['patients:read'],
+      allowedIps: ['203.0.113.10'],
+      revokedAt: null,
+      expiresAt: null,
+    });
+
+    await expect(
+      service.validateApiKey('dct_validKey', '203.0.113.11'),
+    ).resolves.toBeNull();
+    expect(prisma.apiKey.update).not.toHaveBeenCalled();
   });
 });

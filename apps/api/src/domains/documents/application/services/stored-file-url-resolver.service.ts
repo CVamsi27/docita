@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
+import {
+  GENERIC_STORED_FILE_SIGNED_URL_TTL_SECONDS,
+  StorageProvider,
+} from '@/domains/documents/application/ports/storage-provider.port';
 
 export interface ResolvedStoredFileUrl {
   url: string | null;
   storedUrl: string | null;
 }
-
-const SIGNED_URL_TTL_SECONDS = 4 * 60 * 60;
 
 function isAbsoluteHttpUrl(value: string): boolean {
   return /^https?:\/\//i.test(value);
@@ -83,7 +84,7 @@ export class StoredFileUrlResolverService {
       return {
         url: await this.storageProvider.generateSignedUrl(
           trimmed,
-          SIGNED_URL_TTL_SECONDS,
+          GENERIC_STORED_FILE_SIGNED_URL_TTL_SECONDS,
         ),
         storedUrl: trimmed,
       };

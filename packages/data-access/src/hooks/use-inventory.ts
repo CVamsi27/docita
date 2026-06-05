@@ -1,5 +1,5 @@
 import { Feature, InventoryItem } from "@workspace/types";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import { withQueryString } from "../lib/query-string";
@@ -29,7 +29,9 @@ export const useInventory = (filters?: {
   category?: string;
   status?: string;
 }) => {
-  const inventoryOk = useDataAccessContext().isTierFeatureEnabled(Feature.INVENTORY);
+  const inventoryOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.INVENTORY,
+  );
   return useAPIQuery<InventoryItem[]>(
     queryKeys.inventory.list(filters),
     withQueryString("/inventory", filters),
@@ -38,7 +40,9 @@ export const useInventory = (filters?: {
 };
 
 export const useInventoryStats = () => {
-  const inventoryOk = useDataAccessContext().isTierFeatureEnabled(Feature.INVENTORY);
+  const inventoryOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.INVENTORY,
+  );
   return useAPIQuery<{
     totalItems: number;
     totalStock: number;
@@ -49,7 +53,9 @@ export const useInventoryStats = () => {
 };
 
 export const useInventoryItem = (id: string) => {
-  const inventoryOk = useDataAccessContext().isTierFeatureEnabled(Feature.INVENTORY);
+  const inventoryOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.INVENTORY,
+  );
   return useAPIQuery<
     InventoryItem & {
       movements: {
@@ -77,7 +83,7 @@ export const useDeleteInventoryItem = (id: string) =>
   useAPIMutation<void, void>(`/inventory/${id}`, "DELETE");
 
 export const useAddInventoryMovement = (itemId: string) =>
-  useAPIMutation<
-    InventoryMovementResponse,
-    InventoryMovementInput
-  >(`/inventory/${itemId}/movements`, "POST");
+  useAPIMutation<InventoryMovementResponse, InventoryMovementInput>(
+    `/inventory/${itemId}/movements`,
+    "POST",
+  );

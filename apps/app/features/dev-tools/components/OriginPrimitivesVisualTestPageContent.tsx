@@ -13,7 +13,10 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
-import { PageTabs, type PageTabItem } from "@workspace/ui/components/navigation/page-tabs";
+import {
+  PageTabs,
+  type PageTabItem,
+} from "@workspace/ui/components/navigation/page-tabs";
 import { ProgressGauge } from "@workspace/ui/components/feedback/progress-gauge";
 import { PromptInput } from "@workspace/ui/components/form/prompt-input";
 import {
@@ -51,11 +54,7 @@ export default function OriginPrimitivesVisualTestPage() {
       <div className="space-y-10">
         <section data-testid="micro-label-and-tabs" className="space-y-4">
           <MicroLabel as="h2">Micro label + page tabs</MicroLabel>
-          <PageTabs
-            items={TABS}
-            activeId={activeTab}
-            onSelect={setActiveTab}
-          />
+          <PageTabs items={TABS} activeId={activeTab} onSelect={setActiveTab} />
         </section>
 
         <section data-testid="category-avatars" className="space-y-4">
@@ -153,10 +152,7 @@ export default function OriginPrimitivesVisualTestPage() {
             }}
             footer={
               <div className="flex items-center justify-between gap-2">
-                <Button
-                  variant="ghost"
-                  onClick={() => setWizardOpen(false)}
-                >
+                <Button variant="ghost" onClick={() => setWizardOpen(false)}>
                   Cancel
                 </Button>
                 <Button
@@ -172,15 +168,16 @@ export default function OriginPrimitivesVisualTestPage() {
                     }
                   }}
                 >
-                  {wizardStep === WIZARD_STEPS.at(-1)?.id
-                    ? "Finish"
-                    : "Next"}
+                  {wizardStep === WIZARD_STEPS.at(-1)?.id ? "Finish" : "Next"}
                 </Button>
               </div>
             }
           >
             <p className="text-sm text-muted-foreground">
-              Step content for: <span className="font-semibold text-foreground">{wizardStep}</span>
+              Step content for:{" "}
+              <span className="font-semibold text-foreground">
+                {wizardStep}
+              </span>
             </p>
           </WizardDialog>
         </section>

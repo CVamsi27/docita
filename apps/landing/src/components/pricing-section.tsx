@@ -118,6 +118,10 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
   const gridVariants = landingStaggerContainer(reduce ?? false, 0.06, 0.04);
 
   const [selectedMode, setSelectedMode] = useState<PlanMode>("FULL");
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(
+    "monthly",
+  );
+  const isYearly = billingPeriod === "yearly";
 
   const orderedTiers = TIER_ORDER.map((id) =>
     FALLBACK_PRICING_CONFIG.tiers.find((tier) => tier.id === id),
@@ -153,32 +157,73 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
             Pick a <span className="font-medium text-foreground">plan mode</span>{" "}
             then the tier that matches your scale. {PLAN_MODE_INFO[selectedMode].helpText}
           </p>
-          <div
-            className="inline-flex shrink-0 items-center gap-1 self-start rounded-full border bg-muted/40 p-1"
-            role="tablist"
-            aria-label="Plan mode"
-          >
-            {PLAN_MODES.map((mode) => {
-              const info = PLAN_MODE_INFO[mode];
-              const active = selectedMode === mode;
-              return (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setSelectedMode(mode)}
-                  aria-pressed={active}
-                  title={info.helpText}
-                  className={cn(
-                    "rounded-full px-3 py-1 text-xs font-medium transition",
-                    active
-                      ? "bg-primary text-primary-foreground shadow"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {info.shortLabel}
-                </button>
-              );
-            })}
+          <div className="flex shrink-0 flex-col items-start gap-3 self-start sm:items-end">
+            <div
+              className="inline-flex items-center gap-1 rounded-full border bg-muted/40 p-1"
+              role="tablist"
+              aria-label="Plan mode"
+            >
+              {PLAN_MODES.map((mode) => {
+                const info = PLAN_MODE_INFO[mode];
+                const active = selectedMode === mode;
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setSelectedMode(mode)}
+                    aria-pressed={active}
+                    title={info.helpText}
+                    className={cn(
+                      "rounded-full px-3 py-1 text-xs font-medium transition",
+                      active
+                        ? "bg-primary text-primary-foreground shadow"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {info.shortLabel}
+                  </button>
+                );
+              })}
+            </div>
+            <div
+              className="inline-flex items-center gap-1 rounded-full border bg-muted/40 p-1"
+              role="tablist"
+              aria-label="Billing period"
+            >
+              {(["monthly", "yearly"] as const).map((period) => {
+                const active = billingPeriod === period;
+                return (
+                  <button
+                    key={period}
+                    type="button"
+                    onClick={() => setBillingPeriod(period)}
+                    aria-pressed={active}
+                    className={cn(
+                      "rounded-full px-3 py-1 text-xs font-medium transition",
+                      active
+                        ? "bg-primary text-primary-foreground shadow"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    <span className="inline-flex items-center gap-1.5">
+                      {period === "monthly" ? "Monthly" : "Yearly"}
+                      {period === "yearly" ? (
+                        <span
+                          className={cn(
+                            "rounded-full px-1.5 py-0.5 text-[var(--fs-2xs)] font-semibold leading-none",
+                            active
+                              ? "bg-primary-foreground/15 text-primary-foreground"
+                              : "bg-success/10 text-success",
+                          )}
+                        >
+                          2 months free
+                        </span>
+                      ) : null}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -204,6 +249,22 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
               tier.pricing.monthly,
               effectiveMode,
             );
+            const adjustedYearly = applyModeMultiplier(
+              tier.pricing.yearly,
+              effectiveMode,
+            );
+            const adjustedPrice = isYearly ? adjustedYearly : adjustedMonthly;
+            // Full-rate annual cost (12x monthly) used to strike through and
+            // highlight the "2 months free" annual saving.
+            const listYearly =
+              typeof adjustedMonthly === "number" ? adjustedMonthly * 12 : null;
+            const yearlySavings =
+              isYearly &&
+              listYearly !== null &&
+              typeof adjustedYearly === "number" &&
+              listYearly > adjustedYearly
+                ? listYearly - adjustedYearly
+                : null;
             const modeSuffix =
               effectiveMode === "FULL"
                 ? null
@@ -241,14 +302,42 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                   {tier.description}
                 </p>
 
-                <div className="flex items-baseline gap-2">
-                  <span className="r2-price-amount text-foreground">
-                    {formatTierPrice(
-                      adjustedMonthly,
-                      FALLBACK_PRICING_CONFIG.currency.symbol,
-                    )}
-                  </span>
-                  <span className="r2-price-unit">/ month</span>
+                <div className="space-y-1">
+                  {isYearly && listYearly !== null ? (
+                    <span className="block text-sm font-medium text-muted-foreground line-through">
+                      {formatTierPrice(
+                        listYearly,
+                        FALLBACK_PRICING_CONFIG.currency.symbol,
+                      )}
+                    </span>
+                  ) : null}
+                  <div className="flex items-baseline gap-2">
+                    <span className="r2-price-amount text-foreground">
+                      {formatTierPrice(
+                        adjustedPrice,
+                        FALLBACK_PRICING_CONFIG.currency.symbol,
+                      )}
+                    </span>
+                    <span className="r2-price-unit">
+                      {adjustedPrice === "custom"
+                        ? null
+                        : isYearly
+                          ? "/ year"
+                          : "/ month"}
+                    </span>
+                  </div>
+                  {yearlySavings !== null ? (
+                    <span className="inline-flex items-center rounded-full bg-success/10 px-2 py-0.5 text-[var(--fs-2xs)] font-semibold text-success">
+                      Save{" "}
+                      {formatTierPrice(
+                        yearlySavings,
+                        FALLBACK_PRICING_CONFIG.currency.symbol,
+                      )}{" "}
+                      a year
+                    </span>
+                  ) : isYearly ? (
+                    <span className="block h-[1.125rem]" aria-hidden />
+                  ) : null}
                 </div>
 
                 <ul className="space-y-1.5" role="list">
@@ -266,7 +355,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                   disabled={modeMismatched}
                 >
                   <a
-                    href={`${appUrl}/onboarding?tier=${tier.id}&mode=${effectiveMode}`}
+                    href={`${appUrl}/onboarding?tier=${tier.id}&mode=${effectiveMode}&billing=${billingPeriod}`}
                   >
                     {modeMismatched ? "Only on Full" : "Start setup"}
                     {!modeMismatched ? <ArrowRight className="h-4 w-4" /> : null}

@@ -6,10 +6,8 @@ import { Button } from "@workspace/ui/components/form/button";
 import { PrintSheet } from "@workspace/ui/components/print-sheet";
 import { BackButton } from "@/components/navigation/back-button";
 import { useClinic } from "@/lib/contexts/clinic-context";
-import {
-  ConsentTemplateDocument,
-  type ConsentDocumentClinicInfo,
-} from "./consent-template-document";
+import { ConsentTemplateDocument } from "./consent-template-document";
+import type { ConsentDocumentClinicInfo } from "./consent-template-document-sections";
 
 export function ConsentTemplatePageContent() {
   const { clinic } = useClinic();

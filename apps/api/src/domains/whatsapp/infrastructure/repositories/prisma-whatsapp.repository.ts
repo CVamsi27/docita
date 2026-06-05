@@ -28,6 +28,13 @@ export class PrismaWhatsAppRepository implements IWhatsAppRepository {
     private readonly templates: PrismaWhatsAppTemplateRepository,
   ) {}
 
+  ensureConversation(
+    clinicId: string,
+    recipientPhone: string,
+  ): Promise<string> {
+    return this.messages.ensureConversation(clinicId, recipientPhone);
+  }
+
   saveMessage(message: WhatsAppMessage): Promise<void> {
     return this.messages.saveMessage(message);
   }

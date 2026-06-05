@@ -67,7 +67,9 @@ export function JoinRequestCard({
 
           {request.message ? (
             <Card className="ui-card-surface mt-4 ml-11 p-4 bg-muted/25">
-              <p className="text-sm font-medium mb-1">Message from applicant:</p>
+              <p className="text-sm font-medium mb-1">
+                Message from applicant:
+              </p>
               <p className="ui-helper-text">{request.message}</p>
             </Card>
           ) : null}

@@ -3,11 +3,9 @@ import {
   useConsultationDraft,
 } from "@/features/consultation/state/useConsultationDraft";
 
-/** Set on an `<a>` or ancestor to allow navigation without opening the leave dialog. */
 export const CONSULTATION_LEAVE_GUARD_SKIP_ATTR =
   "data-docita-skip-consultation-leave-guard";
 
-/** Same appointment detail route (any query/hash) — in-workspace navigation, not a leave. */
 export function isSameConsultationAppointmentPathname(
   pathname: string,
   activeAppointmentId: string,
@@ -30,7 +28,6 @@ const UNSAFE_NAVIGATION_PROTOCOLS = new Set([
   "blob:",
 ]);
 
-/** Schemes blocked at capture (mailto/tel stay allowed for native handlers). */
 const HREF_SCHEME_CAPTURE_DENY_PREFIXES = [
   "javascript",
   "vbscript",

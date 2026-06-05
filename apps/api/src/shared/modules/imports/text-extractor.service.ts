@@ -122,15 +122,16 @@ export class TextExtractorService {
 
     this.logger.log('[OCR] Starting Tesseract OCR');
 
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     try {
       const result = await Promise.race<TesseractResult>([
         this.worker.recognize(imageBuffer),
-        new Promise<never>((_, reject) =>
-          setTimeout(
+        new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(
             () => reject(new Error('Tesseract recognition timeout')),
             60000,
-          ),
-        ),
+          );
+        }),
       ]);
 
       this.logger.log('[OCR] Tesseract recognition completed');
@@ -142,6 +143,10 @@ export class TextExtractorService {
 
       this.workerReady = false;
       throw recognizeError;
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     }
   }
 }

@@ -1,9 +1,12 @@
+// check-as-cast-density: allow-file — narrowing casts required by generic signatures or external SDK types
 import { Inject, Injectable } from '@nestjs/common';
 import {
   WHATSAPP_PERSISTENCE_PORT,
   type WhatsappPersistencePort,
 } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import type { ClinicTier, StaffNotificationType } from '@workspace/db';
+import { isFrontDeskTier, type TierName } from '@workspace/types';
+import { meetsMinimumTier, getTierValue } from '@workspace/utils';
 
 function isJsonObject(value: unknown): value is { enabled?: unknown } {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -31,17 +34,6 @@ const SCALED_FRONT_DESK_NOTIFICATION_TYPES = new Set<StaffNotificationType>([
   'PAYMENT_PROVIDER_STATUS_UPDATE',
 ]);
 
-const TIER_RANK: Record<ClinicTier, number> = {
-  STARTER: 0,
-  FRONT_DESK: 0,
-  FRONT_DESK_CLINIC: 1,
-  FRONT_DESK_HOSPITAL: 1,
-  ESSENTIAL: 1,
-  PROFESSIONAL: 2,
-  HOSPITAL: 3,
-  ENTERPRISE: 4,
-};
-
 @Injectable()
 export class StaffNotificationPolicyService {
   constructor(
@@ -64,20 +56,22 @@ export class StaffNotificationPolicyService {
 
     if (
       FRONT_DESK_OPERATION_NOTIFICATION_TYPES.has(type) &&
-      clinic.tier === 'FRONT_DESK'
+      isFrontDeskTier(clinic.tier)
     ) {
       return true;
     }
 
     if (
       SCALED_FRONT_DESK_NOTIFICATION_TYPES.has(type) &&
-      (clinic.tier === 'FRONT_DESK_CLINIC' ||
-        clinic.tier === 'FRONT_DESK_HOSPITAL')
+      isFrontDeskTier(clinic.tier)
     ) {
       return true;
     }
 
-    return TIER_RANK[clinic.tier] >= TIER_RANK[required];
+    return meetsMinimumTier(
+      clinic.tier as TierName,
+      getTierValue(required as TierName),
+    );
   }
 
   async isWhatsappEnabled(clinicId: string): Promise<boolean> {

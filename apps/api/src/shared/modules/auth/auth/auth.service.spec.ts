@@ -474,7 +474,7 @@ describe('AuthService', () => {
         role: mockUserWithoutPassword.role,
         clinicId: mockUserWithoutPassword.clinicId,
         emailVerified: mockUserWithoutPassword.emailVerified,
-        onboardingStep: mockUserWithoutPassword.onboardingStep,
+        onboardingStep: OnboardingStep.COMPLETED,
       });
       expect(jwtService.sign).toHaveBeenCalledWith(
         {

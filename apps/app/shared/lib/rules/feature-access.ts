@@ -8,17 +8,6 @@ export const isValidPastDate = (date: Date): boolean => {
   return date < new Date();
 };
 
-export const isValidEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
-export const isValidPhoneNumber = (phone: string): boolean => {
-
-  const phoneRegex = /^(\+91)?[6-9]\d{9}$/;
-  return phoneRegex.test(phone.replace(/\s+/g, ""));
-};
-
 export const canUserAccessFeature = (
   userRole: string,
   feature: string,

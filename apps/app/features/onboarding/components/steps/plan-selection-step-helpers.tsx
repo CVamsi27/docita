@@ -13,6 +13,7 @@ import {
 import { ComparisonTable } from "@/features/subscription";
 import {
   PRICING_CURRENCY_SYMBOLS,
+  PUBLISHED_PLAN_LADDER,
   SUBSCRIPTION_TRIAL_DAYS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
   type TierName,
@@ -29,17 +30,11 @@ import { type TierPricing } from "@/features/subscription";
 // Constants
 // ---------------------------------------------------------------------------
 
-// Onboarding plan selection uses the same 5-tier clinical ladder as the rest
-// of the app. The Full / Front Desk / Core toggle is exposed elsewhere — here
-// the customer picks the tier first; mode is set on the subsequent step or
-// via the URL `mode` query parameter.
-export const DISPLAY_TIERS: TierName[] = [
-  "STARTER",
-  "ESSENTIAL",
-  "PROFESSIONAL",
-  "HOSPITAL",
-  "ENTERPRISE",
-];
+// Onboarding plan selection uses the same published clinical ladder as the rest
+// of the app — sourced from the single PUBLISHED_PLAN_LADDER catalog (not a
+// hardcoded copy) so the order/membership can never drift. The Full / Front
+// Desk / Core toggle is exposed on the step; mode comes from the `mode` query.
+export const DISPLAY_TIERS: readonly TierName[] = PUBLISHED_PLAN_LADDER;
 
 export const PLAN_AUDIENCE: Record<string, string> = {
   STARTER: "Best for solo doctors starting with full clinic workflows",
@@ -76,51 +71,34 @@ export function buildTierCardConfig(
   const currencyKey = parseSupportedCurrency(resolvedCurrency);
   const currencySymbol =
     PRICING_CURRENCY_SYMBOLS[currencyKey] ?? resolvedCurrency;
-  const overageRates = (
-    TIER_OVERAGE_RATES_BY_CURRENCY[currencyKey] ??
-    TIER_OVERAGE_RATES_BY_CURRENCY.INR
-  )[tierName];
+  const overageRates = (TIER_OVERAGE_RATES_BY_CURRENCY[currencyKey] ??
+    TIER_OVERAGE_RATES_BY_CURRENCY.INR)[tierName];
   const overageFromRates =
     overageRates?.appointmentRate > 0
       ? `then ${formatRateWithCurrency(overageRates.appointmentRate, currencyKey)} per extra consultation`
       : undefined;
 
+  // Every plan except Enterprise offers a free trial to new customers.
+  const trialLine = `${formatPriceWithCurrency(0, currencyKey)} for the first ${SUBSCRIPTION_TRIAL_DAYS} days, then regular billing`;
   let overageHint: string | undefined;
-  if (tierName === "ESSENTIAL") {
-    overageHint = `${formatPriceWithCurrency(0, currencyKey)} for the first ${SUBSCRIPTION_TRIAL_DAYS} days, then regular billing`;
-  } else if (tierName === "STARTER") {
-    overageHint = [
-      "Payment at signup (Razorpay). No unpaid trial on Starter.",
-      overageFromRates,
-    ]
-      .filter(Boolean)
-      .join(" ");
+  if (tierName === "ENTERPRISE") {
+    overageHint = "Custom pricing and deployment. Contact sales to continue.";
   } else if (tierName === "HOSPITAL") {
     overageHint = [
+      trialLine,
       "Multi-branch billing. Annual contracts available.",
       overageFromRates,
     ]
       .filter(Boolean)
       .join(" ");
-  } else if (tierName === "PROFESSIONAL") {
-    overageHint = [
-      "Payment required at signup. Unpaid trial is only on Essential.",
-      overageFromRates,
-    ]
-      .filter(Boolean)
-      .join(" ");
-  } else if (tierName === "ENTERPRISE") {
-    overageHint = "Custom pricing and deployment. Contact sales to continue.";
   } else {
-    overageHint = overageFromRates;
+    overageHint = [trialLine, overageFromRates].filter(Boolean).join(" ");
   }
 
   const buttonLabel =
-    tierName === "ESSENTIAL"
-      ? `Start free ${SUBSCRIPTION_TRIAL_DAYS}-day trial`
-      : tierName === "ENTERPRISE"
-        ? "Contact sales"
-        : "Select and pay";
+    tierName === "ENTERPRISE"
+      ? "Contact sales"
+      : `Start free ${SUBSCRIPTION_TRIAL_DAYS}-day trial`;
 
   return { cardPricing, currencySymbol, overageHint, buttonLabel };
 }
@@ -194,3 +172,24 @@ export const PlanComparisonCollapsible: FC<PlanComparisonCollapsibleProps> = ({
     </CollapsibleContent>
   </Collapsible>
 );
+
+// ---------------------------------------------------------------------------
+// Pure UI helpers
+// ---------------------------------------------------------------------------
+
+export function getPricingRegionLabel(resolvedCurrency: string): string {
+  return resolvedCurrency === "INR"
+    ? "India-competitive pricing"
+    : "Premium international pricing";
+}
+
+export function getEnterpriseContactMessage(billingCycle: string): string {
+  return `Hi Docita Sales Team,
+
+I am interested in the Enterprise plan from onboarding.
+
+Selected tier: Enterprise
+Billing preference: ${billingCycle}
+
+Please contact me with deployment and commercial details.`;
+}

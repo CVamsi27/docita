@@ -12,6 +12,7 @@ import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
 import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
+import { formatCurrency } from "@workspace/utils";
 import type { CurrentPlanCardProps } from "./current-plan-card-types";
 
 /**
@@ -105,8 +106,10 @@ export function CurrentPlanCardMeta({
             </span>
           </div>
           <span className="font-semibold tabular-nums text-success">
-            {(accountCreditCurrency === "USD" ? "$" : "₹")}
-            {(accountCreditCents / 100).toFixed(2)}
+            {formatCurrency(accountCreditCents / 100, {
+              currency: accountCreditCurrency,
+              fractionDigits: 2,
+            })}
           </span>
         </div>
       ) : null}

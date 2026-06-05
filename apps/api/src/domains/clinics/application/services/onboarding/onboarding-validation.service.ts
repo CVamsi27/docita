@@ -1,22 +1,27 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { Specialization } from '@workspace/db';
+import { Role, Specialization } from '@workspace/db';
 import {
+  isFrontDeskPlanMode,
+  mapDbClinicTierStringToTierName,
+  PLAN_MODE_INFO,
+  planModeSchema,
+  resolveClinicPlanMode,
   TIER_PRICING_BY_CURRENCY,
+  tierSupportsMode,
   tierSchema,
   type MultiCurrencyTierPricing,
+  type PlanMode,
   type SupportedCurrency,
 } from '@workspace/types';
 import { parseStringEnumMember } from '@workspace/utils';
 import { z } from 'zod';
-import {
-  CompleteOnboardingDto,
-  ClinicTier,
-} from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
+import { CompleteOnboardingDto } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import {
   validateSpecializationForOnboarding,
   validateClinicTier,
   validateBillingCycle,
-} from './type-helpers';
+} from './onboarding-type-validation';
+import { isTrialEligibleTier } from './onboarding-trial-eligibility';
 
 function billingCycleEnumToCatalogKey(
   cycle: string,
@@ -57,109 +62,172 @@ export class OnboardingValidationService {
     return 'INR';
   }
 
+  private resolvePlanMode(tier: string, planMode?: string): PlanMode {
+    const parsedMode = planModeSchema.safeParse(planMode ?? 'FULL');
+    if (!parsedMode.success) {
+      throw new BadRequestException('Invalid plan mode');
+    }
+
+    const tierName = mapDbClinicTierStringToTierName(tier);
+    if (!tierSupportsMode(tierName, parsedMode.data)) {
+      throw new BadRequestException(
+        `${tierName} is only available in Full plan mode`,
+      );
+    }
+
+    return resolveClinicPlanMode(tier, parsedMode.data);
+  }
+
   validateOnboardingCompletion(data: CompleteOnboardingDto): {
     valid: boolean;
     errors?: string[];
   } {
     const errors: string[] = [];
-
-    if (!data.clinicDetails) {
-      errors.push('Clinic details are required');
+    if (!data) {
+      return { valid: false, errors: ['Clinic details are required'] };
     }
-    if (!data.adminAccount) {
-      errors.push('Admin account details are required');
-    }
-    if (!data.planSelection) {
-      errors.push('Plan selection is required');
-    }
-    if (!data.slaAgreement) {
-      errors.push('SLA agreement is required');
-    }
-    if (!data.consentManagement) {
-      errors.push('Consent management configuration is required');
-    }
+    const onboardingData = data;
 
-    if (data.slaAgreement) {
-      if (!data.slaAgreement.acceptedSLA) {
-        errors.push('SLA must be accepted to complete onboarding');
-      }
-      if (!data.slaAgreement.acceptedDataProcessingTerms) {
-        errors.push('Data processing terms must be accepted');
-      }
-      if (!data.slaAgreement.acceptedPrivacyPolicy) {
-        errors.push('Privacy policy must be accepted');
-      }
-    }
-
-    if (data.planSelection) {
-      const currency = this.resolveCurrency(data.planSelection.currency);
-      const listPricePaise = this.getTierPricing(
-        data.planSelection.tier,
-        data.planSelection.billingCycle,
-        data.planSelection.currency,
-      );
-      const hasProcessedPayment =
-        !!data.paymentDetails?.razorpayPaymentId ||
-        (!!data.paymentDetails?.cardLast4 &&
-          data.paymentDetails?.skipPayment !== true);
-
-      const unpaidEssentialTrial =
-        data.planSelection.tier === ClinicTier.ESSENTIAL &&
-        data.paymentDetails?.skipPayment === true;
-
-      if (!unpaidEssentialTrial && !hasProcessedPayment) {
-        errors.push('Payment details are required for paid plans');
-      }
-
-      if (
-        currency === 'INR' &&
-        !data.clinicDetails?.gstin &&
-        listPricePaise > 0 &&
-        !unpaidEssentialTrial
-      ) {
-        errors.push(
-          'GSTIN is required for paid Indian plans so we can issue GST invoices',
-        );
-      }
-    }
-
-    const wantsWhatsapp =
-      !!data.paymentDetails?.addons?.whatsapp ||
-      !!data.consentManagement?.enableWhatsAppCommunication;
-
-    if (
-      wantsWhatsapp &&
-      !data.consentManagement?.whatsappBusinessNumber &&
-      !data.paymentDetails?.whatsappBusinessNumber
-    ) {
-      errors.push(
-        'WhatsApp business number is required when WhatsApp is enabled',
-      );
-    }
-
-    const isFrontDeskPlan = data.planSelection?.tier === ClinicTier.FRONT_DESK;
-    if (isFrontDeskPlan && data.staffSetup?.staffMembers) {
-      for (const member of data.staffSetup.staffMembers) {
-        if (member.role === 'NURSE' || member.role === 'ADMIN_DOCTOR') {
-          errors.push(
-            'The Front Desk plan does not support nurse or admin-doctor staff roles during onboarding.',
-          );
-          break;
-        }
-      }
-    }
-
-    if (isFrontDeskPlan && data.adminAccount?.role === 'ADMIN_DOCTOR') {
-      errors.push(
-        'The front desk plan does not support the admin-doctor role for the primary admin account.',
-      );
-    }
+    this.addRequiredSectionErrors(onboardingData, errors);
+    this.addSlaAgreementErrors(onboardingData, errors);
+    this.addPlanSelectionErrors(onboardingData, errors);
+    this.addWhatsappConfigurationErrors(onboardingData, errors);
+    this.addFrontDeskRoleErrors(onboardingData, errors);
 
     if (errors.length > 0) {
       return { valid: false, errors };
     }
 
     return { valid: true };
+  }
+
+  private addRequiredSectionErrors(
+    data: CompleteOnboardingDto,
+    errors: string[],
+  ): void {
+    if (!data.clinicDetails) errors.push('Clinic details are required');
+    if (!data.adminAccount) errors.push('Admin account details are required');
+    if (!data.planSelection) errors.push('Plan selection is required');
+    if (!data.slaAgreement) errors.push('SLA agreement is required');
+    if (!data.consentManagement) {
+      errors.push('Consent management configuration is required');
+    }
+  }
+
+  private addSlaAgreementErrors(
+    data: CompleteOnboardingDto,
+    errors: string[],
+  ): void {
+    if (!data.slaAgreement) return;
+
+    if (!data.slaAgreement.acceptedSLA) {
+      errors.push('SLA must be accepted to complete onboarding');
+    }
+    if (!data.slaAgreement.acceptedDataProcessingTerms) {
+      errors.push('Data processing terms must be accepted');
+    }
+    if (!data.slaAgreement.acceptedPrivacyPolicy) {
+      errors.push('Privacy policy must be accepted');
+    }
+  }
+
+  private addPlanSelectionErrors(
+    data: CompleteOnboardingDto,
+    errors: string[],
+  ): void {
+    if (!data.planSelection) return;
+
+    this.addPlanModeError(data, errors);
+
+    if (!this.isUnpaidTrial(data) && !this.hasProcessedPayment(data)) {
+      errors.push('Payment details are required for paid plans');
+    }
+
+    // GSTIN is optional at onboarding; clinics add it later in
+    // Settings → Billing before the first paid GST invoice is issued.
+  }
+
+  private addPlanModeError(
+    data: CompleteOnboardingDto,
+    errors: string[],
+  ): void {
+    try {
+      this.resolvePlanMode(
+        data.planSelection.tier,
+        data.planSelection.planMode,
+      );
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : 'Invalid plan mode');
+    }
+  }
+
+  private hasProcessedPayment(data: CompleteOnboardingDto): boolean {
+    return (
+      !!data.paymentDetails?.razorpayPaymentId &&
+      !!data.paymentDetails?.razorpayOrderId &&
+      !!data.paymentDetails?.razorpaySignature
+    );
+  }
+
+  private isUnpaidTrial(data: CompleteOnboardingDto): boolean {
+    return (
+      isTrialEligibleTier(data.planSelection.tier) &&
+      data.paymentDetails?.skipPayment === true
+    );
+  }
+
+  private addWhatsappConfigurationErrors(
+    data: CompleteOnboardingDto,
+    errors: string[],
+  ): void {
+    const wantsWhatsapp =
+      !!data.paymentDetails?.addons?.whatsapp ||
+      !!data.consentManagement?.enableWhatsAppCommunication;
+    const hasWhatsappNumber =
+      !!data.consentManagement?.whatsappBusinessNumber ||
+      !!data.paymentDetails?.whatsappBusinessNumber;
+
+    if (wantsWhatsapp && !hasWhatsappNumber) {
+      errors.push(
+        'WhatsApp business number is required when WhatsApp is enabled',
+      );
+    }
+  }
+
+  private addFrontDeskRoleErrors(
+    data: CompleteOnboardingDto,
+    errors: string[],
+  ): void {
+    if (!this.isFrontDeskPlan(data)) return;
+
+    if (
+      data.staffSetup?.staffMembers?.some((member) =>
+        this.isUnsupportedFrontDeskStaffRole(member.role),
+      )
+    ) {
+      errors.push(
+        'The Front Desk plan does not support nurse or admin-doctor staff roles during onboarding.',
+      );
+    }
+
+    if (data.adminAccount?.role === Role.ADMIN_DOCTOR) {
+      errors.push(
+        'The front desk plan does not support the admin-doctor role for the primary admin account.',
+      );
+    }
+  }
+
+  private isFrontDeskPlan(data: CompleteOnboardingDto): boolean {
+    return data.planSelection
+      ? isFrontDeskPlanMode(
+          data.planSelection.tier,
+          data.planSelection.planMode,
+        )
+      : false;
+  }
+
+  private isUnsupportedFrontDeskStaffRole(role: Role): boolean {
+    return role === Role.NURSE || role === Role.ADMIN_DOCTOR;
   }
 
   validatePasswordStrength(password: string): {
@@ -230,7 +298,12 @@ export class OnboardingValidationService {
     }
   }
 
-  getTierPricing(tier: string, cycle: string, currency?: string): number {
+  getTierPricing(
+    tier: string,
+    cycle: string,
+    currency?: string,
+    planMode?: string,
+  ): number {
     validateClinicTier(tier);
     validateBillingCycle(cycle);
 
@@ -244,9 +317,14 @@ export class OnboardingValidationService {
     if (typeof amount !== 'number') {
       return 0;
     }
-    // Catalog amounts are in major units (e.g. INR rupees); Razorpay and
-    // Subscription.basePriceCents store smallest currency units (paise).
-    return Math.round(amount * 100);
+    // Front Desk / Core plans bill at a fraction of the Full-mode price; keep
+    // checkout, the verified payment amount, and basePriceCents consistent.
+    const resolvedMode = this.resolvePlanMode(tier, planMode);
+    const multiplier = PLAN_MODE_INFO[resolvedMode].pricingMultiplier;
+    // Catalog amounts are in major units (e.g. INR rupees). Match the shared
+    // UI pricing helper by rounding the adjusted catalog amount before
+    // converting it to Razorpay / Subscription smallest units (paise).
+    return Math.round(amount * multiplier) * 100;
   }
 
   getTierLimits(tier: string): {

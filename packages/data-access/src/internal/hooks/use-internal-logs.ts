@@ -1,7 +1,10 @@
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import { internalQueryKeys } from "../../lib/query-keys";
+import { internalQueryKeys } from "../../lib/query-keys-internal";
 import { useDataAccessFetcher } from "../../provider/hooks";
-import type { InternalSystemLog, InternalSystemLogsResult } from "../logs.types";
+import type {
+  InternalSystemLog,
+  InternalSystemLogsResult,
+} from "../logs.types";
 
 export function useInternalSystemLogs(
   token: string | null | undefined,

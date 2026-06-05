@@ -115,6 +115,7 @@ export class PrismaSubscriptionCoreRepository {
               parseStringEnumMember(SUBSCRIPTION_STATUS_VALUES, status) ??
               SubscriptionStatus.ACTIVE,
           },
+          take: 1000,
         });
 
       return prismaSubscriptions.map((s) => SubscriptionMapper.toDomain(s));
@@ -140,6 +141,7 @@ export class PrismaSubscriptionCoreRepository {
             },
             status: 'ACTIVE',
           },
+          take: 1000,
         });
 
       return prismaSubscriptions.map((s) => SubscriptionMapper.toDomain(s));
@@ -263,6 +265,7 @@ export class PrismaSubscriptionCoreRepository {
         currentPeriodEnd: { gte: params.startOfDay, lte: params.endOfDay },
         status: { in: ['ACTIVE', 'TRIALING'] },
       },
+      take: 1000,
       include: {
         clinic: {
           include: {
@@ -287,6 +290,7 @@ export class PrismaSubscriptionCoreRepository {
           in: [SubscriptionStatus.GRACE, SubscriptionStatus.PAST_DUE],
         },
       },
+      take: 1000,
       include: {
         clinic: {
           include: {

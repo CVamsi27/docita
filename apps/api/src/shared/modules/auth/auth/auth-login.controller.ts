@@ -21,7 +21,7 @@ import {
   setAuthCookies,
   stripRefreshTokenFromBody,
 } from './auth-cookie.helpers';
-import { readRequestHeaderString } from '@/shared/common/http/client-ip';
+import { readRequestHeaderString } from '@/shared/common/http/request-headers';
 
 @ApiTags('auth')
 @Controller('auth')

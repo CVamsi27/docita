@@ -1,5 +1,7 @@
 "use client";
 
+import { getPatientFullName } from "@workspace/utils";
+
 import { useCallback, useEffect, useState } from "react";
 import {
   Card,
@@ -166,7 +168,7 @@ export function FollowUpWidget({ appointmentId }: FollowUpWidgetProps) {
           >
             <div>
               <p className="text-sm font-medium">
-                {fu.patient.firstName} {fu.patient.lastName}
+                {getPatientFullName(fu.patient)}
               </p>
               <p className="text-xs text-muted-foreground">{fu.reason}</p>
               <p className="text-xs text-muted-foreground">

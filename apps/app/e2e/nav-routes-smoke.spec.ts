@@ -1,5 +1,17 @@
 import { expect, test } from "@playwright/test";
 import { loginUser, setupTestUser, UserData } from "./utils/patient-helpers";
+import { expectProtectedWorkspaceLoaded } from "./utils/ui-contracts";
+
+async function expectWorkspaceAfterDevRecovery(
+  page: Parameters<typeof expectProtectedWorkspaceLoaded>[0],
+) {
+  try {
+    await expectProtectedWorkspaceLoaded(page);
+  } catch {
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expectProtectedWorkspaceLoaded(page);
+  }
+}
 
 /**
  * Lightweight smoke: authenticated session can open primary nav destinations without a server error.
@@ -9,10 +21,18 @@ const NAV_SMOKE_ROUTES: { path: string }[] = [
   { path: "/today" },
   { path: "/patients" },
   { path: "/appointments" },
+  { path: "/consultation" },
+  { path: "/desk/collect-payment" },
   { path: "/prescriptions" },
   { path: "/lab-tests" },
   { path: "/invoices" },
+  { path: "/daybook" },
+  { path: "/insurance-claims" },
+  { path: "/whatsapp" },
+  { path: "/inbox" },
   { path: "/inventory" },
+  { path: "/vaccines" },
+  { path: "/referrals" },
   { path: "/documents" },
   { path: "/analytics" },
   { path: "/import" },
@@ -23,6 +43,8 @@ const NAV_SMOKE_ROUTES: { path: string }[] = [
   { path: "/hospital/beds" },
   { path: "/billing-locked" },
   { path: "/upgrade" },
+  { path: "/settings" },
+  { path: "/help" },
 ];
 
 test.describe("Nav routes smoke", () => {
@@ -43,7 +65,7 @@ test.describe("Nav routes smoke", () => {
       });
 
       expect(response?.status(), `${route.path} HTTP status`).toBeLessThan(500);
-      await expect(page.locator("body")).toBeVisible({ timeout: 30000 });
+      await expectWorkspaceAfterDevRecovery(page);
 
       if (route.path === "/upgrade") {
         await expect(page).toHaveURL(/\/settings/);

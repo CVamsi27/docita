@@ -158,11 +158,15 @@ after a fix has shipped.
    ```
 4. Once verified, replay the rest in a controlled batch, no more than
    50 jobs / minute to protect downstream rate limits.
+5. Review `replayCount` and `lastReplayedAt` before repeating a replay.
+   Replays reset per-run `attemptsMade`, but the replay ledger remains durable.
 
 **Verification**
 
 - Replayed jobs reach status `COMPLETED` with `attemptsMade <=
-  maxAttempts`.
+maxAttempts`.
+- Repeatedly failing jobs show increasing `replayCount`; do not loop replay
+  without a new diagnosis.
 - `worker_dlq_size{queue=...}` drains to 0.
 - No new DLQ entries for the same job name in the next hour.
 
@@ -205,7 +209,7 @@ status page within 5 minutes.
 
 **Verification**
 
-- `/api/v1/health/db` returns `200`.
+- `/api/health/db` returns `200`.
 - Worker `worker_jobs_total{status="completed"}` resumes within 5
   minutes of redeploy.
 - No constraint-violation errors in Sentry from inserts taking the new
@@ -438,13 +442,13 @@ drift before it becomes an outage.
 
 ## Appendix: contact + escalation matrix
 
-| Role             | Channel                     | SLA              |
-|------------------|-----------------------------|------------------|
-| Primary on-call  | PagerDuty rotation A        | 5 min ack        |
-| Secondary        | PagerDuty rotation B        | 15 min ack       |
-| Eng leadership   | #incident-leadership Slack  | 30 min for SEV-1 |
-| Privacy officer  | privacy@docita.health       | 1 hour for PHI   |
-| Cloud provider   | Fly support, Cloudflare     | 30 min ack       |
+| Role            | Channel                    | SLA              |
+| --------------- | -------------------------- | ---------------- |
+| Primary on-call | PagerDuty rotation A       | 5 min ack        |
+| Secondary       | PagerDuty rotation B       | 15 min ack       |
+| Eng leadership  | #incident-leadership Slack | 30 min for SEV-1 |
+| Privacy officer | privacy@docita.health      | 1 hour for PHI   |
+| Cloud provider  | Fly support, Cloudflare    | 30 min ack       |
 
 > Status page updates are required within 5 minutes of declaring SEV-1
 > or SEV-2.

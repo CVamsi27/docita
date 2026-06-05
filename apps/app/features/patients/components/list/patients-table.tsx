@@ -4,136 +4,20 @@ import {
   DataTable,
   type DataTableColumn,
 } from "@workspace/ui/components/data-display/data-table";
-import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+} from "@workspace/ui/components/indicators/avatar";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { formatGenderLabel } from "@/lib/formatters";
-import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  Calendar,
-  Pencil,
-} from "lucide-react";
+import { getInitials } from "@/lib/formatters";
+import { getPatientFullName } from "@workspace/utils";
+import { Calendar, Pencil } from "lucide-react";
 import type { PatientsSortConfig } from "./patients-page-types";
-
-function getAriaSort(
-  sortConfig: PatientsSortConfig | null,
-  column: keyof Patient | "fullName",
-) {
-  if (sortConfig?.key !== column) {
-    return "none" as const;
-  }
-  return sortConfig.direction === "asc" ? "ascending" : "descending";
-}
-
-function SortIcon({
-  sortConfig,
-  column,
-}: {
-  sortConfig: PatientsSortConfig | null;
-  column: keyof Patient | "fullName";
-}) {
-  if (sortConfig?.key !== column) {
-    return <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />;
-  }
-  return sortConfig.direction === "asc" ? (
-    <ArrowUp className="ml-2 h-4 w-4" />
-  ) : (
-    <ArrowDown className="ml-2 h-4 w-4" />
-  );
-}
-
-function SortableHeader({
-  label,
-  column,
-  sortConfig,
-  onSort,
-}: {
-  label: string;
-  column: keyof Patient | "fullName";
-  sortConfig: PatientsSortConfig | null;
-  onSort: (key: keyof Patient | "fullName") => void;
-}) {
-  return (
-    <button
-      type="button"
-      className="inline-flex items-center hover:text-foreground"
-      onClick={() => onSort(column)}
-      aria-sort={getAriaSort(sortConfig, column)}
-    >
-      {label}
-      <SortIcon sortConfig={sortConfig} column={column} />
-    </button>
-  );
-}
-
-function PatientMobileCard({
-  patient,
-  onViewPatient,
-  onSchedulePatient,
-  onEditPatient,
-}: {
-  patient: Patient;
-  onViewPatient: (patientId: string) => void;
-  onSchedulePatient: (patientId: string) => void;
-  onEditPatient: (patient: Patient) => void;
-}) {
-  const patientId = patient.id;
-
-  return (
-    <div className="flex flex-col gap-3">
-      <button
-        type="button"
-        className="flex min-w-0 items-center gap-3 text-left"
-        onClick={() => patientId && onViewPatient(patientId)}
-      >
-        <Avatar className="h-9 w-9 shrink-0 border border-border/70 bg-background/70">
-          <AvatarFallback>
-            {patient.firstName.charAt(0)}
-            {patient.lastName.charAt(0)}
-          </AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-medium">
-            {patient.firstName} {patient.lastName}
-          </p>
-          <p className="truncate text-sm text-muted-foreground">
-            {patient.phoneNumber}
-          </p>
-          {patient.email ? (
-            <p className="truncate text-xs text-muted-foreground">
-              {patient.email}
-            </p>
-          ) : null}
-          <p className="text-xs text-muted-foreground">
-            {formatGenderLabel(patient.gender)}
-          </p>
-        </div>
-      </button>
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-9 flex-1 touch-manipulation"
-          onClick={() => patientId && onSchedulePatient(patientId)}
-          disabled={!patientId}
-        >
-          <Calendar className="mr-1.5 h-4 w-4" />
-          Schedule
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-9 flex-1 touch-manipulation"
-          onClick={() => onEditPatient(patient)}
-        >
-          <Pencil className="mr-1.5 h-4 w-4" />
-          Edit
-        </Button>
-      </div>
-    </div>
-  );
-}
+import {
+  SortableHeader,
+  PatientMobileCard,
+} from "./patients-table-sections";
 
 export function PatientsTable({
   isLoading,
@@ -162,8 +46,7 @@ export function PatientsTable({
       cell: (patient) => (
         <Avatar className="h-8 w-8 border border-border/70 bg-background/70 text-foreground">
           <AvatarFallback className="border border-border/70 bg-background/70 text-foreground">
-            {patient.firstName.charAt(0)}
-            {patient.lastName.charAt(0)}
+            {getInitials(patient.firstName, patient.lastName)}
           </AvatarFallback>
         </Avatar>
       ),
@@ -180,7 +63,7 @@ export function PatientsTable({
       ),
       cell: (patient) => (
         <span className="block max-w-[160px] truncate font-medium sm:max-w-xs">
-          {patient.firstName} {patient.lastName}
+          {getPatientFullName(patient)}
         </span>
       ),
     },
@@ -258,7 +141,7 @@ export function PatientsTable({
       columns={columns}
       data={filteredPatients}
       rowKey={(patient, index) =>
-        patient.id ?? `${patient.firstName}-${patient.lastName}-${index}`
+        patient.id ?? `${getPatientFullName(patient, "patient")}-${index}`
       }
       isLoading={isLoading}
       emptyTitle="No patients found"

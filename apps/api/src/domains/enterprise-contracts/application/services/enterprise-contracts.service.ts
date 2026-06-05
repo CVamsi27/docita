@@ -116,6 +116,17 @@ export class EnterpriseContractsService {
     return this.commandService.generateAnnualPrepayInvoice(contractId);
   }
 
+  generateSetupFeeInvoice(contractId: string) {
+    return this.commandService.generateSetupFeeInvoice(contractId);
+  }
+
+  generateAdjustmentInvoice(
+    contractId: string,
+    payload: { label: string; amountCents: number },
+  ) {
+    return this.commandService.generateAdjustmentInvoice(contractId, payload);
+  }
+
   evaluateAndAlertTrueUp(contractId: string) {
     return this.commandService.evaluateAndAlertTrueUp(contractId);
   }

@@ -1,6 +1,12 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback, type ReactNode } from "react";
+import {
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  type ReactNode,
+} from "react";
 import {
   Dialog,
   DialogContent,
@@ -74,14 +80,19 @@ export function ComplianceLegalDocumentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl p-0 flex flex-col max-h-[90vh] overflow-hidden">
-        <DialogHeader className="border-b bg-muted/25 px-6 py-5">
+      <DialogContent className="flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden rounded-none p-0 md:h-auto md:max-h-[90dvh] md:max-w-4xl md:rounded-lg">
+        <DialogHeader className="shrink-0 border-b bg-muted/25 px-4 py-4 md:px-6 md:py-5">
           <div className="flex items-center justify-between gap-3">
             <div className="space-y-1">
-              <DialogTitle className="text-base md:text-lg">{title}</DialogTitle>
+              <DialogTitle className="text-base md:text-lg">
+                {title}
+              </DialogTitle>
               <DialogDescription>{description}</DialogDescription>
             </div>
-            <Badge variant="outline" className="h-6 px-2.5 text-[var(--fs-2xs)]">
+            <Badge
+              variant="outline"
+              className="h-6 px-2.5 text-[var(--fs-2xs)]"
+            >
               Required
             </Badge>
           </div>
@@ -95,24 +106,32 @@ export function ComplianceLegalDocumentDialog({
         </DialogHeader>
         <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto min-h-0 px-6 py-5"
+          className="min-h-0 flex-1 overflow-y-auto px-4 py-5 md:px-6"
           onScroll={updateScrollProgress}
         >
           {content}
           <div ref={sentinelRef} className="h-px" />
         </div>
         {!scrolledToBottom ? (
-          <div className="px-6 pb-1">
+          <div className="shrink-0 px-4 pb-1 md:px-6">
             <p className="text-xs text-center text-muted-foreground">
               Scroll to the bottom to enable the I Agree button
             </p>
           </div>
         ) : null}
-        <DialogFooter className="border-t px-6 py-4">
-          <Button variant="outline" onClick={onClose}>
+        <DialogFooter className="shrink-0 border-t px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:px-6">
+          <Button
+            className="w-full md:w-auto"
+            variant="outline"
+            onClick={onClose}
+          >
             Close
           </Button>
-          <Button onClick={onAgree} disabled={!scrolledToBottom}>
+          <Button
+            className="w-full md:w-auto"
+            onClick={onAgree}
+            disabled={!scrolledToBottom}
+          >
             I Agree
           </Button>
         </DialogFooter>

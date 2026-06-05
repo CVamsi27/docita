@@ -1,18 +1,9 @@
 import { z } from "zod";
 import { genderSchema } from "../shared/users";
 import { dpdpConsentPayloadSchema } from "./dpdp";
+import { pastDateOfBirthSchema } from "../patient/patients";
 
-export const pastDateOfBirthSchema = z
-  .union([z.string(), z.date()])
-  .refine(
-    (value) => {
-      const date = new Date(value);
-      return !Number.isNaN(date.getTime()) && date < new Date();
-    },
-    {
-      message: "Date of birth must be in the past",
-    },
-  );
+export { pastDateOfBirthSchema };
 
 export const patientResponseSchema = z
   .object({
@@ -26,6 +17,9 @@ export const patientResponseSchema = z
   gender: genderSchema,
   dateOfBirth: pastDateOfBirthSchema.optional(),
   address: z.string().optional(),
+  insuranceProvider: z.string().optional(),
+  insurancePolicyNumber: z.string().optional(),
+  insuranceGroupNumber: z.string().optional(),
   metadata: z.record(z.unknown()).optional(),
   createdAt: z.union([z.string(), z.date()]),
   updatedAt: z.union([z.string(), z.date()]),
@@ -47,6 +41,9 @@ export const createPatientRequestSchema = z
   gender: genderSchema,
   dateOfBirth: pastDateOfBirthSchema.nullable().optional(),
   address: z.string().max(500).nullable().optional(),
+  insuranceProvider: z.string().max(100).nullable().optional(),
+  insurancePolicyNumber: z.string().max(100).nullable().optional(),
+  insuranceGroupNumber: z.string().max(100).nullable().optional(),
   metadata: z.record(z.unknown()).nullable().optional(),
   clinicId: z.string().optional(),
   /**
@@ -99,6 +96,9 @@ export const patientDomainCreateSchema = createPatientRequestSchema
     phoneNumber: normalizeNullable(input.phoneNumber),
     dateOfBirth: normalizeDate(input.dateOfBirth),
     address: normalizeNullable(input.address),
+    insuranceProvider: normalizeNullable(input.insuranceProvider),
+    insurancePolicyNumber: normalizeNullable(input.insurancePolicyNumber),
+    insuranceGroupNumber: normalizeNullable(input.insuranceGroupNumber),
     metadata: normalizeNullable(input.metadata),
   }));
 
@@ -112,6 +112,9 @@ export const patientDomainUpdateSchema = updatePatientRequestSchema.transform(
     phoneNumber: normalizeNullable(input.phoneNumber),
     dateOfBirth: normalizeDate(input.dateOfBirth),
     address: normalizeNullable(input.address),
+    insuranceProvider: normalizeNullable(input.insuranceProvider),
+    insurancePolicyNumber: normalizeNullable(input.insurancePolicyNumber),
+    insuranceGroupNumber: normalizeNullable(input.insuranceGroupNumber),
     metadata: normalizeNullable(input.metadata),
   }),
 );
@@ -127,6 +130,9 @@ export const patientPersistenceRecordSchema = z.object({
   gender: genderSchema,
   dateOfBirth: z.date().nullable().optional(),
   address: z.string().nullable().optional(),
+  insuranceProvider: z.string().nullable().optional(),
+  insurancePolicyNumber: z.string().nullable().optional(),
+  insuranceGroupNumber: z.string().nullable().optional(),
   customData: z.unknown().nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -144,6 +150,9 @@ export const patientPersistenceWriteSchema = z.object({
   gender: genderSchema,
   dateOfBirth: z.date().nullable().optional(),
   address: z.string().nullable().optional(),
+  insuranceProvider: z.string().nullable().optional(),
+  insurancePolicyNumber: z.string().nullable().optional(),
+  insuranceGroupNumber: z.string().nullable().optional(),
   customData: z.unknown().nullable().optional(),
   version: z.number().int().nonnegative(),
 });

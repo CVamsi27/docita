@@ -110,6 +110,7 @@ export class OpenaiService {
       throw new ServiceUnavailableException('OpenAI client not initialized');
     }
 
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     const response = await Promise.race([
       this.openai.chat.completions.create({
         model: this.modelType,
@@ -120,13 +121,17 @@ export class OpenaiService {
         temperature,
         response_format: jsonMode ? { type: 'json_object' } : undefined,
       }),
-      new Promise<never>((_, reject) =>
-        setTimeout(
+      new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(
           () => reject(new Error('OpenAI request timeout')),
           this.requestTimeout,
-        ),
-      ),
-    ]);
+        );
+      }),
+    ]).finally(() => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    });
 
     const content = response.choices?.[0]?.message?.content;
     if (!content)

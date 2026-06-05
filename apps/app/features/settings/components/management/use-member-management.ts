@@ -3,28 +3,15 @@
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  useCreateClinicMember,
-  useDeleteClinicMember,
-  useReverifyDoctorRegistration,
-  useUpdateClinicMember,
-} from "@workspace/data-access";
+import { useCreateClinicMember, useDeleteClinicMember, useReverifyDoctorRegistration, useUpdateClinicMember } from "@workspace/data-access";
 import { User } from "@workspace/types";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { useFacilityLabel } from "@/lib/formatters/facility-label";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useConfirm } from "@/hooks/use-confirm";
-import {
-  ADMIN_SWITCH_ROLES,
-  DOCTOR_ROLES,
-  INVITE_SUCCESS_LABELS,
-  inviteTeamMemberFormSchema,
-  memberManagementFormSchema,
-  type InviteFormValues,
-  type MemberFormValues,
-} from "@/features/settings/components/management/member-management-schemas";
-import { parseStringEnumMember } from "@workspace/utils";
+import { INVITE_SUCCESS_LABELS, inviteTeamMemberFormSchema, memberManagementFormSchema, type InviteFormValues, type MemberFormValues } from "@/features/settings/components/management/member-management-schemas";
+import { buildCreateMemberPayload, buildUpdateMemberPayload, computeCanChangeSelectedMemberRole, computeMemberDialogDescription, computeUserCanChangeRoles, computeIsSelectedMemberDoctor, createToastCallbacks, getEmptyMemberFormDefaultValues, getInviteFormDefaultValues, getInviteGuardError, getMemberFormDefaultValues } from "./member-management-logic";
 
 export function useMemberManagement({
   members,
@@ -40,116 +27,46 @@ export function useMemberManagement({
   const [selectedMember, setSelectedMember] = useState<User | null>(null);
   const facilityLabel = useFacilityLabel();
   const { user } = useAuth();
-
-  const { mutate: createMember, isPending: isCreatingMember } =
-    useCreateClinicMember(clinicId);
-  const { mutate: updateMember, isPending: isUpdatingMember } =
-    useUpdateClinicMember();
-  const { mutate: deleteMember, isPending: isDeletingMember } =
-    useDeleteClinicMember();
-  const { mutate: reverifyDoctor, isPending: isReverifyingDoctor } =
-    useReverifyDoctorRegistration();
-
+  const { mutate: createMember, isPending: isCreatingMember } = useCreateClinicMember(clinicId);
+  const { mutate: updateMember, isPending: isUpdatingMember } = useUpdateClinicMember();
+  const { mutate: deleteMember, isPending: isDeletingMember } = useDeleteClinicMember();
+  const { mutate: reverifyDoctor, isPending: isReverifyingDoctor } = useReverifyDoctorRegistration();
   const isSaving = isCreatingMember;
-  const isManaging =
-    isUpdatingMember || isDeletingMember || isReverifyingDoctor;
-
+  const isManaging = isUpdatingMember || isDeletingMember || isReverifyingDoctor;
   const form = useForm<InviteFormValues>({
     resolver: zodResolver(inviteTeamMemberFormSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      role: "NURSE",
-      phoneNumber: "",
-      specialization: "",
-      qualification: "",
-      registrationNumber: "",
-    },
+    defaultValues: getInviteFormDefaultValues(),
   });
-
   const memberForm = useForm<MemberFormValues>({
     resolver: zodResolver(memberManagementFormSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      phoneNumber: "",
-      role: "NURSE",
-      specialization: "",
-      qualification: "",
-      registrationNumber: "",
-    },
+    defaultValues: getEmptyMemberFormDefaultValues(),
   });
-
   const selectedRole = form.watch("role");
   const selectedMemberRole = memberForm.watch("role");
-  const isSelectedMemberDoctor = DOCTOR_ROLES.has(selectedMemberRole);
-  const userCanChangeRoles =
-    user?.role === "ADMIN" || user?.role === "ADMIN_DOCTOR";
-  const canChangeSelectedMemberRole =
-    !!selectedMember &&
-    userCanChangeRoles &&
-    selectedMember.id !== user?.id &&
-    parseStringEnumMember(
-      Array.from(ADMIN_SWITCH_ROLES),
-      selectedMember.role,
-    ) !== undefined;
-  const memberDialogDescription = isSelectedMemberDoctor
-    ? "Edit contact details, role eligibility, verification, and signature status."
-    : "Edit contact details and review this member's role.";
+  const userCanChangeRoles = computeUserCanChangeRoles(user?.role);
+  const isSelectedMemberDoctor = computeIsSelectedMemberDoctor(selectedMemberRole);
+  const canChangeSelectedMemberRole = computeCanChangeSelectedMemberRole({
+    selectedMember,
+    userCanChangeRoles,
+    currentUserId: user?.id,
+  });
+  const memberDialogDescription = computeMemberDialogDescription(isSelectedMemberDoctor);
   const canInvite = !!clinicId;
+  const sortedMembers = useMemo(
+    () => [...members].sort((a, b) => a.name.localeCompare(b.name)),
+    [members],
+  );
 
   const openMemberDialog = (member: User) => {
     setSelectedMember(member);
-    memberForm.reset({
-      name: member.name ?? "",
-      email: member.email ?? "",
-      phoneNumber: member.phoneNumber ?? "",
-      role:
-        member.role === "DOCTOR" ||
-        member.role === "NURSE" ||
-        member.role === "RECEPTIONIST" ||
-        member.role === "ADMIN" ||
-        member.role === "ADMIN_DOCTOR"
-          ? member.role
-          : "NURSE",
-      specialization: member.specialization ?? "",
-      qualification: member.qualification ?? "",
-      registrationNumber: member.registrationNumber ?? "",
-    });
+    memberForm.reset(getMemberFormDefaultValues(member));
   };
 
   const handleSaveMember = (data: MemberFormValues) => {
     if (!selectedMember) return;
-
     updateMember(
-      {
-        memberId: selectedMember.id,
-        name: data.name,
-        email: data.email,
-        phoneNumber: data.phoneNumber || undefined,
-        ...(canChangeSelectedMemberRole ? { role: data.role } : {}),
-        ...(isSelectedMemberDoctor
-          ? {
-              specialization: data.specialization || undefined,
-              qualification: data.qualification || undefined,
-              registrationNumber: data.registrationNumber || undefined,
-            }
-          : {}),
-      },
-      {
-        onSuccess: () => {
-          toast.success("Member updated successfully");
-          setSelectedMember(null);
-        },
-        onError: (err) => {
-          showUserFacingErrorToast(
-            err,
-            "We could not update this team member. Please try again.",
-            "save",
-          );
-        },
-      },
+      buildUpdateMemberPayload(selectedMember.id, data, canChangeSelectedMemberRole, isSelectedMemberDoctor),
+      createToastCallbacks("Member updated successfully", "We could not update this team member. Please try again.", "save", () => setSelectedMember(null)),
     );
   };
 
@@ -163,157 +80,60 @@ export function useMemberManagement({
       cancelText: "Cancel",
     });
     if (!confirmed) return;
-
     deleteMember(
       { memberId: selectedMember.id },
-      {
-        onSuccess: () => {
-          toast.success("Member removed successfully");
-          setSelectedMember(null);
-        },
-        onError: (err) => {
-          showUserFacingErrorToast(
-            err,
-            "We could not remove this team member. Please try again.",
-            "delete",
-          );
-        },
-      },
+      createToastCallbacks("Member removed successfully", "We could not remove this team member. Please try again.", "delete", () => setSelectedMember(null)),
     );
   };
 
   const handleReverifyDoctor = async (doctorId: string) => {
-    const hasRegistrationNumber = await memberForm.trigger(
-      "registrationNumber",
-      { shouldFocus: true },
-    );
-
+    const hasRegistrationNumber = await memberForm.trigger("registrationNumber", { shouldFocus: true });
     if (!hasRegistrationNumber) {
-      showUserFacingErrorToast(
-        "Please enter the highlighted registration number before reverifying.",
-        "Please check the highlighted fields and try again.",
-        "form",
-      );
+      showUserFacingErrorToast("Please enter the highlighted registration number before reverifying.", "Please check the highlighted fields and try again.", "form");
       return;
     }
-
     reverifyDoctor(
       { doctorId },
-      {
-        onSuccess: () => {
-          toast.success("Doctor registration reverification triggered");
-        },
-        onError: (err) => {
-          showUserFacingErrorToast(
-            err,
-            "We could not restart this doctor's verification. Please try again.",
-            "save",
-          );
-        },
-      },
+      createToastCallbacks("Doctor registration reverification triggered", "We could not restart this doctor's verification. Please try again.", "save"),
     );
   };
 
   const handleCopyClinicCode = async () => {
     if (!clinicReferralCode) {
-      showUserFacingErrorToast(
-        `The ${facilityLabel.toLowerCase()} code is not ready yet. Please refresh and try again.`,
-      );
+      showUserFacingErrorToast(`The ${facilityLabel.toLowerCase()} code is not ready yet. Please refresh and try again.`);
       return;
     }
-
     try {
       await navigator.clipboard.writeText(clinicReferralCode);
       toast.success(`${facilityLabel} code copied`);
     } catch {
-      showUserFacingErrorToast(
-        `We could not copy this ${facilityLabel.toLowerCase()} code. Please try again.`,
-      );
+      showUserFacingErrorToast(`We could not copy this ${facilityLabel.toLowerCase()} code. Please try again.`);
     }
   };
 
-  const sortedMembers = useMemo(
-    () => [...members].sort((a, b) => a.name.localeCompare(b.name)),
-    [members],
-  );
-
   const onInviteSubmit = (data: InviteFormValues) => {
-    if (!clinicId) {
-      showUserFacingErrorToast(
-        "We could not identify this facility. Please refresh and try again.",
-      );
+    const guardError = getInviteGuardError(clinicId, data.role, userCanChangeRoles);
+    if (guardError) {
+      showUserFacingErrorToast(null, guardError, "form");
       return;
     }
-
-    if (
-      (data.role === "ADMIN" || data.role === "ADMIN_DOCTOR") &&
-      !userCanChangeRoles
-    ) {
-      showUserFacingErrorToast(
-        null,
-        "Only facility administrators can invite Admin or Admin Doctor accounts.",
-        "form",
-      );
-      return;
-    }
-
     createMember(
-      {
-        name: data.name,
-        email: data.email,
-        password: data.password,
-        role: data.role,
-        phoneNumber: data.phoneNumber || undefined,
-        specialization: data.specialization || undefined,
-        qualification: data.qualification || undefined,
-        registrationNumber: data.registrationNumber || undefined,
-      },
-      {
-        onSuccess: () => {
-          toast.success(
-            `${INVITE_SUCCESS_LABELS[data.role]} invited successfully`,
-          );
-          setIsInviteOpen(false);
-          form.reset();
-        },
-        onError: (err) => {
-          showUserFacingErrorToast(
-            err,
-            "We could not send this invitation. Please try again.",
-            "save",
-          );
-        },
-      },
+      buildCreateMemberPayload(data),
+      createToastCallbacks(`${INVITE_SUCCESS_LABELS[data.role]} invited successfully`, "We could not send this invitation. Please try again.", "save", () => {
+        setIsInviteOpen(false);
+        form.reset();
+      }),
     );
   };
 
   return {
-    facilityLabel,
-    sortedMembers,
-    isInviteOpen,
-    setIsInviteOpen,
-    selectedMember,
-    setSelectedMember,
-    form,
-    memberForm,
-    selectedRole,
-    selectedMemberRole,
-    memberDialogDescription,
-    canChangeSelectedMemberRole,
-    isSelectedMemberDoctor,
-    canInvite,
-    isSaving,
-    isManaging,
-    isUpdatingMember,
-    isDeletingMember,
-    isReverifyingDoctor,
-    userCanChangeRoles,
-    clinicReferralCode,
-    openMemberDialog,
-    handleSaveMember,
-    handleRemoveMember,
-    handleReverifyDoctor,
-    handleCopyClinicCode,
-    onInviteSubmit,
+    facilityLabel, sortedMembers, isInviteOpen, setIsInviteOpen,
+    selectedMember, setSelectedMember, form, memberForm, selectedRole,
+    selectedMemberRole, memberDialogDescription, canChangeSelectedMemberRole,
+    isSelectedMemberDoctor, canInvite, isSaving, isManaging,
+    isUpdatingMember, isDeletingMember, isReverifyingDoctor,
+    userCanChangeRoles, clinicReferralCode, openMemberDialog,
+    handleSaveMember, handleRemoveMember, handleReverifyDoctor,
+    handleCopyClinicCode, onInviteSubmit,
   };
 }

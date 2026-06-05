@@ -13,7 +13,7 @@ Single API client and React Query surface for web apps.
 
 ## staleTime / gcTime policy
 
-Global defaults live in `apps/app/providers/react-query-provider.tsx` (`staleTime: 30 s`, `gcTime: 5 min`). Per-category overrides use constants from `apps/app/lib/react-query-config.ts`:
+Global defaults live in `apps/app/providers/react-query-provider.tsx` (`staleTime: 30 s`, `gcTime: 5 min`). Per-query stale times are inferred from the shared key-prefix registry in `src/core/stale-time.ts`.
 
 | Data category | staleTime | gcTime |
 |---|---:|---:|
@@ -24,7 +24,7 @@ Global defaults live in `apps/app/providers/react-query-provider.tsx` (`staleTim
 | Tier / subscription | 5 min | LONG (30 min) |
 | Referrals (read-only reference) | 60 min | VERY_LONG (2 hr) |
 
-Use `getQueryOptions(dataType)` from `apps/app/lib/react-query-config.ts` to apply the right tier. When adding a mutation, invalidate the matching query key in the same hook file.
+Use the shared `queryKeys` factory so `inferStaleTime()` can apply the right tier. When adding a mutation, invalidate the matching query key in the same hook file.
 
 ## Query-key conventions
 

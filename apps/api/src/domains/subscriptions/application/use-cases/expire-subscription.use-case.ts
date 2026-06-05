@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException, Inject } from '@nestjs/common';
+import { ClinicTier } from '@workspace/db';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
@@ -34,14 +35,14 @@ export class ExpireSubscriptionUseCase {
 
     await this.clinicOps.updateTierAndFeatures(
       subscription.clinicId,
-      'STARTER',
+      ClinicTier.STARTER,
       SubscriptionStatusEnum.EXPIRED,
       {},
     );
 
     await this.clinicOps.emitUpdate(subscription.clinicId, {
       clinicId: subscription.clinicId,
-      tier: 'STARTER',
+      tier: ClinicTier.STARTER,
       subscriptionStatus: SubscriptionStatusEnum.EXPIRED,
       subscriptionGraceUntil: null,
     });

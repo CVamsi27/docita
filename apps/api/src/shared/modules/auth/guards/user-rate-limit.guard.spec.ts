@@ -3,15 +3,17 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { UserRateLimitService } from '@/shared/modules/services/user-rate-limit.service';
 import { asType } from '@/test-utils';
 import { UserRateLimitGuard } from './user-rate-limit.guard';
+import type { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 function createContext(
   user: unknown,
   method = 'GET',
   url = '/some-url',
+  headers: Record<string, string> = {},
 ): ExecutionContext {
   return asType<ExecutionContext>({
     switchToHttp: (() => ({
-      getRequest: () => ({ user, method, originalUrl: url }),
+      getRequest: () => ({ user, method, originalUrl: url, headers }),
       getResponse: () => ({}),
       getNext: () => undefined,
     })) as ExecutionContext['switchToHttp'],
@@ -23,13 +25,22 @@ describe('UserRateLimitGuard', () => {
     Pick<UserRateLimitService, 'checkRateLimit' | 'getRemainingRequests'>
   >;
   let guard: UserRateLimitGuard;
+  let config: Pick<AppConfigService, 'shouldBypassGuardForE2e'>;
 
   beforeEach(() => {
     service = {
       checkRateLimit: jest.fn(),
       getRemainingRequests: jest.fn(),
     };
-    guard = new UserRateLimitGuard(asType<UserRateLimitService>(service));
+    config = {
+      shouldBypassGuardForE2e: jest.fn<
+        (e2eHeaderValue: string | undefined) => boolean
+      >(() => false),
+    };
+    guard = new UserRateLimitGuard(
+      asType<UserRateLimitService>(service),
+      asType<AppConfigService>(config),
+    );
   });
 
   it('allows request when no authenticated user id is present', () => {
@@ -49,6 +60,22 @@ describe('UserRateLimitGuard', () => {
         limit: expect.any(Number) as unknown as number,
       }),
     );
+  });
+
+  it('skips user limiting when E2E bypass is active', () => {
+    config.shouldBypassGuardForE2e = jest.fn<
+      (e2eHeaderValue: string | undefined) => boolean
+    >(() => true);
+
+    const allowed = guard.canActivate(
+      createContext({ sub: 'user-1' }, 'GET', '/some-url', {
+        'x-docita-e2e': 'true',
+      }),
+    );
+
+    expect(allowed).toBe(true);
+    expect(config.shouldBypassGuardForE2e).toHaveBeenCalledWith('true');
+    expect(service.checkRateLimit).not.toHaveBeenCalled();
   });
 
   it('uses elevated limit for consultation PATCH routes', () => {

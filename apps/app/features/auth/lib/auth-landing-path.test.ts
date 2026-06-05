@@ -27,6 +27,7 @@ describe("auth landing path", () => {
         id: "1",
         emailVerified: true,
         clinicId: "c1",
+        onboardingStep: "NOT_STARTED",
         role: "DOCTOR",
       } as Parameters<typeof getPostAuthPath>[0]),
     ).toBe("/consultation");

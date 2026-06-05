@@ -46,6 +46,7 @@ import {
   logPatientPhiRead,
 } from '@/shared/modules/audit/audit/patient-access-audit.util';
 import { getBillingRequestContext } from './billing-request-context';
+import { setPrivateNoStoreHeaders } from '@/shared/common/http/private-download-response';
 
 @Controller('invoices')
 @UseGuards(TierGuard)
@@ -186,7 +187,9 @@ export class InvoicesController {
     @Request() req: RequestWithUser,
     @Param('id') id: string,
     @Query('jobId') jobId: string,
+    @Res({ passthrough: true }) res: Response,
   ) {
+    setPrivateNoStoreHeaders(res);
     const { clinicId } = getBillingRequestContext(req);
     const invoice = await this.invoicesService.findOne(id, clinicId);
     await logPatientPhiRead(
@@ -206,6 +209,7 @@ export class InvoicesController {
     @Query('async') isAsync: string,
     @Res() res: Response,
   ) {
+    setPrivateNoStoreHeaders(res);
     const { clinicId } = getBillingRequestContext(req);
     const invoice = await this.invoicesService.findOne(id, clinicId);
     await logPatientPhiRead(

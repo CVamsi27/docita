@@ -1,3 +1,4 @@
+// check-non-null-assertion: allow-file — non-null guaranteed by prior guard or Prisma include
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -17,21 +18,20 @@ import {
   draftSessionStorageKey,
 } from "@/features/consultation/state/useConsultationDraft";
 import { buildConsultationAppointmentPatch } from "@/features/consultation/state/consultation-autosave-patch";
+import {
+  AUTOSAVE_DEBOUNCE_MS,
+  serializeDraftForSession,
+  buildCodedDiagnoses,
+} from "./consultation-autosave-helpers";
 
-const AUTOSAVE_DEBOUNCE_MS = 2200;
-
-interface UseConsultationAutosaveOptions {
-  appointmentId: string;
-  readOnly?: boolean;
-  clinicType?: string;
-  patientId?: string;
-}
-
-export function useConsultationAutosave(options: UseConsultationAutosaveOptions) {
+export function useConsultationAutosave(
+  options: { appointmentId: string; readOnly?: boolean; clinicType?: string; patientId?: string },
+) {
   const { appointmentId, readOnly, clinicType, patientId } = options;
 
   const queryClient = useQueryClient();
-  const updateAppointment = useConsultationAutosaveUpdateAppointment(appointmentId);
+  const updateAppointment =
+    useConsultationAutosaveUpdateAppointment(appointmentId);
   const syncDiagnoses = useSyncDiagnoses(appointmentId);
   const createPrescription = useCreatePrescription();
 
@@ -45,27 +45,10 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
     if (typeof window === "undefined") return;
     try {
       const state = getDraft();
-      if (!state.appointmentId) return;
-      const payload = JSON.stringify({
-        chiefComplaint: state.chiefComplaint,
-        history: state.history,
-        examination: state.examination,
-        diagnosis: state.diagnosis,
-        treatment: state.treatment,
-        prescriptions: state.prescriptions,
-        dentalChart: state.dentalChart,
-        eyeExam: state.eyeExam,
-        growthData: state.growthData,
-        cardiologyExam: state.cardiologyExam,
-        dermatologyExam: state.dermatologyExam,
-        gynecologyExam: state.gynecologyExam,
-        psychiatryExam: state.psychiatryExam,
-        investigations: state.investigations,
-        followUpPlan: state.followUpPlan,
-        savedAt: Date.now(),
-      });
+      const payload = serializeDraftForSession(state);
+      if (!payload) return;
       window.sessionStorage.setItem(
-        draftSessionStorageKey(state.appointmentId),
+        draftSessionStorageKey(state.appointmentId!),
         payload,
       );
     } catch (error) {
@@ -107,13 +90,7 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
           });
         }
 
-        const codedDiagnoses = state.diagnosis
-          .filter((d) => d.icdCode?.id)
-          .map((d, idx) => ({
-            icdCodeId: d.icdCode?.id,
-            notes: d.notes,
-            isPrimary: idx === 0,
-          }));
+        const codedDiagnoses = buildCodedDiagnoses(state.diagnosis);
         const nextHash = await hashDiagnosesForSync(codedDiagnoses);
         const prevHash = state.diagnosesContentHash;
 

@@ -1,6 +1,69 @@
 import type { ReactNode } from "react";
-import type { SubscriptionCurrentResponse } from "@workspace/types";
+import type { AppClinic, SubscriptionCurrentResponse } from "@workspace/types";
 import { Button } from "@workspace/ui/components/form/button";
+import { getTierInfo } from "@/lib/subscription/tier-access";
+import { getTrialState } from "@/lib/subscription/subscription-lockout";
+import { getClinicGstin } from "@workspace/utils";
+
+export interface SubscriptionSettingsState {
+  tierName: string;
+  subscriptionStatusLabel: string;
+  trialDaysLeft: number | null;
+  freeStarterActive: boolean;
+  isPaymentDue: boolean;
+  isExpired: boolean;
+  isInGracePeriod: boolean;
+  showRecoveryCard: boolean;
+  needsGstinForInvoices: boolean;
+}
+
+export function deriveSubscriptionSettingsState({
+  clinic,
+  subscription,
+}: {
+  clinic: AppClinic | null | undefined;
+  subscription: SubscriptionCurrentResponse | null | undefined;
+}): SubscriptionSettingsState {
+  const subscriptionStatus = subscription?.subscriptionStatus;
+  const subscriptionStatusLabel = subscriptionStatus || "Inactive";
+  const tierName = subscription?.tier
+    ? getTierInfo(subscription.tier).name
+    : "Starter";
+  const isPaymentDue =
+    subscriptionStatus === "PAYMENT_DUE" || subscriptionStatus === "PAST_DUE";
+  const isExpired = subscriptionStatus === "EXPIRED";
+  const isInGracePeriod = subscriptionStatus === "GRACE";
+  const trialState = subscription?.trialWindowState ?? getTrialState(clinic);
+  const renewalPeriodLapsed =
+    subscription?.currentPeriodEnd != null
+      ? new Date(subscription.currentPeriodEnd).getTime() <= Date.now()
+      : false;
+  const hasOutstandingPendingPayment =
+    subscription?.hasOutstandingPendingPayment === true;
+  const freeStarterActive = isFreeStarterActive(subscription);
+
+  return {
+    tierName,
+    subscriptionStatusLabel,
+    trialDaysLeft:
+      subscriptionStatusLabel === "TRIALING"
+        ? (subscription?.daysRemaining ?? null)
+        : null,
+    freeStarterActive,
+    isPaymentDue,
+    isExpired,
+    isInGracePeriod,
+    showRecoveryCard:
+      isPaymentDue ||
+      isInGracePeriod ||
+      trialState === "GRACE" ||
+      (hasOutstandingPendingPayment && renewalPeriodLapsed),
+    needsGstinForInvoices:
+      !getClinicGstin(clinic?.settings) &&
+      (subscription?.basePriceCents ?? 0) > 0 &&
+      subscription?.currency?.toUpperCase() === "INR",
+  };
+}
 
 export function scrollToBillingPlans() {
   document.getElementById("billing-plans-section")?.scrollIntoView({

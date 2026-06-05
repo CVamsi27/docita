@@ -10,7 +10,6 @@ import {
 } from '@/shared/modules/queue/queue.interface';
 import type { InvoicePdfProcessorPort } from './invoice-pdf.processor';
 import type { InvoicesService } from './invoices.service';
-import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import type { PdfJobProcessorPrismaPort } from '@/shared/modules/queue/pdf-job.service';
 import { InvoiceStatus } from '@workspace/db';
 import type { InvoiceDetail } from '@/domains/billing/core/repositories/invoice.repository';
@@ -104,18 +103,6 @@ describe('InvoicePdfProcessor', () => {
     pdfJob: { update: pdfJobUpdateMock },
   };
 
-  const generateSignedUrlMock = jest.fn<StorageProvider['generateSignedUrl']>();
-
-  class MockStorage extends StorageProvider {
-    readonly supportsSignedUrls = true;
-    upload = jest.fn<StorageProvider['upload']>();
-    delete = jest.fn<StorageProvider['delete']>();
-    uploadBuffer = jest.fn<StorageProvider['uploadBuffer']>();
-    generateSignedUrl = generateSignedUrlMock;
-  }
-
-  const storageProvider = new MockStorage();
-
   const processMock = jest.fn(
     async <T extends QueueJobData>(
       _name: string,
@@ -134,13 +121,9 @@ describe('InvoicePdfProcessor', () => {
     delete process.env.ENABLE_SCHEDULERS;
     jest.clearAllMocks();
     pdfJobUpdateMock.mockResolvedValue(undefined);
-    processor = new InvoicePdfProcessor(
-      prisma,
-      invoicesService,
-      storageProvider,
-      queue,
-      { now: () => new Date('2026-01-15T10:00:00Z') },
-    );
+    processor = new InvoicePdfProcessor(prisma, invoicesService, queue, {
+      now: () => new Date('2026-01-15T10:00:00Z'),
+    });
   });
 
   it('registers a handler for GENERATE_INVOICE_PDF on init (memory queue / worker)', () => {
@@ -200,10 +183,6 @@ describe('InvoicePdfProcessor', () => {
       storedKey: 'pdfs/invoices/inv-1.pdf',
       generatedAt: new Date(),
     });
-    generateSignedUrlMock.mockResolvedValue(
-      'https://cdn.example.com/inv-1.pdf',
-    );
-
     processor.onModuleInit();
     const registeredHandler = processMock.mock.calls[0]?.[1];
     expect(registeredHandler).toEqual(expect.any(Function));
@@ -216,7 +195,7 @@ describe('InvoicePdfProcessor', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           status: 'COMPLETED',
-          pdfUrl: 'https://cdn.example.com/inv-1.pdf',
+          pdfUrl: 'pdfs/invoices/inv-1.pdf',
         }),
       }),
     );
@@ -281,9 +260,6 @@ describe('InvoicePdfProcessor', () => {
       storedKey: 'pdfs/invoices/inv-1.pdf',
       generatedAt: new Date(),
     });
-    generateSignedUrlMock.mockResolvedValue(
-      'https://cdn.example.com/inv-1.pdf',
-    );
 
     processor.onModuleInit();
     const registeredHandler = processMock.mock.calls[0]?.[1];

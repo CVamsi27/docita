@@ -1,4 +1,10 @@
-import { PrismaClient } from '@workspace/db';
+import {
+  ConditionSourceType,
+  ConditionSeverity,
+  ConditionStatus,
+  MedicalConditionType,
+  PrismaClient,
+} from '@workspace/db';
 
 type SeedEntityRef = { id: string };
 
@@ -8,6 +14,19 @@ export async function seedStructuredMedicalHistory(
 ): Promise<void> {
   const patientIds = patients.map((patient) => patient.id);
 
+  await clearStructuredMedicalHistory(prisma, patientIds);
+  await seedMedicalConditions(prisma, patients);
+  await seedAllergies(prisma, patients);
+  await seedFamilyHistory(prisma, patients);
+  await seedSocialHistory(prisma, patients);
+  await seedSurgicalHistory(prisma, patients);
+  await seedImmunizations(prisma, patients);
+}
+
+async function clearStructuredMedicalHistory(
+  prisma: PrismaClient,
+  patientIds: string[],
+): Promise<void> {
   await Promise.all([
     prisma.patientMedicalCondition.deleteMany({
       where: { patientId: { in: patientIds } },
@@ -28,65 +47,79 @@ export async function seedStructuredMedicalHistory(
       where: { patientId: { in: patientIds } },
     }),
   ]);
+}
 
+async function seedMedicalConditions(
+  prisma: PrismaClient,
+  patients: SeedEntityRef[],
+): Promise<void> {
   await prisma.patientMedicalCondition.createMany({
-    data: [
-      {
-        patientId: patients[0].id,
-        conditionName: 'Type 2 Diabetes Mellitus',
-        icdCode: 'E11',
-        conditionType: 'CHRONIC',
-        status: 'MANAGED',
-        severity: 'MODERATE',
-        diagnosedDate: new Date('2018-03-15'),
-        notes: 'Well controlled with Metformin',
-        sourceType: 'MANUAL',
-      },
-      {
-        patientId: patients[0].id,
-        conditionName: 'Essential Hypertension',
-        icdCode: 'I10',
-        conditionType: 'CHRONIC',
-        status: 'MANAGED',
-        severity: 'MILD',
-        diagnosedDate: new Date('2020-07-22'),
-        notes: 'Controlled with Amlodipine 5mg',
-        sourceType: 'MANUAL',
-      },
-      {
-        patientId: patients[1].id,
-        conditionName: 'Bronchial Asthma',
-        icdCode: 'J45',
-        conditionType: 'CHRONIC',
-        status: 'ACTIVE',
-        severity: 'MODERATE',
-        diagnosedDate: new Date('2015-05-10'),
-        notes: 'Uses inhaler when needed',
-        sourceType: 'MANUAL',
-      },
-      {
-        patientId: patients[2].id,
-        conditionName: 'Rheumatoid Arthritis',
-        icdCode: 'M06',
-        conditionType: 'AUTOIMMUNE',
-        status: 'ACTIVE',
-        severity: 'MODERATE',
-        diagnosedDate: new Date('2019-11-20'),
-        sourceType: 'MANUAL',
-      },
-      {
-        patientId: patients[4].id,
-        conditionName: 'Migraine without aura',
-        icdCode: 'G43',
-        conditionType: 'CHRONIC',
-        status: 'ACTIVE',
-        severity: 'MODERATE',
-        diagnosedDate: new Date('2021-02-14'),
-        sourceType: 'MANUAL',
-      },
-    ],
+    data: getMedicalConditionRows(patients),
   });
+}
 
+function getMedicalConditionRows(patients: SeedEntityRef[]) {
+  return [
+    {
+      patientId: patients[0].id,
+      conditionName: 'Type 2 Diabetes Mellitus',
+      icdCode: 'E11',
+      conditionType: MedicalConditionType.CHRONIC,
+      status: ConditionStatus.MANAGED,
+      severity: ConditionSeverity.MODERATE,
+      diagnosedDate: new Date('2018-03-15'),
+      notes: 'Well controlled with Metformin',
+      sourceType: ConditionSourceType.MANUAL,
+    },
+    {
+      patientId: patients[0].id,
+      conditionName: 'Essential Hypertension',
+      icdCode: 'I10',
+      conditionType: MedicalConditionType.CHRONIC,
+      status: ConditionStatus.MANAGED,
+      severity: ConditionSeverity.MILD,
+      diagnosedDate: new Date('2020-07-22'),
+      notes: 'Controlled with Amlodipine 5mg',
+      sourceType: ConditionSourceType.MANUAL,
+    },
+    {
+      patientId: patients[1].id,
+      conditionName: 'Bronchial Asthma',
+      icdCode: 'J45',
+      conditionType: MedicalConditionType.CHRONIC,
+      status: ConditionStatus.ACTIVE,
+      severity: ConditionSeverity.MODERATE,
+      diagnosedDate: new Date('2015-05-10'),
+      notes: 'Uses inhaler when needed',
+      sourceType: ConditionSourceType.MANUAL,
+    },
+    {
+      patientId: patients[2].id,
+      conditionName: 'Rheumatoid Arthritis',
+      icdCode: 'M06',
+      conditionType: MedicalConditionType.AUTOIMMUNE,
+      status: ConditionStatus.ACTIVE,
+      severity: ConditionSeverity.MODERATE,
+      diagnosedDate: new Date('2019-11-20'),
+      sourceType: ConditionSourceType.MANUAL,
+    },
+    {
+      patientId: patients[4].id,
+      conditionName: 'Migraine without aura',
+      icdCode: 'G43',
+      conditionType: MedicalConditionType.CHRONIC,
+      status: ConditionStatus.ACTIVE,
+      severity: ConditionSeverity.MODERATE,
+      diagnosedDate: new Date('2021-02-14'),
+      sourceType: ConditionSourceType.MANUAL,
+    },
+  ];
+}
+
+async function seedAllergies(
+  prisma: PrismaClient,
+  patients: SeedEntityRef[],
+): Promise<void> {
   await prisma.patientAllergy.createMany({
     data: [
       {
@@ -124,7 +157,12 @@ export async function seedStructuredMedicalHistory(
       },
     ],
   });
+}
 
+async function seedFamilyHistory(
+  prisma: PrismaClient,
+  patients: SeedEntityRef[],
+): Promise<void> {
   await prisma.patientFamilyHistory.createMany({
     data: [
       {
@@ -159,7 +197,12 @@ export async function seedStructuredMedicalHistory(
       },
     ],
   });
+}
 
+async function seedSocialHistory(
+  prisma: PrismaClient,
+  patients: SeedEntityRef[],
+): Promise<void> {
   await prisma.patientSocialHistory.createMany({
     data: [
       {
@@ -206,7 +249,12 @@ export async function seedStructuredMedicalHistory(
       },
     ],
   });
+}
 
+async function seedSurgicalHistory(
+  prisma: PrismaClient,
+  patients: SeedEntityRef[],
+): Promise<void> {
   await prisma.patientSurgicalHistory.createMany({
     data: [
       {
@@ -226,7 +274,12 @@ export async function seedStructuredMedicalHistory(
       },
     ],
   });
+}
 
+async function seedImmunizations(
+  prisma: PrismaClient,
+  patients: SeedEntityRef[],
+): Promise<void> {
   await prisma.immunization.createMany({
     data: [
       {

@@ -3,6 +3,10 @@
 /node_modules
 /build
 
+# compiled script outputs (scripts/*.ts compile to dist, never commit .js)
+scripts/*.js
+scripts/*.js.map
+
 /logs
 *.log
 npm-debug.log*

@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import {
+  enterpriseAdjustmentInvoiceRequestSchema,
   upsertEnterpriseContractRequestSchema,
   enterpriseContractStatusSchema,
 } from '@workspace/types';
@@ -23,4 +24,8 @@ export const addContractMemberSchema = z.object({
 
 export class AddContractMemberDto extends createZodDto(
   addContractMemberSchema,
+) {}
+
+export class EnterpriseAdjustmentInvoiceDto extends createZodDto(
+  enterpriseAdjustmentInvoiceRequestSchema,
 ) {}

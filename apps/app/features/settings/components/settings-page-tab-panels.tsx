@@ -5,12 +5,14 @@ import {
   AppearanceSettings,
   ClinicGeneralSettings,
   NotificationSettings,
+  OpdSlipSettingsContainer,
   PrescriptionDefaultsSettingsContainer,
   QueueSettings,
   ReminderSettings,
   SecuritySettings,
 } from "@/features/settings/components";
 import { HelpSupportSettingsPanel } from "./help-support/HelpSupportSettingsPanel";
+import { LabDirectorySettings } from "@/features/lab-tests";
 import {
   DangerZoneSettingsLazy,
   DoctorAvailabilitySettingsLazy,
@@ -77,6 +79,22 @@ export function SettingsPageTabPanels({
         <TabsContent value="prescriptions" className="mt-0 space-y-6">
           <RoleGuard requiredPermission="createPrescription">
             <PrescriptionDefaultsSettingsContainer />
+          </RoleGuard>
+        </TabsContent>
+      )}
+
+      {visibleTabValues.has("opd-slip") && (
+        <TabsContent value="opd-slip" className="mt-0 space-y-6">
+          <RoleGuard requiredPermission="manageClinic">
+            <OpdSlipSettingsContainer />
+          </RoleGuard>
+        </TabsContent>
+      )}
+
+      {visibleTabValues.has("labs") && (
+        <TabsContent value="labs" className="mt-0 space-y-6">
+          <RoleGuard requiredPermission="manageClinic">
+            <LabDirectorySettings />
           </RoleGuard>
         </TabsContent>
       )}

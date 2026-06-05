@@ -80,7 +80,9 @@ export function PatientAdvisorRail({
         tone: "warning",
         actionLabel: "Review prescriptions",
         onAction: () =>
-          router.push(`/patients/${patient.id}?tab=records&subtab=prescriptions`),
+          router.push(
+            `/patients/${patient.id}?tab=records&subtab=prescriptions`,
+          ),
       });
     }
 
@@ -133,25 +135,25 @@ export function PatientAdvisorRail({
         className="w-full max-w-full"
       >
         {cards.map((card) => (
-        <RightRailCard
-          key={card.id}
-          category={card.category}
-          headline={card.headline}
-          description={card.description}
-          tone={card.tone}
-          onDismiss={() => dismiss(card.id)}
-          dismissLabel={`Dismiss ${card.category.toLowerCase()} card`}
-          action={
-            card.actionLabel && card.onAction ? (
-              <Button
-                size="sm"
-                onClick={card.onAction}
-                data-testid={`patient-advisor-${card.id}-action`}
-              >
-                {card.actionLabel}
-              </Button>
-            ) : undefined
-          }
+          <RightRailCard
+            key={card.id}
+            category={card.category}
+            headline={card.headline}
+            description={card.description}
+            tone={card.tone}
+            onDismiss={() => dismiss(card.id)}
+            dismissLabel={`Dismiss ${card.category.toLowerCase()} card`}
+            action={
+              card.actionLabel && card.onAction ? (
+                <Button
+                  size="sm"
+                  onClick={card.onAction}
+                  data-testid={`patient-advisor-${card.id}-action`}
+                >
+                  {card.actionLabel}
+                </Button>
+              ) : undefined
+            }
           />
         ))}
       </RightRailCardStack>

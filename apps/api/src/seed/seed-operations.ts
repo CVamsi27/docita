@@ -9,6 +9,25 @@ interface SeedOperationsParams {
   patientPortalUserId: string;
 }
 
+interface LeaveRequestSeed {
+  id: string;
+  staffId: string;
+  leaveType: LeaveType;
+  startOffset: number;
+  endOffset: number;
+  status: LeaveStatus;
+  reason: string;
+}
+
+interface FeedbackSeed {
+  id: string;
+  userId: string;
+  rating: number;
+  good: string[];
+  bad: string[];
+  comments: string;
+}
+
 function dateOffset(days: number): Date {
   const d = new Date();
   d.setHours(9, 0, 0, 0);
@@ -29,7 +48,29 @@ export async function seedOperations(
     patientPortalUserId,
   } = params;
 
-  // ── Leave plans (annual quotas) ────────────────────────────────────────
+  await seedLeavePlans(prisma, clinicId);
+  await seedLeaveRequests(prisma, {
+    clinicId,
+    adminUserId,
+    doctor1Id,
+    doctor2Id,
+    nurseId,
+  });
+  await seedAppointmentReminders(prisma, clinicId);
+  await seedFeedback(prisma, {
+    clinicId,
+    adminUserId,
+    doctor1Id,
+    nurseId,
+    patientPortalUserId,
+  });
+  await seedCustomFields(prisma, clinicId);
+}
+
+async function seedLeavePlans(
+  prisma: PrismaClient,
+  clinicId: string,
+): Promise<void> {
   const leavePlans: Array<{ type: LeaveType; quota: number }> = [
     { type: LeaveType.CASUAL, quota: 12 },
     { type: LeaveType.SICK, quota: 10 },
@@ -59,17 +100,39 @@ export async function seedOperations(
       },
     });
   }
+}
 
-  // ── Staff leave requests ───────────────────────────────────────────────
-  const leaveRequests: Array<{
-    id: string;
-    staffId: string;
-    leaveType: LeaveType;
-    startOffset: number;
-    endOffset: number;
-    status: LeaveStatus;
-    reason: string;
-  }> = [
+async function seedLeaveRequests(
+  prisma: PrismaClient,
+  params: {
+    clinicId: string;
+    adminUserId: string;
+    doctor1Id: string;
+    doctor2Id: string;
+    nurseId: string;
+  },
+): Promise<void> {
+  const { clinicId, adminUserId, doctor1Id, doctor2Id, nurseId } = params;
+  for (const leaveRequest of getSeedLeaveRequests({
+    doctor1Id,
+    doctor2Id,
+    nurseId,
+  })) {
+    await upsertSeedLeaveRequest(prisma, {
+      clinicId,
+      adminUserId,
+      leaveRequest,
+    });
+  }
+}
+
+function getSeedLeaveRequests(params: {
+  doctor1Id: string;
+  doctor2Id: string;
+  nurseId: string;
+}): LeaveRequestSeed[] {
+  const { doctor1Id, doctor2Id, nurseId } = params;
+  return [
     {
       id: 'seed-leave-doctor2-casual',
       staffId: doctor2Id,
@@ -98,29 +161,43 @@ export async function seedOperations(
       reason: 'Annual vacation',
     },
   ];
-  for (const lr of leaveRequests) {
-    const data = {
-      staffId: lr.staffId,
-      clinicId,
-      leaveType: lr.leaveType,
-      startDate: dateOffset(lr.startOffset),
-      endDate: dateOffset(lr.endOffset),
-      reason: lr.reason,
-      status: lr.status,
-      approvedBy: lr.status === LeaveStatus.APPROVED ? adminUserId : null,
-      approvedAt:
-        lr.status === LeaveStatus.APPROVED
-          ? dateOffset(lr.startOffset - 2)
-          : null,
-    };
-    await prisma.staffLeave.upsert({
-      where: { id: lr.id },
-      update: data,
-      create: { id: lr.id, ...data },
-    });
-  }
+}
 
-  // ── Appointment reminders ──────────────────────────────────────────────
+async function upsertSeedLeaveRequest(
+  prisma: PrismaClient,
+  params: {
+    clinicId: string;
+    adminUserId: string;
+    leaveRequest: LeaveRequestSeed;
+  },
+): Promise<void> {
+  const { clinicId, adminUserId, leaveRequest } = params;
+  const data = {
+    staffId: leaveRequest.staffId,
+    clinicId,
+    leaveType: leaveRequest.leaveType,
+    startDate: dateOffset(leaveRequest.startOffset),
+    endDate: dateOffset(leaveRequest.endOffset),
+    reason: leaveRequest.reason,
+    status: leaveRequest.status,
+    approvedBy:
+      leaveRequest.status === LeaveStatus.APPROVED ? adminUserId : null,
+    approvedAt:
+      leaveRequest.status === LeaveStatus.APPROVED
+        ? dateOffset(leaveRequest.startOffset - 2)
+        : null,
+  };
+  await prisma.staffLeave.upsert({
+    where: { id: leaveRequest.id },
+    update: data,
+    create: { id: leaveRequest.id, ...data },
+  });
+}
+
+async function seedAppointmentReminders(
+  prisma: PrismaClient,
+  clinicId: string,
+): Promise<void> {
   const reminderApptIds = [
     'seed-apt-future-00',
     'seed-apt-future-03',
@@ -150,16 +227,38 @@ export async function seedOperations(
       create: { id, ...data },
     });
   }
+}
 
-  // ── Patient feedback ───────────────────────────────────────────────────
-  const feedbackPlans: Array<{
-    id: string;
-    userId: string;
-    rating: number;
-    good: string[];
-    bad: string[];
-    comments: string;
-  }> = [
+async function seedFeedback(
+  prisma: PrismaClient,
+  params: {
+    clinicId: string;
+    adminUserId: string;
+    doctor1Id: string;
+    nurseId: string;
+    patientPortalUserId: string;
+  },
+): Promise<void> {
+  const { clinicId, adminUserId, doctor1Id, nurseId, patientPortalUserId } =
+    params;
+  for (const feedback of getSeedFeedbackPlans({
+    adminUserId,
+    doctor1Id,
+    nurseId,
+    patientPortalUserId,
+  })) {
+    await upsertSeedFeedback(prisma, { clinicId, feedback });
+  }
+}
+
+function getSeedFeedbackPlans(params: {
+  adminUserId: string;
+  doctor1Id: string;
+  nurseId: string;
+  patientPortalUserId: string;
+}): FeedbackSeed[] {
+  const { adminUserId, doctor1Id, nurseId, patientPortalUserId } = params;
+  return [
     {
       id: 'seed-feedback-1',
       userId: patientPortalUserId,
@@ -193,24 +292,33 @@ export async function seedOperations(
       comments: 'Mobile UX for vitals entry could be more compact.',
     },
   ];
-  for (const fb of feedbackPlans) {
-    const data = {
-      clinicId,
-      userId: fb.userId,
-      overallRating: fb.rating,
-      goodFeatures: fb.good,
-      badFeatures: fb.bad,
-      improvementAreas: fb.bad,
-      generalComments: fb.comments,
-    };
-    await prisma.feedback.upsert({
-      where: { id: fb.id },
-      update: data,
-      create: { id: fb.id, ...data },
-    });
-  }
+}
 
-  // ── Clinic custom fields ───────────────────────────────────────────────
+async function upsertSeedFeedback(
+  prisma: PrismaClient,
+  params: { clinicId: string; feedback: FeedbackSeed },
+): Promise<void> {
+  const { clinicId, feedback } = params;
+  const data = {
+    clinicId,
+    userId: feedback.userId,
+    overallRating: feedback.rating,
+    goodFeatures: feedback.good,
+    badFeatures: feedback.bad,
+    improvementAreas: feedback.bad,
+    generalComments: feedback.comments,
+  };
+  await prisma.feedback.upsert({
+    where: { id: feedback.id },
+    update: data,
+    create: { id: feedback.id, ...data },
+  });
+}
+
+async function seedCustomFields(
+  prisma: PrismaClient,
+  clinicId: string,
+): Promise<void> {
   const customFields: Array<{
     id: string;
     name: string;

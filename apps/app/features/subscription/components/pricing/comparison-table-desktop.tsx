@@ -17,7 +17,11 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/overlay/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
-import { getTierInfo, Tier, type FeatureComparisonRow } from "@/lib/subscription/tier-access";
+import {
+  getTierInfo,
+  Tier,
+  type FeatureComparisonRow,
+} from "@/lib/subscription/tier-access";
 import { FEATURE_TIER_MAP } from "@/lib/subscription/tier-access";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import {
@@ -86,52 +90,52 @@ export function ComparisonTableDesktop({
           {limitRows.map((row: FeatureComparisonRow) => {
             const limitBlocked = isLimitRowBlockedInMode(row.name, mode);
             return (
-            <TableRow key={row.name} className="hover:bg-muted/50">
-              <TableCell className="sticky left-0 z-10 w-[11rem] min-w-[11rem] max-w-[15rem] border-r bg-card py-2.5 text-sm font-medium transition-colors hover:bg-muted/50 lg:w-[15rem] lg:min-w-[15rem]">
-                <div className="flex items-center gap-2">
-                  <SymbolTooltip
-                    label={row.name}
-                    side="top"
-                    contentClassName="max-w-[280px]"
-                  >
-                    <span className="text-sm truncate">{row.name}</span>
-                  </SymbolTooltip>
-                  {LIMIT_ROW_DESCRIPTIONS[row.name] ? (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info
-                          className="h-3.5 w-3.5 text-muted-foreground cursor-pointer shrink-0"
-                          aria-label="About this limit"
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-[280px]" side="right">
-                        <p className="text-xs">
-                          {LIMIT_ROW_DESCRIPTIONS[row.name]}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  ) : null}
-                </div>
-              </TableCell>
-              {tiers.map((tier) => (
-                <TableCell
-                  key={tier}
-                  className={cn(
-                    "w-[7.5rem] min-w-[7.5rem] px-2 text-center align-middle border-l py-2.5",
-                    currentTier === tier && "bg-primary/5",
-                  )}
-                >
-                  <span
+              <TableRow key={row.name} className="hover:bg-muted/50">
+                <TableCell className="sticky left-0 z-10 w-[11rem] min-w-[11rem] max-w-[15rem] border-r bg-card py-2.5 text-sm font-medium transition-colors hover:bg-muted/50 lg:w-[15rem] lg:min-w-[15rem]">
+                  <div className="flex items-center gap-2">
+                    <SymbolTooltip
+                      label={row.name}
+                      side="top"
+                      contentClassName="max-w-[280px]"
+                    >
+                      <span className="text-sm truncate">{row.name}</span>
+                    </SymbolTooltip>
+                    {LIMIT_ROW_DESCRIPTIONS[row.name] ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info
+                            className="h-3.5 w-3.5 text-muted-foreground cursor-pointer shrink-0"
+                            aria-label="About this limit"
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-[280px]" side="right">
+                          <p className="text-xs">
+                            {LIMIT_ROW_DESCRIPTIONS[row.name]}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : null}
+                  </div>
+                </TableCell>
+                {tiers.map((tier) => (
+                  <TableCell
+                    key={tier}
                     className={cn(
-                      "block text-sm font-medium tabular-nums whitespace-nowrap",
-                      limitBlocked && "text-muted-foreground/40",
+                      "w-[7.5rem] min-w-[7.5rem] px-2 text-center align-middle border-l py-2.5",
+                      currentTier === tier && "bg-primary/5",
                     )}
                   >
-                    {limitBlocked ? "—" : String(row.values[tier])}
-                  </span>
-                </TableCell>
-              ))}
-            </TableRow>
+                    <span
+                      className={cn(
+                        "block text-sm font-medium tabular-nums whitespace-nowrap",
+                        limitBlocked && "text-muted-foreground/40",
+                      )}
+                    >
+                      {limitBlocked ? "—" : String(row.values[tier])}
+                    </span>
+                  </TableCell>
+                ))}
+              </TableRow>
             );
           })}
 

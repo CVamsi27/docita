@@ -22,6 +22,7 @@ export function useLoading(options: UseLoadingOptions = {}) {
 
   const minDuration = options.minDuration ?? 300;
   const maxDuration = options.maxDuration ?? 30000;
+  const onTimeout = options.onTimeout;
 
   const stopLoading = useCallback(async () => {
     if (!startTimeRef.current) {
@@ -54,14 +55,14 @@ export function useLoading(options: UseLoadingOptions = {}) {
       }
       setState(next);
 
-      if (maxDuration && options.onTimeout) {
+      if (maxDuration && onTimeout) {
         timeoutRef.current = setTimeout(() => {
-          options.onTimeout?.();
+          onTimeout();
           stopLoading();
         }, maxDuration);
       }
     },
-    [maxDuration, options, stopLoading],
+    [maxDuration, onTimeout, stopLoading],
   );
 
   const setProgress = useCallback((progress: number) => {

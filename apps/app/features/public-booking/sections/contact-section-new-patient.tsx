@@ -1,10 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import {
-  DPDP_NOTICE_TEXT_PATIENT,
-  DPDP_NOTICE_TITLE,
-} from "@workspace/types";
+import { DPDP_NOTICE_TEXT_PATIENT, DPDP_NOTICE_TITLE } from "@workspace/types";
 import { Checkbox } from "@workspace/ui/components/form/checkbox";
 import { Input } from "@workspace/ui/components/form/input";
 import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";

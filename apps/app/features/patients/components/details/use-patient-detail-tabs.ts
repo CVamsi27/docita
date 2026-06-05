@@ -45,7 +45,7 @@ export function usePatientDetailTabs() {
     ? legacyRedirect.tab
     : isPatientDetailTabValue(tabFromUrl)
       ? tabFromUrl
-      : "visits";
+      : "summary";
 
   const activeRecordsSubTab: PatientRecordsSubTab = legacyRedirect?.subtab
     ? legacyRedirect.subtab
@@ -60,13 +60,15 @@ export function usePatientDetailTabs() {
     params.delete("tab");
     params.delete("subtab");
     const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
   }, [activeTab, canViewInvoices, pathname, router, searchParams]);
 
   const handleSelectTab = useCallback(
     (next: string) => {
       const params = new URLSearchParams(searchParams.toString());
-      if (next === "visits") {
+      if (next === "summary") {
         params.delete("tab");
       } else {
         params.set("tab", next);

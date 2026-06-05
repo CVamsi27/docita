@@ -7,21 +7,82 @@ import {
 } from "./AppointmentRowActionsMenu";
 
 describe("getAppointmentRowActionVisibility", () => {
-  it("shows all four items for a scheduled appointment with a patient and follow-up handler", () => {
+  it("shows all items for a scheduled appointment with a patient, follow-up, and OPD slip handler", () => {
     expect(
       getAppointmentRowActionVisibility({
         appointmentId: "apt-1",
         patientId: "patient-1",
         status: "scheduled",
         hasScheduleFollowUp: true,
+        hasPrintOpdSlip: true,
       }),
     ).toEqual({
       showViewPatient: true,
       showFollowUp: true,
+      showPrintOpdSlip: true,
       showCancel: true,
       showNoShow: true,
       hasAnyAction: true,
     });
+  });
+
+  it("shows Print OPD prescription only with an appointmentId and a handler", () => {
+    expect(
+      getAppointmentRowActionVisibility({
+        appointmentId: "apt-1",
+        patientId: null,
+        status: "scheduled",
+        hasPrintOpdSlip: true,
+      }).showPrintOpdSlip,
+    ).toBe(true);
+
+    expect(
+      getAppointmentRowActionVisibility({
+        appointmentId: null,
+        patientId: "patient-1",
+        status: "scheduled",
+        hasPrintOpdSlip: true,
+      }).showPrintOpdSlip,
+    ).toBe(false);
+
+    expect(
+      getAppointmentRowActionVisibility({
+        appointmentId: "apt-1",
+        patientId: "patient-1",
+        status: "scheduled",
+        hasPrintOpdSlip: false,
+      }).showPrintOpdSlip,
+    ).toBe(false);
+  });
+
+  it("shows Print OPD prescription only for scheduled and checked-in statuses", () => {
+    for (const status of ["scheduled", "checked-in"]) {
+      expect(
+        getAppointmentRowActionVisibility({
+          appointmentId: "apt-1",
+          patientId: "patient-1",
+          status,
+          hasPrintOpdSlip: true,
+        }).showPrintOpdSlip,
+      ).toBe(true);
+    }
+
+    for (const status of [
+      "confirmed",
+      "in-progress",
+      "completed",
+      "no-show",
+      "cancelled",
+    ]) {
+      expect(
+        getAppointmentRowActionVisibility({
+          appointmentId: "apt-1",
+          patientId: "patient-1",
+          status,
+          hasPrintOpdSlip: true,
+        }).showPrintOpdSlip,
+      ).toBe(false);
+    }
   });
 
   it("hides View Patient and Schedule follow-up when there is no patientId", () => {
@@ -62,7 +123,7 @@ describe("getAppointmentRowActionVisibility", () => {
   });
 
   it("hides Cancel and Mark as No Show for cancelled and no-show statuses", () => {
-    for (const status of ["cancelled", "canceled", "no-show"]) {
+    for (const status of ["cancelled", "no-show"]) {
       const visibility = getAppointmentRowActionVisibility({
         appointmentId: "apt-1",
         patientId: "patient-1",

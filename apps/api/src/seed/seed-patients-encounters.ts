@@ -30,9 +30,6 @@ interface SeedPatient {
   medicalHistory: string[];
 }
 
-// 25 deterministic patients. First entry (Rajesh) is linked to the patient
-// portal user and is the subject of the hand-generated prescription + invoice
-// PDFs.
 const SEEDED_PATIENTS: SeedPatient[] = [
   {
     id: 'seed-patient-rajesh',
@@ -385,19 +382,15 @@ interface AppointmentPlan {
   note: string;
 }
 
-// Build ~80 appointment plans deterministically.
 function buildAppointmentPlans(): AppointmentPlan[] {
-  const plans: AppointmentPlan[] = [];
-  const statusCycle: AppointmentStatus[] = [
-    AppointmentStatus.COMPLETED,
-    AppointmentStatus.COMPLETED,
-    AppointmentStatus.COMPLETED,
-    AppointmentStatus.COMPLETED,
-    AppointmentStatus.COMPLETED,
-    AppointmentStatus.CONFIRMED,
-    AppointmentStatus.SCHEDULED,
-    AppointmentStatus.CANCELLED,
+  return [
+    ...buildPastAppointmentPlans(),
+    ...buildFutureAppointmentPlans(),
+    getRajeshCanonicalAppointmentPlan(),
   ];
+}
+
+function buildPastAppointmentPlans(): AppointmentPlan[] {
   const typeCycle = [
     'consultation',
     'follow-up',
@@ -405,8 +398,8 @@ function buildAppointmentPlans(): AppointmentPlan[] {
     'consultation',
     'follow-up',
   ];
+  const plans: AppointmentPlan[] = [];
 
-  // Past appointments (COMPLETED-heavy): days -60..-1
   for (let i = 0; i < 55; i++) {
     const patientIndex = i % SEEDED_PATIENTS.length;
     const daysOffset = -(60 - Math.floor((i * 60) / 55));
@@ -430,7 +423,29 @@ function buildAppointmentPlans(): AppointmentPlan[] {
     });
   }
 
-  // Future appointments (SCHEDULED/CONFIRMED): days 1..30
+  return plans;
+}
+
+function buildFutureAppointmentPlans(): AppointmentPlan[] {
+  const plans: AppointmentPlan[] = [];
+  const statusCycle: AppointmentStatus[] = [
+    AppointmentStatus.COMPLETED,
+    AppointmentStatus.COMPLETED,
+    AppointmentStatus.COMPLETED,
+    AppointmentStatus.COMPLETED,
+    AppointmentStatus.COMPLETED,
+    AppointmentStatus.CONFIRMED,
+    AppointmentStatus.SCHEDULED,
+    AppointmentStatus.CANCELLED,
+  ];
+  const typeCycle = [
+    'consultation',
+    'follow-up',
+    'check-up',
+    'consultation',
+    'follow-up',
+  ];
+
   for (let i = 0; i < 25; i++) {
     const patientIndex = (i * 3) % SEEDED_PATIENTS.length;
     const daysOffset = Math.floor((i * 30) / 25) + 1;
@@ -453,9 +468,11 @@ function buildAppointmentPlans(): AppointmentPlan[] {
     });
   }
 
-  // Pin one canonical completed appointment for Rajesh today so the PDF
-  // seeder has a stable target.
-  plans.push({
+  return plans;
+}
+
+function getRajeshCanonicalAppointmentPlan(): AppointmentPlan {
+  return {
     id: 'seed-apt-rajesh-completed',
     patientIndex: 0,
     doctorKey: 'd1',
@@ -466,9 +483,7 @@ function buildAppointmentPlans(): AppointmentPlan[] {
     status: AppointmentStatus.COMPLETED,
     type: 'consultation',
     note: 'Regular checkup for diabetes management',
-  });
-
-  return plans;
+  };
 }
 
 const MEDICATION_TEMPLATES: Array<{
@@ -527,6 +542,24 @@ const MEDICATION_TEMPLATES: Array<{
   },
 ];
 
+const INVOICE_STATUS_PLAN: InvoiceStatus[] = [
+  InvoiceStatus.PAID,
+  InvoiceStatus.PAID,
+  InvoiceStatus.PAID,
+  InvoiceStatus.PAID,
+  InvoiceStatus.PAID,
+  InvoiceStatus.PAID,
+  InvoiceStatus.PAID,
+  InvoiceStatus.PAID,
+  InvoiceStatus.PENDING,
+  InvoiceStatus.PENDING,
+  InvoiceStatus.PENDING,
+  InvoiceStatus.PENDING,
+  InvoiceStatus.OVERDUE,
+  InvoiceStatus.OVERDUE,
+  InvoiceStatus.CANCELLED,
+];
+
 function withTime(
   baseDate: Date,
   hour: number,
@@ -562,8 +595,36 @@ export async function seedPatientsAndEncounters(
   params: SeedPatientsAndEncountersParams,
 ): Promise<SeedEntityRef[]> {
   const { clinicId, doctor1Id, doctor2Id, patientPortalUserId } = params;
+  const patients = await seedPatients(prisma, clinicId, patientPortalUserId);
+  const appointments = await seedAppointments(prisma, {
+    clinicId,
+    doctor1Id,
+    doctor2Id,
+    patients,
+  });
+  const completedAppointments = appointments.filter(
+    (a) => a.status === AppointmentStatus.COMPLETED,
+  );
+  const rajeshAppointment = getRajeshAppointment(appointments);
 
-  // Patients
+  await seedVitals(prisma, completedAppointments);
+  await seedPrescriptions(
+    prisma,
+    clinicId,
+    completedAppointments,
+    rajeshAppointment,
+  );
+  await seedInvoices(prisma, clinicId, appointments, rajeshAppointment);
+  await seedDocuments(prisma, clinicId, patients);
+
+  return patients.map((patient) => ({ id: patient.id }));
+}
+
+async function seedPatients(
+  prisma: PrismaClient,
+  clinicId: string,
+  patientPortalUserId: string,
+) {
   const patients = await Promise.all(
     SEEDED_PATIENTS.map((seededPatient, index) => {
       const linkedUserId = index === 0 ? patientPortalUserId : undefined;
@@ -601,21 +662,31 @@ export async function seedPatientsAndEncounters(
       });
     }),
   );
+  return patients;
+}
 
-  // Appointments
+async function seedAppointments(
+  prisma: PrismaClient,
+  params: {
+    clinicId: string;
+    doctor1Id: string;
+    doctor2Id: string;
+    patients: Awaited<ReturnType<typeof seedPatients>>;
+  },
+) {
   const plans = buildAppointmentPlans();
-  const doctorByKey = { d1: doctor1Id, d2: doctor2Id };
+  const doctorByKey = { d1: params.doctor1Id, d2: params.doctor2Id };
 
   const appointments = await Promise.all(
     plans.map((plan) => {
-      const patient = patients[plan.patientIndex];
+      const patient = params.patients[plan.patientIndex];
       const baseDate = dateOffset(plan.daysOffset);
       const startTime = withTime(baseDate, plan.hour, plan.minute);
       const endTime = new Date(startTime.getTime() + plan.durationMin * 60_000);
       const data = {
         patientId: patient.id,
         doctorId: doctorByKey[plan.doctorKey],
-        clinicId,
+        clinicId: params.clinicId,
         startTime,
         endTime,
         status: plan.status,
@@ -629,11 +700,13 @@ export async function seedPatientsAndEncounters(
       });
     }),
   );
+  return appointments;
+}
 
-  // Vitals on completed appointments
-  const completedAppointments = appointments.filter(
-    (a) => a.status === AppointmentStatus.COMPLETED,
-  );
+async function seedVitals(
+  prisma: PrismaClient,
+  completedAppointments: Awaited<ReturnType<typeof seedAppointments>>,
+): Promise<void> {
   await Promise.all(
     completedAppointments.map((appt, idx) => {
       const systolic = 110 + (idx % 5) * 8;
@@ -660,16 +733,27 @@ export async function seedPatientsAndEncounters(
       });
     }),
   );
+}
 
-  // Prescriptions on first 10 completed appointments. Rajesh's pinned one is
-  // always last so its stable ID lands deterministically.
-  const prescriptionTargets = completedAppointments.slice(0, 9);
+function getRajeshAppointment(
+  appointments: Awaited<ReturnType<typeof seedAppointments>>,
+) {
   const rajeshAppointment = appointments.find(
     (a) => a.id === RAJESH_APPOINTMENT_ID,
   );
   if (!rajeshAppointment) {
     throw new Error('Rajesh canonical appointment missing from plans');
   }
+  return rajeshAppointment;
+}
+
+async function seedPrescriptions(
+  prisma: PrismaClient,
+  clinicId: string,
+  completedAppointments: Awaited<ReturnType<typeof seedAppointments>>,
+  rajeshAppointment: Awaited<ReturnType<typeof seedAppointments>>[number],
+): Promise<void> {
+  const prescriptionTargets = completedAppointments.slice(0, 9);
   const targets = [...prescriptionTargets, rajeshAppointment];
 
   for (let i = 0; i < targets.length; i++) {
@@ -716,79 +800,102 @@ export async function seedPatientsAndEncounters(
       }),
     });
   }
+}
 
-  // Invoices on first 15 appointments (mixed statuses).
-  const invoiceStatusPlan: InvoiceStatus[] = [
-    InvoiceStatus.PAID,
-    InvoiceStatus.PAID,
-    InvoiceStatus.PAID,
-    InvoiceStatus.PAID,
-    InvoiceStatus.PAID,
-    InvoiceStatus.PAID,
-    InvoiceStatus.PAID,
-    InvoiceStatus.PAID,
-    InvoiceStatus.PENDING,
-    InvoiceStatus.PENDING,
-    InvoiceStatus.PENDING,
-    InvoiceStatus.PENDING,
-    InvoiceStatus.OVERDUE,
-    InvoiceStatus.OVERDUE,
-    InvoiceStatus.CANCELLED,
-  ];
-
+async function seedInvoices(
+  prisma: PrismaClient,
+  clinicId: string,
+  appointments: Awaited<ReturnType<typeof seedAppointments>>,
+  rajeshAppointment: Awaited<ReturnType<typeof seedAppointments>>[number],
+): Promise<void> {
   const invoiceTargets = [
     rajeshAppointment,
     ...appointments.filter((a) => a.id !== RAJESH_APPOINTMENT_ID).slice(0, 14),
   ];
   for (let i = 0; i < invoiceTargets.length; i++) {
-    const appt = invoiceTargets[i];
-    const status = invoiceStatusPlan[i] ?? InvoiceStatus.PAID;
-    const invoiceId =
-      appt.id === RAJESH_APPOINTMENT_ID
-        ? RAJESH_INVOICE_ID
-        : `seed-inv-${appt.id}`;
-    const consultFee = 800 + (i % 5) * 100;
-    const rxFee = 200;
-    const vitalsFee = 300;
-    const total = consultFee + rxFee + vitalsFee;
+    const { invoiceId, data } = getSeedInvoiceData(
+      invoiceTargets[i],
+      clinicId,
+      i,
+    );
     await prisma.invoice.upsert({
       where: { id: invoiceId },
-      update: {
-        appointmentId: appt.id,
-        patientId: appt.patientId,
-        clinicId,
-        total,
-        status,
-        items: [
-          { description: 'Consultation Fee', quantity: 1, price: consultFee },
-          { description: 'Prescription', quantity: 1, price: rxFee },
-          { description: 'Vitals Check', quantity: 1, price: vitalsFee },
-        ],
-      },
-      create: {
-        id: invoiceId,
-        appointmentId: appt.id,
-        patientId: appt.patientId,
-        clinicId,
-        total,
-        status,
-        items: [
-          { description: 'Consultation Fee', quantity: 1, price: consultFee },
-          { description: 'Prescription', quantity: 1, price: rxFee },
-          { description: 'Vitals Check', quantity: 1, price: vitalsFee },
-        ],
-      },
+      update: data,
+      create: { id: invoiceId, ...data },
     });
   }
+}
 
-  // Documents
-  const docPlans: Array<{
-    id: string;
-    patientId: string;
-    name: string;
-    type: string;
-    url: string;
-  }> = [
+function getSeedInvoiceData(
+  appt: Awaited<ReturnType<typeof seedAppointments>>[number],
+  clinicId: string,
+  index: number,
+) {
+  const invoiceId =
+    appt.id === RAJESH_APPOINTMENT_ID
+      ? RAJESH_INVOICE_ID
+      : `seed-inv-${appt.id}`;
+  const consultFee = 800 + (index % 5) * 100;
+  const rxFee = 200;
+  const vitalsFee = 300;
+  const items = [
+    { description: 'Consultation Fee', quantity: 1, price: consultFee },
+    { description: 'Prescription', quantity: 1, price: rxFee },
+    { description: 'Vitals Check', quantity: 1, price: vitalsFee },
+  ];
+  return {
+    appt,
+    invoiceId,
+    data: {
+      appointmentId: appt.id,
+      patientId: appt.patientId,
+      clinicId,
+      total: consultFee + rxFee + vitalsFee,
+      status: INVOICE_STATUS_PLAN[index] ?? InvoiceStatus.PAID,
+      items,
+    },
+  };
+}
+
+async function seedDocuments(
+  prisma: PrismaClient,
+  clinicId: string,
+  patients: Awaited<ReturnType<typeof seedPatients>>,
+): Promise<void> {
+  await Promise.all(
+    getSeedDocumentPlans(patients).map((doc) =>
+      prisma.document.upsert({
+        where: { id: doc.id },
+        update: {
+          patientId: doc.patientId,
+          clinicId,
+          name: doc.name,
+          type: doc.type,
+          url: doc.url,
+        },
+        create: {
+          id: doc.id,
+          patientId: doc.patientId,
+          clinicId,
+          name: doc.name,
+          type: doc.type,
+          url: doc.url,
+        },
+      }),
+    ),
+  );
+}
+
+function getSeedDocumentPlans(
+  patients: Awaited<ReturnType<typeof seedPatients>>,
+): Array<{
+  id: string;
+  patientId: string;
+  name: string;
+  type: string;
+  url: string;
+}> {
+  return [
     {
       id: 'seed-document-rajesh-lab',
       patientId: patients[0].id,
@@ -818,28 +925,4 @@ export async function seedPatientsAndEncounters(
       url: '/uploads/seed/documents/ct-karan.pdf',
     },
   ];
-  await Promise.all(
-    docPlans.map((doc) =>
-      prisma.document.upsert({
-        where: { id: doc.id },
-        update: {
-          patientId: doc.patientId,
-          clinicId,
-          name: doc.name,
-          type: doc.type,
-          url: doc.url,
-        },
-        create: {
-          id: doc.id,
-          patientId: doc.patientId,
-          clinicId,
-          name: doc.name,
-          type: doc.type,
-          url: doc.url,
-        },
-      }),
-    ),
-  );
-
-  return patients.map((patient) => ({ id: patient.id }));
 }

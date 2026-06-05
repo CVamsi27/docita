@@ -73,7 +73,10 @@ export function ConfirmationDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[440px]">
+      <DialogContent
+        className="sm:max-w-[440px]"
+        role={type === "danger" ? "alertdialog" : undefined}
+      >
         <DialogHeader>
           <div className="flex items-start gap-3">
             <span className="mt-0.5 shrink-0">{iconMap[type]}</span>

@@ -1,16 +1,20 @@
 import type {
+  DeskCollectibleInvoiceStatus,
   DeskRecordInvoiceSettlementBody,
-  Invoice,
   UserRole,
 } from "@workspace/types";
+import { DESK_COLLECTIBLE_INVOICE_STATUSES } from "@workspace/types";
 
-export function isOpenDeskInvoice(
-  inv: Invoice,
-): inv is Invoice & {
-  status: "PENDING" | "PARTIALLY_PAID" | "OVERDUE";
+const deskCollectibleInvoiceStatuses: ReadonlySet<string> = new Set(
+  DESK_COLLECTIBLE_INVOICE_STATUSES,
+);
+
+export function isOpenDeskInvoice<T extends { status: string }>(
+  inv: T,
+): inv is T & {
+  status: DeskCollectibleInvoiceStatus;
 } {
-  const s = inv.status;
-  return s === "PENDING" || s === "PARTIALLY_PAID" || s === "OVERDUE";
+  return deskCollectibleInvoiceStatuses.has(inv.status);
 }
 
 export type DeskPaymentMethod = DeskRecordInvoiceSettlementBody["paymentMethod"];

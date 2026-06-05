@@ -62,12 +62,17 @@ function ResetPasswordInner() {
 
   if (!token) {
     return (
-      <PreDashboardShell currentStep="reset-password" showProgress={false}>
+      <PreDashboardShell
+        currentStep="reset-password"
+        showBrandingPanel={false}
+        showProgress={false}
+      >
         <div className="ui-card-surface space-y-6 p-6 sm:p-8">
           <div className="text-center ui-copy-stack">
             <h1 className="ui-page-title">Reset Link Expired</h1>
             <p className="text-sm text-destructive">
-              This reset link is invalid or has expired. Please request a new one.
+              This reset link is invalid or has expired. Please request a new
+              one.
             </p>
           </div>
           <Button variant="outline" asChild className="w-full h-11">
@@ -79,7 +84,11 @@ function ResetPasswordInner() {
   }
 
   return (
-    <PreDashboardShell currentStep="reset-password" showProgress={false}>
+    <PreDashboardShell
+      currentStep="reset-password"
+      showBrandingPanel={false}
+      showProgress={false}
+    >
       <div className="ui-copy-stack">
         <h1 className="ui-page-title">Set New Password</h1>
         <p className="ui-page-subtitle">Choose a new password below</p>
@@ -191,7 +200,11 @@ export function ResetPasswordPageContent() {
   return (
     <Suspense
       fallback={
-        <PreDashboardShell currentStep="reset-password">
+        <PreDashboardShell
+          currentStep="reset-password"
+          showBrandingPanel={false}
+          showProgress={false}
+        >
           <div className="ui-card-surface p-6 sm:p-8">
             <LoadingState message="Loading password reset..." />
           </div>

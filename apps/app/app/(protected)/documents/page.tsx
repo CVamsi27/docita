@@ -10,6 +10,8 @@ export default function DocumentsPage() {
     documents,
     totalDocuments,
     loading,
+    isError,
+    retry,
     searchQuery,
     setSearchQuery,
     sortConfig,
@@ -24,6 +26,8 @@ export default function DocumentsPage() {
         documents={documents}
         totalCount={totalDocuments}
         loading={loading}
+        isError={isError}
+        onRetry={retry}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         sortConfig={sortConfig}

@@ -20,9 +20,27 @@ interface IntegrityReport {
 export async function runIntegrityChecks(
   prisma: PrismaClient,
 ): Promise<IntegrityReport> {
-  const checks: IntegrityCheck[] = [];
+  const checks = await Promise.all([
+    checkOrphanedAppointments(prisma),
+    checkOrphanedPrescriptions(prisma),
+    checkOrphanedInvoices(prisma),
+    checkPatientsWithoutClinic(prisma),
+    checkUsersWithInvalidClinic(prisma),
+    checkClinicUsersWithIncompleteOnboarding(prisma),
+    checkDuplicateMrns(prisma),
+    checkDuplicateEmails(prisma),
+    checkInvalidAppointmentTimes(prisma),
+    checkSubscriptionsWithoutClinic(prisma),
+    checkPatientsWithNullNames(prisma),
+  ]);
 
-  const orphanedAppointmentRows = await prisma.$queryRaw<Array<{ count: bigint }>>`
+  return buildIntegrityReport(checks);
+}
+
+async function checkOrphanedAppointments(
+  prisma: PrismaClient,
+): Promise<IntegrityCheck> {
+  const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
     SELECT COUNT(*)::bigint AS count
     FROM "Appointment" a
     LEFT JOIN "Patient" p ON p.id = a."patientId"
@@ -32,20 +50,20 @@ export async function runIntegrityChecks(
        OR (a."doctorId" IS NOT NULL AND d.id IS NULL)
        OR (a."clinicId" IS NOT NULL AND c.id IS NULL)
   `;
-  const orphanedAppointments = Number(orphanedAppointmentRows[0]?.count ?? 0n);
-  checks.push({
+  const count = getQueryCount(rows);
+  return createCountCheck({
     name: "No Orphaned Appointments",
     description:
       "All appointments have valid patient, doctor, and clinic references",
-    passed: orphanedAppointments === 0,
-    count: orphanedAppointments,
-    details:
-      orphanedAppointments > 0
-        ? `Found ${orphanedAppointments} orphaned appointments`
-        : undefined,
+    count,
+    detail: `Found ${count} orphaned appointments`,
   });
+}
 
-  const orphanedPrescriptionRows = await prisma.$queryRaw<Array<{ count: bigint }>>`
+async function checkOrphanedPrescriptions(
+  prisma: PrismaClient,
+): Promise<IntegrityCheck> {
+  const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
     SELECT COUNT(*)::bigint AS count
     FROM "Prescription" p
     LEFT JOIN "Patient" pa ON pa.id = p."patientId"
@@ -53,86 +71,95 @@ export async function runIntegrityChecks(
     WHERE (p."patientId" IS NOT NULL AND pa.id IS NULL)
        OR (p."doctorId" IS NOT NULL AND d.id IS NULL)
   `;
-  const orphanedPrescriptions = Number(
-    orphanedPrescriptionRows[0]?.count ?? 0n,
-  );
-  checks.push({
+  const count = getQueryCount(rows);
+  return createCountCheck({
     name: "No Orphaned Prescriptions",
     description: "All prescriptions have valid patient and doctor references",
-    passed: orphanedPrescriptions === 0,
-    count: orphanedPrescriptions,
-    details:
-      orphanedPrescriptions > 0
-        ? `Found ${orphanedPrescriptions} orphaned prescriptions`
-        : undefined,
+    count,
+    detail: `Found ${count} orphaned prescriptions`,
   });
+}
 
-  const orphanedInvoiceRows = await prisma.$queryRaw<Array<{ count: bigint }>>`
+async function checkOrphanedInvoices(
+  prisma: PrismaClient,
+): Promise<IntegrityCheck> {
+  const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
     SELECT COUNT(*)::bigint AS count
     FROM "Invoice" i
     LEFT JOIN "Patient" p ON p.id = i."patientId"
     WHERE i."patientId" IS NOT NULL
       AND p.id IS NULL
   `;
-  const orphanedInvoices = Number(orphanedInvoiceRows[0]?.count ?? 0n);
-  checks.push({
+  const count = getQueryCount(rows);
+  return createCountCheck({
     name: "No Orphaned Invoices",
     description: "All invoices have valid patient references",
-    passed: orphanedInvoices === 0,
-    count: orphanedInvoices,
-    details:
-      orphanedInvoices > 0
-        ? `Found ${orphanedInvoices} orphaned invoices`
-        : undefined,
+    count,
+    detail: `Found ${count} orphaned invoices`,
   });
+}
 
-  const patientsWithoutClinicRows = await prisma.$queryRaw<
-    Array<{ count: bigint }>
-  >`
+async function checkPatientsWithoutClinic(
+  prisma: PrismaClient,
+): Promise<IntegrityCheck> {
+  const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
     SELECT COUNT(*)::bigint AS count
     FROM "Patient" p
     LEFT JOIN "Clinic" c ON c.id = p."clinicId"
     WHERE p."clinicId" IS NOT NULL
       AND c.id IS NULL
   `;
-  const patientsWithoutClinic = Number(
-    patientsWithoutClinicRows[0]?.count ?? 0n,
-  );
-  checks.push({
+  const count = getQueryCount(rows);
+  return createCountCheck({
     name: "All Patients Have Valid Clinic",
     description: "Every patient belongs to an existing clinic",
-    passed: patientsWithoutClinic === 0,
-    count: patientsWithoutClinic,
-    details:
-      patientsWithoutClinic > 0
-        ? `Found ${patientsWithoutClinic} patients without valid clinic`
-        : undefined,
+    count,
+    detail: `Found ${count} patients without valid clinic`,
   });
+}
 
-  const usersWithInvalidClinicRows = await prisma.$queryRaw<
-    Array<{ count: bigint }>
-  >`
+async function checkUsersWithInvalidClinic(
+  prisma: PrismaClient,
+): Promise<IntegrityCheck> {
+  const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
     SELECT COUNT(*)::bigint AS count
     FROM "User" u
     LEFT JOIN "Clinic" c ON c.id = u."clinicId"
     WHERE u."clinicId" IS NOT NULL
       AND c.id IS NULL
   `;
-  const usersWithInvalidClinic = Number(
-    usersWithInvalidClinicRows[0]?.count ?? 0n,
-  );
-  checks.push({
+  const count = getQueryCount(rows);
+  return createCountCheck({
     name: "All Users Have Valid Clinic",
     description: "Every user with a clinic ID has a valid clinic reference",
-    passed: usersWithInvalidClinic === 0,
-    count: usersWithInvalidClinic,
-    details:
-      usersWithInvalidClinic > 0
-        ? `Found ${usersWithInvalidClinic} users with invalid clinic`
-        : undefined,
+    count,
+    detail: `Found ${count} users with invalid clinic`,
   });
+}
 
-  const duplicateMrns = await prisma.$queryRaw<{ count: bigint }[]>`
+async function checkClinicUsersWithIncompleteOnboarding(
+  prisma: PrismaClient,
+): Promise<IntegrityCheck> {
+  const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
+    SELECT COUNT(*)::bigint AS count
+    FROM "User"
+    WHERE "clinicId" IS NOT NULL
+      AND (
+        "onboardingStep" IS DISTINCT FROM 'COMPLETED'
+        OR "onboardingCompletedAt" IS NULL
+      )
+  `;
+  const count = getQueryCount(rows);
+  return createCountCheck({
+    name: "Clinic Users Stay Out Of Onboarding",
+    description: "Every clinic-associated user has completed onboarding state",
+    count,
+    detail: `Found ${count} clinic users with incomplete onboarding state`,
+  });
+}
+
+async function checkDuplicateMrns(prisma: PrismaClient): Promise<IntegrityCheck> {
+  const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
     SELECT COUNT(*) as count FROM (
       SELECT "clinicId", mrn
       FROM "Patient"
@@ -141,105 +168,95 @@ export async function runIntegrityChecks(
       HAVING COUNT(*) > 1
     ) as duplicates
   `;
-  const duplicateMrnCount = Number(duplicateMrns[0]?.count || 0);
-  checks.push({
+  const count = getQueryCount(rows);
+  return createCountCheck({
     name: "No Duplicate MRN Per Clinic",
     description: "Medical Record Numbers are unique inside each clinic",
-    passed: duplicateMrnCount === 0,
-    count: duplicateMrnCount,
-    details:
-      duplicateMrnCount > 0
-        ? `Found ${duplicateMrnCount} duplicate MRNs`
-        : undefined,
+    count,
+    detail: `Found ${count} duplicate MRNs`,
   });
+}
 
-  const duplicateEmails = await prisma.$queryRaw<{ count: bigint }[]>`
+async function checkDuplicateEmails(
+  prisma: PrismaClient,
+): Promise<IntegrityCheck> {
+  const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
     SELECT COUNT(*) as count FROM (
       SELECT email FROM "User" GROUP BY email HAVING COUNT(*) > 1
     ) as duplicates
   `;
-  const duplicateEmailCount = Number(duplicateEmails[0]?.count || 0);
-  checks.push({
+  const count = getQueryCount(rows);
+  return createCountCheck({
     name: "No Duplicate User Emails",
     description: "All user emails are unique",
-    passed: duplicateEmailCount === 0,
-    count: duplicateEmailCount,
-    details:
-      duplicateEmailCount > 0
-        ? `Found ${duplicateEmailCount} duplicate emails`
-        : undefined,
+    count,
+    detail: `Found ${count} duplicate emails`,
   });
+}
 
-  const invalidAppointmentTimeRows = await prisma.$queryRaw<
-    Array<{ count: bigint }>
-  >`
+async function checkInvalidAppointmentTimes(
+  prisma: PrismaClient,
+): Promise<IntegrityCheck> {
+  const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
     SELECT COUNT(*)::bigint AS count
     FROM "Appointment"
     WHERE "endTime" < "startTime"
   `;
-  const invalidAppointmentTimes = Number(
-    invalidAppointmentTimeRows[0]?.count ?? 0n,
-  );
-  checks.push({
+  const count = getQueryCount(rows);
+  return createCountCheck({
     name: "Valid Appointment Times",
     description: "All appointments have end time after start time",
-    passed: invalidAppointmentTimes === 0,
-    count: invalidAppointmentTimes,
-    details:
-      invalidAppointmentTimes > 0
-        ? `Found ${invalidAppointmentTimes} appointments with invalid times`
-        : undefined,
+    count,
+    detail: `Found ${count} appointments with invalid times`,
   });
+}
 
+async function checkSubscriptionsWithoutClinic(
+  prisma: PrismaClient,
+): Promise<IntegrityCheck> {
   try {
-    const subscriptionsWithoutClinicRows = await prisma.$queryRaw<
-      Array<{ count: bigint }>
-    >`
+    const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
       SELECT COUNT(*)::bigint AS count
       FROM "Subscription" s
       LEFT JOIN "Clinic" c ON c.id = s."clinicId"
       WHERE s."clinicId" IS NOT NULL
         AND c.id IS NULL
     `;
-    const subscriptionsWithoutClinic = Number(
-      subscriptionsWithoutClinicRows[0]?.count ?? 0n,
-    );
-    checks.push({
+    const count = getQueryCount(rows);
+    return createCountCheck({
       name: "All Subscriptions Have Valid Clinic",
       description: "Every subscription belongs to an existing clinic",
-      passed: subscriptionsWithoutClinic === 0,
-      count: subscriptionsWithoutClinic,
-      details:
-        subscriptionsWithoutClinic > 0
-          ? `Found ${subscriptionsWithoutClinic} subscriptions without valid clinic`
-          : undefined,
+      count,
+      detail: `Found ${count} subscriptions without valid clinic`,
     });
   } catch (error) {
-    checks.push({
+    return {
       name: "All Subscriptions Have Valid Clinic",
       description: "Every subscription belongs to an existing clinic",
       passed: false,
       details: error instanceof Error ? error.message : String(error),
-    });
+    };
   }
+}
 
-  const nullNameRows = await prisma.$queryRaw<Array<{ count: bigint }>>`
+async function checkPatientsWithNullNames(
+  prisma: PrismaClient,
+): Promise<IntegrityCheck> {
+  const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
     SELECT COUNT(*)::bigint AS count
     FROM "Patient"
     WHERE "firstName" IS NULL OR "lastName" IS NULL
   `;
-  const patientsWithNullNames = Number(nullNameRows[0]?.count ?? 0n);
-  checks.push({
+  const count = getQueryCount(rows);
+  return createCountCheck({
     name: "No Null Patient Names",
     description: "All patients have first and last names",
-    passed: patientsWithNullNames === 0,
-    count: patientsWithNullNames,
-    details:
-      patientsWithNullNames > 0
-        ? `Found ${patientsWithNullNames} patients with null names`
-        : undefined,
+    count,
+    detail: `Found ${count} patients with null names`,
   });
+}
 
+function buildIntegrityReport(checks: IntegrityCheck[]): IntegrityReport {
   const totalPassed = checks.filter((c) => c.passed).length;
   const totalFailed = checks.filter((c) => !c.passed).length;
 
@@ -255,6 +272,25 @@ export async function runIntegrityChecks(
     totalFailed,
     status,
   };
+}
+
+function createCountCheck(params: {
+  name: string;
+  description: string;
+  count: number;
+  detail: string;
+}): IntegrityCheck {
+  return {
+    name: params.name,
+    description: params.description,
+    passed: params.count === 0,
+    count: params.count,
+    details: params.count > 0 ? params.detail : undefined,
+  };
+}
+
+function getQueryCount(rows: Array<{ count: bigint }>): number {
+  return Number(rows[0]?.count ?? 0n);
 }
 
 export function formatIntegrityReport(report: IntegrityReport): string {

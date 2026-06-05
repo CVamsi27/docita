@@ -5,28 +5,51 @@
  * path for permanent failures and one-shot retries.
  *
  * This policy helper stays inert unless a worker module explicitly wires
- * automatic replay. That avoids surprise production replays before transient
- * error classification is reviewed for each queue.
+ * automatic replay. Durable replayCount tracking prevents replay loops, but
+ * each queue still needs an explicit policy review before activation.
  */
 import { Inject, Injectable } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import { PostgresQueueService } from '@/shared/modules/queue/postgres-queue.service';
 import type { IQueueProvider } from '@/shared/modules/queue/queue.interface';
 
-export type TransientErrorKind =
+type TransientErrorKind =
   | 'network'
   | 'timeout'
   | 'upstream_5xx'
   | 'rate_limited';
 
-export const TRANSIENT_ERROR_KINDS = new Set<TransientErrorKind>([
+const TRANSIENT_ERROR_KINDS = new Set<TransientErrorKind>([
   'network',
   'timeout',
   'upstream_5xx',
   'rate_limited',
 ]);
 
-export const DLQ_REPLAY_DEFAULT_ATTEMPTS = 3;
+const DLQ_REPLAY_DEFAULT_ATTEMPTS = 3;
+
+export function classifyTransientQueueError(
+  failedReason: string | undefined,
+): TransientErrorKind | null {
+  const message = failedReason?.toLowerCase() ?? '';
+  if (/\b429\b|rate.?limit|too many requests/.test(message)) {
+    return 'rate_limited';
+  }
+  if (/timeout|timed out|etimedout/.test(message)) {
+    return 'timeout';
+  }
+  if (/\b5\d\d\b|upstream.*(?:failed|error|unavailable)/.test(message)) {
+    return 'upstream_5xx';
+  }
+  if (
+    /econnreset|econnrefused|enotfound|network|socket hang up|fetch failed/.test(
+      message,
+    )
+  ) {
+    return 'network';
+  }
+  return null;
+}
 
 @Injectable()
 export class DlqReplayScheduler {
@@ -41,16 +64,17 @@ export class DlqReplayScheduler {
    * Nest's scheduler so unit tests can run without the framework.
    */
   classifyForReplay<
-    TJob extends { id: string; lastErrorKind?: string; attempts?: number },
+    TJob extends { id: string; failedReason?: string; replayCount?: number },
   >(
     jobs: readonly TJob[],
     maxAttempts: number = DLQ_REPLAY_DEFAULT_ATTEMPTS,
   ): TJob[] {
     const kinds: ReadonlySet<string> = TRANSIENT_ERROR_KINDS;
     return jobs.filter((job) => {
-      if (!kinds.has(job.lastErrorKind ?? '')) return false;
-      const attempts = job.attempts ?? 0;
-      return attempts < maxAttempts;
+      const kind = classifyTransientQueueError(job.failedReason);
+      if (!kind || !kinds.has(kind)) return false;
+      const replayCount = job.replayCount ?? 0;
+      return replayCount < maxAttempts;
     });
   }
 

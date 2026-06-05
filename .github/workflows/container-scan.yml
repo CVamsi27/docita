@@ -1,0 +1,70 @@
+name: Container Security Scan
+
+on:
+  pull_request:
+    paths:
+      - 'apps/api/Dockerfile'
+      - 'apps/worker/Dockerfile'
+      - 'apps/app/Dockerfile*'
+      - 'pnpm-lock.yaml'
+      - 'package.json'
+      - 'Dockerfile*'
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday at 6 AM UTC
+
+jobs:
+  scan-api:
+    if: github.event_name == 'pull_request' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner (API)
+        uses: aquasecurity/trivy-action@0.29.0
+        with:
+          scan-type: 'fs'
+          scan-ref: 'apps/api'
+          format: 'sarif'
+          output: 'trivy-api-results.sarif'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+          ignore-unfixed: true
+          scanners: 'vuln,secret'
+
+      - name: Upload Trivy results to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-api-results.sarif'
+          category: 'api-deps'
+
+  scan-worker:
+    if: github.event_name == 'pull_request' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner (Worker)
+        uses: aquasecurity/trivy-action@0.29.0
+        with:
+          scan-type: 'fs'
+          scan-ref: 'apps/worker'
+          format: 'sarif'
+          output: 'trivy-worker-results.sarif'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+          ignore-unfixed: true
+          scanners: 'vuln,secret'
+
+      - name: Upload Trivy results to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-worker-results.sarif'
+          category: 'worker-deps'

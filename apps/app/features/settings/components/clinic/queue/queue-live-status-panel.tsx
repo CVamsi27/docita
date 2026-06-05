@@ -24,8 +24,12 @@ import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 export const QueueLiveStatusPanel = () => {
-  const { data: queue, isLoading: queueLoading, isRefetching, refetch } =
-    useQueue();
+  const {
+    data: queue,
+    isLoading: queueLoading,
+    isRefetching,
+    refetch,
+  } = useQueue();
   const { mutateAsync: resetQueueAsync, isPending: isResetting } =
     useResetQueue();
   const [resetDialogOpen, setResetDialogOpen] = useState(false);

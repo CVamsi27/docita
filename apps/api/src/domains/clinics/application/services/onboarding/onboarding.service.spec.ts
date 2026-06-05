@@ -54,10 +54,14 @@ describe('OnboardingService', () => {
     },
     user: {
       findUnique: jest.fn(),
+      findMany: jest
+        .fn<() => Promise<Array<{ clinicId: string | null }>>>()
+        .mockResolvedValue([]),
       create: jest.fn(),
     },
     subscription: {
       create: jest.fn(),
+      findFirst: jest.fn<() => Promise<{ id: string } | null>>(),
     },
     subscriptionPayment: {
       create: jest.fn(),
@@ -291,6 +295,22 @@ describe('OnboardingService', () => {
     });
   });
 
+  describe('getTrialEligibility', () => {
+    it('returns false when the authenticated account already has a subscription', async () => {
+      const { onboardingId } = await service.initializeOnboarding();
+      mockClinicPersistencePort.user.findMany.mockImplementationOnce(
+        async () => [{ clinicId: 'clinic_existing' }],
+      );
+      mockClinicPersistencePort.subscription.findFirst.mockImplementationOnce(
+        async () => ({ id: 'sub_existing' }),
+      );
+
+      await expect(
+        service.getTrialEligibility(onboardingId, 'owner@example.com'),
+      ).resolves.toEqual({ eligible: false });
+    });
+  });
+
   describe('updateOnboardingStep', () => {
     it('should update step data and progress', async () => {
       const { onboardingId } = await service.initializeOnboarding();
@@ -348,6 +368,9 @@ describe('OnboardingService', () => {
         planSelection: {
           tier: ClinicTier.ESSENTIAL,
           billingCycle: BillingCycle.MONTHLY,
+        },
+        paymentDetails: {
+          skipPayment: true,
         },
         slaAgreement: {
           acceptedSLA: true,

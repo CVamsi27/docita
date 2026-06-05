@@ -1,8 +1,6 @@
 import { useState } from "react";
-import {
-  PatientContextCardUI,
-  PatientContextData,
-} from "./PatientContextCardUI";
+import { PatientContextCardUI } from "./PatientContextCardUI";
+import type { PatientContextData } from "./PatientContextCardUISections";
 
 interface PatientContextCardContainerProps {
   patient: PatientContextData;

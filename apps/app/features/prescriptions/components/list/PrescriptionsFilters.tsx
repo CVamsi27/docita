@@ -1,10 +1,9 @@
 import React from "react";
+import { SearchInput } from "@workspace/ui/components/form/search-input";
 import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Search, X } from "lucide-react";
 
 interface PrescriptionsFiltersProps {
   searchQuery: string;
@@ -27,35 +26,13 @@ export function PrescriptionsFilters({
 
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
-      <div className="relative w-full lg:max-w-sm lg:flex-1">
-        <Search
-          className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"
-          aria-hidden
-        />
-        <Input
-          placeholder="Enter patient, diagnosis, or phone"
-          className={`bg-background pl-9${searchQuery.trim() ? " pr-10" : ""}`}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          aria-label="Search prescriptions"
-        />
-        {searchQuery.trim() ? (
-          <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
-            <SymbolTooltip label="Clear search">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => setSearchQuery("")}
-                aria-label="Clear search"
-              >
-                <X className="h-4 w-4 text-muted-foreground" aria-hidden />
-              </Button>
-            </SymbolTooltip>
-          </div>
-        ) : null}
-      </div>
+      <SearchInput
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        onClear={() => setSearchQuery("")}
+        placeholder="Enter patient, diagnosis, or phone"
+        ariaLabel="Search prescriptions"
+      />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <div className="grid gap-2">

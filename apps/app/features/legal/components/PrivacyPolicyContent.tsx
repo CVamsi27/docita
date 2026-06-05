@@ -1,5 +1,7 @@
 "use client";
 
+import { ADMIN_EMAIL } from "@/lib/constants/support-contact";
+
 export function PrivacyPolicyContent() {
   return (
     <div className="rounded-lg border bg-background p-4 md:p-5">
@@ -13,8 +15,8 @@ export function PrivacyPolicyContent() {
           </h3>
           <p className="text-sm mb-0">
             This policy adheres to the Digital Personal Data Protection Act,
-            2023 (India). We are the <strong>Data Processor</strong> for
-            clinics and a <strong>Data Fiduciary</strong> for direct account
+            2023 (India). We are the <strong>Data Processor</strong> for clinics
+            and a <strong>Data Fiduciary</strong> for direct account
             information.
           </p>
         </div>
@@ -37,23 +39,25 @@ export function PrivacyPolicyContent() {
                 information
               </li>
               <li>
-                <strong>Payment Information:</strong> Billing details, transaction
-                history
+                <strong>Payment Information:</strong> Billing details,
+                transaction history
               </li>
             </ul>
           </li>
 
           <li>
             <h3 className="mt-0 mb-2">2. Itemized Consent & Purpose</h3>
-            <p>In accordance with the DPDP Act, we seek specific consent for:</p>
+            <p>
+              In accordance with the DPDP Act, we seek specific consent for:
+            </p>
             <ul>
               <li>
-                <strong>Medical Management:</strong> Processing health records for
-                consultations and treatment.
+                <strong>Medical Management:</strong> Processing health records
+                for consultations and treatment.
               </li>
               <li>
-                <strong>Communication:</strong> Sending appointment reminders via
-                SMS, Email, or WhatsApp.
+                <strong>Communication:</strong> Sending appointment reminders
+                via SMS, Email, or WhatsApp.
               </li>
               <li>
                 <strong>Data Storage:</strong> Securely storing records on AWS
@@ -82,7 +86,9 @@ export function PrivacyPolicyContent() {
             <h3 className="mt-0 mb-2">4. Data Retention</h3>
             <ul>
               <li>Active clinic data: Retained while account is active</li>
-              <li>Inactive accounts: Data deleted after 2 years of inactivity</li>
+              <li>
+                Inactive accounts: Data deleted after 2 years of inactivity
+              </li>
               <li>
                 Medical records: Retained for <strong>3 years</strong> per
                 Clinical Establishments Rules (and anonymized thereafter)
@@ -94,9 +100,9 @@ export function PrivacyPolicyContent() {
           <li>
             <h3 className="mt-0 mb-2">5. Data Localization & Security</h3>
             <p>
-              All personal and health data is stored exclusively on secure servers
-              located within <strong>India</strong>. We use AES-256 encryption for
-              data at rest and TLS 1.2+ for data in transit.
+              All personal and health data is stored exclusively on secure
+              servers located within <strong>India</strong>. We use AES-256
+              encryption for data at rest and TLS 1.2+ for data in transit.
             </p>
           </li>
 
@@ -113,13 +119,13 @@ export function PrivacyPolicyContent() {
           <li>
             <h3 className="mt-0 mb-2">7. Grievance Redressal</h3>
             <p>
-              For any privacy-related grievances or to exercise your rights, please
-              contact our Data Protection Officer (DPO):
+              For any privacy-related grievances or to exercise your rights,
+              please contact our Data Protection Officer (DPO):
             </p>
             <div className="bg-muted p-3 rounded-md text-sm">
               <strong>Data Protection Officer</strong>
               <br />
-              Email: <a href="mailto:admin@docita.work">admin@docita.work</a>
+              Email: <a href={`mailto:${ADMIN_EMAIL}`}>{ADMIN_EMAIL}</a>
               <br />
               Address: Docita HQ, Hyderabad, India
             </div>

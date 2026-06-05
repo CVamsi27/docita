@@ -3,7 +3,7 @@ import { genderSchema } from "../shared/users";
 import { codeStatusSchema } from "../clinical/medical";
 import { stripHtmlTags } from "../api/sanitization";
 
-const pastDateOfBirthSchema = z
+export const pastDateOfBirthSchema = z
   .union([z.string(), z.date()])
   .refine(
     (value) => {

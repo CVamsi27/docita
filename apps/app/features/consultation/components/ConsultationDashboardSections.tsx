@@ -1,3 +1,4 @@
+import { getPatientFullName } from "@workspace/utils";
 import {
   Card,
   CardContent,
@@ -73,11 +74,12 @@ export function DoctorNextSection({
             return (
               <div
                 key={apt.id}
+                data-appointment-id={apt.id}
                 className="flex items-center justify-between gap-3 bg-primary/5 p-3 sm:p-4"
               >
                 <div className="min-w-0">
                   <p className="font-medium truncate">
-                    {apt.patient?.firstName} {apt.patient?.lastName}
+                    {getPatientFullName(apt.patient)}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
                     In progress • {formatClockTime(apt.startTime)}
@@ -225,7 +227,7 @@ export function NursePrepSection({
                   >
                     <div className="min-w-0">
                       <p className="font-medium truncate">
-                        {q.patient?.firstName} {q.patient?.lastName}
+                        {getPatientFullName(q.patient)}
                       </p>
                       <p className="text-xs text-muted-foreground truncate">
                         Token {q.tokenNumber > 0 ? q.tokenNumber : "—"} •{" "}

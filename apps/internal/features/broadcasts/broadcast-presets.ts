@@ -13,9 +13,9 @@ interface BroadcastPreset {
 }
 
 const CONTACT_BLOCK =
-  "🌐 docita.work\n" +
-  "📧 support@docita.work\n" +
-  "📞 +91 87903 11010";
+  "Web: docita.work\n" +
+  "Email: support@docita.work\n" +
+  "Phone: +91 87903 11010";
 
 export const BROADCAST_PRESETS: BroadcastPreset[] = [
   {

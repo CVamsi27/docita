@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { Pill, Plus, Trash2 } from "lucide-react";
+import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { useClinicSettings } from "@workspace/data-access";
 import {
   ClinicFeatureService,
@@ -97,13 +98,16 @@ export function PrescriptionInput({
         {medications.map((med, index) => (
           <div
             key={index}
-            className="p-3 bg-muted/20 border border-border/70 rounded-[var(--radius)] space-y-2 transition-colors hover:bg-muted/30"
+            className="space-y-2 rounded-[var(--radius-md)] border border-border/70 bg-muted/20 p-3 transition-colors duration-150 hover:bg-muted/30"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="rounded-full border border-border/70 bg-background/70 p-1.5">
-                  <Pill className="h-4 w-4 text-primary" />
-                </div>
+                <CategoryAvatar
+                  icon={<Pill />}
+                  tone="primary"
+                  size="sm"
+                  aria-label="Medication"
+                />
                 <span className="text-sm font-medium">
                   Medication #{index + 1}
                 </span>
@@ -228,12 +232,12 @@ export function PrescriptionInput({
           className="w-full border-dashed py-3 text-muted-foreground hover:text-primary"
         >
           <Plus className="mr-2 h-4 w-4" />
-          Add Medication
+          Add medication
         </Button>
       )}
 
       {medications.length === 0 && readOnly && (
-        <div className="text-center py-8 text-muted-foreground border border-dashed rounded-[var(--radius)]">
+        <div className="rounded-[var(--radius-md)] border border-dashed py-8 text-center text-muted-foreground">
           No medications prescribed.
         </div>
       )}

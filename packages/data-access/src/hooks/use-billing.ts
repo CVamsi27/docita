@@ -32,13 +32,16 @@ import { useAPIQuery } from "../core/use-api-query";
 import { useAPIQueryValidated } from "../core/use-api-query-validated";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { APIRequestError } from "../lib/errors";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { withQueryString } from "../lib/query-string";
 import { useDataAccessContext, useDataAccessFetcher } from "../provider/hooks";
 import { isRecord } from "@workspace/utils";
 
 export type { InvoiceListRow } from "@workspace/types";
-export { invoiceListRowSchema, normalizeInvoiceListRowInput } from "@workspace/types";
+export {
+  invoiceListRowSchema,
+  normalizeInvoiceListRowInput,
+} from "@workspace/types";
 
 function hasItemsArray(data: unknown): data is { items: unknown[] } {
   return isRecord(data) && Array.isArray(data["items"]);
@@ -55,12 +58,11 @@ export function normalizeInvoicesListResponse(data: unknown): unknown[] {
   return [];
 }
 
-const infiniteInvoicesResponseSchema = paginatedInvoiceListResponseSchema.extend(
-  {
+const infiniteInvoicesResponseSchema =
+  paginatedInvoiceListResponseSchema.extend({
     nextCursor: z.string().nullable().optional(),
     count: z.number(),
-  },
-);
+  });
 
 function parseInvoiceListRows(raw: unknown): InvoiceListRow[] {
   const parsed = z
@@ -119,12 +121,34 @@ export const useInvoicePaymentActivity = (
     `/invoices/${invoiceId}/payment-activity`,
     invoicePaymentActivityResponseSchema,
     {
-      enabled:
-        invoicingOk &&
-        Boolean(invoiceId) &&
-        (options?.enabled ?? true),
+      enabled: invoicingOk && Boolean(invoiceId) && (options?.enabled ?? true),
       staleTime: 60_000,
     },
+  );
+};
+
+export interface InvoiceClaimReadiness {
+  invoiceId: string;
+  appointmentId: string | null;
+  requiresClinicalCoding: boolean;
+  claimReady: boolean;
+  issues: string[];
+  summary: {
+    diagnoses: number;
+    procedures: number;
+    uncodedDiagnoses: number;
+    uncodedProcedures: number;
+  };
+}
+
+export const useInvoiceClaimReadiness = (invoiceId: string) => {
+  const invoicingOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.INVOICING,
+  );
+  return useAPIQuery<InvoiceClaimReadiness>(
+    queryKeys.invoices.claimReadiness(invoiceId),
+    `/invoices/${invoiceId}/claim-readiness`,
+    { enabled: invoicingOk && invoiceId.length > 0 },
   );
 };
 

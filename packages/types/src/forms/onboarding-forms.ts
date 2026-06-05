@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { clinicTypeSchema } from "../shared/users";
+import { clinicTypeSchema, facilityTypeSchema } from "../shared/users";
 
 /** Legacy multi-step onboarding wizard (simpler clinic details shape). */
 export const onboardingClinicDetailsSchema = z.object({
@@ -8,7 +8,7 @@ export const onboardingClinicDetailsSchema = z.object({
   phone: z.string().regex(/^\+\d{8,15}$/, "Enter a valid phone number"),
   address: z.string().min(5, "Enter the facility address"),
   type: clinicTypeSchema,
-  facilityType: z.enum(["CLINIC", "HOSPITAL"]).default("CLINIC"),
+  facilityType: facilityTypeSchema.default("CLINIC"),
 });
 
 export const onboardingPlanSelectionSchema = z.object({

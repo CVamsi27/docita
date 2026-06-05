@@ -4,6 +4,7 @@ export const createLabTestOrderFormSchema = z.object({
   patientId: z.string().min(1, "Select a patient"),
   labTestId: z.string().min(1, "Select a test"),
   appointmentId: z.string().optional(),
+  labId: z.string().optional(),
   notes: z.string().optional(),
 });
 

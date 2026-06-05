@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { Button } from "@workspace/ui/components/form/button";
+import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { useSpeechToText } from "@workspace/hooks";
 import { Activity, Plus } from "lucide-react";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { ChiefComplaintItemRow } from "./chief-complaint-item-row";
 import type { ChiefComplaintItem } from "./chief-complaint.types";
 
@@ -37,6 +39,10 @@ export function ChiefComplaintInput({
           : text,
       };
       onChange(newItems);
+    },
+    onError: (message) => {
+      setListeningIndex(null);
+      showUserFacingErrorToast(message);
     },
   });
 
@@ -80,23 +86,11 @@ export function ChiefComplaintInput({
 
   return (
     <div className="space-y-3">
-      {!readOnly ? (
-        <div className="rounded-[var(--radius)] border border-border/70 bg-muted/20 px-3 py-2">
-          <div className="flex items-start gap-3">
-            <div className="rounded-full border border-border/70 bg-background/70 p-1.5 text-primary">
-              <Activity className="h-4 w-4" />
-            </div>
-            <div className="space-y-0.5">
-              <h3 className="text-sm font-semibold">
-                Capture the patient concern clearly
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                Start with the main symptom, then add duration, severity, and
-                any useful clinical context.
-              </p>
-            </div>
-          </div>
-        </div>
+      {!readOnly && items.length === 0 ? (
+        <p className="text-xs text-muted-foreground">
+          Start with the main symptom, then add duration, severity, and any
+          useful context.
+        </p>
       ) : null}
 
       <div className="space-y-3">
@@ -109,7 +103,9 @@ export function ChiefComplaintInput({
             isListening={isListening && listeningIndex === index}
             isSupported={isSupported}
             onMicToggle={() => handleMicToggle(index)}
-            onUpdate={(field, fieldValue) => updateItem(index, field, fieldValue)}
+            onUpdate={(field, fieldValue) =>
+              updateItem(index, field, fieldValue)
+            }
             onRemove={() => removeItem(index)}
           />
         ))}
@@ -122,18 +118,25 @@ export function ChiefComplaintInput({
           className="w-full border-dashed py-3 text-muted-foreground hover:text-primary"
         >
           <Plus className="mr-2 h-4 w-4" />
-          Add Another Complaint
+          Add another complaint
         </Button>
       ) : null}
 
       {items.length === 0 && readOnly ? (
-        <div className="rounded-lg border border-dashed border-border bg-muted/10 px-6 py-10 text-center">
-          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
-            <Activity className="h-4 w-4" />
-          </div>
-          <p className="font-medium text-foreground">No chief complaints recorded</p>
+        <div className="rounded-[var(--radius-md)] border border-dashed border-border bg-muted/10 px-6 py-10 text-center">
+          <CategoryAvatar
+            icon={<Activity />}
+            tone="neutral"
+            size="lg"
+            aria-label="No complaints"
+            className="mx-auto mb-3"
+          />
+          <p className="font-medium text-foreground">
+            No chief complaints recorded
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            This consultation does not have a documented presenting complaint yet.
+            This consultation does not have a documented presenting complaint
+            yet.
           </p>
         </div>
       ) : null}

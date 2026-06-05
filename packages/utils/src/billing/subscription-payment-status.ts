@@ -1,7 +1,3 @@
-/**
- * Normalized subscription payment statuses for SaaS billing (Razorpay rows).
- * Keep in sync with billing-history UI helpers in the app.
- */
 export function normalizeSubscriptionPaymentStatus(
   status: string | undefined | null,
 ): string {
@@ -9,14 +5,9 @@ export function normalizeSubscriptionPaymentStatus(
 }
 
 export function isPaidSubscriptionPaymentStatus(status: string): boolean {
-  return (
-    status === "paid" ||
-    status === "captured" ||
-    status === "succeeded"
-  );
+  return PAID_SUBSCRIPTION_PAYMENT_STATUSES.has(status);
 }
 
-/** Settled SaaS billing row — status and/or persisted paidAt from webhooks or seed. */
 export function isSubscriptionBillingRowPaid(
   status: string | undefined | null,
   paidAt?: string | Date | null,
@@ -34,61 +25,68 @@ export function resolveSubscriptionBillingAmountCents(row: {
   grandTotalCents?: number | null;
   amount?: number | null;
 }): number {
-  const grandTotal = row.grandTotalCents;
-  if (typeof grandTotal === "number" && grandTotal > 0) {
-    return grandTotal;
-  }
-  const amountCents = row.amountCents;
-  if (typeof amountCents === "number" && amountCents > 0) {
-    return amountCents;
-  }
-  const legacyAmount = row.amount;
-  if (typeof legacyAmount === "number" && legacyAmount > 0) {
-    return Math.round(legacyAmount * 100);
-  }
-  return 0;
+  return (
+    [
+      row.grandTotalCents,
+      row.amountCents,
+      convertLegacyAmountToCents(row.amount),
+    ].find(isPositiveAmountCents) ?? 0
+  );
 }
 
 export function isTerminalClosedSubscriptionPaymentStatus(
   status: string,
 ): boolean {
-  return status === "refunded" || status === "void" || status === "voided";
+  return TERMINAL_CLOSED_SUBSCRIPTION_PAYMENT_STATUSES.has(status);
 }
 
 export function isFailedSubscriptionPaymentStatus(status: string): boolean {
-  return status === "failed" || status === "declined";
+  return FAILED_SUBSCRIPTION_PAYMENT_STATUSES.has(status);
 }
 
-/** Checkout started but not settled — must not count as paid. */
 export function isPendingSubscriptionPaymentStatus(status: string): boolean {
-  return (
-    status === "pending" ||
-    status === "processing" ||
-    status === "created" ||
-    status === "requires_action" ||
-    status === "attempted" ||
-    status === "due"
-  );
+  return PENDING_SUBSCRIPTION_PAYMENT_STATUSES.has(status);
 }
 
-/**
- * Outstanding subscription charge that still needs settlement (Pay now / retry).
- */
 export function isOutstandingUnpaidSubscriptionPaymentStatus(
   status: string | undefined | null,
 ): boolean {
   const normalized = normalizeSubscriptionPaymentStatus(status);
-  if (!normalized || normalized === "expired") {
-    return false;
-  }
-  if (isPaidSubscriptionPaymentStatus(normalized)) {
-    return false;
-  }
-  if (isTerminalClosedSubscriptionPaymentStatus(normalized)) {
-    return false;
-  }
-  return (
-    isPendingSubscriptionPaymentStatus(normalized) ||
-    isFailedSubscriptionPaymentStatus(normalized)
-  );
+  return OUTSTANDING_UNPAID_SUBSCRIPTION_PAYMENT_STATUSES.has(normalized);
 }
+
+function convertLegacyAmountToCents(amount: number | null | undefined): number {
+  return typeof amount === "number" ? Math.round(amount * 100) : 0;
+}
+
+function isPositiveAmountCents(amount: number | null | undefined): boolean {
+  return typeof amount === "number" && amount > 0;
+}
+
+const PAID_SUBSCRIPTION_PAYMENT_STATUSES = new Set([
+  "paid",
+  "captured",
+  "succeeded",
+]);
+
+const TERMINAL_CLOSED_SUBSCRIPTION_PAYMENT_STATUSES = new Set([
+  "refunded",
+  "void",
+  "voided",
+]);
+
+const FAILED_SUBSCRIPTION_PAYMENT_STATUSES = new Set(["failed", "declined"]);
+
+const PENDING_SUBSCRIPTION_PAYMENT_STATUSES = new Set([
+  "pending",
+  "processing",
+  "created",
+  "requires_action",
+  "attempted",
+  "due",
+]);
+
+const OUTSTANDING_UNPAID_SUBSCRIPTION_PAYMENT_STATUSES = new Set([
+  ...PENDING_SUBSCRIPTION_PAYMENT_STATUSES,
+  ...FAILED_SUBSCRIPTION_PAYMENT_STATUSES,
+]);

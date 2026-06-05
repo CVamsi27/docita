@@ -1,5 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Injectable, Inject } from '@nestjs/common';
 import { ClinicTier } from '@workspace/db';
 import { DEFAULT_CURRENCY, parseSupportedCurrency } from '@workspace/utils';
 import {
@@ -7,6 +6,10 @@ import {
   TIER_OVERAGE_RATES_BY_CURRENCY,
 } from '@workspace/types';
 import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
+import {
+  TIER_PRICING_REPOSITORY_TOKEN,
+  ITierPricingRepository,
+} from '@/domains/billing/core/repositories/tier-pricing.repository';
 
 interface UsageData {
   period: { start: Date; end: Date };
@@ -41,7 +44,10 @@ interface OverageResult {
 
 @Injectable()
 export class OverageCalculationService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(TIER_PRICING_REPOSITORY_TOKEN)
+    private readonly tierPricingRepo: ITierPricingRepository,
+  ) {}
 
   private resolveCurrency(currency?: string) {
     if (!currency) {
@@ -55,9 +61,7 @@ export class OverageCalculationService {
     usageData: UsageData,
   ): Promise<OverageResult> {
     const tier = usageData.tier;
-    const tierPricing = await this.prisma.tierPricing.findUnique({
-      where: { tier },
-    });
+    const tierPricing = await this.tierPricingRepo.findByTier(tier);
 
     let totalOverageCharges = 0;
     const breakdown: Record<string, OverageBreakdown> = {};

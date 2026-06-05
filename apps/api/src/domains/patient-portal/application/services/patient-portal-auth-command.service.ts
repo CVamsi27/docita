@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import {
   Injectable,
   UnauthorizedException,
@@ -112,8 +113,7 @@ export class PatientPortalAuthCommandService {
     if (!user) {
       const portalEmail = `portal_${nanoid(8)}@portal.docita.internal`;
       const portalPassword = await bcrypt.hash(nanoid(32), 10);
-      const patientName =
-        `${patientWithUser.firstName} ${patientWithUser.lastName}`.trim();
+      const patientName = getPatientFullName(patientWithUser).trim();
 
       user = await this.repository.createPortalUser({
         email: portalEmail,

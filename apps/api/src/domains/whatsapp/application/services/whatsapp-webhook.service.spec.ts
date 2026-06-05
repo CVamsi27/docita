@@ -275,6 +275,19 @@ describe('WhatsappWebhookService', () => {
   };
 
   function buildMockPrisma() {
+    const whatsappConversation = {
+      upsert: jest
+        .fn<(...args: unknown[]) => Promise<unknown>>()
+        .mockImplementation(async () => ({ id: 'conversation-123' })),
+    };
+    const whatsappMessage = {
+      findFirst: jest
+        .fn<(...args: unknown[]) => Promise<unknown>>()
+        .mockImplementation(async () => null),
+      upsert: jest
+        .fn<(...args: unknown[]) => Promise<unknown>>()
+        .mockImplementation(async () => ({ id: 'message-123' })),
+    };
     return {
       whatsappLog: {
         findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -287,6 +300,25 @@ describe('WhatsappWebhookService', () => {
           .fn<(...args: unknown[]) => Promise<unknown>>()
           .mockImplementation(async () => null),
       },
+      clinic: {
+        findFirst: jest
+          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .mockImplementation(async () => ({ id: 'clinic-123' })),
+      },
+      whatsappConversation,
+      whatsappMessage,
+      $transaction: jest
+        .fn<
+          (
+            callback: (tx: {
+              whatsappConversation: typeof whatsappConversation;
+              whatsappMessage: typeof whatsappMessage;
+            }) => Promise<unknown>,
+          ) => Promise<unknown>
+        >()
+        .mockImplementation(async (callback) =>
+          callback({ whatsappConversation, whatsappMessage }),
+        ),
       appointment: {
         findFirst: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()

@@ -2,8 +2,10 @@
 
 import {
   collectRouteThinnessFindings,
+} from "../lib/structure-audit-route-thinness.mjs";
+import {
   printReport,
-} from "../lib/structure-audit.mjs";
+} from "../lib/structure-audit-report.mjs";
 
 const enforce = process.argv.includes("--enforce");
 const issues = collectRouteThinnessFindings();

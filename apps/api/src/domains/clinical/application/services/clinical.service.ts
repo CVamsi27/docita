@@ -36,6 +36,8 @@ type LabOrderCreateInput = {
   labTestId: string;
   clinicId: string;
   appointmentId?: string;
+  labId?: string;
+  orderedBy?: string;
 };
 
 /**
@@ -103,6 +105,8 @@ export class ClinicalService {
       labTestId: data.labTestId,
       clinicId: data.clinicId,
       appointmentId: data.appointmentId,
+      labId: data.labId,
+      orderedBy: data.orderedBy,
       status: LabTestOrderStatus.ORDERED,
     });
     return await this.labRepository.saveOrder(order);

@@ -1,6 +1,12 @@
 "use client";
 
-import { CalendarDays, Clock3, FileText, Stethoscope, UserRound } from "lucide-react";
+import {
+  CalendarDays,
+  Clock3,
+  FileText,
+  Stethoscope,
+  UserRound,
+} from "lucide-react";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
@@ -91,7 +97,9 @@ export default function DoctorWorkflowVisualTestPage() {
                   <p className="text-sm text-muted-foreground">Ravi Menon</p>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline">Check In</Button>
+                  <Button size="sm" variant="outline">
+                    Check In
+                  </Button>
                   <Button size="sm">Start</Button>
                 </div>
               </div>
@@ -101,8 +109,12 @@ export default function DoctorWorkflowVisualTestPage() {
                   <p className="text-sm text-muted-foreground">Neha Singh</p>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline">No Show</Button>
-                  <Button size="sm" variant="outline">Cancel</Button>
+                  <Button size="sm" variant="outline">
+                    No Show
+                  </Button>
+                  <Button size="sm" variant="outline">
+                    Cancel
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -133,7 +145,8 @@ export default function DoctorWorkflowVisualTestPage() {
               </div>
               <Progress value={78} />
               <p className="text-muted-foreground">
-                Assessment and plan in progress with highlighted clinical alerts.
+                Assessment and plan in progress with highlighted clinical
+                alerts.
               </p>
             </CardContent>
           </Card>
@@ -159,7 +172,9 @@ export default function DoctorWorkflowVisualTestPage() {
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <p className="font-medium">Latha Reddy</p>
-                <p className="text-muted-foreground">ID: PT-23091 · Female · 42 years</p>
+                <p className="text-muted-foreground">
+                  ID: PT-23091 · Female · 42 years
+                </p>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <CalendarDays className="h-4 w-4" />
                   <span>Next visit: Apr 11, 2026</span>
@@ -175,9 +190,15 @@ export default function DoctorWorkflowVisualTestPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <p className="rounded-md border p-2">Consultation completed · Mar 29</p>
-                <p className="rounded-md border p-2">Prescription issued · Mar 29</p>
-                <p className="rounded-md border p-2">Lab order created · Mar 22</p>
+                <p className="rounded-md border p-2">
+                  Consultation completed · Mar 29
+                </p>
+                <p className="rounded-md border p-2">
+                  Prescription issued · Mar 29
+                </p>
+                <p className="rounded-md border p-2">
+                  Lab order created · Mar 22
+                </p>
               </CardContent>
             </Card>
           </div>

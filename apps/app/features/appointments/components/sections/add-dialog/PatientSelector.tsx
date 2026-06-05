@@ -1,3 +1,4 @@
+import { getPatientFullName } from "@workspace/utils";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import React from "react";
 import { FormControl } from "@workspace/ui/components/form/form";
@@ -52,7 +53,7 @@ export function PatientSelector({
 
   const selectedEntry = selectablePatients.find((entry) => entry.id === value);
   const selectedLabel = selectedEntry
-    ? `${selectedEntry.patient.firstName} ${selectedEntry.patient.lastName}`
+    ? getPatientFullName(selectedEntry.patient)
     : null;
 
   const selectPatient = (patientId: string) => {
@@ -60,9 +61,7 @@ export function PatientSelector({
     setPatientComboboxOpen(false);
   };
 
-  const handleInputKeyDown = (
-    event: React.KeyboardEvent<HTMLInputElement>,
-  ) => {
+  const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (selectablePatients.length === 0) return;
     if (event.key === "ArrowDown") {
       event.preventDefault();
@@ -113,81 +112,81 @@ export function PatientSelector({
         className="z-[100] w-[min(100vw-2rem,280px)] max-w-[--radix-popover-trigger-width] p-0"
         align="start"
       >
-          <div className="flex items-center gap-2 border-b px-3 py-2">
-            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Patient name"
-              value={patientSearch}
-              onChange={(event) => setPatientSearch(event.target.value)}
-              onKeyDown={handleInputKeyDown}
-              className="h-8 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
-              autoFocus
-            />
-          </div>
+        <div className="flex items-center gap-2 border-b px-3 py-2">
+          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Patient name"
+            value={patientSearch}
+            onChange={(event) => setPatientSearch(event.target.value)}
+            onKeyDown={handleInputKeyDown}
+            className="h-8 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
+            autoFocus
+          />
+        </div>
 
-          <div className="max-h-[280px] overflow-y-auto p-1">
-            {patientsLoading ? (
-              <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
-                <DocitaLoadingIndicator variant="inline" decorative />
-                <span>Searching…</span>
-              </div>
-            ) : selectablePatients.length === 0 ? (
-              <div className="px-4 py-6 text-center">
-                <p className="text-sm font-medium text-foreground">
-                  {hasSearch
-                    ? "No matching patients"
-                    : "Start typing to search patients"}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {hasSearch
-                    ? "Check the spelling or phone number and try again."
-                    : "Search results will appear here."}
-                </p>
-              </div>
-            ) : (
-              <ul role="listbox" className="space-y-0.5">
-                {selectablePatients.map((entry, index) => {
-                  const { id: patientId, patient } = entry;
-                  const isSelected = patientId === value;
-                  const isActive = index === activeIndex;
-                  return (
-                    <li key={patientId}>
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected={isSelected}
-                        onClick={() => selectPatient(patientId)}
-                        onMouseEnter={() => setActiveIndex(index)}
+        <div className="max-h-[280px] overflow-y-auto p-1">
+          {patientsLoading ? (
+            <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+              <DocitaLoadingIndicator variant="inline" decorative />
+              <span>Searching…</span>
+            </div>
+          ) : selectablePatients.length === 0 ? (
+            <div className="px-4 py-6 text-center">
+              <p className="text-sm font-medium text-foreground">
+                {hasSearch
+                  ? "No matching patients"
+                  : "Start typing to search patients"}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {hasSearch
+                  ? "Check the spelling or phone number and try again."
+                  : "Search results will appear here."}
+              </p>
+            </div>
+          ) : (
+            <ul role="listbox" className="space-y-0.5">
+              {selectablePatients.map((entry, index) => {
+                const { id: patientId, patient } = entry;
+                const isSelected = patientId === value;
+                const isActive = index === activeIndex;
+                return (
+                  <li key={patientId}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => selectPatient(patientId)}
+                      onMouseEnter={() => setActiveIndex(index)}
+                      className={cn(
+                        "flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-sm outline-none transition-colors",
+                        "hover:bg-accent hover:text-accent-foreground",
+                        isActive && "bg-accent text-accent-foreground",
+                        isSelected && !isActive && "bg-accent/60",
+                      )}
+                    >
+                      <Check
                         className={cn(
-                          "flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-sm outline-none transition-colors",
-                          "hover:bg-accent hover:text-accent-foreground",
-                          isActive && "bg-accent text-accent-foreground",
-                          isSelected && !isActive && "bg-accent/60",
+                          "h-4 w-4 shrink-0",
+                          isSelected ? "opacity-100" : "opacity-0",
                         )}
-                      >
-                        <Check
-                          className={cn(
-                            "h-4 w-4 shrink-0",
-                            isSelected ? "opacity-100" : "opacity-0",
-                          )}
-                        />
-                        <div className="flex min-w-0 flex-col">
-                          <span className="truncate">
-                            {patient.firstName} {patient.lastName}
-                          </span>
-                          <span className="truncate text-xs text-muted-foreground">
-                            {patient.phoneNumber}
-                          </span>
-                        </div>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-        </PopoverContent>
-      </Popover>
+                      />
+                      <div className="flex min-w-0 flex-col">
+                        <span className="truncate">
+                          {getPatientFullName(patient)}
+                        </span>
+                        <span className="truncate text-xs text-muted-foreground">
+                          {patient.phoneNumber}
+                        </span>
+                      </div>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

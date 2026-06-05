@@ -6,80 +6,102 @@ const billingCycleSchema = z.enum(["MONTHLY", "YEARLY"]);
 const estimateBillingCycleSchema = z.enum(["monthly", "yearly"]);
 const booleanStringSchema = z.enum(["true", "false"]);
 
-export const subscriptionCheckoutRequestSchema = z.object({
-  tier: tierSchema,
-  cycle: billingCycleSchema,
-  referrals: z.array(z.string()).optional(),
-}).strict();
+export const subscriptionCheckoutRequestSchema = z
+  .object({
+    tier: tierSchema,
+    cycle: billingCycleSchema,
+    referrals: z.array(z.string()).optional(),
+  })
+  .strict();
 
-export const subscriptionCancelRequestSchema = z.object({
-  reason: z.string().optional(),
-}).strict();
+export const subscriptionCancelRequestSchema = z
+  .object({
+    reason: z.string().optional(),
+  })
+  .strict();
 
-export const subscriptionActivateLegacyRequestSchema = z.object({
-  tier: tierSchema,
-  cycle: billingCycleSchema,
-}).strict();
+export const subscriptionActivateLegacyRequestSchema = z
+  .object({
+    tier: tierSchema,
+    cycle: billingCycleSchema,
+  })
+  .strict();
 
-export const pricingConfigQuerySchema = z.object({
-  currency: z.string().optional(),
-}).strict();
+export const pricingConfigQuerySchema = z
+  .object({
+    currency: z.string().optional(),
+  })
+  .strict();
 
-export const pricingEstimateQuerySchema = z.object({
-  tier: tierSchema,
-  currency: z.string().optional(),
-  billingCycle: estimateBillingCycleSchema.optional(),
-  consultations: z.coerce.number().int().min(0).optional(),
-  appointments: z.coerce.number().int().min(0).optional(), // legacy read alias
-  users: z.coerce.number().int().min(0).optional(),
-  whatsappMessages: z.coerce.number().int().min(0).optional(),
-  whatsapp: booleanStringSchema.optional(), // legacy read alias
-}).strict();
+export const pricingEstimateQuerySchema = z
+  .object({
+    tier: tierSchema,
+    currency: z.string().optional(),
+    billingCycle: estimateBillingCycleSchema.optional(),
+    consultations: z.coerce.number().int().min(0).optional(),
+    appointments: z.coerce.number().int().min(0).optional(), // legacy read alias
+    users: z.coerce.number().int().min(0).optional(),
+    whatsappMessages: z.coerce.number().int().min(0).optional(),
+    whatsapp: booleanStringSchema.optional(), // legacy read alias
+  })
+  .strict();
 
-export const pricingEstimateRequestSchema = z.object({
-  tier: tierSchema,
-  currency: z.string().optional(),
-  billingCycle: estimateBillingCycleSchema.optional(),
-  consultations: z.number().int().min(0).optional(),
-  appointments: z.number().int().min(0).optional(), // legacy read alias
-  users: z.number().int().min(0).optional(),
-  whatsappMessages: z.number().int().min(0).optional(),
-  whatsapp: z.boolean().optional(), // legacy read alias
-}).strict();
+export const pricingEstimateRequestSchema = z
+  .object({
+    tier: tierSchema,
+    currency: z.string().optional(),
+    billingCycle: estimateBillingCycleSchema.optional(),
+    consultations: z.number().int().min(0).optional(),
+    appointments: z.number().int().min(0).optional(), // legacy read alias
+    users: z.number().int().min(0).optional(),
+    whatsappMessages: z.number().int().min(0).optional(),
+    whatsapp: z.boolean().optional(), // legacy read alias
+  })
+  .strict();
 
-export const subscriptionBillingPreviewQuerySchema = z.object({
-  tier: tierSchema,
-  cycle: billingCycleSchema,
-}).strict();
+export const subscriptionBillingPreviewQuerySchema = z
+  .object({
+    tier: tierSchema,
+    cycle: billingCycleSchema,
+  })
+  .strict();
 
-export const subscriptionBillingCheckoutRequestSchema = z.object({
-  tier: tierSchema,
-  billingCycle: billingCycleSchema,
-  /** Plan mode toggle (Full / Front Desk / Core). Defaults to FULL. */
-  planMode: planModeSchema.optional().default("FULL"),
-  referralCode: z.string().optional(),
-}).strict();
+export const subscriptionBillingCheckoutRequestSchema = z
+  .object({
+    tier: tierSchema,
+    billingCycle: billingCycleSchema,
+    /** Plan mode toggle (Full / Front Desk / Core). Defaults to FULL. */
+    planMode: planModeSchema.optional().default("FULL"),
+    referralCode: z.string().optional(),
+  })
+  .strict();
 
-export const subscriptionBillingActivateRequestSchema = z.object({
-  razorpayPaymentId: z.string(),
-  razorpayOrderId: z.string(),
-  razorpaySignature: z.string(),
-  tier: tierSchema,
-  billingCycle: billingCycleSchema,
-  /** Plan mode toggle (Full / Front Desk / Core). Defaults to FULL. */
-  planMode: planModeSchema.optional().default("FULL"),
-}).strict();
+export const subscriptionBillingActivateRequestSchema = z
+  .object({
+    razorpayPaymentId: z.string(),
+    razorpayOrderId: z.string(),
+    razorpaySignature: z.string(),
+    tier: tierSchema,
+    billingCycle: billingCycleSchema,
+    /** Plan mode toggle (Full / Front Desk / Core). Defaults to FULL. */
+    planMode: planModeSchema.optional().default("FULL"),
+  })
+  .strict();
 
-export const subscriptionBillingCancelRequestSchema = z.object({
-  immediate: z.boolean().optional(),
-}).strict();
+export const subscriptionBillingCancelRequestSchema = z
+  .object({
+    immediate: z.boolean().optional(),
+  })
+  .strict();
 
-export const subscriptionBillingScheduleChangeRequestSchema = z.object({
-  tier: tierSchema,
-  billingCycle: billingCycleSchema,
-  /** Plan mode toggle (Full / Front Desk / Core). Defaults to FULL. */
-  planMode: planModeSchema.optional().default("FULL"),
-}).strict();
+export const subscriptionBillingScheduleChangeRequestSchema = z
+  .object({
+    tier: tierSchema,
+    billingCycle: billingCycleSchema,
+    /** Plan mode toggle (Full / Front Desk / Core). Defaults to FULL. */
+    planMode: planModeSchema.optional().default("FULL"),
+  })
+  .strict();
 export type SubscriptionBillingScheduleChangeRequest = z.infer<
   typeof subscriptionBillingScheduleChangeRequestSchema
 >;
@@ -117,37 +139,49 @@ export const subscriptionBillingPaymentHistoryResponseSchema = z
   .array(subscriptionBillingPaymentHistoryItemSchema)
   .readonly();
 
-const pricingEstimateChargeSchema = z.object({
-  count: z.number().int().min(0),
-  charge: z.number().min(0),
-}).strict();
+const pricingEstimateChargeSchema = z
+  .object({
+    count: z.number().int().min(0),
+    charge: z.number().min(0),
+  })
+  .strict();
 
 const pricingAmountSchema = z.union([z.number().min(0), z.literal("custom")]);
 
-export const pricingEstimateResponseSchema = z.object({
-  tier: tierSchema,
-  billingCycle: estimateBillingCycleSchema,
-  currency: z.object({
-    code: z.string(),
-    symbol: z.string(),
-  }).strict(),
-  breakdown: z.object({
-    basePrice: z.number().min(0),
-    subtotal: z.number().min(0),
-    discount: z.object({
-      percent: z.number().min(0),
-      amount: z.number().min(0),
-    }).strict(),
-    overages: z.object({
-      consultations: pricingEstimateChargeSchema,
-      users: pricingEstimateChargeSchema,
-      whatsappMessages: pricingEstimateChargeSchema,
-    }).strict(),
-    overageTotal: z.number().min(0),
-  }).strict(),
-  totalMonthly: z.number().min(0),
-  totalYearly: z.number().min(0),
-}).strict();
+export const pricingEstimateResponseSchema = z
+  .object({
+    tier: tierSchema,
+    billingCycle: estimateBillingCycleSchema,
+    currency: z
+      .object({
+        code: z.string(),
+        symbol: z.string(),
+      })
+      .strict(),
+    breakdown: z
+      .object({
+        basePrice: z.number().min(0),
+        subtotal: z.number().min(0),
+        discount: z
+          .object({
+            percent: z.number().min(0),
+            amount: z.number().min(0),
+          })
+          .strict(),
+        overages: z
+          .object({
+            consultations: pricingEstimateChargeSchema,
+            users: pricingEstimateChargeSchema,
+            whatsappMessages: pricingEstimateChargeSchema,
+          })
+          .strict(),
+        overageTotal: z.number().min(0),
+      })
+      .strict(),
+    totalMonthly: z.number().min(0),
+    totalYearly: z.number().min(0),
+  })
+  .strict();
 
 const pricingConfigCurrencySchema = z
   .object({
@@ -209,6 +243,8 @@ export const pricingConfigResponseSchema = z
   })
   .strict();
 
+const trialWindowStateSchema = z.enum(["ACTIVE", "GRACE", "EXPIRED"]);
+
 const subscriptionCurrentItemSchema = z
   .object({
     id: z.string(),
@@ -223,6 +259,9 @@ const subscriptionCurrentItemSchema = z
     currentPeriodStart: z.string(),
     currentPeriodEnd: z.string(),
     daysRemaining: z.number().int().min(0),
+    trialEnd: z.string().nullable().optional(),
+    trialWindowState: trialWindowStateSchema.nullable().optional(),
+    trialGraceEndsAt: z.string().nullable().optional(),
     scheduledChange: z
       .object({
         plan: z.string(),
@@ -239,8 +278,6 @@ const subscriptionCurrentItemSchema = z
 
 export const subscriptionCurrentResponseSchema =
   subscriptionCurrentItemSchema.nullable();
-
-const trialWindowStateSchema = z.enum(['ACTIVE', 'GRACE', 'EXPIRED']);
 
 /** Prisma `Subscription.scheduledChange`. */
 export const scheduledPlanChangeJsonSchema = z
@@ -347,21 +384,27 @@ export const subscriptionBillingCancelResponseSchema = z
   })
   .strict();
 
-export const internalBillingSubscriptionsQuerySchema = z.object({
-  tier: z.string().optional(),
-  status: z.string().optional(),
-  billingCycle: z.string().optional(),
-}).strict();
+export const internalBillingSubscriptionsQuerySchema = z
+  .object({
+    tier: z.string().optional(),
+    status: z.string().optional(),
+    billingCycle: z.string().optional(),
+  })
+  .strict();
 
-export const internalBillingExpiringQuerySchema = z.object({
-  days: z.coerce.number().int().positive().optional(),
-}).strict();
+export const internalBillingExpiringQuerySchema = z
+  .object({
+    days: z.coerce.number().int().positive().optional(),
+  })
+  .strict();
 
-export const internalBillingPaymentsQuerySchema = z.object({
-  clinicId: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-}).strict();
+export const internalBillingPaymentsQuerySchema = z
+  .object({
+    clinicId: z.string().optional(),
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+  })
+  .strict();
 
 /** One-off charges recorded from the internal app (e.g. guided setup). */
 export const internalAdditionalChargeCategorySchema = z.enum([
@@ -378,12 +421,7 @@ export const recordInternalAdditionalChargeRequestSchema = z
     amount: z.number().positive("Amount must be greater than zero"),
     currency: z.string().length(3).optional(),
     category: internalAdditionalChargeCategorySchema,
-    paymentMethod: z.enum([
-      "razorpay",
-      "stripe",
-      "bank_transfer",
-      "manual",
-    ]),
+    paymentMethod: z.enum(["razorpay", "stripe", "bank_transfer", "manual"]),
     razorpayPaymentId: z.string().min(1).max(128).optional(),
     notes: z.string().max(2000).optional(),
   })
@@ -402,9 +440,11 @@ export const internalBillingPaymentItemSchema = z.object({
   createdAt: z.string(),
 });
 
-export const extendGracePeriodRequestSchema = z.object({
-  days: z.number().int().positive("Days must be a positive integer"),
-}).strict();
+export const extendGracePeriodRequestSchema = z
+  .object({
+    days: z.number().int().positive("Days must be a positive integer"),
+  })
+  .strict();
 
 export type SubscriptionCheckoutRequest = z.infer<
   typeof subscriptionCheckoutRequestSchema
@@ -420,9 +460,7 @@ export type PricingEstimateQuery = z.infer<typeof pricingEstimateQuerySchema>;
 export type PricingEstimateRequest = z.infer<
   typeof pricingEstimateRequestSchema
 >;
-export type PricingConfigResponse = z.infer<
-  typeof pricingConfigResponseSchema
->;
+export type PricingConfigResponse = z.infer<typeof pricingConfigResponseSchema>;
 export type SubscriptionBillingPreviewQuery = z.infer<
   typeof subscriptionBillingPreviewQuerySchema
 >;

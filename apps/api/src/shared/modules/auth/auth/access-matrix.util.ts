@@ -23,6 +23,8 @@ function parseDbRole(role: string): Role | null {
       return Role.ADMIN_DOCTOR;
     case Role.PATIENT:
       return Role.PATIENT;
+    case Role.LAB:
+      return Role.LAB;
     default:
       return null;
   }

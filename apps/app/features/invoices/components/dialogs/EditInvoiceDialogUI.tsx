@@ -13,6 +13,7 @@ import {
 import { Plus, X } from "lucide-react";
 import type { InvoiceItem } from "@workspace/types";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
+import type { EditableInvoiceItemField } from "./edit-invoice-dialog-state";
 
 export interface EditInvoiceDialogUIProps {
   open: boolean;
@@ -27,7 +28,7 @@ export interface EditInvoiceDialogUIProps {
   onRemoveItem: (index: number) => void;
   onUpdateItem: (
     index: number,
-    field: keyof InvoiceItem,
+    field: EditableInvoiceItemField,
     value: string | number,
   ) => void;
   onSubmit: () => void;
@@ -165,7 +166,7 @@ export function EditInvoiceDialogUI({
         <div className="flex items-center justify-end gap-4 p-4 bg-muted/30 rounded-lg">
           <span className="text-lg font-medium">Total:</span>
           <span className="ui-section-title text-[var(--fs-2xl)] text-primary tabular-nums">
-                {formatCurrency(calculateTotal())}
+            {formatCurrency(calculateTotal())}
           </span>
         </div>
       </div>

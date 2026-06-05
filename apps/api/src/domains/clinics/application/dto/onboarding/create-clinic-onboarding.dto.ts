@@ -1,12 +1,14 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { BillingCycle, ClinicTier } from '@workspace/db';
+import { BillingCycle, ClinicTier, PlanMode } from '@workspace/db';
 import {
   clinicTypeSchema as importedClinicTypeSchema,
   dayOfWeekSchema,
+  onboardingTrialEligibilityResponseSchema,
 } from '@workspace/types';
-export { ClinicTier };
+export { ClinicTier, PlanMode };
 export const clinicTierSchema = z.nativeEnum(ClinicTier);
+export const planModeSchema = z.nativeEnum(PlanMode);
 export enum OnboardingStep {
   CLINIC_DETAILS = 'CLINIC_DETAILS',
   ADMIN_ACCOUNT = 'ADMIN_ACCOUNT',
@@ -88,6 +90,7 @@ export class AdminAccountDto extends createZodDto(adminAccountSchema) {}
 export const planSelectionSchema = z.object({
   tier: clinicTierSchema,
   billingCycle: billingCycleSchema,
+  planMode: planModeSchema.optional(),
   referralCode: z.string().optional(),
   whatsappAddon: z.boolean().optional(),
   intelligenceAddon: z.boolean().optional(),
@@ -236,6 +239,7 @@ export class OnboardingProgressDto extends createZodDto(
 export const onboardingCheckoutSchema = z.object({
   tier: clinicTierSchema,
   billingCycle: billingCycleSchema,
+  planMode: planModeSchema.optional(),
   currency: z.string().optional(),
   gstin: z.string().optional(),
   customerEmail: z.string().email(),
@@ -256,4 +260,8 @@ export const onboardingCheckoutResponseSchema = z.object({
 
 export class OnboardingCheckoutResponseDto extends createZodDto(
   onboardingCheckoutResponseSchema,
+) {}
+
+export class OnboardingTrialEligibilityResponseDto extends createZodDto(
+  onboardingTrialEligibilityResponseSchema,
 ) {}

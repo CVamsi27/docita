@@ -50,14 +50,12 @@ export function PrescriptionHeader({
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        {whatsappStatus !== undefined && whatsappStatus !== null ? (
-          <WhatsAppDeliveryBadge
-            status={whatsappStatus}
-            sentAt={whatsappSentAt ?? null}
-            onRetry={onWhatsappRetry}
-            isRetrying={isWhatsappRetrying}
-          />
-        ) : null}
+        <WhatsAppDeliveryBadge
+          status={whatsappStatus}
+          sentAt={whatsappSentAt ?? null}
+          onRetry={onWhatsappRetry}
+          isRetrying={isWhatsappRetrying}
+        />
         {canEdit && (
           <Button variant="outline" size="sm" onClick={onEdit}>
             <Edit className="mr-2 h-4 w-4" />

@@ -20,7 +20,10 @@ import {
   Printer,
 } from "lucide-react";
 import { formatDate } from "@workspace/utils";
-import type { AppAuditLogSummary, AppComplianceSummary } from "@workspace/types";
+import type {
+  AppAuditLogSummary,
+  AppComplianceSummary,
+} from "@workspace/types";
 import { DATA_RETENTION_POLICIES } from "./compliance-settings-constants";
 
 // ── DPDP Consent Status Card ──────────────────────────────────────────────────
@@ -105,9 +108,9 @@ export function ConsentTemplateCard() {
             Printable Patient Consent Form
           </CardTitle>
           <CardDescription>
-            Generate a print-ready consent document listing every category of patient
-            data this facility collects, how it is used, retention timelines, and the
-            patient&apos;s rights under the DPDP Act, 2023.
+            Generate a print-ready consent document listing every category of
+            patient data this facility collects, how it is used, retention
+            timelines, and the patient&apos;s rights under the DPDP Act, 2023.
           </CardDescription>
         </div>
         <Button size="sm" asChild>
@@ -119,9 +122,9 @@ export function ConsentTemplateCard() {
       </CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground">
-          Hand the printed form to a new patient at intake, capture their signature,
-          and retain the signed copy alongside the digital consent recorded in their
-          medical record.
+          Hand the printed form to a new patient at intake, capture their
+          signature, and retain the signed copy alongside the digital consent
+          recorded in their medical record.
         </p>
       </CardContent>
     </Card>

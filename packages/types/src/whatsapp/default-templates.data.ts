@@ -151,6 +151,34 @@ View full prescription here: {{rxLink}}
 Wishing you a quick recovery.`,
     },
 
+    lab_result_ready: {
+      name: 'lab_result_ready',
+      category: 'FOLLOW_UP',
+      content: `Hi {{patientName}}, your lab results from *{{clinicName}}* are ready.
+
+Test: {{testName}}
+Date: {{resultDate}}
+
+Tap the button below to view your report. Please consult your doctor for any questions.`,
+      variables: [
+        { name: 'patientName', required: true },
+        { name: 'clinicName', required: true },
+        { name: 'testName', required: true },
+        { name: 'resultDate', required: true },
+      ],
+      buttonType: 'CALL_TO_ACTION',
+      buttons: [{ id: 'view_results', text: 'View Results' }],
+      buttonUrlVariable: 'resultLink',
+      textFallback: `Hi {{patientName}}, your lab results from *{{clinicName}}* are ready.
+
+Test: {{testName}}
+Date: {{resultDate}}
+
+View your report here: {{resultLink}}
+
+Please consult your doctor for any questions.`,
+    },
+
     invoice_ready: {
       name: 'invoice_ready',
       category: 'INVOICE',

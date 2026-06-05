@@ -9,6 +9,7 @@ import { UserRateLimitService } from '@/shared/modules/services/user-rate-limit.
 import { AuthenticatedRequest } from '@workspace/types';
 import type { Request as ExpressRequest } from 'express';
 import { getAuthenticatedUserId } from '@/shared/modules/auth/auth/request-user.util';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 /**
  * Route-level overrides for the per-user rate limiter. Keys are
@@ -63,12 +64,25 @@ function resolveOverride(
 
 @Injectable()
 export class UserRateLimitGuard implements CanActivate {
-  constructor(private readonly userRateLimitService: UserRateLimitService) {}
+  constructor(
+    private readonly userRateLimitService: UserRateLimitService,
+    private readonly config: AppConfigService,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     const request = context
       .switchToHttp()
       .getRequest<AuthenticatedRequest & ExpressRequest>();
+    const e2eHeader = request.headers?.['x-docita-e2e'];
+    const e2eValue = Array.isArray(e2eHeader)
+      ? String(e2eHeader[0])
+      : typeof e2eHeader === 'string'
+        ? e2eHeader
+        : undefined;
+    if (this.config.shouldBypassGuardForE2e(e2eValue)) {
+      return true;
+    }
+
     const userId = getAuthenticatedUserId(request.user);
 
     if (!userId) {

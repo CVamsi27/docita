@@ -112,9 +112,7 @@ export function PatientRightsCard({
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() =>
-                          onUpdateStatus(request.id, "FULFILLED")
-                        }
+                        onClick={() => onUpdateStatus(request.id, "FULFILLED")}
                         disabled={updateRequestMutation.isPending}
                       >
                         Fulfill

@@ -28,6 +28,7 @@ export function buildRegistrationPayload(
       tier: formData.planSelection.tier,
       billingCycle: formData.planSelection.billingCycle,
       currency: formData.planSelection.currency,
+      planMode: formData.planSelection.planMode,
     },
     slaAgreement: {
       acceptedSLA: complianceData.acceptedSLA,
@@ -48,7 +49,8 @@ export function buildRegistrationPayload(
     },
     paymentDetails: {
       cardLast4:
-        formData.paymentDetails?.cardLast4 || formData.paymentDetails?.cardNumber,
+        formData.paymentDetails?.cardLast4 ||
+        formData.paymentDetails?.cardNumber,
       razorpayPaymentId: formData.paymentDetails?.razorpayPaymentId,
       razorpayOrderId: formData.paymentDetails?.razorpayOrderId,
       razorpaySignature: formData.paymentDetails?.razorpaySignature,

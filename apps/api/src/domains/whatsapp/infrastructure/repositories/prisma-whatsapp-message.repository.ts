@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { WhatsAppMessage } from '@/domains/whatsapp/core/entities';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import type {
   PrismaWhatsAppDatabase,
   PrismaWhatsAppReadClient,
@@ -14,10 +15,38 @@ import {
 export class PrismaWhatsAppMessageRepository {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaWhatsAppDatabase,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   private getReadClient(): PrismaWhatsAppReadClient {
     return this.prisma.getReadClient();
+  }
+
+  async ensureConversation(
+    clinicId: string,
+    recipientPhone: string,
+  ): Promise<string> {
+    const contactPhone = recipientPhone.replace(/\D/g, '');
+    const patient = await this.prisma.patient.findFirst({
+      where: { clinicId, phoneNumber: contactPhone, deletedAt: null },
+      select: { id: true },
+    });
+    const now = this.clock.now();
+    const conversation = await this.prisma.whatsappConversation.upsert({
+      where: { clinicId_contactPhone: { clinicId, contactPhone } },
+      create: {
+        clinicId,
+        patientId: patient?.id ?? null,
+        contactPhone,
+        lastMessageAt: now,
+      },
+      update: {
+        patientId: patient?.id ?? undefined,
+        lastMessageAt: now,
+      },
+      select: { id: true },
+    });
+    return conversation.id;
   }
 
   async saveMessage(message: WhatsAppMessage): Promise<void> {

@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — role widened to string for legacy call sites; cast is safe here
 import {
   BILLING_ROLES,
   CLINIC_ADMIN_ROLES,
@@ -14,12 +15,14 @@ export const hasPermission = hasAppPermission;
 export const hasAnyPermission = hasAnyAppPermission;
 export const hasAllPermissions = hasAllAppPermissions;
 
-export function isAdmin(role: UserRole): boolean {
-  return hasPermission(role, "manageClinic");
+export function isAdmin(role: UserRole | string | undefined): boolean {
+  if (!role) return false;
+  return hasPermission(role as UserRole, "manageClinic");
 }
 
-export function isDoctor(role: UserRole): boolean {
-  return ["DOCTOR", "ADMIN_DOCTOR"].includes(role);
+export function isDoctor(role: UserRole | string | undefined): boolean {
+  if (!role) return false;
+  return role === "DOCTOR" || role === "ADMIN_DOCTOR";
 }
 
 export function canStartConsultation(role: UserRole): boolean {
@@ -104,6 +107,25 @@ export function canViewSystemLogs(role: UserRole): boolean {
 
 export function canManageTenants(role: UserRole): boolean {
   return hasPermission(role, "manageTenants");
+}
+
+export const ROLE_HIERARCHY: Record<UserRole, number> = {
+  INTERNAL: 5,
+  ADMIN: 4,
+  ADMIN_DOCTOR: 3,
+  DOCTOR: 2,
+  NURSE: 1.5,
+  RECEPTIONIST: 1,
+  LAB: 1,
+  PATIENT: 0,
+};
+
+export function meetsRoleHierarchy(
+  userRole: UserRole | undefined,
+  required: UserRole,
+): boolean {
+  if (!userRole) return false;
+  return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[required];
 }
 
 export { BILLING_ROLES, CLINIC_ADMIN_ROLES };

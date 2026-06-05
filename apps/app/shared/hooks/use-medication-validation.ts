@@ -84,7 +84,8 @@ export function useMedicationValidation() {
     } catch (err) {
       setError(
         getUserFacingErrorMessage(err, {
-          fallback: "We could not review this medicine right now. Please try again.",
+          fallback:
+            "We could not review this medicine right now. Please try again.",
           context: "form",
         }),
       );
@@ -105,7 +106,8 @@ export function useMedicationValidation() {
     } catch (err) {
       setError(
         getUserFacingErrorMessage(err, {
-          fallback: "We could not review these medicine interactions. Please try again.",
+          fallback:
+            "We could not review these medicine interactions. Please try again.",
           context: "form",
         }),
       );
@@ -128,7 +130,8 @@ export function useMedicationValidation() {
     } catch (err) {
       setError(
         getUserFacingErrorMessage(err, {
-          fallback: "We could not complete this medicine review. Please try again.",
+          fallback:
+            "We could not complete this medicine review. Please try again.",
           context: "form",
         }),
       );

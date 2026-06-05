@@ -1,8 +1,11 @@
-import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+} from "@workspace/ui/components/indicators/avatar";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
 import { Calendar, Edit, Mail, MapPin, Phone, Shield } from "lucide-react";
-import { formatDate } from "@workspace/utils";
+import { formatDate, getPatientFullName } from "@workspace/utils";
 import { formatGenderLabel } from "@/lib/formatters";
 
 interface PatientProfileHeaderUIProps {
@@ -46,7 +49,7 @@ export function PatientProfileHeaderUI({
             <div>
               <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
                 <h1 className="ui-page-title text-[var(--fs-2xl)] md:text-[var(--fs-4xl)]">
-                  {firstName} {lastName}
+                  {getPatientFullName({ firstName, lastName })}
                 </h1>
                 <div className="flex items-center gap-2">
                   <Badge

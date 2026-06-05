@@ -196,6 +196,33 @@ export class RazorpayOrderAdapter
       }
 
       const razorpay = this.getClient();
+
+      // Test-mode (rzp_test_) keys: a real payment object can only be minted
+      // through the Razorpay Checkout UI, which headless E2E cannot drive. Once
+      // the HMAC signature is verified against the test secret, read the amount
+      // from the order (server-created and fetchable) instead of the unminted
+      // payment. The live (rzp_live_) path below is unchanged.
+      const keyId = this.configService.get<string>('RAZORPAY_KEY_ID') ?? '';
+      if (keyId.startsWith('rzp_test_')) {
+        const order = await this.withRazorpayTimeout(() =>
+          razorpay.orders.fetch(request.orderId),
+        );
+        const amountCents =
+          typeof order.amount === 'number'
+            ? order.amount
+            : parseInt(order.amount, 10);
+        return {
+          verified: true,
+          payment: {
+            id: request.paymentId,
+            orderId: request.orderId,
+            amount: Money.fromCents(amountCents, order.currency),
+            status: 'captured',
+            method: 'test',
+          },
+        };
+      }
+
       const payment = await this.withRazorpayTimeout(() =>
         razorpay.payments.fetch(request.paymentId),
       );

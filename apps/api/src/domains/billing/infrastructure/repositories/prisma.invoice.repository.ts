@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — Prisma cursor pagination erases invoice card `select` payload typing
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
@@ -10,7 +9,6 @@ import {
   PaginatedResult,
 } from '@/domains/billing/core/repositories/invoice.repository';
 import { Prisma } from '@workspace/db';
-import { paginateWithCursor } from '@/shared/common/pagination.helper';
 import {
   INVOICE_CARD_SELECT,
   INVOICE_DETAIL_SELECT,
@@ -20,6 +18,10 @@ import { parseInvoiceListStatus } from '@/domains/billing/infrastructure/reposit
 type InvoiceListItemRow = Prisma.InvoiceGetPayload<{
   select: typeof INVOICE_CARD_SELECT;
 }>;
+
+function toInvoiceListItem(row: InvoiceListItemRow): InvoiceListItem {
+  return row;
+}
 
 const PATIENT_INVOICE_CONTEXT_SELECT = {
   id: true,
@@ -46,23 +48,6 @@ type PatientInvoiceContextRow = Prisma.PatientGetPayload<{
   select: typeof PATIENT_INVOICE_CONTEXT_SELECT;
 }>;
 
-function mergeInvoiceFindManyArgs(
-  args?: Record<string, unknown>,
-): Prisma.InvoiceFindManyArgs {
-  const base = args ?? {};
-  const { select: _select, include: _include, ...rest } = base;
-  return {
-    ...rest,
-    select: INVOICE_CARD_SELECT,
-  } satisfies Prisma.InvoiceFindManyArgs;
-}
-
-function mergeInvoiceCountArgs(args?: {
-  where?: Record<string, unknown>;
-}): Prisma.InvoiceCountArgs {
-  return { ...(args ?? {}) };
-}
-
 const getIndianFinancialYear = (date: Date): string => {
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
@@ -87,7 +72,16 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
   async findAll(
     params: InvoiceSearchParams,
   ): Promise<PaginatedResult<InvoiceListItem>> {
-    const { clinicId, patientId, status, date, search, cursor, limit } = params;
+    const {
+      clinicId,
+      patientId,
+      status,
+      statuses,
+      date,
+      search,
+      cursor,
+      limit,
+    } = params;
 
     if (!clinicId) {
       return { items: [], nextCursor: undefined, hasMore: false, count: 0 };
@@ -105,6 +99,8 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     const parsedStatus = parseInvoiceListStatus(status);
     if (parsedStatus) {
       filters.push({ status: parsedStatus });
+    } else if (statuses?.length) {
+      filters.push({ status: { in: statuses } });
     }
 
     if (date) {
@@ -136,23 +132,25 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     const where: Prisma.InvoiceWhereInput = { AND: filters };
 
     const readClient = this.getReadClient();
-
-    return paginateWithCursor<InvoiceListItemRow>({
-      model: {
-        findMany: async (args) => {
-          const rows = await readClient.invoice.findMany(
-            mergeInvoiceFindManyArgs(args),
-          );
-          return rows as unknown as InvoiceListItemRow[];
-        },
-        count: (args) => readClient.invoice.count(mergeInvoiceCountArgs(args)),
-      },
-      cursor,
-      limit: limit || 20,
+    const safeLimit = Math.min(limit || 20, 100);
+    const query = {
+      take: safeLimit + 1,
       where,
       orderBy: { createdAt: 'desc' },
-      select: undefined,
-    });
+      select: INVOICE_CARD_SELECT,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    } satisfies Prisma.InvoiceFindManyArgs;
+
+    const rows = await readClient.invoice.findMany(query);
+    const hasMore = rows.length > safeLimit;
+    const items = rows.slice(0, safeLimit).map(toInvoiceListItem);
+
+    return {
+      items,
+      nextCursor: hasMore ? items.at(-1)?.id : undefined,
+      hasMore,
+      count: items.length,
+    };
   }
 
   private invoiceOwnershipFilter(clinicId: string): Prisma.InvoiceWhereInput {

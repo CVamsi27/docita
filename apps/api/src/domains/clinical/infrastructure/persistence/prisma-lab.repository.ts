@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { labTestOrderResultJsonSchema } from '@workspace/types';
 import { parseStringEnumMember } from '@workspace/utils';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
@@ -6,9 +6,15 @@ import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-jso
 import { PrismaService } from '@/prisma/prisma.service';
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
-import { ILabRepository } from '@/domains/clinical/core/repositories/clinical.repository.interface';
+import {
+  ILabRepository,
+  LabOrderReleaseContext,
+  LabQueueItem,
+  LabRecord,
+} from '@/domains/clinical/core/repositories/clinical.repository.interface';
 import {
   LabTestOrderStatus,
+  LabType,
   Prisma,
   LabTest as PrismaLabTest,
   LabTestOrder as PrismaLabTestOrder,
@@ -25,6 +31,7 @@ export class PrismaLabRepository implements ILabRepository {
   async findAllTests(clinicId: string): Promise<LabTest[]> {
     const tests = await this.getReadClient().labTest.findMany({
       where: { clinicId },
+      take: 1000,
     });
     return tests.map((t) => this.mapToLabTest(t));
   }
@@ -87,6 +94,7 @@ export class PrismaLabRepository implements ILabRepository {
           ],
         },
         select: { id: true },
+        take: 500,
       });
       where.patientId = { in: matchingPatients.map((p) => p.id) };
     }
@@ -95,6 +103,7 @@ export class PrismaLabRepository implements ILabRepository {
       where,
       include: { labTest: true },
       orderBy: { createdAt: 'desc' },
+      take: 1000,
     });
 
     return orders.map((o) => this.mapToLabOrder(o));
@@ -116,11 +125,12 @@ export class PrismaLabRepository implements ILabRepository {
       patientId: order.patientId,
       appointmentId: order.appointmentId || null,
       labTestId: order.labTestId,
+      labId: order.labId || null,
       status: order.status,
       result: toPrismaInputJsonValue(order.result),
       resultUrl: order.resultUrl || null,
       notes: order.notes || null,
-      orderedBy: 'SYSTEM',
+      orderedBy: order.orderedBy || 'SYSTEM',
     };
 
     const saved = await this.prisma.labTestOrder.upsert({
@@ -164,7 +174,12 @@ export class PrismaLabRepository implements ILabRepository {
       const count = c._count;
       stats.total += count;
       if (c.status === 'ORDERED') stats.pending += count;
-      if (c.status === 'PENDING') stats.inProgress += count;
+      if (
+        c.status === 'PENDING' ||
+        c.status === 'SAMPLE_COLLECTED' ||
+        c.status === 'RESULT_READY'
+      )
+        stats.inProgress += count;
       if (c.status === 'COMPLETED') stats.completed += count;
     });
 
@@ -205,6 +220,264 @@ export class PrismaLabRepository implements ILabRepository {
       prismaOrder.notes || undefined,
       prismaOrder.createdAt,
       prismaOrder.updatedAt,
+      prismaOrder.labId || undefined,
+      prismaOrder.orderedBy || undefined,
+      prismaOrder.collectedAt || undefined,
+      prismaOrder.completedAt || undefined,
+      prismaOrder.resultUploadedBy || undefined,
+      prismaOrder.resultUploadedAt || undefined,
+      prismaOrder.paidAt || undefined,
+      prismaOrder.paymentVerifiedBy || undefined,
+      prismaOrder.paymentMethod || undefined,
+      prismaOrder.paymentReference || undefined,
+      prismaOrder.releasedAt || undefined,
     );
+  }
+
+  // --- Lab workspace workflow ---
+
+  async findLabQueue(
+    clinicId: string,
+    params?: { labId?: string; status?: string; search?: string },
+  ): Promise<LabQueueItem[]> {
+    const statusFilter = params?.status
+      ? parseStringEnumMember(Object.values(LabTestOrderStatus), params.status)
+      : undefined;
+
+    const where: Prisma.LabTestOrderWhereInput = {
+      clinicId,
+      ...(params?.labId && { labId: params.labId }),
+      ...(statusFilter && { status: statusFilter }),
+    };
+
+    if (params?.search) {
+      where.patient = {
+        is: {
+          OR: [
+            { firstName: { contains: params.search, mode: 'insensitive' } },
+            { lastName: { contains: params.search, mode: 'insensitive' } },
+          ],
+        },
+      };
+    }
+
+    const orders = await this.getReadClient().labTestOrder.findMany({
+      where,
+      include: {
+        labTest: { select: { id: true, name: true, specimenType: true } },
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 1000,
+    });
+
+    return orders.map((o) => ({
+      id: o.id,
+      clinicId: o.clinicId,
+      labId: o.labId,
+      status: o.status,
+      notes: o.notes,
+      resultUrl: o.resultUrl,
+      resultUploadedAt: o.resultUploadedAt,
+      collectedAt: o.collectedAt,
+      completedAt: o.completedAt,
+      paidAt: o.paidAt,
+      paymentMethod: o.paymentMethod,
+      releasedAt: o.releasedAt,
+      createdAt: o.createdAt,
+      patient: {
+        id: o.patient.id,
+        firstName: o.patient.firstName,
+        lastName: o.patient.lastName,
+        phoneNumber: o.patient.phoneNumber,
+      },
+      labTest: {
+        id: o.labTest.id,
+        name: o.labTest.name,
+        specimenType: o.labTest.specimenType,
+      },
+    }));
+  }
+
+  async findReleaseContext(
+    id: string,
+    clinicId: string,
+  ): Promise<LabOrderReleaseContext | null> {
+    const order = await this.getReadClient().labTestOrder.findFirst({
+      where: { id, clinicId },
+      include: {
+        labTest: { select: { name: true } },
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+            clinic: { select: { name: true } },
+          },
+        },
+      },
+    });
+
+    if (!order) return null;
+
+    return {
+      id: order.id,
+      clinicId: order.clinicId,
+      status: order.status,
+      resultUrl: order.resultUrl,
+      paidAt: order.paidAt,
+      testName: order.labTest.name,
+      clinicName: order.patient.clinic?.name ?? '',
+      patient: {
+        id: order.patient.id,
+        firstName: order.patient.firstName,
+        lastName: order.patient.lastName,
+        phoneNumber: order.patient.phoneNumber,
+      },
+    };
+  }
+
+  async markSampleCollected(
+    id: string,
+    clinicId: string,
+    notes: string | undefined,
+    now: Date,
+  ): Promise<void> {
+    await this.prisma.labTestOrder.updateMany({
+      where: { id, clinicId },
+      data: {
+        status: LabTestOrderStatus.SAMPLE_COLLECTED,
+        collectedAt: now,
+        ...(notes !== undefined && { notes }),
+      },
+    });
+  }
+
+  async attachResult(
+    id: string,
+    clinicId: string,
+    data: {
+      resultUrl: string;
+      result?: Record<string, unknown>;
+      notes?: string;
+      uploadedBy: string;
+    },
+    now: Date,
+  ): Promise<void> {
+    await this.prisma.labTestOrder.updateMany({
+      where: { id, clinicId },
+      data: {
+        status: LabTestOrderStatus.RESULT_READY,
+        resultUrl: data.resultUrl,
+        resultUploadedBy: data.uploadedBy,
+        resultUploadedAt: now,
+        ...(data.result !== undefined && {
+          result: toPrismaInputJsonValue(data.result),
+        }),
+        ...(data.notes !== undefined && { notes: data.notes }),
+      },
+    });
+  }
+
+  async verifyPayment(
+    id: string,
+    clinicId: string,
+    data: { method: string; reference?: string; verifiedBy: string },
+    now: Date,
+  ): Promise<void> {
+    await this.prisma.labTestOrder.updateMany({
+      where: { id, clinicId },
+      data: {
+        paidAt: now,
+        paymentVerifiedBy: data.verifiedBy,
+        paymentMethod: data.method,
+        ...(data.reference !== undefined && {
+          paymentReference: data.reference,
+        }),
+      },
+    });
+  }
+
+  async markReleased(id: string, clinicId: string, now: Date): Promise<void> {
+    await this.prisma.labTestOrder.updateMany({
+      where: { id, clinicId },
+      data: {
+        status: LabTestOrderStatus.COMPLETED,
+        releasedAt: now,
+        completedAt: now,
+      },
+    });
+  }
+
+  // --- Lab directory ---
+
+  async findAllLabs(clinicId: string): Promise<LabRecord[]> {
+    return await this.getReadClient().lab.findMany({
+      where: { clinicId },
+      orderBy: { createdAt: 'desc' },
+      take: 500,
+    });
+  }
+
+  async findLabById(id: string, clinicId: string): Promise<LabRecord | null> {
+    return await this.getReadClient().lab.findFirst({
+      where: { id, clinicId },
+    });
+  }
+
+  async createLab(
+    clinicId: string,
+    data: {
+      name: string;
+      type: LabType;
+      phone?: string;
+      email?: string;
+      address?: string;
+    },
+  ): Promise<LabRecord> {
+    return await this.prisma.lab.create({
+      data: {
+        clinicId,
+        name: data.name,
+        type: data.type,
+        phone: data.phone || null,
+        email: data.email || null,
+        address: data.address || null,
+      },
+    });
+  }
+
+  async updateLab(
+    id: string,
+    clinicId: string,
+    data: Partial<{
+      name: string;
+      type: LabType;
+      phone: string;
+      email: string;
+      address: string;
+      active: boolean;
+    }>,
+  ): Promise<LabRecord> {
+    const result = await this.prisma.lab.updateMany({
+      where: { id, clinicId },
+      data,
+    });
+    if (result.count === 0) {
+      throw new NotFoundException('Lab not found');
+    }
+    const updated = await this.findLabById(id, clinicId);
+    if (!updated) {
+      throw new NotFoundException('Lab not found');
+    }
+    return updated;
   }
 }

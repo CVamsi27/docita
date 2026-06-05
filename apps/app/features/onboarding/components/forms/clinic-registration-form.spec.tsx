@@ -38,7 +38,11 @@ vi.mock("@/features/onboarding/hooks/use-clinic-registration-flow", () => ({
     step: 1,
     formData: {
       clinicDetails: {},
-      planSelection: { tier: "CAPTURE", billingCycle: "MONTHLY", isCoreTrial: true },
+      planSelection: {
+        tier: "CAPTURE",
+        billingCycle: "MONTHLY",
+        isCoreTrial: true,
+      },
       compliance: {},
     },
     onboardingId: null,
@@ -49,6 +53,7 @@ vi.mock("@/features/onboarding/hooks/use-clinic-registration-flow", () => ({
     setPlanSelection: vi.fn(),
     setTeamMembers: vi.fn(),
     goBackFromCompliance: vi.fn(),
+    setComplianceDraft: vi.fn(),
     submitRegistration: vi.fn(),
   }),
 }));
@@ -73,7 +78,9 @@ describe("ClinicRegistrationForm", () => {
 
     render(<ClinicRegistrationForm onSuccess={vi.fn()} />);
 
-    expect(screen.getByText("Continue where you left off?")).toBeInTheDocument();
+    expect(
+      screen.getByText("Continue where you left off?"),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Start over" }));
 
     await waitFor(() => {

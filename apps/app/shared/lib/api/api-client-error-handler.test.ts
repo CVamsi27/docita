@@ -11,6 +11,16 @@ import {
 vi.mock("@/lib/errors/user-facing-errors", () => ({
   showUserFacingErrorToast: vi.fn(),
 }));
+vi.mock("@/lib/api/api-availability", () => ({
+  isApiAvailabilityError: vi.fn(
+    (error: { status?: number; code?: string; isNetworkError?: boolean }) =>
+      error.isNetworkError === true ||
+      error.code === "NETWORK_ERROR" ||
+      error.code === "TIMEOUT" ||
+      [502, 503, 504].includes(error.status ?? 0),
+  ),
+  markApiUnavailable: vi.fn(),
+}));
 
 describe("getRedirectPathForForbiddenCode", () => {
   it("routes inactive subscriptions to billing resolve", () => {
@@ -46,9 +56,8 @@ describe("handleApiClientError", () => {
   });
 
   it("returns immediately for 401 without toasts or redirects", async () => {
-    const { showUserFacingErrorToast } = await import(
-      "@/lib/errors/user-facing-errors"
-    );
+    const { showUserFacingErrorToast } =
+      await import("@/lib/errors/user-facing-errors");
     const assign = vi.fn();
     vi.stubGlobal("window", { location: { assign } });
 
@@ -59,21 +68,21 @@ describe("handleApiClientError", () => {
   });
 
   it("returns immediately for network and timeout errors", async () => {
-    const { showUserFacingErrorToast } = await import(
-      "@/lib/errors/user-facing-errors"
-    );
+    const { markApiUnavailable } = await import("@/lib/api/api-availability");
+    const { showUserFacingErrorToast } =
+      await import("@/lib/errors/user-facing-errors");
 
     await handleApiClientError({ isNetworkError: true, message: "offline" });
     await handleApiClientError({ code: "NETWORK_ERROR", message: "offline" });
     await handleApiClientError({ code: "TIMEOUT", message: "slow" });
 
     expect(showUserFacingErrorToast).not.toHaveBeenCalled();
+    expect(markApiUnavailable).toHaveBeenCalledTimes(3);
   });
 
   it("does not bounce to /login for CSRF errors mid-onboarding (no logout loop)", async () => {
-    const { showUserFacingErrorToast } = await import(
-      "@/lib/errors/user-facing-errors"
-    );
+    const { showUserFacingErrorToast } =
+      await import("@/lib/errors/user-facing-errors");
     const assign = vi.fn();
     vi.stubGlobal("window", {
       location: { assign, pathname: "/onboarding" },

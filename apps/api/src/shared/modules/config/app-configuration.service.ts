@@ -4,198 +4,20 @@ import {
   WORKER_JWT_MODULE_PLACEHOLDER_SECRET,
   getEnv,
 } from './app-config';
-
-const LOCALE_CURRENCY_MAP: Readonly<Record<string, string>> = {
-  'en-IN': 'INR',
-  'hi-IN': 'INR',
-  'en-US': 'USD',
-  'en-CA': 'CAD',
-  'en-GB': 'GBP',
-  'en-AU': 'AUD',
-  'en-NZ': 'NZD',
-  'en-SG': 'SGD',
-  'en-AE': 'AED',
-  'zh-CN': 'CNY',
-  'ja-JP': 'JPY',
-  'ko-KR': 'KRW',
-  'de-DE': 'EUR',
-  'fr-FR': 'EUR',
-  'es-ES': 'EUR',
-  'it-IT': 'EUR',
-  'pt-BR': 'BRL',
-  'ru-RU': 'RUB',
-  'ar-SA': 'SAR',
-  'tr-TR': 'TRY',
-};
-
-const COUNTRY_CURRENCY_MAP: Readonly<Record<string, string>> = {
-  IN: 'INR',
-  US: 'USD',
-  CA: 'CAD',
-  GB: 'GBP',
-  AU: 'AUD',
-  NZ: 'NZD',
-  SG: 'SGD',
-  AE: 'AED',
-  CN: 'CNY',
-  JP: 'JPY',
-  KR: 'KRW',
-  DE: 'EUR',
-  FR: 'EUR',
-  ES: 'EUR',
-  IT: 'EUR',
-  PT: 'EUR',
-  BR: 'BRL',
-  RU: 'RUB',
-  SA: 'SAR',
-  TR: 'TRY',
-};
-
-const DEFAULT_CURRENCY = 'INR';
-
-function parseHostname(value: string): string | null {
-  try {
-    return new URL(value).hostname.toLowerCase();
-  } catch {
-    return null;
-  }
-}
-
-/**
- * In development, email links must use http:// so they match the typical local
- * Next.js server. Production and staging keep the configured scheme (usually https).
- */
-function emailLinkBaseUrlFromAppUrl(
-  appUrl: string,
-  isDevelopment: boolean,
-): string {
-  const trimmed = appUrl.trim().replace(/\/+$/, '');
-  if (!isDevelopment) {
-    return trimmed;
-  }
-  try {
-    const parsed = new URL(
-      /^[a-zA-Z][a-zA-Z+\-.]*:\/\//.test(trimmed)
-        ? trimmed
-        : `http://${trimmed}`,
-    );
-    parsed.protocol = 'http:';
-    const path = parsed.pathname.replace(/\/+$/, '');
-    if (path && path !== '/') {
-      return `${parsed.origin}${path}`;
-    }
-    return parsed.origin;
-  } catch {
-    return trimmed;
-  }
-}
-
-function isIpAddress(hostname: string): boolean {
-  return /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname) || hostname.includes(':');
-}
-
-function resolveSharedCookieDomain(hostnames: string[]): string | undefined {
-  const normalizedHosts = hostnames
-    .map((hostname) => hostname.trim().toLowerCase())
-    .filter(Boolean);
-
-  if (normalizedHosts.length < 2) {
-    return undefined;
-  }
-
-  if (
-    normalizedHosts.some(
-      (hostname) => hostname === 'localhost' || isIpAddress(hostname),
-    )
-  ) {
-    return undefined;
-  }
-
-  const splitHosts = normalizedHosts.map((hostname) => hostname.split('.'));
-  const minLength = Math.min(...splitHosts.map((segments) => segments.length));
-  const sharedSegments: string[] = [];
-
-  for (let index = 1; index <= minLength; index += 1) {
-    const segment = splitHosts[0].at(-index);
-    if (!segment) {
-      break;
-    }
-
-    if (splitHosts.every((parts) => parts.at(-index) === segment)) {
-      sharedSegments.unshift(segment);
-      continue;
-    }
-
-    break;
-  }
-
-  if (sharedSegments.length < 2) {
-    return undefined;
-  }
-
-  return sharedSegments.join('.');
-}
-
-type ManagedDatabaseProvider =
-  | 'AWS RDS'
-  | 'Supabase'
-  | 'Neon'
-  | 'PlanetScale'
-  | 'Google Cloud SQL'
-  | 'Azure Database'
-  | 'Azure PostgreSQL'
-  | 'CockroachDB Cloud'
-  | 'Railway'
-  | 'Render';
-
-function resolveCurrencyFromLocale(acceptLanguage?: string): string {
-  if (!acceptLanguage) return DEFAULT_CURRENCY;
-
-  const parsed = acceptLanguage
-    .split(',')
-    .map((part) => part.trim().split(';')[0].trim())
-    .filter(Boolean);
-
-  for (const locale of parsed) {
-    if (LOCALE_CURRENCY_MAP[locale]) return LOCALE_CURRENCY_MAP[locale];
-
-    const country = locale.split('-')[1]?.toUpperCase();
-    if (country && COUNTRY_CURRENCY_MAP[country])
-      return COUNTRY_CURRENCY_MAP[country];
-  }
-
-  return DEFAULT_CURRENCY;
-}
-
-function detectManagedDatabaseProvider(
-  databaseUrl: string,
-): ManagedDatabaseProvider | null {
-  // Render injects RENDER=true on all services, including private-networking
-  // connections whose hostnames don't contain render.com.
-  if (process.env.RENDER === 'true') return 'Render';
-
-  const url = databaseUrl.toLowerCase();
-
-  const providers: Array<{ pattern: string; name: ManagedDatabaseProvider }> = [
-    { pattern: 'rds.amazonaws.com', name: 'AWS RDS' },
-    { pattern: 'supabase.co', name: 'Supabase' },
-    { pattern: 'neon.tech', name: 'Neon' },
-    { pattern: 'psdb.cloud', name: 'PlanetScale' },
-    { pattern: 'planetscale.com', name: 'PlanetScale' },
-    { pattern: 'cloudsql.googleapis.com', name: 'Google Cloud SQL' },
-    { pattern: 'database.azure.com', name: 'Azure Database' },
-    { pattern: 'postgres.database.azure.com', name: 'Azure PostgreSQL' },
-    { pattern: 'cockroachlabs.cloud', name: 'CockroachDB Cloud' },
-    { pattern: 'railway.app', name: 'Railway' },
-    { pattern: 'render.com', name: 'Render' },
-  ];
-
-  for (const { pattern, name } of providers) {
-    if (url.includes(pattern)) return name;
-  }
-
-  return null;
-}
+import { resolveCurrencyFromLocale } from './app-config-currency.helpers';
+import { emailLinkBaseUrlFromAppUrl } from './app-config-url.helpers';
+import {
+  getEmailSenderDomainFromEmail,
+  getJwtSecretFromConfig,
+  getRequiredRedisUrl,
+  getSharedCookieDomainFromConfig,
+  parseInternalAllowedEmails,
+  shouldBypassGuardForE2eConfig,
+} from './app-configuration-values';
+import {
+  detectManagedDatabaseProvider,
+  type ManagedDatabaseProvider,
+} from './managed-database-provider';
 
 @Injectable()
 export class AppConfigService {
@@ -207,10 +29,6 @@ export class AppConfigService {
     return this.getConfig().APP_URL;
   }
 
-  /**
-   * Base URL for links in outbound email (welcome, password reset, email verification).
-   * In development, always uses http:// regardless of APP_URL scheme.
-   */
   getEmailLinkBaseUrl(): string {
     return emailLinkBaseUrlFromAppUrl(
       this.getConfig().APP_URL,
@@ -227,32 +45,7 @@ export class AppConfigService {
   }
 
   getSharedCookieDomain(): string | undefined {
-    if (!this.isProduction()) {
-      return undefined;
-    }
-
-    const frontendHostname = parseHostname(this.getFrontendAppUrl());
-    const apiHostname = parseHostname(this.getApiUrl());
-    const appHostname = parseHostname(this.getAppUrl());
-
-    // Prefer deriving the shared cookie domain from the two hosts that must
-    // actually share browser-visible cookies (frontend + API). `APP_URL` may
-    // point at a provider URL in production, which would otherwise prevent
-    // us from computing a shared eTLD+1.
-    const frontendApiDomain = resolveSharedCookieDomain(
-      [frontendHostname, apiHostname].filter((hostname): hostname is string =>
-        Boolean(hostname),
-      ),
-    );
-    if (frontendApiDomain) {
-      return frontendApiDomain;
-    }
-
-    return resolveSharedCookieDomain(
-      [appHostname, frontendHostname, apiHostname].filter(
-        (hostname): hostname is string => Boolean(hostname),
-      ),
-    );
+    return getSharedCookieDomainFromConfig(this.getConfig());
   }
 
   getStorageProvider(): 'local' | 'r2' {
@@ -267,6 +60,12 @@ export class AppConfigService {
       secretAccessKey: config.R2_SECRET_ACCESS_KEY || '',
       bucketName: config.R2_BUCKET_NAME || '',
     };
+  }
+
+  getPublicDocumentSigningSecret(): string {
+    return (
+      this.getConfig().PUBLIC_DOCUMENT_SIGNING_SECRET ?? this.getJwtSecret()
+    );
   }
 
   getEnvironment(): 'development' | 'staging' | 'production' | 'test' {
@@ -293,15 +92,12 @@ export class AppConfigService {
     return this.getConfig().ALLOW_TEST_EMAIL_AUTOVERIFY;
   }
 
-  /** Non-production E2E bypass (global flag or per-request header). */
   shouldBypassGuardForE2e(e2eHeaderValue: string | undefined): boolean {
-    if (this.isProduction()) {
-      return false;
-    }
-    if (this.isApiE2eEnabled()) {
-      return true;
-    }
-    return e2eHeaderValue === 'true';
+    return shouldBypassGuardForE2eConfig({
+      isProduction: this.isProduction(),
+      apiE2eEnabled: this.isApiE2eEnabled(),
+      e2eHeaderValue,
+    });
   }
 
   getCptCatalogSource(): 'licensed' | 'nlm_hcpcs' {
@@ -410,11 +206,8 @@ export class AppConfigService {
     return this.getConfig().OPS_ALERT_WEBHOOK_URL ?? '';
   }
 
-  /** Domain of the sender address (from EMAIL_FROM); used to exclude our own address from suppression. */
   getEmailSenderDomain(): string {
-    const from = this.getConfig().EMAIL_FROM;
-    const match = from.match(/@([^>\s]+)/);
-    return (match?.[1] ?? '').trim().toLowerCase();
+    return getEmailSenderDomainFromEmail(this.getConfig().EMAIL_FROM);
   }
 
   getEmailFrom(): string {
@@ -457,32 +250,21 @@ export class AppConfigService {
     return this.getConfig().SECRETS_PROVIDER;
   }
 
-  /**
-   * Allowlist of emails permitted to authenticate as Role.INTERNAL.
-   * Returns lowercased entries. Empty array means no restriction (legacy).
-   */
   getInternalAllowedEmails(): string[] {
-    const raw = this.getConfig().INTERNAL_ALLOWED_EMAILS;
-    if (!raw) return [];
-    return raw
-      .split(',')
-      .map((s) => s.trim().toLowerCase())
-      .filter((s) => s.length > 0);
+    return parseInternalAllowedEmails(this.getConfig().INTERNAL_ALLOWED_EMAILS);
   }
 
   getJwtSecret(): string {
     const config = this.getConfig();
-    if (config.JWT_SECRET) {
-      return config.JWT_SECRET;
-    }
-    if (config.WORKER_ENTRYPOINT === 'worker') {
-      return WORKER_JWT_MODULE_PLACEHOLDER_SECRET;
-    }
-    throw new Error('JWT_SECRET is required for API runtime');
+    return getJwtSecretFromConfig({
+      jwtSecret: config.JWT_SECRET,
+      workerEntrypoint: config.WORKER_ENTRYPOINT,
+      workerPlaceholderSecret: WORKER_JWT_MODULE_PLACEHOLDER_SECRET,
+    });
   }
 
   getJwtExpiration(): string {
-    return this.getConfig().JWT_EXPIRATION || '30d';
+    return this.getConfig().JWT_EXPIRATION ?? '15m';
   }
 
   getTurnstileSecretKey(): string | undefined {
@@ -533,11 +315,7 @@ export class AppConfigService {
   }
 
   getRedisUrl(): string {
-    const redisUrl = this.getConfig().REDIS_URL;
-    if (!redisUrl) {
-      throw new Error('REDIS_URL is required when CACHE_BACKEND=redis');
-    }
-    return redisUrl;
+    return getRequiredRedisUrl(this.getConfig().REDIS_URL);
   }
 
   getDoctorVerificationConfig() {

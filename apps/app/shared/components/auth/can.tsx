@@ -2,7 +2,7 @@
 
 import React, { type ReactNode } from "react";
 import type { Feature, UserRole } from "@workspace/types";
-import { type Permission, hasPermission } from "@/lib/auth/permissions";
+import { type Permission, hasPermission, ROLE_HIERARCHY } from "@/lib/auth/permissions";
 import { useAuth } from "@/lib/auth/auth-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 
@@ -19,17 +19,10 @@ export interface CanProps {
   fallback?: ReactNode;
 }
 
-const ROLE_HIERARCHY: Record<UserRole, number> = {
-  INTERNAL: 5,
-  ADMIN: 4,
-  ADMIN_DOCTOR: 3,
-  DOCTOR: 2,
-  NURSE: 1.5,
-  RECEPTIONIST: 1,
-  PATIENT: 0,
-};
-
-function meetsRole(userRole: UserRole | undefined, required: UserRole): boolean {
+function meetsRole(
+  userRole: UserRole | undefined,
+  required: UserRole,
+): boolean {
   if (!userRole) return false;
   return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[required];
 }

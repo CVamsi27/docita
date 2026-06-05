@@ -1,4 +1,5 @@
 import { Role } from '@workspace/db';
+import { isFrontDeskTier } from '@workspace/types';
 import { type ClinicPersistencePort } from '@/domains/clinics/application/ports/clinic-persistence.port';
 
 export type ClinicMemberRole =
@@ -6,7 +7,8 @@ export type ClinicMemberRole =
   | 'NURSE'
   | 'RECEPTIONIST'
   | 'ADMIN'
-  | 'ADMIN_DOCTOR';
+  | 'ADMIN_DOCTOR'
+  | 'LAB';
 
 /** Clinic admins (ADMIN / ADMIN_DOCTOR) may assign any allowed clinic member role. */
 export const actorMayAssignMemberRoles = (
@@ -19,6 +21,7 @@ export function mapClinicMemberRoleToPrisma(role: ClinicMemberRole): Role {
   if (role === 'NURSE') return Role.NURSE;
   if (role === 'RECEPTIONIST') return Role.RECEPTIONIST;
   if (role === 'ADMIN') return Role.ADMIN;
+  if (role === 'LAB') return Role.LAB;
   return Role.ADMIN_DOCTOR;
 }
 
@@ -30,7 +33,7 @@ export async function isClinicFrontDesk(
     where: { id: clinicId },
     select: { tier: true },
   });
-  return clinic?.tier === 'FRONT_DESK';
+  return isFrontDeskTier(clinic?.tier);
 }
 
 export interface CreateDoctorData {
@@ -60,6 +63,7 @@ export interface CreateClinicMemberData {
   specialization?: string;
   qualification?: string;
   registrationNumber?: string;
+  labId?: string;
 }
 
 export interface UpdateMemberData {
@@ -67,6 +71,7 @@ export interface UpdateMemberData {
   email?: string;
   phoneNumber?: string;
   role?: ClinicMemberRole;
+  labId?: string;
   specialization?: string;
   qualification?: string;
   registrationNumber?: string;

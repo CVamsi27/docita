@@ -116,37 +116,24 @@ export class Invoice {
   }
 
   addItem(item: InvoiceItem): void {
-    if (!this.status.isDraft()) {
-      throw new InvariantViolationError('Can only add items to draft invoices');
+    if (!this.status.isPending()) {
+      throw new InvariantViolationError(
+        'Can only add items to pending invoices',
+      );
     }
     this.items.push(item);
   }
 
   removeItem(itemId: string): void {
-    if (!this.status.isDraft()) {
+    if (!this.status.isPending()) {
       throw new InvariantViolationError(
-        'Can only remove items from draft invoices',
+        'Can only remove items from pending invoices',
       );
     }
     this.items = this.items.filter((item) => item.id !== itemId);
     if (this.items.length === 0) {
       throw new InvariantViolationError('Invoice must have at least one item');
     }
-  }
-
-  issue(now: Date): void {
-    this.status = this.status.transitionTo(InvoiceStatusEnum.ISSUED);
-    this.touchUpdatedAt(now);
-  }
-
-  send(now: Date): void {
-    this.status = this.status.transitionTo(InvoiceStatusEnum.SENT);
-    this.touchUpdatedAt(now);
-  }
-
-  markAsViewed(now: Date): void {
-    this.status = this.status.transitionTo(InvoiceStatusEnum.VIEWED);
-    this.touchUpdatedAt(now);
   }
 
   markAsPaid(now: Date): void {
@@ -172,11 +159,6 @@ export class Invoice {
     this.touchUpdatedAt(now);
   }
 
-  convertToCredit(now: Date): void {
-    this.status = this.status.transitionTo(InvoiceStatusEnum.CREDIT_MEMO);
-    this.touchUpdatedAt(now);
-  }
-
   transitionTo(targetStatus: InvoiceStatusEnum, now: Date): void {
     if (!this.status.canTransitionTo(targetStatus)) {
       throw new InvariantViolationError(
@@ -185,17 +167,15 @@ export class Invoice {
     }
 
     const transitions: Record<InvoiceStatusEnum, () => void> = {
-      [InvoiceStatusEnum.DRAFT]: () => {
-        throw new InvariantViolationError('Use issue() from draft');
+      [InvoiceStatusEnum.PENDING]: () => {
+        throw new InvariantViolationError(
+          'Use markAsPaid(), markAsPartiallyPaid(), markAsOverdue(), or cancel() from pending',
+        );
       },
-      [InvoiceStatusEnum.ISSUED]: () => this.issue(now),
-      [InvoiceStatusEnum.SENT]: () => this.send(now),
-      [InvoiceStatusEnum.VIEWED]: () => this.markAsViewed(now),
       [InvoiceStatusEnum.PAID]: () => this.markAsPaid(now),
       [InvoiceStatusEnum.PARTIALLY_PAID]: () => this.markAsPartiallyPaid(now),
       [InvoiceStatusEnum.OVERDUE]: () => this.markAsOverdue(now),
       [InvoiceStatusEnum.CANCELLED]: () => this.cancel(now),
-      [InvoiceStatusEnum.CREDIT_MEMO]: () => this.convertToCredit(now),
     };
 
     transitions[targetStatus]();
@@ -206,7 +186,7 @@ export class Invoice {
   }
 
   canBeEdited(): boolean {
-    return this.status.isDraft();
+    return this.status.isPending();
   }
 
   getItems(): InvoiceItem[] {

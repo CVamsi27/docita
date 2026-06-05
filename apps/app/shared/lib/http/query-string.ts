@@ -5,11 +5,8 @@ export type QueryParams = Record<string, QueryValue>;
 const isEmpty = (value: string): boolean => value.trim().length === 0;
 
 const toStringValue = (value: QueryPrimitive): string | null => {
-  if (value === null || value === undefined) return null;
-  if (value instanceof Date) return value.toISOString();
-  const stringValue = String(value);
-  if (isEmpty(stringValue)) return null;
-  return stringValue;
+  const stringValue = value instanceof Date ? value.toISOString() : value == null ? null : String(value);
+  return stringValue === null || isEmpty(stringValue) ? null : stringValue;
 };
 
 export const toQueryString = (params?: QueryParams): string => {
@@ -38,27 +35,25 @@ export const toQueryString = (params?: QueryParams): string => {
 };
 
 export function omitEmptyQueryParams(params: QueryParams): QueryParams {
-  const result: QueryParams = {};
+  return Object.fromEntries(
+    Object.entries(params).flatMap(([key, rawValue]) => {
+      const normalized = queryValueOrUndefined(rawValue);
+      return normalized === undefined ? [] : [[key, normalized]];
+    }),
+  );
+}
 
-  for (const [key, rawValue] of Object.entries(params)) {
-    if (rawValue === undefined || rawValue === null || rawValue === "") {
-      continue;
-    }
+function hasQueryValue(value: QueryPrimitive): boolean {
+  return value !== undefined && value !== null && value !== "";
+}
 
-    if (Array.isArray(rawValue)) {
-      const entries = rawValue.filter(
-        (entry) => entry !== undefined && entry !== null && entry !== "",
-      );
-      if (entries.length > 0) {
-        result[key] = entries;
-      }
-      continue;
-    }
-
-    result[key] = rawValue;
+function queryValueOrUndefined(rawValue: QueryParams[string]): QueryParams[string] | undefined {
+  if (!Array.isArray(rawValue)) {
+    return hasQueryValue(rawValue) ? rawValue : undefined;
   }
 
-  return result;
+  const entries = rawValue.filter(hasQueryValue);
+  return entries.length > 0 ? entries : undefined;
 }
 
 export const withQueryString = (path: string, params?: QueryParams): string => {

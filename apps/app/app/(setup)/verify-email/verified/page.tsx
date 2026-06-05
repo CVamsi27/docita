@@ -37,15 +37,15 @@ export default function VerifyEmailVerifiedPage() {
             className="absolute inset-0 scale-110 rounded-full bg-success/20 blur-md"
           />
           <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-success/25 bg-success/[0.1] text-success shadow-sm">
-            <CheckCircle2 className="h-8 w-8" strokeWidth={1.5} aria-hidden="true" />
+            <CheckCircle2
+              className="h-8 w-8"
+              strokeWidth={1.5}
+              aria-hidden="true"
+            />
           </div>
         </div>
         <div className="space-y-1.5">
-          <h1
-            className="ui-section-title"
-            role="status"
-            aria-live="polite"
-          >
+          <h1 className="ui-section-title" role="status" aria-live="polite">
             Email verified
           </h1>
           <p className="ui-page-subtitle">

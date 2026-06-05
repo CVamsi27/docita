@@ -1,25 +1,25 @@
-import bcrypt from "bcrypt";
-import prisma from "@workspace/db";
+import bcrypt from 'bcrypt';
+import prisma from '@workspace/db';
 
 function readPhoneNumber(): string {
   const raw = process.env.PORTAL_E2E_PHONE?.trim();
   if (!raw) {
-    throw new Error("PORTAL_E2E_PHONE is required");
+    throw new Error('PORTAL_E2E_PHONE is required');
   }
 
-  const digits = raw.replace(/\D/g, "");
+  const digits = raw.replace(/\D/g, '');
   if (digits.length === 10) {
     return `+91${digits}`;
   }
-  if (digits.length === 12 && digits.startsWith("91")) {
+  if (digits.length === 12 && digits.startsWith('91')) {
     return `+${digits}`;
   }
-  return raw.startsWith("+") ? raw : `+${digits}`;
+  return raw.startsWith('+') ? raw : `+${digits}`;
 }
 
 async function main() {
   const phoneNumber = readPhoneNumber();
-  const otp = process.env.PORTAL_E2E_OTP?.trim() || "123456";
+  const otp = process.env.PORTAL_E2E_OTP?.trim() || '123456';
   const otpHash = await bcrypt.hash(otp, 10);
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
   const now = new Date();

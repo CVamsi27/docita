@@ -1,9 +1,18 @@
 "use client";
 
 import { Building2, Clock, Globe, Mail, MapPin, Phone } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
-import { bookingCardClass, bookingSectionHeaderBar, bookingSectionShell } from "./booking-constants";
+import {
+  bookingCardClass,
+  bookingSectionHeaderBar,
+  bookingSectionShell,
+} from "./booking-constants";
 import { cn } from "@workspace/ui/lib/utils";
 import type { PublicBookingClinicResponse } from "@workspace/types";
 
@@ -22,7 +31,12 @@ export function ClinicContactCard({
 
   return (
     <Card
-      className={cn(bookingCardClass, bookingSectionShell, "flex flex-col", className)}
+      className={cn(
+        bookingCardClass,
+        bookingSectionShell,
+        "flex flex-col",
+        className,
+      )}
     >
       <CardHeader className={cn(bookingSectionHeaderBar, "py-3.5 sm:py-4")}>
         <div className="flex items-start gap-3">

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { planModeSchema } from "../billing/tier";
-import { clinicTypeSchema } from "./users";
+import { clinicTypeSchema, facilityTypeSchema } from "./users";
 import { jsonObjectSchema } from "./json-schema";
 
 export const ClinicTier = z.enum(["FREE", "CAPTURE", "GROWTH", "ENTERPRISE"]);
@@ -42,6 +42,7 @@ export const clinicSchema = z.object({
   tier: z.string().or(ClinicTier),
   planMode: planModeSchema.optional(),
   type: z.string().or(clinicTypeSchema),
+  facilityType: facilityTypeSchema.optional(),
   settings: jsonObjectSchema.nullable().optional(),
   timezone: z.string(),
   locale: z.string(),

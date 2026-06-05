@@ -3,6 +3,9 @@ import { patientSchema } from "../patient/patients";
 import { dosageFormSchema, sigCodeSchema } from "./medical";
 import { stripHtmlTags } from "../api/sanitization";
 
+export const prescriptionStatusSchema = z.enum(["ACTIVE", "COMPLETED"]);
+export type PrescriptionStatus = z.infer<typeof prescriptionStatusSchema>;
+
 export const embeddedMedicationSchema = z.object({
   name: z.string().max(255),
   dosage: z.string().max(100),

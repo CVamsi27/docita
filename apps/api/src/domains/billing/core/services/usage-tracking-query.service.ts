@@ -8,13 +8,13 @@ import {
   getAiCreditAllotment,
   type SupportedCurrency,
 } from '@workspace/types';
-import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
 import {
   buildUsageWarning,
   resolveClinicTierPlan,
   resolveSupportedCurrency,
   resolveTierName,
 } from '@/domains/billing/core/services/usage-tracking-tier.util';
+import { getWhatsappBillableConfig } from '@/domains/billing/core/services/pricing-helpers';
 
 @Injectable()
 export class UsageTrackingQueryService {
@@ -123,20 +123,8 @@ export class UsageTrackingQueryService {
       subscription?.includedAppointments ?? tierLimits.appointments ?? 0;
     const includedUsers = subscription?.includedUsers ?? tierLimits.users ?? 1;
     const tierRates = TIER_OVERAGE_RATES_BY_CURRENCY[resolvedCurrency][tierKey];
-    const whatsappEligibleTier =
-      tierKey === 'ESSENTIAL' ||
-      tierKey === 'FRONT_DESK' ||
-      tierKey === 'PROFESSIONAL' ||
-      tierKey === 'ENTERPRISE'
-        ? tierKey
-        : null;
-    const whatsappPlan = whatsappEligibleTier
-      ? getWhatsAppAddonPricingByCurrency(
-          whatsappEligibleTier,
-          resolvedCurrency,
-        )
-      : null;
-    const includedWhatsapp = whatsappPlan?.includedQuota ?? 0;
+    const whatsappConfig = getWhatsappBillableConfig(tierKey, resolvedCurrency);
+    const includedWhatsapp = whatsappConfig.includedQuota;
     const aiCreditAllotment = getAiCreditAllotment(tierKey);
     const includedAiCredits = aiCreditAllotment ?? 0;
     const aiCreditRate = 0;
@@ -160,7 +148,7 @@ export class UsageTrackingQueryService {
     const rates = {
       consultations: tierRates.appointmentRate,
       users: tierRates.userRate,
-      whatsappMessages: whatsappPlan?.overageRate ?? 0,
+      whatsappMessages: whatsappConfig?.overageRate ?? 0,
       aiCredits: aiCreditRate,
     };
     const breakdown = {

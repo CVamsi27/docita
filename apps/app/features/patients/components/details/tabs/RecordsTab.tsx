@@ -27,7 +27,7 @@ export function RecordsTab({ patient, canEditPatient }: RecordsTabProps) {
             {isEditing ? (
               <>
                 <Check className="h-3.5 w-3.5 mr-1.5" />
-                Save
+                Done
               </>
             ) : (
               <>

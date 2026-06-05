@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/form/select";
 import { Textarea } from "@workspace/ui/components/form/textarea";
 import { MicButton } from "@workspace/ui/components/form/mic-button";
+import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { Activity, Trash2 } from "lucide-react";
 import type { ChiefComplaintItem } from "./chief-complaint.types";
 
@@ -45,7 +46,7 @@ export function ChiefComplaintItemRow({
 
   return (
     <div
-      className={`space-y-3 rounded-[var(--radius)] border p-3 transition-colors ${
+      className={`space-y-3 rounded-[var(--radius-md)] border p-3 transition-colors duration-150 ${
         isPrimary
           ? "border-primary/30 bg-primary/5"
           : "border-border/70 bg-card hover:bg-muted/20"
@@ -54,9 +55,12 @@ export function ChiefComplaintItemRow({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
-            <div className="rounded-full bg-background p-1.5 text-primary shadow-sm">
-              <Activity className="h-4 w-4" />
-            </div>
+            <CategoryAvatar
+              icon={<Activity />}
+              tone="primary"
+              size="sm"
+              aria-label="Complaint"
+            />
             <span className="text-sm font-semibold">
               {isPrimary
                 ? "Primary complaint"
@@ -108,6 +112,7 @@ export function ChiefComplaintItemRow({
               isListening={isListening}
               isSupported={isSupported}
               onClick={onMicToggle}
+              withLabel
             />
           ) : null}
         </div>
@@ -140,7 +145,9 @@ export function ChiefComplaintItemRow({
             className="h-11 bg-background"
           />
           {!readOnly && hasComplaint && !isDurationValid ? (
-            <p className="text-sm text-warning">Duration must be greater than 0.</p>
+            <p className="text-sm text-warning">
+              Duration must be greater than 0.
+            </p>
           ) : null}
         </div>
 

@@ -34,8 +34,8 @@ export function TrialOfferBanner({
               <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
             </p>
             <p className="text-muted-foreground">
-              Review tiers below and choose monthly or yearly billing. Paid plans
-              activate after checkout is completed.
+              Review tiers below and choose monthly or yearly billing. Paid
+              plans activate after checkout is completed.
             </p>
           </div>
         </div>

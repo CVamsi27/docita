@@ -61,7 +61,9 @@ export function AppointmentRequestsPanel() {
                 onApprove={panel.handleApprove}
                 onReject={panel.handleReject}
                 isMutating={panel.isMutating}
-                approveFieldErrors={panel.approveFieldErrorsByRequest[request.id]}
+                approveFieldErrors={
+                  panel.approveFieldErrorsByRequest[request.id]
+                }
                 onClearApproveFieldErrors={() =>
                   panel.setApproveFieldErrorsByRequest((prev) => {
                     if (!(request.id in prev)) return prev;
@@ -83,7 +85,9 @@ export function AppointmentRequestsPanel() {
             size="sm"
             onClick={() => panel.setShowPastRequests((v) => !v)}
           >
-            {panel.showPastRequests ? "Hide past requests" : "View past requests"}
+            {panel.showPastRequests
+              ? "Hide past requests"
+              : "View past requests"}
           </Button>
           {panel.showPastRequests ? (
             <div className="mt-3">
@@ -101,7 +105,10 @@ export function AppointmentRequestsPanel() {
               >
                 <div className="space-y-2">
                   {panel.pastRequests.map((request) => (
-                    <AppointmentRequestPastRow key={request.id} request={request} />
+                    <AppointmentRequestPastRow
+                      key={request.id}
+                      request={request}
+                    />
                   ))}
                 </div>
               </DataState>

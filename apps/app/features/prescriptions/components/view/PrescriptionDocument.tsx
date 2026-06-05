@@ -1,7 +1,12 @@
-import { Card, CardContent, CardHeader } from "@workspace/ui/components/indicators/card";
-import { formatDate } from "@workspace/utils";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from "@workspace/ui/components/indicators/card";
+import { formatDate, getPatientFullName } from "@workspace/utils";
 import type { Medication, Patient } from "@workspace/types";
 import { formatGenderLabel } from "@/lib/formatters";
+import { SUPPORT_EMAIL } from "@/lib/constants/support-contact";
 
 interface DoctorInfo {
   name?: string;
@@ -40,7 +45,7 @@ export function PrescriptionDocument({
   const doctorName = doctorInfo?.name ?? "";
 
   const patientName = prescription.patient
-    ? `${prescription.patient.firstName} ${prescription.patient.lastName}`
+    ? getPatientFullName(prescription.patient)
     : "Patient";
 
   const patientAge = prescription.patient?.dateOfBirth
@@ -87,7 +92,7 @@ export function PrescriptionDocument({
                 {!clinicInfo?.email && (
                   <span className="flex items-center gap-1">
                     <span className="opacity-70">Support:</span>{" "}
-                    support@docita.work
+                    {SUPPORT_EMAIL}
                   </span>
                 )}
               </div>
@@ -154,7 +159,7 @@ export function PrescriptionDocument({
                   <span className="font-bold text-primary">{index + 1}</span>
                   <div className="flex-1">
                     <p className="font-semibold text-base">{med.name}</p>
-                    <div className="grid grid-cols-3 gap-2 mt-1 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-1 text-sm print:grid-cols-3">
                       <div>
                         <span className="text-muted-foreground">Dosage: </span>
                         <span className="font-medium">{med.dosage}</span>
@@ -223,7 +228,7 @@ export function PrescriptionDocument({
           <p className="font-medium">
             This is a digitally generated prescription
           </p>
-          <p>Prescription support: support@docita.work</p>
+          <p>Prescription support: {SUPPORT_EMAIL}</p>
           <p>
             Valid for dispensing within 30 days from the date of issue unless
             otherwise specified

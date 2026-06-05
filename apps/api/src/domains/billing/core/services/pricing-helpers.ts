@@ -120,7 +120,7 @@ function parseStringArray(value: unknown): string[] {
   return parsed.filter((item) => item.length > 0);
 }
 
-function getWhatsappBillableConfig(
+export function getWhatsappBillableConfig(
   tier: keyof typeof TIER_LIMITS,
   currency: SupportedCurrency,
 ): { includedQuota: number; overageRate: number } {

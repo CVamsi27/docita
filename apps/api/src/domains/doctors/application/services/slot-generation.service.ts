@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Prisma } from '@workspace/db';
-import { fromLocalISOString } from '@workspace/utils';
+import { DEFAULT_TIMEZONE, fromLocalISOString } from '@workspace/utils';
 import {
   DOCTOR_PERSISTENCE_PORT,
   type DoctorPersistencePort,
@@ -200,6 +200,6 @@ export class SlotGenerationService {
       select: { timezone: true },
     });
     const tz = row?.timezone?.trim();
-    return tz || 'Asia/Kolkata';
+    return tz || DEFAULT_TIMEZONE;
   }
 }

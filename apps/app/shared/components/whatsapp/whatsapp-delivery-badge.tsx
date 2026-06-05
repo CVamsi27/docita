@@ -4,6 +4,7 @@ import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
 import { Check, CheckCheck, Clock, RefreshCw, Send, X } from "lucide-react";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import {
   formatDate,
   DATE_FORMATS,
@@ -73,15 +74,16 @@ export function WhatsAppDeliveryBadge({
 
   return (
     <div className={`inline-flex items-center gap-2 ${className ?? ""}`}>
-      <Badge
-        variant={config.variant}
-        className="inline-flex items-center gap-1.5"
-        title={tooltip}
-      >
-        <Icon className="h-3.5 w-3.5" aria-hidden />
-        WhatsApp · {config.label}
-      </Badge>
-      {state === "failed" && onRetry ? (
+      <SymbolTooltip label={tooltip}>
+        <Badge
+          variant={config.variant}
+          className="inline-flex items-center gap-1.5"
+        >
+          <Icon className="h-3.5 w-3.5" aria-hidden />
+          WhatsApp · {config.label}
+        </Badge>
+      </SymbolTooltip>
+      {(state === "failed" || state === "unknown") && onRetry ? (
         <Button
           type="button"
           variant="outline"
@@ -92,10 +94,12 @@ export function WhatsAppDeliveryBadge({
         >
           {isRetrying ? (
             <DocitaLoadingIndicator variant="inline" decorative />
-          ) : (
+          ) : state === "failed" ? (
             <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+          ) : (
+            <Send className="h-3.5 w-3.5" aria-hidden />
           )}
-          Retry
+          {state === "failed" ? "Retry" : "Send"}
         </Button>
       ) : null}
     </div>

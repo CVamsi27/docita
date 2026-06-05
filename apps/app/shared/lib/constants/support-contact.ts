@@ -1,4 +1,5 @@
 export const SUPPORT_EMAIL = "support@docita.work";
+export const ADMIN_EMAIL = "admin@docita.work";
 
 /** Prefilled text when users open WhatsApp for general product help. */
 export const SUPPORT_WHATSAPP_MESSAGE_DEFAULT =

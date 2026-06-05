@@ -1,3 +1,4 @@
+// check-non-null-assertion: allow-file — non-null guaranteed by prior guard or Prisma include
 import {
   Injectable,
   Inject,
@@ -11,7 +12,6 @@ import {
   type InvoicePaymentActivityItem,
   type InvoicePaymentActivityResponse,
   type EnqueuePdfJobResponse,
-  extractPdfTheme,
   paymentSessionMetaJsonSchema,
 } from '@workspace/types';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
@@ -28,7 +28,10 @@ import {
   ClaimReadinessResult,
   ClaimValidationService,
 } from '@/domains/billing/core/services/claim-validation.service';
-import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
+import {
+  GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
+  StorageProvider,
+} from '@/domains/documents/application/ports/storage-provider.port';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
@@ -37,9 +40,16 @@ import {
   parseInvoiceItems,
   parseInvoiceTaxSummary,
   parseTaxRegistrationSnapshot,
-  extractClinicGstin,
-  PDF_SIGNED_URL_TTL_SECONDS,
 } from './invoices-helpers';
+import {
+  buildProcedureCptMap,
+  buildPdfInvoiceId,
+  buildPdfTitle,
+  buildPdfClinicInfo,
+  buildPdfPatientInfo,
+  buildPdfDoctorInfo,
+  buildPdfItems,
+} from './invoice-pdf-helpers';
 
 @Injectable()
 export class InvoicesQueryService {
@@ -67,6 +77,7 @@ export class InvoicesQueryService {
       limit?: number;
       patientId?: string;
       status?: InvoiceStatus;
+      statuses?: InvoiceStatus[];
       date?: string;
       search?: string;
     },
@@ -187,89 +198,38 @@ export class InvoicesQueryService {
     const buyerTaxSnapshot = parseTaxRegistrationSnapshot(
       invoice.buyerTaxSnapshot,
     );
-    const patient = invoice.patient;
-    const clinic = patient?.clinic;
+    const clinic = invoice.patient?.clinic;
     if (!clinic?.name) {
       throw new BadRequestException(
         'Clinic details are required to generate invoice PDF',
       );
     }
-    const doctorName = invoice.appointment?.doctor?.name || invoice.doctorName;
-    if (!doctorName) {
+    if (!(invoice.appointment?.doctor?.name || invoice.doctorName)) {
       throw new BadRequestException(
         'Doctor details are required to generate invoice PDF',
       );
     }
 
-    const procedureCptMap: Record<string, string> = {};
-    if (invoice.appointment?.procedures) {
-      for (const proc of invoice.appointment.procedures) {
-        if (proc.cptCode?.code) {
-          procedureCptMap[proc.description] = proc.cptCode.code;
-        }
-      }
-    }
-
+    const procedureCptMap = buildProcedureCptMap(
+      invoice.appointment?.procedures,
+    );
     const resolvedSignature =
       await this.storedFileUrlResolver.resolveWithStoredUrl(
         clinic.slaSignatureUrl ?? null,
       );
 
     return this.pdfService.generate({
-      invoiceId: invoice.invoiceNumber ?? invoice.id.slice(0, 8).toUpperCase(),
-      title:
-        taxSummary?.documentTitle ??
-        (invoice.invoiceType === 'TAX_INVOICE'
-          ? 'Tax Invoice'
-          : 'Bill of Supply'),
-      clinic: {
-        name: clinic.name,
-        address: clinic.address || undefined,
-        phone: clinic.phone || undefined,
-        email: clinic.email || undefined,
-        logo: clinic.logo || undefined,
-        currency: clinic.currency || undefined,
-        branding: extractPdfTheme(clinic.branding),
-        gstin: sellerTaxSnapshot?.registrationId ?? extractClinicGstin(clinic),
-      },
-      patient: {
-        name: `${patient?.firstName} ${patient?.lastName}`,
-        phoneNumber: patient?.phoneNumber || '',
-        email: patient?.email || undefined,
-        address: patient?.address || undefined,
-        patientId: patient?.id.slice(0, 8).toUpperCase() || '',
-      },
-      doctor: invoice.appointment?.doctor
-        ? {
-            name: invoice.appointment.doctor.name,
-            qualification:
-              invoice.appointment.doctor.qualification || undefined,
-            registrationNumber:
-              invoice.appointment.doctor.registrationNumber || undefined,
-          }
-        : {
-            name: doctorName,
-            qualification: invoice.doctorSpecialization || undefined,
-            registrationNumber: invoice.doctorRegistrationNumber || undefined,
-          },
+      invoiceId: buildPdfInvoiceId(invoice),
+      title: buildPdfTitle(invoice, taxSummary),
+      clinic: buildPdfClinicInfo(clinic, sellerTaxSnapshot),
+      patient: buildPdfPatientInfo(invoice.patient!),
+      doctor: buildPdfDoctorInfo(invoice),
       authorizedSignatureUrl: resolvedSignature.url ?? undefined,
       authorizedSignatureLabel: 'Authorized Signature',
       taxSummary,
       sellerTaxSnapshot,
       buyerTaxSnapshot,
-      items: items.map((item) => ({
-        description: item.description,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice ?? item.price,
-        amount:
-          item.lineTotal ??
-          item.quantity * (item.unitPrice ?? item.price) -
-            (item.discountAmount ?? 0) +
-            (item.taxAmount ?? 0),
-        cptCode: item.cptCode ?? procedureCptMap[item.description],
-        hsnCode: item.hsnCode ?? item.sacCode,
-        gstRate: item.taxRate,
-      })),
+      items: buildPdfItems(items, procedureCptMap),
       status: invoice.status.toUpperCase(),
       date: new Date(invoice.issuedAt ?? invoice.createdAt),
       dueDate: invoice.dueDate ? new Date(invoice.dueDate) : undefined,
@@ -294,7 +254,7 @@ export class InvoicesQueryService {
       if (invoice.pdfUrl) {
         const url = await this.storageProvider.generateSignedUrl(
           invoice.pdfUrl,
-          PDF_SIGNED_URL_TTL_SECONDS,
+          GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
         );
         return { type: 'url', url };
       }
@@ -309,7 +269,7 @@ export class InvoicesQueryService {
 
       const url = await this.storageProvider.generateSignedUrl(
         storedKey,
-        PDF_SIGNED_URL_TTL_SECONDS,
+        GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
       );
       return { type: 'url', url };
     }

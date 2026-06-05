@@ -244,10 +244,16 @@ export class PublicBookingCreationService {
           startTime: a.startTime.toISOString(),
           endTime: a.endTime.toISOString(),
           doctorName: a.doctor.name,
-          status: a.status,
+          status: normalizeBookingStatus(a.status),
         })),
         patientSince: patient?.createdAt.toISOString(),
       };
     });
   }
+}
+
+function normalizeBookingStatus(prismaStatus: string): string {
+  const normalized = prismaStatus.toLowerCase().replace(/_/g, '-');
+  if (normalized === 'rescheduling') return 'confirmed';
+  return normalized;
 }

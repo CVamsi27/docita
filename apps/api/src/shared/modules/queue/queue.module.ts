@@ -10,9 +10,10 @@ import { WorkerMetricsService } from './worker-metrics.service';
 import { DlqController } from './dlq.controller';
 import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 import type { IClock } from '@/shared/common/ports/clock.port';
+import { DocumentsModule } from '@/domains/documents/documents.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, DocumentsModule],
   controllers: [DlqController],
   providers: [
     WorkerMetricsService,

@@ -8,7 +8,12 @@ import {
   WHATSAPP_REPOSITORY_TOKEN,
 } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
-import { DATE_FORMATS, formatDate, formatTime } from '@workspace/utils';
+import {
+  DATE_FORMATS,
+  formatDate,
+  formatTime,
+  getPatientFullName,
+} from '@workspace/utils';
 import {
   buildInvoiceCreatedVariables,
   buildPrescriptionCreatedVariables,
@@ -53,7 +58,7 @@ export class WhatsAppAutomationService {
       templateName: 'prescription_created',
       variables: buildPrescriptionCreatedVariables({
         prescriptionId,
-        patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
+        patientName: getPatientFullName(prescription.patient),
         doctorName: prescription.doctor.name,
         clinicName: prescription.appointment?.clinic?.name ?? '',
       }),
@@ -83,7 +88,7 @@ export class WhatsAppAutomationService {
       templateName: 'invoice_created',
       variables: buildInvoiceCreatedVariables({
         invoiceId,
-        patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
+        patientName: getPatientFullName(invoice.patient),
         clinicName: invoice.appointment?.clinic?.name ?? '',
         amount: invoice.total,
         currency: invoice.currency ?? invoice.appointment?.clinic?.currency,
@@ -115,7 +120,7 @@ export class WhatsAppAutomationService {
       recipientPhone: appointment.patient.phoneNumber,
       templateName: 'appointment_confirmation',
       variables: {
-        patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
+        patientName: getPatientFullName(appointment.patient),
         clinicName: appointment.clinic?.name ?? '',
         doctorName: appointment.doctor.name,
         date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM),
@@ -153,7 +158,7 @@ export class WhatsAppAutomationService {
       recipientPhone: appointment.patient.phoneNumber,
       templateName,
       variables: {
-        patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
+        patientName: getPatientFullName(appointment.patient),
         clinicName: appointment.clinic?.name ?? '',
         date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM),
         time: formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM),

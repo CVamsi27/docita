@@ -1,6 +1,6 @@
 "use client";
 
-import type { Invoice } from "@workspace/types";
+import type { InvoiceListRow } from "@workspace/types";
 import { Button } from "@workspace/ui/components/form/button";
 import { Label } from "@workspace/ui/components/form/label";
 import { Textarea } from "@workspace/ui/components/form/textarea";
@@ -28,7 +28,7 @@ import {
 } from "./desk-collect-payment-helpers";
 
 export interface RecordPaymentDialogProps {
-  dialogInvoice: Invoice | null;
+  dialogInvoice: InvoiceListRow | null;
   paymentMethod: DeskPaymentMethod;
   reference: string;
   notes: string;
@@ -63,12 +63,23 @@ export function RecordPaymentDialog({
           <MicroLabel className="text-muted-foreground">Desk</MicroLabel>
           <DialogTitle>Record desk payment</DialogTitle>
           <DialogDescription>
-            {dialogInvoice
-              ? `${dialogInvoice.invoiceNumber ? `Invoice #${dialogInvoice.invoiceNumber}` : "Invoice"} · ${formatMoney(dialogInvoice.total ?? dialogInvoice.grandTotal)}`
-              : ""}
+            Record a manual payment collected at the front desk. The full invoice
+            amount will be marked as paid.
           </DialogDescription>
         </DialogHeader>
         <DialogBody>
+          {dialogInvoice ? (
+            <div className="rounded-md border border-border bg-muted/40 px-3 py-2.5">
+              <p className="text-[var(--fs-xs)] text-muted-foreground">
+                {dialogInvoice.invoiceNumber
+                  ? `Invoice #${dialogInvoice.invoiceNumber}`
+                  : `Invoice ${dialogInvoice.id?.slice(0, 8)}`}
+              </p>
+              <p className="text-[var(--fs-lg)] font-semibold">
+                {formatMoney(dialogInvoice.total ?? dialogInvoice.grandTotal)}
+              </p>
+            </div>
+          ) : null}
           <div className="space-y-2">
             <Label htmlFor="desk-channel" className="text-[var(--fs-xs)]">
               Payment method

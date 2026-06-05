@@ -2,12 +2,10 @@
 
 import { useMemo } from "react";
 import { Feature, Tier } from "@workspace/types";
-import {
-  FeatureGate,
-  TierGate,
-} from "@/components/auth/feature-gate";
+import { FeatureGate, TierGate } from "@/components/auth/feature-gate";
 
 import { useQueue, type QueueItem } from "@workspace/data-access";
+import { DEFAULT_SLOT_DURATION } from "@workspace/utils";
 import {
   isQueueTokenCompleted,
   isQueueTokenInProgress,
@@ -17,11 +15,10 @@ import { getOpdQueueSummaryLine } from "@/features/consultation";
 import {
   DeskFloorPanelUI,
   type DeskFloorCurrent,
-  type DeskFloorRow,
 } from "./DeskFloorPanelUI";
+import type { DeskFloorRow } from "./DeskFloorPanelUISections";
 
 const RECENTLY_COMPLETED_LIMIT = 6;
-const DEFAULT_SLOT_MINUTES = 15;
 
 function patientNameOf(item: QueueItem): string {
   const first = item.patient?.firstName?.trim() ?? "";
@@ -81,7 +78,8 @@ export function DeskFloorPanelContainer() {
         }
       : null;
 
-    const slotMinutes = inProgressItems[0]?.estimatedDuration || DEFAULT_SLOT_MINUTES;
+    const slotMinutes =
+      inProgressItems[0]?.estimatedDuration || DEFAULT_SLOT_DURATION;
     const avgWaitMinutes =
       waiting.length > 0 ? waiting.length * slotMinutes : null;
 
@@ -99,18 +97,18 @@ export function DeskFloorPanelContainer() {
   return (
     <TierGate tier={Tier.HOSPITAL} showLockedCard>
       <FeatureGate feature={Feature.QUEUE_MANAGEMENT} showLockedCard>
-    <DeskFloorPanelUI
-      current={view.current}
-      waiting={view.waiting}
-      recentlyCompleted={view.recentlyCompleted}
-      waitingCount={view.waitingCount}
-      inProgressCount={view.inProgressCount}
-      completedCount={view.completedCount}
-      avgWaitMinutes={view.avgWaitMinutes}
-      isLoading={isLoading}
-      isError={isError}
-      onRetry={() => void refetch()}
-    />
+        <DeskFloorPanelUI
+          current={view.current}
+          waiting={view.waiting}
+          recentlyCompleted={view.recentlyCompleted}
+          waitingCount={view.waitingCount}
+          inProgressCount={view.inProgressCount}
+          completedCount={view.completedCount}
+          avgWaitMinutes={view.avgWaitMinutes}
+          isLoading={isLoading}
+          isError={isError}
+          onRetry={() => void refetch()}
+        />
       </FeatureGate>
     </TierGate>
   );

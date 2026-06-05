@@ -5,9 +5,9 @@
  * Excludes logical `!`, `!=`, `!==`, and `!!`.
  */
 
-import { execSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import process from "node:process";
+import { listSourceFiles } from "../lib/list-source-files.mjs";
 
 const MAX_ASSERTIONS_PER_FILE = 0;
 const ALLOW_FILE = "check-non-null-assertion: allow-file";
@@ -23,15 +23,7 @@ const roots = [
   "packages/utils/src",
 ];
 
-const files = roots
-  .flatMap((root) =>
-    execSync(`git ls-files '${root}'`, { encoding: "utf8" })
-      .split("\n")
-      .filter(Boolean),
-  )
-  .filter((file) => /\.(ts|tsx)$/.test(file))
-  .filter((file) => !/\.(spec|test)\.[tj]sx?$/.test(file))
-  .filter((file) => existsSync(file));
+const files = listSourceFiles(roots);
 
 const findings = [];
 

@@ -1,16 +1,8 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Sparkles } from "lucide-react";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@workspace/ui/components/feedback/alert";
-import { cn } from "@workspace/ui/lib/utils";
 import { recommendTierForTeamSize } from "@workspace/utils";
 import {
   OnboardingStepBody,
@@ -18,25 +10,37 @@ import {
   OnboardingStepFooter,
   OnboardingStepHeader,
 } from "@/features/onboarding/components/shared";
-import { type TierPricing, usePricingConfig } from "@/features/subscription";
+import { type TierPricing, usePricingConfig, getFeatureDetails } from "@/features/subscription";
 import { ContactSalesModal } from "@/features/dialogs";
-import { TierCard, getFeatureDetails } from "@/features/subscription";
 import {
   getAllFeaturesUpToTier,
-  PLAN_LIMITS,
   getTierInfo,
   getTierValue,
 } from "@/lib/subscription/tier-access";
-import { tierSchema } from "@workspace/types";
+import {
+  Tier,
+  applyModeToPricing,
+  planModeSchema,
+  tierSchema,
+  type PlanMode,
+} from "@workspace/types";
+import { getTierName } from "@workspace/utils";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription";
 import {
   DISPLAY_TIERS,
   PLAN_AUDIENCE,
   buildTierCardConfig,
-  BillingCycleToggle,
+  getEnterpriseContactMessage,
+  getPricingRegionLabel,
   PlanComparisonCollapsible,
 } from "./plan-selection-step-helpers";
+import {
+  PlanSelectionLoading,
+  PlanSelectionError,
+  TeamRecommendationAlert,
+  PlanModeBar,
+  TierCardGrid,
+} from "./plan-selection-step-sections";
 import type { PlanSelectionProps } from "./plan-selection-step.types";
 
 export function PlanSelectionStepInner({
@@ -56,9 +60,18 @@ export function PlanSelectionStepInner({
     }
     return defaultTier;
   });
-  const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "YEARLY">(
-    defaultBillingCycle,
-  );
+  const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "YEARLY">(() => {
+    const billingParam = searchParams.get("billing")?.toUpperCase();
+    return billingParam === "YEARLY" || billingParam === "MONTHLY"
+      ? billingParam
+      : defaultBillingCycle;
+  });
+  const [selectedMode, setSelectedMode] = useState<PlanMode>(() => {
+    const parsed = planModeSchema.safeParse(
+      searchParams.get("mode")?.toUpperCase(),
+    );
+    return parsed.success ? parsed.data : "FULL";
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
@@ -91,8 +104,8 @@ export function PlanSelectionStepInner({
     };
   });
 
-  const handleSelectTier = async (tier: string) => {
-    if (tier === "ENTERPRISE") {
+  const handleSelectTier = async (tier: string, mode: PlanMode) => {
+    if (tier === getTierName(Tier.ENTERPRISE)) {
       setShowContactSalesModal(true);
       return;
     }
@@ -108,12 +121,16 @@ export function PlanSelectionStepInner({
       resolvedCurrency,
       pricingConfig?.tiers ?? [],
     );
-    const pricingPayload = tierPricingFromApi?.pricing ?? cardPricing;
+    const pricingPayload = applyModeToPricing(
+      tierPricingFromApi?.pricing ?? cardPricing,
+      mode,
+    );
 
     setIsSubmitting(true);
     try {
       await onSelect(tier, billingCycle, pricingPayload, {
         currency: resolvedCurrency,
+        mode,
       });
     } finally {
       setIsSubmitting(false);
@@ -131,149 +148,47 @@ export function PlanSelectionStepInner({
   );
 
   if (isLoading) {
-    return (
-      <OnboardingStepCard>
-        {stepHeader}
-        <OnboardingStepBody
-          className="flex flex-col items-center justify-center gap-3 py-12 sm:flex-row"
-          role="status"
-          aria-live="polite"
-          aria-label="Loading pricing"
-        >
-          <DocitaLoadingIndicator
-            variant="section"
-            withStatusRole={false}
-            iconClassName="h-8 w-8 text-muted-foreground"
-          />
-          <span className="text-sm text-muted-foreground">
-            Loading pricing…
-          </span>
-        </OnboardingStepBody>
-      </OnboardingStepCard>
-    );
+    return <PlanSelectionLoading stepHeader={stepHeader} />;
   }
 
   if (error || !pricingConfig) {
-    return (
-      <OnboardingStepCard>
-        {stepHeader}
-        <OnboardingStepBody className="py-8 text-center">
-          <p className="text-muted-foreground">
-            We could not load pricing right now. Please try again shortly.
-          </p>
-        </OnboardingStepBody>
-      </OnboardingStepCard>
-    );
+    return <PlanSelectionError stepHeader={stepHeader} />;
   }
 
-  const pricingRegionLabel =
-    resolvedCurrency === "INR"
-      ? "India-competitive pricing"
-      : "Premium international pricing";
-
-  const enterpriseContactMessage = `Hi Docita Sales Team,
-
-I am interested in the Enterprise plan from onboarding.
-
-Selected tier: Enterprise
-Billing preference: ${billingCycle}
-
-Please contact me with deployment and commercial details.`;
+  const enterpriseContactMessage = getEnterpriseContactMessage(billingCycle);
 
   return (
-    <OnboardingStepCard>
+    <OnboardingStepCard wide>
       {stepHeader}
       <OnboardingStepBody className="space-y-6">
         <p className="text-xs text-muted-foreground">
-          {pricingRegionLabel} for facilities in{" "}
+          {getPricingRegionLabel(resolvedCurrency)} for facilities in{" "}
           {pricingConfig.currency.code === "INR" ? "India" : "your region"}.
         </p>
-        {teamRecommendation ? (
-          <Alert>
-            <AlertTitle>Recommended for your team</AlertTitle>
-            <AlertDescription>
-              You are setting up{" "}
-              <span className="font-medium text-foreground">
-                {teamRecommendation.totalUsers}{" "}
-                {teamRecommendation.totalUsers === 1 ? "user" : "users"}
-              </span>{" "}
-              (including you).{" "}
-              <span className="font-medium text-foreground">
-                {getTierInfo(getTierValue(teamRecommendation.tier)).name}
-              </span>{" "}
-              includes up to {teamRecommendation.includedUsers} users and is the
-              smallest plan that covers your team.
-            </AlertDescription>
-          </Alert>
-        ) : null}
 
-        <BillingCycleToggle
+        <TeamRecommendationAlert teamRecommendation={teamRecommendation} />
+
+        <PlanModeBar
+          selectedMode={selectedMode}
           billingCycle={billingCycle}
-          onChange={setBillingCycle}
+          onModeChange={setSelectedMode}
+          onBillingCycleChange={setBillingCycle}
         />
 
-        <div className="flex flex-wrap justify-center gap-4">
-          {featuresByTier.map(({ tierName, tier, info, features }) => {
-            const { cardPricing, currencySymbol, overageHint, buttonLabel } =
-              buildTierCardConfig(
-                tierName,
-                resolvedCurrency,
-                pricingConfig.tiers,
-              );
-
-            return (
-              <div
-                key={tier}
-                className={cn(
-                  "relative flex w-full max-w-[22rem] flex-col sm:max-w-[24rem]",
-                  tierName === "ESSENTIAL" && "order-first md:order-none",
-                )}
-              >
-                {tierName === "ESSENTIAL" ? (
-                  <Badge className="absolute -top-2 left-4 z-10 bg-success text-success-foreground">
-                    Popular
-                  </Badge>
-                ) : null}
-                <TierCard
-                  tier={tier}
-                  info={info}
-                  features={features}
-                  isCurrentTier={false}
-                  isLocked={false}
-                  isRecommended={teamRecommendation?.tier === tierName}
-                  className={cn(
-                    "h-full",
-                    selectedTier === tierName &&
-                      "border-primary ring-2 ring-primary/20 shadow-lg",
-                  )}
-                  keyHighlights={PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ?? []}
-                  pricing={cardPricing}
-                  billingCycle={billingCycle}
-                  currencySymbol={currencySymbol}
-                  overageHint={overageHint}
-                  buttonLabel={buttonLabel}
-                  maxDisplay={8}
-                  usageHints={
-                    PLAN_LIMITS[tierName]
-                      ? {
-                          patients: PLAN_LIMITS[tierName].patients,
-                          users: PLAN_LIMITS[tierName].users,
-                        }
-                      : undefined
-                  }
-                  onSelect={
-                    isSubmitting
-                      ? undefined
-                      : () => {
-                          setSelectedTier(tierName);
-                          void handleSelectTier(tierName);
-                        }
-                  }
-                />
-              </div>
-            );
-          })}
-        </div>
+        <TierCardGrid
+          featuresByTier={featuresByTier}
+          pricingConfigTiers={pricingConfig.tiers}
+          resolvedCurrency={resolvedCurrency}
+          selectedTier={selectedTier}
+          selectedMode={selectedMode}
+          billingCycle={billingCycle}
+          teamRecommendation={teamRecommendation}
+          isSubmitting={isSubmitting}
+          onSelectCard={(tier, mode) => {
+            setSelectedTier(tier);
+            void handleSelectTier(tier, mode);
+          }}
+        />
 
         <PlanComparisonCollapsible
           open={comparisonOpen}

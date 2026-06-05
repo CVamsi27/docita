@@ -1,6 +1,9 @@
 "use client";
 
-import { StatGrid, type StatItem } from "@workspace/ui/components/data-display/stat-grid";
+import {
+  StatGrid,
+  type StatItem,
+} from "@workspace/ui/components/data-display/stat-grid";
 import { formatCountLocale } from "@workspace/utils";
 import { CalendarCheck2, CheckCircle2, Clock, Users } from "lucide-react";
 

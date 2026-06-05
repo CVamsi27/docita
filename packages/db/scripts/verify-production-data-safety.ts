@@ -172,50 +172,52 @@ async function getOutboxConstraints() {
 
 async function main() {
   const mode = readMode();
-  const failures: string[] = [];
+  const evidence = await collectSafetyEvidence(mode);
+  const failures = mode === "post" ? validateSafetyEvidence(evidence) : [];
+  const report = buildSafetyReport(mode, evidence, failures);
+
+  process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+  if (failures.length > 0) process.exitCode = 1;
+}
+
+async function collectSafetyEvidence(mode: ReturnType<typeof readMode>) {
+  return {
+    rowCounts: await collectRowCounts(),
+    versionEvidence: await collectVersionEvidence(mode),
+    migrations: await getCurrentMigrationStatus(),
+    invoiceCents: await collectInvoiceCentsEvidence(mode),
+    outbox: await collectOutboxEvidence(),
+  };
+}
+
+async function collectRowCounts(): Promise<Record<string, number>> {
   const rowCounts: Record<string, number> = {};
+  for (const table of TRACKED_VERSION_TABLES) {
+    rowCounts[table] = await countRows(table);
+  }
+  return rowCounts;
+}
+
+async function collectVersionEvidence(mode: ReturnType<typeof readMode>) {
   const versionColumns: Record<string, VersionColumnRow | null> = {};
   const versionStats: Record<
     string,
     { total: number; nullVersions: number; minVersion: number } | null
   > = {};
+  for (const table of TRACKED_VERSION_TABLES) {
+    const column = await getVersionColumn(table);
+    versionColumns[table] = column;
+    versionStats[table] =
+      mode === "post" && column ? await getVersionStats(table) : null;
+  }
+  return { versionColumns, versionStats };
+}
+
+async function collectInvoiceCentsEvidence(mode: ReturnType<typeof readMode>) {
   const invoiceCents: Record<
     string,
     { column: ColumnRow | null; nullRows: number | null }
   > = {};
-
-  for (const table of TRACKED_VERSION_TABLES) {
-    rowCounts[table] = await countRows(table);
-    const column = await getVersionColumn(table);
-    versionColumns[table] = column;
-
-    if (mode === "post") {
-      if (!column) {
-        failures.push(`${table}.version column is missing`);
-        versionStats[table] = null;
-        continue;
-      }
-      if (column.is_nullable !== "NO") {
-        failures.push(`${table}.version must be NOT NULL`);
-      }
-      if (!column.column_default?.includes("1")) {
-        failures.push(`${table}.version must default to 1`);
-      }
-
-      const stats = await getVersionStats(table);
-      versionStats[table] = stats;
-      if (stats.nullVersions !== 0) {
-        failures.push(
-          `${table}.version contains ${stats.nullVersions} NULL rows`,
-        );
-      }
-      if (stats.total > 0 && stats.minVersion < 1) {
-        failures.push(`${table}.version contains values below 1`);
-      }
-    }
-  }
-
-  const migrations = await getCurrentMigrationStatus();
   for (const columnName of INVOICE_CENTS_COLUMNS) {
     const column = await getColumn("Invoice", columnName);
     invoiceCents[columnName] = {
@@ -226,64 +228,120 @@ async function main() {
           : null,
     };
   }
-  const outbox = {
+  return invoiceCents;
+}
+
+async function collectOutboxEvidence() {
+  return {
     exists: await outboxTableExists(),
     indexes: await getOutboxIndexes(),
     constraints: await getOutboxConstraints(),
   };
+}
 
-  if (mode === "post") {
-    for (const migration of CURRENT_MIGRATIONS) {
-      const row = migrations.find((item) => item.migration_name === migration);
-      if (!row?.finished || row.rolled_back) {
-        failures.push(`${migration} is not marked as successfully applied`);
-      }
-    }
+function validateSafetyEvidence(
+  evidence: Awaited<ReturnType<typeof collectSafetyEvidence>>,
+): string[] {
+  const failures: string[] = [];
+  validateVersionEvidence(evidence.versionEvidence, failures);
+  validateCurrentMigrations(evidence.migrations, failures);
+  validateInvoiceCentsEvidence(evidence.invoiceCents, failures);
+  validateOutboxEvidence(evidence.outbox, failures);
+  return failures;
+}
 
-    for (const [columnName, evidence] of Object.entries(invoiceCents)) {
-      if (!evidence.column) {
-        failures.push(`Invoice.${columnName} column is missing`);
-        continue;
-      }
-      if (evidence.column.is_nullable !== "NO") {
-        failures.push(`Invoice.${columnName} must be NOT NULL`);
-      }
-      if (!evidence.column.column_default?.includes("0")) {
-        failures.push(`Invoice.${columnName} must default to 0`);
-      }
-      if (evidence.nullRows !== 0) {
-        failures.push(
-          `Invoice.${columnName} contains ${evidence.nullRows} NULL rows`,
-        );
-      }
+function validateVersionEvidence(
+  evidence: Awaited<ReturnType<typeof collectVersionEvidence>>,
+  failures: string[],
+): void {
+  for (const table of TRACKED_VERSION_TABLES) {
+    const column = evidence.versionColumns[table];
+    const stats = evidence.versionStats[table];
+    if (!column) {
+      failures.push(`${table}.version column is missing`);
+      continue;
     }
-
-    if (!outbox.exists) {
-      failures.push("OutboxEvent table is missing");
+    if (column.is_nullable !== "NO")
+      failures.push(`${table}.version must be NOT NULL`);
+    if (!column.column_default?.includes("1")) {
+      failures.push(`${table}.version must default to 1`);
     }
-    for (const indexName of REQUIRED_OUTBOX_INDEXES) {
-      if (!outbox.indexes.includes(indexName)) {
-        failures.push(`OutboxEvent index/constraint ${indexName} is missing`);
-      }
+    if (stats?.nullVersions !== 0) {
+      failures.push(
+        `${table}.version contains ${stats?.nullVersions} NULL rows`,
+      );
+    }
+    if (stats && stats.total > 0 && stats.minVersion < 1) {
+      failures.push(`${table}.version contains values below 1`);
     }
   }
+}
 
-  const report = {
+function validateCurrentMigrations(
+  migrations: Awaited<ReturnType<typeof getCurrentMigrationStatus>>,
+  failures: string[],
+): void {
+  for (const migration of CURRENT_MIGRATIONS) {
+    const row = migrations.find((item) => item.migration_name === migration);
+    if (!row?.finished || row.rolled_back) {
+      failures.push(`${migration} is not marked as successfully applied`);
+    }
+  }
+}
+
+function validateInvoiceCentsEvidence(
+  invoiceCents: Awaited<ReturnType<typeof collectInvoiceCentsEvidence>>,
+  failures: string[],
+): void {
+  for (const [columnName, evidence] of Object.entries(invoiceCents)) {
+    if (!evidence.column) {
+      failures.push(`Invoice.${columnName} column is missing`);
+      continue;
+    }
+    if (evidence.column.is_nullable !== "NO") {
+      failures.push(`Invoice.${columnName} must be NOT NULL`);
+    }
+    if (!evidence.column.column_default?.includes("0")) {
+      failures.push(`Invoice.${columnName} must default to 0`);
+    }
+    if (evidence.nullRows !== 0) {
+      failures.push(
+        `Invoice.${columnName} contains ${evidence.nullRows} NULL rows`,
+      );
+    }
+  }
+}
+
+function validateOutboxEvidence(
+  outbox: Awaited<ReturnType<typeof collectOutboxEvidence>>,
+  failures: string[],
+): void {
+  if (!outbox.exists) failures.push("OutboxEvent table is missing");
+  for (const indexName of REQUIRED_OUTBOX_INDEXES) {
+    if (!outbox.indexes.includes(indexName)) {
+      failures.push(`OutboxEvent index/constraint ${indexName} is missing`);
+    }
+  }
+}
+
+function buildSafetyReport(
+  mode: ReturnType<typeof readMode>,
+  evidence: Awaited<ReturnType<typeof collectSafetyEvidence>>,
+  failures: string[],
+) {
+  return {
     status: failures.length === 0 ? "PASSED" : "FAILED",
     mode,
     generatedAt: new Date().toISOString(),
     note: "Non-PHI production data safety evidence. Counts and metadata only.",
-    rowCounts,
-    versionColumns,
-    versionStats,
-    invoiceCents,
-    migrations,
-    outbox,
+    rowCounts: evidence.rowCounts,
+    versionColumns: evidence.versionEvidence.versionColumns,
+    versionStats: evidence.versionEvidence.versionStats,
+    invoiceCents: evidence.invoiceCents,
+    migrations: evidence.migrations,
+    outbox: evidence.outbox,
     failures,
   };
-
-  process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
-  if (failures.length > 0) process.exitCode = 1;
 }
 
 main()

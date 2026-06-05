@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle } from "lucide-react";
-import { getUserFacingErrorMessage } from "@workspace/utils";
+import type { PlanMode } from "@workspace/types";
 import { useClinicRegistrationFlow } from "@/features/onboarding/hooks/use-clinic-registration-flow";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
@@ -23,24 +22,21 @@ import {
   defaultComplianceValues,
 } from "@/features/onboarding/components/types";
 import {
-  Alert,
-  AlertDescription,
-} from "@workspace/ui/components/feedback/alert";
-import { Button } from "@workspace/ui/components/form/button";
-import {
   DEFAULT_COUNTRY_CODE,
   getFacilityLabel,
   recommendTierForTeamSize,
 } from "@workspace/utils";
 
 import {
-  DRAFT_KEY,
-  getMissingClinicDetailsForProgress,
+  withStepErrorHandling,
 } from "./clinic-registration-form-helpers";
 import { useOnboardingDraft } from "./use-onboarding-draft";
 import {
+  ComplianceDraftWatcher,
   DraftRestoreDialog,
   OnboardingProgressCard,
+  StepErrorAlert,
+  StepGuard,
 } from "./clinic-registration-form-sections";
 
 export function ClinicRegistrationForm({
@@ -64,6 +60,7 @@ export function ClinicRegistrationForm({
     setPlanSelection,
     setTeamMembers,
     goBackFromCompliance,
+    setComplianceDraft,
     submitRegistration,
   } = useClinicRegistrationFlow();
 
@@ -125,109 +122,61 @@ export function ClinicRegistrationForm({
     setClinicDetails(data);
   };
 
-  const handleSetPlanSelection = async (
+  const handleSetPlanSelection = (
     tier: string,
     billingCycle: "MONTHLY" | "YEARLY",
     pricing: { monthly: number | "custom"; yearly: number | "custom" },
     options?: {
       currency?: string;
+      mode?: PlanMode;
     },
-  ) => {
-    setStepError(null);
+  ) => withStepErrorHandling(
+    () => setPlanSelection(tier, billingCycle, pricing, { ...options, currency }),
+    setStepError,
+    "We could not continue with this plan right now. Please try again.",
+    "save",
+  );
 
-    const price = billingCycle === "YEARLY" ? pricing.yearly : pricing.monthly;
-    const clinicGstin = clinicForm.getValues("gstin");
-    const isIndianCurrency = currency === "INR";
-    const isPaidPlan = typeof price === "number" && price > 0;
-
-    if (isIndianCurrency && isPaidPlan && !clinicGstin?.trim()) {
-      setStepError(
-        "Add your GSTIN in Facility Details before charging a paid Indian plan. We need it for GST invoices.",
-      );
-      return;
-    }
-
-    try {
-      await setPlanSelection(tier, billingCycle, pricing, {
-        ...options,
-        currency,
-      });
-    } catch (error) {
-      setStepError(
-        getUserFacingErrorMessage(error, {
-          fallback:
-            "We could not continue with this plan right now. Please try again.",
-          context: "save",
-        }),
-      );
-    }
-  };
-
-  const handleSetTeamMembers = async (
+  const handleSetTeamMembers = (
     members: Parameters<typeof setTeamMembers>[0],
-  ) => {
-    setStepError(null);
-    try {
-      await setTeamMembers(members);
-    } catch (error) {
-      setStepError(
-        getUserFacingErrorMessage(error, {
-          fallback: "We could not continue setup. Please try again.",
-          context: "save",
-        }),
-      );
-    }
-  };
+  ) => withStepErrorHandling(
+    () => setTeamMembers(members),
+    setStepError,
+    "We could not continue setup. Please try again.",
+    "save",
+  );
 
-  const handleSkipTeamStep = async () => {
-    setStepError(null);
-    try {
-      await setTeamMembers([]);
-    } catch (error) {
-      setStepError(
-        getUserFacingErrorMessage(error, {
-          fallback: "We could not continue setup. Please try again.",
-          context: "save",
-        }),
-      );
-    }
-  };
+  const handleSkipTeamStep = () => withStepErrorHandling(
+    () => setTeamMembers([]),
+    setStepError,
+    "We could not continue setup. Please try again.",
+    "save",
+  );
 
-  const handleSubmitRegistration = async (
+  const handleSubmitRegistration = (
     data: ComplianceSettings,
     successCallback: () => void,
-  ) => {
-    setStepError(null);
-    try {
-      await submitRegistration(data, successCallback);
-    } catch (error) {
-      setStepError(
-        getUserFacingErrorMessage(error, {
-          fallback:
-            "We could not complete setup. Please check your details and try again.",
-          context: "form",
-        }),
-      );
-    }
-  };
-
-  // Guard: restart if required clinic data is missing while past step 1
-  useEffect(() => {
-    if (step <= 1) return;
-    const missingClinicData = getMissingClinicDetailsForProgress(
-      formData.clinicDetails,
-    );
-    if (missingClinicData.length === 0) return;
-
-    restartOnboarding();
-    localStorage.removeItem(DRAFT_KEY);
-    setStepError(
-      `Onboarding progress was incomplete (${missingClinicData.join(", ")}), so we started over from Step 1`,
-    );
-  }, [formData.clinicDetails, restartOnboarding, step]);
+  ) => withStepErrorHandling(
+    () => submitRegistration(data, successCallback),
+    setStepError,
+    "We could not complete setup. Please check your details and try again.",
+    "form",
+  );
 
   return (
     <div className="space-y-6">
+      <ComplianceDraftWatcher
+        complianceForm={complianceForm}
+        setComplianceDraft={setComplianceDraft}
+      />
+
+      <StepGuard
+        step={step}
+        formData={formData}
+        restartOnboarding={restartOnboarding}
+        setStepError={setStepError}
+      />
+
       <DraftRestoreDialog
         open={showDraftDialog}
         onOpenChange={setShowDraftDialog}
@@ -236,31 +185,10 @@ export function ClinicRegistrationForm({
         onRestore={handleRestoreDraft}
       />
 
-      {stepError && (
-        <Alert
-          variant="destructive"
-          role="alert"
-          aria-live="assertive"
-          aria-atomic="true"
-        >
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="flex items-center justify-between gap-4">
-            <span>{stepError}</span>
-            <Button
-              variant="outline"
-              size="sm"
-              className="shrink-0"
-              onClick={() => setStepError(null)}
-            >
-              Dismiss
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {stepError ? `Error: ${stepError}` : ""}
-      </div>
+      <StepErrorAlert
+        message={stepError}
+        onDismiss={() => setStepError(null)}
+      />
 
       <OnboardingProgressCard step={step} />
 
@@ -292,7 +220,7 @@ export function ClinicRegistrationForm({
           onComplete={handleSetTeamMembers}
           ownerName={user?.name}
           ownerEmail={user?.email}
-          ownerRole={user?.role === "ADMIN_DOCTOR" ? "ADMIN_DOCTOR" : "ADMIN"}
+          ownerRole={user?.role === "ADMIN_DOCTOR" ? ("ADMIN_DOCTOR" as const) : ("ADMIN" as const)}
         />
       )}
 

@@ -73,10 +73,15 @@ export function TimeSlotPicker({
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
-  /** Prefer API slot list whenever slots loaded — even if empty — so we never offer unfiltered times that ignore bookings. */
-  const useApiSlotPicker = Boolean(
-    availabilitySlotsReady && selectedDate && doctorId,
-  );
+  /**
+   * Whenever a date + doctor are chosen, the API slot picker is the intended UI.
+   * Render its layout for the whole loading lifecycle (disabled + loading
+   * placeholder until slots resolve) so the dialog never flips to the taller
+   * manual two-picker fallback and back — that swap re-centers the dialog and
+   * makes it visibly jump. The manual fallback only applies with no date/doctor.
+   */
+  const useApiSlotPicker = Boolean(selectedDate && doctorId);
+  const slotsLoading = useApiSlotPicker && !availabilitySlotsReady;
 
   const apiSlotOptions = useMemo(() => {
     if (!selectedDate || !doctorId) return [];
@@ -109,13 +114,9 @@ export function TimeSlotPicker({
   ]);
 
   if (useApiSlotPicker) {
+    const disabled = slotsLoading || isResolvingDefaultSlot;
     return (
       <div className="space-y-4">
-        {isResolvingDefaultSlot && (
-          <p className="text-xs text-muted-foreground">
-            Finding the next available slot for this day.
-          </p>
-        )}
         <FormField
           control={form.control}
           name="startTime"
@@ -130,7 +131,7 @@ export function TimeSlotPicker({
               <FormItem className="flex flex-col">
                 <FormLabel>Appointment slot</FormLabel>
                 <Select
-                  disabled={isResolvingDefaultSlot}
+                  disabled={disabled}
                   value={valueStr || undefined}
                   onValueChange={(value) => {
                     const match = apiSlotOptions.find((o) => o.value === value);
@@ -146,7 +147,13 @@ export function TimeSlotPicker({
                     <SelectTrigger
                       aria-invalid={!!form.formState.errors.startTime}
                     >
-                      <SelectValue placeholder="Select a time slot" />
+                      <SelectValue
+                        placeholder={
+                          disabled
+                            ? "Finding available slots…"
+                            : "Select a time slot"
+                        }
+                      />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -162,7 +169,7 @@ export function TimeSlotPicker({
             );
           }}
         />
-        {apiSlotOptions.length === 0 && (
+        {availabilitySlotsReady && apiSlotOptions.length === 0 && (
           <p className="text-xs text-muted-foreground">
             No open slots for this doctor on this day. Try another day or adjust
             availability.
@@ -172,13 +179,10 @@ export function TimeSlotPicker({
     );
   }
 
+  // Manual fallback only renders with no date/doctor, where the slot lookup
+  // never runs — so no loading message is needed here.
   return (
     <div className="space-y-4">
-      {isResolvingDefaultSlot && (
-        <p className="text-xs text-muted-foreground">
-          Finding the next available slot for this day.
-        </p>
-      )}
       <FormField
         control={form.control}
         name="startTime"

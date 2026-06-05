@@ -2,12 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   Clinic,
   ClinicTier,
+  PlanMode,
   DayOfWeek,
   Prisma,
   Subscription,
   SubscriptionStatus,
   User,
 } from '@workspace/db';
+import { DEFAULT_TAX_COUNTRY_CODE, DEFAULT_TAX_REGIME } from '@workspace/types';
 import { isPrismaTableDoesNotExistForModel } from '@/shared/common/utils/prisma-missing-table';
 import {
   IOnboardingTxRepository,
@@ -39,6 +41,7 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
         phone: data.phone,
         address: data.address,
         type: data.type,
+        facilityType: data.facilityType,
         website: data.website,
         mrnPrefix: data.mrnPrefix,
         timezone: data.timezone,
@@ -74,6 +77,8 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
         name: data.name,
         role: data.role,
         clinicId: data.clinicId,
+        onboardingStep: 'COMPLETED',
+        onboardingCompletedAt: data.onboardingCompletedAt,
         phoneNumber: data.phoneNumber,
         qualification: data.qualification,
         registrationNumber: data.registrationNumber,
@@ -94,6 +99,8 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
         phoneNumber: data.phoneNumber,
         role: data.role,
         clinicId: data.clinicId,
+        onboardingStep: 'COMPLETED',
+        onboardingCompletedAt: data.onboardingCompletedAt,
         qualification: data.qualification,
         registrationNumber: data.registrationNumber,
         specialization: data.specialization,
@@ -141,8 +148,8 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
         taxCents: 0,
         grandTotalCents: data.amountCents,
         taxSummary: {
-          countryCode: 'IN',
-          regime: 'IN_GST',
+          countryCode: DEFAULT_TAX_COUNTRY_CODE,
+          regime: DEFAULT_TAX_REGIME,
           currency: data.currency,
           subtotal: data.amountCents / 100,
           discountTotal: 0,
@@ -168,6 +175,7 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
     tier: ClinicTier,
     status: SubscriptionStatus,
     trialEndsAt: Date | null,
+    planMode?: PlanMode,
   ): Promise<void> {
     await tx.clinic.update({
       where: { id: clinicId },
@@ -175,6 +183,7 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
         tier,
         subscriptionStatus: status,
         trialEndsAt,
+        ...(planMode ? { planMode } : {}),
       },
     });
   }

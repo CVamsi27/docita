@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import { Controller, Post, Body, Res, UseGuards, Logger } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -56,7 +57,7 @@ export class AuthRegistrationController {
       const tokens = await this.authService.register({
         email: dto.email,
         password: dto.password,
-        name: `${dto.firstName} ${dto.lastName}`,
+        name: getPatientFullName(dto),
         role: dto.role,
         clinicName: dto.clinicName,
       });

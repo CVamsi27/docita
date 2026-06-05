@@ -7,9 +7,10 @@ import { PrismaQueueJobRepository } from './infrastructure/prisma-queue-job.repo
 import { PdfJobService } from './pdf-job.service';
 import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 import type { IClock } from '@/shared/common/ports/clock.port';
+import { DocumentsWorkerModule } from '@/domains/documents/documents.worker.module';
 
 @Module({
-  imports: [PrismaWorkerModule],
+  imports: [PrismaWorkerModule, DocumentsWorkerModule],
   providers: [
     {
       provide: 'queue',

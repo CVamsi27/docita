@@ -1,5 +1,6 @@
 "use client";
 
+import { getPatientFullName } from "@workspace/utils";
 import Link from "next/link";
 import { formatDate } from "@/lib/formatters";
 import { getFollowUpListQuery } from "@/features/follow-ups";
@@ -29,7 +30,7 @@ const STATUS_LABELS: Record<FollowUpStatus, string> = {
 function patientName(followUp: FollowUpResponse) {
   const firstName = followUp.patient?.firstName ?? "";
   const lastName = followUp.patient?.lastName ?? "";
-  return `${firstName} ${lastName}`.trim() || "Patient";
+  return getPatientFullName({ firstName, lastName }, "Patient");
 }
 
 interface TodayFollowUpsPanelProps {

@@ -1,16 +1,20 @@
 import {
   APP_ACCESS_MATRIX,
   type AppAccessTarget,
-  Feature,
-  Tier,
   getAccessRequirement,
   isAccessComingSoon,
   getAccessFeature,
   getAccessTier,
-  type UserRole,
-  type PlanMode,
   shouldDenyAccessForFrontDeskMode,
-} from "@workspace/types";
+} from "@workspace/types/access";
+import {
+  Feature,
+  Tier,
+  type PlanMode,
+} from "@workspace/types/billing";
+import {
+  type UserRole,
+} from "@workspace/types/shared";
 import { getTierName, hasFeatureAccess } from "@workspace/utils";
 import { hasPermission } from "@/lib/auth/permissions";
 import { parseAppPermission } from "@/lib/access-control/parse-app-permission";

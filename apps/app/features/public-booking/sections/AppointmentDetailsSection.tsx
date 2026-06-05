@@ -2,8 +2,15 @@
 
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useState } from "react";
-import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
-import { Card, CardContent, CardHeader } from "@workspace/ui/components/indicators/card";
+import {
+  Alert,
+  AlertDescription,
+} from "@workspace/ui/components/feedback/alert";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from "@workspace/ui/components/indicators/card";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { Separator } from "@workspace/ui/components/layout/separator";
 import { Calendar } from "@workspace/ui/components/form/calendar";
@@ -15,7 +22,10 @@ import {
   bookingSectionHeaderBar,
   bookingSectionShell,
 } from "@/features/public-booking/public-booking-components";
-import { DoctorChips, DoctorTogglePicker } from "@/features/public-booking/atoms/doctor-picker";
+import {
+  DoctorChips,
+  DoctorTogglePicker,
+} from "@/features/public-booking/atoms/doctor-picker";
 import { SlotGrid } from "@/features/public-booking/atoms/slot-grid";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { cn } from "@workspace/ui/lib/utils";
@@ -36,7 +46,9 @@ export function AppointmentDetailsSection({
   const [doctorPickerOpen, setDoctorPickerOpen] = useState(false);
 
   return (
-    <Card className={cn(bookingCardClass, bookingSectionShell, "flex flex-col")}>
+    <Card
+      className={cn(bookingCardClass, bookingSectionShell, "flex flex-col")}
+    >
       <CardHeader
         className={cn(
           bookingSectionHeaderBar,

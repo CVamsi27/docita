@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/form/button";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
@@ -17,6 +16,11 @@ import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { isConsultationReadOnlyStatus } from "@/features/appointments";
+import {
+  PrimaryActionButtons,
+  ViewActionsInline,
+  ViewActionsOverflow,
+} from "./ConsultationWorkspaceExtrasSections";
 
 interface ConsultationVisitOverviewStripProps {
   appointment: Appointment;
@@ -32,10 +36,7 @@ export function ConsultationVisitOverviewStrip({
     ? humanizeUiLabel(appointment.type)
     : "Consultation";
   const when = appointment.startTime
-    ? formatDate(
-        appointment.startTime,
-        DATE_FORMAT_OPTIONS_US_LONG,
-      )
+    ? formatDate(appointment.startTime, DATE_FORMAT_OPTIONS_US_LONG)
     : null;
   const complaint = formatChiefComplaintSummary(
     appointment.chiefComplaint ?? undefined,
@@ -86,13 +87,9 @@ export function ConsultationAfterVisitStrip({
   onGoToPlan,
 }: ConsultationAfterVisitStripProps) {
   const { user } = useAuth();
-  const { canAccess, currentTier, hasIntelligence } =
-    usePermissionStore();
-  const {
-    canViewInvoices,
-    canViewPrescriptions,
-    canCreatePrescription,
-  } = usePermissions();
+  const { canAccess, currentTier, hasIntelligence } = usePermissionStore();
+  const { canViewInvoices, canViewPrescriptions, canCreatePrescription } =
+    usePermissions();
 
   const patientId = appointment.patientId ?? "";
   const canWhatsapp = canAccess(Feature.WHATSAPP_MESSAGING);
@@ -117,57 +114,37 @@ export function ConsultationAfterVisitStrip({
 
   return (
     <div
-      className="mt-6 rounded-[var(--radius-lg)] border border-border/60 bg-card px-3 py-3 sm:px-4"
+      className="rounded-[var(--radius-md)] border border-border/60 bg-card px-3 py-3 shadow-[0_1px_2px_0_rgb(0_0_0/0.04)] sm:px-4"
       aria-label="After this visit"
     >
       <MicroLabel className="mb-2 block">After this visit</MicroLabel>
-      <div className="flex flex-wrap gap-2">
-        {(canCreatePrescription || canViewPrescriptions) && (
-          <Button type="button" variant="outline" size="sm" onClick={onGoToPlan}>
-            Plan &amp; Rx
-          </Button>
-        )}
-        {canViewPrescriptions ? (
-          <Button variant="outline" size="sm" asChild>
-            <Link
-              href={`/prescriptions?patientId=${encodeURIComponent(patientId)}`}
-            >
-              Prescriptions
-            </Link>
-          </Button>
-        ) : null}
-        {canLab ? (
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/patients/${patientId}?tab=records&subtab=labs`}>
-              Lab tests
-            </Link>
-          </Button>
-        ) : null}
-        {canViewInvoices ? (
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/patients/${patientId}?tab=billing`}>Billing</Link>
-          </Button>
-        ) : null}
-        {canViewInvoices ? (
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/desk/collect-payment">Payment desk</Link>
-          </Button>
-        ) : null}
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/follow-ups">Follow-ups</Link>
-        </Button>
-        {canWhatsapp ? (
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/patients/${patientId}?tab=communication`}>
-              WhatsApp
-            </Link>
-          </Button>
-        ) : null}
-        {completed && canCodingQueue ? (
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/coding-queue">Coding queue</Link>
-          </Button>
-        ) : null}
+      <div className="flex flex-wrap items-center gap-2">
+        <PrimaryActionButtons
+          canCreatePrescription={canCreatePrescription}
+          canViewPrescriptions={canViewPrescriptions}
+          canViewInvoices={canViewInvoices}
+          onGoToPlan={onGoToPlan}
+        />
+
+        <ViewActionsInline
+          patientId={patientId}
+          canViewPrescriptions={canViewPrescriptions}
+          canViewInvoices={canViewInvoices}
+          canLab={canLab}
+          canWhatsapp={canWhatsapp}
+          completed={completed}
+          canCodingQueue={canCodingQueue}
+        />
+
+        <ViewActionsOverflow
+          patientId={patientId}
+          canViewPrescriptions={canViewPrescriptions}
+          canViewInvoices={canViewInvoices}
+          canLab={canLab}
+          canWhatsapp={canWhatsapp}
+          completed={completed}
+          canCodingQueue={canCodingQueue}
+        />
       </div>
     </div>
   );

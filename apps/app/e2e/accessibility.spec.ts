@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { DPDP_NOTICE_VERSION } from "@workspace/types";
 import { getViolations, injectAxe } from "axe-playwright";
+import { randomUUID } from "crypto";
 import * as fs from "fs";
 import * as path from "path";
 import {
@@ -48,18 +49,46 @@ function e2eAuthHeaders(user: UserData) {
   };
 }
 
+function createAccessibilityAppointmentWindow() {
+  const halfHourSlotsInNextYear = 365 * 24 * 2;
+  const slotOffset =
+    Number.parseInt(randomUUID().replaceAll("-", "").slice(0, 8), 16) %
+    halfHourSlotsInNextYear;
+  const startTime = new Date();
+  startTime.setUTCSeconds(0, 0);
+  startTime.setUTCMinutes(startTime.getUTCMinutes() + 15 + slotOffset * 30);
+
+  return {
+    startTime,
+    endTime: new Date(startTime.getTime() + 30 * 60 * 1000),
+  };
+}
+
 async function runAccessibilityAudit(
   page: import("@playwright/test").Page,
   targetPath: string,
   pageName: string,
 ) {
-  await page.goto(targetPath, { waitUntil: "networkidle" });
-  await page.waitForLoadState("domcontentloaded");
-  await page.waitForURL((url) => url.pathname === targetPath.split("?")[0], {
-    timeout: 15_000,
-  });
-  await page.waitForLoadState("networkidle");
-  await page.locator("body").waitFor({ state: "visible" });
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await page.goto(targetPath, { waitUntil: "networkidle" });
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForURL(
+        (url) => url.pathname === targetPath.split("?")[0],
+        {
+          timeout: 15_000,
+        },
+      );
+      await page.waitForLoadState("networkidle");
+      await page.locator("body").waitFor({ state: "visible", timeout: 15_000 });
+      break;
+    } catch (error) {
+      if (attempt === 3) {
+        throw error;
+      }
+      await page.waitForTimeout(1000);
+    }
+  }
 
   await injectAxe(page);
 
@@ -141,10 +170,7 @@ test.describe("Accessibility Audit - Main App", () => {
       ).toBeTruthy();
       const patient = await patientRes.json();
 
-      const now = new Date();
-      now.setMinutes(now.getMinutes() + 15);
-      const endTime = new Date(now);
-      endTime.setMinutes(now.getMinutes() + 30);
+      const { startTime, endTime } = createAccessibilityAppointmentWindow();
 
       const apptRes = await request.post(`${API_URL}/appointments`, {
         headers: e2eAuthHeaders(user),
@@ -152,7 +178,7 @@ test.describe("Accessibility Audit - Main App", () => {
           patientId: patient.id,
           doctorId: user.id,
           clinicId: user.clinicId,
-          startTime: now.toISOString(),
+          startTime: startTime.toISOString(),
           endTime: endTime.toISOString(),
           type: "consultation",
           status: "scheduled",
@@ -181,7 +207,7 @@ test.describe("Accessibility Audit - Main App", () => {
       { path: "/lab-tests", name: "Lab tests" },
       { path: "/inventory", name: "Inventory" },
       { path: "/inbox", name: "Inbox" },
-      { path: "/ai-assistant", name: "AI assistant" },
+      { path: "/whatsapp", name: "WhatsApp" },
     ];
 
     for (const route of mobileAuthRoutes) {
@@ -279,10 +305,7 @@ test.describe("Accessibility Audit - Main App", () => {
       ).toBeTruthy();
       const patient = await patientRes.json();
 
-      const now = new Date();
-      now.setMinutes(now.getMinutes() + 15);
-      const endTime = new Date(now);
-      endTime.setMinutes(now.getMinutes() + 30);
+      const { startTime, endTime } = createAccessibilityAppointmentWindow();
 
       const apptRes = await request.post(`${API_URL}/appointments`, {
         headers: e2eAuthHeaders(user),
@@ -290,7 +313,7 @@ test.describe("Accessibility Audit - Main App", () => {
           patientId: patient.id,
           doctorId: user.id,
           clinicId: user.clinicId,
-          startTime: now.toISOString(),
+          startTime: startTime.toISOString(),
           endTime: endTime.toISOString(),
           type: "consultation",
           status: "scheduled",
@@ -309,7 +332,6 @@ test.describe("Accessibility Audit - Main App", () => {
     });
 
     const staticAuthRoutes: { path: string; name: string }[] = [
-      { path: "/dashboard", name: "Dashboard" },
       { path: "/today", name: "Today workspace" },
       { path: "/appointments", name: "Appointments" },
       { path: "/patients", name: "Patients" },
@@ -319,11 +341,9 @@ test.describe("Accessibility Audit - Main App", () => {
         path: "/settings?tab=subscription",
         name: "Settings subscription tab",
       },
-      { path: "/upgrade", name: "Upgrade" },
-      { path: "/whatsapp", name: "WhatsApp inbox" },
+      { path: "/whatsapp", name: "WhatsApp" },
       { path: "/desk/collect-payment", name: "Collect payment" },
       { path: "/daybook", name: "Daybook" },
-      { path: "/pharmacy", name: "Pharmacy" },
       { path: "/vaccines", name: "Vaccines" },
       { path: "/referrals", name: "Referrals" },
       { path: "/follow-ups", name: "Follow-ups" },

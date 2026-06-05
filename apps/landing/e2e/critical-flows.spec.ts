@@ -1,4 +1,17 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
+
+async function seedCsrfCookie(page: Page): Promise<void> {
+  await page.context().addCookies([
+    {
+      name: "XSRF-TOKEN",
+      value: "e2e-csrf-token",
+      url: new URL("/", page.url()).origin,
+    },
+  ]);
+  await expect
+    .poll(() => page.evaluate(() => document.cookie))
+    .toContain("XSRF-TOKEN=e2e-csrf-token");
+}
 
 test("homepage renders primary CTA", async ({ page }) => {
   await page.goto("/");
@@ -55,10 +68,10 @@ test("contact inquiry form validation and submit path", async ({ page }) => {
 
   await page.goto("/contact");
   await page.waitForLoadState("networkidle");
-  await expect(page.getByRole("button", { name: "Request setup" })).toBeVisible();
-  await page.evaluate(() => {
-    document.cookie = "XSRF-TOKEN=e2e-csrf-token; path=/";
-  });
+  await expect(
+    page.getByRole("button", { name: "Request setup" }),
+  ).toBeVisible();
+  await seedCsrfCookie(page);
 
   await page
     .locator("form")
@@ -119,10 +132,10 @@ test("contact inquiry form handles failure and reset after success", async ({
 
   await page.goto("/contact");
   await page.waitForLoadState("networkidle");
-  await expect(page.getByRole("button", { name: "Request setup" })).toBeVisible();
-  await page.evaluate(() => {
-    document.cookie = "XSRF-TOKEN=e2e-csrf-token; path=/";
-  });
+  await expect(
+    page.getByRole("button", { name: "Request setup" }),
+  ).toBeVisible();
+  await seedCsrfCookie(page);
   await page.getByLabel("Full Name *").fill("Dr. Failure Case");
   await page.getByLabel("Email *").fill("doctor@example.com");
   await page.getByLabel("Facility Name *").fill("Demo Clinic");

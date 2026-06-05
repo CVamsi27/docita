@@ -4,6 +4,7 @@ import { DOCTOR_VERIFICATION_REPOSITORY_TOKEN } from './core/repositories/doctor
 import { PrismaDoctorVerificationRepository } from './infrastructure/repositories/prisma-doctor-verification.repository';
 import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
 import { DoctorReverificationCron } from './doctor-reverification.cron';
+import { DoctorVerificationHttpClient } from './infrastructure/external/doctor-verification-http.client';
 
 /**
  * NMC doctor re-verification cron for the worker only (avoids importing full DoctorsModule + DocumentsModule).
@@ -12,6 +13,7 @@ import { DoctorReverificationCron } from './doctor-reverification.cron';
   imports: [PrismaWorkerModule],
   providers: [
     DoctorVerificationService,
+    DoctorVerificationHttpClient,
     DoctorReverificationCron,
     {
       provide: DOCTOR_VERIFICATION_REPOSITORY_TOKEN,

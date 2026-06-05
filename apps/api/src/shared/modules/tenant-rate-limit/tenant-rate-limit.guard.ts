@@ -52,7 +52,7 @@ export class TenantRateLimitGuard implements CanActivate {
       return true;
     }
 
-    if (user.role === Role.INTERNAL || user.role === 'INTERNAL') {
+    if (user.role === Role.INTERNAL) {
       return true;
     }
 

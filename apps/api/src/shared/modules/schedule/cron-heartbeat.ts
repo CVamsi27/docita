@@ -11,9 +11,15 @@
  * `scripts/checks/check-cron-heartbeat-coverage.mjs` enforces that every
  * `@Cron` handler carries a unique `@TrackHeartbeat("<name>")`.
  */
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import 'reflect-metadata';
 import { PrismaService } from '@/prisma/prisma.service';
+import { Gauge, register } from 'prom-client';
 
 export const CRON_HEARTBEAT_KEY = Symbol('CRON_HEARTBEAT_NAME');
 
@@ -32,6 +38,21 @@ export class NoopCronHeartbeatService implements ICronHeartbeatService {
   }
 }
 
+const noopCronHeartbeatService = new NoopCronHeartbeatService();
+let activeCronHeartbeatService: ICronHeartbeatService =
+  noopCronHeartbeatService;
+
+export function registerCronHeartbeatService(
+  service: ICronHeartbeatService,
+): () => void {
+  activeCronHeartbeatService = service;
+  return () => {
+    if (activeCronHeartbeatService === service) {
+      activeCronHeartbeatService = noopCronHeartbeatService;
+    }
+  };
+}
+
 /**
  * Persistent heartbeat backed by the `CronHeartbeat` Prisma model. Each
  * successful or failed scheduler run upserts a row keyed by `name` so
@@ -39,10 +60,34 @@ export class NoopCronHeartbeatService implements ICronHeartbeatService {
  * answer "did the X scheduler run in the last Y minutes".
  */
 @Injectable()
-export class PrismaCronHeartbeatService implements ICronHeartbeatService {
+export class PrismaCronHeartbeatService
+  implements ICronHeartbeatService, OnModuleInit, OnModuleDestroy
+{
   private readonly logger = new Logger(PrismaCronHeartbeatService.name);
+  private unregister?: () => void;
+  private readonly heartbeatStalenessGauge: Gauge<string>;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {
+    const existing = register.getSingleMetric(
+      'cron_heartbeat_staleness_seconds',
+    );
+    this.heartbeatStalenessGauge =
+      existing instanceof Gauge
+        ? existing
+        : new Gauge({
+            name: 'cron_heartbeat_staleness_seconds',
+            help: 'Seconds since last successful cron heartbeat, by job name',
+            labelNames: ['job_name', 'status'],
+          });
+  }
+
+  onModuleInit(): void {
+    this.unregister = registerCronHeartbeatService(this);
+  }
+
+  onModuleDestroy(): void {
+    this.unregister?.();
+  }
 
   async recordSuccess(name: string): Promise<void> {
     try {
@@ -55,6 +100,10 @@ export class PrismaCronHeartbeatService implements ICronHeartbeatService {
           lastError: null,
         },
       });
+      this.heartbeatStalenessGauge.set(
+        { job_name: name, status: 'SUCCESS' },
+        0,
+      );
     } catch (error) {
       this.logger.warn(
         `Failed to record cron heartbeat success for ${name}: ${
@@ -82,6 +131,10 @@ export class PrismaCronHeartbeatService implements ICronHeartbeatService {
           lastError: message.slice(0, 1000),
         },
       });
+      this.heartbeatStalenessGauge.set(
+        { job_name: name, status: 'FAILURE' },
+        0,
+      );
     } catch (writeError) {
       this.logger.warn(
         `Failed to record cron heartbeat failure for ${name}: ${
@@ -90,21 +143,62 @@ export class PrismaCronHeartbeatService implements ICronHeartbeatService {
       );
     }
   }
+
+  async getStaleJobs(
+    thresholdSeconds: number,
+  ): Promise<Array<{ name: string; lastRunAt: Date; lastStatus: string }>> {
+    try {
+      const threshold = new Date(Date.now() - thresholdSeconds * 1000);
+      return await this.prisma.cronHeartbeat.findMany({
+        where: { lastRunAt: { lt: threshold } },
+        select: { name: true, lastRunAt: true, lastStatus: true },
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Failed to query stale cron jobs: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return [];
+    }
+  }
 }
 
 /**
- * Decorator. Annotates a scheduler method with the heartbeat name.
- * The actual recording is performed by a NestJS interceptor that
- * reads the metadata (added when the Prisma model is provisioned).
+ * Decorator. Annotates a scheduler method with the heartbeat name and wraps
+ * execution so success and failure are persisted by the worker-scoped recorder.
  *
  * Example:
  *   @Cron(CRON_SCHEDULES.REMINDER_HOURLY)
  *   @TrackHeartbeat("billing.reconcile")
  *   async run() { ... }
  */
-export function TrackHeartbeat(name: string): MethodDecorator {
-  return (target, propertyKey) => {
+type SchedulerMethod = (...args: unknown[]) => unknown;
+
+function isSchedulerMethod(value: unknown): value is SchedulerMethod {
+  return typeof value === 'function';
+}
+
+export function TrackHeartbeat(name: string) {
+  return (
+    target: object,
+    propertyKey: string | symbol,
+    descriptor: PropertyDescriptor,
+  ): void => {
     Reflect.defineMetadata(CRON_HEARTBEAT_KEY, name, target, propertyKey);
+    const original: unknown = descriptor.value;
+    if (!isSchedulerMethod(original)) {
+      return;
+    }
+
+    descriptor.value = async function (...args: unknown[]) {
+      try {
+        const result = await original.apply(this, args);
+        await activeCronHeartbeatService.recordSuccess(name);
+        return result;
+      } catch (error) {
+        await activeCronHeartbeatService.recordFailure(name, error);
+        throw error;
+      }
+    };
   };
 }
 

@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { AlertCircle } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import {
   Dialog,
@@ -9,10 +12,83 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
+import {
+  Alert,
+  AlertDescription,
+} from "@workspace/ui/components/feedback/alert";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatDateTime } from "@/lib/formatters";
-import { STEPS, TOTAL_STEPS } from "./clinic-registration-form-helpers";
+import type {
+  ClinicDetails,
+  ComplianceSettings,
+} from "@/features/onboarding/components/types";
+import {
+  getMissingClinicDetailsForProgress,
+  DRAFT_KEY,
+  STEPS,
+  TOTAL_STEPS,
+} from "./clinic-registration-form-helpers";
+
+// ---------------------------------------------------------------------------
+// ComplianceDraftWatcher
+// ---------------------------------------------------------------------------
+
+export function ComplianceDraftWatcher({
+  complianceForm,
+  setComplianceDraft,
+}: {
+  complianceForm: UseFormReturn<ComplianceSettings>;
+  setComplianceDraft: (draft: Partial<ComplianceSettings>) => void;
+}) {
+  useEffect(() => {
+    const subscription = complianceForm.watch((values) => {
+      setComplianceDraft({
+        acceptedSLA: values.acceptedSLA,
+        acceptedPrivacyPolicy: values.acceptedPrivacyPolicy,
+        acceptedDataProcessing: values.acceptedDataProcessing,
+        enableWhatsApp: values.enableWhatsApp,
+        requireConsent: values.requireConsent,
+        slaSignatureSessionId: values.slaSignatureSessionId,
+      });
+    });
+    return () => subscription.unsubscribe();
+  }, [complianceForm, setComplianceDraft]);
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// StepGuard
+// ---------------------------------------------------------------------------
+
+export function StepGuard({
+  step,
+  formData,
+  restartOnboarding,
+  setStepError,
+}: {
+  step: number;
+  formData: { clinicDetails: Partial<ClinicDetails> };
+  restartOnboarding: () => void;
+  setStepError: (error: string | null) => void;
+}) {
+  useEffect(() => {
+    if (step <= 1) return;
+    const missingClinicData = getMissingClinicDetailsForProgress(
+      formData.clinicDetails,
+    );
+    if (missingClinicData.length === 0) return;
+
+    restartOnboarding();
+    localStorage.removeItem(DRAFT_KEY);
+    setStepError(
+      `Onboarding progress was incomplete (${missingClinicData.join(", ")}), so we started over from Step 1`,
+    );
+  }, [formData.clinicDetails, restartOnboarding, step, setStepError]);
+
+  return null;
+}
 
 // ---------------------------------------------------------------------------
 // DraftRestoreDialog
@@ -121,5 +197,45 @@ export function OnboardingProgressCard({ step }: OnboardingProgressCardProps) {
         ))}
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// StepErrorAlert
+// ---------------------------------------------------------------------------
+
+interface StepErrorAlertProps {
+  message: string | null;
+  onDismiss: () => void;
+}
+
+export function StepErrorAlert({ message, onDismiss }: StepErrorAlertProps) {
+  if (!message) return null;
+
+  return (
+    <>
+      <Alert
+        variant="destructive"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+      >
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription className="flex items-center justify-between gap-4">
+          <span>{message}</span>
+          <Button
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+            onClick={onDismiss}
+          >
+            Dismiss
+          </Button>
+        </AlertDescription>
+      </Alert>
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {message ? `Error: ${message}` : ""}
+      </div>
+    </>
   );
 }

@@ -10,7 +10,7 @@ import {
   type PricingEstimateRequest,
   type PricingEstimateResponse,
 } from "@workspace/types";
-import { appQueryKeys } from "../lib/query-keys";
+import { appQueryKeys } from "../lib/query-keys-app";
 import { useAPIQueryValidated } from "../core/use-api-query-validated";
 import { useDataAccessFetcher } from "../provider/hooks";
 

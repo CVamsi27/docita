@@ -13,6 +13,7 @@ export type WhatsAppClinicMessageContext = {
 };
 
 export interface IWhatsAppRepository {
+  ensureConversation(clinicId: string, recipientPhone: string): Promise<string>;
   saveMessage(message: WhatsAppMessage): Promise<void>;
   findMessageById(id: string): Promise<WhatsAppMessage | null>;
   findMessageByExternalId(externalId: string): Promise<WhatsAppMessage | null>;

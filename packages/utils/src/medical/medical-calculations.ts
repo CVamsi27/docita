@@ -1,5 +1,3 @@
-
-
 export function calculateBMI(weight: number, height: number): number {
   if (weight <= 0 || height <= 0) {
     throw new Error("Weight and height must be positive numbers");
@@ -33,4 +31,13 @@ export function getBMICategory(bmi: number): string {
   if (bmi < 35) return "Obese Class I";
   if (bmi < 40) return "Obese Class II";
   return "Obese Class III";
+}
+
+export type BMIStatus = "underweight" | "normal" | "overweight" | "obese";
+
+export function getBMIStatus(bmi: number): BMIStatus {
+  if (bmi < 18.5) return "underweight";
+  if (bmi < 25) return "normal";
+  if (bmi < 30) return "overweight";
+  return "obese";
 }

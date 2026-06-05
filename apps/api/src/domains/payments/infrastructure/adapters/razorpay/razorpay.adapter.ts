@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import Razorpay from 'razorpay';
 import { Prisma } from '@workspace/db';
 import { RazorpayClientAdapter } from './razorpay-client.adapter';
@@ -7,6 +7,7 @@ import {
   PaymentGatewayCapabilities,
 } from '@/domains/payments/core/ports';
 import { PaymentProvider } from '@/domains/payments/core/entities/payment-provider.enum';
+import { CircuitBreakerRegistry } from '@/shared/common/utils/circuit-breaker.registry';
 
 const RAZORPAY_REQUEST_TIMEOUT_MS = 5000;
 
@@ -29,7 +30,11 @@ export abstract class BaseRazorpayAdapter implements IPaymentGateway {
     ],
   };
 
-  constructor(protected razorpayClient: RazorpayClientAdapter) {}
+  constructor(
+    protected razorpayClient: RazorpayClientAdapter,
+    @Optional()
+    protected readonly circuitBreakerRegistry?: CircuitBreakerRegistry,
+  ) {}
 
   async isAvailable(): Promise<boolean> {
     return this.razorpayClient.isAvailable();
@@ -54,13 +59,24 @@ export abstract class BaseRazorpayAdapter implements IPaymentGateway {
       }, RAZORPAY_REQUEST_TIMEOUT_MS);
     });
 
-    try {
-      return await Promise.race([operation(), timeoutPromise]);
-    } finally {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
+    const execute = async (): Promise<T> => {
+      try {
+        return await Promise.race([operation(), timeoutPromise]);
+      } finally {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
       }
+    };
+
+    const breaker = this.circuitBreakerRegistry?.get('razorpay-api');
+    if (breaker) {
+      return breaker.call(execute, async () => {
+        throw new Error('Razorpay circuit breaker OPEN — request rejected');
+      });
     }
+
+    return execute();
   }
 
   protected toRecord(

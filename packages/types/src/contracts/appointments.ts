@@ -408,3 +408,11 @@ export type AppointmentRequestResponse = z.infer<
 export type AppointmentRequestListResponse = z.infer<
   typeof appointmentRequestListResponseSchema
 >;
+
+export const markDoctorDelaySchema = z.object({
+  doctorId: z.string().min(1),
+  delayMinutes: z.number().int().min(1).max(480),
+  reason: z.string().max(500).optional(),
+});
+
+export type MarkDoctorDelay = z.infer<typeof markDoctorDelaySchema>;

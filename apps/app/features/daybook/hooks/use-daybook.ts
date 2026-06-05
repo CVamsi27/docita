@@ -2,10 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useInvoices } from "@workspace/data-access";
-import {
-  DEFAULT_TIMEZONE,
-  formatClinicTodayPickerIso,
-} from "@workspace/utils";
+import { DEFAULT_TIMEZONE, formatClinicTodayPickerIso } from "@workspace/utils";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import {
   aggregateDaybook,

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Calendar, ChevronRight, Clock, Play } from "lucide-react";
-import { formatDate } from "@workspace/utils";
+import { formatDate, getPatientFullName } from "@workspace/utils";
 import {
   Card,
   CardContent,
@@ -12,7 +12,10 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+} from "@workspace/ui/components/indicators/avatar";
 import { cn } from "@workspace/ui/lib/utils";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
@@ -20,6 +23,7 @@ import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-l
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 import type { AppointmentListItem } from "@workspace/data-access";
+import { getInitials } from "@/lib/formatters";
 
 export interface TodayScheduleUIProps {
   appointments: AppointmentListItem[];
@@ -31,12 +35,7 @@ export function TodayScheduleUI({
   className,
 }: TodayScheduleUIProps) {
   return (
-    <Card
-      className={cn(
-        "border border-border shadow-sm bg-card",
-        className,
-      )}
-    >
+    <Card className={cn("border border-border shadow-sm bg-card", className)}>
       <CardHeader className="pb-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
@@ -121,14 +120,16 @@ export function TodayScheduleUI({
 
                   <Avatar className="hidden h-9 w-9 shrink-0 sm:flex">
                     <AvatarFallback className="border border-border/70 bg-background/70 text-foreground text-xs font-medium">
-                      {apt.patient?.firstName?.[0]}
-                      {apt.patient?.lastName?.[0]}
+                      {getInitials(
+                        apt.patient?.firstName ?? "",
+                        apt.patient?.lastName,
+                      )}
                     </AvatarFallback>
                   </Avatar>
 
                   <div className="min-w-0">
                     <p className="font-medium text-sm truncate">
-                      {apt.patient?.firstName} {apt.patient?.lastName}
+                      {getPatientFullName(apt.patient)}
                     </p>
                     <p className="text-xs text-muted-foreground truncate capitalize">
                       {humanizeUiLabel(apt.type)}

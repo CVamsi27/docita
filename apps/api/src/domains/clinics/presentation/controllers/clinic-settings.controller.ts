@@ -25,6 +25,10 @@ import {
   JoinClinicSchema,
 } from '@/domains/clinics/application/dto/clinics.dto';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
+import {
+  opdSlipSettingsFormSchema,
+  type OpdSlipSettingsFormValues,
+} from '@workspace/types';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';
@@ -138,6 +142,30 @@ export class ClinicSettingsController {
       throw new ForbiddenException('No clinic assigned to this user');
     }
     return this.clinicsService.updatePrescriptionDefaults(clinicId, dto);
+  }
+
+  @Get('opd-slip-settings')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.RECEPTIONIST)
+  async getOpdSlipSettings(@Request() req: RequestWithUser) {
+    const clinicId = req.user?.clinicId;
+    if (!clinicId) {
+      throw new ForbiddenException('No clinic assigned to this user');
+    }
+    return this.clinicsService.getOpdSlipSettings(clinicId);
+  }
+
+  @Put('opd-slip-settings')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
+  @UsePipes(new ZodValidationPipe(opdSlipSettingsFormSchema.partial()))
+  async updateOpdSlipSettings(
+    @Request() req: RequestWithUser,
+    @Body() dto: Partial<OpdSlipSettingsFormValues>,
+  ) {
+    const clinicId = req.user?.clinicId;
+    if (!clinicId) {
+      throw new ForbiddenException('No clinic assigned to this user');
+    }
+    return this.clinicsService.updateOpdSlipSettings(clinicId, dto);
   }
 
   @Get('search-for-join')

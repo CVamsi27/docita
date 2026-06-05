@@ -14,11 +14,7 @@ import { SUBSCRIPTION_BILLING_RESOLVE_PATH } from "@/lib/subscription/subscripti
 
 const SUBSCRIPTION_ALLOWED_PATHS = ["/settings", "/login", "/billing-locked"];
 
-export function SubscriptionGuard({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function SubscriptionGuard({ children }: { children: React.ReactNode }) {
   const { clinic } = useClinic();
   const { user } = useAuth();
   const { data: subscription } = useSubscription({

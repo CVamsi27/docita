@@ -1,10 +1,18 @@
 import type { ComponentType } from "react";
-import { ClipboardList, Receipt, Stethoscope } from "lucide-react";
+import {
+  ClipboardList,
+  LayoutDashboard,
+  MessageCircle,
+  Receipt,
+  Stethoscope,
+} from "lucide-react";
 
 export const PATIENT_DETAIL_TAB_VALUES = [
+  "summary",
   "visits",
   "records",
   "billing",
+  "communication",
 ] as const;
 
 export type PatientDetailTabValue = (typeof PATIENT_DETAIL_TAB_VALUES)[number];
@@ -23,7 +31,7 @@ export const LEGACY_PATIENT_TAB_REDIRECTS: Record<
   string,
   { tab: PatientDetailTabValue; subtab?: PatientRecordsSubTab }
 > = {
-  overview: { tab: "visits" },
+  overview: { tab: "summary" },
   vitals: { tab: "records", subtab: "vitals" },
   prescriptions: { tab: "records", subtab: "prescriptions" },
   labs: { tab: "records", subtab: "labs" },
@@ -35,9 +43,11 @@ export const TAB_DEFINITIONS: Array<{
   label: string;
   icon: ComponentType<{ className?: string }>;
 }> = [
+  { value: "summary", label: "Summary", icon: LayoutDashboard },
   { value: "visits", label: "Visits", icon: Stethoscope },
   { value: "records", label: "Records", icon: ClipboardList },
   { value: "billing", label: "Billing", icon: Receipt },
+  { value: "communication", label: "Messages", icon: MessageCircle },
 ];
 
 export const RECORDS_SUB_TAB_LABELS: Record<PatientRecordsSubTab, string> = {

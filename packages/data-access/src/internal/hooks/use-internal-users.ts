@@ -1,5 +1,5 @@
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import { internalQueryKeys } from "../../lib/query-keys";
+import { internalQueryKeys } from "../../lib/query-keys-internal";
 import { useDataAccessFetcher } from "../../provider/hooks";
 import { loadInternalUsersForSelection } from "../lib/load-internal-users";
 import type { InternalClinicSummary, InternalPortalUser } from "../users.types";
@@ -21,7 +21,8 @@ export function useInternalUsersList(
       selectedClinic,
       clinics.length,
     ),
-    queryFn: () => loadInternalUsersForSelection(fetcher, selectedClinic, clinics),
+    queryFn: () =>
+      loadInternalUsersForSelection(fetcher, selectedClinic, clinics),
     enabled:
       Boolean(token) &&
       Boolean(selectedClinic) &&

@@ -2,18 +2,16 @@
 
 import { useMemo } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
+import { isAdmin } from "@/lib/auth/permissions";
 import { useClinicMembers } from "@workspace/data-access";
 import { useLeaveBalance } from "@workspace/data-access";
 import { LeaveBalanceCard } from "./LeaveBalanceCard";
 import { LeavePolicyEditor } from "./LeavePolicyEditor";
 import { LeaveSettingsForm } from "./LeaveSettingsForm";
 
-const isAdminRole = (role?: string) =>
-  role === "ADMIN" || role === "ADMIN_DOCTOR";
-
 export function LeaveManagementSettings() {
   const { user } = useAuth();
-  const userIsAdmin = isAdminRole(user?.role);
+  const userIsAdmin = isAdmin(user?.role);
 
   const { data: members = [] } = useClinicMembers();
   const staffMembers = useMemo(

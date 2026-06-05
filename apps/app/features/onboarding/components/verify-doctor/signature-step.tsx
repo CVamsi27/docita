@@ -55,20 +55,20 @@ export const SignatureStep: FC<SignatureStepProps> = ({
   );
 };
 
-const SignatureUploadedView: FC<{ resolvedProfileSignatureUrl: string | null }> = ({
-  resolvedProfileSignatureUrl,
-}) => (
+const SignatureUploadedView: FC<{
+  resolvedProfileSignatureUrl: string | null;
+}> = ({ resolvedProfileSignatureUrl }) => (
   <div className="space-y-3">
     <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm text-primary">
       <CheckCircle2 className="h-4 w-4 shrink-0" />
       Signature uploaded successfully.
     </div>
     {resolvedProfileSignatureUrl && (
-      <div className="rounded-lg border bg-background p-4 flex items-center justify-center min-h-[100px]">
+      <div className="flex min-h-[140px] items-center justify-center rounded-lg border bg-white p-4">
         <img
           src={resolvedProfileSignatureUrl}
           alt="Your uploaded signature"
-          className="max-h-24 max-w-full object-contain"
+          className="max-h-40 max-w-full object-contain"
         />
       </div>
     )}
@@ -122,11 +122,11 @@ const SignaturePendingView: FC<SignaturePendingViewProps> = ({
               </p>
             </div>
           </div>
-          <div className="flex items-center justify-center rounded-lg border bg-background p-4 min-h-[100px]">
+          <div className="flex min-h-[140px] items-center justify-center rounded-lg border bg-white p-4">
             <img
               src={resolvedOnboardingSignatureUrl}
               alt="Onboarding signature preview"
-              className="max-h-24 max-w-full object-contain"
+              className="max-h-40 max-w-full object-contain"
             />
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">

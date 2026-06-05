@@ -21,6 +21,9 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
 import { WhatsappTemplatesModule } from '@/shared/whatsapp/whatsapp-templates.module';
 import { WhatsappModule } from '@/domains/whatsapp/whatsapp-clinic.module';
 import { MetaGraphPhoneProfileClient } from './infrastructure/clients/meta-graph-phone-profile.client';
+import { PrismaWhatsappOperationsRepository } from './infrastructure/repositories/prisma-whatsapp-operations.repository';
+import { WhatsappOperationsService } from './application/services/whatsapp-operations.service';
+import { WhatsappOperationsController } from './presentation/controllers/whatsapp-operations.controller';
 
 @Global()
 @Module({
@@ -35,6 +38,7 @@ import { MetaGraphPhoneProfileClient } from './infrastructure/clients/meta-graph
     WhatsAppController,
     WhatsAppWebhookController,
     WhatsappSenderController,
+    WhatsappOperationsController,
   ],
   providers: [
     { provide: WHATSAPP_PERSISTENCE_PORT, useExisting: PrismaService },
@@ -48,6 +52,8 @@ import { MetaGraphPhoneProfileClient } from './infrastructure/clients/meta-graph
     TemplateResolverService,
     PrismaWhatsAppMessageRepository,
     PrismaWhatsAppTemplateRepository,
+    PrismaWhatsappOperationsRepository,
+    WhatsappOperationsService,
     {
       provide: WHATSAPP_REPOSITORY_TOKEN,
       useClass: PrismaWhatsAppRepository,

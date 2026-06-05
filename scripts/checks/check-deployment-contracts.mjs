@@ -19,6 +19,10 @@ function assertIncludes(source, snippet, message) {
   assert(source.includes(snippet), message);
 }
 
+function assertMatches(source, pattern, message) {
+  assert(pattern.test(source), message);
+}
+
 function assertMissing(relativePath, message) {
   assert(!existsSync(join(repoRoot, relativePath)), message);
 }
@@ -39,6 +43,10 @@ try {
   const detectScopePath = "scripts/workflow/detect-workflow-scope.mjs";
   const appLayoutPath = "apps/app/app/layout.tsx";
   const flyTomlPath = "fly.toml";
+  const workerFlyTomlPath = "apps/worker/fly.toml";
+  const flyDeployScriptPath = "scripts/deploy/fly-deploy-in-primary-region.sh";
+  const stagingMirrorWorkflowPath =
+    ".github/workflows/sync-staging-after-promotion.yml";
 
   assertExists(
     appMiddleware,
@@ -62,8 +70,18 @@ try {
   const appLayoutSource = read(appLayoutPath);
   const deployWorkflowSource = read(deployWorkflowPath);
   const detectScopeSource = read(detectScopePath);
+  const deployScopeSource = `${detectScopeSource}\n${read(
+    "scripts/workflow/detect-workflow-deploy.mjs",
+  )}`;
   const ciWorkflowSource = read(".github/workflows/ci.yml");
+  const apiE2eWorkflowSource = read(".github/workflows/api-e2e.yml");
+  const frontendCriticalE2eWorkflowSource = read(
+    ".github/workflows/frontend-critical-e2e.yml",
+  );
   const flyTomlSource = read(flyTomlPath);
+  const workerFlyTomlSource = read(workerFlyTomlPath);
+  const flyDeployScriptSource = read(flyDeployScriptPath);
+  const stagingMirrorWorkflowSource = read(stagingMirrorWorkflowPath);
 
   assert(
     /export async function middleware/.test(appMiddlewareSource) ||
@@ -89,6 +107,7 @@ try {
   for (const requiredPath of [
     '"scripts/workflow/detect-workflow-scope.mjs"',
     '"scripts/deploy/test-api-startup.sh"',
+    '"scripts/deploy/fly-deploy-in-primary-region.sh"',
     '".github/workflows/deploy.yml"',
   ]) {
     assertIncludes(
@@ -102,13 +121,20 @@ try {
     'file === ".github/workflows/deploy.yml"',
     'file === "scripts/workflow/detect-workflow-scope.mjs"',
     'file === "scripts/deploy/test-api-startup.sh"',
+    'file === "scripts/deploy/fly-deploy-in-primary-region.sh"',
   ]) {
     assertIncludes(
-      detectScopeSource,
+      deployScopeSource,
       requiredDeployInput,
       `Deploy scope detector must treat ${requiredDeployInput} as an API deploy change.`,
     );
   }
+
+  assertMatches(
+    deployScopeSource,
+    /isWorkerSpecificChange\(file\)\s*\|\|\s*isFlyDeployChange\(file\)/,
+    "Deploy scope detector must redeploy the worker when shared Fly deployment logic changes.",
+  );
 
   for (const requiredGuard of [
     "always() &&\n      needs.changes.outputs.api == 'true'",
@@ -170,12 +196,30 @@ try {
     `fly.toml CORS_ORIGINS must only list https://*.docita.work hosts. Invalid entries: ${invalidCorsOrigins.join(", ")}`,
   );
 
-  // The deploy step may call flyctl inline, or delegate to a helper script
-  // (e.g. scripts/deploy/fly-deploy-with-region-fallback.sh) so it can retry
-  // across regions when the primary region has no capacity. Either way the
-  // zero-downtime contract holds as long as the real flyctl call still uses
-  // --strategy bluegreen, so search deploy.yml plus any deploy helper scripts
-  // it references.
+  for (const [configPath, configSource] of [
+    [flyTomlPath, flyTomlSource],
+    [workerFlyTomlPath, workerFlyTomlSource],
+  ]) {
+    assert(
+      parseTomlSingleQuotedEnvValue(configSource, "primary_region") === "bom",
+      `${configPath} must pin Fly production machines to Mumbai (bom).`,
+    );
+  }
+
+  assertIncludes(
+    flyDeployScriptSource,
+    '--primary-region "$primary_region"',
+    "Fly deploy helper must use the primary_region declared in the app manifest.",
+  );
+  assert(
+    !flyDeployScriptSource.includes("FLY_DEPLOY_REGION_FALLBACK"),
+    "Fly deploy helper must not retry production deployment in another region.",
+  );
+
+  // The deploy step may call flyctl inline or delegate to a helper script.
+  // Either way the zero-downtime contract holds as long as the real flyctl
+  // call still uses --strategy bluegreen, so search deploy.yml plus any deploy
+  // helper scripts it references.
   const deployStrategySource = [deployWorkflowSource]
     .concat(
       [...deployWorkflowSource.matchAll(/scripts\/deploy\/[\w./-]+\.sh/g)]
@@ -202,12 +246,54 @@ try {
     "RLS_ENABLED",
     "fly.toml [env] must set RLS_ENABLED for production API.",
   );
+  assertIncludes(
+    flyTomlSource,
+    "auto_stop_machines = 'suspend'",
+    "fly.toml must suspend idle scale-out API machines instead of fully stopping them.",
+  );
+  assert(
+    flyTomlSource.includes("min_machines_running = 1") ||
+      (flyTomlSource.includes("min_machines_running = 0") &&
+        existsSync(
+          join(repoRoot, ".github/workflows/scale-api-hours.yml"),
+        )),
+    "fly.toml must keep one production API machine running, or set min_machines_running = 0 with .github/workflows/scale-api-hours.yml for time-based scaling.",
+  );
+
+  assertIncludes(
+    stagingMirrorWorkflowSource,
+    "github.rest.git.updateRef",
+    "Staging mirror workflow must move the staging ref to main after promotion.",
+  );
+  assert(
+    !stagingMirrorWorkflowSource.includes("github.rest.pulls.create"),
+    "Staging mirror workflow must not open sync PRs; staging is an automatic exact mirror of main.",
+  );
 
   assertIncludes(
     deployWorkflowSource,
     "scripts/monitoring/synthetic/run-probes.mjs",
     "Deploy workflow must run post-deploy synthetic probes.",
   );
+  assertIncludes(
+    deployWorkflowSource,
+    "SYNTHETIC_FLY_API_ORIGIN:",
+    "API deploy probes must warm the direct Fly origin before validating the public edge.",
+  );
+
+  for (const [workflowPath, workflowSource] of [
+    [".github/workflows/ci.yml", ciWorkflowSource],
+    [".github/workflows/api-e2e.yml", apiE2eWorkflowSource],
+    [
+      ".github/workflows/frontend-critical-e2e.yml",
+      frontendCriticalE2eWorkflowSource,
+    ],
+  ]) {
+    assert(
+      /--health-cmd\s+"pg_isready\s+-U\s+\S+\s+-d\s+\S+"/.test(workflowSource),
+      `${workflowPath} Postgres healthcheck must pass an explicit user and database to pg_isready.`,
+    );
+  }
 
   process.stdout.write("Deployment contracts verified.\n");
 } catch (error) {

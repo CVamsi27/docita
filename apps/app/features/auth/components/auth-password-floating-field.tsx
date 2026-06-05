@@ -6,7 +6,10 @@ import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
-import { InlineFieldError, PasswordStrengthIndicator } from "./AuthSharedFields";
+import {
+  InlineFieldError,
+  PasswordStrengthIndicator,
+} from "./AuthSharedFields";
 
 interface AuthPasswordFloatingFieldProps {
   id: string;

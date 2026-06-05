@@ -1,9 +1,49 @@
 import { deriveAnnualPrice } from '@workspace/utils';
 import { describe, expect, it } from '@jest/globals';
+import { BadRequestException } from '@nestjs/common';
+import { completeOnboardingSchema } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import { OnboardingValidationService } from './onboarding-validation.service';
 
 describe('OnboardingValidationService', () => {
   const service = new OnboardingValidationService();
+  const validCompletionInput = {
+    clinicDetails: {
+      name: 'Test Clinic',
+      email: 'clinic@example.com',
+      phone: '9876543210',
+      address: '123 Test Street',
+    },
+    adminAccount: {
+      name: 'Test Admin',
+      email: 'admin@example.com',
+      password: 'Password123',
+      role: 'ADMIN',
+    },
+    planSelection: {
+      tier: 'ESSENTIAL',
+      billingCycle: 'MONTHLY',
+    },
+    paymentDetails: {
+      razorpayPaymentId: 'pay_123',
+      razorpayOrderId: 'order_123',
+      razorpaySignature: 'signature_123',
+    },
+    slaAgreement: {
+      acceptedSLA: true,
+      slaVersion: '1.0',
+      acceptedBy: 'Test Admin',
+      signatureSessionId: 'signature-session-123',
+      acceptedDataProcessingTerms: true,
+      acceptedPrivacyPolicy: true,
+    },
+    consentManagement: {
+      enableWhatsAppCommunication: false,
+      enableMarketingCommunications: false,
+      dataProcessingPurposes: ['TREATMENT'],
+      patientConsentRequiredBeforeWhatsApp: true,
+      logAllConsentChanges: true,
+    },
+  };
 
   describe('getTierPricing', () => {
     it('returns catalog price in smallest currency units for MONTHLY', () => {
@@ -20,6 +60,59 @@ describe('OnboardingValidationService', () => {
 
     it('returns 0 for INTELLIGENCE tier (catalog zero)', () => {
       expect(service.getTierPricing('INTELLIGENCE', 'MONTHLY', 'INR')).toBe(0);
+    });
+
+    it('rounds mode-adjusted catalog pricing before converting to paise', () => {
+      expect(
+        service.getTierPricing('ESSENTIAL', 'MONTHLY', 'INR', 'CORE'),
+      ).toBe(799 * 100);
+    });
+
+    it('rejects discounted plan modes for Starter', () => {
+      expect(() =>
+        service.getTierPricing('STARTER', 'MONTHLY', 'INR', 'FRONT_DESK'),
+      ).toThrow(BadRequestException);
+    });
+  });
+
+  describe('validateOnboardingCompletion', () => {
+    it('does not accept card metadata as payment proof', () => {
+      const result = service.validateOnboardingCompletion(
+        completeOnboardingSchema.parse({
+          ...validCompletionInput,
+          paymentDetails: { cardLast4: '4242' },
+        }),
+      );
+
+      expect(result).toEqual({
+        valid: false,
+        errors: expect.arrayContaining([
+          'Payment details are required for paid plans',
+        ]),
+      });
+    });
+
+    it('applies front-desk role rules to the plan mode', () => {
+      const result = service.validateOnboardingCompletion(
+        completeOnboardingSchema.parse({
+          ...validCompletionInput,
+          adminAccount: {
+            ...validCompletionInput.adminAccount,
+            role: 'ADMIN_DOCTOR',
+          },
+          planSelection: {
+            ...validCompletionInput.planSelection,
+            planMode: 'FRONT_DESK',
+          },
+        }),
+      );
+
+      expect(result).toEqual({
+        valid: false,
+        errors: expect.arrayContaining([
+          'The front desk plan does not support the admin-doctor role for the primary admin account.',
+        ]),
+      });
     });
   });
 });

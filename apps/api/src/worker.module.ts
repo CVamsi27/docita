@@ -18,9 +18,12 @@ import { SubscriptionsWorkerModule } from '@/domains/subscriptions/subscriptions
 import { EnterpriseContractsWorkerModule } from '@/domains/enterprise-contracts/enterprise-contracts.worker.module';
 import { DoctorsVerificationWorkerModule } from '@/domains/doctors/doctors-verification.worker.module';
 import { WhatsappReconciliationWorkerModule } from '@/domains/whatsapp/whatsapp-reconciliation.worker.module';
+import { WhatsappCampaignWorkerModule } from '@/domains/whatsapp/whatsapp-campaign.worker.module';
 import { AdminAlertsSchedulerModule } from '@/shared/modules/messaging/admin-alerts/admin-alerts.scheduler.module';
 import { EphemeralStoreSchedulerModule } from '@/shared/modules/ephemeral-store/ephemeral-store.scheduler.module';
 import { OutboxModule } from '@/shared/modules/outbox/outbox.module';
+import { CronHeartbeatModule } from '@/shared/modules/schedule/cron-heartbeat.module';
+import { buildPinoOptions } from '@/shared/modules/observability/pino-options.factory';
 
 const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
 
@@ -35,13 +38,10 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
       imports: [AppConfigModule],
       inject: [AppConfigService],
       useFactory: (configService: AppConfigService) => ({
-        pinoHttp: {
-          level: configService.isProduction() ? 'info' : 'debug',
-          transport: !configService.isProduction()
-            ? { target: 'pino-pretty' }
-            : undefined,
-          autoLogging: false,
-        },
+        pinoHttp: buildPinoOptions({
+          isProduction: configService.isProduction(),
+          isTest: configService.isTest(),
+        }),
       }),
     }),
     CacheConfigModule,
@@ -61,7 +61,9 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
     EnterpriseContractsWorkerModule,
     DoctorsVerificationWorkerModule,
     WhatsappReconciliationWorkerModule,
+    WhatsappCampaignWorkerModule,
     OutboxModule,
+    CronHeartbeatModule,
   ],
 })
 export class WorkerModule {}

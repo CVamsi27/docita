@@ -1,15 +1,9 @@
-import { FC } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { getPatientFullName } from "@workspace/utils";
+import { FC, useState, useMemo } from "react";
 import { Button } from "@workspace/ui/components/form/button";
+import { SearchInput } from "@workspace/ui/components/form/search-input";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Input } from "@workspace/ui/components/form/input";
-import { FileText, Filter, Search, X } from "lucide-react";
+import { FileText, ShieldCheck, ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
 import {
@@ -17,12 +11,48 @@ import {
   type DataTableColumn,
 } from "@workspace/ui/components/data-display/data-table";
 import { ListRow } from "@workspace/ui/components/data-display/list-row";
+import type { LabTestOrder } from "@workspace/types";
+import { useVerifyLabOrderPayment } from "@workspace/data-access";
+import { useAuth } from "@/lib/auth/auth-context";
+import { toast } from "sonner";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { DATE_FORMAT_OPTIONS_US_SHORT, formatDate } from "@/lib/formatters";
 
-import { LabTestOrder } from "@workspace/types";
-import {
-  DATE_FORMAT_OPTIONS_US_SHORT,
-  formatDate,
-} from "@/lib/formatters";
+const PAYMENT_ROLES = new Set(["ADMIN", "ADMIN_DOCTOR", "RECEPTIONIST"]);
+
+type OrderSortKey = "patient" | "testName" | "orderDate" | "status";
+type OrderSortConfig = { key: OrderSortKey; direction: "asc" | "desc" } | null;
+
+function SortableHeader({
+  label,
+  column,
+  sortConfig,
+  onSort,
+}: {
+  label: string;
+  column: OrderSortKey;
+  sortConfig: OrderSortConfig;
+  onSort: (key: OrderSortKey) => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="inline-flex items-center gap-1 hover:text-foreground"
+      onClick={() => onSort(column)}
+    >
+      {label}
+      {sortConfig?.key === column ? (
+        sortConfig.direction === "asc" ? (
+          <ArrowUp className="h-3 w-3" />
+        ) : (
+          <ArrowDown className="h-3 w-3" />
+        )
+      ) : (
+        <ArrowUpDown className="h-3 w-3 opacity-50" />
+      )}
+    </button>
+  );
+}
 
 interface LabTestsOrdersProps {
   isLoading: boolean;
@@ -37,21 +67,81 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
   searchQuery,
   setSearchQuery,
 }) => {
+  const { user } = useAuth();
+  const canVerifyPayment =
+    user?.role !== undefined && PAYMENT_ROLES.has(user.role);
+  const verifyPayment = useVerifyLabOrderPayment();
+  const [sortConfig, setSortConfig] = useState<OrderSortConfig>(null);
+
+  const handleSort = (key: OrderSortKey) => {
+    setSortConfig((prev) => {
+      if (!prev || prev.key !== key) return { key, direction: "asc" };
+      if (prev.direction === "asc") return { key, direction: "desc" };
+      return null;
+    });
+  };
+
+  const sortedTests = useMemo(() => {
+    if (!sortConfig) return filteredTests;
+    return [...filteredTests].sort((a, b) => {
+      let cmp = 0;
+      switch (sortConfig.key) {
+        case "patient":
+          cmp = getPatientFullName(a.patient ?? null).localeCompare(getPatientFullName(b.patient ?? null));
+          break;
+        case "testName":
+          cmp = (a.labTest?.name ?? "").localeCompare(b.labTest?.name ?? "");
+          break;
+        case "orderDate":
+          cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+        case "status":
+          cmp = (a.status ?? "").localeCompare(b.status ?? "");
+          break;
+      }
+      return sortConfig.direction === "asc" ? cmp : -cmp;
+    });
+  }, [filteredTests, sortConfig]);
+
+  const handleVerify = (order: LabTestOrder) => {
+    verifyPayment.mutate(
+      { id: order.id, paymentMethod: "CASH" },
+      {
+        onSuccess: () => toast.success("Payment verified"),
+        onError: (error) => showUserFacingErrorToast(error),
+      },
+    );
+  };
+
+  const isPaid = (order: LabTestOrder) => Boolean(order.paidAt);
+
   const columns: DataTableColumn<LabTestOrder>[] = [
     {
       id: "patient",
-      header: "Patient",
+      header: (
+        <SortableHeader
+          label="Patient"
+          column="patient"
+          sortConfig={sortConfig}
+          onSort={handleSort}
+        />
+      ),
       cell: (test) => (
         <span className="font-medium">
-          {test.patient
-            ? `${test.patient.firstName} ${test.patient.lastName}`
-            : "Unknown"}
+          {test.patient ? getPatientFullName(test.patient) : "Unknown"}
         </span>
       ),
     },
     {
       id: "testName",
-      header: "Test Name",
+      header: (
+        <SortableHeader
+          label="Test Name"
+          column="testName"
+          sortConfig={sortConfig}
+          onSort={handleSort}
+        />
+      ),
       cell: (test) => test.labTest?.name || "—",
     },
     {
@@ -69,119 +159,122 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
       header: "Ordered By",
       hiddenOnMobile: true,
       cell: (test) => (
-        <span className="text-muted-foreground">{test.doctor?.name || "—"}</span>
+        <span className="text-muted-foreground">
+          {test.doctor?.name || "—"}
+        </span>
       ),
     },
     {
       id: "orderDate",
-      header: "Order Date",
+      header: (
+        <SortableHeader
+          label="Order Date"
+          column="orderDate"
+          sortConfig={sortConfig}
+          onSort={handleSort}
+        />
+      ),
       hiddenOnMobile: true,
-      cell: (test) =>
-        formatDate(test.createdAt, DATE_FORMAT_OPTIONS_US_SHORT),
+      cell: (test) => formatDate(test.createdAt, DATE_FORMAT_OPTIONS_US_SHORT),
     },
     {
       id: "status",
-      header: "Status",
+      header: (
+        <SortableHeader
+          label="Status"
+          column="status"
+          sortConfig={sortConfig}
+          onSort={handleSort}
+        />
+      ),
       cell: (test) => <StatusBadge status={test.status} />,
+    },
+    {
+      id: "payment",
+      header: "Payment",
+      cell: (test) => (
+        <StatusBadge
+          status={isPaid(test) ? "paid" : "unpaid"}
+        />
+      ),
     },
     {
       id: "actions",
       header: "Actions",
       align: "right",
       cell: (test) => (
-        <SymbolTooltip
-          label={test.status === "completed" ? "View results" : "Details"}
-        >
-          <Button variant="ghost" size="sm" className="gap-1">
-            <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">
-              {test.status === "completed" ? "View Results" : "Details"}
-            </span>
-          </Button>
-        </SymbolTooltip>
+        <div className="flex items-center justify-end gap-1">
+          {canVerifyPayment && !isPaid(test) ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1"
+              disabled={verifyPayment.isPending}
+              onClick={() => handleVerify(test)}
+            >
+              <ShieldCheck className="h-4 w-4" />
+              <span className="hidden sm:inline">Verify</span>
+            </Button>
+          ) : null}
+          <SymbolTooltip
+            label={test.status === "completed" ? "View results" : "Details"}
+          >
+            <Button variant="ghost" size="sm" className="gap-1">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">
+                {test.status === "completed" ? "View Results" : "Details"}
+              </span>
+            </Button>
+          </SymbolTooltip>
+        </div>
       ),
     },
   ];
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 md:flex-row">
-        <div className="relative flex-1">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden
-          />
-          <Input
-            placeholder="Enter patient, test, or doctor"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={searchQuery.trim() ? "pl-9 pr-10" : "pl-9"}
-            aria-label="Search lab test orders"
-          />
-          {searchQuery.trim() ? (
-            <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
-              <SymbolTooltip label="Clear search">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => setSearchQuery("")}
-                  aria-label="Clear search"
-                >
-                  <X className="h-4 w-4 text-muted-foreground" aria-hidden />
-                </Button>
-              </SymbolTooltip>
-            </div>
-          ) : null}
-        </div>
-        <Button variant="outline" className="gap-2">
-          <Filter className="h-4 w-4" />
-          Filter
-        </Button>
+      <div className="flex items-end gap-4">
+        <SearchInput
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onClear={() => setSearchQuery("")}
+          placeholder="Enter patient, test, or doctor"
+          ariaLabel="Search lab test orders"
+        />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Lab Test Orders</CardTitle>
-          <CardDescription>
-            A list of all laboratory test orders
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <LoadingState message="Loading lab tests…" />
-          ) : (
-            <DataTable
-              columns={columns}
-              data={filteredTests}
-              rowKey={(test) => test.id}
-              emptyTitle="No lab tests found"
-              emptyDescription="Lab test orders will appear here"
-              stackOnMobile
-              mobileRenderer={(test) => (
-                <ListRow
-                  title={
-                    test.patient
-                      ? `${test.patient.firstName} ${test.patient.lastName}`
-                      : "Unknown"
-                  }
-                  meta={[
-                    test.labTest?.name || "—",
-                    test.labTest?.category || null,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
-                  time={formatDate(test.createdAt, DATE_FORMAT_OPTIONS_US_SHORT)}
-                  status={test.status}
-                  showChevron={false}
-                />
+      {isLoading ? (
+        <LoadingState message="Loading lab tests…" />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={sortedTests}
+          rowKey={(test) => test.id}
+          emptyTitle="No lab tests found"
+          emptyDescription="Lab test orders will appear here"
+          stackOnMobile
+          mobileRenderer={(test) => (
+            <ListRow
+              title={
+                test.patient ? getPatientFullName(test.patient) : "Unknown"
+              }
+              meta={[
+                test.labTest?.name || "—",
+                test.labTest?.category || null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+              time={formatDate(
+                test.createdAt,
+                DATE_FORMAT_OPTIONS_US_SHORT,
               )}
-              className="ui-card-surface"
+              status={test.status}
+              showChevron={false}
             />
           )}
-        </CardContent>
-      </Card>
+          className="ui-card-surface"
+        />
+      )}
     </div>
   );
 };

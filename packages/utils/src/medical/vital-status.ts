@@ -1,8 +1,8 @@
+import { rangeVitalStatus, spo2VitalStatus } from "./vital-status-rules.js";
+import type { VitalStatusType, VitalType } from "./vital-status-types.js";
+import { parseVitalNumber } from "./vital-value.js";
 
-
-export type VitalStatusType = "normal" | "elevated" | "low" | "critical";
-
-export type VitalType = "bp" | "pulse" | "temp" | "spo2" | "weight" | "height";
+export type { VitalStatusType, VitalType };
 
 export const VITAL_STATUS_COLORS: Record<VitalStatusType, string> = {
   normal: "text-success",
@@ -34,49 +34,24 @@ export function getVitalStatus(
   type: string,
   value: number | string | undefined,
 ): VitalStatusType {
-  if (value === undefined) return "normal";
-
-  const numValue =
-    typeof value === "string"
-      ? parseFloat(value.split("/")[0] || value)
-      : value;
-
-  if (isNaN(numValue)) return "normal";
+  const numValue = parseVitalNumber(value);
+  if (numValue === null) return "normal";
 
   switch (type) {
     case "bp": {
-      const range = VITAL_RANGES.bp;
-      if (numValue >= range.critical.max) return "critical";
-      if (numValue >= range.normal.max) return "elevated";
-      if (numValue < range.normal.min) return "low";
-      if (numValue < range.critical.min) return "critical";
-      return "normal";
+      return rangeVitalStatus(numValue, VITAL_RANGES.bp);
     }
 
     case "pulse": {
-      const range = VITAL_RANGES.pulse;
-      if (numValue > range.critical.max || numValue < range.critical.min) {
-        return "critical";
-      }
-      if (numValue > range.normal.max) return "elevated";
-      if (numValue < range.normal.min) return "low";
-      return "normal";
+      return rangeVitalStatus(numValue, VITAL_RANGES.pulse);
     }
 
     case "temp": {
-      const range = VITAL_RANGES.temp;
-      if (numValue >= range.critical.max) return "critical";
-      if (numValue >= range.normal.max) return "elevated";
-      if (numValue < range.normal.min) return "low";
-      if (numValue < range.critical.min) return "critical";
-      return "normal";
+      return rangeVitalStatus(numValue, VITAL_RANGES.temp);
     }
 
     case "spo2": {
-      const range = VITAL_RANGES.spo2;
-      if (numValue < range.critical.min) return "critical";
-      if (numValue < range.normal.min) return "low";
-      return "normal";
+      return spo2VitalStatus(numValue, VITAL_RANGES.spo2);
     }
 
     default:

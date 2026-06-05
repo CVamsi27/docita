@@ -1,5 +1,6 @@
 "use client";
 
+import { getPatientFullName } from "@workspace/utils";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { CalendarCheck, Check, X } from "lucide-react";
@@ -56,7 +57,7 @@ const STATUS_LABELS: Record<FollowUpStatus, string> = {
 function patientName(followUp: FollowUpResponse) {
   const firstName = followUp.patient?.firstName ?? "";
   const lastName = followUp.patient?.lastName ?? "";
-  return `${firstName} ${lastName}`.trim() || "Patient";
+  return getPatientFullName({ firstName, lastName }, "Patient");
 }
 
 function FollowUpCard({
@@ -215,4 +216,3 @@ export function FollowUpsPageContent() {
     </FeatureGate>
   );
 }
-

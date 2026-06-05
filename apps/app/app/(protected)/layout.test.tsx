@@ -56,17 +56,30 @@ vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => mocks.auth,
 }));
 
-vi.mock("@/components", () => ({
-  FloatingStartConsultation: () => null,
+vi.mock("@/components/layout/providers", () => ({
   RealtimeProviders: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),
+}));
+
+vi.mock("@/components/navigation/sidebar", () => ({
   Sidebar: () => null,
   SidebarMobileTrigger: () => null,
+}));
+
+vi.mock("@/components/ask-ai/ask-ai-context", () => ({
   AskAiProvider: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),
+  useAskAi: () => ({ openOverlay: vi.fn(), closeOverlay: vi.fn() }),
+}));
+
+vi.mock("@/components/ask-ai/ask-ai-overlay", () => ({
   AskAiOverlay: () => null,
+}));
+
+vi.mock("@/components/consultation/floating-start-consultation", () => ({
+  FloatingStartConsultation: () => null,
 }));
 
 vi.mock("@/components/navigation/back-button", () => ({
@@ -81,11 +94,6 @@ vi.mock("@/components/navigation/command-palette", () => ({
   CommandPalette: () => null,
 }));
 
-vi.mock("@/components/ask-ai/ask-ai-context", () => ({
-  AskAiProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useAskAi: () => ({ openOverlay: vi.fn(), closeOverlay: vi.fn() }),
-}));
-
 vi.mock("@/components/layout/top-bar-actions", () => ({
   TopBarActions: () => null,
   openCommandPaletteFromUi: vi.fn(),
@@ -93,6 +101,10 @@ vi.mock("@/components/layout/top-bar-actions", () => ({
 
 vi.mock("@/components/layout/desktop-top-bar", () => ({
   DesktopTopBar: () => <div data-testid="desktop-top-bar" />,
+}));
+
+vi.mock("@/components/layout/workspace-appearance-controller", () => ({
+  WorkspaceAppearanceController: () => null,
 }));
 
 vi.mock("@/providers/navigation-history-provider", () => ({

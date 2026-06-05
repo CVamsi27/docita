@@ -146,6 +146,13 @@ export class SubscriptionsQueryService {
     ).some((payment) =>
       isOutstandingUnpaidSubscriptionPaymentStatus(payment.status),
     );
+    const trialEnd = subscription.trialEnd ?? null;
+    const trialWindowState = getTrialWindowState({
+      subscriptionStatus: subscription.getStatus().value,
+      trialEnd,
+      now: this.clock.now(),
+    });
+    const trialGraceEndsAt = getTrialGraceEndsAt(trialEnd);
 
     return {
       id: subscription.id,
@@ -160,6 +167,9 @@ export class SubscriptionsQueryService {
       currentPeriodStart: subscription.currentPeriodStart.toISOString(),
       currentPeriodEnd: subscription.currentPeriodEnd.toISOString(),
       daysRemaining: subscription.getDaysRemaining(this.clock.now()),
+      trialEnd: trialEnd?.toISOString() ?? null,
+      trialWindowState,
+      trialGraceEndsAt: trialGraceEndsAt?.toISOString() ?? null,
       scheduledChange: subscription.scheduledChange ?? null,
       accountCreditCents: subscription.getCredits().paise,
       hasOutstandingPendingPayment,

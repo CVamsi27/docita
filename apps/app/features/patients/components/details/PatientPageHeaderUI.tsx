@@ -1,5 +1,7 @@
 "use client";
 
+import { getPatientFullName } from "@workspace/utils";
+
 import Link from "next/link";
 import { ChevronLeft, Sparkles } from "lucide-react";
 import { Badge } from "@workspace/ui/components/indicators/badge";
@@ -13,9 +15,12 @@ interface PatientPageHeaderUIProps {
   onEdit?: () => void;
 }
 
-export function PatientPageHeaderUI({ patient, onEdit }: PatientPageHeaderUIProps) {
+export function PatientPageHeaderUI({
+  patient,
+  onEdit,
+}: PatientPageHeaderUIProps) {
   const { openOverlay } = useAskAi();
-  const patientName = `${patient.firstName} ${patient.lastName}`.trim();
+  const patientName = getPatientFullName(patient).trim();
 
   const askAiForPatient = () => {
     openOverlay({
@@ -28,7 +33,12 @@ export function PatientPageHeaderUI({ patient, onEdit }: PatientPageHeaderUIProp
   return (
     <div className="flex flex-col gap-3">
       <div>
-        <Button variant="ghost" size="sm" asChild className="-ml-2 text-muted-foreground">
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="-ml-2 text-muted-foreground"
+        >
           <Link href="/patients">
             <ChevronLeft className="h-4 w-4" />
             Patients
@@ -58,9 +68,7 @@ export function PatientPageHeaderUI({ patient, onEdit }: PatientPageHeaderUIProp
             <Sparkles className="size-4 text-primary" aria-hidden />
             Ask AI
           </Button>
-          {onEdit && (
-            <Button onClick={onEdit}>Edit Patient</Button>
-          )}
+          {onEdit && <Button onClick={onEdit}>Edit Patient</Button>}
         </div>
       </div>
     </div>

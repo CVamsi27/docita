@@ -53,7 +53,9 @@ export function CurrentPlanCardUsage({
             : USAGE_ITEMS.filter((row) => row.key !== "whatsappMessages")
           ).map(({ key, label, unit }) => {
             const meter = usage.meters[key];
-            const noIncludedQuota = usageMeterHasNoIncludedQuota(meter.included);
+            const noIncludedQuota = usageMeterHasNoIncludedQuota(
+              meter.included,
+            );
             const percent = usageProgressPercentForBar(
               meter.current,
               meter.included,
@@ -70,7 +72,9 @@ export function CurrentPlanCardUsage({
                   <span className="text-xs font-medium text-foreground">
                     {label}
                   </span>
-                  <span className="text-xs text-muted-foreground">{caption}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {caption}
+                  </span>
                 </div>
                 <Progress
                   value={percent}

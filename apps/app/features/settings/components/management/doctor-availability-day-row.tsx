@@ -83,9 +83,7 @@ export function DoctorAvailabilityDayRow({
             type="number"
             autoComplete="off"
             value={day.slotDuration}
-            onChange={(e) =>
-              onUpdate({ slotDuration: Number(e.target.value) })
-            }
+            onChange={(e) => onUpdate({ slotDuration: Number(e.target.value) })}
             min={5}
             max={60}
             step={5}

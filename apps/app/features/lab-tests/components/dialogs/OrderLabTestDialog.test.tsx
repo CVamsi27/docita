@@ -15,6 +15,10 @@ vi.mock("@/hooks/use-clinic-currency", () => ({
   }),
 }));
 
+vi.mock("@workspace/data-access", () => ({
+  useLabs: () => ({ data: [] }),
+}));
+
 const patient = {
   id: "patient_1",
   firstName: "Asha",

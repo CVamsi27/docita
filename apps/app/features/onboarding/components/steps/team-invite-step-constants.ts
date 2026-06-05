@@ -1,5 +1,6 @@
 import { parseStringEnumMember } from "@workspace/utils";
 import type { TeamMember } from "@/features/onboarding/components/types";
+import { isDoctor } from "@/lib/auth/permissions";
 
 const TEAM_MEMBER_ROLE_VALUES = [
   "DOCTOR",
@@ -64,4 +65,4 @@ export const createEmptyMember = (): TeamMember => ({
 });
 
 export const isDoctorRole = (role: TeamMember["role"]) =>
-  role === "DOCTOR" || role === "ADMIN_DOCTOR";
+  isDoctor(role);

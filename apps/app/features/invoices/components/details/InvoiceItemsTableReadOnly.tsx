@@ -40,13 +40,9 @@ export function InvoiceItemsTableReadOnly({
       <div className="space-y-3 md:hidden">
         {rows.map((item, index) => {
           const unit = item.unitPrice ?? item.price;
-          const total =
-            item.lineTotal ?? item.quantity * unit;
+          const total = item.lineTotal ?? item.quantity * unit;
           return (
-            <div
-              key={index}
-              className="ui-card-surface space-y-2 p-4 text-sm"
-            >
+            <div key={index} className="ui-card-surface space-y-2 p-4 text-sm">
               <p className="font-medium">{item.description}</p>
               <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-muted-foreground">
                 <dt>Qty</dt>
@@ -78,7 +74,9 @@ export function InvoiceItemsTableReadOnly({
               <TableHead className="w-24 px-4 py-3 text-center">Qty</TableHead>
               <TableHead className="w-32 px-4 py-3 text-right">Price</TableHead>
               <TableHead className="w-24 px-4 py-3 text-right">GST</TableHead>
-              <TableHead className="w-28 px-4 py-3 text-right">HSN/SAC</TableHead>
+              <TableHead className="w-28 px-4 py-3 text-right">
+                HSN/SAC
+              </TableHead>
               <TableHead className="w-32 px-4 py-3 text-right">Total</TableHead>
             </TableRow>
           </TableHeader>

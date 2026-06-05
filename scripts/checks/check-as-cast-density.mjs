@@ -4,9 +4,9 @@
  * T1: ratchet `as Type` cast density in application code (excludes `as const`).
  */
 
-import { execSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import process from "node:process";
+import { listSourceFiles } from "../lib/list-source-files.mjs";
 
 const MAX_CASTS_PER_FILE = 0;
 const ALLOW_FILE = "check-as-cast-density: allow-file";
@@ -14,10 +14,11 @@ const CAST_RE = /\bas\s+(?!const\b|const\s|satisfies\b)/g;
 
 /** Import/export rename aliases and comment prose are not type assertions. */
 function countTypeAssertions(source) {
+  const code = stripStrings(source);
   let count = 0;
   let inImportStatement = false;
 
-  for (const line of source.split("\n")) {
+  for (const line of code.split("\n")) {
     const trimmed = line.trim();
 
     if (/^\s*import\b/.test(line)) {
@@ -50,6 +51,14 @@ function countTypeAssertions(source) {
   return count;
 }
 
+function stripStrings(source) {
+  return source
+    .replace(/'[^'\\]*(?:\\.[^'\\]*)*'/g, '""')
+    .replace(/"[^"\\]*(?:\\.[^"\\]*)*"/g, '""')
+    .replace(/`[^`\\]*(?:\\.[^`\\]*)*`/g, '""')
+    .replace(/>([^<>{]*)</g, (_m, text) => `>${"*".repeat(text.length)}<`);
+}
+
 const roots = [
   "apps/api/src",
   "apps/app",
@@ -60,15 +69,7 @@ const roots = [
   "packages/utils/src",
 ];
 
-const files = roots
-  .flatMap((root) =>
-    execSync(`git ls-files '${root}'`, { encoding: "utf8" })
-      .split("\n")
-      .filter(Boolean),
-  )
-  .filter((file) => /\.(ts|tsx)$/.test(file))
-  .filter((file) => !/\.(spec|test)\.[tj]sx?$/.test(file))
-  .filter((file) => existsSync(file));
+const files = listSourceFiles(roots);
 
 const findings = [];
 

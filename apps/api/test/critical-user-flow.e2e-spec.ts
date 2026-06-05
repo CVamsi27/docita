@@ -13,6 +13,13 @@ import {
 import { factories, setPrismaInstance } from './factories';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
 import { mockWhatsappService } from './whatsapp.provider';
+import { CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN } from '@/domains/payments/core/ports/payment-link-provider.port';
+import {
+  clearMockPaymentLinkProvider,
+  createMockPaymentLinkProvider,
+} from './payment-link-provider.mock';
+
+const mockPaymentLinkProvider = createMockPaymentLinkProvider();
 
 describe('Critical User Flow (e2e)', () => {
   let app: INestApplication;
@@ -28,6 +35,8 @@ describe('Critical User Flow (e2e)', () => {
       .useValue(getPrismaInstance())
       .overrideProvider(WhatsappService)
       .useValue(mockWhatsappService)
+      .overrideProvider(CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN)
+      .useValue(mockPaymentLinkProvider)
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -41,6 +50,7 @@ describe('Critical User Flow (e2e)', () => {
 
   beforeEach(async () => {
     await resetDatabase();
+    clearMockPaymentLinkProvider(mockPaymentLinkProvider);
   });
 
   afterAll(async () => {

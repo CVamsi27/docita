@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, History } from "lucide-react";
 import { usePortalTimeline, usePortalSnapshot } from "@workspace/data-access";
-import { usePatientMedicalHistory, usePatientPortalDashboard } from "@workspace/data-access";
+import {
+  usePatientMedicalHistory,
+  usePatientPortalDashboard,
+} from "@workspace/data-access";
 import { PatientSnapshotStrip } from "@/components/patient-history/PatientSnapshotStrip";
 import { PatientTimeline } from "@/components/patient-history/PatientTimeline";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
@@ -67,13 +70,14 @@ export function PortalHistoryTimelineUI({
     );
   };
 
-  const timelineStatus = isLoading && !timeline
-    ? "loading"
-    : isError
-      ? "error"
-      : timeline && timeline.total === 0
-        ? "empty"
-        : "success";
+  const timelineStatus =
+    isLoading && !timeline
+      ? "loading"
+      : isError
+        ? "error"
+        : timeline && timeline.total === 0
+          ? "empty"
+          : "success";
 
   return (
     <div className="space-y-6">
@@ -153,7 +157,8 @@ export function PortalHistoryTimelineUI({
                   <ul className="space-y-1">
                     {medicalHistory.allergies.map((a, i) => (
                       <li key={i} className="text-sm">
-                        {String(a.allergen ?? "")} &mdash; {String(a.severity ?? "")}
+                        {String(a.allergen ?? "")} &mdash;{" "}
+                        {String(a.severity ?? "")}
                       </li>
                     ))}
                   </ul>
@@ -167,7 +172,8 @@ export function PortalHistoryTimelineUI({
                   <ul className="space-y-1">
                     {medicalHistory.familyHistory.map((f, i) => (
                       <li key={i} className="text-sm">
-                        {String(f.condition ?? "")} ({String(f.relationship ?? "")})
+                        {String(f.condition ?? "")} (
+                        {String(f.relationship ?? "")})
                       </li>
                     ))}
                   </ul>

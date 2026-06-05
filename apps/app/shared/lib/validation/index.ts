@@ -1,2 +1,1 @@
-
-export * from "./validators";
+export { validatePhoneForCountry } from "./phone";

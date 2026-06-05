@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import type { ReactNode } from "react";
 
 export interface AskAiScope {
@@ -31,14 +37,19 @@ export function AskAiProvider({ children }: { children: ReactNode }) {
     setOpen(true);
   }, []);
   const closeOverlay = useCallback(() => setOpen(false), []);
-  const setScope = useCallback((next: AskAiScope | null) => setScopeState(next), []);
+  const setScope = useCallback(
+    (next: AskAiScope | null) => setScopeState(next),
+    [],
+  );
 
   const value = useMemo<AskAiContextValue>(
     () => ({ open, scope, openOverlay, closeOverlay, setScope }),
     [open, scope, openOverlay, closeOverlay, setScope],
   );
 
-  return <AskAiContext.Provider value={value}>{children}</AskAiContext.Provider>;
+  return (
+    <AskAiContext.Provider value={value}>{children}</AskAiContext.Provider>
+  );
 }
 
 export function useAskAi(): AskAiContextValue {

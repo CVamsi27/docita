@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/form/select";
 import { Stethoscope, Trash2 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
+import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { IcdSearchField } from "./icd-search-field";
 import type { DiagnosisItem } from "./diagnosis-input-types";
 
@@ -34,12 +35,15 @@ export function DiagnosisItemRow({
   onRemove: () => void;
 }) {
   return (
-    <div className="p-3 bg-muted/20 border rounded-lg space-y-2 transition-colors hover:bg-muted/30">
+    <div className="space-y-2 rounded-[var(--radius-md)] border border-border/70 bg-muted/20 p-3 transition-colors duration-150 hover:bg-muted/30">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="badge-info p-1.5 rounded-full">
-            <Stethoscope className="h-4 w-4" />
-          </div>
+          <CategoryAvatar
+            icon={<Stethoscope />}
+            tone="info"
+            size="sm"
+            aria-label="Diagnosis"
+          />
           <span className="text-sm font-medium">Diagnosis #{index + 1}</span>
           {item.icdCode ? (
             <Badge variant="outline" className="font-mono text-xs text-primary">
@@ -118,7 +122,7 @@ export function DiagnosisItemRow({
         {medicalCodingEnabled ? (
           <div className="col-span-1 md:col-span-6">
             <label className="text-xs text-muted-foreground mb-1 block">
-              ICD-10 Code
+              ICD-10 code
             </label>
             <IcdSearchField
               value={item.icdCode}
@@ -130,7 +134,7 @@ export function DiagnosisItemRow({
         ) : item.icdCode ? (
           <div className="col-span-1 md:col-span-6">
             <label className="text-xs text-muted-foreground mb-1 block">
-              ICD-10 Code
+              ICD-10 code
             </label>
             <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
               <span className="font-mono font-semibold text-primary">
@@ -153,14 +157,14 @@ export function DiagnosisItemRow({
           )}
         >
           <label className="text-xs text-muted-foreground mb-1 block">
-            Notes / Remarks
+            Notes
           </label>
           <Input
             placeholder="Notes"
             value={item.notes || ""}
             onChange={(e) => onUpdate("notes", e.target.value)}
             readOnly={readOnly}
-            className="bg-background text-muted-foreground text-sm"
+            className="bg-background text-sm"
           />
         </div>
       </div>

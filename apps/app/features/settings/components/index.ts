@@ -8,6 +8,7 @@ export * from "./management/DoctorAvailabilitySettings";
 export * from "./clinic/ClinicGeneralSettings";
 export * from "./clinic/QueueSettings";
 export * from "./clinical/PrescriptionDefaultsSettings";
+export * from "./clinical/OpdSlipSettings";
 
 export * from "./security/SecuritySettings";
 export * from "./security/ChangePasswordSettings";

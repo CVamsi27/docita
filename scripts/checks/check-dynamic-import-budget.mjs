@@ -4,20 +4,15 @@
  * Β1: large client components should use next/dynamic for code-splitting.
  */
 
-import { execSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import process from "node:process";
+import { listSourceFiles } from "../lib/list-source-files.mjs";
 
 const ALLOW_FILE = "check-dynamic-import-budget: allow-file";
 const MIN_LINES = 401;
 const ROOT = "apps/app";
 
-const files = execSync(`git ls-files '${ROOT}'`, { encoding: "utf8" })
-  .split("\n")
-  .filter(Boolean)
-  .filter((file) => /\.tsx$/.test(file))
-  .filter((file) => !/\.(spec|test)\.tsx$/.test(file))
-  .filter((file) => existsSync(file));
+const files = listSourceFiles([ROOT]).filter((file) => /\.tsx$/.test(file));
 
 const findings = [];
 

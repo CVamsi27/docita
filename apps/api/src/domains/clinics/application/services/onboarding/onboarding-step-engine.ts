@@ -30,10 +30,10 @@ export function generateReferralCode(clinicName: string): string {
 export function toStaffRole(
   role: 'DOCTOR' | 'NURSE' | 'RECEPTIONIST' | 'ADMIN' | 'ADMIN_DOCTOR',
 ): Role {
-  if (role === 'DOCTOR') return Role.DOCTOR;
-  if (role === 'NURSE') return Role.NURSE;
-  if (role === 'ADMIN') return Role.ADMIN;
-  if (role === 'ADMIN_DOCTOR') return Role.ADMIN_DOCTOR;
+  if (role === Role.DOCTOR) return Role.DOCTOR;
+  if (role === Role.NURSE) return Role.NURSE;
+  if (role === Role.ADMIN) return Role.ADMIN;
+  if (role === Role.ADMIN_DOCTOR) return Role.ADMIN_DOCTOR;
   return Role.RECEPTIONIST;
 }
 
@@ -77,15 +77,23 @@ export interface PeriodEndInput {
 
 /**
  * Computes the subscription period end date based on tier / billing cycle.
+ *
+ * An unpaid trial (`skipPayment`) always runs for the trial window regardless
+ * of the chosen billing cycle — a yearly plan started on trial must still end
+ * its trial after `trialDays`, not a full year.
  */
 export function computePeriodEnd({
   billingCycle,
+  skipPayment,
   trialDays,
   now,
 }: PeriodEndInput): Date {
+  const trialMs = trialDays * 24 * 60 * 60 * 1000;
+  if (skipPayment) {
+    return new Date(now.getTime() + trialMs);
+  }
   if (billingCycle === BillingCycle.YEARLY) {
     return new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
   }
-  const trialMs = trialDays * 24 * 60 * 60 * 1000;
   return new Date(now.getTime() + trialMs);
 }

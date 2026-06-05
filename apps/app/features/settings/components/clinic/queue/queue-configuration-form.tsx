@@ -33,6 +33,7 @@ import {
   queueSettingsFormSchema,
   type QueueSettingsFormValues,
 } from "@workspace/types";
+import { DEFAULT_SLOT_DURATION } from "@workspace/utils";
 
 export const QueueConfigurationForm = () => {
   const { data: clinic, isLoading: settingsLoading } = useClinicSettings();
@@ -42,7 +43,7 @@ export const QueueConfigurationForm = () => {
   const form = useForm<QueueSettingsFormValues>({
     resolver: zodResolver(queueSettingsFormSchema),
     defaultValues: {
-      avgConsultationMinutes: 15,
+      avgConsultationMinutes: DEFAULT_SLOT_DURATION,
       lateArrivalGraceMinutes: 30,
       queueBufferMinutes: 10,
       useDoctorQueues: false,
@@ -52,7 +53,8 @@ export const QueueConfigurationForm = () => {
   useEffect(() => {
     if (clinic) {
       form.reset({
-        avgConsultationMinutes: clinic.avgConsultationMinutes ?? 15,
+        avgConsultationMinutes:
+          clinic.avgConsultationMinutes ?? DEFAULT_SLOT_DURATION,
         lateArrivalGraceMinutes: clinic.lateArrivalGraceMinutes ?? 30,
         queueBufferMinutes: clinic.queueBufferMinutes ?? 10,
         useDoctorQueues: clinic.useDoctorQueues ?? false,

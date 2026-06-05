@@ -58,7 +58,9 @@ export function SignaturesSection({
       {qrFlow.isUploaded ? (
         <div className="ui-card-surface space-y-3 p-4">
           <div className="flex items-center justify-between gap-3">
-            <p className="ui-section-title text-[var(--fs-sm)]">Signature preview</p>
+            <p className="ui-section-title text-[var(--fs-sm)]">
+              Signature preview
+            </p>
             <Button
               type="button"
               variant="outline"
@@ -72,9 +74,11 @@ export function SignaturesSection({
             </Button>
           </div>
           {signaturePreviewLoading ? (
-            <p className="text-xs text-muted-foreground">Loading signature preview…</p>
+            <p className="text-xs text-muted-foreground">
+              Loading signature preview…
+            </p>
           ) : signatureFileUrl && !signaturePreviewFailed ? (
-            <div className="rounded-md border bg-background p-3">
+            <div className="rounded-md border bg-white p-3">
               <Image
                 src={signatureFileUrl}
                 alt="SLA signature preview"
@@ -89,8 +93,8 @@ export function SignaturesSection({
             </div>
           ) : (
             <p className="text-xs text-muted-foreground">
-              We received your signature, but the preview is not available yet. You can continue,
-              or re-sync to try again.
+              We received your signature, but the preview is not available yet.
+              You can continue, or re-sync to try again.
             </p>
           )}
         </div>

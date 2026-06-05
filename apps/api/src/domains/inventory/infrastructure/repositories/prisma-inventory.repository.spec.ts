@@ -17,6 +17,7 @@ describe('PrismaInventoryRepository tenant guards', () => {
     inventoryItem: {
       updateMany: jest.fn<AnyAsync>(),
       findFirst: jest.fn<AnyAsync>(),
+      findUnique: jest.fn<AnyAsync>().mockResolvedValue(null),
     },
     inventoryMovement: {
       create: jest.fn<AnyAsync>(),

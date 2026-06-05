@@ -1,7 +1,7 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import type { Invoice } from "@workspace/types";
+import type { InvoiceListRow } from "@workspace/types";
 import Link from "next/link";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
@@ -13,16 +13,13 @@ import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffo
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { Button } from "@workspace/ui/components/form/button";
 import { usePatients } from "@workspace/data-access";
-import { useInvoices } from "@/features/invoices";
+import { useDeskOpenInvoices } from "@/features/desk/hooks/use-desk-open-invoices";
 import { useDeskRecordInvoiceSettlement } from "@/features/desk/hooks/use-desk-record-invoice-settlement";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import { useAuth } from "@/lib/auth/auth-context";
-import {
-  OpenInvoicesSection,
-  PatientSearchSection,
-  RecordPaymentDialog,
-} from "./DeskCollectPaymentSections";
-
+import { DeskPatientSearch } from "./DeskPatientSearch";
+import { DeskOpenInvoices } from "./DeskOpenInvoices";
+import { RecordPaymentDialog } from "./desk-record-payment-dialog";
 
 export function DeskCollectPaymentPageUI() {
   const clinicCurrency = useClinicCurrency();
@@ -33,7 +30,9 @@ export function DeskCollectPaymentPageUI() {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null,
   );
-  const [dialogInvoice, setDialogInvoice] = useState<Invoice | null>(null);
+  const [dialogInvoice, setDialogInvoice] = useState<InvoiceListRow | null>(
+    null,
+  );
   const [paymentMethod, setPaymentMethod] = useState<DeskPaymentMethod>("CASH");
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
@@ -53,16 +52,13 @@ export function DeskCollectPaymentPageUI() {
   });
 
   const {
-    data: invoicesRaw,
+    data: openInvoicesResponse,
     isLoading: invoicesLoading,
     isError: invoicesError,
     refetch: refetchInvoices,
-  } = useInvoices(
-    selectedPatientId
-      ? { patientId: selectedPatientId, limit: 50 }
-      : undefined,
-    { enabled: Boolean(selectedPatientId) },
-  );
+  } = useDeskOpenInvoices(selectedPatientId, {
+    enabled: Boolean(selectedPatientId),
+  });
 
   const recordSettlement = useDeskRecordInvoiceSettlement();
 
@@ -72,14 +68,9 @@ export function DeskCollectPaymentPageUI() {
   );
 
   const openInvoices = useMemo(() => {
-    if (!invoicesRaw?.length) return [];
-    return invoicesRaw.filter(isOpenDeskInvoice);
-  }, [invoicesRaw]);
-
-  const selectedPatient = useMemo(
-    () => patients.find((p) => p.id === selectedPatientId) ?? null,
-    [patients, selectedPatientId],
-  );
+    if (!openInvoicesResponse?.items.length) return [];
+    return openInvoicesResponse.items.filter(isOpenDeskInvoice);
+  }, [openInvoicesResponse]);
 
   useEffect(() => {
     if (!dialogInvoice) return;
@@ -88,25 +79,27 @@ export function DeskCollectPaymentPageUI() {
     setNotes("");
   }, [dialogInvoice]);
 
+  const hasSearchQuery = searchQuery.trim().length > 0;
+
   const patientsState = patientsLoading
     ? "loading"
     : patientsError
       ? "error"
-      : "success";
-
-  const invoicesState =
-    selectedPatientId === null
-      ? "success"
-      : invoicesLoading
-        ? "loading"
-        : invoicesError
-          ? "error"
-          : openInvoices.length === 0
-            ? "empty"
-            : "success";
+      : patients.length === 0 && hasSearchQuery
+        ? "empty"
+        : "success";
 
   const formatMoney = (amount: number | undefined) =>
     clinicCurrency.formatCurrency(amount ?? 0);
+
+  const handleClearPatient = () => {
+    setSelectedPatientId(null);
+  };
+
+  const handleSelectPatient = (patientId: string) => {
+    setSelectedPatientId(patientId);
+    setSearchQuery("");
+  };
 
   const handleRecordSubmit = async () => {
     if (!dialogInvoice?.id || !canRecordPayment) return;
@@ -117,6 +110,7 @@ export function DeskCollectPaymentPageUI() {
       notes: notes.trim() || undefined,
     });
     setDialogInvoice(null);
+    refetchInvoices();
   };
 
   return (
@@ -124,7 +118,7 @@ export function DeskCollectPaymentPageUI() {
       header={
         <PageHeader
           title="Payment desk"
-          description="Record cash, card terminal, or UPI collections against visit invoices. This desk flow is separate from online payment links and subscription billing."
+          description="Record cash, card, or UPI payments collected at the front desk against open invoices."
           actions={
             <Button variant="outline" size="sm" asChild>
               <Link href="/invoices">Open invoice billing</Link>
@@ -133,22 +127,24 @@ export function DeskCollectPaymentPageUI() {
         />
       }
     >
-      <div className="grid gap-6 lg:grid-cols-2">
-        <PatientSearchSection
+      <div className="space-y-6">
+        <DeskPatientSearch
           searchQuery={searchQuery}
           selectedPatientId={selectedPatientId}
           patients={patients}
           patientsState={patientsState}
           onSearchChange={setSearchQuery}
-          onSelectPatient={setSelectedPatientId}
+          onSelectPatient={handleSelectPatient}
+          onClearPatient={handleClearPatient}
           onRetry={() => void refetchPatients()}
+          hasSearchQuery={hasSearchQuery}
         />
 
-        <OpenInvoicesSection
+        <DeskOpenInvoices
           selectedPatientId={selectedPatientId}
-          selectedPatient={selectedPatient}
-          openInvoices={openInvoices}
-          invoicesState={invoicesState}
+          invoices={openInvoices}
+          loading={invoicesLoading}
+          error={invoicesError}
           canRecordPayment={canRecordPayment}
           isRecordingPayment={recordSettlement.isPending}
           formatMoney={formatMoney}

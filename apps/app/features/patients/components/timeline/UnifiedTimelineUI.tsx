@@ -1,6 +1,9 @@
 "use client";
 
-import type { TimelineEventType, PatientTimelineResponse } from "@workspace/types";
+import type {
+  TimelineEventType,
+  PatientTimelineResponse,
+} from "@workspace/types";
 import { PatientTimeline } from "@/components/patient-history";
 
 interface UnifiedTimelineUIProps {

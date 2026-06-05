@@ -1,4 +1,6 @@
 app = 'docita-api'
+# Production API machines stay in Mumbai. CI reads this value and does not
+# fall back to another region when Mumbai placement is temporarily unavailable.
 primary_region = 'bom'
 
 [build]
@@ -21,10 +23,9 @@ primary_region = 'bom'
 [http_service]
   internal_port = 3001
   force_https = true
-  # 'suspend' (vs 'stop') snapshots RAM and wakes in ~1s on traffic.
-  # Matches the "auto-off when idle, fast wake on traffic" intent without
-  # paying for an always-on instance. See SYSTEM_DESIGN_AND_PATTERNS.md
-  # §28.5 and ADR 0011 (apps/api Fly cold-start policy).
+  # Keep one machine running during IST business hours (8:30 AM–8:30 PM) and
+  # zero during off-hours. The scale-api-hours.yml workflow adjusts the count
+  # on a schedule; this floor allows the off-hours zero-machine state.
   auto_stop_machines = 'suspend'
   auto_start_machines = true
   min_machines_running = 0
@@ -40,8 +41,8 @@ primary_region = 'bom'
     type = 'http'
     interval = '15s'
     timeout = '5s'
-    # grace_period is the safety net for the rare full cold start (deploy,
-    # host migration, OOM). Steady-state wakes are ~1s thanks to 'suspend'.
+    # grace_period is the safety net for deploys, host migration, and OOM
+    # recovery. The steady-state clinician path stays on the running floor.
     grace_period = '240s'
     method = 'GET'
     path = '/api/health/live'

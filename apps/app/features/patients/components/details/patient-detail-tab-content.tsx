@@ -1,10 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type {
-  Appointment,
-  PatientWithMedicalHistory,
-} from "@workspace/types";
+import type { Appointment, PatientWithMedicalHistory } from "@workspace/types";
 import { PatientDetailTabLoadingShell } from "@/features/patients/components/details/patient-detail-tab-loading-shell";
 import type {
   PatientDetailTabValue,
@@ -15,6 +12,14 @@ const VisitsTab = dynamic(
   () =>
     import("@/features/patients/components/details/tabs/VisitsTab").then(
       (m) => m.VisitsTab,
+    ),
+  { loading: () => <PatientDetailTabLoadingShell />, ssr: false },
+);
+
+const SummaryTab = dynamic(
+  () =>
+    import("@/features/patients/components/details/tabs/SummaryTab").then(
+      (m) => m.SummaryTab,
     ),
   { loading: () => <PatientDetailTabLoadingShell />, ssr: false },
 );
@@ -67,6 +72,14 @@ const BillingTab = dynamic(
   { loading: () => <PatientDetailTabLoadingShell />, ssr: false },
 );
 
+const PatientCommunicationTab = dynamic(
+  () =>
+    import(
+      "@/features/patients/components/details/PatientCommunicationTab"
+    ).then((m) => m.PatientCommunicationTab),
+  { loading: () => <PatientDetailTabLoadingShell />, ssr: false },
+);
+
 export function PatientDetailTabContent({
   activeTab,
   activeRecordsSubTab,
@@ -86,6 +99,10 @@ export function PatientDetailTabContent({
   canRecordPatientVitals: boolean;
   canViewInvoices: boolean;
 }) {
+  if (activeTab === "summary") {
+    return <SummaryTab patient={patient} patientId={patientId} />;
+  }
+
   if (activeTab === "visits") {
     return <VisitsTab patientId={patientId} />;
   }
@@ -116,6 +133,10 @@ export function PatientDetailTabContent({
 
   if (activeTab === "billing" && canViewInvoices) {
     return <BillingTab patientId={patientId} />;
+  }
+
+  if (activeTab === "communication") {
+    return <PatientCommunicationTab patient={patient} patientId={patientId} />;
   }
 
   return null;

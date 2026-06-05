@@ -21,6 +21,7 @@ import { MetricsAggregationService } from './services/metrics-aggregation.servic
 import { HealthCheckService } from './services/health-check.service';
 import { OpsAlertService } from './services/ops-alert.service';
 import { OpsAlertListener } from './listeners/ops-alert.listener';
+import { BusinessMetricsService } from './services/business-metrics.service';
 import { API_REQUEST_METRICS_REPOSITORY_TOKEN } from './ports/api-request-metrics.repository.port';
 import { PrismaApiRequestMetricsRepository } from './infrastructure/prisma-api-request-metrics.repository';
 import { AppConfigModule } from '@/shared/modules/config/config.module';
@@ -54,6 +55,7 @@ import { AppConfigModule } from '@/shared/modules/config/config.module';
     HealthCheckService,
     OpsAlertService,
     OpsAlertListener,
+    BusinessMetricsService,
   ],
   exports: [
     MonitoringService,

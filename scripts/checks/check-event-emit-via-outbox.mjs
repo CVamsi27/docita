@@ -6,12 +6,16 @@
 // SYSTEM_DESIGN_AND_PATTERNS.md §28.2 items 11, 12, and §28.4 item 31.
 // See ADR docs/architecture/decisions/0010-transactional-outbox.md.
 
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import process from "node:process";
 
 const ROOT = "apps/api/src/domains";
-const files = execSync(`git ls-files '${ROOT}'`, { encoding: "utf8" })
+const files = execFileSync(
+  "git",
+  ["ls-files", "--cached", "--others", "--exclude-standard", "--", ROOT],
+  { encoding: "utf8" },
+)
   .split("\n")
   .filter(Boolean)
   .filter((f) => /\/application\//.test(f))
@@ -71,5 +75,4 @@ if (advisories.length > 50) {
 process.stderr.write(
   "Migrate to `outbox.append(tx, ...)` (inject IOutboxService) or add `// allow-direct-emit: <reason>` for cases that genuinely require fire-and-forget emit.\n",
 );
-// Advisory until command-path migration completes.
-process.exit(0);
+process.exit(1);

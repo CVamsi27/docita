@@ -1,7 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/feedback/alert";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/feedback/alert";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
@@ -37,7 +41,8 @@ export function ContactSectionVerification({
             </MicroLabel>
             <p className="text-[length:var(--fs-xs)] leading-relaxed text-muted-foreground">
               This phone matches records at this location. Request a one-time
-              code via WhatsApp, then enter it so we can show your recent visits.
+              code via WhatsApp, then enter it so we can show your recent
+              visits.
             </p>
             <Button
               type="button"

@@ -5,7 +5,7 @@ import {
   type PatientSnapshot,
   type PatientTimelineResponse,
 } from "@workspace/types";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import { useDataAccessContext } from "../provider/hooks";
@@ -28,7 +28,9 @@ export const usePatientTimeline = (
   if (filters?.limit) params.set("limit", String(filters.limit));
   if (filters?.offset) params.set("offset", String(filters.offset));
   const query = params.toString();
-  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.BASIC_PATIENT_MANAGEMENT,
+  );
 
   return useAPIQuery<PatientTimelineResponse>(
     queryKeys.patientTimeline.list(patientId, filters ?? {}),
@@ -38,7 +40,9 @@ export const usePatientTimeline = (
 };
 
 export const usePatientSnapshot = (patientId: string) => {
-  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.BASIC_PATIENT_MANAGEMENT,
+  );
   return useAPIQuery<PatientSnapshot>(
     queryKeys.patientSnapshot.detail(patientId),
     `/patients/${patientId}/timeline/snapshot`,
@@ -47,7 +51,9 @@ export const usePatientSnapshot = (patientId: string) => {
 };
 
 export const useActiveMedications = (patientId: string) => {
-  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.BASIC_PATIENT_MANAGEMENT,
+  );
   return useAPIQuery<ActiveMedication[]>(
     queryKeys.medications.active(patientId),
     `/patients/${patientId}/medication-doses/active-medications`,
@@ -59,10 +65,10 @@ export const useMedicationAdherence = (
   patientId: string,
   prescriptionId?: string,
 ) => {
-  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
-  const params = prescriptionId
-    ? `?prescriptionId=${prescriptionId}`
-    : "";
+  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.BASIC_PATIENT_MANAGEMENT,
+  );
+  const params = prescriptionId ? `?prescriptionId=${prescriptionId}` : "";
   return useAPIQuery<MedicationAdherenceSummary>(
     queryKeys.medications.adherence(patientId, prescriptionId ?? ""),
     `/patients/${patientId}/medication-doses/adherence${params}`,

@@ -1,5 +1,7 @@
 "use client";
 
+import { getPatientFullName } from "@workspace/utils";
+
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useUpdateInvoice } from "@workspace/data-access";
@@ -118,7 +120,7 @@ export function EditInvoiceDialog({
   };
 
   const patientName = invoice?.patient
-    ? `${invoice.patient.firstName} ${invoice.patient.lastName}`
+    ? getPatientFullName(invoice.patient)
     : "Unknown Patient";
 
   return (
@@ -152,12 +154,7 @@ export function EditInvoiceDialog({
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label>Invoice items</Label>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addItem}
-            >
+            <Button type="button" variant="outline" size="sm" onClick={addItem}>
               <Plus className="h-4 w-4 mr-1" /> Add Item
             </Button>
           </div>

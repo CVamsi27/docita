@@ -3,7 +3,7 @@ import type {
   SupportWhatsAppMessage,
   SupportWhatsAppThreadSummary,
 } from "@workspace/types";
-import { internalQueryKeys } from "../../lib/query-keys";
+import { internalQueryKeys } from "../../lib/query-keys-internal";
 import { useDataAccessFetcher } from "../../provider/hooks";
 
 export function useInternalSupportWhatsAppThreads(

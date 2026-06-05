@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import {
   BadRequestException,
   Injectable,
@@ -101,8 +102,7 @@ export class PublicBookingSubmitService {
       clinicId,
       noticeVersion: data.dpdpConsent.noticeVersion,
       givenByName:
-        data.dpdpConsent.givenByName ??
-        `${data.firstName} ${data.lastName}`.trim(),
+        data.dpdpConsent.givenByName ?? getPatientFullName(data).trim(),
       givenByRelation: data.dpdpConsent.relation ?? 'SELF',
       createdBy: undefined,
       ipAddress: remoteIp,

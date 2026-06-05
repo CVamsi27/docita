@@ -1,5 +1,5 @@
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import { internalQueryKeys } from "../../lib/query-keys";
+import { internalQueryKeys } from "../../lib/query-keys-internal";
 import { useDataAccessFetcher } from "../../provider/hooks";
 import type {
   InternalEnterpriseContractEstimate,
@@ -21,7 +21,9 @@ export function useInternalEnterpriseContracts(
   return useQuery({
     queryKey: internalQueryKeys.internal.enterpriseContracts(),
     queryFn: () =>
-      fetcher<InternalEnterpriseContractRow[]>("/internal/enterprise-contracts"),
+      fetcher<InternalEnterpriseContractRow[]>(
+        "/internal/enterprise-contracts",
+      ),
     enabled: Boolean(token),
     ...options,
   });

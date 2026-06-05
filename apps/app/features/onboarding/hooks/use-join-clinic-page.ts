@@ -15,9 +15,8 @@ export function useJoinClinicPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [clinics, setClinics] = useState<JoinClinicSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [selectedClinic, setSelectedClinic] = useState<JoinClinicSearchResult | null>(
-    null,
-  );
+  const [selectedClinic, setSelectedClinic] =
+    useState<JoinClinicSearchResult | null>(null);
   const [requestedRole, setRequestedRole] = useState<string>("DOCTOR");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);

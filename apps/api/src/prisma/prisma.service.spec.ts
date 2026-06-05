@@ -4,10 +4,13 @@ import { PrismaService } from './prisma.service';
 describe('PrismaService.onModuleInit', () => {
   it('applies extensions and starts database connect without blocking bootstrap', async () => {
     // Extension chain length must match prisma.service.ts:
-    //   rls-routing → encryption → audit → tenant → slow-query (5 levels)
+    //   rls-routing → encryption → audit → tenant → slow-query → query-budget
     const extendedClient = { marker: 'extended' };
-    const fifthLevel = {
+    const sixthLevel = {
       $extends: jest.fn(() => extendedClient) as jest.Mock,
+    };
+    const fifthLevel = {
+      $extends: jest.fn(() => sixthLevel) as jest.Mock,
     };
     const fourthLevel = {
       $extends: jest.fn(() => fifthLevel) as jest.Mock,

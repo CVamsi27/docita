@@ -7,7 +7,7 @@
     "enumMembers": "warn",
     "types": "warn"
   },
-  "ignoreBinaries": ["printf", "tsx"],
+  "ignoreBinaries": ["fallow", "printf", "tsx"],
   "ignoreWorkspaces": ["apps/worker"],
   "workspaces": {
     "apps/api": {
@@ -87,12 +87,23 @@
         "src/shared/modules/schedule/cron-heartbeat.ts",
         "src/shared/common/context/request-context.store.ts",
         "src/shared/modules/rls/active-tx.storage.ts",
-        "src/domains/appointments/application/types/appointment-access-context.ts"
+        "src/domains/appointments/application/types/appointment-access-context.ts",
+        "src/shared/common/repositories/base-repository.types.ts",
+        "src/shared/common/repositories/base-repository.utils.ts",
+        "src/shared/common/repositories/base.repository.ts",
+        "src/shared/common/repositories/repository-domain-item.boundary.ts",
+        "src/shared/modules/error-handling/exceptions/application.exception.ts",
+        "src/shared/modules/error-handling/exceptions/resource.exceptions.ts",
+        "src/shared/modules/error-handling/exceptions/validation.exception.ts",
+        "src/test-utils/factories.ts"
       ],
       "ignoreDependencies": ["pino-pretty"]
     },
     "packages/types": {
-      "ignore": ["src/auth/mfa.ts"]
+      "ignore": [
+        "src/auth/mfa.ts",
+        "src/shared/auth.ts"
+      ]
     },
     "packages/utils": {
       "ignoreDependencies": ["clsx", "tailwind-merge"]
@@ -113,13 +124,13 @@
         "@/hooks/*": ["./shared/hooks/*"],
         "@/components/*": ["./shared/components/*"]
       },
+      "ignore": [
+        "open-next.config.ts"
+      ],
       "ignoreDependencies": [
         "@tailwindcss/postcss",
         "@types/react-signature-canvas",
-        "baseline-browser-mapping",
-        "globals",
-        "import-in-the-middle",
-        "require-in-the-middle"
+        "globals"
       ]
     },
     "apps/internal": {
@@ -135,17 +146,21 @@
         "@/hooks/*": ["./shared/hooks/*"],
         "@/lib/*": ["./shared/lib/*"]
       },
-      "ignoreDependencies": ["@axe-core/playwright", "eslint-config-next", "@fontsource/fraunces", "@fontsource/inter", "@fontsource/jetbrains-mono"]
+      "ignoreDependencies": ["@fontsource/fraunces", "@fontsource/inter", "@fontsource/jetbrains-mono"],
+      "ignore": [
+        "open-next.config.ts",
+        "lib/query-keys.ts"
+      ]
     },
     "apps/landing": {
       "ignoreDependencies": ["tailwindcss", "sharp"]
     },
     ".": {
+      "ignore": [
+        "packages/db/prisma/schema.prisma",
+        "scripts/deploy/cloudflare-stubs/sentry-nextjs-cloudflare.ts"
+      ],
       "ignoreDependencies": [
-        "@axe-core/playwright",
-        "axe-core",
-        "axe-playwright",
-        "baseline-browser-mapping",
         "madge",
         "playwright",
         "ts-node"
@@ -153,16 +168,18 @@
     },
     "packages/eslint-config": {
       "ignoreDependencies": [
-        "@typescript-eslint/eslint-plugin",
         "@typescript-eslint/parser"
       ]
     },
     "packages/ui": {
+      "ignore": [
+        "src/components/feedback/error-boundary.tsx",
+        "src/components/form/debounced-search-input.tsx"
+      ],
       "ignoreDependencies": [
         "@hookform/resolvers",
         "zod",
-        "@tailwindcss/postcss",
-        "@turbo/gen"
+        "@tailwindcss/postcss"
       ]
     }
   }

@@ -16,7 +16,7 @@ import {
   Prisma,
   AppointmentStatus as PrismaAppointmentStatus,
 } from '@workspace/db';
-import { APPOINTMENT_STATUS_TO_PRISMA } from './appointment-status-prisma.maps';
+import { APPOINTMENT_STATUS_TO_PRISMA } from '@/domains/appointments/infrastructure/mappers/appointment.mapper';
 import {
   DEFAULT_TIMEZONE,
   formatUtcInstantAsClinicPickerIso,
@@ -196,6 +196,7 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
     const items = await this.getReadClient().appointment.findMany({
       where: { patientId, clinicId },
       orderBy: { startTime: 'desc' },
+      take: 100,
     });
 
     return items.map((item) => AppointmentMapper.toDomain(item));
@@ -223,6 +224,7 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
         },
       },
       orderBy: { startTime: 'asc' },
+      take: 200,
     });
 
     return items.map((item) => AppointmentMapper.toDomain(item));
@@ -252,6 +254,7 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
         status: {
           notIn: [
             PrismaAppointmentStatus.CANCELLED,
+            PrismaAppointmentStatus.COMPLETED,
             PrismaAppointmentStatus.NO_SHOW,
           ],
         },

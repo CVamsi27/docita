@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback } from "react";
-import { DPDP_NOTICE_VERSION } from "@workspace/types";
 import {
   usePublicBookingOtpRequest,
   usePublicBookingOtpVerify,
@@ -9,9 +8,12 @@ import {
   usePublicBookingSubmit,
 } from "@workspace/data-access";
 import { ApiError } from "@/lib/errors";
-import { buildPublicBookingSubmitErrors } from "@/lib/utils/api-validation-errors";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { ANY_DOCTOR_ID } from "@/features/public-booking/public-booking-constants";
+import {
+  validateBookingFields,
+  buildBookingRequestBody,
+  processPublicBookingSubmitError,
+} from "./public-booking-submit-helpers";
 
 interface SubmitActionsState {
   phone: string;
@@ -37,7 +39,9 @@ interface SubmitActionsState {
   selectedStart: string | null;
   selectedEnd: string | null;
   selectedSlotDoctorId: string | null;
-  setSubmitFieldErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  setSubmitFieldErrors: React.Dispatch<
+    React.SetStateAction<Record<string, string>>
+  >;
   setSubmitGeneralMessage: (v: string | null) => void;
   setDone: (v: boolean) => void;
 }
@@ -133,20 +137,20 @@ export function usePublicBookingSubmitActions(
         "generic",
       );
     }
-  }, [otp, otpVerify, phone, setVerificationToken, setFirstName, setLastName, setEmail, setSubmitFieldErrors]);
+  }, [
+    otp,
+    otpVerify,
+    phone,
+    setVerificationToken,
+    setFirstName,
+    setLastName,
+    setEmail,
+    setSubmitFieldErrors,
+  ]);
 
   const handleSubmit = useCallback(async () => {
     setSubmitFieldErrors({});
     setSubmitGeneralMessage(null);
-
-    if (!slotDate) {
-      showUserFacingErrorToast(null, "Choose a date for your appointment request.", "generic");
-      return;
-    }
-    if (!phone.trim()) {
-      showUserFacingErrorToast(null, "Enter your phone number before submitting.", "generic");
-      return;
-    }
 
     try {
       let otpRequired = requiresOtp;
@@ -154,74 +158,74 @@ export function usePublicBookingSubmitActions(
         const check = await runPhoneCheck();
         otpRequired = check.requiresOtp;
       }
-      if (otpRequired && !verificationToken) {
-        showUserFacingErrorToast(null, "Verify your phone with the code we sent before submitting.", "generic");
-        return;
-      }
-      if (!otpRequired && (!firstName.trim() || !lastName.trim() || !dateOfBirth.trim())) {
-        showUserFacingErrorToast(null, "Enter your name and date of birth before submitting.", "generic");
-        return;
-      }
-      if (!otpRequired && !dpdpConsentAccepted) {
-        showUserFacingErrorToast(null, "Please accept the data processing notice (DPDP Act, 2023) before submitting.", "generic");
-        return;
-      }
 
-      const resolvedDoctorId =
-        doctorId === ANY_DOCTOR_ID ? selectedSlotDoctorId : doctorId || null;
-      const includeSlot = Boolean(selectedStart && selectedEnd);
-
-      await submit.mutateAsync({
-        body: {
-          phoneNumber: phone,
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          dateOfBirth: otpRequired ? undefined : dateOfBirth.trim() || undefined,
-          email: email.trim() || undefined,
-          preferredDoctorId: resolvedDoctorId ?? undefined,
-          slotCalendarDate: slotDate,
-          requestedSlotStart: includeSlot ? selectedStart ?? undefined : undefined,
-          requestedSlotEnd: includeSlot ? selectedEnd ?? undefined : undefined,
-          reason: reason.trim() || undefined,
-          notes: notes.trim() || undefined,
-          turnstileToken: turnstileToken ?? undefined,
-          bookingVerificationToken: verificationToken ?? undefined,
-          dpdpConsent: otpRequired
-            ? undefined
-            : {
-                accepted: true,
-                noticeVersion: DPDP_NOTICE_VERSION,
-                relation: "SELF",
-                givenByName: `${firstName.trim()} ${lastName.trim()}`.trim(),
-              },
-        },
-        authorization: verificationToken ?? undefined,
+      const validationError = validateBookingFields({
+        slotDate,
+        phone,
+        requiresOtp: otpRequired,
+        verificationToken,
+        firstName,
+        lastName,
+        dateOfBirth,
+        dpdpConsentAccepted,
       });
+      if (validationError) {
+        showUserFacingErrorToast(null, validationError, "generic");
+        return;
+      }
+
+      const submitPayload = buildBookingRequestBody({
+        phone,
+        firstName,
+        lastName,
+        email,
+        dateOfBirth,
+        doctorId,
+        selectedSlotDoctorId,
+        slotDate,
+        selectedStart,
+        selectedEnd,
+        reason,
+        notes,
+        turnstileToken,
+        verificationToken,
+        requiresOtp,
+        dpdpConsentAccepted,
+        otpRequired,
+      });
+
+      await submit.mutateAsync(submitPayload);
       setDone(true);
     } catch (error) {
-      const built = buildPublicBookingSubmitErrors(error);
-      let fieldErrors = built.fieldErrors;
-      let generalMessage = built.generalMessage;
-
-      if (fieldErrors.turnstileToken && !siteKey) {
-        generalMessage = generalMessage ?? fieldErrors.turnstileToken;
-        const next = { ...fieldErrors };
-        delete next.turnstileToken;
-        fieldErrors = next;
-      }
+      const { fieldErrors, generalMessage } = processPublicBookingSubmitError(
+        error,
+        siteKey,
+      );
 
       setSubmitFieldErrors(fieldErrors);
       setSubmitGeneralMessage(generalMessage);
 
       const hasFieldHints = Object.keys(fieldErrors).length > 0;
       if (hasFieldHints) {
-        showUserFacingErrorToast(null, "Review the fields marked below and try again.", "form");
+        showUserFacingErrorToast(
+          null,
+          "Review the fields marked below and try again.",
+          "form",
+        );
       } else if (generalMessage) {
         // submitGeneralMessage Alert provides copy; skip extra toast noise.
       } else if (error instanceof ApiError) {
-        showUserFacingErrorToast(null, "We could not submit your request. Please review your details and try again.", "form");
+        showUserFacingErrorToast(
+          null,
+          "We could not submit your request. Please review your details and try again.",
+          "form",
+        );
       } else {
-        showUserFacingErrorToast(error, "We could not submit your request. Please try again.", "generic");
+        showUserFacingErrorToast(
+          error,
+          "We could not submit your request. Please try again.",
+          "generic",
+        );
       }
     }
   }, [

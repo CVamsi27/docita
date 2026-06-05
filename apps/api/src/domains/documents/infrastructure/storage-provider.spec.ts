@@ -25,6 +25,10 @@ class TestStorageProvider extends StorageProvider {
     const clamped = this.assertSignedUrlTtl(expires);
     return `signed?ttl=${clamped}`;
   }
+
+  async getObject(): Promise<{ buffer: Buffer; contentType: string }> {
+    return { buffer: Buffer.from(''), contentType: 'application/octet-stream' };
+  }
 }
 
 describe('StorageProvider TTL clamping', () => {

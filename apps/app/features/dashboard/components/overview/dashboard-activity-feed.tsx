@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Activity } from "lucide-react";
 import type { DashboardStats } from "@workspace/types";
-import { formatDistanceToNow } from "@workspace/utils";
+import { formatDistanceToNow, getPatientFullName } from "@workspace/utils";
 import {
   Card,
   CardContent,
@@ -29,7 +29,9 @@ export function DashboardActivityFeed({ items }: DashboardActivityFeedProps) {
               <Activity className="h-4 w-4" />
             </div>
             <div>
-              <CardTitle className="text-[var(--fs-base)]">Recent activity</CardTitle>
+              <CardTitle className="text-[var(--fs-base)]">
+                Recent activity
+              </CardTitle>
               <CardDescription className="text-xs">
                 Latest appointment updates
               </CardDescription>
@@ -54,7 +56,7 @@ export function DashboardActivityFeed({ items }: DashboardActivityFeedProps) {
                   className="group flex flex-col gap-0.5 rounded-lg border border-transparent p-3 transition-colors duration-150 hover:border-border/50 hover:bg-muted/60"
                 >
                   <span className="text-sm font-medium">
-                    {row.patient.firstName} {row.patient.lastName}
+                    {getPatientFullName(row.patient)}
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {humanizeUiLabel(row.status)}

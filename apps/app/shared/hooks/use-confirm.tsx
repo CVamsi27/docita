@@ -7,53 +7,20 @@ import {
   useContext,
   useState,
 } from "react";
-import { ConfirmDialog } from "@/features/dialogs/components/ConfirmDialog";
-import { PromptDialog } from "@/features/dialogs/components/PromptDialog";
-import { AlertDialog } from "@/features/dialogs/components/AlertDialog";
+import type {
+  ConfirmOptions,
+  PromptOptions,
+  AlertOptions,
+} from "@/features/dialogs/types";
 import {
-  AlertOptions,
-  ConfirmOptions,
-  PromptOptions,
-} from "@/features/dialogs/types";
-
-export type {
-  ConfirmOptions,
-  PromptOptions,
-  AlertOptions,
-} from "@/features/dialogs/types";
-
-interface ConfirmState {
-  isOpen: boolean;
-  options: ConfirmOptions | null;
-  resolve: ((value: boolean) => void) | null;
-}
-
-interface PromptState {
-  isOpen: boolean;
-  options: PromptOptions | null;
-  resolve: ((value: string | null) => void) | null;
-}
-
-interface AlertState {
-  isOpen: boolean;
-  options: AlertOptions | null;
-  resolve: (() => void) | null;
-}
-
-interface ConfirmContextValue {
-  confirm: (options: ConfirmOptions) => Promise<boolean>;
-  prompt: (options: PromptOptions) => Promise<string | null>;
-  alert: (options: AlertOptions) => Promise<void>;
-  confirmDelete: (
-    itemName: string,
-    options?: Partial<ConfirmOptions>,
-  ) => Promise<boolean>;
-  confirmDiscard: (options?: Partial<ConfirmOptions>) => Promise<boolean>;
-  confirmAction: (
-    action: string,
-    options?: Partial<ConfirmOptions>,
-  ) => Promise<boolean>;
-}
+  ConfirmState,
+  PromptState,
+  AlertState,
+  ConfirmContextValue,
+  ConfirmDialogSection,
+  PromptDialogSection,
+  AlertDialogSection,
+} from "./use-confirm-sections";
 
 const ConfirmContext = createContext<ConfirmContextValue | null>(null);
 
@@ -216,20 +183,15 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
     >
       {children}
 
-      <ConfirmDialog
-        open={confirmState.isOpen}
-        onOpenChange={(open) => !open && handleConfirmClose(false)}
-        options={confirmState.options}
-        onConfirm={() => handleConfirmClose(true)}
-        onCancel={() => handleConfirmClose(false)}
+      <ConfirmDialogSection
+        state={confirmState}
         typedConfirmation={typedConfirmation}
-        setTypedConfirmation={setTypedConfirmation}
+        onTypedConfirmationChange={setTypedConfirmation}
+        onClose={handleConfirmClose}
       />
 
-      <PromptDialog
-        open={promptState.isOpen}
-        onOpenChange={(open) => !open && handlePromptCancel()}
-        options={promptState.options}
+      <PromptDialogSection
+        state={promptState}
         value={promptValue}
         setValue={setPromptValue}
         error={promptError}
@@ -238,11 +200,9 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
         onCancel={handlePromptCancel}
       />
 
-      <AlertDialog
-        open={alertState.isOpen}
-        onOpenChange={(open) => !open && handleAlertClose()}
-        options={alertState.options}
-        onConfirm={handleAlertClose}
+      <AlertDialogSection
+        state={alertState}
+        onClose={handleAlertClose}
       />
     </ConfirmContext.Provider>
   );

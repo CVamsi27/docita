@@ -69,6 +69,7 @@ export const useLabTestsLogic = () => {
       patientId: "",
       labTestId: "",
       appointmentId: undefined,
+      labId: undefined,
       notes: "",
     },
   });

@@ -1,5 +1,6 @@
 "use client";
 
+import { isDoctor } from "@/lib/auth/permissions";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
 import { User } from "@workspace/types";
@@ -37,7 +38,7 @@ export function MemberListItem({
             <Badge variant="outline">
               {memberRoleDisplayLabel(member.role)}
             </Badge>
-            {(member.role === "DOCTOR" || member.role === "ADMIN_DOCTOR") && (
+            {isDoctor(member.role) && (
               <>
                 <Badge
                   variant={getVerificationBadgeVariant(

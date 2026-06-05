@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { APIRequestError } from "../lib/errors";
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import {
   CreatePatientRequest,
   Feature,
@@ -26,13 +26,13 @@ type UsePatientsOptions = {
 } | null;
 
 export const usePatients = (options?: UsePatientsOptions) => {
-  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.BASIC_PATIENT_MANAGEMENT,
+  );
   const limit = options?.limit ?? 20;
   const page = options?.page ?? 1;
   const enabled =
-    options !== null &&
-    tierPatientsOk &&
-    (options?.enabled ?? true);
+    options !== null && tierPatientsOk && (options?.enabled ?? true);
   const url = withQueryString("/patients", {
     limit,
     page,
@@ -93,26 +93,36 @@ export const useInfinitePatients = (options?: {
 };
 
 export const useRecentPatients = (limit: number = 5) => {
-  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.BASIC_PATIENT_MANAGEMENT,
+  );
   return useAPIQuery<{
     items: Patient[];
     nextCursor?: string;
     hasMore: boolean;
     count: number;
-  }>(queryKeys.patients.recent(limit), withQueryString("/patients", { limit }), {
-    enabled: tierPatientsOk,
-  });
+  }>(
+    queryKeys.patients.recent(limit),
+    withQueryString("/patients", { limit }),
+    {
+      enabled: tierPatientsOk,
+    },
+  );
 };
 
 export const usePatient = (id: string) => {
-  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.BASIC_PATIENT_MANAGEMENT,
+  );
   return useAPIQuery<Patient>(queryKeys.patients.byId(id), `/patients/${id}`, {
     enabled: tierPatientsOk && !!id,
   });
 };
 
 export const usePatientWithMedicalHistory = (id: string) => {
-  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.BASIC_PATIENT_MANAGEMENT,
+  );
   return useAPIQuery<PatientWithMedicalHistory>(
     queryKeys.patients.withMedicalHistory(id),
     `/patients/${id}`,
@@ -121,7 +131,9 @@ export const usePatientWithMedicalHistory = (id: string) => {
 };
 
 export const usePatientMedicalHistoryTimeline = (patientId: string) => {
-  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(Feature.BASIC_PATIENT_MANAGEMENT);
+  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.BASIC_PATIENT_MANAGEMENT,
+  );
   return useAPIQuery<MedicalHistoryTimelineItem[]>(
     queryKeys.patients.medicalHistoryTimeline(patientId),
     `/patients/${patientId}/medical-history-timeline`,
@@ -166,7 +178,9 @@ export const useDeletePatient = (id: string) =>
   });
 
 export const useTodaysPatients = (doctorId?: string, search?: string) => {
-  const tierQueueOk = useDataAccessContext().isTierFeatureEnabled(Feature.QUEUE_MANAGEMENT);
+  const tierQueueOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.QUEUE_MANAGEMENT,
+  );
   return useAPIQuery<{
     patients: {
       id: string;

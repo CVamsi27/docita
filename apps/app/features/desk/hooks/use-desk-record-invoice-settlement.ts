@@ -6,7 +6,7 @@ export function useDeskRecordInvoiceSettlement() {
   return useAppMutation({
     mutationFn: ({ invoiceId, ...data }: DeskRecordInvoiceSettlementVariables) =>
       deskApi.recordInvoiceSettlement(invoiceId, data),
-    invalidateKeys: [queryKeys.invoices.all()],
+    invalidateKeys: [queryKeys.invoices.all(), queryKeys.desk.all()],
     successMessage: "Payment recorded",
   });
 }

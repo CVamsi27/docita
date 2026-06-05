@@ -1,4 +1,5 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { getPatientFullName } from '@workspace/utils';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Prisma, InvoiceStatus } from '@workspace/db';
 import {
   taxRegistrationSnapshotSchema,
@@ -43,6 +44,8 @@ import {
 } from './invoice-status-transition';
 @Injectable()
 export class InvoicesCommandService {
+  private readonly logger = new Logger(InvoicesCommandService.name);
+
   constructor(
     @Inject(INVOICE_REPOSITORY_TOKEN)
     private readonly repository: IInvoiceRepository,
@@ -74,7 +77,7 @@ export class InvoicesCommandService {
     const buyer = taxRegistrationSnapshotSchema.parse({
       countryCode: seller.countryCode,
       regime: seller.regime,
-      legalName: `${patient.firstName} ${patient.lastName}`.trim(),
+      legalName: getPatientFullName(patient).trim(),
       address: patient.address || undefined,
     });
     return { taxSettings, seller, buyer };
@@ -206,7 +209,11 @@ export class InvoicesCommandService {
     });
     this.usageTracking
       .trackInvoice(patient.clinic.id, invoice.id)
-      .catch(() => {});
+      .catch((err: unknown) => {
+        this.logger.error(
+          `Failed to track invoice usage for ${invoice.id}: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      });
 
     return invoice;
   }

@@ -1,17 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useJsApiLoader } from "@react-google-maps/api";
-import type { LatLngExpression } from "leaflet";
-import type { Map as LeafletMapInstance } from "leaflet";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   type ClinicAddressDetails,
   type LatLng,
-  type PlaceSuggestion,
   DEFAULT_CENTER,
-  GOOGLE_LIBRARIES,
   SEARCH_DEBOUNCE_MS,
-  isValidGoogleMapsApiKey,
 } from "./address-utils";
 import {
   reverseGeocodeOSM,
@@ -19,79 +13,161 @@ import {
   searchOSM,
 } from "./geocoding";
 import { useMapLifecycle } from "./use-map-lifecycle";
+import {
+  getAddressValue,
+  getCenter,
+  getMapZoom,
+  getCenterExpression,
+  triggerGoogleMapResize,
+} from "./clinic-address-picker-helpers";
+import {
+  useAddressPickerState,
+  useAddressSearchState,
+  useGoogleMapsAvailability,
+  useMapPickerState,
+  type AddressPickerState,
+  type MapPickerState,
+  type SearchState,
+} from "./use-clinic-address-picker-state";
+
+interface ClinicAddressPickerOptions {
+  open: boolean;
+  initialAddress: string;
+}
+
+type ReverseGeocodeResult = {
+  address: string;
+  details?: ClinicAddressDetails;
+} | null;
 
 export function useClinicAddressPicker({
   open,
   initialAddress,
-}: {
-  open: boolean;
-  initialAddress: string;
-}) {
-  const [picked, setPicked] = useState<LatLng | null>(null);
-  const [resolvedAddress, setResolvedAddress] = useState("");
-  const [addressDraft, setAddressDraft] = useState(initialAddress);
-  const [addressDetails, setAddressDetails] = useState<ClinicAddressDetails | null>(
-    null,
+}: ClinicAddressPickerOptions) {
+  const pickerState = useAddressPickerState(initialAddress);
+  const searchState = useAddressSearchState();
+  const mapState = useMapPickerState();
+  const googleAvailability = useGoogleMapsAvailability();
+  const shouldUseGoogle =
+    googleAvailability.hasGoogleKey &&
+    googleAvailability.isGoogleLoaded &&
+    !googleAvailability.googleLoadError;
+  const addressValue = getAddressValue(
+    pickerState.addressDraft,
+    pickerState.resolvedAddress,
+    initialAddress,
   );
-  const [isResolving, setIsResolving] = useState(false);
-  const [autocomplete, setAutocomplete] =
-    useState<google.maps.places.Autocomplete | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const lastSearchIdRef = useRef(0);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [googleMap, setGoogleMap] = useState<google.maps.Map | null>(null);
-  const [leafletMap, setLeafletMap] = useState<LeafletMapInstance | null>(null);
-  const [mapLayoutVersion, setMapLayoutVersion] = useState(0);
-  const [mapInstanceKey, setMapInstanceKey] = useState(0);
-  const [isMapViewportReady, setIsMapViewportReady] = useState(false);
-  const [isLeafletPainted, setIsLeafletPainted] = useState(false);
-  const [leafletRetryCount, setLeafletRetryCount] = useState(0);
-  const mapViewportRef = useRef<HTMLDivElement | null>(null);
-  const didAutoLocateRef = useRef(false);
-
-  const rawGoogleKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
-  const hasGoogleKey = isValidGoogleMapsApiKey(rawGoogleKey);
-  const { isLoaded: isGoogleLoaded, loadError: googleLoadError } = useJsApiLoader({
-    id: "google-maps-script",
-    googleMapsApiKey: hasGoogleKey ? rawGoogleKey.trim() : "",
-    libraries: GOOGLE_LIBRARIES,
-  });
-  const shouldUseGoogle = hasGoogleKey && isGoogleLoaded && !googleLoadError;
-
-  const addressValue = addressDraft || resolvedAddress || initialAddress;
-  const center = useMemo(() => picked ?? DEFAULT_CENTER, [picked]);
-  const mapZoom = picked ? 16 : 5;
-  const centerExpression = useMemo<LatLngExpression>(
-    () => [center.lat, center.lng],
+  const center = useMemo(
+    () => getCenter(pickerState.picked, DEFAULT_CENTER),
+    [pickerState.picked],
+  );
+  const mapZoom = getMapZoom(pickerState.picked);
+  const centerExpression = useMemo<ReturnType<typeof getCenterExpression>>(
+    () => getCenterExpression(center),
     [center],
   );
-
-  const triggerGoogleResize = useCallback(() => {
-    if (!shouldUseGoogle || !googleMap) return;
-    window.google.maps.event.trigger(googleMap, "resize");
-    googleMap.setCenter(center);
-  }, [center, googleMap, shouldUseGoogle]);
+  const triggerGoogleResize = useGoogleResize(
+    mapState.googleMap,
+    center,
+    shouldUseGoogle,
+  );
 
   useMapLifecycle({
     open,
     shouldUseGoogle,
-    googleMap,
-    leafletMap,
-    isMapViewportReady,
-    isLeafletPainted,
-    leafletRetryCount,
+    googleMap: mapState.googleMap,
+    leafletMap: mapState.leafletMap,
+    isMapViewportReady: mapState.isMapViewportReady,
+    isLeafletPainted: mapState.isLeafletPainted,
+    leafletRetryCount: mapState.leafletRetryCount,
     centerExpression,
     mapZoom,
-    mapViewportRef,
+    mapViewportRef: mapState.mapViewportRef,
     triggerGoogleResize,
-    setMapLayoutVersion,
-    setMapInstanceKey,
-    setLeafletRetryCount,
-    setIsLeafletPainted,
+    setMapLayoutVersion: mapState.setMapLayoutVersion,
+    setMapInstanceKey: mapState.setMapInstanceKey,
+    setLeafletRetryCount: mapState.setLeafletRetryCount,
+    setIsLeafletPainted: mapState.setIsLeafletPainted,
   });
 
+  useResetPickerOnOpen({
+    open,
+    initialAddress,
+    pickerState,
+    searchState,
+    mapState,
+  });
+  useAutoLocateOnOpen({ open, shouldUseGoogle, pickerState });
+  useOsmSearchSuggestions({ open, shouldUseGoogle, searchState });
+  const actions = useReverseGeocodeActions({ shouldUseGoogle, pickerState });
+
+  return {
+    picked: pickerState.picked,
+    addressValue,
+    addressDetails: pickerState.addressDetails,
+    addressDraft: pickerState.addressDraft,
+    setAddressDraft: pickerState.setAddressDraft,
+    isResolving: pickerState.isResolving,
+    autocomplete: pickerState.autocomplete,
+    setAutocomplete: pickerState.setAutocomplete,
+    searchQuery: searchState.searchQuery,
+    setSearchQuery: searchState.setSearchQuery,
+    suggestions: searchState.suggestions,
+    setSuggestions: searchState.setSuggestions,
+    showSuggestions: searchState.showSuggestions,
+    setShowSuggestions: searchState.setShowSuggestions,
+    isSearching: searchState.isSearching,
+    shouldUseGoogle,
+    ...googleAvailability,
+    center,
+    centerExpression,
+    mapZoom,
+    mapInstanceKey: mapState.mapInstanceKey,
+    isMapViewportReady: mapState.isMapViewportReady,
+    mapLayoutVersion: mapState.mapLayoutVersion,
+    mapViewportRef: mapState.mapViewportRef,
+    ...actions,
+    setPicked: pickerState.setPicked,
+    setResolvedAddress: pickerState.setResolvedAddress,
+    setAddressDetails: pickerState.setAddressDetails,
+    setGoogleMap: mapState.setGoogleMap,
+    setLeafletMap: mapState.setLeafletMap,
+    setMapLayoutVersion: mapState.setMapLayoutVersion,
+    setIsLeafletPainted: mapState.setIsLeafletPainted,
+  };
+}
+
+function useGoogleResize(
+  googleMap: google.maps.Map | null,
+  center: LatLng,
+  shouldUseGoogle: boolean,
+) {
+  return useCallback(() => {
+    triggerGoogleMapResize(googleMap, center, shouldUseGoogle);
+  }, [center, googleMap, shouldUseGoogle]);
+}
+
+function useResetPickerOnOpen(params: {
+  open: boolean;
+  initialAddress: string;
+  pickerState: AddressPickerState;
+  searchState: SearchState;
+  mapState: MapPickerState;
+}) {
+  const { open, initialAddress, pickerState, searchState, mapState } = params;
+  const {
+    setAddressDraft,
+    setAddressDetails,
+    setResolvedAddress,
+    setPicked,
+  } = pickerState;
+  const { setSearchQuery, setSuggestions, setShowSuggestions } = searchState;
+  const {
+    setMapInstanceKey,
+    setIsMapViewportReady,
+    setIsLeafletPainted,
+    setLeafletRetryCount,
+  } = mapState;
   useEffect(() => {
     if (!open) return;
     setMapInstanceKey((v) => v + 1);
@@ -108,10 +184,43 @@ export function useClinicAddressPicker({
     setSearchQuery("");
     setSuggestions([]);
     setShowSuggestions(false);
-    didAutoLocateRef.current = false;
     return () => window.cancelAnimationFrame(frame);
-  }, [initialAddress, open]);
+  }, [
+    initialAddress,
+    open,
+    setAddressDetails,
+    setAddressDraft,
+    setIsLeafletPainted,
+    setIsMapViewportReady,
+    setLeafletRetryCount,
+    setMapInstanceKey,
+    setPicked,
+    setResolvedAddress,
+    setSearchQuery,
+    setShowSuggestions,
+    setSuggestions,
+  ]);
+}
 
+function useAutoLocateOnOpen(params: {
+  open: boolean;
+  shouldUseGoogle: boolean;
+  pickerState: AddressPickerState;
+}) {
+  const { open, shouldUseGoogle, pickerState } = params;
+  const {
+    picked,
+    setPicked,
+    setIsResolving,
+    setResolvedAddress,
+    setAddressDraft,
+    setAddressDetails,
+  } = pickerState;
+  const didAutoLocateRef = useRef(false);
+  useEffect(() => {
+    if (open) return;
+    didAutoLocateRef.current = false;
+  }, [open]);
   useEffect(() => {
     if (!open || picked || didAutoLocateRef.current) return;
     if (!navigator.geolocation) return;
@@ -138,13 +247,33 @@ export function useClinicAddressPicker({
           }
         })();
       },
-      () => {
-        /* Ignore geolocation denial */
-      },
+      () => undefined,
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 60_000 },
     );
-  }, [open, picked, shouldUseGoogle]);
+  }, [
+    open,
+    picked,
+    setAddressDetails,
+    setAddressDraft,
+    setIsResolving,
+    setPicked,
+    setResolvedAddress,
+    shouldUseGoogle,
+  ]);
+}
 
+function useOsmSearchSuggestions(params: {
+  open: boolean;
+  shouldUseGoogle: boolean;
+  searchState: SearchState;
+}) {
+  const { open, shouldUseGoogle, searchState } = params;
+  const {
+    searchQuery,
+    setSuggestions,
+    lastSearchIdRef,
+    setIsSearching,
+  } = searchState;
   useEffect(() => {
     if (!open || shouldUseGoogle) return;
     const q = searchQuery.trim();
@@ -161,15 +290,37 @@ export function useClinicAddressPicker({
           if (lastSearchIdRef.current !== searchId) return;
           setSuggestions(results);
         } finally {
-          if (lastSearchIdRef.current === searchId) setIsSearching(false);
+          if (lastSearchIdRef.current === searchId) {
+            setIsSearching(false);
+          }
         }
       })();
     }, SEARCH_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-  }, [open, searchQuery, shouldUseGoogle]);
+  }, [
+    lastSearchIdRef,
+    open,
+    searchQuery,
+    setIsSearching,
+    setSuggestions,
+    shouldUseGoogle,
+  ]);
+}
 
+function useReverseGeocodeActions(params: {
+  shouldUseGoogle: boolean;
+  pickerState: AddressPickerState;
+}) {
+  const { shouldUseGoogle, pickerState } = params;
+  const {
+    setPicked,
+    setIsResolving,
+    setResolvedAddress,
+    setAddressDraft,
+    setAddressDetails,
+  } = pickerState;
   const applyReverseResult = useCallback(
-    (result: { address: string; details?: ClinicAddressDetails } | null) => {
+    (result: ReverseGeocodeResult) => {
       if (result) {
         setResolvedAddress(result.address);
         setAddressDraft(result.address);
@@ -179,7 +330,7 @@ export function useClinicAddressPicker({
         setAddressDetails(null);
       }
     },
-    [],
+    [setAddressDetails, setAddressDraft, setResolvedAddress],
   );
 
   const handlePick = useCallback(
@@ -192,7 +343,7 @@ export function useClinicAddressPicker({
         setIsResolving(false);
       }
     },
-    [applyReverseResult],
+    [applyReverseResult, setIsResolving, setPicked],
   );
 
   const handlePickWithGoogle = useCallback(
@@ -205,65 +356,34 @@ export function useClinicAddressPicker({
         setIsResolving(false);
       }
     },
-    [applyReverseResult],
+    [applyReverseResult, setIsResolving, setPicked],
   );
 
   const handleUseMyLocation = useCallback(async () => {
     if (!navigator.geolocation) return;
     setIsResolving(true);
     try {
-      const coords = await new Promise<GeolocationCoordinates>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve(pos.coords),
-          (err) => reject(err),
-          { enableHighAccuracy: true, timeout: 8000 },
-        );
-      });
+      const coords = await new Promise<GeolocationCoordinates>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => resolve(pos.coords),
+            (err) => reject(err),
+            { enableHighAccuracy: true, timeout: 8000 },
+          );
+        },
+      );
       const pos = { lat: coords.latitude, lng: coords.longitude };
       await (shouldUseGoogle ? handlePickWithGoogle(pos) : handlePick(pos));
     } catch {
-      /* Silent fail */
+      return;
     } finally {
       setIsResolving(false);
     }
-  }, [handlePick, handlePickWithGoogle, shouldUseGoogle]);
+  }, [handlePick, handlePickWithGoogle, setIsResolving, shouldUseGoogle]);
 
   return {
-    picked,
-    addressValue,
-    addressDetails,
-    addressDraft,
-    setAddressDraft,
-    isResolving,
-    autocomplete,
-    setAutocomplete,
-    searchQuery,
-    setSearchQuery,
-    suggestions,
-    setSuggestions,
-    showSuggestions,
-    setShowSuggestions,
-    isSearching,
-    shouldUseGoogle,
-    hasGoogleKey,
-    isGoogleLoaded,
-    googleLoadError,
-    center,
-    centerExpression,
-    mapZoom,
-    mapInstanceKey,
-    isMapViewportReady,
-    mapLayoutVersion,
-    mapViewportRef,
     handlePick,
     handlePickWithGoogle,
     handleUseMyLocation,
-    setPicked,
-    setResolvedAddress,
-    setAddressDetails,
-    setGoogleMap,
-    setLeafletMap,
-    setMapLayoutVersion,
-    setIsLeafletPainted,
   };
 }

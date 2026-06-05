@@ -1,7 +1,10 @@
 "use client";
 
 import { useMemo, type RefObject } from "react";
-import { type Appointment, type PatientWithMedicalHistory } from "@workspace/types";
+import {
+  type Appointment,
+  type PatientWithMedicalHistory,
+} from "@workspace/types";
 import { resolveClinicTypeFeatures } from "@/features/consultation/lib/resolve-clinic-type-features";
 import { CommandPalette } from "@/features/consultation/workspace/chrome/CommandPalette";
 import { ConsultationWorkspaceProvider } from "@/features/consultation/workspace/consultation-workspace-context";
@@ -54,7 +57,10 @@ export function ConsultationShell({
   );
 
   return (
-    <ConsultationWorkspaceProvider clinicFeatures={clinicFeatures} sections={sections}>
+    <ConsultationWorkspaceProvider
+      clinicFeatures={clinicFeatures}
+      sections={sections}
+    >
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         <ConsultationLeftRail
           sections={sections}

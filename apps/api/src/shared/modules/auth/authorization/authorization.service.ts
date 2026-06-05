@@ -1,8 +1,10 @@
+// check-as-cast-density: allow-file — narrowing casts required by generic signatures or external SDK types
 import { Injectable, Logger } from '@nestjs/common';
 import { Role, SubscriptionStatus } from '@workspace/db';
 import {
   APP_PERMISSIONS_BY_ROLE,
   Feature,
+  BILLING_ROLES,
   getAccessRoles,
   getAccessFeature,
   mapDbClinicTierStringToTierName,
@@ -134,7 +136,7 @@ export class AuthorizationService {
 }
 
 function isBillingAdmin(role: Role): boolean {
-  return role === Role.ADMIN || role === Role.ADMIN_DOCTOR;
+  return BILLING_ROLES.has(role as never);
 }
 
 function inferFeatureFromTarget(

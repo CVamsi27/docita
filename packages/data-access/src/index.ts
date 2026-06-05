@@ -23,6 +23,7 @@ export {
 
 export { useAPIQuery } from "./core/use-api-query";
 export { useAPIQueryValidated } from "./core/use-api-query-validated";
+export { QUERY_GC_TIMES, inferStaleTime } from "./core/stale-time";
 export {
   useAPIMutation,
   type UseAPIMutationOptions,
@@ -44,6 +45,7 @@ export * from "./hooks/use-common";
 export * from "./hooks/use-contact";
 export * from "./hooks/use-dashboard";
 export * from "./hooks/use-feature-flags";
+export * from "./hooks/use-insurance-claims";
 export * from "./hooks/use-import";
 export * from "./hooks/use-inventory";
 export * from "./hooks/use-leaves";
@@ -57,6 +59,7 @@ export * from "./hooks/use-patient-metrics";
 export * from "./hooks/use-public-booking";
 export * from "./hooks/use-clinic-settings";
 export * from "./hooks/use-prescription-defaults";
+export * from "./hooks/use-opd-slip-settings";
 export * from "./hooks/use-doctors";
 export * from "./hooks/use-doctor-availability";
 export * from "./hooks/use-medical-coding-settings";

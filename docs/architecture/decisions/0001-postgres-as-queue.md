@@ -11,14 +11,14 @@ The API and worker need a durable job queue for emails, WhatsApp, PDF
 generation, OCR, audit fan-out. Options were Redis/BullMQ, NATS JetStream,
 SQS, and "use the database we already have."
 
-Operational reality: we already run a managed Postgres on Render and pay
-its HA bill. Adding Redis as a hard dependency means another managed
+Operational reality: we already run managed Postgres (AWS RDS in production)
+and pay its HA bill. Adding Redis as a hard dependency means another managed
 service, another networked failure mode, and another secret to rotate.
 
 ## Decision
 
-Use a Postgres-backed queue (`Job`, `JobAttempt` tables in
-`packages/db/prisma/schema/communication-session-models.prisma`) with
+Use a Postgres-backed queue (`QueueJob` in
+`packages/db/prisma/schema.prisma`) with
 `SELECT ... FOR UPDATE SKIP LOCKED` for pop-and-claim.
 
 ## Alternatives considered
@@ -41,5 +41,5 @@ Use a Postgres-backed queue (`Job`, `JobAttempt` tables in
 ## References
 
 - `apps/api/src/shared/modules/queue/`
-- `apps/worker/src/processors/`
+- `apps/api/src/shared/modules/queue/`
 - `SYSTEM_DESIGN_AND_PATTERNS.md` §14

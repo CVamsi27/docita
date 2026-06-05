@@ -27,7 +27,8 @@ export default function LabTestsError({
             Error loading Lab Tests
           </h2>
           <p className="ui-page-subtitle mb-6">
-            We could not load Lab Tests. Please retry or return to the dashboard.
+            We could not load Lab Tests. Please retry or return to the
+            dashboard.
           </p>
           <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
             <Button onClick={() => reset()}>

@@ -2,7 +2,9 @@ import type {
   BillingCycle,
   Clinic,
   ClinicTier,
+  PlanMode,
   ClinicType,
+  FacilityType,
   DayOfWeek,
   Prisma,
   Role,
@@ -17,6 +19,7 @@ export interface OnboardingClinicWriteData {
   phone: string;
   address: string;
   type: ClinicType;
+  facilityType: FacilityType;
   website?: string;
   mrnPrefix: string;
   timezone: string;
@@ -31,6 +34,7 @@ export interface OnboardingAdminUserWriteData {
   phoneNumber?: string;
   role: Role;
   clinicId: string;
+  onboardingCompletedAt: Date;
   qualification?: string;
   registrationNumber?: string;
   specialization?: User['specialization'];
@@ -119,6 +123,7 @@ export interface IOnboardingTxRepository {
     tier: ClinicTier,
     status: SubscriptionStatus,
     trialEndsAt: Date | null,
+    planMode?: PlanMode,
   ): Promise<void>;
 
   createReminderSettings(

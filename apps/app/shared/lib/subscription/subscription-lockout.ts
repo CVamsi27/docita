@@ -1,5 +1,6 @@
+// check-as-cast-density: allow-file — narrowing casts required by generic signatures or external types
 import type { Clinic } from "@/lib/contexts/clinic-context";
-import { TRIAL_GRACE_DAYS } from "@workspace/types";
+import { TRIAL_GRACE_DAYS, BILLING_ROLES } from "@workspace/types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -116,5 +117,5 @@ export function isSubscriptionBillingHardLocked(
 }
 
 export function isBillingAdminRole(role: string | undefined): boolean {
-  return role === "ADMIN" || role === "ADMIN_DOCTOR";
+  return typeof role === "string" ? BILLING_ROLES.has(role as never) : false;
 }

@@ -1,4 +1,9 @@
 import { z } from 'zod';
+import {
+  DEFAULT_TAX_COUNTRY_CODE,
+  DEFAULT_TAX_REGIME,
+  taxRegimeSchema,
+} from '@workspace/types';
 
 /** Parses env boolean strings (`"false"` must not coerce to true). */
 function envBoolean(defaultValue: boolean) {
@@ -48,6 +53,7 @@ export const EnvSchema = z.object({
   R2_ACCESS_KEY_ID: z.string().optional(),
   R2_SECRET_ACCESS_KEY: z.string().optional(),
   R2_BUCKET_NAME: z.string().optional(),
+  PUBLIC_DOCUMENT_SIGNING_SECRET: z.string().min(32).optional(),
   RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
@@ -56,10 +62,8 @@ export const EnvSchema = z.object({
     .trim()
     .toUpperCase()
     .regex(/^[A-Z]{2}$/)
-    .default('IN'),
-  DOCITA_TAX_REGIME: z
-    .enum(['IN_GST', 'VAT', 'SALES_TAX', 'NONE'])
-    .default('IN_GST'),
+    .default(DEFAULT_TAX_COUNTRY_CODE),
+  DOCITA_TAX_REGIME: taxRegimeSchema.default(DEFAULT_TAX_REGIME),
   DOCITA_TAX_REGISTRATION_ID: z.string().optional(),
   DOCITA_TAX_REGISTRATION_LABEL: z.string().default('GSTIN'),
   DOCITA_TAX_LEGAL_NAME: z.string().default('Docita'),

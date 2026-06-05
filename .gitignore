@@ -86,6 +86,7 @@ apps/api/src/seed-admin.ts
 
 # Cursor / local agent config
 .cursor/mcp.json
+.claude/
 
 # Vercel
 .vercel
@@ -98,6 +99,8 @@ apps/api/src/seed-admin.ts
 *.log
 *.js.map
 logs/
+!apps/internal/features/logs/
+!apps/internal/features/logs/**
 logs/performance/*.json
 # Note: loadtest/k6/ holds the tracked k6 perf scenarios. Do not blanket-ignore
 # loadtest/ — only ignore runtime outputs the scenarios produce.
@@ -114,7 +117,8 @@ eng.traineddata
 
 # Generated audit reports
 lighthouse-audit*.json
+docs/api/openapi.json
 
 # Local planning scratch docs
 docs/UpcomingPlans/
-docs/architecture/SYSTEM_DESIGN_AND_PATTERNS.md
+.fallow/

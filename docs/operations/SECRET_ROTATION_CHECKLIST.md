@@ -6,11 +6,11 @@ Operational runbook for rotating credentials referenced in `.env.example`. Code 
 
 - [ ] Schedule a maintenance window if JWT or DB rotation causes brief auth churn.
 - [ ] Confirm staging mirrors `main` and smoke tests pass.
-- [ ] Export current Render/Fly/Cloudflare secret versions (for rollback).
+- [ ] Export current RDS/Render-staging/Fly/Cloudflare secret versions (for rollback).
 
 ## Rotate (in order)
 
-1. **`DATABASE_URL`** — create new DB role/password or provider credential; update Render/Fly; run `pnpm --filter @workspace/db run db:migrate:status` against staging.
+1. **`DATABASE_URL`** — create new DB role/password or provider credential; update Fly production and Render staging; run `pnpm --filter @workspace/db run db:migrate:status` against staging.
 2. **`JWT_SECRET`** (min 32 chars) — generate new secret; deploy API; all users re-login (access tokens invalidated).
 3. **`ENCRYPTION_KEY`** (64-char hex) — only with a documented re-encryption plan for fields encrypted at rest.
 4. **`NEXT_PUBLIC_API_URL`** — verify app/internal proxy and CORS allowlists after origin changes.

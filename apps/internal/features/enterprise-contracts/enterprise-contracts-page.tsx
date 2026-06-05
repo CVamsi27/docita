@@ -53,11 +53,15 @@ export function EnterpriseContractsPage() {
         showEstimate={page.showEstimate}
         showInvoices={page.showInvoices}
         generatePrepay={page.generatePrepay}
+        generateSetupFeeInvoice={page.generateSetupFeeInvoice}
+        openCustomBill={page.openCustomBill}
         evaluateTrueUp={page.evaluateTrueUp}
         showAlerts={page.showAlerts}
         showRevisions={page.showRevisions}
       />
-      <EnterpriseContractsDialogs {...getEnterpriseContractsDialogProps(page)} />
+      <EnterpriseContractsDialogs
+        {...getEnterpriseContractsDialogProps(page)}
+      />
     </AppPageScaffold>
   );
 }

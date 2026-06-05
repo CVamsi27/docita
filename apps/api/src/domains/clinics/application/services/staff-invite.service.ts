@@ -91,7 +91,7 @@ export class StaffInviteService {
 
   async createReceptionist(clinicId: string, data: CreateReceptionistData) {
     const isFrontDesk = await isClinicFrontDesk(this.persistence, clinicId);
-    if (isFrontDesk && data.role === 'NURSE') {
+    if (isFrontDesk && data.role === Role.NURSE) {
       throw new BadRequestException(
         'This role is not available for the front desk workspace.',
       );
@@ -102,7 +102,7 @@ export class StaffInviteService {
         name: data.name,
         email: data.email,
         password: hashedPassword,
-        role: data.role === 'NURSE' ? Role.NURSE : Role.RECEPTIONIST,
+        role: data.role === Role.NURSE ? Role.NURSE : Role.RECEPTIONIST,
         clinicId,
         phoneNumber: data.phoneNumber,
       },
@@ -122,7 +122,7 @@ export class StaffInviteService {
   async createMember(clinicId: string, data: CreateClinicMemberData) {
     const isFrontDesk = await isClinicFrontDesk(this.persistence, clinicId);
     if (isFrontDesk) {
-      if (data.role === 'NURSE' || data.role === 'ADMIN_DOCTOR') {
+      if (data.role === Role.NURSE || data.role === Role.ADMIN_DOCTOR) {
         throw new BadRequestException(
           'This role is not available for the front desk workspace.',
         );
@@ -132,7 +132,7 @@ export class StaffInviteService {
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const prismaRole = mapClinicMemberRoleToPrisma(data.role);
     const needsDoctorClinic =
-      data.role === 'DOCTOR' || data.role === 'ADMIN_DOCTOR';
+      data.role === Role.DOCTOR || data.role === Role.ADMIN_DOCTOR;
 
     const user = await this.persistence.user.create({
       data: {
@@ -142,6 +142,7 @@ export class StaffInviteService {
         role: prismaRole,
         clinicId,
         phoneNumber: data.phoneNumber,
+        ...(prismaRole === Role.LAB && data.labId ? { labId: data.labId } : {}),
         ...(needsDoctorClinic
           ? {
               qualification: data.qualification,

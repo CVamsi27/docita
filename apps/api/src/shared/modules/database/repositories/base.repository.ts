@@ -1,49 +1,18 @@
 import { PrismaService } from '@/prisma/prisma.service';
+import {
+  PaginationOptions,
+  PaginatedResult,
+  WhereClauseOptions,
+  RepositoryModelDelegate,
+  isRepositoryModelDelegate,
+} from '@/shared/common/repositories/base-repository.types';
+import {
+  extractId,
+  toRecord,
+} from '@/shared/common/repositories/base-repository.utils';
 import { mapRepositoryDomainItem } from '@/shared/common/repositories/repository-domain-item.boundary';
 
-export interface PaginationOptions {
-  limit?: number;
-  cursor?: string;
-  search?: string;
-}
-
-export interface PaginatedResult<T> {
-  items: T[];
-  hasMore: boolean;
-  nextCursor?: string;
-  count?: number;
-}
-
-export interface WhereClauseOptions {
-  clinicId: string;
-  search?: string;
-}
-
-type RepositoryModelDelegate = {
-  findMany: (args: Record<string, unknown>) => Promise<unknown[]>;
-  findFirst: (args: Record<string, unknown>) => Promise<unknown | null>;
-  create: (args: Record<string, unknown>) => Promise<unknown>;
-  updateMany: (args: Record<string, unknown>) => Promise<{ count: number }>;
-  deleteMany: (args: Record<string, unknown>) => Promise<{ count: number }>;
-  count: (args: Record<string, unknown>) => Promise<number>;
-};
-
-function extractId(item: unknown): string | undefined {
-  if (!item || typeof item !== 'object' || !('id' in item)) {
-    return undefined;
-  }
-
-  const id = item.id;
-  return typeof id === 'string' ? id : undefined;
-}
-
-function toRecord(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== 'object') {
-    return {};
-  }
-
-  return Object.fromEntries(Object.entries(value));
-}
+export type { PaginationOptions, PaginatedResult, WhereClauseOptions };
 
 export abstract class BaseRepository<T, TCreate = Record<string, unknown>> {
   constructor(
@@ -51,33 +20,10 @@ export abstract class BaseRepository<T, TCreate = Record<string, unknown>> {
     protected readonly modelName: string,
   ) {}
 
-  private isRepositoryModelDelegate(
-    value: unknown,
-  ): value is RepositoryModelDelegate {
-    if (!value || typeof value !== 'object') {
-      return false;
-    }
-
-    return (
-      'findMany' in value &&
-      typeof value.findMany === 'function' &&
-      'findFirst' in value &&
-      typeof value.findFirst === 'function' &&
-      'create' in value &&
-      typeof value.create === 'function' &&
-      'updateMany' in value &&
-      typeof value.updateMany === 'function' &&
-      'deleteMany' in value &&
-      typeof value.deleteMany === 'function' &&
-      'count' in value &&
-      typeof value.count === 'function'
-    );
-  }
-
   protected get model(): RepositoryModelDelegate {
     const delegate = Reflect.get(this.prisma, this.modelName);
 
-    if (!this.isRepositoryModelDelegate(delegate)) {
+    if (!isRepositoryModelDelegate(delegate)) {
       throw new Error(`Model delegate '${this.modelName}' is unavailable`);
     }
 
@@ -105,7 +51,6 @@ export abstract class BaseRepository<T, TCreate = Record<string, unknown>> {
     return this.getDefaultSelect();
   }
 
-  /** Maps a Prisma delegate row to the repository domain type. */
   protected mapDomainItem(item: unknown): T {
     return mapRepositoryDomainItem<T>(item);
   }

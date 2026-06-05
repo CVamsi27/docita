@@ -8,7 +8,11 @@ import type { LineItem } from "./billing-modal-types";
 
 interface BillingLineItemsEditorProps {
   items: LineItem[];
-  updateItem: (index: number, field: keyof LineItem, value: string | number) => void;
+  updateItem: (
+    index: number,
+    field: keyof LineItem,
+    value: string | number,
+  ) => void;
   removeItem: (index: number) => void;
   addItem: () => void;
 }
@@ -29,7 +33,10 @@ export function BillingLineItemsEditor({
       </div>
 
       {items.map((item, index) => (
-        <div key={index} className="flex flex-col gap-2 sm:grid sm:grid-cols-12 sm:items-center">
+        <div
+          key={index}
+          className="flex flex-col gap-2 sm:grid sm:grid-cols-12 sm:items-center"
+        >
           <div className="sm:col-span-5">
             <Input
               placeholder="Item description"
@@ -45,7 +52,9 @@ export function BillingLineItemsEditor({
                 min="1"
                 placeholder="Qty"
                 value={item.quantity}
-                onChange={(e) => updateItem(index, "quantity", parseInt(e.target.value) || 1)}
+                onChange={(e) =>
+                  updateItem(index, "quantity", parseInt(e.target.value) || 1)
+                }
                 className="h-9"
               />
             </div>
@@ -56,7 +65,9 @@ export function BillingLineItemsEditor({
                 step="0.01"
                 placeholder="Unit price"
                 value={item.price}
-                onChange={(e) => updateItem(index, "price", parseFloat(e.target.value) || 0)}
+                onChange={(e) =>
+                  updateItem(index, "price", parseFloat(e.target.value) || 0)
+                }
                 className="h-9"
               />
             </div>

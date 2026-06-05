@@ -2,18 +2,14 @@
 
 import { useCallback, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { toast } from "sonner";
+import {
+  handleModifiedGlobalShortcut,
+  handlePlainGlobalShortcut,
+} from "./global-shortcut-actions";
+import { isKeyboardInputTarget } from "./global-shortcut-target";
+import type { GlobalShortcutContext } from "./global-shortcut-types";
 
-export interface GlobalShortcutContext {
-
-  isInConsultation: boolean;
-  consultationId?: string;
-
-  onSaveConsultation?: () => void;
-  onCompleteConsultation?: () => void;
-  onNextTab?: () => void;
-  onPrevTab?: () => void;
-}
+export type { GlobalShortcutContext };
 
 interface UseGlobalShortcutsOptions {
   context?: GlobalShortcutContext;
@@ -34,76 +30,21 @@ export function useGlobalShortcuts({
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (!enabled) return;
-
-      const target = event.target instanceof HTMLElement ? event.target : null;
-      const isInput =
-        target !== null &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.isContentEditable);
-
       const hasModifier = event.metaKey || event.ctrlKey;
-
-      if (event.key === "Escape") {
-        return;
-      }
-
+      if (event.key === "Escape") return;
+      const isInput = isKeyboardInputTarget(event.target);
       if (isInput && !hasModifier) return;
 
       if (hasModifier) {
-        switch (event.key.toLowerCase()) {
-          case "q":
-            event.preventDefault();
-            router.push("/consultation");
-            break;
-
-          case "s":
-            if (isInConsultation && context?.onSaveConsultation) {
-              event.preventDefault();
-              context.onSaveConsultation();
-              toast.success("Consultation saved", { duration: 2000 });
-            }
-            break;
-
-          case "enter":
-            if (isInConsultation && context?.onCompleteConsultation) {
-              event.preventDefault();
-              context.onCompleteConsultation();
-            }
-            break;
-
-          case "]":
-            if (isInConsultation && context?.onNextTab) {
-              event.preventDefault();
-              context.onNextTab();
-            }
-            break;
-
-          case "[":
-            if (isInConsultation && context?.onPrevTab) {
-              event.preventDefault();
-              context.onPrevTab();
-            }
-            break;
-        }
+        handleModifiedGlobalShortcut({
+          event,
+          router,
+          isInConsultation,
+          context,
+        });
         return;
       }
-
-      switch (event.key.toLowerCase()) {
-        case "n":
-          if ((isOnQueue || isOnDashboard) && !isInput) {
-            event.preventDefault();
-            window.dispatchEvent(new CustomEvent("docita:next-patient"));
-          }
-          break;
-
-        case "r":
-          if (isOnQueue && !isInput) {
-            event.preventDefault();
-            window.dispatchEvent(new CustomEvent("docita:refresh-queue"));
-          }
-          break;
-      }
+      handlePlainGlobalShortcut({ event, isOnQueue, isOnDashboard });
     },
     [enabled, router, isInConsultation, isOnQueue, isOnDashboard, context],
   );

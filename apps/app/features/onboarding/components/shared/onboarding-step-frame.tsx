@@ -14,6 +14,8 @@ import {
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { cn } from "@workspace/ui/lib/utils";
+// Single source of truth for the wizard step count lives with the step list.
+import { TOTAL_STEPS as ONBOARDING_TOTAL_STEPS } from "@/features/onboarding/components/forms/clinic-registration-form-helpers";
 
 /**
  * Shared scaffolding for the clinic onboarding wizard so every step renders the
@@ -26,19 +28,23 @@ import { cn } from "@workspace/ui/lib/utils";
  *   </OnboardingStepCard>
  */
 
-const ONBOARDING_TOTAL_STEPS = 5;
-
 export function OnboardingStepCard({
   className,
   children,
+  wide = false,
   ...rest
-}: React.ComponentProps<"div">) {
+}: React.ComponentProps<"div"> & {
+  /** Plan step opts into the full shell width; form steps stay readable. */
+  wide?: boolean;
+}) {
   return (
     // Zero out the card's intrinsic padding/gap so the header and footer bands
-    // sit flush against the rounded edges.
+    // sit flush against the rounded edges. Centered so form steps stay readable
+    // even when the shell is widened for the plan step.
     <Card
       className={cn(
-        "relative gap-0 overflow-hidden rounded-[var(--radius-xl)] py-0 shadow-md ring-1 ring-border/25",
+        "relative mx-auto w-full gap-0 overflow-hidden rounded-[var(--radius-xl)] py-0 shadow-md ring-1 ring-border/25",
+        wide ? "max-w-5xl" : "max-w-3xl",
         className,
       )}
       {...rest}

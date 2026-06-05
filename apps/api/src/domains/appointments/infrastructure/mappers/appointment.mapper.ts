@@ -54,6 +54,27 @@ const DOMAIN_TO_PRISMA_STATUS: Record<
   [AppointmentStatusEnum.NOSHOW]: PrismaAppointmentStatus.NO_SHOW,
 };
 
+export const APPOINTMENT_STATUS_TO_PRISMA = DOMAIN_TO_PRISMA_STATUS;
+
+const APPOINTMENT_STATUS_ALIASES: Record<string, AppointmentStatusEnum> = {
+  scheduled: AppointmentStatusEnum.SCHEDULED,
+  confirmed: AppointmentStatusEnum.CONFIRMED,
+  arrived: AppointmentStatusEnum.ARRIVED,
+  'checked-in': AppointmentStatusEnum.ARRIVED,
+  in_progress: AppointmentStatusEnum.IN_PROGRESS,
+  'in-progress': AppointmentStatusEnum.IN_PROGRESS,
+  completed: AppointmentStatusEnum.COMPLETED,
+  cancelled: AppointmentStatusEnum.CANCELLED,
+  noshow: AppointmentStatusEnum.NOSHOW,
+  'no-show': AppointmentStatusEnum.NOSHOW,
+};
+
+export function parseAppointmentStatus(
+  status: string,
+): AppointmentStatusEnum | undefined {
+  return APPOINTMENT_STATUS_ALIASES[status.trim().toLowerCase()];
+}
+
 const clinicalInvestigationsSchema = z.array(clinicalInvestigationSchema);
 
 function coerceToDate(value: string | Date): Date {

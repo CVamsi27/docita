@@ -60,7 +60,9 @@ export function PatientPortalPrescriptionsUI({
                     meta={prescription.prescribedBy}
                     time={formatDate(prescription.issuedAt)}
                     status={prescription.status}
-                    statusLabel={getPrescriptionStatusLabel(prescription.status)}
+                    statusLabel={getPrescriptionStatusLabel(
+                      prescription.status,
+                    )}
                     showChevron={false}
                   />
                 ))}

@@ -78,9 +78,7 @@ export function GlobalSearchResultsPanel({
                 onClick={() => onResultClick(result)}
                 className={cn(
                   "flex cursor-pointer items-center gap-3 px-4 py-3",
-                  index === selectedIndex
-                    ? "bg-muted/60"
-                    : "hover:bg-muted/60",
+                  index === selectedIndex ? "bg-muted/60" : "hover:bg-muted/60",
                 )}
               >
                 <div

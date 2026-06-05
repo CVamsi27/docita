@@ -9,10 +9,12 @@ import {
   useResumeSubscriptionPayment,
 } from "@workspace/data-access";
 import {
+  Tier,
   tierSchema,
   type SubscriptionCurrentResponse,
   type TierName,
 } from "@workspace/types";
+import { getTierName } from "@workspace/utils";
 import type { TierCheckoutParams } from "@/hooks/use-subscription-checkout";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { findRecoverableSubscriptionPayment } from "@/features/subscription/lib/recoverable-subscription-payment";
@@ -23,7 +25,7 @@ function parseCheckoutTierParams(
   const tier = subscription?.tier;
   if (
     !tier ||
-    tier === "ENTERPRISE" ||
+    tier === getTierName(Tier.ENTERPRISE) ||
     (subscription?.basePriceCents ?? 0) <= 0
   ) {
     return null;

@@ -5,9 +5,15 @@ import { Plus } from "lucide-react";
 import { Feature } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { DiagnosisItemRow } from "./diagnosis-item-row";
-import type { DiagnosisInputProps, DiagnosisItem } from "./diagnosis-input-types";
+import type {
+  DiagnosisInputProps,
+  DiagnosisItem,
+} from "./diagnosis-input-types";
 
-export type { DiagnosisItem, DiagnosisInputProps } from "./diagnosis-input-types";
+export type {
+  DiagnosisItem,
+  DiagnosisInputProps,
+} from "./diagnosis-input-types";
 
 export function DiagnosisInput({
   value = [],
@@ -62,7 +68,9 @@ export function DiagnosisInput({
             index={index}
             readOnly={readOnly}
             medicalCodingEnabled={medicalCodingEnabled}
-            onUpdate={(field, fieldValue) => updateItem(index, field, fieldValue)}
+            onUpdate={(field, fieldValue) =>
+              updateItem(index, field, fieldValue)
+            }
             onSetIcdCode={(code) => setIcdCode(index, code)}
             onRemove={() => removeItem(index)}
           />
@@ -76,12 +84,12 @@ export function DiagnosisInput({
           className="w-full border-dashed py-3 text-muted-foreground hover:text-primary"
         >
           <Plus className="mr-2 h-4 w-4" />
-          Add Diagnosis
+          Add diagnosis
         </Button>
       ) : null}
 
       {items.length === 0 && readOnly ? (
-        <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">
+        <div className="rounded-[var(--radius-md)] border border-dashed py-8 text-center text-muted-foreground">
           No diagnosis recorded.
         </div>
       ) : null}

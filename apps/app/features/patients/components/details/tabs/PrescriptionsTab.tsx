@@ -56,8 +56,7 @@ export function PrescriptionsTab({ patientId }: PrescriptionsTabProps) {
   }
 
   const sorted = [...prescriptions].sort(
-    (a, b) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
 
   return (
@@ -154,9 +153,7 @@ export function PrescriptionsTab({ patientId }: PrescriptionsTabProps) {
                     variant="outline"
                     size="sm"
                     className="h-8 text-xs"
-                    onClick={() =>
-                      repeatPrescription(appointmentId, patientId)
-                    }
+                    onClick={() => repeatPrescription(appointmentId, patientId)}
                   >
                     <RotateCcw className="h-3 w-3 mr-1.5" />
                     Repeat

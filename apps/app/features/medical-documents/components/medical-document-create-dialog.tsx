@@ -17,7 +17,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
-import { MEDICAL_DOCUMENT_TYPE_LABELS, MEDICAL_DOCUMENT_TYPE_OPTIONS } from "./medical-document-list-config";
+import {
+  MEDICAL_DOCUMENT_TYPE_LABELS,
+  MEDICAL_DOCUMENT_TYPE_OPTIONS,
+} from "./medical-document-list-config";
 
 export function MedicalDocumentCreateDialog({
   open,

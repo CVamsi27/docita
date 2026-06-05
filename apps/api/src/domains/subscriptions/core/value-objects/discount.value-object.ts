@@ -1,8 +1,6 @@
 import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
-
-export enum DiscountType {
-  PROMOTIONAL = 'PROMOTIONAL',
-}
+import type { DiscountType } from '@workspace/types';
+export { discountTypeSchema } from '@workspace/types';
 
 export interface DiscountProps {
   type: DiscountType;

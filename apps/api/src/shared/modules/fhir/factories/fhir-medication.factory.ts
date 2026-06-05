@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import { Injectable } from '@nestjs/common';
 import { Prescription, Medication } from '@workspace/db';
 import { FhirMedicationRequest } from '@/shared/modules/fhir/interfaces/fhir.interfaces';
@@ -20,7 +21,7 @@ export class FhirMedicationFactory {
 
     for (const prescription of prescriptions) {
       const patientRef = `Patient/${prescription.patientId}`;
-      const patientDisplay = `${prescription.patient.firstName} ${prescription.patient.lastName}`;
+      const patientDisplay = getPatientFullName(prescription.patient);
 
       for (const med of prescription.medications) {
         const request: FhirMedicationRequest = {

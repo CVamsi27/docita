@@ -230,7 +230,10 @@ export class AIController {
     await this.aiCreditGuard.assertWithinAllotment(req.user?.clinicId);
 
     try {
-      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp', 'gif']);
+      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp', 'gif'], {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+      });
       const result = await this.aiService.extractFromMedicalDocument(
         file.path,
         true,

@@ -9,6 +9,7 @@ export enum ApplicationEvents {
   APPOINTMENT_COMPLETED = 'appointment.completed',
   DOCTOR_DELAY_MARKED = 'doctor-delay.marked',
   PRESCRIPTION_CREATED = 'prescription.created',
+  LAB_RESULT_RELEASED = 'lab-result.released',
   INVOICE_GENERATED = 'invoice.generated',
   PAYMENT_CAPTURED = 'payment.captured',
   NOTIFICATION_CREATED = 'notification.created',

@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import type { IDuplicateDetector } from './ports/duplicate-detector.port';
@@ -47,7 +48,7 @@ export class ImportDuplicateDetectorService implements IDuplicateDetector {
           reason: `Phone number ${phone} already exists`,
           existingPatient: {
             id: existingByPhone.id,
-            name: `${existingByPhone.firstName} ${existingByPhone.lastName}`,
+            name: getPatientFullName(existingByPhone),
             phone: existingByPhone.phoneNumber,
           },
         };
@@ -78,10 +79,10 @@ export class ImportDuplicateDetectorService implements IDuplicateDetector {
         if (existingByNameDob) {
           return {
             isDuplicate: true,
-            reason: `Patient ${firstName} ${lastName} with DOB ${formatImportDateMedium(dob)} already exists`,
+            reason: `Patient ${getPatientFullName({ firstName, lastName })} with DOB ${formatImportDateMedium(dob)} already exists`,
             existingPatient: {
               id: existingByNameDob.id,
-              name: `${existingByNameDob.firstName} ${existingByNameDob.lastName}`,
+              name: getPatientFullName(existingByNameDob),
               phone: existingByNameDob.phoneNumber,
             },
           };

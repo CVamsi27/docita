@@ -85,7 +85,7 @@ export function useTierAccess() {
 
   const tierNameForAccess = useMemo((): TierName => {
     if (subscriptionHardLocked) {
-      return "STARTER";
+      return getTierName(Tier.STARTER);
     }
     return getTierName(currentTierValue);
   }, [currentTierValue, subscriptionHardLocked]);
@@ -108,7 +108,7 @@ export function useTierAccess() {
 
       if (subscriptionHardLocked) {
         return hasFeatureAccess(
-          "STARTER",
+          getTierName(Tier.STARTER),
           feature,
           hasIntelligence,
           undefined,
@@ -160,9 +160,9 @@ export function useTierAccess() {
 
   const displayTier = useMemo((): TierName => {
     if (subscriptionHardLocked) {
-      return "STARTER";
+      return getTierName(Tier.STARTER);
     }
-    return subscription?.tier ?? "STARTER";
+    return subscription?.tier ?? getTierName(Tier.STARTER);
   }, [subscription?.tier, subscriptionHardLocked]);
 
   return {

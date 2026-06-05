@@ -8,6 +8,8 @@ export interface QueueJobRow {
   priority: number;
   attemptsMade: number;
   maxAttempts: number;
+  replayCount: number;
+  lastReplayedAt: Date | null;
   failedReason: string | null;
   processedAt: Date | null;
   delayedUntil: Date | null;

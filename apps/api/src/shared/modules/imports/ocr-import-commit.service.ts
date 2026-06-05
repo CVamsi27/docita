@@ -8,7 +8,7 @@ import {
   InvoiceStatus,
 } from '@workspace/db';
 import type { OcrImportCommitRequest } from '@workspace/types';
-import { parseStringEnumMember } from '@workspace/utils';
+import { parseStringEnumMember, getPatientFullName } from '@workspace/utils';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import type { ImportAuditContext } from './import-types';
@@ -93,8 +93,7 @@ export class OcrImportCommitService {
           consentType: ConsentType.DPDP_NOTICE,
           status: ConsentStatus.ACTIVE,
           givenBy:
-            consentSnapshot.givenByName ??
-            `${dto.firstName} ${dto.lastName}`.trim(),
+            consentSnapshot.givenByName ?? getPatientFullName(dto).trim(),
           givenByRelation: consentSnapshot.relation ?? 'SELF',
           givenAt: this.clock.now(),
           validFrom: this.clock.now(),

@@ -1,30 +1,9 @@
 import type { APIRoute } from "astro";
-
-const HOP_BY_HOP_HEADERS = new Set([
-  "connection",
-  "keep-alive",
-  "proxy-authenticate",
-  "proxy-authorization",
-  "te",
-  "trailer",
-  "transfer-encoding",
-  "upgrade",
-  "host",
-  "content-length",
-]);
-
-function buildHeaders(headers: Headers): Headers {
-  const nextHeaders = new Headers();
-
-  for (const [key, value] of headers.entries()) {
-    if (HOP_BY_HOP_HEADERS.has(key.toLowerCase())) {
-      continue;
-    }
-    nextHeaders.set(key, value);
-  }
-
-  return nextHeaders;
-}
+import {
+  buildLandingUpstreamApiUrl,
+  createLandingProxyRequestHeaders,
+  createLandingProxyResponseHeaders,
+} from "@/lib/landing-api-proxy";
 
 function jsonError(status: number, message: string): Response {
   return new Response(JSON.stringify({ error: message }), {
@@ -43,19 +22,13 @@ export const ALL: APIRoute = async ({ params, request }) => {
     return jsonError(400, "We could not find what you were looking for");
   }
 
-  const targetBase = (import.meta.env["API_PROXY_TARGET"] || "http://localhost:3001").replace(
-    /\/+$/,
-    "",
-  );
-
-  const targetUrl = new URL(`${targetBase}/api/${path}`);
-  const requestUrl = new URL(request.url);
-  targetUrl.search = requestUrl.search;
+  const targetBase =
+    import.meta.env["API_PROXY_TARGET"] || "http://localhost:3001";
 
   const method = request.method.toUpperCase();
   const init: RequestInit = {
     method,
-    headers: buildHeaders(request.headers),
+    headers: createLandingProxyRequestHeaders(request.headers),
     redirect: "manual",
   };
 
@@ -64,14 +37,15 @@ export const ALL: APIRoute = async ({ params, request }) => {
   }
 
   try {
-    const upstream = await fetch(targetUrl.toString(), init);
-    const responseHeaders = new Headers(upstream.headers);
-    responseHeaders.delete("content-length");
+    const upstream = await fetch(
+      buildLandingUpstreamApiUrl(targetBase, path, request.url),
+      init,
+    );
 
     return new Response(upstream.body, {
       status: upstream.status,
       statusText: upstream.statusText,
-      headers: responseHeaders,
+      headers: createLandingProxyResponseHeaders(upstream.headers),
     });
   } catch {
     return jsonError(

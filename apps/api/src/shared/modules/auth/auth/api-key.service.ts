@@ -17,6 +17,7 @@ export interface CreateApiKeyDto {
   name: string;
   scopes: string[];
   expiresAt?: Date;
+  allowedIps?: string[];
 }
 
 export interface ApiKeyWithSecret {
@@ -25,8 +26,13 @@ export interface ApiKeyWithSecret {
   key: string;
   keyPrefix: string;
   scopes: string[];
+  allowedIps: string[];
   expiresAt: Date | null;
   createdAt: Date;
+}
+
+export interface RotatedApiKeyWithSecret extends ApiKeyWithSecret {
+  previousKeyValidUntil: Date;
 }
 
 @Injectable()
@@ -55,6 +61,7 @@ export class ApiKeyService {
         keyHash,
         keyPrefix,
         scopes: dto.scopes,
+        allowedIps: dto.allowedIps ?? [],
         expiresAt: dto.expiresAt ?? null,
         updatedAt: this.clock.now(),
       },
@@ -72,6 +79,7 @@ export class ApiKeyService {
       key: rawKey,
       keyPrefix,
       scopes: apiKey.scopes,
+      allowedIps: apiKey.allowedIps,
       expiresAt: apiKey.expiresAt,
       createdAt: apiKey.createdAt,
     };
@@ -85,6 +93,7 @@ export class ApiKeyService {
         name: true,
         keyPrefix: true,
         scopes: true,
+        allowedIps: true,
         expiresAt: true,
         lastUsedAt: true,
         createdAt: true,
@@ -92,6 +101,78 @@ export class ApiKeyService {
       },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async rotateApiKey(
+    id: string,
+    clinicId: string,
+    createdById: string,
+    overlapMinutes: number,
+  ): Promise<RotatedApiKeyWithSecret> {
+    const now = this.clock.now();
+    const overlapEndsAt = new Date(now.getTime() + overlapMinutes * 60_000);
+
+    const replacement = await this.prisma.$transaction(async (tx) => {
+      const previous = await tx.apiKey.findUnique({ where: { id } });
+      if (!previous || previous.clinicId !== clinicId) {
+        throw new NotFoundException('API key not found');
+      }
+      if (previous.revokedAt) {
+        throw new ForbiddenException('API key is already revoked');
+      }
+
+      const previousKeyValidUntil =
+        previous.expiresAt && previous.expiresAt < overlapEndsAt
+          ? previous.expiresAt
+          : overlapEndsAt;
+      const rawKey = `${API_KEY_PREFIX}${nanoid(API_KEY_BYTES)}`;
+      const keyHash = this.hashKey(rawKey);
+      const keyPrefix = rawKey.substring(0, API_KEY_PREFIX.length + 8);
+      const next = await tx.apiKey.create({
+        data: {
+          clinicId,
+          createdById,
+          name: previous.name,
+          keyHash,
+          keyPrefix,
+          scopes: previous.scopes,
+          allowedIps: previous.allowedIps,
+          expiresAt: previous.expiresAt,
+          updatedAt: now,
+        },
+      });
+
+      await tx.apiKey.update({
+        where: { id },
+        data: {
+          expiresAt: previousKeyValidUntil,
+          revokedAt: overlapMinutes === 0 ? now : null,
+          updatedAt: now,
+        },
+      });
+
+      return { next, rawKey, previousKeyValidUntil };
+    });
+
+    this.logger.log('API key rotated', {
+      id,
+      replacementId: replacement.next.id,
+      clinicId,
+      createdById,
+      overlapMinutes,
+    });
+
+    return {
+      id: replacement.next.id,
+      name: replacement.next.name,
+      key: replacement.rawKey,
+      keyPrefix: replacement.next.keyPrefix,
+      scopes: replacement.next.scopes,
+      allowedIps: replacement.next.allowedIps,
+      expiresAt: replacement.next.expiresAt,
+      createdAt: replacement.next.createdAt,
+      previousKeyValidUntil: replacement.previousKeyValidUntil,
+    };
   }
 
   async revokeApiKey(id: string, clinicId: string): Promise<void> {
@@ -118,6 +199,7 @@ export class ApiKeyService {
 
   async validateApiKey(
     rawKey: string,
+    clientIp?: string,
   ): Promise<{ clinicId: string; scopes: string[] } | null> {
     if (!rawKey.startsWith(API_KEY_PREFIX)) {
       return null;
@@ -131,6 +213,7 @@ export class ApiKeyService {
         id: true,
         clinicId: true,
         scopes: true,
+        allowedIps: true,
         revokedAt: true,
         expiresAt: true,
       },
@@ -141,6 +224,13 @@ export class ApiKeyService {
     }
 
     if (apiKey.expiresAt && apiKey.expiresAt < this.clock.now()) {
+      return null;
+    }
+
+    if (
+      apiKey.allowedIps.length > 0 &&
+      (!clientIp || !apiKey.allowedIps.includes(clientIp))
+    ) {
       return null;
     }
 

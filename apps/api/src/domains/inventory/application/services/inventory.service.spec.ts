@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { InventoryCommandService } from './inventory-command.service';
 import { InventoryQueryService } from './inventory-query.service';
@@ -164,8 +164,10 @@ describe('InventoryService', () => {
   });
 
   describe('addMovement', () => {
-    it('throws NotFoundException when item not found', async () => {
-      repo.findItemByClinic.mockResolvedValue(null);
+    it('throws NotFoundException when repository rejects', async () => {
+      repo.addMovementAndUpdateQuantity.mockRejectedValue(
+        new NotFoundException('Inventory item nonexistent not found'),
+      );
 
       await expect(
         service.addMovement('clinic-1', 'nonexistent', 'user-1', {
@@ -177,7 +179,6 @@ describe('InventoryService', () => {
 
     it('creates a movement and updates quantity', async () => {
       const mockMovement = { id: 'mov-1', type: 'IN', quantity: 10 };
-      repo.findItemByClinic.mockResolvedValue(mockItem);
       repo.addMovementAndUpdateQuantity.mockResolvedValue(mockMovement);
 
       const result = await service.addMovement('clinic-1', 'item-1', 'user-1', {
@@ -195,7 +196,6 @@ describe('InventoryService', () => {
     });
 
     it('uses negative delta for OUT movements', async () => {
-      repo.findItemByClinic.mockResolvedValue(mockItem);
       repo.addMovementAndUpdateQuantity.mockResolvedValue({});
 
       await service.addMovement('clinic-1', 'item-1', 'user-1', {
@@ -209,6 +209,20 @@ describe('InventoryService', () => {
         expect.anything(),
         -5,
       );
+    });
+
+    it('throws BadRequestException on insufficient stock', async () => {
+      const { BadRequestException } = await import('@nestjs/common');
+      repo.addMovementAndUpdateQuantity.mockRejectedValue(
+        new BadRequestException('Insufficient stock'),
+      );
+
+      await expect(
+        service.addMovement('clinic-1', 'item-1', 'user-1', {
+          type: 'OUT',
+          quantity: 999,
+        }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });

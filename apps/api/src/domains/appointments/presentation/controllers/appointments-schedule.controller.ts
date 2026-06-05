@@ -13,7 +13,7 @@ import {
 import { RequiresIdempotency } from '@/shared/modules/idempotency';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { AppointmentService } from '@/domains/appointments/application/services/appointment.service';
-import { parseAppointmentStatus } from '@/domains/appointments/application/mappers/appointment-status.mapper';
+import { parseAppointmentStatus } from '@/domains/appointments/infrastructure/mappers/appointment.mapper';
 import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { Role } from '@workspace/db';

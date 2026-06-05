@@ -30,27 +30,44 @@ const COLD_START_RETRY_DELAY_MS = 5_000;
 async function refreshAccessTokenWithTimeout(
   refreshAccessToken: () => Promise<boolean>,
 ): Promise<boolean> {
-  return Promise.race([
-    refreshAccessToken(),
-    new Promise<boolean>((resolve) => {
-      window.setTimeout(() => resolve(false), SESSION_REFRESH_TIMEOUT_MS);
-    }),
-  ]);
+  let timeoutId: number | undefined;
+  try {
+    return await Promise.race([
+      refreshAccessToken(),
+      new Promise<boolean>((resolve) => {
+        timeoutId = window.setTimeout(
+          () => resolve(false),
+          SESSION_REFRESH_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } finally {
+    if (timeoutId !== undefined) {
+      window.clearTimeout(timeoutId);
+    }
+  }
 }
 
-function makeTimeoutRace(
+async function makeTimeoutRace(
   validateAuth: ValidateAuth,
   timeoutMs: number,
 ): Promise<unknown> {
-  return Promise.race([
-    validateAuth(undefined),
-    new Promise<never>((_, reject) => {
-      window.setTimeout(
-        () => reject(new Error("Auth validation timed out")),
-        timeoutMs,
-      );
-    }),
-  ]);
+  let timeoutId: number | undefined;
+  try {
+    return await Promise.race([
+      validateAuth(undefined),
+      new Promise<never>((_, reject) => {
+        timeoutId = window.setTimeout(
+          () => reject(new Error("Auth validation timed out")),
+          timeoutMs,
+        );
+      }),
+    ]);
+  } finally {
+    if (timeoutId !== undefined) {
+      window.clearTimeout(timeoutId);
+    }
+  }
 }
 
 export function useAuthSessionBootstrap(options: {
@@ -159,7 +176,8 @@ export function useAuthSessionBootstrap(options: {
           return;
         }
 
-        const refreshed = await refreshAccessTokenWithTimeout(refreshAccessToken);
+        const refreshed =
+          await refreshAccessTokenWithTimeout(refreshAccessToken);
         if (!refreshed) {
           clearSession();
           appSession.redirectToLogin();
@@ -167,7 +185,9 @@ export function useAuthSessionBootstrap(options: {
         }
 
         try {
-          const applied = await applyValidatedUser(await validateAuth(undefined));
+          const applied = await applyValidatedUser(
+            await validateAuth(undefined),
+          );
           if (!applied) clearSession();
         } catch (retryError) {
           if (isAuthFailure(retryError)) {
@@ -181,7 +201,14 @@ export function useAuthSessionBootstrap(options: {
     };
 
     if (!appSession.getToken()) {
-      if (isPublicAuthPath(pathname)) {
+      // Auth-shell pages (/login, /register, …) AND per-session-secret QR
+      // landing pages (/upload-signature, /mobile-upload, /book) are reachable
+      // without a clinician session. Skip the validate/redirect dance entirely
+      // so a phone scanning the QR never bounces to /login.
+      if (
+        isPublicAuthPath(pathname) ||
+        (pathname !== null && appSession.isPublicPath(pathname))
+      ) {
         setIsLoading(false);
         return;
       }

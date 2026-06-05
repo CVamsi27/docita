@@ -34,10 +34,7 @@ export function AskAiOverlay() {
 
   const scopeChip = (
     <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-[var(--fs-2xs)] font-medium text-muted-foreground">
-      <span
-        aria-hidden
-        className="size-1.5 shrink-0 rounded-full bg-primary"
-      />
+      <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-primary" />
       <span className="truncate">{overlay.scopeLabel}</span>
     </span>
   );
@@ -54,7 +51,8 @@ export function AskAiOverlay() {
         className={cn(
           "gap-0 overflow-hidden p-0 shadow-xl",
           "max-sm:inset-x-0 max-sm:top-0 max-sm:bottom-0 max-sm:h-[100dvh] max-sm:max-h-[100dvh] max-sm:max-w-none max-sm:translate-y-0 max-sm:rounded-none max-sm:border-x-0",
-          "sm:h-[min(720px,90dvh)] sm:max-h-[min(720px,90dvh)] sm:max-w-[960px]",
+          "sm:h-[min(720px,90dvh)] sm:max-h-[min(720px,90dvh)] sm:w-[calc(100vw-2rem)] sm:max-w-[640px]",
+          "md:max-w-[900px]",
         )}
       >
         <DialogHeader className="flex shrink-0 flex-row items-center gap-2.5 border-b border-border/50 bg-muted/10 px-5 py-3.5 sm:px-6">
@@ -156,13 +154,16 @@ export function AskAiOverlay() {
                   role="alert"
                   className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-[var(--fs-xs)] text-destructive"
                 >
-                  <AlertCircle aria-hidden className="mt-0.5 size-3.5 shrink-0" />
+                  <AlertCircle
+                    aria-hidden
+                    className="mt-0.5 size-3.5 shrink-0"
+                  />
                   <span>{overlay.error}</span>
                 </div>
               ) : null}
             </div>
-            <div className="shrink-0 border-t border-border/50 bg-muted/10 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-6 sm:pb-4 sm:pt-4">
-              <div className="flex items-center gap-2">
+            <div className="shrink-0 border-t border-border/50 bg-muted/10 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6 sm:pb-5 sm:pt-4">
+              <div className="flex items-end gap-2">
                 <PromptInput
                   className="flex-1"
                   onSubmitPrompt={overlay.handleSubmit}
@@ -184,25 +185,21 @@ export function AskAiOverlay() {
                   </Button>
                 ) : null}
               </div>
-              <div className="mt-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
-                <div className="flex min-w-0 items-center gap-2">
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2 overflow-hidden">
                   {scopeChip}
                   {aiCreditBalance.enforced &&
                   aiCreditBalance.remaining !== null ? (
-                    <span className="inline-flex max-w-full items-center rounded-full border border-border/60 bg-background px-2.5 py-1 text-[var(--fs-2xs)] font-medium text-muted-foreground">
-                      {formatCountLocale(aiCreditBalance.remaining)} AI credits
-                      left
+                    <span className="inline-flex shrink-0 items-center rounded-full border border-border/60 bg-background px-2.5 py-1 text-[var(--fs-2xs)] font-medium text-muted-foreground">
+                      {formatCountLocale(aiCreditBalance.remaining)} credits left
                     </span>
                   ) : null}
-                  <p className="hidden text-[var(--fs-2xs)] leading-snug text-muted-foreground sm:block">
-                    Not medical advice—confirm with a clinician.
-                  </p>
                 </div>
-                <p className="shrink-0 text-[var(--fs-2xs)] text-muted-foreground/80">
+                <p className="hidden shrink-0 text-[var(--fs-2xs)] text-muted-foreground/70 sm:block">
                   Enter to send · Shift+Enter for new line
                 </p>
               </div>
-              <p className="mt-1.5 text-[var(--fs-2xs)] leading-snug text-muted-foreground sm:hidden">
+              <p className="mt-2 text-[var(--fs-2xs)] leading-snug text-muted-foreground/60">
                 Not medical advice—confirm with a clinician.
               </p>
             </div>

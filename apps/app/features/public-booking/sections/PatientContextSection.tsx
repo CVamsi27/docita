@@ -2,7 +2,11 @@
 
 import { Building2, Calendar as CalendarIcon, Sparkles } from "lucide-react";
 import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Card, CardContent, CardHeader } from "@workspace/ui/components/indicators/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from "@workspace/ui/components/indicators/card";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { DescriptionList } from "@workspace/ui/components/data-display/description-list";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
@@ -40,7 +44,9 @@ export function PublicBookingPatientContextSection({
       <CardHeader
         className={cn(
           bookingSectionHeaderBar,
-          compactHeader ? "pb-3 pt-4 sm:pb-4 sm:pt-5" : "pb-4 pt-5 sm:pb-6 sm:pt-6",
+          compactHeader
+            ? "pb-3 pt-4 sm:pb-4 sm:pt-5"
+            : "pb-4 pt-5 sm:pb-6 sm:pt-6",
         )}
       >
         <BookingSectionHeader
@@ -49,8 +55,8 @@ export function PublicBookingPatientContextSection({
           title="Recent visits at this location"
           description={
             <>
-              A short summary from your chart at {c.clinic.name} so you
-              can book with context.
+              A short summary from your chart at {c.clinic.name} so you can book
+              with context.
             </>
           }
           variant={compactHeader ? "compact" : "full"}

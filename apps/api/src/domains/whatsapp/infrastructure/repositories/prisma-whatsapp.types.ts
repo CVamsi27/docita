@@ -90,6 +90,27 @@ export interface PrismaWhatsAppReadClient {
 
 export interface PrismaWhatsAppDatabase {
   getReadClient(): PrismaWhatsAppReadClient;
+  patient: {
+    findFirst(args: {
+      where: { clinicId: string; phoneNumber: string; deletedAt: null };
+      select: { id: true };
+    }): Promise<{ id: string } | null>;
+  };
+  whatsappConversation: {
+    upsert(args: {
+      where: {
+        clinicId_contactPhone: { clinicId: string; contactPhone: string };
+      };
+      create: {
+        clinicId: string;
+        patientId: string | null;
+        contactPhone: string;
+        lastMessageAt: Date;
+      };
+      update: { patientId: string | undefined; lastMessageAt: Date };
+      select: { id: true };
+    }): Promise<{ id: string }>;
+  };
   whatsappMessage: {
     upsert(args: {
       where: { id: string };

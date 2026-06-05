@@ -23,7 +23,10 @@ import {
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
-import { FeedbackType, useFeedbackLogic } from "@/features/feedback/hooks/use-feedback-logic";
+import {
+  FeedbackType,
+  useFeedbackLogic,
+} from "@/features/feedback/hooks/use-feedback-logic";
 
 export const FeedbackForm: FC<{
   onSubmit?: (feedback: {

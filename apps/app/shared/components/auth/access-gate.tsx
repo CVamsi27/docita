@@ -74,11 +74,7 @@ export function AccessGate({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Button
-          asChild
-          size="sm"
-          className="gap-2"
-        >
+        <Button asChild size="sm" className="gap-2">
           <Link href={SUBSCRIPTION_SETTINGS_PATH}>
             <Sparkles className="size-4" aria-hidden />
             Upgrade plan

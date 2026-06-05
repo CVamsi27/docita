@@ -7,6 +7,9 @@ dotenv.config({
   path: path.join(__dirname, '../.env.test'),
 });
 
+process.env.DATABASE_URL ??=
+  'postgresql://docita:docita@localhost:5434/docita_test';
+
 // Abort if tests are about to run against a production-looking database.
 // Reason: tests truncate/seed shared tables; a misconfigured env that points
 // at prod RDS would corrupt real PHI.

@@ -21,6 +21,7 @@ export const MEMBER_ROLE_LABELS: Record<MemberRole, string> = {
   RECEPTIONIST: "Receptionist",
   ADMIN: "Admin",
   ADMIN_DOCTOR: "Admin Doctor",
+  LAB: "Lab Technician",
 };
 
 const MEMBER_ROLE_VALUES = [
@@ -29,6 +30,7 @@ const MEMBER_ROLE_VALUES = [
   "RECEPTIONIST",
   "ADMIN",
   "ADMIN_DOCTOR",
+  "LAB",
 ] as const satisfies readonly MemberRole[];
 
 export function memberRoleDisplayLabel(role: string | null | undefined): string {
@@ -44,4 +46,5 @@ export const INVITE_SUCCESS_LABELS: Record<InviteFormValues["role"], string> = {
   RECEPTIONIST: "Receptionist",
   ADMIN: "Admin",
   ADMIN_DOCTOR: "Admin Doctor",
+  LAB: "Lab Technician",
 };

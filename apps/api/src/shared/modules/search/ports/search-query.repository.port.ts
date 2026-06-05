@@ -24,7 +24,19 @@ export interface SearchQueryRepository {
     limit: number,
   ): Promise<PatientFullTextSearchHit[]>;
 
+  searchPatientsFuzzy(
+    clinicId: string,
+    query: string,
+    limit: number,
+  ): Promise<PatientFullTextSearchHit[]>;
+
   searchAppointmentsFullText(
+    clinicId: string,
+    query: string,
+    limit: number,
+  ): Promise<AppointmentFullTextSearchHit[]>;
+
+  searchAppointmentsFuzzy(
     clinicId: string,
     query: string,
     limit: number,

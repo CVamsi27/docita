@@ -7,15 +7,14 @@ function toLabTestInput(
   data: Record<string, unknown>,
 ): Parameters<typeof LabTest.create>[0] {
   return {
-    id: typeof data.id === 'string' ? data.id : undefined,
-    name: typeof data.name === 'string' ? data.name : '',
-    category: typeof data.category === 'string' ? data.category : '',
-    clinicId: typeof data.clinicId === 'string' ? data.clinicId : '',
-    active: typeof data.active === 'boolean' ? data.active : undefined,
-    code: typeof data.code === 'string' ? data.code : undefined,
-    price: typeof data.price === 'number' ? data.price : undefined,
-    description:
-      typeof data.description === 'string' ? data.description : undefined,
+    id: stringField(data.id),
+    name: stringField(data.name) ?? '',
+    category: stringField(data.category) ?? '',
+    clinicId: stringField(data.clinicId) ?? '',
+    active: booleanField(data.active),
+    code: stringField(data.code),
+    price: numberField(data.price),
+    description: stringField(data.description),
   };
 }
 
@@ -23,24 +22,40 @@ function toLabOrderInput(
   data: Record<string, unknown>,
 ): Parameters<typeof LabOrder.create>[0] {
   return {
-    id: typeof data.id === 'string' ? data.id : undefined,
-    patientId: typeof data.patientId === 'string' ? data.patientId : '',
-    labTestId: typeof data.labTestId === 'string' ? data.labTestId : '',
+    id: stringField(data.id),
+    patientId: stringField(data.patientId) ?? '',
+    labTestId: stringField(data.labTestId) ?? '',
     status: LabTestOrderStatus.ORDERED,
-    clinicId: typeof data.clinicId === 'string' ? data.clinicId : '',
-    appointmentId:
-      typeof data.appointmentId === 'string' ? data.appointmentId : undefined,
-    result:
-      data.result &&
-      typeof data.result === 'object' &&
-      !Array.isArray(data.result)
-        ? Object.fromEntries(Object.entries(data.result))
-        : undefined,
-    resultUrl: typeof data.resultUrl === 'string' ? data.resultUrl : undefined,
-    notes: typeof data.notes === 'string' ? data.notes : undefined,
-    createdAt: data.createdAt instanceof Date ? data.createdAt : undefined,
-    updatedAt: data.updatedAt instanceof Date ? data.updatedAt : undefined,
+    clinicId: stringField(data.clinicId) ?? '',
+    appointmentId: stringField(data.appointmentId),
+    result: recordField(data.result),
+    resultUrl: stringField(data.resultUrl),
+    notes: stringField(data.notes),
+    createdAt: dateField(data.createdAt),
+    updatedAt: dateField(data.updatedAt),
   };
+}
+
+function stringField(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+function numberField(value: unknown): number | undefined {
+  return typeof value === 'number' ? value : undefined;
+}
+
+function booleanField(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
+}
+
+function dateField(value: unknown): Date | undefined {
+  return value instanceof Date ? value : undefined;
+}
+
+function recordField(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? Object.fromEntries(Object.entries(value))
+    : undefined;
 }
 
 @Injectable()

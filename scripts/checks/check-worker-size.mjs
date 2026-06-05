@@ -4,16 +4,37 @@ import { tmpdir } from "node:os";
 import { gzipSync } from "node:zlib";
 import path from "node:path";
 
-/** Cloudflare Workers Free: 3 MiB gzip; Paid: 10 MiB gzip. */
 const DEFAULT_GZIP_LIMIT_BYTES = 3 * 1024 * 1024;
-/** OpenNext emits a tiny worker bootstrap; the wrangler bundle is the real limit. */
 const OPENNEXT_BOOTSTRAP_MAX_BYTES = 100 * 1024;
 
 const [
   workerPathArg = ".open-next/worker.js",
   labelArg = workerPathArg,
   wranglerEnvArg = "production",
+  gzipLimitArg,
 ] = process.argv.slice(2);
+
+function parseGzipLimit(value, source) {
+  if (value === undefined || value === "") {
+    return undefined;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
+    console.error(`${source} must be a positive integer byte count.`);
+    process.exit(1);
+  }
+
+  return parsed;
+}
+
+const configuredGzipLimitBytes = parseGzipLimit(
+  gzipLimitArg ?? process.env.DOCITA_CLOUDFLARE_WORKER_GZIP_LIMIT_BYTES,
+  gzipLimitArg === undefined
+    ? "DOCITA_CLOUDFLARE_WORKER_GZIP_LIMIT_BYTES"
+    : "gzip limit argument",
+);
+const gzipLimitBytes = configuredGzipLimitBytes ?? DEFAULT_GZIP_LIMIT_BYTES;
 
 function measureBundle(absoluteWorkerPath) {
   const workerBytes = readFileSync(absoluteWorkerPath);
@@ -60,9 +81,9 @@ try {
   const { rawBytes, gzipBytes } = measureBundle(absoluteWorkerPath);
   const rawKb = (rawBytes / 1024).toFixed(1);
   const gzipKb = (gzipBytes / 1024).toFixed(1);
-  const gzipLimitKb = (DEFAULT_GZIP_LIMIT_BYTES / 1024).toFixed(1);
+  const gzipLimitKb = (gzipLimitBytes / 1024).toFixed(1);
 
-  if (gzipBytes > DEFAULT_GZIP_LIMIT_BYTES) {
+  if (gzipBytes > gzipLimitBytes) {
     console.error(
       `${labelArg} worker bundle is ${gzipKb} KB gzip, above the ${gzipLimitKb} KB Cloudflare limit (${rawKb} KB raw).`,
     );

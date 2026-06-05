@@ -1,14 +1,18 @@
 "use client";
 
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-
 import { useRef, useState } from "react";
-import Image from "next/image";
-import { Button } from "@workspace/ui/components/form/button";
-import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/navigation/tabs";
-import { AlertCircle, Image as ImageIcon, Pencil, Upload } from "lucide-react";
-import { SignaturePad, SignaturePreview } from "@/components/inputs/signature-canvas";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/navigation/tabs";
+import { Pencil, Upload } from "lucide-react";
+import {
+  DrawSignatureTab,
+  UploadSignatureTab,
+  SignatureErrorAlert,
+} from "./signature-upload-workflow-sections";
 import {
   dataUrlToFile,
   validateSignatureImageFile,
@@ -126,116 +130,37 @@ export function SignatureUploadWorkflow({
         </TabsList>
 
         <TabsContent value="draw" className="space-y-4 pt-2">
-          <Alert>
-            <Pencil className="h-4 w-4" />
-            <AlertDescription>{drawAlertText}</AlertDescription>
-          </Alert>
-
-          {!signatureDataUrl ? (
-            <SignaturePad onSave={(dataUrl) => void handleDrawSave(dataUrl)} />
-          ) : (
-            <div className="space-y-4">
-              <SignaturePreview
-                dataUrl={signatureDataUrl}
-                onEdit={() => setSignatureDataUrl(null)}
-              />
-
-              {autoUploadOnDraw ? (
-                uploading ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <DocitaLoadingIndicator variant="inline" decorative />
-                    {uploadingButtonLabel}
-                  </div>
-                ) : null
-              ) : (
-                <Button
-                  onClick={() => void handleUploadDrawnSignature()}
-                  disabled={uploading}
-                  className="w-full"
-                >
-                  {uploading ? (
-                    <>
-                      <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
-                      {uploadingButtonLabel}
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="mr-2 h-4 w-4" />
-                      {uploadButtonLabel}
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
-          )}
+          <DrawSignatureTab
+            signatureDataUrl={signatureDataUrl}
+            onClearSignature={() => setSignatureDataUrl(null)}
+            onDrawSave={handleDrawSave}
+            onUploadDrawnSignature={handleUploadDrawnSignature}
+            uploading={uploading}
+            autoUploadOnDraw={autoUploadOnDraw}
+            drawAlertText={drawAlertText}
+            uploadButtonLabel={uploadButtonLabel}
+            uploadingButtonLabel={uploadingButtonLabel}
+          />
         </TabsContent>
 
         <TabsContent value="upload" className="space-y-4 pt-2">
-          <Alert>
-            <ImageIcon className="h-4 w-4" />
-            <AlertDescription>{uploadAlertText}</AlertDescription>
-          </Alert>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/png,image/jpeg,image/jpg,image/webp"
-            onChange={handleFileSelect}
-            className="hidden"
+          <UploadSignatureTab
+            previewUrl={previewUrl}
+            fileInputRef={fileInputRef}
+            onFileSelect={handleFileSelect}
+            onUploadSelectedFile={handleUploadSelectedFile}
+            uploading={uploading}
+            selectedFile={selectedFile}
+            uploadAlertText={uploadAlertText}
+            selectImageButtonLabel={selectImageButtonLabel}
+            changeImageButtonLabel={changeImageButtonLabel}
+            uploadButtonLabel={uploadButtonLabel}
+            uploadingButtonLabel={uploadingButtonLabel}
           />
-
-          <Button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            variant="outline"
-            className="w-full"
-            disabled={uploading}
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            {selectedFile ? changeImageButtonLabel : selectImageButtonLabel}
-          </Button>
-
-          {previewUrl && (
-            <div className="space-y-3">
-              <div className="rounded-lg border bg-white p-4">
-                <Image
-                  src={previewUrl}
-                  alt="Signature preview"
-                  width={400}
-                  height={192}
-                  className="mx-auto max-h-48 object-contain"
-                  unoptimized
-                />
-              </div>
-
-              <Button
-                className="w-full"
-                onClick={() => void handleUploadSelectedFile()}
-                disabled={uploading}
-              >
-                {uploading ? (
-                  <>
-                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
-                    {uploadingButtonLabel}
-                  </>
-                ) : (
-                  <>
-                    <Upload className="mr-2 h-4 w-4" />
-                    {uploadButtonLabel}
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
         </TabsContent>
       </Tabs>
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+      <SignatureErrorAlert error={error} />
     </div>
   );
 }

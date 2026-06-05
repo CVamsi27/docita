@@ -1,4 +1,4 @@
-import { queryKeys } from "../lib/query-keys";
+import { queryKeys } from "../lib/query-keys-clinician";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 
@@ -74,4 +74,3 @@ export const useRevokeClinicSignatureToken = (clinicId: string) =>
       invalidateKeys: [queryKeys.signatures.clinicTokens(clinicId)],
     },
   );
-

@@ -1,3 +1,4 @@
+import { getPatientFullName } from '@workspace/utils';
 import { Injectable } from '@nestjs/common';
 import { PatientAllergy } from '@workspace/db';
 import { FhirAllergyIntolerance } from '@/shared/modules/fhir/interfaces/fhir.interfaces';
@@ -11,7 +12,7 @@ export class FhirAllergyFactory {
   createMany(allergies: AllergyWithRelations[]): FhirAllergyIntolerance[] {
     return allergies.map((allergy) => {
       const patientId = allergy.patientId;
-      const patientDisplay = `${allergy.patient.firstName} ${allergy.patient.lastName}`;
+      const patientDisplay = getPatientFullName(allergy.patient);
 
       const categoryMap: Record<
         string,

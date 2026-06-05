@@ -87,7 +87,9 @@ describe('FeatureFlagsService', () => {
 
   it('returns false for unknown flags', async () => {
     const { repo } = buildRepo();
-    const service = new FeatureFlagsService(cache, repo);
+    const service = new FeatureFlagsService(cache, repo, {
+      emit: jest.fn(),
+    } as never);
     expect(
       await service.isEnabled('missing', { userId: 'u', clinicId: 'c' }),
     ).toBe(false);
@@ -101,7 +103,9 @@ describe('FeatureFlagsService', () => {
       percentageRollout: 100,
     });
     const { repo } = buildRepo([record]);
-    const service = new FeatureFlagsService(cache, repo);
+    const service = new FeatureFlagsService(cache, repo, {
+      emit: jest.fn(),
+    } as never);
     expect(
       await service.isEnabled('demo-flag', {
         userId: 'user-1',
@@ -117,7 +121,9 @@ describe('FeatureFlagsService', () => {
       percentageRollout: 0,
     });
     const { repo } = buildRepo([record]);
-    const service = new FeatureFlagsService(cache, repo);
+    const service = new FeatureFlagsService(cache, repo, {
+      emit: jest.fn(),
+    } as never);
     expect(
       await service.isEnabled('demo-flag', {
         userId: 'user-1',
@@ -132,7 +138,9 @@ describe('FeatureFlagsService', () => {
       percentageRollout: 50,
     });
     const { repo } = buildRepo([record]);
-    const service = new FeatureFlagsService(cache, repo);
+    const service = new FeatureFlagsService(cache, repo, {
+      emit: jest.fn(),
+    } as never);
     const ctx = { userId: 'user-1', clinicId: 'clinic-1' };
     const a = await service.isEnabled('demo-flag', ctx);
     const b = await service.isEnabled('demo-flag', ctx);
@@ -142,7 +150,9 @@ describe('FeatureFlagsService', () => {
   it('falls back to defaultEnabled when no overrides apply', async () => {
     const record = buildRecord({ defaultEnabled: true });
     const { repo } = buildRepo([record]);
-    const service = new FeatureFlagsService(cache, repo);
+    const service = new FeatureFlagsService(cache, repo, {
+      emit: jest.fn(),
+    } as never);
     expect(
       await service.isEnabled('demo-flag', { userId: 'u', clinicId: 'c' }),
     ).toBe(true);
@@ -154,7 +164,9 @@ describe('FeatureFlagsService', () => {
       buildRecord({ key: 'two', defaultEnabled: false }),
     ];
     const { repo } = buildRepo(records);
-    const service = new FeatureFlagsService(cache, repo);
+    const service = new FeatureFlagsService(cache, repo, {
+      emit: jest.fn(),
+    } as never);
     const flags = await service.resolveAllForContext({
       userId: 'u',
       clinicId: 'c',
@@ -170,7 +182,9 @@ describe('FeatureFlagsService', () => {
       percentageRollout: 100,
     });
     const { repo, kill } = buildRepo([record]);
-    const service = new FeatureFlagsService(cache, repo);
+    const service = new FeatureFlagsService(cache, repo, {
+      emit: jest.fn(),
+    } as never);
     const result = await service.kill('demo-flag');
     expect(kill).toHaveBeenCalledWith('demo-flag');
     expect(result?.defaultEnabled).toBe(false);

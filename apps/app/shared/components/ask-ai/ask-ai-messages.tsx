@@ -1,6 +1,7 @@
 "use client";
 
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
 import type { AskAiStoredMessage, AskAiStoredThread } from "./ask-ai-threads";
 
@@ -49,20 +50,21 @@ export function ThreadGroup({
             const isActive = thread.id === activeId;
             return (
               <li key={thread.id}>
-                <button
-                  type="button"
-                  onClick={() => onSelect(thread.id)}
-                  aria-current={isActive ? "true" : undefined}
-                  className={cn(
-                    "w-full truncate rounded-md px-2 py-1.5 text-left text-[var(--fs-xs)] leading-snug transition-colors",
-                    isActive
-                      ? "bg-accent/15 text-foreground"
-                      : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
-                  )}
-                  title={thread.title}
-                >
-                  {thread.title}
-                </button>
+                <SymbolTooltip label={thread.title} side="right">
+                  <button
+                    type="button"
+                    onClick={() => onSelect(thread.id)}
+                    aria-current={isActive ? "true" : undefined}
+                    className={cn(
+                      "w-full truncate rounded-md px-2 py-1.5 text-left text-[var(--fs-xs)] leading-snug transition-colors",
+                      isActive
+                        ? "bg-accent/15 text-foreground"
+                        : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                    )}
+                  >
+                    {thread.title}
+                  </button>
+                </SymbolTooltip>
               </li>
             );
           })}

@@ -1,4 +1,8 @@
 import type { Appointment, VitalSign } from "@workspace/types";
+import {
+  calculateBMI as calculateSharedBMI,
+  getBMIStatus as getSharedBMIStatus,
+} from "@workspace/utils";
 
 export interface VitalsData {
   bloodPressure?: string;
@@ -38,11 +42,7 @@ export const getLatestVitals = (
 
 export const calculateBMI = (weight: number, height: number): number | null => {
   if (!weight || !height || height === 0) return null;
-
-  const heightInMeters = height / 100;
-  const bmi = weight / (heightInMeters * heightInMeters);
-
-  return parseFloat(bmi.toFixed(1));
+  return calculateSharedBMI(weight, height);
 };
 
 export const getBMIStatus = (
@@ -50,10 +50,13 @@ export const getBMIStatus = (
 ): { label: string; color: string } | null => {
   if (bmi === null) return null;
 
-  if (bmi < 18.5) return { label: "Underweight", color: "text-info" };
-  if (bmi < 25) return { label: "Normal", color: "text-success" };
-  if (bmi < 30) return { label: "Overweight", color: "text-warning" };
-  return { label: "Obese", color: "text-destructive" };
+  const status = getSharedBMIStatus(bmi);
+  return {
+    underweight: { label: "Underweight", color: "text-info" },
+    normal: { label: "Normal", color: "text-success" },
+    overweight: { label: "Overweight", color: "text-warning" },
+    obese: { label: "Obese", color: "text-destructive" },
+  }[status];
 };
 
 export const isBloodPressureNormal = (bp: string): boolean => {

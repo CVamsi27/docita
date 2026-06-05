@@ -2,10 +2,7 @@
 
 import { PageTabs } from "@workspace/ui/components/navigation/page-tabs";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
-import type {
-  Appointment,
-  PatientWithMedicalHistory,
-} from "@workspace/types";
+import type { Appointment, PatientWithMedicalHistory } from "@workspace/types";
 import { PatientTagManagerContainer as PatientTagManager } from "@/features/patients/components/details/PatientTagManagerContainer";
 import { PatientClinicalChartSummary } from "./patient-clinical-chart-summary";
 import { PatientDetailTabContent } from "./patient-detail-tab-content";
@@ -38,11 +35,7 @@ export function PatientDetailTabs({
 
   return (
     <div role="region" aria-label="Patient detail" className="w-full">
-      <PatientClinicalChartSummary
-        patientId={patientId}
-        appointments={appointments}
-        onSeeAllVisits={() => tabs.handleSelectTab("visits")}
-      />
+      <PatientClinicalChartSummary patientId={patientId} />
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div

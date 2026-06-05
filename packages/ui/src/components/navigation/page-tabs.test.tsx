@@ -36,4 +36,16 @@ describe("PageTabs", () => {
     const locked = screen.getByRole("tab", { name: /locked/i });
     expect(locked).toHaveAttribute("aria-disabled", "true");
   });
+
+  it("keeps the tab strip horizontally scrollable at every breakpoint", () => {
+    render(<PageTabs items={items} activeId="overview" />);
+
+    const tablist = screen.getByRole("tablist");
+    expect(tablist.parentElement).toHaveClass(
+      "overflow-x-auto",
+      "overscroll-x-contain",
+      "[scrollbar-width:thin]",
+    );
+    expect(tablist).toHaveClass("w-max", "min-w-full");
+  });
 });

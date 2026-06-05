@@ -9,7 +9,7 @@ import { Response, Request } from 'express';
 import { randomBytes, timingSafeEqual } from 'crypto';
 import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { readRequestHeaderString } from '@/shared/common/http/client-ip';
+import { readRequestHeaderString } from '@/shared/common/http/request-headers';
 
 @Injectable()
 export class CsrfInterceptor implements NestInterceptor {

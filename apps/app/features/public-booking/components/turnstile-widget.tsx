@@ -37,7 +37,9 @@ export function TurnstileWidget({
       });
     };
 
-    const existing = document.querySelector(`script[src="${TURNSTILE_SCRIPT}"]`);
+    const existing = document.querySelector(
+      `script[src="${TURNSTILE_SCRIPT}"]`,
+    );
     const existingScript =
       existing instanceof HTMLScriptElement ? existing : null;
 
@@ -73,10 +75,5 @@ export function TurnstileWidget({
     return null;
   }
 
-  return (
-    <div
-      ref={containerRef}
-      className={cn("min-h-[65px]", className)}
-    />
-  );
+  return <div ref={containerRef} className={cn("min-h-[65px]", className)} />;
 }

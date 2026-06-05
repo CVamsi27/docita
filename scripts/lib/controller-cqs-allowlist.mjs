@@ -6,4 +6,7 @@
 export const CONTROLLER_CQS_ALLOWLIST = new Set([
   /** Staff notification orchestrator (whatsapp domain; facade comment on untracked path). */
   "StaffNotificationService",
+  /** WhatsApp operations orchestrator: conversations + campaigns surface over the
+   * operations repository and the send-message use-case (mixed read/write with role checks). */
+  "WhatsappOperationsService",
 ]);

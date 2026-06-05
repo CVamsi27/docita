@@ -13,6 +13,7 @@ import {
   SubscriptionStatus,
 } from '@workspace/db';
 import { parseStringEnumMember } from '@workspace/utils';
+import { CLINIC_ADMIN_ROLES } from '@/shared/common/constants/role-groups';
 import * as bcrypt from 'bcrypt';
 import {
   CLINIC_CARD_SELECT,
@@ -37,8 +38,6 @@ const CLINIC_ADMIN_SELECT = {
   createdAt: true,
   updatedAt: true,
 } as const;
-
-const CLINIC_ADMIN_ROLES: Role[] = [Role.ADMIN, Role.ADMIN_DOCTOR];
 
 @Injectable()
 export class ClinicManagementService {

@@ -58,6 +58,7 @@ export * from "./form/radio-group";
 export * from "./layout/resizable";
 export * from "./layout/scroll-area";
 export * from "./overlay/search-dialog";
+export * from "./form/search-input";
 export * from "./form/searchable-select";
 export * from "./form/select";
 export * from "./layout/separator";

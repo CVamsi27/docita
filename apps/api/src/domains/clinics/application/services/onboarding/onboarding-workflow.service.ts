@@ -10,6 +10,7 @@ import {
   Role as _Role,
   Prisma,
   DayOfWeek,
+  FacilityType,
 } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import {
@@ -18,10 +19,12 @@ import {
   PlanSelectionDto,
   StaffSetupDto,
   ClinicTier,
+  PlanMode,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import { OnboardingValidationService } from './onboarding-validation.service';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
-import { SUBSCRIPTION_TRIAL_DAYS } from '@workspace/types';
+import { isFrontDeskPlanMode, SUBSCRIPTION_TRIAL_DAYS } from '@workspace/types';
+import { DEFAULT_TIMEZONE } from '@workspace/utils';
 
 import {
   getDefaultClinicWeeklyHoursInput,
@@ -90,14 +93,17 @@ export class OnboardingWorkflowService {
       phone: clinicData.phone,
       address: clinicData.address,
       type: clinicData.type ?? ClinicType.GENERAL,
+      facilityType:
+        clinicData.facilityLabel === 'HOSPITAL'
+          ? FacilityType.HOSPITAL
+          : FacilityType.CLINIC,
       website: clinicData.website,
       mrnPrefix: clinicData.mrnPrefix || 'CLI',
-      timezone: clinicData.timezone || 'Asia/Kolkata',
+      timezone: clinicData.timezone || DEFAULT_TIMEZONE,
       referralCode,
       settings: toPrismaInputJsonValue({
         dataResidency: clinicData.dataResidency || 'IN',
         operatingCountryCode: clinicData.countryCode || 'IN',
-        facilityLabel: clinicData.facilityLabel || 'CLINIC',
         gstin: clinicData.gstin || undefined,
         privacyComplianceVersion: '1.0',
         onboardedAt: this.clock.now().toISOString(),
@@ -126,10 +132,12 @@ export class OnboardingWorkflowService {
     clinicId: string,
     _ipAddress?: string,
     planTier?: ClinicTier,
+    planMode?: PlanMode,
   ): Promise<User> {
     const { ConflictException, BadRequestException } =
       await import('@nestjs/common');
     const { Role } = await import('@workspace/db');
+    const onboardingCompletedAt = this.clock.now();
 
     const existingUser = await this.repository.findUserByEmail(
       tx,
@@ -142,7 +150,8 @@ export class OnboardingWorkflowService {
         ? Role.ADMIN_DOCTOR
         : Role.ADMIN);
     if (
-      planTier === ClinicTier.FRONT_DESK &&
+      planTier &&
+      isFrontDeskPlanMode(planTier, planMode) &&
       resolvedRole === Role.ADMIN_DOCTOR
     ) {
       resolvedRole = Role.ADMIN;
@@ -160,6 +169,7 @@ export class OnboardingWorkflowService {
           name: adminData.name,
           role: resolvedRole,
           clinicId,
+          onboardingCompletedAt,
           phoneNumber: adminData.phoneNumber,
           qualification: adminData.qualification,
           registrationNumber: adminData.registrationNumber,
@@ -195,6 +205,7 @@ export class OnboardingWorkflowService {
       phoneNumber: adminData.phoneNumber,
       role: resolvedRole,
       clinicId,
+      onboardingCompletedAt,
       qualification: adminData.qualification,
       registrationNumber: adminData.registrationNumber,
       specialization: this.validation.validateSpecialization(
@@ -225,12 +236,14 @@ export class OnboardingWorkflowService {
       planData.tier,
       planData.billingCycle,
       planData.currency,
+      planData.planMode,
     );
     const tierLimits = this.validation.getTierLimits(planData.tier);
 
     const hasPayment =
-      !!paymentData?.razorpayPaymentId ||
-      (!!paymentData?.cardLast4 && paymentData?.skipPayment !== true);
+      !!paymentData?.razorpayPaymentId &&
+      !!paymentData?.razorpayOrderId &&
+      !!paymentData?.razorpaySignature;
 
     const subscription = await this.repository.createSubscription(tx, {
       clinicId,
@@ -271,6 +284,7 @@ export class OnboardingWorkflowService {
       planData.tier,
       hasPayment ? SubscriptionStatus.ACTIVE : SubscriptionStatus.TRIALING,
       hasPayment ? null : periodEnd,
+      planData.planMode,
     );
 
     this.logger.log(
@@ -285,6 +299,7 @@ export class OnboardingWorkflowService {
     staffData: StaffSetupDto,
     ipAddress?: string,
     planTier?: ClinicTier,
+    planMode?: PlanMode,
   ): Promise<number> {
     return createStaffMembersInTx(
       tx,
@@ -293,6 +308,7 @@ export class OnboardingWorkflowService {
       this.validation,
       ipAddress,
       planTier,
+      planMode,
     );
   }
 

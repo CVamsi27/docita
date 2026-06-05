@@ -16,7 +16,10 @@ import {
 } from "@workspace/ui/components/form/select";
 import { Textarea } from "@workspace/ui/components/form/textarea";
 import type { AppointmentRequestResponse } from "@workspace/types";
-import { REJECT_REASON_CUSTOM, REJECT_REASON_OPTIONS } from "./request-row-helpers";
+import {
+  REJECT_REASON_CUSTOM,
+  REJECT_REASON_OPTIONS,
+} from "./request-row-helpers";
 
 export interface RequestRejectPopoverProps {
   request: AppointmentRequestResponse;

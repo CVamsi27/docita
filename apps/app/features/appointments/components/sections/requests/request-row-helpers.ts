@@ -4,6 +4,7 @@ import {
   formatClinicPickerDayIsoFromSelection,
   formatScheduleTime,
   utcInstantToClinicWallDatetimeLocal,
+  getPatientFullName,
 } from "@workspace/utils";
 import {
   formatClockTime,
@@ -30,7 +31,11 @@ export const REJECT_REASON_OPTIONS: { value: string; label: string }[] = [
   { value: REJECT_REASON_CUSTOM, label: "Custom message…" },
 ];
 
-export type SchedulableDoctor = { id: string; name: string | null; role: string };
+export type SchedulableDoctor = {
+  id: string;
+  name: string | null;
+  role: string;
+};
 
 export function utcRequestedSlotToWallLocal(
   requestedSlotStart: string | Date | null | undefined,
@@ -55,7 +60,10 @@ export function preferredDateTimeWallLocal(
     typeof preferredDate === "string" &&
     /^\d{4}-\d{2}-\d{2}$/.test(preferredDate.trim())
       ? preferredDate.trim()
-      : formatClinicPickerDayIsoFromSelection(new Date(preferredDate), timezone);
+      : formatClinicPickerDayIsoFromSelection(
+          new Date(preferredDate),
+          timezone,
+        );
   const hhmm =
     preferredTime && /^\d{2}:\d{2}$/.test(preferredTime.trim())
       ? preferredTime.trim()
@@ -66,7 +74,7 @@ export function preferredDateTimeWallLocal(
 export function patientName(request: AppointmentRequestResponse): string {
   const firstName = request.patient?.firstName ?? "";
   const lastName = request.patient?.lastName ?? "";
-  return `${firstName} ${lastName}`.trim() || "Patient";
+  return getPatientFullName({ firstName, lastName }, "Patient");
 }
 
 export function patientPhone(
@@ -100,9 +108,9 @@ export function parsePickerIsoToLocalDate(pickerIso: string): Date | null {
   return new Date(y, mo - 1, d, 0, 0, 0, 0);
 }
 
-export function schedulingSummaryLines(
-  request: AppointmentRequestResponse,
-): { primary: string } {
+export function schedulingSummaryLines(request: AppointmentRequestResponse): {
+  primary: string;
+} {
   const slotStart = request.requestedSlotStart
     ? new Date(request.requestedSlotStart)
     : null;

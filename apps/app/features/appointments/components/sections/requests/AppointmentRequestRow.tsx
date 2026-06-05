@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { AlertCircle, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import type { AppointmentRequestResponse } from "@workspace/types";
 import {
@@ -27,6 +27,7 @@ import {
 } from "./request-row-helpers";
 import { RequestAdjustPopover } from "./RequestAdjustPopover";
 import { RequestRejectPopover } from "./RequestRejectPopover";
+import { AppointmentRequestRowInfo } from "./AppointmentRequestRowSections";
 
 export type { SchedulableDoctor };
 
@@ -85,9 +86,9 @@ export function AppointmentRequestRow({
 
   const hasStructuredSlot = Boolean(
     request.requestedSlotStart &&
-      request.requestedSlotEnd &&
-      utcRequestedSlotToWallLocal(request.requestedSlotStart, clinicTimezone) &&
-      utcRequestedSlotToWallLocal(request.requestedSlotEnd, clinicTimezone),
+    request.requestedSlotEnd &&
+    utcRequestedSlotToWallLocal(request.requestedSlotStart, clinicTimezone) &&
+    utcRequestedSlotToWallLocal(request.requestedSlotEnd, clinicTimezone),
   );
 
   useEffect(() => {
@@ -103,7 +104,9 @@ export function AppointmentRequestRow({
       if (cancelled || !win) return;
       setStartByRequest((prev) => ({ ...prev, [request.id]: win.startLocal }));
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [
     request.id,
     request.preferredDate,
@@ -116,16 +119,27 @@ export function AppointmentRequestRow({
     slotSuggestionGeneration,
   ]);
 
-  const structuredStart = utcRequestedSlotToWallLocal(request.requestedSlotStart, clinicTimezone);
-  const structuredEnd = utcRequestedSlotToWallLocal(request.requestedSlotEnd, clinicTimezone);
+  const structuredStart = utcRequestedSlotToWallLocal(
+    request.requestedSlotStart,
+    clinicTimezone,
+  );
+  const structuredEnd = utcRequestedSlotToWallLocal(
+    request.requestedSlotEnd,
+    clinicTimezone,
+  );
   const fallbackStart = preferredDateTimeWallLocal(
     request.preferredDate,
     request.preferredTime,
     clinicTimezone,
   );
 
-  const startValue = startByRequest[request.id] ?? structuredStart ?? fallbackStart;
-  const endValue = addMinutesToClinicWallDatetimeLocal(startValue, 30, clinicTimezone);
+  const startValue =
+    startByRequest[request.id] ?? structuredStart ?? fallbackStart;
+  const endValue = addMinutesToClinicWallDatetimeLocal(
+    startValue,
+    30,
+    clinicTimezone,
+  );
   const endDisplay = endValue ?? structuredEnd ?? startValue;
 
   const startDayIso = startValue.slice(0, 10);
@@ -148,7 +162,10 @@ export function AppointmentRequestRow({
       .map((s) => ({ time: s.time, endTime: s.endTime }));
   }, [availabilitySlots, effectiveDoctorId]);
 
-  const nowWallLocal = utcInstantToClinicWallDatetimeLocal(new Date(), clinicTimezone);
+  const nowWallLocal = utcInstantToClinicWallDatetimeLocal(
+    new Date(),
+    clinicTimezone,
+  );
   const isPast = Boolean(nowWallLocal && startValue < nowWallLocal);
   const endHHmm = endDisplay.slice(11, 16);
   const matchesAvailableSlot = availableStartTimes.some(
@@ -164,9 +181,9 @@ export function AppointmentRequestRow({
 
   const hasApproveFieldErrors = Boolean(
     approveFieldErrors &&
-      (approveFieldErrors.doctorId ||
-        approveFieldErrors.startTime ||
-        approveFieldErrors.endTime),
+    (approveFieldErrors.doctorId ||
+      approveFieldErrors.startTime ||
+      approveFieldErrors.endTime),
   );
   const approveBlocked = isMutating || !isStartAllowed || hasApproveFieldErrors;
 
@@ -196,52 +213,16 @@ export function AppointmentRequestRow({
   return (
     <div className="group/req rounded-md border border-border/60 bg-card transition-colors hover:bg-muted/20">
       <div className="flex items-center gap-3 px-3 py-2">
-        {/* Patient + context */}
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0">
-            <span className="truncate text-[length:var(--fs-sm)] font-semibold leading-tight text-foreground">
-              {patientName(request)}
-            </span>
-            {phone ? (
-              <span className="text-[length:var(--fs-xs)] tabular-nums text-muted-foreground">
-                {phone}
-              </span>
-            ) : null}
-            {arrivalRelative ? (
-              <span className="text-[length:var(--fs-2xs)] text-muted-foreground/70">
-                {arrivalRelative}
-              </span>
-            ) : null}
-          </div>
-          <p className="line-clamp-1 text-[length:var(--fs-xs)] text-muted-foreground">
-            <span className="text-foreground/80">
-              {request.reason?.trim() ? request.reason : "No reason"}
-            </span>
-            <span className="mx-1.5 text-muted-foreground/40">·</span>
-            {summary.primary}
-            {preferredDoctorLabel ? (
-              <>
-                <span className="mx-1.5 text-muted-foreground/40">·</span>
-                {`Dr. ${preferredDoctorLabel}`}
-              </>
-            ) : null}
-            {request.notes ? (
-              <>
-                <span className="mx-1.5 text-muted-foreground/40">·</span>
-                {request.notes}
-              </>
-            ) : null}
-          </p>
-          {approveError ? (
-            <p
-              role="alert"
-              className="mt-0.5 flex items-center gap-1 text-[length:var(--fs-2xs)] text-destructive"
-            >
-              <AlertCircle className="h-3 w-3 shrink-0" aria-hidden />
-              <span className="truncate">{approveError}</span>
-            </p>
-          ) : null}
-        </div>
+        <AppointmentRequestRowInfo
+          patientNameText={patientName(request)}
+          phone={phone}
+          arrivalRelative={arrivalRelative}
+          reason={request.reason}
+          summaryPrimary={summary.primary}
+          preferredDoctorLabel={preferredDoctorLabel}
+          notes={request.notes}
+          approveError={approveError}
+        />
 
         {/* Actions */}
         <div className="flex shrink-0 items-center gap-1">
