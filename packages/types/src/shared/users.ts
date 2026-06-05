@@ -8,6 +8,7 @@ export const userRoleSchema = z.enum([
   "INTERNAL",
   "ADMIN_DOCTOR",
   "PATIENT",
+  "LAB",
 ]);
 export type UserRole = z.infer<typeof userRoleSchema>;
 
@@ -713,6 +714,7 @@ export const userSchema = z.object({
   name: z.string(),
   role: userRoleSchema,
   clinicId: z.string().optional(),
+  labId: z.string().nullable().optional(),
 
   specialization: specializationSchema.optional(),
   hospitalRole: hospitalRoleSchema.optional(),

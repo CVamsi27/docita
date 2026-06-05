@@ -25,6 +25,9 @@ export const APP_PERMISSIONS = [
   "viewPlatformAnalytics",
   "viewSystemLogs",
   "manageTenants",
+  "viewLabOrders",
+  "recordSampleCollection",
+  "uploadLabResult",
 ] as const;
 
 export type AppPermission = (typeof APP_PERMISSIONS)[number];
@@ -48,6 +51,9 @@ export const APP_PERMISSIONS_BY_ROLE: Record<UserRole, AppPermission[]> = {
     "manageInventory",
     "manageTemplates",
     "exportData",
+    "viewLabOrders",
+    "recordSampleCollection",
+    "uploadLabResult",
   ],
   ADMIN_DOCTOR: [
     "manageStaff",
@@ -68,6 +74,9 @@ export const APP_PERMISSIONS_BY_ROLE: Record<UserRole, AppPermission[]> = {
     "startConsultation",
     "viewPrescriptions",
     "createPrescription",
+    "viewLabOrders",
+    "recordSampleCollection",
+    "uploadLabResult",
   ],
   DOCTOR: [
     "startConsultation",
@@ -97,6 +106,9 @@ export const APP_PERMISSIONS_BY_ROLE: Record<UserRole, AppPermission[]> = {
     "viewPrescriptions",
   ],
   PATIENT: ["viewAppointments"],
+  // Lab technicians operate only the lab workspace: see assigned orders,
+  // record sample receipt, and upload results. No patient/billing management.
+  LAB: ["viewLabOrders", "recordSampleCollection", "uploadLabResult"],
 };
 
 export function hasAppPermission(
@@ -152,6 +164,8 @@ export const APP_ACCESS_TARGETS = {
   PAGE_CONSULTATION: "page.consultation",
   PAGE_PRESCRIPTIONS: "page.prescriptions",
   PAGE_LAB_TESTS: "page.lab-tests",
+  /** Lab technician workspace: queue of assigned orders, sample receipt, result upload. */
+  PAGE_LAB_WORKSPACE: "page.lab-workspace",
   PAGE_VACCINES: "page.vaccines",
   PAGE_INVOICES: "page.invoices",
   PAGE_INSURANCE_CLAIMS: "page.insurance-claims",
@@ -187,6 +201,12 @@ export const APP_ACCESS_TARGETS = {
   API_WHATSAPP: "api.whatsapp",
   API_WHATSAPP_SENDER: "api.whatsapp.sender",
   API_LAB_TESTS: "api.lab-tests",
+  /** Lab-side fulfilment: queue read, sample receipt, result upload (LAB role + clinical staff). */
+  API_LAB_WORKSPACE: "api.lab-workspace",
+  /** Lab directory CRUD (internal/external labs). */
+  API_LABS: "api.labs",
+  /** Payment verification on a lab order — recorded at the hospital front desk. */
+  API_LAB_PAYMENT_VERIFICATION: "api.lab.payment-verification",
   API_PATIENTS: "api.patients",
   API_PATIENTS_READ: "api.patients.read",
   API_PATIENTS_WRITE: "api.patients.write",
@@ -236,6 +256,19 @@ const PRESCRIPTION_ROLES: UserRole[] = ["ADMIN_DOCTOR", "DOCTOR"];
 const CLINICAL_CODING_ROLES: UserRole[] = ["ADMIN_DOCTOR", "DOCTOR"];
 const ANALYTICS_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "DOCTOR"];
 const IMPORT_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "INTERNAL"];
+// Lab fulfilment workspace: the LAB role operates it; clinical/front-desk
+// staff can view and assist with sample receipt for the orders they raise.
+const LAB_WORKSPACE_ROLES: UserRole[] = [
+  "ADMIN",
+  "ADMIN_DOCTOR",
+  "DOCTOR",
+  "NURSE",
+  "RECEPTIONIST",
+  "LAB",
+];
+// Payment on a lab order is verified at the hospital front desk, never by the
+// lab. Mirrors desk invoice-settlement write roles.
+const LAB_PAYMENT_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "RECEPTIONIST"];
 
 export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
   [APP_ACCESS_TARGETS.PAGE_DASHBOARD]: {
@@ -269,6 +302,10 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     read: {
       roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE", "RECEPTIONIST"],
     },
+    feature: Feature.LAB_TESTS,
+  },
+  [APP_ACCESS_TARGETS.PAGE_LAB_WORKSPACE]: {
+    read: { roles: LAB_WORKSPACE_ROLES },
     feature: Feature.LAB_TESTS,
   },
   [APP_ACCESS_TARGETS.PAGE_VACCINES]: {
@@ -403,6 +440,21 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     write: {
       roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE", "RECEPTIONIST"],
     },
+    feature: Feature.LAB_TESTS,
+  },
+  [APP_ACCESS_TARGETS.API_LAB_WORKSPACE]: {
+    read: { roles: LAB_WORKSPACE_ROLES },
+    write: { roles: LAB_WORKSPACE_ROLES },
+    feature: Feature.LAB_TESTS,
+  },
+  [APP_ACCESS_TARGETS.API_LABS]: {
+    read: { roles: LAB_WORKSPACE_ROLES },
+    write: { roles: ["ADMIN", "ADMIN_DOCTOR"] },
+    feature: Feature.LAB_TESTS,
+  },
+  [APP_ACCESS_TARGETS.API_LAB_PAYMENT_VERIFICATION]: {
+    read: { roles: LAB_PAYMENT_ROLES },
+    write: { roles: LAB_PAYMENT_ROLES },
     feature: Feature.LAB_TESTS,
   },
   [APP_ACCESS_TARGETS.API_PATIENTS]: {

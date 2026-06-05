@@ -158,6 +158,7 @@ const clinicMemberInviteRoleSchema = z.enum([
   "RECEPTIONIST",
   "ADMIN",
   "ADMIN_DOCTOR",
+  "LAB",
 ]);
 
 export const createClinicMemberRequestSchema = z
@@ -170,6 +171,7 @@ export const createClinicMemberRequestSchema = z
     specialization: z.string().optional(),
     qualification: z.string().optional(),
     registrationNumber: z.string().optional(),
+    labId: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (
@@ -189,11 +191,12 @@ export const updateClinicMemberRequestSchema = z.object({
   email: z.string().email().optional(),
   phoneNumber: z.string().optional(),
   role: z
-    .enum(["DOCTOR", "NURSE", "RECEPTIONIST", "ADMIN", "ADMIN_DOCTOR"])
+    .enum(["DOCTOR", "NURSE", "RECEPTIONIST", "ADMIN", "ADMIN_DOCTOR", "LAB"])
     .optional(),
   specialization: z.string().optional(),
   qualification: z.string().optional(),
   registrationNumber: z.string().optional(),
+  labId: z.string().optional(),
 });
 
 export const clinicResponseSchema = createClinicRequestSchema.extend({
