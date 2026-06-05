@@ -29,7 +29,8 @@
     "@nestjs/schematics",
     "@workspace/db",
     "supertest",
-    "tsconfig-paths"
+    "tsconfig-paths",
+    "axe-playwright"
   ],
   "ignorePatterns": [
     "**/*.spec.ts",

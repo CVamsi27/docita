@@ -158,7 +158,7 @@
     "check:sentry-scrubber-parity": "node scripts/checks/check-sentry-scrubber-parity.mjs",
     "check:browser-telemetry-same-origin": "node scripts/checks/check-browser-telemetry-same-origin.mjs",
     "check:route-meta-coverage": "node scripts/checks/check-route-meta-coverage.mjs",
-    "check:fallow": "npx fallow --only dead-code,dupes",
+    "check:fallow": "npx fallow",
     "check:tools-route-gate": "node scripts/checks/check-tools-route-gate.mjs",
     "check:env-vs-globalenv": "node scripts/checks/check-env-vs-globalenv.mjs",
     "check:globals-css-imports": "node scripts/checks/check-globals-css-imports.mjs",

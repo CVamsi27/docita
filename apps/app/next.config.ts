@@ -23,14 +23,19 @@ const DEFAULT_PUBLIC_SOCKET_URL = isCloudflareBuild
   ? "https://api.docita.work"
   : "http://localhost:3001";
 
+function parseUrlOrigin(value: string): string | null {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
+
 function resolveApiProxyTarget(): string {
   if (process.env.API_PROXY_TARGET) return process.env.API_PROXY_TARGET;
   if (process.env.NEXT_PUBLIC_API_URL) {
-    try {
-      return new URL(process.env.NEXT_PUBLIC_API_URL).origin;
-    } catch {
-      // fall through
-    }
+    const origin = parseUrlOrigin(process.env.NEXT_PUBLIC_API_URL);
+    if (origin) return origin;
   }
   if (process.env.DOCITA_CLOUDFLARE === "1") {
     return "https://api.docita.work";
@@ -64,7 +69,7 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60 * 60 * 24 * 365, 
+    minimumCacheTTL: 60 * 60 * 24 * 365,
   },
 
   experimental: {
@@ -74,7 +79,7 @@ const nextConfig: NextConfig = {
       "@tanstack/react-query",
       "@workspace/ui",
       "@workspace/hooks",
-      "@workspace/utils"
+      "@workspace/utils",
     ],
   },
 
@@ -116,14 +121,8 @@ const nextConfig: NextConfig = {
           /^react-leaflet$/,
           /^@react-google-maps\/api$/,
           /^canvas-confetti$/,
-          // The realtime socket only connects in the browser (SocketProvider
-          // loads it inside an effect). Stubbing socket.io-client keeps it and
-          // its Node `ws` transitive dependency out of the Worker server bundle.
+          /^cmdk$/,
           /^socket\.io-client(\/|$)/,
-          // Sentry is fully no-op on Cloudflare (instrumentation.register()
-          // early-returns and @sentry/nextjs is aliased to a stub), but the
-          // heavy @sentry/node server SDK (~2.6 MB) can still leak into the
-          // server output and blow the Worker size limit. Stub it outright.
           /^@sentry\/node(\/|$)/,
           /^@sentry\/profiling-node(\/|$)/,
           /^@sentry-internal\//,

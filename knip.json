@@ -89,7 +89,7 @@
         "src/shared/modules/rls/active-tx.storage.ts",
         "src/domains/appointments/application/types/appointment-access-context.ts"
       ],
-      "ignoreDependencies": []
+      "ignoreDependencies": ["pino-pretty"]
     },
     "packages/types": {
       "ignore": ["src/auth/mfa.ts"]
