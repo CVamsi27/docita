@@ -1,4 +1,8 @@
-import { decode } from "he";
+import he from "he";
+
+// `he` is CommonJS; importing the named `decode` export breaks ESM/SSR interop
+// (e.g. Astro + Vite dev). Pull it off the default export instead.
+const { decode } = he;
 
 /**
  * Strips all HTML tags from a string using DOM-based entity decoding
