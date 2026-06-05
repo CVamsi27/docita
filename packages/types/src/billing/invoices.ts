@@ -166,7 +166,7 @@ function normalizeInvoiceListPatient(
 
 function normalizeInvoiceListItems(items: unknown): unknown {
   if (!Array.isArray(items)) {
-    return items;
+    return [];
   }
   return items.map((entry) => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
@@ -233,9 +233,23 @@ export function normalizeInvoiceListRowInput(input: unknown): unknown {
   };
 }
 
+const listMoney = z.number().finite().nonnegative();
+
 const invoiceListRowBaseSchema = invoiceSchema.omit({ patient: true }).extend({
   patient: invoiceListPatientSchema.nullish().optional(),
-  items: z.array(invoiceItemSchema).optional().default([]),
+  // Coerce null/non-array items to [] and tolerate items that fail schema (not displayed on list)
+  items: z.preprocess(
+    (v) => (Array.isArray(v) ? v : []),
+    z.array(invoiceItemSchema).catch([]),
+  ),
+  // Relax money-amount refinements — IEEE 754 floats like 10.1 fail the
+  // exact-equality check (10.1 * 100 = 1009.999…); server already validated on write.
+  total: listMoney,
+  totalAmount: listMoney.optional(),
+  subtotal: listMoney.optional(),
+  discountTotal: listMoney.optional(),
+  taxTotal: listMoney.optional(),
+  grandTotal: listMoney.optional(),
 });
 
 /** Parsed invoice row for clinic-wide and patient-scoped list endpoints. */
