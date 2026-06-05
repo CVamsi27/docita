@@ -135,4 +135,74 @@ test.describe("Lab Tests", () => {
     const order = await orderRes.json();
     expect(order.id).toBeDefined();
   });
+
+  // Full lab workflow: order → sample → result upload → payment-gated release.
+  test("should gate release on payment then complete the order", async ({
+    request,
+  }) => {
+    const auth = { Authorization: `Bearer ${authToken}` };
+
+    const testRes = await request.post(`${API_URL}/clinical/lab-tests`, {
+      headers: auth,
+      data: { name: "CBC", category: "hematology", clinicId },
+    });
+    expect(testRes.ok(), `create test failed: ${testRes.status()}`).toBeTruthy();
+    const labTest = await testRes.json();
+
+    const orderRes = await request.post(
+      `${API_URL}/clinical/lab-tests/orders`,
+      { headers: auth, data: { patientId, labTestId: labTest.id, clinicId } },
+    );
+    expect(
+      orderRes.ok(),
+      `create order failed: ${orderRes.status()}`,
+    ).toBeTruthy();
+    const order = await orderRes.json();
+
+    const sampleRes = await request.put(
+      `${API_URL}/clinical/lab-tests/orders/${order.id}/sample`,
+      { headers: auth, data: { notes: "Received at lab" } },
+    );
+    expect(sampleRes.ok(), `sample failed: ${sampleRes.status()}`).toBeTruthy();
+
+    const uploadRes = await request.post(
+      `${API_URL}/clinical/lab-tests/orders/${order.id}/result`,
+      {
+        headers: auth,
+        multipart: {
+          file: {
+            name: "report.pdf",
+            mimeType: "application/pdf",
+            buffer: Buffer.from("%PDF-1.4 test report"),
+          },
+        },
+      },
+    );
+    expect(uploadRes.ok(), `upload failed: ${uploadRes.status()}`).toBeTruthy();
+
+    // Release must be blocked until payment is verified.
+    const earlyRelease = await request.post(
+      `${API_URL}/clinical/lab-tests/orders/${order.id}/release`,
+      { headers: auth },
+    );
+    expect(
+      earlyRelease.ok(),
+      "release should be blocked before payment",
+    ).toBeFalsy();
+
+    const payRes = await request.post(
+      `${API_URL}/clinical/lab-tests/orders/${order.id}/payment`,
+      { headers: auth, data: { paymentMethod: "CASH" } },
+    );
+    expect(payRes.ok(), `payment failed: ${payRes.status()}`).toBeTruthy();
+
+    // Verifying payment auto-releases when a result is already uploaded.
+    const queueRes = await request.get(`${API_URL}/clinical/lab-tests/queue`, {
+      headers: auth,
+    });
+    expect(queueRes.ok(), `queue failed: ${queueRes.status()}`).toBeTruthy();
+    const queue: Array<{ id: string; status: string }> = await queueRes.json();
+    const released = queue.find((item) => item.id === order.id);
+    expect(released?.status).toBe("COMPLETED");
+  });
 });

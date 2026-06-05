@@ -12,6 +12,7 @@ import {
   SecuritySettings,
 } from "@/features/settings/components";
 import { HelpSupportSettingsPanel } from "./help-support/HelpSupportSettingsPanel";
+import { LabDirectorySettings } from "@/features/lab-tests";
 import {
   DangerZoneSettingsLazy,
   DoctorAvailabilitySettingsLazy,
@@ -86,6 +87,14 @@ export function SettingsPageTabPanels({
         <TabsContent value="opd-slip" className="mt-0 space-y-6">
           <RoleGuard requiredPermission="manageClinic">
             <OpdSlipSettingsContainer />
+          </RoleGuard>
+        </TabsContent>
+      )}
+
+      {visibleTabValues.has("labs") && (
+        <TabsContent value="labs" className="mt-0 space-y-6">
+          <RoleGuard requiredPermission="manageClinic">
+            <LabDirectorySettings />
           </RoleGuard>
         </TabsContent>
       )}

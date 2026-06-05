@@ -21,6 +21,7 @@ import {
   DialogFooter,
 } from "@workspace/ui/components/overlay/dialog";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { useLabs } from "@workspace/data-access";
 import type { InviteFormValues } from "@/features/settings/components/management/member-management-schemas";
 
 interface InviteNameRoleFieldsProps {
@@ -66,6 +67,7 @@ export function InviteNameRoleFields({
                 <SelectItem value="NURSE">Nurse</SelectItem>
                 <SelectItem value="RECEPTIONIST">Receptionist</SelectItem>
                 <SelectItem value="DOCTOR">Doctor</SelectItem>
+                <SelectItem value="LAB">Lab Technician</SelectItem>
                 {userCanChangeRoles && (
                   <>
                     <SelectItem value="ADMIN">Admin</SelectItem>
@@ -192,6 +194,53 @@ export function InviteDoctorFields({ form }: InviteDoctorFieldsProps) {
         )}
       />
     </div>
+  );
+}
+
+interface InviteLabFieldProps {
+  form: UseFormReturn<InviteFormValues>;
+}
+
+const LAB_UNASSIGNED_VALUE = "__unassigned__";
+
+export function InviteLabField({ form }: InviteLabFieldProps) {
+  const { data: labs = [] } = useLabs();
+  const activeLabs = labs.filter((lab) => lab.active);
+
+  return (
+    <FormField
+      control={form.control}
+      name="labId"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Lab</FormLabel>
+          <Select
+            value={field.value ?? LAB_UNASSIGNED_VALUE}
+            onValueChange={(value) =>
+              field.onChange(value === LAB_UNASSIGNED_VALUE ? undefined : value)
+            }
+          >
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder="Assign to a lab" />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              <SelectItem value={LAB_UNASSIGNED_VALUE}>
+                Unassigned (all clinic orders)
+              </SelectItem>
+              {activeLabs.map((lab) => (
+                <SelectItem key={lab.id} value={lab.id}>
+                  {lab.name}
+                  {lab.type === "EXTERNAL" ? " (External)" : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   );
 }
 

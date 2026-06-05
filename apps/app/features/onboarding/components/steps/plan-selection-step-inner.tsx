@@ -60,9 +60,12 @@ export function PlanSelectionStepInner({
     }
     return defaultTier;
   });
-  const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "YEARLY">(
-    defaultBillingCycle,
-  );
+  const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "YEARLY">(() => {
+    const billingParam = searchParams.get("billing")?.toUpperCase();
+    return billingParam === "YEARLY" || billingParam === "MONTHLY"
+      ? billingParam
+      : defaultBillingCycle;
+  });
   const [selectedMode, setSelectedMode] = useState<PlanMode>(() => {
     const parsed = planModeSchema.safeParse(
       searchParams.get("mode")?.toUpperCase(),

@@ -1,6 +1,6 @@
 "use client";
 
-import type { Invoice } from "@workspace/types";
+import type { InvoiceListRow } from "@workspace/types";
 import { Button } from "@workspace/ui/components/form/button";
 import { Label } from "@workspace/ui/components/form/label";
 import { Textarea } from "@workspace/ui/components/form/textarea";
@@ -28,7 +28,7 @@ import {
 } from "./desk-collect-payment-helpers";
 
 export interface RecordPaymentDialogProps {
-  dialogInvoice: Invoice | null;
+  dialogInvoice: InvoiceListRow | null;
   paymentMethod: DeskPaymentMethod;
   reference: string;
   notes: string;

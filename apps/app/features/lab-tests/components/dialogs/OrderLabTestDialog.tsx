@@ -22,6 +22,7 @@ import { LabTest, Patient } from "@workspace/types";
 import { CreateLabTestOrderInput } from "@/features/lab-tests/hooks/use-lab-tests-logic";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import { OrderLabTestComboboxFields } from "./order-lab-test-combobox-fields";
+import { OrderLabSelectField } from "./order-lab-select-field";
 
 interface OrderLabTestDialogProps {
   open: boolean;
@@ -101,6 +102,8 @@ export function OrderLabTestDialog({
               selectedTest={selectedTest}
               formatCurrency={formatCurrency}
             />
+
+            <OrderLabSelectField form={form} />
 
             <FormField
               control={form.control}

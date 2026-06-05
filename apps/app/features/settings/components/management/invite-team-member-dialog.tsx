@@ -17,6 +17,7 @@ import {
   InviteContactFields,
   InvitePasswordField,
   InviteDoctorFields,
+  InviteLabField,
   InviteDialogFooter,
 } from "./invite-team-member-dialog-sections";
 
@@ -70,6 +71,7 @@ export function InviteTeamMemberDialog({
             {(selectedRole === "DOCTOR" || selectedRole === "ADMIN_DOCTOR") && (
               <InviteDoctorFields form={form} />
             )}
+            {selectedRole === "LAB" && <InviteLabField form={form} />}
             <InviteDialogFooter
               onOpenChange={onOpenChange}
               canInvite={canInvite}

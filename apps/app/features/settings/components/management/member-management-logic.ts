@@ -59,6 +59,7 @@ export function getInviteFormDefaultValues(): InviteFormValues {
     specialization: "",
     qualification: "",
     registrationNumber: "",
+    labId: undefined,
   };
 }
 
@@ -71,6 +72,7 @@ export function getEmptyMemberFormDefaultValues(): MemberFormValues {
     specialization: "",
     qualification: "",
     registrationNumber: "",
+    labId: undefined,
   };
 }
 
@@ -83,6 +85,7 @@ export function getMemberFormDefaultValues(member: User): MemberFormValues {
     specialization: member.specialization ?? "",
     qualification: member.qualification ?? "",
     registrationNumber: member.registrationNumber ?? "",
+    labId: member.labId ?? undefined,
   };
 }
 
@@ -98,6 +101,7 @@ export function buildUpdateMemberPayload(
     email: data.email,
     phoneNumber: data.phoneNumber || undefined,
     ...(canChangeRole ? { role: data.role } : {}),
+    ...(data.role === "LAB" ? { labId: data.labId || undefined } : {}),
     ...(isDoctor
       ? {
           specialization: data.specialization || undefined,
@@ -118,6 +122,7 @@ export function buildCreateMemberPayload(data: InviteFormValues) {
     specialization: data.specialization || undefined,
     qualification: data.qualification || undefined,
     registrationNumber: data.registrationNumber || undefined,
+    ...(data.role === "LAB" ? { labId: data.labId || undefined } : {}),
   };
 }
 

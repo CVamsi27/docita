@@ -1,7 +1,7 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import type { Invoice } from "@workspace/types";
+import type { InvoiceListRow } from "@workspace/types";
 import Link from "next/link";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
@@ -13,7 +13,7 @@ import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffo
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { Button } from "@workspace/ui/components/form/button";
 import { usePatients } from "@workspace/data-access";
-import { useInvoices } from "@/features/invoices";
+import { useDeskOpenInvoices } from "@/features/desk/hooks/use-desk-open-invoices";
 import { useDeskRecordInvoiceSettlement } from "@/features/desk/hooks/use-desk-record-invoice-settlement";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -32,7 +32,9 @@ export function DeskCollectPaymentPageUI() {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null,
   );
-  const [dialogInvoice, setDialogInvoice] = useState<Invoice | null>(null);
+  const [dialogInvoice, setDialogInvoice] = useState<InvoiceListRow | null>(
+    null,
+  );
   const [paymentMethod, setPaymentMethod] = useState<DeskPaymentMethod>("CASH");
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
@@ -52,14 +54,13 @@ export function DeskCollectPaymentPageUI() {
   });
 
   const {
-    data: invoicesRaw,
+    data: openInvoicesResponse,
     isLoading: invoicesLoading,
     isError: invoicesError,
     refetch: refetchInvoices,
-  } = useInvoices(
-    selectedPatientId ? { patientId: selectedPatientId, limit: 50 } : undefined,
-    { enabled: Boolean(selectedPatientId) },
-  );
+  } = useDeskOpenInvoices(selectedPatientId, {
+    enabled: Boolean(selectedPatientId),
+  });
 
   const recordSettlement = useDeskRecordInvoiceSettlement();
 
@@ -69,9 +70,9 @@ export function DeskCollectPaymentPageUI() {
   );
 
   const openInvoices = useMemo(() => {
-    if (!invoicesRaw?.length) return [];
-    return invoicesRaw.filter(isOpenDeskInvoice);
-  }, [invoicesRaw]);
+    if (!openInvoicesResponse?.items.length) return [];
+    return openInvoicesResponse.items.filter(isOpenDeskInvoice);
+  }, [openInvoicesResponse]);
 
   const selectedPatient = useMemo(
     () => patients.find((p) => p.id === selectedPatientId) ?? null,

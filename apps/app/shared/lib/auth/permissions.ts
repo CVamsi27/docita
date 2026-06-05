@@ -116,6 +116,7 @@ export const ROLE_HIERARCHY: Record<UserRole, number> = {
   DOCTOR: 2,
   NURSE: 1.5,
   RECEPTIONIST: 1,
+  LAB: 1,
   PATIENT: 0,
 };
 

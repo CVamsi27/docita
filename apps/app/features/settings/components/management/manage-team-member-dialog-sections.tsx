@@ -19,11 +19,61 @@ import {
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { useLabs } from "@workspace/data-access";
 import { User } from "@workspace/types";
 import {
   type MemberFormValues,
   type MemberRole,
 } from "@/features/settings/components/management/member-management-schemas";
+
+const MANAGE_LAB_UNASSIGNED_VALUE = "__unassigned__";
+
+export function ManageMemberLabField({
+  memberForm,
+}: {
+  memberForm: UseFormReturn<MemberFormValues>;
+}) {
+  const { data: labs = [] } = useLabs();
+  const activeLabs = labs.filter((lab) => lab.active);
+
+  return (
+    <FormField
+      control={memberForm.control}
+      name="labId"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Lab</FormLabel>
+          <Select
+            value={field.value ?? MANAGE_LAB_UNASSIGNED_VALUE}
+            onValueChange={(value) =>
+              field.onChange(
+                value === MANAGE_LAB_UNASSIGNED_VALUE ? undefined : value,
+              )
+            }
+          >
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder="Assign to a lab" />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              <SelectItem value={MANAGE_LAB_UNASSIGNED_VALUE}>
+                Unassigned (all clinic orders)
+              </SelectItem>
+              {activeLabs.map((lab) => (
+                <SelectItem key={lab.id} value={lab.id}>
+                  {lab.name}
+                  {lab.type === "EXTERNAL" ? " (External)" : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
 
 export interface ManageMemberInfoCardProps {
   member: User;

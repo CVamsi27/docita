@@ -24,6 +24,7 @@ import {
   ManageMemberInfoCard,
   ManageMemberNameRoleFields,
   ManageMemberContactFields,
+  ManageMemberLabField,
   ManageMemberCreatedDate,
   ManageMemberFooter,
 } from "./manage-team-member-dialog-sections";
@@ -104,6 +105,10 @@ export function ManageTeamMemberDialog({
               </div>
 
               <ManageMemberContactFields memberForm={memberForm} />
+
+              {selectedMemberRole === "LAB" ? (
+                <ManageMemberLabField memberForm={memberForm} />
+              ) : null}
 
               {isSelectedMemberDoctor ? (
                 <ManageTeamMemberDoctorPanel

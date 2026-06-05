@@ -2,7 +2,7 @@
 
 import { getPatientFullName } from "@workspace/utils";
 
-import type { Invoice } from "@workspace/types";
+import type { InvoiceListRow } from "@workspace/types";
 import Link from "next/link";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { Section } from "@workspace/ui/components/layout/section";
@@ -21,13 +21,13 @@ interface DeskPatientListItem {
 export interface OpenInvoicesSectionProps {
   selectedPatientId: string | null;
   selectedPatient: DeskPatientListItem | null;
-  openInvoices: Invoice[];
+  openInvoices: InvoiceListRow[];
   invoicesState: "loading" | "error" | "empty" | "success";
   canRecordPayment: boolean;
   isRecordingPayment: boolean;
   formatMoney: (amount: number | undefined) => string;
   onRetry: () => void;
-  onRecordPayment: (invoice: Invoice) => void;
+  onRecordPayment: (invoice: InvoiceListRow) => void;
 }
 
 export function OpenInvoicesSection({
