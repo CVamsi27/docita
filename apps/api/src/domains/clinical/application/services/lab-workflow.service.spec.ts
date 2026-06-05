@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { LabWorkflowService } from './lab-workflow.service';
+import { LabWorkflowCommandService } from './lab-workflow-command.service';
 import type { ILabRepository } from '@/domains/clinical/core/repositories/clinical.repository.interface';
 import type { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import type { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
@@ -52,7 +52,7 @@ function makeService(overrides?: {
 
   const clock = { now: () => NOW };
 
-  const service = new LabWorkflowService(
+  const service = new LabWorkflowCommandService(
     labRepository,
     storageProvider,
     sendMessage,
@@ -63,7 +63,7 @@ function makeService(overrides?: {
   return { service, execute, markReleased, emit, generateSignedUrl };
 }
 
-describe('LabWorkflowService.releaseResult', () => {
+describe('LabWorkflowCommandService.releaseResult', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('sends the lab_result_ready template with a signed link, then marks released', async () => {

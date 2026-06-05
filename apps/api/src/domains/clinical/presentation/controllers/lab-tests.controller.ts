@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Post,
@@ -12,10 +13,18 @@ import {
   UploadedFile,
   Delete as _Delete,
   NotFoundException,
+  UnsupportedMediaTypeException,
 } from '@nestjs/common';
+import { basename } from 'path';
 import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  LAB_RESULT_ALLOWED_MIMES,
+  LAB_RESULT_MAX_FILE_SIZE,
+} from '@/domains/clinical/core/constants/upload.constants';
+import { assertAllowedFileSignature } from '@/shared/common/utils/upload.utils';
 import { ClinicalService } from '@/domains/clinical/application/services/clinical.service';
-import { LabWorkflowService } from '@/domains/clinical/application/services/lab-workflow.service';
+import { LabWorkflowCommandService } from '@/domains/clinical/application/services/lab-workflow-command.service';
+import { LabWorkflowQueryService } from '@/domains/clinical/application/services/lab-workflow-query.service';
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
 import { LabTestOrderStatus, Role } from '@workspace/db';
@@ -62,7 +71,8 @@ import {
 export class LabTestsController {
   constructor(
     private readonly clinicalService: ClinicalService,
-    private readonly labWorkflowService: LabWorkflowService,
+    private readonly labWorkflowCommandService: LabWorkflowCommandService,
+    private readonly labWorkflowQueryService: LabWorkflowQueryService,
     private readonly auditService: AuditService,
   ) {}
 
@@ -186,7 +196,7 @@ export class LabTestsController {
       'LabOrder',
       { labId, status: query.status },
     );
-    return await this.labWorkflowService.listQueue(clinicId, {
+    return await this.labWorkflowQueryService.listQueue(clinicId, {
       labId,
       status: query.status,
       search: query.search,
@@ -201,7 +211,7 @@ export class LabTestsController {
     @Body() body: RecordSampleCollectionDto,
   ): Promise<{ success: true }> {
     const { clinicId } = getClinicStaffRequestContext(req);
-    await this.labWorkflowService.recordSampleCollection(
+    await this.labWorkflowCommandService.recordSampleCollection(
       id,
       clinicId,
       body.notes,
@@ -211,7 +221,22 @@ export class LabTestsController {
 
   @Post('orders/:id/result')
   @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_LAB_WORKSPACE))
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: LAB_RESULT_MAX_FILE_SIZE },
+      fileFilter: (_req, file, cb) => {
+        if (!LAB_RESULT_ALLOWED_MIMES.includes(file.mimetype)) {
+          return cb(
+            new UnsupportedMediaTypeException(
+              'Only images (JPEG, PNG, WebP) and PDFs are allowed',
+            ),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+    }),
+  )
   async uploadResult(
     @Param('id') id: string,
     @Request() req: RequestWithUser,
@@ -219,7 +244,12 @@ export class LabTestsController {
     @Body() body: UploadLabResultDto,
   ): Promise<{ success: true }> {
     const { clinicId, userId } = getClinicStaffRequestContext(req);
-    await this.labWorkflowService.uploadResult(id, clinicId, file, {
+    const safeName = basename(file.originalname);
+    if (safeName !== file.originalname) {
+      throw new BadRequestException('Invalid filename');
+    }
+    await assertAllowedFileSignature(file, ['pdf', 'png', 'jpeg', 'webp']);
+    await this.labWorkflowCommandService.uploadResult(id, clinicId, file, {
       notes: body.notes,
       uploadedBy: userId,
     });
@@ -236,7 +266,7 @@ export class LabTestsController {
     @Body() body: VerifyLabOrderPaymentDto,
   ): Promise<{ success: true }> {
     const { clinicId, userId } = getClinicStaffRequestContext(req);
-    await this.labWorkflowService.verifyPayment(id, clinicId, {
+    await this.labWorkflowCommandService.verifyPayment(id, clinicId, {
       method: body.paymentMethod,
       reference: body.reference,
       verifiedBy: userId,
@@ -251,7 +281,7 @@ export class LabTestsController {
     @Request() req: RequestWithUser,
   ): Promise<{ success: true }> {
     const { clinicId } = getClinicStaffRequestContext(req);
-    await this.labWorkflowService.releaseResult(id, clinicId);
+    await this.labWorkflowCommandService.releaseResult(id, clinicId);
     return { success: true };
   }
 
@@ -260,7 +290,7 @@ export class LabTestsController {
   @Get('labs')
   @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_LABS))
   async getLabs(@Request() req: RequestWithUser): Promise<LabRecord[]> {
-    return await this.labWorkflowService.listLabs(
+    return await this.labWorkflowQueryService.listLabs(
       getClinicStaffRequestContext(req).clinicId,
     );
   }
@@ -271,7 +301,7 @@ export class LabTestsController {
     @Request() req: RequestWithUser,
     @Body() body: CreateLabDto,
   ): Promise<LabRecord> {
-    return await this.labWorkflowService.createLab(
+    return await this.labWorkflowCommandService.createLab(
       getClinicStaffRequestContext(req).clinicId,
       body,
     );
@@ -284,7 +314,7 @@ export class LabTestsController {
     @Request() req: RequestWithUser,
     @Body() body: UpdateLabDto,
   ): Promise<LabRecord> {
-    return await this.labWorkflowService.updateLab(
+    return await this.labWorkflowCommandService.updateLab(
       id,
       getClinicStaffRequestContext(req).clinicId,
       body,

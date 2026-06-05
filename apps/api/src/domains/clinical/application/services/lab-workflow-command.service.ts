@@ -18,9 +18,9 @@ import {
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import {
   ILabRepository,
-  LabQueueItem,
   LabRecord,
 } from '@/domains/clinical/core/repositories/clinical.repository.interface';
+import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
 
 interface AttachResultInput {
   result?: Record<string, unknown>;
@@ -28,15 +28,9 @@ interface AttachResultInput {
   uploadedBy: string;
 }
 
-/**
- * Lab-side fulfilment workflow: sample receipt, result upload, payment
- * verification (recorded at the hospital front desk), and release to the
- * patient over WhatsApp. Release is gated on an uploaded result AND a verified
- * payment — enforced by {@link LabOrder.canRelease} semantics.
- */
 @Injectable()
-export class LabWorkflowService {
-  private readonly logger = new Logger(LabWorkflowService.name);
+export class LabWorkflowCommandService {
+  private readonly logger = new Logger(LabWorkflowCommandService.name);
 
   constructor(
     @Inject('ILabRepository')
@@ -46,13 +40,6 @@ export class LabWorkflowService {
     private readonly eventEmitter: EventEmitter2,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
-
-  async listQueue(
-    clinicId: string,
-    params: { labId?: string; status?: string; search?: string },
-  ): Promise<LabQueueItem[]> {
-    return await this.labRepository.findLabQueue(clinicId, params);
-  }
 
   async recordSampleCollection(
     id: string,
@@ -122,18 +109,11 @@ export class LabWorkflowService {
       this.clock.now(),
     );
 
-    // Auto-release once both the result and payment are in place, so the
-    // patient is notified the moment the desk confirms payment.
     if (order.hasResult()) {
       await this.releaseResult(id, clinicId);
     }
   }
 
-  /**
-   * Release an uploaded result to the patient: generate a short-lived signed
-   * link, send the `lab_result_ready` WhatsApp template, then mark the order
-   * COMPLETED. Throws if the order is not eligible for release.
-   */
   async releaseResult(id: string, clinicId: string): Promise<void> {
     const ctx = await this.labRepository.findReleaseContext(id, clinicId);
     if (!ctx) {
@@ -177,8 +157,6 @@ export class LabWorkflowService {
           },
         });
       } catch (error) {
-        // WhatsApp is best-effort: a clinic without the messaging feature, or a
-        // transient provider error, must not block finalising a paid result.
         if (error instanceof ForbiddenException) {
           this.logger.log(
             `Lab result WhatsApp skipped for order ${id}: ${error.message}`,
@@ -198,17 +176,13 @@ export class LabWorkflowService {
 
     await this.labRepository.markReleased(id, clinicId, now);
 
+    // allow-direct-emit: fire-and-forget notification after release completes;
+    // the result+payment gates are already checked above.
     this.eventEmitter.emit(ApplicationEvents.LAB_RESULT_RELEASED, {
       orderId: id,
       clinicId,
       patientId: ctx.patient.id,
     });
-  }
-
-  // --- Lab directory ---
-
-  async listLabs(clinicId: string): Promise<LabRecord[]> {
-    return await this.labRepository.findAllLabs(clinicId);
   }
 
   async createLab(
@@ -239,7 +213,7 @@ export class LabWorkflowService {
     return await this.labRepository.updateLab(id, clinicId, data);
   }
 
-  private async loadOrder(id: string, clinicId: string) {
+  private async loadOrder(id: string, clinicId: string): Promise<LabOrder> {
     const order = await this.labRepository.findOrderById(id);
     if (!order || order.clinicId !== clinicId) {
       throw new NotFoundException('Lab order not found');

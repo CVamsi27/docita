@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { LabTestsController } from './presentation/controllers/lab-tests.controller';
 import { MedicalCodingController } from './presentation/controllers/medical-coding.controller';
 import { ClinicalService } from './application/services/clinical.service';
-import { LabWorkflowService } from './application/services/lab-workflow.service';
+import { LabWorkflowCommandService } from './application/services/lab-workflow-command.service';
+import { LabWorkflowQueryService } from './application/services/lab-workflow-query.service';
 import { ClinicalSettingsService } from './application/services/clinical-settings.service';
 import { PrismaLabRepository } from './infrastructure/persistence/prisma-lab.repository';
 import { PrismaClinicalSettingsRepository } from './infrastructure/persistence/prisma-clinical-settings.repository';
@@ -33,7 +34,8 @@ import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
   providers: [
     FrontDeskClinicalBlockGuard,
     ClinicalService,
-    LabWorkflowService,
+    LabWorkflowCommandService,
+    LabWorkflowQueryService,
     ClinicalSettingsService,
     ClinicalFactory,
     NlmCodingClient,
