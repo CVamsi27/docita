@@ -1,42 +1,35 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PricingService } from './pricing.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  TIER_PRICING_REPOSITORY_TOKEN,
+  ITierPricingRepository,
+} from '@/domains/billing/core/repositories/tier-pricing.repository';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { TIER_FEATURES } from '@workspace/types';
 
 describe('PricingService', () => {
   let service: PricingService;
-  let prismaService: PrismaService;
+  let tierPricingRepo: ITierPricingRepository;
 
   beforeEach(async () => {
+    const mockRepo = {
+      findManyActive: jest
+        .fn<(...args: unknown[]) => Promise<unknown>>()
+        .mockResolvedValue([] as never),
+    } as unknown as ITierPricingRepository;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PricingService,
         {
-          provide: PrismaService,
-          useValue: {
-            tierPricing: {
-              findMany: jest
-                .fn<(...args: unknown[]) => Promise<unknown>>()
-                .mockResolvedValue([]),
-            },
-            addOn: {
-              findMany: jest
-                .fn<(...args: unknown[]) => Promise<unknown>>()
-                .mockResolvedValue([]),
-            },
-            discount: {
-              findMany: jest
-                .fn<(...args: unknown[]) => Promise<unknown>>()
-                .mockResolvedValue([]),
-            },
-          },
+          provide: TIER_PRICING_REPOSITORY_TOKEN,
+          useValue: mockRepo,
         },
       ],
     }).compile();
 
     service = module.get<PricingService>(PricingService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    tierPricingRepo = mockRepo;
   });
 
   it('should return pricing with discounts exposed', async () => {
@@ -59,7 +52,7 @@ describe('PricingService', () => {
 
   it('should treat enterprise pricing as custom when DB tier rows are present', async () => {
     (
-      prismaService.tierPricing.findMany as jest.Mock<
+      tierPricingRepo.findManyActive as jest.Mock<
         (...args: unknown[]) => Promise<unknown>
       >
     ).mockResolvedValue([

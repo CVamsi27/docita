@@ -25,6 +25,7 @@ export class PrismaLabRepository implements ILabRepository {
   async findAllTests(clinicId: string): Promise<LabTest[]> {
     const tests = await this.getReadClient().labTest.findMany({
       where: { clinicId },
+      take: 1000,
     });
     return tests.map((t) => this.mapToLabTest(t));
   }
@@ -87,6 +88,7 @@ export class PrismaLabRepository implements ILabRepository {
           ],
         },
         select: { id: true },
+        take: 500,
       });
       where.patientId = { in: matchingPatients.map((p) => p.id) };
     }
@@ -95,6 +97,7 @@ export class PrismaLabRepository implements ILabRepository {
       where,
       include: { labTest: true },
       orderBy: { createdAt: 'desc' },
+      take: 1000,
     });
 
     return orders.map((o) => this.mapToLabOrder(o));

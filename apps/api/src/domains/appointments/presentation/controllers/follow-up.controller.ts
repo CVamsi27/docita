@@ -15,6 +15,7 @@ import { FollowUpService } from '@/domains/appointments/application/services/fol
 import {
   BookFollowUpDto,
   CreateFollowUpDto,
+  FollowUpResponseDto,
   ListFollowUpsQueryDto,
 } from '@/domains/appointments/application/dto/appointments.dto';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
@@ -27,6 +28,7 @@ import {
 } from '@/shared/modules/auth/auth/access-matrix.util';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { logClinicPhiListRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller()
 @UseGuards(TierGuard)
@@ -39,6 +41,7 @@ export class FollowUpController {
   ) {}
 
   @Post('appointments/:id/follow-up')
+  @ZodSerializerDto(FollowUpResponseDto)
   async createFollowUp(
     @Req() req: RequestWithUser,
     @Param('id') appointmentId: string,
@@ -80,6 +83,7 @@ export class FollowUpController {
   }
 
   @Patch('follow-ups/:id/book')
+  @ZodSerializerDto(FollowUpResponseDto)
   async bookFollowUp(
     @Req() req: RequestWithUser,
     @Param('id') id: string,
@@ -93,11 +97,13 @@ export class FollowUpController {
   }
 
   @Patch('follow-ups/:id/complete')
+  @ZodSerializerDto(FollowUpResponseDto)
   async completeFollowUp(@Req() req: RequestWithUser, @Param('id') id: string) {
     return this.followUpService.complete(id, requireClinicIdFromRequest(req));
   }
 
   @Patch('follow-ups/:id/cancel')
+  @ZodSerializerDto(FollowUpResponseDto)
   async cancelFollowUp(@Req() req: RequestWithUser, @Param('id') id: string) {
     return this.followUpService.cancel(id, requireClinicIdFromRequest(req));
   }

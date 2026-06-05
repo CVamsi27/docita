@@ -72,6 +72,7 @@ export class PrismaWhatsappOperationsRepository {
     return this.prisma.whatsappMessage.findMany({
       where: { conversationId },
       orderBy: { createdAt: 'asc' },
+      take: 500,
       select: {
         id: true,
         direction: true,

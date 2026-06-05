@@ -1,5 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Injectable, Inject } from '@nestjs/common';
+import {
+  TIER_PRICING_REPOSITORY_TOKEN,
+  ITierPricingRepository,
+} from '@/domains/billing/core/repositories/tier-pricing.repository';
 import {
   TIER_PRICING,
   TIER_LIMITS,
@@ -29,7 +32,10 @@ import {
 
 @Injectable()
 export class PricingService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(TIER_PRICING_REPOSITORY_TOKEN)
+    private readonly tierPricingRepo: ITierPricingRepository,
+  ) {}
 
   private readonly supportedCurrencies = SUPPORTED_PRICING_CURRENCIES;
 
@@ -50,10 +56,7 @@ export class PricingService {
     const tierPricing = TIER_PRICING_BY_CURRENCY[validCurrency];
     const referralRewards = REFERRAL_REWARDS_BY_CURRENCY[validCurrency];
 
-    const dbTiers = await this.prisma.tierPricing.findMany({
-      where: { isActive: true },
-      orderBy: { displayOrder: 'asc' },
-    });
+    const dbTiers = await this.tierPricingRepo.findManyActive();
 
     if (dbTiers.length > 0) {
       const canonicalTiers = dbTiers.filter(

@@ -7,10 +7,8 @@ import {
   Param,
   Request,
   UseGuards,
-  BadRequestException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { z } from 'zod';
 import { Role } from '@workspace/db';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
@@ -23,12 +21,8 @@ import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.ut
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import { DoctorDelayService } from '@/domains/appointments/application/services/doctor-delay.service';
-
-const markDelaySchema = z.object({
-  doctorId: z.string().min(1),
-  delayMinutes: z.number().int().min(1).max(480),
-  reason: z.string().max(500).optional(),
-});
+import { MarkDoctorDelayDto } from '@/domains/appointments/application/dto/appointments.dto';
+import { markDoctorDelaySchema } from '@workspace/types';
 
 // check-phi-read-audit: allow-file — operational delay metadata only; no patient record reads on GET
 @ApiTags('doctor-delays')
@@ -50,17 +44,17 @@ export class DoctorDelayController {
   @ApiOperation({
     summary: 'Mark a doctor delay and shift upcoming appointments',
   })
-  async markDelay(@Request() req: RequestWithUser, @Body() body: unknown) {
-    const parsed = markDelaySchema.safeParse(body);
-    if (!parsed.success) {
-      throw new BadRequestException(parsed.error.flatten());
-    }
+  async markDelay(
+    @Request() req: RequestWithUser,
+    @Body() body: MarkDoctorDelayDto,
+  ) {
+    const parsed = markDoctorDelaySchema.parse(body);
     const { clinicId, userId } = getClinicStaffRequestContext(req);
     return this.doctorDelayService.markDelay({
       clinicId,
-      doctorId: parsed.data.doctorId,
-      delayMinutes: parsed.data.delayMinutes,
-      reason: parsed.data.reason,
+      doctorId: parsed.doctorId,
+      delayMinutes: parsed.delayMinutes,
+      reason: parsed.reason,
       markedById: userId,
     });
   }

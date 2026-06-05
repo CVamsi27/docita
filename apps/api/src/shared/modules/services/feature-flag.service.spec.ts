@@ -7,24 +7,17 @@ describe('FeatureFlagService.onModuleInit', () => {
   it('starts feature-flag seeding without blocking bootstrap', () => {
     const prisma = {
       featureFlag: {
-        findFirst: jest.fn(async () => null) as jest.Mock,
-        create: jest.fn(async () => ({})) as jest.Mock,
-        update: jest.fn(async () => ({})) as jest.Mock,
+        findMany: jest.fn(async () => []),
+        findFirst: jest.fn(async () => null),
+        create: jest.fn(async () => ({})),
+        update: jest.fn(async () => ({})),
+        createMany: jest.fn(async () => ({ count: 0 })),
       },
-    } as PrismaService & {
-      featureFlag: {
-        findFirst: jest.Mock;
-        create: jest.Mock;
-        update: jest.Mock;
-      };
-    };
+    } as unknown as PrismaService;
 
     const service = new FeatureFlagService(prisma, createFixedClockMock());
     const result = service.onModuleInit();
 
     expect(result).toBeUndefined();
-    expect(prisma.featureFlag.findFirst).toHaveBeenCalledWith({
-      where: { key: 'enable_whatsapp_reminders', clinicId: null },
-    });
   });
 });

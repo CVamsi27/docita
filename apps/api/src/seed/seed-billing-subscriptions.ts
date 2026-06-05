@@ -20,6 +20,38 @@ interface SeedBillingAndUsageParams {
   clinicId: string;
 }
 
+type TierName = keyof typeof TIER_LIMITS;
+
+interface SeedBillingPeriods {
+  cycleStart: Date;
+  cycleEnd: Date;
+  cycleKey: string;
+  legacyUtcCycleKey: string;
+  subscriptionStart: Date;
+  subscriptionEnd: Date;
+}
+
+interface SeedSubscriptionResult {
+  subscriptionId: string;
+  activeTierName: 'ENTERPRISE';
+  annualBasePriceCents: number;
+}
+
+interface SeedUsageMetrics {
+  consultationsQuantity: number;
+  usersQuantity: number;
+  whatsappQuantity: number;
+  consultationIncluded: number;
+  userIncluded: number;
+  whatsappIncluded: number;
+  consultationOverage: number;
+  userOverage: number;
+  whatsappOverage: number;
+  appointmentOverageRate: number;
+  userOverageRate: number;
+  whatsappOverageRate: number;
+}
+
 const CANONICAL_TIERS: ClinicTier[] = [
   ClinicTier.STARTER,
   ClinicTier.FRONT_DESK,
@@ -54,8 +86,6 @@ function getMonthRange(date = new Date()): { start: Date; end: Date } {
   return { start, end };
 }
 
-// Enterprise list pricing is "custom" — pick a deterministic annual amount
-// for the seed so the billing dashboard renders meaningful numbers.
 const ENTERPRISE_SEED_ANNUAL_INR = 240_000;
 
 export async function seedBillingAndUsage(
@@ -63,11 +93,38 @@ export async function seedBillingAndUsage(
   params: SeedBillingAndUsageParams,
 ): Promise<void> {
   const { clinicId } = params;
+  const periods = getSeedBillingPeriods();
+
+  await seedCanonicalTierPricing(prisma);
+  const subscription = await activateEnterpriseSeedSubscription(
+    prisma,
+    clinicId,
+    periods,
+  );
+  await seedAnnualSubscriptionPayment(
+    prisma,
+    clinicId,
+    subscription,
+    periods.subscriptionStart,
+  );
+  const usageMetrics = await getSeedUsageMetrics(
+    prisma,
+    clinicId,
+    periods,
+    subscription.activeTierName,
+  );
+  await replaceSeedUsageEvents(prisma, clinicId, periods);
+  await Promise.all([
+    seedUsageEvents(prisma, clinicId, periods, usageMetrics),
+    seedUsageRecords(prisma, clinicId, periods, usageMetrics),
+  ]);
+}
+
+function getSeedBillingPeriods(): SeedBillingPeriods {
   const { start: cycleStart, end: cycleEnd } = getMonthRange();
   const cycleKey = `${cycleStart.getFullYear()}-${String(
     cycleStart.getMonth() + 1,
   ).padStart(2, '0')}`;
-  // Annual subscription period: today → today + 1 year.
   const subscriptionStart = new Date();
   subscriptionStart.setHours(0, 0, 0, 0);
   const subscriptionEnd = new Date(subscriptionStart);
@@ -76,91 +133,85 @@ export async function seedBillingAndUsage(
     cycleStart.getUTCMonth() + 1,
   ).padStart(2, '0')}`;
 
-  const pricing = TIER_PRICING_BY_CURRENCY.INR;
-  const overageRatesByTier = TIER_OVERAGE_RATES_BY_CURRENCY.INR;
+  return {
+    cycleStart,
+    cycleEnd,
+    cycleKey,
+    legacyUtcCycleKey,
+    subscriptionStart,
+    subscriptionEnd,
+  };
+}
 
+async function seedCanonicalTierPricing(prisma: PrismaClient): Promise<void> {
   await Promise.all(
     CANONICAL_TIERS.map((tier, index) => {
       const tierName = mapPricingTierInputToTierName(tier);
       if (!tierName) {
         throw new Error(`Unsupported tier for billing seed: ${tier}`);
       }
-      const tierPricing = pricing[tierName];
-      const tierLimits = TIER_LIMITS[tierName];
-      const overage = overageRatesByTier[tierName];
-      const tierInfo = TIER_INFO[tierName];
-      const features = TIER_FEATURES[tierName] ?? [];
+      const data = getTierPricingSeedData(tierName, index);
 
       return prisma.tierPricing.upsert({
         where: { tier },
-        update: {
-          monthlyBasePriceCents: toPaise(tierPricing.monthly),
-          currency: INR_CURRENCY,
-          includedPatients: tierLimits.patients,
-          includedAppointments: tierLimits.appointments ?? 0,
-          includedStorageGB: tierLimits.storageGB,
-          includedUsers: tierLimits.users ?? 1,
-          overagePatientCents: toPaise(overage.patientRate),
-          overageAppointmentCents: toPaise(overage.appointmentRate),
-          overageStorageCents: toPaise(overage.storageRate),
-          overageUserCents: toPaise(overage.userRate),
-          overagePrescriptionCents: toPaise(overage.prescriptionRate),
-          overageInvoiceCents: toPaise(overage.invoiceRate),
-          overageOcrPageCents: toPaise(overage.ocrPageRate),
-          overageApiCallCents: toPaise(overage.apiCallRate),
-          features,
-          name: tierInfo.name,
-          description: tierInfo.description,
-          tagline: tierInfo.tagline,
-          color: tierInfo.color,
-          displayOrder: index,
-          isActive: true,
-        },
-        create: {
-          tier,
-          monthlyBasePriceCents: toPaise(tierPricing.monthly),
-          currency: INR_CURRENCY,
-          includedPatients: tierLimits.patients,
-          includedAppointments: tierLimits.appointments ?? 0,
-          includedStorageGB: tierLimits.storageGB,
-          includedUsers: tierLimits.users ?? 1,
-          overagePatientCents: toPaise(overage.patientRate),
-          overageAppointmentCents: toPaise(overage.appointmentRate),
-          overageStorageCents: toPaise(overage.storageRate),
-          overageUserCents: toPaise(overage.userRate),
-          overagePrescriptionCents: toPaise(overage.prescriptionRate),
-          overageInvoiceCents: toPaise(overage.invoiceRate),
-          overageOcrPageCents: toPaise(overage.ocrPageRate),
-          overageApiCallCents: toPaise(overage.apiCallRate),
-          features,
-          name: tierInfo.name,
-          description: tierInfo.description,
-          tagline: tierInfo.tagline,
-          color: tierInfo.color,
-          displayOrder: index,
-          isActive: true,
-        },
+        update: data,
+        create: { tier, ...data },
       });
     }),
   );
+}
 
+function getTierPricingSeedData(tierName: TierName, displayOrder: number) {
+  const tierPricing = TIER_PRICING_BY_CURRENCY.INR[tierName];
+  const tierLimits = TIER_LIMITS[tierName];
+  const overage = TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
+  const tierInfo = TIER_INFO[tierName];
+  const features = TIER_FEATURES[tierName] ?? [];
+
+  return {
+    monthlyBasePriceCents: toPaise(tierPricing.monthly),
+    currency: INR_CURRENCY,
+    includedPatients: tierLimits.patients,
+    includedAppointments: tierLimits.appointments ?? 0,
+    includedStorageGB: tierLimits.storageGB,
+    includedUsers: tierLimits.users ?? 1,
+    overagePatientCents: toPaise(overage.patientRate),
+    overageAppointmentCents: toPaise(overage.appointmentRate),
+    overageStorageCents: toPaise(overage.storageRate),
+    overageUserCents: toPaise(overage.userRate),
+    overagePrescriptionCents: toPaise(overage.prescriptionRate),
+    overageInvoiceCents: toPaise(overage.invoiceRate),
+    overageOcrPageCents: toPaise(overage.ocrPageRate),
+    overageApiCallCents: toPaise(overage.apiCallRate),
+    features,
+    name: tierInfo.name,
+    description: tierInfo.description,
+    tagline: tierInfo.tagline,
+    color: tierInfo.color,
+    displayOrder,
+    isActive: true,
+  };
+}
+
+async function activateEnterpriseSeedSubscription(
+  prisma: PrismaClient,
+  clinicId: string,
+  periods: SeedBillingPeriods,
+): Promise<SeedSubscriptionResult> {
   const activeTier = ClinicTier.ENTERPRISE;
-  const activeTierName: keyof typeof TIER_LIMITS = 'ENTERPRISE';
+  const activeTierName = 'ENTERPRISE';
   const activeTierLimits = TIER_LIMITS[activeTierName];
+  const annualBasePriceCents = toPaise(ENTERPRISE_SEED_ANNUAL_INR);
 
   await prisma.clinic.update({
     where: { id: clinicId },
     data: {
       tier: activeTier,
-      // Explicit PlanMode = FULL keeps the seeded clinic on the full feature
-      // set; switch to FRONT_DESK or CORE here to seed a mode-scoped clinic.
       planMode: PlanMode.FULL,
       currency: INR_CURRENCY,
       subscriptionStatus: SubscriptionStatus.ACTIVE,
     },
   });
-
-  const annualBasePriceCents = toPaise(ENTERPRISE_SEED_ANNUAL_INR);
 
   const subscription = await prisma.subscription.upsert({
     where: { clinicId },
@@ -170,8 +221,8 @@ export async function seedBillingAndUsage(
       basePriceCents: annualBasePriceCents,
       currency: INR_CURRENCY,
       status: SubscriptionStatus.ACTIVE,
-      currentPeriodStart: subscriptionStart,
-      currentPeriodEnd: subscriptionEnd,
+      currentPeriodStart: periods.subscriptionStart,
+      currentPeriodEnd: periods.subscriptionEnd,
       includedPatients: activeTierLimits.patients,
       includedAppointments: activeTierLimits.appointments ?? 0,
       includedStorageGB: activeTierLimits.storageGB,
@@ -186,8 +237,8 @@ export async function seedBillingAndUsage(
       basePriceCents: annualBasePriceCents,
       currency: INR_CURRENCY,
       status: SubscriptionStatus.ACTIVE,
-      currentPeriodStart: subscriptionStart,
-      currentPeriodEnd: subscriptionEnd,
+      currentPeriodStart: periods.subscriptionStart,
+      currentPeriodEnd: periods.subscriptionEnd,
       includedPatients: activeTierLimits.patients,
       includedAppointments: activeTierLimits.appointments ?? 0,
       includedStorageGB: activeTierLimits.storageGB,
@@ -196,44 +247,52 @@ export async function seedBillingAndUsage(
     },
   });
 
-  // Single PAID annual subscription payment so the billing dashboard isn't empty.
+  return {
+    subscriptionId: subscription.id,
+    activeTierName,
+    annualBasePriceCents,
+  };
+}
+
+async function seedAnnualSubscriptionPayment(
+  prisma: PrismaClient,
+  clinicId: string,
+  subscription: SeedSubscriptionResult,
+  paidAt: Date,
+): Promise<void> {
+  const data = {
+    clinicId,
+    subscriptionId: subscription.subscriptionId,
+    amountCents: subscription.annualBasePriceCents,
+    grandTotalCents: subscription.annualBasePriceCents,
+    subtotalCents: subscription.annualBasePriceCents,
+    currency: INR_CURRENCY,
+    status: 'paid',
+    invoiceNumber: 'DC/ENT/SEED/0001',
+    invoiceType: 'TAX_INVOICE',
+    description: 'Annual enterprise subscription (seed)',
+    paidAt,
+  };
+
   await prisma.subscriptionPayment.upsert({
     where: { razorpayPaymentId: `seed_pay_${clinicId}` },
-    update: {
-      clinicId,
-      subscriptionId: subscription.id,
-      amountCents: annualBasePriceCents,
-      grandTotalCents: annualBasePriceCents,
-      subtotalCents: annualBasePriceCents,
-      currency: INR_CURRENCY,
-      status: 'paid',
-      invoiceNumber: 'DC/ENT/SEED/0001',
-      invoiceType: 'TAX_INVOICE',
-      description: 'Annual enterprise subscription (seed)',
-      paidAt: subscriptionStart,
-    },
-    create: {
-      clinicId,
-      subscriptionId: subscription.id,
-      amountCents: annualBasePriceCents,
-      grandTotalCents: annualBasePriceCents,
-      subtotalCents: annualBasePriceCents,
-      currency: INR_CURRENCY,
-      status: 'paid',
-      razorpayPaymentId: `seed_pay_${clinicId}`,
-      invoiceNumber: 'DC/ENT/SEED/0001',
-      invoiceType: 'TAX_INVOICE',
-      description: 'Annual enterprise subscription (seed)',
-      paidAt: subscriptionStart,
-    },
+    update: data,
+    create: { ...data, razorpayPaymentId: `seed_pay_${clinicId}` },
   });
+}
 
+async function getSeedUsageMetrics(
+  prisma: PrismaClient,
+  clinicId: string,
+  periods: SeedBillingPeriods,
+  activeTierName: 'ENTERPRISE',
+): Promise<SeedUsageMetrics> {
   const [completedConsultations, activeUsers] = await Promise.all([
     prisma.appointment.count({
       where: {
         clinicId,
         status: 'COMPLETED',
-        updatedAt: { gte: cycleStart, lte: cycleEnd },
+        updatedAt: { gte: periods.cycleStart, lte: periods.cycleEnd },
       },
     }),
     prisma.user.count({
@@ -249,7 +308,8 @@ export async function seedBillingAndUsage(
     activeTierName,
     'INR',
   );
-  const tierOverage = overageRatesByTier[activeTierName];
+  const tierOverage = TIER_OVERAGE_RATES_BY_CURRENCY.INR[activeTierName];
+  const activeTierLimits = TIER_LIMITS[activeTierName];
 
   const consultationIncluded = activeTierLimits.appointments ?? 0;
   const userIncluded = activeTierLimits.users ?? 1;
@@ -262,13 +322,34 @@ export async function seedBillingAndUsage(
   const userOverage = Math.max(0, usersQuantity - userIncluded);
   const whatsappOverage = Math.max(0, whatsappQuantity - whatsappIncluded);
 
+  return {
+    consultationsQuantity,
+    usersQuantity,
+    whatsappQuantity,
+    consultationIncluded,
+    userIncluded,
+    whatsappIncluded,
+    consultationOverage,
+    userOverage,
+    whatsappOverage,
+    appointmentOverageRate: tierOverage.appointmentRate,
+    userOverageRate: tierOverage.userRate,
+    whatsappOverageRate: whatsappPricing.overageRate,
+  };
+}
+
+async function replaceSeedUsageEvents(
+  prisma: PrismaClient,
+  clinicId: string,
+  periods: SeedBillingPeriods,
+): Promise<void> {
   const seedEventKeys = [
-    `seed:${clinicId}:${cycleKey}:consultations`,
-    `seed:${clinicId}:${cycleKey}:whatsapp`,
-    `seed:${clinicId}:${cycleKey}:users`,
-    `seed:${clinicId}:${legacyUtcCycleKey}:consultations`,
-    `seed:${clinicId}:${legacyUtcCycleKey}:whatsapp`,
-    `seed:${clinicId}:${legacyUtcCycleKey}:users`,
+    `seed:${clinicId}:${periods.cycleKey}:consultations`,
+    `seed:${clinicId}:${periods.cycleKey}:whatsapp`,
+    `seed:${clinicId}:${periods.cycleKey}:users`,
+    `seed:${clinicId}:${periods.legacyUtcCycleKey}:consultations`,
+    `seed:${clinicId}:${periods.legacyUtcCycleKey}:whatsapp`,
+    `seed:${clinicId}:${periods.legacyUtcCycleKey}:users`,
   ];
 
   await prisma.usageEvent.deleteMany({
@@ -277,162 +358,135 @@ export async function seedBillingAndUsage(
       eventKey: { in: Array.from(new Set(seedEventKeys)) },
     },
   });
+}
 
+async function seedUsageEvents(
+  prisma: PrismaClient,
+  clinicId: string,
+  periods: SeedBillingPeriods,
+  usage: SeedUsageMetrics,
+): Promise<void> {
   await Promise.all([
-    prisma.usageEvent.upsert({
-      where: { eventKey: `seed:${clinicId}:${cycleKey}:consultations` },
-      update: {
-        type: UsageType.APPOINTMENTS,
-        quantity: consultationsQuantity,
-        timestamp: cycleEnd,
-        entityType: 'SeedUsage',
-        entityId: cycleKey,
-        metadata: { source: 'seed-v2', meter: 'consultations' },
-      },
-      create: {
-        clinicId,
-        type: UsageType.APPOINTMENTS,
-        quantity: consultationsQuantity,
-        timestamp: cycleEnd,
-        eventKey: `seed:${clinicId}:${cycleKey}:consultations`,
-        entityType: 'SeedUsage',
-        entityId: cycleKey,
-        metadata: { source: 'seed-v2', meter: 'consultations' },
-      },
+    upsertUsageEvent(prisma, clinicId, periods, {
+      type: UsageType.APPOINTMENTS,
+      quantity: usage.consultationsQuantity,
+      meter: 'consultations',
     }),
-    prisma.usageEvent.upsert({
-      where: { eventKey: `seed:${clinicId}:${cycleKey}:whatsapp` },
-      update: {
-        type: UsageType.WHATSAPP_MESSAGES,
-        quantity: whatsappQuantity,
-        timestamp: cycleEnd,
-        entityType: 'SeedUsage',
-        entityId: cycleKey,
-        metadata: { source: 'seed-v2', meter: 'whatsappMessages' },
-      },
-      create: {
-        clinicId,
-        type: UsageType.WHATSAPP_MESSAGES,
-        quantity: whatsappQuantity,
-        timestamp: cycleEnd,
-        eventKey: `seed:${clinicId}:${cycleKey}:whatsapp`,
-        entityType: 'SeedUsage',
-        entityId: cycleKey,
-        metadata: { source: 'seed-v2', meter: 'whatsappMessages' },
-      },
+    upsertUsageEvent(prisma, clinicId, periods, {
+      type: UsageType.WHATSAPP_MESSAGES,
+      quantity: usage.whatsappQuantity,
+      meter: 'whatsappMessages',
     }),
-    prisma.usageEvent.upsert({
-      where: { eventKey: `seed:${clinicId}:${cycleKey}:users` },
-      update: {
-        type: UsageType.USERS,
-        quantity: usersQuantity,
-        timestamp: cycleEnd,
-        entityType: 'SeedUsage',
-        entityId: cycleKey,
-        metadata: { source: 'seed-v2', meter: 'users' },
-      },
-      create: {
-        clinicId,
-        type: UsageType.USERS,
-        quantity: usersQuantity,
-        timestamp: cycleEnd,
-        eventKey: `seed:${clinicId}:${cycleKey}:users`,
-        entityType: 'SeedUsage',
-        entityId: cycleKey,
-        metadata: { source: 'seed-v2', meter: 'users' },
-      },
-    }),
-    prisma.usageRecord.upsert({
-      where: {
-        clinicId_type_periodStart: {
-          clinicId,
-          type: UsageType.APPOINTMENTS,
-          periodStart: cycleStart,
-        },
-      },
-      update: {
-        periodEnd: cycleEnd,
-        quantity: consultationsQuantity,
-        includedQuota: consultationIncluded,
-        overageUnits: consultationOverage,
-        overageChargeCents: toPaise(
-          consultationOverage * tierOverage.appointmentRate,
-        ),
-        metadata: { source: 'seed-v2', meter: 'consultations' },
-      },
-      create: {
-        clinicId,
-        type: UsageType.APPOINTMENTS,
-        periodStart: cycleStart,
-        periodEnd: cycleEnd,
-        quantity: consultationsQuantity,
-        includedQuota: consultationIncluded,
-        overageUnits: consultationOverage,
-        overageChargeCents: toPaise(
-          consultationOverage * tierOverage.appointmentRate,
-        ),
-        metadata: { source: 'seed-v2', meter: 'consultations' },
-      },
-    }),
-    prisma.usageRecord.upsert({
-      where: {
-        clinicId_type_periodStart: {
-          clinicId,
-          type: UsageType.WHATSAPP_MESSAGES,
-          periodStart: cycleStart,
-        },
-      },
-      update: {
-        periodEnd: cycleEnd,
-        quantity: whatsappQuantity,
-        includedQuota: whatsappIncluded,
-        overageUnits: whatsappOverage,
-        overageChargeCents: toPaise(
-          whatsappOverage * whatsappPricing.overageRate,
-        ),
-        metadata: { source: 'seed-v2', meter: 'whatsappMessages' },
-      },
-      create: {
-        clinicId,
-        type: UsageType.WHATSAPP_MESSAGES,
-        periodStart: cycleStart,
-        periodEnd: cycleEnd,
-        quantity: whatsappQuantity,
-        includedQuota: whatsappIncluded,
-        overageUnits: whatsappOverage,
-        overageChargeCents: toPaise(
-          whatsappOverage * whatsappPricing.overageRate,
-        ),
-        metadata: { source: 'seed-v2', meter: 'whatsappMessages' },
-      },
-    }),
-    prisma.usageRecord.upsert({
-      where: {
-        clinicId_type_periodStart: {
-          clinicId,
-          type: UsageType.USERS,
-          periodStart: cycleStart,
-        },
-      },
-      update: {
-        periodEnd: cycleEnd,
-        quantity: usersQuantity,
-        includedQuota: userIncluded,
-        overageUnits: userOverage,
-        overageChargeCents: toPaise(userOverage * tierOverage.userRate),
-        metadata: { source: 'seed-v2', meter: 'users' },
-      },
-      create: {
-        clinicId,
-        type: UsageType.USERS,
-        periodStart: cycleStart,
-        periodEnd: cycleEnd,
-        quantity: usersQuantity,
-        includedQuota: userIncluded,
-        overageUnits: userOverage,
-        overageChargeCents: toPaise(userOverage * tierOverage.userRate),
-        metadata: { source: 'seed-v2', meter: 'users' },
-      },
+    upsertUsageEvent(prisma, clinicId, periods, {
+      type: UsageType.USERS,
+      quantity: usage.usersQuantity,
+      meter: 'users',
     }),
   ]);
+}
+
+async function upsertUsageEvent(
+  prisma: PrismaClient,
+  clinicId: string,
+  periods: SeedBillingPeriods,
+  event: { type: UsageType; quantity: number; meter: string },
+): Promise<void> {
+  const eventKey = `seed:${clinicId}:${periods.cycleKey}:${getSeedEventKeySuffix(
+    event.meter,
+  )}`;
+  const data = {
+    type: event.type,
+    quantity: event.quantity,
+    timestamp: periods.cycleEnd,
+    entityType: 'SeedUsage',
+    entityId: periods.cycleKey,
+    metadata: { source: 'seed-v2', meter: event.meter },
+  };
+
+  await prisma.usageEvent.upsert({
+    where: { eventKey },
+    update: data,
+    create: { clinicId, eventKey, ...data },
+  });
+}
+
+function getSeedEventKeySuffix(meter: string): string {
+  if (meter === 'whatsappMessages') {
+    return 'whatsapp';
+  }
+  return meter;
+}
+
+async function seedUsageRecords(
+  prisma: PrismaClient,
+  clinicId: string,
+  periods: SeedBillingPeriods,
+  usage: SeedUsageMetrics,
+): Promise<void> {
+  await Promise.all([
+    upsertUsageRecord(prisma, clinicId, periods, {
+      type: UsageType.APPOINTMENTS,
+      quantity: usage.consultationsQuantity,
+      includedQuota: usage.consultationIncluded,
+      overageUnits: usage.consultationOverage,
+      overageRate: usage.appointmentOverageRate,
+      meter: 'consultations',
+    }),
+    upsertUsageRecord(prisma, clinicId, periods, {
+      type: UsageType.WHATSAPP_MESSAGES,
+      quantity: usage.whatsappQuantity,
+      includedQuota: usage.whatsappIncluded,
+      overageUnits: usage.whatsappOverage,
+      overageRate: usage.whatsappOverageRate,
+      meter: 'whatsappMessages',
+    }),
+    upsertUsageRecord(prisma, clinicId, periods, {
+      type: UsageType.USERS,
+      quantity: usage.usersQuantity,
+      includedQuota: usage.userIncluded,
+      overageUnits: usage.userOverage,
+      overageRate: usage.userOverageRate,
+      meter: 'users',
+    }),
+  ]);
+}
+
+async function upsertUsageRecord(
+  prisma: PrismaClient,
+  clinicId: string,
+  periods: SeedBillingPeriods,
+  record: {
+    type: UsageType;
+    quantity: number;
+    includedQuota: number;
+    overageUnits: number;
+    overageRate: number;
+    meter: string;
+  },
+): Promise<void> {
+  const data = {
+    periodEnd: periods.cycleEnd,
+    quantity: record.quantity,
+    includedQuota: record.includedQuota,
+    overageUnits: record.overageUnits,
+    overageChargeCents: toPaise(record.overageUnits * record.overageRate),
+    metadata: { source: 'seed-v2', meter: record.meter },
+  };
+
+  await prisma.usageRecord.upsert({
+    where: {
+      clinicId_type_periodStart: {
+        clinicId,
+        type: record.type,
+        periodStart: periods.cycleStart,
+      },
+    },
+    update: data,
+    create: {
+      clinicId,
+      type: record.type,
+      periodStart: periods.cycleStart,
+      ...data,
+    },
+  });
 }

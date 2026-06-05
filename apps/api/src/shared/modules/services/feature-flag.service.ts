@@ -128,22 +128,29 @@ export class FeatureFlagService implements OnModuleInit {
 
   private async initializeDefaultFlags(): Promise<void> {
     try {
-      for (const flag of DEFAULT_FEATURE_FLAGS) {
-        const existing = await this.prisma.featureFlag?.findFirst({
-          where: { key: flag.key, clinicId: null },
-        });
+      const keys = DEFAULT_FEATURE_FLAGS.map((f) => f.key);
+      const existing = await this.prisma.featureFlag?.findMany({
+        where: { key: { in: keys }, clinicId: null },
+        select: { key: true },
+      });
+      const existingKeys = new Set(existing?.map((f) => f.key) ?? []);
 
-        if (!existing) {
-          await this.prisma.featureFlag?.create({
-            data: {
-              key: flag.key,
-              value: toPrismaInputJsonValue(flag.defaultValue),
-              description: flag.description,
-              clinicId: null,
-            },
-          });
-          this.logger.debug(`Initialized feature flag: ${flag.key}`);
-        }
+      const missing = DEFAULT_FEATURE_FLAGS.filter(
+        (f) => !existingKeys.has(f.key),
+      );
+      if (missing.length > 0) {
+        await this.prisma.featureFlag?.createMany({
+          data: missing.map((f) => ({
+            key: f.key,
+            value: toPrismaInputJsonValue(f.defaultValue),
+            description: f.description,
+            clinicId: null,
+          })),
+          skipDuplicates: true,
+        });
+        this.logger.debug(
+          `Initialized feature flags: ${missing.map((f) => f.key).join(', ')}`,
+        );
       }
     } catch (error) {
       this.logger.warn(

@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OverageCalculationService } from './overage-calculation.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  TIER_PRICING_REPOSITORY_TOKEN,
+  ITierPricingRepository,
+} from '@/domains/billing/core/repositories/tier-pricing.repository';
 import { ClinicTier } from '@workspace/db';
 import { TIER_OVERAGE_RATES_BY_CURRENCY } from '@workspace/types';
 import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
@@ -8,11 +11,7 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('OverageCalculationService', () => {
   let service: OverageCalculationService;
-  let prisma: {
-    tierPricing: {
-      findUnique: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
-    };
-  };
+  let tierPricingRepo: ITierPricingRepository;
 
   const mockTierPricing = {
     tier: 'PROFESSIONAL' as ClinicTier,
@@ -31,24 +30,27 @@ describe('OverageCalculationService', () => {
   };
 
   beforeEach(async () => {
+    const mockRepo = {
+      findByTier: jest
+        .fn<(...args: unknown[]) => Promise<unknown>>()
+        .mockResolvedValue(mockTierPricing as never),
+      findManyActive: jest
+        .fn<(...args: unknown[]) => Promise<unknown>>()
+        .mockResolvedValue([] as never),
+    } as unknown as ITierPricingRepository;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OverageCalculationService,
         {
-          provide: PrismaService,
-          useValue: {
-            tierPricing: {
-              findUnique: jest
-                .fn<(...args: unknown[]) => Promise<unknown>>()
-                .mockResolvedValue(mockTierPricing),
-            },
-          },
+          provide: TIER_PRICING_REPOSITORY_TOKEN,
+          useValue: mockRepo,
         },
       ],
     }).compile();
 
     service = module.get<OverageCalculationService>(OverageCalculationService);
-    prisma = module.get(PrismaService);
+    tierPricingRepo = mockRepo;
   });
 
   describe('calculateOverageCharges', () => {
@@ -120,7 +122,9 @@ describe('OverageCalculationService', () => {
     });
 
     it('should handle missing tier pricing gracefully', async () => {
-      prisma.tierPricing.findUnique.mockResolvedValue(null);
+      (
+        tierPricingRepo.findByTier as jest.Mock<(...args: unknown[]) => unknown>
+      ).mockResolvedValue(null as never);
 
       const usageWithOverage = {
         ...baseUsageData,
@@ -183,7 +187,7 @@ describe('OverageCalculationService', () => {
     it('should fetch tier pricing once per calculation', async () => {
       await service.calculateOverageCharges('clinic-1', baseUsageData);
 
-      expect(prisma.tierPricing.findUnique).toHaveBeenCalledTimes(1);
+      expect(tierPricingRepo.findByTier as jest.Mock).toHaveBeenCalledTimes(1);
     });
   });
 });

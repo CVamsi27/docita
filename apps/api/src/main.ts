@@ -2,7 +2,11 @@ import './instrument';
 
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { LoggerService, VersioningType } from '@nestjs/common';
+import {
+  type INestApplication,
+  LoggerService,
+  VersioningType,
+} from '@nestjs/common';
 import { ZodValidationPipe, cleanupOpenApiDoc } from 'nestjs-zod';
 import * as Sentry from '@sentry/nestjs';
 import { AllExceptionsFilter } from './shared/modules/error-handling/filters/http-exception.filter';
@@ -27,6 +31,10 @@ import {
   type Response as ExpressResponse,
 } from 'express';
 import { PrismaService } from './prisma/prisma.service';
+
+interface CloseableServer {
+  close(callback?: (err?: Error) => void): void;
+}
 
 const config = validateEnv();
 const appConfigService = new AppConfigService();
@@ -154,8 +162,6 @@ async function waitForDatabase(
         return;
       }
 
-      // Exponential backoff capped at 8s tolerates transient managed-database
-      // startup and network readiness delays without stalling bootstrap.
       const delay = Math.min(BASE_DELAY_MS * 2 ** (attempt - 1), 8_000);
       logger.warn(
         `Dependency check: database not ready (attempt ${attempt}/${MAX_ATTEMPTS}), retrying in ${delay}ms...`,
@@ -177,24 +183,21 @@ async function logExternalDependencyStatus(
   await waitForDatabase(prisma, logger);
 }
 
-async function bootstrap() {
-  // Phase timings — cheap, no deps. Emitted on stdout so they survive
-  // the bufferLogs:true window and show up in Fly logs immediately.
-  // ADR 0011 (Fly cold-start policy) uses these to chase the slow
-  // module that pushes a full restart past Fly's grace_period.
+function createBootstrapTimer(): (name: string) => void {
   const bootStart = Date.now();
   const phaseStart: Record<string, number> = {};
-  function markPhase(name: string): void {
+  return (name: string) => {
     const now = Date.now();
     const last = phaseStart[name] ?? bootStart;
     const delta = now - last;
     const total = now - bootStart;
     process.stdout.write(`[bootstrap] ${name} +${delta}ms (t=${total}ms)\n`);
     phaseStart[name] = now;
-  }
-  markPhase('start');
+  };
+}
 
-  const rawBodySaver = (
+function createRawBodySaver() {
+  return (
     req: ExpressRequest & { rawBody?: Buffer },
     _res: unknown,
     buf: Buffer,
@@ -203,14 +206,22 @@ async function bootstrap() {
       req.rawBody = Buffer.from(buf);
     }
   };
+}
 
+async function createApp(markPhase: (name: string) => void) {
   Sentry.setTag('version', appConfigService.getAppVersion());
 
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   markPhase('NestFactory.create');
   const logger = app.get(Logger);
   app.useLogger(createFilteredBootstrapLogger(logger));
+  return { app, logger };
+}
 
+async function runStartupValidation(
+  app: INestApplication,
+  logger: Logger,
+): Promise<void> {
   try {
     const { StartupValidationService } =
       await import('./shared/modules/services/startup-validation.service');
@@ -222,16 +233,21 @@ async function bootstrap() {
     );
     process.exit(1);
   }
+}
 
+function configureBodyParsing(app: INestApplication): void {
+  const rawBodySaver = createRawBodySaver();
   app.use(json({ limit: '1mb', verify: rawBodySaver }));
   app.use(urlencoded({ limit: '1mb', extended: true, verify: rawBodySaver }));
+}
 
+function configureRobotsRoute(app: INestApplication): void {
   app.use('/robots.txt', (_req: ExpressRequest, res: ExpressResponse) => {
     res.type('text/plain').send('User-agent: *\nDisallow: /');
   });
+}
 
-  const apiUrl = appConfigService.getApiUrl();
-
+function configureSecurityHeaders(app: INestApplication, apiUrl: string): void {
   app.use(
     helmet({
       contentSecurityPolicy: {
@@ -258,7 +274,12 @@ async function bootstrap() {
       crossOriginResourcePolicy: { policy: 'cross-origin' },
     }),
   );
+}
 
+function configureDevelopmentDocsSecurity(
+  app: INestApplication,
+  apiUrl: string,
+): void {
   if (isDevelopment()) {
     app.use(
       '/docs',
@@ -282,7 +303,15 @@ async function bootstrap() {
       }),
     );
   }
+}
 
+function configureSecurity(app: INestApplication): void {
+  const apiUrl = appConfigService.getApiUrl();
+  configureSecurityHeaders(app, apiUrl);
+  configureDevelopmentDocsSecurity(app, apiUrl);
+}
+
+function configureGlobalMiddleware(app: INestApplication): PrismaService {
   app.use(cookieParser());
 
   const monitoringService = app.get(MonitoringService);
@@ -309,7 +338,10 @@ async function bootstrap() {
       threshold: 1024,
     }),
   );
+  return prismaService;
+}
 
+function configureCors(app: INestApplication): void {
   app.enableCors({
     origin: getCorsOrigins(),
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -328,14 +360,18 @@ async function bootstrap() {
     credentials: true,
     maxAge: 86400,
   });
+}
 
+function configureRouting(app: INestApplication): void {
   app.setGlobalPrefix('api');
 
   app.enableVersioning({
     type: VersioningType.URI,
     defaultVersion: '1',
   });
+}
 
+function configureSwagger(app: INestApplication): void {
   if (isDevelopment()) {
     const swaggerConfig = new DocumentBuilder()
       .setTitle('Docita API')
@@ -368,20 +404,15 @@ async function bootstrap() {
       },
     });
   }
+}
 
-  markPhase('middleware-and-pipes');
-
-  const port = config.PORT;
-  const server = await app.listen(port, '0.0.0.0');
-  markPhase('app.listen');
-
-  // Verify external dependencies after binding the port to avoid orchestrator timeouts
-  await logExternalDependencyStatus(logger, appConfigService, prismaService);
-  markPhase('dependency-checks');
-
+function registerShutdownHandlers(
+  app: INestApplication,
+  server: CloseableServer,
+): void {
   const observabilityService = app.get(ObservabilityService);
 
-  const gracefulShutdown = (_signal: string) => {
+  const gracefulShutdown = () => {
     server.close(async () => {
       await observabilityService.flush(5000);
 
@@ -395,13 +426,11 @@ async function bootstrap() {
     }, 15000);
   };
 
-  process.on('SIGTERM', () => {
-    void gracefulShutdown('SIGTERM');
-  });
-  process.on('SIGINT', () => {
-    void gracefulShutdown('SIGINT');
-  });
+  process.on('SIGTERM', gracefulShutdown);
+  process.on('SIGINT', gracefulShutdown);
+}
 
+function registerExceptionTelemetry(): void {
   process.on('unhandledRejection', (reason) => {
     Sentry.captureException(
       reason instanceof Error ? reason : new Error(String(reason)),
@@ -411,6 +440,37 @@ async function bootstrap() {
   process.on('uncaughtException', (error) => {
     Sentry.captureException(error);
   });
+}
+
+function configureApplication(app: INestApplication): PrismaService {
+  configureBodyParsing(app);
+  configureRobotsRoute(app);
+  configureSecurity(app);
+  const prismaService = configureGlobalMiddleware(app);
+  configureCors(app);
+  configureRouting(app);
+  configureSwagger(app);
+  return prismaService;
+}
+
+async function bootstrap() {
+  const markPhase = createBootstrapTimer();
+  markPhase('start');
+
+  const { app, logger } = await createApp(markPhase);
+  await runStartupValidation(app, logger);
+
+  const prismaService = configureApplication(app);
+  markPhase('middleware-and-pipes');
+
+  const server: CloseableServer = await app.listen(config.PORT, '0.0.0.0');
+  markPhase('app.listen');
+
+  await logExternalDependencyStatus(logger, appConfigService, prismaService);
+  markPhase('dependency-checks');
+
+  registerShutdownHandlers(app, server);
+  registerExceptionTelemetry();
 }
 bootstrap().catch((error: Error) => {
   process.stderr.write(
