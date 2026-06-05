@@ -9,6 +9,7 @@ const USER_ROLE_BY_DB_ROLE: Record<Role, UserRole> = {
   NURSE: 'NURSE',
   PATIENT: 'PATIENT',
   RECEPTIONIST: 'RECEPTIONIST',
+  LAB: 'LAB',
 };
 
 export function dbRoleToUserRole(role: Role): UserRole {

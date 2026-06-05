@@ -145,6 +145,7 @@ export interface InvoiceSearchParams {
   clinicId: string;
   patientId?: string;
   status?: string;
+  statuses?: InvoiceStatus[];
   date?: string;
   search?: string;
   cursor?: string;

@@ -72,7 +72,16 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
   async findAll(
     params: InvoiceSearchParams,
   ): Promise<PaginatedResult<InvoiceListItem>> {
-    const { clinicId, patientId, status, date, search, cursor, limit } = params;
+    const {
+      clinicId,
+      patientId,
+      status,
+      statuses,
+      date,
+      search,
+      cursor,
+      limit,
+    } = params;
 
     if (!clinicId) {
       return { items: [], nextCursor: undefined, hasMore: false, count: 0 };
@@ -90,6 +99,8 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     const parsedStatus = parseInvoiceListStatus(status);
     if (parsedStatus) {
       filters.push({ status: parsedStatus });
+    } else if (statuses?.length) {
+      filters.push({ status: { in: statuses } });
     }
 
     if (date) {

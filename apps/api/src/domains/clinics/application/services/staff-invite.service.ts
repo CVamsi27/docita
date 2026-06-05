@@ -142,6 +142,7 @@ export class StaffInviteService {
         role: prismaRole,
         clinicId,
         phoneNumber: data.phoneNumber,
+        ...(prismaRole === Role.LAB && data.labId ? { labId: data.labId } : {}),
         ...(needsDoctorClinic
           ? {
               qualification: data.qualification,

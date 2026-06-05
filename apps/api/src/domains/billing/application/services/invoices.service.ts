@@ -73,6 +73,7 @@ export class InvoicesService {
       limit?: number;
       patientId?: string;
       status?: InvoiceStatus;
+      statuses?: InvoiceStatus[];
       date?: string;
       search?: string;
     },

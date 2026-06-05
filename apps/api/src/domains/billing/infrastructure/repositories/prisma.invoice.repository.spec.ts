@@ -9,6 +9,7 @@ describe('PrismaInvoiceRepository tenant guards', () => {
   const readClient = {
     invoice: {
       findFirst: jest.fn<AnyAsync>(),
+      findMany: jest.fn<AnyAsync>(),
     },
     patient: {
       findFirst: jest.fn<AnyAsync>(),
@@ -75,6 +76,45 @@ describe('PrismaInvoiceRepository tenant guards', () => {
     expect(writeClient.invoice.deleteMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({ id: 'inv-1' }),
+      }),
+    );
+  });
+
+  it('findAll applies multi-status desk filters with clinic and patient scope', async () => {
+    readClient.invoice.findMany.mockResolvedValueOnce([
+      { id: 'pending-inv' },
+      { id: 'partial-inv' },
+    ]);
+
+    const result = await repository.findAll({
+      clinicId: 'clinic-1',
+      patientId: 'patient-1',
+      statuses: ['PENDING', 'PARTIALLY_PAID', 'OVERDUE'],
+      limit: 50,
+    });
+
+    expect(result.items).toEqual([
+      { id: 'pending-inv' },
+      { id: 'partial-inv' },
+    ]);
+    expect(readClient.invoice.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        take: 51,
+        where: {
+          AND: expect.arrayContaining([
+            expect.objectContaining({
+              OR: expect.arrayContaining([
+                expect.objectContaining({ clinicId: 'clinic-1' }),
+                expect.objectContaining({
+                  clinicId: null,
+                  patient: { clinicId: 'clinic-1' },
+                }),
+              ]),
+            }),
+            { patientId: 'patient-1' },
+            { status: { in: ['PENDING', 'PARTIALLY_PAID', 'OVERDUE'] } },
+          ]),
+        },
       }),
     );
   });

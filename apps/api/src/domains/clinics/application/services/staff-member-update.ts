@@ -21,6 +21,7 @@ type MemberUpdatePersistenceData = {
   specialization?: Specialization;
   qualification?: string;
   registrationNumber?: string;
+  labId?: string | null;
 };
 
 const CLINIC_MEMBER_ROLES = new Set<ClinicMemberRole>([
@@ -29,6 +30,7 @@ const CLINIC_MEMBER_ROLES = new Set<ClinicMemberRole>([
   Role.RECEPTIONIST,
   Role.ADMIN,
   Role.ADMIN_DOCTOR,
+  Role.LAB,
 ]);
 
 export function assertCanUpdateMember(params: {
@@ -79,6 +81,13 @@ export function buildMemberUpdateData(
     updateData.qualification = data.qualification;
   if (data.registrationNumber !== undefined) {
     updateData.registrationNumber = data.registrationNumber;
+  }
+  // Lab assignment only applies to LAB members; clearing it for others keeps
+  // the column consistent when a member is re-roled away from the lab.
+  if (data.labId !== undefined) {
+    updateData.labId = data.role === Role.LAB ? data.labId : null;
+  } else if (data.role !== undefined && data.role !== Role.LAB) {
+    updateData.labId = null;
   }
   return updateData;
 }

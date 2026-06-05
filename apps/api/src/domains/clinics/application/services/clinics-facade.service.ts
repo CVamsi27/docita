@@ -50,20 +50,22 @@ interface CreateClinicMemberData {
   email: string;
   password: string;
   phoneNumber?: string;
-  role: 'DOCTOR' | 'NURSE' | 'RECEPTIONIST' | 'ADMIN' | 'ADMIN_DOCTOR';
+  role: 'DOCTOR' | 'NURSE' | 'RECEPTIONIST' | 'ADMIN' | 'ADMIN_DOCTOR' | 'LAB';
   specialization?: string;
   qualification?: string;
   registrationNumber?: string;
+  labId?: string;
 }
 
 interface UpdateMemberData {
   name?: string;
   email?: string;
   phoneNumber?: string;
-  role?: 'DOCTOR' | 'NURSE' | 'RECEPTIONIST' | 'ADMIN' | 'ADMIN_DOCTOR';
+  role?: 'DOCTOR' | 'NURSE' | 'RECEPTIONIST' | 'ADMIN' | 'ADMIN_DOCTOR' | 'LAB';
   specialization?: string;
   qualification?: string;
   registrationNumber?: string;
+  labId?: string;
 }
 
 interface JoinClinicData {

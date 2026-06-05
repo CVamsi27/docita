@@ -14,6 +14,17 @@ export class LabOrder {
     public readonly notes?: string,
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
+    public readonly labId?: string,
+    public readonly orderedBy?: string,
+    public readonly collectedAt?: Date,
+    public readonly completedAt?: Date,
+    public readonly resultUploadedBy?: string,
+    public readonly resultUploadedAt?: Date,
+    public readonly paidAt?: Date,
+    public readonly paymentVerifiedBy?: string,
+    public readonly paymentMethod?: string,
+    public readonly paymentReference?: string,
+    public readonly releasedAt?: Date,
   ) {}
 
   static create(props: {
@@ -28,6 +39,8 @@ export class LabOrder {
     notes?: string;
     createdAt?: Date;
     updatedAt?: Date;
+    labId?: string;
+    orderedBy?: string;
   }): LabOrder {
     if (!props.patientId) {
       throw new InvariantViolationError('Patient ID is required');
@@ -51,6 +64,8 @@ export class LabOrder {
       props.notes,
       props.createdAt,
       props.updatedAt,
+      props.labId,
+      props.orderedBy,
     );
   }
 
@@ -75,6 +90,43 @@ export class LabOrder {
       props.notes ?? this.notes,
       this.createdAt,
       now,
+      this.labId,
+      this.orderedBy,
+      this.collectedAt,
+      this.completedAt,
+      this.resultUploadedBy,
+      this.resultUploadedAt,
+      this.paidAt,
+      this.paymentVerifiedBy,
+      this.paymentMethod,
+      this.paymentReference,
+      this.releasedAt,
     );
+  }
+
+  /** A result file has been uploaded by the lab. */
+  hasResult(): boolean {
+    return Boolean(this.resultUrl);
+  }
+
+  /** Payment for this order has been verified at the hospital front desk. */
+  isPaid(): boolean {
+    return Boolean(this.paidAt);
+  }
+
+  isTerminal(): boolean {
+    return (
+      this.status === LabTestOrderStatus.COMPLETED ||
+      this.status === LabTestOrderStatus.CANCELLED
+    );
+  }
+
+  /**
+   * Results may only be released to the patient once the lab has uploaded a
+   * result AND the front desk has verified payment. A released/cancelled order
+   * cannot be released again.
+   */
+  canRelease(): boolean {
+    return !this.isTerminal() && this.hasResult() && this.isPaid();
   }
 }
