@@ -205,17 +205,21 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                         : "text-muted-foreground hover:text-foreground",
                     )}
                   >
-                    {period === "monthly" ? "Monthly" : "Yearly"}
-                    {period === "yearly" ? (
-                      <span
-                        className={cn(
-                          "ml-1.5 text-[var(--fs-2xs)] font-semibold uppercase tracking-[0.08em]",
-                          active ? "text-primary-foreground/80" : "text-success",
-                        )}
-                      >
-                        2 months free
-                      </span>
-                    ) : null}
+                    <span className="inline-flex items-center gap-1.5">
+                      {period === "monthly" ? "Monthly" : "Yearly"}
+                      {period === "yearly" ? (
+                        <span
+                          className={cn(
+                            "rounded-full px-1.5 py-0.5 text-[var(--fs-2xs)] font-semibold leading-none",
+                            active
+                              ? "bg-primary-foreground/15 text-primary-foreground"
+                              : "bg-success/10 text-success",
+                          )}
+                        >
+                          2 months free
+                        </span>
+                      ) : null}
+                    </span>
                   </button>
                 );
               })}
@@ -241,10 +245,26 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
               : "FULL";
             const isFeatured = tierId === "ESSENTIAL";
             const features = getFeaturesForTier(tierId, effectiveMode, tier.features);
-            const adjustedPrice = applyModeMultiplier(
-              isYearly ? tier.pricing.yearly : tier.pricing.monthly,
+            const adjustedMonthly = applyModeMultiplier(
+              tier.pricing.monthly,
               effectiveMode,
             );
+            const adjustedYearly = applyModeMultiplier(
+              tier.pricing.yearly,
+              effectiveMode,
+            );
+            const adjustedPrice = isYearly ? adjustedYearly : adjustedMonthly;
+            // Full-rate annual cost (12x monthly) used to strike through and
+            // highlight the "2 months free" annual saving.
+            const listYearly =
+              typeof adjustedMonthly === "number" ? adjustedMonthly * 12 : null;
+            const yearlySavings =
+              isYearly &&
+              listYearly !== null &&
+              typeof adjustedYearly === "number" &&
+              listYearly > adjustedYearly
+                ? listYearly - adjustedYearly
+                : null;
             const modeSuffix =
               effectiveMode === "FULL"
                 ? null
@@ -282,20 +302,42 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                   {tier.description}
                 </p>
 
-                <div className="flex items-baseline gap-2">
-                  <span className="r2-price-amount text-foreground">
-                    {formatTierPrice(
-                      adjustedPrice,
-                      FALLBACK_PRICING_CONFIG.currency.symbol,
-                    )}
-                  </span>
-                  <span className="r2-price-unit">
-                    {adjustedPrice === "custom"
-                      ? null
-                      : isYearly
-                        ? "/ year"
-                        : "/ month"}
-                  </span>
+                <div className="space-y-1">
+                  {isYearly && listYearly !== null ? (
+                    <span className="block text-sm font-medium text-muted-foreground line-through">
+                      {formatTierPrice(
+                        listYearly,
+                        FALLBACK_PRICING_CONFIG.currency.symbol,
+                      )}
+                    </span>
+                  ) : null}
+                  <div className="flex items-baseline gap-2">
+                    <span className="r2-price-amount text-foreground">
+                      {formatTierPrice(
+                        adjustedPrice,
+                        FALLBACK_PRICING_CONFIG.currency.symbol,
+                      )}
+                    </span>
+                    <span className="r2-price-unit">
+                      {adjustedPrice === "custom"
+                        ? null
+                        : isYearly
+                          ? "/ year"
+                          : "/ month"}
+                    </span>
+                  </div>
+                  {yearlySavings !== null ? (
+                    <span className="inline-flex items-center rounded-full bg-success/10 px-2 py-0.5 text-[var(--fs-2xs)] font-semibold text-success">
+                      Save{" "}
+                      {formatTierPrice(
+                        yearlySavings,
+                        FALLBACK_PRICING_CONFIG.currency.symbol,
+                      )}{" "}
+                      a year
+                    </span>
+                  ) : isYearly ? (
+                    <span className="block h-[1.125rem]" aria-hidden />
+                  ) : null}
                 </div>
 
                 <ul className="space-y-1.5" role="list">
