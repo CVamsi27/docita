@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { InvoiceListRow } from "@workspace/types";
+import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
 import { DeskCollectPaymentPageUI } from "./DeskCollectPaymentPageUI";
 
 const deskMocks = vi.hoisted(() => ({
@@ -8,7 +9,7 @@ const deskMocks = vi.hoisted(() => ({
   useDeskOpenInvoices: vi.fn(),
   recordSettlement: {
     isPending: false,
-    mutateAsync: vi.fn(),
+    mutateAsync: vi.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -93,12 +94,24 @@ describe("DeskCollectPaymentPageUI", () => {
       }),
     ];
 
-    render(<DeskCollectPaymentPageUI />);
+    render(
+      <TooltipProvider>
+        <DeskCollectPaymentPageUI />
+      </TooltipProvider>,
+    );
+
+    const searchInput = screen.getByLabelText("Search patients");
+    fireEvent.change(searchInput, { target: { value: "Asha" } });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Asha Rao/i })).toBeInTheDocument();
+    });
 
     fireEvent.click(screen.getByRole("button", { name: /Asha Rao/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("#INV-OPEN")).toBeInTheDocument();
+      const invTexts = screen.getAllByText("#INV-OPEN");
+      expect(invTexts.length).toBeGreaterThan(0);
     });
     expect(screen.queryByText("#INV-PAID")).not.toBeInTheDocument();
   });
@@ -112,7 +125,18 @@ describe("DeskCollectPaymentPageUI", () => {
       }),
     ];
 
-    render(<DeskCollectPaymentPageUI />);
+    render(
+      <TooltipProvider>
+        <DeskCollectPaymentPageUI />
+      </TooltipProvider>,
+    );
+
+    const searchInput = screen.getByLabelText("Search patients");
+    fireEvent.change(searchInput, { target: { value: "Asha" } });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Asha Rao/i })).toBeInTheDocument();
+    });
 
     fireEvent.click(screen.getByRole("button", { name: /Asha Rao/i }));
 

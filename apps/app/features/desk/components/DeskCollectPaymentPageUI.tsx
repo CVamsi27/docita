@@ -17,11 +17,9 @@ import { useDeskOpenInvoices } from "@/features/desk/hooks/use-desk-open-invoice
 import { useDeskRecordInvoiceSettlement } from "@/features/desk/hooks/use-desk-record-invoice-settlement";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import { useAuth } from "@/lib/auth/auth-context";
-import {
-  OpenInvoicesSection,
-  PatientSearchSection,
-  RecordPaymentDialog,
-} from "./DeskCollectPaymentSections";
+import { DeskPatientSearch } from "./DeskPatientSearch";
+import { DeskOpenInvoices } from "./DeskOpenInvoices";
+import { RecordPaymentDialog } from "./desk-record-payment-dialog";
 
 export function DeskCollectPaymentPageUI() {
   const clinicCurrency = useClinicCurrency();
@@ -74,11 +72,6 @@ export function DeskCollectPaymentPageUI() {
     return openInvoicesResponse.items.filter(isOpenDeskInvoice);
   }, [openInvoicesResponse]);
 
-  const selectedPatient = useMemo(
-    () => patients.find((p) => p.id === selectedPatientId) ?? null,
-    [patients, selectedPatientId],
-  );
-
   useEffect(() => {
     if (!dialogInvoice) return;
     setPaymentMethod("CASH");
@@ -86,25 +79,27 @@ export function DeskCollectPaymentPageUI() {
     setNotes("");
   }, [dialogInvoice]);
 
+  const hasSearchQuery = searchQuery.trim().length > 0;
+
   const patientsState = patientsLoading
     ? "loading"
     : patientsError
       ? "error"
-      : "success";
-
-  const invoicesState =
-    selectedPatientId === null
-      ? "success"
-      : invoicesLoading
-        ? "loading"
-        : invoicesError
-          ? "error"
-          : openInvoices.length === 0
-            ? "empty"
-            : "success";
+      : patients.length === 0 && hasSearchQuery
+        ? "empty"
+        : "success";
 
   const formatMoney = (amount: number | undefined) =>
     clinicCurrency.formatCurrency(amount ?? 0);
+
+  const handleClearPatient = () => {
+    setSelectedPatientId(null);
+  };
+
+  const handleSelectPatient = (patientId: string) => {
+    setSelectedPatientId(patientId);
+    setSearchQuery("");
+  };
 
   const handleRecordSubmit = async () => {
     if (!dialogInvoice?.id || !canRecordPayment) return;
@@ -115,6 +110,7 @@ export function DeskCollectPaymentPageUI() {
       notes: notes.trim() || undefined,
     });
     setDialogInvoice(null);
+    refetchInvoices();
   };
 
   return (
@@ -122,7 +118,7 @@ export function DeskCollectPaymentPageUI() {
       header={
         <PageHeader
           title="Payment desk"
-          description="Record cash, card terminal, or UPI collections against visit invoices. This desk flow is separate from online payment links and subscription billing."
+          description="Record cash, card, or UPI payments collected at the front desk against open invoices."
           actions={
             <Button variant="outline" size="sm" asChild>
               <Link href="/invoices">Open invoice billing</Link>
@@ -131,22 +127,24 @@ export function DeskCollectPaymentPageUI() {
         />
       }
     >
-      <div className="grid gap-6 lg:grid-cols-2">
-        <PatientSearchSection
+      <div className="space-y-6">
+        <DeskPatientSearch
           searchQuery={searchQuery}
           selectedPatientId={selectedPatientId}
           patients={patients}
           patientsState={patientsState}
           onSearchChange={setSearchQuery}
-          onSelectPatient={setSelectedPatientId}
+          onSelectPatient={handleSelectPatient}
+          onClearPatient={handleClearPatient}
           onRetry={() => void refetchPatients()}
+          hasSearchQuery={hasSearchQuery}
         />
 
-        <OpenInvoicesSection
+        <DeskOpenInvoices
           selectedPatientId={selectedPatientId}
-          selectedPatient={selectedPatient}
-          openInvoices={openInvoices}
-          invoicesState={invoicesState}
+          invoices={openInvoices}
+          loading={invoicesLoading}
+          error={invoicesError}
           canRecordPayment={canRecordPayment}
           isRecordingPayment={recordSettlement.isPending}
           formatMoney={formatMoney}
