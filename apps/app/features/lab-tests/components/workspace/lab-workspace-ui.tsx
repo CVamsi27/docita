@@ -170,9 +170,10 @@ export const LabWorkspaceUI: FC<LabWorkspaceUIProps> = ({
         </div>
         <Select
           value={statusFilter}
-          onValueChange={(value) =>
-            setStatusFilter(value as LabQueueStatusFilter)
-          }
+          onValueChange={(value) => {
+            const found = STATUS_OPTIONS.find((o) => o.value === value);
+            if (found) setStatusFilter(found.value);
+          }}
         >
           <SelectTrigger className="sm:w-56">
             <SelectValue placeholder="Filter by status" />

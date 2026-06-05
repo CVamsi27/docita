@@ -24,7 +24,10 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
 
-const PAYMENT_METHODS: { value: string; label: string }[] = [
+const PAYMENT_METHODS: {
+  value: VerifyLabOrderPaymentRequest["paymentMethod"];
+  label: string;
+}[] = [
   { value: "CASH", label: "Cash" },
   { value: "CARD_POS", label: "Card (POS)" },
   { value: "UPI_QR", label: "UPI / QR" },
@@ -66,8 +69,10 @@ export const LabOrderRowActions: FC<LabOrderRowActionsProps> = ({
   const canRelease = Boolean(order.resultUrl) && Boolean(order.paidAt);
 
   const submitPayment = () => {
+    const entry = PAYMENT_METHODS.find((pm) => pm.value === method);
+    if (!entry) return;
     onVerifyPayment(order, {
-      paymentMethod: method as VerifyLabOrderPaymentRequest["paymentMethod"],
+      paymentMethod: entry.value,
       ...(reference.trim() && { reference: reference.trim() }),
     });
     setPaymentOpen(false);

@@ -60,7 +60,7 @@ export function useLabWorkspace(options?: { canVerifyPayment?: boolean }) {
     recordSample.mutate(
       { id: item.id },
       {
-        onSuccess: () => toast.success("Sample marked as received"),
+        onSuccess: () => toast.success("Sample marked received"),
         onError: (error) => showUserFacingErrorToast(error),
       },
     );
