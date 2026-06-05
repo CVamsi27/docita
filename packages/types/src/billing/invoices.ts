@@ -235,6 +235,7 @@ export function normalizeInvoiceListRowInput(input: unknown): unknown {
 
 const invoiceListRowBaseSchema = invoiceSchema.omit({ patient: true }).extend({
   patient: invoiceListPatientSchema.nullish().optional(),
+  items: z.array(invoiceItemSchema).optional().default([]),
 });
 
 /** Parsed invoice row for clinic-wide and patient-scoped list endpoints. */
