@@ -1,0 +1,67 @@
+name: Scale API - IST Business Hours
+
+on:
+  schedule:
+    # 8:30 AM IST = 3:00 AM UTC — scale up to 1 machine
+    - cron: "0 3 * * *"
+    # 8:30 PM IST = 15:00 PM UTC — scale down to 0 machines
+    - cron: "0 15 * * *"
+  workflow_dispatch:
+    inputs:
+      count:
+        description: "Machine count (0=off-hours, 1=business-hours)"
+        required: true
+        type: choice
+        options:
+          - "0"
+          - "1"
+
+concurrency:
+  group: scale-api-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  scale:
+    name: Scale API Machines
+    runs-on: ubuntu-latest
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Determine target count
+        id: target
+        run: |
+          if [ -n "${{ inputs.count }}" ]; then
+            echo "count=${{ inputs.count }}" >> "$GITHUB_OUTPUT"
+            echo "reason=manual dispatch" >> "$GITHUB_OUTPUT"
+          else
+            HOUR=$(date -u +%H)
+            if [ "$HOUR" -ge 3 ] && [ "$HOUR" -lt 15 ]; then
+              echo "count=1" >> "$GITHUB_OUTPUT"
+              echo "reason=business hours (8:30 AM – 8:30 PM IST)" >> "$GITHUB_OUTPUT"
+            else
+              echo "count=0" >> "$GITHUB_OUTPUT"
+              echo "reason=off-hours (8:30 PM – 8:30 AM IST)" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Setup flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Read Fly app name
+        id: fly-config
+        run: |
+          app_name="$(ruby -e 'puts File.read("fly.toml")[/^\s*app\s*=\s*["'\''""]([^"'\''""]+)["'\''""]\s*$/, 1]')"
+          if [ -z "$app_name" ]; then
+            echo "Unable to read Fly app name from fly.toml"
+            exit 1
+          fi
+          echo "app_name=$app_name" >> "$GITHUB_OUTPUT"
+
+      - name: Scale API machines
+        run: |
+          echo "Scaling ${{ steps.fly-config.outputs.app_name }} to ${{ steps.target.outputs.count }} machine(s) — ${{ steps.target.outputs.reason }}"
+          flyctl scale count "${{ steps.target.outputs.count }}" \
+            --app "${{ steps.fly-config.outputs.app_name }}" \
+            --yes

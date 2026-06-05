@@ -23,12 +23,12 @@ primary_region = 'bom'
 [http_service]
   internal_port = 3001
   force_https = true
-  # Keep one production API machine available. Additional machines may suspend
-  # when idle so scale-out capacity remains cost-aware without putting the
-  # clinician request path behind a cold wake. See ADR 0011.
+  # Keep one machine running during IST business hours (8:30 AM–8:30 PM) and
+  # zero during off-hours. The scale-api-hours.yml workflow adjusts the count
+  # on a schedule; this floor allows the off-hours zero-machine state.
   auto_stop_machines = 'suspend'
   auto_start_machines = true
-  min_machines_running = 1
+  min_machines_running = 0
 
   [http_service.concurrency]
     type = 'requests'
