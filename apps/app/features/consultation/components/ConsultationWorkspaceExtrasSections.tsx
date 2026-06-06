@@ -70,62 +70,11 @@ export function ViewActionsInline({
 }: ViewActionsProps) {
   return (
     <>
-      {canViewPrescriptions ? (
-        <Button
-          variant="outline"
-          size="sm"
-          className="hidden md:inline-flex"
-          asChild
-        >
-          <Link href={`/prescriptions?patientId=${encodeURIComponent(patientId)}`}>
-            View prescriptions
-          </Link>
-        </Button>
-      ) : null}
-      {canViewInvoices ? (
-        <Button
-          variant="outline"
-          size="sm"
-          className="hidden md:inline-flex"
-          asChild
-        >
-          <Link href={`/patients/${patientId}?tab=billing`}>View invoices</Link>
-        </Button>
-      ) : null}
-      {canLab ? (
-        <Button
-          variant="outline"
-          size="sm"
-          className="hidden lg:inline-flex"
-          asChild
-        >
-          <Link href={`/patients/${patientId}?tab=records&subtab=labs`}>
-            View lab tests
-          </Link>
-        </Button>
-      ) : null}
-      {canWhatsapp ? (
-        <Button
-          variant="outline"
-          size="sm"
-          className="hidden lg:inline-flex"
-          asChild
-        >
-          <Link href={`/patients/${patientId}?tab=communication`}>
-            View messages
-          </Link>
-        </Button>
-      ) : null}
-      {completed && canCodingQueue ? (
-        <Button
-          variant="outline"
-          size="sm"
-          className="hidden lg:inline-flex"
-          asChild
-        >
-          <Link href="/coding-queue">Coding queue</Link>
-        </Button>
-      ) : null}
+      {canViewPrescriptions ? <Button variant="outline" size="sm" className="hidden md:inline-flex" asChild><Link href={`/prescriptions?patientId=${encodeURIComponent(patientId)}`}>View prescriptions</Link></Button> : null}
+      {canViewInvoices ? <Button variant="outline" size="sm" className="hidden md:inline-flex" asChild><Link href={`/patients/${patientId}?tab=billing`}>View invoices</Link></Button> : null}
+      {canLab ? <Button variant="outline" size="sm" className="hidden lg:inline-flex" asChild><Link href={`/patients/${patientId}?tab=records&subtab=labs`}>View lab tests</Link></Button> : null}
+      {canWhatsapp ? <Button variant="outline" size="sm" className="hidden lg:inline-flex" asChild><Link href={`/patients/${patientId}?tab=communication`}>View messages</Link></Button> : null}
+      {completed && canCodingQueue ? <Button variant="outline" size="sm" className="hidden lg:inline-flex" asChild><Link href="/coding-queue">Coding queue</Link></Button> : null}
     </>
   );
 }
@@ -139,24 +88,12 @@ export function ViewActionsOverflow({
   completed,
   canCodingQueue,
 }: ViewActionsProps) {
-  const hasAny =
-    canViewPrescriptions ||
-    canViewInvoices ||
-    canLab ||
-    canWhatsapp ||
-    (completed && canCodingQueue);
-
+  const hasAny = canViewPrescriptions || canViewInvoices || canLab || canWhatsapp || (completed && canCodingQueue);
   if (!hasAny) return null;
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="md:hidden gap-1.5"
-          aria-label="More options"
-        >
+        <Button variant="outline" size="sm" className="md:hidden gap-1.5" aria-label="More options">
           <MoreHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
           More
         </Button>
@@ -164,37 +101,11 @@ export function ViewActionsOverflow({
       <DropdownMenuContent align="start">
         <DropdownMenuLabel>Patient records</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {canViewPrescriptions ? (
-          <DropdownMenuItem asChild>
-            <Link href={`/prescriptions?patientId=${encodeURIComponent(patientId)}`}>
-              View prescriptions
-            </Link>
-          </DropdownMenuItem>
-        ) : null}
-        {canViewInvoices ? (
-          <DropdownMenuItem asChild>
-            <Link href={`/patients/${patientId}?tab=billing`}>View invoices</Link>
-          </DropdownMenuItem>
-        ) : null}
-        {canLab ? (
-          <DropdownMenuItem asChild>
-            <Link href={`/patients/${patientId}?tab=records&subtab=labs`}>
-              View lab tests
-            </Link>
-          </DropdownMenuItem>
-        ) : null}
-        {canWhatsapp ? (
-          <DropdownMenuItem asChild>
-            <Link href={`/patients/${patientId}?tab=communication`}>
-              View messages
-            </Link>
-          </DropdownMenuItem>
-        ) : null}
-        {completed && canCodingQueue ? (
-          <DropdownMenuItem asChild>
-            <Link href="/coding-queue">Coding queue</Link>
-          </DropdownMenuItem>
-        ) : null}
+        {canViewPrescriptions ? <DropdownMenuItem asChild><Link href={`/prescriptions?patientId=${encodeURIComponent(patientId)}`}>View prescriptions</Link></DropdownMenuItem> : null}
+        {canViewInvoices ? <DropdownMenuItem asChild><Link href={`/patients/${patientId}?tab=billing`}>View invoices</Link></DropdownMenuItem> : null}
+        {canLab ? <DropdownMenuItem asChild><Link href={`/patients/${patientId}?tab=records&subtab=labs`}>View lab tests</Link></DropdownMenuItem> : null}
+        {canWhatsapp ? <DropdownMenuItem asChild><Link href={`/patients/${patientId}?tab=communication`}>View messages</Link></DropdownMenuItem> : null}
+        {completed && canCodingQueue ? <DropdownMenuItem asChild><Link href="/coding-queue">Coding queue</Link></DropdownMenuItem> : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );

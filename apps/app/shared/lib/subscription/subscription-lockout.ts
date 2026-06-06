@@ -91,15 +91,8 @@ export function isSubscriptionBillingHardLocked(
   } | null | undefined,
   now: number = Date.now(),
 ): boolean {
-  if (isPastSubscriptionGraceDeadline(clinic, now)) {
-    return true;
-  }
-  return isRenewalUnpaidWithOutstandingPending({
-    hasOutstandingPendingPayment:
-      billing?.hasOutstandingPendingPayment === true,
-    currentPeriodEnd: billing?.currentPeriodEnd ?? null,
-    now,
-  });
+  if (isPastSubscriptionGraceDeadline(clinic, now)) return true;
+  return isRenewalUnpaidWithOutstandingPending({ hasOutstandingPendingPayment: billing?.hasOutstandingPendingPayment === true, currentPeriodEnd: billing?.currentPeriodEnd ?? null, now });
 }
 
 export function isBillingAdminRole(role: string | undefined): boolean {

@@ -53,62 +53,23 @@ export class PDFGeneratorService implements IPdfDocumentRenderer {
       const margin = config.margin ?? 50;
       const doc = new PDFDocument({ margin, size: 'A4' });
       const buffers: Buffer[] = [];
-
       doc.on('data', buffers.push.bind(buffers));
       doc.on('end', () => resolve(Buffer.concat(buffers)));
       doc.on('error', reject);
-
       const context = {
         currentY: margin,
         pageWidth: doc.page.width,
         contentWidth: doc.page.width - margin * 2,
         margin,
       };
-
       try {
-        context.currentY = this.layout.renderClinicHeader(
-          doc,
-          config.clinic,
-          context,
-          config.type,
-        );
-
-        context.currentY = this.layout.renderDocumentTitle(
-          doc,
-          config.title,
-          config.documentId,
-          config.date,
-          context,
-          config.showRxSymbol,
-        );
-
-        if (config.patient || config.doctor) {
-          context.currentY = this.layout.renderPatientDoctorInfo(
-            doc,
-            config.patient,
-            config.doctor,
-            context,
-          );
-        }
-
+        context.currentY = this.layout.renderClinicHeader(doc, config.clinic, context, config.type);
+        context.currentY = this.layout.renderDocumentTitle(doc, config.title, config.documentId, config.date, context, config.showRxSymbol);
+        if (config.patient || config.doctor) context.currentY = this.layout.renderPatientDoctorInfo(doc, config.patient, config.doctor, context);
         context.currentY += 15;
-
-        for (const section of config.sections) {
-          section(doc, context, this.layout);
-        }
-
-        if (config.doctor) {
-          context.currentY = this.layout.renderDoctorSignature(
-            doc,
-            config.doctor,
-            context,
-          );
-        }
-
-        if (config.footerText) {
-          this.layout.renderFooter(doc, config.footerText);
-        }
-
+        for (const section of config.sections) section(doc, context, this.layout);
+        if (config.doctor) context.currentY = this.layout.renderDoctorSignature(doc, config.doctor, context);
+        if (config.footerText) this.layout.renderFooter(doc, config.footerText);
         doc.end();
       } catch (error) {
         this.logger.error('Error generating PDF', error);

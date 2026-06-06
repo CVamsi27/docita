@@ -96,70 +96,26 @@ export class PublicPatientDocumentsService {
     try {
       const prescription = await this.prisma.prescription.findUnique({
         where: { id: prescriptionId },
-        select: {
-          pdfUrl: true,
-          clinicId: true,
-          appointment: { select: { clinicId: true } },
-        },
+        select: { pdfUrl: true, clinicId: true, appointment: { select: { clinicId: true } } },
       });
-
       if (!prescription) throw new NotFoundException('Prescription not found');
 
-      const clinicId =
-        prescription.clinicId ?? prescription.appointment?.clinicId;
+      const clinicId = prescription.clinicId ?? prescription.appointment?.clinicId;
       if (!clinicId) throw new NotFoundException('Prescription not found');
 
       const pdfUrl = prescription.pdfUrl;
 
       if (pdfUrl) {
-        const { buffer, contentType } =
-          await this.storageProvider.getObject(pdfUrl);
-
-        this.logAccess({
-          type: 'prescription',
-          documentId: prescriptionId,
-          clinicId,
-          ipAddress,
-          userAgent,
-          success: true,
-        });
-
-        return {
-          buffer,
-          filename: `prescription-${prescriptionId}.pdf`,
-          contentType,
-        };
+        const { buffer, contentType } = await this.storageProvider.getObject(pdfUrl);
+        this.logAccess({ type: 'prescription', documentId: prescriptionId, clinicId, ipAddress, userAgent, success: true });
+        return { buffer, filename: `prescription-${prescriptionId}.pdf`, contentType };
       }
 
-      const buffer = await this.prescriptionPdfOrchestrator.generatePDF(
-        prescriptionId,
-        clinicId,
-      );
-
-      this.logAccess({
-        type: 'prescription',
-        documentId: prescriptionId,
-        clinicId,
-        ipAddress,
-        userAgent,
-        success: true,
-      });
-
-      return {
-        buffer,
-        filename: `prescription-${prescriptionId}.pdf`,
-        contentType: 'application/pdf',
-      };
+      const buffer = await this.prescriptionPdfOrchestrator.generatePDF(prescriptionId, clinicId);
+      this.logAccess({ type: 'prescription', documentId: prescriptionId, clinicId, ipAddress, userAgent, success: true });
+      return { buffer, filename: `prescription-${prescriptionId}.pdf`, contentType: 'application/pdf' };
     } catch (error) {
-      this.logAccess({
-        type: 'prescription',
-        documentId: prescriptionId,
-        clinicId: '',
-        ipAddress,
-        userAgent,
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
+      this.logAccess({ type: 'prescription', documentId: prescriptionId, clinicId: '', ipAddress, userAgent, success: false, error: error instanceof Error ? error.message : 'Unknown error' });
       throw error;
     }
   }
@@ -172,13 +128,8 @@ export class PublicPatientDocumentsService {
     try {
       const invoice = await this.prisma.invoice.findUnique({
         where: { id: invoiceId },
-        select: {
-          pdfUrl: true,
-          clinicId: true,
-          appointment: { select: { clinicId: true } },
-        },
+        select: { pdfUrl: true, clinicId: true, appointment: { select: { clinicId: true } } },
       });
-
       if (!invoice) throw new NotFoundException('Invoice not found');
 
       const clinicId = invoice.clinicId ?? invoice.appointment?.clinicId;
@@ -187,65 +138,18 @@ export class PublicPatientDocumentsService {
       const pdfUrl = invoice.pdfUrl;
 
       if (pdfUrl) {
-        const { buffer, contentType } =
-          await this.storageProvider.getObject(pdfUrl);
-
-        this.logAccess({
-          type: 'invoice',
-          documentId: invoiceId,
-          clinicId,
-          ipAddress,
-          userAgent,
-          success: true,
-        });
-
-        return {
-          buffer,
-          filename: `invoice-${invoiceId}.pdf`,
-          contentType,
-        };
+        const { buffer, contentType } = await this.storageProvider.getObject(pdfUrl);
+        this.logAccess({ type: 'invoice', documentId: invoiceId, clinicId, ipAddress, userAgent, success: true });
+        return { buffer, filename: `invoice-${invoiceId}.pdf`, contentType };
       }
 
-      const buffer = await this.invoicesQueryService.generatePDF(
-        invoiceId,
-        clinicId,
-      );
-
-      const invoiceDetail = await this.invoicesQueryService.findOne(
-        invoiceId,
-        clinicId,
-      );
-      await this.invoicesCommandService.uploadAndPersist(
-        invoiceId,
-        clinicId,
-        buffer,
-        invoiceDetail,
-      );
-
-      this.logAccess({
-        type: 'invoice',
-        documentId: invoiceId,
-        clinicId,
-        ipAddress,
-        userAgent,
-        success: true,
-      });
-
-      return {
-        buffer,
-        filename: `invoice-${invoiceId}.pdf`,
-        contentType: 'application/pdf',
-      };
+      const buffer = await this.invoicesQueryService.generatePDF(invoiceId, clinicId);
+      const invoiceDetail = await this.invoicesQueryService.findOne(invoiceId, clinicId);
+      await this.invoicesCommandService.uploadAndPersist(invoiceId, clinicId, buffer, invoiceDetail);
+      this.logAccess({ type: 'invoice', documentId: invoiceId, clinicId, ipAddress, userAgent, success: true });
+      return { buffer, filename: `invoice-${invoiceId}.pdf`, contentType: 'application/pdf' };
     } catch (error) {
-      this.logAccess({
-        type: 'invoice',
-        documentId: invoiceId,
-        clinicId: '',
-        ipAddress,
-        userAgent,
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
+      this.logAccess({ type: 'invoice', documentId: invoiceId, clinicId: '', ipAddress, userAgent, success: false, error: error instanceof Error ? error.message : 'Unknown error' });
       throw error;
     }
   }

@@ -1,5 +1,3 @@
-
-
 import { ALLOWED_EXTENSIONS, MAX_FILE_SIZE } from "@workspace/utils";
 
 export type DocumentType =

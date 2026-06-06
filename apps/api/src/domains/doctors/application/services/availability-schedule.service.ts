@@ -52,23 +52,19 @@ export class AvailabilityScheduleService {
     slotDuration?: number;
     isActive?: boolean;
   }) {
-    if (!TimeUtils.validateTimeFormat(data.startTime)) {
+    if (!TimeUtils.validateTimeFormat(data.startTime))
       throw new BadRequestException(
         `Invalid start time format: ${data.startTime}. Use HH:MM format.`,
       );
-    }
-    if (!TimeUtils.validateTimeFormat(data.endTime)) {
+    if (!TimeUtils.validateTimeFormat(data.endTime))
       throw new BadRequestException(
         `Invalid end time format: ${data.endTime}. Use HH:MM format.`,
       );
-    }
-
     if (
       TimeUtils.timeToMinutes(data.endTime) <=
       TimeUtils.timeToMinutes(data.startTime)
-    ) {
+    )
       throw new BadRequestException('End time must be after start time');
-    }
 
     const existing = await this.repository.findScheduleByDoctorClinicDay(
       data.doctorId,
@@ -76,19 +72,12 @@ export class AvailabilityScheduleService {
       data.dayOfWeek,
     );
 
-    if (existing)
-      throw new BadRequestException(
-        `Schedule already exists for this day. Use update instead.`,
-      );
+    if (existing) throw new BadRequestException(`Schedule already exists for this day. Use update instead.`);
 
     return this.repository.createSchedule({
-      doctor: { connect: { id: data.doctorId } },
-      clinic: { connect: { id: data.clinicId } },
-      dayOfWeek: data.dayOfWeek,
-      startTime: data.startTime,
-      endTime: data.endTime,
-      slotDuration: data.slotDuration || 30,
-      isActive: data.isActive ?? true,
+      doctor: { connect: { id: data.doctorId } }, clinic: { connect: { id: data.clinicId } },
+      dayOfWeek: data.dayOfWeek, startTime: data.startTime, endTime: data.endTime,
+      slotDuration: data.slotDuration || 30, isActive: data.isActive ?? true,
     });
   }
 
@@ -102,34 +91,29 @@ export class AvailabilityScheduleService {
     },
     options?: { clinicId?: string; actorUserId?: string; actorRole?: Role },
   ) {
-    if (data.startTime && !TimeUtils.validateTimeFormat(data.startTime)) {
+    if (data.startTime && !TimeUtils.validateTimeFormat(data.startTime))
       throw new BadRequestException(
         `Invalid start time format: ${data.startTime}. Use HH:MM format.`,
       );
-    }
-    if (data.endTime && !TimeUtils.validateTimeFormat(data.endTime)) {
+    if (data.endTime && !TimeUtils.validateTimeFormat(data.endTime))
       throw new BadRequestException(
         `Invalid end time format: ${data.endTime}. Use HH:MM format.`,
       );
-    }
 
     const schedule = await this.repository.findScheduleById(id);
 
     if (
       !schedule ||
       (options?.clinicId && schedule.clinicId !== options.clinicId)
-    ) {
+    )
       throw new NotFoundException('Schedule not found');
-    }
 
     const isAdmin =
       options?.actorRole === Role.ADMIN ||
       options?.actorRole === Role.ADMIN_DOCTOR;
     if (!isAdmin) {
-      if (!options?.actorUserId)
-        throw new ForbiddenException('Authenticated user is required');
-      if (schedule.doctorId !== options.actorUserId)
-        throw new ForbiddenException('You can only manage your own schedule');
+      if (!options?.actorUserId) throw new ForbiddenException('Authenticated user is required');
+      if (schedule.doctorId !== options.actorUserId) throw new ForbiddenException('You can only manage your own schedule');
     }
 
     const newStartTime = data.startTime || schedule.startTime;
@@ -138,9 +122,8 @@ export class AvailabilityScheduleService {
     if (
       TimeUtils.timeToMinutes(newEndTime) <=
       TimeUtils.timeToMinutes(newStartTime)
-    ) {
+    )
       throw new BadRequestException('End time must be after start time');
-    }
 
     return this.repository.updateSchedule(id, data);
   }
@@ -154,18 +137,15 @@ export class AvailabilityScheduleService {
     if (
       !schedule ||
       (options?.clinicId && schedule.clinicId !== options.clinicId)
-    ) {
+    )
       throw new NotFoundException('Schedule not found');
-    }
 
     const isAdmin =
       options?.actorRole === Role.ADMIN ||
       options?.actorRole === Role.ADMIN_DOCTOR;
     if (!isAdmin) {
-      if (!options?.actorUserId)
-        throw new ForbiddenException('Authenticated user is required');
-      if (schedule.doctorId !== options.actorUserId)
-        throw new ForbiddenException('You can only manage your own schedule');
+      if (!options?.actorUserId) throw new ForbiddenException('Authenticated user is required');
+      if (schedule.doctorId !== options.actorUserId) throw new ForbiddenException('You can only manage your own schedule');
     }
 
     await this.repository.deleteSchedule(id);
@@ -184,35 +164,26 @@ export class AvailabilityScheduleService {
     }>,
   ) {
     for (const schedule of schedules) {
-      if (!TimeUtils.validateTimeFormat(schedule.startTime)) {
+      if (!TimeUtils.validateTimeFormat(schedule.startTime))
         throw new BadRequestException(
           `Invalid start time format for ${schedule.dayOfWeek}`,
         );
-      }
-      if (!TimeUtils.validateTimeFormat(schedule.endTime)) {
+      if (!TimeUtils.validateTimeFormat(schedule.endTime))
         throw new BadRequestException(
           `Invalid end time format for ${schedule.dayOfWeek}`,
         );
-      }
       if (
         TimeUtils.timeToMinutes(schedule.endTime) <=
         TimeUtils.timeToMinutes(schedule.startTime)
-      ) {
+      )
         throw new BadRequestException(
           `End time must be after start time for ${schedule.dayOfWeek}`,
         );
-      }
     }
 
     await this.repository.deleteManySchedules(doctorId, clinicId);
 
-    await this.repository.createManySchedules(
-      schedules.map((s) => ({
-        ...s,
-        doctorId,
-        clinicId,
-      })),
-    );
+    await this.repository.createManySchedules(schedules.map((s) => ({ ...s, doctorId, clinicId })));
 
     return { count: schedules.length };
   }
@@ -258,35 +229,26 @@ export class AvailabilityScheduleService {
         throw new BadRequestException(
           'Start time and end time are required for partial day off',
         );
-      if (!TimeUtils.validateTimeFormat(data.startTime)) {
+      if (!TimeUtils.validateTimeFormat(data.startTime))
         throw new BadRequestException('Invalid start time format');
-      }
-      if (!TimeUtils.validateTimeFormat(data.endTime)) {
+      if (!TimeUtils.validateTimeFormat(data.endTime))
         throw new BadRequestException('Invalid end time format');
-      }
       if (
         TimeUtils.timeToMinutes(data.endTime) <=
         TimeUtils.timeToMinutes(data.startTime)
-      ) {
+      )
         throw new BadRequestException(
           'Partial-day time-off endTime must be after startTime',
         );
-      }
     }
 
-    return this.repository.createTimeOff(
-      {
-        doctor: { connect: { id: data.doctorId } },
-        clinic: data.clinicId ? { connect: { id: data.clinicId } } : undefined,
-        startDate,
-        endDate,
-        reason: data.reason,
-        isFullDay: data.isFullDay ?? true,
-        startTime: data.startTime || null,
-        endTime: data.endTime || null,
-      },
-      tx,
-    );
+    return this.repository.createTimeOff({
+      doctor: { connect: { id: data.doctorId } },
+      clinic: data.clinicId ? { connect: { id: data.clinicId } } : undefined,
+      startDate, endDate, reason: data.reason,
+      isFullDay: data.isFullDay ?? true,
+      startTime: data.startTime || null, endTime: data.endTime || null,
+    }, tx);
   }
 
   async deleteTimeOff(
@@ -298,18 +260,15 @@ export class AvailabilityScheduleService {
     if (
       !timeOff ||
       (options?.clinicId && timeOff.clinicId !== options.clinicId)
-    ) {
+    )
       throw new NotFoundException('Time off record not found');
-    }
 
     const isAdmin =
       options?.actorRole === Role.ADMIN ||
       options?.actorRole === Role.ADMIN_DOCTOR;
     if (!isAdmin) {
-      if (!options?.actorUserId)
-        throw new ForbiddenException('Authenticated user is required');
-      if (timeOff.doctorId !== options.actorUserId)
-        throw new ForbiddenException('You can only manage your own time off');
+      if (!options?.actorUserId) throw new ForbiddenException('Authenticated user is required');
+      if (timeOff.doctorId !== options.actorUserId) throw new ForbiddenException('You can only manage your own time off');
     }
 
     await this.repository.deleteTimeOff(id);

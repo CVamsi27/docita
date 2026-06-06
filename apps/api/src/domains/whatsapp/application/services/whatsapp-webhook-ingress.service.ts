@@ -57,14 +57,11 @@ export class WhatsAppWebhookIngressService {
 
   async processIncomingMessages(value: WebhookChangeValue): Promise<void> {
     await this.supportInboxService.recordIncomingMessages(value);
-
     for (const message of value.messages || []) {
       const phoneNumber = message.from;
       this.logger.log(`Incoming WhatsApp message: type=${message.type}`);
-
       let responseText = '';
       let buttonId = '';
-
       if (message.type === 'text' && message.text) {
         responseText = message.text.body;
       } else if (message.type === 'interactive' && message.interactive) {
@@ -79,46 +76,19 @@ export class WhatsAppWebhookIngressService {
         buttonId = message.button.payload;
         responseText = message.button.text;
       }
-
       const response = buttonId || responseText;
-
-      if (!response) {
-        continue;
-      }
-
+      if (!response) continue;
       try {
         const contextMessageId = this.readContextMessageId(message);
-        await this.recordClinicConversationMessage({
-          phoneNumber,
-          providerMessageId: message.id,
-          messageType: message.type,
-          content: response,
-          contextProviderMessageId: contextMessageId,
-          senderPhoneNumberId: value.metadata.phone_number_id,
-        });
-        const appointmentContext =
-          await this.appointmentResolver.resolveForInboundMessage({
-            phoneNumber,
-            contextProviderMessageId: contextMessageId,
-          });
-
+        await this.recordClinicConversationMessage({ phoneNumber, providerMessageId: message.id, messageType: message.type, content: response, contextProviderMessageId: contextMessageId, senderPhoneNumberId: value.metadata.phone_number_id });
+        const appointmentContext = await this.appointmentResolver.resolveForInboundMessage({ phoneNumber, contextProviderMessageId: contextMessageId });
         if (appointmentContext) {
-          await this.responseHandler.handlePatientResponseForAppointment(
-            appointmentContext,
-            response,
-            phoneNumber,
-            message.id,
-          );
+          await this.responseHandler.handlePatientResponseForAppointment(appointmentContext, response, phoneNumber, message.id);
         } else {
-          this.logger.warn(
-            `No matching appointment found for WhatsApp reply from ${phoneNumber}`,
-          );
+          this.logger.warn(`No matching appointment found for WhatsApp reply from ${phoneNumber}`);
         }
       } catch (error) {
-        this.logger.error(
-          `Error processing incoming message from ${phoneNumber}:`,
-          error instanceof Error ? error.stack : error,
-        );
+        this.logger.error(`Error processing incoming message from ${phoneNumber}:`, error instanceof Error ? error.stack : error);
       }
     }
   }
@@ -132,60 +102,22 @@ export class WhatsAppWebhookIngressService {
     senderPhoneNumberId: string;
   }): Promise<void> {
     const contactPhone = input.phoneNumber.replace(/\D/g, '');
-    const contextMessage = input.contextProviderMessageId
-      ? await this.persistence.whatsappMessage.findFirst({
-          where: { providerMsgId: input.contextProviderMessageId },
-          include: { conversation: true },
-        })
-      : null;
-    const clinicId =
-      contextMessage?.conversation.clinicId ??
-      (
-        await this.persistence.clinic.findFirst({
-          where: {
-            whatsappPhoneNumberId: input.senderPhoneNumberId,
-            whatsappSenderStatus: 'VERIFIED',
-          },
-          select: { id: true },
-        })
-      )?.id;
+    const contextMessage = input.contextProviderMessageId ? await this.persistence.whatsappMessage.findFirst({ where: { providerMsgId: input.contextProviderMessageId }, include: { conversation: true } }) : null;
+    const clinicId = contextMessage?.conversation.clinicId ?? (await this.persistence.clinic.findFirst({ where: { whatsappPhoneNumberId: input.senderPhoneNumberId, whatsappSenderStatus: 'VERIFIED' }, select: { id: true } }))?.id;
     if (!clinicId) {
-      this.logger.warn(
-        'Inbound WhatsApp message could not be resolved to a clinic; message quarantined from staff views',
-      );
+      this.logger.warn('Inbound WhatsApp message could not be resolved to a clinic; message quarantined from staff views');
       return;
     }
-    const patient = await this.persistence.patient.findFirst({
-      where: { clinicId, phoneNumber: contactPhone, deletedAt: null },
-      select: { id: true },
-    });
+    const patient = await this.persistence.patient.findFirst({ where: { clinicId, phoneNumber: contactPhone, deletedAt: null }, select: { id: true } });
     await this.persistence.$transaction(async (tx) => {
       const conversation = await tx.whatsappConversation.upsert({
         where: { clinicId_contactPhone: { clinicId, contactPhone } },
-        create: {
-          clinicId,
-          patientId: patient?.id ?? null,
-          contactPhone,
-          lastMessageAt: this.clock.now(),
-          unreadCount: 1,
-        },
-        update: {
-          patientId: patient?.id ?? undefined,
-          lastMessageAt: this.clock.now(),
-          unreadCount: { increment: 1 },
-        },
+        create: { clinicId, patientId: patient?.id ?? null, contactPhone, lastMessageAt: this.clock.now(), unreadCount: 1 },
+        update: { patientId: patient?.id ?? undefined, lastMessageAt: this.clock.now(), unreadCount: { increment: 1 } },
       });
       await tx.whatsappMessage.upsert({
         where: { id: `inbound_${input.providerMessageId}` },
-        create: {
-          id: `inbound_${input.providerMessageId}`,
-          conversationId: conversation.id,
-          direction: 'INBOUND',
-          messageType: input.messageType.toUpperCase(),
-          content: input.content,
-          providerMsgId: input.providerMessageId,
-          status: 'READ',
-        },
+        create: { id: `inbound_${input.providerMessageId}`, conversationId: conversation.id, direction: 'INBOUND', messageType: input.messageType.toUpperCase(), content: input.content, providerMsgId: input.providerMessageId, status: 'READ' },
         update: {},
       });
     });

@@ -163,69 +163,29 @@ function ActionsCell({
   );
 }
 
-export function MobileCard({
-  prescription,
-  onDownloadPDF,
-}: {
+export function MobileCard({ prescription, onDownloadPDF }: {
   prescription: Prescription;
   onDownloadPDF: (id: string) => void;
 }) {
   const fullName = getPatientName(prescription) || "—";
   const handlePrint = () => {
     if (!prescription.id) return;
-    window.open(
-      `/prescriptions/${prescription.id}?print=true`,
-      "_blank",
-    );
+    window.open(`/prescriptions/${prescription.id}?print=true`, "_blank");
   };
-
   return (
     <div className="ui-card-surface space-y-3 p-4">
-      <ListRow
-        title={fullName}
-        meta={
-          prescription.diagnosis ||
-          prescription.patient?.phoneNumber ||
-          undefined
-        }
-        time={formatDate(prescription.createdAt, "MMM d, yyyy")}
-        showChevron={false}
-        trailing={
-          <Badge variant="secondary">
-            <Pill className="mr-1 h-3 w-3" />
-            {prescription.medications?.length || 0}
-          </Badge>
-        }
-      />
+      <ListRow title={fullName} meta={prescription.diagnosis || prescription.patient?.phoneNumber || undefined} time={formatDate(prescription.createdAt, "MMM d, yyyy")} showChevron={false} trailing={
+        <Badge variant="secondary"><Pill className="mr-1 h-3 w-3" />{prescription.medications?.length || 0}</Badge>
+      } />
       <div className="flex flex-wrap gap-2 border-t border-border/60 pt-3">
-        <Button
-          variant="outline"
-          size="sm"
-          asChild
-          className="flex-1 touch-manipulation"
-        >
-          <Link href={`/prescriptions/${prescription.id}`}>
-            <Eye className="mr-1.5 h-4 w-4" />
-            View
-          </Link>
+        <Button variant="outline" size="sm" asChild className="flex-1 touch-manipulation">
+          <Link href={`/prescriptions/${prescription.id}`}><Eye className="mr-1.5 h-4 w-4" />View</Link>
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1 touch-manipulation"
-          onClick={() => onDownloadPDF(prescription.id || "")}
-        >
-          <Download className="mr-1.5 h-4 w-4" />
-          PDF
+        <Button variant="outline" size="sm" className="flex-1 touch-manipulation" onClick={() => onDownloadPDF(prescription.id || "")}>
+          <Download className="mr-1.5 h-4 w-4" />PDF
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1 touch-manipulation"
-          onClick={handlePrint}
-        >
-          <Printer className="mr-1.5 h-4 w-4" />
-          Print
+        <Button variant="outline" size="sm" className="flex-1 touch-manipulation" onClick={handlePrint}>
+          <Printer className="mr-1.5 h-4 w-4" />Print
         </Button>
       </div>
     </div>
@@ -233,80 +193,16 @@ export function MobileCard({
 }
 
 export function getPrescriptionColumns(
-  sortConfig: SortConfig,
-  onSort: (key: SortKey) => void,
-  onDownloadPDF: (id: string) => void,
+  sortConfig: SortConfig, onSort: (key: SortKey) => void, onDownloadPDF: (id: string) => void,
 ): DataTableColumn<Prescription>[] {
   return [
-    {
-      id: "id",
-      header: "Prescription ID",
-      hiddenOnMobile: true,
-      cell: (prescription) => (
-        <span className="font-mono text-sm">
-          {(prescription.id || "").slice(0, 8).toUpperCase()}
-        </span>
-      ),
-    },
-    {
-      id: "patient",
-      header: (
-        <SortableHeader
-          column="patient"
-          label="Patient"
-          sortConfig={sortConfig}
-          onSort={onSort}
-        />
-      ),
-      cell: (prescription) => <PatientCell prescription={prescription} />,
-    },
-    {
-      id: "diagnosis",
-      header: (
-        <SortableHeader
-          column="diagnosis"
-          label="Diagnosis"
-          sortConfig={sortConfig}
-          onSort={onSort}
-        />
-      ),
-      hiddenOnMobile: true,
-      cell: (prescription) => <DiagnosisCell prescription={prescription} />,
-    },
-    {
-      id: "medications",
-      header: (
-        <SortableHeader
-          column="medications"
-          label="Medications"
-          sortConfig={sortConfig}
-          onSort={onSort}
-        />
-      ),
-      cell: (prescription) => <MedicationsCell prescription={prescription} />,
-    },
-    {
-      id: "date",
-      header: (
-        <SortableHeader
-          column="date"
-          label="Date"
-          sortConfig={sortConfig}
-          onSort={onSort}
-        />
-      ),
-      hiddenOnMobile: true,
-      cell: (prescription) => <DateCell prescription={prescription} />,
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      cell: (prescription) => (
-        <ActionsCell
-          prescription={prescription}
-          onDownloadPDF={onDownloadPDF}
-        />
-      ),
-    },
+    { id: "id", header: "Prescription ID", hiddenOnMobile: true, cell: (p) => (
+      <span className="font-mono text-sm">{(p.id || "").slice(0, 8).toUpperCase()}</span>
+    ) },
+    { id: "patient", header: <SortableHeader column="patient" label="Patient" sortConfig={sortConfig} onSort={onSort} />, cell: (p) => <PatientCell prescription={p} /> },
+    { id: "diagnosis", header: <SortableHeader column="diagnosis" label="Diagnosis" sortConfig={sortConfig} onSort={onSort} />, hiddenOnMobile: true, cell: (p) => <DiagnosisCell prescription={p} /> },
+    { id: "medications", header: <SortableHeader column="medications" label="Medications" sortConfig={sortConfig} onSort={onSort} />, cell: (p) => <MedicationsCell prescription={p} /> },
+    { id: "date", header: <SortableHeader column="date" label="Date" sortConfig={sortConfig} onSort={onSort} />, hiddenOnMobile: true, cell: (p) => <DateCell prescription={p} /> },
+    { id: "actions", header: "Actions", cell: (p) => <ActionsCell prescription={p} onDownloadPDF={onDownloadPDF} /> },
   ];
 }

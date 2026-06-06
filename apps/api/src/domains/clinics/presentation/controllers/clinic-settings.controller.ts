@@ -92,13 +92,7 @@ export class ClinicSettingsController {
     const actorRole = req.user?.role;
     if (!clinicId || !actorUserId || !actorRole)
       throw new ForbiddenException('No clinic assigned to this user');
-    return this.clinicsService.updateMember(
-      clinicId,
-      memberId,
-      dto,
-      actorUserId,
-      actorRole,
-    );
+    return this.clinicsService.updateMember(clinicId, memberId, dto, actorUserId, actorRole);
   }
 
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
@@ -170,22 +164,13 @@ export class ClinicSettingsController {
 
     const userId = req.user?.id;
     if (!userId) {
-      return clinics.map((clinic) => ({
-        ...clinic,
-        canJoin: true,
-        existingRequestStatus: null,
-      }));
+      return clinics.map((clinic) => ({ ...clinic, canJoin: true, existingRequestStatus: null }));
     }
 
     const pendingRequests =
       await this.joinRequestService.findUserPendingRequests(userId);
 
-    return clinics.map((clinic) => ({
-      ...clinic,
-      canJoin: !pendingRequests.some((r) => r.clinicId === clinic.id),
-      existingRequestStatus:
-        pendingRequests.find((r) => r.clinicId === clinic.id)?.status || null,
-    }));
+    return clinics.map((clinic) => ({ ...clinic, canJoin: !pendingRequests.some((r) => r.clinicId === clinic.id), existingRequestStatus: pendingRequests.find((r) => r.clinicId === clinic.id)?.status || null }));
   }
 
   @Post('join')

@@ -18,9 +18,7 @@ export class ImportFileParserService {
   private readonly supportedImportExtensions = new Set(['.csv', '.xlsx']);
 
   getCell(row: unknown, index: number): string | number | Date | undefined {
-    if (!Array.isArray(row)) {
-      return undefined;
-    }
+    if (!Array.isArray(row)) return undefined;
 
     const value = row[index];
     return typeof value === 'string' || typeof value === 'number'
@@ -30,9 +28,7 @@ export class ImportFileParserService {
 
   sanitizeCellValue(value: unknown): string | number | Date | undefined {
     if (typeof value === 'string' || typeof value === 'number') return value;
-
     if (value instanceof Date) return value;
-
     if (typeof value === 'boolean') return value ? 'true' : 'false';
 
     if (value && typeof value === 'object') {
@@ -80,18 +76,12 @@ export class ImportFileParserService {
     filePath: string,
   ): Promise<Array<Array<string | number | Date | undefined>>> {
     const csvContent = await readFile(filePath, 'utf-8');
-    const result = Papa.parse<Array<string | number | Date | undefined>>(
-      csvContent,
-      {
-        skipEmptyLines: 'greedy',
-      },
-    );
+    const result = Papa.parse<Array<string | number | Date | undefined>>(csvContent, { skipEmptyLines: 'greedy' });
 
-    if (result.errors.length > 0) {
+    if (result.errors.length > 0)
       throw new BadRequestException(
         `Failed to parse CSV: ${result.errors[0].message}`,
       );
-    }
 
     return result.data
       .map((row) =>
@@ -118,7 +108,6 @@ export class ImportFileParserService {
       const normalized = extractWorksheetRowCells(row.values)
         .map((cell) => this.sanitizeCellValue(cell))
         .map((cell) => (cell === '' ? undefined : cell));
-
       while (
         normalized.length > 0 &&
         (normalized[normalized.length - 1] === undefined ||
@@ -156,9 +145,7 @@ export class ImportFileParserService {
     return dataRows.map((row) => {
       const mapped: ExcelRow = {};
       headers.forEach((header, index) => {
-        if (!header) {
-          return;
-        }
+        if (!header) return;
 
         const value = row[index];
         if (value !== undefined && String(value).trim() !== '') {
@@ -184,17 +171,12 @@ export class ImportFileParserService {
 
   parseCsvBufferToRecords(buffer: Buffer): BulkImportRow[] {
     const csvData = buffer.toString('utf-8');
-    const result = Papa.parse<Record<string, unknown>>(csvData, {
-      header: true,
-      skipEmptyLines: 'greedy',
-      transformHeader: (header) => header.trim(),
-    });
+    const result = Papa.parse<Record<string, unknown>>(csvData, { header: true, skipEmptyLines: 'greedy', transformHeader: (header) => header.trim() });
 
-    if (result.errors.length > 0) {
+    if (result.errors.length > 0)
       throw new BadRequestException(
         `Failed to parse CSV: ${result.errors[0]?.message ?? 'unknown error'}`,
       );
-    }
 
     return result.data
       .map((row) => normalizeBulkImportRow(row))
@@ -223,7 +205,6 @@ export class ImportFileParserService {
         .slice(1)
         .map((cell) => this.sanitizeCellValue(cell))
         .map((cell) => (cell === '' ? undefined : cell));
-
       while (
         normalized.length > 0 &&
         (normalized[normalized.length - 1] === undefined ||
@@ -243,9 +224,8 @@ export class ImportFileParserService {
       );
 
     const headers = tabularRows[0].map((value) => this.toHeaderString(value));
-    if (headers.filter((header) => header.length > 0).length === 0) {
+    if (headers.filter((header) => header.length > 0).length === 0)
       throw new BadRequestException('Header row is empty');
-    }
 
     return this.mapDataRows(headers, tabularRows.slice(1)).map((row) =>
       normalizeBulkImportRow(row),

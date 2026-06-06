@@ -160,26 +160,15 @@ function redactWithDepth(
   if (depth > MAX_DEPTH) return REDACTED;
 
   if (value === null || value === undefined) return value;
-
   if (typeof value === 'string') return redactString(value);
-
-  if (
-    typeof value === 'number' ||
-    typeof value === 'boolean' ||
-    typeof value === 'bigint'
-  )
-    return value;
-
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') return value;
   if (value instanceof Date) return value;
-
   if (Array.isArray(value)) {
     return value.map((item) => redactWithDepth(item, depth + 1, seen));
   }
 
   if (isRecord(value)) {
-    if (seen.has(value)) {
-      return REDACTED;
-    }
+    if (seen.has(value)) return REDACTED;
     seen.add(value);
     const out: Record<string, unknown> = {};
     for (const [key, val] of Object.entries(value)) {
@@ -293,13 +282,10 @@ export function redactSerializer(value: unknown): unknown {
  */
 export function redactErrSerializer(err: unknown): unknown {
   if (!err || typeof err !== 'object') return err;
-  if (!isRecord(err)) {
-    return err;
-  }
+  if (!isRecord(err)) return err;
   return {
     type: err.type ?? err.name ?? 'Error',
-    message:
-      typeof err.message === 'string' ? redactString(err.message) : err.message,
+    message: typeof err.message === 'string' ? redactString(err.message) : err.message,
     stack: typeof err.stack === 'string' ? redactString(err.stack) : err.stack,
     code: err.code,
     statusCode: err.statusCode,

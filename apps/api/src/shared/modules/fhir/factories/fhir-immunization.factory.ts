@@ -10,65 +10,17 @@ export class FhirImmunizationFactory {
         resourceType: 'Immunization',
         id: imm.id,
         status: 'completed',
-        vaccineCode: {
-          coding: [],
-          text: imm.vaccineName,
-        },
+        vaccineCode: { coding: [], text: imm.vaccineName },
         patient: { reference: `Patient/${imm.patientId}` },
         occurrenceDateTime: imm.administeredDate.toISOString(),
         recorded: imm.createdAt.toISOString(),
       };
-
-      if (imm.cvxCode) {
-        fhirImmunization.vaccineCode.coding.push({
-          system: 'http://hl7.org/fhir/sid/cvx',
-          code: imm.cvxCode,
-          display: imm.vaccineName,
-        });
-      }
-
-      if (imm.ndcCode) {
-        fhirImmunization.vaccineCode.coding.push({
-          system: 'http://hl7.org/fhir/sid/ndc',
-          code: imm.ndcCode,
-          display: imm.vaccineName,
-        });
-      }
-
-      if (imm.lotNumber) {
-        fhirImmunization.lotNumber = imm.lotNumber;
-      }
-
-      if (imm.expirationDate) {
-        fhirImmunization.expirationDate = imm.expirationDate
-          .toISOString()
-          .split('T')[0];
-      }
-
-      if (imm.site) {
-        fhirImmunization.site = {
-          coding: [
-            {
-              system: 'http://snomed.info/sct',
-              code: this.getSiteCode(imm.site),
-              display: imm.site.replace('_', ' '),
-            },
-          ],
-        };
-      }
-
-      if (imm.route) {
-        fhirImmunization.route = {
-          coding: [
-            {
-              system: 'http://snomed.info/sct',
-              code: this.getRouteCode(imm.route),
-              display: imm.route,
-            },
-          ],
-        };
-      }
-
+      if (imm.cvxCode) fhirImmunization.vaccineCode.coding.push({ system: 'http://hl7.org/fhir/sid/cvx', code: imm.cvxCode, display: imm.vaccineName });
+      if (imm.ndcCode) fhirImmunization.vaccineCode.coding.push({ system: 'http://hl7.org/fhir/sid/ndc', code: imm.ndcCode, display: imm.vaccineName });
+      if (imm.lotNumber) fhirImmunization.lotNumber = imm.lotNumber;
+      if (imm.expirationDate) fhirImmunization.expirationDate = imm.expirationDate.toISOString().split('T')[0];
+      if (imm.site) fhirImmunization.site = { coding: [{ system: 'http://snomed.info/sct', code: this.getSiteCode(imm.site), display: imm.site.replace('_', ' ') }] };
+      if (imm.route) fhirImmunization.route = { coding: [{ system: 'http://snomed.info/sct', code: this.getRouteCode(imm.route), display: imm.route }] };
       return fhirImmunization;
     });
   }

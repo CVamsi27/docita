@@ -18,11 +18,10 @@ export class BusinessRulesService {
     if (endTime <= startTime)
       throw new BadRequestException('End time must be after start time');
 
-    if (startTime < this.clock.now()) {
+    if (startTime < this.clock.now())
       throw new BadRequestException(
         'Appointment must be scheduled in the future',
       );
-    }
 
     const durationMinutes =
       (endTime.getTime() - startTime.getTime()) / (1000 * 60);
@@ -47,22 +46,19 @@ export class BusinessRulesService {
       where: {
         doctorId,
         clinicId,
-        id: excludeAppointmentId ? { not: excludeAppointmentId } : undefined,
-
+          id: excludeAppointmentId ? { not: excludeAppointmentId } : undefined,
         AND: [{ startTime: { lt: endTime } }, { endTime: { gt: startTime } }],
-
         status: { in: ['SCHEDULED', 'CONFIRMED', 'IN_PROGRESS'] },
       },
     });
 
-    if (overlap) {
+    if (overlap)
       throw new BadRequestException(
         `Doctor has an overlapping appointment from ${formatTime(
           overlap.startTime,
           DATE_FORMATS.TIME_SHORT,
         )} to ${formatTime(overlap.endTime, DATE_FORMATS.TIME_SHORT)}`,
       );
-    }
   }
 
   validateMedication(
@@ -81,11 +77,10 @@ export class BusinessRulesService {
     if (name.length > 255)
       throw new BadRequestException('Medication name exceeds maximum length');
 
-    if (!/\d+\s*[a-zA-Z]+/.test(dosage)) {
+    if (!/\d+\s*[a-zA-Z]+/.test(dosage))
       throw new BadRequestException(
         'Dosage must include numeric value and unit (e.g., "500 mg")',
       );
-    }
 
     if (duration && duration.trim().length > 0) {
       if (!/\d+\s*(day|week|month|hour)s?/.test(duration.toLowerCase())) {
@@ -105,32 +100,26 @@ export class BusinessRulesService {
 
     let calculatedTotal = 0;
     items.forEach((item, index) => {
-      if (item.quantity <= 0) {
+      if (item.quantity <= 0)
         throw new BadRequestException(
           `Item ${index + 1}: Quantity must be greater than 0`,
         );
-      }
-
-      if (item.price < 0) {
+      if (item.price < 0)
         throw new BadRequestException(
           `Item ${index + 1}: Price cannot be negative`,
         );
-      }
-
-      if (!item.description || item.description.trim().length === 0) {
+      if (!item.description || item.description.trim().length === 0)
         throw new BadRequestException(
           `Item ${index + 1}: Description is required`,
         );
-      }
 
       calculatedTotal += item.quantity * item.price;
     });
 
-    if (Math.abs(total - calculatedTotal) > 0.01) {
+    if (Math.abs(total - calculatedTotal) > 0.01)
       throw new BadRequestException(
         `Invoice total (${total}) does not match calculated amount (${calculatedTotal})`,
       );
-    }
 
     if (total > 10000000)
       throw new BadRequestException(
@@ -140,18 +129,16 @@ export class BusinessRulesService {
 
   validateCrossFieldConstraints(data: Record<string, unknown>): void {
     const isPRN = data.isPRN === true;
-    const prnInstructions =
-      typeof data.prnInstructions === 'string' ? data.prnInstructions : '';
+    const prnInstructions = typeof data.prnInstructions === 'string' ? data.prnInstructions : '';
     const status = typeof data.status === 'string' ? data.status : '';
     const hasCompletedAt = Boolean(data.completedAt);
     const hasInsuranceProvider = Boolean(data.insuranceProvider);
     const hasInsurancePolicyNumber = Boolean(data.insurancePolicyNumber);
 
-    if (isPRN && prnInstructions.trim().length === 0) {
+    if (isPRN && prnInstructions.trim().length === 0)
       throw new BadRequestException(
         'PRN instructions are required when medication is marked needed (PRN)',
       );
-    }
 
     if (status === 'COMPLETED' && !hasCompletedAt)
       throw new BadRequestException(
@@ -173,17 +160,14 @@ export class BusinessRulesService {
       CANCELLED: [],
     };
 
-    if (!validTransitions[currentStatus]) {
+    if (!validTransitions[currentStatus])
       throw new BadRequestException(
         `Unknown appointment status: ${currentStatus}`,
       );
-    }
-
-    if (!validTransitions[currentStatus].includes(newStatus)) {
+    if (!validTransitions[currentStatus].includes(newStatus))
       throw new BadRequestException(
         `Cannot transition from ${currentStatus} to ${newStatus}`,
       );
-    }
   }
 
   validatePatientDateConsistency(
