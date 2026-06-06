@@ -80,9 +80,7 @@ export function PrescriptionsPageContent() {
   const prescriptions = useMemo(() => {
     const rows = prescriptionsData;
     const q = debouncedSearch.trim().toLowerCase();
-    if (!q) {
-      return rows;
-    }
+    if (!q) return rows;
     return rows.filter((p) => {
       const name = getPatientFullName(p.patient).toLowerCase();
       const dx = (p.diagnosis || "").toLowerCase();

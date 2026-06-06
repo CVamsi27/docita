@@ -58,11 +58,10 @@ export class AuthRegistrationService {
       const defaultRole = data.clinicName ? Role.ADMIN : Role.DOCTOR;
       const role = data.role || defaultRole;
 
-      if (data.clinicName) {
+      if (data.clinicName)
         throw new BadRequestException(
           'Clinic registration now requires onboarding. Please complete registration at /onboarding to accept SLA, choose plan/add-ons, and configure billing.',
         );
-      }
 
       const userData = this.userFactory.create(role, {
         email: data.email,

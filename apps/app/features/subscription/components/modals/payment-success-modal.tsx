@@ -50,9 +50,7 @@ export function PaymentSuccessModal({
       const interval: NodeJS.Timeout = setInterval(function () {
         const timeLeft = animationEnd - Date.now();
 
-        if (timeLeft <= 0) {
-          return clearInterval(interval);
-        }
+        if (timeLeft <= 0) return clearInterval(interval);
 
         const particleCount = 50 * (timeLeft / duration);
         confetti({

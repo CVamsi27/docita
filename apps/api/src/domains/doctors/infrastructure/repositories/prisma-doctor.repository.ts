@@ -114,9 +114,7 @@ export class PrismaDoctorRepository implements IDoctorRepository {
         consultationFee: true,
       },
     });
-    if (!user) {
-      return null;
-    }
+    if (!user) return null;
     return user satisfies DoctorAfterUpdate;
   }
 

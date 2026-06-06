@@ -39,11 +39,7 @@ export function VisitsTab({ patientId }: VisitsTabProps) {
         : [...prev, type],
     );
   };
-
-  if (isLoading && !data) {
-    return <DataState status="loading" loadingMessage="Loading visits…" />;
-  }
-
+  if (isLoading && !data) return <DataState status="loading" loadingMessage="Loading visits…" />;
   if (isError) {
     return (
       <DataState
@@ -53,7 +49,6 @@ export function VisitsTab({ patientId }: VisitsTabProps) {
       />
     );
   }
-
   if (!data) {
     return (
       <DataState
@@ -64,9 +59,7 @@ export function VisitsTab({ patientId }: VisitsTabProps) {
       />
     );
   }
-
   const hasMore = offset + limit < data.total;
-
   return (
     <PatientTimeline
       mode="full"

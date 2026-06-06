@@ -148,18 +148,14 @@ export default function ProtectedLayout({
     setIsCollapsed,
   });
 
-  if (isLoading) {
-    return <WorkspaceLoadingSkeleton />;
-  }
+  if (isLoading) return <WorkspaceLoadingSkeleton />;
 
-  if (isApiStarting) {
-    return (
+  if (isApiStarting) return (
       <PageTransitionLoader
         title="Server is warming up…"
         description="The backend is starting from cold. This takes a few seconds — you'll be connected automatically."
       />
     );
-  }
 
   if (redirectMessage || !user || !user.clinicId) {
     return (

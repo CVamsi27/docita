@@ -6,12 +6,8 @@ import { reportClientError } from "@/lib/monitoring/client-error-reporting";
 const getConsoleMessage = (args: unknown[]): string => {
   return args
     .map((arg) => {
-      if (arg instanceof Error) {
-        return arg.message;
-      }
-      if (typeof arg === "string") {
-        return arg;
-      }
+      if (arg instanceof Error) return arg.message;
+      if (typeof arg === "string") return arg;
       try {
         return JSON.stringify(arg);
       } catch {
@@ -42,9 +38,7 @@ export function ClientErrorReporter() {
     const dedupe = (key: string): boolean => {
       const now = Date.now();
       const prev = reportedKeys.get(key);
-      if (prev && now - prev < 5000) {
-        return false;
-      }
+      if (prev && now - prev < 5000) return false;
       reportedKeys.set(key, now);
       if (reportedKeys.size > 200) {
         const firstKey = reportedKeys.keys().next().value;

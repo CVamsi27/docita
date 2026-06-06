@@ -21,9 +21,7 @@ export function resolveAppApiUrl(value: string, origin?: string): string {
     origin ??
     (typeof window !== "undefined" ? window.location.origin : undefined);
 
-  if (!runtimeOrigin) {
-    return value;
-  }
+  if (!runtimeOrigin) return value;
 
   return new URL(value, runtimeOrigin).toString().replace(/\/$/, "");
 }

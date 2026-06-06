@@ -34,9 +34,7 @@ export function ClinicalSuggestionsUI({
   onApply,
   className,
 }: ClinicalSuggestionsUIProps) {
-  if (!visible || suggestions.length === 0) {
-    return null;
-  }
+  if (!visible || suggestions.length === 0) return null;
 
   const confidenceColors = {
     high: "badge-success",

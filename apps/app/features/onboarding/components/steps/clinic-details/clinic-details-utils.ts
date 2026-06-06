@@ -28,9 +28,7 @@ export function composeClinicAddress(values: Partial<ClinicDetails>): string {
     values.pincode?.trim(),
   ].filter(hasText);
 
-  if (addressParts.length === 0) {
-    return values.address?.trim() ?? "";
-  }
+  if (addressParts.length === 0) return values.address?.trim() ?? "";
 
   return [...addressParts, countryCode].join(", ");
 }

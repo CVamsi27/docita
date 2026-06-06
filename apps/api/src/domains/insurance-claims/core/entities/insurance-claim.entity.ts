@@ -36,9 +36,8 @@ export class InsuranceClaim {
   private statusVo: ClaimStatusVO;
 
   constructor(private readonly props: InsuranceClaimProps) {
-    if (props.claimedAmountCents < 0) {
+    if (props.claimedAmountCents < 0)
       throw new InvariantViolationError('Claimed amount cannot be negative');
-    }
     this.statusVo = new ClaimStatusVO(props.status);
   }
 
@@ -78,24 +77,21 @@ export class InsuranceClaim {
           (target === ClaimStatusEnum.APPROVED
             ? this.props.claimedAmountCents
             : undefined);
-        if (approved === undefined) {
+        if (approved === undefined)
           throw new InvariantViolationError(
             'approvedAmountCents is required when partially approving a claim',
           );
-        }
-        if (approved < 0 || approved > this.props.claimedAmountCents) {
+        if (approved < 0 || approved > this.props.claimedAmountCents)
           throw new InvariantViolationError(
             'Approved amount must be between 0 and the claimed amount',
           );
-        }
         if (
           target === ClaimStatusEnum.APPROVED &&
           approved !== this.props.claimedAmountCents
-        ) {
+        )
           throw new InvariantViolationError(
             'Approved claims must approve the full claimed amount',
           );
-        }
         if (
           target === ClaimStatusEnum.PARTIALLY_APPROVED &&
           (approved === 0 || approved === this.props.claimedAmountCents)
@@ -110,11 +106,10 @@ export class InsuranceClaim {
         if (
           patientResponsibility < 0 ||
           approved + patientResponsibility !== this.props.claimedAmountCents
-        ) {
+        )
           throw new InvariantViolationError(
             'Approved amount and patient responsibility must equal the claimed amount',
           );
-        }
         result.respondedAt = opts.now;
         result.approvedAmountCents = approved;
         result.patientResponsibilityCents = patientResponsibility;

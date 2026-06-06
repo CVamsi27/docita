@@ -212,9 +212,7 @@ export function checkConditionContraindications(
     ([key]) => normalizedMed.includes(normalizeText(key)),
   );
 
-  if (!contraindications) {
-    return null; 
-  }
+  if (!contraindications) return null;
 
   const [, rules] = contraindications;
   const conditionNames = patientConditions.map((c) => normalizeText(c.name));

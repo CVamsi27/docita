@@ -128,9 +128,6 @@ export function useAuthSessionBootstrap(options: {
     };
 
     const validateSession = async (isColdStartRetry = false): Promise<void> => {
-      // Use a shorter probe timeout on the first attempt so we detect a cold-start
-      // quickly. If this races out and the user has a valid token we show the
-      // "warming up" screen and retry once with the full timeout.
       const timeoutMs = isColdStartRetry
         ? VALIDATE_SESSION_TIMEOUT_MS
         : COLD_START_PROBE_TIMEOUT_MS;
@@ -140,11 +137,6 @@ export function useAuthSessionBootstrap(options: {
           await makeTimeoutRace(validateAuth, timeoutMs),
         );
         if (applied) return;
-        // applied = false means the response was well-formed but contained no
-        // parseable user (e.g. the API returned an HTML error page during a
-        // cold-start). Treat it as a transient API failure so the cold-start
-        // retry path below can fire, rather than falling straight through to
-        // setIsLoading(false) with user = null and redirecting to login.
         if (!isColdStartRetry && appSession.getToken()) {
           setIsApiStarting(true);
           await new Promise<void>((resolve) => {
@@ -155,15 +147,11 @@ export function useAuthSessionBootstrap(options: {
         return;
       } catch (error) {
         if (!isAuthFailure(error)) {
-          // Network error or timeout — could be an API cold-start.
-          // If the user has a valid token, signal the warming state and retry once.
           if (!isColdStartRetry && appSession.getToken()) {
             setIsApiStarting(true);
             await new Promise<void>((resolve) => {
               window.setTimeout(resolve, COLD_START_RETRY_DELAY_MS);
             });
-            // Retry is fire-and-forget within this call — the finally below
-            // will still clear isLoading/isApiStarting after it resolves.
             await validateSession(true);
           }
           // Either no token (unauthenticated) or second attempt still failed —

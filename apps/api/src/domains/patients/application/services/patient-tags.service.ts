@@ -66,9 +66,7 @@ export class PatientTagsService {
       patientId: params.patientId,
       tagId: params.tagId,
     });
-    if (!existing) {
-      throw new NotFoundException('Tag not found');
-    }
+    if (!existing) throw new NotFoundException('Tag not found');
 
     return this.patientTagsRepository.update({
       tagId: params.tagId,
@@ -88,9 +86,7 @@ export class PatientTagsService {
       patientId: params.patientId,
       tagId: params.tagId,
     });
-    if (!existing) {
-      throw new NotFoundException('Tag not found');
-    }
+    if (!existing) throw new NotFoundException('Tag not found');
 
     await this.patientTagsRepository.remove({ tagId: params.tagId });
   }

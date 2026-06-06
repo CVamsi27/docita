@@ -3,9 +3,7 @@ export function formatDashboardSummary(
   appointmentCount: number,
   waitingCount: number,
 ): string | undefined {
-  if (appointmentCount === 0 && waitingCount === 0) {
-    return undefined;
-  }
+  if (appointmentCount === 0 && waitingCount === 0) return undefined;
   const parts: string[] = [];
   if (appointmentCount > 0) {
     parts.push(

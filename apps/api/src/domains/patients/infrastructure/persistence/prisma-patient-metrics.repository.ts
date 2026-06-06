@@ -43,18 +43,14 @@ function toMetricValueType(valueType: CreateMetricDefinitionDto['valueType']) {
 function toMetricCardinality(
   cardinality: CreateMetricDefinitionDto['cardinality'],
 ) {
-  if (!cardinality) {
-    return undefined;
-  }
+  if (!cardinality) return undefined;
   return cardinality === 'MULTI'
     ? MetricCardinality.MULTIPLE
     : MetricCardinality.SINGLE;
 }
 
 function toMetricScope(scope: CreateMetricDefinitionDto['scope']) {
-  if (!scope) {
-    return undefined;
-  }
+  if (!scope) return undefined;
   return scope === 'VISIT'
     ? MetricCaptureScope.ENCOUNTER
     : MetricCaptureScope.PROFILE;
@@ -72,9 +68,7 @@ function toMetricRecordSource(
     PATIENT_PORTAL: MetricRecordSource.PATIENT_PORTAL,
   };
 
-  if (!source) {
-    return MetricRecordSource.MANUAL;
-  }
+  if (!source) return MetricRecordSource.MANUAL;
 
   return sourceMapping[source] ?? MetricRecordSource.MANUAL;
 }

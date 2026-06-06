@@ -69,9 +69,7 @@ export class IpRateLimitService {
       return false;
     }
 
-    if (tracker.count > this.MAX_ATTEMPTS_PER_IP) {
-      return false;
-    }
+    if (tracker.count > this.MAX_ATTEMPTS_PER_IP) return false;
 
     return true;
   }

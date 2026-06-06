@@ -47,9 +47,7 @@ function LabsTabContent({ patientId }: LabsTabProps) {
     refetch,
   } = useLabTestOrders({ patientId });
 
-  if (isLoading) {
-    return <DataState status="loading" loadingMessage="Loading lab tests…" />;
-  }
+  if (isLoading) return <DataState status="loading" loadingMessage="Loading lab tests…" />;
 
   if (isError) {
     return (

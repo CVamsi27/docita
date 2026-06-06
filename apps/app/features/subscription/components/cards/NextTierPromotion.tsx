@@ -22,7 +22,6 @@ interface NextTierPromotionProps {
   }>;
   onContactSales: () => void;
 }
-
 export function NextTierPromotion({
   nextTier,
   featuresByTier,
@@ -30,9 +29,7 @@ export function NextTierPromotion({
 }: NextTierPromotionProps) {
   const nextTierInfo = getTierInfo(nextTier);
   const nextTierFeatures = featuresByTier.find((t) => t.tier === nextTier);
-
   if (!nextTierInfo) return null;
-
   return (
     <Card className="border-primary/30 bg-primary/5">
       <CardHeader>

@@ -52,9 +52,8 @@ export class PrismaAppointmentWriteRepository implements IAppointmentWriteReposi
     const data = AppointmentMapper.toPersistence(appointment);
     const { id, clinicId, ...updateData } = data;
 
-    if (!clinicId || typeof clinicId !== 'string') {
+    if (!clinicId || typeof clinicId !== 'string')
       throw new BadRequestException('Appointment clinicId is required');
-    }
 
     const result = await this.prisma.appointment
       .updateMany({

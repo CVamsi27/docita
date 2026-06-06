@@ -105,13 +105,10 @@ export class FeedbackService {
 
   async findOne(id: string, clinicId?: string) {
     const feedback = await this.repository.findOneRaw(id);
-    if (!feedback) {
-      throw new NotFoundException('Feedback not found');
-    }
+    if (!feedback) throw new NotFoundException('Feedback not found');
     const feedbackClinicId = readClinicId(feedback);
-    if (clinicId && feedbackClinicId !== clinicId) {
+    if (clinicId && feedbackClinicId !== clinicId)
       throw new NotFoundException('Feedback not found');
-    }
     return feedback;
   }
 
@@ -125,15 +122,12 @@ export class FeedbackService {
     clinicId?: string,
   ) {
     const feedback = await this.repository.findOneRaw(id);
-    if (!feedback) {
-      throw new NotFoundException('Feedback not found');
-    }
+    if (!feedback) throw new NotFoundException('Feedback not found');
     const feedbackClinicId = readClinicId(feedback);
-    if (clinicId && feedbackClinicId !== clinicId) {
+    if (clinicId && feedbackClinicId !== clinicId)
       throw new ForbiddenException(
         'Cannot update feedback from another clinic',
       );
-    }
 
     return this.repository.updateStatus(id, {
       status: parseFeedbackStatus(data.status),
@@ -173,15 +167,12 @@ export class FeedbackService {
 
   async delete(id: string, clinicId?: string) {
     const feedback = await this.repository.findOneRaw(id);
-    if (!feedback) {
-      throw new NotFoundException('Feedback not found');
-    }
+    if (!feedback) throw new NotFoundException('Feedback not found');
     const feedbackClinicId = readClinicId(feedback);
-    if (clinicId && feedbackClinicId !== clinicId) {
+    if (clinicId && feedbackClinicId !== clinicId)
       throw new ForbiddenException(
         'Cannot delete feedback from another clinic',
       );
-    }
     return this.repository.delete(id);
   }
 

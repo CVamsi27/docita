@@ -52,11 +52,9 @@ function renderWithQueryClient(ui: ReactElement) {
     const threadMessagesMatch = endpoint.match(
       /^\/internal\/support\/whatsapp\/([^/]+)\/messages\?/,
     );
-    if (threadMessagesMatch) {
-      return supportApiMocks.getWhatsAppThreadMessages(
+    if (threadMessagesMatch) return supportApiMocks.getWhatsAppThreadMessages(
         decodeURIComponent(threadMessagesMatch[1]),
       ) as Promise<T>;
-    }
 
     return Promise.reject(new Error(`Unexpected data-access GET ${endpoint}`));
   };

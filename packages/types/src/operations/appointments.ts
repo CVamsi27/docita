@@ -238,9 +238,7 @@ function parseAppointmentWallDateTime(
   wallTimezone: string,
 ): Date | undefined {
   const match = APPOINTMENT_LOCAL_DATETIME_PATTERN.exec(value);
-  if (!match) {
-    return undefined;
-  }
+  if (!match) return undefined;
 
   const [, year, month, day, hour, minute] = match.map(Number);
   const utcGuess = new Date(Date.UTC(year, month - 1, day, hour, minute));
@@ -255,16 +253,10 @@ export function normalizeAppointmentInstant(
   value: string | Date,
   wallTimezone: string,
 ): Date | undefined {
-  if (value === "" || value === undefined) {
-    return undefined;
-  }
-  if (value instanceof Date) {
-    return Number.isNaN(value.getTime()) ? undefined : value;
-  }
+  if (value === "" || value === undefined) return undefined;
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? undefined : value;
   const s = String(value).trim();
-  if (!s) {
-    return undefined;
-  }
+  if (!s) return undefined;
   if (APPOINTMENT_LOCAL_DATETIME_PATTERN.test(s)) {
     const parsedWallDate = parseAppointmentWallDateTime(s, wallTimezone);
     return parsedWallDate && !Number.isNaN(parsedWallDate.getTime())

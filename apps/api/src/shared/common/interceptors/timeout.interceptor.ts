@@ -22,11 +22,10 @@ export class TimeoutInterceptor implements NestInterceptor {
     return next.handle().pipe(
       timeout(timeoutMs),
       catchError((error: unknown) => {
-        if (error instanceof TimeoutError) {
+        if (error instanceof TimeoutError)
           return throwError(
             () => new RequestTimeoutException('Request timed out'),
           );
-        }
 
         return throwError(() => error);
       }),

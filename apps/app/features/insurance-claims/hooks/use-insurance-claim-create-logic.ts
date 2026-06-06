@@ -43,20 +43,16 @@ export const useInsuranceClaimCreateLogic = (presets?: ClaimCreatePresets) => {
   const { data: presetInvoice } = useInvoice(presets?.invoiceId ?? "");
   const { data: claimReadiness, isLoading: claimReadinessLoading } =
     useInvoiceClaimReadiness(presets?.invoiceId ?? "");
-
   const form = useForm<CreateInsuranceClaimFormValues>({
     resolver: zodResolver(createInsuranceClaimFormSchema),
     defaultValues: buildClaimCreateDefaultValues(presets),
   });
-
   useEffect(() => {
     applyPatientInsuranceDefaults(form, presetPatient);
   }, [form, presetPatient]);
-
   useEffect(() => {
     applyInvoiceClaimAmountDefault(form, presetInvoice);
   }, [form, presetInvoice]);
-
   const onSubmit = async (data: CreateInsuranceClaimFormValues) => {
     try {
       setIsSaving(true);
@@ -75,7 +71,6 @@ export const useInsuranceClaimCreateLogic = (presets?: ClaimCreatePresets) => {
       setIsSaving(false);
     }
   };
-
   return {
     form,
     onSubmit,

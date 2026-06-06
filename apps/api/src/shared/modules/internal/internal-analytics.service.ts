@@ -154,9 +154,7 @@ export class InternalAnalyticsService {
       const end = endDate ? new Date(endDate) : now;
       const cacheKey = `internal:analytics:${period}:${start.toISOString()}:${end.toISOString()}`;
       const cached = await this.cacheManager.get(cacheKey);
-      if (cached) {
-        return cached;
-      }
+      if (cached) return cached;
 
       const readClient = this.getReadClient();
 
@@ -232,14 +230,12 @@ export class InternalAnalyticsService {
       throw new InternalServerErrorException('Failed to fetch analytics data');
     }
   }
-
   async getPerformanceMetrics() {
     try {
       const [systemHealth, detailedHealth] = await Promise.all([
         this.monitoringService.getSystemHealth(),
         this.healthService.getHealth(),
       ]);
-
       const errorRate =
         systemHealth.requestsLastHour > 0
           ? Number(
@@ -249,7 +245,6 @@ export class InternalAnalyticsService {
               ).toFixed(2),
             )
           : 0;
-
       return {
         uptimeSeconds: Math.round(systemHealth.uptime / 1000),
         uptimeFormatted: this.formatDuration(systemHealth.uptime / 1000),
@@ -297,7 +292,6 @@ export class InternalAnalyticsService {
       );
     }
   }
-
   private formatDuration(seconds: number): string {
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);

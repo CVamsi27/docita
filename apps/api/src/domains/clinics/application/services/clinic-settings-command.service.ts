@@ -94,9 +94,7 @@ export class ClinicSettingsCommandService {
       },
     });
 
-    if (!clinic) {
-      throw new NotFoundException('Clinic not found');
-    }
+    if (!clinic) throw new NotFoundException('Clinic not found');
 
     const snapshot = {
       tier: clinic.tier,
@@ -268,9 +266,7 @@ export class ClinicSettingsCommandService {
     });
 
     const mapped = await this.clinicDataService.findOne(id);
-    if (!mapped) {
-      throw new NotFoundException('Clinic not found');
-    }
+    if (!mapped) throw new NotFoundException('Clinic not found');
     return mapped;
   }
 

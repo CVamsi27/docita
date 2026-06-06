@@ -76,13 +76,11 @@ export class Invoice {
   }
 
   private validate(): void {
-    if (this.items.length === 0) {
+    if (this.items.length === 0)
       throw new InvariantViolationError('Invoice must have at least one item');
-    }
 
-    if (!this.patientId) {
+    if (!this.patientId)
       throw new InvariantViolationError('Invoice must have a patient ID');
-    }
   }
 
   get issueDate(): Date {
@@ -131,9 +129,8 @@ export class Invoice {
       );
     }
     this.items = this.items.filter((item) => item.id !== itemId);
-    if (this.items.length === 0) {
+    if (this.items.length === 0)
       throw new InvariantViolationError('Invoice must have at least one item');
-    }
   }
 
   markAsPaid(now: Date): void {

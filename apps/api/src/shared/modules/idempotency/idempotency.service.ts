@@ -90,9 +90,8 @@ export class IdempotencyService implements OnModuleInit {
 function canonicalize(value: unknown): string {
   if (value === null || value === undefined) return 'null';
   if (typeof value === 'string') return JSON.stringify(value);
-  if (typeof value === 'number' || typeof value === 'boolean') {
+  if (typeof value === 'number' || typeof value === 'boolean')
     return JSON.stringify(value);
-  }
   if (Array.isArray(value)) {
     return `[${value.map((item) => canonicalize(item)).join(',')}]`;
   }

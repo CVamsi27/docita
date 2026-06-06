@@ -39,11 +39,10 @@ export class PrismaSubscriptionCoreRepository {
       });
 
       if (existing) {
-        if (existing.version !== subscription.version) {
+        if (existing.version !== subscription.version)
           throw new BadRequestException(
             'Subscription was modified by another user. Please refresh and try again.',
           );
-        }
 
         await this.prisma.subscription.update({
           where: { id: subscription.id },
@@ -59,9 +58,7 @@ export class PrismaSubscriptionCoreRepository {
         data: data,
       });
     } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
+      if (error instanceof BadRequestException) throw error;
       throw new BadRequestException(
         `Failed to save subscription: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
@@ -75,9 +72,7 @@ export class PrismaSubscriptionCoreRepository {
           where: { id },
         });
 
-      if (!prismaSubscription) {
-        return null;
-      }
+      if (!prismaSubscription) return null;
 
       return SubscriptionMapper.toDomain(prismaSubscription);
     } catch (error) {
@@ -94,9 +89,7 @@ export class PrismaSubscriptionCoreRepository {
           where: { clinicId },
         });
 
-      if (!prismaSubscription) {
-        return null;
-      }
+      if (!prismaSubscription) return null;
 
       return SubscriptionMapper.toDomain(prismaSubscription);
     } catch (error) {
@@ -164,11 +157,10 @@ export class PrismaSubscriptionCoreRepository {
         );
       }
 
-      if (existing.version !== subscription.version) {
+      if (existing.version !== subscription.version)
         throw new BadRequestException(
           'Subscription was modified by another user. Please refresh and try again.',
         );
-      }
 
       const data = SubscriptionMapper.toPersistence(subscription);
 
@@ -183,9 +175,8 @@ export class PrismaSubscriptionCoreRepository {
       if (
         error instanceof NotFoundException ||
         error instanceof BadRequestException
-      ) {
+      )
         throw error;
-      }
       throw new BadRequestException(
         `Failed to update subscription: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
@@ -345,9 +336,7 @@ export class PrismaSubscriptionCoreRepository {
         where: { id },
       });
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
+      if (error instanceof NotFoundException) throw error;
       throw new BadRequestException(
         `Failed to delete subscription: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );

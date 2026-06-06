@@ -11,9 +11,7 @@ export function emailLinkBaseUrlFromAppUrl(
   isDevelopment: boolean,
 ): string {
   const trimmed = appUrl.trim().replace(/\/+$/, '');
-  if (!isDevelopment) {
-    return trimmed;
-  }
+  if (!isDevelopment) return trimmed;
   try {
     const parsed = new URL(
       /^[a-zA-Z][a-zA-Z+\-.]*:\/\//.test(trimmed)
@@ -38,9 +36,7 @@ export function resolveSharedCookieDomain(
     .map((hostname) => hostname.trim().toLowerCase())
     .filter(Boolean);
 
-  if (normalizedHosts.length < 2) {
-    return undefined;
-  }
+  if (normalizedHosts.length < 2) return undefined;
 
   if (
     normalizedHosts.some(
@@ -68,9 +64,7 @@ export function resolveSharedCookieDomain(
     break;
   }
 
-  if (sharedSegments.length < 2) {
-    return undefined;
-  }
+  if (sharedSegments.length < 2) return undefined;
 
   return sharedSegments.join('.');
 }

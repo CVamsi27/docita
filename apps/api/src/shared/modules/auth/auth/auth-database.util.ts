@@ -16,9 +16,7 @@ function readErrorMessageFields(error: unknown): {
 export function isDatabaseAuthError(error: unknown): boolean {
   const { code, message } = readErrorMessageFields(error);
 
-  if (code === 'P1000') {
-    return true;
-  }
+  if (code === 'P1000') return true;
 
   return (
     message.includes('authentication failed against the database server') ||

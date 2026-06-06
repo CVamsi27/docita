@@ -135,12 +135,10 @@ export class PrismaPatientRepository implements IPatientRepository {
 
   async update(patient: Patient): Promise<void> {
     const { id, clinicId } = PatientMapper.toPersistence(patient);
-    if (!id || typeof id !== 'string') {
+    if (!id || typeof id !== 'string')
       throw new BadRequestException('Patient id is required for update');
-    }
-    if (!clinicId || typeof clinicId !== 'string') {
+    if (!clinicId || typeof clinicId !== 'string')
       throw new BadRequestException('Patient clinicId is required for update');
-    }
     const result = await this.prisma.patient.updateMany({
       where: { id, clinicId },
       data: {

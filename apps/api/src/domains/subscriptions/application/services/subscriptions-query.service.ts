@@ -133,9 +133,7 @@ export class SubscriptionsQueryService {
   async getSubscriptionDetails(clinicId: string) {
     await this.maybeApplyDueScheduledChange(clinicId);
     const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
-    if (!subscription) {
-      return null;
-    }
+    if (!subscription) return null;
     const tierName = subscription.getPlan().value;
     const recentPayments = await this.subscriptionRepo.findPaymentsByClinicId(
       clinicId,
@@ -217,16 +215,12 @@ export class SubscriptionsQueryService {
     localRecords: PaymentHistoryRecord[],
   ): Promise<PaymentHistoryRecord[]> {
     const clinic = await this.clinicOps.getClinicDetails(clinicId);
-    if (!clinic.razorpayCustomerId) {
-      return localRecords;
-    }
+    if (!clinic.razorpayCustomerId) return localRecords;
 
     const invoices = await this.platformInvoiceProvider.listInvoicesByCustomer(
       clinic.razorpayCustomerId,
     );
-    if (!invoices.length) {
-      return localRecords;
-    }
+    if (!invoices.length) return localRecords;
 
     const knownInvoiceIds = new Set(
       localRecords
@@ -313,9 +307,7 @@ export class SubscriptionsQueryService {
 
   async getUpcomingInvoice(clinicId: string) {
     const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
-    if (!subscription) {
-      throw new NotFoundException('No subscription found');
-    }
+    if (!subscription) throw new NotFoundException('No subscription found');
 
     const pricingOffer = await this.getClinicPricingOffer(clinicId);
     const pricePaise = this.pricingService.calculatePrice(

@@ -34,9 +34,7 @@ export function isStaleOnboardingSessionError(error: unknown): boolean {
   if (!(error instanceof APIRequestError)) {
     return false;
   }
-  if (error.status !== 400 && error.status !== 404) {
-    return false;
-  }
+  if (error.status !== 400 && error.status !== 404) return false;
   return /onboarding session not found|expired/i.test(error.message);
 }
 

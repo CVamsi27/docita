@@ -145,9 +145,7 @@ export function AppointmentRowActionsMenu({
     hasPrintOpdSlip: Boolean(onPrintOpdSlip),
   });
 
-  if (!hasAnyAction) {
-    return null;
-  }
+  if (!hasAnyAction) return null;
 
   return (
     <DropdownMenu>

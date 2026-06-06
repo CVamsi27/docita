@@ -60,9 +60,7 @@ async function getExistingIndexes(
   client: ExplainClient,
   indexNames: string[],
 ): Promise<Set<string>> {
-  if (indexNames.length === 0) {
-    return new Set<string>();
-  }
+  if (indexNames.length === 0) return new Set<string>();
 
   const rows = await client.$queryRawUnsafe<Array<{ indexname: string }>>(
     `SELECT indexname

@@ -11,7 +11,6 @@ interface CopyableLinkFieldProps {
   actionLabel?: string;
   onCopy?: (value: string) => Promise<void> | void;
 }
-
 export function CopyableLinkField({
   value,
   helperText,

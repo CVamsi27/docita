@@ -22,9 +22,7 @@ export async function withAdvisoryLock<T>(
     >`
       SELECT pg_try_advisory_xact_lock(${id}) AS pg_try_advisory_xact_lock
     `;
-    if (!acquired[0]?.pg_try_advisory_xact_lock) {
-      return null;
-    }
+    if (!acquired[0]?.pg_try_advisory_xact_lock) return null;
     return fn();
   });
 }

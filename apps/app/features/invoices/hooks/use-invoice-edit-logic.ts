@@ -18,9 +18,7 @@ import {
 const normalizeInvoiceStatus = (
   status: Invoice["status"] | "created",
 ): InvoiceEditFormValues["status"] => {
-  if (status === "created") {
-    return "PENDING";
-  }
+  if (status === "created") return "PENDING";
 
   return status;
 };

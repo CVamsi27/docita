@@ -24,9 +24,7 @@ export class RedisCacheService implements ICacheProvider, OnModuleDestroy {
 
   async get<T>(key: string): Promise<T | null> {
     const raw = await this.client.get(this.buildKey(key));
-    if (raw === null) {
-      return null;
-    }
+    if (raw === null) return null;
     try {
       return assertTypedJsonValue<T>(parseSerializedJson(raw));
     } catch {

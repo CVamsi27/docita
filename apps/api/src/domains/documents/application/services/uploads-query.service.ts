@@ -27,9 +27,7 @@ export class UploadsQueryService {
       },
     });
 
-    if (!session) {
-      throw new NotFoundException('Session not found');
-    }
+    if (!session) throw new NotFoundException('Session not found');
 
     return session;
   }

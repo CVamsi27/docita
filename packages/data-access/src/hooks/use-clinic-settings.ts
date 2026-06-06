@@ -27,11 +27,9 @@ export const useClinicMembers = () =>
 export const useCreateClinicDoctor = (clinicId?: string) =>
   useAPIMutation<User, CreateClinicDoctorRequest>(
     () => {
-      if (!clinicId) {
-        throw new Error(
+      if (!clinicId) throw new Error(
           "We could not identify this facility. Please refresh and try again.",
         );
-      }
       return `/clinics/${clinicId}/doctors`;
     },
     "POST",
@@ -44,11 +42,9 @@ export const useCreateClinicDoctor = (clinicId?: string) =>
 export const useCreateClinicReceptionist = (clinicId?: string) =>
   useAPIMutation<User, CreateClinicReceptionistRequest>(
     () => {
-      if (!clinicId) {
-        throw new Error(
+      if (!clinicId) throw new Error(
           "We could not identify this facility. Please refresh and try again.",
         );
-      }
       return `/clinics/${clinicId}/receptionists`;
     },
     "POST",
@@ -61,11 +57,9 @@ export const useCreateClinicReceptionist = (clinicId?: string) =>
 export const useCreateClinicMember = (clinicId?: string) =>
   useAPIMutation<User, CreateClinicMemberRequest>(
     () => {
-      if (!clinicId) {
-        throw new Error(
+      if (!clinicId) throw new Error(
           "We could not identify this facility. Please refresh and try again.",
         );
-      }
       return `/clinics/${clinicId}/members`;
     },
     "POST",

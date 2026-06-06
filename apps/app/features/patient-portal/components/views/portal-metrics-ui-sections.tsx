@@ -64,9 +64,7 @@ export function readPortalMetricDefinition(
   value: unknown,
 ): PortalMetricDefinition | null {
   if (!isRecord(value)) return null;
-  if (typeof value.id !== "string" || typeof value.key !== "string") {
-    return null;
-  }
+  if (typeof value.id !== "string" || typeof value.key !== "string") return null;
   return {
     id: value.id,
     key: value.key,
@@ -80,9 +78,7 @@ export function readPortalMetricDefinition(
 
 export function readPortalMetricCategory(value: unknown): PortalMetricCategory | null {
   if (!isRecord(value)) return null;
-  if (typeof value.id !== "string" || typeof value.name !== "string") {
-    return null;
-  }
+  if (typeof value.id !== "string" || typeof value.name !== "string") return null;
   const metricDefinitions = Array.isArray(value.metricDefinitions)
     ? value.metricDefinitions
         .map(readPortalMetricDefinition)

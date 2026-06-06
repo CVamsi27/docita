@@ -4,9 +4,7 @@ import type { IAccessContext, IAccessRule } from "@/lib/access-control/interface
 
 export class OverrideAccessRule implements IAccessRule {
   canAccess(context: IAccessContext): boolean {
-    if (!context.overrides || context.overrides.length === 0) {
-      return false;
-    }
+    if (!context.overrides || context.overrides.length === 0) return false;
 
     const override = context.overrides.find(
       (o) =>
@@ -28,9 +26,7 @@ export class OverrideAccessRule implements IAccessRule {
 
   
   hasOverride(context: IAccessContext): boolean {
-    if (!context.overrides) {
-      return false;
-    }
+    if (!context.overrides) return false;
 
     return context.overrides.some((o) => o.feature === context.feature);
   }

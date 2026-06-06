@@ -18,9 +18,7 @@ export function isValidUtcInstant(date: Date): boolean {
 
 export function isValidIanaTimezone(timezone: string): boolean {
   const trimmed = timezone.trim();
-  if (!trimmed) {
-    return false;
-  }
+  if (!trimmed) return false;
   try {
     formatInTimeZone(new Date(), trimmed, "yyyy-MM-dd");
     return true;

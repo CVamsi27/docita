@@ -30,7 +30,6 @@ interface UsageMeterProps {
   amountLocale: string;
   amountFractionDigits: number;
 }
-
 function UsageMeter({
   label,
   current,
@@ -47,7 +46,6 @@ function UsageMeter({
   const isOver = overage > 0;
   const isWarning = included > 0 && pct >= 80 && !isOver;
   const caption = formatUsageMeterCaption(current, included, unit);
-
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-sm">
@@ -96,7 +94,6 @@ function UsageMeter({
     </div>
   );
 }
-
 export function UsageDashboardLoading() {
   return (
     <div

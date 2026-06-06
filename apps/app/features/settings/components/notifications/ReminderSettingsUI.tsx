@@ -72,9 +72,7 @@ export const ReminderSettingsUI: FC = () => {
     });
   };
 
-  if (isLoading) {
-    return <ReminderSettingsLoadingCard />;
-  }
+  if (isLoading) return <ReminderSettingsLoadingCard />;
 
   return (
     <Form {...form}>

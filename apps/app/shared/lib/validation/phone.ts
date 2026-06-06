@@ -18,9 +18,7 @@ export function validatePhoneForCountry(
   const matchesCountry =
     parsed?.countryCallingCode === getCountryCallingCode(country);
 
-  if (!isValid || !matchesCountry) {
-    return "Enter a valid phone number for the selected clinic country";
-  }
+  if (!isValid || !matchesCountry) return "Enter a valid phone number for the selected clinic country";
 
   return null;
 }

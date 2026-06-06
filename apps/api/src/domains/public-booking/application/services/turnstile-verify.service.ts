@@ -18,9 +18,7 @@ export class TurnstileVerifyService {
     remoteIp?: string,
   ): Promise<boolean> {
     const secret = this.appConfig.getTurnstileSecretKey();
-    if (!secret) {
-      return true;
-    }
+    if (!secret) return true;
     if (!token || token.trim().length === 0) {
       return false;
     }

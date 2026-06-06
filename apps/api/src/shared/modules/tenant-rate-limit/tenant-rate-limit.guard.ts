@@ -48,13 +48,9 @@ export class TenantRateLimitGuard implements CanActivate {
     const response = http.getResponse<Response>();
     const user = request.user;
 
-    if (!user || !user.clinicId) {
-      return true;
-    }
+    if (!user || !user.clinicId) return true;
 
-    if (user.role === Role.INTERNAL) {
-      return true;
-    }
+    if (user.role === Role.INTERNAL) return true;
 
     const decisions = await this.service.checkAndConsume(user.clinicId);
     const blocking = decisions.find((d) => !d.allowed);

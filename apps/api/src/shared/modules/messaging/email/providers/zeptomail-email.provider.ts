@@ -82,14 +82,10 @@ export class ZeptoMailEmailProvider implements IEmailProvider {
   private buildPayload(options: EmailOptions): ZeptoMailRequest | null {
     const htmlbody = options.html?.trim();
     const textbody = options.text?.trim();
-    if (!htmlbody && !textbody) {
-      return null;
-    }
+    if (!htmlbody && !textbody) return null;
 
     const to = this.normalizeRecipients(options.to);
-    if (to.length === 0) {
-      return null;
-    }
+    if (to.length === 0) return null;
 
     const attachments = options.attachments?.map((att) => ({
       name: att.filename,

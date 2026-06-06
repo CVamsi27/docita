@@ -46,9 +46,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
     router,
   } = useInvoiceEditLogic(invoiceId);
 
-  if (isLoading) {
-    return withInvoicingGate(<LoadingState message="Loading invoice…" />);
-  }
+  if (isLoading) return withInvoicingGate(<LoadingState message="Loading invoice…" />);
 
   if (!invoice) {
     return withInvoicingGate(

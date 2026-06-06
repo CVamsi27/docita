@@ -302,9 +302,7 @@ export class PdfLayoutService {
       if (PDF_ROUTE_LEGEND[route]) usedRoutes.add(route);
     });
 
-    if (usedFreqs.size === 0 && usedRoutes.size === 0) {
-      return context.currentY;
-    }
+    if (usedFreqs.size === 0 && usedRoutes.size === 0) return context.currentY;
 
     let y = context.currentY + 20;
     const margin = context.margin;

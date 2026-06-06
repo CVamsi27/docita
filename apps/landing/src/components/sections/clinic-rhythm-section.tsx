@@ -245,7 +245,6 @@ interface RhythmCardProps {
   footer: string;
   icon: LucideIcon;
 }
-
 function RhythmCard({ chrome, rows, footer, icon: Icon }: RhythmCardProps) {
   return (
     <div className="r2-product">

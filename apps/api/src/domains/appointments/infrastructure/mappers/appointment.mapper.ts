@@ -146,7 +146,6 @@ export class AppointmentMapper {
       version: raw.version,
     });
   }
-
   static toListItem(
     raw: PrismaAppointment & {
       patient?: {

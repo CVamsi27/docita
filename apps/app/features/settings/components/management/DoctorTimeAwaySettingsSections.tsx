@@ -168,7 +168,6 @@ interface ScheduledTimeAwayListProps {
   onDelete: (id: string) => Promise<void>;
   isDeleting: boolean;
 }
-
 export function ScheduledTimeAwayList({
   timeOffs,
   isLoading,
@@ -234,7 +233,6 @@ export function ScheduledTimeAwayList({
     </div>
   );
 }
-
 // ---------------------------------------------------------------------------
 // TimeAwayCardHeader
 // ---------------------------------------------------------------------------

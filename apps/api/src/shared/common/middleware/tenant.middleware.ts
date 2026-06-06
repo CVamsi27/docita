@@ -20,9 +20,7 @@ export function getCurrentTenant(): TenantContext | undefined {
 
 export function getClinicIdOrFail(): string {
   const context = getCurrentTenant();
-  if (!context?.clinicId) {
-    throw new Error('No tenant context available');
-  }
+  if (!context?.clinicId) throw new Error('No tenant context available');
   return context.clinicId;
 }
 

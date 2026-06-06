@@ -12,7 +12,6 @@ interface ClinicReferralLinksProps {
   facilityLabel: string;
   referralCode: string;
 }
-
 export function ClinicReferralLinks({
   facilityLabel,
   referralCode,

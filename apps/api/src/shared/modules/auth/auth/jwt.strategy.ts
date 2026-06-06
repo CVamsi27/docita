@@ -37,13 +37,9 @@ interface JwtPayload {
  */
 export function extractJwtFromRequest(req: Request): string | null {
   const bearer = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
-  if (bearer) {
-    return bearer;
-  }
+  if (bearer) return bearer;
 
-  if (req?.cookies?.access_token) {
-    return req.cookies.access_token;
-  }
+  if (req?.cookies?.access_token) return req.cookies.access_token;
 
   return null;
 }
@@ -58,11 +54,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private configService: AppConfigService,
   ) {
     const jwtSecret = configService.getJwtSecret();
-    if (!jwtSecret) {
+    if (!jwtSecret)
       throw new Error(
         'CRITICAL: JWT_SECRET is not set in environment. Authentication is non-functional.',
       );
-    }
     super({
       jwtFromRequest: extractJwtFromRequest,
       ignoreExpiration: false,
@@ -72,9 +67,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload) {
-    if (!payload.sub) {
-      throw new UnauthorizedException('Invalid token');
-    }
+    if (!payload.sub) throw new UnauthorizedException('Invalid token');
 
     try {
       const user = await this.userRepository.findByIdForJwtValidation(
@@ -85,12 +78,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         this.logger.warn('User not found for token subject');
         throw new UnauthorizedException('User not found');
       }
-      if (user.appLoginDisabled) {
+      if (user.appLoginDisabled)
         throw forbiddenProblem(
           'APP_LOGIN_DISABLED',
           'This profile cannot sign in to the app.',
         );
-      }
       const jwtAudience = Array.isArray(payload.aud)
         ? payload.aud[0]
         : payload.aud;
@@ -108,12 +100,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         jwtAudience,
       };
     } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
-      if (error instanceof ForbiddenException) {
-        throw error;
-      }
+      if (error instanceof UnauthorizedException) throw error;
+      if (error instanceof ForbiddenException) throw error;
 
       const errorMessage =
         error instanceof Error

@@ -32,7 +32,6 @@ export const InsuranceClaimCreateUI: FC<{ presets?: ClaimCreatePresets }> = ({
     patientSearch,
     setPatientSearch,
   } = useInsuranceClaimCreateLogic(presets);
-
   return (
     <AppPageScaffold
       header={

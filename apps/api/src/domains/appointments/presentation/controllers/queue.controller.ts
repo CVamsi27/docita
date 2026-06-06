@@ -125,9 +125,8 @@ export class QueueController {
       requestedDoctorId: doctorId,
     });
 
-    if (doctorScope.denied) {
+    if (doctorScope.denied)
       throw new ForbiddenException('Doctors can only access their queue');
-    }
 
     await logClinicPhiListRead(
       this.auditService,

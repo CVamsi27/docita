@@ -12,9 +12,8 @@ export class DateUtils {
       throw new Error('Invalid date provided to DateUtils.format');
     }
     const formatted = formatDate(date, formatStr, { timezone: 'UTC' });
-    if (!formatted) {
+    if (!formatted)
       throw new Error('Invalid date provided to DateUtils.format');
-    }
     return formatted;
   }
 
@@ -41,9 +40,7 @@ export class DateUtils {
       const d = new Date(date);
       return !Number.isNaN(d.getTime());
     }
-    if (date instanceof Date) {
-      return !Number.isNaN(date.getTime());
-    }
+    if (date instanceof Date) return !Number.isNaN(date.getTime());
     if (typeof date === 'string') {
       const d = new Date(date);
       return !Number.isNaN(d.getTime());

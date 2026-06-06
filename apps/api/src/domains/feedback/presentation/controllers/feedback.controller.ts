@@ -42,17 +42,15 @@ export class FeedbackController {
   @ZodSerializerDto(FeedbackResponseDto)
   @UsePipes(new ZodValidationPipe(CreateFeedbackSchema))
   create(@Request() req: RequestWithUser, @Body() dto: CreateFeedbackDto) {
-    if (!req.user?.id || !req.user?.clinicId) {
+    if (!req.user?.id || !req.user?.clinicId)
       throw new ForbiddenException('User session required');
-    }
     return this.feedbackService.create(req.user.clinicId, req.user.id, dto);
   }
 
   @Get('can-submit')
   async canSubmit(@Request() req: RequestWithUser) {
-    if (!req.user?.id || !req.user?.clinicId) {
+    if (!req.user?.id || !req.user?.clinicId)
       throw new ForbiddenException('User session required');
-    }
     const hasRecent = await this.feedbackService.hasRecentFeedback(
       req.user.id,
       req.user.clinicId,
@@ -63,9 +61,7 @@ export class FeedbackController {
   @Get('my-feedback')
   @ZodSerializerDto(FeedbackListResponseDto)
   getMyFeedback(@Request() req: RequestWithUser) {
-    if (!req.user?.id) {
-      throw new ForbiddenException('User session required');
-    }
+    if (!req.user?.id) throw new ForbiddenException('User session required');
     return this.feedbackService.findByUser(req.user.id);
   }
 
@@ -75,17 +71,13 @@ export class FeedbackController {
     @Request() req: RequestWithUser,
     @Query('clinicId') clinicId?: string,
   ) {
-    if (!req.user) {
-      throw new ForbiddenException('User session required');
-    }
+    if (!req.user) throw new ForbiddenException('User session required');
 
-    if (!req.user.clinicId) {
+    if (!req.user.clinicId)
       throw new ForbiddenException('Clinic ID is required');
-    }
 
-    if (clinicId && clinicId !== req.user.clinicId) {
+    if (clinicId && clinicId !== req.user.clinicId)
       throw new ForbiddenException('Cannot view stats for another clinic');
-    }
 
     return this.feedbackService.getStats(req.user.clinicId);
   }

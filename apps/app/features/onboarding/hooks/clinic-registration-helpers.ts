@@ -154,9 +154,7 @@ export function handleOnboardingValidateError(error: unknown): void {
     error instanceof ApiError &&
     error.statusCode !== 400 &&
     error.statusCode !== 404
-  ) {
-    throw new Error(ERROR_CONTINUE_SETUP);
-  }
+  ) throw new Error(ERROR_CONTINUE_SETUP);
   if (!isRestartableOnboardingError(error)) throw error;
 }
 

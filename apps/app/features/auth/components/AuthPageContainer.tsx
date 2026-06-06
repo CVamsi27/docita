@@ -14,14 +14,12 @@ import { useAuthPageContainer } from "@/features/auth/hooks/use-auth-page-contai
 export function AuthPageContainer() {
   const auth = useAuthPageContainer();
 
-  if (auth.isRedirecting) {
-    return (
+  if (auth.isRedirecting) return (
       <PageTransitionLoader
         title="Redirecting…"
         description="Taking you to your workspace…"
       />
     );
-  }
 
   return (
     <PreDashboardShell

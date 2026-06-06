@@ -171,13 +171,11 @@ function OnboardingSlaUploadInner() {
     );
   }
 
-  if (statusQuery.isLoading) {
-    return (
+  if (statusQuery.isLoading) return (
       <div className="app-shell-bg flex min-h-screen items-center justify-center p-4">
         <SignatureLinkLoadingCard />
       </div>
     );
-  }
 
   if (statusQuery.isError) {
     const errorMessage = getUserFacingErrorMessage(statusQuery.error, {

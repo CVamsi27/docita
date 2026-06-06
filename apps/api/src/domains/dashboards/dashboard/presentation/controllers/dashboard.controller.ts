@@ -24,9 +24,8 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   private getClinicId(req: RequestWithUser): string {
-    if (!req.user?.clinicId) {
+    if (!req.user?.clinicId)
       throw new ForbiddenException('User clinic not found');
-    }
     return req.user.clinicId;
   }
 

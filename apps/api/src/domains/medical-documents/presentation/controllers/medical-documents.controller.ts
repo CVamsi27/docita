@@ -39,9 +39,8 @@ export class MedicalDocumentsController {
 
   private getClinicId(req: RequestWithUser): string {
     const clinicId = req.user?.clinicId;
-    if (!clinicId) {
+    if (!clinicId)
       throw new BadRequestException('No clinic associated with this user');
-    }
     return clinicId;
   }
 

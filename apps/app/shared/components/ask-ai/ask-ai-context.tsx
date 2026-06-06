@@ -54,8 +54,6 @@ export function AskAiProvider({ children }: { children: ReactNode }) {
 
 export function useAskAi(): AskAiContextValue {
   const value = useContext(AskAiContext);
-  if (!value) {
-    throw new Error("useAskAi must be used within AskAiProvider");
-  }
+  if (!value) throw new Error("useAskAi must be used within AskAiProvider");
   return value;
 }

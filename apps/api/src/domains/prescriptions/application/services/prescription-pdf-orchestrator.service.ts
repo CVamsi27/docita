@@ -51,27 +51,24 @@ export class PrescriptionPdfOrchestratorService {
     _locale: string = DEFAULT_LOCALE,
   ): Promise<Buffer> {
     const isClinicId = !clinicIdOrTimezone.includes('/');
-    if (!isClinicId) {
+    if (!isClinicId)
       throw new BadRequestException(
         'Prescription PDF generation requires a clinic context',
       );
-    }
     const clinicId = clinicIdOrTimezone;
     const prescription = await this.findOne(id, clinicId);
 
     const patientAge = calculateAge(prescription.patient.dateOfBirth);
     const clinic = prescription.patient.clinic;
 
-    if (!clinic?.name) {
+    if (!clinic?.name)
       throw new BadRequestException(
         'Clinic details are required to generate prescription PDF',
       );
-    }
-    if (!prescription.doctorName) {
+    if (!prescription.doctorName)
       throw new BadRequestException(
         'Doctor details are required to generate prescription PDF',
       );
-    }
 
     const diagnoses = prescription.appointment?.diagnoses
       ?.filter(

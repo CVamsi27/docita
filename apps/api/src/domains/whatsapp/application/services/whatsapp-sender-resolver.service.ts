@@ -46,9 +46,8 @@ export class WhatsappSenderResolver {
       },
     });
 
-    if (!clinic || clinic.whatsappSenderMode === 'SHARED') {
+    if (!clinic || clinic.whatsappSenderMode === 'SHARED')
       return this.resolveShared();
-    }
 
     if (
       clinic.whatsappSenderStatus !== 'VERIFIED' ||

@@ -58,11 +58,10 @@ export class DoctorProfileService {
       select: { id: true, role: true, verificationStatus: true },
     });
     if (!doctor) throw new NotFoundException('Doctor not found');
-    if (doctor.role !== Role.DOCTOR && doctor.role !== Role.ADMIN_DOCTOR) {
+    if (doctor.role !== Role.DOCTOR && doctor.role !== Role.ADMIN_DOCTOR)
       throw new BadRequestException(
         'Only doctor accounts can upload a registration certificate',
       );
-    }
 
     const fileUrl = await this.storageProvider.upload(
       file,

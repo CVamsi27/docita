@@ -8,20 +8,12 @@ export function getTrialWindowState(params: {
   trialEnd: Date | null | undefined;
   now: Date;
 }): TrialWindowState | null {
-  if (params.subscriptionStatus !== SubscriptionStatus.TRIALING) {
-    return null;
-  }
-  if (!params.trialEnd) {
-    return 'ACTIVE';
-  }
+  if (params.subscriptionStatus !== SubscriptionStatus.TRIALING) return null;
+  if (!params.trialEnd) return 'ACTIVE';
   const now = params.now.getTime();
   const trialEndMs = new Date(params.trialEnd).getTime();
-  if (now < trialEndMs) {
-    return 'ACTIVE';
-  }
-  if (now < trialEndMs + TRIAL_GRACE_DAYS * DAY_MS) {
-    return 'GRACE';
-  }
+  if (now < trialEndMs) return 'ACTIVE';
+  if (now < trialEndMs + TRIAL_GRACE_DAYS * DAY_MS) return 'GRACE';
   return 'EXPIRED';
 }
 

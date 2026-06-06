@@ -243,15 +243,12 @@ export class PaymentsCommandService {
       data.invoiceId,
       data.clinicId,
     );
-    if (!invoice) {
-      throw new NotFoundException('Invoice not found');
-    }
+    if (!invoice) throw new NotFoundException('Invoice not found');
 
-    if (!invoice.patientId) {
+    if (!invoice.patientId)
       throw new BadRequestException(
         'Cannot record manual payment: invoice is not linked to a patient',
       );
-    }
 
     if (
       invoice.status === InvoiceStatus.PAID ||

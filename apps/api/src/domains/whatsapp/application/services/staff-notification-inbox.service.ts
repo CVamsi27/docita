@@ -135,9 +135,7 @@ export class StaffNotificationInboxService {
       select: { clinicId: true },
     });
 
-    if (!existing) {
-      throw new NotFoundException('Notification not found');
-    }
+    if (!existing) throw new NotFoundException('Notification not found');
 
     await this.persistence.staffNotification.updateMany({
       where: { id: notificationId, userId, deletedAt: null },
@@ -161,9 +159,7 @@ export class StaffNotificationInboxService {
       select: { clinicId: true },
     });
 
-    if (!existing) {
-      throw new NotFoundException('Notification not found');
-    }
+    if (!existing) throw new NotFoundException('Notification not found');
 
     await this.persistence.staffNotification.updateMany({
       where: { id: notificationId, userId, deletedAt: null },

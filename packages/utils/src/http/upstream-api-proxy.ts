@@ -125,9 +125,7 @@ export function extractApiV1PathSegments(pathname: string): string[] | null {
   }
 
   const remainder = pathname.slice("/api/v1/".length);
-  if (!remainder) {
-    return [];
-  }
+  if (!remainder) return [];
 
   return remainder.split("/").filter(Boolean);
 }

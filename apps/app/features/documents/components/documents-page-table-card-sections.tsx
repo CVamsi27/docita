@@ -138,7 +138,6 @@ export function DocumentActions({
     </div>
   );
 }
-
 export function DocumentMobileRow({
   document,
   onView,

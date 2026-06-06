@@ -71,9 +71,8 @@ export class WhatsappClientAdapter implements IWhatsAppClient {
       return { externalId: `skipped-${Date.now()}` };
     }
 
-    if (this.tokenExpired) {
+    if (this.tokenExpired)
       throw new ServiceUnavailableException('WhatsApp access token expired');
-    }
 
     const cleanPhone = this.normalizePhoneNumber(to);
     const payload: Record<string, unknown> = {
@@ -102,9 +101,7 @@ export class WhatsappClientAdapter implements IWhatsAppClient {
       this.logger.log(`WhatsApp message sent to ${cleanPhone}: ${externalId}`);
       return { externalId };
     } catch (error: unknown) {
-      if (error instanceof ServiceUnavailableException) {
-        throw error;
-      }
+      if (error instanceof ServiceUnavailableException) throw error;
       this.logger.error(
         `WhatsApp request failed for ${to}`,
         error instanceof Error ? error.message : String(error),
@@ -122,11 +119,8 @@ export class WhatsappClientAdapter implements IWhatsAppClient {
     if (!phoneNumberId || !accessToken) {
       return { externalId: `skipped-${Date.now()}` };
     }
-
-    if (this.tokenExpired) {
+    if (this.tokenExpired)
       throw new ServiceUnavailableException('WhatsApp access token expired');
-    }
-
     const cleanPhone = this.normalizePhoneNumber(request.to);
     const interactive: Record<string, unknown> = {
       type: 'button',
@@ -141,14 +135,12 @@ export class WhatsappClientAdapter implements IWhatsAppClient {
         })),
       },
     };
-
     if (request.headerText) {
       interactive.header = { type: 'text', text: request.headerText };
     }
     if (request.footerText) {
       interactive.footer = { text: request.footerText };
     }
-
     try {
       const data = await this.callApi(
         {
@@ -166,9 +158,7 @@ export class WhatsappClientAdapter implements IWhatsAppClient {
       );
       return { externalId };
     } catch (error: unknown) {
-      if (error instanceof ServiceUnavailableException) {
-        throw error;
-      }
+      if (error instanceof ServiceUnavailableException) throw error;
       this.logger.error(
         'WhatsApp interactive message failed',
         error instanceof Error ? error.message : String(error),
@@ -200,9 +190,7 @@ export class WhatsappClientAdapter implements IWhatsAppClient {
       }
       return { success: true, messageId: result.externalId };
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
+      if (error instanceof HttpException) throw error;
       throw new ServiceUnavailableException('Failed to send WhatsApp message');
     }
   }
@@ -236,9 +224,7 @@ export class WhatsappClientAdapter implements IWhatsAppClient {
       );
       return { success: true, messageId: result.externalId };
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
+      if (error instanceof HttpException) throw error;
       throw new ServiceUnavailableException('Failed to send WhatsApp template');
     }
   }
@@ -272,9 +258,7 @@ export class WhatsappClientAdapter implements IWhatsAppClient {
       }
       return { success: true, messageId: result.externalId };
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
+      if (error instanceof HttpException) throw error;
       throw new ServiceUnavailableException(
         'Failed to send WhatsApp interactive message',
       );

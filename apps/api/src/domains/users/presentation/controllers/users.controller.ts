@@ -39,13 +39,10 @@ export class UsersController {
   @Get('profile')
   @ZodSerializerDto(UserResponseDto)
   async getProfile(@Request() req: RequestWithUser) {
-    if (!req.user?.id) {
+    if (!req.user?.id)
       throw new BadRequestException('User ID not found in token');
-    }
     const profile = await this.usersService.getProfile(req.user.id);
-    if (!profile) {
-      throw new BadRequestException('User not found');
-    }
+    if (!profile) throw new BadRequestException('User not found');
     return profile;
   }
 
@@ -64,9 +61,8 @@ export class UsersController {
     @Request() req: RequestWithUser,
     @Body() dto: UpdateProfileDto,
   ) {
-    if (!req.user?.id) {
+    if (!req.user?.id)
       throw new BadRequestException('User ID not found in token');
-    }
 
     return await this.usersService.updateProfile(req.user.id, dto);
   }
@@ -86,9 +82,8 @@ export class UsersController {
     @Body(new ZodValidationPipe(StaffAccountDeletionRequestSchema))
     _body: StaffAccountDeletionRequestDto,
   ) {
-    if (!req.user?.id) {
+    if (!req.user?.id)
       throw new BadRequestException('User ID not found in token');
-    }
 
     return await this.usersService.requestAccountDeletion(req.user.id);
   }

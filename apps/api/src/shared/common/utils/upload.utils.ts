@@ -33,13 +33,10 @@ export function createTempDiskStorage() {
 async function readFileSignature(
   file: Pick<StorageFile, 'buffer' | 'path'>,
 ): Promise<Buffer> {
-  if (file.buffer) {
-    return file.buffer.subarray(0, 12);
-  }
+  if (file.buffer) return file.buffer.subarray(0, 12);
 
-  if (!file.path) {
+  if (!file.path)
     throw new BadRequestException('Uploaded file could not be read');
-  }
 
   const handle = await open(file.path, 'r');
   try {

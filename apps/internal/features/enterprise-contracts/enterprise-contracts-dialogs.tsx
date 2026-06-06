@@ -49,7 +49,6 @@ export type EnterpriseContractsDialogsProps = Pick<
   | "setRevisionsOpen"
   | "revisions"
 >;
-
 export function EnterpriseContractsDialogs(
   state: EnterpriseContractsDialogsProps,
 ) {

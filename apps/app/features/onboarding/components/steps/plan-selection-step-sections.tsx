@@ -108,9 +108,7 @@ interface TeamRecommendationAlertProps {
 export const TeamRecommendationAlert: FC<TeamRecommendationAlertProps> = ({
   teamRecommendation,
 }) => {
-  if (!teamRecommendation) {
-    return null;
-  }
+  if (!teamRecommendation) return null;
   return (
     <Alert>
       <AlertTitle>Recommended for your team</AlertTitle>

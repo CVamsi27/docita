@@ -101,9 +101,7 @@ export function safeOpenSignedUrl(
   if (!url) return false;
 
   const result = validateSignedUrl(url);
-  if (!result.valid) {
-    return false;
-  }
+  if (!result.valid) return false;
 
   window.open(url, "_blank", "noopener,noreferrer");
   return true;

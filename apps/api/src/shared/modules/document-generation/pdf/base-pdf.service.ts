@@ -387,9 +387,7 @@ export class BasePdfService {
         const buf = await response.arrayBuffer();
         return Buffer.from(buf);
       } catch (error) {
-        if (error instanceof UnsafeExternalUrlError) {
-          return undefined;
-        }
+        if (error instanceof UnsafeExternalUrlError) return undefined;
         return undefined;
       }
     }

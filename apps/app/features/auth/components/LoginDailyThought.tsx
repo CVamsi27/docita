@@ -6,7 +6,6 @@ import { dailyThoughtResponseSchema } from "@workspace/types";
 import type { DailyThoughtResponse } from "@workspace/types";
 import { browserJson } from "@/lib/auth/browser-request";
 import { logger } from "@/lib/monitoring/logger";
-
 export function LoginDailyThought() {
   const [data, setData] = useState<DailyThoughtResponse | null>(null);
   const [loading, setLoading] = useState(true);

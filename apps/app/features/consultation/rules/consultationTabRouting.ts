@@ -59,16 +59,12 @@ export function resolveConsultationSectionFromUrl(
   clinicType?: string | null,
 ): string | undefined {
   const trimmed = sectionParam?.trim();
-  if (trimmed) {
-    return trimmed;
-  }
+  if (trimmed) return trimmed;
   return legacyTabToSectionId(tabParam, clinicType);
 }
 
 function normalizeRawTab(rawTab?: string | null): string {
-  if (!rawTab) {
-    return "chief-complaint";
-  }
+  if (!rawTab) return "chief-complaint";
   const normalized = rawTab.trim().toLowerCase();
   return LEGACY_TAB_MAPPING[normalized] || normalized;
 }

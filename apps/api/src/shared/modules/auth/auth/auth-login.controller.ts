@@ -50,13 +50,9 @@ export class AuthLoginController {
   ) {
     try {
       const user = await this.authService.validateUser(dto.email, dto.password);
-      if (!user) {
-        throw new UnauthorizedException('Invalid credentials');
-      }
+      if (!user) throw new UnauthorizedException('Invalid credentials');
       const result = await this.authService.loginWithMfaCheck(user);
-      if ('mfa_required' in result) {
-        return result;
-      }
+      if ('mfa_required' in result) return result;
       setAuthCookies(res, result, this.configService);
       return stripRefreshTokenFromBody(result);
     } catch (error) {

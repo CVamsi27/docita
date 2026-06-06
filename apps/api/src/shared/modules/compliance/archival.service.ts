@@ -7,9 +7,7 @@ import { runInArchivalMode } from '@/shared/common/extensions/audit-immutability
 function toNullableJsonInput(
   value: Prisma.JsonValue | null,
 ): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput {
-  if (value === null) {
-    return Prisma.JsonNull;
-  }
+  if (value === null) return Prisma.JsonNull;
 
   return value;
 }

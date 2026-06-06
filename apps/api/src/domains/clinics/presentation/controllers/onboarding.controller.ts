@@ -127,11 +127,10 @@ export class OnboardingController {
     @Param('onboardingId') onboardingId: string,
     @Request() req: RequestWithUser,
   ) {
-    if (!req.user?.email) {
+    if (!req.user?.email)
       throw new ForbiddenException(
         'Trial eligibility requires an authenticated account',
       );
-    }
     return this.onboardingService.getTrialEligibility(
       onboardingId,
       req.user.email,

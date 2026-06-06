@@ -235,9 +235,7 @@ export function TierCardSummaryOverage({
   overageHint?: string;
   overageItems?: string[];
 }) {
-  if (!overageItems?.length && !overageHint) {
-    return null;
-  }
+  if (!overageItems?.length && !overageHint) return null;
 
   return (
     <div className="mt-4 rounded-md border border-border/60 bg-muted/30 px-3 py-2.5">
@@ -287,9 +285,7 @@ export function TierCardKeyHighlights({
   highlights: string[];
   isSummary: boolean;
 }) {
-  if (!highlights.length) {
-    return null;
-  }
+  if (!highlights.length) return null;
 
   return (
     <ul

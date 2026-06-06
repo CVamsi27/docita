@@ -58,9 +58,7 @@ export const useExcelImport = () => {
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error("We could not preview this file. Please try again.");
-      }
+      if (!response.ok) throw new Error("We could not preview this file. Please try again.");
 
       const data: ImportPreview = await response.json();
       setPreview(data);
@@ -122,9 +120,7 @@ export const useExcelImport = () => {
       clearInterval(progressInterval);
       setImportProgress(100);
 
-      if (!response.ok) {
-        throw new Error("We could not import this file. Please try again.");
-      }
+      if (!response.ok) throw new Error("We could not import this file. Please try again.");
 
       const result: ImportResult = await response.json();
       setImportResult(result);

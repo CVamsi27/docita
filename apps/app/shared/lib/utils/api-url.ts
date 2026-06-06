@@ -9,9 +9,7 @@ function resolveApiOrigin(): string {
   try {
     return new URL(getAppApiUrl()).origin;
   } catch {
-    if (typeof window !== "undefined" && window.location?.origin) {
-      return window.location.origin;
-    }
+    if (typeof window !== "undefined" && window.location?.origin) return window.location.origin;
 
     return getAppUrl();
   }

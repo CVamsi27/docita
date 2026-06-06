@@ -42,9 +42,7 @@ export function WhatsappCampaignsView() {
   const canManage = isAdmin(user?.role);
   const selected = useMemo(() => new Set(selectedIds), [selectedIds]);
 
-  if (campaigns.isLoading) {
-    return <DataState status="loading" loadingMessage="Loading campaigns..." />;
-  }
+  if (campaigns.isLoading) return <DataState status="loading" loadingMessage="Loading campaigns..." />;
   if (campaigns.isError) {
     return (
       <DataState

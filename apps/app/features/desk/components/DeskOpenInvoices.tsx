@@ -43,8 +43,7 @@ export function DeskOpenInvoices({
   onRetry,
   onRecordPayment,
 }: DeskOpenInvoicesProps) {
-  if (!selectedPatientId) {
-    return (
+  if (!selectedPatientId) return (
       <Card className="border-border shadow-sm">
         <CardContent className="py-10 text-center text-[var(--fs-sm)] text-muted-foreground">
           Search for a patient above to see their open invoices that need
@@ -52,7 +51,6 @@ export function DeskOpenInvoices({
         </CardContent>
       </Card>
     );
-  }
 
   if (error) {
     return (

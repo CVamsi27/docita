@@ -23,7 +23,6 @@ import {
   PrescriptionDefaultsCheckboxGroup,
   PrescriptionDefaultsFormActions,
 } from "./PrescriptionDefaultsSettingsSections";
-
 function PrescriptionDefaultsSettings() {
   const {
     data: initialSettings,
@@ -89,6 +88,5 @@ function PrescriptionDefaultsSettings() {
     </Card>
   );
 }
-
 export const PrescriptionDefaultsSettingsContainer =
   PrescriptionDefaultsSettings;

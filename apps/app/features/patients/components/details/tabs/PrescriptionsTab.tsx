@@ -28,11 +28,9 @@ export function PrescriptionsTab({ patientId }: PrescriptionsTabProps) {
   } = usePatientPrescriptions(patientId);
   const { repeatPrescription } = useRepeatPrescription();
 
-  if (isLoading) {
-    return (
+  if (isLoading) return (
       <DataState status="loading" loadingMessage="Loading prescriptions…" />
     );
-  }
 
   if (isError) {
     return (

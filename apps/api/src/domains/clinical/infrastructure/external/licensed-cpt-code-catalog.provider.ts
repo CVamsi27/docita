@@ -114,9 +114,8 @@ export class LicensedCptCodeCatalogProvider implements CodeCatalogProvider {
     mapper: (payload: LicensedCatalogResponse) => T,
   ): Promise<T> {
     const baseUrl = this.apiBaseUrl;
-    if (!baseUrl) {
+    if (!baseUrl)
       throw new Error('Licensed CPT API base URL is not configured');
-    }
     const url = new URL(path, baseUrl);
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) url.searchParams.set(key, value);

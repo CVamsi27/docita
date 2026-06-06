@@ -19,7 +19,6 @@ const emptyLine = (): OCRInvoiceLineForm => ({
   unitPrice: "",
   total: "",
 });
-
 export const OCRInvoiceDraft = ({
   formData,
   setFormData,
@@ -32,17 +31,14 @@ export const OCRInvoiceDraft = ({
     lineCount > 0 || invoice.grandTotal.trim().length > 0
       ? String(Math.max(lineCount, 1))
       : undefined;
-
   const rows: OCRInvoiceLineForm[] =
     invoice.items.length > 0 ? invoice.items : [emptyLine()];
-
   const updateInvoice = (patch: Partial<OCRFormData["invoice"]>) => {
     setFormData({
       ...formData,
       invoice: { ...formData.invoice, ...patch },
     });
   };
-
   const patchRowAt = (index: number, patch: Partial<OCRInvoiceLineForm>) => {
     const row = rows[index];
     if (!row) return;
@@ -55,7 +51,6 @@ export const OCRInvoiceDraft = ({
     next[index] = { ...next[index], ...patch };
     updateInvoice({ items: next });
   };
-
   const addLine = () => {
     if (invoice.items.length === 0) {
       updateInvoice({ items: [...rows, emptyLine()] });
@@ -63,7 +58,6 @@ export const OCRInvoiceDraft = ({
     }
     updateInvoice({ items: [...invoice.items, emptyLine()] });
   };
-
   const removeLine = (index: number) => {
     if (invoice.items.length === 0) {
       updateInvoice({ items: [] });
@@ -72,7 +66,6 @@ export const OCRInvoiceDraft = ({
     const next = invoice.items.filter((_, i) => i !== index);
     updateInvoice({ items: next });
   };
-
   return (
     <div className="space-y-3">
       <SectionToggle

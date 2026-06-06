@@ -44,9 +44,7 @@ export class DoctorImportStrategy implements IImportStrategy {
     const existing = await this.prisma.user.findUnique({
       where: { email },
     });
-    if (existing) {
-      throw new Error('Doctor email already exists');
-    }
+    if (existing) throw new Error('Doctor email already exists');
 
     const generatedPassword = nanoid(32);
     const passwordHash = await bcrypt.hash(generatedPassword, 10);

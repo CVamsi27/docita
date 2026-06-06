@@ -58,9 +58,7 @@ export function FloatingStartConsultation({
   );
 
   const queueCandidate = useMemo(() => {
-    if (!doctorQueue || doctorQueue.length === 0) {
-      return null;
-    }
+    if (!doctorQueue || doctorQueue.length === 0) return null;
 
     return (
       doctorQueue.find(
@@ -104,13 +102,9 @@ export function FloatingStartConsultation({
     }
   };
 
-  if (!resolvedPatientId && !resolvedAppointmentId) {
-    return null;
-  }
+  if (!resolvedPatientId && !resolvedAppointmentId) return null;
 
-  if (!canStartConsultation) {
-    return null;
-  }
+  if (!canStartConsultation) return null;
 
   return (
     <div

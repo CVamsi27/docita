@@ -59,9 +59,7 @@ export function TurnstileWidget({
       script.async = true;
       document.body.appendChild(script);
     }
-
     script.addEventListener("load", renderWidget, { once: true });
-
     return () => {
       cancelled = true;
       script.removeEventListener("load", renderWidget);
@@ -70,10 +68,6 @@ export function TurnstileWidget({
       }
     };
   }, [siteKey, onToken, onExpire]);
-
-  if (!siteKey) {
-    return null;
-  }
-
+  if (!siteKey) return null;
   return <div ref={containerRef} className={cn("min-h-[65px]", className)} />;
 }

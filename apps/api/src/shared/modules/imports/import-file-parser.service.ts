@@ -29,31 +29,20 @@ export class ImportFileParserService {
   }
 
   sanitizeCellValue(value: unknown): string | number | Date | undefined {
-    if (typeof value === 'string' || typeof value === 'number') {
-      return value;
-    }
+    if (typeof value === 'string' || typeof value === 'number') return value;
 
-    if (value instanceof Date) {
-      return value;
-    }
+    if (value instanceof Date) return value;
 
-    if (typeof value === 'boolean') {
-      return value ? 'true' : 'false';
-    }
+    if (typeof value === 'boolean') return value ? 'true' : 'false';
 
     if (value && typeof value === 'object') {
       const candidate = readExcelCellObject(value);
-      if (!candidate) {
-        return String(value);
-      }
+      if (!candidate) return String(value);
 
-      if (candidate.result !== undefined) {
+      if (candidate.result !== undefined)
         return this.sanitizeCellValue(candidate.result);
-      }
 
-      if (typeof candidate.text === 'string') {
-        return candidate.text;
-      }
+      if (typeof candidate.text === 'string') return candidate.text;
 
       if (Array.isArray(candidate.richText)) {
         return candidate.richText
@@ -63,9 +52,7 @@ export class ImportFileParserService {
       }
     }
 
-    if (value == null) {
-      return undefined;
-    }
+    if (value == null) return undefined;
 
     return String(value);
   }
@@ -78,18 +65,13 @@ export class ImportFileParserService {
 
   getImportExtension(filePath: string): '.csv' | '.xlsx' {
     const extension = extname(filePath).toLowerCase();
-    if (extension === '.xls') {
+    if (extension === '.xls')
       throw new BadRequestException(
         'Legacy .xls files are no longer supported. Please upload .xlsx or .csv.',
       );
-    }
 
-    if (extension === '.csv') {
-      return '.csv';
-    }
-    if (extension === '.xlsx') {
-      return '.xlsx';
-    }
+    if (extension === '.csv') return '.csv';
+    if (extension === '.xlsx') return '.xlsx';
 
     throw new BadRequestException('Only .xlsx and .csv files are allowed.');
   }
@@ -128,9 +110,8 @@ export class ImportFileParserService {
     await workbook.xlsx.readFile(filePath);
 
     const worksheet = workbook.worksheets[0];
-    if (!worksheet) {
+    if (!worksheet)
       throw new BadRequestException('Spreadsheet does not contain any sheets');
-    }
 
     const rows: Array<Array<string | number | Date | undefined>> = [];
     worksheet.eachRow({ includeEmpty: false }, (row) => {
@@ -158,16 +139,12 @@ export class ImportFileParserService {
     filePath: string,
   ): Promise<Array<Array<string | number | Date | undefined>>> {
     const extension = this.getImportExtension(filePath);
-    if (extension === '.csv') {
-      return this.parseCsvRows(filePath);
-    }
+    if (extension === '.csv') return this.parseCsvRows(filePath);
     return this.parseXlsxRows(filePath);
   }
 
   toHeaderString(value: string | number | Date | undefined): string {
-    if (value === undefined) {
-      return '';
-    }
+    if (value === undefined) return '';
 
     return String(value).trim();
   }
@@ -194,17 +171,12 @@ export class ImportFileParserService {
 
   getBulkImportExtension(fileName: string): '.csv' | '.xlsx' {
     const extension = extname(fileName).toLowerCase();
-    if (extension === '.xls') {
+    if (extension === '.xls')
       throw new BadRequestException(
         'Legacy .xls files are no longer supported. Please upload .xlsx or .csv.',
       );
-    }
-    if (extension === '.xlsx') {
-      return '.xlsx';
-    }
-    if (extension === '.csv' || extension === '') {
-      return '.csv';
-    }
+    if (extension === '.xlsx') return '.xlsx';
+    if (extension === '.csv' || extension === '') return '.csv';
     throw new BadRequestException(
       'Bulk import supports .csv and .xlsx files only.',
     );
@@ -241,9 +213,8 @@ export class ImportFileParserService {
     await this.loadXlsxWorkbook(workbook, buffer);
 
     const worksheet = workbook.worksheets[0];
-    if (!worksheet) {
+    if (!worksheet)
       throw new BadRequestException('Spreadsheet does not contain any sheets');
-    }
 
     const tabularRows: Array<Array<string | number | Date | undefined>> = [];
     worksheet.eachRow({ includeEmpty: false }, (row) => {
@@ -266,11 +237,10 @@ export class ImportFileParserService {
       }
     });
 
-    if (tabularRows.length < 2) {
+    if (tabularRows.length < 2)
       throw new BadRequestException(
         'Spreadsheet must have a header row and at least one data row',
       );
-    }
 
     const headers = tabularRows[0].map((value) => this.toHeaderString(value));
     if (headers.filter((header) => header.length > 0).length === 0) {
@@ -289,16 +259,13 @@ export class ImportFileParserService {
     const extension = this.getBulkImportExtension(fileName);
     if (extension === '.csv') {
       const rows = this.parseCsvBufferToRecords(buffer);
-      if (rows.length === 0) {
-        throw new BadRequestException('CSV file is empty');
-      }
+      if (rows.length === 0) throw new BadRequestException('CSV file is empty');
       return rows;
     }
 
     const rows = await this.parseXlsxBufferToRecords(buffer);
-    if (rows.length === 0) {
+    if (rows.length === 0)
       throw new BadRequestException('Spreadsheet has no data rows');
-    }
     return rows;
   }
 

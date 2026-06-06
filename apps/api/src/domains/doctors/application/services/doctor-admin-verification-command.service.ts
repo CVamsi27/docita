@@ -31,14 +31,12 @@ export class DoctorAdminVerificationCommandService {
       select: { id: true, role: true, registrationNumber: true },
     });
     if (!doctor) throw new NotFoundException('Doctor not found');
-    if (doctor.role !== Role.DOCTOR && doctor.role !== Role.ADMIN_DOCTOR) {
+    if (doctor.role !== Role.DOCTOR && doctor.role !== Role.ADMIN_DOCTOR)
       throw new BadRequestException('Only doctor accounts can be verified');
-    }
-    if (!doctor.registrationNumber) {
+    if (!doctor.registrationNumber)
       throw new BadRequestException(
         'Doctor must submit a registration number before verification',
       );
-    }
 
     await this.persistence.user.update({
       where: { id: doctorId },
@@ -57,20 +55,18 @@ export class DoctorAdminVerificationCommandService {
 
   async adminRejectDoctor(doctorId: string, adminId: string, reason: string) {
     const trimmed = reason?.trim();
-    if (!trimmed) {
+    if (!trimmed)
       throw new BadRequestException(
         'A rejection reason is required so the doctor knows what to fix',
       );
-    }
 
     const doctor = await this.persistence.user.findUnique({
       where: { id: doctorId },
       select: { id: true, role: true },
     });
     if (!doctor) throw new NotFoundException('Doctor not found');
-    if (doctor.role !== Role.DOCTOR && doctor.role !== Role.ADMIN_DOCTOR) {
+    if (doctor.role !== Role.DOCTOR && doctor.role !== Role.ADMIN_DOCTOR)
       throw new BadRequestException('Only doctor accounts can be rejected');
-    }
 
     await this.persistence.user.update({
       where: { id: doctorId },

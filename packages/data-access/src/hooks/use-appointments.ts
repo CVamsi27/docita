@@ -86,9 +86,7 @@ type AppointmentQueryOptions = {
 const normalizeAppointmentQueryOptions = (
   options?: AppointmentQueryOptions | null,
 ): AppointmentQueryOptions | undefined => {
-  if (!options) {
-    return undefined;
-  }
+  if (!options) return undefined;
 
   return omitEmptyQueryParams(options);
 };

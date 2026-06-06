@@ -213,9 +213,7 @@ export class SubscriptionOverageMeterService {
     const overageEntries = Object.entries(result.breakdown).flatMap(
       ([key, breakdown]) => {
         const usageType = mapOverageKeyToUsageType(key);
-        if (usageType === null || breakdown.charge <= 0) {
-          return [];
-        }
+        if (usageType === null || breakdown.charge <= 0) return [];
         return [{ key, breakdown, usageType }];
       },
     );

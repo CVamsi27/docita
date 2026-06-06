@@ -33,15 +33,12 @@ export class InvoiceItem {
   }
 
   private validate(): void {
-    if (this.quantity <= 0) {
+    if (this.quantity <= 0)
       throw new InvariantViolationError('Quantity must be greater than 0');
-    }
-    if (this.taxRate < 0 || this.taxRate > 100) {
+    if (this.taxRate < 0 || this.taxRate > 100)
       throw new InvariantViolationError('Tax rate must be between 0 and 100');
-    }
-    if (this.discount < 0 || this.discount > 100) {
+    if (this.discount < 0 || this.discount > 100)
       throw new InvariantViolationError('Discount must be between 0 and 100');
-    }
   }
 
   getSubtotal(): Money {

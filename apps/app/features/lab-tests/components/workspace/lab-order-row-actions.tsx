@@ -79,9 +79,7 @@ export const LabOrderRowActions: FC<LabOrderRowActionsProps> = ({
     setReference("");
   };
 
-  if (isTerminal) {
-    return <span className="text-xs text-muted-foreground">—</span>;
-  }
+  if (isTerminal) return <span className="text-xs text-muted-foreground">—</span>;
 
   return (
     <div className="flex flex-wrap items-center justify-end gap-2">

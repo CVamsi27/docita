@@ -17,27 +17,19 @@ export interface BookingValidationState {
 export function validateBookingFields(
   state: BookingValidationState,
 ): string | null {
-  if (!state.slotDate) {
-    return "Choose a date for your appointment request.";
-  }
+  if (!state.slotDate) return "Choose a date for your appointment request.";
   if (!state.phone.trim()) {
     return "Enter your phone number before submitting.";
   }
-  if (state.requiresOtp === null) {
-    return null;
-  }
-  if (state.requiresOtp === true && !state.verificationToken) {
-    return "Verify your phone with the code we sent before submitting.";
-  }
+  if (state.requiresOtp === null) return null;
+  if (state.requiresOtp === true && !state.verificationToken) return "Verify your phone with the code we sent before submitting.";
   if (
     state.requiresOtp === false &&
     (!state.firstName.trim() || !state.lastName.trim() || !state.dateOfBirth.trim())
   ) {
     return "Enter your name and date of birth before submitting.";
   }
-  if (state.requiresOtp === false && !state.dpdpConsentAccepted) {
-    return "Please accept the data processing notice (DPDP Act, 2023) before submitting.";
-  }
+  if (state.requiresOtp === false && !state.dpdpConsentAccepted) return "Please accept the data processing notice (DPDP Act, 2023) before submitting.";
   return null;
 }
 

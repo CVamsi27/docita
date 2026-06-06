@@ -5,7 +5,6 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
-
 export function ContactSectionPhone({
   c,
   requiredMark,
@@ -14,7 +13,6 @@ export function ContactSectionPhone({
   requiredMark: ReactNode;
 }) {
   const phoneChecked = c.requiresOtp !== null;
-
   return (
     <div className="grid gap-2 sm:col-span-2">
       <Label

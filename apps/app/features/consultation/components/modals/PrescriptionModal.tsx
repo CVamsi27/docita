@@ -32,13 +32,9 @@ const getPrescriptionComplianceErrorMessage = (
     return null;
   }
 
-  if (error.code === "DOCTOR_SIGNATURE_REQUIRED") {
-    return "Add your signature before creating a prescription";
-  }
+  if (error.code === "DOCTOR_SIGNATURE_REQUIRED") return "Add your signature before creating a prescription";
 
-  if (error.code === "DOCTOR_VERIFICATION_REQUIRED") {
-    return "Finish your doctor verification before creating a prescription";
-  }
+  if (error.code === "DOCTOR_VERIFICATION_REQUIRED") return "Finish your doctor verification before creating a prescription";
 
   return null;
 };

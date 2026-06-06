@@ -42,17 +42,15 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
           !!r2Config.bucketName;
 
         if (!isProduction) {
-          if (provider === 'r2' && hasR2Credentials) {
+          if (provider === 'r2' && hasR2Credentials)
             return new R2StorageProvider(r2Config, clock);
-          }
           return new LocalStorageProvider({
             apiUrl: configService.getApiUrl(),
           });
         }
 
-        if (provider === 'r2' && hasR2Credentials) {
+        if (provider === 'r2' && hasR2Credentials)
           return new R2StorageProvider(r2Config, clock);
-        }
 
         throw new Error(
           'Production worker requires STORAGE_PROVIDER=r2 with R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, and R2_BUCKET_NAME.',

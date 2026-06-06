@@ -76,11 +76,10 @@ export class AvailabilityScheduleService {
       data.dayOfWeek,
     );
 
-    if (existing) {
+    if (existing)
       throw new BadRequestException(
         `Schedule already exists for this day. Use update instead.`,
       );
-    }
 
     return this.repository.createSchedule({
       doctor: { connect: { id: data.doctorId } },
@@ -127,12 +126,10 @@ export class AvailabilityScheduleService {
       options?.actorRole === Role.ADMIN ||
       options?.actorRole === Role.ADMIN_DOCTOR;
     if (!isAdmin) {
-      if (!options?.actorUserId) {
+      if (!options?.actorUserId)
         throw new ForbiddenException('Authenticated user is required');
-      }
-      if (schedule.doctorId !== options.actorUserId) {
+      if (schedule.doctorId !== options.actorUserId)
         throw new ForbiddenException('You can only manage your own schedule');
-      }
     }
 
     const newStartTime = data.startTime || schedule.startTime;
@@ -165,12 +162,10 @@ export class AvailabilityScheduleService {
       options?.actorRole === Role.ADMIN ||
       options?.actorRole === Role.ADMIN_DOCTOR;
     if (!isAdmin) {
-      if (!options?.actorUserId) {
+      if (!options?.actorUserId)
         throw new ForbiddenException('Authenticated user is required');
-      }
-      if (schedule.doctorId !== options.actorUserId) {
+      if (schedule.doctorId !== options.actorUserId)
         throw new ForbiddenException('You can only manage your own schedule');
-      }
     }
 
     await this.repository.deleteSchedule(id);
@@ -255,16 +250,14 @@ export class AvailabilityScheduleService {
     const startDate = new Date(data.startDate);
     const endDate = new Date(data.endDate);
 
-    if (endDate < startDate) {
+    if (endDate < startDate)
       throw new BadRequestException('End date must be on or after start date');
-    }
 
     if (!data.isFullDay) {
-      if (!data.startTime || !data.endTime) {
+      if (!data.startTime || !data.endTime)
         throw new BadRequestException(
           'Start time and end time are required for partial day off',
         );
-      }
       if (!TimeUtils.validateTimeFormat(data.startTime)) {
         throw new BadRequestException('Invalid start time format');
       }
@@ -313,12 +306,10 @@ export class AvailabilityScheduleService {
       options?.actorRole === Role.ADMIN ||
       options?.actorRole === Role.ADMIN_DOCTOR;
     if (!isAdmin) {
-      if (!options?.actorUserId) {
+      if (!options?.actorUserId)
         throw new ForbiddenException('Authenticated user is required');
-      }
-      if (timeOff.doctorId !== options.actorUserId) {
+      if (timeOff.doctorId !== options.actorUserId)
         throw new ForbiddenException('You can only manage your own time off');
-      }
     }
 
     await this.repository.deleteTimeOff(id);
@@ -334,9 +325,7 @@ export class AvailabilityScheduleService {
     const timezone = clinicTimezone?.trim() || DEFAULT_TIMEZONE;
     const pickerDateStr = formatUtcInstantAsClinicPickerIso(target, timezone);
     const bounds = getClinicLocalDayUtcBounds(pickerDateStr, timezone);
-    if (!bounds) {
-      return [];
-    }
+    if (!bounds) return [];
     return this.repository.findDoctorIdsWithFullDayTimeOffOverlappingRange(
       clinicId,
       bounds.rangeStart,

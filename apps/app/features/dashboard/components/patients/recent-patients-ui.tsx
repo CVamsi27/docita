@@ -27,7 +27,6 @@ export interface RecentPatient {
 export interface RecentPatientsUIProps {
   patients: RecentPatient[];
 }
-
 export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {
   return (
     <Card className="border border-border shadow-sm bg-card">

@@ -43,9 +43,7 @@ export class AppointmentMetricDefinitionService {
       });
     }
 
-    if (definitionConfigByKey.size === 0) {
-      return new Map();
-    }
+    if (definitionConfigByKey.size === 0) return new Map();
 
     const definitionKeys = Array.from(definitionConfigByKey.keys());
     const categoryKey = input.categoryKey.trim().toLowerCase();
@@ -100,9 +98,7 @@ export class AppointmentMetricDefinitionService {
         data: missingDefinitionKeys
           .map((definitionKey) => {
             const config = definitionConfigByKey.get(definitionKey);
-            if (!config) {
-              return null;
-            }
+            if (!config) return null;
 
             return {
               clinicId: input.clinicId,

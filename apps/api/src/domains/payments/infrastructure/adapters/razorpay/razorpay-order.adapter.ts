@@ -70,15 +70,10 @@ export class RazorpayOrderAdapter
     const err = asRazorpayRecord(error);
     if (!err) return null;
     const nested = isRecord(err.error) ? err.error : null;
-    if (nested && typeof nested.description === 'string') {
+    if (nested && typeof nested.description === 'string')
       return nested.description;
-    }
-    if (nested && typeof nested.reason === 'string') {
-      return nested.reason;
-    }
-    if (typeof err.message === 'string') {
-      return err.message;
-    }
+    if (nested && typeof nested.reason === 'string') return nested.reason;
+    if (typeof err.message === 'string') return err.message;
     return null;
   }
 
@@ -123,26 +118,23 @@ export class RazorpayOrderAdapter
         ? paymentsResponse.items
         : [];
 
-      if (!payments.length) {
+      if (!payments.length)
         throw new BadRequestException('No payments found for the given order');
-      }
 
       const existingCapturedPayment = payments.find(
         (payment) => payment.status === 'captured',
       );
-      if (existingCapturedPayment) {
+      if (existingCapturedPayment)
         return this.toPaymentGatewayPayment(existingCapturedPayment);
-      }
 
       const authorizedPayment = payments.find(
         (payment) => payment.status === 'authorized',
       );
 
-      if (!authorizedPayment) {
+      if (!authorizedPayment)
         throw new BadRequestException(
           'No capturable payment found for the given order',
         );
-      }
 
       const amountInCents =
         typeof authorizedPayment.amount === 'number'
@@ -159,9 +151,7 @@ export class RazorpayOrderAdapter
 
       return this.toPaymentGatewayPayment(capturedPayment);
     } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
+      if (error instanceof BadRequestException) throw error;
 
       this.logger.error(
         `Failed to capture payment for order ${orderId}`,
@@ -228,9 +218,7 @@ export class RazorpayOrderAdapter
   }
 
   private timingSafeEqual(a: string, b: string): boolean {
-    if (a.length !== b.length) {
-      return false;
-    }
+    if (a.length !== b.length) return false;
     return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
   }
 

@@ -28,13 +28,9 @@ export class ClinicSignatureController {
   @Post('generate-token')
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   async generateToken(@Request() req: RequestWithUser) {
-    if (!req.user?.id) {
-      throw new BadRequestException('User ID is required');
-    }
+    if (!req.user?.id) throw new BadRequestException('User ID is required');
     const clinicId = req.user.clinicId;
-    if (!clinicId) {
-      throw new BadRequestException('Clinic context required');
-    }
+    if (!clinicId) throw new BadRequestException('Clinic context required');
 
     return this.signatureUploadService.generateUploadToken(req.user.id, {
       purpose: SignaturePurpose.SLA_ACCEPTANCE,
@@ -61,13 +57,9 @@ export class ClinicSignatureController {
   @Get('active-tokens')
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   async getActiveTokens(@Request() req: RequestWithUser) {
-    if (!req.user?.id) {
-      throw new BadRequestException('User ID is required');
-    }
+    if (!req.user?.id) throw new BadRequestException('User ID is required');
     const clinicId = req.user.clinicId;
-    if (!clinicId) {
-      throw new BadRequestException('Clinic context required');
-    }
+    if (!clinicId) throw new BadRequestException('Clinic context required');
 
     return this.signatureUploadService.getActiveTokens(req.user.id, clinicId);
   }
@@ -78,13 +70,9 @@ export class ClinicSignatureController {
     @Request() req: RequestWithUser,
     @Param('tokenId') tokenId: string,
   ) {
-    if (!req.user?.id) {
-      throw new BadRequestException('User ID is required');
-    }
+    if (!req.user?.id) throw new BadRequestException('User ID is required');
     const clinicId = req.user.clinicId;
-    if (!clinicId) {
-      throw new BadRequestException('Clinic context required');
-    }
+    if (!clinicId) throw new BadRequestException('Clinic context required');
 
     return this.signatureUploadService.revokeClinicToken(clinicId, tokenId);
   }

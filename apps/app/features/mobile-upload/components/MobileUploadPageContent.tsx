@@ -34,9 +34,7 @@ function MobileUploadPageInner() {
       formData.append("file", selectedFile);
 
       const secret = uploadSecretFromQuery?.trim();
-      if (!secret) {
-        throw new Error("Missing upload credentials in this link.");
-      }
+      if (!secret) throw new Error("Missing upload credentials in this link.");
 
       return await apiFetch<{ status?: string; fileUrl?: string }>(
         `/uploads/session/${sessionId}`,
@@ -114,9 +112,7 @@ function MobileUploadPageInner() {
     }
   };
 
-  if (success) {
-    return <MobileSuccessScreen />;
-  }
+  if (success) return <MobileSuccessScreen />;
 
   if (!uploadSecretFromQuery?.trim()) {
     return (

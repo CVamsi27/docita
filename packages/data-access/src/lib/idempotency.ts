@@ -15,9 +15,7 @@ export const IDEMPOTENCY_HEADER = "Idempotency-Key";
 export function generateIdempotencyKey(): string {
   const cryptoApi =
     typeof globalThis !== "undefined" ? globalThis.crypto : undefined;
-  if (typeof cryptoApi?.randomUUID === "function") {
-    return cryptoApi.randomUUID();
-  }
+  if (typeof cryptoApi?.randomUUID === "function") return cryptoApi.randomUUID();
   throw new Error(
     "crypto.randomUUID is unavailable in this runtime; idempotency keys cannot be generated safely.",
   );

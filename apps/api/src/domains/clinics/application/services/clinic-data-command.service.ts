@@ -126,31 +126,26 @@ export class ClinicDataCommandService {
   async joinClinicForUser(userId: string, data: JoinClinicData) {
     const user = await this.repository.findUserForJoin(userId);
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    if (!user) throw new NotFoundException('User not found');
 
-    if (user.clinicId) {
+    if (user.clinicId)
       throw new BadRequestException('User is already associated with a clinic');
-    }
 
     const normalizedCode = data.clinicCode?.trim().toUpperCase();
     const normalizedEmail = data.clinicEmail?.trim().toLowerCase();
 
-    if (!normalizedCode && !normalizedEmail) {
+    if (!normalizedCode && !normalizedEmail)
       throw new BadRequestException('clinicCode or clinicEmail is required');
-    }
 
     const clinic = await this.repository.findClinicByCodeOrEmail(
       normalizedCode,
       normalizedEmail,
     );
 
-    if (!clinic) {
+    if (!clinic)
       throw new NotFoundException(
         'No active clinic found for provided details',
       );
-    }
 
     await this.repository.joinClinic(userId, clinic.id, user.role);
 

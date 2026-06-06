@@ -66,9 +66,8 @@ export class MedicationDoseCommandService {
       dto.medicationId,
     );
 
-    if (!medication || medication.prescription.patientId !== patientId) {
+    if (!medication || medication.prescription.patientId !== patientId)
       throw new NotFoundException('Medication not found for this patient');
-    }
 
     return this.repository.createDose({
       medicationId: dto.medicationId,
@@ -99,15 +98,13 @@ export class MedicationDoseCommandService {
       dto.medicationId,
     );
 
-    if (!medication || medication.prescription.patientId !== patientId) {
+    if (!medication || medication.prescription.patientId !== patientId)
       throw new NotFoundException('Medication not found for this patient');
-    }
 
-    if (!medication.isPRN) {
+    if (!medication.isPRN)
       throw new BadRequestException(
         'Ad-hoc dose recording is only available for PRN (as-needed) medications',
       );
-    }
 
     if (medication.prnMaxDose && dto.doseAmount) {
       this.logger.log(
@@ -143,15 +140,12 @@ export class MedicationDoseCommandService {
       clinicId,
     );
 
-    if (!dose) {
-      throw new NotFoundException('Medication dose not found');
-    }
+    if (!dose) throw new NotFoundException('Medication dose not found');
 
-    if (dto.version !== undefined && dose.version !== dto.version) {
+    if (dto.version !== undefined && dose.version !== dto.version)
       throw new BadRequestException(
         'Medication dose has changed. Refresh and try again.',
       );
-    }
 
     const data: Prisma.MedicationDoseUpdateInput = {};
     if (dto.status !== undefined) data.status = dto.status;

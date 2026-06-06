@@ -10,9 +10,7 @@ type ContactInquiryDto = ContactInquiry;
 
 function redactEmailForLog(email: string): string {
   const [local = '', domain = ''] = email.trim().toLowerCase().split('@');
-  if (!local || !domain) {
-    return '[redacted-email]';
-  }
+  if (!local || !domain) return '[redacted-email]';
   return `${local.slice(0, 2)}***@${domain}`;
 }
 
@@ -23,11 +21,10 @@ export class ContactService {
   constructor(private readonly prisma: PrismaService) {}
 
   async submitInquiry(data: ContactInquiryDto): Promise<ContactResponse> {
-    if (!data.name || !data.email || !data.message) {
+    if (!data.name || !data.email || !data.message)
       throw new BadRequestException(
         'Name, email, and message are required fields',
       );
-    }
 
     if (!this.isValidEmail(data.email)) {
       throw new BadRequestException('Invalid email format');

@@ -7,9 +7,7 @@ const ensureCounter = (
   labelNames: readonly string[],
 ): Counter<string> => {
   const existing = register.getSingleMetric(name);
-  if (existing instanceof Counter) {
-    return existing;
-  }
+  if (existing instanceof Counter) return existing;
   return new Counter({ name, help, labelNames: [...labelNames] });
 };
 
@@ -20,9 +18,7 @@ const ensureHistogram = (
   buckets: readonly number[],
 ): Histogram<string> => {
   const existing = register.getSingleMetric(name);
-  if (existing instanceof Histogram) {
-    return existing;
-  }
+  if (existing instanceof Histogram) return existing;
   return new Histogram({
     name,
     help,

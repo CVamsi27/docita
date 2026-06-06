@@ -228,9 +228,7 @@ function shouldIgnoreCaptureClick(
 ): boolean {
   if (readOnlyRef.current) return true;
   if (event.defaultPrevented) return true;
-  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-    return true;
-  }
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return true;
   return event.button !== 0;
 }
 

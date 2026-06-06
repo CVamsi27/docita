@@ -92,9 +92,7 @@ export class AdminAlertsService {
   }
 
   private resolveRecipients(severity: AdminAlertSeverity): string[] {
-    if (severity === 'critical') {
-      return [this.primaryAdminEmail, this.ceoEmail];
-    }
+    if (severity === 'critical') return [this.primaryAdminEmail, this.ceoEmail];
     return [this.primaryAdminEmail];
   }
 

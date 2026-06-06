@@ -98,9 +98,7 @@ export function resolvePricingDialogEstimate(
     | null
     | undefined,
 ): number | null {
-  if (tierName === "ENTERPRISE" || !estimate) {
-    return null;
-  }
+  if (tierName === "ENTERPRISE" || !estimate) return null;
 
   return isYearly ? estimate.totalYearly : estimate.totalMonthly;
 }

@@ -50,9 +50,7 @@ export class OverageCalculationService {
   ) {}
 
   private resolveCurrency(currency?: string) {
-    if (!currency) {
-      return parseSupportedCurrency(DEFAULT_CURRENCY);
-    }
+    if (!currency) return parseSupportedCurrency(DEFAULT_CURRENCY);
     return parseSupportedCurrency(currency.toUpperCase());
   }
 

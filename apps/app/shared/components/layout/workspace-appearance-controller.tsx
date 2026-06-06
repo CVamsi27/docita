@@ -13,9 +13,7 @@ export function WorkspaceAppearanceController() {
       ? clinic.enterpriseBranding.lockedTheme
       : null;
 
-  if (!lockedTheme) {
-    return null;
-  }
+  if (!lockedTheme) return null;
 
   return <AppearanceController override={lockedTheme} locked />;
 }

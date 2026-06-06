@@ -11,9 +11,7 @@ export async function browserJson<T>(
   init?: RequestInit,
 ): Promise<T> {
   const response = await browserRequest(input, init);
-  if (!response.ok) {
-    throw new Error(String(response.status));
-  }
+  if (!response.ok) throw new Error(String(response.status));
   return assertTyped<T>(await response.json());
 }
 
@@ -22,8 +20,6 @@ export async function browserBlob(
   init?: RequestInit,
 ): Promise<Blob> {
   const response = await browserRequest(input, init);
-  if (!response.ok) {
-    throw new Error(String(response.status));
-  }
+  if (!response.ok) throw new Error(String(response.status));
   return response.blob();
 }

@@ -106,11 +106,10 @@ export class PrescriptionsCommandService {
       });
     }
 
-    if (!data.clinicId) {
+    if (!data.clinicId)
       throw new BadRequestException(
         'Cannot create prescription without a clinic context',
       );
-    }
 
     const patient = await this.repository.findPatientWithAllergies(
       data.patientId,

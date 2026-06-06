@@ -70,8 +70,7 @@ export const resolveInvoiceItems = (invoice: {
   items: JsonValue;
   lineItems?: InvoiceLineItemRow[];
 }): InvoiceItem[] => {
-  if (invoice.lineItems && invoice.lineItems.length > 0) {
+  if (invoice.lineItems && invoice.lineItems.length > 0)
     return invoice.lineItems.map(lineItemRowToInvoiceItem);
-  }
   return parseInvoiceItemsFromJson(invoice.items);
 };

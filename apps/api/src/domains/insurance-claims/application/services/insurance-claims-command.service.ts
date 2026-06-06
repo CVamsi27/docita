@@ -201,11 +201,10 @@ export class InsuranceClaimsCommandService {
         amountCents: result.approvedAmountCents ?? null,
       },
     );
-    if (!updated) {
+    if (!updated)
       throw new ConflictException(
         'Insurance claim was modified by another request. Reload and retry.',
       );
-    }
 
     return updated;
   }
@@ -231,11 +230,10 @@ export class InsuranceClaimsCommandService {
   private assertCreateShape(
     input: Pick<CreateInsuranceClaimInput, 'claimType' | 'invoiceId'>,
   ): void {
-    if (input.claimType === 'REIMBURSEMENT' && !input.invoiceId) {
+    if (input.claimType === 'REIMBURSEMENT' && !input.invoiceId)
       throw new BadRequestException(
         'Reimbursement claims must be linked to a final invoice.',
       );
-    }
   }
 
   private async assertReferencesBelongToPatientClinic(
@@ -252,11 +250,10 @@ export class InsuranceClaimsCommandService {
         ...input,
         clinicId,
       });
-    if (!referencesAreScoped) {
+    if (!referencesAreScoped)
       throw new NotFoundException(
         'One or more insurance claim references were not found for this patient and clinic.',
       );
-    }
   }
 
   private async requireClaim(

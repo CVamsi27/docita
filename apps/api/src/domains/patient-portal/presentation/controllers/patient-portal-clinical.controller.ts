@@ -51,9 +51,7 @@ function parseTimelineEventTypes(
 function parseMedicationDoseStatusQuery(
   status: string | undefined,
 ): MedicationDoseStatus | undefined {
-  if (!status) {
-    return undefined;
-  }
+  if (!status) return undefined;
   return parseStringEnumMember(MEDICATION_DOSE_STATUSES, status) ?? undefined;
 }
 

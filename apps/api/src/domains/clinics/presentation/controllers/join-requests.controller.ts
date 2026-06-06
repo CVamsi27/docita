@@ -56,18 +56,15 @@ export class JoinRequestsController {
       clinicId: dto.clinicId,
     });
 
-    if (user.clinicId) {
+    if (user.clinicId)
       throw new BadRequestException('Already associated with a clinic');
-    }
 
     const existing = await this.joinRequestService.findPending(
       user.id,
       dto.clinicId,
     );
 
-    if (existing) {
-      throw new ConflictException('Join request already pending');
-    }
+    if (existing) throw new ConflictException('Join request already pending');
 
     const request = await this.joinRequestService.create({
       userId: user.id,
@@ -122,9 +119,7 @@ export class JoinRequestsController {
       requireAuthenticatedUserId(req),
     );
 
-    if (requests.length === 0) {
-      return null;
-    }
+    if (requests.length === 0) return null;
 
     return requests[0];
   }
@@ -153,9 +148,8 @@ export class JoinRequestsController {
     const userName = req.user?.name ?? 'Clinic staff';
     const request = await this.joinRequestService.findById(requestId);
 
-    if (!request || request.clinicId !== clinicId) {
+    if (!request || request.clinicId !== clinicId)
       throw new NotFoundException('Request not found');
-    }
 
     await this.joinRequestService.approve(
       requestId,
@@ -198,9 +192,8 @@ export class JoinRequestsController {
     const userName = req.user?.name ?? 'Clinic staff';
     const request = await this.joinRequestService.findById(requestId);
 
-    if (!request || request.clinicId !== clinicId) {
+    if (!request || request.clinicId !== clinicId)
       throw new NotFoundException('Request not found');
-    }
 
     await this.joinRequestService.reject(
       requestId,

@@ -23,24 +23,16 @@ export interface LabPanel {
 export function getTestResultStatus(
   result: LabTestResult,
 ): LabTestResult["status"] {
-  if (result.referenceMin === undefined || result.referenceMax === undefined) {
-    return undefined;
-  }
+  if (result.referenceMin === undefined || result.referenceMax === undefined) return undefined;
 
   const { value, referenceMin, referenceMax } = result;
 
   const criticalLow = referenceMin - (referenceMax - referenceMin) * 0.2;
   const criticalHigh = referenceMax + (referenceMax - referenceMin) * 0.2;
 
-  if (value <= criticalLow || value >= criticalHigh) {
-    return "critical";
-  }
-  if (value < referenceMin) {
-    return "low";
-  }
-  if (value > referenceMax) {
-    return "high";
-  }
+  if (value <= criticalLow || value >= criticalHigh) return "critical";
+  if (value < referenceMin) return "low";
+  if (value > referenceMax) return "high";
   return "normal";
 }
 

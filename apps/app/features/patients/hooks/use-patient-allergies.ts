@@ -62,9 +62,7 @@ export function usePatientAllergies({
 
   const updateAllergyHandler = useCallback(
     (allergy: PatientAllergy) => {
-      if (!allergy.id) {
-        throw new Error("Allergy id is required to update");
-      }
+      if (!allergy.id) throw new Error("Allergy id is required to update");
       updateAllergy(
         {
           id: allergy.id,

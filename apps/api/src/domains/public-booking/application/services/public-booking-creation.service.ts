@@ -150,9 +150,8 @@ export class PublicBookingCreationService {
         orderBy: { createdAt: 'desc' },
       });
 
-      if (!otpRecord) {
+      if (!otpRecord)
         throw new UnauthorizedException('Invalid or expired code');
-      }
 
       await this.persistence.publicBookingOtp.update({
         where: { id: otpRecord.id },
@@ -162,16 +161,13 @@ export class PublicBookingCreationService {
       const refreshed = await this.persistence.publicBookingOtp.findUnique({
         where: { id: otpRecord.id },
       });
-      if (!refreshed || refreshed.attempts > 3) {
+      if (!refreshed || refreshed.attempts > 3)
         throw new UnauthorizedException(
           'Too many attempts. Please request a new code.',
         );
-      }
 
       const isValid = await bcrypt.compare(body.otp, refreshed.otpHash);
-      if (!isValid) {
-        throw new UnauthorizedException('Invalid code');
-      }
+      if (!isValid) throw new UnauthorizedException('Invalid code');
 
       await this.persistence.publicBookingOtp.update({
         where: { id: otpRecord.id },
@@ -182,9 +178,7 @@ export class PublicBookingCreationService {
         clinic.id,
         phone,
       );
-      if (!patient) {
-        throw new UnauthorizedException('Patient not found');
-      }
+      if (!patient) throw new UnauthorizedException('Patient not found');
 
       const plain = patient.toPlain();
 
@@ -211,14 +205,11 @@ export class PublicBookingCreationService {
     authHeader: string | undefined,
   ): Promise<PublicBookingContextResponse> {
     const token = extractBearerToken(authHeader);
-    if (!token) {
-      throw new UnauthorizedException('Verification required');
-    }
+    if (!token) throw new UnauthorizedException('Verification required');
     const payload = this.bookingTokenService.verify(token);
     return withBookingTenant(this.persistence, referralCode, async (clinic) => {
-      if (payload.clinicId !== clinic.id) {
+      if (payload.clinicId !== clinic.id)
         throw new UnauthorizedException('Invalid verification context');
-      }
 
       const appointments = await this.persistence.appointment.findMany({
         where: { clinicId: clinic.id, patientId: payload.patientId },

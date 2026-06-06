@@ -34,18 +34,14 @@ export class ConsentGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    if (!requiredTypes || requiredTypes.length === 0) {
-      return true;
-    }
+    if (!requiredTypes || requiredTypes.length === 0) return true;
 
     const request = context
       .switchToHttp()
       .getRequest<AuthenticatedRequest & { params: Record<string, string> }>();
     const patientId = request.params?.patientId;
 
-    if (!patientId) {
-      return true;
-    }
+    if (!patientId) return true;
 
     const now = this.clock.now();
 

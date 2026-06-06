@@ -20,9 +20,7 @@ export function PaymentRecoveryCard({
   resolvePayment,
   isResolving = false,
 }: PaymentRecoveryCardProps) {
-  if (!show || !recoverablePayment) {
-    return null;
-  }
+  if (!show || !recoverablePayment) return null;
   const amountText = formatCurrency(recoverablePayment.amountCents / 100, {
     currency: recoverablePayment.currency || DEFAULT_CURRENCY,
   });

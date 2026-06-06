@@ -38,16 +38,13 @@ export class UsersService {
   async updateProfile(userId: string, data: UpdateProfileDto) {
     const user = await this.repository.findById(userId);
 
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
+    if (!user) throw new BadRequestException('User not found');
 
     if (data.email && data.email !== user.email) {
       const existingUser = await this.repository.findByEmail(data.email);
 
-      if (existingUser) {
+      if (existingUser)
         throw new BadRequestException('Email is already in use');
-      }
     }
 
     return this.repository.updateProfile(userId, data);
@@ -60,9 +57,7 @@ export class UsersService {
   async requestAccountDeletion(userId: string) {
     const user = await this.repository.findById(userId);
 
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
+    if (!user) throw new BadRequestException('User not found');
 
     this.logger.log('Staff user requested account deletion');
 

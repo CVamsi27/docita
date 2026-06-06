@@ -55,18 +55,14 @@ export class OnboardingValidationService {
     const upper = currency?.toUpperCase();
     if (upper) {
       const parsed = parseStringEnumMember(SUPPORTED_CURRENCY_MEMBERS, upper);
-      if (parsed) {
-        return parsed;
-      }
+      if (parsed) return parsed;
     }
     return 'INR';
   }
 
   private resolvePlanMode(tier: string, planMode?: string): PlanMode {
     const parsedMode = planModeSchema.safeParse(planMode ?? 'FULL');
-    if (!parsedMode.success) {
-      throw new BadRequestException('Invalid plan mode');
-    }
+    if (!parsedMode.success) throw new BadRequestException('Invalid plan mode');
 
     const tierName = mapDbClinicTierStringToTierName(tier);
     if (!tierSupportsMode(tierName, parsedMode.data)) {
@@ -287,15 +283,12 @@ export class OnboardingValidationService {
 
   validateSLAAcceptance(slaData: Record<string, unknown>): void {
     const data = slaAcceptanceSchema.parse(slaData);
-    if (!data.acceptedSLA) {
+    if (!data.acceptedSLA)
       throw new BadRequestException('SLA must be accepted to proceed');
-    }
-    if (!data.acceptedDataProcessingTerms) {
+    if (!data.acceptedDataProcessingTerms)
       throw new BadRequestException('Data processing terms must be accepted');
-    }
-    if (!data.acceptedPrivacyPolicy) {
+    if (!data.acceptedPrivacyPolicy)
       throw new BadRequestException('Privacy policy must be accepted');
-    }
   }
 
   getTierPricing(
@@ -314,9 +307,7 @@ export class OnboardingValidationService {
     const tierPricing = pricing[tierKey];
     const pricingKey = billingCycleEnumToCatalogKey(cycle);
     const amount = pricingKey !== null ? tierPricing?.[pricingKey] : undefined;
-    if (typeof amount !== 'number') {
-      return 0;
-    }
+    if (typeof amount !== 'number') return 0;
     // Front Desk / Core plans bill at a fraction of the Full-mode price; keep
     // checkout, the verified payment amount, and basePriceCents consistent.
     const resolvedMode = this.resolvePlanMode(tier, planMode);
@@ -327,7 +318,12 @@ export class OnboardingValidationService {
     return Math.round(amount * multiplier) * 100;
   }
 
-  getTierLimits(tier: string): { includedPatients: number; includedAppointments: number; includedStorageGB: number; includedUsers: number } {
+  getTierLimits(tier: string): {
+    includedPatients: number;
+    includedAppointments: number;
+    includedStorageGB: number;
+    includedUsers: number;
+  } {
     validateClinicTier(tier);
     const limits: Record<
       string,

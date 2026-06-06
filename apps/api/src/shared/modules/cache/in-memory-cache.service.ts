@@ -40,9 +40,7 @@ export class InMemoryCacheService
     await Promise.resolve();
     const entry = this.cache.get(key);
 
-    if (!entry) {
-      return null;
-    }
+    if (!entry) return null;
 
     if (entry.expiresAt && entry.expiresAt < Date.now()) {
       this.cache.delete(key);
@@ -94,9 +92,7 @@ export class InMemoryCacheService
     await Promise.resolve();
     const entry = this.cache.get(key);
 
-    if (!entry) {
-      return false;
-    }
+    if (!entry) return false;
 
     if (entry.expiresAt && entry.expiresAt < Date.now()) {
       this.cache.delete(key);

@@ -35,9 +35,7 @@ describe('ClinicSettingsService', () => {
       if (s?.settings === true && s.tier !== true) {
         return Promise.resolve({ settings: {} });
       }
-      if (s?.tier === true) {
-        return Promise.resolve(clinicSnapshot);
-      }
+      if (s?.tier === true) return Promise.resolve(clinicSnapshot);
       return Promise.resolve(null);
     },
   );

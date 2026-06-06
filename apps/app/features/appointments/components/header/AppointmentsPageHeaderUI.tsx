@@ -18,7 +18,6 @@ interface AppointmentsPageHeaderUIProps {
   setSearchQuery: (query: string) => void;
   searchRowAction?: React.ReactNode;
 }
-
 export function AppointmentsPageHeaderUI({
   onAppointmentAdded,
   selectedDate,

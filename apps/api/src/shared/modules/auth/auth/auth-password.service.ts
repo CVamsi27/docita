@@ -97,9 +97,8 @@ export class AuthPasswordService {
         },
       });
 
-      if (!user) {
+      if (!user)
         throw new BadRequestException('Invalid or expired reset token');
-      }
 
       this.passwordPolicy.validate(newPassword);
 
@@ -153,17 +152,14 @@ export class AuthPasswordService {
       },
     });
 
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
+    if (!user) throw new UnauthorizedException('User not found');
 
     const passwordMatch = await bcrypt.compare(
       data.currentPassword,
       user.password,
     );
-    if (!passwordMatch) {
+    if (!passwordMatch)
       throw new UnauthorizedException('Current password is incorrect');
-    }
 
     this.passwordPolicy.validate(data.newPassword);
 

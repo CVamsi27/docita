@@ -111,9 +111,7 @@ export class PrismaQueueRepository implements IQueueRepository {
         },
       },
     });
-    if (!row) {
-      return null;
-    }
+    if (!row) return null;
     return row satisfies AppointmentForCheckIn;
   }
 

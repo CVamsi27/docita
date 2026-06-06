@@ -32,9 +32,7 @@ export class DashboardService {
     const cacheKey = `dashboard:stats:${clinicId}`;
 
     const cached = await this.cacheManager.get(cacheKey);
-    if (cached) {
-      return cached;
-    }
+    if (cached) return cached;
 
     const result = await this.dashboardRepository.getStatsSnapshot(clinicId);
 

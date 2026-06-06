@@ -71,9 +71,8 @@ export class PatientPortalAuthController {
   @ApiOperation({ summary: 'Request OTP for patient portal login' })
   @ApiResponse({ status: 200, description: 'OTP sent if account exists' })
   async requestOtp(@Body() dto: RequestOtpDto) {
-    if (!dto.phoneNumber) {
+    if (!dto.phoneNumber)
       throw new BadRequestException('phoneNumber is required');
-    }
     return this.authService.requestOtp(dto.phoneNumber);
   }
 
@@ -92,9 +91,8 @@ export class PatientPortalAuthController {
     @Body() dto: VerifyOtpDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    if (!dto.phoneNumber || !dto.otp) {
+    if (!dto.phoneNumber || !dto.otp)
       throw new BadRequestException('phoneNumber and otp are required');
-    }
     try {
       const tokens = await this.authService.verifyOtp(dto.phoneNumber, dto.otp);
       this.setAuthCookies(res, tokens);

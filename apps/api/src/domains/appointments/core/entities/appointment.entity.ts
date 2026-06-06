@@ -138,17 +138,15 @@ export class Appointment {
   }
 
   private validate(): void {
-    if (this.startTime >= this.endTime) {
+    if (this.startTime >= this.endTime)
       throw new InvariantViolationError(
         'Appointment start time must be before end time',
       );
-    }
 
-    if (!this.clinicId || !this.patientId || !this.doctorId) {
+    if (!this.clinicId || !this.patientId || !this.doctorId)
       throw new InvariantViolationError(
         'Clinic, Patient, and Doctor IDs are required',
       );
-    }
   }
 
   getStartTime(): Date {
@@ -204,9 +202,8 @@ export class Appointment {
       );
     }
 
-    if (startTime >= endTime) {
+    if (startTime >= endTime)
       throw new InvariantViolationError('Start time must be before end time');
-    }
 
     this.startTime = startTime;
     this.endTime = endTime;

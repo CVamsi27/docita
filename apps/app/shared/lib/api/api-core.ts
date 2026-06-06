@@ -99,9 +99,7 @@ export async function fetchAPI<T>(
         toRecord(error.data ?? undefined) ?? undefined,
       );
     }
-    if (error instanceof ApiError) {
-      throw error;
-    }
+    if (error instanceof ApiError) throw error;
     throw new ApiError(
       getUserFacingErrorMessage(error, {
         fallback:

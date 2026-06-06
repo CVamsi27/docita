@@ -14,7 +14,6 @@ interface SystemLogsPageProps {
   defaultLimit: 25 | 50 | 100;
   moduleColumnWidthClass: string;
 }
-
 export function SystemLogsPage({
   title,
   description,
@@ -22,7 +21,6 @@ export function SystemLogsPage({
   moduleColumnWidthClass,
 }: SystemLogsPageProps) {
   const logs = useSystemLogs({ defaultLimit });
-
   return (
     <AppPageScaffold
       header={

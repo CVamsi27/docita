@@ -23,7 +23,6 @@ interface ConsultationShellProps {
   paletteOpen: boolean;
   onPaletteOpenChange: (open: boolean) => void;
 }
-
 export function ConsultationShell({
   appointmentData,
   clinicType,

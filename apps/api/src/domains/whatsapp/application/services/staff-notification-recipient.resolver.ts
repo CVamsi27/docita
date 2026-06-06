@@ -103,9 +103,7 @@ export class StaffNotificationRecipientResolver implements INotificationRecipien
     type: StaffNotificationType,
   ): Promise<Role[]> {
     const base = this.getTargetRoles(type);
-    if (type !== 'PRESCRIPTION_PENDING') {
-      return base;
-    }
+    if (type !== 'PRESCRIPTION_PENDING') return base;
 
     const clinic = await this.persistence.clinic.findUnique({
       where: { id: clinicId },

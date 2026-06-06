@@ -20,9 +20,7 @@ export function parseLogLevel(
     value === "WARNING" ||
     value === "ERROR" ||
     value === "DEBUG"
-  ) {
-    return value;
-  }
+  ) return value;
   return "ALL";
 }
 

@@ -125,18 +125,14 @@ async function fetchVerificationToken(email: string): Promise<string | null> {
     },
   ).trim();
 
-  if (!output) {
-    return null;
-  }
+  if (!output) return null;
 
   const parsed = JSON.parse(output) as {
     emailVerified?: boolean;
     emailVerificationToken?: string | null;
   };
 
-  if (parsed.emailVerified) {
-    return null;
-  }
+  if (parsed.emailVerified) return null;
 
   return parsed.emailVerificationToken ?? null;
 }

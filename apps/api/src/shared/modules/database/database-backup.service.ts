@@ -101,14 +101,11 @@ export class DatabaseBackupService {
 
   private sanitizeBackupFilename(filename: string): string {
     const trimmed = filename.trim();
-    if (!trimmed) {
-      throw new Error('Backup filename cannot be empty');
-    }
+    if (!trimmed) throw new Error('Backup filename cannot be empty');
 
     const base = path.basename(trimmed);
-    if (base !== trimmed) {
+    if (base !== trimmed)
       throw new Error('Backup filename cannot include path segments');
-    }
 
     if (!/^[a-zA-Z0-9._-]+$/.test(base)) {
       throw new Error('Backup filename contains invalid characters');
@@ -119,9 +116,7 @@ export class DatabaseBackupService {
 
   private resolveSafeBackupPath(backupFilepath: string): string {
     const decoded = decodeURIComponent(backupFilepath).trim();
-    if (!decoded) {
-      throw new Error('Backup filepath cannot be empty');
-    }
+    if (!decoded) throw new Error('Backup filepath cannot be empty');
 
     const resolvedPath = path.resolve(decoded);
     const backupRoot = path.resolve(this.backupDir);

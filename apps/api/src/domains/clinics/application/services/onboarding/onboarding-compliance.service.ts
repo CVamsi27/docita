@@ -143,17 +143,14 @@ export class OnboardingComplianceService {
     slaData: SLAAgreementDto,
     ipAddress?: string,
   ): Promise<void> {
-    if (!slaData.acceptedSLA) {
+    if (!slaData.acceptedSLA)
       throw new BadRequestException('SLA must be accepted to proceed');
-    }
 
-    if (!slaData.acceptedDataProcessingTerms) {
+    if (!slaData.acceptedDataProcessingTerms)
       throw new BadRequestException('Data processing terms must be accepted');
-    }
 
-    if (!slaData.acceptedPrivacyPolicy) {
+    if (!slaData.acceptedPrivacyPolicy)
       throw new BadRequestException('Privacy policy must be accepted');
-    }
 
     const signatureSession = await tx.uploadSession.findUnique({
       where: { id: slaData.signatureSessionId },
@@ -163,9 +160,8 @@ export class OnboardingComplianceService {
       !signatureSession ||
       signatureSession.status !== 'uploaded' ||
       !signatureSession.fileUrl
-    ) {
+    )
       throw new BadRequestException('Valid SLA signature upload is required');
-    }
 
     const acceptedAtIso = this.clock.now().toISOString();
     const signatureAuthHash = createHash('sha256')

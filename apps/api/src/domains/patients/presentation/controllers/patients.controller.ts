@@ -94,16 +94,14 @@ export class PatientsController {
     @Body() body: CreatePatientDto,
   ) {
     const consent = body.dpdpConsent;
-    if (!consent || consent.accepted !== true) {
+    if (!consent || consent.accepted !== true)
       throw new BadRequestException(
         'DPDP consent is required to add a patient',
       );
-    }
-    if (consent.noticeVersion !== DPDP_NOTICE_VERSION) {
+    if (consent.noticeVersion !== DPDP_NOTICE_VERSION)
       throw new BadRequestException(
         'The DPDP notice has been updated. Please refresh and re-collect consent before saving.',
       );
-    }
 
     const { clinicId } = getClinicStaffRequestContext(req);
     const created = await this.patientService.createPatient(

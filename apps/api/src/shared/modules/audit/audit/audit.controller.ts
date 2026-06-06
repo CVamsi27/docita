@@ -27,9 +27,7 @@ export class AuditController {
     @Query() filter: AuditLogFilter,
   ) {
     const userRole = req.user?.role;
-    if (!userRole) {
-      throw new UnauthorizedException('User role is required');
-    }
+    if (!userRole) throw new UnauthorizedException('User role is required');
     const userClinicId = req.user?.clinicId;
 
     if (userRole !== 'INTERNAL' && userClinicId) {
@@ -51,9 +49,8 @@ export class AuditSummaryController {
     @Query('limit') limit?: string,
   ) {
     const clinicId = req.user?.clinicId;
-    if (!clinicId) {
+    if (!clinicId)
       throw new UnauthorizedException('Clinic context is required');
-    }
 
     return this.auditService.getRecentAuditSummary(
       clinicId,

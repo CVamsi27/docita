@@ -108,9 +108,7 @@ export function ConsultationAfterVisitStrip({
 
   const completed = isConsultationReadOnlyStatus(appointment.status);
 
-  if (!patientId) {
-    return null;
-  }
+  if (!patientId) return null;
 
   return (
     <div

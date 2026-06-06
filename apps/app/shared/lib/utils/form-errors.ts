@@ -52,9 +52,7 @@ export async function parseApiError(response: Response): Promise<{
 }
 
 export function formatFieldError(error: unknown): string {
-  if (typeof error === "string") {
-    return getSafeUserMessage(error, "Please check this field");
-  }
+  if (typeof error === "string") return getSafeUserMessage(error, "Please check this field");
   if (isRecord(error)) {
     const message =
       typeof error.message === "string" ? error.message : undefined;

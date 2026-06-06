@@ -55,9 +55,7 @@ export class PublicBookingSlotsService {
     const instant = fromLocalISOString(`${slotCalendarDate}T${time}`, {
       timezone,
     });
-    if (!instant) {
-      throw new BadRequestException('Invalid slot time');
-    }
+    if (!instant) throw new BadRequestException('Invalid slot time');
     return instant;
   }
 
@@ -102,9 +100,7 @@ export class PublicBookingSlotsService {
   ): Promise<PublicBookingSlotsResponse> {
     return withBookingTenant(this.persistence, referralCode, async (clinic) => {
       const parsed = publicBookingSlotsQuerySchema.safeParse(rawQuery);
-      if (!parsed.success) {
-        throw new BadRequestException('Invalid slot query');
-      }
+      if (!parsed.success) throw new BadRequestException('Invalid slot query');
 
       const { doctorId, date, rangeStart, rangeEnd } = parsed.data;
       const resolvedDoctorId = doctorId === 'any' ? undefined : doctorId;
@@ -114,11 +110,10 @@ export class PublicBookingSlotsService {
           resolvedDoctorId,
           clinic.id,
         );
-        if (!belongs) {
+        if (!belongs)
           throw new BadRequestException(
             'Doctor is not available at this clinic',
           );
-        }
       }
 
       const { slots, slotListEmptyReason } =
@@ -183,8 +178,7 @@ export class PublicBookingSlotsService {
         Math.abs(slotEndMs - endMs) <= SLOT_MATCH_TOLERANCE_MS
       );
     });
-    if (!match) {
+    if (!match)
       throw new BadRequestException('Selected slot is no longer available');
-    }
   }
 }

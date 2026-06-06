@@ -71,21 +71,18 @@ export class PublicBookingSubmitService {
     remoteIp: string | undefined,
     userAgent: string | undefined,
   ): Promise<string> {
-    if (!data.dateOfBirth) {
+    if (!data.dateOfBirth)
       throw new BadRequestException(
         'Date of birth is required when this phone number is not already on file at this clinic',
       );
-    }
-    if (!data.dpdpConsent || data.dpdpConsent.accepted !== true) {
+    if (!data.dpdpConsent || data.dpdpConsent.accepted !== true)
       throw new BadRequestException(
         'Consent to process your personal data under the DPDP Act, 2023 is required to register at this clinic.',
       );
-    }
-    if (data.dpdpConsent.noticeVersion !== DPDP_NOTICE_VERSION) {
+    if (data.dpdpConsent.noticeVersion !== DPDP_NOTICE_VERSION)
       throw new BadRequestException(
         'The privacy notice has been updated. Please refresh the page and accept the new notice before submitting.',
       );
-    }
     const created = await this.patientService.createPatient(
       patientDomainCreateSchema.parse({
         clinicId,
@@ -139,19 +136,17 @@ export class PublicBookingSubmitService {
       if (existing) {
         const token =
           extractBearerToken(authHeader) ?? data.bookingVerificationToken;
-        if (!token) {
+        if (!token)
           throw new UnauthorizedException(
             'Booking verification is required for this phone number',
           );
-        }
         const payload = this.bookingTokenService.verify(token);
         if (
           payload.clinicId !== clinic.id ||
           payload.patientId !== existing.id ||
           payload.phoneNumber !== phone
-        ) {
+        )
           throw new UnauthorizedException('Invalid booking verification');
-        }
       } else if (data.bookingVerificationToken) {
         throw new BadRequestException('Unexpected booking verification token');
       }
@@ -164,9 +159,8 @@ export class PublicBookingSubmitService {
         : null;
 
       if (requestedStart || requestedEnd) {
-        if (!requestedStart || !requestedEnd) {
+        if (!requestedStart || !requestedEnd)
           throw new BadRequestException('Invalid requested slot');
-        }
         if (
           Number.isNaN(requestedStart.getTime()) ||
           Number.isNaN(requestedEnd.getTime()) ||
@@ -174,11 +168,10 @@ export class PublicBookingSubmitService {
         ) {
           throw new BadRequestException('Invalid requested slot');
         }
-        if (!data.preferredDoctorId) {
+        if (!data.preferredDoctorId)
           throw new BadRequestException(
             'preferredDoctorId is required when selecting a time slot',
           );
-        }
         await this.slotsService.assertRequestedSlotIsPubliclyBookable(
           clinic.id,
           data.preferredDoctorId,

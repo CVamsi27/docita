@@ -59,11 +59,9 @@ export function DataTable<T>({
     pageSize,
   );
 
-  if (error) {
-    return (
+  if (error) return (
       <ErrorState message="We could not load this table. Please try again." />
     );
-  }
 
   if (isLoading) {
     return (

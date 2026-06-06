@@ -68,9 +68,7 @@ export class PatientMetricsService {
       dto.categoryId,
     );
 
-    if (!category) {
-      throw new NotFoundException('Metric category not found');
-    }
+    if (!category) throw new NotFoundException('Metric category not found');
 
     return this.patientMetricsRepository.createDefinition(
       clinicId,
@@ -104,9 +102,7 @@ export class PatientMetricsService {
     patientId: string,
     dto: UpsertMetricSelectionsDto,
   ) {
-    if (dto.items.length === 0) {
-      return [];
-    }
+    if (dto.items.length === 0) return [];
 
     const definitionIds = [
       ...new Set(dto.items.map((item) => item.definitionId)),
@@ -150,9 +146,7 @@ export class PatientMetricsService {
       dto.definitionId,
     );
 
-    if (!definition) {
-      throw new NotFoundException('Metric definition not found');
-    }
+    if (!definition) throw new NotFoundException('Metric definition not found');
 
     if (!hasStructuredMetricValue(dto)) {
       throw new BadRequestException(

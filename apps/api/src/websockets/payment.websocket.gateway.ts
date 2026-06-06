@@ -110,9 +110,7 @@ export class PaymentWebSocketGateway
       tracker.resetTime = now + this.RATE_LIMIT_WINDOW_MS;
     }
 
-    if (tracker.messageCount >= this.RATE_LIMIT_MESSAGES) {
-      return false;
-    }
+    if (tracker.messageCount >= this.RATE_LIMIT_MESSAGES) return false;
 
     tracker.messageCount++;
     return true;

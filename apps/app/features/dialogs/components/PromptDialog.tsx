@@ -26,7 +26,6 @@ interface PromptDialogProps {
   onSubmit: () => void;
   onCancel: () => void;
 }
-
 export function PromptDialog({
   open,
   onOpenChange,

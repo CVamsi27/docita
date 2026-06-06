@@ -7,9 +7,7 @@ import type {
 
 export class BodyTemperatureObservationBuilder implements IFhirObservationBuilder {
   build(vital: VitalWithRelations, context: VitalObservationContext) {
-    if (!vital.temperature) {
-      return [];
-    }
+    if (!vital.temperature) return [];
 
     return [
       buildQuantityVitalObservation({

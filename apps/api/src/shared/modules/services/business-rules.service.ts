@@ -15,9 +15,8 @@ export class BusinessRulesService {
     endTime: Date,
     _appointmentId?: string,
   ): void {
-    if (endTime <= startTime) {
+    if (endTime <= startTime)
       throw new BadRequestException('End time must be after start time');
-    }
 
     if (startTime < this.clock.now()) {
       throw new BadRequestException(
@@ -27,16 +26,14 @@ export class BusinessRulesService {
 
     const durationMinutes =
       (endTime.getTime() - startTime.getTime()) / (1000 * 60);
-    if (durationMinutes < 30) {
+    if (durationMinutes < 30)
       throw new BadRequestException(
         'Appointment duration must be at least 30 minutes',
       );
-    }
-    if (durationMinutes > 240) {
+    if (durationMinutes > 240)
       throw new BadRequestException(
         'Appointment duration cannot exceed 4 hours',
       );
-    }
   }
 
   async validateDoctorAvailability(
@@ -74,19 +71,15 @@ export class BusinessRulesService {
     frequency: string,
     duration?: string,
   ): void {
-    if (!name || name.trim().length === 0) {
+    if (!name || name.trim().length === 0)
       throw new BadRequestException('Medication name is required');
-    }
-    if (!dosage || dosage.trim().length === 0) {
+    if (!dosage || dosage.trim().length === 0)
       throw new BadRequestException('Dosage is required');
-    }
-    if (!frequency || frequency.trim().length === 0) {
+    if (!frequency || frequency.trim().length === 0)
       throw new BadRequestException('Frequency is required');
-    }
 
-    if (name.length > 255) {
+    if (name.length > 255)
       throw new BadRequestException('Medication name exceeds maximum length');
-    }
 
     if (!/\d+\s*[a-zA-Z]+/.test(dosage)) {
       throw new BadRequestException(
@@ -107,9 +100,8 @@ export class BusinessRulesService {
     items: Array<{ description: string; quantity: number; price: number }>,
     total: number,
   ): void {
-    if (!items || items.length === 0) {
+    if (!items || items.length === 0)
       throw new BadRequestException('Invoice must have at least one item');
-    }
 
     let calculatedTotal = 0;
     items.forEach((item, index) => {
@@ -140,11 +132,10 @@ export class BusinessRulesService {
       );
     }
 
-    if (total > 10000000) {
+    if (total > 10000000)
       throw new BadRequestException(
         'Invoice total exceeds maximum allowed amount',
       );
-    }
   }
 
   validateCrossFieldConstraints(data: Record<string, unknown>): void {
@@ -162,17 +153,15 @@ export class BusinessRulesService {
       );
     }
 
-    if (status === 'COMPLETED' && !hasCompletedAt) {
+    if (status === 'COMPLETED' && !hasCompletedAt)
       throw new BadRequestException(
         'Completion date is required when marking appointment completed',
       );
-    }
 
-    if (hasInsuranceProvider && !hasInsurancePolicyNumber) {
+    if (hasInsuranceProvider && !hasInsurancePolicyNumber)
       throw new BadRequestException(
         'Insurance policy number is required when insurance provider is specified',
       );
-    }
   }
 
   validateStatusTransition(currentStatus: string, newStatus: string): void {
@@ -205,22 +194,19 @@ export class BusinessRulesService {
     const today = this.clock.now();
 
     const age = today.getFullYear() - dateOfBirth.getFullYear();
-    if (age < 0 || age > 150) {
+    if (age < 0 || age > 150)
       throw new BadRequestException(
         'Invalid date of birth. Patient age must be between 0 and 150 years',
       );
-    }
 
-    if (codeStatusUpdatedAt && codeStatusUpdatedAt > today) {
+    if (codeStatusUpdatedAt && codeStatusUpdatedAt > today)
       throw new BadRequestException(
         'Code status update date cannot be in the future',
       );
-    }
 
-    if (advanceDirectiveDate && advanceDirectiveDate < dateOfBirth) {
+    if (advanceDirectiveDate && advanceDirectiveDate < dateOfBirth)
       throw new BadRequestException(
         'Advance directive date cannot be before patient birth date',
       );
-    }
   }
 }

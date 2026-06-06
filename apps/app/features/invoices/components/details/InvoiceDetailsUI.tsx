@@ -63,9 +63,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     }
   };
 
-  if (isLoading) {
-    return <LoadingState message="Loading invoice details…" />;
-  }
+  if (isLoading) return <LoadingState message="Loading invoice details…" />;
 
   if (error || !invoice) {
     return (

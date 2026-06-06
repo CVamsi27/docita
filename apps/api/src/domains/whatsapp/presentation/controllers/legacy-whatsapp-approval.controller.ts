@@ -28,9 +28,7 @@ export class LegacyWhatsappApprovalController {
     @Param('id') id: string,
   ) {
     const userId = getAuthenticatedUserId(req.user);
-    if (!userId) {
-      throw new ForbiddenException('Authenticated user required');
-    }
+    if (!userId) throw new ForbiddenException('Authenticated user required');
     return this.whatsappService.approvePrescription(
       id,
       userId,
@@ -43,9 +41,7 @@ export class LegacyWhatsappApprovalController {
   @ZodSerializerDto(SuccessResponseDto)
   async approveInvoice(@Req() req: RequestWithUser, @Param('id') id: string) {
     const userId = getAuthenticatedUserId(req.user);
-    if (!userId) {
-      throw new ForbiddenException('Authenticated user required');
-    }
+    if (!userId) throw new ForbiddenException('Authenticated user required');
     return this.whatsappService.approveInvoice(
       id,
       userId,

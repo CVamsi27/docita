@@ -239,9 +239,7 @@ export function renderTaxMetadata(
     summary.reverseCharge ? 'Reverse charge: Yes' : undefined,
   ].filter((detail): detail is string => Boolean(detail));
 
-  if (details.length === 0) {
-    return currentY;
-  }
+  if (details.length === 0) return currentY;
 
   doc.font('Helvetica').fontSize(8).fillColor('#374151');
   doc.text(details.join(' | '), context.margin, currentY, {
@@ -346,7 +344,6 @@ export function renderTotals(
 
   return currentY + 40;
 }
-
 export async function renderAuthorizedSignature(
   doc: typeof PDFDocument.prototype,
   data: InvoicePdfRenderData,
@@ -370,7 +367,6 @@ export async function renderAuthorizedSignature(
     .text(label, signatureX, currentY);
   doc.fillColor('#000000');
   currentY += 12;
-
   if (data.authorizedSignatureUrl) {
     try {
       const signatureBuffer = await fetchSignatureImage(
@@ -399,7 +395,6 @@ export async function renderAuthorizedSignature(
     doc.fillColor('#000000');
     currentY += 16;
   }
-
   doc
     .strokeColor('#94a3b8')
     .lineWidth(0.5)
@@ -408,10 +403,8 @@ export async function renderAuthorizedSignature(
     .stroke()
     .strokeColor('#000000')
     .lineWidth(1);
-
   return currentY + 20;
 }
-
 export async function fetchSignatureImage(url: string): Promise<Buffer> {
   // SSRF gate — see safe-external-url.ts.
   const safeUrl = assertSafeExternalUrl(url);

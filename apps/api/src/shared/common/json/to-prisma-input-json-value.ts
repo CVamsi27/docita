@@ -6,13 +6,9 @@ export function toPrismaInputJsonValue(value: unknown): Prisma.InputJsonValue {
   const seen = new WeakSet<object>();
 
   const normalize = (input: unknown): unknown => {
-    if (typeof input === 'bigint') {
-      return input.toString();
-    }
+    if (typeof input === 'bigint') return input.toString();
 
-    if (input instanceof Date) {
-      return input.toISOString();
-    }
+    if (input instanceof Date) return input.toISOString();
 
     if (Array.isArray(input)) {
       return input.map((item) => normalize(item) ?? null);

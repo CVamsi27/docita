@@ -18,12 +18,8 @@ function getPatientSortValue(
   patient: Patient,
   key: PatientsSortConfig["key"],
 ): string {
-  if (key === "fullName") {
-    return getPatientFullName(patient).toLowerCase();
-  }
-  if (key === "gender") {
-    return patient.gender ?? "";
-  }
+  if (key === "fullName") return getPatientFullName(patient).toLowerCase();
+  if (key === "gender") return patient.gender ?? "";
   return "";
 }
 
@@ -118,9 +114,7 @@ export function usePatientsLogic() {
 
   const hasMore = useMemo(() => {
     if (!patientsResponse) return false;
-    if (typeof patientsResponse.hasMore === "boolean") {
-      return patientsResponse.hasMore;
-    }
+    if (typeof patientsResponse.hasMore === "boolean") return patientsResponse.hasMore;
     return page * PAGE_SIZE < totalPatients;
   }, [patientsResponse, page, totalPatients]);
 

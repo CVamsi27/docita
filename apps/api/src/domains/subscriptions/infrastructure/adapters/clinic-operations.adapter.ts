@@ -19,25 +19,19 @@ import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-c
 import { isRecord } from '@workspace/utils';
 
 function toClinicTier(value?: string): ClinicTier | undefined {
-  if (!value) {
-    return undefined;
-  }
+  if (!value) return undefined;
 
   return Object.values(ClinicTier).find((tier) => tier === value);
 }
 
 function toSubscriptionStatus(value?: string): SubscriptionStatus | undefined {
-  if (!value) {
-    return undefined;
-  }
+  if (!value) return undefined;
 
   return Object.values(SubscriptionStatus).find((status) => status === value);
 }
 
 function toPlanMode(value?: string): PlanMode | undefined {
-  if (!value) {
-    return undefined;
-  }
+  if (!value) return undefined;
   return Object.values(PlanMode).find((mode) => mode === value);
 }
 
@@ -102,11 +96,10 @@ export class ClinicOperationsAdapter implements IClinicOperations {
 
     const parsedTier = toClinicTier(tier);
     const parsedStatus = toSubscriptionStatus(subscriptionStatus);
-    if (!parsedTier || !parsedStatus) {
+    if (!parsedTier || !parsedStatus)
       throw new BadRequestException(
         'Invalid clinic tier or subscription status',
       );
-    }
 
     const parsedPlanMode = toPlanMode(planMode);
 

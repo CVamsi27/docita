@@ -5,9 +5,7 @@ import { type DateTimeOptions, DEFAULT_TIMEZONE } from "./date-config.js";
 export function parseDate(date: string | Date | null | undefined): Date | null {
   if (!date) return null;
 
-  if (date instanceof Date) {
-    return isValid(date) ? date : null;
-  }
+  if (date instanceof Date) return isValid(date) ? date : null;
 
   const parsed = parseISO(date);
   if (isValid(parsed)) {
@@ -48,9 +46,7 @@ export function parseScheduleTime(
   const hours = parseInt(match[1], 10);
   const minutes = parseInt(match[2], 10);
 
-  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-    return null;
-  }
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
 
   return { hours, minutes };
 }

@@ -127,9 +127,7 @@ function walk(value: unknown, depth: number, seen: WeakSet<object>): unknown {
     typeof value === "number" ||
     typeof value === "boolean" ||
     typeof value === "bigint"
-  ) {
-    return value;
-  }
+  ) return value;
   if (value instanceof Date) return value;
   if (Array.isArray(value)) {
     return value.map((item) => walk(item, depth + 1, seen));

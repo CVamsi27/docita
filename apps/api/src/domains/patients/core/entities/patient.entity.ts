@@ -81,9 +81,8 @@ export class Patient {
   }
 
   private validate(): void {
-    if (!this.clinicId) {
+    if (!this.clinicId)
       throw new InvariantViolationError('Clinic ID is required');
-    }
     if (!this.firstName || !this.lastName)
       throw new InvariantViolationError('Patient name is required');
   }

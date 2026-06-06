@@ -16,9 +16,7 @@ export function normalizeCountryCode(
 export function resolveCountryCode(source: unknown): string | undefined {
   if (!source) return undefined;
 
-  if (typeof source === "string") {
-    return normalizeCountryCode(source);
-  }
+  if (typeof source === "string") return normalizeCountryCode(source);
 
   if (!isRecord(source)) {
     return undefined;
@@ -29,16 +27,12 @@ export function resolveCountryCode(source: unknown): string | undefined {
       ? source["operatingCountryCode"]
       : undefined,
   );
-  if (operatingCountry) {
-    return operatingCountry;
-  }
+  if (operatingCountry) return operatingCountry;
 
   const directCountry = normalizeCountryCode(
     typeof source["countryCode"] === "string" ? source["countryCode"] : undefined,
   );
-  if (directCountry) {
-    return directCountry;
-  }
+  if (directCountry) return directCountry;
 
   const taxSettings = source["taxSettings"];
   if (isRecord(taxSettings)) {
@@ -47,9 +41,7 @@ export function resolveCountryCode(source: unknown): string | undefined {
         ? taxSettings["countryCode"]
         : undefined,
     );
-    if (taxCountry) {
-      return taxCountry;
-    }
+    if (taxCountry) return taxCountry;
   }
 
   return resolveCountryCode(source["settings"]);

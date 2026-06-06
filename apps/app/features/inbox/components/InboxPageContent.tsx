@@ -155,9 +155,7 @@ function InboxContent() {
   );
 
   const pageDescription = useMemo(() => {
-    if (visibleTabs.length === 0) {
-      return "Notifications and shortcuts to workspaces you can access.";
-    }
+    if (visibleTabs.length === 0) return "Notifications and shortcuts to workspaces you can access.";
     return activeTab?.description ?? "";
   }, [visibleTabs, activeTab]);
 

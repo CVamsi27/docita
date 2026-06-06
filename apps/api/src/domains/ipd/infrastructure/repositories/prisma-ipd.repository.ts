@@ -160,23 +160,18 @@ export class PrismaIpdRepository implements IpdRepository {
       }),
     ]);
 
-    if (!admission) {
+    if (!admission)
       throw new NotFoundException('Admission was not found in this facility');
-    }
-    if (admission.status !== AdmissionStatus.ADMITTED) {
+    if (admission.status !== AdmissionStatus.ADMITTED)
       throw new BadRequestException(
         'Only active admissions can be transferred',
       );
-    }
-    if (!targetBed) {
+    if (!targetBed)
       throw new NotFoundException('Target bed was not found in this facility');
-    }
-    if (targetBed.status !== BedStatus.AVAILABLE) {
+    if (targetBed.status !== BedStatus.AVAILABLE)
       throw new ConflictException('Target bed is not available');
-    }
-    if (admission.bedId === input.toBedId) {
+    if (admission.bedId === input.toBedId)
       throw new BadRequestException('Patient is already assigned to this bed');
-    }
 
     return this.prisma.$transaction(async (tx) => {
       await tx.bed.update({
@@ -215,12 +210,10 @@ export class PrismaIpdRepository implements IpdRepository {
       clinicId,
       input.admissionId,
     );
-    if (!admission) {
+    if (!admission)
       throw new NotFoundException('Admission was not found in this facility');
-    }
-    if (admission.status !== AdmissionStatus.ADMITTED) {
+    if (admission.status !== AdmissionStatus.ADMITTED)
       throw new BadRequestException('Only active admissions can be discharged');
-    }
 
     return this.prisma.$transaction(async (tx) => {
       const dischargeNotes = [

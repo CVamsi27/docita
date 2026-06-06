@@ -12,7 +12,6 @@ import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { Feature } from "@workspace/types";
 import { ClipboardList, Pill } from "lucide-react";
 import { FeatureGate } from "@/components/auth/feature-gate";
-
 export function PharmacyPageContent() {
   return (
     <FeatureGate feature={Feature.INVENTORY} showLockedCard>

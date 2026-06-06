@@ -38,15 +38,13 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
     );
   }
 
-  if (error) {
-    return (
+  if (error) return (
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
           We could not load your team members. Please try again.
         </CardContent>
       </Card>
     );
-  }
 
   return (
     <Card>

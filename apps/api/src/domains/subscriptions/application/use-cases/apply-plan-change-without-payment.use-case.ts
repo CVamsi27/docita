@@ -71,11 +71,10 @@ export class ApplyPlanChangeWithoutPaymentUseCase {
       breakdown.finalAmountCents,
       currencyCode,
     );
-    if (payableAmount !== 0) {
+    if (payableAmount !== 0)
       throw new BadRequestException(
         'This plan change requires payment through checkout',
       );
-    }
 
     const listPriceCents = this.pricingService.calculatePrice(
       tier,

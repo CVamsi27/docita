@@ -134,16 +134,14 @@ export class EnterpriseContractInvoiceCommandService {
       });
       if (!contract)
         throw new NotFoundException(`Contract ${contractId} not found`);
-      if (contract.status === EnterpriseContractStatus.TERMINATED) {
+      if (contract.status === EnterpriseContractStatus.TERMINATED)
         throw new BadRequestException(
           'Setup fee cannot be raised for terminated contracts',
         );
-      }
-      if (contract.setupFeeCents < MINIMUM_SETUP_FEE_CENTS) {
+      if (contract.setupFeeCents < MINIMUM_SETUP_FEE_CENTS)
         throw new BadRequestException(
           'Setup fee must be at least INR 2,500 before raising an invoice',
         );
-      }
 
       const existing =
         await this.persistence.enterpriseContractInvoice.findFirst({
@@ -228,11 +226,10 @@ export class EnterpriseContractInvoiceCommandService {
       });
       if (!contract)
         throw new NotFoundException(`Contract ${contractId} not found`);
-      if (contract.status === EnterpriseContractStatus.TERMINATED) {
+      if (contract.status === EnterpriseContractStatus.TERMINATED)
         throw new BadRequestException(
           'Custom bill cannot be raised for terminated contracts',
         );
-      }
 
       const issuedAt = this.clock.now();
       const invoiceNumber = `ENT-ADJ-${contract.contractNumber}-${nanoid(8)}`;

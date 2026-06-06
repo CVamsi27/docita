@@ -23,7 +23,6 @@ export type AvailableFeatureItem =
       feature: Feature;
       label: string;
     };
-
 export function useComparisonTable({
   currentTier,
   keyFeaturesOnly,

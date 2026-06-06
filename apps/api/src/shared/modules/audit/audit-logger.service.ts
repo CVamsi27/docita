@@ -239,9 +239,7 @@ export class AuditLoggerService implements IAuditLogger {
   }
 
   private toRecord(value: unknown): Record<string, unknown> | undefined {
-    if (!value || typeof value !== 'object') {
-      return undefined;
-    }
+    if (!value || typeof value !== 'object') return undefined;
 
     return Object.fromEntries(Object.entries(value));
   }

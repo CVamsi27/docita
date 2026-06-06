@@ -24,9 +24,7 @@ export function parseDosesPerDay(
   sigCode: string | null | undefined,
   frequency: string,
 ): number | null {
-  if (sigCode && SIG_MAP[sigCode] !== undefined) {
-    return SIG_MAP[sigCode];
-  }
+  if (sigCode && SIG_MAP[sigCode] !== undefined) return SIG_MAP[sigCode];
   return parseFrequencyDoses(frequency);
 }
 export { parseDurationDays };

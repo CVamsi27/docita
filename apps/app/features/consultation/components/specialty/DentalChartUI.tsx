@@ -32,13 +32,11 @@ export function DentalChartUI({
   const { data: constants, isLoading } = useConstants();
   const [selectedTooth, setSelectedTooth] = useState<number | null>(null);
 
-  if (isLoading || !constants) {
-    return (
+  if (isLoading || !constants) return (
       <div role="status" aria-live="polite" aria-label="Loading dental chart">
         <Skeleton className="h-[400px] w-full rounded-lg" />
       </div>
     );
-  }
 
   const { teethQuadrants: TEETH_QUADRANTS, toothConditions: TOOTH_CONDITIONS } =
     constants;

@@ -30,29 +30,23 @@ function readAccessTokenFromLoginResponse(
   fallback: string,
 ): string {
   const direct = loginResponseSchema.safeParse(raw);
-  if (direct.success) {
-    return direct.data.access_token;
-  }
+  if (direct.success) return direct.data.access_token;
 
   const loose = e2eLoginTokenFallbackSchema.safeParse(raw);
-  if (loose.success) {
-    return (
+  if (loose.success) return (
       loose.data.access_token ??
       loose.data.accessToken ??
       loose.data.data?.access_token ??
       loose.data.data?.accessToken ??
       fallback
     );
-  }
 
   return fallback;
 }
 
 function readRefreshTokenFromLoginResponse(raw: unknown): string | null {
   const loose = e2eLoginTokenFallbackSchema.safeParse(raw);
-  if (!loose.success) {
-    return null;
-  }
+  if (!loose.success) return null;
 
   return (
     loose.data.refresh_token ??
@@ -92,11 +86,9 @@ async function createTestPaymentDetails(
   razorpaySignature: string;
 }> {
   const keySecret = process.env["RAZORPAY_KEY_SECRET"];
-  if (!keySecret) {
-    throw new Error(
+  if (!keySecret) throw new Error(
       "RAZORPAY_KEY_SECRET (test secret) is required to complete paid-plan onboarding in E2E",
     );
-  }
 
   const checkoutRes = await request.post(
     `${API_URL}/onboarding/${onboardingId}/checkout`,
@@ -196,18 +188,12 @@ async function fetchVerificationToken(email: string): Promise<string | null> {
     return null;
   }
 
-  if (!output) {
-    return null;
-  }
+  if (!output) return null;
 
   const parsed = e2eVerificationUserSchema.safeParse(JSON.parse(output));
-  if (!parsed.success) {
-    return null;
-  }
+  if (!parsed.success) return null;
 
-  if (parsed.data.emailVerified) {
-    return null;
-  }
+  if (parsed.data.emailVerified) return null;
 
   return parsed.data.emailVerificationToken ?? null;
 }
@@ -516,9 +502,7 @@ async function setupTestUserImpl(
     uploadSessionCreateContractResponseSchema.safeParse(
       await signatureSessionRes.json(),
     );
-  if (!signatureSessionParsed.success) {
-    throw new Error("SLA signature session response was invalid");
-  }
+  if (!signatureSessionParsed.success) throw new Error("SLA signature session response was invalid");
   const signatureSession = signatureSessionParsed.data;
   const signatureSessionId = signatureSession.id;
   const signatureUploadSecret = signatureSession.uploadSecret;
@@ -615,9 +599,7 @@ async function setupTestUserImpl(
   }
   const userFromComplete = completeData.user ?? registerData.user;
   const clinicId = userFromComplete.clinicId || completeData.clinicId;
-  if (!clinicId) {
-    throw new Error("Onboarding completion did not return a clinicId");
-  }
+  if (!clinicId) throw new Error("Onboarding completion did not return a clinicId");
 
   // Guarantee the onboarding admin is email-verified. The pre-onboarding token
   // round-trip can race under load and silently skip, which then bounces the
@@ -784,9 +766,7 @@ export async function setupTestUser(
   const cache = getSetupUserCache();
   const cacheKey = `setupTestUser:GENERAL:${tier}`;
   const existing = cache.get(cacheKey);
-  if (existing) {
-    return await existing;
-  }
+  if (existing) return await existing;
 
   const promise = setupTestUserImpl(request, requestHeaders, {
     clinicType,

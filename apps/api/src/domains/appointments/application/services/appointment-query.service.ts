@@ -62,11 +62,10 @@ export class AppointmentQueryService {
       accessContext?.role === Role.DOCTOR &&
       accessContext.userId &&
       appointment.doctorId !== accessContext.userId
-    ) {
+    )
       throw new ForbiddenException(
         'Doctors can only access their appointments',
       );
-    }
 
     return appointment;
   }
@@ -146,19 +145,13 @@ export class AppointmentQueryService {
       ? getClinicLocalDayUtcBounds(endPicker, timezone)
       : null;
 
-    if (startPicker && !startBounds) {
-      return null;
-    }
-    if (endPicker && !endBounds) {
-      return null;
-    }
+    if (startPicker && !startBounds) return null;
+    if (endPicker && !endBounds) return null;
 
     const rangeStart = startBounds?.rangeStart;
     const rangeEndExclusive = endBounds?.rangeEndExclusive;
 
-    if (!rangeStart || !rangeEndExclusive) {
-      return null;
-    }
+    if (!rangeStart || !rangeEndExclusive) return null;
 
     if (rangeStart.getTime() >= rangeEndExclusive.getTime()) {
       return null;

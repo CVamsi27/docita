@@ -2,17 +2,15 @@ import { ForbiddenException } from '@nestjs/common';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 
 export function assertOwnClinic(req: RequestWithUser, clinicId: string): void {
-  if (req.user?.clinicId !== clinicId) {
+  if (req.user?.clinicId !== clinicId)
     throw new ForbiddenException(
       'You can only manage compliance for your own clinic',
     );
-  }
 }
 
 export function getClinicRequestUserId(req: RequestWithUser): string {
-  if (!req.user?.id) {
+  if (!req.user?.id)
     throw new ForbiddenException('Authenticated user is required');
-  }
 
   return req.user.id;
 }

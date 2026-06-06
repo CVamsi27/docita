@@ -43,9 +43,8 @@ export class PublicPatientDocumentsService {
   ): Promise<PublicPdfResult> {
     const verified = this.tokenService.verify(token);
 
-    if (verified.type !== 'prescription') {
+    if (verified.type !== 'prescription')
       throw new NotFoundException('Prescription not found');
-    }
 
     return this.proxyPrescriptionPdf(verified.id, ipAddress, userAgent);
   }
@@ -57,9 +56,8 @@ export class PublicPatientDocumentsService {
   ): Promise<PublicPdfResult> {
     const verified = this.tokenService.verify(token);
 
-    if (verified.type !== 'invoice') {
+    if (verified.type !== 'invoice')
       throw new NotFoundException('Invoice not found');
-    }
 
     return this.proxyInvoicePdf(verified.id, ipAddress, userAgent);
   }
@@ -74,23 +72,18 @@ export class PublicPatientDocumentsService {
       },
     });
 
-    if (!session) {
-      throw new NotFoundException('Payment link not found');
-    }
+    if (!session) throw new NotFoundException('Payment link not found');
 
     if (
       session.status === PaymentSessionStatus.CAPTURED ||
       session.status === PaymentSessionStatus.PAID ||
       session.status === PaymentSessionStatus.EXPIRED ||
       session.status === PaymentSessionStatus.CANCELLED
-    ) {
+    )
       throw new NotFoundException('Payment link is no longer available');
-    }
 
     const redirectUrl = session.shortUrl?.trim() || session.paymentLink?.trim();
-    if (!redirectUrl) {
-      throw new NotFoundException('Payment link not found');
-    }
+    if (!redirectUrl) throw new NotFoundException('Payment link not found');
 
     return redirectUrl;
   }
@@ -110,15 +103,11 @@ export class PublicPatientDocumentsService {
         },
       });
 
-      if (!prescription) {
-        throw new NotFoundException('Prescription not found');
-      }
+      if (!prescription) throw new NotFoundException('Prescription not found');
 
       const clinicId =
         prescription.clinicId ?? prescription.appointment?.clinicId;
-      if (!clinicId) {
-        throw new NotFoundException('Prescription not found');
-      }
+      if (!clinicId) throw new NotFoundException('Prescription not found');
 
       const pdfUrl = prescription.pdfUrl;
 
@@ -190,14 +179,10 @@ export class PublicPatientDocumentsService {
         },
       });
 
-      if (!invoice) {
-        throw new NotFoundException('Invoice not found');
-      }
+      if (!invoice) throw new NotFoundException('Invoice not found');
 
       const clinicId = invoice.clinicId ?? invoice.appointment?.clinicId;
-      if (!clinicId) {
-        throw new NotFoundException('Invoice not found');
-      }
+      if (!clinicId) throw new NotFoundException('Invoice not found');
 
       const pdfUrl = invoice.pdfUrl;
 

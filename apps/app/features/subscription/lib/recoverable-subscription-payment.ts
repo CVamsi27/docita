@@ -14,9 +14,7 @@ const RECOVERABLE_STATUSES = new Set([
 export function findRecoverableSubscriptionPayment(
   invoices: BillingHistoryItem[] | undefined,
 ): BillingHistoryItem | null {
-  if (!invoices?.length) {
-    return null;
-  }
+  if (!invoices?.length) return null;
 
   return (
     invoices.find((payment) => {

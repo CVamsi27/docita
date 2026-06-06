@@ -47,11 +47,10 @@ export class SyncAppointmentDiagnosesUseCase {
     );
     const computedHash = hashDiagnosesContent(diagnoses);
 
-    if (requestHash && requestHash !== computedHash) {
+    if (requestHash && requestHash !== computedHash)
       throw new BadRequestException(
         'Diagnosis payload content hash does not match supplied hash',
       );
-    }
 
     const existing = await this.persistence.diagnosis.findMany({
       where: { appointmentId, appointment: { clinicId } },

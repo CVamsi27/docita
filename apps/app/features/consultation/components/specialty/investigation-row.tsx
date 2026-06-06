@@ -47,13 +47,11 @@ export function InvestigationList(
     investigations: ClinicalInvestigation[];
   } & Omit<InvestigationRowProps, "row" | "index">,
 ) {
-  if (props.investigations.length === 0) {
-    return (
+  if (props.investigations.length === 0) return (
       <p className="text-sm text-muted-foreground">
         No investigations recorded. Add imaging or labs when needed.
       </p>
     );
-  }
 
   return (
     <ul className="space-y-4">
@@ -289,9 +287,7 @@ function InvestigationAttachmentLink({
   readOnly,
   onUpdate,
 }: Pick<InvestigationRowProps, "row" | "index" | "readOnly" | "onUpdate">) {
-  if (!row.attachmentUrl) {
-    return null;
-  }
+  if (!row.attachmentUrl) return null;
 
   return (
     <div className="flex items-center gap-2 rounded-md border border-border/70 bg-background px-3 py-2">
@@ -377,14 +373,12 @@ function AttachmentUploadLabelContent({
 }: {
   isUploading: boolean;
 }) {
-  if (isUploading) {
-    return (
+  if (isUploading) return (
       <>
         <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
         Uploading…
       </>
     );
-  }
   return (
     <>
       <Paperclip className="h-3.5 w-3.5" aria-hidden />

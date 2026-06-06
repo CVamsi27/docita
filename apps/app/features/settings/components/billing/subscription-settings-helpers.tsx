@@ -112,9 +112,7 @@ export function billingHistorySectionActions(
     );
   }
 
-  if (status === "PAST_DUE" || status === "PAYMENT_DUE" || status === "GRACE") {
-    return null;
-  }
+  if (status === "PAST_DUE" || status === "PAYMENT_DUE" || status === "GRACE") return null;
 
   if (
     status === "ACTIVE" &&
@@ -133,9 +131,7 @@ export function billingHistorySectionActions(
     );
   }
 
-  if (status === "ACTIVE") {
-    return null;
-  }
+  if (status === "ACTIVE") return null;
 
   return (
     <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
@@ -153,14 +149,10 @@ export function billingHistorySectionDescription(
 export function billingHistoryEmptyDescription(
   subscription: SubscriptionCurrentResponse | null | undefined,
 ): string | undefined {
-  if (!subscription) {
-    return "Invoices appear after your first completed payment.";
-  }
+  if (!subscription) return "Invoices appear after your first completed payment.";
   if (isFreeStarterActive(subscription)) {
     return "Invoices appear after you upgrade and complete payment.";
   }
-  if (subscription.subscriptionStatus === "TRIALING") {
-    return "Invoices appear after the first paid cycle.";
-  }
+  if (subscription.subscriptionStatus === "TRIALING") return "Invoices appear after the first paid cycle.";
   return "Invoices appear after completed payments.";
 }

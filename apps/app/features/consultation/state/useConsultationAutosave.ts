@@ -167,9 +167,7 @@ export function useConsultationAutosave(
   const submitPrescriptions = useCallback(async (): Promise<boolean> => {
     if (readOnly) return false;
     const state = getDraft();
-    if (state.prescriptions.length === 0 || !patientId || !appointmentId) {
-      return false;
-    }
+    if (state.prescriptions.length === 0 || !patientId || !appointmentId) return false;
     try {
       await createPrescription.mutateAsync({
         patientId,

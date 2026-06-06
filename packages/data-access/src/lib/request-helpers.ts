@@ -1,7 +1,5 @@
 export function normalizeHeaders(headers?: HeadersInit): string {
-  if (!headers) {
-    return "";
-  }
+  if (!headers) return "";
 
   const headerEntries =
     headers instanceof Headers
@@ -33,9 +31,7 @@ export function normalizeHeaders(headers?: HeadersInit): string {
  */
 export function dedupeHeaders(headers?: HeadersInit): Headers {
   const result = new Headers();
-  if (!headers) {
-    return result;
-  }
+  if (!headers) return result;
 
   const entries =
     headers instanceof Headers
@@ -84,9 +80,7 @@ export function resolveRequestBaseURL(baseURL: string): string {
   const runtimeOrigin =
     typeof window !== "undefined" ? window.location.origin : undefined;
 
-  if (!runtimeOrigin) {
-    return baseURL;
-  }
+  if (!runtimeOrigin) return baseURL;
 
   return new URL(baseURL, runtimeOrigin).toString();
 }

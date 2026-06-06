@@ -98,9 +98,7 @@ function buildQuickActions(
     ) {
       return false;
     }
-    if (action.kind === "start-consultation" && !acl.canStartConsultation) {
-      return false;
-    }
+    if (action.kind === "start-consultation" && !acl.canStartConsultation) return false;
     return true;
   }).map((action) => ({
     id: `action-${action.id}`,

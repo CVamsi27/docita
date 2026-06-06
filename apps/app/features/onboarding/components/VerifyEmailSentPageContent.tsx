@@ -27,13 +27,9 @@ const VERIFICATION_EMAIL_COOLDOWN_STORAGE_KEY =
   "docita_verification_email_resend_available_at";
 
 function getNextPathForVerifiedUser(user: User | null): string {
-  if (!user) {
-    return "/login?next=/verify-email-sent";
-  }
+  if (!user) return "/login?next=/verify-email-sent";
 
-  if (user.clinicId || user.onboardingStep === "COMPLETED") {
-    return "/today";
-  }
+  if (user.clinicId || user.onboardingStep === "COMPLETED") return "/today";
 
   switch (user.onboardingStep) {
     case "JOINING_CLINIC":

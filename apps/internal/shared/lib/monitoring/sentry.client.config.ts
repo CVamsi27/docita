@@ -15,9 +15,7 @@ async function loadSentryModule(): Promise<SentryModule | null> {
     return null;
   }
 
-  if (sentryModule) {
-    return sentryModule;
-  }
+  if (sentryModule) return sentryModule;
 
   if (!sentryModulePromise) {
     sentryModulePromise = import("@sentry/nextjs")
@@ -73,9 +71,7 @@ function getAdminContextFromStorage(): {
 } | null {
   try {
     const adminStr = sessionStorage.getItem("docita_admin_context");
-    if (adminStr) {
-      return JSON.parse(adminStr);
-    }
+    if (adminStr) return JSON.parse(adminStr);
     return null;
   } catch (error) {
     void error;

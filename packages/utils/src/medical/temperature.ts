@@ -12,9 +12,7 @@ export function formatTemperature(
   celsius: number | null | undefined,
   showUnit: boolean = true,
 ): string {
-  if (celsius === null || celsius === undefined) {
-    return "—";
-  }
+  if (celsius === null || celsius === undefined) return "—";
   const fahrenheit = celsiusToFahrenheit(celsius);
   return showUnit ? `${fahrenheit}°F` : `${fahrenheit}`;
 }
@@ -42,9 +40,7 @@ export function isLikelyCelsius(temp: number): boolean {
 export function smartTemperatureToFahrenheit(
   temp: number | null | undefined,
 ): number | null {
-  if (temp === null || temp === undefined) {
-    return null;
-  }
+  if (temp === null || temp === undefined) return null;
 
   if (isLikelyCelsius(temp)) {
     return celsiusToFahrenheit(temp);
@@ -75,9 +71,7 @@ export const TEMPERATURE_RANGES = {
 export function getTemperatureStatus(
   celsius: number | null | undefined,
 ): "hypothermia" | "normal" | "lowGradeFever" | "fever" | "highFever" | null {
-  if (celsius === null || celsius === undefined) {
-    return null;
-  }
+  if (celsius === null || celsius === undefined) return null;
 
   const ranges = TEMPERATURE_RANGES.celsius;
 

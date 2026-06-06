@@ -70,7 +70,6 @@ export function ConsultationPastHistoryCard({
 }: ConsultationPastHistoryCardProps) {
   const summary = summariseHistory(patient);
   const [open, setOpen] = useState(summary.hasAny);
-
   return (
     <Collapsible
       open={open}

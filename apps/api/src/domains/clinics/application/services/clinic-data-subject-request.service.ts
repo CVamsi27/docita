@@ -41,9 +41,8 @@ export class ClinicDataSubjectRequestService {
         select: { id: true },
       });
 
-      if (!patient) {
+      if (!patient)
         throw new NotFoundException('Patient was not found in this clinic');
-      }
     }
 
     const now = this.clock.now();
@@ -97,9 +96,8 @@ export class ClinicDataSubjectRequestService {
       select: { id: true, status: true },
     });
 
-    if (!existing) {
+    if (!existing)
       throw new NotFoundException('Data subject request was not found');
-    }
 
     const dueAt =
       input.dueAt === null

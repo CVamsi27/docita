@@ -47,7 +47,6 @@ function recentSort(a: QueueItem, b: QueueItem): number {
 
 export function DeskFloorPanelContainer() {
   const { data, isLoading, isError, refetch } = useQueue();
-
   const view = useMemo(() => {
     const items = data ?? [];
     const waiting = items
@@ -64,7 +63,6 @@ export function DeskFloorPanelContainer() {
       .sort(recentSort)
       .slice(0, RECENTLY_COMPLETED_LIMIT)
       .map(toRow);
-
     const liveItem = inProgressItems[0] ?? null;
     const current: DeskFloorCurrent | null = liveItem
       ? {
@@ -74,7 +72,6 @@ export function DeskFloorPanelContainer() {
             liveItem.doctor?.name ?? liveItem.appointment?.doctor?.name ?? null,
         }
       : null;
-
     const slotMinutes =
       inProgressItems[0]?.estimatedDuration || DEFAULT_SLOT_DURATION;
     const avgWaitMinutes =
@@ -89,7 +86,6 @@ export function DeskFloorPanelContainer() {
       avgWaitMinutes,
     };
   }, [data]);
-
   return (
     <TierGate tier={Tier.HOSPITAL} showLockedCard>
       <FeatureGate feature={Feature.QUEUE_MANAGEMENT} showLockedCard>

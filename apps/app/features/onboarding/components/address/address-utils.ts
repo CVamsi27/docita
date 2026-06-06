@@ -57,9 +57,7 @@ export function isValidGoogleMapsApiKey(input: string): boolean {
     key === "null" ||
     key === "YOUR_GOOGLE_MAPS_API_KEY" ||
     key === "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY"
-  ) {
-    return false;
-  }
+  ) return false;
   return /^AIza[0-9A-Za-z-_]{20,}$/.test(key);
 }
 
@@ -118,9 +116,7 @@ export function toAddressDetails(input: {
     !details.city &&
     !details.state &&
     !details.pincode
-  ) {
-    return null;
-  }
+  ) return null;
 
   return details;
 }

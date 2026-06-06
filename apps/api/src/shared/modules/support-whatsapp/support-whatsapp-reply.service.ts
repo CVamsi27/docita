@@ -34,9 +34,8 @@ export class SupportWhatsAppReplyService {
   ): Promise<SupportWhatsAppMessage> {
     const normalizedThreadPhoneNumber = normalizePhoneNumber(threadPhoneNumber);
     const trimmedMessage = message.trim();
-    if (!trimmedMessage) {
+    if (!trimmedMessage)
       throw new BadRequestException('Reply message cannot be empty');
-    }
 
     const latestInboundMessage =
       await this.prisma.supportWhatsAppMessage.findFirst({
@@ -51,9 +50,8 @@ export class SupportWhatsAppReplyService {
         },
       });
 
-    if (!latestInboundMessage) {
+    if (!latestInboundMessage)
       throw new NotFoundException('No incoming WhatsApp messages found');
-    }
 
     const linkedReplyToProviderMessageId =
       replyToProviderMessageId?.trim() ||

@@ -12,9 +12,7 @@ export function filterMetricCategories(
   categoryKey?: string,
 ): MetricCategoryResponse[] {
   const list = categories ?? [];
-  if (!categoryKey) {
-    return list;
-  }
+  if (!categoryKey) return list;
   return list.filter((category) => category.key === categoryKey);
 }
 
@@ -33,9 +31,7 @@ export function filterMetricTimeline(
   categoryKey?: string,
 ): MetricRecordResponse[] {
   const timeline = history?.timeline ?? [];
-  if (!categoryKey) {
-    return timeline;
-  }
+  if (!categoryKey) return timeline;
   return timeline.filter(
     (record) => record.definition.category.key === categoryKey,
   );
@@ -91,12 +87,8 @@ export function extractValue(values: MetricRecordValueResponse[]): string {
         return value.valueBoolean ? "Yes" : "No";
       if (typeof value.valueDate === "string")
         return formatDate(value.valueDate);
-      if (value.option) {
-        return value.option.label || value.option.value || "—";
-      }
-      if (value.valueJson && typeof value.valueJson === "object") {
-        return JSON.stringify(value.valueJson);
-      }
+      if (value.option) return value.option.label || value.option.value || "—";
+      if (value.valueJson && typeof value.valueJson === "object") return JSON.stringify(value.valueJson);
       return "—";
     })
     .join(", ");

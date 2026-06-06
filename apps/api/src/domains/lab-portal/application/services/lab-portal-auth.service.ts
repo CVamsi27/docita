@@ -13,11 +13,10 @@ export class LabPortalAuthCommandService {
 
   async login(dto: LabPortalLoginInput) {
     const user = await this.authService.validateUser(dto.email, dto.password);
-    if (!user || user.role !== Role.LAB) {
+    if (!user || user.role !== Role.LAB)
       throw new UnauthorizedException(
         'Invalid credentials or not a lab technician account.',
       );
-    }
 
     return this.authSessionService.login(user);
   }

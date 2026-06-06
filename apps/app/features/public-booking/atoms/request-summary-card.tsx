@@ -17,7 +17,6 @@ import {
   RequestSummaryHeader,
   ScheduleSummary,
 } from "./request-summary-card-sections";
-
 export function RequestSummaryCard({
   selectedDoctorName,
   selectedCalendarDay,

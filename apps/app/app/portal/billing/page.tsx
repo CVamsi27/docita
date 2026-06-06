@@ -10,17 +10,11 @@ import { Receipt } from "lucide-react";
 import { isRecord } from "@workspace/utils";
 
 function mapInvoiceStatus(status: unknown): PatientInvoiceStatus {
-  if (typeof status !== "string") {
-    return "PENDING";
-  }
+  if (typeof status !== "string") return "PENDING";
 
   const normalized = status.toUpperCase();
-  if (normalized === "PAID") {
-    return "PAID";
-  }
-  if (normalized === "OVERDUE") {
-    return "OVERDUE";
-  }
+  if (normalized === "PAID") return "PAID";
+  if (normalized === "OVERDUE") return "OVERDUE";
   return "PENDING";
 }
 
@@ -29,21 +23,18 @@ export default function PortalBillingPage() {
 
   const invoices = (data?.invoices ?? []).map((item, index) => {
     const row = isRecord(item) ? item : {};
-
     const amount =
       typeof row.amount === "number"
         ? row.amount
         : typeof row.total === "number"
           ? row.total
           : 0;
-
     const dueAt =
       typeof row.dueAt === "string"
         ? row.dueAt
         : typeof row.createdAt === "string"
           ? row.createdAt
           : new Date().toISOString();
-
     return {
       id: typeof row.id === "string" ? row.id : `invoice-${index}`,
       amount,
@@ -52,7 +43,6 @@ export default function PortalBillingPage() {
       status: mapInvoiceStatus(row.status),
     };
   });
-
   const state = isLoading
     ? "loading"
     : isError
@@ -60,7 +50,6 @@ export default function PortalBillingPage() {
       : invoices.length === 0
         ? "empty"
         : "success";
-
   return (
     <AppPageScaffold
       header={

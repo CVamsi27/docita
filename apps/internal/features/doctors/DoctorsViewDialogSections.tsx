@@ -112,9 +112,7 @@ export function DoctorEvidenceSection({ doctor }: { doctor: Doctor }) {
     !doctor.registrationCouncil &&
     !doctor.registrationStateCode &&
     !doctor.registrationCertificateUrl
-  ) {
-    return null;
-  }
+  ) return null;
 
   return (
     <div className="rounded-lg border bg-muted/30 p-4 space-y-2">

@@ -16,9 +16,7 @@ export function ContactSectionNewPatient({
   c: PublicBookingPageController;
   requiredMark: ReactNode;
 }) {
-  if (c.requiresOtp !== false) {
-    return null;
-  }
+  if (c.requiresOtp !== false) return null;
 
   return (
     <>

@@ -56,16 +56,13 @@ export function ClinicList({
   loading: boolean;
   onUpdate: () => void;
 }) {
-  if (loading) {
-    return (
+  if (loading) return (
       <div className="flex h-24 items-center justify-center text-muted-foreground">
         Loading facilities…
       </div>
     );
-  }
 
-  if (clinics.length === 0) {
-    return (
+  if (clinics.length === 0) return (
       <div className="ui-panel-muted flex flex-col items-center justify-center h-64 text-center">
         <Building2 className="h-10 w-10 text-muted-foreground mb-4" />
         <h3 className="text-lg font-medium">No clinics found</h3>
@@ -74,7 +71,6 @@ export function ClinicList({
         </p>
       </div>
     );
-  }
 
   return (
     <div className="ui-card-surface overflow-x-hidden">

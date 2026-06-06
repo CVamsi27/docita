@@ -120,9 +120,8 @@ function errorStack(value: unknown): string | null {
     typeof value === 'object' &&
     'stack' in value &&
     typeof value.stack === 'string'
-  ) {
+  )
     return value.stack;
-  }
   return null;
 }
 

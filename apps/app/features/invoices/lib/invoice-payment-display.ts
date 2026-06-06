@@ -21,9 +21,7 @@ export function formatInvoicePaymentMethodLabel(
     Object.values(PaymentMethod),
     normalized,
   );
-  if (method) {
-    return PAYMENT_METHOD_LABELS[method];
-  }
+  if (method) return PAYMENT_METHOD_LABELS[method];
   return humanizeUiLabel(raw.replace(/_/g, " "));
 }
 
@@ -44,9 +42,7 @@ export function buildInvoicePaidSummaryLine(input: {
   formatDate: InvoicePaymentSummaryFormatDate;
 }): string | null {
   const st = input.status?.toUpperCase();
-  if (st !== "PAID" && st !== "PARTIALLY_PAID") {
-    return null;
-  }
+  if (st !== "PAID" && st !== "PARTIALLY_PAID") return null;
   const parts: string[] = [];
   parts.push(st === "PAID" ? "Paid" : "Partially paid");
   if (input.paidAt) {

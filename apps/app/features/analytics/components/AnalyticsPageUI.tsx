@@ -124,11 +124,9 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
 }) => {
   const clinicCurrency = useClinicCurrency();
 
-  if (isLoading) {
-    return (
+  if (isLoading) return (
       <LoadingState message="Loading analytics…" className="min-h-[60vh]" />
     );
-  }
 
   if (isError) {
     return (

@@ -411,9 +411,7 @@ export function applyTenantScopeForTest(
   clinicId: string,
 ): TenantExtensionArgs {
   const rule = getTenantScopeRule(model);
-  if (!rule) {
-    return args;
-  }
+  if (!rule) return args;
 
   if (TENANT_UNSAFE_UNIQUE_OPERATIONS.has(operation)) {
     enforceTenantOnUnsafeUniqueOperation(

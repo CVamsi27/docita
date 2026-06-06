@@ -46,9 +46,7 @@ type RecordConsentDto = z.infer<typeof recordConsentSchema>;
 type WithdrawConsentDto = z.infer<typeof withdrawConsentSchema>;
 
 function requireClinicId(clinicId: string | null | undefined): string {
-  if (!clinicId) {
-    throw new BadRequestException('Clinic context is required');
-  }
+  if (!clinicId) throw new BadRequestException('Clinic context is required');
   return clinicId;
 }
 

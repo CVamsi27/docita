@@ -5,9 +5,7 @@ import {
 } from './app-config-url.helpers';
 
 export function getSharedCookieDomainFromConfig(config: EnvConfig) {
-  if (config.NODE_ENV !== 'production') {
-    return undefined;
-  }
+  if (config.NODE_ENV !== 'production') return undefined;
 
   const frontendHostname = parseHostname(config.NEXT_PUBLIC_APP_URL);
   const apiHostname = parseHostname(config.NEXT_PUBLIC_API_URL);
@@ -37,12 +35,8 @@ export function shouldBypassGuardForE2eConfig({
   apiE2eEnabled: boolean;
   e2eHeaderValue: string | undefined;
 }) {
-  if (isProduction) {
-    return false;
-  }
-  if (apiE2eEnabled) {
-    return true;
-  }
+  if (isProduction) return false;
+  if (apiE2eEnabled) return true;
   return e2eHeaderValue === 'true';
 }
 
@@ -68,18 +62,13 @@ export function getJwtSecretFromConfig({
   workerEntrypoint: string;
   workerPlaceholderSecret: string;
 }) {
-  if (jwtSecret) {
-    return jwtSecret;
-  }
-  if (workerEntrypoint === 'worker') {
-    return workerPlaceholderSecret;
-  }
+  if (jwtSecret) return jwtSecret;
+  if (workerEntrypoint === 'worker') return workerPlaceholderSecret;
   throw new Error('JWT_SECRET is required for API runtime');
 }
 
 export function getRequiredRedisUrl(redisUrl: string | undefined) {
-  if (!redisUrl) {
+  if (!redisUrl)
     throw new Error('REDIS_URL is required when CACHE_BACKEND=redis');
-  }
   return redisUrl;
 }

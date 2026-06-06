@@ -571,18 +571,14 @@ function withTime(
     `${dateStr}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
     { timezone },
   );
-  if (!instant) {
-    throw new Error('Invalid seed appointment wall time');
-  }
+  if (!instant) throw new Error('Invalid seed appointment wall time');
   return instant;
 }
 
 function dateOffset(days: number, timezone: string = DEFAULT_TIMEZONE): Date {
   const todayPicker = formatClinicTodayPickerIso(timezone);
   const noon = fromLocalISOString(`${todayPicker}T12:00`, { timezone });
-  if (!noon) {
-    throw new Error('Invalid seed date offset anchor');
-  }
+  if (!noon) throw new Error('Invalid seed date offset anchor');
   return new Date(noon.getTime() + days * 24 * 60 * 60 * 1000);
 }
 
@@ -741,9 +737,8 @@ function getRajeshAppointment(
   const rajeshAppointment = appointments.find(
     (a) => a.id === RAJESH_APPOINTMENT_ID,
   );
-  if (!rajeshAppointment) {
+  if (!rajeshAppointment)
     throw new Error('Rajesh canonical appointment missing from plans');
-  }
   return rajeshAppointment;
 }
 

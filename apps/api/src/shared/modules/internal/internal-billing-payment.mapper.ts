@@ -37,15 +37,9 @@ function normalizePaymentGatewayStatus(
   status: string,
 ): 'SUCCESS' | 'PENDING' | 'FAILED' {
   const normalized = status.toLowerCase();
-  if (normalized === 'paid' || normalized === 'success') {
-    return 'SUCCESS';
-  }
-  if (normalized === 'failed' || normalized === 'refunded') {
-    return 'FAILED';
-  }
-  if (normalized === 'pending') {
-    return 'PENDING';
-  }
+  if (normalized === 'paid' || normalized === 'success') return 'SUCCESS';
+  if (normalized === 'failed' || normalized === 'refunded') return 'FAILED';
+  if (normalized === 'pending') return 'PENDING';
   return 'PENDING';
 }
 
@@ -59,9 +53,7 @@ function planLabelFromInternalPayment(
     ']',
     INTERNAL_ADDITIONAL_CHARGE_PREFIX.length,
   );
-  if (end === -1) {
-    return null;
-  }
+  if (end === -1) return null;
   const key = description.slice(INTERNAL_ADDITIONAL_CHARGE_PREFIX.length, end);
   if (!isInternalAdditionalChargeCategory(key)) {
     return key;

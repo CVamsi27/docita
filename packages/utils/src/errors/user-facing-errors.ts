@@ -254,9 +254,7 @@ export function getUserFacingErrorMessage(
   const fallback = options.fallback ?? CONTEXT_FALLBACKS[context];
   const code = extractCode(error);
 
-  if (code && CODE_MESSAGES[code]) {
-    return CODE_MESSAGES[code];
-  }
+  if (code && CODE_MESSAGES[code]) return CODE_MESSAGES[code];
 
   const status = extractStatus(error);
   const message = extractMessage(error);
@@ -268,9 +266,7 @@ export function getUserFacingErrorMessage(
     return polishUserFacingMessage(message);
   }
 
-  if (status && STATUS_MESSAGES[status]) {
-    return STATUS_MESSAGES[status];
-  }
+  if (status && STATUS_MESSAGES[status]) return STATUS_MESSAGES[status];
 
   return sanitizeUserFacingMessage(message, fallback);
 }

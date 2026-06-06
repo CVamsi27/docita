@@ -65,9 +65,7 @@ export class TemplateVariableService {
     const regex = /{{(\w+)}}/g;
     const matches = content.match(regex);
 
-    if (!matches) {
-      return [];
-    }
+    if (!matches) return [];
 
     return matches.map((match) => match.slice(2, -2));
   }

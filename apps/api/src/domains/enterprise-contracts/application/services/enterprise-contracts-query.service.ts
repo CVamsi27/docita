@@ -135,9 +135,8 @@ export class EnterpriseContractsQueryService {
     contractId: string,
   ): Promise<EnterpriseContractEstimate | null> {
     const contract = await this.getByContractId(contractId);
-    if (!contract || contract.status !== EnterpriseContractStatus.ACTIVE) {
+    if (!contract || contract.status !== EnterpriseContractStatus.ACTIVE)
       return null;
-    }
 
     const memberIds = this.activeMemberClinicIds(contract);
     if (memberIds.length === 0) return null;

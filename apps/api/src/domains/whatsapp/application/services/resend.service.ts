@@ -67,21 +67,17 @@ export class WhatsappResendService {
       },
     });
 
-    if (!prescription) {
-      throw new NotFoundException('Prescription not found');
-    }
+    if (!prescription) throw new NotFoundException('Prescription not found');
 
-    if (!prescription.patient.phoneNumber) {
+    if (!prescription.patient.phoneNumber)
       throw new BadRequestException('Patient does not have a phone number');
-    }
 
     const isAuthorized = ['DOCTOR', 'ADMIN', 'INTERNAL'].includes(role);
     if (
       !isAuthorized &&
       prescription.approvalStatus !== ApprovalStatus.APPROVED
-    ) {
+    )
       throw new BadRequestException('Prescription not approved for sharing');
-    }
 
     const variables = toTemplateVariables(
       buildPrescriptionCreatedVariables({
@@ -98,9 +94,8 @@ export class WhatsappResendService {
       clinicId,
     );
 
-    if (!resolved) {
+    if (!resolved)
       throw new BadRequestException('Prescription template not found');
-    }
 
     const messagePreview = this.templatesService.getMessageForMode(resolved);
 
@@ -173,25 +168,20 @@ export class WhatsappResendService {
       },
     });
 
-    if (!invoice) {
-      throw new NotFoundException('Invoice not found');
-    }
+    if (!invoice) throw new NotFoundException('Invoice not found');
 
-    if (!invoice.patient.phoneNumber) {
+    if (!invoice.patient.phoneNumber)
       throw new BadRequestException('Patient does not have a phone number');
-    }
 
     const isAuthorized = ['DOCTOR', 'ADMIN', 'INTERNAL'].includes(role);
-    if (!isAuthorized && invoice.approvalStatus !== ApprovalStatus.APPROVED) {
+    if (!isAuthorized && invoice.approvalStatus !== ApprovalStatus.APPROVED)
       throw new BadRequestException('Invoice not approved for sharing');
-    }
 
     const paymentSession = invoice.paymentSessions[0];
-    if (!paymentSession) {
+    if (!paymentSession)
       throw new BadRequestException(
         'Create an online payment link for this invoice before sending on WhatsApp',
       );
-    }
 
     const variables = toTemplateVariables(
       buildInvoiceReadyVariables({
@@ -212,9 +202,7 @@ export class WhatsappResendService {
       clinicId,
     );
 
-    if (!resolved) {
-      throw new BadRequestException('Invoice template not found');
-    }
+    if (!resolved) throw new BadRequestException('Invoice template not found');
 
     const messagePreview = this.templatesService.getMessageForMode(resolved);
 

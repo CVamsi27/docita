@@ -35,9 +35,7 @@ export class TemplateMessageService {
       where: { id: clinicId },
       select: { id: true, name: true },
     });
-    if (!clinic) {
-      throw new NotFoundException('Clinic not found');
-    }
+    if (!clinic) throw new NotFoundException('Clinic not found');
     const variables = {
       ...dto.variables,
       clinicName: clinic.name,
@@ -104,14 +102,11 @@ export class TemplateMessageService {
       select: { phoneNumber: true },
     });
 
-    if (!patient) {
-      throw new NotFoundException('Patient not found');
-    }
+    if (!patient) throw new NotFoundException('Patient not found');
 
     const phoneNumber = patient.phoneNumber?.trim();
-    if (!phoneNumber) {
+    if (!phoneNumber)
       throw new BadRequestException('Patient does not have a phone number');
-    }
 
     const sendResult = await this.sendMessage.execute({
       clinicId,

@@ -120,14 +120,12 @@ export function PrescriptionViewPageContent() {
     );
   }
 
-  if (isLoading) {
-    return (
+  if (isLoading) return (
       <LoadingState
         message="Loading prescription..."
         className="min-h-[50vh]"
       />
     );
-  }
 
   if (!prescription) {
     return (

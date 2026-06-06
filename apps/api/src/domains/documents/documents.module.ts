@@ -59,9 +59,8 @@ const logger = new Logger('DocumentsModule');
           });
         }
 
-        if (provider === 'r2' && hasR2Credentials) {
+        if (provider === 'r2' && hasR2Credentials)
           return new R2StorageProvider(r2Config, clock);
-        }
 
         logger.warn(
           'R2 storage provider is not fully configured; falling back to local provider. Startup validation should block production boot until storage is configured.',

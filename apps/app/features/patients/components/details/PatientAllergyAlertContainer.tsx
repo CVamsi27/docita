@@ -11,9 +11,7 @@ export function PatientAllergyAlertContainer({
 }: PatientAllergyAlertContainerProps) {
   const { data: patient, isLoading } = usePatient(patientId);
 
-  if (isLoading || !patient) {
-    return null;
-  }
+  if (isLoading || !patient) return null;
 
   const allergiesValue =
     "allergies" in patient && typeof patient.allergies === "string"

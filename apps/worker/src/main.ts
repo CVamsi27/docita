@@ -36,7 +36,6 @@ async function bootstrap() {
 
   app.useLogger(app.get(Logger));
   app.get(Logger).log("Worker started", "Worker");
-
   const shutdown = (signal: string) => {
     app
       .get(Logger)
@@ -46,7 +45,6 @@ async function bootstrap() {
       process.exit(1);
     }, GRACEFUL_SHUTDOWN_TIMEOUT_MS);
     timeout.unref();
-
     app
       .close()
       .then(async () => {
@@ -58,10 +56,8 @@ async function bootstrap() {
         process.exit(1);
       });
   };
-
   process.on("SIGTERM", () => shutdown("SIGTERM"));
   process.on("SIGINT", () => shutdown("SIGINT"));
-
   process.on("unhandledRejection", (reason: unknown) => {
     app
       .get(Logger)
@@ -71,7 +67,6 @@ async function bootstrap() {
         "Worker",
       );
   });
-
   process.on("uncaughtException", (error: Error) => {
     app
       .get(Logger)

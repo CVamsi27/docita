@@ -12,13 +12,11 @@ export function JoinRequestsSettingsPanel() {
   const isMutating =
     panel.approveMutation.isPending || panel.rejectMutation.isPending;
 
-  if (panel.isLoading) {
-    return (
+  if (panel.isLoading) return (
       <div className="min-h-[30vh]">
         <LoadingState message="Loading join requests…" className="py-16" />
       </div>
     );
-  }
 
   return (
     <div className="space-y-6">

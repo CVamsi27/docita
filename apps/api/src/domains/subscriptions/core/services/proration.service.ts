@@ -15,11 +15,10 @@ export class ProratingService {
     daysRemaining: number,
     totalCycleDays: number,
   ): ProratedResult {
-    if (daysRemaining < 0 || totalCycleDays <= 0) {
+    if (daysRemaining < 0 || totalCycleDays <= 0)
       throw new InvariantViolationError(
         'Invalid day values for proration calculation',
       );
-    }
 
     const currentPrice = new SubscriptionPrice(currentPriceCents);
     const newPrice = new SubscriptionPrice(newPriceCents);
@@ -41,12 +40,8 @@ export class ProratingService {
     currentPriceCents: number,
     newPriceCents: number,
   ): 'upgrade' | 'downgrade' | 'same' {
-    if (currentPriceCents < newPriceCents) {
-      return 'upgrade';
-    }
-    if (currentPriceCents > newPriceCents) {
-      return 'downgrade';
-    }
+    if (currentPriceCents < newPriceCents) return 'upgrade';
+    if (currentPriceCents > newPriceCents) return 'downgrade';
     return 'same';
   }
 

@@ -50,7 +50,6 @@ export function DrawSignatureTab({
             dataUrl={signatureDataUrl}
             onEdit={onClearSignature}
           />
-
           {autoUploadOnDraw ? (
             uploading ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -86,7 +85,6 @@ export function DrawSignatureTab({
     </div>
   );
 }
-
 interface UploadSignatureTabProps {
   previewUrl: string | null;
   fileInputRef: RefObject<HTMLInputElement | null>;

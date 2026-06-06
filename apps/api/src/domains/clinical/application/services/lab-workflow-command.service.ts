@@ -66,9 +66,7 @@ export class LabWorkflowCommandService {
     file: Express.Multer.File | undefined,
     input: AttachResultInput,
   ): Promise<void> {
-    if (!file) {
-      throw new BadRequestException('A result file is required');
-    }
+    if (!file) throw new BadRequestException('A result file is required');
     const order = await this.loadOrder(id, clinicId);
     if (order.isTerminal()) {
       throw new BadRequestException(
@@ -116,22 +114,17 @@ export class LabWorkflowCommandService {
 
   async releaseResult(id: string, clinicId: string): Promise<void> {
     const ctx = await this.labRepository.findReleaseContext(id, clinicId);
-    if (!ctx) {
-      throw new NotFoundException('Lab order not found');
-    }
-    if (ctx.status === 'COMPLETED' || ctx.status === 'CANCELLED') {
+    if (!ctx) throw new NotFoundException('Lab order not found');
+    if (ctx.status === 'COMPLETED' || ctx.status === 'CANCELLED')
       throw new BadRequestException('Lab order has already been finalised');
-    }
-    if (!ctx.resultUrl) {
+    if (!ctx.resultUrl)
       throw new BadRequestException(
         'Upload a result before releasing it to the patient',
       );
-    }
-    if (!ctx.paidAt) {
+    if (!ctx.paidAt)
       throw new BadRequestException(
         'Verify payment before releasing results to the patient',
       );
-    }
 
     const now = this.clock.now();
 
@@ -215,9 +208,8 @@ export class LabWorkflowCommandService {
 
   private async loadOrder(id: string, clinicId: string): Promise<LabOrder> {
     const order = await this.labRepository.findOrderById(id);
-    if (!order || order.clinicId !== clinicId) {
+    if (!order || order.clinicId !== clinicId)
       throw new NotFoundException('Lab order not found');
-    }
     return order;
   }
 }

@@ -211,14 +211,11 @@ export class AppointmentRequestCommandService {
       id,
       clinicId,
     );
-    if (!request) {
-      throw new NotFoundException('Appointment request not found');
-    }
-    if (request.status !== AppointmentRequestStatus.PENDING) {
+    if (!request) throw new NotFoundException('Appointment request not found');
+    if (request.status !== AppointmentRequestStatus.PENDING)
       throw new BadRequestException(
         'Only pending appointment requests can be reviewed',
       );
-    }
     return request;
   }
 
@@ -231,8 +228,7 @@ export class AppointmentRequestCommandService {
         doctorId,
         clinicId,
       );
-    if (!doctorBelongsToClinic) {
+    if (!doctorBelongsToClinic)
       throw new BadRequestException('Selected doctor is not available here');
-    }
   }
 }

@@ -51,13 +51,8 @@ export class ClinicScopedGuard implements CanActivate {
       throw new BadRequestException('Clinic scope is required');
     }
 
-    if (
-      userClinicId &&
-      requestedClinicId &&
-      userClinicId !== requestedClinicId
-    ) {
+    if (userClinicId && requestedClinicId && userClinicId !== requestedClinicId)
       throw forbiddenProblem('CLINIC_SCOPE_MISMATCH', 'Clinic scope mismatch');
-    }
 
     return true;
   }
@@ -91,9 +86,7 @@ export function ValidateClinicScope(options?: {
     ) {
       const clinicId = args[argIndex];
 
-      if (!clinicId) {
-        return emptyResult;
-      }
+      if (!clinicId) return emptyResult;
 
       return originalMethod.apply(this, args);
     };

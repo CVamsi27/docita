@@ -199,11 +199,10 @@ export class InvoicesQueryService {
       invoice.buyerTaxSnapshot,
     );
     const clinic = invoice.patient?.clinic;
-    if (!clinic?.name) {
+    if (!clinic?.name)
       throw new BadRequestException(
         'Clinic details are required to generate invoice PDF',
       );
-    }
     if (!(invoice.appointment?.doctor?.name || invoice.doctorName)) {
       throw new BadRequestException(
         'Doctor details are required to generate invoice PDF',

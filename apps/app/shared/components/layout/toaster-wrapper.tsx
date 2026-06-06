@@ -13,9 +13,7 @@ export function ToasterWrapper() {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return null;
-  }
+  if (!mounted) return null;
 
   return (
     <Toaster

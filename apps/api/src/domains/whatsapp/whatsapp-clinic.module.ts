@@ -10,14 +10,8 @@ import {
   WhatsappWebhookService,
   ResponseHandlerService,
   WhatsAppWebhookIngressService,
-  StaffNotificationService,
-  StaffNotificationRecipientResolver,
-  StaffNotificationPolicyService,
-  StaffNotificationWhatsAppDispatchService,
-  StaffNotificationInboxService,
-  PatientResponseConfirmationService,
-  PatientResponseStaffNotificationService,
   PatientAppointmentResolverService,
+  StaffNotificationService,
 } from '@/domains/whatsapp/application/services';
 import { TemplatesFacadeService } from '@/shared/whatsapp/templates-facade.service';
 import { WhatsappTemplatesModule } from '@/shared/whatsapp/whatsapp-templates.module';
@@ -35,19 +29,18 @@ import {
   LegacyWhatsappWebhookController,
   StaffNotificationController,
 } from '@/domains/whatsapp/presentation/controllers';
-import { NOTIFICATION_RECIPIENT_RESOLVER_TOKEN } from '@/domains/whatsapp/application/ports/notification-recipient-resolver.port';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { PrismaService } from '@/prisma/prisma.service';
 import { WHATSAPP_PERSISTENCE_PORT } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { WhatsappEventListener } from '@/domains/whatsapp/application/listeners/whatsapp-event.listener';
-import { StaffNotificationListener } from '@/domains/whatsapp/application/listeners/staff-notification.listener';
 import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
+import { WhatsappNotificationsModule } from './whatsapp-notifications.module';
 
-/** Legacy clinic WhatsApp routes (`/whatsapp/*`, `/staff-notifications/*`, `/whatsapp/webhook`). */
 @Module({
   imports: [
     PrismaModule,
     WhatsappTemplatesModule,
+    WhatsappNotificationsModule,
     forwardRef(() => SupportWhatsAppModule),
   ],
   controllers: [
@@ -84,19 +77,7 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
     WhatsAppWebhookIngressService,
     ResponseHandlerService,
     PatientAppointmentResolverService,
-    StaffNotificationRecipientResolver,
-    {
-      provide: NOTIFICATION_RECIPIENT_RESOLVER_TOKEN,
-      useExisting: StaffNotificationRecipientResolver,
-    },
-    StaffNotificationPolicyService,
-    StaffNotificationWhatsAppDispatchService,
-    StaffNotificationInboxService,
-    PatientResponseConfirmationService,
-    PatientResponseStaffNotificationService,
-    StaffNotificationService,
     WhatsappEventListener,
-    StaffNotificationListener,
   ],
   exports: [
     WhatsappService,
@@ -110,8 +91,8 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
     WhatsAppWebhookIngressService,
     ResponseHandlerService,
     PatientAppointmentResolverService,
-    StaffNotificationService,
     SystemEventsService,
+    StaffNotificationService,
   ],
 })
 export class WhatsappModule {}

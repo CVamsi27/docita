@@ -329,9 +329,7 @@ function configureGlobalMiddleware(app: INestApplication): PrismaService {
   app.use(
     compression({
       filter: (req, res) => {
-        if (req.headers['x-no-compression']) {
-          return false;
-        }
+        if (req.headers['x-no-compression']) return false;
         return compression.filter(req, res);
       },
       level: 6,

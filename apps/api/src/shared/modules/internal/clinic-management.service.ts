@@ -133,9 +133,7 @@ export class ClinicManagementService {
       },
     });
 
-    if (!doctor) {
-      throw new BadRequestException('Doctor not found in clinic');
-    }
+    if (!doctor) throw new BadRequestException('Doctor not found in clinic');
 
     return doctor;
   }

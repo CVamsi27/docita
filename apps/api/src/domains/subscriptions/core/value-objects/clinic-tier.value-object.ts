@@ -40,13 +40,9 @@ export class ClinicTier {
 
   static fromString(value: string): ClinicTier {
     const canonical = Object.values(ClinicTierEnum).find((v) => v === value);
-    if (canonical) {
-      return new ClinicTier(canonical);
-    }
+    if (canonical) return new ClinicTier(canonical);
     const legacy = LEGACY_TIER_MAP[value];
-    if (legacy) {
-      return new ClinicTier(legacy);
-    }
+    if (legacy) return new ClinicTier(legacy);
     throw new InvariantViolationError(`Invalid clinic tier: ${value}`);
   }
 

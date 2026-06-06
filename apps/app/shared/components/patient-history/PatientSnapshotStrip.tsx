@@ -22,7 +22,6 @@ interface PatientSnapshotStripProps {
   showVitals?: boolean;
   compact?: boolean;
 }
-
 export function PatientSnapshotStrip({
   snapshot,
   layout,

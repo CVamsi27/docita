@@ -10,9 +10,7 @@ export function readRazorpayStringNotes(
   value: unknown,
 ): Record<string, string> | undefined {
   const record = asRazorpayRecord(value);
-  if (!record) {
-    return undefined;
-  }
+  if (!record) return undefined;
 
   const notes: Record<string, string> = {};
   for (const [key, entry] of Object.entries(record)) {

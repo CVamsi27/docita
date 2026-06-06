@@ -29,13 +29,9 @@ const TIER_SENTINEL_FEATURES: Partial<Record<Tier, Feature>> = {
 };
 
 function hasRequiredTier(requiredTier: Tier, context: AccessContext): boolean {
-  if (requiredTier === Tier.INTELLIGENCE) {
-    return context.hasIntelligence === true;
-  }
+  if (requiredTier === Tier.INTELLIGENCE) return context.hasIntelligence === true;
 
-  if (context.currentTier === undefined) {
-    return false;
-  }
+  if (context.currentTier === undefined) return false;
 
   const sentinelFeature = TIER_SENTINEL_FEATURES[requiredTier];
   if (sentinelFeature) {
@@ -86,9 +82,7 @@ export function canAccessTarget(
       const parsed = parseAppPermission(p);
       return parsed ? hasPermission(role, parsed) : false;
     });
-    if (!hasAllPermissions) {
-      return false;
-    }
+    if (!hasAllPermissions) return false;
   }
   const requiredFeature = getAccessFeature(target);
   if (requiredFeature) {

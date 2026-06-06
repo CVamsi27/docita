@@ -40,7 +40,6 @@ export abstract class BasePdfProcessor implements OnModuleInit {
       const { documentId, clinicId, pdfJobId } = job.data;
 
       if (pdfJobId) {
-        // RLS-BYPASS: pdf job status update runs in queue worker outside tenant context
         await this.persistence.runUnrestricted(async () =>
           this.persistence.pdfJob.update({
             where: { id: pdfJobId },
@@ -60,7 +59,6 @@ export abstract class BasePdfProcessor implements OnModuleInit {
         );
 
         if (pdfJobId) {
-          // RLS-BYPASS: pdf job status update runs in queue worker outside tenant context
           await this.persistence.runUnrestricted(async () =>
             this.persistence.pdfJob.update({
               where: { id: pdfJobId },
@@ -80,7 +78,6 @@ export abstract class BasePdfProcessor implements OnModuleInit {
         const isFinalAttempt = job.attemptsMade + 1 >= (job.maxAttempts ?? 1);
 
         if (pdfJobId && isFinalAttempt) {
-          // RLS-BYPASS: pdf job status update runs in queue worker outside tenant context
           await this.persistence.runUnrestricted(async () =>
             this.persistence.pdfJob.update({
               where: { id: pdfJobId },

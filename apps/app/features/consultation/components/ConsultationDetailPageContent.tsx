@@ -79,9 +79,7 @@ function ConsultationPageContent() {
   const draftDiagnosis = useConsultationDraft((s) => s.diagnosis);
 
   const completionSnapshot = useMemo(() => {
-    if (!appointmentData) {
-      return null;
-    }
+    if (!appointmentData) return null;
     return resolveConsultationCompletionSnapshot(appointmentData, {
       chiefComplaint: draftChiefComplaint,
       diagnosis: draftDiagnosis,

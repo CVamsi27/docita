@@ -28,9 +28,7 @@ export class SignatureUploadController {
   @Post('generate-token')
   @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR)
   async generateToken(@Request() req: RequestWithUser) {
-    if (!req.user?.id) {
-      throw new BadRequestException('User ID is required');
-    }
+    if (!req.user?.id) throw new BadRequestException('User ID is required');
 
     const doctorId = req.user.id;
 
@@ -56,9 +54,7 @@ export class SignatureUploadController {
   @Get('active-tokens')
   @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR)
   async getActiveTokens(@Request() req: RequestWithUser) {
-    if (!req.user?.id) {
-      throw new BadRequestException('User ID is required');
-    }
+    if (!req.user?.id) throw new BadRequestException('User ID is required');
 
     const doctorId = req.user.id;
 
@@ -71,9 +67,7 @@ export class SignatureUploadController {
     @Request() req: RequestWithUser,
     @Param('tokenId') tokenId: string,
   ) {
-    if (!req.user?.id) {
-      throw new BadRequestException('User ID is required');
-    }
+    if (!req.user?.id) throw new BadRequestException('User ID is required');
 
     const doctorId = req.user.id;
 

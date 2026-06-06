@@ -41,9 +41,7 @@ export class OperationalAnalyticsFactory {
   async getOverview(clinicId: string, timezone: string = DEFAULT_TIMEZONE) {
     const cacheKey = `dashboard-overview-${clinicId}-${timezone}`;
     const cachedResult = await this.cacheManager.get<OverviewMetrics>(cacheKey);
-    if (cachedResult) {
-      return cachedResult;
-    }
+    if (cachedResult) return cachedResult;
 
     const now = this.clock.now();
     const thisMonthRange = getMonthRange(now, { timezone });
@@ -92,9 +90,7 @@ export class OperationalAnalyticsFactory {
   ) {
     const cacheKey = `analytics:patient-growth:${clinicId}:${days}:${timezone}`;
     const cached = await this.cacheManager.get<PatientGrowthPoint[]>(cacheKey);
-    if (cached) {
-      return cached;
-    }
+    if (cached) return cached;
 
     const dateRange = getLastNDaysRange(days, { timezone });
     const timestamps = await this.repository.getPatientCreationTimestamps(

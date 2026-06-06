@@ -15,19 +15,16 @@ export class PaymentsQueryService {
 
   async verifySessionOwnership(sessionId: string, clinicId: string) {
     const session = await this.repository.findById(sessionId, clinicId);
-    if (!session) {
+    if (!session)
       throw new BadRequestException(
         'Payment session not found or access denied',
       );
-    }
     return session;
   }
 
   async getPaymentSession(sessionId: string, clinicId: string) {
     const session = await this.repository.findById(sessionId, clinicId);
-    if (!session) {
-      throw new BadRequestException('Payment session not found');
-    }
+    if (!session) throw new BadRequestException('Payment session not found');
     return session;
   }
 }

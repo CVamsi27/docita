@@ -51,11 +51,10 @@ export class ImportSessionService implements OnModuleInit, OnModuleDestroy {
   getSession(sessionId: string): ImportSession {
     const session = this.pendingImports.get(sessionId);
 
-    if (!session) {
+    if (!session)
       throw new BadRequestException(
         'Import session not found or expired. Please upload the file again.',
       );
-    }
 
     if (session.expiresAt < Date.now()) {
       this.pendingImports.delete(sessionId);

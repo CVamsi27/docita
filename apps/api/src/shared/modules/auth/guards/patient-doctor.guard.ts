@@ -28,9 +28,7 @@ export class PatientDoctorGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    if (!isScoped) {
-      return true;
-    }
+    if (!isScoped) return true;
 
     const request = context
       .switchToHttp()
@@ -44,30 +42,23 @@ export class PatientDoctorGuard implements CanActivate {
       user.role === Role.INTERNAL ||
       user.role === Role.NURSE ||
       user.role === Role.RECEPTIONIST
-    ) {
+    )
       return true;
-    }
 
     const patientId = request.params?.patientId;
-    if (!patientId) {
-      return true;
-    }
-
+    if (!patientId) return true;
     // PATIENT role: can only access their own record
     if (user.role === Role.PATIENT) {
       const patient = await this.prisma.patient.findFirst({
         where: { id: patientId, userId: user.sub },
         select: { id: true },
       });
-
-      if (!patient) {
+      if (!patient)
         throw new ForbiddenException(
           'Access denied: patient record not linked to your account',
         );
-      }
       return true;
     }
-
     // DOCTOR role: must have an active PatientDoctor relationship
     const relationship = await this.prisma.patientDoctor.findFirst({
       where: {
@@ -77,13 +68,10 @@ export class PatientDoctorGuard implements CanActivate {
       },
       select: { id: true },
     });
-
-    if (!relationship) {
+    if (!relationship)
       throw new ForbiddenException(
         'Access denied: you are not assigned to this patient',
       );
-    }
-
     return true;
   }
 }

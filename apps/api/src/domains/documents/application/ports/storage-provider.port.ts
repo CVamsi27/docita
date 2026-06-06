@@ -88,12 +88,10 @@ export abstract class StorageProvider {
         `Signed URL TTL must be a positive finite number, received ${String(expiresInSeconds)}`,
       );
     }
-    if (expiresInSeconds < MIN_SIGNED_URL_TTL_SECONDS) {
+    if (expiresInSeconds < MIN_SIGNED_URL_TTL_SECONDS)
       return MIN_SIGNED_URL_TTL_SECONDS;
-    }
-    if (expiresInSeconds > MAX_SIGNED_URL_TTL_SECONDS) {
+    if (expiresInSeconds > MAX_SIGNED_URL_TTL_SECONDS)
       return MAX_SIGNED_URL_TTL_SECONDS;
-    }
     return Math.floor(expiresInSeconds);
   }
 }

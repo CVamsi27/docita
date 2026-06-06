@@ -57,9 +57,7 @@ export function useComplianceStep({
       activeOnboardingId = onboardingId ?? null;
     }
 
-    if (!activeOnboardingId) {
-      throw new Error("We could not create the signature link right now. Please try again.");
-    }
+    if (!activeOnboardingId) throw new Error("We could not create the signature link right now. Please try again.");
 
     let sessionData: { id: string; uploadSecret: string } | null = null;
     let errMessage = "We could not create the signature link right now. Please try again.";
@@ -81,9 +79,7 @@ export function useComplianceStep({
       }
     }
 
-    if (!sessionData) {
-      throw new Error(errMessage);
-    }
+    if (!sessionData) throw new Error(errMessage);
 
     return {
       sessionId: sessionData.id,

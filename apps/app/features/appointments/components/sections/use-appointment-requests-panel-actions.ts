@@ -123,7 +123,6 @@ export function useApproveRequestAction(params: {
     ],
   );
 }
-
 export function useRejectRequestAction(params: {
   formState: RequestFormState;
   rejectRequest: ReturnType<typeof useRejectAppointmentRequest>;
@@ -187,7 +186,6 @@ export function useRejectRequestAction(params: {
     ],
   );
 }
-
 function resetRequestDraftState(formState: RequestFormState): void {
   formState.setStartByRequest({});
   formState.setRejectReasonByRequest({});

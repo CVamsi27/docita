@@ -103,9 +103,7 @@ export function MetricCategorySection({
 
   const trackedDefinitions = definitions.filter((d) => d.isTracked);
 
-  if (trackedDefinitions.length === 0) {
-    return null;
-  }
+  if (trackedDefinitions.length === 0) return null;
 
   return (
     <>

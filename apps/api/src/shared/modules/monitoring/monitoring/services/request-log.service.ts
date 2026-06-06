@@ -149,18 +149,14 @@ export class RequestLogService implements OnModuleDestroy {
   }
 
   private isMissingApiRequestTableError(error: unknown): boolean {
-    if (!error || typeof error !== 'object') {
-      return false;
-    }
+    if (!error || typeof error !== 'object') return false;
 
     const code =
       'code' in error && typeof error.code === 'string' ? error.code : '';
 
     // Prisma known error for "table does not exist".
     // Common when migrations weren't applied (e.g. "ApiRequest" is missing).
-    if (code === 'P2021' || code === 'P1014') {
-      return true;
-    }
+    if (code === 'P2021' || code === 'P1014') return true;
 
     const message =
       'message' in error && typeof error.message === 'string'
@@ -184,9 +180,8 @@ export class RequestLogService implements OnModuleDestroy {
       if (
         typeof error.meta.table === 'string' &&
         error.meta.table === 'ApiRequest'
-      ) {
+      )
         return true;
-      }
     }
 
     return false;

@@ -85,9 +85,8 @@ export class LeavePlanService {
     },
   ) {
     const existing = await this.leaveRepository.findLeavePlanById(id);
-    if (!existing || existing.clinicId !== clinicId) {
+    if (!existing || existing.clinicId !== clinicId)
       throw new NotFoundException('Leave plan not found');
-    }
 
     const updated = await this.leaveRepository.updateLeavePlan(id, data);
 

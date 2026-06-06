@@ -2,9 +2,7 @@ import prisma, { DoctorVerificationStatus } from '@workspace/db';
 
 function readDoctorId(): string {
   const doctorId = process.env.VERIFICATION_DOCTOR_ID?.trim();
-  if (!doctorId) {
-    throw new Error('VERIFICATION_DOCTOR_ID is required');
-  }
+  if (!doctorId) throw new Error('VERIFICATION_DOCTOR_ID is required');
 
   return doctorId;
 }

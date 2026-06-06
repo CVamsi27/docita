@@ -24,11 +24,9 @@ export function WhatsappConversationsView() {
   const markRead = useMarkClinicWhatsappConversationRead();
   const sendReply = useReplyToClinicWhatsappConversation();
 
-  if (conversations.isLoading) {
-    return (
+  if (conversations.isLoading) return (
       <DataState status="loading" loadingMessage="Loading conversations..." />
     );
-  }
   if (conversations.isError) {
     return (
       <DataState

@@ -204,7 +204,6 @@ interface ClaimDocumentsCardProps {
   isAttachingDocument: boolean;
   onAttachDocument: (documentId: string) => void;
 }
-
 export function ClaimDocumentsCard({
   documents,
   attachableDocuments,
@@ -243,7 +242,6 @@ export function ClaimDocumentsCard({
             ))}
           </ul>
         )}
-
         <div className="flex flex-col gap-2 sm:flex-row">
           <Select value={documentId} onValueChange={onDocumentIdChange}>
             <SelectTrigger>

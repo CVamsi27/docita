@@ -24,7 +24,6 @@ export function buildConsultationAppointmentPatch(
   const chiefComplaintText = serializeChiefComplaintsForPatch(
     state.chiefComplaint,
   );
-
   const systemicExamination: Record<string, unknown> = {
     cvs: { notes: state.examination.systemic.cvs },
     rs: { notes: state.examination.systemic.rs },
@@ -36,7 +35,6 @@ export function buildConsultationAppointmentPatch(
   if (ms) {
     systemicExamination.mss = { jointExamination: ms };
   }
-
   const patch: Record<string, unknown> = {
     chiefComplaint: chiefComplaintText,
     historyOfPresentIllness: state.history,
@@ -46,7 +44,6 @@ export function buildConsultationAppointmentPatch(
     generalExamination: mapGeneralExaminationForPatch(state.examination.general),
     systemicExamination,
   };
-
   const persistKeys = getConsultationPersistKeysForClinic(clinicType);
   for (const key of persistKeys) {
     switch (key) {
@@ -78,6 +75,5 @@ export function buildConsultationAppointmentPatch(
         break;
     }
   }
-
   return updateAppointmentRequestSchema.parse(patch);
 }

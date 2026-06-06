@@ -67,9 +67,7 @@ export class LocalStorageProvider extends StorageProvider {
 
   private sanitizeFolder(folder: string): string {
     const normalized = folder.trim().replace(/^\/+|\/+$/g, '');
-    if (!normalized) {
-      return 'general';
-    }
+    if (!normalized) return 'general';
 
     if (!/^[a-zA-Z0-9/_-]+$/.test(normalized) || normalized.includes('..')) {
       throw new BadRequestException('Invalid upload folder');
@@ -106,9 +104,8 @@ export class LocalStorageProvider extends StorageProvider {
     try {
       if (file.mimetype.startsWith('image/')) {
         const source = file.path ?? file.buffer;
-        if (!source) {
+        if (!source)
           throw new BadRequestException('Uploaded file could not be read');
-        }
 
         await this.writeImageToFile(source, filePath);
       } else {

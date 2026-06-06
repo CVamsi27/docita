@@ -85,9 +85,8 @@ export class AuthSessionController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const refreshToken = dto.refresh_token || req.cookies?.refresh_token;
-    if (!refreshToken) {
+    if (!refreshToken)
       throw new BadRequestException('refresh_token is required');
-    }
     const tokens = await this.authService.refreshTokens(refreshToken);
     setAuthCookies(res, tokens, this.configService);
     return stripRefreshTokenFromBody(tokens);

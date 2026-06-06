@@ -141,18 +141,14 @@ function asFiniteNumber(value: unknown): number | undefined {
 /** Coerce persisted/API floats to valid money fields (max two decimal places). */
 function roundMoneyAmount(value: unknown): unknown {
   const amount = asFiniteNumber(value);
-  if (amount === undefined) {
-    return value;
-  }
+  if (amount === undefined) return value;
   return Math.round(amount * 100) / 100;
 }
 
 function normalizeInvoiceListPatient(
   patient: Record<string, unknown> | undefined,
 ): Record<string, unknown> | undefined {
-  if (!patient) {
-    return undefined;
-  }
+  if (!patient) return undefined;
   const firstName =
     typeof patient.firstName === "string" ? patient.firstName.trim() : "";
   const lastName =

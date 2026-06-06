@@ -13,9 +13,7 @@ export function extractWorksheetRowCells(values: unknown): unknown[] {
     return values.slice(1);
   }
 
-  if (values && typeof values === 'object') {
-    return Object.values(values);
-  }
+  if (values && typeof values === 'object') return Object.values(values);
 
   return [];
 }

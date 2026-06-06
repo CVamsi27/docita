@@ -157,29 +157,20 @@ function redactWithDepth(
   depth: number,
   seen: WeakSet<object>,
 ): unknown {
-  if (depth > MAX_DEPTH) {
-    return REDACTED;
-  }
+  if (depth > MAX_DEPTH) return REDACTED;
 
-  if (value === null || value === undefined) {
-    return value;
-  }
+  if (value === null || value === undefined) return value;
 
-  if (typeof value === 'string') {
-    return redactString(value);
-  }
+  if (typeof value === 'string') return redactString(value);
 
   if (
     typeof value === 'number' ||
     typeof value === 'boolean' ||
     typeof value === 'bigint'
-  ) {
+  )
     return value;
-  }
 
-  if (value instanceof Date) {
-    return value;
-  }
+  if (value instanceof Date) return value;
 
   if (Array.isArray(value)) {
     return value.map((item) => redactWithDepth(item, depth + 1, seen));
@@ -213,9 +204,7 @@ function redactWithDepth(
  * verbatim if no pattern matches.
  */
 export function redactString(input: string): string {
-  if (input.length === 0) {
-    return input;
-  }
+  if (input.length === 0) return input;
 
   if (INDIAN_PHONE_FULL_REGEX.test(input)) {
     return REDACTED;
@@ -303,9 +292,7 @@ export function redactSerializer(value: unknown): unknown {
  * line numbers do not match any PHI pattern, so debuggability is preserved.
  */
 export function redactErrSerializer(err: unknown): unknown {
-  if (!err || typeof err !== 'object') {
-    return err;
-  }
+  if (!err || typeof err !== 'object') return err;
   if (!isRecord(err)) {
     return err;
   }

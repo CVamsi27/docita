@@ -79,9 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
-      if (status === 429) {
-        return true;
-      }
+      if (status === 429) return true;
 
       return false;
     }
@@ -101,14 +99,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (storedToken) {
               setToken(storedToken);
               const isValid = await validateToken();
-
               if (isValid) {
                 setUser(parsedUser);
               } else {
                 const refreshed = await internalSession.refreshAccessToken();
                 const nextToken = internalSession.getToken();
                 setToken(nextToken);
-
                 if (refreshed && nextToken && (await validateToken())) {
                   setUser(parsedUser);
                 } else {
@@ -126,7 +122,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               const refreshed = await internalSession.refreshAccessToken();
               const nextToken = internalSession.getToken();
               setToken(nextToken);
-
               if (refreshed && nextToken && (await validateToken())) {
                 setUser(parsedUser);
               } else {
@@ -148,7 +143,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch {
         clearAuthStorage();
       }
-
       setIsLoading(false);
     }, 0);
 
@@ -173,9 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return Promise.resolve();
       }
 
-      if (logoutInFlightRef.current) {
-        return logoutInFlightRef.current;
-      }
+      if (logoutInFlightRef.current) return logoutInFlightRef.current;
 
       logoutInFlightRef.current = (async () => {
         try {
@@ -250,8 +242,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (context === undefined) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 }

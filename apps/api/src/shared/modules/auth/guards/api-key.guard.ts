@@ -28,9 +28,7 @@ export class ApiKeyGuard implements CanActivate {
 
     const result = await this.apiKeyService.validateApiKey(rawKey, request.ip);
 
-    if (!result) {
-      throw new UnauthorizedException('Invalid or revoked API key');
-    }
+    if (!result) throw new UnauthorizedException('Invalid or revoked API key');
 
     request.apiKeyClinicId = result.clinicId;
     request.apiKeyScopes = result.scopes;
@@ -43,9 +41,8 @@ export class ApiKeyGuard implements CanActivate {
     const missingScopes = requiredScopes.filter(
       (scope) => !this.grantsScope(result.scopes, scope),
     );
-    if (missingScopes.length > 0) {
+    if (missingScopes.length > 0)
       throw new ForbiddenException('API key does not grant required scope');
-    }
 
     return true;
   }

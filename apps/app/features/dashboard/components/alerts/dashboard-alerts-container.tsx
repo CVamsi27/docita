@@ -85,15 +85,13 @@ export function DashboardAlertsContainer({
 
   const { canStartConsultation } = usePermissions();
   const filteredAlerts = useMemo(() => {
-    if (!canStartConsultation) {
-      return alerts.filter(
+    if (!canStartConsultation) return alerts.filter(
         (alert) =>
           alert.action?.label !== "Start Consultation" &&
           alert.action?.label !== "Open Queue" &&
           alert.action?.label !== "View Schedule" &&
           alert.action?.label !== "View Queue",
       );
-    }
     return alerts;
   }, [alerts, canStartConsultation]);
 

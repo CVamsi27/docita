@@ -27,9 +27,7 @@ export class AiService {
   }
 
   async generateText(prompt: AiPromptInput): Promise<string> {
-    if (!this.openai) {
-      return Promise.resolve(this.mockGenerateText(prompt));
-    }
+    if (!this.openai) return Promise.resolve(this.mockGenerateText(prompt));
 
     try {
       const completion = await this.openai.chat.completions.create({

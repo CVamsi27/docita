@@ -11,14 +11,12 @@ export function DoctorVerificationGuard({
   const { isCheckingVerification, shouldRedirectToVerify } =
     useDoctorVerificationGuardState();
 
-  if (isCheckingVerification || shouldRedirectToVerify) {
-    return (
+  if (isCheckingVerification || shouldRedirectToVerify) return (
       <PageTransitionLoader
         title="Checking your profile…"
         description="Verifying your doctor profile before loading your workspace"
       />
     );
-  }
 
   return <>{children}</>;
 }

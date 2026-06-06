@@ -114,9 +114,7 @@ export const useInvoicesLogic = () => {
           return;
         }
 
-        if (status.status === "FAILED") {
-          throw new Error("PDF generation failed");
-        }
+        if (status.status === "FAILED") throw new Error("PDF generation failed");
       }
 
       throw new Error("PDF generation timed out");

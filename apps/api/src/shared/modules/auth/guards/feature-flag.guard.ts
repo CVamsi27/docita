@@ -33,9 +33,7 @@ export class FeatureFlagGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    if (!flagKey) {
-      return true;
-    }
+    if (!flagKey) return true;
 
     const request = context.switchToHttp().getRequest();
     const clinicId = request.user?.clinicId || request.query?.clinicId;

@@ -61,9 +61,7 @@ export function shouldDenyAccessForFrontDeskMode(
     return false;
   }
 
-  if (role === "INTERNAL") {
-    return false;
-  }
+  if (role === "INTERNAL") return false;
 
   return true;
 }
@@ -100,9 +98,7 @@ export function shouldDenyAccessForFrontDeskTier(
     return false;
   }
 
-  if (role === "INTERNAL") {
-    return false;
-  }
+  if (role === "INTERNAL") return false;
 
   return true;
 }

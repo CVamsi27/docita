@@ -110,8 +110,6 @@ export function parseStructuredChiefComplaints(
 
 export function parseDiagnosisList(raw: unknown): DiagnosisItem[] {
   const parsed = z.array(diagnosisDraftItemSchema).safeParse(raw);
-  if (parsed.success) {
-    return mapSessionDiagnosis(parsed.data);
-  }
+  if (parsed.success) return mapSessionDiagnosis(parsed.data);
   return [];
 }

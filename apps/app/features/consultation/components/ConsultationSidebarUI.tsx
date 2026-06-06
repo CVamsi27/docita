@@ -75,8 +75,7 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
       : rawData.patient
     : undefined;
 
-  if (!patient) {
-    return (
+  if (!patient) return (
       <Card className="ui-card-surface h-full">
         <CardContent className="flex h-full items-center justify-center py-8 text-muted-foreground">
           <User className="h-6 w-6 mr-2 opacity-30" />
@@ -84,7 +83,6 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
         </CardContent>
       </Card>
     );
-  }
 
   const patientName = getPatientFullName(patient);
   const initials = getInitials(patient.firstName ?? "", patient.lastName);

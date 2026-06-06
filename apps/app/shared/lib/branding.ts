@@ -19,9 +19,7 @@ export const BRAND_FOREGROUND_HEX = "#0F172A";
  * unavailable (SSR).
  */
 export function readCssVar(name: string, fallback: string): string {
-  if (typeof window === "undefined" || typeof document === "undefined") {
-    return fallback;
-  }
+  if (typeof window === "undefined" || typeof document === "undefined") return fallback;
   const value = getComputedStyle(document.documentElement)
     .getPropertyValue(name)
     .trim();

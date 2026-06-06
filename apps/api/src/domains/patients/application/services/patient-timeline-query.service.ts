@@ -212,8 +212,6 @@ export class PatientTimelineQueryService {
       patientId,
       clinicId,
     );
-    if (!found) {
-      throw new NotFoundException('Patient not found');
-    }
+    if (!found) throw new NotFoundException('Patient not found');
   }
 }

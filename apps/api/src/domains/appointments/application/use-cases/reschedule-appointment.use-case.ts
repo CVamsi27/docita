@@ -40,9 +40,8 @@ export class RescheduleAppointmentUseCase {
       endTime,
       appointment.id,
     );
-    if (overlap.hasConflict) {
+    if (overlap.hasConflict)
       throw new BadRequestException('Doctor has conflicting appointment');
-    }
 
     this.logger.log({
       action: 'appointment.reschedule',

@@ -55,9 +55,7 @@ export class AuthMfaOrchestratorService {
       }),
     );
 
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
+    if (!user) throw new UnauthorizedException('User not found');
 
     return this.session.login(user, undefined, deviceInfo);
   }

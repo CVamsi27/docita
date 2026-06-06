@@ -41,9 +41,8 @@ export class InternalEnterpriseContractsController {
   @ApiOperation({ summary: 'Resolve the contract covering a clinic' })
   async getByClinic(@Param('clinicId') clinicId: string) {
     const contract = await this.contractsService.getForClinicId(clinicId);
-    if (!contract) {
+    if (!contract)
       throw new NotFoundException('No contract found for this clinic');
-    }
     return this.contractsService.toJsonContract(contract);
   }
 
@@ -70,9 +69,7 @@ export class InternalEnterpriseContractsController {
   @ApiOperation({ summary: 'Get a contract by id' })
   async get(@Param('contractId') contractId: string) {
     const contract = await this.contractsService.getByContractId(contractId);
-    if (!contract) {
-      throw new NotFoundException('Contract not found');
-    }
+    if (!contract) throw new NotFoundException('Contract not found');
     return this.contractsService.toJsonContract(contract);
   }
 
@@ -228,9 +225,7 @@ export class InternalEnterpriseContractsController {
   async estimate(@Param('contractId') contractId: string) {
     const estimate =
       await this.contractsService.estimateCurrentPeriod(contractId);
-    if (!estimate) {
-      throw new NotFoundException('No active contract');
-    }
+    if (!estimate) throw new NotFoundException('No active contract');
     return estimate;
   }
 
@@ -240,9 +235,7 @@ export class InternalEnterpriseContractsController {
   async previewInvoice(@Param('contractId') contractId: string) {
     const preview =
       await this.contractsService.previewCurrentPeriodInvoice(contractId);
-    if (!preview) {
-      throw new NotFoundException('No active contract');
-    }
+    if (!preview) throw new NotFoundException('No active contract');
     return preview;
   }
 

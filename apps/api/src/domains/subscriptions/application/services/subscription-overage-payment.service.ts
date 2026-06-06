@@ -173,9 +173,7 @@ export class SubscriptionOveragePaymentService {
       orderBy: { createdAt: 'asc' },
     });
 
-    if (primaryAdmin) {
-      return primaryAdmin;
-    }
+    if (primaryAdmin) return primaryAdmin;
 
     const fallbackUser = await this.persistence.user.findFirst({
       where: { clinicId },
@@ -187,9 +185,7 @@ export class SubscriptionOveragePaymentService {
       orderBy: { createdAt: 'asc' },
     });
 
-    if (fallbackUser) {
-      return fallbackUser;
-    }
+    if (fallbackUser) return fallbackUser;
 
     const clinic = await this.persistence.clinic.findUnique({
       where: { id: clinicId },

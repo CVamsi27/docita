@@ -81,9 +81,7 @@ Get('health')(
         get: jest
           .fn<(key: string) => string | undefined>()
           .mockImplementation((key) => {
-            if (key === 'NODE_ENV') {
-              return 'test';
-            }
+            if (key === 'NODE_ENV') return 'test';
 
             return undefined;
           }),

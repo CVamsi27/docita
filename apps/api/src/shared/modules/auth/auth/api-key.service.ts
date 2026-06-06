@@ -114,12 +114,10 @@ export class ApiKeyService {
 
     const replacement = await this.prisma.$transaction(async (tx) => {
       const previous = await tx.apiKey.findUnique({ where: { id } });
-      if (!previous || previous.clinicId !== clinicId) {
+      if (!previous || previous.clinicId !== clinicId)
         throw new NotFoundException('API key not found');
-      }
-      if (previous.revokedAt) {
+      if (previous.revokedAt)
         throw new ForbiddenException('API key is already revoked');
-      }
 
       const previousKeyValidUntil =
         previous.expiresAt && previous.expiresAt < overlapEndsAt
@@ -178,13 +176,11 @@ export class ApiKeyService {
   async revokeApiKey(id: string, clinicId: string): Promise<void> {
     const apiKey = await this.prisma.apiKey.findUnique({ where: { id } });
 
-    if (!apiKey || apiKey.clinicId !== clinicId) {
+    if (!apiKey || apiKey.clinicId !== clinicId)
       throw new NotFoundException('API key not found');
-    }
 
-    if (apiKey.revokedAt) {
+    if (apiKey.revokedAt)
       throw new ForbiddenException('API key is already revoked');
-    }
 
     await this.prisma.apiKey.update({
       where: { id },
@@ -219,9 +215,7 @@ export class ApiKeyService {
       },
     });
 
-    if (!apiKey || apiKey.revokedAt) {
-      return null;
-    }
+    if (!apiKey || apiKey.revokedAt) return null;
 
     if (apiKey.expiresAt && apiKey.expiresAt < this.clock.now()) {
       return null;

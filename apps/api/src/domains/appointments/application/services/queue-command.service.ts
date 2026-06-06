@@ -20,9 +20,7 @@ export class QueueCommandService {
       clinicId,
     );
 
-    if (!appointment) {
-      throw new NotFoundException('Appointment not found');
-    }
+    if (!appointment) throw new NotFoundException('Appointment not found');
 
     const existing = await this.queueRepository.findExistingToken(
       appointmentId,

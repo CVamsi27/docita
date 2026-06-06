@@ -13,9 +13,7 @@ export function mapStaffNotificationPriority(
   priority: string,
 ): "urgent" | "high" | "medium" | "low" {
   const key = parseStringEnumMember(STAFF_NOTIFICATION_PRIORITY_KEYS, priority);
-  if (!key) {
-    return "medium";
-  }
+  if (!key) return "medium";
   const priorityMap = {
     URGENT: "urgent",
     HIGH: "high",

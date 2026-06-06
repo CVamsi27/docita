@@ -45,9 +45,7 @@ export function TodayFollowUpsPanel({ enabled }: TodayFollowUpsPanelProps) {
     isError,
   } = useFollowUps(enabled ? query : null);
 
-  if (!enabled) {
-    return null;
-  }
+  if (!enabled) return null;
 
   const preview = data.slice(0, 5);
 

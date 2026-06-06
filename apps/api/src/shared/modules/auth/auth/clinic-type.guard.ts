@@ -22,25 +22,20 @@ export class ClinicTypeGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    if (!requiredTypes || requiredTypes.length === 0) {
-      return true;
-    }
+    if (!requiredTypes || requiredTypes.length === 0) return true;
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    if (!user || !user.clinicId) {
+    if (!user || !user.clinicId)
       throw forbiddenProblem('NO_CLINIC', 'User not associated with a clinic');
-    }
 
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: user.clinicId },
       select: { type: true, name: true },
     });
 
-    if (!clinic) {
-      throw forbiddenProblem('CLINIC_NOT_FOUND', 'Clinic not found');
-    }
+    if (!clinic) throw forbiddenProblem('CLINIC_NOT_FOUND', 'Clinic not found');
 
     if (!requiredTypes.includes(clinic.type)) {
       const requiredTypeNames = requiredTypes.join(', ');
@@ -68,25 +63,20 @@ export class FacilityTypeGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    if (!requiredTypes || requiredTypes.length === 0) {
-      return true;
-    }
+    if (!requiredTypes || requiredTypes.length === 0) return true;
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    if (!user || !user.clinicId) {
+    if (!user || !user.clinicId)
       throw forbiddenProblem('NO_CLINIC', 'User not associated with a clinic');
-    }
 
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: user.clinicId },
       select: { facilityType: true, name: true },
     });
 
-    if (!clinic) {
-      throw forbiddenProblem('CLINIC_NOT_FOUND', 'Clinic not found');
-    }
+    if (!clinic) throw forbiddenProblem('CLINIC_NOT_FOUND', 'Clinic not found');
 
     const facilityType = parseStringEnumMember(
       FACILITY_TYPE_VALUES,

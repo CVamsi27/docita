@@ -127,11 +127,10 @@ export class AppointmentsScheduleController {
       userId: req.user?.id,
       requestedDoctorId: doctorId,
     });
-    if (doctorScope.denied) {
+    if (doctorScope.denied)
       throw new ForbiddenException(
         'Doctors can only access their appointments',
       );
-    }
 
     if (patientId) {
       await logPatientPhiRead(
@@ -231,9 +230,8 @@ export class AppointmentsScheduleController {
     @Body() body: CancelAppointmentDto,
   ) {
     const reason = body.reason;
-    if (!reason) {
+    if (!reason)
       throw new BadRequestException('Cancellation reason is required');
-    }
     return this.appointmentService.cancelAppointment(
       id,
       reason,

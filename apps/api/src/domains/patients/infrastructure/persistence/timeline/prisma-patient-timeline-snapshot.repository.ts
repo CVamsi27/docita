@@ -125,9 +125,7 @@ export class PrismaPatientTimelineSnapshotRepository implements IPatientTimeline
   ): Promise<
     Array<{ medicationId: string; status: string; _count: { status: number } }>
   > {
-    if (medicationIds.length === 0) {
-      return [];
-    }
+    if (medicationIds.length === 0) return [];
 
     const rows = await this.getReadClient().medicationDose.groupBy({
       by: ['medicationId', 'status'],

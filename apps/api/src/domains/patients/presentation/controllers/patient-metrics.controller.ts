@@ -40,9 +40,7 @@ export class PatientMetricsController {
     req: RequestWithUser,
   ): Promise<string> {
     const clinicId = req.user?.clinicId;
-    if (!clinicId) {
-      throw new NotFoundException('Clinic context required');
-    }
+    if (!clinicId) throw new NotFoundException('Clinic context required');
 
     await this.patientService.getPatient(patientId, clinicId);
     return clinicId;

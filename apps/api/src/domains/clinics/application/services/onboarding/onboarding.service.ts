@@ -86,9 +86,8 @@ export class OnboardingService {
 
   async getTrialEligibility(onboardingId: string, email: string) {
     const sessionData = await this.dataService.getSessionData(onboardingId);
-    if (!sessionData) {
+    if (!sessionData)
       throw new BadRequestException('Onboarding session not found or expired');
-    }
     return {
       eligible: !(await hasPriorSubscriptionForEmail(this.persistence, email)),
     };
@@ -96,9 +95,8 @@ export class OnboardingService {
 
   async createSlaSignatureSession(onboardingId: string) {
     const sessionData = await this.dataService.getSessionData(onboardingId);
-    if (!sessionData) {
+    if (!sessionData)
       throw new BadRequestException('Onboarding session not found or expired');
-    }
     return createSlaSignatureSession(onboardingId, this.uploadsService);
   }
 
@@ -157,9 +155,8 @@ export class OnboardingService {
     ipAddress?: string,
   ): Promise<OnboardingResult> {
     const sessionData = await this.dataService.getSessionData(onboardingId);
-    if (!sessionData) {
+    if (!sessionData)
       throw new BadRequestException('Onboarding session not found or expired');
-    }
 
     const created: OnboardingCreationMarkers = {};
 

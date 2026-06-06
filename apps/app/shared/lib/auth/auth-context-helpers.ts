@@ -78,15 +78,11 @@ export function extractAuthPayload(raw: unknown): AuthPayload | null {
 
 export function parseValidatedUser(raw: unknown): User | null {
   const response = validateSessionResponseSchema.safeParse(raw);
-  if (response.success) {
-    return appAuthUserSchema.parse(response.data.user);
-  }
+  if (response.success) return appAuthUserSchema.parse(response.data.user);
 
   if (raw && typeof raw === "object" && "user" in raw) {
     const nested = appAuthUserSchema.safeParse(raw.user);
-    if (nested.success) {
-      return nested.data;
-    }
+    if (nested.success) return nested.data;
   }
 
   const direct = appAuthUserSchema.safeParse(raw);

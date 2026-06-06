@@ -471,13 +471,9 @@ export class PrismaLabRepository implements ILabRepository {
       where: { id, clinicId },
       data,
     });
-    if (result.count === 0) {
-      throw new NotFoundException('Lab not found');
-    }
+    if (result.count === 0) throw new NotFoundException('Lab not found');
     const updated = await this.findLabById(id, clinicId);
-    if (!updated) {
-      throw new NotFoundException('Lab not found');
-    }
+    if (!updated) throw new NotFoundException('Lab not found');
     return updated;
   }
 }

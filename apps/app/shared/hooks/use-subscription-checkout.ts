@@ -63,9 +63,7 @@ export function useSubscriptionCheckout(
       billingCycle,
       planMode = "FULL",
     }: TierCheckoutParams) => {
-      if (!token) {
-        throw new Error("Please sign in to manage your subscription");
-      }
+      if (!token) throw new Error("Please sign in to manage your subscription");
       if (checkoutInFlightRef.current) {
         return;
       }
@@ -102,9 +100,7 @@ export function useSubscriptionCheckout(
           return;
         }
 
-        if (!orderId || !amountCents || !currency || !razorpayKeyId) {
-          throw new Error("We could not start checkout right now. Please try again.");
-        }
+        if (!orderId || !amountCents || !currency || !razorpayKeyId) throw new Error("We could not start checkout right now. Please try again.");
 
         const checkoutResult = await openCheckout({
           key: razorpayKeyId,

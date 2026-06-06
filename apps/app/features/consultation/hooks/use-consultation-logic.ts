@@ -56,12 +56,8 @@ export const useConsultationLogic = (appointmentId: string) => {
     if (fromPage === "patient" && appointmentData?.patientId) {
       return `/patients/${appointmentData.patientId}`;
     }
-    if (fromPage === "patient") {
-      return "/patients";
-    }
-    if (fromPage === "list") {
-      return "/consultation";
-    }
+    if (fromPage === "patient") return "/patients";
+    if (fromPage === "list") return "/consultation";
 
     return "/consultation";
   }, [fromPage, appointmentData?.patientId]);

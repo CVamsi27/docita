@@ -11,15 +11,9 @@ function envBoolean(defaultValue: boolean) {
     .union([z.boolean(), z.string(), z.number()])
     .optional()
     .transform((value) => {
-      if (value === undefined) {
-        return defaultValue;
-      }
-      if (typeof value === 'boolean') {
-        return value;
-      }
-      if (typeof value === 'number') {
-        return value !== 0;
-      }
+      if (value === undefined) return defaultValue;
+      if (typeof value === 'boolean') return value;
+      if (typeof value === 'number') return value !== 0;
       const normalized = String(value).trim().toLowerCase();
       if (['false', '0', 'no', 'off'].includes(normalized)) {
         return false;

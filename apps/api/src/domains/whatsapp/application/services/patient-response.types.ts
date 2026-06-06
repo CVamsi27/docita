@@ -28,9 +28,8 @@ type AppointmentWithRelations = {
 export function toAppointmentContext(
   appointment: AppointmentWithRelations,
 ): AppointmentContext | null {
-  if (!appointment.patient || !appointment.doctor || !appointment.clinic) {
+  if (!appointment.patient || !appointment.doctor || !appointment.clinic)
     return null;
-  }
 
   return {
     id: appointment.id,

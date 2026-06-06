@@ -245,9 +245,8 @@ export class LabTestsController {
   ): Promise<{ success: true }> {
     const { clinicId, userId } = getClinicStaffRequestContext(req);
     const safeName = basename(file.originalname);
-    if (safeName !== file.originalname) {
+    if (safeName !== file.originalname)
       throw new BadRequestException('Invalid filename');
-    }
     await assertAllowedFileSignature(file, ['pdf', 'png', 'jpeg', 'webp']);
     await this.labWorkflowCommandService.uploadResult(id, clinicId, file, {
       notes: body.notes,

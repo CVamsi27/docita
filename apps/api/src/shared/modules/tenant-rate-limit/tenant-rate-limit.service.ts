@@ -91,9 +91,7 @@ export class TenantRateLimitService implements OnModuleInit {
     });
     burst.reason = 'burst';
 
-    if (!burst.allowed) {
-      return [burst];
-    }
+    if (!burst.allowed) return [burst];
 
     const sustained = await this.consumeWindow({
       key: `${COUNTER_SUSTAINED_KEY_PREFIX}${clinicId}`,
@@ -103,15 +101,11 @@ export class TenantRateLimitService implements OnModuleInit {
     });
     sustained.reason = 'sustained';
 
-    if (!sustained.allowed) {
-      return [sustained];
-    }
+    if (!sustained.allowed) return [sustained];
 
     const monthly = await this.consumeMonthly(clinicId, quota, now);
 
-    if (!monthly.allowed) {
-      return [monthly];
-    }
+    if (!monthly.allowed) return [monthly];
 
     return [burst, sustained, monthly];
   }

@@ -186,9 +186,7 @@ export class ReminderSchedulerService {
         const appointmentResults = await Promise.allSettled(
           appointments.map((appointment) => {
             const settings = settingsByClinicId.get(appointment.clinicId);
-            if (!settings) {
-              return Promise.resolve();
-            }
+            if (!settings) return Promise.resolve();
             return this.sendThirtyMinuteWhatsappReminder(
               appointment,
               settings,

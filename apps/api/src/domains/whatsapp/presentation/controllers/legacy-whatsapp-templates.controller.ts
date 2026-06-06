@@ -123,12 +123,10 @@ export class LegacyWhatsappTemplatesController {
   private async assertOwnedCustomTemplate(req: Request, id: string) {
     const clinicId = requireClinicId(req);
     const existing = await this.whatsappService.getTemplateById(id);
-    if (!existing || existing.clinicId !== clinicId || !existing.isActive) {
+    if (!existing || existing.clinicId !== clinicId || !existing.isActive)
       throw new NotFoundException('Template not found');
-    }
-    if (existing.isDefault) {
+    if (existing.isDefault)
       throw new ForbiddenException('Default templates cannot be modified');
-    }
   }
 }
 

@@ -15,14 +15,12 @@ import { RegistrationStep } from "./verify-doctor/registration-step";
 export default function VerifyDoctorPage() {
   const v = useVerifyDoctor();
 
-  if (v.isRedirecting) {
-    return (
+  if (v.isRedirecting) return (
       <PageTransitionLoader
         title="Redirecting to your workspace…"
         description="Finalizing your verification state"
       />
     );
-  }
 
   if (v.isInitialLoading) {
     return (

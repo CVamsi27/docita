@@ -56,9 +56,7 @@ export default function InternalLogin() {
     }
   }, [isAuthenticated, router]);
 
-  if (isAuthenticated) {
-    return null;
-  }
+  if (isAuthenticated) return null;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,9 +82,7 @@ export default function InternalLogin() {
     try {
       const data = await loginMutation.mutateAsync({ email, password });
 
-      if (!data?.user) {
-        throw new Error("We could not sign you in. Please try again.");
-      }
+      if (!data?.user) throw new Error("We could not sign you in. Please try again.");
 
       if (data.user.role !== "INTERNAL") {
         window.location.replace(getMainAppLoginUrl());

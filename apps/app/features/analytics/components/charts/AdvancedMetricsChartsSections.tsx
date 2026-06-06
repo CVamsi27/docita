@@ -240,7 +240,6 @@ interface DoctorPerformanceCardProps {
   doctorPerformanceLoading: boolean;
   formatCurrency: (amount: number, options?: { fractionDigits?: number }) => string;
 }
-
 export function DoctorPerformanceCard({
   doctorPerformance,
   doctorPerformanceLoading,

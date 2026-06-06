@@ -29,9 +29,7 @@ export class InternalSubscriptionAdminService {
       },
     });
 
-    if (!subscription) {
-      throw new NotFoundException('Subscription not found');
-    }
+    if (!subscription) throw new NotFoundException('Subscription not found');
 
     await this.prisma.subscriptionReminder.create({
       data: {
@@ -52,13 +50,10 @@ export class InternalSubscriptionAdminService {
       where: { id: subscriptionId },
     });
 
-    if (!subscription) {
-      throw new NotFoundException('Subscription not found');
-    }
+    if (!subscription) throw new NotFoundException('Subscription not found');
 
-    if (subscription.status !== SubscriptionStatus.GRACE) {
+    if (subscription.status !== SubscriptionStatus.GRACE)
       throw new BadRequestException('Subscription is not in grace period');
-    }
 
     const newEndDate = addDays(new Date(subscription.currentPeriodEnd), days);
 

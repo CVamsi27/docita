@@ -32,9 +32,7 @@ export class BreakTheGlassInterceptor implements NestInterceptor {
     const isBTG = request.headers['x-break-the-glass'] === 'true';
     const reason = request.headers['x-btg-reason'] || 'No reason provided';
 
-    if (!isBTG) {
-      return next.handle();
-    }
+    if (!isBTG) return next.handle();
 
     const isEligible = this.reflector.get<boolean>(
       EMERGENCY_ACCESS_KEY,

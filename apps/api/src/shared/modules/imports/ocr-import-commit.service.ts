@@ -28,38 +28,32 @@ export class OcrImportCommitService {
       where: { id: dto.clinicId },
       select: { id: true },
     });
-    if (!clinic) {
-      throw new BadRequestException('Clinic not found');
-    }
+    if (!clinic) throw new BadRequestException('Clinic not found');
 
     const doctor = await this.prisma.user.findFirst({
       where: { id: dto.doctorId, clinicId: dto.clinicId },
       select: { id: true },
     });
-    if (!doctor) {
+    if (!doctor)
       throw new BadRequestException('Doctor not found for this clinic');
-    }
 
     const dob = new Date(dto.dateOfBirth);
     if (Number.isNaN(dob.getTime())) {
       throw new BadRequestException('Invalid dateOfBirth');
     }
 
-    if (!dto.dpdpConsent || dto.dpdpConsent.accepted !== true) {
+    if (!dto.dpdpConsent || dto.dpdpConsent.accepted !== true)
       throw new BadRequestException(
         'DPDP consent is required to commit an OCR-extracted patient record',
       );
-    }
-    if (!audit.dpdpNoticeVersion) {
+    if (!audit.dpdpNoticeVersion)
       throw new BadRequestException(
         'Missing DPDP consent context for OCR commit',
       );
-    }
-    if (dto.dpdpConsent.noticeVersion !== audit.dpdpNoticeVersion) {
+    if (dto.dpdpConsent.noticeVersion !== audit.dpdpNoticeVersion)
       throw new BadRequestException(
         'The DPDP notice has been updated. Refresh and re-collect consent before committing.',
       );
-    }
     const consentSnapshot = dto.dpdpConsent;
 
     return this.prisma.$transaction(async (tx) => {

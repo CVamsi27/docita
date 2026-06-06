@@ -18,8 +18,6 @@ export function resolveCurrentPlanTier(params: {
   accessTier: Tier;
 }): Tier {
   const parsed = tierSchema.safeParse(params.subscriptionTier);
-  if (parsed.success && !params.isTrialExpired) {
-    return getTierValue(parsed.data);
-  }
+  if (parsed.success && !params.isTrialExpired) return getTierValue(parsed.data);
   return params.accessTier;
 }

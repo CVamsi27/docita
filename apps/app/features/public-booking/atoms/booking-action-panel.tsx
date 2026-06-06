@@ -5,7 +5,6 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { bookingCardClass, bookingSectionShell } from "./booking-constants";
 import { cn } from "@workspace/ui/lib/utils";
-
 export function BookingActionPanel({
   onSubmit,
   isSubmitting,

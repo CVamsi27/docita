@@ -107,9 +107,7 @@ export function TodayAdvisorRail({ advisorCounts }: TodayAdvisorRailProps) {
     });
   }
 
-  if (cards.length === 0) {
-    return null;
-  }
+  if (cards.length === 0) return null;
 
   return (
     <RightRailCardStack

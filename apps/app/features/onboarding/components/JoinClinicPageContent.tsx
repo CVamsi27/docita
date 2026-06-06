@@ -32,14 +32,12 @@ export default function JoinClinicPage() {
     handleSearchKeyPress,
   } = useJoinClinicPage();
 
-  if (isRedirecting) {
-    return (
+  if (isRedirecting) return (
       <PageTransitionLoader
         title="Request submitted"
         description="Taking you to request status"
       />
     );
-  }
 
   return (
     <PreDashboardShell

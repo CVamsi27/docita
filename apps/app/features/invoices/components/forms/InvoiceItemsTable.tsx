@@ -34,13 +34,11 @@ export function InvoiceItemsTable({
   onRemoveItem,
   formatCurrency,
 }: InvoiceItemsTableProps) {
-  if (items.length === 0) {
-    return (
+  if (items.length === 0) return (
       <div className="rounded-md border px-4 py-8 text-center text-muted-foreground">
         No items added yet.
       </div>
     );
-  }
 
   return (
     <>

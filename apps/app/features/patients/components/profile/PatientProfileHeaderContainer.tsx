@@ -15,8 +15,7 @@ export function PatientProfileHeaderContainer({
 }: PatientProfileHeaderContainerProps) {
   const { data: patient, isLoading } = usePatient(patientId);
 
-  if (isLoading || !patient) {
-    return (
+  if (isLoading || !patient) return (
       <div
         className="rounded-lg border bg-card p-8"
         role="status"
@@ -39,7 +38,6 @@ export function PatientProfileHeaderContainer({
         </div>
       </div>
     );
-  }
 
   const initials = getInitials(patient.firstName, patient.lastName);
   const ageDisplay = getPatientAgeDisplay(patient);

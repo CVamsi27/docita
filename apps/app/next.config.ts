@@ -37,9 +37,7 @@ function resolveApiProxyTarget(): string {
     const origin = parseUrlOrigin(process.env.NEXT_PUBLIC_API_URL);
     if (origin) return origin;
   }
-  if (process.env.DOCITA_CLOUDFLARE === "1") {
-    return "https://api.docita.work";
-  }
+  if (process.env.DOCITA_CLOUDFLARE === "1") return "https://api.docita.work";
   return "http://localhost:3001";
 }
 

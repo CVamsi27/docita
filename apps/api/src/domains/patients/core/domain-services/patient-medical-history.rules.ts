@@ -14,9 +14,7 @@ export function findDuplicateAllergy(
   excludeAllergyId?: string,
 ): PatientAllergyRecord | undefined {
   const key = normalizeAllergenKey(allergen);
-  if (!key) {
-    return undefined;
-  }
+  if (!key) return undefined;
   return existing.find(
     (row) =>
       row.id !== excludeAllergyId && normalizeAllergenKey(row.allergen) === key,

@@ -25,9 +25,7 @@ export class TierBasedAccessRule implements IAccessRule {
         ? parseFeature(context.feature)
         : context.feature;
 
-    if (!featureKey) {
-      return false;
-    }
+    if (!featureKey) return false;
 
     const hasIntelligence = context.addOns.some(
       (addOn) =>

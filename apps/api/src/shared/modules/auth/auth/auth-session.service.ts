@@ -71,9 +71,7 @@ export class AuthSessionService {
       } catch (error) {
         const canRetry =
           attempt < maxAttempts && isPrismaTransactionAcquireTimeout(error);
-        if (!canRetry) {
-          throw error;
-        }
+        if (!canRetry) throw error;
         this.logger.warn(
           `Refresh token transaction waiting for pool connection (attempt ${attempt}/${maxAttempts}); retrying`,
         );
@@ -192,9 +190,8 @@ export class AuthSessionService {
       where: { id: sessionId },
     });
 
-    if (!session || session.userId !== userId) {
+    if (!session || session.userId !== userId)
       throw new BadRequestException('Session not found');
-    }
 
     await this.prisma.refreshToken.update({
       where: { id: sessionId },

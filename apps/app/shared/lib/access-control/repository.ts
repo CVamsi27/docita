@@ -70,11 +70,9 @@ export class SubscriptionRepository implements ISubscriptionRepository {
 
     const response = await browserRequest(url);
 
-    if (!response.ok) {
-      throw new Error(
+    if (!response.ok) throw new Error(
         "We could not load your subscription details. Please try again.",
       );
-    }
 
     const data: unknown = await response.json();
     const subscription = normalizeSubscription(data);
@@ -104,9 +102,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     const response = await browserRequest(url);
 
     if (!response.ok) {
-      if (response.status === 404) {
-        return [];
-      }
+      if (response.status === 404) return [];
       throw new Error(
         "We could not load your subscription details. Please try again.",
       );
@@ -135,9 +131,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     const response = await browserRequest(url);
 
     if (!response.ok) {
-      if (response.status === 404) {
-        return [];
-      }
+      if (response.status === 404) return [];
       throw new Error(
         "We could not load your subscription details. Please try again.",
       );

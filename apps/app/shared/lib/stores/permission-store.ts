@@ -176,19 +176,13 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   canAccessClinicFeature: (feature) => {
     const { clinicType } = get();
 
-    if (!clinicType) {
-      return true;
-    }
+    if (!clinicType) return true;
 
     const typeFeatures = CLINIC_TYPE_FEATURES[clinicType];
-    if (!typeFeatures) {
-      return true;
-    }
+    if (!typeFeatures) return true;
 
     const match = Object.entries(typeFeatures).find(([key]) => key === feature);
-    if (match) {
-      return match[1] === true;
-    }
+    if (match) return match[1] === true;
 
     return true;
   },

@@ -12,9 +12,7 @@ type SentryModule = typeof import("@sentry/nextjs");
 let sentryModulePromise: Promise<SentryModule | null> | null = null;
 
 function loadSentryModule(): Promise<SentryModule | null> {
-  if (typeof window === "undefined") {
-    return Promise.resolve(null);
-  }
+  if (typeof window === "undefined") return Promise.resolve(null);
 
   if (!sentryModulePromise) {
     sentryModulePromise = import("@sentry/nextjs").catch(() => null);

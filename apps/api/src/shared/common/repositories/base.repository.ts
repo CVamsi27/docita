@@ -102,9 +102,7 @@ export abstract class BaseRepository<T, TCreate = Record<string, unknown>> {
    * method with an optional clinicId.
    */
   async findOne(id: string, clinicId: string): Promise<T | null> {
-    if (!clinicId) {
-      return null;
-    }
+    if (!clinicId) return null;
     const result = await this.model.findFirst({
       where: { id, clinicId },
       select: this.getDetailSelect(),
@@ -175,9 +173,7 @@ export abstract class BaseRepository<T, TCreate = Record<string, unknown>> {
   }
 
   async exists(id: string, clinicId: string): Promise<boolean> {
-    if (!clinicId) {
-      return false;
-    }
+    if (!clinicId) return false;
     const count = await this.model.count({
       where: { id, clinicId },
     });

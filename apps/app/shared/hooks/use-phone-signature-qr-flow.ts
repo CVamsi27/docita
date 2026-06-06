@@ -127,9 +127,7 @@ export function usePhoneSignatureQrFlow({
 
   const copyLink = useCallback(async () => {
     if (!session?.qrUrl) return false;
-    if (!navigator.clipboard?.writeText) {
-      return false;
-    }
+    if (!navigator.clipboard?.writeText) return false;
     await navigator.clipboard.writeText(session.qrUrl);
     return true;
   }, [session?.qrUrl]);

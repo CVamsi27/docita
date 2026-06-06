@@ -15,9 +15,8 @@ function normalizeResponseToken(text: string): string {
 export function parsePatientResponse(text: string): PatientResponseType {
   const normalized = normalizeResponseToken(text);
 
-  if (EXACT_RESPONSE_MAPPING[normalized]) {
+  if (EXACT_RESPONSE_MAPPING[normalized])
     return EXACT_RESPONSE_MAPPING[normalized];
-  }
 
   const rawLower = text.toLowerCase().trim();
   for (const pattern of INCLUDES_RESPONSE_PATTERNS) {

@@ -20,9 +20,7 @@ export function getAriaSort(
   sortConfig: PatientsSortConfig | null,
   column: keyof Patient | "fullName",
 ) {
-  if (sortConfig?.key !== column) {
-    return "none" as const;
-  }
+  if (sortConfig?.key !== column) return "none" as const;
   return sortConfig.direction === "asc" ? "ascending" : "descending";
 }
 
@@ -33,9 +31,7 @@ export function SortIcon({
   sortConfig: PatientsSortConfig | null;
   column: keyof Patient | "fullName";
 }) {
-  if (sortConfig?.key !== column) {
-    return <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />;
-  }
+  if (sortConfig?.key !== column) return <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />;
   return sortConfig.direction === "asc" ? (
     <ArrowUp className="ml-2 h-4 w-4" />
   ) : (
@@ -66,7 +62,6 @@ export function SortableHeader({
     </button>
   );
 }
-
 export function PatientMobileCard({
   patient,
   onViewPatient,
@@ -79,7 +74,6 @@ export function PatientMobileCard({
   onEditPatient: (patient: Patient) => void;
 }) {
   const patientId = patient.id;
-
   return (
     <div className="flex flex-col gap-3">
       <button

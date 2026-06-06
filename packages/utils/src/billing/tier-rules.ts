@@ -29,11 +29,9 @@ export function getMinimumTierForFeature(feature: Feature): Tier {
 }
 
 export function assertNotIntelligenceComparison(tier: Tier): void {
-  if (tier === Tier.INTELLIGENCE || tier === Tier.FRONT_DESK) {
-    throw new Error(
+  if (tier === Tier.INTELLIGENCE || tier === Tier.FRONT_DESK) throw new Error(
       'Tier.INTELLIGENCE and Tier.FRONT_DESK must use feature access checks, not numeric tier comparisons.',
     );
-  }
 }
 
 export function deriveAnnualPrice(monthly: number): number {
@@ -41,9 +39,7 @@ export function deriveAnnualPrice(monthly: number): number {
 }
 
 export function getTierValue(tierName: TierName): Tier {
-  if (tierName === 'FRONT_DESK') {
-    return Tier.FRONT_DESK;
-  }
+  if (tierName === 'FRONT_DESK') return Tier.FRONT_DESK;
   return Tier[tierName];
 }
 
@@ -106,9 +102,7 @@ export function hasFeatureAccess(
 
   const requiredTier = FEATURE_TIER_MAP[feature];
 
-  if (requiredTier === Tier.INTELLIGENCE) {
-    return hasIntelligence;
-  }
+  if (requiredTier === Tier.INTELLIGENCE) return hasIntelligence;
 
   if (tier === 'FRONT_DESK' || tier === 'FRONT_DESK_CLINIC' || tier === 'FRONT_DESK_HOSPITAL') {
     if (FRONT_DESK_BLOCKED_FEATURES.has(feature)) {
@@ -126,17 +120,11 @@ export function meetsMinimumTier(
   minimumTier: Tier,
   hasIntelligence = false,
 ): boolean {
-  if (minimumTier === Tier.INTELLIGENCE) {
-    return hasIntelligence;
-  }
+  if (minimumTier === Tier.INTELLIGENCE) return hasIntelligence;
 
-  if (minimumTier === Tier.FRONT_DESK) {
-    return tier === 'FRONT_DESK' || tier === 'FRONT_DESK_CLINIC' || tier === 'FRONT_DESK_HOSPITAL';
-  }
+  if (minimumTier === Tier.FRONT_DESK) return tier === 'FRONT_DESK' || tier === 'FRONT_DESK_CLINIC' || tier === 'FRONT_DESK_HOSPITAL';
 
-  if (tier === 'FRONT_DESK' || tier === 'FRONT_DESK_CLINIC' || tier === 'FRONT_DESK_HOSPITAL') {
-    return Tier.ESSENTIAL >= minimumTier;
-  }
+  if (tier === 'FRONT_DESK' || tier === 'FRONT_DESK_CLINIC' || tier === 'FRONT_DESK_HOSPITAL') return Tier.ESSENTIAL >= minimumTier;
 
   return getTierValue(tier) >= minimumTier;
 }

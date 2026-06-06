@@ -67,13 +67,9 @@ export const useDashboardLogic = () => {
   } = usePendingJoinRequestCount(joinRequestsEnabled);
 
   const dashboardStats = useMemo((): DashboardStats => {
-    if (rawStatsData == null) {
-      return defaultDashboardStats();
-    }
+    if (rawStatsData == null) return defaultDashboardStats();
     const parsed = dashboardStatsSchema.safeParse(rawStatsData);
-    if (parsed.success) {
-      return parsed.data;
-    }
+    if (parsed.success) return parsed.data;
     logger.warn("Dashboard stats response failed schema validation", {
       issues: parsed.error.issues,
     });

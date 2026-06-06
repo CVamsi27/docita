@@ -50,9 +50,7 @@ export function SubscriptionSettings() {
     subscription,
   });
 
-  if (billing.isSubscriptionLoading) {
-    return <SubscriptionLoadingState />;
-  }
+  if (billing.isSubscriptionLoading) return <SubscriptionLoadingState />;
 
   const {
     tierName,

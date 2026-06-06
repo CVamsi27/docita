@@ -77,14 +77,12 @@ export function PublicBookingDesktopLayout({
                 doctorPickerVariant="chips"
               />
             </StepSection>
-
             <StepSection step={2} label="Your contact details" isLast>
               <PublicBookingContactSection c={c} facilityWord={facilityWord} />
               <PublicBookingPatientContextSection c={c} />
             </StepSection>
           </div>
         </div>
-
         {/* Right: sticky sidebar */}
         <aside
           className={cn(

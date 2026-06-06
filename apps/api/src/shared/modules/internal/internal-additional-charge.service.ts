@@ -43,9 +43,7 @@ export class InternalAdditionalChargeService {
       where: { id: clinicId },
       select: { id: true, currency: true },
     });
-    if (!clinic) {
-      throw new BadRequestException('Clinic not found');
-    }
+    if (!clinic) throw new BadRequestException('Clinic not found');
     const amountCents = Math.round(data.amount * 100);
     if (!Number.isFinite(amountCents) || amountCents < 1) {
       throw new BadRequestException('Invalid amount');

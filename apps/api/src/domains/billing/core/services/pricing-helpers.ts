@@ -49,9 +49,7 @@ export function mapDbTierStringToCanonicalTier(
     return parsed.data;
   }
   const legacy = LEGACY_DB_TIER_TO_CANONICAL[dbTier];
-  if (legacy) {
-    return legacy;
-  }
+  if (legacy) return legacy;
   const upper = dbTier.toUpperCase();
   if (isTierLimitsKey(upper)) {
     return upper;
@@ -62,9 +60,7 @@ export function mapDbTierStringToCanonicalTier(
 /** Maps user-facing tier input to a {@link TierName} pricing key. */
 export function mapPricingTierInputToTierName(tier: string): TierName | null {
   const canonical = mapDbTierStringToCanonicalTier(tier.toUpperCase());
-  if (canonical === 'INTELLIGENCE') {
-    return null;
-  }
+  if (canonical === 'INTELLIGENCE') return null;
   const parsed = tierSchema.safeParse(canonical);
   return parsed.success ? parsed.data : null;
 }
@@ -113,9 +109,7 @@ function parseStringArray(value: unknown): string[] {
     normalized,
     tierPricingFeaturesJsonSchema,
   );
-  if (!parsed) {
-    return [];
-  }
+  if (!parsed) return [];
 
   return parsed.filter((item) => item.length > 0);
 }

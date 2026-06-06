@@ -64,9 +64,8 @@ export class RazorpayInvoiceWebhookService {
     payload: PaymentWebhookPayload,
   ): Promise<void> {
     const payment = payload.payload.payment?.entity;
-    if (!payment) {
+    if (!payment)
       throw new BadRequestException('Razorpay payment payload is missing');
-    }
 
     const existing = await this.repository.findByProviderPaymentId(
       'razorpay',
@@ -77,11 +76,10 @@ export class RazorpayInvoiceWebhookService {
     const session = await this.repository.findByProviderSessionId(
       payment.order_id,
     );
-    if (!session || !session.invoiceId || !session.patientId) {
+    if (!session || !session.invoiceId || !session.patientId)
       throw new BadRequestException(
         'Razorpay payment could not be matched to a payment session',
       );
-    }
 
     await this.capturePaymentSession(
       session,
@@ -95,16 +93,14 @@ export class RazorpayInvoiceWebhookService {
     payload: PaymentWebhookPayload,
   ): Promise<void> {
     const link = payload.payload.payment_link?.entity;
-    if (!link) {
+    if (!link)
       throw new BadRequestException('Razorpay payment link payload is missing');
-    }
 
     const session = await this.repository.findByProviderSessionId(link.id);
-    if (!session || !session.invoiceId || !session.patientId) {
+    if (!session || !session.invoiceId || !session.patientId)
       throw new BadRequestException(
         'Razorpay payment link could not be matched to a payment session',
       );
-    }
 
     await this.capturePaymentSession(
       session,
@@ -120,11 +116,10 @@ export class RazorpayInvoiceWebhookService {
     amountPaise: number,
     payload: PaymentWebhookPayload,
   ): Promise<void> {
-    if (!session.invoiceId) {
+    if (!session.invoiceId)
       throw new BadRequestException(
         'Payment session is not linked to an invoice',
       );
-    }
     const invoiceId = session.invoiceId;
 
     await this.transactionRunner.runInTransaction(async (tx) => {

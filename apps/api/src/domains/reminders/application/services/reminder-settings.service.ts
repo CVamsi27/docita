@@ -65,9 +65,7 @@ Thank you,
   }
 
   async getSettings(clinicId?: string): Promise<ReminderSettings> {
-    if (this.databaseAccessDisabled) {
-      return this.getFallbackSettings(clinicId);
-    }
+    if (this.databaseAccessDisabled) return this.getFallbackSettings(clinicId);
 
     let settings: ReminderSettings | null = null;
     try {

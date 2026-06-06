@@ -2,9 +2,8 @@ import { Prisma } from '@workspace/db';
 
 /** P2028: interactive transaction pool wait or execution lifecycle failures. */
 export function isPrismaTransactionApiError(error: unknown): boolean {
-  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+  if (error instanceof Prisma.PrismaClientKnownRequestError)
     return error.code === 'P2028';
-  }
   if (error instanceof Error) {
     const message = error.message;
     return (
@@ -18,16 +17,14 @@ export function isPrismaTransactionApiError(error: unknown): boolean {
 
 /** True when Prisma could not start an interactive transaction (pool maxWait). */
 export function isPrismaTransactionAcquireTimeout(error: unknown): boolean {
-  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+  if (error instanceof Prisma.PrismaClientKnownRequestError)
     return (
       error.code === 'P2028' &&
       error.message.includes('Unable to start a transaction in the given time')
     );
-  }
-  if (error instanceof Error) {
+  if (error instanceof Error)
     return error.message.includes(
       'Unable to start a transaction in the given time',
     );
-  }
   return false;
 }

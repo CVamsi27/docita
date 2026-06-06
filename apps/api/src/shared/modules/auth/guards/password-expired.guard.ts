@@ -37,17 +37,13 @@ export class PasswordExpiredGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    if (skip) {
-      return true;
-    }
+    if (skip) return true;
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
     const userId = getAuthenticatedUserId(user);
 
-    if (!userId) {
-      return true;
-    }
+    if (!userId) return true;
 
     try {
       const passwordExpiresAt = await this.users.findPasswordExpiresAt(userId);
@@ -62,9 +58,7 @@ export class PasswordExpiredGuard implements CanActivate {
         });
       }
     } catch (error) {
-      if (error instanceof ForbiddenException) {
-        throw error;
-      }
+      if (error instanceof ForbiddenException) throw error;
       const errorMessage =
         error instanceof Error
           ? `${error.name}: ${error.message}`

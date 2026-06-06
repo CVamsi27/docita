@@ -33,14 +33,12 @@ export class RazorpaySubscriptionAdapter
   private toRazorpaySubscriptionResponse(
     value: unknown,
   ): RazorpaySubscriptionResponse {
-    if (!value || typeof value !== 'object') {
+    if (!value || typeof value !== 'object')
       throw new BadRequestException('Invalid Razorpay subscription response');
-    }
 
     const raw = asRazorpayRecord(value);
-    if (!raw) {
+    if (!raw)
       throw new BadRequestException('Invalid Razorpay subscription response');
-    }
     return {
       id: typeof raw.id === 'string' ? raw.id : '',
       customer_id: typeof raw.customer_id === 'string' ? raw.customer_id : '',

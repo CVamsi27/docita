@@ -11,9 +11,7 @@ const APP_LOG_LEVELS: readonly AppLogLevel[] = [
 
 function parseAppLogLevel(level: string): AppLogLevel | null {
   for (const candidate of APP_LOG_LEVELS) {
-    if (candidate === level) {
-      return candidate;
-    }
+    if (candidate === level) return candidate;
   }
   return null;
 }

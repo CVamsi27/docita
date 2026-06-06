@@ -40,9 +40,8 @@ export class AuthApiKeysController {
     @Request() req: AuthenticatedRequest,
     @Body() body: CreateApiKeyDto,
   ) {
-    if (!req.user.clinicId) {
+    if (!req.user.clinicId)
       throw new BadRequestException('No clinic associated with this account');
-    }
     let expiresAt: Date | undefined;
     if (body.expiresAt) {
       const parsed = new Date(body.expiresAt);
@@ -68,9 +67,8 @@ export class AuthApiKeysController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'List all API keys for the clinic' })
   async listApiKeys(@Request() req: AuthenticatedRequest) {
-    if (!req.user.clinicId) {
+    if (!req.user.clinicId)
       throw new BadRequestException('No clinic associated with this account');
-    }
     return this.apiKeyService.listApiKeys(req.user.clinicId);
   }
 
@@ -86,9 +84,8 @@ export class AuthApiKeysController {
     @Param('id') id: string,
     @Body() body: RotateApiKeyDto,
   ) {
-    if (!req.user.clinicId) {
+    if (!req.user.clinicId)
       throw new BadRequestException('No clinic associated with this account');
-    }
     return this.apiKeyService.rotateApiKey(
       id,
       req.user.clinicId,
@@ -106,9 +103,8 @@ export class AuthApiKeysController {
     @Request() req: AuthenticatedRequest,
     @Param('id') id: string,
   ) {
-    if (!req.user.clinicId) {
+    if (!req.user.clinicId)
       throw new BadRequestException('No clinic associated with this account');
-    }
     await this.apiKeyService.revokeApiKey(id, req.user.clinicId);
     return { message: 'API key revoked successfully' };
   }

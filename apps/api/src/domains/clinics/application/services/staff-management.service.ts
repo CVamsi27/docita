@@ -186,17 +186,13 @@ export class StaffManagementService {
       },
     });
 
-    if (!member) {
-      throw new NotFoundException('Member not found in this clinic');
-    }
+    if (!member) throw new NotFoundException('Member not found in this clinic');
 
-    if (actorUserId === memberId) {
+    if (actorUserId === memberId)
       throw new BadRequestException('You cannot remove your own account');
-    }
 
-    if (member.role === Role.ADMIN) {
+    if (member.role === Role.ADMIN)
       throw new ForbiddenException('Admin account cannot be removed here');
-    }
 
     await this.persistence.user.delete({
       where: { id: memberId },

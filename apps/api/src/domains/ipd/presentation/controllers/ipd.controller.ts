@@ -118,17 +118,15 @@ export class IpdController {
   }
 
   private getClinicId(req: RequestWithUser): string {
-    if (!req.user?.clinicId) {
+    if (!req.user?.clinicId)
       throw new BadRequestException('Clinic ID is required');
-    }
 
     return req.user.clinicId;
   }
 
   private getUserId(req: RequestWithUser): string {
-    if (!req.user?.id) {
+    if (!req.user?.id)
       throw new ForbiddenException('Authenticated user is required');
-    }
 
     return req.user.id;
   }

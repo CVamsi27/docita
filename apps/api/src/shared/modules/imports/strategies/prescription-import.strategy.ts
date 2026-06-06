@@ -36,12 +36,9 @@ export class PrescriptionImportStrategy implements IImportStrategy {
       where: { id: appointmentId, clinicId },
       include: { prescription: true },
     });
-    if (!appointment) {
-      throw new Error('Appointment not found for this clinic');
-    }
-    if (appointment.prescription) {
+    if (!appointment) throw new Error('Appointment not found for this clinic');
+    if (appointment.prescription)
       throw new Error('Appointment already has a prescription');
-    }
 
     await this.prisma.prescription.create({
       data: {

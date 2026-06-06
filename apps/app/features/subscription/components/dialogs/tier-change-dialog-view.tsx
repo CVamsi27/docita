@@ -284,14 +284,12 @@ function TierChangeFooter({ props, dialog }: TierChangeDialogViewProps) {
 }
 
 function TierChangeConfirmLabel({ props, dialog }: TierChangeDialogViewProps) {
-  if (dialog.busy) {
-    return (
+  if (dialog.busy) return (
       <>
         <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
         Processing…
       </>
     );
-  }
   if (props.selectedTier === "ENTERPRISE") return "Request Callback";
   return `Confirm ${dialog.isUpgrade ? "Upgrade" : "Downgrade"}`;
 }

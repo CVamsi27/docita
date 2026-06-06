@@ -13,9 +13,8 @@ export function coerceFeatureFlagValue(value: unknown): FeatureFlagValue {
     typeof value === 'boolean' ||
     typeof value === 'number' ||
     typeof value === 'string'
-  ) {
+  )
     return value;
-  }
 
   if (Array.isArray(value)) {
     return value;
@@ -43,9 +42,8 @@ export function parseClinicPricingOffer(
     typeof title !== 'string' ||
     typeof description !== 'string' ||
     typeof percentOff !== 'number'
-  ) {
+  )
     return null;
-  }
 
   const offer: ClinicPricingOffer = {
     title,

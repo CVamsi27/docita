@@ -30,15 +30,12 @@ export class MfaService {
       select: { email: true, mfaEnabled: true },
     });
 
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
+    if (!user) throw new UnauthorizedException('User not found');
 
-    if (user.mfaEnabled) {
+    if (user.mfaEnabled)
       throw new BadRequestException(
         'MFA is already enabled. Disable it first to re-setup.',
       );
-    }
 
     const secret = generateSecret();
 
@@ -66,19 +63,15 @@ export class MfaService {
       select: { mfaTempSecret: true, mfaEnabled: true },
     });
 
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
+    if (!user) throw new UnauthorizedException('User not found');
 
-    if (user.mfaEnabled) {
+    if (user.mfaEnabled)
       throw new BadRequestException('MFA is already enabled');
-    }
 
-    if (!user.mfaTempSecret) {
+    if (!user.mfaTempSecret)
       throw new BadRequestException(
         'No MFA setup in progress. Call /auth/mfa/setup first.',
       );
-    }
 
     const result = await verify({
       token: totpCode,
@@ -86,9 +79,7 @@ export class MfaService {
       epochTolerance: 1,
     });
 
-    if (!result.valid) {
-      throw new UnauthorizedException('Invalid TOTP code');
-    }
+    if (!result.valid) throw new UnauthorizedException('Invalid TOTP code');
 
     const plainBackupCodes = this.generatePlainBackupCodes();
     const hashedBackupCodes = await Promise.all(
@@ -116,13 +107,10 @@ export class MfaService {
       select: { mfaEnabled: true, mfaSecret: true },
     });
 
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
+    if (!user) throw new UnauthorizedException('User not found');
 
-    if (!user.mfaEnabled || !user.mfaSecret) {
+    if (!user.mfaEnabled || !user.mfaSecret)
       throw new BadRequestException('MFA is not enabled');
-    }
 
     const result = await verify({
       token: totpCode,
@@ -130,9 +118,7 @@ export class MfaService {
       epochTolerance: 1,
     });
 
-    if (!result.valid) {
-      throw new UnauthorizedException('Invalid TOTP code');
-    }
+    if (!result.valid) throw new UnauthorizedException('Invalid TOTP code');
 
     await this.prisma.user.update({
       where: { id: userId },
@@ -156,9 +142,8 @@ export class MfaService {
       select: { mfaEnabled: true, mfaSecret: true },
     });
 
-    if (!user || !user.mfaEnabled || !user.mfaSecret) {
+    if (!user || !user.mfaEnabled || !user.mfaSecret)
       throw new BadRequestException('MFA is not enabled');
-    }
 
     const result = await verify({
       token: totpCode,
@@ -166,9 +151,7 @@ export class MfaService {
       epochTolerance: 1,
     });
 
-    if (!result.valid) {
-      throw new UnauthorizedException('Invalid TOTP code');
-    }
+    if (!result.valid) throw new UnauthorizedException('Invalid TOTP code');
 
     const plainBackupCodes = this.generatePlainBackupCodes();
     const hashedBackupCodes = await Promise.all(
@@ -230,13 +213,10 @@ export class MfaService {
       }),
     );
 
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
+    if (!user) throw new UnauthorizedException('User not found');
 
-    if (!user.mfaEnabled || !user.mfaSecret) {
+    if (!user.mfaEnabled || !user.mfaSecret)
       throw new BadRequestException('MFA is not configured for this user');
-    }
 
     const verifyResult = await verify({
       token: totpCode,
@@ -249,9 +229,7 @@ export class MfaService {
         totpCode,
         user.mfaBackupCodes,
       );
-      if (!isBackupCode) {
-        throw new UnauthorizedException('Invalid MFA code');
-      }
+      if (!isBackupCode) throw new UnauthorizedException('Invalid MFA code');
     }
 
     await this.prisma.mfaChallenge.delete({ where: { id: challenge.id } });

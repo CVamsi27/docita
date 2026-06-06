@@ -70,11 +70,10 @@ export function assertClinicHasTierOrThrow(
   requiredTier: Tier,
 ): void {
   if (requiredTier === Tier.INTELLIGENCE) {
-    if (clinic.intelligenceAddon !== IntelligenceAddon.ACTIVE) {
+    if (clinic.intelligenceAddon !== IntelligenceAddon.ACTIVE)
       throw new ForbiddenException(
         'This feature requires the Intelligence add-on.',
       );
-    }
     return;
   }
 
@@ -128,11 +127,10 @@ export function assertClinicHasFeatureOrThrow(
   }
 
   if (featureTier === Tier.INTELLIGENCE) {
-    if (clinic.intelligenceAddon !== IntelligenceAddon.ACTIVE) {
+    if (clinic.intelligenceAddon !== IntelligenceAddon.ACTIVE)
       throw new ForbiddenException(
         'This feature requires the Intelligence add-on.',
       );
-    }
     return;
   }
 

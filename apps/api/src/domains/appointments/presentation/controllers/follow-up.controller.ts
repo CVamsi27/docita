@@ -73,12 +73,11 @@ export class FollowUpController {
         to: query.to,
       },
     );
-    if (query.appointmentId) {
+    if (query.appointmentId)
       return this.followUpService.findForAppointment(
         query.appointmentId,
         clinicId,
       );
-    }
     return this.followUpService.findForClinic(clinicId, query);
   }
 

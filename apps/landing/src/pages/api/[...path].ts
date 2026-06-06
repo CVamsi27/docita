@@ -18,9 +18,7 @@ function jsonError(status: number, message: string): Response {
 export const ALL: APIRoute = async ({ params, request }) => {
   const path = params["path"];
 
-  if (!path) {
-    return jsonError(400, "We could not find what you were looking for");
-  }
+  if (!path) return jsonError(400, "We could not find what you were looking for");
 
   const targetBase =
     import.meta.env["API_PROXY_TARGET"] || "http://localhost:3001";

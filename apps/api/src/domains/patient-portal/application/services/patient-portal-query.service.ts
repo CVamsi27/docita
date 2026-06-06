@@ -109,9 +109,7 @@ export class PatientPortalQueryService {
       clinicId,
     );
 
-    if (!appointment) {
-      throw new NotFoundException('Appointment not found');
-    }
+    if (!appointment) throw new NotFoundException('Appointment not found');
 
     return appointment;
   }
@@ -147,9 +145,7 @@ export class PatientPortalQueryService {
       patientId,
     );
 
-    if (!prescription) {
-      throw new NotFoundException('Prescription not found');
-    }
+    if (!prescription) throw new NotFoundException('Prescription not found');
 
     return prescription;
   }

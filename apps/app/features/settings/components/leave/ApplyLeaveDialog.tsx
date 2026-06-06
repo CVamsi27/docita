@@ -30,7 +30,6 @@ const DEFAULT_APPLY_VALUES: ApplyLeaveFormValues = {
   reason: "",
   staffId: undefined,
 };
-
 export function ApplyLeaveDialog({
   open,
   onOpenChange,
@@ -95,5 +94,4 @@ export function ApplyLeaveDialog({
     </Dialog>
   );
 }
-
 export { DEFAULT_APPLY_VALUES };

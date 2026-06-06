@@ -24,11 +24,9 @@ export function ConsultationLeaveNavigationProvider({
 
 export function useConsultationProgrammaticNavigate(): ConsultationProgrammaticNavigate {
   const ctx = useContext(ConsultationLeaveNavigationContext);
-  if (!ctx) {
-    throw new Error(
+  if (!ctx) throw new Error(
       "useConsultationProgrammaticNavigate must be used within ConsultationLeaveNavigationProvider",
     );
-  }
   return ctx;
 }
 

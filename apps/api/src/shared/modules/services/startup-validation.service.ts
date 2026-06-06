@@ -27,9 +27,8 @@ export class StartupValidationService {
     const encryptionKey = this.configService.getEncryptionKey();
     const nodeEnv = this.configService.getEnvironment();
 
-    if (!encryptionKey) {
+    if (!encryptionKey)
       throw new Error('ENCRYPTION_KEY is not set in environment variables');
-    }
 
     if (!/^[0-9a-fA-F]{64}$/.test(encryptionKey)) {
       throw new Error(
@@ -69,9 +68,8 @@ export class StartupValidationService {
     const jwtSecret = this.configService.getJwtSecret();
     const nodeEnv = this.configService.getEnvironment();
 
-    if (!jwtSecret) {
+    if (!jwtSecret)
       throw new Error('JWT_SECRET is not set in environment variables');
-    }
 
     const minLength = 32;
     if (jwtSecret.length < minLength) {
@@ -232,11 +230,10 @@ export class StartupValidationService {
     }
 
     const storageProvider = this.configService.getStorageProvider();
-    if (storageProvider !== 'r2') {
+    if (storageProvider !== 'r2')
       throw new Error(
         'STORAGE_PROVIDER must be set to "r2" in production to avoid local document storage.',
       );
-    }
 
     const r2Config = this.configService.getR2Config();
     const missing = [];

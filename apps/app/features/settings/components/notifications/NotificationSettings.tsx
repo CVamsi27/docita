@@ -96,8 +96,7 @@ export function NotificationSettings() {
     );
   };
 
-  if (isLoading) {
-    return (
+  if (isLoading) return (
       <Card
         role="status"
         aria-live="polite"
@@ -114,7 +113,6 @@ export function NotificationSettings() {
         </CardContent>
       </Card>
     );
-  }
 
   return (
     <div className="flex flex-col gap-6">

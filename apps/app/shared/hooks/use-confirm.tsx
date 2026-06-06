@@ -210,9 +210,7 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
 
 export function useConfirm(): ConfirmContextValue {
   const context = useContext(ConfirmContext);
-  if (!context) {
-    throw new Error("useConfirm must be used within a ConfirmProvider");
-  }
+  if (!context) throw new Error("useConfirm must be used within a ConfirmProvider");
   return context;
 }
 

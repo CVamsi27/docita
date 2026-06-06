@@ -173,9 +173,7 @@ export function getPlanHighlights(
 
   if (ladderIndex > 0) {
     const prevTier = PLAN_TIER_LADDER.at(ladderIndex - 1);
-    if (!prevTier) {
-      return features;
-    }
+    if (!prevTier) return features;
     const prevTierName = getTierName(prevTier);
     const previousFeatures = getAllFeaturesUpToTier(prevTierName);
     previousFeatures.slice(0, 2).forEach((feature) => {
@@ -188,9 +186,7 @@ export function getPlanHighlights(
 
   if (ladderIndex >= 0 && ladderIndex < PLAN_TIER_LADDER.length - 1) {
     const nextTier = PLAN_TIER_LADDER.at(ladderIndex + 1);
-    if (!nextTier) {
-      return features;
-    }
+    if (!nextTier) return features;
     const nextTierName = getTierName(nextTier);
     const nextTierFeaturesFull = getAllFeaturesUpToTier(nextTierName);
     const currentFeatureSet = new Set(currentTierFeatures);

@@ -22,9 +22,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
     const { clinicId, search, date, startDate, endDate, patientId, limit } =
       params;
 
-    if (!clinicId) {
-      return [];
-    }
+    if (!clinicId) return [];
 
     const where: Prisma.PrescriptionWhereInput = {
       patient: { clinicId },
@@ -285,9 +283,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
       },
     });
 
-    if (!doctor) {
-      return null;
-    }
+    if (!doctor) return null;
 
     return doctor;
   }

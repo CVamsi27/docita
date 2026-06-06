@@ -77,14 +77,10 @@ export function SocketProvider({
 
     try {
       const refreshed = await appSession.refreshAccessToken();
-      if (!refreshed) {
-        return false;
-      }
+      if (!refreshed) return false;
 
       const refreshedToken = appSession.getToken();
-      if (!refreshedToken) {
-        return false;
-      }
+      if (!refreshedToken) return false;
 
       reconnectSocket(refreshedToken);
       return true;
@@ -230,8 +226,6 @@ export function SocketProvider({
 
 export const useSocket = () => {
   const context = useContext(SocketContext);
-  if (context === undefined) {
-    throw new Error("useSocket must be used within a SocketProvider");
-  }
+  if (context === undefined) throw new Error("useSocket must be used within a SocketProvider");
   return context;
 };

@@ -37,9 +37,7 @@ export class SubscriptionReminderScheduler {
     const message =
       typeof error.message === 'string' ? error.message.toLowerCase() : '';
 
-    if (code === 'P1000') {
-      return true;
-    }
+    if (code === 'P1000') return true;
 
     return (
       message.includes('authentication failed against the database server') ||

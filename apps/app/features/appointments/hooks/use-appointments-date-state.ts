@@ -29,7 +29,6 @@ export function useAppointmentsDateState(clinicTimezone: string | undefined) {
     () => pickerIsoToLocalDate(selectedPickerIso),
     [selectedPickerIso],
   );
-
   useEffect(() => {
     if (!clinicTimezone || syncedClinicTzRef.current === clinicTz) return;
     syncedClinicTzRef.current = clinicTz;
@@ -38,7 +37,6 @@ export function useAppointmentsDateState(clinicTimezone: string | undefined) {
     setSelectedPickerIso(todayIso);
     setCalendarMonth(startOfMonth(pickerIsoToLocalDate(todayIso)));
   }, [clinicTimezone, clinicTz]);
-
   const handleDateSelect = useCallback(
     (next: Date | undefined) => {
       userPickedDateRef.current = true;
@@ -59,16 +57,13 @@ export function useAppointmentsDateState(clinicTimezone: string | undefined) {
     },
     [clinicTz],
   );
-
   const handleCalendarMonthChange = useCallback((month: Date) => {
     setCalendarMonth(month);
   }, []);
-
   const isToday = useMemo(
     () => selectedPickerIso === formatClinicTodayPickerIso(clinicTz),
     [selectedPickerIso, clinicTz],
   );
-
   return {
     date,
     selectedPickerIso,

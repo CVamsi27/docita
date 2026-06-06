@@ -51,11 +51,10 @@ export class OpdSlipQueryService {
       },
     });
 
-    if (!clinic?.name) {
+    if (!clinic?.name)
       throw new BadRequestException(
         'Clinic details are required to generate the OPD slip',
       );
-    }
 
     const settings = this.toRecord(clinic.settings);
     const revisitValidityDays = this.readNumber(

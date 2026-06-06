@@ -96,11 +96,10 @@ export class IdempotencyInterceptor implements NestInterceptor {
     const tenantId = readTenantId(request);
     const userId = readUserId(request);
 
-    if (!tenantId || !userId) {
+    if (!tenantId || !userId)
       throw new BadRequestException(
         'Idempotency-Key requires an authenticated request with a tenant scope.',
       );
-    }
 
     const scopedKey = this.service.buildKey({
       tenantId,
@@ -114,12 +113,11 @@ export class IdempotencyInterceptor implements NestInterceptor {
 
     const cached = await this.service.getCached(scopedKey);
     if (cached) {
-      if (cached.bodyHash !== bodyHash) {
+      if (cached.bodyHash !== bodyHash)
         throw new UnprocessableEntityException(
           'Idempotency-Key was previously used with a different request body. ' +
             'Either reuse the original body or generate a new key.',
         );
-      }
       return of(cached.response);
     }
 
@@ -128,9 +126,7 @@ export class IdempotencyInterceptor implements NestInterceptor {
     } catch (err) {
       if (err instanceof ConflictException) {
         const replay = await this.service.getCached(scopedKey);
-        if (replay && replay.bodyHash === bodyHash) {
-          return of(replay.response);
-        }
+        if (replay && replay.bodyHash === bodyHash) return of(replay.response);
       }
       throw err;
     }

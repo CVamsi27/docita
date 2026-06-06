@@ -64,13 +64,11 @@ export function PricingOffersTableSection({
     );
   }
 
-  if (offers.length === 0) {
-    return (
+  if (offers.length === 0) return (
       <p className="text-sm text-muted-foreground">
         No active checkout discounts.
       </p>
     );
-  }
 
   return (
     <Table>

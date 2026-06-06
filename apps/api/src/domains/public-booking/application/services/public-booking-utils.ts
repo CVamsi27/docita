@@ -50,9 +50,7 @@ export async function resolveClinicByReferralCode(
       settings: true,
     },
   });
-  if (!clinic?.referralCode) {
-    throw new NotFoundException('Clinic not found');
-  }
+  if (!clinic?.referralCode) throw new NotFoundException('Clinic not found');
   return {
     id: clinic.id,
     name: clinic.name,

@@ -18,7 +18,6 @@ export type DetailedMetricsRow = InternalDetailedMetricsRow;
 interface AnalyticsDetailedMetricsTableProps {
   rows: DetailedMetricsRow[];
 }
-
 function AnalyticsDetailedMetricsTableComponent({
   rows,
 }: AnalyticsDetailedMetricsTableProps) {
@@ -84,7 +83,6 @@ function AnalyticsDetailedMetricsTableComponent({
     </div>
   );
 }
-
 export const AnalyticsDetailedMetricsTable = memo(
   AnalyticsDetailedMetricsTableComponent,
 );

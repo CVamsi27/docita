@@ -14,17 +14,12 @@ function mapAuditActionToLogLevel(
 function mapErrorSeverityToLogLevel(
   severity: ErrorSeverity,
 ): 'INFO' | 'WARNING' | 'ERROR' | 'DEBUG' {
-  if (severity === ErrorSeverity.CRITICAL || severity === ErrorSeverity.ERROR) {
+  if (severity === ErrorSeverity.CRITICAL || severity === ErrorSeverity.ERROR)
     return 'ERROR';
-  }
 
-  if (severity === ErrorSeverity.WARNING) {
-    return 'WARNING';
-  }
+  if (severity === ErrorSeverity.WARNING) return 'WARNING';
 
-  if (severity === ErrorSeverity.DEBUG) {
-    return 'DEBUG';
-  }
+  if (severity === ErrorSeverity.DEBUG) return 'DEBUG';
 
   return 'INFO';
 }
@@ -156,9 +151,7 @@ export function applyInMemoryFallbackFilters(
   const search = filters.q?.trim().toLowerCase();
 
   return logs.filter((log) => {
-    if (level && log.level !== level) {
-      return false;
-    }
+    if (level && log.level !== level) return false;
 
     if (module && !log.module.toLowerCase().includes(module)) {
       return false;
@@ -167,9 +160,7 @@ export function applyInMemoryFallbackFilters(
     if (search) {
       const messageMatch = log.message.toLowerCase().includes(search);
       const detailsMatch = (log.details ?? '').toLowerCase().includes(search);
-      if (!messageMatch && !detailsMatch) {
-        return false;
-      }
+      if (!messageMatch && !detailsMatch) return false;
     }
 
     return true;

@@ -57,8 +57,7 @@ export function PatientDetailPageContent({
     handleRefetch,
   } = handlers;
 
-  if (loading) {
-    return (
+  if (loading) return (
       <AppPageScaffold>
         <DataState
           status="loading"
@@ -67,7 +66,6 @@ export function PatientDetailPageContent({
         />
       </AppPageScaffold>
     );
-  }
 
   if (error) {
     return (

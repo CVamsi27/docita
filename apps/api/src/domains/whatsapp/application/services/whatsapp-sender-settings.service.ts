@@ -80,11 +80,10 @@ export class WhatsappSenderSettingsService {
     const clinic = await this.getClinic(clinicId);
 
     if (payload.mode === 'BYO') {
-      if (!payload.phoneNumberId || !payload.accessToken) {
+      if (!payload.phoneNumberId || !payload.accessToken)
         throw new BadRequestException(
           'Phone number ID and access token are required for BYO sender mode.',
         );
-      }
       if (!options.bypassFeatureGate) {
         assertClinicHasFeatureOrThrow(clinic, Feature.WHATSAPP_OWN_NUMBER);
       }
@@ -170,14 +169,12 @@ export class WhatsappSenderSettingsService {
     error: string | null;
   }> {
     const clinic = await this.getClinic(clinicId);
-    if (clinic.whatsappSenderMode === 'SHARED') {
+    if (clinic.whatsappSenderMode === 'SHARED')
       throw new BadRequestException(
         'Shared sender does not need verification.',
       );
-    }
-    if (!clinic.whatsappPhoneNumberId) {
+    if (!clinic.whatsappPhoneNumberId)
       throw new BadRequestException('WhatsApp phone number ID is missing.');
-    }
 
     const secret = await this.persistence.clinicSecret.findUnique({
       where: {
@@ -188,9 +185,8 @@ export class WhatsappSenderSettingsService {
       },
       select: { ciphertext: true },
     });
-    if (!secret) {
+    if (!secret)
       throw new BadRequestException('WhatsApp access token is missing.');
-    }
 
     const accessToken = this.encryptionService.decrypt(secret.ciphertext);
     try {
@@ -200,11 +196,10 @@ export class WhatsappSenderSettingsService {
           accessToken,
         );
 
-      if (!ok) {
+      if (!ok)
         throw new BadRequestException(
           data.error?.message || 'Meta verification failed',
         );
-      }
 
       const displayName =
         data.verified_name || data.display_phone_number || null;
@@ -324,9 +319,7 @@ export class WhatsappSenderSettingsService {
         whatsappLastVerifyError: true,
       },
     });
-    if (!clinic) {
-      throw new NotFoundException('Clinic not found');
-    }
+    if (!clinic) throw new NotFoundException('Clinic not found');
     return clinic;
   }
 

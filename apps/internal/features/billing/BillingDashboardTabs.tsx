@@ -461,11 +461,7 @@ function RevenueTrendsCard({
 }
 
 function getPaymentStatusBadgeClass(status: string) {
-  if (status === "SUCCESS") {
-    return "badge-success";
-  }
-  if (status === "PENDING") {
-    return "badge-warning";
-  }
+  if (status === "SUCCESS") return "badge-success";
+  if (status === "PENDING") return "badge-warning";
   return "badge-danger";
 }

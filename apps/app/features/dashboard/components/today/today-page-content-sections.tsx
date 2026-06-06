@@ -153,9 +153,7 @@ export function TodayBottomBarSection({
   isMutationPending,
   onStartNextPatient,
 }: TodayBottomBarSectionProps) {
-  if (!canStartConsultation || !hasNextPatient || hasCurrentPatient) {
-    return null;
-  }
+  if (!canStartConsultation || !hasNextPatient || hasCurrentPatient) return null;
 
   return (
     <BottomActionBar>

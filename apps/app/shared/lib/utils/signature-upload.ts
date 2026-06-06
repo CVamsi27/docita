@@ -5,9 +5,7 @@ export function validateSignatureImageFile(file: File): string | null {
     return "Please choose an image file";
   }
 
-  if (file.size > MAX_SIGNATURE_UPLOAD_BYTES) {
-    return "Use a file smaller than 5 MB";
-  }
+  if (file.size > MAX_SIGNATURE_UPLOAD_BYTES) return "Use a file smaller than 5 MB";
 
   return null;
 }

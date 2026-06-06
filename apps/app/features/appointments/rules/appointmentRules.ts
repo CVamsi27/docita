@@ -51,9 +51,7 @@ export const canCheckIn = (appointment: Appointment): boolean => {
   if (
     appointment.status === "checked-in" ||
     appointment.status === "in-progress"
-  ) {
-    return false;
-  }
+  ) return false;
 
   const appointmentDate = startOfMinute(new Date(appointment.startTime));
   const now = startOfMinute(new Date());

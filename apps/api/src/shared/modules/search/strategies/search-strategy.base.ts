@@ -55,9 +55,8 @@ export abstract class SearchStrategyBase implements ISearchStrategy {
     limit: number,
   ): Promise<SearchResult[]> {
     const support = await this.fullTextSupport.getSupport();
-    if (!support[this.fullTextKey]) {
+    if (!support[this.fullTextKey])
       return this.searchFallback(clinicId, query, limit);
-    }
 
     try {
       return await this.searchFullText(clinicId, query, limit);

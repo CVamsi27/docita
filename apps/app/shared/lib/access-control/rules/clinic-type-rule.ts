@@ -19,14 +19,10 @@ export class ClinicTypeBasedAccessRule implements IAccessRule {
 
   canAccess(context: IAccessContext): boolean {
 
-    if (!context.clinicType) {
-      return true;
-    }
+    if (!context.clinicType) return true;
 
     const typeFeatures = CLINIC_TYPE_FEATURES[context.clinicType];
-    if (!typeFeatures) {
-      return true; 
-    }
+    if (!typeFeatures) return true;
 
     const specialtyFeatures = [
       "dentalChart",
@@ -56,9 +52,7 @@ export class ClinicTypeBasedAccessRule implements IAccessRule {
   }
 
   getReason(context: IAccessContext): string {
-    if (!context.clinicType) {
-      return "Clinic type not specified";
-    }
+    if (!context.clinicType) return "Clinic type not specified";
 
     const clinicTypeLabel =
       CLINIC_TYPE_LABELS[context.clinicType] || context.clinicType;

@@ -411,9 +411,7 @@ async function upsertUsageEvent(
 }
 
 function getSeedEventKeySuffix(meter: string): string {
-  if (meter === 'whatsappMessages') {
-    return 'whatsapp';
-  }
+  if (meter === 'whatsappMessages') return 'whatsapp';
   return meter;
 }
 

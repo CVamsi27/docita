@@ -118,9 +118,7 @@ export class PatientResponseStaffNotificationService {
     delayContext: DelayContext,
   ): string {
     if (responseType === 'DELAY') {
-      if (delayContext.delayMinutesPending) {
-        return 'Delayed (minutes pending)';
-      }
+      if (delayContext.delayMinutesPending) return 'Delayed (minutes pending)';
 
       if (delayContext.delayMinutes !== null) {
         return `Delayed by ${delayContext.delayMinutes} min`;
@@ -147,13 +145,9 @@ export class PatientResponseStaffNotificationService {
     delayContext: DelayContext,
   ): 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT' {
     if (responseType === 'DELAY') {
-      if (delayContext.conflictDetected) {
-        return 'HIGH';
-      }
+      if (delayContext.conflictDetected) return 'HIGH';
 
-      if (delayContext.delayMinutesPending) {
-        return 'HIGH';
-      }
+      if (delayContext.delayMinutesPending) return 'HIGH';
 
       return 'NORMAL';
     }

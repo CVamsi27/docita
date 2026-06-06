@@ -38,9 +38,8 @@ export class CreateAppointmentUseCase {
   ) {}
 
   async execute(command: CreateAppointmentCommand): Promise<Appointment> {
-    if (command.startTime >= command.endTime) {
+    if (command.startTime >= command.endTime)
       throw new BadRequestException('Start time must be before end time');
-    }
 
     const overlap = await this.schedulingRules.validateAppointmentOverlap(
       command.doctorId,

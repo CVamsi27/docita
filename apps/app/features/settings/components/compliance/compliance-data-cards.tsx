@@ -31,7 +31,6 @@ import { DATA_RETENTION_POLICIES } from "./compliance-settings-constants";
 interface DpdpConsentCardProps {
   compliance: AppComplianceSummary | undefined;
 }
-
 export function DpdpConsentCard({ compliance }: DpdpConsentCardProps) {
   return (
     <Card>
@@ -95,7 +94,6 @@ export function DpdpConsentCard({ compliance }: DpdpConsentCardProps) {
     </Card>
   );
 }
-
 // ── Printable Consent Template Card ───────────────────────────────────────────
 
 export function ConsentTemplateCard() {

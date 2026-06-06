@@ -12,9 +12,7 @@ export function formatBytesToMb(value: number): string {
 
 export function buildPrometheusMetricsUrl(): string | null {
   const base = process.env.NEXT_PUBLIC_API_URL;
-  if (!base) {
-    return null;
-  }
+  if (!base) return null;
   try {
     const parsed = new URL(resolveInternalApiUrl(base));
     parsed.pathname = "/metrics";

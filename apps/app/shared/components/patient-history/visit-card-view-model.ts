@@ -79,9 +79,7 @@ function resolveConsultationAction({
     event.type !== "APPOINTMENT" ||
     mode !== "full" ||
     appointmentAction?.label === "View consultation"
-  ) {
-    return null;
-  }
+  ) return null;
   return {
     label: "View consultation",
     href: hasConsultation ? consultationHref : undefined,

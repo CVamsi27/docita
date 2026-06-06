@@ -498,22 +498,18 @@ async function main() {
       return null;
     }
   }
-
   const healthResult = await runProbeStep(probeApiHealthLive);
   if (healthResult && !healthResult.skipped) {
     apiHealthPassed = true;
   }
-
   await runProbeStep(probeDailyThought);
   await runProbeStep(() => probeStaffLogin({ apiReachable: apiHealthPassed }));
-
   if (failures.length > 0) {
     process.stderr.write(
       `\nSynthetic monitoring failed: ${failures.length} probe(s).\n`,
     );
     process.exit(1);
   }
-
   const ran = results.filter((r) => !r.skipped).length;
   process.stdout.write(`\nSynthetic monitoring passed (${ran} probe(s)).\n`);
 }

@@ -64,12 +64,10 @@ export class PatientMapper {
     domain: Patient,
   ): Prisma.PatientUncheckedCreateInput {
     const write = PatientMapper.toPersistence(domain);
-    if (!write.dateOfBirth) {
+    if (!write.dateOfBirth)
       throw new Error('Patient dateOfBirth is required for persistence');
-    }
-    if (!write.phoneNumber) {
+    if (!write.phoneNumber)
       throw new Error('Patient phoneNumber is required for persistence');
-    }
     return {
       id: write.id,
       clinicId: write.clinicId,

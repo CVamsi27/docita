@@ -9,9 +9,7 @@ export function ApiAvailabilityOverlay() {
   const { isUnavailable } = useApiAvailability();
   const isReconnecting = isUnavailable || auth?.isApiStarting === true;
 
-  if (!isReconnecting) {
-    return null;
-  }
+  if (!isReconnecting) return null;
 
   return (
     <div className="fixed inset-0 z-[100] overflow-y-auto bg-background">

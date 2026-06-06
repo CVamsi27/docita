@@ -39,9 +39,7 @@ export function DashboardAlertsUI({
   className,
   showProgressBar = true,
 }: DashboardAlertsUIProps) {
-  if (alerts.length === 0) {
-    return null;
-  }
+  if (alerts.length === 0) return null;
 
   return (
     <div className={cn("space-y-2", className)}>
