@@ -163,8 +163,7 @@ export class OperationalAnalyticsFactory {
       if (endDate) where.startTime.lte = endDate;
     }
 
-    const aggregates =
-      await this.repository.getAppointmentMetricsAggregates(where);
+    const aggregates = await this.repository.getAppointmentMetricsAggregates(where);
     const result: AppointmentSnapshot = {
       total: aggregates.total,
       booked: aggregates.booked,

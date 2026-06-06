@@ -167,8 +167,7 @@ export class ClinicSettingsController {
       return clinics.map((clinic) => ({ ...clinic, canJoin: true, existingRequestStatus: null }));
     }
 
-    const pendingRequests =
-      await this.joinRequestService.findUserPendingRequests(userId);
+    const pendingRequests = await this.joinRequestService.findUserPendingRequests(userId);
 
     return clinics.map((clinic) => ({ ...clinic, canJoin: !pendingRequests.some((r) => r.clinicId === clinic.id), existingRequestStatus: pendingRequests.find((r) => r.clinicId === clinic.id)?.status || null }));
   }

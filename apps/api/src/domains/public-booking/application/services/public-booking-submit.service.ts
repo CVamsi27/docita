@@ -197,8 +197,7 @@ export class PublicBookingSubmitService {
           ? data.reason
           : 'Online booking request';
 
-      const createdRequest =
-        await this.appointmentRequestService.createPatientRequest(
+      const createdRequest = await this.appointmentRequestService.createPatientRequest(
           patientId,
           clinic.id,
           {

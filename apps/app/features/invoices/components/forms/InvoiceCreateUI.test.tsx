@@ -28,8 +28,7 @@ vi.mock("@/features/appointments/components/sections/add-dialog/PatientSelector"
 }));
 
 vi.mock("@/features/invoices/hooks/use-invoice-create-logic", async () => {
-  const reactHookForm =
-    await vi.importActual<typeof import("react-hook-form")>(
+  const reactHookForm = await vi.importActual<typeof import("react-hook-form")>(
       "react-hook-form",
     );
 

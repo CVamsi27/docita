@@ -57,8 +57,7 @@ export class AppointmentMetricsService {
       value: string;
     }>;
   }) {
-    const definitionIdsByKey =
-      await this.metricDefinitionService.ensureMetricDefinitions({
+    const definitionIdsByKey = await this.metricDefinitionService.ensureMetricDefinitions({
         clinicId: input.clinicId,
         patientId: input.patientId,
         categoryKey: 'observations',

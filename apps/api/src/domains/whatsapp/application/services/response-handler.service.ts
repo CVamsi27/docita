@@ -89,8 +89,7 @@ export class ResponseHandlerService {
 
     const responseType = parsePatientResponse(responseText);
     const delayMinutes = extractDelayMinutes(responseText);
-    const pendingDelayResponse =
-      await this.findPendingDelayResponse(appointmentId);
+    const pendingDelayResponse = await this.findPendingDelayResponse(appointmentId);
 
     if (
       pendingDelayResponse &&

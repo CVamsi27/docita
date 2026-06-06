@@ -37,8 +37,7 @@ export class SupportWhatsAppReplyService {
     if (!trimmedMessage)
       throw new BadRequestException('Reply message cannot be empty');
 
-    const latestInboundMessage =
-      await this.prisma.supportWhatsAppMessage.findFirst({
+    const latestInboundMessage = await this.prisma.supportWhatsAppMessage.findFirst({
         where: {
           threadPhoneNumber: normalizedThreadPhoneNumber,
           direction: 'INBOUND',

@@ -92,8 +92,7 @@ export class NotifyExpiringSubscriptionsUseCase extends BaseSubscriptionNotifier
     const { targetDate, reminderType } = request;
     const { startOfDay, endOfDay } = getUtcDayBounds(targetDate);
 
-    const subscriptions =
-      await this.subscriptionRepo.findExpiryReminderCandidates({
+    const subscriptions = await this.subscriptionRepo.findExpiryReminderCandidates({
         startOfDay,
         endOfDay,
       });

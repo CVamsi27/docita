@@ -71,8 +71,7 @@ export abstract class BaseSubscriptionNotifier {
     const clinicIds = Array.from(
       new Set(subscriptions.map((sub) => sub.clinicId)),
     );
-    const existingReminderClinicIds =
-      await this.subscriptionRepo.findRecentReminderClinicIds({
+    const existingReminderClinicIds = await this.subscriptionRepo.findRecentReminderClinicIds({
         clinicIds,
         reminderType,
         reminderCutoff,

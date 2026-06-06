@@ -197,8 +197,7 @@ export class EnterpriseContractsCommandService {
         where: { id: clinicId },
       });
       if (!clinic) throw new NotFoundException(`Clinic ${clinicId} not found`);
-      const existingMember =
-        await this.persistence.enterpriseContractMember.findUnique({
+      const existingMember = await this.persistence.enterpriseContractMember.findUnique({
           where: { clinicId },
         });
       if (existingMember && existingMember.contractId !== contractId) {

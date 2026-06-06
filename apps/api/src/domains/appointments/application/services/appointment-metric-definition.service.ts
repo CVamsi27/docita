@@ -75,8 +75,7 @@ export class AppointmentMetricDefinitionService {
       OR: [{ isPatientScoped: false }, { patientId: input.patientId }],
     } satisfies Prisma.MetricDefinitionWhereInput;
 
-    const existingDefinitions =
-      await this.persistence.metricDefinition.findMany({
+    const existingDefinitions = await this.persistence.metricDefinition.findMany({
         where,
         select: { id: true, key: true },
         orderBy: [{ isPatientScoped: 'asc' }, { createdAt: 'asc' }],
@@ -118,8 +117,7 @@ export class AppointmentMetricDefinitionService {
         skipDuplicates: true,
       });
 
-      const refreshedDefinitions =
-        await this.persistence.metricDefinition.findMany({
+      const refreshedDefinitions = await this.persistence.metricDefinition.findMany({
           where,
           select: { id: true, key: true },
           orderBy: [{ isPatientScoped: 'asc' }, { createdAt: 'asc' }],

@@ -164,8 +164,7 @@ export function useAuthSessionBootstrap(options: {
           return;
         }
 
-        const refreshed =
-          await refreshAccessTokenWithTimeout(refreshAccessToken);
+        const refreshed = await refreshAccessTokenWithTimeout(refreshAccessToken);
         if (!refreshed) {
           clearSession();
           appSession.redirectToLogin();

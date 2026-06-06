@@ -10,8 +10,7 @@ const portalAppointmentMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@workspace/data-access", async () => {
-  const actual =
-    await vi.importActual<typeof import("@workspace/data-access")>(
+  const actual = await vi.importActual<typeof import("@workspace/data-access")>(
       "@workspace/data-access",
     );
   return {

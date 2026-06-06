@@ -115,8 +115,7 @@ export class PublicPatientDocumentsController {
     @Param('token') token: string,
     @Res() res: Response,
   ): Promise<void> {
-    const redirectUrl =
-      await this.publicPatientDocuments.resolvePaymentRedirectUrl(token);
+    const redirectUrl = await this.publicPatientDocuments.resolvePaymentRedirectUrl(token);
     res.redirect(HttpStatus.FOUND, redirectUrl);
   }
 }

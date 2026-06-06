@@ -245,8 +245,7 @@ export class InsuranceClaimsCommandService {
     },
     clinicId: string,
   ): Promise<void> {
-    const referencesAreScoped =
-      await this.repository.referencesBelongToPatientClinic({
+    const referencesAreScoped = await this.repository.referencesBelongToPatientClinic({
         ...input,
         clinicId,
       });

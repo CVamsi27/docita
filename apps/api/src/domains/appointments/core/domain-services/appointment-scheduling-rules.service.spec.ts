@@ -349,8 +349,7 @@ describe('AppointmentSchedulingRulesService', () => {
         },
       });
 
-      const result =
-        await service.validateConsultationPrerequisites(appointmentId);
+      const result = await service.validateConsultationPrerequisites(appointmentId);
 
       expect(result.valid).toBe(true);
       expect(result.missing.length).toBe(0);

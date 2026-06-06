@@ -76,8 +76,7 @@ export class SlotGenerationService {
     };
     if (doctorId) scheduleWhere.doctorId = doctorId;
 
-    let schedules =
-      await this.scheduleRepository.findSchedulesForSlotGeneration(
+    let schedules = await this.scheduleRepository.findSchedulesForSlotGeneration(
         scheduleWhere,
       );
 

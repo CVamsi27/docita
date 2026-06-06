@@ -10,8 +10,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("react-phone-number-input", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("react-phone-number-input")>();
+  const actual = await importOriginal<typeof import("react-phone-number-input")>();
 
   return {
     ...actual,

@@ -165,8 +165,7 @@ export class ReminderSchedulerService {
           include: APPOINTMENT_REMINDER_INCLUDE,
         });
 
-        const existingReminders =
-          await this.persistence.appointmentReminder.findMany({
+        const existingReminders = await this.persistence.appointmentReminder.findMany({
             where: {
               appointmentId: { in: appointments.map((a) => a.id) },
               status: 'sent',
@@ -241,8 +240,7 @@ export class ReminderSchedulerService {
       include: APPOINTMENT_REMINDER_INCLUDE,
     });
 
-    const existingReminders =
-      await this.persistence.appointmentReminder.findMany({
+    const existingReminders = await this.persistence.appointmentReminder.findMany({
         where: {
           appointmentId: { in: appointments.map((a) => a.id) },
           status: 'sent',

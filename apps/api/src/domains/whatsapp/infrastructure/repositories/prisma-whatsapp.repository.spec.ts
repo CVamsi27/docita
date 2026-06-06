@@ -343,8 +343,7 @@ describe('PrismaWhatsAppRepository', () => {
     it('should return null when not found', async () => {
       mockReadClient.whatsappMessage.findFirst.mockResolvedValue(null);
 
-      const message =
-        await repository.findMessageByExternalId('wamid.nonexistent');
+      const message = await repository.findMessageByExternalId('wamid.nonexistent');
       expect(message).toBeNull();
     });
 

@@ -30,8 +30,7 @@ vi.mock("@/hooks/use-back-navigation", () => ({
 }));
 
 vi.mock("@/features/invoices/hooks/use-invoice-edit-logic", async () => {
-  const reactHookForm =
-    await vi.importActual<typeof import("react-hook-form")>(
+  const reactHookForm = await vi.importActual<typeof import("react-hook-form")>(
       "react-hook-form",
     );
 

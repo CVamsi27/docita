@@ -190,8 +190,7 @@ export class SignatureUploadService {
         auth_method: 'signed-upload-token',
       },
     });
-    const resolvedFileUrl =
-      await this.storedFileUrlResolver.resolveWithStoredUrl(fileUrl);
+    const resolvedFileUrl = await this.storedFileUrlResolver.resolveWithStoredUrl(fileUrl);
 
     if (
       validation.purpose === SignaturePurpose.SLA_ACCEPTANCE &&

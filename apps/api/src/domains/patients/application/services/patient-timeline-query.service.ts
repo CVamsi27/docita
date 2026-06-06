@@ -151,8 +151,7 @@ export class PatientTimelineQueryService {
     const uniqueNonPrnMedicationIds = [...new Set(nonPrnMedicationIds)];
     if (uniqueNonPrnMedicationIds.length > 0) {
       try {
-        const groupedCounts =
-          await this.snapshotRepository.groupMedicationDosesByMedicationIds(
+        const groupedCounts = await this.snapshotRepository.groupMedicationDosesByMedicationIds(
             patientId,
             clinicId,
             uniqueNonPrnMedicationIds,

@@ -35,8 +35,7 @@ vi.mock("@workspace/data-access", () => ({
 }));
 
 vi.mock("@/lib/errors/user-facing-errors", async (importOriginal) => {
-  const mod =
-    await importOriginal<typeof import("@/lib/errors/user-facing-errors")>();
+  const mod = await importOriginal<typeof import("@/lib/errors/user-facing-errors")>();
   return {
     ...mod,
     showUserFacingErrorToast: appointmentMocks.showError,

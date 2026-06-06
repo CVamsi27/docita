@@ -99,8 +99,7 @@ export class DoctorProfileService {
       },
     });
 
-    const resolved =
-      await this.storedFileUrlResolver.resolveWithStoredUrl(fileUrl);
+    const resolved = await this.storedFileUrlResolver.resolveWithStoredUrl(fileUrl);
     return {
       success: true,
       registrationCertificateUrl: resolved.url ?? fileUrl,

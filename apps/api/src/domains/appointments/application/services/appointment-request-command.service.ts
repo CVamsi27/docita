@@ -110,8 +110,7 @@ export class AppointmentRequestCommandService {
     const startTime = parseAppointmentRequestDate(data.startTime, 'Start time');
     const endTime = parseAppointmentRequestDate(data.endTime, 'End time');
     const appointmentReason = data.notes ?? request.notes ?? request.reason;
-    const appointment =
-      await this.appointmentRequestRepository.findMatchingAppointment({
+    const appointment = await this.appointmentRequestRepository.findMatchingAppointment({
         clinicId,
         patientId: request.patientId,
         doctorId: data.doctorId,
@@ -223,8 +222,7 @@ export class AppointmentRequestCommandService {
     doctorId: string,
     clinicId: string,
   ) {
-    const doctorBelongsToClinic =
-      await this.appointmentRequestRepository.doctorBelongsToClinic(
+    const doctorBelongsToClinic = await this.appointmentRequestRepository.doctorBelongsToClinic(
         doctorId,
         clinicId,
       );
