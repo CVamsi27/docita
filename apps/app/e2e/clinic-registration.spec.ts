@@ -225,7 +225,7 @@ test.describe("Clinic Registration Flow", () => {
     expect(completeRes.ok()).toBeTruthy();
 
     await page.goto("/dashboard");
-    await page.waitForURL(/\/dashboard/, { timeout: 30000 });
+    await page.waitForURL(/\/today/, { timeout: 30000 });
   }
 
   test("should complete full clinic registration wizard", async ({
@@ -233,6 +233,6 @@ test.describe("Clinic Registration Flow", () => {
     request,
   }) => {
     await registerAndOpenOnboarding(page, request);
-    await page.waitForURL(/\/dashboard/, { timeout: 30000 });
+    await page.waitForURL(/\/today/, { timeout: 30000 });
   });
 });

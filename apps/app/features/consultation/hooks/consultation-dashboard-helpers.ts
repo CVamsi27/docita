@@ -1,5 +1,8 @@
 import type { QueueItem } from "@workspace/data-access";
-import { appClinicSchema, type AppointmentListItemContractResponse } from "@workspace/types";
+import {
+  appClinicSchema,
+  type AppointmentListItemContractResponse,
+} from "@workspace/types";
 import {
   DEFAULT_SLOT_DURATION,
   formatUtcInstantAsClinicPickerIso,
@@ -58,6 +61,24 @@ export function isDateLocalToday(
         : new Date(value);
   if (Number.isNaN(date.getTime())) return true;
   return formatUtcInstantAsClinicPickerIso(date, clinicTz) === today;
+}
+
+function buildQueueNextUpRow(
+  q: QueueItem,
+  visitSummary?: string,
+): DoctorNextUpRow {
+  const name = q.patient ? getPatientFullName(q.patient) : "Patient";
+  return {
+    kind: "queue",
+    appointmentId: q.appointmentId,
+    patientId: q.patient?.id ?? q.patientId,
+    tokenNumber: q.tokenNumber,
+    createdAt: q.createdAt,
+    patientName: name,
+    status: q.status,
+    tokenType: q.tokenType,
+    ...(visitSummary !== undefined ? { visitSummary } : {}),
+  };
 }
 
 function readQueueAppointmentStartTime(q: QueueItem): string | null {
@@ -134,17 +155,7 @@ export function buildDoctorNowNext({
   // If there is no schedule today, fall back to FCFS (queue order).
   if (todayAppointmentsSorted.length === 0) {
     for (const q of todayQueueRows) {
-      const name = q.patient ? getPatientFullName(q.patient) : "Patient";
-      combinedUpcoming.push({
-        kind: "queue",
-        appointmentId: q.appointmentId,
-        patientId: q.patient?.id ?? q.patientId,
-        tokenNumber: q.tokenNumber,
-        createdAt: q.createdAt,
-        patientName: name,
-        status: q.status,
-        tokenType: q.tokenType,
-      });
+      combinedUpcoming.push(buildQueueNextUpRow(q));
     }
     return { inProgress, combinedUpcoming, mode: "fcfs" };
   }
@@ -178,41 +189,27 @@ export function buildDoctorNowNext({
     const gapSlots = Math.max(0, Math.floor(gapMs / slotMs) - 1);
     for (let s = 0; s < gapSlots && walkInIdx < walkInSorted.length; s++) {
       const q = walkInSorted[walkInIdx++];
-      const name = q.patient ? getPatientFullName(q.patient) : "Patient";
-      combinedUpcoming.push({
-        kind: "queue",
-        appointmentId: q.appointmentId,
-        patientId: q.patient?.id ?? q.patientId,
-        tokenNumber: q.tokenNumber,
-        createdAt: q.createdAt,
-        patientName: name,
-        status: q.status,
-        tokenType: q.tokenType,
-        visitSummary:
+      combinedUpcoming.push(
+        buildQueueNextUpRow(
+          q,
           q.appointment?.chiefComplaint?.trim() ||
-          q.appointment?.type?.trim() ||
-          undefined,
-      });
+            q.appointment?.type?.trim() ||
+            undefined,
+        ),
+      );
     }
   }
 
   while (walkInIdx < walkInSorted.length) {
     const q = walkInSorted[walkInIdx++];
-    const name = q.patient ? getPatientFullName(q.patient) : "Patient";
-    combinedUpcoming.push({
-      kind: "queue",
-      appointmentId: q.appointmentId,
-      patientId: q.patient?.id ?? q.patientId,
-      tokenNumber: q.tokenNumber,
-      createdAt: q.createdAt,
-      patientName: name,
-      status: q.status,
-      tokenType: q.tokenType,
-      visitSummary:
+    combinedUpcoming.push(
+      buildQueueNextUpRow(
+        q,
         q.appointment?.chiefComplaint?.trim() ||
-        q.appointment?.type?.trim() ||
-        undefined,
-    });
+          q.appointment?.type?.trim() ||
+          undefined,
+      ),
+    );
   }
 
   return { inProgress, combinedUpcoming, mode: "schedule" };
@@ -286,10 +283,8 @@ export function buildActiveConsultations(
       !a.id ||
       coveredAppointmentIds.has(a.id) ||
       !isLocalToday(a.startTime)
-    ) {
+    )
       continue;
-    }
-
     const updatedAt =
       typeof a.updatedAt === "string"
         ? a.updatedAt
@@ -319,10 +314,7 @@ export function buildActiveConsultations(
       appointment: a.id
         ? {
             id: a.id,
-            doctor: {
-              id: a.doctor?.id ?? "",
-              name: a.doctor?.name ?? "",
-            },
+            doctor: { id: a.doctor?.id ?? "", name: a.doctor?.name ?? "" },
             type: a.type ?? null,
             chiefComplaint: a.chiefComplaint ?? null,
           }

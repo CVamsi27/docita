@@ -10,7 +10,10 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { cn } from "@workspace/ui/lib/utils";
 import { PromptOptions } from "@/features/dialogs/types";
-import { getConfirmButtonVariant, getVariantStyles } from "@/features/dialogs/utils";
+import {
+  getConfirmButtonVariant,
+  getVariantStyles,
+} from "@/features/dialogs/utils";
 
 interface PromptDialogProps {
   open: boolean;
@@ -36,7 +39,6 @@ export function PromptDialog({
   onCancel,
 }: PromptDialogProps) {
   if (!options) return null;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false}>
@@ -47,7 +49,6 @@ export function PromptDialog({
           </DialogTitle>
           <DialogDescription>{options.description || ""}</DialogDescription>
         </DialogHeader>
-
         <div className="py-4">
           <Input
             type={options.inputType || "text"}
@@ -59,9 +60,7 @@ export function PromptDialog({
             placeholder={options.placeholder}
             autoFocus
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                onSubmit();
-              }
+              if (e.key === "Enter") onSubmit();
             }}
             aria-invalid={!!error}
             aria-describedby={error ? "prompt-input-error" : undefined}
@@ -75,7 +74,6 @@ export function PromptDialog({
             </p>
           )}
         </div>
-
         <DialogFooter>
           <Button variant="outline" onClick={onCancel}>
             {options.cancelText || "Cancel"}

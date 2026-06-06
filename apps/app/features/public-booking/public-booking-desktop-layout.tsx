@@ -57,7 +57,6 @@ export function PublicBookingDesktopLayout({
   facilityWord: string;
 }) {
   if (!c.clinic) return null;
-
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 md:gap-7 lg:gap-8">
       <PublicBookingHeroCompact

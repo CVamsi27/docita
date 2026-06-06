@@ -31,14 +31,10 @@ export const useAnalyticsLogic = () => {
     refetch: refetchOverview,
   } = useAnalyticsOverview();
 
-  const { data: diseaseTrends = [], isLoading: trendsLoading } = useDiseaseTrends(
-    defaultClinicId,
-    startDate,
-    endDate,
-    {
+  const { data: diseaseTrends = [], isLoading: trendsLoading } =
+    useDiseaseTrends(defaultClinicId, startDate, endDate, {
       enabled: activeTab === "disease-trends",
-    },
-  );
+    });
 
   const { data: revenueByCPTData = [], isLoading: revenueLoading } =
     useRevenueByCPT(defaultClinicId, startDate, endDate, {
@@ -88,7 +84,8 @@ export const useAnalyticsLogic = () => {
         score: complianceMetricsData.billingRate,
         value: complianceMetricsData.billingRate,
         issues: Math.max(
-          complianceMetricsData.totalVisits - complianceMetricsData.billedVisits,
+          complianceMetricsData.totalVisits -
+            complianceMetricsData.billedVisits,
           0,
         ),
         status:

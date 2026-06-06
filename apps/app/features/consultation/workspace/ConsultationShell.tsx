@@ -50,12 +50,10 @@ export function ConsultationShell({
     paletteOpen,
     onPaletteOpenChange,
   });
-
   const clinicFeatures = useMemo(
     () => resolveClinicTypeFeatures(clinicType).features,
     [clinicType],
   );
-
   return (
     <ConsultationWorkspaceProvider
       clinicFeatures={clinicFeatures}
@@ -67,7 +65,6 @@ export function ConsultationShell({
           activeSectionId={activeSectionId}
           onSelect={selectSection}
         />
-
         <ConsultationMainPanel
           sections={sections}
           activeSectionId={activeSectionId}
@@ -79,12 +76,10 @@ export function ConsultationShell({
           patientLoading={patientLoading}
           appointmentData={appointmentData}
         />
-
         <ConsultationRightRail
           isSidebarOpen={isSidebarOpen}
           appointmentData={appointmentData}
         />
-
         <CommandPalette
           open={paletteOpen}
           onOpenChange={onPaletteOpenChange}

@@ -31,17 +31,15 @@ export function useAuthFormHandlers({
 }: UseAuthFormHandlersParams) {
   void _password;
   const router = useRouter();
-
   const resetErrors = useCallback(() => {
     setError("");
     setFieldErrors({});
   }, [setError, setFieldErrors]);
-
   const clearFieldError = useCallback(
-    (field: string) => setFieldErrors((prev) => clearFieldErrorFrom(field, prev)),
+    (field: string) =>
+      setFieldErrors((prev) => clearFieldErrorFrom(field, prev)),
     [setFieldErrors],
   );
-
   const handleOwnerRoleChange = useCallback(
     (value: "ADMIN" | "ADMIN_DOCTOR") => {
       setOwnerRole(value);
@@ -49,7 +47,6 @@ export function useAuthFormHandlers({
     },
     [setOwnerRole, clearFieldError],
   );
-
   const handlePasswordChange = useCallback(
     (value: string) => {
       setPassword(value);
@@ -58,7 +55,6 @@ export function useAuthFormHandlers({
     },
     [setPassword, clearFieldError],
   );
-
   const handleConfirmPasswordChange = useCallback(
     (value: string) => {
       setConfirmPassword(value);
@@ -66,12 +62,14 @@ export function useAuthFormHandlers({
     },
     [setConfirmPassword, clearFieldError],
   );
-
   const handleForgotPassword = useCallback(() => {
-    const normalized = email.trim();
-    router.push(normalized ? `/forgot-password?email=${encodeURIComponent(normalized)}` : "/forgot-password");
+    const n = email.trim();
+    router.push(
+      n
+        ? `/forgot-password?email=${encodeURIComponent(n)}`
+        : "/forgot-password",
+    );
   }, [email, router]);
-
   const handleBack = useCallback(() => {
     setStep("email");
     setPassword("");
@@ -80,8 +78,15 @@ export function useAuthFormHandlers({
     setLastName("");
     setOwnerRole(null);
     resetErrors();
-  }, [setStep, setPassword, setConfirmPassword, setFirstName, setLastName, setOwnerRole, resetErrors]);
-
+  }, [
+    setStep,
+    setPassword,
+    setConfirmPassword,
+    setFirstName,
+    setLastName,
+    setOwnerRole,
+    resetErrors,
+  ]);
   return {
     resetErrors,
     clearFieldError,

@@ -12,13 +12,17 @@ import type { ClaimStatus } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export const useInsuranceClaimDetailLogic = (id: string) => {
-  const { data: claim, isPending, isError, error, refetch } =
-    useInsuranceClaim(id);
+  const {
+    data: claim,
+    isPending,
+    isError,
+    error,
+    refetch,
+  } = useInsuranceClaim(id);
   const transition = useTransitionInsuranceClaim(id);
   const attachDocument = useAttachClaimDocument(id);
   const { data: attachableDocuments = [] } = useAttachableClaimDocuments(id);
   const [isTransitioning, setIsTransitioning] = useState(false);
-
   const runTransition = async (
     targetStatus: ClaimStatus,
     opts?: {
@@ -55,7 +59,6 @@ export const useInsuranceClaimDetailLogic = (id: string) => {
       setIsTransitioning(false);
     }
   };
-
   const handleAttachDocument = async (documentId: string) => {
     try {
       await attachDocument.mutateAsync({ documentId });
@@ -67,7 +70,6 @@ export const useInsuranceClaimDetailLogic = (id: string) => {
       );
     }
   };
-
   return {
     claim,
     loading: isPending,

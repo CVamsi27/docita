@@ -48,7 +48,6 @@ export function PricingDialogTierCard({
   );
   const price = isYearly ? tierPricing.yearly : tierPricing.monthly;
   const isCustomTier = tierName === "ENTERPRISE" || price === "custom";
-
   return (
     <div
       className={cn(

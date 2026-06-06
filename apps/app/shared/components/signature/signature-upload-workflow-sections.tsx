@@ -25,7 +25,6 @@ interface DrawSignatureTabProps {
   uploadButtonLabel: string;
   uploadingButtonLabel: string;
 }
-
 export function DrawSignatureTab({
   signatureDataUrl,
   onClearSignature,
@@ -43,7 +42,6 @@ export function DrawSignatureTab({
         <Pencil className="h-4 w-4" />
         <AlertDescription>{drawAlertText}</AlertDescription>
       </Alert>
-
       {!signatureDataUrl ? (
         <SignaturePad onSave={(dataUrl) => void onDrawSave(dataUrl)} />
       ) : (

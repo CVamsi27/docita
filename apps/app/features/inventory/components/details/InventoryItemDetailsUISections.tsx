@@ -31,7 +31,6 @@ export interface ItemDetail {
   expiryDate?: string;
   movements?: ItemMovement[];
 }
-
 export function ItemInfoCard({
   item,
   formatCurrency,
@@ -62,7 +61,6 @@ export function ItemInfoCard({
           {item.quantity} {item.unit}
         </Badge>
       </div>
-
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div>
           <span className="text-muted-foreground block">Purchase Price</span>
@@ -94,7 +92,6 @@ export function ItemInfoCard({
     </div>
   );
 }
-
 export function ItemMovementsSection({
   movements,
 }: {

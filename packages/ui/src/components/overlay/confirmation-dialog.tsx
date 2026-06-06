@@ -58,7 +58,6 @@ export function ConfirmationDialog({
   disabled = false,
 }: ConfirmationDialogProps) {
   const [isPending, setIsPending] = React.useState(false);
-
   const handleConfirm = async () => {
     setIsPending(true);
     try {
@@ -68,9 +67,7 @@ export function ConfirmationDialog({
       setIsPending(false);
     }
   };
-
-  const isLoading_ = isLoading || isPending;
-
+  const loading = isLoading || isPending;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -88,7 +85,6 @@ export function ConfirmationDialog({
             </div>
           </div>
         </DialogHeader>
-
         <DialogFooter>
           <Button
             type="button"
@@ -97,7 +93,7 @@ export function ConfirmationDialog({
               onCancel?.();
               onOpenChange(false);
             }}
-            disabled={isLoading_ || disabled}
+            disabled={loading || disabled}
           >
             {cancelText}
           </Button>
@@ -105,10 +101,10 @@ export function ConfirmationDialog({
             type="button"
             variant={buttonVariantMap[type]}
             onClick={handleConfirm}
-            disabled={isLoading_ || disabled}
+            disabled={loading || disabled}
             className="gap-2"
           >
-            {isLoading_ ? (
+            {loading ? (
               <DocitaLoadingIndicator variant="inline" decorative />
             ) : null}
             {confirmText}

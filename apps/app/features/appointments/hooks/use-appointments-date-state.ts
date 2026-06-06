@@ -17,7 +17,8 @@ function initialCalendarMonth(): Date {
 
 export function useAppointmentsDateState(clinicTimezone: string | undefined) {
   const [selectedPickerIso, setSelectedPickerIso] = useState(initialPickerIso);
-  const [calendarMonth, setCalendarMonth] = useState<Date>(initialCalendarMonth);
+  const [calendarMonth, setCalendarMonth] =
+    useState<Date>(initialCalendarMonth);
   const syncedClinicTzRef = useRef<string | null>(null);
   const userPickedDateRef = useRef(false);
   const clinicTz = useMemo(
@@ -51,9 +52,8 @@ export function useAppointmentsDateState(clinicTimezone: string | undefined) {
         if (
           prev.getFullYear() === target.getFullYear() &&
           prev.getMonth() === target.getMonth()
-        ) {
+        )
           return prev;
-        }
         return target;
       });
     },

@@ -32,14 +32,10 @@ export function ConsultationNotesModal({
 }: ConsultationNotesModalProps) {
   const [notes, setNotes] = useState("");
   const updateAppointment = useUpdateAppointment(appointmentId || "");
-
   const handleSave = async () => {
     if (!appointmentId) return;
-
     try {
-      await updateAppointment.mutateAsync({
-        notes,
-      });
+      await updateAppointment.mutateAsync({ notes });
       toast.success("Notes saved");
       if (onSaved) await onSaved();
       onOpenChange?.(false);
@@ -48,10 +44,8 @@ export function ConsultationNotesModal({
       showUserFacingErrorToast(
         "We could not save these notes. Please try again.",
       );
-
     }
   };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>

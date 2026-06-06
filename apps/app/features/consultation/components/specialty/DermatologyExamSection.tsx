@@ -19,14 +19,11 @@ export function DermatologyExamSection({
   const subtitle = useConsultationSectionSubtitle("specialty-dermatology");
   const value = useConsultationDraft((s) => s.dermatologyExam);
   const setValue = useConsultationDraft((s) => s.setDermatologyExam);
-
   const patch = (partial: Partial<DermatologyExamData>) => {
     setValue((prev) => ({ ...prev, ...partial }));
   };
-
   const skinNotes =
     value.skinAssessment?.generalCondition ?? value.skinAssessment?.notes ?? "";
-
   return (
     <SectionContainer
       ref={sectionRef}

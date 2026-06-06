@@ -14,7 +14,6 @@ interface PaymentRecoveryCardProps {
   resolvePayment: () => Promise<void>;
   isResolving?: boolean;
 }
-
 export function PaymentRecoveryCard({
   show = true,
   recoverablePayment,
@@ -24,14 +23,12 @@ export function PaymentRecoveryCard({
   if (!show || !recoverablePayment) {
     return null;
   }
-
   const amountText = formatCurrency(recoverablePayment.amountCents / 100, {
     currency: recoverablePayment.currency || DEFAULT_CURRENCY,
   });
   const createdAt = formatDate(new Date(recoverablePayment.createdAt));
   const statusLower = (recoverablePayment.status ?? "").toLowerCase();
   const isFailed = statusLower === "failed" || statusLower === "declined";
-
   return (
     <Card className="border-destructive/40 bg-destructive/5">
       <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:gap-4">

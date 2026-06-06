@@ -60,7 +60,6 @@ export function useAppointmentQueryState({
     () => filterAndSortAppointments(uniqueAppointments),
     [uniqueAppointments],
   );
-
   return {
     appointmentCountsByDay,
     monthRangeAppointments: monthRangeAppointmentsResponse?.items ?? [],

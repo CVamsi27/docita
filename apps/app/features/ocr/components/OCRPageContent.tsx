@@ -34,15 +34,12 @@ export function OCRPageContent() {
     reviewAcknowledged,
     setReviewAcknowledged,
   } = useOCR();
-
   const { showQr, setShowQr, qrUrl, startMobileUpload } = useMobileUpload();
-
   const handleMobileUploadStart = () => {
     startMobileUpload((file, _url) => {
       handleFileChange(file);
     });
   };
-
   return (
     <FeatureGate feature={Feature.OCR_BASIC} showLockedCard>
       <AppPageScaffold
@@ -67,7 +64,6 @@ export function OCRPageContent() {
             onStartMobileUpload={handleMobileUploadStart}
             onScan={handleScan}
           />
-
           <OCRResults
             scanned={scanned}
             documentType={documentType}
@@ -84,7 +80,6 @@ export function OCRPageContent() {
             onReviewAcknowledgedChange={setReviewAcknowledged}
           />
         </div>
-
         <OCRMobileDialog open={showQr} onOpenChange={setShowQr} qrUrl={qrUrl} />
       </AppPageScaffold>
     </FeatureGate>

@@ -16,16 +16,16 @@ interface UseAppointmentActionsParams {
  * appointment-added refresh) and their per-row pending state. Returns stable
  * callbacks plus the in-flight ids the table uses to render spinners.
  */
-export function useAppointmentActions({ refetch }: UseAppointmentActionsParams) {
+export function useAppointmentActions({
+  refetch,
+}: UseAppointmentActionsParams) {
   const router = useRouter();
   const [checkingIn, setCheckingIn] = useState<string | null>(null);
   const [startingConsultationId, setStartingConsultationId] = useState<
     string | null
   >(null);
-
   const checkInMutation = useCheckInAppointment();
   const startConsultationMutation = useStartConsultation();
-
   const handleStartConsultation = useCallback(
     async (appointmentId: string) => {
       setStartingConsultationId(appointmentId);
@@ -46,7 +46,6 @@ export function useAppointmentActions({ refetch }: UseAppointmentActionsParams) 
     },
     [router, startConsultationMutation],
   );
-
   const handleCheckIn = useCallback(
     async (appointmentId: string) => {
       setCheckingIn(appointmentId);
@@ -66,14 +65,12 @@ export function useAppointmentActions({ refetch }: UseAppointmentActionsParams) 
     },
     [checkInMutation, refetch],
   );
-
   const handleAppointmentAdded = useCallback(
     async (_appointment: unknown) => {
       await refetch();
     },
     [refetch],
   );
-
   return {
     checkingIn,
     startingConsultationId,

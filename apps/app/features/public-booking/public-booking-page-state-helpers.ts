@@ -1,4 +1,5 @@
 import { PUBLIC_BOOKING_SUBMIT_FIELD_KEYS } from "@/features/public-booking/public-booking-constants";
+import { getPatientFullName } from "@workspace/utils";
 
 export function computeUnknownSubmitErrors(
   submitFieldErrors: Record<string, string>,
@@ -113,9 +114,16 @@ function demographicDetailsReady(params: {
   dateOfBirth: string;
   dpdpConsentAccepted: boolean;
 }): boolean {
+  const hasFirstName = Boolean(
+    getPatientFullName({ firstName: params.firstName }).trim(),
+  );
+  const hasLastName = Boolean(
+    getPatientFullName({ lastName: params.lastName }).trim(),
+  );
+
   return [
-    Boolean(params.firstName.trim()),
-    Boolean(params.lastName.trim()),
+    hasFirstName,
+    hasLastName,
     Boolean(params.dateOfBirth.trim()),
     params.dpdpConsentAccepted,
   ].every(Boolean);

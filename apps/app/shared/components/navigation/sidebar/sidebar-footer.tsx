@@ -3,9 +3,7 @@
 import { useState } from "react";
 import { cn } from "@workspace/ui/lib/utils";
 import { NotificationPanel } from "@/components/navigation/notification-panel";
-import {
-  type NavSection,
-} from "@/components/navigation/nav-config";
+import { type NavSection } from "@/components/navigation/nav-config";
 import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
 import { SidebarCustomizeSheet } from "@/components/navigation/sidebar/sidebar-customize-sheet";
 import {
@@ -29,7 +27,6 @@ export interface SidebarFooterProps {
   toggleItem: (href: string) => void;
   navOrder: ReturnType<typeof useSidebarNavOrder>;
 }
-
 export function SidebarFooter({
   collapsedRail,
   showLabels,
@@ -47,7 +44,6 @@ export function SidebarFooter({
 }: SidebarFooterProps) {
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
   const [customizeOpen, setCustomizeOpen] = useState(false);
-
   return (
     <div
       className={cn(
@@ -67,7 +63,6 @@ export function SidebarFooter({
         onOpenNotifications={() => setNotificationPanelOpen(true)}
         onOpenCustomize={() => setCustomizeOpen(true)}
       />
-
       <PlanRowSection
         collapsedRail={collapsedRail}
         showLabels={showLabels}
@@ -75,9 +70,7 @@ export function SidebarFooter({
         canOpenBillingSettings={canOpenBillingSettings}
         tierInfo={tierInfo}
       />
-
       <AskAiSection collapsedRail={collapsedRail} />
-
       {canAccessNotifications && (
         <NotificationPanel
           open={notificationPanelOpen}
@@ -85,7 +78,6 @@ export function SidebarFooter({
           enabled={canAccessNotifications}
         />
       )}
-
       <SidebarCustomizeSheet
         open={customizeOpen}
         onOpenChange={setCustomizeOpen}

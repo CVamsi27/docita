@@ -40,7 +40,6 @@ export function RequestSummaryCard({
     selectedEnd,
     density,
   });
-
   return (
     <Card
       className={cn(

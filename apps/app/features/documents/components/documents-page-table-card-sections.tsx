@@ -1,8 +1,6 @@
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  type DataTableColumn,
-} from "@workspace/ui/components/data-display/data-table";
+import { type DataTableColumn } from "@workspace/ui/components/data-display/data-table";
 import { ListRow } from "@workspace/ui/components/data-display/list-row";
 import {
   ArrowDown,
@@ -16,7 +14,10 @@ import {
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import type { Document } from "@workspace/types";
 import { formatDate } from "@workspace/utils";
-import type { SortConfig, SortKey } from "@/features/documents/hooks/document-sort-types";
+import type {
+  SortConfig,
+  SortKey,
+} from "@/features/documents/hooks/document-sort-types";
 
 export function DocumentsSortableHeader({
   column,
@@ -75,7 +76,6 @@ export function getDocumentTitle(document: Document) {
 export function getDocumentPatientName(document: Document) {
   return document.patient?.name || document.patient?.firstName || "—";
 }
-
 export function DocumentActions({
   document,
   onView,

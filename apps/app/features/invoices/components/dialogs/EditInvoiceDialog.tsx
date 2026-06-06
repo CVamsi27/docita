@@ -77,13 +77,12 @@ export function EditInvoiceDialog({
     const newItems = [...items];
     const item = newItems[index];
     if (item) {
-      if (field === "description" && typeof value === "string") {
+      if (field === "description" && typeof value === "string")
         item.description = value;
-      } else if (field === "quantity" && typeof value === "number") {
+      else if (field === "quantity" && typeof value === "number")
         item.quantity = value;
-      } else if (field === "price" && typeof value === "number") {
+      else if (field === "price" && typeof value === "number")
         item.price = value;
-      }
     }
     setItems(newItems);
   };

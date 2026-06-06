@@ -49,7 +49,6 @@ export function ApplyLeaveDialog({
     resolver: zodResolver(createLeaveRequestSchema),
     defaultValues: DEFAULT_APPLY_VALUES,
   });
-
   const submitApplyLeave = form.handleSubmit(async (data) => {
     try {
       await applyLeaveMutation.mutateAsync({
@@ -70,12 +69,10 @@ export function ApplyLeaveDialog({
       );
     }
   });
-
   function handleOpenChange(value: boolean) {
     if (!value) form.reset(DEFAULT_APPLY_VALUES);
     onOpenChange(value);
   }
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>

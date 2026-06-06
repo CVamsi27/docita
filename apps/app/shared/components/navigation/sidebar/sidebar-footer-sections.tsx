@@ -21,11 +21,16 @@ function TierDot({ color }: { color?: string }) {
       className={cn(
         "h-2 w-2 rounded-full shrink-0",
         color === "blue" && "bg-info shadow-[0_0_8px_theme(colors.info)]",
-        color === "green" && "bg-success shadow-[0_0_8px_theme(colors.success)]",
-        color === "purple" && "bg-primary shadow-[0_0_8px_theme(colors.primary)]",
-        color === "violet" && "bg-primary shadow-[0_0_8px_theme(colors.primary)]",
-        color === "orange" && "bg-warning shadow-[0_0_8px_theme(colors.warning)]",
-        color === "pink" && "bg-secondary shadow-[0_0_8px_theme(colors.secondary)]",
+        color === "green" &&
+          "bg-success shadow-[0_0_8px_theme(colors.success)]",
+        color === "purple" &&
+          "bg-primary shadow-[0_0_8px_theme(colors.primary)]",
+        color === "violet" &&
+          "bg-primary shadow-[0_0_8px_theme(colors.primary)]",
+        color === "orange" &&
+          "bg-warning shadow-[0_0_8px_theme(colors.warning)]",
+        color === "pink" &&
+          "bg-secondary shadow-[0_0_8px_theme(colors.secondary)]",
         (!color || color === "gray") && "bg-muted-foreground",
       )}
     />
@@ -151,7 +156,6 @@ export function PlanRowSection({
   tierInfo: { name: string; color?: string };
 }) {
   if (!isAdmin) return null;
-
   return (
     <div
       className={cn(
@@ -205,11 +209,7 @@ export function PlanRowSection({
   );
 }
 
-export function AskAiSection({
-  collapsedRail,
-}: {
-  collapsedRail: boolean;
-}) {
+export function AskAiSection({ collapsedRail }: { collapsedRail: boolean }) {
   return (
     <div
       className={cn(

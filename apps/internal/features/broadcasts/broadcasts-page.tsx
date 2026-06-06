@@ -31,7 +31,6 @@ export function BroadcastsPage() {
     listErrorMessage,
     broadcastsQuery,
   } = useBroadcastsPage();
-
   return (
     <AppPageScaffold
       header={
@@ -65,7 +64,6 @@ export function BroadcastsPage() {
           onCsvUpload={handleCsvUpload}
           onSubmit={handleSubmit}
         />
-
         <BroadcastsListSection
           status={listStatus}
           jobs={jobs}

@@ -180,10 +180,7 @@ function usePastRequests(
   rejectedItems: AppointmentRequestResponse[] | undefined,
 ) {
   return useMemo(() => {
-    const items = [
-      ...(approvedItems ?? []),
-      ...(rejectedItems ?? []),
-    ];
+    const items = [...(approvedItems ?? []), ...(rejectedItems ?? [])];
     const uniqueItems = Array.from(
       new Map(items.map((item) => [item.id, item])).values(),
     );

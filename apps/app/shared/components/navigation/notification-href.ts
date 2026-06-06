@@ -12,10 +12,7 @@ const STAFF_NOTIFICATION_PRIORITY_KEYS = [
 export function mapStaffNotificationPriority(
   priority: string,
 ): "urgent" | "high" | "medium" | "low" {
-  const key = parseStringEnumMember(
-    STAFF_NOTIFICATION_PRIORITY_KEYS,
-    priority,
-  );
+  const key = parseStringEnumMember(STAFF_NOTIFICATION_PRIORITY_KEYS, priority);
   if (!key) {
     return "medium";
   }
@@ -85,7 +82,12 @@ export const NOTIFICATION_CATEGORIES: readonly NotificationCategoryDef[] = [
   {
     id: "invoices",
     label: "Invoices",
-    types: ["INVOICE_PENDING", "INVOICE_SENT", "INVOICE_FAILED", "INVOICE_PAID"],
+    types: [
+      "INVOICE_PENDING",
+      "INVOICE_SENT",
+      "INVOICE_FAILED",
+      "INVOICE_PAID",
+    ],
   },
   {
     id: "payments",
@@ -106,7 +108,11 @@ export const NOTIFICATION_CATEGORIES: readonly NotificationCategoryDef[] = [
   {
     id: "team",
     label: "Team",
-    types: ["MEMBER_JOIN_REQUEST", "MEMBER_JOIN_APPROVED", "MEMBER_JOIN_REJECTED"],
+    types: [
+      "MEMBER_JOIN_REQUEST",
+      "MEMBER_JOIN_APPROVED",
+      "MEMBER_JOIN_REJECTED",
+    ],
   },
   { id: "system", label: "System", types: ["SYSTEM_ALERT"] },
 ] as const;
@@ -143,30 +149,28 @@ function isSafeRelativeUrl(value: string): boolean {
 export function notificationHref(n: StaffNotification): string | null {
   const type = String(n.type);
   const data = n.data ?? {};
-
   switch (type) {
     case "APPOINTMENT_REQUEST_CREATED":
     case "APPOINTMENT_REQUEST_APPROVED":
     case "APPOINTMENT_REQUEST_REJECTED": {
       const requestId =
-        readString(data, "appointmentRequestId") ?? readString(data, "requestId");
+        readString(data, "appointmentRequestId") ??
+        readString(data, "requestId");
       const params = new URLSearchParams({ requestsPanel: "1" });
       if (requestId) params.set("requestId", requestId);
       return `/appointments?${params.toString()}`;
     }
-
     case "APPOINTMENT_CANCEL":
     case "APPOINTMENT_DELAY":
     case "APPOINTMENT_RESCHEDULED":
     case "APPOINTMENT_NO_SHOW":
     case "APPOINTMENT_CONFIRMED": {
-      const date = readString(data, "appointmentDate") ?? readString(data, "date");
-      if (date) {
-        return `/appointments?date=${encodeURIComponent(date.slice(0, 10))}`;
-      }
-      return "/appointments";
+      const date =
+        readString(data, "appointmentDate") ?? readString(data, "date");
+      return date
+        ? `/appointments?date=${encodeURIComponent(date.slice(0, 10))}`
+        : "/appointments";
     }
-
     case "CONSULTATION_STARTED":
     case "CONSULTATION_SIGNED":
     case "CONSULTATION_PENDING_ACTION": {
@@ -176,14 +180,12 @@ export function notificationHref(n: StaffNotification): string | null {
         readString(data, "id");
       return visitId ? `/consultation/${visitId}` : "/consultation";
     }
-
     case "PRESCRIPTION_PENDING":
     case "PRESCRIPTION_SENT":
     case "PRESCRIPTION_FAILED": {
       const id = readString(data, "prescriptionId") ?? readString(data, "id");
       return id ? `/prescriptions/${id}` : "/prescriptions";
     }
-
     case "INVOICE_PENDING":
     case "INVOICE_SENT":
     case "INVOICE_FAILED":
@@ -191,28 +193,22 @@ export function notificationHref(n: StaffNotification): string | null {
       const id = readString(data, "invoiceId") ?? readString(data, "id");
       return id ? `/invoices/${id}` : "/invoices";
     }
-
     case "SUBSCRIPTION_PAYMENT_DUE_SOON":
     case "SUBSCRIPTION_PAYMENT_OVERDUE":
     case "SUBSCRIPTION_PAYMENT_SUCCESS":
     case "SUBSCRIPTION_PAYMENT_FAILED":
     case "PAYMENT_PROVIDER_STATUS_UPDATE":
       return "/settings?tab=subscription";
-
     case "MEMBER_JOIN_REQUEST":
     case "MEMBER_JOIN_APPROVED":
     case "MEMBER_JOIN_REJECTED":
       return "/settings/team/join-requests";
-
-    case "PATIENT_RESPONSE": {
+    case "PATIENT_RESPONSE":
       return "/whatsapp";
-    }
-
     case "SYSTEM_ALERT": {
       const url = readString(data, "url");
       return url && isSafeRelativeUrl(url) ? url : null;
     }
-
     default:
       return null;
   }

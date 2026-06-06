@@ -28,24 +28,17 @@ export default function DoctorsPage() {
     handleViewDoctor,
     handleAdminVerify,
     handleAdminReject,
-    refetchAll,
-  } = useDoctorsPage();
-
+    refetchAll } = useDoctorsPage();
   return (
     <AppPageScaffold
       header={
-        <PageHeader
-          title="Doctors"
-          description="Monitor doctor profiles, specializations, and credentials"
-          size="compact"
+        <PageHeader title="Doctors"
+          description="Monitor doctor profiles, specializations, and credentials" size="compact"
         />
       }
     >
-      <DataState
-        status={pageStatus}
-        loadingMessage="Loading doctors…"
-        errorMessage={errorMessage}
-        onRetry={refetchAll}
+      <DataState status={pageStatus} loadingMessage="Loading doctors…"
+        errorMessage={errorMessage} onRetry={refetchAll}
       >
         <DoctorsTableSection
           doctors={filteredDoctors}
@@ -57,7 +50,6 @@ export default function DoctorsPage() {
           onViewDoctor={handleViewDoctor}
         />
       </DataState>
-
       <DoctorsViewDialog
         open={isViewOpen}
         onOpenChange={setIsViewOpen}

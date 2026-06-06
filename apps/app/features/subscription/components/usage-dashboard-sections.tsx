@@ -1,10 +1,7 @@
 "use client";
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  formatCountLocale,
-  formatAmountLocale,
-} from "@workspace/utils";
+import { formatCountLocale, formatAmountLocale } from "@workspace/utils";
 import { AlertTriangle, TrendingUp } from "lucide-react";
 import {
   Card,

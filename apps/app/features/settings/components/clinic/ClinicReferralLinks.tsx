@@ -18,14 +18,12 @@ export function ClinicReferralLinks({
   referralCode,
 }: ClinicReferralLinksProps) {
   const [copied, setCopied] = useState(false);
-
   const handleCopyCode = () => {
     navigator.clipboard.writeText(referralCode).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
   };
-
   return (
     <div className="mb-6 space-y-4">
       <div className="rounded-lg border border-border bg-muted/30 p-4">
@@ -60,7 +58,6 @@ export function ClinicReferralLinks({
           </SymbolTooltip>
         </div>
       </div>
-
       <div className="rounded-lg border border-border bg-muted/30 p-4">
         <MicroLabel as="h3">Patient booking</MicroLabel>
         <p className="mt-2 text-sm font-medium text-foreground">

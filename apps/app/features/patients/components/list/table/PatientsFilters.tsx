@@ -5,7 +5,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
-import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/navigation/tabs";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/navigation/tabs";
 import { Input } from "@workspace/ui/components/form/input";
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
@@ -38,7 +42,8 @@ export function PatientsFilters({
           <Tabs
             value={filterType}
             onValueChange={(v) => {
-              if (v === "all" || v === "recent" || v === "new") onFilterChange(v);
+              if (v === "all" || v === "recent" || v === "new")
+                onFilterChange(v);
             }}
             className="w-full min-w-0 sm:w-auto md:max-w-[400px]"
           >
@@ -53,7 +58,10 @@ export function PatientsFilters({
       <CardContent>
         <div className="flex w-full min-w-0 flex-wrap items-center gap-4 mb-6">
           <div className="relative min-w-0 flex-1 w-full sm:max-w-sm">
-            <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" aria-hidden />
+            <Search
+              className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"
+              aria-hidden
+            />
             <Input
               placeholder="Enter name or phone"
               className={`bg-background pl-9${searchQuery.trim() ? " pr-10" : ""}`}

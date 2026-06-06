@@ -1,246 +1,117 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import { usePublicBookingContext } from "@workspace/data-access";
-import { type PublicBookingMobileStep } from "@/features/public-booking/public-booking-constants";
 import { usePublicBookingSubmitActions } from "@/features/public-booking/hooks/use-public-booking-submit-actions";
 import { usePublicBookingSlotState } from "@/features/public-booking/use-public-booking-slot-state";
-import {
-  clearDateOfBirthError,
-  clearSlotErrors,
-  computeContactCanContinue,
-  computeSlotRangeSubmitError,
-  computeSubmitRequestReady,
-  computeUnknownSubmitErrors,
-  computeVisitCanContinue,
-  focusAndScrollToField,
-  scrollToTop,
-} from "@/features/public-booking/public-booking-page-state-helpers";
+import { usePublicBookingFormFields } from "@/features/public-booking/use-public-booking-form-fields";
+import { usePublicBookingVerification } from "@/features/public-booking/use-public-booking-form-verification";
+import { usePublicBookingSubmissionState } from "@/features/public-booking/use-public-booking-submission-state";
+import { clearDateOfBirthError } from "@/features/public-booking/public-booking-page-state-helpers";
 
 export function usePublicBookingPageState(referralCode: string) {
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-
   const slots = usePublicBookingSlotState(referralCode);
-
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState("");
-  const [reason, setReason] = useState("");
-  const [notes, setNotes] = useState("");
-
-  const [requiresOtp, setRequiresOtp] = useState<boolean | null>(null);
-  const [otp, setOtp] = useState("");
-  const [verificationToken, setVerificationToken] = useState<string | null>(
-    null,
+  const f = usePublicBookingFormFields(siteKey);
+  const v = usePublicBookingVerification(
+    f.setDateOfBirth,
+    f.setDpdpConsentAccepted,
   );
-  const [dpdpConsentAccepted, setDpdpConsentAccepted] = useState(false);
-
-  const [submitFieldErrors, setSubmitFieldErrors] = useState<
-    Record<string, string>
-  >({});
-  const [submitGeneralMessage, setSubmitGeneralMessage] = useState<
-    string | null
-  >(null);
-  const [done, setDone] = useState(false);
-  const [mobileStep, setMobileStep] =
-    useState<PublicBookingMobileStep>("visit");
-
-  const unknownSubmitErrors = useMemo(
-    () => computeUnknownSubmitErrors(submitFieldErrors),
-    [submitFieldErrors],
-  );
-
-  const slotStart = submitFieldErrors.requestedSlotStart;
-  const slotEnd = submitFieldErrors.requestedSlotEnd;
-  const slotRangeSubmitError = useMemo(
-    () => computeSlotRangeSubmitError(slotStart, slotEnd),
-    [slotStart, slotEnd],
-  );
-
-  const contextQuery = usePublicBookingContext(referralCode, verificationToken);
-
-  const {
-    phoneCheck,
-    otpRequest,
-    otpVerify,
-    submit,
-    runPhoneCheck,
-    handleRequestOtp,
-    handleVerifyOtp,
-    handleSubmit,
-  } = usePublicBookingSubmitActions(referralCode, {
-    phone,
-    otp,
-    turnstileToken,
+  const s = usePublicBookingSubmissionState({
     siteKey,
-    requiresOtp,
-    setRequiresOtp,
-    verificationToken,
-    setVerificationToken,
-    firstName,
-    setFirstName,
-    lastName,
-    setLastName,
-    email,
-    setEmail,
-    dateOfBirth,
-    dpdpConsentAccepted,
-    reason,
-    notes,
+    turnstileToken: f.turnstileToken,
+    phone: f.phone,
+    firstName: f.firstName,
+    lastName: f.lastName,
+    dateOfBirth: f.dateOfBirth,
+    dpdpConsentAccepted: f.dpdpConsentAccepted,
+    requiresOtp: v.requiresOtp,
+    verificationToken: v.verificationToken,
+    slotDate: slots.slotDate,
+    handleSelectSlot: slots.handleSelectSlot,
+    handleSelectSlotWithDoctor: slots.handleSelectSlotWithDoctor,
+  });
+  const { setSubmitFieldErrors } = s;
+  useEffect(() => {
+    if (v.requiresOtp === true) setSubmitFieldErrors(clearDateOfBirthError);
+  }, [v.requiresOtp, setSubmitFieldErrors]);
+  const contextQuery = usePublicBookingContext(
+    referralCode,
+    v.verificationToken,
+  );
+  const a = usePublicBookingSubmitActions(referralCode, {
+    phone: f.phone,
+    otp: v.otp,
+    turnstileToken: f.turnstileToken,
+    siteKey,
+    requiresOtp: v.requiresOtp,
+    setRequiresOtp: v.setRequiresOtp,
+    verificationToken: v.verificationToken,
+    setVerificationToken: v.setVerificationToken,
+    firstName: f.firstName,
+    setFirstName: f.setFirstName,
+    lastName: f.lastName,
+    setLastName: f.setLastName,
+    email: f.email,
+    setEmail: f.setEmail,
+    dateOfBirth: f.dateOfBirth,
+    dpdpConsentAccepted: f.dpdpConsentAccepted,
+    reason: f.reason,
+    notes: f.notes,
     slotDate: slots.slotDate,
     doctorId: slots.doctorId,
     selectedStart: slots.selectedStart,
     selectedEnd: slots.selectedEnd,
     selectedSlotDoctorId: slots.selectedSlotDoctorId,
-    setSubmitFieldErrors,
-    setSubmitGeneralMessage,
-    setDone,
+    setSubmitFieldErrors: s.setSubmitFieldErrors,
+    setSubmitGeneralMessage: s.setSubmitGeneralMessage,
+    setDone: s.setDone,
   });
-
-  const visitCanContinue = useMemo(
-    () => computeVisitCanContinue(siteKey, turnstileToken),
-    [siteKey, turnstileToken],
-  );
-
-  const contactCanContinue = useMemo(
-    () =>
-      computeContactCanContinue({
-        phone,
-        requiresOtp,
-        verificationToken,
-        firstName,
-        lastName,
-        dateOfBirth,
-        dpdpConsentAccepted,
-      }),
-    [
-      dateOfBirth,
-      dpdpConsentAccepted,
-      firstName,
-      lastName,
-      phone,
-      requiresOtp,
-      verificationToken,
-    ],
-  );
-
-  const submitRequestReady = useMemo(
-    () =>
-      computeSubmitRequestReady({
-        slotDate: slots.slotDate,
-        visitCanContinue,
-        phone,
-        requiresOtp,
-        verificationToken,
-        firstName,
-        lastName,
-        dateOfBirth,
-        dpdpConsentAccepted,
-      }),
-    [
-      slots.slotDate,
-      visitCanContinue,
-      phone,
-      requiresOtp,
-      verificationToken,
-      firstName,
-      lastName,
-      dateOfBirth,
-      dpdpConsentAccepted,
-    ],
-  );
-
-  const goToStep = useCallback(
-    (step: PublicBookingMobileStep, focusFieldId?: string) => {
-      setMobileStep(step);
-      if (focusFieldId) {
-        focusAndScrollToField(focusFieldId);
-      } else {
-        scrollToTop();
-      }
-    },
-    [],
-  );
-
-  useEffect(() => {
-    if (requiresOtp === true) {
-      setDateOfBirth("");
-      setDpdpConsentAccepted(false);
-      setSubmitFieldErrors(clearDateOfBirthError);
-    }
-  }, [requiresOtp]);
-
-  const handleSelectSlot = useCallback(
-    (startIso: string, endIso: string) => {
-      slots.handleSelectSlot(startIso, endIso);
-      setSubmitFieldErrors(clearSlotErrors);
-    },
-    [slots],
-  );
-
-  const handleSelectSlotWithDoctor = useCallback(
-    (startIso: string, endIso: string, slotDoctorId: string) => {
-      slots.handleSelectSlotWithDoctor(startIso, endIso, slotDoctorId);
-      setSubmitFieldErrors(clearSlotErrors);
-    },
-    [slots],
-  );
-
   return {
     referralCode,
     siteKey,
-    turnstileToken,
-    setTurnstileToken,
+    turnstileToken: f.turnstileToken,
+    setTurnstileToken: f.setTurnstileToken,
     ...slots,
     contextQuery,
-    phoneCheck,
-    otpRequest,
-    otpVerify,
-    submit,
-    firstName,
-    setFirstName,
-    lastName,
-    setLastName,
-    phone,
-    setPhone,
-    email,
-    setEmail,
-    dateOfBirth,
-    setDateOfBirth,
-    reason,
-    setReason,
-    notes,
-    setNotes,
-    requiresOtp,
-    setRequiresOtp,
-    otp,
-    setOtp,
-    verificationToken,
-    setVerificationToken,
-    submitFieldErrors,
-    setSubmitFieldErrors,
-    submitGeneralMessage,
-    done,
-    setDone,
-    unknownSubmitErrors,
-    slotRangeSubmitError,
-    handleSelectSlot,
-    handleSelectSlotWithDoctor,
-    runPhoneCheck,
-    handleRequestOtp,
-    handleVerifyOtp,
-    handleSubmit,
-    mobileStep,
-    setMobileStep,
-    goToStep,
-    visitCanContinue,
-    contactCanContinue,
-    submitRequestReady,
-    dpdpConsentAccepted,
-    setDpdpConsentAccepted,
+    ...a,
+    firstName: f.firstName,
+    setFirstName: f.setFirstName,
+    lastName: f.lastName,
+    setLastName: f.setLastName,
+    phone: f.phone,
+    setPhone: f.setPhone,
+    email: f.email,
+    setEmail: f.setEmail,
+    dateOfBirth: f.dateOfBirth,
+    setDateOfBirth: f.setDateOfBirth,
+    reason: f.reason,
+    setReason: f.setReason,
+    notes: f.notes,
+    setNotes: f.setNotes,
+    requiresOtp: v.requiresOtp,
+    setRequiresOtp: v.setRequiresOtp,
+    otp: v.otp,
+    setOtp: v.setOtp,
+    verificationToken: v.verificationToken,
+    setVerificationToken: v.setVerificationToken,
+    submitFieldErrors: s.submitFieldErrors,
+    setSubmitFieldErrors: s.setSubmitFieldErrors,
+    submitGeneralMessage: s.submitGeneralMessage,
+    done: s.done,
+    setDone: s.setDone,
+    unknownSubmitErrors: s.unknownSubmitErrors,
+    slotRangeSubmitError: s.slotRangeSubmitError,
+    handleSelectSlot: s.handleSelectSlot,
+    handleSelectSlotWithDoctor: s.handleSelectSlotWithDoctor,
+    mobileStep: s.mobileStep,
+    setMobileStep: s.setMobileStep,
+    goToStep: s.goToStep,
+    visitCanContinue: s.visitCanContinue,
+    contactCanContinue: s.contactCanContinue,
+    submitRequestReady: s.submitRequestReady,
+    dpdpConsentAccepted: f.dpdpConsentAccepted,
+    setDpdpConsentAccepted: f.setDpdpConsentAccepted,
   };
 }
 

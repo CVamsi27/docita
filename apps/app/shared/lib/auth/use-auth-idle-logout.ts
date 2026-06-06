@@ -14,10 +14,8 @@ export function useAuthIdleLogout(options: {
   router: AppRouterInstance;
 }): void {
   const { isAuthenticated, pathname, logout } = options;
-
   useEffect(() => {
     if (!isAuthenticated) return;
-
     let timeoutId: NodeJS.Timeout;
     let deadlineMs = 0;
 

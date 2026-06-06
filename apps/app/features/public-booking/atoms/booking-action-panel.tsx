@@ -17,7 +17,6 @@ export function BookingActionPanel({
   isSubmitting: boolean;
   className?: string;
   variant?: "default" | "compact";
-  /** When false, submit stays disabled (matches validation before sending). */
   submitEnabled?: boolean;
 }) {
   const isCompact = variant === "compact";

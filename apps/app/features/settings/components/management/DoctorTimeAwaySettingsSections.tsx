@@ -1,7 +1,11 @@
 // check-non-null-assertion: allow-file — non-null guaranteed by prior guard or Prisma include
 "use client";
 
-import { CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
+import {
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
 import { Label } from "@workspace/ui/components/form/label";
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
@@ -188,7 +192,6 @@ export function ScheduledTimeAwayList({
           {timeOffs.map((off) => {
             const start = new Date(off.startDate);
             const end = new Date(off.endDate);
-
             return (
               <li
                 key={off.id}
@@ -207,7 +210,8 @@ export function ScheduledTimeAwayList({
                     <div className="text-muted-foreground">{off.reason}</div>
                   ) : null}
                 </div>
-                {off.id && (isAdminCheck(userRole) || off.doctorId === currentUserId) ? (
+                {off.id &&
+                (isAdminCheck(userRole) || off.doctorId === currentUserId) ? (
                   <SymbolTooltip label="Remove time away">
                     <Button
                       type="button"

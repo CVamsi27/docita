@@ -18,8 +18,13 @@ import { centsToMajor } from "@/features/insurance-claims/lib/claim-display";
 
 export const useInsuranceClaimEditLogic = (id: string) => {
   const router = useRouter();
-  const { data: claim, isPending, isError, error, refetch } =
-    useInsuranceClaim(id);
+  const {
+    data: claim,
+    isPending,
+    isError,
+    error,
+    refetch,
+  } = useInsuranceClaim(id);
   const updateClaim = useUpdateInsuranceClaim(id);
   const form = useForm<EditInsuranceClaimFormValues>({
     resolver: zodResolver(editInsuranceClaimFormSchema),
@@ -34,7 +39,6 @@ export const useInsuranceClaimEditLogic = (id: string) => {
       notes: "",
     },
   });
-
   useEffect(() => {
     if (!claim) return;
     form.reset({
@@ -48,7 +52,6 @@ export const useInsuranceClaimEditLogic = (id: string) => {
       notes: claim.notes ?? "",
     });
   }, [claim, form]);
-
   const onSubmit = async (values: EditInsuranceClaimFormValues) => {
     if (!claim?.version) return;
     try {
@@ -71,7 +74,6 @@ export const useInsuranceClaimEditLogic = (id: string) => {
       );
     }
   };
-
   return {
     claim,
     loading: isPending,

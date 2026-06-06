@@ -2,15 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { DashboardSharedWorkspace } from "@/features/dashboard/components/layout/dashboard-shared-workspace";
-import { DashboardShortcutsSection } from "@/features/dashboard/components/layout/dashboard-shortcuts-section";
 import { DashboardSkeletonUI } from "@/features/dashboard/components/layout/dashboard-skeleton-ui";
-import { TodayFollowUpsPanel } from "@/features/dashboard/components/follow-ups/today-follow-ups-panel";
-import { TodayScheduleUI } from "@/features/dashboard/components/schedule/today-schedule-ui";
 import { formatDashboardSummary } from "@/features/dashboard/lib/format-dashboard-summary";
 import { useDashboardLogic } from "@/features/dashboard/hooks/use-dashboard-logic";
 import { useClinicReferralShare } from "@/features/dashboard/hooks/use-clinic-referral-share";
-import { Feature } from "@/lib/stores/permission-store";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useAskAi } from "@/components/ask-ai/ask-ai-context";
@@ -24,11 +21,26 @@ import { isSessionRecoveryError } from "@/lib/auth/session-recovery";
 import { cn } from "@workspace/ui/lib/utils";
 import { DEFAULT_SLOT_DURATION } from "@workspace/utils";
 import { LayoutDashboard } from "lucide-react";
-import {
-  TodayHeaderActions,
-  TodayRightRailSection,
-  TodayBottomBarSection,
-} from "./today-page-content-sections";
+
+const TodayMainWidgets = dynamic(
+  () => import("./today-main-widgets").then((mod) => mod.TodayMainWidgets),
+  { ssr: false },
+);
+
+const TodayRightRail = dynamic(
+  () => import("./today-right-rail").then((mod) => mod.TodayRightRail),
+  { ssr: false },
+);
+
+const TodayBottomBarSection = dynamic(
+  () =>
+    import("./today-page-content-sections").then(
+      (mod) => mod.TodayBottomBarSection,
+    ),
+  { ssr: false },
+);
+
+import { TodayHeaderActions } from "./today-page-content-sections";
 
 export function TodayPageContent() {
   const { clinic } = useClinic();
@@ -180,15 +192,15 @@ export function TodayPageContent() {
             pendingReports={stats.pendingReports}
             slotDurationMinutes={clinic?.slotDuration ?? DEFAULT_SLOT_DURATION}
           >
-            <TodayFollowUpsPanel enabled={canAccess(Feature.CALENDAR_SLOTS)} />
-            <DashboardShortcutsSection pendingReports={stats.pendingReports} />
-            {canAccess(Feature.CALENDAR_SLOTS) ? (
-              <TodayScheduleUI appointments={todayAppointments} />
-            ) : null}
+            <TodayMainWidgets
+              appointments={todayAppointments}
+              pendingReports={stats.pendingReports}
+              canAccess={canAccess}
+            />
           </DashboardSharedWorkspace>
         </div>
         {showTodayRightColumn ? (
-          <TodayRightRailSection
+          <TodayRightRail
             hasShareRailContent={hasShareRailContent}
             hasAdvisorRailContent={hasAdvisorRailContent}
             referralCode={referralCode}

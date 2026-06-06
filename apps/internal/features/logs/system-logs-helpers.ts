@@ -38,6 +38,35 @@ export function countActiveFilters(
   return count;
 }
 
+export function buildFilterUrl(
+  currentParams: string,
+  pathname: string,
+  next: {
+    level: string;
+    module: string;
+    q: string;
+    limit: number;
+    offset: number;
+  },
+  defaultLimit: number,
+): string | null {
+  const p = new URLSearchParams(currentParams);
+  const set = (k: string, v: string, skip: string) => {
+    if (v === skip) p.delete(k);
+    else p.set(k, v);
+  };
+  set("level", next.level, "ALL");
+  set("module", next.module, "ALL");
+  set("q", next.q.trim() || "", "");
+  if (next.limit === defaultLimit) p.delete("limit");
+  else p.set("limit", String(next.limit));
+  if (next.offset <= 0) p.delete("offset");
+  else p.set("offset", String(next.offset));
+  const query = p.toString();
+  if (query === currentParams) return null;
+  return query ? `${pathname}?${query}` : pathname;
+}
+
 export function buildLogsQueryParams(
   selectedLimit: number,
   selectedOffset: number,

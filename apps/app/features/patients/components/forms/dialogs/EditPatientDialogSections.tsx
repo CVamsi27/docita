@@ -113,7 +113,6 @@ export function PatientBasicInfoFields({
 interface PatientDemographicFieldsProps {
   control: Control<UpdatePatientRequest>;
 }
-
 export function PatientDemographicFields({
   control,
 }: PatientDemographicFieldsProps) {

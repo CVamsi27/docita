@@ -31,7 +31,6 @@ export function AppointmentsPageHeaderUI({
   searchRowAction,
 }: AppointmentsPageHeaderUIProps) {
   const { openOverlay } = useAskAi();
-
   return (
     <div className="space-y-4">
       <PageHeader
@@ -60,7 +59,6 @@ export function AppointmentsPageHeaderUI({
           </div>
         }
       />
-
       <div className="flex flex-wrap items-center gap-2">
         <SearchInput
           value={searchQuery}
@@ -73,7 +71,6 @@ export function AppointmentsPageHeaderUI({
           <div className="ml-auto shrink-0">{searchRowAction}</div>
         ) : null}
       </div>
-
       <AddAppointmentDialog
         onAppointmentAdded={onAppointmentAdded}
         selectedDate={selectedDate}

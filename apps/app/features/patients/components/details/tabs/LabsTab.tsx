@@ -82,7 +82,6 @@ function LabsTabContent({ patientId }: LabsTabProps) {
           ? formatDate(order.completedAt, "d MMM yyyy")
           : null;
         const variant = STATUS_VARIANT[order.status] ?? "outline";
-
         return (
           <Card key={order.id}>
             <CardHeader className="pb-2">

@@ -22,8 +22,8 @@ export function PrescriptionsFilters({
   onStartDateChange,
   onEndDateChange,
 }: PrescriptionsFiltersProps) {
-  const clearDaysDisabled = startDate.trim().length === 0 && endDate.trim().length === 0;
-
+  const clearDaysDisabled =
+    startDate.trim().length === 0 && endDate.trim().length === 0;
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
       <SearchInput
@@ -33,10 +33,12 @@ export function PrescriptionsFilters({
         placeholder="Enter patient, diagnosis, or phone"
         ariaLabel="Search prescriptions"
       />
-
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <div className="grid gap-2">
-          <Label htmlFor="prescriptions-filter-start" className="text-xs text-muted-foreground">
+          <Label
+            htmlFor="prescriptions-filter-start"
+            className="text-xs text-muted-foreground"
+          >
             From
           </Label>
           <IsoDatePickerField
@@ -49,9 +51,11 @@ export function PrescriptionsFilters({
             triggerClassName="w-full sm:w-[180px]"
           />
         </div>
-
         <div className="grid gap-2">
-          <Label htmlFor="prescriptions-filter-end" className="text-xs text-muted-foreground">
+          <Label
+            htmlFor="prescriptions-filter-end"
+            className="text-xs text-muted-foreground"
+          >
             To
           </Label>
           <IsoDatePickerField
@@ -64,7 +68,6 @@ export function PrescriptionsFilters({
             triggerClassName="w-full sm:w-[180px]"
           />
         </div>
-
         <SymbolTooltip label="Show all days (no date filter)">
           <Button
             type="button"

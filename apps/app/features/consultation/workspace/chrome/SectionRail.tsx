@@ -71,7 +71,6 @@ export function SectionRail({
           </div>
         </div>
       ) : null}
-
       {sections.map((section) => {
         const Icon = section.icon;
         const isActive = section.id === activeSectionId;
@@ -135,7 +134,6 @@ export function SectionRail({
           </button>
         );
       })}
-
       {nextStep && nextStep.id !== activeSectionId ? (
         <button
           type="button"

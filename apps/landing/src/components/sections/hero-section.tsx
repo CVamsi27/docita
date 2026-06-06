@@ -193,7 +193,6 @@ function HeroProductCard({
           <span>Live</span>
         </span>
       </div>
-
       <div className="r2-product-stage">
         <WaitingFrame />
         <ConsultFrame />
@@ -277,15 +276,12 @@ function ConsultFrame() {
       <div className="flex items-center justify-between">
         <div>
           <p className="r2-eyebrow">Consult · Token 07</p>
-          <p className="text-sm font-semibold text-foreground">
-            R. Iyer · 42 · F · Follow-up
-          </p>
+          <p className="text-sm font-semibold text-foreground">R. Iyer · 42 · F · Follow-up</p>
         </div>
         <span className="r2-status-pill r2-status-pill--in">
           <Stethoscope className="h-3 w-3" /> In room
         </span>
       </div>
-
       <div className="r2-row">
         <div className="min-w-0 flex-1">
           <p className="r2-eyebrow">Last visit · 12 Apr</p>
@@ -294,7 +290,6 @@ function ConsultFrame() {
           </p>
         </div>
       </div>
-
       <div className="r2-row">
         <FileText className="h-4 w-4 text-primary" />
         <div className="min-w-0 flex-1">
@@ -309,7 +304,6 @@ function ConsultFrame() {
           Review
         </span>
       </div>
-
       <div className="r2-row">
         <FileText className="h-4 w-4 text-primary" />
         <div className="min-w-0 flex-1">
@@ -322,7 +316,6 @@ function ConsultFrame() {
         </div>
         <span className="r2-status-pill r2-status-pill--done">Added</span>
       </div>
-
       <div className="grid grid-cols-2 gap-2.5">
         <div className="rounded-lg border border-border/60 bg-muted px-3 py-2 text-xs">
           <p className="r2-eyebrow">Lab</p>

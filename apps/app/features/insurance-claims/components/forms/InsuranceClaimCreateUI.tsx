@@ -5,9 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { Button } from "@workspace/ui/components/form/button";
-import {
-  Form,
-} from "@workspace/ui/components/form/form";
+import { Form } from "@workspace/ui/components/form/form";
 import {
   useInsuranceClaimCreateLogic,
   type ClaimCreatePresets,
@@ -18,7 +16,6 @@ import {
   ClaimFormFieldGrid,
   ClaimFormActions,
 } from "./InsuranceClaimCreateUISections";
-
 export const InsuranceClaimCreateUI: FC<{ presets?: ClaimCreatePresets }> = ({
   presets,
 }) => {
@@ -58,13 +55,11 @@ export const InsuranceClaimCreateUI: FC<{ presets?: ClaimCreatePresets }> = ({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <PresetPatientCard presetPatient={presetPatient} />
-
           <ClaimReadinessCard
             invoiceId={presets?.invoiceId}
             claimReadinessLoading={claimReadinessLoading}
             claimReadiness={claimReadiness}
           />
-
           <ClaimFormFieldGrid
             control={form.control}
             presets={presets}
@@ -73,7 +68,6 @@ export const InsuranceClaimCreateUI: FC<{ presets?: ClaimCreatePresets }> = ({
             patients={patients}
             patientsLoading={patientsLoading}
           />
-
           <ClaimFormActions
             isSaving={isSaving}
             claimReadinessLoading={claimReadinessLoading}

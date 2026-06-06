@@ -60,7 +60,6 @@ export function OngoingMedicationsSection({
             const adherenceRate = medication.adherence
               ? clampPercentage(medication.adherence.adherenceRate)
               : null;
-
             return (
               <article
                 key={medication.medicationId}
@@ -85,13 +84,11 @@ export function OngoingMedicationsSection({
                     <Badge variant="secondary">{medication.duration}</Badge>
                   )}
                 </div>
-
                 {medication.prnInstructions ? (
                   <p className="text-xs text-muted-foreground">
                     Take when: {medication.prnInstructions}
                   </p>
                 ) : null}
-
                 {!medication.isPRN ? (
                   adherenceRate === null ? (
                     <p className="text-xs text-muted-foreground">

@@ -54,7 +54,8 @@ export function recommendTier(
     const includedAppointments = limits.appointments ?? 0;
     const includedUsers = limits.users ?? 0;
     const includedWhatsapp = readWhatsappIncludedQuota(candidate);
-    const includedAiCredits = getAiCreditAllotment(candidate) ?? Number.MAX_SAFE_INTEGER;
+    const includedAiCredits =
+      getAiCreditAllotment(candidate) ?? Number.MAX_SAFE_INTEGER;
 
     const covers =
       consultations <= includedAppointments &&
@@ -62,7 +63,6 @@ export function recommendTier(
       whatsapp <= includedWhatsapp &&
       aiCredits <= includedAiCredits;
     if (!covers) continue;
-
     const reasons: string[] = [];
     const currentLimits = TIER_LIMITS[current];
     if (consultations > (currentLimits.appointments ?? 0)) {
@@ -82,10 +82,7 @@ export function recommendTier(
       );
     }
     const currentAiCredits = getAiCreditAllotment(current);
-    if (
-      currentAiCredits !== null &&
-      aiCredits > currentAiCredits
-    ) {
+    if (currentAiCredits !== null && aiCredits > currentAiCredits) {
       reasons.push(
         `${aiCredits} AI credits vs ${currentAiCredits} included on ${current}`,
       );

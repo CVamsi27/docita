@@ -138,7 +138,6 @@ function ConsultationPageContent() {
       variant: "warning",
     });
     if (!ok) return;
-
     setIsMarkingDone(true);
     try {
       const handles = saveHandlesRef.current;
@@ -165,9 +164,7 @@ function ConsultationPageContent() {
             "We saved the consultation, but could not finalize the prescription. You can review it later from the patient chart.",
         });
       }
-
       await consultationApi.complete(appointmentId);
-
       await queryClient.invalidateQueries({
         queryKey: queryKeys.appointments.detail(appointmentId),
       });
@@ -195,7 +192,9 @@ function ConsultationPageContent() {
   ]);
 
   if (loading || isRecoveringSession) {
-    return <ConsultationLoadingPage isRecoveringSession={isRecoveringSession} />;
+    return (
+      <ConsultationLoadingPage isRecoveringSession={isRecoveringSession} />
+    );
   }
 
   if (isError) {

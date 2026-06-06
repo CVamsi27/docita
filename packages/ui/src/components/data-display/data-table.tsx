@@ -1,39 +1,21 @@
 "use client";
 
-import { type ReactNode, useMemo, useState } from "react";
-import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
-  Inbox,
-} from "lucide-react";
-
+import { type ReactNode } from "react";
+import { Inbox } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import { Button } from "../form/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "./table";
+import { Table } from "./table";
 import { Skeleton } from "../feedback/skeleton";
 import { EmptyState } from "../feedback/empty-state";
 import { ErrorState } from "../feedback/error-state";
+import { useDataTableSort } from "./use-data-table-sort";
+import { useDataTablePagination } from "./use-data-table-pagination";
+import { DataTableHeaderRow } from "./data-table-header";
+import { DataTableBodyRows } from "./data-table-body";
+import { DataTablePaginationControls } from "./data-table-pagination-controls";
+import { DataTableToolbar } from "./data-table-toolbar";
+import type { DataTableColumn } from "./data-table.types";
 
-export interface DataTableColumn<T> {
-  id: string;
-  header: ReactNode;
-  cell: (row: T, rowIndex: number) => ReactNode;
-  sort?: (a: T, b: T) => number;
-  align?: "left" | "right" | "center";
-  width?: string;
-  hiddenOnMobile?: boolean;
-  className?: string;
-}
+export type { DataTableColumn } from "./data-table.types";
 
 interface DataTableProps<T> {
   columns: DataTableColumn<T>[];
@@ -54,8 +36,6 @@ interface DataTableProps<T> {
   mobileRenderer?: (row: T) => ReactNode;
 }
 
-type SortState = { id: string; dir: "asc" | "desc" } | null;
-
 export function DataTable<T>({
   columns,
   data,
@@ -66,7 +46,6 @@ export function DataTable<T>({
   emptyDescription = "When items arrive, you will see them in this list.",
   emptyAction,
   onRowClick,
-  stickyHeader = true,
   density = "comfortable",
   pageSize,
   className,
@@ -74,27 +53,16 @@ export function DataTable<T>({
   stackOnMobile = false,
   mobileRenderer,
 }: DataTableProps<T>) {
-  const [sort, setSort] = useState<SortState>(null);
-  const [page, setPage] = useState(0);
-
-  const sorted = useMemo(() => {
-    if (!sort) return data;
-    const col = columns.find((c) => c.id === sort.id);
-    if (!col?.sort) return data;
-    const next = [...data].sort(col.sort);
-    return sort.dir === "asc" ? next : next.reverse();
-  }, [columns, data, sort]);
-
-  const paginated = useMemo(() => {
-    if (!pageSize) return sorted;
-    const start = page * pageSize;
-    return sorted.slice(start, start + pageSize);
-  }, [sorted, page, pageSize]);
-
-  const totalPages = pageSize ? Math.max(1, Math.ceil(sorted.length / pageSize)) : 1;
+  const { sort, setSort, sorted } = useDataTableSort(data, columns);
+  const { page, setPage, paginated, totalPages } = useDataTablePagination(
+    sorted,
+    pageSize,
+  );
 
   if (error) {
-    return <ErrorState message="We could not load this table. Please try again." />;
+    return (
+      <ErrorState message="We could not load this table. Please try again." />
+    );
   }
 
   if (isLoading) {
@@ -123,19 +91,13 @@ export function DataTable<T>({
 
   return (
     <div className={cn("w-full", className)}>
-      {stackOnMobile && mobileRenderer ? (
-        <div className="space-y-2 md:hidden">
-          {paginated.map((row, idx) => (
-            <div
-              key={rowKey(row, idx)}
-              className="ui-card-surface p-3"
-              onClick={onRowClick ? () => onRowClick(row) : undefined}
-            >
-              {mobileRenderer(row)}
-            </div>
-          ))}
-        </div>
-      ) : null}
+      <DataTableToolbar
+        stackOnMobile={stackOnMobile}
+        mobileRenderer={mobileRenderer}
+        paginated={paginated}
+        rowKey={rowKey}
+        onRowClick={onRowClick}
+      />
 
       <div
         className={cn(
@@ -146,116 +108,27 @@ export function DataTable<T>({
         <div className="overflow-x-auto overscroll-x-contain">
           <Table>
             {caption ? <caption className="sr-only">{caption}</caption> : null}
-            <TableHeader
-              className={cn(stickyHeader && "sticky top-0 z-10 bg-surface-2")}
-            >
-              <TableRow>
-                {columns.map((col) => {
-                  const active = sort?.id === col.id;
-                  const ariaSort = active
-                    ? sort?.dir === "asc"
-                      ? "ascending"
-                      : "descending"
-                    : "none";
-                  return (
-                    <TableHead
-                      key={col.id}
-                      aria-sort={col.sort ? (ariaSort as "none" | "ascending" | "descending") : undefined}
-                      style={col.width ? { width: col.width } : undefined}
-                      className={cn(
-                        headerPad,
-                        "text-[var(--fs-xs)] font-medium text-muted-foreground",
-                        col.align === "right" && "text-right",
-                        col.align === "center" && "text-center",
-                        col.hiddenOnMobile && "hidden md:table-cell",
-                        col.className,
-                      )}
-                    >
-                      {col.sort ? (
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-1 hover:text-foreground"
-                          onClick={() =>
-                            setSort((prev) => {
-                              if (!prev || prev.id !== col.id) return { id: col.id, dir: "asc" };
-                              if (prev.dir === "asc") return { id: col.id, dir: "desc" };
-                              return null;
-                            })
-                          }
-                          aria-label={`Sort by ${typeof col.header === "string" ? col.header : col.id}`}
-                        >
-                          <span>{col.header}</span>
-                          {active ? (
-                            sort?.dir === "asc" ? (
-                              <ArrowUp className="size-3" />
-                            ) : (
-                              <ArrowDown className="size-3" />
-                            )
-                          ) : (
-                            <ArrowUpDown className="size-3 opacity-60" />
-                          )}
-                        </button>
-                      ) : (
-                        col.header
-                      )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginated.map((row, idx) => (
-                <TableRow
-                  key={rowKey(row, idx)}
-                  onClick={onRowClick ? () => onRowClick(row) : undefined}
-                  className={cn(onRowClick && "cursor-pointer hover:bg-muted/40")}
-                >
-                  {columns.map((col) => (
-                    <TableCell
-                      key={col.id}
-                      className={cn(
-                        cellPad,
-                        "text-[var(--fs-sm)]",
-                        col.align === "right" && "text-right",
-                        col.align === "center" && "text-center",
-                        col.hiddenOnMobile && "hidden md:table-cell",
-                        col.className,
-                      )}
-                    >
-                      {col.cell(row, idx)}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
+            <DataTableHeaderRow
+              columns={columns}
+              sort={sort}
+              onSortChange={setSort}
+              headerPad={headerPad}
+            />
+            <DataTableBodyRows
+              columns={columns}
+              paginated={paginated}
+              rowKey={rowKey}
+              onRowClick={onRowClick}
+              cellPad={cellPad}
+            />
           </Table>
         </div>
         {pageSize ? (
-          <div className="flex items-center justify-between border-t border-border/60 px-3 py-2">
-            <div className="text-[var(--fs-xs)] text-muted-foreground">
-              Page {page + 1} of {totalPages}
-            </div>
-            <div className="flex items-center gap-1">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                disabled={page === 0}
-                aria-label="Previous page"
-              >
-                <ChevronLeft className="size-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1}
-                aria-label="Next page"
-              >
-                <ChevronRight className="size-4" />
-              </Button>
-            </div>
-          </div>
+          <DataTablePaginationControls
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
         ) : null}
       </div>
     </div>

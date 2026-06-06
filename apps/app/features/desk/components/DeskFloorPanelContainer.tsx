@@ -12,10 +12,7 @@ import {
   isQueueTokenWaiting,
 } from "@/lib/utils/queue-token-status";
 import { getOpdQueueSummaryLine } from "@/features/consultation";
-import {
-  DeskFloorPanelUI,
-  type DeskFloorCurrent,
-} from "./DeskFloorPanelUI";
+import { DeskFloorPanelUI, type DeskFloorCurrent } from "./DeskFloorPanelUI";
 import type { DeskFloorRow } from "./DeskFloorPanelUISections";
 
 const RECENTLY_COMPLETED_LIMIT = 6;
@@ -82,7 +79,6 @@ export function DeskFloorPanelContainer() {
       inProgressItems[0]?.estimatedDuration || DEFAULT_SLOT_DURATION;
     const avgWaitMinutes =
       waiting.length > 0 ? waiting.length * slotMinutes : null;
-
     return {
       current,
       waiting,

@@ -151,7 +151,6 @@ export function PrescriptionViewPageContent() {
       ? readClinicInfo(prescription.patient.clinic)
       : undefined;
   const clinicInfo = patientClinic ?? contextClinic ?? undefined;
-
   const canEdit =
     !!user?.role &&
     canCreatePrescription(user.role) &&

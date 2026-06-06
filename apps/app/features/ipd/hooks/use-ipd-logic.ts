@@ -98,7 +98,6 @@ export const useIpdLogic = () => {
         occupancyRate: 0,
         activeAdmissions: activeAdmissions?.length ?? 0,
       };
-
     const totalBeds = normalizedWards.reduce(
       (acc, ward) =>
         acc +

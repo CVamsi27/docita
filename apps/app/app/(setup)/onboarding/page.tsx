@@ -34,7 +34,6 @@ export default function OnboardingPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
-
   useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated) {
@@ -42,7 +41,6 @@ export default function OnboardingPage() {
       router.replace("/login?next=/onboarding");
       return;
     }
-
     if (user?.clinicId || user?.onboardingStep === "COMPLETED") {
       setRedirectMessage(
         "Registration successful. Taking you to your workspace…",
@@ -50,13 +48,11 @@ export default function OnboardingPage() {
       router.replace("/today");
       return;
     }
-
     if (user?.onboardingStep === "JOINING_CLINIC") {
       setRedirectMessage("Taking you to your join request status…");
       router.replace("/join-request-status");
       return;
     }
-
     if (
       user?.onboardingStep === "CHOOSE_PATH" ||
       user?.onboardingStep === "NOT_STARTED"
@@ -65,15 +61,13 @@ export default function OnboardingPage() {
       router.replace("/choose-path");
     }
   }, [isAuthenticated, isLoading, user, router]);
-
-  if (redirectMessage) {
+  if (redirectMessage)
     return (
       <PageTransitionLoader
         title="Redirecting…"
         description={redirectMessage}
       />
     );
-  }
 
   return (
     <PreDashboardShell

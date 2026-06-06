@@ -103,7 +103,8 @@ export function TeamInviteStep({
 
   const handleSubmit = () => {
     const validMembers = members.flatMap((member, index) => {
-      if (getMemberIssue(member, index, emailErrors) || !hasRowContent(member)) return [];
+      if (getMemberIssue(member, index, emailErrors) || !hasRowContent(member))
+        return [];
       return [
         {
           ...member,
@@ -127,9 +128,9 @@ export function TeamInviteStep({
   };
 
   const validMembers = members.filter(
-    (member, index) => !getMemberIssue(member, index, emailErrors) && hasRowContent(member),
+    (member, index) =>
+      !getMemberIssue(member, index, emailErrors) && hasRowContent(member),
   );
-
   const hasValidMembers = validMembers.length > 0;
 
   return (

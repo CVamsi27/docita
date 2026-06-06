@@ -88,7 +88,6 @@ export function DeskCollectPaymentPageUI() {
       : patients.length === 0 && hasSearchQuery
         ? "empty"
         : "success";
-
   const formatMoney = (amount: number | undefined) =>
     clinicCurrency.formatCurrency(amount ?? 0);
 

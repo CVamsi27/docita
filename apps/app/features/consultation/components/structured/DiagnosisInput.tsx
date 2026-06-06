@@ -24,7 +24,6 @@ export function DiagnosisInput({
     s.canAccess(Feature.MEDICAL_CODING),
   );
   const items = value.length > 0 ? value : [];
-
   const addItem = () => {
     onChange([
       ...items,
@@ -37,7 +36,6 @@ export function DiagnosisInput({
       },
     ]);
   };
-
   const updateItem = (
     index: number,
     field: keyof DiagnosisItem,
@@ -47,17 +45,14 @@ export function DiagnosisInput({
     newItems[index] = { ...newItems[index], [field]: fieldValue };
     onChange(newItems);
   };
-
   const setIcdCode = (index: number, code: DiagnosisItem["icdCode"]) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], icdCode: code };
     onChange(newItems);
   };
-
   const removeItem = (index: number) => {
     onChange(items.filter((_, i) => i !== index));
   };
-
   return (
     <div className="space-y-3">
       <div className="space-y-2">
@@ -76,7 +71,6 @@ export function DiagnosisInput({
           />
         ))}
       </div>
-
       {!readOnly ? (
         <Button
           variant="outline"
@@ -87,7 +81,6 @@ export function DiagnosisInput({
           Add diagnosis
         </Button>
       ) : null}
-
       {items.length === 0 && readOnly ? (
         <div className="rounded-[var(--radius-md)] border border-dashed py-8 text-center text-muted-foreground">
           No diagnosis recorded.

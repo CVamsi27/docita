@@ -76,15 +76,12 @@ export const reportClientError = async (
   if (typeof window === "undefined") {
     return;
   }
-
   if (loadDisabledUntil() > Date.now()) {
     return;
   }
-
   if (typeof navigator !== "undefined" && navigator.onLine === false) {
     return;
   }
-
   // Gate on the in-memory session signal so we don't spam the endpoint
   // before bootstrap-refresh finishes (or when logged out). The actual
   // credential is the httpOnly access_token cookie via credentials: "include".

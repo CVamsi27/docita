@@ -77,7 +77,6 @@ export function RecentConsultationsSection({
               metadata.diagnoses.find((diagnosis) => diagnosis.isPrimary) ??
               metadata.diagnoses[0];
             const href = `/consultation/${metadata.consultationId ?? event.id}?from=patient`;
-
             return (
               <li key={event.id}>
                 <Link

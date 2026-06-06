@@ -3,12 +3,7 @@ import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/b
 import { YearlyVsListAnnualPrice } from "@/features/subscription/lib/yearly-vs-list-annual-price";
 import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  CalendarDays,
-  Check,
-  Stethoscope,
-  Users,
-} from "lucide-react";
+import { CalendarDays, Check, Stethoscope, Users } from "lucide-react";
 import {
   LIMIT_ICONS,
   formatTierPrice,
@@ -45,9 +40,7 @@ export function TierCardPriceAmount({
     );
   }
 
-  return (
-    <>{formatTierPrice(tier, pricing, billingCycle, currencySymbol)}</>
-  );
+  return <>{formatTierPrice(tier, pricing, billingCycle, currencySymbol)}</>;
 }
 
 export function TierCardSummaryPricing({
@@ -226,7 +219,6 @@ export function TierCardFullPricing({
           </div>
         ) : null}
       </div>
-
       {limitHighlights?.length ? (
         <TierCardLimitHighlights limitHighlights={limitHighlights} />
       ) : usageHints ? (

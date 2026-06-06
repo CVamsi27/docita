@@ -242,7 +242,6 @@ async function run(): Promise<void> {
       const pass =
         missingRequiredIndexes.length === 0 && hasIndexAccess && !hasSeqScan;
       process.stdout.write(`${check.name}: ${pass ? "PASS" : "FAIL"}\n`);
-
       if (!pass) {
         hasFailure = true;
         process.stdout.write(`  required indexes: ${check.requiredIndexes.join(", ")}\n`);
@@ -259,7 +258,6 @@ async function run(): Promise<void> {
       }
     }
   });
-
   if (hasFailure) {
     process.exit(1);
   }
