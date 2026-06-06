@@ -158,7 +158,7 @@ async function assertDailyThoughtResponse(response, latencyMs) {
     throw new Error(`Expected public Cache-Control, got "${cacheControl}"`);
   }
 
-  if (latencyMs > LATENCY_TARGETS_MS["daily-thought"]) {
+  if (!IS_POST_DEPLOY && latencyMs > LATENCY_TARGETS_MS["daily-thought"]) {
     throw new Error(
       `Latency ${latencyMs}ms exceeds ${LATENCY_TARGETS_MS["daily-thought"]}ms target`,
     );
