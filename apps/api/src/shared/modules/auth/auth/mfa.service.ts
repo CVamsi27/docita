@@ -243,9 +243,7 @@ export class MfaService {
       secret: user.mfaSecret,
       epochTolerance: 1,
     });
-    const isTotpValid = verifyResult.valid;
-
-    if (!isTotpValid) {
+    if (!verifyResult.valid) {
       const isBackupCode = await this.verifyAndConsumeBackupCode(
         user.id,
         totpCode,

@@ -81,9 +81,7 @@ export class ErrorTrackingService implements OnModuleDestroy {
 
   async flushBuffer(): Promise<void> {
     if (this.persistenceDisabled || this.errorBuffer.length === 0) return;
-
     const errorsToFlush = this.errorBuffer.splice(0, this.BATCH_SIZE);
-
     try {
       const writeLogs = async () => {
         await this.prisma.errorLog.createMany({
@@ -113,14 +111,12 @@ export class ErrorTrackingService implements OnModuleDestroy {
           skipDuplicates: true,
         });
       };
-
       if (typeof this.prisma.runUnrestricted === 'function') {
         // RLS-BYPASS: system telemetry and error logs are not clinic-scoped
         await this.prisma.runUnrestricted(writeLogs);
       } else {
         await writeLogs();
       }
-
       this.logger.debug(`Flushed ${errorsToFlush.length} errors`);
     } catch (error) {
       if (
@@ -134,7 +130,6 @@ export class ErrorTrackingService implements OnModuleDestroy {
         );
         return;
       }
-
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P1000'
@@ -146,7 +141,6 @@ export class ErrorTrackingService implements OnModuleDestroy {
         );
         return;
       }
-
       this.logger.error(
         `Failed to write errors to database: ${this.formatError(error)}`,
       );

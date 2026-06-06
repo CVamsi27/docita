@@ -106,18 +106,13 @@ export class PrismaIpdRepository implements IpdRepository {
       this.findClinicalStaff(clinicId, input.admittingDoctorId),
     ]);
 
-    if (!patient) {
+    if (!patient)
       throw new NotFoundException('Patient was not found in this facility');
-    }
-    if (!doctor) {
+    if (!doctor)
       throw new NotFoundException('Attending clinician was not found');
-    }
-    if (!bed) {
-      throw new NotFoundException('Bed was not found in this facility');
-    }
-    if (bed.status !== BedStatus.AVAILABLE) {
+    if (!bed) throw new NotFoundException('Bed was not found in this facility');
+    if (bed.status !== BedStatus.AVAILABLE)
       throw new ConflictException('Selected bed is not available');
-    }
 
     return this.prisma.$transaction(async (tx) => {
       const activeAdmission = await tx.admission.findFirst({
@@ -129,10 +124,8 @@ export class PrismaIpdRepository implements IpdRepository {
         select: { id: true },
       });
 
-      if (activeAdmission) {
+      if (activeAdmission)
         throw new ConflictException('Patient already has an active admission');
-      }
-
       const admission = await tx.admission.create({
         data: {
           patientId: input.patientId,

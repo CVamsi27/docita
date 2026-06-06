@@ -54,11 +54,7 @@ export class QueueCommandService {
   }
 
   async callPatient(clinicId: string, queueId: string) {
-    const token = await this.queueRepository.findTokenByIdAndClinic(
-      queueId,
-      clinicId,
-    );
-    if (!token) throw new NotFoundException('Queue token not found');
+    await this.getTokenOrThrow(queueId, clinicId);
 
     return this.queueRepository.updateToken(queueId, {
       status: 'IN_PROGRESS',
@@ -68,11 +64,7 @@ export class QueueCommandService {
   }
 
   async completePatient(clinicId: string, queueId: string) {
-    const token = await this.queueRepository.findTokenByIdAndClinic(
-      queueId,
-      clinicId,
-    );
-    if (!token) throw new NotFoundException('Queue token not found');
+    await this.getTokenOrThrow(queueId, clinicId);
 
     return this.queueRepository.updateToken(queueId, {
       status: 'COMPLETED',
@@ -84,5 +76,14 @@ export class QueueCommandService {
     const { today } = getTodayRange(this.clock);
     await this.queueRepository.cancelTodayActiveTokens(clinicId, today);
     return { success: true };
+  }
+
+  private async getTokenOrThrow(queueId: string, clinicId: string) {
+    const token = await this.queueRepository.findTokenByIdAndClinic(
+      queueId,
+      clinicId,
+    );
+    if (!token) throw new NotFoundException('Queue token not found');
+    return token;
   }
 }

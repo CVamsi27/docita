@@ -5,28 +5,20 @@ import type {
   AuthorizationContext,
   AuthorizationDecision,
   AuthorizationUser,
-  ResourcePolicy,
 } from '../types';
+import { BaseResourcePolicy } from './base-policy';
 
 /**
  * Only the prescribing doctor can amend or delete a prescription; ADMIN /
  * ADMIN_DOCTOR retain clinic-wide read for audit. Patients only see their own.
  */
 @Injectable()
-export class PrescriptionPolicy implements ResourcePolicy {
-  can(
+export class PrescriptionPolicy extends BaseResourcePolicy {
+  protected doCheck(
     action: AuthorizationAction,
     user: AuthorizationUser,
     context: AuthorizationContext,
   ): AuthorizationDecision {
-    if (
-      context.resourceClinicId &&
-      user.clinicId &&
-      context.resourceClinicId !== user.clinicId
-    ) {
-      return { allowed: false, reason: 'tenant_mismatch' };
-    }
-
     if (user.role === Role.PATIENT) {
       if (
         !context.assignedPatientId ||

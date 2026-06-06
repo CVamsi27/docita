@@ -175,12 +175,8 @@ export class MedicationDoseCommandService {
       patientId,
     );
 
-    if (!prescription) {
-      throw new NotFoundException('Prescription not found');
-    }
-
+    if (!prescription) throw new NotFoundException('Prescription not found');
     const created: string[] = [];
-
     for (const med of prescription.medications) {
       if (med.isPRN) continue;
 
@@ -200,7 +196,6 @@ export class MedicationDoseCommandService {
         status: MedicationDoseStatus;
         source: MedicationDoseSource;
       }> = [];
-
       const intervalHours = 24 / dosesPerDay;
 
       for (let day = 0; day < durationDays; day++) {
@@ -227,7 +222,6 @@ export class MedicationDoseCommandService {
         created.push(med.id);
       }
     }
-
     return { medicationsProcessed: created.length };
   }
 }

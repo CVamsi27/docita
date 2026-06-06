@@ -363,7 +363,6 @@ export async function renderAuthorizedSignature(
   let currentY = checkPageBreak(doc, startY + 10, 95, context);
   const signatureX = context.margin + context.contentWidth - 190;
   const label = data.authorizedSignatureLabel || 'Authorized Signature';
-
   doc
     .font('Helvetica-Bold')
     .fontSize(9)

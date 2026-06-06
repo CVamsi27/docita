@@ -19,6 +19,7 @@ import type { PaymentWebhookPayload } from '@workspace/types';
 import {
   IPaymentSessionRepository,
   PAYMENT_SESSION_REPOSITORY_TOKEN,
+  PaymentSessionDetail,
 } from '@/domains/billing/core/repositories/payment-session.repository';
 import {
   IInvoiceRepository,
@@ -36,6 +37,17 @@ import {
   buildPaymentLinkVariables,
   buildPaymentReminderVariables,
 } from '@/shared/whatsapp/patient-whatsapp-template-variables';
+
+type PaymentSessionWithRecipient = PaymentSessionDetail & {
+  patient: NonNullable<PaymentSessionDetail['patient']>;
+  clinic: NonNullable<PaymentSessionDetail['clinic']>;
+};
+
+function hasPaymentRecipient(
+  session: PaymentSessionDetail | null,
+): session is PaymentSessionWithRecipient {
+  return Boolean(session?.patient && session.clinic);
+}
 
 /**
  * Clinic invoice payment mutations (sessions, links, manual settlement).
@@ -159,91 +171,38 @@ export class PaymentsCommandService {
   }
 
   async sendPaymentLinkWhatsApp(sessionId: string, clinicId: string) {
-    const session = await this.repository.findById(sessionId, clinicId);
-    if (!session || !session.patient || !session.clinic) {
-      return;
-    }
-
-    if (!isDocitaOnlinePaymentSession(session)) {
-      this.logger.log(
-        `Payment link WhatsApp skipped for session ${sessionId}: not a Docita online payment session`,
-      );
-      return;
-    }
-
-    const patientName = getPatientFullName(session.patient);
-
-    try {
-      await this.sendMessage.execute({
-        recipientPhone: session.patient.phoneNumber,
-        templateName: 'payment_link',
-        variables: buildPaymentLinkVariables({
-          patientName,
+    await this.sendWhatsAppForSession(
+      sessionId,
+      clinicId,
+      'payment_link',
+      (session) =>
+        buildPaymentLinkVariables({
+          patientName: getPatientFullName(session.patient),
           clinicName: session.clinic.name,
           amount: session.amount / 100,
           currency: session.currency,
           paymentSessionId: sessionId,
         }),
-        clinicId: session.clinicId,
-      });
-    } catch (error) {
-      if (error instanceof ForbiddenException) {
-        this.logger.log(
-          `Payment link WhatsApp skipped for session ${sessionId}: ${error.message}`,
-        );
-        return;
-      }
-      this.logger.error(
-        `Failed to send payment link WhatsApp for session ${sessionId}`,
-        error,
-      );
-    }
+    );
   }
 
   async sendPaymentReminderWhatsApp(sessionId: string, clinicId: string) {
-    const session = await this.repository.findById(sessionId, clinicId);
-    if (!session || !session.patient || !session.clinic || !session.invoice) {
-      return;
-    }
-
-    if (!isDocitaOnlinePaymentSession(session)) {
-      this.logger.log(
-        `Payment reminder skipped for session ${sessionId}: not a Docita online payment session`,
-      );
-      return;
-    }
-
-    const patientName = getPatientFullName(session.patient);
-    const dueDateDisplay = session.invoice.dueDate
-      ? formatDate(session.invoice.dueDate, DATE_FORMATS.DATE_MEDIUM)
-      : '—';
-
-    try {
-      await this.sendMessage.execute({
-        recipientPhone: session.patient.phoneNumber,
-        templateName: 'payment_reminder',
-        variables: buildPaymentReminderVariables({
+    await this.sendWhatsAppForSession(
+      sessionId,
+      clinicId,
+      'payment_reminder',
+      (session) =>
+        buildPaymentReminderVariables({
           clinicName: session.clinic.name,
-          patientName,
+          patientName: getPatientFullName(session.patient),
           amount: session.amount / 100,
           currency: session.currency,
-          dueDate: dueDateDisplay,
+          dueDate: session.invoice?.dueDate
+            ? formatDate(session.invoice.dueDate, DATE_FORMATS.DATE_MEDIUM)
+            : '—',
           paymentSessionId: sessionId,
         }),
-        clinicId: session.clinicId,
-      });
-    } catch (error) {
-      if (error instanceof ForbiddenException) {
-        this.logger.log(
-          `Payment reminder skipped for session ${sessionId}: ${error.message}`,
-        );
-        return;
-      }
-      this.logger.error(
-        `Failed to send payment reminder WhatsApp for session ${sessionId}`,
-        error,
-      );
-    }
+    );
   }
 
   async createPaymentLink(dto: {
@@ -355,6 +314,47 @@ export class PaymentsCommandService {
     signature: string,
   ) {
     return this.razorpayInvoiceWebhook.handle(payload, signature);
+  }
+
+  private async sendWhatsAppForSession(
+    sessionId: string,
+    clinicId: string,
+    templateName: string,
+    buildVariables: (
+      session: PaymentSessionWithRecipient,
+    ) => Record<string, string>,
+  ) {
+    const session = await this.repository.findById(sessionId, clinicId);
+    if (!hasPaymentRecipient(session)) {
+      return;
+    }
+
+    if (!isDocitaOnlinePaymentSession(session)) {
+      this.logger.log(
+        `Payment WhatsApp skipped for session ${sessionId}: not a Docita online payment session`,
+      );
+      return;
+    }
+
+    try {
+      await this.sendMessage.execute({
+        recipientPhone: session.patient.phoneNumber,
+        templateName,
+        variables: buildVariables(session),
+        clinicId: session.clinicId,
+      });
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        this.logger.log(
+          `WhatsApp ${templateName} skipped for session ${sessionId}: ${error.message}`,
+        );
+        return;
+      }
+      this.logger.error(
+        `Failed to send WhatsApp ${templateName} for session ${sessionId}`,
+        error,
+      );
+    }
   }
 
   private toPaise(amount: number): number {

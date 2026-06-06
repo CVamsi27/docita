@@ -101,28 +101,21 @@ export class StartupValidationService {
   private validateDatabaseConfiguration(): void {
     const databaseUrl = this.configService.getDatabaseUrl();
 
-    if (!databaseUrl) {
+    if (!databaseUrl)
       throw new Error('DATABASE_URL is not set in environment variables');
-    }
-
     const nodeEnv = this.configService.getEnvironment();
     if (nodeEnv === 'production') {
       if (
         databaseUrl.includes('localhost') ||
         databaseUrl.includes('127.0.0.1')
-      ) {
+      )
         throw new Error(
-          'DATABASE_URL in production is pointing to localhost. ' +
-            'Use a remote database URL.',
+          'DATABASE_URL in production is pointing to localhost. Use a remote database URL.',
         );
-      }
-
-      if (databaseUrl.includes(':5434@localhost')) {
+      if (databaseUrl.includes(':5434@localhost'))
         throw new Error(
-          'DATABASE_URL in production cannot use local PostgreSQL. ' +
-            'Configure a production database instance.',
+          'DATABASE_URL in production cannot use local PostgreSQL. Configure a production database instance.',
         );
-      }
 
       const normalizedUrl = databaseUrl.toLowerCase();
       let sslMode: string | null = null;
@@ -142,17 +135,14 @@ export class StartupValidationService {
         normalizedUrl.includes('sslmode=verify-full') ||
         normalizedUrl.includes('ssl=true') ||
         normalizedUrl.includes('sslaccept=strict');
-
       if (!hasDbTlsEnabled) {
         const provider = this.configService.detectManagedDatabaseProvider();
-
         if (provider === 'Render') {
           this.logger.log(
             'DATABASE_URL validated for Render private networking',
           );
           return;
         }
-
         throw new Error(
           'DATABASE_URL must enforce TLS in production (for example add sslmode=require).',
         );

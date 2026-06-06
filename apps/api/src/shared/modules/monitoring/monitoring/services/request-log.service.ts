@@ -83,12 +83,10 @@ export class RequestLogService implements OnModuleDestroy {
     if (this.flushInProgress) {
       return;
     }
-
     const requestsToFlush = this.requestBuffer.slice(0, this.BATCH_SIZE);
     if (requestsToFlush.length === 0) {
       return;
     }
-
     try {
       this.flushInProgress = true;
       // RLS-BYPASS: system telemetry and error logs are not clinic-scoped
@@ -115,7 +113,6 @@ export class RequestLogService implements OnModuleDestroy {
           skipDuplicates: true,
         });
       });
-
       this.requestBuffer.splice(0, requestsToFlush.length);
       this.logger.debug(`Flushed ${requestsToFlush.length} requests`);
     } catch (error) {

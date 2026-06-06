@@ -47,21 +47,18 @@ export class RecordAppointmentVitalsUseCase {
       },
     });
 
-    if (!appointment) {
+    if (!appointment)
       throw new NotFoundException(
         `Appointment with ID ${appointmentId} not found`,
       );
-    }
-
     if (
       accessContext?.role === Role.DOCTOR &&
       accessContext.userId &&
       appointment.doctorId !== accessContext.userId
-    ) {
+    )
       throw new ForbiddenException(
         'Doctors can only access their appointments',
       );
-    }
 
     const payload = cleanVitalsPayload(data);
 
@@ -76,18 +73,12 @@ export class RecordAppointmentVitalsUseCase {
             where: { appointmentId },
           })
         : await this.persistence.vitalSign.create({
-            data: {
-              appointmentId,
-              clinicId,
-              ...payload,
-            },
+            data: { appointmentId, clinicId, ...payload },
           });
-
-    if (!vital) {
+    if (!vital)
       throw new NotFoundException(
         `Vitals for appointment ${appointmentId} not found`,
       );
-    }
 
     await this.persistVitalsPatientMetrics({
       clinicId,

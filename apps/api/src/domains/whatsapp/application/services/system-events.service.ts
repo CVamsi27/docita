@@ -34,18 +34,25 @@ export class SystemEventsService {
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
-  async sendPrescriptionSystem(prescriptionId: string, clinicId: string) {
+  private async checkSendingAllowed(
+    clinicId: string,
+    notificationLabel: string,
+  ): Promise<boolean> {
     if (
-      !(await isClinicWhatsAppAutomationSendingAllowed(
-        this.persistence,
-        clinicId,
-      ))
+      await isClinicWhatsAppAutomationSendingAllowed(this.persistence, clinicId)
     ) {
-      this.logger.log(
-        `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping prescription notification`,
-      );
-      return;
+      return false;
     }
+
+    this.logger.log(
+      `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping ${notificationLabel}`,
+    );
+    return true;
+  }
+
+  async sendPrescriptionSystem(prescriptionId: string, clinicId: string) {
+    if (await this.checkSendingAllowed(clinicId, 'prescription notification'))
+      return;
 
     const prescription = await this.persistence.prescription.findUnique({
       where: { id: prescriptionId },
@@ -85,17 +92,8 @@ export class SystemEventsService {
   }
 
   async sendInvoiceSystem(invoiceId: string, clinicId: string) {
-    if (
-      !(await isClinicWhatsAppAutomationSendingAllowed(
-        this.persistence,
-        clinicId,
-      ))
-    ) {
-      this.logger.log(
-        `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping invoice notification`,
-      );
+    if (await this.checkSendingAllowed(clinicId, 'invoice notification'))
       return;
-    }
 
     const invoice = await this.persistence.invoice.findUnique({
       where: { id: invoiceId },
@@ -135,17 +133,8 @@ export class SystemEventsService {
   }
 
   async sendAppointmentConfirmation(appointmentId: string, clinicId: string) {
-    if (
-      !(await isClinicWhatsAppAutomationSendingAllowed(
-        this.persistence,
-        clinicId,
-      ))
-    ) {
-      this.logger.log(
-        `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping appointment confirmation`,
-      );
+    if (await this.checkSendingAllowed(clinicId, 'appointment confirmation'))
       return;
-    }
 
     const appointment = await this.persistence.appointment.findUnique({
       where: { id: appointmentId },
@@ -201,17 +190,8 @@ export class SystemEventsService {
   }
 
   async sendPaymentConfirmation(invoiceId: string, clinicId: string) {
-    if (
-      !(await isClinicWhatsAppAutomationSendingAllowed(
-        this.persistence,
-        clinicId,
-      ))
-    ) {
-      this.logger.log(
-        `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping payment confirmation`,
-      );
+    if (await this.checkSendingAllowed(clinicId, 'payment confirmation'))
       return;
-    }
 
     const invoice = await this.persistence.invoice.findUnique({
       where: { id: invoiceId },
@@ -263,17 +243,7 @@ export class SystemEventsService {
     clinicId: string,
     delayMinutes: number,
   ) {
-    if (
-      !(await isClinicWhatsAppAutomationSendingAllowed(
-        this.persistence,
-        clinicId,
-      ))
-    ) {
-      this.logger.log(
-        `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping delay notification`,
-      );
-      return;
-    }
+    if (await this.checkSendingAllowed(clinicId, 'delay notification')) return;
 
     const appointment = await this.persistence.appointment.findUnique({
       where: { id: appointmentId },
@@ -330,17 +300,7 @@ export class SystemEventsService {
     clinicId: string,
     type: 'CANCELLED' | 'RESCHEDULED',
   ) {
-    if (
-      !(await isClinicWhatsAppAutomationSendingAllowed(
-        this.persistence,
-        clinicId,
-      ))
-    ) {
-      this.logger.log(
-        `WhatsApp patient messaging not allowed for clinic ${clinicId}; skipping appointment update`,
-      );
-      return;
-    }
+    if (await this.checkSendingAllowed(clinicId, 'appointment update')) return;
 
     const appointment = await this.persistence.appointment.findUnique({
       where: { id: appointmentId },

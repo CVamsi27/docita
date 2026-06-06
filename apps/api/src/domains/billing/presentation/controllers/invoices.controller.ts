@@ -103,14 +103,7 @@ export class InvoicesController {
     @Request() req: RequestWithUser,
     @Param('id') id: string,
   ) {
-    const { clinicId } = getBillingRequestContext(req);
-    const invoice = await this.invoicesService.findOne(id, clinicId);
-    await logPatientPhiRead(
-      this.auditService,
-      req,
-      invoice.patientId,
-      'VIEW_PROFILE',
-    );
+    const { clinicId } = await this.loadInvoiceAndAudit(req, id);
     return this.invoicesService.listPaymentActivity(id, clinicId);
   }
 
@@ -118,14 +111,7 @@ export class InvoicesController {
   @RequireFeature(Feature.INVOICING)
   @ZodSerializerDto(InvoiceResponseDto)
   async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
-    const { clinicId } = getBillingRequestContext(req);
-    const invoice = await this.invoicesService.findOne(id, clinicId);
-    await logPatientPhiRead(
-      this.auditService,
-      req,
-      invoice.patientId,
-      'VIEW_PROFILE',
-    );
+    const { invoice } = await this.loadInvoiceAndAudit(req, id);
     return invoice;
   }
 
@@ -161,14 +147,7 @@ export class InvoicesController {
     @Request() req: RequestWithUser,
     @Param('id') id: string,
   ) {
-    const { clinicId } = getBillingRequestContext(req);
-    const invoice = await this.invoicesService.findOne(id, clinicId);
-    await logPatientPhiRead(
-      this.auditService,
-      req,
-      invoice.patientId,
-      'VIEW_PROFILE',
-    );
+    const { clinicId } = await this.loadInvoiceAndAudit(req, id);
     return this.invoicesService.getClaimReadiness(id, clinicId);
   }
 
@@ -190,14 +169,7 @@ export class InvoicesController {
     @Res({ passthrough: true }) res: Response,
   ) {
     setPrivateNoStoreHeaders(res);
-    const { clinicId } = getBillingRequestContext(req);
-    const invoice = await this.invoicesService.findOne(id, clinicId);
-    await logPatientPhiRead(
-      this.auditService,
-      req,
-      invoice.patientId,
-      'VIEW_PROFILE',
-    );
+    const { clinicId } = await this.loadInvoiceAndAudit(req, id);
     return this.pdfJobService.getStatus(jobId, clinicId);
   }
 
@@ -210,14 +182,7 @@ export class InvoicesController {
     @Res() res: Response,
   ) {
     setPrivateNoStoreHeaders(res);
-    const { clinicId } = getBillingRequestContext(req);
-    const invoice = await this.invoicesService.findOne(id, clinicId);
-    await logPatientPhiRead(
-      this.auditService,
-      req,
-      invoice.patientId,
-      'VIEW_PROFILE',
-    );
+    const { clinicId } = await this.loadInvoiceAndAudit(req, id);
 
     if (isAsync === 'true') {
       const result = await this.invoicesService.generatePdfAsync(id, clinicId);
@@ -236,5 +201,17 @@ export class InvoicesController {
       `attachment; filename=invoice-${id}.pdf`,
     );
     res.send(result.buffer);
+  }
+
+  private async loadInvoiceAndAudit(req: RequestWithUser, id: string) {
+    const { clinicId } = getBillingRequestContext(req);
+    const invoice = await this.invoicesService.findOne(id, clinicId);
+    await logPatientPhiRead(
+      this.auditService,
+      req,
+      invoice.patientId,
+      'VIEW_PROFILE',
+    );
+    return { clinicId, invoice };
   }
 }

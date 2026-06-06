@@ -36,7 +36,6 @@ export async function paginateWithCursor<T>(
   } = options;
 
   const safeLimit = Math.min(limit, 100);
-
   const takeCount = safeLimit + 1;
 
   const queryOptions: {
@@ -52,7 +51,6 @@ export async function paginateWithCursor<T>(
     where,
     orderBy,
   };
-
   if (cursor) {
     queryOptions.cursor = { id: cursor };
     queryOptions.skip = 1;

@@ -71,7 +71,6 @@ export class ApplyPlanChangeWithoutPaymentUseCase {
       breakdown.finalAmountCents,
       currencyCode,
     );
-
     if (payableAmount !== 0) {
       throw new BadRequestException(
         'This plan change requires payment through checkout',
@@ -83,7 +82,6 @@ export class ApplyPlanChangeWithoutPaymentUseCase {
       cycle,
       offerPercent,
     );
-
     await this.billingSnapshot.persistActivatedSubscription({
       clinicId: params.clinicId,
       tier,

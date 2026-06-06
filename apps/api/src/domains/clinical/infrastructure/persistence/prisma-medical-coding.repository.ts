@@ -80,42 +80,47 @@ export class PrismaMedicalCodingRepository
   }
 
   async searchIcdCodes(query: string, limit = 20): Promise<IcdCode[]> {
-    if (!query?.trim()) return [];
-    const key = this.cacheKey(query, limit);
-    const cached = this.icdSearchCache.get(key);
-    if (cached) return cached;
-
-    const result = await this.getReadClient().icdCode.findMany({
-      where: {
-        OR: [
-          { code: { contains: query.trim(), mode: 'insensitive' } },
-          { description: { contains: query.trim(), mode: 'insensitive' } },
-        ],
-      },
-      orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
-      take: limit,
-    });
-    this.icdSearchCache.set(key, result);
-    return result;
+    return this.cachedSearch(this.icdSearchCache, query, limit, () =>
+      this.getReadClient().icdCode.findMany({
+        where: {
+          OR: [
+            { code: { contains: query.trim(), mode: 'insensitive' } },
+            { description: { contains: query.trim(), mode: 'insensitive' } },
+          ],
+        },
+        orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
+        take: limit,
+      }),
+    );
   }
 
   async searchCptCodes(query: string, limit = 20): Promise<CptCode[]> {
+    return this.cachedSearch(this.cptSearchCache, query, limit, () =>
+      this.getReadClient().cptCode.findMany({
+        where: {
+          OR: [
+            { code: { contains: query.trim(), mode: 'insensitive' } },
+            { description: { contains: query.trim(), mode: 'insensitive' } },
+          ],
+        },
+        orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
+        take: limit,
+      }),
+    );
+  }
+
+  private async cachedSearch<T>(
+    cache: LruCache<T[]>,
+    query: string,
+    limit: number,
+    factory: () => Promise<T[]>,
+  ): Promise<T[]> {
     if (!query?.trim()) return [];
     const key = this.cacheKey(query, limit);
-    const cached = this.cptSearchCache.get(key);
+    const cached = cache.get(key);
     if (cached) return cached;
-
-    const result = await this.getReadClient().cptCode.findMany({
-      where: {
-        OR: [
-          { code: { contains: query.trim(), mode: 'insensitive' } },
-          { description: { contains: query.trim(), mode: 'insensitive' } },
-        ],
-      },
-      orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
-      take: limit,
-    });
-    this.cptSearchCache.set(key, result);
+    const result = await factory();
+    cache.set(key, result);
     return result;
   }
 

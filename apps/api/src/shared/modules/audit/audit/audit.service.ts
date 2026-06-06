@@ -62,14 +62,10 @@ export class AuditService {
             this.prisma.clinic.findUnique({ where: { id: data.clinicId } }),
             this.prisma.user.findUnique({ where: { id: data.userId } }),
           ]);
-
-          if (!clinic) {
+          if (!clinic)
             throw new BadRequestException(`Clinic ${data.clinicId} not found`);
-          }
-
-          if (!user) {
+          if (!user)
             throw new BadRequestException(`User ${data.userId} not found`);
-          }
 
           const auditLog = await this.prisma.auditLog.create({
             data: {
@@ -93,7 +89,7 @@ export class AuditService {
             `[AUDIT] ${data.actionType} | User: ${data.userId} | Resource: ${data.resourceType}:${data.resourceId} | ID: ${auditLog.id}`,
           );
 
-          const auditData = {
+          return {
             id: auditLog.id,
             clinicId: data.clinicId,
             userId: data.userId,
@@ -106,8 +102,6 @@ export class AuditService {
             metadata: data.metadata,
             createdAt: this.clock.now(),
           };
-
-          return auditData;
         } catch (error) {
           this.logger.error(
             `Failed to create audit log: ${error instanceof Error ? error.message : 'Unknown error'}`,

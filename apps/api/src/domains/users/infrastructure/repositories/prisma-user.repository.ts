@@ -98,7 +98,6 @@ export class PrismaUserRepository implements IUserRepository {
         select: { verificationData: true },
       });
       const current = verificationDataRecord(existing?.verificationData);
-
       const nextPrefs =
         data.sidebarNavOrderOverride === undefined
           ? current
@@ -112,7 +111,6 @@ export class PrismaUserRepository implements IUserRepository {
                 ...current,
                 sidebarNavOrderOverride: data.sidebarNavOrderOverride,
               };
-
       const updated = await this.prisma.user.update({
         where: { id: userId },
         data: {
@@ -131,20 +129,16 @@ export class PrismaUserRepository implements IUserRepository {
           verificationData: true,
         },
       });
-
       const prefs =
         parsePrismaJsonColumn(updated.verificationData, jsonObjectSchema) ?? {};
-
+      const override = prefs['sidebarNavOrderOverride'];
       return {
         id: updated.id,
         email: updated.email,
         name: updated.name,
         createdAt: updated.createdAt,
         updatedAt: updated.updatedAt,
-        sidebarNavOrderOverride:
-          prefs['sidebarNavOrderOverride'] === undefined
-            ? undefined
-            : prefs['sidebarNavOrderOverride'],
+        sidebarNavOrderOverride: override === undefined ? undefined : override,
       };
     });
   }

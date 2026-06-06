@@ -327,14 +327,8 @@ export class OnboardingValidationService {
     return Math.round(amount * multiplier) * 100;
   }
 
-  getTierLimits(tier: string): {
-    includedPatients: number;
-    includedAppointments: number;
-    includedStorageGB: number;
-    includedUsers: number;
-  } {
+  getTierLimits(tier: string): { includedPatients: number; includedAppointments: number; includedStorageGB: number; includedUsers: number } {
     validateClinicTier(tier);
-
     const limits: Record<
       string,
       {
@@ -387,7 +381,6 @@ export class OnboardingValidationService {
         includedUsers: 50,
       },
     };
-
     return limits[tier] || limits.STARTER;
   }
 }

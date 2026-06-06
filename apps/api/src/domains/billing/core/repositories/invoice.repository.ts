@@ -11,7 +11,7 @@ export interface ClinicFeatureContext {
   features: unknown;
 }
 
-export interface InvoiceListItem {
+interface InvoiceBase {
   id: string;
   clinicId: string | null;
   invoiceNumber: string | null;
@@ -32,6 +32,9 @@ export interface InvoiceListItem {
   issuedAt: Date | null;
   dueDate: Date | null;
   createdAt: Date;
+}
+
+export interface InvoiceListItem extends InvoiceBase {
   patient?: {
     id: string;
     firstName: string;
@@ -40,43 +43,23 @@ export interface InvoiceListItem {
   } | null;
 }
 
-export interface InvoiceDetail {
-  id: string;
+export interface InvoiceDetail extends InvoiceBase {
   patientId: string;
-  clinicId: string | null;
-  invoiceNumber: string | null;
-  invoiceType: string;
-  currency: string;
-  total: number;
-  subtotal: number;
-  discountTotal: number;
-  taxTotal: number;
-  grandTotal: number;
-  totalCents: number;
-  subtotalCents: number;
-  discountTotalCents: number;
-  taxTotalCents: number;
-  grandTotalCents: number;
   taxSummary: Prisma.JsonValue | null;
   sellerTaxSnapshot: Prisma.JsonValue | null;
   buyerTaxSnapshot: Prisma.JsonValue | null;
   placeOfSupplyStateCode: string | null;
   placeOfSupplyStateName: string | null;
   reverseCharge: boolean;
-  issuedAt: Date | null;
-  dueDate: Date | null;
   eInvoiceRequired: boolean;
   eInvoiceIrn: string | null;
   eInvoiceQrCode: string | null;
   eInvoiceAcknowledgedAt: Date | null;
-  status: InvoiceStatus;
-  items: Prisma.JsonValue;
   doctorName: string | null;
   doctorEmail: string | null;
   doctorPhone: string | null;
   doctorSpecialization: string | null;
   doctorRegistrationNumber: string | null;
-  createdAt: Date;
   updatedAt: Date;
   pdfUrl: string | null;
   pdfGeneratedAt: Date | null;

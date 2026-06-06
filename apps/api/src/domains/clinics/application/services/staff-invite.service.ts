@@ -128,7 +128,6 @@ export class StaffInviteService {
         );
       }
     }
-
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const prismaRole = mapClinicMemberRoleToPrisma(data.role);
     const needsDoctorClinic =

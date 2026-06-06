@@ -76,7 +76,6 @@ export class TenantGuard implements CanActivate {
     if (!user) {
       return true;
     }
-
     if (user.role === Role.INTERNAL) {
       return true;
     }

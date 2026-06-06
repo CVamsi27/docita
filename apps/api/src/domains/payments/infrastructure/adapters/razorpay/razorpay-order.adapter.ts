@@ -176,10 +176,7 @@ export class RazorpayOrderAdapter
   ): Promise<VerifyPaymentResponse> {
     try {
       const keySecret = this.configService.get<string>('RAZORPAY_KEY_SECRET');
-      if (!keySecret) {
-        throw new Error('Razorpay key secret not configured');
-      }
-
+      if (!keySecret) throw new Error('Razorpay key secret not configured');
       const text = `${request.orderId}|${request.paymentId}`;
       const expectedSignature = crypto
         .createHmac('sha256', keySecret)
@@ -191,10 +188,7 @@ export class RazorpayOrderAdapter
         request.signature,
       );
 
-      if (!verified) {
-        return { verified: false };
-      }
-
+      if (!verified) return { verified: false };
       const razorpay = this.getClient();
 
       // Test-mode (rzp_test_) keys: a real payment object can only be minted
@@ -226,11 +220,7 @@ export class RazorpayOrderAdapter
       const payment = await this.withRazorpayTimeout(() =>
         razorpay.payments.fetch(request.paymentId),
       );
-
-      return {
-        verified: true,
-        payment: this.toPaymentGatewayPayment(payment),
-      };
+      return { verified: true, payment: this.toPaymentGatewayPayment(payment) };
     } catch (error) {
       this.logger.error('Failed to verify payment', error);
       return { verified: false };

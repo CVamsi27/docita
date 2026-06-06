@@ -5,28 +5,20 @@ import type {
   AuthorizationContext,
   AuthorizationDecision,
   AuthorizationUser,
-  ResourcePolicy,
 } from '../types';
+import { BaseResourcePolicy } from './base-policy';
 
 /**
  * Patients only see invoices addressed to them. Clinical staff inherit
  * clinic-wide access after the role+feature gates.
  */
 @Injectable()
-export class InvoicePolicy implements ResourcePolicy {
-  can(
+export class InvoicePolicy extends BaseResourcePolicy {
+  protected doCheck(
     _action: AuthorizationAction,
     user: AuthorizationUser,
     context: AuthorizationContext,
   ): AuthorizationDecision {
-    if (
-      context.resourceClinicId &&
-      user.clinicId &&
-      context.resourceClinicId !== user.clinicId
-    ) {
-      return { allowed: false, reason: 'tenant_mismatch' };
-    }
-
     if (user.role === Role.PATIENT) {
       const ownerId = context.resourceOwnerId ?? context.assignedPatientId;
       if (!ownerId || ownerId !== user.patientId) {

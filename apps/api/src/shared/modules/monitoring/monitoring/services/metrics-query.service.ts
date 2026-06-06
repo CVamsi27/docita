@@ -207,7 +207,6 @@ export class MetricsQueryService {
   async getQueueHealthSummary() {
     try {
       const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
-
       const [countsByStatus, topQueuesByWaiting, topQueuesByFailed, dlq24h] =
         await Promise.all([
           this.prisma.queueJob.groupBy({
@@ -235,7 +234,6 @@ export class MetricsQueryService {
             },
           }),
         ]);
-
       return {
         countsByStatus: countsByStatus.map((row) => ({
           status: row.status,

@@ -34,18 +34,16 @@ export class ArchivalService {
           `Starting archival for AuditLogs older than ${cutoffDate.toISOString()}`,
         );
 
-        let totalArchived = 0;
-        const batchSize = 500;
-
-        while (true) {
-          const records = await this.prisma.auditLog.findMany({
-            where: { createdAt: { lt: cutoffDate } },
-            take: batchSize,
-          });
-
-          if (records.length === 0) break;
-
-          await this.prisma.$transaction(async (tx) => {
+        return this.batchArchive(
+          'AuditLogs',
+          cutoffDate,
+          500,
+          (take) =>
+            this.prisma.auditLog.findMany({
+              where: { createdAt: { lt: cutoffDate } },
+              take,
+            }),
+          async (tx, records) => {
             await tx.auditLogArchive.createMany({
               data: records.map((record) => ({
                 id: record.id,
@@ -70,13 +68,8 @@ export class ArchivalService {
             await tx.auditLog.deleteMany({
               where: { id: { in: records.map((r) => r.id) } },
             });
-          });
-
-          totalArchived += records.length;
-          this.logger.log(`Archived ${totalArchived} AuditLogs so far...`);
-        }
-
-        return totalArchived;
+          },
+        );
       }),
     );
   }
@@ -91,18 +84,16 @@ export class ArchivalService {
         `Starting archival for WhatsappLogs older than ${cutoffDate.toISOString()}`,
       );
 
-      let totalArchived = 0;
-      const batchSize = 500;
-
-      while (true) {
-        const records = await this.prisma.whatsappLog.findMany({
-          where: { createdAt: { lt: cutoffDate } },
-          take: batchSize,
-        });
-
-        if (records.length === 0) break;
-
-        await this.prisma.$transaction(async (tx) => {
+      return this.batchArchive(
+        'WhatsappLogs',
+        cutoffDate,
+        500,
+        (take) =>
+          this.prisma.whatsappLog.findMany({
+            where: { createdAt: { lt: cutoffDate } },
+            take,
+          }),
+        async (tx, records) => {
           await tx.whatsappLogArchive.createMany({
             data: records.map((record) => ({
               id: record.id,
@@ -131,13 +122,8 @@ export class ArchivalService {
           await tx.whatsappLog.deleteMany({
             where: { id: { in: records.map((r) => r.id) } },
           });
-        });
-
-        totalArchived += records.length;
-        this.logger.log(`Archived ${totalArchived} WhatsappLogs so far...`);
-      }
-
-      return totalArchived;
+        },
+      );
     });
   }
 
@@ -151,23 +137,21 @@ export class ArchivalService {
         `Starting archival for Appointments older than ${cutoffDate.toISOString()}`,
       );
 
-      let totalArchived = 0;
-      const batchSize = 200;
-
-      while (true) {
-        const records = await this.prisma.appointment.findMany({
-          where: {
-            startTime: { lt: cutoffDate },
-            status: {
-              in: [AppointmentStatus.COMPLETED, AppointmentStatus.CANCELLED],
+      return this.batchArchive(
+        'Appointments',
+        cutoffDate,
+        200,
+        (take) =>
+          this.prisma.appointment.findMany({
+            where: {
+              startTime: { lt: cutoffDate },
+              status: {
+                in: [AppointmentStatus.COMPLETED, AppointmentStatus.CANCELLED],
+              },
             },
-          },
-          take: batchSize,
-        });
-
-        if (records.length === 0) break;
-
-        await this.prisma.$transaction(async (tx) => {
+            take,
+          }),
+        async (tx, records) => {
           await tx.appointmentArchive.createMany({
             data: records.map((record) => ({
               id: record.id,
@@ -218,13 +202,36 @@ export class ArchivalService {
           await tx.appointment.deleteMany({
             where: { id: { in: records.map((r) => r.id) } },
           });
-        });
-
-        totalArchived += records.length;
-        this.logger.log(`Archived ${totalArchived} Appointments so far...`);
-      }
-
-      return totalArchived;
+        },
+      );
     });
+  }
+
+  private async batchArchive<T>(
+    entityName: string,
+    _cutoffDate: Date,
+    batchSize: number,
+    findMany: (take: number) => Promise<T[]>,
+    archiveAndDelete: (
+      tx: Prisma.TransactionClient,
+      records: T[],
+    ) => Promise<void>,
+  ): Promise<number> {
+    let totalArchived = 0;
+
+    while (true) {
+      const records = await findMany(batchSize);
+
+      if (records.length === 0) break;
+
+      await this.prisma.$transaction(async (tx) => {
+        await archiveAndDelete(tx, records);
+      });
+
+      totalArchived += records.length;
+      this.logger.log(`Archived ${totalArchived} ${entityName} so far...`);
+    }
+
+    return totalArchived;
   }
 }

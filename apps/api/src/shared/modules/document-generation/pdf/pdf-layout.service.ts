@@ -40,7 +40,6 @@ export class PdfLayoutService {
       .text(clinic.name, context.margin, y, { align: 'center' })
       .fillColor('#000000');
     y += 30;
-
     doc.fontSize(9).font('Helvetica').fillColor('#4a5568');
     const fullAddress = [clinic.address, clinic.city]
       .filter(Boolean)
@@ -49,28 +48,23 @@ export class PdfLayoutService {
       doc.text(fullAddress, context.margin, y, { align: 'center' });
       y += 12;
     }
-
     const contactParts: string[] = [];
     if (clinic.phone) contactParts.push(`Tel: ${clinic.phone}`);
     if (clinic.email) contactParts.push(` ${clinic.email}`);
     if (clinic.website) contactParts.push(`Web: ${clinic.website}`);
-
     if (contactParts.length > 0) {
       doc.text(contactParts.join('  |  '), context.margin, y, {
         align: 'center',
       });
       y += 12;
     }
-
     if (docType === 'invoice' && clinic.gstin) {
       doc
         .fontSize(8)
         .text(`GSTIN: ${clinic.gstin}`, context.margin, y, { align: 'center' });
       y += 10;
     }
-
     doc.fillColor('#000000');
-
     y += 8;
     doc
       .strokeColor('#1e3a5f')
@@ -260,21 +254,17 @@ export class PdfLayoutService {
 
       doc.text(med.route || 'PO', x, rowY, { width: columns[3].width - 5 });
       x += columns[3].width;
-
       let freqText = med.frequency;
       if (med.timing) {
         freqText += ` (${med.timing})`;
       }
       doc.text(freqText, x, rowY, { width: columns[4].width - 5 });
       x += columns[4].width;
-
       doc.text(med.duration, x, rowY, { width: columns[5].width - 5 });
       x += columns[5].width;
-
       doc.text(med.quantity?.toString() || '-', x, rowY, {
         width: columns[6].width - 5,
       });
-
       if (med.specialInstructions) {
         doc
           .fontSize(7)
@@ -285,10 +275,8 @@ export class PdfLayoutService {
           .fillColor('#000000')
           .fontSize(9);
       }
-
       y += 28;
     });
-
     doc
       .strokeColor('#e2e8f0')
       .moveTo(margin, y)

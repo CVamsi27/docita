@@ -46,7 +46,6 @@ export class AppointmentRequestCommandService {
     if (data.preferredDoctorId) {
       await this.assertDoctorBelongsToClinic(data.preferredDoctorId, clinicId);
     }
-
     let preferredDate = parseAppointmentRequestDate(
       data.preferredDate,
       'Preferred date',
@@ -111,7 +110,6 @@ export class AppointmentRequestCommandService {
     const startTime = parseAppointmentRequestDate(data.startTime, 'Start time');
     const endTime = parseAppointmentRequestDate(data.endTime, 'End time');
     const appointmentReason = data.notes ?? request.notes ?? request.reason;
-
     const appointment =
       await this.appointmentRequestRepository.findMatchingAppointment({
         clinicId,
@@ -135,7 +133,6 @@ export class AppointmentRequestCommandService {
           type: data.type ?? 'Standard',
         })
       ).id;
-
     const updated = await this.appointmentRequestRepository.markReviewed({
       id,
       clinicId,
@@ -143,7 +140,6 @@ export class AppointmentRequestCommandService {
       reviewedById,
       responseMessage: `Booked appointment ${appointmentId}`,
     });
-
     await this.notifyStaffBestEffort({
       clinicId,
       doctorId: data.doctorId,
@@ -159,7 +155,6 @@ export class AppointmentRequestCommandService {
       sendWhatsApp: false,
       sendInApp: true,
     });
-
     return mapAppointmentRequest(updated);
   }
 
