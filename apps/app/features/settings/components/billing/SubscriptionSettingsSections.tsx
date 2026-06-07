@@ -21,6 +21,8 @@ import {
 } from "@workspace/ui/components/feedback/alert";
 import { AlertTriangle, Clock, Info, XCircle } from "lucide-react";
 import { scrollToBillingPlans } from "./subscription-settings-helpers";
+import { WhatsAppButton } from "@/components/whatsapp/whatsapp-button";
+import { getSupportPhoneNumber } from "@/lib/constants/support-contact";
 
 export function SubscriptionLoadingState() {
   return (
@@ -230,5 +232,27 @@ export function ExpiredSubscriptionAlert() {
         </Button>
       </AlertDescription>
     </Alert>
+  );
+}
+
+export function BillingSupportBlock() {
+  const supportPhone = getSupportPhoneNumber();
+
+  return (
+    <div className="flex flex-col gap-3 border-t border-border/60 pt-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-[var(--fs-sm)] text-muted-foreground">
+          Need help with billing or onboarding?
+        </p>
+        <WhatsAppButton
+          phoneNumber={supportPhone}
+          message="Hi Docita team, I need help with billing and onboarding"
+          label="Message support"
+          variant="outline"
+          size="sm"
+          className="shrink-0"
+        />
+      </div>
+    </div>
   );
 }

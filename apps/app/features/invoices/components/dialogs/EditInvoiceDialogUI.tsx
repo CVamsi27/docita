@@ -1,9 +1,7 @@
 // jscpd:ignore-start
 import { CRUDDialog } from "@workspace/ui/components/overlay/crud-dialog";
 import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Label } from "@workspace/ui/components/form/label";
-import { Input } from "@workspace/ui/components/form/input";
 import {
   Select,
   SelectContent,
@@ -11,10 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
-import { Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import type { InvoiceItem } from "@workspace/types";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import type { EditableInvoiceItemField } from "./edit-invoice-dialog-state";
+import { InvoiceItemRow } from "./InvoiceItemRow";
 
 export interface EditInvoiceDialogUIProps {
   open: boolean;
@@ -96,65 +95,13 @@ export function EditInvoiceDialogUI({
 
           <div className="space-y-3 max-h-[300px] overflow-y-auto">
             {items.map((item, index) => (
-              <div
+              <InvoiceItemRow
                 key={index}
-                className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 border rounded-lg bg-muted/30"
-              >
-                <div className="flex-1">
-                  <Input
-                    placeholder="Description"
-                    value={item.description}
-                    onChange={(e) =>
-                      onUpdateItem(index, "description", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="flex gap-2 sm:contents">
-                  <div className="flex-1 sm:w-20 sm:flex-none">
-                    <Input
-                      type="number"
-                      min="1"
-                      placeholder="Qty"
-                      value={item.quantity}
-                      onChange={(e) =>
-                        onUpdateItem(
-                          index,
-                          "quantity",
-                          parseInt(e.target.value) || 1,
-                        )
-                      }
-                    />
-                  </div>
-                  <div className="flex-1 sm:w-28 sm:flex-none">
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="Price"
-                      value={item.price}
-                      onChange={(e) =>
-                        onUpdateItem(
-                          index,
-                          "price",
-                          parseFloat(e.target.value) || 0,
-                        )
-                      }
-                    />
-                  </div>
-                  <SymbolTooltip label="Remove line item">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onRemoveItem(index)}
-                      className="text-destructive hover:text-destructive shrink-0"
-                      aria-label="Remove line item"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </SymbolTooltip>
-                </div>
-              </div>
+                item={item}
+                index={index}
+                onUpdate={onUpdateItem}
+                onRemove={onRemoveItem}
+              />
             ))}
             {items.length === 0 && (
               <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">

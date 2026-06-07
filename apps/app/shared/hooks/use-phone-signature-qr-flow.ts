@@ -8,6 +8,7 @@ import {
   type PhoneSignatureQrSession,
   type UsePhoneSignatureQrFlowOptions,
 } from "./phone-signature-qr-flow-helpers";
+import { usePhoneSignaturePolling } from "./use-phone-signature-polling";
 
 export type { PhoneSignatureQrSession, UsePhoneSignatureQrFlowOptions };
 
@@ -21,57 +22,24 @@ export function usePhoneSignatureQrFlow({
   persistenceKey,
 }: UsePhoneSignatureQrFlowOptions) {
   const createInFlightRef = useRef(false);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isMountedRef = useRef(true);
   const [session, setSession] = useState<PhoneSignatureQrSession | null>(() =>
     readPersistedSession(persistenceKey),
   );
   const [isLoading, setIsLoading] = useState(false);
-  const [isPolling, setIsPolling] = useState(false);
   const [isUploaded, setIsUploaded] = useState(initialUploaded);
   const [error, setError] = useState<string | null>(null);
 
-  const stopPolling = useCallback(() => {
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
-    }
-    setIsPolling(false);
-  }, []);
-
   const markUploaded = useCallback(
     (activeSession: PhoneSignatureQrSession) => {
-      stopPolling();
       setIsUploaded(true);
       setError(null);
       onUploaded?.(activeSession);
     },
-    [onUploaded, stopPolling],
+    [onUploaded],
   );
 
-  const checkUploadOnce = useCallback(
-    async (activeSession: PhoneSignatureQrSession) => {
-      const uploaded = await checkUploaded(activeSession);
-      if (uploaded) {
-        markUploaded(activeSession);
-      }
-      return uploaded;
-    },
-    [checkUploaded, markUploaded],
-  );
-
-  const startPolling = useCallback(
-    (activeSession: PhoneSignatureQrSession) => {
-      stopPolling();
-      setIsPolling(true);
-      pollRef.current = setInterval(() => {
-        void checkUploadOnce(activeSession).catch(() => {
-          // Ignore polling errors and continue.
-        });
-      }, pollIntervalMs);
-    },
-    [checkUploadOnce, pollIntervalMs, stopPolling],
-  );
+  const { isPolling, stopPolling, checkUploadOnce, startPolling } = usePhoneSignaturePolling(checkUploaded, markUploaded, pollIntervalMs);
 
   const startSession = useCallback(
     async (options?: { force?: boolean }) => {
@@ -109,7 +77,7 @@ export function usePhoneSignatureQrFlow({
         }
       }
     },
-    [checkUploadOnce, createSession, isUploaded, session, startPolling],
+    [checkUploadOnce, startPolling, createSession, isUploaded, session],
   );
 
   const retrySession = useCallback(async () => {
@@ -118,7 +86,7 @@ export function usePhoneSignatureQrFlow({
     setIsUploaded(false);
     setError(null);
     await startSession({ force: true });
-  }, [startSession, stopPolling]);
+  }, [stopPolling, startSession]);
 
   const refreshStatus = useCallback(async () => {
     if (!session) return false;
@@ -161,9 +129,9 @@ export function usePhoneSignatureQrFlow({
     autoStart,
     checkUploadOnce,
     isPolling,
+    startPolling,
     isUploaded,
     session,
-    startPolling,
   ]);
 
   useEffect(() => {

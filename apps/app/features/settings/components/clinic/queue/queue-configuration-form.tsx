@@ -1,6 +1,5 @@
 "use client";
 
-// jscpd:ignore-start
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,30 +11,18 @@ import {
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { Button } from "@workspace/ui/components/form/button";
 import {
-  Card,
-// jscpd:ignore-end
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Input } from "@workspace/ui/components/form/input";
-import { Switch } from "@workspace/ui/components/form/switch";
+  Form,
+} from "@workspace/ui/components/form/form";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
 import {
   queueSettingsFormSchema,
   type QueueSettingsFormValues,
 } from "@workspace/types";
 import { DEFAULT_SLOT_DURATION } from "@workspace/utils";
+import { QueueConfigSection } from "./QueueConfigSection";
+import { QueueHoursFields } from "./QueueHoursFields";
+import { QueueNotificationFields } from "./QueueNotificationFields";
 
 export const QueueConfigurationForm = () => {
   const { data: clinic, isLoading: settingsLoading } = useClinicSettings();
@@ -88,151 +75,45 @@ export const QueueConfigurationForm = () => {
   };
 
   return (
-    <Card>
-      <CardHeader className="border-b border-border/60 pb-5">
-        <CardTitle>Queue configuration</CardTitle>
-        <CardDescription>
-          How the patient queue is managed in real time.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-6 pt-5">
-        {settingsLoading ? (
-          <div
-            className="space-y-4"
-            role="status"
-            aria-live="polite"
-            aria-label="Loading queue configuration"
-          >
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <Skeleton className="h-20 w-full rounded-lg" />
-              <Skeleton className="h-20 w-full rounded-lg" />
-              <Skeleton className="h-20 w-full rounded-lg" />
-            </div>
-            <Skeleton className="h-16 w-full rounded-lg" />
-            <Skeleton className="h-10 w-full rounded-md" />
+    <QueueConfigSection>
+      {settingsLoading ? (
+        <div
+          className="space-y-4"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading queue configuration"
+        >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <Skeleton className="h-20 w-full rounded-lg" />
+            <Skeleton className="h-20 w-full rounded-lg" />
+            <Skeleton className="h-20 w-full rounded-lg" />
           </div>
-        ) : (
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              noValidate
-              className="space-y-6"
-            >
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <FormField
-                  control={form.control}
-                  name="avgConsultationMinutes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel htmlFor="avg-consultation">
-                        Avg. Consultation (min)
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          id="avg-consultation"
-                          type="number"
-                          min={1}
-                          max={120}
-                          {...field}
-                        />
-                      </FormControl>
-                      <p className="text-xs text-muted-foreground">
-                        Used to estimate wait times
-                      </p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="lateArrivalGraceMinutes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel htmlFor="late-arrival">
-                        Late Arrival Grace (min)
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          id="late-arrival"
-                          type="number"
-                          min={0}
-                          max={120}
-                          {...field}
-                        />
-                      </FormControl>
-                      <p className="text-xs text-muted-foreground">
-                        Allow patients to join queue after this grace period
-                      </p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="queueBufferMinutes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel htmlFor="queue-buffer">
-                        Queue Buffer (min)
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          id="queue-buffer"
-                          type="number"
-                          min={0}
-                          max={120}
-                          {...field}
-                        />
-                      </FormControl>
-                      <p className="text-xs text-muted-foreground">
-                        Extra time added between appointments
-                      </p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+          <Skeleton className="h-16 w-full rounded-lg" />
+          <Skeleton className="h-10 w-full rounded-md" />
+        </div>
+      ) : (
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            noValidate
+            className="space-y-6"
+          >
+            <QueueHoursFields form={form} />
+            <QueueNotificationFields form={form} />
 
-              <FormField
-                control={form.control}
-                name="useDoctorQueues"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex items-center justify-between rounded-lg border p-4">
-                      <div>
-                        <p className="text-sm font-medium">
-                          Use Per-Doctor Queues
-                        </p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          Maintain separate queues for each doctor
-                        </p>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Button className="w-full" type="submit" disabled={isSaving}>
-                {isSaving && (
-                  <DocitaLoadingIndicator
-                    variant="inline"
-                    decorative
-                    className="mr-2"
-                  />
-                )}
-                Save Configuration
-              </Button>
-            </form>
-          </Form>
-        )}
-      </CardContent>
-    </Card>
+            <Button className="w-full" type="submit" disabled={isSaving}>
+              {isSaving && (
+                <DocitaLoadingIndicator
+                  variant="inline"
+                  decorative
+                  className="mr-2"
+                />
+              )}
+              Save Configuration
+            </Button>
+          </form>
+        </Form>
+      )}
+    </QueueConfigSection>
   );
 };

@@ -1,20 +1,11 @@
 // check-as-cast-density: allow-file — React Hook Form generic field name requires as Path
 "use client";
 
+// jscpd:ignore-start
 import { Plus } from "lucide-react";
 import { Dialog, DialogContent } from "@workspace/ui/components/overlay/dialog";
 import type { CreateForm } from "./admin-helpers";
-// jscpd:ignore-start
-import {
-  AdminDialogActions,
-  AdminDialogHeader,
-  AdminEmailField,
-  AdminNameField,
-  AdminPasswordField,
-  AdminPhoneNumberField,
-  AdminTypeSelect,
-} from "./admin-dialog-shell";
-// jscpd:ignore-end
+import { AdminDialogFormFields } from "./admin-dialog-form-fields";
 
 interface AdminCreateDialogProps {
   open: boolean;
@@ -42,65 +33,31 @@ export function AdminCreateDialog({
       adminType: "admin",
     });
 
-  const handleFieldChange = <K extends keyof CreateForm>(
-    key: K,
-// jscpd:ignore-start
-    value: CreateForm[K],
-  ) => onFormChange({ ...form, [key]: value });
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <AdminDialogHeader
-// jscpd:ignore-start
-          icon={<Plus className="h-5 w-5" />}
-          title="Create New Admin"
-          description="Add a new administrator to the selected clinic"
+        <AdminDialogFormFields
+          headerIcon={<Plus className="h-5 w-5" />}
+          headerTitle="Create New Admin"
+          headerDescription="Add a new administrator to the selected clinic"
+          form={form}
+          onFieldChange={(key, value) => onFormChange({ ...form, [key]: value as never })}
+          showPassword
+          onCancel={() => {
+            resetForm();
+            onOpenChange(false);
+          }}
+          onAction={onCreate}
+          actionLabel="Create Admin"
+          saving={saving}
+          typeSelectHelperText={
+            form.adminType === "admin_doctor"
+              ? "Admin Doctor can manage clinic operations and provide clinical care"
+              : "Clinic Admin manages clinic operations and staff"
+          }
         />
-        <div className="space-y-4">
-          <AdminNameField
-            id="name"
-            value={form.name}
-            onChange={(v) => handleFieldChange("name", v)}
-          />
-          <AdminEmailField
-            id="email"
-            value={form.email}
-            onChange={(v) => handleFieldChange("email", v)}
-          />
-          <AdminPasswordField
-            id="password"
-            value={form.password}
-// jscpd:ignore-end
-            onChange={(v) => handleFieldChange("password", v)}
-// jscpd:ignore-end
-          />
-          <AdminPhoneNumberField
-            id="phoneNumber"
-            value={form.phoneNumber}
-            onChange={(v) => handleFieldChange("phoneNumber", v)}
-          />
-          <AdminTypeSelect
-            value={form.adminType}
-            onChange={(v) => handleFieldChange("adminType", v as CreateForm["adminType"])}
-            showIcons
-            helperText={
-              form.adminType === "admin_doctor"
-                ? "Admin Doctor can manage clinic operations and provide clinical care"
-                : "Clinic Admin manages clinic operations and staff"
-            }
-          />
-          <AdminDialogActions
-            onCancel={() => {
-              resetForm();
-              onOpenChange(false);
-            }}
-            onAction={onCreate}
-            actionLabel="Create Admin"
-            saving={saving}
-          />
-        </div>
       </DialogContent>
     </Dialog>
   );
 }
+// jscpd:ignore-end
