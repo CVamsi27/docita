@@ -19,7 +19,6 @@ import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
   Feature,
   type FollowUpResponse,
-  type FollowUpStatus,
 } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
 import {
@@ -33,6 +32,7 @@ import {
 } from "@workspace/data-access";
 import { formatDate } from "@/lib/formatters";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { FOLLOW_UP_STATUS_LABELS as STATUS_LABELS } from "@/features/follow-ups/lib/follow-up-constants";
 
 const VIEW_OPTIONS: Array<{ value: FollowUpListView; label: string }> = [
   { value: "overdue", label: "Overdue" },
@@ -44,15 +44,6 @@ const VIEW_OPTIONS: Array<{ value: FollowUpListView; label: string }> = [
 function isFollowUpListView(id: string): id is FollowUpListView {
   return VIEW_OPTIONS.some((option) => option.value === id);
 }
-
-const STATUS_LABELS: Record<FollowUpStatus, string> = {
-  PENDING: "Pending",
-  REMINDER_SENT: "Reminder sent",
-  BOOKED: "Booked",
-  COMPLETED: "Completed",
-  CANCELLED: "Cancelled",
-  EXPIRED: "Expired",
-};
 
 function patientName(followUp: FollowUpResponse) {
   const firstName = followUp.patient?.firstName ?? "";

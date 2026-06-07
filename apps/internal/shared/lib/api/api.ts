@@ -22,6 +22,7 @@ import type {
   InternalEnterpriseTrueUpAlertRow as EnterpriseTrueUpAlertRow,
   InternalFeedback as Feedback,
   InternalFeedbackStats as FeedbackStats,
+  InternalPricingOfferRow as PricingOfferRow,
   InternalSubscriptionOverview as SubscriptionOverview,
   InternalTierPricingRow as TierPricingRow,
 } from "@workspace/data-access/internal";
@@ -84,24 +85,7 @@ export const broadcastsAPI = {
 };
 
 type PaymentRecord = InternalBillingPaymentItem;
-
-export interface PricingOfferRow {
-  id: string;
-  clinicId: string;
-  clinic?: {
-    id: string;
-    name: string;
-    email: string;
-    tier: string;
-  };
-  title: string;
-  description: string;
-  percentOff: number;
-  durationMonths?: number;
-  validUntil?: string;
-  notes?: string;
-  updatedAt?: string;
-}
+export type { InternalPricingOfferRow as PricingOfferRow } from "@workspace/data-access/internal";
 
 export const billingAPI = {
   getMetrics: (): Promise<BillingMetrics> =>

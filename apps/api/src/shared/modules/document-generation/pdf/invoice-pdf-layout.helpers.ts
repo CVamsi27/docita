@@ -39,6 +39,107 @@ export function renderStatusBadge(
   return currentY + 30;
 }
 
+interface ColumnDef {
+  width: number;
+  header: string;
+  align: 'left' | 'center' | 'right';
+  renderCell: (item: PDFInvoiceItem, sym: string) => string;
+}
+
+function getItemColumns(hasCpt: boolean, sym: string): ColumnDef[] {
+  if (hasCpt) {
+    return [
+      {
+        width: 160,
+        header: 'Description',
+        align: 'left',
+        renderCell: (i) => i.description,
+      },
+      {
+        width: 55,
+        header: 'CPT Code',
+        align: 'center',
+        renderCell: (i) => i.cptCode ?? '—',
+      },
+      {
+        width: 45,
+        header: 'Qty',
+        align: 'center',
+        renderCell: (i) => i.quantity.toString(),
+      },
+      {
+        width: 65,
+        header: 'Price',
+        align: 'right',
+        renderCell: (i) => `${sym}${i.unitPrice.toFixed(2)}`,
+      },
+      {
+        width: 55,
+        header: 'GST',
+        align: 'right',
+        renderCell: (i) => `${i.gstRate ?? 0}%`,
+      },
+      {
+        width: 75,
+        header: 'Amount',
+        align: 'right',
+        renderCell: (i) => `${sym}${i.amount.toFixed(2)}`,
+      },
+    ];
+  }
+  return [
+    {
+      width: 200,
+      header: 'Description',
+      align: 'left',
+      renderCell: (i) => i.description,
+    },
+    {
+      width: 50,
+      header: 'Qty',
+      align: 'center',
+      renderCell: (i) => i.quantity.toString(),
+    },
+    {
+      width: 70,
+      header: 'Price',
+      align: 'right',
+      renderCell: (i) => `${sym}${i.unitPrice.toFixed(2)}`,
+    },
+    {
+      width: 70,
+      header: 'GST',
+      align: 'right',
+      renderCell: (i) => `${i.gstRate ?? 0}%`,
+    },
+    {
+      width: 80,
+      header: 'Amount',
+      align: 'right',
+      renderCell: (i) => `${sym}${i.amount.toFixed(2)}`,
+    },
+  ];
+}
+
+function renderRow(
+  doc: typeof PDFDocument.prototype,
+  columns: ColumnDef[],
+  startX: number,
+  y: number,
+  renderFirst: (col: ColumnDef, x: number, w: number) => void,
+  renderOther: (col: ColumnDef, x: number) => void,
+): void {
+  let x = startX;
+  columns.forEach((col, i) => {
+    if (i === 0) {
+      renderFirst(col, x + 4, col.width);
+    } else {
+      renderOther(col, x);
+    }
+    x += col.width;
+  });
+}
+
 export function renderItemsTable(
   doc: typeof PDFDocument.prototype,
   items: PDFInvoiceItem[],
@@ -59,65 +160,27 @@ export function renderItemsTable(
   const hasCpt = items.some((item) => item.cptCode);
   let currentY = startY;
   const startX = context.margin;
+  const columns = getItemColumns(hasCpt, context.currencySymbol);
+  const totalW = columns.reduce((a, b) => a + b.width, 0);
 
-  // Column layout adapts when CPT codes are present
-  const colWidths = hasCpt
-    ? [160, 55, 45, 65, 55, 75] // Description | CPT | Qty | Price | GST | Amount
-    : [200, 50, 70, 70, 80]; // Description | Qty | Price | GST | Amount
-  const totalW = colWidths.reduce((a, b) => a + b, 0);
-
-  // Header row
   doc.rect(startX, currentY - 4, totalW, 22).fill(context.theme.primaryColor);
   doc
     .fillColor(context.theme.primaryTextColor)
     .fontSize(9)
     .font('Helvetica-Bold');
 
-  if (hasCpt) {
-    const [cDesc, cCpt, cQty, cPrice, cGst, cAmt] = colWidths;
-    doc.text('Description', startX + 4, currentY + 2, { width: cDesc });
-    doc.text('CPT Code', startX + cDesc, currentY + 2, {
-      width: cCpt,
-      align: 'center',
-    });
-    doc.text('Qty', startX + cDesc + cCpt, currentY + 2, {
-      width: cQty,
-      align: 'center',
-    });
-    doc.text('Price', startX + cDesc + cCpt + cQty, currentY + 2, {
-      width: cPrice,
-      align: 'right',
-    });
-    doc.text('GST', startX + cDesc + cCpt + cQty + cPrice, currentY + 2, {
-      width: cGst,
-      align: 'right',
-    });
-    doc.text(
-      'Amount',
-      startX + cDesc + cCpt + cQty + cPrice + cGst,
-      currentY + 2,
-      { width: cAmt, align: 'right' },
-    );
-  } else {
-    const [cDesc, cQty, cPrice, cGst, cAmt] = colWidths;
-    doc.text('Description', startX + 4, currentY + 2, { width: cDesc });
-    doc.text('Qty', startX + cDesc, currentY + 2, {
-      width: cQty,
-      align: 'center',
-    });
-    doc.text('Price', startX + cDesc + cQty, currentY + 2, {
-      width: cPrice,
-      align: 'right',
-    });
-    doc.text('GST', startX + cDesc + cQty + cPrice, currentY + 2, {
-      width: cGst,
-      align: 'right',
-    });
-    doc.text('Amount', startX + cDesc + cQty + cPrice + cGst, currentY + 2, {
-      width: cAmt,
-      align: 'right',
-    });
-  }
+  renderRow(
+    doc,
+    columns,
+    startX,
+    currentY + 2,
+    (col, x, w) => doc.text(col.header, x, currentY + 2, { width: w }),
+    (col, x) =>
+      doc.text(col.header, x, currentY + 2, {
+        width: col.width,
+        align: col.align,
+      }),
+  );
 
   doc.fillColor('#000000');
   currentY += 24;
@@ -135,61 +198,21 @@ export function renderItemsTable(
 
     doc.fillColor('#111827');
 
-    if (hasCpt) {
-      const [cDesc, cCpt, cQty, cPrice, cGst, cAmt] = colWidths;
-      doc.text(item.description, startX + 4, currentY, { width: cDesc - 4 });
-      doc.text(item.cptCode ?? '—', startX + cDesc, currentY, {
-        width: cCpt,
-        align: 'center',
-      });
-      doc.text(item.quantity.toString(), startX + cDesc + cCpt, currentY, {
-        width: cQty,
-        align: 'center',
-      });
-      doc.text(
-        `${context.currencySymbol}${item.unitPrice.toFixed(2)}`,
-        startX + cDesc + cCpt + cQty,
-        currentY,
-        { width: cPrice, align: 'right' },
-      );
-      doc.text(
-        `${item.gstRate ?? 0}%`,
-        startX + cDesc + cCpt + cQty + cPrice,
-        currentY,
-        { width: cGst, align: 'right' },
-      );
-      doc.text(
-        `${context.currencySymbol}${item.amount.toFixed(2)}`,
-        startX + cDesc + cCpt + cQty + cPrice + cGst,
-        currentY,
-        { width: cAmt, align: 'right' },
-      );
-    } else {
-      const [cDesc, cQty, cPrice, cGst, cAmt] = colWidths;
-      doc.text(item.description, startX + 4, currentY, { width: cDesc - 4 });
-      doc.text(item.quantity.toString(), startX + cDesc, currentY, {
-        width: cQty,
-        align: 'center',
-      });
-      doc.text(
-        `${context.currencySymbol}${item.unitPrice.toFixed(2)}`,
-        startX + cDesc + cQty,
-        currentY,
-        { width: cPrice, align: 'right' },
-      );
-      doc.text(
-        `${item.gstRate ?? 0}%`,
-        startX + cDesc + cQty + cPrice,
-        currentY,
-        { width: cGst, align: 'right' },
-      );
-      doc.text(
-        `${context.currencySymbol}${item.amount.toFixed(2)}`,
-        startX + cDesc + cQty + cPrice + cGst,
-        currentY,
-        { width: cAmt, align: 'right' },
-      );
-    }
+    renderRow(
+      doc,
+      columns,
+      startX,
+      currentY,
+      (col, x, w) =>
+        doc.text(col.renderCell(item, context.currencySymbol), x, currentY, {
+          width: w - 4,
+        }),
+      (col, x) =>
+        doc.text(col.renderCell(item, context.currencySymbol), x, currentY, {
+          width: col.width,
+          align: col.align,
+        }),
+    );
 
     doc.fillColor('#000000');
     currentY += 15;

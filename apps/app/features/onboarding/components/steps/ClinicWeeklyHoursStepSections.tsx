@@ -52,7 +52,9 @@ export function buildWeeklyHourRows(
   };
 }
 
-export function sortRowsForApi(rows: ClinicWeeklyHourRow[]): ClinicWeeklyHourRow[] {
+export function sortRowsForApi(
+  rows: ClinicWeeklyHourRow[],
+): ClinicWeeklyHourRow[] {
   const order: DayOfWeek[] = [
     "SUNDAY",
     "MONDAY",
@@ -88,9 +90,7 @@ export function DayRowCard({ day, dayRow, onUpdateDay }: DayRowCardProps) {
         <Switch
           id={`clinic-hours-${day}-active`}
           checked={dayRow.isActive}
-          onCheckedChange={(v) =>
-            onUpdateDay(day, { isActive: Boolean(v) })
-          }
+          onCheckedChange={(v) => onUpdateDay(day, { isActive: Boolean(v) })}
         />
         <Label
           htmlFor={`clinic-hours-${day}-active`}
@@ -117,9 +117,7 @@ export function DayRowCard({ day, dayRow, onUpdateDay }: DayRowCardProps) {
             id={`clinic-hours-${day}-start`}
             type="time"
             value={dayRow.startTime}
-            onChange={(e) =>
-              onUpdateDay(day, { startTime: e.target.value })
-            }
+            onChange={(e) => onUpdateDay(day, { startTime: e.target.value })}
             disabled={!dayRow.isActive}
             className="rounded-[var(--radius-md)]"
           />
@@ -135,9 +133,7 @@ export function DayRowCard({ day, dayRow, onUpdateDay }: DayRowCardProps) {
             id={`clinic-hours-${day}-end`}
             type="time"
             value={dayRow.endTime}
-            onChange={(e) =>
-              onUpdateDay(day, { endTime: e.target.value })
-            }
+            onChange={(e) => onUpdateDay(day, { endTime: e.target.value })}
             disabled={!dayRow.isActive}
             className="rounded-[var(--radius-md)]"
           />
@@ -151,9 +147,7 @@ export function DayRowCard({ day, dayRow, onUpdateDay }: DayRowCardProps) {
           </Label>
           <Select
             value={String(dayRow.slotDuration)}
-            onValueChange={(v) =>
-              onUpdateDay(day, { slotDuration: Number(v) })
-            }
+            onValueChange={(v) => onUpdateDay(day, { slotDuration: Number(v) })}
             disabled={!dayRow.isActive}
           >
             <SelectTrigger

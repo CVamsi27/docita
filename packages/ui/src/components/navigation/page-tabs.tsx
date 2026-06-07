@@ -79,26 +79,7 @@ export function PageTabs({
             item.disabled && "pointer-events-none opacity-50",
           );
 
-          if (renderLink && item.href) {
-            return renderLink(
-              item,
-              <button
-                key={item.id}
-                ref={isActive ? activeTabRef : undefined}
-                role="tab"
-                aria-selected={isActive}
-                aria-disabled={item.disabled}
-                tabIndex={isActive ? 0 : -1}
-                type="button"
-                className={sharedClass}
-                onClick={() => onSelect?.(item.id)}
-              >
-                {inner}
-              </button>,
-            );
-          }
-
-          return (
+          const tabButton = (
             <button
               key={item.id}
               ref={isActive ? activeTabRef : undefined}
@@ -113,6 +94,12 @@ export function PageTabs({
               {inner}
             </button>
           );
+
+          if (renderLink && item.href) {
+            return renderLink(item, tabButton);
+          }
+
+          return tabButton;
         })}
       </div>
     </div>

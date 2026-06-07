@@ -65,12 +65,12 @@ export class PrismaSubscriptionCoreRepository {
     }
   }
 
-  async findById(id: string): Promise<Subscription | null> {
+  private async findUniqueSubscription(
+    where: { id: string } | { clinicId: string },
+  ): Promise<Subscription | null> {
     try {
       const prismaSubscription =
-        await this.getReadClient().subscription.findUnique({
-          where: { id },
-        });
+        await this.getReadClient().subscription.findUnique({ where });
 
       if (!prismaSubscription) return null;
 
@@ -82,21 +82,12 @@ export class PrismaSubscriptionCoreRepository {
     }
   }
 
+  async findById(id: string): Promise<Subscription | null> {
+    return this.findUniqueSubscription({ id });
+  }
+
   async findByClinicId(clinicId: string): Promise<Subscription | null> {
-    try {
-      const prismaSubscription =
-        await this.getReadClient().subscription.findUnique({
-          where: { clinicId },
-        });
-
-      if (!prismaSubscription) return null;
-
-      return SubscriptionMapper.toDomain(prismaSubscription);
-    } catch (error) {
-      throw new BadRequestException(
-        `Failed to find subscription: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
+    return this.findUniqueSubscription({ clinicId });
   }
 
   async findByStatus(status: string): Promise<Subscription[]> {
@@ -247,6 +238,21 @@ export class PrismaSubscriptionCoreRepository {
     };
   }
 
+  private getReminderInclude() {
+    return {
+      clinic: {
+        include: {
+          users: {
+            where: {
+              role: { in: ['ADMIN' as const, 'ADMIN_DOCTOR' as const] },
+            },
+            select: { email: true, name: true },
+          },
+        },
+      },
+    };
+  }
+
   async findExpiryReminderCandidates(params: {
     startOfDay: Date;
     endOfDay: Date;
@@ -257,16 +263,7 @@ export class PrismaSubscriptionCoreRepository {
         status: { in: ['ACTIVE', 'TRIALING'] },
       },
       take: 1000,
-      include: {
-        clinic: {
-          include: {
-            users: {
-              where: { role: { in: ['ADMIN', 'ADMIN_DOCTOR'] } },
-              select: { email: true, name: true },
-            },
-          },
-        },
-      },
+      include: this.getReminderInclude(),
     });
   }
 
@@ -282,16 +279,7 @@ export class PrismaSubscriptionCoreRepository {
         },
       },
       take: 1000,
-      include: {
-        clinic: {
-          include: {
-            users: {
-              where: { role: { in: ['ADMIN', 'ADMIN_DOCTOR'] } },
-              select: { email: true, name: true },
-            },
-          },
-        },
-      },
+      include: this.getReminderInclude(),
     });
   }
 

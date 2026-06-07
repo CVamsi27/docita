@@ -23,7 +23,7 @@ import {
   systemicExaminationSchema,
 } from "../clinical/clinical";
 import { cptCodeSchema, icdCodeSchema } from "../shared/medical-coding";
-import { stripHtmlTags } from "../api/sanitization";
+import { optionalStringStripHtml } from "../api/zod-helpers";
 export const appointmentPrioritySchema = z.enum([
   "ROUTINE",
   "URGENT",
@@ -45,10 +45,7 @@ export const APPOINTMENT_PRIORITY_COLORS: Record<AppointmentPriority, string> =
     EMERGENCY: "badge-danger",
   };
 
-export const APPOINTMENT_STATUS_LABELS: Record<
-  AppointmentStatus,
-  string
-> = {
+export const APPOINTMENT_STATUS_LABELS: Record<AppointmentStatus, string> = {
   scheduled: "Scheduled",
   confirmed: "Confirmed",
   "checked-in": "Checked In",
@@ -58,10 +55,7 @@ export const APPOINTMENT_STATUS_LABELS: Record<
   "no-show": "No Show",
 };
 
-export const APPOINTMENT_STATUS_COLORS: Record<
-  AppointmentStatus,
-  string
-> = {
+export const APPOINTMENT_STATUS_COLORS: Record<AppointmentStatus, string> = {
   scheduled: "badge-info",
   confirmed: "badge-info",
   "checked-in": "badge-success",
@@ -82,39 +76,27 @@ export const appointmentSchema = z.object({
   type: appointmentTypeSchema,
   priority: appointmentPrioritySchema.default("ROUTINE").optional(),
 
-  consultationNotes: z.string().max(10000).optional().transform(stripHtmlTags),
+  consultationNotes: optionalStringStripHtml(10000),
 
-  notes: z.string().max(2000).optional().transform(stripHtmlTags),
-  observations: z.string().max(2000).optional().transform(stripHtmlTags),
+  notes: optionalStringStripHtml(2000),
+  observations: optionalStringStripHtml(2000),
 
-  chiefComplaint: z.string().max(20000).optional().transform(stripHtmlTags),
-  historyOfPresentIllness: z
-    .string()
-    .max(5000)
-    .optional()
-    .transform(stripHtmlTags),
-  pastMedicalHistory: z.string().max(5000).optional().transform(stripHtmlTags),
-  reviewOfSystems: z.string().max(5000).optional().transform(stripHtmlTags),
+  chiefComplaint: optionalStringStripHtml(20000),
+  historyOfPresentIllness: optionalStringStripHtml(5000),
+  pastMedicalHistory: optionalStringStripHtml(5000),
+  reviewOfSystems: optionalStringStripHtml(5000),
 
   generalExamination: generalExaminationSchema.optional(),
   systemicExamination: systemicExaminationSchema.optional(),
 
-  provisionalDiagnosis: z
-    .string()
-    .max(1000)
-    .optional()
-    .transform(stripHtmlTags),
-  differentialDiagnosis: z
-    .string()
-    .max(2000)
-    .optional()
-    .transform(stripHtmlTags),
-  clinicalImpression: z.string().max(2000).optional().transform(stripHtmlTags),
+  provisionalDiagnosis: optionalStringStripHtml(1000),
+  differentialDiagnosis: optionalStringStripHtml(2000),
+  clinicalImpression: optionalStringStripHtml(2000),
 
   investigations: z.array(clinicalInvestigationSchema).optional(),
-  finalDiagnosis: z.string().max(1000).optional().transform(stripHtmlTags),
-  treatmentPlan: z.string().max(5000).optional().transform(stripHtmlTags),
-  followUpPlan: z.string().max(2000).optional().transform(stripHtmlTags),
+  finalDiagnosis: optionalStringStripHtml(1000),
+  treatmentPlan: optionalStringStripHtml(5000),
+  followUpPlan: optionalStringStripHtml(2000),
   dentalChart: dentalChartSchema.optional(),
   growthData: growthChartDataSchema.optional(),
   ophthalmologyExam: ophthalmologyExamDataSchema.optional(),
@@ -254,7 +236,8 @@ export function normalizeAppointmentInstant(
   wallTimezone: string,
 ): Date | undefined {
   if (value === "" || value === undefined) return undefined;
-  if (value instanceof Date) return Number.isNaN(value.getTime()) ? undefined : value;
+  if (value instanceof Date)
+    return Number.isNaN(value.getTime()) ? undefined : value;
   const s = String(value).trim();
   if (!s) return undefined;
   if (APPOINTMENT_LOCAL_DATETIME_PATTERN.test(s)) {

@@ -13,6 +13,10 @@ import {
 } from "../overlay/dialog";
 import { Button } from "./button";
 import { cn } from "@workspace/ui/lib/utils";
+import {
+  preventEscapeWhenLoadingOrDisabled,
+  preventWhenLoadingOrDisabled,
+} from "../overlay/dialog-utils";
 
 export interface FormDialogProps {
   open: boolean;
@@ -38,17 +42,18 @@ export function FormDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={cn(contentClassName ? undefined : "md:max-w-[600px]", contentClassName)}
-        onInteractOutside={(e: Event) => {
-          if (isLoading || disabled) {
-            e.preventDefault();
-          }
-        }}
-        onEscapeKeyDown={(e: KeyboardEvent) => {
-          if (isLoading || disabled) {
-            e.preventDefault();
-          }
-        }}
+        className={cn(
+          contentClassName ? undefined : "md:max-w-[600px]",
+          contentClassName,
+        )}
+        onInteractOutside={preventWhenLoadingOrDisabled(
+          isLoading ?? false,
+          disabled,
+        )}
+        onEscapeKeyDown={preventEscapeWhenLoadingOrDisabled(
+          isLoading ?? false,
+          disabled,
+        )}
       >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

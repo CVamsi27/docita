@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { Role } from '@workspace/db';
-import type {
-  AuthorizationAction,
-  AuthorizationContext,
-  AuthorizationDecision,
-  AuthorizationUser,
-} from '../types';
-import { BaseResourcePolicy } from './base-policy';
+import {
+  Injectable,
+  Role,
+  BaseResourcePolicy,
+  type AuthorizationAction,
+  type AuthorizationContext,
+  type AuthorizationDecision,
+  type AuthorizationUser,
+} from './policy-shared';
 
 /**
  * Patients only see invoices addressed to them. Clinical staff inherit

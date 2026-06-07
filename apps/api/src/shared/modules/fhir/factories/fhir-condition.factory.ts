@@ -41,16 +41,7 @@ export class FhirConditionFactory {
             },
           ],
         },
-        verificationStatus: {
-          coding: [
-            {
-              system:
-                'http://terminology.hl7.org/CodeSystem/condition-ver-status',
-              code: 'confirmed',
-              display: 'Confirmed',
-            },
-          ],
-        },
+        verificationStatus: this.buildVerificationStatus(),
         category: [
           {
             coding: [
@@ -131,16 +122,7 @@ export class FhirConditionFactory {
             },
           ],
         },
-        verificationStatus: {
-          coding: [
-            {
-              system:
-                'http://terminology.hl7.org/CodeSystem/condition-ver-status',
-              code: 'confirmed',
-              display: 'Confirmed',
-            },
-          ],
-        },
+        verificationStatus: this.buildVerificationStatus(),
         category: [
           {
             coding: [
@@ -174,6 +156,18 @@ export class FhirConditionFactory {
       });
     }
     return fhirConditions;
+  }
+
+  private buildVerificationStatus(): FhirCondition['verificationStatus'] {
+    return {
+      coding: [
+        {
+          system: 'http://terminology.hl7.org/CodeSystem/condition-ver-status',
+          code: 'confirmed',
+          display: 'Confirmed',
+        },
+      ],
+    };
   }
 
   private mapConditionStatus(status: string): string {

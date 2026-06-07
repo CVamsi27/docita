@@ -97,18 +97,7 @@ export class ReminderSchedulerService {
         }
       });
     } catch (error) {
-      if (isDatabaseAuthError(error)) {
-        this.databaseAccessDisabled = true;
-        this.logger.warn(
-          'Disabling reminder scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
-        );
-        return;
-      }
-
-      this.logger.error(
-        'Reminder scheduler encountered an unexpected error',
-        error instanceof Error ? error.stack : String(error),
-      );
+      this.handleCronError(error, 'Reminder scheduler');
     }
   }
 
@@ -204,19 +193,23 @@ export class ReminderSchedulerService {
         }
       });
     } catch (error) {
-      if (isDatabaseAuthError(error)) {
-        this.databaseAccessDisabled = true;
-        this.logger.warn(
-          'Disabling reminder scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
-        );
-        return;
-      }
-
-      this.logger.error(
-        '30-min reminder scheduler encountered an unexpected error',
-        error instanceof Error ? error.stack : String(error),
-      );
+      this.handleCronError(error, '30-min reminder scheduler');
     }
+  }
+
+  private handleCronError(error: unknown, context: string): void {
+    if (isDatabaseAuthError(error)) {
+      this.databaseAccessDisabled = true;
+      this.logger.warn(
+        'Disabling reminder scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
+      );
+      return;
+    }
+
+    this.logger.error(
+      `${context} encountered an unexpected error`,
+      error instanceof Error ? error.stack : String(error),
+    );
   }
 
   private async processClinicHourlyReminders(

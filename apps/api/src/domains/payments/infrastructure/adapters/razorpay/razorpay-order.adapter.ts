@@ -40,23 +40,9 @@ export class RazorpayOrderAdapter
         }),
       );
 
-      return {
-        id: order.id,
-        amount: Money.fromCents(
-          typeof order.amount === 'number'
-            ? order.amount
-            : parseInt(order.amount, 10),
-          order.currency,
-        ),
-        currency: order.currency,
-        status: order.status,
-        metadata: order.notes,
-      };
+      return this.toPaymentGatewayOrder(order);
     } catch (error) {
       this.logger.error('Failed to create Razorpay order', error);
-      // Surface the actual Razorpay error message (or the SDK's) instead of
-      // a generic "Failed to create order" — devs need to see auth failures,
-      // invalid amounts, key mismatches, etc.
       const message = this.extractRazorpayErrorMessage(error);
       throw new BadRequestException(
         message
@@ -84,18 +70,7 @@ export class RazorpayOrderAdapter
         razorpay.orders.fetch(orderId),
       );
 
-      return {
-        id: order.id,
-        amount: Money.fromCents(
-          typeof order.amount === 'number'
-            ? order.amount
-            : parseInt(order.amount, 10),
-          order.currency,
-        ),
-        currency: order.currency,
-        status: order.status,
-        metadata: order.notes,
-      };
+      return this.toPaymentGatewayOrder(order);
     } catch (error) {
       // Audit FL6 (2026-05-23): preserve the underlying error so we can
       // distinguish "Razorpay 404" from network failure / rate limit /
@@ -191,16 +166,15 @@ export class RazorpayOrderAdapter
         const order = await this.withRazorpayTimeout(() =>
           razorpay.orders.fetch(request.orderId),
         );
-        const amountCents =
-          typeof order.amount === 'number'
-            ? order.amount
-            : parseInt(order.amount, 10);
         return {
           verified: true,
           payment: {
             id: request.paymentId,
             orderId: request.orderId,
-            amount: Money.fromCents(amountCents, order.currency),
+            amount: Money.fromCents(
+              this.parseRazorpayAmount(order.amount),
+              order.currency,
+            ),
             status: 'captured',
             method: 'test',
           },
@@ -215,6 +189,29 @@ export class RazorpayOrderAdapter
       this.logger.error('Failed to verify payment', error);
       return { verified: false };
     }
+  }
+
+  private parseRazorpayAmount(amount: number | string): number {
+    return typeof amount === 'number' ? amount : parseInt(amount, 10);
+  }
+
+  private toPaymentGatewayOrder(order: {
+    id: string;
+    amount: number | string;
+    currency: string;
+    status: string;
+    notes?: Record<string, unknown>;
+  }): PaymentGatewayOrder {
+    return {
+      id: order.id,
+      amount: Money.fromCents(
+        this.parseRazorpayAmount(order.amount),
+        order.currency,
+      ),
+      currency: order.currency,
+      status: order.status,
+      metadata: order.notes,
+    };
   }
 
   private timingSafeEqual(a: string, b: string): boolean {
@@ -237,9 +234,7 @@ export class RazorpayOrderAdapter
       id: payment.id,
       orderId: payment.order_id,
       amount: Money.fromCents(
-        typeof payment.amount === 'number'
-          ? payment.amount
-          : parseInt(payment.amount, 10),
+        this.parseRazorpayAmount(payment.amount),
         payment.currency,
       ),
       status: payment.status,

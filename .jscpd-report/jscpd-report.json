@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-06-07T11:37:05.207Z",
+    "detectionDate": "2026-06-07T12:51:16.807Z",
     "formats": {
       "typescript": {
         "sources": {
@@ -257,14 +257,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/monitoring/monitoring/services/metrics-persistence.service.ts": {
-            "lines": 76,
-            "tokens": 599,
+            "lines": 58,
+            "tokens": 438,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 20,
-            "duplicatedTokens": 161,
-            "percentage": 26.32,
-            "percentageTokens": 26.88,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -522,37 +522,49 @@
           },
           "apps/api/src/shared/modules/auth/authorization/policies/prescription.policy.ts": {
             "lines": 46,
-            "tokens": 344,
+            "tokens": 323,
             "sources": 1,
-            "clones": 3,
-            "duplicatedLines": 41,
-            "duplicatedTokens": 207,
-            "percentage": 89.13,
-            "percentageTokens": 60.17,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/api/src/shared/modules/auth/authorization/policies/policy-shared.ts": {
+            "lines": 9,
+            "tokens": 67,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/api/src/shared/modules/auth/authorization/policies/patient.policy.ts": {
             "lines": 32,
-            "tokens": 222,
+            "tokens": 201,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 30,
-            "duplicatedTokens": 210,
-            "percentage": 93.75,
-            "percentageTokens": 94.59,
+            "clones": 1,
+            "duplicatedLines": 16,
+            "duplicatedTokens": 141,
+            "percentage": 50,
+            "percentageTokens": 70.15,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/api/src/shared/modules/auth/authorization/policies/invoice.policy.ts": {
             "lines": 31,
-            "tokens": 222,
+            "tokens": 201,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 29,
-            "duplicatedTokens": 210,
-            "percentage": 93.55,
-            "percentageTokens": 94.59,
+            "clones": 1,
+            "duplicatedLines": 16,
+            "duplicatedTokens": 141,
+            "percentage": 51.61,
+            "percentageTokens": 70.15,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -582,13 +594,13 @@
           },
           "apps/api/src/shared/modules/auth/authorization/policies/appointment.policy.ts": {
             "lines": 37,
-            "tokens": 286,
+            "tokens": 265,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 14,
-            "duplicatedTokens": 69,
-            "percentage": 37.84,
-            "percentageTokens": 24.13,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -773,14 +785,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/payments/infrastructure/adapters/razorpay/razorpay-order.adapter.ts": {
-            "lines": 253,
-            "tokens": 2134,
+            "lines": 248,
+            "tokens": 2102,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 32,
-            "duplicatedTokens": 232,
-            "percentage": 12.65,
-            "percentageTokens": 10.87,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -845,14 +857,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/patients/infrastructure/persistence/timeline/prisma-patient-timeline-snapshot.repository.ts": {
-            "lines": 146,
-            "tokens": 1217,
+            "lines": 148,
+            "tokens": 1216,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 28,
-            "duplicatedTokens": 226,
-            "percentage": 19.18,
-            "percentageTokens": 18.57,
+            "duplicatedLines": 27,
+            "duplicatedTokens": 206,
+            "percentage": 18.24,
+            "percentageTokens": 16.94,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -1589,14 +1601,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/monitoring/monitoring/health.service.ts": {
-            "lines": 130,
-            "tokens": 1170,
+            "lines": 115,
+            "tokens": 1039,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 17,
-            "duplicatedTokens": 135,
-            "percentage": 13.08,
-            "percentageTokens": 11.54,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -2129,14 +2141,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/fhir/factories/fhir-condition.factory.ts": {
-            "lines": 211,
-            "tokens": 1564,
+            "lines": 205,
+            "tokens": 1554,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 40,
-            "duplicatedTokens": 186,
-            "percentage": 18.96,
-            "percentageTokens": 11.89,
+            "duplicatedLines": 22,
+            "duplicatedTokens": 110,
+            "percentage": 10.73,
+            "percentageTokens": 7.08,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -2369,14 +2381,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/document-generation/pdf/invoice-pdf-layout.helpers.ts": {
-            "lines": 417,
-            "tokens": 4415,
+            "lines": 440,
+            "tokens": 4222,
             "sources": 1,
             "clones": 6,
             "duplicatedLines": 74,
             "duplicatedTokens": 550,
-            "percentage": 17.75,
-            "percentageTokens": 12.46,
+            "percentage": 16.82,
+            "percentageTokens": 13.03,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -3140,11 +3152,11 @@
             "lines": 39,
             "tokens": 359,
             "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
+            "clones": 1,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 58,
+            "percentage": 25.64,
+            "percentageTokens": 16.16,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -3593,14 +3605,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/whatsapp/infrastructure/repositories/prisma-whatsapp-message.repository.ts": {
-            "lines": 125,
-            "tokens": 1173,
+            "lines": 117,
+            "tokens": 1080,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 42,
-            "duplicatedTokens": 376,
-            "percentage": 33.6,
-            "percentageTokens": 32.05,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -4349,14 +4361,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/subscriptions/infrastructure/schedulers/subscription-reminder.scheduler.ts": {
-            "lines": 277,
-            "tokens": 2540,
+            "lines": 259,
+            "tokens": 2377,
             "sources": 1,
-            "clones": 3,
-            "duplicatedLines": 46,
-            "duplicatedTokens": 317,
-            "percentage": 16.61,
-            "percentageTokens": 12.48,
+            "clones": 2,
+            "duplicatedLines": 26,
+            "duplicatedTokens": 152,
+            "percentage": 10.04,
+            "percentageTokens": 6.39,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -4421,14 +4433,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/subscriptions/infrastructure/repositories/prisma-subscription-core.repository.ts": {
-            "lines": 345,
-            "tokens": 2926,
+            "lines": 333,
+            "tokens": 2843,
             "sources": 1,
-            "clones": 7,
-            "duplicatedLines": 91,
-            "duplicatedTokens": 646,
-            "percentage": 26.38,
-            "percentageTokens": 22.08,
+            "clones": 3,
+            "duplicatedLines": 33,
+            "duplicatedTokens": 248,
+            "percentage": 9.91,
+            "percentageTokens": 8.72,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -5177,14 +5189,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/reminders/application/services/reminder-scheduler.service.ts": {
-            "lines": 342,
-            "tokens": 2717,
+            "lines": 335,
+            "tokens": 2688,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 48,
-            "duplicatedTokens": 294,
-            "percentage": 14.04,
-            "percentageTokens": 10.82,
+            "clones": 2,
+            "duplicatedLines": 20,
+            "duplicatedTokens": 134,
+            "percentage": 5.97,
+            "percentageTokens": 4.99,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -5801,14 +5813,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/patients/infrastructure/persistence/prisma-medication-dose.repository.ts": {
-            "lines": 145,
-            "tokens": 1285,
+            "lines": 147,
+            "tokens": 1284,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 28,
-            "duplicatedTokens": 226,
-            "percentage": 19.31,
-            "percentageTokens": 17.59,
+            "duplicatedLines": 27,
+            "duplicatedTokens": 206,
+            "percentage": 18.37,
+            "percentageTokens": 16.04,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -6137,14 +6149,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/patients/application/services/medication-dose-command.service.ts": {
-            "lines": 221,
-            "tokens": 1708,
+            "lines": 227,
+            "tokens": 1728,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 28,
-            "duplicatedTokens": 178,
-            "percentage": 12.67,
-            "percentageTokens": 10.42,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -8957,14 +8969,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/billing/core/utils/invoice-normalization.ts": {
-            "lines": 90,
-            "tokens": 886,
+            "lines": 94,
+            "tokens": 891,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 28,
-            "duplicatedTokens": 198,
-            "percentage": 31.11,
-            "percentageTokens": 22.35,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -14248,6 +14260,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/api/src/shared/common/utils/is-database-auth-error.ts": {
+            "lines": 19,
+            "tokens": 171,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 58,
+            "percentage": 52.63,
+            "percentageTokens": 33.92,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/api/src/shared/common/utils/date.utils.ts": {
             "lines": 55,
             "tokens": 556,
@@ -14299,6 +14323,18 @@
           "apps/api/src/shared/common/types/common.types.ts": {
             "lines": 15,
             "tokens": 121,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/api/src/shared/common/repositories/prisma-read-base.ts": {
+            "lines": 10,
+            "tokens": 84,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -14944,6 +14980,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "packages/ui/src/components/overlay/dialog-utils.ts": {
+            "lines": 21,
+            "tokens": 138,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "packages/ui/src/components/data-display/use-data-table-sort.ts": {
             "lines": 19,
             "tokens": 242,
@@ -15401,14 +15449,14 @@
             "newClones": 0
           },
           "apps/internal/shared/lib/api/api.ts": {
-            "lines": 223,
-            "tokens": 2094,
+            "lines": 206,
+            "tokens": 1996,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 17,
-            "duplicatedTokens": 110,
-            "percentage": 7.62,
-            "percentageTokens": 5.25,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -16625,14 +16673,14 @@
             "newClones": 0
           },
           "apps/app/shared/lib/access-control/factory.ts": {
-            "lines": 83,
-            "tokens": 545,
+            "lines": 66,
+            "tokens": 502,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 34,
-            "duplicatedTokens": 196,
-            "percentage": 40.96,
-            "percentageTokens": 35.96,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -18544,6 +18592,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/app/features/follow-ups/lib/follow-up-constants.ts": {
+            "lines": 10,
+            "tokens": 79,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/app/features/feedback/hooks/use-feedback-logic.ts": {
             "lines": 37,
             "tokens": 266,
@@ -20057,14 +20117,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/common/select-fragments.ts": {
-            "lines": 189,
-            "tokens": 1270,
+            "lines": 178,
+            "tokens": 1184,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 34,
-            "duplicatedTokens": 236,
-            "percentage": 17.99,
-            "percentageTokens": 18.58,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -20129,14 +20189,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/common/common.module.ts": {
-            "lines": 66,
-            "tokens": 475,
+            "lines": 50,
+            "tokens": 423,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 38,
-            "duplicatedTokens": 152,
-            "percentage": 57.58,
-            "percentageTokens": 32,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -20288,11 +20348,11 @@
             "lines": 119,
             "tokens": 715,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 70,
-            "duplicatedTokens": 396,
-            "percentage": 58.82,
-            "percentageTokens": 55.38,
+            "clones": 6,
+            "duplicatedLines": 111,
+            "duplicatedTokens": 647,
+            "percentage": 93.28,
+            "percentageTokens": 90.49,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -20305,6 +20365,18 @@
             "duplicatedTokens": 396,
             "percentage": 55.12,
             "percentageTokens": 55.31,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/api/src/domains/subscriptions/subscriptions-common.providers.ts": {
+            "lines": 80,
+            "tokens": 434,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 41,
+            "duplicatedTokens": 251,
+            "percentage": 51.25,
+            "percentageTokens": 57.83,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -20533,6 +20605,18 @@
             "duplicatedTokens": 368,
             "percentage": 53.01,
             "percentageTokens": 50.9,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/api/src/domains/documents/documents-shared.module-helpers.ts": {
+            "lines": 32,
+            "tokens": 247,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -21797,14 +21881,14 @@
             "newClones": 0
           },
           "packages/types/src/operations/appointments.ts": {
-            "lines": 325,
-            "tokens": 2977,
+            "lines": 308,
+            "tokens": 2751,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 17,
-            "duplicatedTokens": 166,
-            "percentage": 5.23,
-            "percentageTokens": 5.58,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -22517,14 +22601,14 @@
             "newClones": 0
           },
           "packages/types/src/clinical/clinical.ts": {
-            "lines": 633,
-            "tokens": 7744,
+            "lines": 607,
+            "tokens": 6902,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 17,
-            "duplicatedTokens": 166,
-            "percentage": 2.69,
-            "percentageTokens": 2.14,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -22696,6 +22780,30 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "packages/types/src/api/monitoring-types.ts": {
+            "lines": 17,
+            "tokens": 154,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "packages/types/src/api/index.ts": {
+            "lines": 9,
+            "tokens": 80,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "packages/types/src/api/error-types.ts": {
             "lines": 16,
             "tokens": 131,
@@ -22709,8 +22817,8 @@
             "newClones": 0
           },
           "packages/types/src/api/api-validation.ts": {
-            "lines": 220,
-            "tokens": 2032,
+            "lines": 216,
+            "tokens": 2028,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -22721,8 +22829,8 @@
             "newClones": 0
           },
           "packages/types/src/api/api-types.ts": {
-            "lines": 153,
-            "tokens": 1180,
+            "lines": 151,
+            "tokens": 1178,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -22733,8 +22841,8 @@
             "newClones": 0
           },
           "packages/types/src/api/api-response.ts": {
-            "lines": 225,
-            "tokens": 1751,
+            "lines": 224,
+            "tokens": 1750,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -23228,23 +23336,23 @@
             "lines": 46,
             "tokens": 290,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 17,
-            "duplicatedTokens": 110,
-            "percentage": 36.96,
-            "percentageTokens": 37.93,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "packages/data-access/src/internal/monitoring.types.ts": {
-            "lines": 84,
-            "tokens": 686,
+            "lines": 70,
+            "tokens": 558,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 17,
-            "duplicatedTokens": 135,
-            "percentage": 20.24,
-            "percentageTokens": 19.68,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -25684,6 +25792,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "packages/utils/src/format-duration.ts": {
+            "lines": 14,
+            "tokens": 237,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "packages/utils/src/currency.ts": {
             "lines": 177,
             "tokens": 1389,
@@ -26646,14 +26766,14 @@
           }
         },
         "total": {
-          "lines": 205349,
-          "tokens": 1700917,
-          "sources": 2220,
-          "clones": 288,
-          "duplicatedLines": 3602,
-          "duplicatedTokens": 26831,
-          "percentage": 1.75,
-          "percentageTokens": 1.58,
+          "lines": 205393,
+          "tokens": 1700170,
+          "sources": 2230,
+          "clones": 274,
+          "duplicatedLines": 3370,
+          "duplicatedTokens": 25238,
+          "percentage": 1.64,
+          "percentageTokens": 1.48,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -29288,6 +29408,30 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/app/features/patient-portal/components/metrics/metric-modal-layout.tsx": {
+            "lines": 6,
+            "tokens": 69,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/features/patient-portal/components/metrics/metric-modal-dialog-footer.tsx": {
+            "lines": 5,
+            "tokens": 35,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/app/features/patient-portal/components/metrics/metric-category-section.tsx": {
             "lines": 53,
             "tokens": 417,
@@ -29553,8 +29697,8 @@
             "newClones": 0
           },
           "apps/app/features/onboarding/components/steps/ClinicWeeklyHoursStepSections.tsx": {
-            "lines": 83,
-            "tokens": 540,
+            "lines": 75,
+            "tokens": 536,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -31485,8 +31629,8 @@
             "newClones": 0
           },
           "apps/app/features/analytics/components/charts/RevenueCharts.tsx": {
-            "lines": 54,
-            "tokens": 467,
+            "lines": 55,
+            "tokens": 477,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -31833,8 +31977,8 @@
             "newClones": 0
           },
           "packages/ui/src/components/overlay/crud-dialog.tsx": {
-            "lines": 31,
-            "tokens": 265,
+            "lines": 30,
+            "tokens": 201,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -31965,14 +32109,14 @@
             "newClones": 0
           },
           "packages/ui/src/components/navigation/page-tabs.tsx": {
-            "lines": 60,
-            "tokens": 417,
+            "lines": 41,
+            "tokens": 290,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 34,
-            "duplicatedTokens": 222,
-            "percentage": 56.67,
-            "percentageTokens": 53.24,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -32481,8 +32625,8 @@
             "newClones": 0
           },
           "packages/ui/src/components/form/form-dialog.tsx": {
-            "lines": 52,
-            "tokens": 381,
+            "lines": 53,
+            "tokens": 325,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -33875,6 +34019,18 @@
           "apps/app/shared/components/dialogs/confirm-dialog.tsx": {
             "lines": 9,
             "tokens": 64,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/shared/components/data-display/sortable-header.tsx": {
+            "lines": 3,
+            "tokens": 21,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -36729,8 +36885,8 @@
             "newClones": 0
           },
           "apps/internal/features/system-monitoring/queues-tab.tsx": {
-            "lines": 94,
-            "tokens": 736,
+            "lines": 79,
+            "tokens": 578,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -37271,6 +37427,18 @@
           "apps/internal/features/enterprise-contracts/enterprise-contracts-alerts-dialog.tsx": {
             "lines": 24,
             "tokens": 246,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/internal/features/enterprise-contracts/base-dialog-shell.tsx": {
+            "lines": 1,
+            "tokens": 20,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -38504,33 +38672,9 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
-          "packages/utils/eslint.config.mjs": {
-            "lines": 25,
-            "tokens": 115,
-            "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
-            "newDuplicatedLines": 0,
-            "newClones": 0
-          },
           "packages/ui/eslint.config.mjs": {
             "lines": 43,
             "tokens": 226,
-            "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
-            "newDuplicatedLines": 0,
-            "newClones": 0
-          },
-          "packages/types/eslint.config.mjs": {
-            "lines": 25,
-            "tokens": 115,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -38565,8 +38709,8 @@
             "newClones": 0
           },
           "packages/eslint-config/base.js": {
-            "lines": 85,
-            "tokens": 482,
+            "lines": 104,
+            "tokens": 566,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -38674,14 +38818,14 @@
           }
         },
         "total": {
-          "lines": 55804,
-          "tokens": 408787,
-          "sources": 1001,
-          "clones": 20,
-          "duplicatedLines": 277,
-          "duplicatedTokens": 1881,
-          "percentage": 0.5,
-          "percentageTokens": 0.46,
+          "lines": 55747,
+          "tokens": 408387,
+          "sources": 1003,
+          "clones": 19,
+          "duplicatedLines": 260,
+          "duplicatedTokens": 1770,
+          "percentage": 0.47,
+          "percentageTokens": 0.43,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -41472,6 +41616,30 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/app/features/patient-portal/components/metrics/metric-modal-layout.tsx": {
+            "lines": 42,
+            "tokens": 272,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/features/patient-portal/components/metrics/metric-modal-dialog-footer.tsx": {
+            "lines": 53,
+            "tokens": 308,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/app/features/patient-portal/components/metrics/metric-category-section.tsx": {
             "lines": 178,
             "tokens": 1467,
@@ -41749,14 +41917,14 @@
             "newClones": 0
           },
           "apps/app/features/onboarding/components/steps/ClinicWeeklyHoursStepSections.tsx": {
-            "lines": 177,
+            "lines": 171,
             "tokens": 1241,
             "sources": 1,
             "clones": 3,
-            "duplicatedLines": 47,
-            "duplicatedTokens": 299,
-            "percentage": 26.55,
-            "percentageTokens": 24.09,
+            "duplicatedLines": 43,
+            "duplicatedTokens": 297,
+            "percentage": 25.15,
+            "percentageTokens": 23.93,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -42997,14 +43165,14 @@
             "newClones": 0
           },
           "apps/app/features/dashboard/components/follow-ups/today-follow-ups-panel.tsx": {
-            "lines": 119,
-            "tokens": 992,
+            "lines": 111,
+            "tokens": 943,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 17,
-            "duplicatedTokens": 139,
-            "percentage": 14.29,
-            "percentageTokens": 14.01,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -43816,23 +43984,23 @@
             "lines": 109,
             "tokens": 797,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 26,
-            "duplicatedTokens": 141,
-            "percentage": 23.85,
-            "percentageTokens": 17.69,
+            "clones": 1,
+            "duplicatedLines": 14,
+            "duplicatedTokens": 69,
+            "percentage": 12.84,
+            "percentageTokens": 8.66,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/app/features/analytics/components/charts/RevenueCharts.tsx": {
-            "lines": 101,
-            "tokens": 790,
+            "lines": 122,
+            "tokens": 877,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 62,
-            "duplicatedTokens": 493,
-            "percentage": 61.39,
-            "percentageTokens": 62.41,
+            "clones": 1,
+            "duplicatedLines": 14,
+            "duplicatedTokens": 69,
+            "percentage": 11.48,
+            "percentageTokens": 7.87,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -44165,10 +44333,10 @@
             "tokens": 1307,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 26,
-            "duplicatedTokens": 150,
-            "percentage": 14.05,
-            "percentageTokens": 11.48,
+            "duplicatedLines": 25,
+            "duplicatedTokens": 145,
+            "percentage": 13.51,
+            "percentageTokens": 11.09,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -44209,14 +44377,14 @@
             "newClones": 0
           },
           "packages/ui/src/components/overlay/crud-dialog.tsx": {
-            "lines": 108,
-            "tokens": 785,
+            "lines": 111,
+            "tokens": 740,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 30,
-            "duplicatedTokens": 216,
-            "percentage": 27.78,
-            "percentageTokens": 27.52,
+            "duplicatedLines": 34,
+            "duplicatedTokens": 197,
+            "percentage": 30.63,
+            "percentageTokens": 26.62,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -44353,8 +44521,8 @@
             "newClones": 0
           },
           "packages/ui/src/components/navigation/page-tabs.tsx": {
-            "lines": 120,
-            "tokens": 778,
+            "lines": 107,
+            "tokens": 689,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -44869,14 +45037,14 @@
             "newClones": 0
           },
           "packages/ui/src/components/form/form-dialog.tsx": {
-            "lines": 107,
-            "tokens": 723,
+            "lines": 112,
+            "tokens": 686,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 17,
-            "duplicatedTokens": 136,
-            "percentage": 15.89,
-            "percentageTokens": 18.81,
+            "duplicatedLines": 22,
+            "duplicatedTokens": 122,
+            "percentage": 19.64,
+            "percentageTokens": 17.78,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -46476,6 +46644,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/app/shared/components/data-display/sortable-header.tsx": {
+            "lines": 22,
+            "tokens": 153,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/app/shared/components/consultation/floating-start-consultation.tsx": {
             "lines": 171,
             "tokens": 1355,
@@ -47881,14 +48061,14 @@
             "newClones": 0
           },
           "apps/app/features/follow-ups/components/FollowUpsPageContent.tsx": {
-            "lines": 218,
-            "tokens": 1751,
+            "lines": 209,
+            "tokens": 1699,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 27,
-            "duplicatedTokens": 216,
-            "percentage": 12.39,
-            "percentageTokens": 12.34,
+            "clones": 1,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 77,
+            "percentage": 4.78,
+            "percentageTokens": 4.53,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -49645,14 +49825,14 @@
             "newClones": 0
           },
           "apps/internal/features/system-monitoring/queues-tab.tsx": {
-            "lines": 139,
-            "tokens": 1014,
+            "lines": 126,
+            "tokens": 896,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 54,
-            "duplicatedTokens": 331,
-            "percentage": 38.85,
-            "percentageTokens": 32.64,
+            "clones": 2,
+            "duplicatedLines": 20,
+            "duplicatedTokens": 113,
+            "percentage": 15.87,
+            "percentageTokens": 12.61,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -50205,6 +50385,18 @@
             "duplicatedTokens": 94,
             "percentage": 25,
             "percentageTokens": 16.21,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/internal/features/enterprise-contracts/base-dialog-shell.tsx": {
+            "lines": 40,
+            "tokens": 244,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -51014,14 +51206,14 @@
           }
         },
         "total": {
-          "lines": 116927,
-          "tokens": 861788,
-          "sources": 1027,
-          "clones": 214,
-          "duplicatedLines": 2665,
-          "duplicatedTokens": 17014,
-          "percentage": 2.28,
-          "percentageTokens": 1.97,
+          "lines": 117064,
+          "tokens": 862462,
+          "sources": 1031,
+          "clones": 210,
+          "duplicatedLines": 2603,
+          "duplicatedTokens": 16498,
+          "percentage": 2.22,
+          "percentageTokens": 1.91,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -51264,14 +51456,14 @@
       }
     },
     "total": {
-      "lines": 379460,
-      "tokens": 2981036,
-      "sources": 4265,
-      "clones": 523,
-      "duplicatedLines": 6562,
-      "duplicatedTokens": 45813,
-      "percentage": 1.73,
-      "percentageTokens": 1.54,
+      "lines": 379584,
+      "tokens": 2980563,
+      "sources": 4281,
+      "clones": 504,
+      "duplicatedLines": 6251,
+      "duplicatedTokens": 43593,
+      "percentage": 1.65,
+      "percentageTokens": 1.46,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -51459,78 +51651,6 @@
     },
     {
       "format": "typescript",
-      "lines": 15,
-      "fragment": "import { Injectable } from '@nestjs/common';\nimport { Role } from '@workspace/db';\nimport type {\n  AuthorizationAction,\n  AuthorizationContext,\n  AuthorizationDecision,\n  AuthorizationUser,\n} from '../types';\nimport { BaseResourcePolicy } from './base-policy';\n\n/**\n * PATIENT can only read/update their own record. Clinical staff need\n * same-clinic tenant match. DOCTOR sees any patient in the clinic (no\n * assignment-pinning today; layered above the matrix role gate).\n */",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/auth/authorization/policies/patient.policy.ts",
-        "start": 1,
-        "end": 15,
-        "startLoc": {
-          "line": 1,
-          "column": 1,
-          "position": 0
-        },
-        "endLoc": {
-          "line": 15,
-          "column": 4,
-          "position": 69
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/auth/authorization/policies/prescription.policy.ts",
-        "start": 1,
-        "end": 14,
-        "startLoc": {
-          "line": 1,
-          "column": 1,
-          "position": 0
-        },
-        "endLoc": {
-          "line": 14,
-          "column": 4,
-          "position": 69
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 14,
-      "fragment": "import { Injectable } from '@nestjs/common';\nimport { Role } from '@workspace/db';\nimport type {\n  AuthorizationAction,\n  AuthorizationContext,\n  AuthorizationDecision,\n  AuthorizationUser,\n} from '../types';\nimport { BaseResourcePolicy } from './base-policy';\n\n/**\n * Patients only see invoices addressed to them. Clinical staff inherit\n * clinic-wide access after the role+feature gates.\n */",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/auth/authorization/policies/invoice.policy.ts",
-        "start": 1,
-        "end": 14,
-        "startLoc": {
-          "line": 1,
-          "column": 1,
-          "position": 0
-        },
-        "endLoc": {
-          "line": 14,
-          "column": 4,
-          "position": 69
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/auth/authorization/policies/prescription.policy.ts",
-        "start": 1,
-        "end": 14,
-        "startLoc": {
-          "line": 1,
-          "column": 1,
-          "position": 0
-        },
-        "endLoc": {
-          "line": 14,
-          "column": 4,
-          "position": 69
-        }
-      }
-    },
-    {
-      "format": "typescript",
       "lines": 17,
       "fragment": " extends BaseResourcePolicy {\n  protected doCheck(\n    _action: AuthorizationAction,\n    user: AuthorizationUser,\n    context: AuthorizationContext,\n  ): AuthorizationDecision {\n    if (user.role === Role.PATIENT) {\n      const ownerId = context.resourceOwnerId ?? context.assignedPatientId;\n      if (!ownerId || ownerId !== user.patientId) {\n        return { allowed: false, reason: 'ownership_denied' };\n      }\n    }\n\n    return { allowed: true };\n  }\n}\n",
       "tokens": 0,
@@ -51541,12 +51661,12 @@
         "startLoc": {
           "line": 16,
           "column": 27,
-          "position": 81
+          "position": 60
         },
         "endLoc": {
           "line": 32,
           "column": 1,
-          "position": 222
+          "position": 201
         }
       },
       "secondFile": {
@@ -51556,48 +51676,12 @@
         "startLoc": {
           "line": 17,
           "column": 27,
-          "position": 81
+          "position": 60
         },
         "endLoc": {
           "line": 33,
           "column": 1,
-          "position": 222
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 15,
-      "fragment": "import { Injectable } from '@nestjs/common';\nimport { Role } from '@workspace/db';\nimport type {\n  AuthorizationAction,\n  AuthorizationContext,\n  AuthorizationDecision,\n  AuthorizationUser,\n} from '../types';\nimport { BaseResourcePolicy } from './base-policy';\n\n/**\n * Doctors only see / mutate appointments assigned to them. Other clinical\n * staff (NURSE, RECEPTIONIST, ADMIN, ADMIN_DOCTOR) inherit clinic-wide access\n * after the role+feature gates. Patients see only their own appointments.\n */",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/auth/authorization/policies/appointment.policy.ts",
-        "start": 1,
-        "end": 15,
-        "startLoc": {
-          "line": 1,
-          "column": 1,
-          "position": 0
-        },
-        "endLoc": {
-          "line": 15,
-          "column": 4,
-          "position": 69
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/auth/authorization/policies/prescription.policy.ts",
-        "start": 1,
-        "end": 14,
-        "startLoc": {
-          "line": 1,
-          "column": 1,
-          "position": 0
-        },
-        "endLoc": {
-          "line": 14,
-          "column": 4,
-          "position": 69
+          "position": 201
         }
       }
     },
@@ -51706,42 +51790,6 @@
           "line": 200,
           "column": 14,
           "position": 1905
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 17,
-      "fragment": "),\n      );\n\n      return {\n        id: order.id,\n        amount: Money.fromCents(\n          typeof order.amount === 'number'\n            ? order.amount\n            : parseInt(order.amount, 10),\n          order.currency,\n        ),\n        currency: order.currency,\n        status: order.status,\n        metadata: order.notes,\n      };\n    } catch (error) {\n      // Audit FL6 (2026-05-23): preserve the underlying error so we can",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/payments/infrastructure/adapters/razorpay/razorpay-order.adapter.ts",
-        "start": 84,
-        "end": 100,
-        "startLoc": {
-          "line": 84,
-          "column": 38,
-          "position": 744
-        },
-        "endLoc": {
-          "line": 100,
-          "column": 73,
-          "position": 860
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/payments/infrastructure/adapters/razorpay/razorpay-order.adapter.ts",
-        "start": 40,
-        "end": 56,
-        "startLoc": {
-          "line": 40,
-          "column": 10,
-          "position": 330
-        },
-        "endLoc": {
-          "line": 56,
-          "column": 11,
-          "position": 446
         }
       }
     },
@@ -52575,37 +52623,37 @@
     },
     {
       "format": "typescript",
-      "lines": 21,
-      "fragment": ",\n            },\n          ],\n        },\n        verificationStatus: {\n          coding: [\n            {\n              system:\n                'http://terminology.hl7.org/CodeSystem/condition-ver-status',\n              code: 'confirmed',\n              display: 'Confirmed',\n            },\n          ],\n        },\n        category: [\n          {\n            coding: [\n              {\n                system:\n                  'http://terminology.hl7.org/CodeSystem/condition-category',\n                code: diagnosis",
+      "lines": 12,
+      "fragment": ",\n            },\n          ],\n        },\n        verificationStatus: this.buildVerificationStatus(),\n        category: [\n          {\n            coding: [\n              {\n                system:\n                  'http://terminology.hl7.org/CodeSystem/condition-category',\n                code: diagnosis",
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/shared/modules/fhir/factories/fhir-condition.factory.ts",
-        "start": 130,
-        "end": 150,
+        "start": 121,
+        "end": 132,
         "startLoc": {
-          "line": 130,
+          "line": 121,
           "column": 32,
-          "position": 983
+          "position": 945
         },
         "endLoc": {
-          "line": 150,
+          "line": 132,
           "column": 32,
-          "position": 1076
+          "position": 1000
         }
       },
       "secondFile": {
         "name": "apps/api/src/shared/modules/fhir/factories/fhir-condition.factory.ts",
         "start": 40,
-        "end": 60,
+        "end": 51,
         "startLoc": {
           "line": 40,
           "column": 40,
           "position": 358
         },
         "endLoc": {
-          "line": 60,
+          "line": 51,
           "column": 27,
-          "position": 451
+          "position": 413
         }
       }
     },
@@ -52616,32 +52664,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/shared/modules/document-generation/pdf/invoice-pdf-layout.helpers.ts",
-        "start": 205,
-        "end": 220,
+        "start": 228,
+        "end": 243,
         "startLoc": {
-          "line": 205,
+          "line": 228,
           "column": 29,
-          "position": 2260
+          "position": 2067
         },
         "endLoc": {
-          "line": 220,
+          "line": 243,
           "column": 16,
-          "position": 2371
+          "position": 2178
         }
       },
       "secondFile": {
         "name": "apps/api/src/shared/modules/document-generation/pdf/invoice-pdf-layout.helpers.ts",
-        "start": 44,
-        "end": 59,
+        "start": 145,
+        "end": 160,
         "startLoc": {
-          "line": 44,
+          "line": 145,
           "column": 26,
-          "position": 443
+          "position": 1301
         },
         "endLoc": {
-          "line": 59,
+          "line": 160,
           "column": 15,
-          "position": 554
+          "position": 1412
         }
       }
     },
@@ -52652,32 +52700,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/shared/modules/document-generation/pdf/invoice-pdf-layout.helpers.ts",
-        "start": 255,
-        "end": 266,
+        "start": 278,
+        "end": 289,
         "startLoc": {
-          "line": 255,
+          "line": 278,
           "column": 29,
-          "position": 2713
+          "position": 2520
         },
         "endLoc": {
-          "line": 266,
+          "line": 289,
           "column": 13,
-          "position": 2796
+          "position": 2603
         }
       },
       "secondFile": {
         "name": "apps/api/src/shared/modules/document-generation/pdf/invoice-pdf-layout.helpers.ts",
-        "start": 42,
-        "end": 53,
+        "start": 143,
+        "end": 154,
         "startLoc": {
-          "line": 42,
+          "line": 143,
           "column": 33,
-          "position": 423
+          "position": 1281
         },
         "endLoc": {
-          "line": 53,
+          "line": 154,
           "column": 14,
-          "position": 506
+          "position": 1364
         }
       }
     },
@@ -52688,32 +52736,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/shared/modules/document-generation/pdf/invoice-pdf-layout.helpers.ts",
-        "start": 347,
-        "end": 358,
+        "start": 370,
+        "end": 381,
         "startLoc": {
-          "line": 347,
+          "line": 370,
           "column": 48,
-          "position": 3776
+          "position": 3583
         },
         "endLoc": {
-          "line": 358,
+          "line": 381,
           "column": 22,
-          "position": 3857
+          "position": 3664
         }
       },
       "secondFile": {
         "name": "apps/api/src/shared/modules/document-generation/pdf/invoice-pdf-layout.helpers.ts",
-        "start": 203,
-        "end": 53,
+        "start": 226,
+        "end": 154,
         "startLoc": {
-          "line": 203,
+          "line": 226,
           "column": 34,
-          "position": 2242
+          "position": 2049
         },
         "endLoc": {
-          "line": 53,
+          "line": 154,
           "column": 14,
-          "position": 506
+          "position": 1364
         }
       }
     },
@@ -52935,42 +52983,6 @@
     },
     {
       "format": "typescript",
-      "lines": 22,
-      "fragment": " },\n      include: MESSAGE_WITH_CONVERSATION_INCLUDE,\n    });\n    if (!raw) return null;\n\n    const patient = await readClient.patient.findUnique({\n      where: { id: raw.conversation.patientId },\n      select: { phoneNumber: true },\n    });\n\n    return new WhatsAppMessage({\n      id: raw.id,\n      clinicId: raw.conversation.clinicId,\n      conversationId: raw.conversationId,\n      recipientPhone: patient?.phoneNumber || '',\n      content: raw.content,\n      status: toDomainMessageStatus(raw.status),\n      externalMessageId: raw.providerMsgId || undefined,\n      sentAt: raw.createdAt,\n    });\n  }\n}",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/whatsapp/infrastructure/repositories/prisma-whatsapp-message.repository.ts",
-        "start": 104,
-        "end": 125,
-        "startLoc": {
-          "line": 104,
-          "column": 41,
-          "position": 984
-        },
-        "endLoc": {
-          "line": 125,
-          "column": 2,
-          "position": 1172
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/whatsapp/infrastructure/repositories/prisma-whatsapp-message.repository.ts",
-        "start": 77,
-        "end": 99,
-        "startLoc": {
-          "line": 77,
-          "column": 18,
-          "position": 726
-        },
-        "endLoc": {
-          "line": 99,
-          "column": 1,
-          "position": 914
-        }
-      }
-    },
-    {
-      "format": "typescript",
       "lines": 12,
       "fragment": ";\n  }\n\n  @SkipSubscriptionCheck()\n  @Roles(\n    Role.ADMIN,\n    Role.ADMIN_DOCTOR,\n    Role.DOCTOR,\n    Role.NURSE,\n    Role.RECEPTIONIST,\n  )\n  @Post",
       "tokens": 0,
@@ -53043,73 +53055,37 @@
     },
     {
       "format": "typescript",
-      "lines": 21,
-      "fragment": "}\n\n  private isDatabaseAuthError(error: unknown): boolean {\n    if (!isRecord(error)) {\n      return false;\n    }\n\n    const code = typeof error.code === 'string' ? error.code : '';\n    const message =\n      typeof error.message === 'string' ? error.message.toLowerCase() : '';\n\n    if (code === 'P1000') return true;\n\n    return (\n      message.includes('authentication failed against the database server') ||\n      message.includes('database credentials') ||\n      message.includes('password authentication failed')\n    );\n  }\n\n",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/subscriptions/infrastructure/schedulers/subscription-reminder.scheduler.ts",
-        "start": 29,
-        "end": 49,
-        "startLoc": {
-          "line": 29,
-          "column": 6,
-          "position": 340
-        },
-        "endLoc": {
-          "line": 49,
-          "column": 1,
-          "position": 501
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/monitoring/monitoring/services/metrics-persistence.service.ts",
-        "start": 57,
-        "end": 76,
-        "startLoc": {
-          "line": 57,
-          "column": 3,
-          "position": 437
-        },
-        "endLoc": {
-          "line": 76,
-          "column": 2,
-          "position": 598
-        }
-      }
-    },
-    {
-      "format": "typescript",
       "lines": 14,
-      "fragment": ",\n          );\n        }\n      });\n    } catch (error) {\n      if (this.isDatabaseAuthError(error)) {\n        this.databaseAccessDisabled = true;\n        this.logger.warn(\n          'Disabling subscription scheduler due to database authentication failure. Verify DATABASE_URL credentials.',\n        );\n        return;\n      }\n\n      this.logCronError('Lapsed subscription cron failed'",
+      "fragment": ",\n          );\n        }\n      });\n    } catch (error) {\n      if (isDatabaseAuthError(error)) {\n        this.databaseAccessDisabled = true;\n        this.logger.warn(\n          'Disabling subscription scheduler due to database authentication failure. Verify DATABASE_URL credentials.',\n        );\n        return;\n      }\n\n      this.logCronError('Lapsed subscription cron failed'",
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/domains/subscriptions/infrastructure/schedulers/subscription-reminder.scheduler.ts",
-        "start": 261,
-        "end": 274,
+        "start": 243,
+        "end": 256,
         "startLoc": {
-          "line": 261,
+          "line": 243,
           "column": 115,
-          "position": 2448
+          "position": 2287
         },
         "endLoc": {
-          "line": 274,
+          "line": 256,
           "column": 58,
-          "position": 2526
+          "position": 2363
         }
       },
       "secondFile": {
         "name": "apps/api/src/domains/subscriptions/infrastructure/schedulers/subscription-reminder.scheduler.ts",
-        "start": 155,
-        "end": 168,
+        "start": 137,
+        "end": 150,
         "startLoc": {
-          "line": 155,
+          "line": 137,
           "column": 79,
-          "position": 1570
+          "position": 1411
         },
         "endLoc": {
-          "line": 168,
+          "line": 150,
           "column": 60,
-          "position": 1648
+          "position": 1487
         }
       }
     },
@@ -53218,78 +53194,6 @@
           "line": 56,
           "column": 25,
           "position": 366
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 14,
-      "fragment": " },\n        });\n\n      if (!prismaSubscription) return null;\n\n      return SubscriptionMapper.toDomain(prismaSubscription);\n    } catch (error) {\n      throw new BadRequestException(\n        `Failed to find subscription: ${error instanceof Error ? error.message : 'Unknown error'}`,\n      );\n    }\n  }\n\n  async findByStatus",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/subscriptions/infrastructure/repositories/prisma-subscription-core.repository.ts",
-        "start": 89,
-        "end": 102,
-        "startLoc": {
-          "line": 89,
-          "column": 28,
-          "position": 729
-        },
-        "endLoc": {
-          "line": 102,
-          "column": 21,
-          "position": 816
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/subscriptions/infrastructure/repositories/prisma-subscription-core.repository.ts",
-        "start": 72,
-        "end": 85,
-        "startLoc": {
-          "line": 72,
-          "column": 22,
-          "position": 588
-        },
-        "endLoc": {
-          "line": 85,
-          "column": 23,
-          "position": 675
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 17,
-      "fragment": "},\n      },\n      take: 1000,\n      include: {\n        clinic: {\n          include: {\n            users: {\n              where: { role: { in: ['ADMIN', 'ADMIN_DOCTOR'] } },\n              select: { email: true, name: true },\n            },\n          },\n        },\n      },\n    });\n  }\n\n  async findRecentReminderClinicIds",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/subscriptions/infrastructure/repositories/prisma-subscription-core.repository.ts",
-        "start": 282,
-        "end": 298,
-        "startLoc": {
-          "line": 282,
-          "column": 9,
-          "position": 2400
-        },
-        "endLoc": {
-          "line": 298,
-          "column": 36,
-          "position": 2512
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/subscriptions/infrastructure/repositories/prisma-subscription-core.repository.ts",
-        "start": 257,
-        "end": 273,
-        "startLoc": {
-          "line": 257,
-          "column": 46,
-          "position": 2185
-        },
-        "endLoc": {
-          "line": 273,
-          "column": 44,
-          "position": 2297
         }
       }
     },
@@ -53639,17 +53543,17 @@
       },
       "secondFile": {
         "name": "apps/api/src/domains/subscriptions/infrastructure/repositories/prisma-subscription-core.repository.ts",
-        "start": 204,
-        "end": 217,
+        "start": 195,
+        "end": 208,
         "startLoc": {
-          "line": 204,
+          "line": 195,
           "column": 52,
-          "position": 1674
+          "position": 1632
         },
         "endLoc": {
-          "line": 217,
+          "line": 208,
           "column": 24,
-          "position": 1776
+          "position": 1734
         }
       }
     },
@@ -53675,17 +53579,17 @@
       },
       "secondFile": {
         "name": "apps/api/src/domains/subscriptions/infrastructure/repositories/prisma-subscription-core.repository.ts",
-        "start": 225,
-        "end": 235,
+        "start": 216,
+        "end": 226,
         "startLoc": {
-          "line": 225,
+          "line": 216,
           "column": 52,
-          "position": 1871
+          "position": 1829
         },
         "endLoc": {
-          "line": 235,
+          "line": 226,
           "column": 24,
-          "position": 1947
+          "position": 1905
         }
       }
     },
@@ -53907,73 +53811,37 @@
     },
     {
       "format": "typescript",
-      "lines": 15,
-      "fragment": ",\n          );\n        }\n      });\n    } catch (error) {\n      if (isDatabaseAuthError(error)) {\n        this.databaseAccessDisabled = true;\n        this.logger.warn(\n          'Disabling reminder scheduler due to database authentication failure. Verify DATABASE_URL credentials.',\n        );\n        return;\n      }\n\n      this.logger.error(\n        '30-min reminder scheduler encountered an unexpected error'",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/reminders/application/services/reminder-scheduler.service.ts",
-        "start": 202,
-        "end": 216,
-        "startLoc": {
-          "line": 202,
-          "column": 79,
-          "position": 1706
-        },
-        "endLoc": {
-          "line": 216,
-          "column": 68,
-          "position": 1786
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/reminders/application/services/reminder-scheduler.service.ts",
-        "start": 95,
-        "end": 109,
-        "startLoc": {
-          "line": 95,
-          "column": 79,
-          "position": 804
-        },
-        "endLoc": {
-          "line": 109,
-          "column": 61,
-          "position": 884
-        }
-      }
-    },
-    {
-      "format": "typescript",
       "lines": 11,
       "fragment": "(\n    appointment: AppointmentForReminder,\n    settings: _ReminderSettings,\n    existingReminderIds?: Set<string>,\n  ): Promise<void> {\n    if (existingReminderIds?.has(appointment.id)) {\n      return;\n    }\n\n    if (\n",
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/domains/reminders/application/services/reminder-scheduler.service.ts",
-        "start": 318,
-        "end": 328,
+        "start": 311,
+        "end": 321,
         "startLoc": {
-          "line": 318,
+          "line": 311,
           "column": 49,
-          "position": 2575
+          "position": 2546
         },
         "endLoc": {
-          "line": 328,
+          "line": 321,
           "column": 1,
-          "position": 2642
+          "position": 2613
         }
       },
       "secondFile": {
         "name": "apps/api/src/domains/reminders/application/services/reminder-scheduler.service.ts",
-        "start": 279,
-        "end": 288,
+        "start": 272,
+        "end": 281,
         "startLoc": {
-          "line": 279,
+          "line": 272,
           "column": 46,
-          "position": 2311
+          "position": 2282
         },
         "endLoc": {
-          "line": 288,
+          "line": 281,
           "column": 17,
-          "position": 2378
+          "position": 2349
         }
       }
     },
@@ -54339,37 +54207,37 @@
     },
     {
       "format": "typescript",
-      "lines": 19,
-      "fragment": " {\n  constructor(private readonly prisma: PrismaService) {}\n\n  private getReadClient() {\n    return this.prisma.getReadClient();\n  }\n\n  async verifyPatientAccess(\n    patientId: string,\n    clinicId: string,\n  ): Promise<boolean> {\n    const patient = await this.getReadClient().patient.findFirst({\n      where: { id: patientId, clinicId },\n      select: { id: true },\n    });\n    return !!patient;\n  }\n\n  async findMedicationWithPrescription",
+      "lines": 18,
+      "fragment": "\n{\n  constructor(prisma: PrismaService) {\n    super(prisma);\n  }\n\n  async verifyPatientAccess(\n    patientId: string,\n    clinicId: string,\n  ): Promise<boolean> {\n    const patient = await this.getReadClient().patient.findFirst({\n      where: { id: patientId, clinicId },\n      select: { id: true },\n    });\n    return !!patient;\n  }\n\n  async findMedicationWithPrescription",
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/domains/patients/infrastructure/persistence/prisma-medication-dose.repository.ts",
-        "start": 13,
-        "end": 31,
+        "start": 16,
+        "end": 33,
         "startLoc": {
-          "line": 13,
-          "column": 81,
-          "position": 85
+          "line": 16,
+          "column": 39,
+          "position": 104
         },
         "endLoc": {
-          "line": 31,
+          "line": 33,
           "column": 39,
-          "position": 233
+          "position": 232
         }
       },
       "secondFile": {
         "name": "apps/api/src/domains/patients/infrastructure/persistence/timeline/prisma-patient-timeline-snapshot.repository.ts",
-        "start": 12,
-        "end": 30,
+        "start": 15,
+        "end": 32,
         "startLoc": {
-          "line": 12,
-          "column": 99,
-          "position": 83
+          "line": 15,
+          "column": 48,
+          "position": 102
         },
         "endLoc": {
-          "line": 30,
+          "line": 32,
           "column": 31,
-          "position": 231
+          "position": 230
         }
       }
     },
@@ -54380,32 +54248,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/domains/patients/infrastructure/persistence/prisma-medication-dose.repository.ts",
-        "start": 105,
-        "end": 115,
+        "start": 107,
+        "end": 117,
         "startLoc": {
-          "line": 105,
+          "line": 107,
           "column": 12,
-          "position": 967
+          "position": 966
         },
         "endLoc": {
-          "line": 115,
+          "line": 117,
           "column": 24,
-          "position": 1045
+          "position": 1044
         }
       },
       "secondFile": {
         "name": "apps/api/src/domains/patients/infrastructure/persistence/timeline/prisma-patient-timeline-snapshot.repository.ts",
-        "start": 111,
-        "end": 121,
+        "start": 113,
+        "end": 123,
         "startLoc": {
-          "line": 111,
+          "line": 113,
           "column": 51,
-          "position": 902
+          "position": 901
         },
         "endLoc": {
-          "line": 121,
+          "line": 123,
           "column": 44,
-          "position": 980
+          "position": 979
         }
       }
     },
@@ -54514,42 +54382,6 @@
           "line": 71,
           "column": 11,
           "position": 518
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 15,
-      "fragment": ") {\n    await verifyMedicationDosePatientAccess(\n      this.repository,\n      clinicId,\n      patientId,\n    );\n\n    const medication = await this.repository.findMedicationWithPrescription(\n      dto.medicationId,\n    );\n\n    if (!medication || medication.prescription.patientId !== patientId)\n      throw new NotFoundException('Medication not found for this patient');\n\n    if",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/patients/application/services/medication-dose-command.service.ts",
-        "start": 90,
-        "end": 104,
-        "startLoc": {
-          "line": 90,
-          "column": 3,
-          "position": 600
-        },
-        "endLoc": {
-          "line": 104,
-          "column": 7,
-          "position": 689
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/patients/application/services/medication-dose-command.service.ts",
-        "start": 58,
-        "end": 72,
-        "startLoc": {
-          "line": 58,
-          "column": 75,
-          "position": 368
-        },
-        "endLoc": {
-          "line": 72,
-          "column": 11,
-          "position": 457
         }
       }
     },
@@ -56530,42 +56362,6 @@
           "line": 149,
           "column": 8,
           "position": 1246
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 15,
-      "fragment": ",\n  | 'totalCents'\n  | 'subtotalCents'\n  | 'discountTotalCents'\n  | 'taxTotalCents'\n  | 'grandTotalCents'\n> => ({\n  totalCents: toCents(totals.total),\n  subtotalCents: toCents(totals.subtotal),\n  discountTotalCents: toCents(totals.discountTotal),\n  taxTotalCents: toCents(totals.taxTotal),\n  grandTotalCents: toCents(totals.grandTotal),\n});\n\nconst",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/billing/core/utils/invoice-normalization.ts",
-        "start": 38,
-        "end": 52,
-        "startLoc": {
-          "line": 38,
-          "column": 28,
-          "position": 301
-        },
-        "endLoc": {
-          "line": 52,
-          "column": 6,
-          "position": 400
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/billing/core/utils/invoice-normalization.ts",
-        "start": 21,
-        "end": 35,
-        "startLoc": {
-          "line": 21,
-          "column": 28,
-          "position": 175
-        },
-        "endLoc": {
-          "line": 35,
-          "column": 7,
-          "position": 274
         }
       }
     },
@@ -59343,37 +59139,37 @@
     },
     {
       "format": "tsx",
-      "lines": 19,
-      "fragment": "\n          </Label>\n          <Input\n            id={`clinic-hours-${day}-end`}\n            type=\"time\"\n            value={dayRow.endTime}\n            onChange={(e) =>\n              onUpdateDay(day, { endTime: e.target.value })\n            }\n            disabled={!dayRow.isActive}\n            className=\"rounded-[var(--radius-md)]\"\n          />\n        </div>\n        <div className=\"space-y-1.5\">\n          <Label\n            htmlFor={`clinic-hours-${day}-slot`}\n            className=\"text-[length:var(--fs-xs)] text-muted-foreground\"\n          >\n            Slot",
+      "lines": 17,
+      "fragment": "\n          </Label>\n          <Input\n            id={`clinic-hours-${day}-end`}\n            type=\"time\"\n            value={dayRow.endTime}\n            onChange={(e) => onUpdateDay(day, { endTime: e.target.value })}\n            disabled={!dayRow.isActive}\n            className=\"rounded-[var(--radius-md)]\"\n          />\n        </div>\n        <div className=\"space-y-1.5\">\n          <Label\n            htmlFor={`clinic-hours-${day}-slot`}\n            className=\"text-[length:var(--fs-xs)] text-muted-foreground\"\n          >\n            Slot",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/features/onboarding/components/steps/ClinicWeeklyHoursStepSections.tsx",
-        "start": 132,
-        "end": 150,
+        "start": 130,
+        "end": 146,
         "startLoc": {
-          "line": 132,
+          "line": 130,
           "column": 19,
-          "position": 942
+          "position": 944
         },
         "endLoc": {
-          "line": 150,
+          "line": 146,
           "column": 17,
-          "position": 1059
+          "position": 1060
         }
       },
       "secondFile": {
         "name": "apps/app/features/onboarding/components/steps/ClinicWeeklyHoursStepSections.tsx",
         "start": 114,
-        "end": 132,
+        "end": 130,
         "startLoc": {
           "line": 114,
           "column": 18,
-          "position": 824
+          "position": 827
         },
         "endLoc": {
-          "line": 132,
+          "line": 130,
           "column": 19,
-          "position": 941
+          "position": 943
         }
       }
     },
@@ -61260,13 +61056,13 @@
         "end": 22,
         "startLoc": {
           "line": 8,
-          "column": 30,
-          "position": 39
+          "column": 47,
+          "position": 44
         },
         "endLoc": {
           "line": 22,
           "column": 27,
-          "position": 108
+          "position": 113
         }
       },
       "secondFile": {
@@ -61282,78 +61078,6 @@
           "line": 22,
           "column": 27,
           "position": 105
-        }
-      }
-    },
-    {
-      "format": "tsx",
-      "lines": 19,
-      "fragment": " procedures</CardDescription>\n    </CardHeader>\n    <CardContent className=\"h-[400px]\">\n      {loading ? (\n        <LoadingSpinner />\n      ) : data.length > 0 ? (\n        <ResponsiveContainer width=\"100%\" height=\"100%\">\n          <PieChart>\n            <Pie\n              data={data.slice(0, 8)}\n              cx=\"50%\"\n              cy=\"50%\"\n              labelLine={false}\n              label={({ payload }) => `${payload.code}: ${payload.count}`}\n              outerRadius={120}\n              fill=\"var(--color-chart-1)\"\n              dataKey=\"count\"\n            >\n              {data.slice(0, 8).map((_entry, index)",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/features/analytics/components/charts/RevenueCharts.tsx",
-        "start": 65,
-        "end": 83,
-        "startLoc": {
-          "line": 65,
-          "column": 49,
-          "position": 511
-        },
-        "endLoc": {
-          "line": 83,
-          "column": 52,
-          "position": 687
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/features/analytics/components/charts/RevenueCharts.tsx",
-        "start": 34,
-        "end": 94,
-        "startLoc": {
-          "line": 34,
-          "column": 46,
-          "position": 222
-        },
-        "endLoc": {
-          "line": 94,
-          "column": 52,
-          "position": 691
-        }
-      }
-    },
-    {
-      "format": "tsx",
-      "lines": 13,
-      "fragment": ") => (\n                <Cell\n                  key={`cell-${index}`}\n                  fill={COLORS[index % COLORS.length]}\n                />\n              ))}\n            </Pie>\n            <Tooltip />\n          </PieChart>\n        </ResponsiveContainer>\n      ) : (\n        <EmptyState\n          ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/features/analytics/components/charts/RevenueCharts.tsx",
-        "start": 83,
-        "end": 95,
-        "startLoc": {
-          "line": 83,
-          "column": 51,
-          "position": 687
-        },
-        "endLoc": {
-          "line": 95,
-          "column": 11,
-          "position": 759
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/features/analytics/components/charts/TrendsCharts.tsx",
-        "start": 94,
-        "end": 105,
-        "startLoc": {
-          "line": 94,
-          "column": 59,
-          "position": 694
-        },
-        "endLoc": {
-          "line": 105,
-          "column": 21,
-          "position": 766
         }
       }
     },
@@ -62223,6 +61947,42 @@
     },
     {
       "format": "typescript",
+      "lines": 11,
+      "fragment": ";\n\n  if (code === 'P1000') return true;\n\n  return (\n    message.includes('authentication failed against the database server') ||\n    message.includes('database credentials') ||\n    message.includes('password authentication failed')\n  );\n}\n",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/api/src/shared/common/utils/is-database-auth-error.ts",
+        "start": 10,
+        "end": 20,
+        "startLoc": {
+          "line": 10,
+          "column": 73,
+          "position": 113
+        },
+        "endLoc": {
+          "line": 20,
+          "column": 1,
+          "position": 171
+        }
+      },
+      "secondFile": {
+        "name": "apps/api/src/shared/modules/auth/auth/auth-database.util.ts",
+        "start": 17,
+        "end": 27,
+        "startLoc": {
+          "line": 17,
+          "column": 58,
+          "position": 196
+        },
+        "endLoc": {
+          "line": 27,
+          "column": 1,
+          "position": 254
+        }
+      }
+    },
+    {
+      "format": "typescript",
       "lines": 13,
       "fragment": " {\n    const correlationId = context.correlationId ?? nanoid();\n\n    const event = createEvent(type, payload, {\n      clinicId: context.clinicId,\n      userId: context.userId,\n      source: context.source,\n      correlationId,\n      timestamp: this.clock.now(),\n    });\n\n    this.logger.debug(\n      `Emitting async event: ",
       "tokens": 0,
@@ -62295,22 +62055,22 @@
     },
     {
       "format": "tsx",
-      "lines": 14,
-      "fragment": "\nimport { DocitaLoadingIndicator } from \"../feedback/docita-loading-indicator\";\nimport {\n  Dialog,\n  DialogContent,\n  DialogDescription,\n  DialogFooter,\n  DialogHeader,\n  DialogTitle,\n} from \"./dialog\";\nimport { Button } from \"../form/button\";\nimport { cn } from \"@workspace/ui/lib/utils\";\n\nexport interface CRUDDialogProps",
+      "lines": 13,
+      "fragment": "\nimport { DocitaLoadingIndicator } from \"../feedback/docita-loading-indicator\";\nimport {\n  Dialog,\n  DialogContent,\n  DialogDescription,\n  DialogFooter,\n  DialogHeader,\n  DialogTitle,\n} from \"./dialog\";\nimport { Button } from \"../form/button\";\nimport { cn } from \"@workspace/ui/lib/utils\";\nimport",
       "tokens": 0,
       "firstFile": {
         "name": "packages/ui/src/components/overlay/crud-dialog.tsx",
         "start": 3,
-        "end": 16,
+        "end": 15,
         "startLoc": {
           "line": 3,
           "column": 32,
           "position": 16
         },
         "endLoc": {
-          "line": 16,
-          "column": 33,
-          "position": 96
+          "line": 15,
+          "column": 7,
+          "position": 91
         }
       },
       "secondFile": {
@@ -62324,8 +62084,8 @@
         },
         "endLoc": {
           "line": 18,
-          "column": 22,
-          "position": 113
+          "column": 1,
+          "position": 108
         }
       }
     },
@@ -62366,74 +62126,38 @@
       }
     },
     {
-      "format": "javascript",
-      "lines": 18,
-      "fragment": "}\n              >\n                {inner}\n              </button>,\n            );\n          }\n\n          return (\n            <button\n              key={item.id}\n              ref={isActive ? activeTabRef : undefined}\n              role=\"tab\"\n              aria-selected={isActive}\n              aria-disabled={item.disabled}\n              tabIndex={isActive ? 0 : -1}\n              type=\"button\"\n              className={sharedClass}\n              onClick={() => onSelect?.(item.id)}",
-      "tokens": 0,
-      "firstFile": {
-        "name": "packages/ui/src/components/navigation/page-tabs.tsx",
-        "start": 94,
-        "end": 111,
-        "startLoc": {
-          "line": 94,
-          "column": 51,
-          "position": 629
-        },
-        "endLoc": {
-          "line": 111,
-          "column": 50,
-          "position": 740
-        }
-      },
-      "secondFile": {
-        "name": "packages/ui/src/components/navigation/page-tabs.tsx",
-        "start": 58,
-        "end": 94,
-        "startLoc": {
-          "line": 58,
-          "column": 30,
-          "position": 352
-        },
-        "endLoc": {
-          "line": 94,
-          "column": 52,
-          "position": 629
-        }
-      }
-    },
-    {
       "format": "tsx",
-      "lines": 18,
-      "fragment": ", contentClassName)}\n        onInteractOutside={(e: Event) => {\n          if (isLoading || disabled) {\n            e.preventDefault();\n          }\n        }}\n        onEscapeKeyDown={(e: KeyboardEvent) => {\n          if (isLoading || disabled) {\n            e.preventDefault();\n          }\n        }}\n      >\n        <DialogHeader>\n          <DialogTitle>{title}</DialogTitle>\n          {description && <DialogDescription>{description}</DialogDescription>}\n        </DialogHeader>\n\n        <DialogBody",
+      "lines": 23,
+      "fragment": "\n  return (\n    <Dialog open={open} onOpenChange={onOpenChange}>\n      <DialogContent\n        className={cn(\n          contentClassName ? undefined : \"md:max-w-[600px]\",\n          contentClassName,\n        )}\n        onInteractOutside={preventWhenLoadingOrDisabled(\n          isLoading ?? false,\n          disabled,\n        )}\n        onEscapeKeyDown={preventEscapeWhenLoadingOrDisabled(\n          isLoading ?? false,\n          disabled,\n        )}\n      >\n        <DialogHeader>\n          <DialogTitle>{title}</DialogTitle>\n          {description && <DialogDescription>{description}</DialogDescription>}\n        </DialogHeader>\n\n        <DialogBody",
       "tokens": 0,
       "firstFile": {
         "name": "packages/ui/src/components/form/form-dialog.tsx",
         "start": 41,
-        "end": 58,
+        "end": 63,
         "startLoc": {
           "line": 41,
-          "column": 72,
-          "position": 271
+          "column": 22,
+          "position": 248
         },
         "endLoc": {
-          "line": 58,
+          "line": 63,
           "column": 20,
-          "position": 407
+          "position": 370
         }
       },
       "secondFile": {
         "name": "packages/ui/src/components/overlay/crud-dialog.tsx",
         "start": 60,
-        "end": 77,
+        "end": 76,
         "startLoc": {
           "line": 60,
-          "column": 41,
-          "position": 426
+          "column": 1,
+          "position": 411
         },
         "endLoc": {
-          "line": 77,
+          "line": 76,
           "column": 14,
-          "position": 562
+          "position": 516
         }
       }
     },
@@ -62974,42 +62698,6 @@
           "line": 112,
           "column": 17,
           "position": 932
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 18,
-      "fragment": ";\n\n    let service: IAccessControlService = new AccessControlService(\n      repository,\n      rules,\n    );\n\n    if (config?.enableLogging) {\n      service = new LoggingAccessControlDecorator(service);\n    }\n\n    if (config?.enableAnalytics) {\n      service = new AnalyticsAccessControlDecorator(service);\n    }\n\n    return service;\n  }\n}",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/shared/lib/access-control/factory.ts",
-        "start": 66,
-        "end": 83,
-        "startLoc": {
-          "line": 66,
-          "column": 6,
-          "position": 446
-        },
-        "endLoc": {
-          "line": 83,
-          "column": 2,
-          "position": 544
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/shared/lib/access-control/factory.ts",
-        "start": 40,
-        "end": 58,
-        "startLoc": {
-          "line": 40,
-          "column": 6,
-          "position": 286
-        },
-        "endLoc": {
-          "line": 58,
-          "column": 1,
-          "position": 384
         }
       }
     },
@@ -64018,42 +63706,6 @@
           "line": 124,
           "column": 1,
           "position": 941
-        }
-      }
-    },
-    {
-      "format": "tsx",
-      "lines": 18,
-      "fragment": "\n\nconst STATUS_LABELS: Record<FollowUpStatus, string> = {\n  PENDING: \"Pending\",\n  REMINDER_SENT: \"Reminder sent\",\n  BOOKED: \"Booked\",\n  COMPLETED: \"Completed\",\n  CANCELLED: \"Cancelled\",\n  EXPIRED: \"Expired\",\n};\n\nfunction patientName(followUp: FollowUpResponse) {\n  const firstName = followUp.patient?.firstName ?? \"\";\n  const lastName = followUp.patient?.lastName ?? \"\";\n  return getPatientFullName({ firstName, lastName }, \"Patient\");\n}\n\nfunction",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/features/follow-ups/components/FollowUpsPageContent.tsx",
-        "start": 46,
-        "end": 63,
-        "startLoc": {
-          "line": 46,
-          "column": 2,
-          "position": 419
-        },
-        "endLoc": {
-          "line": 63,
-          "column": 9,
-          "position": 558
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/features/dashboard/components/follow-ups/today-follow-ups-panel.tsx",
-        "start": 19,
-        "end": 36,
-        "startLoc": {
-          "line": 19,
-          "column": 89,
-          "position": 165
-        },
-        "endLoc": {
-          "line": 36,
-          "column": 10,
-          "position": 304
         }
       }
     },
@@ -65427,78 +65079,6 @@
     },
     {
       "format": "typescript",
-      "lines": 18,
-      "fragment": " = {\n  id: true,\n  patientId: true,\n  clinicId: true,\n  invoiceNumber: true,\n  invoiceType: true,\n  currency: true,\n  total: true,\n  subtotal: true,\n  discountTotal: true,\n  taxTotal: true,\n  grandTotal: true,\n  totalCents: true,\n  subtotalCents: true,\n  discountTotalCents: true,\n  taxTotalCents: true,\n  grandTotalCents: true,\n  taxSummary",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/common/select-fragments.ts",
-        "start": 67,
-        "end": 84,
-        "startLoc": {
-          "line": 67,
-          "column": 35,
-          "position": 450
-        },
-        "endLoc": {
-          "line": 84,
-          "column": 13,
-          "position": 568
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/common/select-fragments.ts",
-        "start": 35,
-        "end": 52,
-        "startLoc": {
-          "line": 35,
-          "column": 33,
-          "position": 237
-        },
-        "endLoc": {
-          "line": 52,
-          "column": 9,
-          "position": 355
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 20,
-      "fragment": ": [\n    EncryptionService,\n    AppLogger,\n    IpRateLimitService,\n    OptimisticConcurrencyService,\n    BusinessRulesService,\n    StartupValidationService,\n    SecretsManagerService,\n    ObservabilityService,\n    IpRateLimitGuard,\n    RequestContextInterceptor,\n    DatabaseBackupService,\n    SlowQueryLoggingService,\n    DatabaseIndexOptimizationService,\n    DatabasePoolingService,\n    TaggedCacheService,\n    N1QueryDetectionService,\n    CursorPaginationService,\n  ],\n}",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/common/common.module.ts",
-        "start": 46,
-        "end": 65,
-        "startLoc": {
-          "line": 46,
-          "column": 10,
-          "position": 388
-        },
-        "endLoc": {
-          "line": 65,
-          "column": 2,
-          "position": 464
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/common/common.module.ts",
-        "start": 27,
-        "end": 46,
-        "startLoc": {
-          "line": 27,
-          "column": 12,
-          "position": 310
-        },
-        "endLoc": {
-          "line": 46,
-          "column": 3,
-          "position": 386
-        }
-      }
-    },
-    {
-      "format": "typescript",
       "lines": 11,
       "fragment": ") {}\n\n  private toRecord(value: unknown): Record<string, unknown> {\n    if (!value || typeof value !== 'object') {\n      return {};\n    }\n\n    return Object.fromEntries(Object.entries(value));\n  }\n\n  private",
       "tokens": 0,
@@ -65710,6 +65290,78 @@
           "line": 118,
           "column": 2,
           "position": 704
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 19,
+      "fragment": "import {\n  SubscriptionPricingService,\n  ProratingService,\n  SubscriptionValidationService,\n  ReferralService,\n} from './core/services';\nimport {\n  CreateSubscriptionUseCase,\n  UpgradeSubscriptionUseCase,\n  CancelSubscriptionUseCase,\n  ActivateSubscriptionUseCase,\n  ApplyPlanChangeWithoutPaymentUseCase,\n  CreateCheckoutUseCase,\n  ExpireSubscriptionUseCase,\n  EnterGracePeriodUseCase,\n  ProcessWebhookUseCase,\n  NotifyExpiringSubscriptionsUseCase,\n  NotifySubscriptionGraceDeadlineUseCase,\n}",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/api/src/domains/subscriptions/subscriptions-common.providers.ts",
+        "start": 1,
+        "end": 19,
+        "startLoc": {
+          "line": 1,
+          "column": 1,
+          "position": 0
+        },
+        "endLoc": {
+          "line": 19,
+          "column": 2,
+          "position": 75
+        }
+      },
+      "secondFile": {
+        "name": "apps/api/src/domains/subscriptions/subscriptions.worker.module.ts",
+        "start": 2,
+        "end": 20,
+        "startLoc": {
+          "line": 2,
+          "column": 1,
+          "position": 13
+        },
+        "endLoc": {
+          "line": 20,
+          "column": 3,
+          "position": 88
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 24,
+      "fragment": ",\n} from './application/use-cases';\nimport { SubscriptionsQueryService } from './application/services/subscriptions-query.service';\nimport { SubscriptionCheckoutPricingService } from './application/services/subscription-checkout-pricing.service';\nimport { SubscriptionActivationPolicyService } from './application/services/subscription-activation-policy.service';\nimport { SubscriptionBillingSnapshotService } from './application/services/subscription-billing-snapshot.service';\nimport { ActivateSubscriptionPaymentService } from './application/services/activate-subscription-payment.service';\nimport { ActivateSubscriptionClinicSyncService } from './application/services/activate-subscription-clinic-sync.service';\nimport { razorpayWebhookHandlerProviders } from './application/webhooks/razorpay/razorpay-webhook-handler.registry';\nimport {\n  SUBSCRIPTION_REPOSITORY_TOKEN,\n  PAYMENT_GATEWAY_TOKEN,\n  CLINIC_OPERATIONS_TOKEN,\n} from './application/ports';\nimport {\n  PrismaSubscriptionRepository,\n  PrismaSubscriptionCoreRepository,\n  PrismaSubscriptionPaymentRepository,\n  SubscriptionPaymentTaxCalculator,\n} from './infrastructure/repositories';\nimport { PaymentGatewayFacade } from './infrastructure/adapters/payment-gateway-facade.adapter';\nimport { ClinicOperationsAdapter } from './infrastructure/adapters/clinic-operations.adapter';\n\n",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/api/src/domains/subscriptions/subscriptions-common.providers.ts",
+        "start": 18,
+        "end": 41,
+        "startLoc": {
+          "line": 18,
+          "column": 41,
+          "position": 73
+        },
+        "endLoc": {
+          "line": 41,
+          "column": 1,
+          "position": 249
+        }
+      },
+      "secondFile": {
+        "name": "apps/api/src/domains/subscriptions/subscriptions.worker.module.ts",
+        "start": 21,
+        "end": 43,
+        "startLoc": {
+          "line": 21,
+          "column": 31,
+          "position": 94
+        },
+        "endLoc": {
+          "line": 43,
+          "column": 7,
+          "position": 270
         }
       }
     },
@@ -66471,42 +66123,6 @@
     },
     {
       "format": "typescript",
-      "lines": 18,
-      "fragment": ".optional(),\n\n  provisionalDiagnosis: z\n    .string()\n    .max(1000)\n    .optional()\n    .transform(stripHtmlTags),\n  differentialDiagnosis: z\n    .string()\n    .max(2000)\n    .optional()\n    .transform(stripHtmlTags),\n  clinicalImpression: z.string().max(2000).optional().transform(stripHtmlTags),\n\n  investigations: z.array(clinicalInvestigationSchema).optional(),\n  finalDiagnosis: z.string().max(1000).optional().transform(stripHtmlTags),\n  treatmentPlan: z.string().max(5000).optional().transform(stripHtmlTags),\n  prescriptions",
-      "tokens": 0,
-      "firstFile": {
-        "name": "packages/types/src/clinical/clinical.ts",
-        "start": 582,
-        "end": 599,
-        "startLoc": {
-          "line": 582,
-          "column": 43,
-          "position": 7166
-        },
-        "endLoc": {
-          "line": 599,
-          "column": 16,
-          "position": 7332
-        }
-      },
-      "secondFile": {
-        "name": "packages/types/src/operations/appointments.ts",
-        "start": 100,
-        "end": 117,
-        "startLoc": {
-          "line": 100,
-          "column": 49,
-          "position": 839
-        },
-        "endLoc": {
-          "line": 117,
-          "column": 15,
-          "position": 1005
-        }
-      }
-    },
-    {
-      "format": "typescript",
       "lines": 11,
       "fragment": "\n  name: z.string(),\n  description: z.string(),\n  tagline: z.string(),\n  color: z.string(),\n  pricing: z.object({\n    monthly: z.number().or(z.literal(\"custom\")),\n    yearly: z.number().or(z.literal(\"custom\")),\n    currency: z.string(),\n  }),\n  features",
       "tokens": 0,
@@ -66682,78 +66298,6 @@
           "line": 150,
           "column": 23,
           "position": 858
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 18,
-      "fragment": " {\n  id: string;\n  clinicId: string;\n  clinic?: {\n    id: string;\n    name: string;\n    email: string;\n    tier: string;\n  };\n  title: string;\n  description: string;\n  percentOff: number;\n  durationMonths?: number;\n  validUntil?: string;\n  notes?: string;\n  updatedAt?: string;\n}\n",
-      "tokens": 0,
-      "firstFile": {
-        "name": "packages/data-access/src/internal/pricing.types.ts",
-        "start": 30,
-        "end": 47,
-        "startLoc": {
-          "line": 30,
-          "column": 41,
-          "position": 180
-        },
-        "endLoc": {
-          "line": 47,
-          "column": 1,
-          "position": 290
-        }
-      },
-      "secondFile": {
-        "name": "apps/internal/shared/lib/api/api.ts",
-        "start": 89,
-        "end": 106,
-        "startLoc": {
-          "line": 89,
-          "column": 33,
-          "position": 806
-        },
-        "endLoc": {
-          "line": 106,
-          "column": 1,
-          "position": 916
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 18,
-      "fragment": ";\n  timestamp: string;\n  uptime: number;\n  version: string;\n  checks: {\n    database: { status: string; latency?: number; error?: string };\n    memory: {\n      status: string;\n      heapUsed: number;\n      heapTotal: number;\n      rss: number;\n      heapUsagePercent: number;\n    };\n    cpu: { status: string; user: number; system: number };\n  };\n}\n\nexport",
-      "tokens": 0,
-      "firstFile": {
-        "name": "packages/data-access/src/internal/monitoring.types.ts",
-        "start": 4,
-        "end": 21,
-        "startLoc": {
-          "line": 4,
-          "column": 47,
-          "position": 24
-        },
-        "endLoc": {
-          "line": 21,
-          "column": 7,
-          "position": 159
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/monitoring/monitoring/health.service.ts",
-        "start": 6,
-        "end": 23,
-        "startLoc": {
-          "line": 6,
-          "column": 47,
-          "position": 61
-        },
-        "endLoc": {
-          "line": 23,
-          "column": 2,
-          "position": 196
         }
       }
     },
@@ -67258,42 +66802,6 @@
           "line": 15,
           "column": 9,
           "position": 98
-        }
-      }
-    },
-    {
-      "format": "tsx",
-      "lines": 18,
-      "fragment": ".map((row) => (\n                        <li\n                          key={row.name}\n                          className=\"flex justify-between gap-2\"\n                        >\n                          <span className=\"truncate font-mono text-xs\">\n                            {row.name}\n                          </span>\n                          <span className=\"tabular-nums\">\n                            {formatCountLocale(row.count)}\n                          </span>\n                        </li>\n                      ))}\n                    </ul>\n                  )}\n                </CardContent>\n              </Card>\n            ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/internal/features/system-monitoring/queues-tab.tsx",
-        "start": 116,
-        "end": 133,
-        "startLoc": {
-          "line": 116,
-          "column": 63,
-          "position": 872
-        },
-        "endLoc": {
-          "line": 133,
-          "column": 13,
-          "position": 981
-        }
-      },
-      "secondFile": {
-        "name": "apps/internal/features/system-monitoring/queues-tab.tsx",
-        "start": 89,
-        "end": 106,
-        "startLoc": {
-          "line": 89,
-          "column": 64,
-          "position": 659
-        },
-        "endLoc": {
-          "line": 106,
-          "column": 15,
-          "position": 768
         }
       }
     },

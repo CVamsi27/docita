@@ -15,6 +15,22 @@ export const toPrismaJson = toPrismaInputJsonValue;
 const toCents = (amount: number | null | undefined): number =>
   Math.round((amount ?? 0) * 100);
 
+const toInvoiceCentFields = (
+  totals: InvoiceTotals,
+): {
+  totalCents: number;
+  subtotalCents: number;
+  discountTotalCents: number;
+  taxTotalCents: number;
+  grandTotalCents: number;
+} => ({
+  totalCents: toCents(totals.total),
+  subtotalCents: toCents(totals.subtotal),
+  discountTotalCents: toCents(totals.discountTotal),
+  taxTotalCents: toCents(totals.taxTotal),
+  grandTotalCents: toCents(totals.grandTotal),
+});
+
 export const toInvoiceCentCreateFields = (
   totals: InvoiceTotals,
 ): Pick<
@@ -24,13 +40,7 @@ export const toInvoiceCentCreateFields = (
   | 'discountTotalCents'
   | 'taxTotalCents'
   | 'grandTotalCents'
-> => ({
-  totalCents: toCents(totals.total),
-  subtotalCents: toCents(totals.subtotal),
-  discountTotalCents: toCents(totals.discountTotal),
-  taxTotalCents: toCents(totals.taxTotal),
-  grandTotalCents: toCents(totals.grandTotal),
-});
+> => toInvoiceCentFields(totals);
 
 export const toInvoiceCentUpdateFields = (
   totals: InvoiceTotals,
@@ -41,13 +51,7 @@ export const toInvoiceCentUpdateFields = (
   | 'discountTotalCents'
   | 'taxTotalCents'
   | 'grandTotalCents'
-> => ({
-  totalCents: toCents(totals.total),
-  subtotalCents: toCents(totals.subtotal),
-  discountTotalCents: toCents(totals.discountTotal),
-  taxTotalCents: toCents(totals.taxTotal),
-  grandTotalCents: toCents(totals.grandTotal),
-});
+> => toInvoiceCentFields(totals);
 
 const sourceTypeForItem = (item: InvoiceItem): string | undefined => {
   if (item.cptCode) return 'CPT';

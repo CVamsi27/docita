@@ -55,19 +55,32 @@ export class MedicationDoseCommandService {
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
-  async recordDose(clinicId: string, patientId: string, dto: RecordDoseDto) {
+  private async verifyMedicationAccess(
+    clinicId: string,
+    patientId: string,
+    medicationId: string,
+  ) {
     await verifyMedicationDosePatientAccess(
       this.repository,
       clinicId,
       patientId,
     );
 
-    const medication = await this.repository.findMedicationWithPrescription(
-      dto.medicationId,
-    );
+    const medication =
+      await this.repository.findMedicationWithPrescription(medicationId);
 
     if (!medication || medication.prescription.patientId !== patientId)
       throw new NotFoundException('Medication not found for this patient');
+
+    return medication;
+  }
+
+  async recordDose(clinicId: string, patientId: string, dto: RecordDoseDto) {
+    const medication = await this.verifyMedicationAccess(
+      clinicId,
+      patientId,
+      dto.medicationId,
+    );
 
     return this.repository.createDose({
       medicationId: dto.medicationId,
@@ -88,18 +101,11 @@ export class MedicationDoseCommandService {
     dto: RecordAdHocDoseDto,
     source: MedicationDoseSource = 'PATIENT_REPORTED',
   ) {
-    await verifyMedicationDosePatientAccess(
-      this.repository,
+    const medication = await this.verifyMedicationAccess(
       clinicId,
       patientId,
-    );
-
-    const medication = await this.repository.findMedicationWithPrescription(
       dto.medicationId,
     );
-
-    if (!medication || medication.prescription.patientId !== patientId)
-      throw new NotFoundException('Medication not found for this patient');
 
     if (!medication.isPRN)
       throw new BadRequestException(

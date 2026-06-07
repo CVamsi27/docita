@@ -71,15 +71,14 @@ export class PrismaWhatsAppMessageRepository {
     });
   }
 
-  async findMessageById(id: string): Promise<WhatsAppMessage | null> {
-    const readClient = this.getReadClient();
-    const raw = await readClient.whatsappMessage.findUnique({
-      where: { id },
-      include: MESSAGE_WITH_CONVERSATION_INCLUDE,
-    });
+  private async toDomainMessage(
+    raw: Awaited<
+      ReturnType<PrismaWhatsAppReadClient['whatsappMessage']['findUnique']>
+    >,
+  ): Promise<WhatsAppMessage | null> {
     if (!raw) return null;
 
-    const patient = await readClient.patient.findUnique({
+    const patient = await this.getReadClient().patient.findUnique({
       where: { id: raw.conversation.patientId },
       select: { phoneNumber: true },
     });
@@ -96,6 +95,15 @@ export class PrismaWhatsAppMessageRepository {
     });
   }
 
+  async findMessageById(id: string): Promise<WhatsAppMessage | null> {
+    const readClient = this.getReadClient();
+    const raw = await readClient.whatsappMessage.findUnique({
+      where: { id },
+      include: MESSAGE_WITH_CONVERSATION_INCLUDE,
+    });
+    return this.toDomainMessage(raw);
+  }
+
   async findMessageByExternalId(
     externalId: string,
   ): Promise<WhatsAppMessage | null> {
@@ -104,22 +112,6 @@ export class PrismaWhatsAppMessageRepository {
       where: { providerMsgId: externalId },
       include: MESSAGE_WITH_CONVERSATION_INCLUDE,
     });
-    if (!raw) return null;
-
-    const patient = await readClient.patient.findUnique({
-      where: { id: raw.conversation.patientId },
-      select: { phoneNumber: true },
-    });
-
-    return new WhatsAppMessage({
-      id: raw.id,
-      clinicId: raw.conversation.clinicId,
-      conversationId: raw.conversationId,
-      recipientPhone: patient?.phoneNumber || '',
-      content: raw.content,
-      status: toDomainMessageStatus(raw.status),
-      externalMessageId: raw.providerMsgId || undefined,
-      sentAt: raw.createdAt,
-    });
+    return this.toDomainMessage(raw);
   }
 }

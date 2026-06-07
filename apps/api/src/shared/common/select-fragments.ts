@@ -32,7 +32,7 @@ export const DOCTOR_CARD_SELECT = {
   createdAt: true,
 } as const;
 
-export const INVOICE_CARD_SELECT = {
+const INVOICE_COMMON_SELECT = {
   id: true,
   patientId: true,
   clinicId: true,
@@ -49,6 +49,10 @@ export const INVOICE_CARD_SELECT = {
   discountTotalCents: true,
   taxTotalCents: true,
   grandTotalCents: true,
+} as const;
+
+export const INVOICE_CARD_SELECT = {
+  ...INVOICE_COMMON_SELECT,
   status: true,
   items: true,
   issuedAt: true,
@@ -65,22 +69,7 @@ export const INVOICE_CARD_SELECT = {
 } as const;
 
 export const INVOICE_DETAIL_SELECT = {
-  id: true,
-  patientId: true,
-  clinicId: true,
-  invoiceNumber: true,
-  invoiceType: true,
-  currency: true,
-  total: true,
-  subtotal: true,
-  discountTotal: true,
-  taxTotal: true,
-  grandTotal: true,
-  totalCents: true,
-  subtotalCents: true,
-  discountTotalCents: true,
-  taxTotalCents: true,
-  grandTotalCents: true,
+  ...INVOICE_COMMON_SELECT,
   taxSummary: true,
   sellerTaxSnapshot: true,
   buyerTaxSnapshot: true,

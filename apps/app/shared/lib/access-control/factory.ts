@@ -1,5 +1,3 @@
-
-
 import type {
   IAccessControlConfig,
   IAccessControlService,
@@ -17,7 +15,19 @@ import { LoggingAccessControlDecorator } from "./decorators/logging-decorator";
 import { AnalyticsAccessControlDecorator } from "./decorators/analytics-decorator";
 
 export class AccessControlFactory {
-  
+  private static applyDecorators(
+    service: IAccessControlService,
+    config?: IAccessControlConfig,
+  ): IAccessControlService {
+    if (config?.enableLogging) {
+      service = new LoggingAccessControlDecorator(service);
+    }
+    if (config?.enableAnalytics) {
+      service = new AnalyticsAccessControlDecorator(service);
+    }
+    return service;
+  }
+
   static create(config?: IAccessControlConfig): IAccessControlService {
     const repository = new SubscriptionRepository(
       config?.cacheTTL,
@@ -25,37 +35,20 @@ export class AccessControlFactory {
     );
 
     const rules: IAccessRule[] = [
-
       new OverrideAccessRule(),
-
       new RoleBasedAccessRule(),
-
       new ClinicTypeBasedAccessRule(),
-
       new SubscriptionStatusRule(),
-
       new AddOnBasedAccessRule(),
-
       new TierBasedAccessRule(),
     ];
 
-    let service: IAccessControlService = new AccessControlService(
-      repository,
-      rules,
+    return this.applyDecorators(
+      new AccessControlService(repository, rules),
+      config,
     );
-
-    if (config?.enableLogging) {
-      service = new LoggingAccessControlDecorator(service);
-    }
-
-    if (config?.enableAnalytics) {
-      service = new AnalyticsAccessControlDecorator(service);
-    }
-
-    return service;
   }
 
-  
   static createWithCustomRules(
     rules: IAccessRule[],
     config?: IAccessControlConfig,
@@ -65,19 +58,9 @@ export class AccessControlFactory {
       config?.apiBaseUrl,
     );
 
-    let service: IAccessControlService = new AccessControlService(
-      repository,
-      rules,
+    return this.applyDecorators(
+      new AccessControlService(repository, rules),
+      config,
     );
-
-    if (config?.enableLogging) {
-      service = new LoggingAccessControlDecorator(service);
-    }
-
-    if (config?.enableAnalytics) {
-      service = new AnalyticsAccessControlDecorator(service);
-    }
-
-    return service;
   }
 }

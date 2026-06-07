@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { PrismaReadBase } from '@/shared/common/repositories/prisma-read-base';
 import { IPatientTimelineSnapshotRepository } from '@/domains/patients/core/repositories/timeline/patient-timeline-snapshot.repository.interface';
 import type {
   PatientAllergySnapshotRow,
@@ -9,11 +10,12 @@ import type {
 } from '@/domains/patients/core/repositories/timeline/patient-timeline-snapshot.types';
 
 @Injectable()
-export class PrismaPatientTimelineSnapshotRepository implements IPatientTimelineSnapshotRepository {
-  constructor(private readonly prisma: PrismaService) {}
-
-  private getReadClient() {
-    return this.prisma.getReadClient();
+export class PrismaPatientTimelineSnapshotRepository
+  extends PrismaReadBase
+  implements IPatientTimelineSnapshotRepository
+{
+  constructor(prisma: PrismaService) {
+    super(prisma);
   }
 
   async verifyPatientAccess(

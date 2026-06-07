@@ -12,7 +12,7 @@ import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
 import { TrackHeartbeat } from '@/shared/modules/schedule/cron-heartbeat';
 import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admin-alerts.service';
 import { addUtcCalendarDays } from '@/shared/schedule/scheduler-date.util';
-import { isRecord } from '@workspace/utils';
+import { isDatabaseAuthError } from '@/shared/common/utils/is-database-auth-error';
 
 @Injectable()
 export class SubscriptionReminderScheduler {
@@ -27,24 +27,6 @@ export class SubscriptionReminderScheduler {
     private readonly adminAlerts: AdminAlertsService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
-
-  private isDatabaseAuthError(error: unknown): boolean {
-    if (!isRecord(error)) {
-      return false;
-    }
-
-    const code = typeof error.code === 'string' ? error.code : '';
-    const message =
-      typeof error.message === 'string' ? error.message.toLowerCase() : '';
-
-    if (code === 'P1000') return true;
-
-    return (
-      message.includes('authentication failed against the database server') ||
-      message.includes('database credentials') ||
-      message.includes('password authentication failed')
-    );
-  }
 
   private logCronError(message: string, error: unknown): void {
     if (error instanceof Error) {
@@ -157,7 +139,7 @@ export class SubscriptionReminderScheduler {
         }
       });
     } catch (error) {
-      if (this.isDatabaseAuthError(error)) {
+      if (isDatabaseAuthError(error)) {
         this.databaseAccessDisabled = true;
         this.logger.warn(
           'Disabling subscription scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
@@ -263,7 +245,7 @@ export class SubscriptionReminderScheduler {
         }
       });
     } catch (error) {
-      if (this.isDatabaseAuthError(error)) {
+      if (isDatabaseAuthError(error)) {
         this.databaseAccessDisabled = true;
         this.logger.warn(
           'Disabling subscription scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
