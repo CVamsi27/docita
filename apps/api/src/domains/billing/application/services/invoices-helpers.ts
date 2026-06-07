@@ -1,4 +1,4 @@
-import { HospitalRole, Specialization } from '@workspace/db';
+import { HospitalRole, InvoiceStatus, Specialization } from '@workspace/db';
 import {
   invoiceItemSchema,
   invoiceTaxSummarySchema,
@@ -127,4 +127,22 @@ export const addDays = (date: Date, days: number): Date => {
   const dueDate = new Date(date);
   dueDate.setDate(dueDate.getDate() + days);
   return dueDate;
+};
+
+export type CreateInvoiceParams = {
+  appointmentId?: string;
+  patientId: string;
+  total: number;
+  status: InvoiceStatus;
+  items: InvoiceItem[];
+  doctorName?: string;
+  doctorEmail?: string;
+  doctorPhone?: string;
+  doctorSpecialization?: string | null;
+  doctorRole?: string | null;
+  doctorRegistrationNumber?: string;
+  doctorLicenseNumber?: string;
+  placeOfSupplyStateCode?: string;
+  placeOfSupplyStateName?: string;
+  clinicId?: string;
 };

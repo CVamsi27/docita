@@ -173,6 +173,42 @@ export const CLINIC_CARD_SELECT = {
   },
 } as const;
 
+export const DOCTOR_DETAIL_SELECT = {
+  id: true,
+  email: true,
+  name: true,
+  role: true,
+  clinicId: true,
+  specialization: true,
+  hospitalRole: true,
+  qualification: true,
+  registrationNumber: true,
+  licenseNumber: true,
+  licenseExpiry: true,
+  signatureUrl: true,
+  signatureUploadedAt: true,
+  verificationStatus: true,
+  verificationSource: true,
+  verificationRef: true,
+  verificationReason: true,
+  verificationData: true,
+  verificationCheckedAt: true,
+  profilePhotoUrl: true,
+  phoneNumber: true,
+  bio: true,
+  yearsOfExperience: true,
+  consultationFee: true,
+  createdAt: true,
+  updatedAt: true,
+  educationHistory: {
+    orderBy: { order: 'asc' },
+  },
+  certifications: {
+    orderBy: { issueDate: 'desc' },
+  },
+  additionalSpecializations: true,
+} as const;
+
 export const PATIENT_ANALYTICS_SELECT = {
   createdAt: true,
 } as const;

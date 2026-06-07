@@ -1,33 +1,19 @@
-import { PrismaService } from '@/prisma/prisma.service';
-import { DOCUMENT_PERSISTENCE_PORT } from './application/ports/document-persistence.port';
 import { Module } from '@nestjs/common';
 import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { TemplatesService } from './application/services/templates.service';
-import { UploadsService } from './application/services/uploads.service';
-import { UploadsCommandService } from './application/services/uploads-command.service';
-import { UploadsQueryService } from './application/services/uploads-query.service';
-import { StoredFileUrlResolverService } from './application/services/stored-file-url-resolver.service';
-import { TEMPLATES_REPOSITORY_TOKEN } from './application/ports/templates.repository.port';
-import { PrismaTemplatesRepository } from './infrastructure/repositories/prisma-templates.repository';
 import { StorageProvider } from './application/ports/storage-provider.port';
 import { LocalStorageProvider } from './infrastructure/local-storage.provider';
 import { R2StorageProvider } from './infrastructure/r2-storage.provider';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import {
+  DOCUMENTS_SHARED_PROVIDERS,
+  DOCUMENTS_SHARED_EXPORTS,
+} from './documents-shared.module-helpers';
 
 @Module({
   imports: [PrismaWorkerModule],
   providers: [
-    { provide: DOCUMENT_PERSISTENCE_PORT, useExisting: PrismaService },
-    TemplatesService,
-    UploadsCommandService,
-    UploadsQueryService,
-    UploadsService,
-    StoredFileUrlResolverService,
-    {
-      provide: TEMPLATES_REPOSITORY_TOKEN,
-      useClass: PrismaTemplatesRepository,
-    },
+    ...DOCUMENTS_SHARED_PROVIDERS,
     {
       provide: StorageProvider,
       inject: [AppConfigService, CLOCK_PORT],
@@ -58,13 +44,6 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
       },
     },
   ],
-  exports: [
-    TemplatesService,
-    UploadsCommandService,
-    UploadsQueryService,
-    UploadsService,
-    StoredFileUrlResolverService,
-    StorageProvider,
-  ],
+  exports: [...DOCUMENTS_SHARED_EXPORTS],
 })
 export class DocumentsWorkerModule {}

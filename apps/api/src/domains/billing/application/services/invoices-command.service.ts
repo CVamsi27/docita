@@ -36,6 +36,7 @@ import {
   addDays,
   DEFAULT_INVOICE_DUE_DAYS,
   CURRENT_PDF_TEMPLATE_VERSION,
+  CreateInvoiceParams,
 } from './invoices-helpers';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
@@ -109,24 +110,9 @@ export class InvoicesCommandService {
     return { patient, taxSettings, seller, buyer, calculation };
   }
 
-  async create(data: {
-    appointmentId?: string;
-    patientId: string;
-    total: number;
-    status: InvoiceStatus;
-    items: InvoiceItem[];
-    doctorName?: string;
-    doctorEmail?: string;
-    doctorPhone?: string;
-    doctorSpecialization?: string | null;
-    doctorRole?: string | null;
-    doctorRegistrationNumber?: string;
-    doctorLicenseNumber?: string;
-    placeOfSupplyStateCode?: string;
-    placeOfSupplyStateName?: string;
-    clinicId?: string;
-    idempotencyKey?: string;
-  }): Promise<InvoiceDetail> {
+  async create(
+    data: CreateInvoiceParams & { idempotencyKey?: string },
+  ): Promise<InvoiceDetail> {
     // Idempotency short-circuit: if the caller passes a key they've used
     // before, return the prior invoice instead of creating a duplicate.
     if (data.idempotencyKey) {

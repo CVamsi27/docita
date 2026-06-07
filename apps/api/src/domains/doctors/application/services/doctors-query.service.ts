@@ -7,6 +7,7 @@ import { Role, Specialization, HospitalRole } from '@workspace/db';
 import {
   DOCTOR_LIST_SELECT,
   DOCTOR_CARD_SELECT,
+  DOCTOR_DETAIL_SELECT,
 } from '@/shared/common/select-fragments';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 
@@ -152,44 +153,12 @@ export class DoctorsQueryService {
     const user = await this.persistence.user.findFirst({
       where: { id },
       select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        clinicId: true,
-        specialization: true,
-        hospitalRole: true,
-        qualification: true,
-        registrationNumber: true,
+        ...DOCTOR_DETAIL_SELECT,
         registrationCouncil: true,
         registrationStateCode: true,
-        licenseNumber: true,
-        licenseExpiry: true,
-        signatureUrl: true,
-        signatureUploadedAt: true,
-        verificationStatus: true,
-        verificationSource: true,
-        verificationRef: true,
-        verificationReason: true,
-        verificationData: true,
-        verificationCheckedAt: true,
         registrationCertificateUrl: true,
         verifiedByAdminId: true,
         verifiedByAdminAt: true,
-        profilePhotoUrl: true,
-        phoneNumber: true,
-        bio: true,
-        yearsOfExperience: true,
-        consultationFee: true,
-        createdAt: true,
-        updatedAt: true,
-        educationHistory: {
-          orderBy: { order: 'asc' },
-        },
-        certifications: {
-          orderBy: { issueDate: 'desc' },
-        },
-        additionalSpecializations: true,
       },
     });
 

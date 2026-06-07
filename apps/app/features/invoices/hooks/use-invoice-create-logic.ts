@@ -13,6 +13,7 @@ import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   applyInvoiceDiscountToFirstLine,
   calculateInvoiceTotals,
+  createDefaultInvoiceItems,
 } from "@/features/invoices/rules/invoiceRules";
 
 export {
@@ -40,15 +41,7 @@ export const useInvoiceCreateLogic = () => {
       status: "PENDING",
       discount: 0,
       notes: "",
-      items: [
-        {
-          description: "",
-          quantity: 1,
-          price: 0,
-          taxTreatment: "EXEMPT_HEALTHCARE",
-          taxRate: 0,
-        },
-      ],
+      items: createDefaultInvoiceItems(),
     },
   });
 

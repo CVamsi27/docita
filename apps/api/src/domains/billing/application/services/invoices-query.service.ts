@@ -28,11 +28,9 @@ import {
   ClaimReadinessResult,
   ClaimValidationService,
 } from '@/domains/billing/core/services/claim-validation.service';
-import {
-  GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
-  StorageProvider,
-} from '@/domains/documents/application/ports/storage-provider.port';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
+import { generatePdfSignedUrl } from '@/shared/modules/document-generation/pdf/pdf-url.helpers';
 import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
 import { PDFService } from './pdf.service';
@@ -251,11 +249,7 @@ export class InvoicesQueryService {
       const invoice = await this.findOne(id, clinicId);
 
       if (invoice.pdfUrl) {
-        const url = await this.storageProvider.generateSignedUrl(
-          invoice.pdfUrl,
-          GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
-        );
-        return { type: 'url', url };
+        return generatePdfSignedUrl(this.storageProvider, invoice.pdfUrl);
       }
 
       const buffer = await this.generatePDF(id, clinicId);
@@ -266,11 +260,7 @@ export class InvoicesQueryService {
         invoice,
       );
 
-      const url = await this.storageProvider.generateSignedUrl(
-        storedKey,
-        GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
-      );
-      return { type: 'url', url };
+      return generatePdfSignedUrl(this.storageProvider, storedKey);
     }
 
     const buffer = await this.generatePDF(id, clinicId);

@@ -1,5 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { InvoiceStatus } from '@workspace/db';
+import { CreateInvoiceParams } from './invoices-helpers';
 import {
   type InvoiceItem,
   type InvoicePaymentActivityResponse,
@@ -123,23 +124,7 @@ export class InvoicesService {
 
   // ── WRITE ────────────────────────────────────────────────────────────────────
 
-  async create(data: {
-    appointmentId?: string;
-    patientId: string;
-    total: number;
-    status: InvoiceStatus;
-    items: InvoiceItem[];
-    doctorName?: string;
-    doctorEmail?: string;
-    doctorPhone?: string;
-    doctorSpecialization?: string | null;
-    doctorRole?: string | null;
-    doctorRegistrationNumber?: string;
-    doctorLicenseNumber?: string;
-    placeOfSupplyStateCode?: string;
-    placeOfSupplyStateName?: string;
-    clinicId?: string;
-  }): Promise<InvoiceDetail> {
+  async create(data: CreateInvoiceParams): Promise<InvoiceDetail> {
     return this.commandService.create(data);
   }
 

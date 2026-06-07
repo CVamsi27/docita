@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-06-07T13:35:24.604Z",
+    "detectionDate": "2026-06-07T13:54:29.021Z",
     "formats": {
       "typescript": {
         "sources": {
@@ -2287,6 +2287,18 @@
           "apps/api/src/shared/modules/document-generation/pdf/pdf.types.ts": {
             "lines": 56,
             "tokens": 351,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/api/src/shared/modules/document-generation/pdf/pdf-url.helpers.ts": {
+            "lines": 15,
+            "tokens": 109,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -5513,14 +5525,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/prescriptions/application/services/prescription-pdf-orchestrator.service.ts": {
-            "lines": 224,
-            "tokens": 1885,
+            "lines": 214,
+            "tokens": 1832,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 35,
-            "duplicatedTokens": 220,
-            "percentage": 15.63,
-            "percentageTokens": 11.67,
+            "duplicatedLines": 31,
+            "duplicatedTokens": 190,
+            "percentage": 14.49,
+            "percentageTokens": 10.37,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -7733,14 +7745,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/doctors/application/services/doctors-query.service.ts": {
-            "lines": 290,
-            "tokens": 2461,
+            "lines": 259,
+            "tokens": 2233,
             "sources": 1,
-            "clones": 3,
-            "duplicatedLines": 41,
-            "duplicatedTokens": 280,
-            "percentage": 14.14,
-            "percentageTokens": 11.38,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -9293,32 +9305,32 @@
             "newClones": 0
           },
           "apps/api/src/domains/billing/application/services/invoices.service.ts": {
-            "lines": 178,
-            "tokens": 1430,
+            "lines": 163,
+            "tokens": 1314,
             "sources": 1,
-            "clones": 3,
-            "duplicatedLines": 44,
-            "duplicatedTokens": 303,
-            "percentage": 24.72,
-            "percentageTokens": 21.19,
+            "clones": 2,
+            "duplicatedLines": 26,
+            "duplicatedTokens": 165,
+            "percentage": 15.95,
+            "percentageTokens": 12.56,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/api/src/domains/billing/application/services/invoices-query.service.ts": {
-            "lines": 286,
-            "tokens": 2336,
+            "lines": 276,
+            "tokens": 2283,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 32,
-            "duplicatedTokens": 228,
-            "percentage": 11.19,
-            "percentageTokens": 9.76,
+            "duplicatedLines": 28,
+            "duplicatedTokens": 198,
+            "percentage": 10.14,
+            "percentageTokens": 8.67,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/api/src/domains/billing/application/services/invoices-helpers.ts": {
-            "lines": 130,
-            "tokens": 1108,
+            "lines": 148,
+            "tokens": 1251,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -9329,14 +9341,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/billing/application/services/invoices-command.service.ts": {
-            "lines": 366,
-            "tokens": 3146,
+            "lines": 352,
+            "tokens": 3030,
             "sources": 1,
-            "clones": 3,
-            "duplicatedLines": 47,
-            "duplicatedTokens": 295,
-            "percentage": 12.84,
-            "percentageTokens": 9.38,
+            "clones": 2,
+            "duplicatedLines": 29,
+            "duplicatedTokens": 157,
+            "percentage": 8.24,
+            "percentageTokens": 5.18,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -12809,14 +12821,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/internal/clinic-management.service.ts": {
-            "lines": 347,
-            "tokens": 3127,
+            "lines": 316,
+            "tokens": 2899,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 55,
-            "duplicatedTokens": 350,
-            "percentage": 15.85,
-            "percentageTokens": 11.19,
+            "clones": 1,
+            "duplicatedLines": 14,
+            "duplicatedTokens": 70,
+            "percentage": 4.43,
+            "percentageTokens": 2.41,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -15461,14 +15473,14 @@
             "newClones": 0
           },
           "apps/internal/shared/lib/api/api-config.ts": {
-            "lines": 29,
-            "tokens": 240,
+            "lines": 19,
+            "tokens": 129,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 18,
-            "duplicatedTokens": 132,
-            "percentage": 62.07,
-            "percentageTokens": 55,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -16397,14 +16409,14 @@
             "newClones": 0
           },
           "apps/app/shared/lib/api/api-url-resolver.ts": {
-            "lines": 73,
-            "tokens": 454,
+            "lines": 63,
+            "tokens": 343,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 18,
-            "duplicatedTokens": 132,
-            "percentage": 24.66,
-            "percentageTokens": 29.07,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -18257,8 +18269,8 @@
             "newClones": 0
           },
           "apps/app/features/invoices/rules/invoiceRules.ts": {
-            "lines": 27,
-            "tokens": 278,
+            "lines": 39,
+            "tokens": 357,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -18341,14 +18353,14 @@
             "newClones": 0
           },
           "apps/app/features/invoices/hooks/use-invoice-edit-logic.ts": {
-            "lines": 123,
-            "tokens": 964,
+            "lines": 116,
+            "tokens": 925,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 34,
-            "duplicatedTokens": 182,
-            "percentage": 27.64,
-            "percentageTokens": 18.88,
+            "duplicatedLines": 26,
+            "duplicatedTokens": 139,
+            "percentage": 22.41,
+            "percentageTokens": 15.03,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -18365,14 +18377,14 @@
             "newClones": 0
           },
           "apps/app/features/invoices/hooks/use-invoice-create-logic.ts": {
-            "lines": 110,
-            "tokens": 818,
+            "lines": 103,
+            "tokens": 779,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 34,
-            "duplicatedTokens": 182,
-            "percentage": 30.91,
-            "percentageTokens": 22.25,
+            "duplicatedLines": 26,
+            "duplicatedTokens": 139,
+            "percentage": 25.24,
+            "percentageTokens": 17.84,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -20117,8 +20129,8 @@
             "newClones": 0
           },
           "apps/api/src/shared/common/select-fragments.ts": {
-            "lines": 178,
-            "tokens": 1184,
+            "lines": 214,
+            "tokens": 1439,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -20345,38 +20357,38 @@
             "newClones": 0
           },
           "apps/api/src/domains/subscriptions/subscriptions.worker.module.ts": {
-            "lines": 119,
-            "tokens": 715,
+            "lines": 46,
+            "tokens": 327,
             "sources": 1,
-            "clones": 6,
-            "duplicatedLines": 111,
-            "duplicatedTokens": 647,
-            "percentage": 93.28,
-            "percentageTokens": 90.49,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/api/src/domains/subscriptions/subscriptions.module.ts": {
-            "lines": 127,
-            "tokens": 716,
+            "lines": 41,
+            "tokens": 277,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 70,
-            "duplicatedTokens": 396,
-            "percentage": 55.12,
-            "percentageTokens": 55.31,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/api/src/domains/subscriptions/subscriptions-common.providers.ts": {
-            "lines": 80,
-            "tokens": 434,
+            "lines": 97,
+            "tokens": 508,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 41,
-            "duplicatedTokens": 251,
-            "percentage": 51.25,
-            "percentageTokens": 57.83,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -20585,26 +20597,26 @@
             "newClones": 0
           },
           "apps/api/src/domains/documents/documents.worker.module.ts": {
-            "lines": 70,
-            "tokens": 591,
+            "lines": 49,
+            "tokens": 416,
             "sources": 1,
-            "clones": 3,
-            "duplicatedLines": 44,
-            "duplicatedTokens": 368,
-            "percentage": 62.86,
-            "percentageTokens": 62.27,
+            "clones": 1,
+            "duplicatedLines": 15,
+            "duplicatedTokens": 141,
+            "percentage": 30.61,
+            "percentageTokens": 33.89,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/api/src/domains/documents/documents.module.ts": {
-            "lines": 83,
-            "tokens": 723,
+            "lines": 62,
+            "tokens": 548,
             "sources": 1,
-            "clones": 3,
-            "duplicatedLines": 44,
-            "duplicatedTokens": 368,
-            "percentage": 53.01,
-            "percentageTokens": 50.9,
+            "clones": 1,
+            "duplicatedLines": 15,
+            "duplicatedTokens": 141,
+            "percentage": 24.19,
+            "percentageTokens": 25.73,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -21109,6 +21121,18 @@
             "duplicatedTokens": 61,
             "percentage": 10.69,
             "percentageTokens": 5.87,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "packages/utils/src/http/api-url.ts": {
+            "lines": 13,
+            "tokens": 135,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -25769,8 +25793,8 @@
             "newClones": 0
           },
           "packages/utils/src/index.ts": {
-            "lines": 21,
-            "tokens": 188,
+            "lines": 22,
+            "tokens": 197,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -26766,14 +26790,14 @@
           }
         },
         "total": {
-          "lines": 205407,
-          "tokens": 1700224,
-          "sources": 2230,
-          "clones": 274,
-          "duplicatedLines": 3370,
-          "duplicatedTokens": 25238,
-          "percentage": 1.64,
-          "percentageTokens": 1.48,
+          "lines": 205173,
+          "tokens": 1698757,
+          "sources": 2232,
+          "clones": 261,
+          "duplicatedLines": 3141,
+          "duplicatedTokens": 23741,
+          "percentage": 1.53,
+          "percentageTokens": 1.4,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -28113,14 +28137,14 @@
             "newClones": 0
           },
           "apps/app/features/settings/components/notifications/ReminderSettingsUI.sections.tsx": {
-            "lines": 156,
-            "tokens": 1237,
+            "lines": 178,
+            "tokens": 1257,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 36,
-            "duplicatedTokens": 268,
-            "percentage": 23.08,
-            "percentageTokens": 21.67,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -36117,8 +36141,8 @@
             "newClones": 0
           },
           "apps/app/features/auth/components/ResetPasswordPageContent.tsx": {
-            "lines": 145,
-            "tokens": 997,
+            "lines": 143,
+            "tokens": 980,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -36705,8 +36729,8 @@
             "newClones": 0
           },
           "apps/app/app/(auth)/forgot-password/page.tsx": {
-            "lines": 110,
-            "tokens": 946,
+            "lines": 108,
+            "tokens": 929,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -37317,8 +37341,8 @@
             "newClones": 0
           },
           "apps/internal/features/enterprise-contracts/enterprise-contracts-members-dialog.tsx": {
-            "lines": 54,
-            "tokens": 439,
+            "lines": 50,
+            "tokens": 408,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -37329,8 +37353,8 @@
             "newClones": 0
           },
           "apps/internal/features/enterprise-contracts/enterprise-contracts-invoices-dialog.tsx": {
-            "lines": 24,
-            "tokens": 221,
+            "lines": 20,
+            "tokens": 165,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -37341,8 +37365,8 @@
             "newClones": 0
           },
           "apps/internal/features/enterprise-contracts/enterprise-contracts-estimate-dialog.tsx": {
-            "lines": 35,
-            "tokens": 350,
+            "lines": 31,
+            "tokens": 294,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -37425,8 +37449,8 @@
             "newClones": 0
           },
           "apps/internal/features/enterprise-contracts/enterprise-contracts-alerts-dialog.tsx": {
-            "lines": 24,
-            "tokens": 246,
+            "lines": 20,
+            "tokens": 171,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -38818,14 +38842,14 @@
           }
         },
         "total": {
-          "lines": 55749,
-          "tokens": 408435,
+          "lines": 55751,
+          "tokens": 408203,
           "sources": 1003,
-          "clones": 19,
-          "duplicatedLines": 255,
-          "duplicatedTokens": 1736,
-          "percentage": 0.46,
-          "percentageTokens": 0.43,
+          "clones": 18,
+          "duplicatedLines": 237,
+          "duplicatedTokens": 1602,
+          "percentage": 0.43,
+          "percentageTokens": 0.39,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -40237,14 +40261,14 @@
             "newClones": 0
           },
           "apps/app/features/settings/components/notifications/ReminderSettingsUI.sections.tsx": {
-            "lines": 225,
-            "tokens": 1689,
+            "lines": 238,
+            "tokens": 1673,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 10,
             "duplicatedTokens": 51,
-            "percentage": 4.44,
-            "percentageTokens": 3.02,
+            "percentage": 4.2,
+            "percentageTokens": 3.05,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -48901,14 +48925,14 @@
             "newClones": 0
           },
           "apps/app/features/auth/components/ResetPasswordPageContent.tsx": {
-            "lines": 217,
-            "tokens": 1601,
+            "lines": 216,
+            "tokens": 1597,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 35,
-            "duplicatedTokens": 168,
-            "percentage": 16.13,
-            "percentageTokens": 10.49,
+            "duplicatedLines": 33,
+            "duplicatedTokens": 151,
+            "percentage": 15.28,
+            "percentageTokens": 9.46,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -49597,14 +49621,14 @@
             "newClones": 0
           },
           "apps/app/app/(auth)/forgot-password/page.tsx": {
-            "lines": 164,
-            "tokens": 1314,
+            "lines": 163,
+            "tokens": 1310,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 35,
-            "duplicatedTokens": 168,
-            "percentage": 21.34,
-            "percentageTokens": 12.79,
+            "duplicatedLines": 33,
+            "duplicatedTokens": 151,
+            "percentage": 20.25,
+            "percentageTokens": 11.53,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -50237,10 +50261,10 @@
             "tokens": 438,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 12,
-            "duplicatedTokens": 54,
-            "percentage": 20.34,
-            "percentageTokens": 12.33,
+            "duplicatedLines": 13,
+            "duplicatedTokens": 52,
+            "percentage": 22.03,
+            "percentageTokens": 11.87,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -50257,38 +50281,38 @@
             "newClones": 0
           },
           "apps/internal/features/enterprise-contracts/enterprise-contracts-members-dialog.tsx": {
-            "lines": 93,
-            "tokens": 733,
+            "lines": 83,
+            "tokens": 670,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 30,
-            "duplicatedTokens": 140,
-            "percentage": 32.26,
-            "percentageTokens": 19.1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/internal/features/enterprise-contracts/enterprise-contracts-invoices-dialog.tsx": {
-            "lines": 77,
-            "tokens": 569,
+            "lines": 67,
+            "tokens": 481,
             "sources": 1,
-            "clones": 3,
-            "duplicatedLines": 56,
-            "duplicatedTokens": 284,
-            "percentage": 72.73,
-            "percentageTokens": 49.91,
+            "clones": 2,
+            "duplicatedLines": 26,
+            "duplicatedTokens": 144,
+            "percentage": 38.81,
+            "percentageTokens": 29.94,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/internal/features/enterprise-contracts/enterprise-contracts-estimate-dialog.tsx": {
-            "lines": 104,
-            "tokens": 887,
+            "lines": 94,
+            "tokens": 799,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 20,
-            "duplicatedTokens": 104,
-            "percentage": 19.23,
-            "percentageTokens": 11.72,
+            "duplicatedLines": 14,
+            "duplicatedTokens": 77,
+            "percentage": 14.89,
+            "percentageTokens": 9.64,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -50365,26 +50389,26 @@
             "newClones": 0
           },
           "apps/internal/features/enterprise-contracts/enterprise-contracts-alerts-dialog.tsx": {
-            "lines": 72,
-            "tokens": 580,
+            "lines": 62,
+            "tokens": 473,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 18,
-            "duplicatedTokens": 94,
-            "percentage": 25,
-            "percentageTokens": 16.21,
+            "duplicatedLines": 12,
+            "duplicatedTokens": 67,
+            "percentage": 19.35,
+            "percentageTokens": 14.16,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/internal/features/enterprise-contracts/base-dialog-shell.tsx": {
-            "lines": 40,
-            "tokens": 244,
+            "lines": 62,
+            "tokens": 331,
             "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
+            "clones": 1,
+            "duplicatedLines": 13,
+            "duplicatedTokens": 52,
+            "percentage": 20.97,
+            "percentageTokens": 15.71,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -51194,14 +51218,14 @@
           }
         },
         "total": {
-          "lines": 116926,
-          "tokens": 861024,
+          "lines": 116919,
+          "tokens": 860741,
           "sources": 1030,
-          "clones": 208,
-          "duplicatedLines": 2548,
-          "duplicatedTokens": 16049,
-          "percentage": 2.18,
-          "percentageTokens": 1.86,
+          "clones": 207,
+          "duplicatedLines": 2517,
+          "duplicatedTokens": 15890,
+          "percentage": 2.15,
+          "percentageTokens": 1.85,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -51444,14 +51468,14 @@
       }
     },
     "total": {
-      "lines": 379463,
-      "tokens": 2979234,
-      "sources": 4280,
-      "clones": 502,
-      "duplicatedLines": 6191,
-      "duplicatedTokens": 43110,
-      "percentage": 1.63,
-      "percentageTokens": 1.45,
+      "lines": 379224,
+      "tokens": 2977252,
+      "sources": 4282,
+      "clones": 487,
+      "duplicatedLines": 5913,
+      "duplicatedTokens": 41320,
+      "percentage": 1.56,
+      "percentageTokens": 1.39,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -56504,104 +56528,68 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/domains/billing/application/services/invoices-query.service.ts",
-        "start": 71,
-        "end": 85,
+        "start": 69,
+        "end": 83,
         "startLoc": {
-          "line": 71,
+          "line": 69,
           "column": 7,
-          "position": 455
+          "position": 462
         },
         "endLoc": {
-          "line": 85,
+          "line": 83,
           "column": 10,
-          "position": 545
+          "position": 552
         }
       },
       "secondFile": {
         "name": "apps/api/src/domains/billing/application/services/invoices.service.ts",
-        "start": 67,
-        "end": 81,
+        "start": 68,
+        "end": 82,
         "startLoc": {
-          "line": 67,
+          "line": 68,
           "column": 83,
-          "position": 490
+          "position": 503
         },
         "endLoc": {
-          "line": 81,
+          "line": 82,
           "column": 11,
-          "position": 580
+          "position": 593
         }
       }
     },
     {
       "format": "typescript",
-      "lines": 19,
-      "fragment": ",\n      );\n\n      const url = await this.storageProvider.generateSignedUrl(\n        storedKey,\n        GENERATED_PDF_SIGNED_URL_TTL_SECONDS,\n      );\n      return { type: 'url', url };\n    }\n\n    const buffer = await this.generatePDF(id, clinicId);\n    return { type: 'buffer', buffer };\n  }\n\n  async generatePdfAsync(\n    id: string,\n    clinicId: string,\n  ): Promise<EnqueuePdfJobResponse> {\n    return this.pdfJobService.enqueue(id, 'invoice'",
+      "lines": 15,
+      "fragment": ",\n      );\n\n      return generatePdfSignedUrl(this.storageProvider, storedKey);\n    }\n\n    const buffer = await this.generatePDF(id, clinicId);\n    return { type: 'buffer', buffer };\n  }\n\n  async generatePdfAsync(\n    id: string,\n    clinicId: string,\n  ): Promise<EnqueuePdfJobResponse> {\n    return this.pdfJobService.enqueue(id, 'invoice'",
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/domains/billing/application/services/invoices-query.service.ts",
-        "start": 266,
-        "end": 284,
+        "start": 260,
+        "end": 274,
         "startLoc": {
-          "line": 266,
+          "line": 260,
           "column": 16,
-          "position": 2187
+          "position": 2164
         },
         "endLoc": {
-          "line": 284,
+          "line": 274,
           "column": 52,
-          "position": 2325
+          "position": 2272
         }
       },
       "secondFile": {
         "name": "apps/api/src/domains/prescriptions/application/services/prescription-pdf-orchestrator.service.ts",
-        "start": 154,
-        "end": 172,
+        "start": 148,
+        "end": 162,
         "startLoc": {
-          "line": 154,
+          "line": 148,
           "column": 21,
-          "position": 1355
+          "position": 1332
         },
         "endLoc": {
-          "line": 172,
+          "line": 162,
           "column": 57,
-          "position": 1493
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 19,
-      "fragment": "\n\n  async create(data: {\n    appointmentId?: string;\n    patientId: string;\n    total: number;\n    status: InvoiceStatus;\n    items: InvoiceItem[];\n    doctorName?: string;\n    doctorEmail?: string;\n    doctorPhone?: string;\n    doctorSpecialization?: string | null;\n    doctorRole?: string | null;\n    doctorRegistrationNumber?: string;\n    doctorLicenseNumber?: string;\n    placeOfSupplyStateCode?: string;\n    placeOfSupplyStateName?: string;\n    clinicId?: string;\n    ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/billing/application/services/invoices-command.service.ts",
-        "start": 110,
-        "end": 128,
-        "startLoc": {
-          "line": 110,
-          "column": 4,
-          "position": 934
-        },
-        "endLoc": {
-          "line": 128,
-          "column": 5,
-          "position": 1072
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/billing/application/services/invoices.service.ts",
-        "start": 124,
-        "end": 142,
-        "startLoc": {
-          "line": 124,
-          "column": 83,
-          "position": 967
-        },
-        "endLoc": {
-          "line": 142,
-          "column": 3,
-          "position": 1105
+          "position": 1440
         }
       }
     },
@@ -56612,32 +56600,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/domains/billing/application/services/invoices-command.service.ts",
-        "start": 305,
-        "end": 317,
+        "start": 291,
+        "end": 303,
         "startLoc": {
-          "line": 305,
+          "line": 291,
           "column": 33,
-          "position": 2684
+          "position": 2568
         },
         "endLoc": {
-          "line": 317,
+          "line": 303,
           "column": 10,
-          "position": 2759
+          "position": 2643
         }
       },
       "secondFile": {
         "name": "apps/api/src/domains/billing/application/services/invoices.service.ts",
-        "start": 155,
-        "end": 167,
+        "start": 140,
+        "end": 152,
         "startLoc": {
-          "line": 155,
+          "line": 140,
           "column": 38,
-          "position": 1252
+          "position": 1136
         },
         "endLoc": {
-          "line": 167,
+          "line": 152,
           "column": 11,
-          "position": 1327
+          "position": 1211
         }
       }
     },
@@ -56648,32 +56636,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/domains/billing/application/services/invoices-command.service.ts",
-        "start": 349,
-        "end": 366,
+        "start": 335,
+        "end": 352,
         "startLoc": {
-          "line": 349,
+          "line": 335,
           "column": 41,
-          "position": 3063
+          "position": 2947
         },
         "endLoc": {
-          "line": 366,
+          "line": 352,
           "column": 2,
-          "position": 3145
+          "position": 3029
         }
       },
       "secondFile": {
         "name": "apps/api/src/domains/prescriptions/application/services/prescription-pdf-orchestrator.service.ts",
-        "start": 196,
-        "end": 214,
+        "start": 186,
+        "end": 204,
         "startLoc": {
-          "line": 196,
+          "line": 186,
           "column": 46,
-          "position": 1709
+          "position": 1656
         },
         "endLoc": {
-          "line": 214,
+          "line": 204,
           "column": 1,
-          "position": 1791
+          "position": 1738
         }
       }
     },
@@ -57898,42 +57886,6 @@
           "line": 10,
           "column": 15,
           "position": 64
-        }
-      }
-    },
-    {
-      "format": "javascript",
-      "lines": 19,
-      "fragment": "}\n          name=\"overduePayment.enabled\"\n          render={({ field }) => (\n            <FormControl>\n              <Switch checked={field.value} onCheckedChange={field.onChange} />\n            </FormControl>\n          )}\n        />\n      </div>\n      {enabled ? (\n        <div className=\"flex flex-col gap-4\">\n          <div className=\"flex items-center justify-between gap-3\">\n            <Label className=\"text-xs text-muted-foreground\">\n              Send WhatsApp automatically\n            </Label>\n            <FormField\n              control={form.control}\n              name=\"overduePayment.autoSendWhatsApp\"\n              render={(",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/features/settings/components/notifications/ReminderSettingsUI.sections.tsx",
-        "start": 163,
-        "end": 181,
-        "startLoc": {
-          "line": 163,
-          "column": 32,
-          "position": 1256
-        },
-        "endLoc": {
-          "line": 181,
-          "column": 24,
-          "position": 1390
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/features/settings/components/notifications/ReminderSettingsUI.sections.tsx",
-        "start": 63,
-        "end": 79,
-        "startLoc": {
-          "line": 63,
-          "column": 28,
-          "position": 431
-        },
-        "endLoc": {
-          "line": 79,
-          "column": 31,
-          "position": 549
         }
       }
     },
@@ -61019,17 +60971,17 @@
       },
       "secondFile": {
         "name": "apps/app/features/settings/components/notifications/ReminderSettingsUI.sections.tsx",
-        "start": 7,
-        "end": 17,
+        "start": 8,
+        "end": 18,
         "startLoc": {
-          "line": 7,
+          "line": 8,
           "column": 62,
-          "position": 81
+          "position": 96
         },
         "endLoc": {
-          "line": 17,
+          "line": 18,
           "column": 14,
-          "position": 132
+          "position": 147
         }
       }
     },
@@ -61688,17 +61640,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/shared/modules/internal/clinic-management.service.ts",
-        "start": 86,
-        "end": 100,
+        "start": 87,
+        "end": 101,
         "startLoc": {
-          "line": 86,
+          "line": 87,
           "column": 52,
-          "position": 710
+          "position": 714
         },
         "endLoc": {
-          "line": 100,
+          "line": 101,
           "column": 1,
-          "position": 780
+          "position": 784
         }
       },
       "secondFile": {
@@ -61714,114 +61666,6 @@
           "line": 277,
           "column": 17,
           "position": 2344
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": "},\n      select: {\n        id: true,\n        email: true,\n        name: true,\n        role: true,\n        clinicId: true,\n        specialization: true,\n        hospitalRole: true,\n        qualification: true,\n        registrationNumber: true,\n        licenseNumber",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/internal/clinic-management.service.ts",
-        "start": 98,
-        "end": 109,
-        "startLoc": {
-          "line": 98,
-          "column": 7,
-          "position": 772
-        },
-        "endLoc": {
-          "line": 109,
-          "column": 22,
-          "position": 845
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/doctors/application/services/doctors-query.service.ts",
-        "start": 153,
-        "end": 164,
-        "startLoc": {
-          "line": 153,
-          "column": 19,
-          "position": 1342
-        },
-        "endLoc": {
-          "line": 164,
-          "column": 28,
-          "position": 1415
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 13,
-      "fragment": ": true,\n        licenseNumber: true,\n        licenseExpiry: true,\n        signatureUrl: true,\n        signatureUploadedAt: true,\n        verificationStatus: true,\n        verificationSource: true,\n        verificationRef: true,\n        verificationReason: true,\n        verificationData: true,\n        verificationCheckedAt: true,\n        profilePhotoUrl: true,\n        phoneNumber",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/internal/clinic-management.service.ts",
-        "start": 108,
-        "end": 120,
-        "startLoc": {
-          "line": 108,
-          "column": 27,
-          "position": 839
-        },
-        "endLoc": {
-          "line": 120,
-          "column": 20,
-          "position": 922
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/doctors/application/services/doctors-query.service.ts",
-        "start": 165,
-        "end": 112,
-        "startLoc": {
-          "line": 165,
-          "column": 30,
-          "position": 1423
-        },
-        "endLoc": {
-          "line": 112,
-          "column": 12,
-          "position": 870
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 19,
-      "fragment": ": true,\n        profilePhotoUrl: true,\n        phoneNumber: true,\n        bio: true,\n        yearsOfExperience: true,\n        consultationFee: true,\n        createdAt: true,\n        updatedAt: true,\n        educationHistory: {\n          orderBy: { order: 'asc' },\n        },\n        certifications: {\n          orderBy: { issueDate: 'desc' },\n        },\n        additionalSpecializations: true,\n      },\n    });\n\n    if (!doctor",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/internal/clinic-management.service.ts",
-        "start": 118,
-        "end": 136,
-        "startLoc": {
-          "line": 118,
-          "column": 30,
-          "position": 909
-        },
-        "endLoc": {
-          "line": 136,
-          "column": 16,
-          "position": 1033
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/doctors/application/services/doctors-query.service.ts",
-        "start": 178,
-        "end": 196,
-        "startLoc": {
-          "line": 178,
-          "column": 26,
-          "position": 1514
-        },
-        "endLoc": {
-          "line": 196,
-          "column": 14,
-          "position": 1638
         }
       }
     },
@@ -62578,42 +62422,6 @@
           "line": 51,
           "column": 6,
           "position": 346
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 19,
-      "fragment": "(value: string, origin?: string): string {\n  if (/^https?:\\/\\//i.test(value)) {\n    return value.replace(/\\/$/, \"\");\n  }\n\n  const runtimeOrigin =\n    origin ??\n    (typeof window !== \"undefined\" ? window.location.origin : undefined);\n\n  if (!runtimeOrigin) return value;\n\n  return new URL(value, runtimeOrigin).toString().replace(/\\/$/, \"\");\n}\n\n/**\n * When a Cloudflare build accidentally inlines NEXT_PUBLIC_API_URL as the\n * upstream Fly origin, browser fetches become cross-origin and fail CORS +\n * cookie auth. Prefer the app-origin proxy whenever we are not on the API host.\n */",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/shared/lib/api/api-url-resolver.ts",
-        "start": 15,
-        "end": 33,
-        "startLoc": {
-          "line": 15,
-          "column": 33,
-          "position": 42
-        },
-        "endLoc": {
-          "line": 33,
-          "column": 4,
-          "position": 174
-        }
-      },
-      "secondFile": {
-        "name": "apps/internal/shared/lib/api/api-config.ts",
-        "start": 10,
-        "end": 24,
-        "startLoc": {
-          "line": 10,
-          "column": 38,
-          "position": 62
-        },
-        "endLoc": {
-          "line": 24,
-          "column": 7,
-          "position": 194
         }
       }
     },
@@ -63519,37 +63327,37 @@
     },
     {
       "format": "typescript",
-      "lines": 22,
-      "fragment": "\n      status: \"PENDING\",\n      discount: 0,\n      notes: \"\",\n      items: [\n        {\n          description: \"\",\n          quantity: 1,\n          price: 0,\n          taxTreatment: \"EXEMPT_HEALTHCARE\",\n          taxRate: 0,\n        },\n      ],\n    },\n  });\n\n  const { fields, append, remove } = useFieldArray({\n    control: form.control,\n    name: \"items\",\n  });\n\n  const",
+      "lines": 14,
+      "fragment": "\n      status: \"PENDING\",\n      discount: 0,\n      notes: \"\",\n      items: createDefaultInvoiceItems(),\n    },\n  });\n\n  const { fields, append, remove } = useFieldArray({\n    control: form.control,\n    name: \"items\",\n  });\n\n  const",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/features/invoices/hooks/use-invoice-create-logic.ts",
-        "start": 39,
-        "end": 60,
+        "start": 40,
+        "end": 53,
         "startLoc": {
-          "line": 39,
+          "line": 40,
           "column": 21,
-          "position": 348
+          "position": 352
         },
         "endLoc": {
-          "line": 60,
+          "line": 53,
           "column": 8,
-          "position": 476
+          "position": 437
         }
       },
       "secondFile": {
         "name": "apps/app/features/invoices/hooks/use-invoice-edit-logic.ts",
-        "start": 36,
-        "end": 57,
+        "start": 37,
+        "end": 50,
         "startLoc": {
-          "line": 36,
+          "line": 37,
           "column": 21,
-          "position": 328
+          "position": 332
         },
         "endLoc": {
-          "line": 57,
+          "line": 50,
           "column": 12,
-          "position": 456
+          "position": 417
         }
       }
     },
@@ -63560,32 +63368,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/features/invoices/hooks/use-invoice-create-logic.ts",
-        "start": 86,
-        "end": 99,
+        "start": 79,
+        "end": 92,
         "startLoc": {
-          "line": 86,
+          "line": 79,
           "column": 62,
-          "position": 711
+          "position": 672
         },
         "endLoc": {
-          "line": 99,
+          "line": 92,
           "column": 13,
-          "position": 765
+          "position": 726
         }
       },
       "secondFile": {
         "name": "apps/app/features/invoices/hooks/use-invoice-edit-logic.ts",
-        "start": 104,
-        "end": 117,
+        "start": 97,
+        "end": 110,
         "startLoc": {
-          "line": 104,
+          "line": 97,
           "column": 60,
-          "position": 885
+          "position": 846
         },
         "endLoc": {
-          "line": 117,
+          "line": 110,
           "column": 12,
-          "position": 939
+          "position": 900
         }
       }
     },
@@ -64815,37 +64623,37 @@
     },
     {
       "format": "tsx",
-      "lines": 19,
-      "fragment": "\n\n            {error && (\n              <p className=\"text-sm text-destructive text-center\">{error}</p>\n            )}\n\n            <Button\n              type=\"submit\"\n              className=\"w-full h-11 text-base\"\n              disabled={form.formState.isSubmitting}\n            >\n              {form.formState.isSubmitting ? (\n                <>\n                  <DocitaLoadingIndicator\n                    variant=\"inline\"\n                    decorative\n                    className=\"mr-2\"\n                  />\n                  Sending…",
+      "lines": 17,
+      "fragment": "\n\n            <AuthErrorDisplay error={error} />\n\n            <Button\n              type=\"submit\"\n              className=\"w-full h-11 text-base\"\n              disabled={form.formState.isSubmitting}\n            >\n              {form.formState.isSubmitting ? (\n                <>\n                  <DocitaLoadingIndicator\n                    variant=\"inline\"\n                    decorative\n                    className=\"mr-2\"\n                  />\n                  Sending…",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/app/(auth)/forgot-password/page.tsx",
-        "start": 127,
-        "end": 145,
+        "start": 128,
+        "end": 144,
         "startLoc": {
-          "line": 127,
+          "line": 128,
           "column": 19,
-          "position": 1130
+          "position": 1143
         },
         "endLoc": {
-          "line": 145,
+          "line": 144,
           "column": 27,
-          "position": 1227
+          "position": 1223
         }
       },
       "secondFile": {
         "name": "apps/app/features/auth/components/ResetPasswordPageContent.tsx",
-        "start": 160,
-        "end": 178,
+        "start": 161,
+        "end": 177,
         "startLoc": {
-          "line": 160,
+          "line": 161,
           "column": 15,
-          "position": 1319
+          "position": 1332
         },
         "endLoc": {
-          "line": 178,
+          "line": 177,
           "column": 28,
-          "position": 1416
+          "position": 1412
         }
       }
     },
@@ -64856,32 +64664,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/app/(auth)/forgot-password/page.tsx",
-        "start": 148,
-        "end": 165,
+        "start": 147,
+        "end": 164,
         "startLoc": {
-          "line": 148,
+          "line": 147,
           "column": 34,
-          "position": 1243
+          "position": 1239
         },
         "endLoc": {
-          "line": 165,
+          "line": 164,
           "column": 1,
-          "position": 1314
+          "position": 1310
         }
       },
       "secondFile": {
         "name": "apps/app/features/auth/components/ResetPasswordPageContent.tsx",
-        "start": 181,
-        "end": 198,
+        "start": 180,
+        "end": 197,
         "startLoc": {
-          "line": 181,
+          "line": 180,
           "column": 33,
-          "position": 1433
+          "position": 1429
         },
         "endLoc": {
-          "line": 198,
+          "line": 197,
           "column": 1,
-          "position": 1504
+          "position": 1500
         }
       }
     },
@@ -65067,222 +64875,6 @@
     },
     {
       "format": "typescript",
-      "lines": 15,
-      "fragment": "import { Module } from '@nestjs/common';\nimport {\n  SubscriptionPricingService,\n  ProratingService,\n  SubscriptionValidationService,\n  ReferralService,\n} from './core/services';\nimport {\n  CreateSubscriptionUseCase,\n  UpgradeSubscriptionUseCase,\n  CancelSubscriptionUseCase,\n  ActivateSubscriptionUseCase,\n  ApplyPlanChangeWithoutPaymentUseCase,\n  CreateCheckoutUseCase,\n  ResumeSubscriptionPaymentUseCase",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/subscriptions/subscriptions.module.ts",
-        "start": 1,
-        "end": 15,
-        "startLoc": {
-          "line": 1,
-          "column": 1,
-          "position": 0
-        },
-        "endLoc": {
-          "line": 15,
-          "column": 35,
-          "position": 69
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/subscriptions/subscriptions.worker.module.ts",
-        "start": 1,
-        "end": 15,
-        "startLoc": {
-          "line": 1,
-          "column": 1,
-          "position": 0
-        },
-        "endLoc": {
-          "line": 15,
-          "column": 28,
-          "position": 69
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 23,
-      "fragment": ",\n} from './application/use-cases';\nimport { SubscriptionsQueryService } from './application/services/subscriptions-query.service';\nimport { SubscriptionCheckoutPricingService } from './application/services/subscription-checkout-pricing.service';\nimport { SubscriptionActivationPolicyService } from './application/services/subscription-activation-policy.service';\nimport { SubscriptionBillingSnapshotService } from './application/services/subscription-billing-snapshot.service';\nimport { ActivateSubscriptionPaymentService } from './application/services/activate-subscription-payment.service';\nimport { ActivateSubscriptionClinicSyncService } from './application/services/activate-subscription-clinic-sync.service';\nimport { razorpayWebhookHandlerProviders } from './application/webhooks/razorpay/razorpay-webhook-handler.registry';\nimport {\n  SUBSCRIPTION_REPOSITORY_TOKEN,\n  PAYMENT_GATEWAY_TOKEN,\n  CLINIC_OPERATIONS_TOKEN,\n} from './application/ports';\nimport {\n  PrismaSubscriptionRepository,\n  PrismaSubscriptionCoreRepository,\n  PrismaSubscriptionPaymentRepository,\n  SubscriptionPaymentTaxCalculator,\n} from './infrastructure/repositories';\nimport { PaymentGatewayFacade } from './infrastructure/adapters/payment-gateway-facade.adapter';\nimport { ClinicOperationsAdapter } from './infrastructure/adapters/clinic-operations.adapter';\nimport { SubscriptionsBillingQueryController",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/subscriptions/subscriptions.module.ts",
-        "start": 21,
-        "end": 43,
-        "startLoc": {
-          "line": 21,
-          "column": 28,
-          "position": 94
-        },
-        "endLoc": {
-          "line": 43,
-          "column": 45,
-          "position": 274
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/subscriptions/subscriptions.worker.module.ts",
-        "start": 21,
-        "end": 43,
-        "startLoc": {
-          "line": 21,
-          "column": 31,
-          "position": 94
-        },
-        "endLoc": {
-          "line": 43,
-          "column": 39,
-          "position": 274
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 17,
-      "fragment": "\n    SubscriptionPricingService,\n    SubscriptionCheckoutPricingService,\n    SubscriptionActivationPolicyService,\n    SubscriptionBillingSnapshotService,\n    ActivateSubscriptionPaymentService,\n    ActivateSubscriptionClinicSyncService,\n    ProratingService,\n    SubscriptionValidationService,\n    ReferralService,\n    CreateSubscriptionUseCase,\n    UpgradeSubscriptionUseCase,\n    CancelSubscriptionUseCase,\n    ActivateSubscriptionUseCase,\n    ApplyPlanChangeWithoutPaymentUseCase,\n    CreateCheckoutUseCase,\n    ResumeSubscriptionPaymentUseCase",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/subscriptions/subscriptions.module.ts",
-        "start": 67,
-        "end": 83,
-        "startLoc": {
-          "line": 67,
-          "column": 15,
-          "position": 454
-        },
-        "endLoc": {
-          "line": 83,
-          "column": 37,
-          "position": 516
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/subscriptions/subscriptions.worker.module.ts",
-        "start": 71,
-        "end": 87,
-        "startLoc": {
-          "line": 71,
-          "column": 76,
-          "position": 503
-        },
-        "endLoc": {
-          "line": 87,
-          "column": 30,
-          "position": 565
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 19,
-      "fragment": ",\n    SubscriptionPaymentTaxCalculator,\n    PrismaSubscriptionCoreRepository,\n    PrismaSubscriptionPaymentRepository,\n    PrismaSubscriptionRepository,\n    {\n      provide: SUBSCRIPTION_REPOSITORY_TOKEN,\n      useExisting: PrismaSubscriptionRepository,\n    },\n    {\n      provide: PAYMENT_GATEWAY_TOKEN,\n      useClass: PaymentGatewayFacade,\n    },\n    {\n      provide: CLINIC_OPERATIONS_TOKEN,\n      useClass: ClinicOperationsAdapter,\n    },\n  ],\n  ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/subscriptions/subscriptions.module.ts",
-        "start": 91,
-        "end": 109,
-        "startLoc": {
-          "line": 91,
-          "column": 30,
-          "position": 550
-        },
-        "endLoc": {
-          "line": 109,
-          "column": 3,
-          "position": 635
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/subscriptions/subscriptions.worker.module.ts",
-        "start": 100,
-        "end": 118,
-        "startLoc": {
-          "line": 100,
-          "column": 28,
-          "position": 619
-        },
-        "endLoc": {
-          "line": 118,
-          "column": 2,
-          "position": 704
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 19,
-      "fragment": "import {\n  SubscriptionPricingService,\n  ProratingService,\n  SubscriptionValidationService,\n  ReferralService,\n} from './core/services';\nimport {\n  CreateSubscriptionUseCase,\n  UpgradeSubscriptionUseCase,\n  CancelSubscriptionUseCase,\n  ActivateSubscriptionUseCase,\n  ApplyPlanChangeWithoutPaymentUseCase,\n  CreateCheckoutUseCase,\n  ExpireSubscriptionUseCase,\n  EnterGracePeriodUseCase,\n  ProcessWebhookUseCase,\n  NotifyExpiringSubscriptionsUseCase,\n  NotifySubscriptionGraceDeadlineUseCase,\n}",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/subscriptions/subscriptions-common.providers.ts",
-        "start": 1,
-        "end": 19,
-        "startLoc": {
-          "line": 1,
-          "column": 1,
-          "position": 0
-        },
-        "endLoc": {
-          "line": 19,
-          "column": 2,
-          "position": 75
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/subscriptions/subscriptions.worker.module.ts",
-        "start": 2,
-        "end": 20,
-        "startLoc": {
-          "line": 2,
-          "column": 1,
-          "position": 13
-        },
-        "endLoc": {
-          "line": 20,
-          "column": 3,
-          "position": 88
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 24,
-      "fragment": ",\n} from './application/use-cases';\nimport { SubscriptionsQueryService } from './application/services/subscriptions-query.service';\nimport { SubscriptionCheckoutPricingService } from './application/services/subscription-checkout-pricing.service';\nimport { SubscriptionActivationPolicyService } from './application/services/subscription-activation-policy.service';\nimport { SubscriptionBillingSnapshotService } from './application/services/subscription-billing-snapshot.service';\nimport { ActivateSubscriptionPaymentService } from './application/services/activate-subscription-payment.service';\nimport { ActivateSubscriptionClinicSyncService } from './application/services/activate-subscription-clinic-sync.service';\nimport { razorpayWebhookHandlerProviders } from './application/webhooks/razorpay/razorpay-webhook-handler.registry';\nimport {\n  SUBSCRIPTION_REPOSITORY_TOKEN,\n  PAYMENT_GATEWAY_TOKEN,\n  CLINIC_OPERATIONS_TOKEN,\n} from './application/ports';\nimport {\n  PrismaSubscriptionRepository,\n  PrismaSubscriptionCoreRepository,\n  PrismaSubscriptionPaymentRepository,\n  SubscriptionPaymentTaxCalculator,\n} from './infrastructure/repositories';\nimport { PaymentGatewayFacade } from './infrastructure/adapters/payment-gateway-facade.adapter';\nimport { ClinicOperationsAdapter } from './infrastructure/adapters/clinic-operations.adapter';\n\n",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/subscriptions/subscriptions-common.providers.ts",
-        "start": 18,
-        "end": 41,
-        "startLoc": {
-          "line": 18,
-          "column": 41,
-          "position": 73
-        },
-        "endLoc": {
-          "line": 41,
-          "column": 1,
-          "position": 249
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/subscriptions/subscriptions.worker.module.ts",
-        "start": 21,
-        "end": 43,
-        "startLoc": {
-          "line": 21,
-          "column": 31,
-          "position": 94
-        },
-        "endLoc": {
-          "line": 43,
-          "column": 7,
-          "position": 270
-        }
-      }
-    },
-    {
-      "format": "typescript",
       "lines": 13,
       "fragment": ",\n    PrescriptionPdfProcessor,\n    {\n      provide: PDF_JOB_PROCESSOR_PRISMA_TOKEN,\n      useExisting: PrismaService,\n    },\n    {\n      provide: 'IPrescriptionRepository',\n      useClass: PrismaPrescriptionRepository,\n    },\n  ],\n  exports: [\n",
       "tokens": 0,
@@ -65319,109 +64911,37 @@
     },
     {
       "format": "typescript",
-      "lines": 13,
-      "fragment": ";\nimport { TemplatesService } from './application/services/templates.service';\nimport { UploadsService } from './application/services/uploads.service';\nimport { UploadsCommandService } from './application/services/uploads-command.service';\nimport { UploadsQueryService } from './application/services/uploads-query.service';\nimport { StoredFileUrlResolverService } from './application/services/stored-file-url-resolver.service';\nimport { TEMPLATES_REPOSITORY_TOKEN } from './application/ports/templates.repository.port';\nimport { PrismaTemplatesRepository } from './infrastructure/repositories/prisma-templates.repository';\nimport { StorageProvider } from './application/ports/storage-provider.port';\nimport { LocalStorageProvider } from './infrastructure/local-storage.provider';\nimport { R2StorageProvider } from './infrastructure/r2-storage.provider';\nimport { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';\nimport",
+      "lines": 16,
+      "fragment": ",\n    {\n      provide: StorageProvider,\n      inject: [AppConfigService, CLOCK_PORT],\n      useFactory: (configService: AppConfigService, clock: IClock) => {\n        const provider = configService.getStorageProvider();\n        const isProduction = configService.isProduction();\n        const r2Config = configService.getR2Config();\n        const hasR2Credentials =\n          !!r2Config.accountId &&\n          !!r2Config.accessKeyId &&\n          !!r2Config.secretAccessKey &&\n          !!r2Config.bucketName;\n\n        if (!isProduction) {\n          return",
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/domains/documents/documents.module.ts",
-        "start": 8,
-        "end": 20,
+        "start": 28,
+        "end": 43,
         "startLoc": {
-          "line": 8,
-          "column": 93,
-          "position": 105
-        },
-        "endLoc": {
-          "line": 20,
-          "column": 7,
-          "position": 255
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/documents/documents.worker.module.ts",
-        "start": 5,
-        "end": 18,
-        "startLoc": {
-          "line": 5,
-          "column": 85,
-          "position": 63
-        },
-        "endLoc": {
-          "line": 18,
-          "column": 1,
-          "position": 213
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 20,
-      "fragment": ",\n    {\n      provide: TEMPLATES_REPOSITORY_TOKEN,\n      useClass: PrismaTemplatesRepository,\n    },\n    {\n      provide: StorageProvider,\n      inject: [AppConfigService, CLOCK_PORT],\n      useFactory: (configService: AppConfigService, clock: IClock) => {\n        const provider = configService.getStorageProvider();\n        const isProduction = configService.isProduction();\n        const r2Config = configService.getR2Config();\n        const hasR2Credentials =\n          !!r2Config.accountId &&\n          !!r2Config.accessKeyId &&\n          !!r2Config.secretAccessKey &&\n          !!r2Config.bucketName;\n\n        if (!isProduction) {\n          return",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/documents/documents.module.ts",
-        "start": 38,
-        "end": 57,
-        "startLoc": {
-          "line": 38,
+          "line": 28,
           "column": 26,
-          "position": 407
+          "position": 277
         },
         "endLoc": {
-          "line": 57,
+          "line": 43,
           "column": 17,
-          "position": 569
+          "position": 418
         }
       },
       "secondFile": {
         "name": "apps/api/src/domains/documents/documents.worker.module.ts",
-        "start": 26,
-        "end": 45,
+        "start": 16,
+        "end": 31,
         "startLoc": {
-          "line": 26,
-          "column": 33,
-          "position": 269
+          "line": 16,
+          "column": 34,
+          "position": 139
         },
         "endLoc": {
-          "line": 45,
+          "line": 31,
           "column": 13,
-          "position": 431
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 14,
-      "fragment": ");\n      },\n    },\n  ],\n  exports: [\n    TemplatesService,\n    UploadsCommandService,\n    UploadsQueryService,\n    UploadsService,\n    StoredFileUrlResolverService,\n    StorageProvider,\n  ],\n})\nexport class DocumentsModule",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/documents/documents.module.ts",
-        "start": 70,
-        "end": 83,
-        "startLoc": {
-          "line": 70,
-          "column": 10,
-          "position": 663
-        },
-        "endLoc": {
-          "line": 83,
-          "column": 29,
-          "position": 719
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/documents/documents.worker.module.ts",
-        "start": 57,
-        "end": 70,
-        "startLoc": {
-          "line": 57,
-          "column": 9,
-          "position": 531
-        },
-        "endLoc": {
-          "line": 70,
-          "column": 35,
-          "position": 587
+          "position": 280
         }
       }
     },
@@ -67407,109 +66927,37 @@
     },
     {
       "format": "tsx",
-      "lines": 13,
-      "fragment": ",\n  DialogHeader,\n  DialogTitle,\n} from \"@workspace/ui/components/overlay/dialog\";\nimport {\n  Table,\n  TableBody,\n  TableCell,\n  TableHead,\n  TableHeader,\n  TableRow,\n} from \"@workspace/ui/components/data-display/table\";\nimport {",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/internal/features/enterprise-contracts/enterprise-contracts-members-dialog.tsx",
-        "start": 10,
-        "end": 22,
-        "startLoc": {
-          "line": 10,
-          "column": 20,
-          "position": 70
-        },
-        "endLoc": {
-          "line": 22,
-          "column": 9,
-          "position": 124
-        }
-      },
-      "secondFile": {
-        "name": "apps/internal/features/enterprise-contracts/enterprise-contracts-revisions-dialog.tsx",
-        "start": 6,
-        "end": 18,
-        "startLoc": {
-          "line": 6,
-          "column": 16,
-          "position": 27
-        },
-        "endLoc": {
-          "line": 18,
-          "column": 12,
-          "position": 81
-        }
-      }
-    },
-    {
-      "format": "tsx",
-      "lines": 19,
-      "fragment": ";\nimport {\n  Dialog,\n  DialogContent,\n  DialogDescription,\n  DialogHeader,\n  DialogTitle,\n} from \"@workspace/ui/components/overlay/dialog\";\nimport {\n  Table,\n  TableBody,\n  TableCell,\n  TableHead,\n  TableHeader,\n  TableRow,\n} from \"@workspace/ui/components/data-display/table\";\nimport type { EnterpriseContractsPageState } from \"./use-enterprise-contracts-page\";\n\ntype EnterpriseContractsInvoicesDialogProps",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/internal/features/enterprise-contracts/enterprise-contracts-invoices-dialog.tsx",
-        "start": 3,
-        "end": 21,
-        "startLoc": {
-          "line": 3,
-          "column": 62,
-          "position": 18
-        },
-        "endLoc": {
-          "line": 21,
-          "column": 44,
-          "position": 104
-        }
-      },
-      "secondFile": {
-        "name": "apps/internal/features/enterprise-contracts/enterprise-contracts-members-dialog.tsx",
-        "start": 6,
-        "end": 20,
-        "startLoc": {
-          "line": 6,
-          "column": 60,
-          "position": 54
-        },
-        "endLoc": {
-          "line": 20,
-          "column": 45,
-          "position": 97
-        }
-      }
-    },
-    {
-      "format": "tsx",
-      "lines": 21,
-      "fragment": "\"use client\";\n\nimport { formatCurrency, formatDate } from \"@workspace/utils\";\nimport {\n  Dialog,\n  DialogContent,\n  DialogDescription,\n  DialogHeader,\n  DialogTitle,\n} from \"@workspace/ui/components/overlay/dialog\";\nimport {\n  Table,\n  TableBody,\n  TableCell,\n  TableHead,\n  TableHeader,\n  TableRow,\n} from \"@workspace/ui/components/data-display/table\";\nimport type { EnterpriseContractsPageState } from \"./use-enterprise-contracts-page\";\n\ntype EnterpriseContractsEstimateDialogProps",
+      "lines": 15,
+      "fragment": "\"use client\";\n\nimport { formatCurrency, formatDate } from \"@workspace/utils\";\nimport {\n  BaseContractDialogShell,\n  Table,\n  TableBody,\n  TableCell,\n  TableHead,\n  TableHeader,\n  TableRow,\n} from \"./base-dialog-shell\";\nimport type { EnterpriseContractsPageState } from \"./use-enterprise-contracts-page\";\n\ntype EnterpriseContractsEstimateDialogProps",
       "tokens": 0,
       "firstFile": {
         "name": "apps/internal/features/enterprise-contracts/enterprise-contracts-estimate-dialog.tsx",
         "start": 1,
-        "end": 21,
+        "end": 15,
         "startLoc": {
           "line": 1,
           "column": 1,
           "position": 0
         },
         "endLoc": {
-          "line": 21,
+          "line": 15,
           "column": 44,
-          "position": 104
+          "position": 77
         }
       },
       "secondFile": {
         "name": "apps/internal/features/enterprise-contracts/enterprise-contracts-invoices-dialog.tsx",
         "start": 1,
-        "end": 20,
+        "end": 15,
         "startLoc": {
           "line": 1,
           "column": 1,
           "position": 0
         },
         "endLoc": {
-          "line": 20,
-          "column": 45,
-          "position": 97
+          "line": 15,
+          "column": 44,
+          "position": 77
         }
       }
     },
@@ -67623,37 +67071,73 @@
     },
     {
       "format": "tsx",
-      "lines": 19,
-      "fragment": " formatDate } from \"@workspace/utils\";\nimport {\n  Dialog,\n  DialogContent,\n  DialogDescription,\n  DialogHeader,\n  DialogTitle,\n} from \"@workspace/ui/components/overlay/dialog\";\nimport {\n  Table,\n  TableBody,\n  TableCell,\n  TableHead,\n  TableHeader,\n  TableRow,\n} from \"@workspace/ui/components/data-display/table\";\nimport type { EnterpriseContractsPageState } from \"./use-enterprise-contracts-page\";\n\ntype EnterpriseContractsAlertsDialogProps",
+      "lines": 13,
+      "fragment": " formatDate } from \"@workspace/utils\";\nimport {\n  BaseContractDialogShell,\n  Table,\n  TableBody,\n  TableCell,\n  TableHead,\n  TableHeader,\n  TableRow,\n} from \"./base-dialog-shell\";\nimport type { EnterpriseContractsPageState } from \"./use-enterprise-contracts-page\";\n\ntype EnterpriseContractsAlertsDialogProps",
       "tokens": 0,
       "firstFile": {
         "name": "apps/internal/features/enterprise-contracts/enterprise-contracts-alerts-dialog.tsx",
         "start": 3,
-        "end": 21,
+        "end": 15,
         "startLoc": {
           "line": 3,
           "column": 9,
           "position": 7
         },
         "endLoc": {
-          "line": 21,
+          "line": 15,
           "column": 42,
-          "position": 101
+          "position": 74
         }
       },
       "secondFile": {
         "name": "apps/internal/features/enterprise-contracts/enterprise-contracts-invoices-dialog.tsx",
         "start": 3,
-        "end": 20,
+        "end": 15,
         "startLoc": {
           "line": 3,
           "column": 25,
           "position": 10
         },
         "endLoc": {
+          "line": 15,
+          "column": 44,
+          "position": 77
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 14,
+      "fragment": ",\n  DialogHeader,\n  DialogTitle,\n} from \"@workspace/ui/components/overlay/dialog\";\nimport {\n  Table,\n  TableBody,\n  TableCell,\n  TableHead,\n  TableHeader,\n  TableRow,\n} from \"@workspace/ui/components/data-display/table\";\n\n",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/internal/features/enterprise-contracts/base-dialog-shell.tsx",
+        "start": 7,
+        "end": 20,
+        "startLoc": {
+          "line": 7,
+          "column": 20,
+          "position": 33
+        },
+        "endLoc": {
           "line": 20,
-          "column": 45,
-          "position": 97
+          "column": 1,
+          "position": 85
+        }
+      },
+      "secondFile": {
+        "name": "apps/internal/features/enterprise-contracts/enterprise-contracts-revisions-dialog.tsx",
+        "start": 6,
+        "end": 18,
+        "startLoc": {
+          "line": 6,
+          "column": 16,
+          "position": 27
+        },
+        "endLoc": {
+          "line": 18,
+          "column": 7,
+          "position": 79
         }
       }
     },

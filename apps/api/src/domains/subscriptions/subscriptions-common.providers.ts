@@ -78,3 +78,20 @@ export const SUBSCRIPTIONS_COMMON_PROVIDERS = [
     useClass: ClinicOperationsAdapter,
   },
 ] as const;
+
+export const SUBSCRIPTIONS_COMMON_EXPORTS = [
+  SubscriptionPricingService,
+  SubscriptionValidationService,
+  ReferralService,
+  CreateSubscriptionUseCase,
+  UpgradeSubscriptionUseCase,
+  CancelSubscriptionUseCase,
+  ActivateSubscriptionUseCase,
+  CreateCheckoutUseCase,
+  ExpireSubscriptionUseCase,
+  EnterGracePeriodUseCase,
+  ProcessWebhookUseCase,
+  SubscriptionsQueryService,
+  PAYMENT_GATEWAY_TOKEN,
+  SUBSCRIPTION_REPOSITORY_TOKEN,
+] as const;

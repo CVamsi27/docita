@@ -19,6 +19,7 @@ import { api } from "@/lib/api/api-client";
 import { logger } from "@/lib/monitoring/logger";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 import { BackButton } from "@/components/navigation/back-button";
+import { AuthErrorDisplay } from "@/features/auth/components/AuthErrorDisplay";
 
 export default function ForgotPasswordPage() {
   return (
@@ -126,9 +127,7 @@ function ForgotPasswordPageContent() {
               ) : null}
             </div>
 
-            {error && (
-              <p className="text-sm text-destructive text-center">{error}</p>
-            )}
+            <AuthErrorDisplay error={error} />
 
             <Button
               type="submit"

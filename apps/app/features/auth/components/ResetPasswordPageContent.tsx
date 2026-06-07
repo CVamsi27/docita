@@ -19,6 +19,7 @@ import { api } from "@/lib/api/api-client";
 import { logger } from "@/lib/monitoring/logger";
 import { AuthPasswordFloatingField } from "./auth-password-floating-field";
 import { PreDashboardShell } from "./PreDashboardShell";
+import { AuthErrorDisplay } from "./AuthErrorDisplay";
 
 const PASSWORD_RULES_HELPER =
   "Must be 8+ characters with uppercase, lowercase, number, and special character";
@@ -159,9 +160,7 @@ function ResetPasswordInner() {
               )}
             />
 
-            {error && (
-              <p className="text-sm text-destructive text-center">{error}</p>
-            )}
+            <AuthErrorDisplay error={error} />
 
             <Button
               type="submit"

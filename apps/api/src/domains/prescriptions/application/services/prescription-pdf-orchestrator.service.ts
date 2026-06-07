@@ -10,10 +10,7 @@ import {
   IPrescriptionRepository,
   PrescriptionDetail,
 } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
-import {
-  GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
-  StorageProvider,
-} from '@/domains/documents/application/ports/storage-provider.port';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import {
   calculateAge,
   DEFAULT_LOCALE,
@@ -23,6 +20,7 @@ import { type EnqueuePdfJobResponse, extractPdfTheme } from '@workspace/types';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
+import { generatePdfSignedUrl } from '@/shared/modules/document-generation/pdf/pdf-url.helpers';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 const CURRENT_PDF_TEMPLATE_VERSION = 1;
@@ -139,11 +137,7 @@ export class PrescriptionPdfOrchestratorService {
       const prescription = await this.findOne(id, clinicId);
 
       if (prescription.pdfUrl) {
-        const url = await this.storageProvider.generateSignedUrl(
-          prescription.pdfUrl,
-          GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
-        );
-        return { type: 'url', url };
+        return generatePdfSignedUrl(this.storageProvider, prescription.pdfUrl);
       }
 
       const buffer = await this.generatePDF(id, clinicId);
@@ -154,11 +148,7 @@ export class PrescriptionPdfOrchestratorService {
         prescription,
       );
 
-      const url = await this.storageProvider.generateSignedUrl(
-        storedKey,
-        GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
-      );
-      return { type: 'url', url };
+      return generatePdfSignedUrl(this.storageProvider, storedKey);
     }
 
     const buffer = await this.generatePDF(id, clinicId);
