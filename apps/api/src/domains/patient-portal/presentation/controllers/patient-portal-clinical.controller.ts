@@ -70,6 +70,21 @@ export class PatientPortalClinicalController {
     private readonly auditService: AuditService,
   ) {}
 
+  /**
+   * Shared by every clinical-read endpoint below except `getActiveMedications`
+   * (which doesn't audit) — all resolve the portal patient context and record
+   * the same `VIEW_HISTORY` PHI-read entry before fetching, so the reason
+   * code can't drift across the four call sites.
+   */
+  private auditClinicalRead(req: RequestWithUser) {
+    return auditPatientPortalRead(
+      this.contextService,
+      this.auditService,
+      req,
+      'VIEW_HISTORY',
+    );
+  }
+
   @Get('timeline')
   @ApiOperation({ summary: 'Get unified patient timeline' })
   async getTimeline(
@@ -83,12 +98,7 @@ export class PatientPortalClinicalController {
       offset?: string;
     },
   ) {
-    const { patientId, clinicId } = await auditPatientPortalRead(
-      this.contextService,
-      this.auditService,
-      req,
-      'VIEW_HISTORY',
-    );
+    const { patientId, clinicId } = await this.auditClinicalRead(req);
     const eventTypes = parseTimelineEventTypes(query.eventTypes);
     return this.timelineService.getTimeline(clinicId, patientId, {
       eventTypes,
@@ -102,12 +112,7 @@ export class PatientPortalClinicalController {
   @Get('timeline/snapshot')
   @ApiOperation({ summary: 'Get patient clinical snapshot' })
   async getSnapshot(@Request() req: RequestWithUser) {
-    const { patientId, clinicId } = await auditPatientPortalRead(
-      this.contextService,
-      this.auditService,
-      req,
-      'VIEW_HISTORY',
-    );
+    const { patientId, clinicId } = await this.auditClinicalRead(req);
     return this.timelineService.getPatientSnapshot(clinicId, patientId);
   }
 
@@ -134,12 +139,7 @@ export class PatientPortalClinicalController {
       offset?: string;
     },
   ) {
-    const { patientId, clinicId } = await auditPatientPortalRead(
-      this.contextService,
-      this.auditService,
-      req,
-      'VIEW_HISTORY',
-    );
+    const { patientId, clinicId } = await this.auditClinicalRead(req);
     return this.medicationDoseService.getDoseHistory(clinicId, patientId, {
       prescriptionId: query.prescriptionId,
       from: query.from,
@@ -185,12 +185,7 @@ export class PatientPortalClinicalController {
     @Request() req: RequestWithUser,
     @Query() query: { prescriptionId?: string },
   ) {
-    const { patientId, clinicId } = await auditPatientPortalRead(
-      this.contextService,
-      this.auditService,
-      req,
-      'VIEW_HISTORY',
-    );
+    const { patientId, clinicId } = await this.auditClinicalRead(req);
     return this.medicationDoseService.getAdherenceSummary(
       clinicId,
       patientId,

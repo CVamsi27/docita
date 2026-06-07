@@ -14,6 +14,7 @@ import {
 import {
   IPatientMetricsRepository,
   MetricRecordRow,
+  MetricSelectionRow,
   PATIENT_METRICS_REPOSITORY_TOKEN,
 } from '@/domains/patients/core/repositories/patient-metrics.repository.interface';
 import {
@@ -31,18 +32,30 @@ export class PatientMetricsService {
     private readonly patientMetricsRepository: IPatientMetricsRepository,
   ) {}
 
+  /**
+   * Shared by `listCategories` and `getSelections` — both pair a
+   * definitions/categories fetch with `findSelections` and need the same
+   * `definitionId -> isTracked` lookup to resolve each definition's
+   * effective tracked state, so the map-building stays in one place.
+   */
+  private buildTrackedSelectionMap(
+    selections: MetricSelectionRow[],
+  ): Map<string, boolean> {
+    return new Map(
+      selections.map((selection) => [
+        selection.definitionId,
+        selection.isTracked,
+      ]),
+    );
+  }
+
   async listCategories(clinicId: string, patientId: string) {
     const [categories, selections] = await Promise.all([
       this.patientMetricsRepository.findCategories(clinicId, patientId),
       this.patientMetricsRepository.findSelections(clinicId, patientId),
     ]);
 
-    const selectionMap = new Map(
-      selections.map((selection) => [
-        selection.definitionId,
-        selection.isTracked,
-      ]),
-    );
+    const selectionMap = this.buildTrackedSelectionMap(selections);
 
     return categories.map((category) => ({
       ...category,
@@ -83,12 +96,7 @@ export class PatientMetricsService {
       this.patientMetricsRepository.findSelections(clinicId, patientId),
     ]);
 
-    const selectionMap = new Map(
-      selections.map((selection) => [
-        selection.definitionId,
-        selection.isTracked,
-      ]),
-    );
+    const selectionMap = this.buildTrackedSelectionMap(selections);
 
     return definitions.map((definition) => ({
       ...definition,

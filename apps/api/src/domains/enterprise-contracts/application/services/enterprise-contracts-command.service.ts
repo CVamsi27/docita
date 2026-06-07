@@ -9,7 +9,12 @@ import {
   ENTERPRISE_CONTRACT_PERSISTENCE_PORT,
   type EnterpriseContractPersistencePort,
 } from '@/domains/enterprise-contracts/application/ports/enterprise-contract-persistence.port';
-import { EnterpriseContractStatus, Prisma, ClinicTier } from '@workspace/db';
+import {
+  EnterpriseContractStatus,
+  Prisma,
+  ClinicTier,
+  type EnterpriseContract,
+} from '@workspace/db';
 import { type UpsertEnterpriseContractRequest } from '@workspace/types';
 import {
   EnterpriseContractsQueryService,
@@ -34,6 +39,51 @@ export class EnterpriseContractsCommandService {
     private readonly invoiceService: EnterpriseContractInvoiceCommandService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
+
+  /**
+   * Looks up a contract by id or throws the same `NotFoundException` used by
+   * every member-mutation entry point — `addMember` and `removeMember` both
+   * need this exact lookup before doing their (different) follow-up work.
+   */
+  private async getContractOrThrow(
+    contractId: string,
+  ): Promise<EnterpriseContract> {
+    const contract = await this.persistence.enterpriseContract.findUnique({
+      where: { id: contractId },
+    });
+    if (!contract)
+      throw new NotFoundException(`Contract ${contractId} not found`);
+    return contract;
+  }
+
+  /**
+   * Builds the subscription field overrides applied whenever a clinic is
+   * placed on (or kept on) an enterprise contract — `upsert` (re-syncing all
+   * member subscriptions) and `addMember` (syncing the new member) must apply
+   * the exact same tier mapping or members would drift out of sync with their
+   * contract terms.
+   */
+  private buildEnterpriseSubscriptionOverrides(
+    contract: Pick<
+      EnterpriseContract,
+      | 'platformFeeCents'
+      | 'currency'
+      | 'billingCycle'
+      | 'includedConsultations'
+      | 'includedUsers'
+      | 'includedStorageGB'
+    >,
+  ) {
+    return {
+      plan: ClinicTier.ENTERPRISE,
+      basePriceCents: contract.platformFeeCents,
+      currency: contract.currency,
+      billingCycle: contract.billingCycle,
+      includedAppointments: contract.includedConsultations,
+      includedUsers: contract.includedUsers,
+      includedStorageGB: contract.includedStorageGB,
+    };
+  }
 
   async upsert(
     primaryClinicId: string,
@@ -115,15 +165,7 @@ export class EnterpriseContractsCommandService {
 
         await tx.subscription.updateMany({
           where: { clinicId: { in: memberClinicIds } },
-          data: {
-            plan: ClinicTier.ENTERPRISE,
-            basePriceCents: contract.platformFeeCents,
-            currency: contract.currency,
-            billingCycle: contract.billingCycle,
-            includedAppointments: contract.includedConsultations,
-            includedUsers: contract.includedUsers,
-            includedStorageGB: contract.includedStorageGB,
-          },
+          data: this.buildEnterpriseSubscriptionOverrides(contract),
         });
 
         await tx.enterpriseContractRevision.create({
@@ -188,11 +230,7 @@ export class EnterpriseContractsCommandService {
   ): Promise<ContractWithMembers> {
     // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () => {
-      const contract = await this.persistence.enterpriseContract.findUnique({
-        where: { id: contractId },
-      });
-      if (!contract)
-        throw new NotFoundException(`Contract ${contractId} not found`);
+      const contract = await this.getContractOrThrow(contractId);
       const clinic = await this.persistence.clinic.findUnique({
         where: { id: clinicId },
       });
@@ -214,15 +252,7 @@ export class EnterpriseContractsCommandService {
         });
         await tx.subscription.updateMany({
           where: { clinicId },
-          data: {
-            plan: ClinicTier.ENTERPRISE,
-            basePriceCents: contract.platformFeeCents,
-            currency: contract.currency,
-            billingCycle: contract.billingCycle,
-            includedAppointments: contract.includedConsultations,
-            includedUsers: contract.includedUsers,
-            includedStorageGB: contract.includedStorageGB,
-          },
+          data: this.buildEnterpriseSubscriptionOverrides(contract),
         });
         await tx.enterpriseContractRevision.create({
           data: {
@@ -248,11 +278,7 @@ export class EnterpriseContractsCommandService {
   ): Promise<ContractWithMembers> {
     // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () => {
-      const contract = await this.persistence.enterpriseContract.findUnique({
-        where: { id: contractId },
-      });
-      if (!contract)
-        throw new NotFoundException(`Contract ${contractId} not found`);
+      const contract = await this.getContractOrThrow(contractId);
       if (contract.primaryClinicId === clinicId)
         throw new BadRequestException(
           'Cannot remove the primary clinic from a contract; transfer the contract first.',

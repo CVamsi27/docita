@@ -1,5 +1,6 @@
 "use client";
 
+import type { Control, FieldPath } from "react-hook-form";
 import { ArrowLeft } from "lucide-react";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
@@ -19,7 +20,42 @@ import {
   FormLabel,
   FormMessage,
 } from "@workspace/ui/components/form/form";
+import type { EditInsuranceClaimFormValues } from "@workspace/types";
 import { useInsuranceClaimEditLogic } from "@/features/insurance-claims/hooks/use-insurance-claim-edit-logic";
+
+/**
+ * Shared render shape for the claim form's plain-text fields (insurer, TPA,
+ * policy number, group number) — they're identical aside from the bound
+ * field name and label, so a small local wrapper keeps each declaration to
+ * one line instead of repeating the FormField/FormItem/Input scaffold.
+ */
+function ClaimTextField({
+  control,
+  name,
+  label,
+  className,
+}: {
+  control: Control<EditInsuranceClaimFormValues>;
+  name: FieldPath<EditInsuranceClaimFormValues>;
+  label: string;
+  className?: string;
+}) {
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className={className}>
+          <FormLabel>{label}</FormLabel>
+          <FormControl>
+            <Input {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
 
 export function InsuranceClaimEditUI({ id }: { id: string }) {
   const {
@@ -70,57 +106,25 @@ export function InsuranceClaimEditUI({ id }: { id: string }) {
             >
               <Card>
                 <CardContent className="grid gap-4 py-6 sm:grid-cols-2">
-                  <FormField
+                  <ClaimTextField
                     control={form.control}
                     name="insurerName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Insurer</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="Insurer"
                   />
-                  <FormField
+                  <ClaimTextField
                     control={form.control}
                     name="tpaName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>TPA (optional)</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="TPA (optional)"
                   />
-                  <FormField
+                  <ClaimTextField
                     control={form.control}
                     name="policyNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Policy number</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="Policy number"
                   />
-                  <FormField
+                  <ClaimTextField
                     control={form.control}
                     name="groupNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Group number (optional)</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="Group number (optional)"
                   />
                   <FormField
                     control={form.control}

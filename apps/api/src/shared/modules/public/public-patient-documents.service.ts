@@ -88,6 +88,30 @@ export class PublicPatientDocumentsService {
     return redirectUrl;
   }
 
+  // Shared by the catch blocks of `proxyPrescriptionPdf` and
+  // `proxyInvoicePdf` — both report the same "failed access" shape (clinic
+  // unknown at failure time, error message normalized) and rethrow, so the
+  // failure-logging step lives in one place rather than the two proxies
+  // drifting apart.
+  private logAccessFailureAndRethrow(
+    type: PublicDocumentAccessEvent['type'],
+    documentId: string,
+    ipAddress: string,
+    userAgent: string,
+    error: unknown,
+  ): never {
+    this.logAccess({
+      type,
+      documentId,
+      clinicId: '',
+      ipAddress,
+      userAgent,
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    throw error;
+  }
+
   private async proxyPrescriptionPdf(
     prescriptionId: string,
     ipAddress: string,
@@ -146,16 +170,13 @@ export class PublicPatientDocumentsService {
         contentType: 'application/pdf',
       };
     } catch (error) {
-      this.logAccess({
-        type: 'prescription',
-        documentId: prescriptionId,
-        clinicId: '',
+      this.logAccessFailureAndRethrow(
+        'prescription',
+        prescriptionId,
         ipAddress,
         userAgent,
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-      throw error;
+        error,
+      );
     }
   }
 
@@ -222,16 +243,13 @@ export class PublicPatientDocumentsService {
         contentType: 'application/pdf',
       };
     } catch (error) {
-      this.logAccess({
-        type: 'invoice',
-        documentId: invoiceId,
-        clinicId: '',
+      this.logAccessFailureAndRethrow(
+        'invoice',
+        invoiceId,
         ipAddress,
         userAgent,
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-      throw error;
+        error,
+      );
     }
   }
 

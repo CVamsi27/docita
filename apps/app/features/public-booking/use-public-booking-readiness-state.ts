@@ -7,7 +7,15 @@ import {
   computeSubmitRequestReady,
 } from "@/features/public-booking/public-booking-page-state-helpers";
 
-interface ReadinessParams {
+/**
+ * Patient-identity + verification fields shared by every public-booking
+ * state hook (`usePublicBookingReadinessState`, `usePublicBookingDerivedState`,
+ * `usePublicBookingSubmissionState`) — they all derive their readiness/
+ * validation/submission checks from the same visitor inputs, differing only
+ * in what extra state (submit errors, slot-selection handlers, …) they layer
+ * on top.
+ */
+export interface PublicBookingFieldParams {
   siteKey: string | undefined;
   turnstileToken: string | null;
   phone: string;
@@ -20,7 +28,9 @@ interface ReadinessParams {
   slotDate: string;
 }
 
-export function usePublicBookingReadinessState(params: ReadinessParams) {
+export function usePublicBookingReadinessState(
+  params: PublicBookingFieldParams,
+) {
   const visitCanContinue = useMemo(
     () => computeVisitCanContinue(params.siteKey, params.turnstileToken),
     [params.siteKey, params.turnstileToken],

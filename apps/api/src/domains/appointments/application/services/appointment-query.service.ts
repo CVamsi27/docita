@@ -90,12 +90,7 @@ export class AppointmentQueryService {
           `date '${calendarPickerDate}'`,
         );
       }
-      repoParams = {
-        ...repoParams,
-        startDate: bounds.rangeStart,
-        endDate: bounds.rangeEndExclusive,
-        intersectCalendarRange: true,
-      };
+      repoParams = this.mergeCalendarBoundsIntoParams(repoParams, bounds);
     } else if (
       (calendarRangeStartPicker || calendarRangeEndPicker) &&
       !rest.startDate &&
@@ -112,15 +107,26 @@ export class AppointmentQueryService {
           `range '${calendarRangeStartPicker ?? ''}'..'${calendarRangeEndPicker ?? ''}'`,
         );
       }
-      repoParams = {
-        ...repoParams,
-        startDate: bounds.rangeStart,
-        endDate: bounds.rangeEndExclusive,
-        intersectCalendarRange: true,
-      };
+      repoParams = this.mergeCalendarBoundsIntoParams(repoParams, bounds);
     }
 
     return this.appointmentRepository.findAll(repoParams);
+  }
+
+  // Shared by both calendar-picker branches above — resolving either a
+  // single day or a start/end range yields the same UTC bounds shape, and
+  // both merge it into `repoParams` identically, so the merge lives in one
+  // place rather than the two branches drifting apart.
+  private mergeCalendarBoundsIntoParams(
+    repoParams: AppointmentSearchParams,
+    bounds: { rangeStart: Date; rangeEndExclusive: Date },
+  ): AppointmentSearchParams {
+    return {
+      ...repoParams,
+      startDate: bounds.rangeStart,
+      endDate: bounds.rangeEndExclusive,
+      intersectCalendarRange: true,
+    };
   }
 
   async resolveCalendarPickerDayUtcBounds(

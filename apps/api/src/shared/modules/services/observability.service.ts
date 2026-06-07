@@ -108,10 +108,16 @@ export class ObservabilityService implements OnModuleDestroy {
     this.logger.debug('Sentry initialized');
   }
 
-  captureException(
-    error: unknown,
-    context?: Record<string, unknown> | string,
-    level: Sentry.SeverityLevel = 'error',
+  // Shared by `captureException` and `captureMessage` — both normalize the
+  // context shorthand (a bare string becomes `{ correlationId }`), open a
+  // Sentry scope at the requested severity, stamp the normalized context
+  // entries onto it, and only then hand off to the capture call that differs
+  // between them. Keeping the scope setup in one place stops the two
+  // reporters from drifting apart.
+  private withSentryScope(
+    context: Record<string, unknown> | string | undefined,
+    level: Sentry.SeverityLevel,
+    capture: () => void,
   ): void {
     const normalizedContext =
       typeof context === 'string' ? { correlationId: context } : context;
@@ -122,8 +128,16 @@ export class ObservabilityService implements OnModuleDestroy {
           scope.setContext(key, toSentryContextValue(value));
         });
       }
-      Sentry.captureException(error);
+      capture();
     });
+  }
+
+  captureException(
+    error: unknown,
+    context?: Record<string, unknown> | string,
+    level: Sentry.SeverityLevel = 'error',
+  ): void {
+    this.withSentryScope(context, level, () => Sentry.captureException(error));
   }
 
   captureMessage(
@@ -131,17 +145,7 @@ export class ObservabilityService implements OnModuleDestroy {
     context?: Record<string, unknown> | string,
     level: Sentry.SeverityLevel = 'info',
   ): void {
-    const normalizedContext =
-      typeof context === 'string' ? { correlationId: context } : context;
-    Sentry.withScope((scope) => {
-      scope.setLevel(level);
-      if (normalizedContext) {
-        Object.entries(normalizedContext).forEach(([key, value]) => {
-          scope.setContext(key, toSentryContextValue(value));
-        });
-      }
-      Sentry.captureMessage(message);
-    });
+    this.withSentryScope(context, level, () => Sentry.captureMessage(message));
   }
 
   logStructured(

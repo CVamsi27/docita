@@ -28,6 +28,25 @@ export class SubscriptionReminderScheduler {
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
+  /**
+   * Shared `catch` handler for both cron jobs below — a database
+   * authentication failure permanently disables the scheduler (until the
+   * process restarts with corrected credentials), while any other error is
+   * just logged. Keeping the disable-and-warn branch in one place stops the
+   * two jobs' recovery behavior from drifting apart.
+   */
+  private handleCronFailure(failureMessage: string, error: unknown): void {
+    if (isDatabaseAuthError(error)) {
+      this.databaseAccessDisabled = true;
+      this.logger.warn(
+        'Disabling subscription scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
+      );
+      return;
+    }
+
+    this.logCronError(failureMessage, error);
+  }
+
   private logCronError(message: string, error: unknown): void {
     if (error instanceof Error) {
       this.logger.error(`${message}: ${error.message}`, error.stack);
@@ -139,15 +158,7 @@ export class SubscriptionReminderScheduler {
         }
       });
     } catch (error) {
-      if (isDatabaseAuthError(error)) {
-        this.databaseAccessDisabled = true;
-        this.logger.warn(
-          'Disabling subscription scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
-        );
-        return;
-      }
-
-      this.logCronError('Subscription reminder cron failed', error);
+      this.handleCronFailure('Subscription reminder cron failed', error);
     }
   }
 
@@ -245,15 +256,7 @@ export class SubscriptionReminderScheduler {
         }
       });
     } catch (error) {
-      if (isDatabaseAuthError(error)) {
-        this.databaseAccessDisabled = true;
-        this.logger.warn(
-          'Disabling subscription scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
-        );
-        return;
-      }
-
-      this.logCronError('Lapsed subscription cron failed', error);
+      this.handleCronFailure('Lapsed subscription cron failed', error);
     }
   }
 }

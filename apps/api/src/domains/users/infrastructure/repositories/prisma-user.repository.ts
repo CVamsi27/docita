@@ -13,6 +13,19 @@ import { OnboardingStep, Prisma } from '@workspace/db';
 
 const onboardingStepSchema = z.nativeEnum(OnboardingStep);
 
+// Shared by `getProfile` and `updateProfile` — both project the same
+// `UserProfile` columns (including the raw `verificationData` JSON the
+// preference helpers below decode), so keeping the projection in one place
+// stops the read and write paths from drifting on which fields are exposed.
+const USER_PROFILE_SELECT = {
+  id: true,
+  email: true,
+  name: true,
+  createdAt: true,
+  updatedAt: true,
+  verificationData: true,
+} satisfies Prisma.UserSelect;
+
 function verificationDataRecord(
   value: Prisma.JsonValue | null | undefined,
 ): Record<string, unknown> {
@@ -61,14 +74,7 @@ export class PrismaUserRepository implements IUserRepository {
     return this.prisma.runUnrestricted(async () => {
       const row = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          createdAt: true,
-          updatedAt: true,
-          verificationData: true,
-        },
+        select: USER_PROFILE_SELECT,
       });
       if (!row) return null;
       const prefs = verificationDataRecord(row.verificationData);
@@ -120,14 +126,7 @@ export class PrismaUserRepository implements IUserRepository {
             verificationData: toPrismaInputJsonValue(nextPrefs),
           }),
         },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          createdAt: true,
-          updatedAt: true,
-          verificationData: true,
-        },
+        select: USER_PROFILE_SELECT,
       });
       const prefs =
         parsePrismaJsonColumn(updated.verificationData, jsonObjectSchema) ?? {};

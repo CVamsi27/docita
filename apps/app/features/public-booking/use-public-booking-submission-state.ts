@@ -4,18 +4,10 @@ import { useState } from "react";
 import type { PublicBookingMobileStep } from "@/features/public-booking/public-booking-constants";
 import { usePublicBookingDerivedState } from "@/features/public-booking/use-public-booking-derived-state";
 import { usePublicBookingSubmissionActions } from "@/features/public-booking/use-public-booking-submission-actions";
+import type { PublicBookingFieldParams } from "@/features/public-booking/use-public-booking-readiness-state";
 
-interface UsePublicBookingSubmissionStateParams {
-  siteKey: string | undefined;
-  turnstileToken: string | null;
-  phone: string;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  dpdpConsentAccepted: boolean;
-  requiresOtp: boolean | null;
-  verificationToken: string | null;
-  slotDate: string;
+interface UsePublicBookingSubmissionStateParams
+  extends PublicBookingFieldParams {
   handleSelectSlot: (start: string, end: string) => void;
   handleSelectSlotWithDoctor: (
     start: string,

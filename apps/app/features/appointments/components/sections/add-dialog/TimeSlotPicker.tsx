@@ -26,6 +26,16 @@ import {
 
 type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 
+/**
+ * Normalizes a `startTime`/`endTime` form value into the string shape
+ * `DateTimePicker` expects — both fields can hold either a `Date` (set via
+ * the picker) or an ISO string (set via slot selection), and both fields'
+ * fallback render need the same conversion.
+ */
+function toDateTimePickerValue(value: Date | string | undefined) {
+  return value instanceof Date ? value.toISOString() : value;
+}
+
 interface TimeSlotPickerProps {
   form: UseFormReturn<CreateAppointmentInput>;
   startHour: number;
@@ -191,11 +201,7 @@ export function TimeSlotPicker({
             <FormLabel>Start time</FormLabel>
             <FormControl>
               <DateTimePicker
-                value={
-                  field.value instanceof Date
-                    ? field.value.toISOString()
-                    : field.value
-                }
+                value={toDateTimePickerValue(field.value)}
                 onChange={field.onChange}
                 startHour={startHour}
                 endHour={endHour}
@@ -216,11 +222,7 @@ export function TimeSlotPicker({
             <FormLabel>End time (optional)</FormLabel>
             <FormControl>
               <DateTimePicker
-                value={
-                  field.value instanceof Date
-                    ? field.value.toISOString()
-                    : field.value
-                }
+                value={toDateTimePickerValue(field.value)}
                 onChange={field.onChange}
                 startHour={startHour}
                 endHour={endHour}

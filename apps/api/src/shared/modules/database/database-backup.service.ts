@@ -165,24 +165,53 @@ export class DatabaseBackupService {
     });
   }
 
+  // Shared by `createFullBackup` and `createSchemaBackup` — both name their
+  // output file the same way (a sanitized, timestamped `backup-<kind>-*`
+  // name under `backupDir`), differing only in the kind label and extension,
+  // so the naming step lives in one place rather than the two drifting apart.
+  private buildBackupFilepath(
+    filename: string | undefined,
+    kind: 'full' | 'schema',
+    extension: string,
+  ): { backupFilename: string; filepath: string } {
+    const timestamp = this.clock.now().toISOString().replace(/[:.]/g, '-');
+    const backupFilename = this.sanitizeBackupFilename(
+      filename || `backup-${kind}-${timestamp}.${extension}`,
+    );
+    return {
+      backupFilename,
+      filepath: path.join(this.backupDir, backupFilename),
+    };
+  }
+
+  // Shared by `createFullBackup`, `createSchemaBackup`, and
+  // `restoreFromBackup` — all three invoke a `pg_*` CLI against the same
+  // configured database, so the connection-flag prefix lives in one place
+  // rather than the three commands drifting apart.
+  private buildPgConnectionArgs(): string[] {
+    return [
+      '--host',
+      this.databaseHost,
+      '--port',
+      this.databasePort,
+      '--username',
+      this.databaseUser,
+    ];
+  }
+
   async createFullBackup(
     filename?: string,
   ): Promise<{ success: boolean; filepath: string; size: number }> {
-    const timestamp = this.clock.now().toISOString().replace(/[:.]/g, '-');
-    const backupFilename = this.sanitizeBackupFilename(
-      filename || `backup-full-${timestamp}.dump`,
+    const { backupFilename, filepath } = this.buildBackupFilepath(
+      filename,
+      'full',
+      'dump',
     );
-    const filepath = path.join(this.backupDir, backupFilename);
     const startTime = Date.now();
 
     try {
       await this.runPgCommand('pg_dump', [
-        '--host',
-        this.databaseHost,
-        '--port',
-        this.databasePort,
-        '--username',
-        this.databaseUser,
+        ...this.buildPgConnectionArgs(),
         '--format',
         'custom',
         '--compress',
@@ -212,20 +241,15 @@ export class DatabaseBackupService {
   async createSchemaBackup(
     filename?: string,
   ): Promise<{ success: boolean; filepath: string; size: number }> {
-    const timestamp = this.clock.now().toISOString().replace(/[:.]/g, '-');
-    const backupFilename = this.sanitizeBackupFilename(
-      filename || `backup-schema-${timestamp}.sql`,
+    const { backupFilename, filepath } = this.buildBackupFilepath(
+      filename,
+      'schema',
+      'sql',
     );
-    const filepath = path.join(this.backupDir, backupFilename);
 
     try {
       await this.runPgCommand('pg_dump', [
-        '--host',
-        this.databaseHost,
-        '--port',
-        this.databasePort,
-        '--username',
-        this.databaseUser,
+        ...this.buildPgConnectionArgs(),
         '--schema-only',
         '--file',
         filepath,
@@ -257,12 +281,7 @@ export class DatabaseBackupService {
       this.logger.warn(`Starting database restore from: ${safeBackupFilepath}`);
 
       await this.runPgCommand('pg_restore', [
-        '--host',
-        this.databaseHost,
-        '--port',
-        this.databasePort,
-        '--username',
-        this.databaseUser,
+        ...this.buildPgConnectionArgs(),
         '--dbname',
         this.databaseName,
         '--verbose',

@@ -11,6 +11,25 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   OVERDUE: { bg: '#fee2e2', text: '#991b1b' },
 };
 
+/**
+ * Shared callback shapes threaded through the section renderers below.
+ * Extracted because every renderer needs the same page-break check and
+ * divider draw — keeping a single alias means the contract only needs to
+ * change in one place if `BasePdfService` ever evolves it.
+ */
+type CheckPageBreakFn = (
+  doc: typeof PDFDocument.prototype,
+  y: number,
+  needed: number,
+  ctx: PDFContext,
+) => number;
+
+type DrawDividerFn = (
+  doc: typeof PDFDocument.prototype,
+  y: number,
+  ctx: PDFContext,
+) => void;
+
 export function renderStatusBadge(
   doc: typeof PDFDocument.prototype,
   status: string,
@@ -145,17 +164,8 @@ export function renderItemsTable(
   items: PDFInvoiceItem[],
   context: PDFContext,
   startY: number,
-  checkPageBreak: (
-    doc: typeof PDFDocument.prototype,
-    y: number,
-    needed: number,
-    ctx: PDFContext,
-  ) => number,
-  drawDivider: (
-    doc: typeof PDFDocument.prototype,
-    y: number,
-    ctx: PDFContext,
-  ) => void,
+  checkPageBreak: CheckPageBreakFn,
+  drawDivider: DrawDividerFn,
 ): number {
   const hasCpt = items.some((item) => item.cptCode);
   let currentY = startY;
@@ -228,17 +238,8 @@ export function renderTaxMetadata(
   data: InvoicePdfRenderData,
   context: PDFContext,
   startY: number,
-  checkPageBreak: (
-    doc: typeof PDFDocument.prototype,
-    y: number,
-    needed: number,
-    ctx: PDFContext,
-  ) => number,
-  drawDivider: (
-    doc: typeof PDFDocument.prototype,
-    y: number,
-    ctx: PDFContext,
-  ) => void,
+  checkPageBreak: CheckPageBreakFn,
+  drawDivider: DrawDividerFn,
 ): number {
   const summary = data.taxSummary;
   if (!summary) return startY;
@@ -280,12 +281,7 @@ export function renderTotals(
   items: PDFInvoiceItem[],
   context: PDFContext,
   startY: number,
-  checkPageBreak: (
-    doc: typeof PDFDocument.prototype,
-    y: number,
-    needed: number,
-    ctx: PDFContext,
-  ) => number,
+  checkPageBreak: CheckPageBreakFn,
   taxSummary?: InvoiceTaxSummary,
 ): number {
   const subtotal =
@@ -372,12 +368,7 @@ export async function renderAuthorizedSignature(
   data: InvoicePdfRenderData,
   context: PDFContext,
   startY: number,
-  checkPageBreak: (
-    doc: typeof PDFDocument.prototype,
-    y: number,
-    needed: number,
-    ctx: PDFContext,
-  ) => number,
+  checkPageBreak: CheckPageBreakFn,
   fetchSignatureImage: (url: string) => Promise<Buffer>,
 ): Promise<number> {
   let currentY = checkPageBreak(doc, startY + 10, 95, context);

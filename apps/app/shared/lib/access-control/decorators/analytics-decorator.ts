@@ -54,9 +54,15 @@ declare global {
 export class AnalyticsAccessControlDecorator implements IAccessControlService {
   constructor(private wrapped: IAccessControlService) {}
 
-  async canAccess(context: IAccessContext): Promise<IAccessDecision> {
-    const decision = await this.wrapped.canAccess(context);
-
+  // Shared by `canAccess` and `canAccessSync` — both delegate to the wrapped
+  // service and then track the same way (lock vs. access analytics event
+  // chosen by `decision.granted`) before returning the decision unchanged,
+  // so the tracking step lives in one place rather than the sync/async paths
+  // drifting apart.
+  private trackDecision(
+    context: IAccessContext,
+    decision: IAccessDecision,
+  ): IAccessDecision {
     if (!decision.granted) {
       this.trackFeatureLock(context, decision);
     } else {
@@ -66,16 +72,14 @@ export class AnalyticsAccessControlDecorator implements IAccessControlService {
     return decision;
   }
 
+  async canAccess(context: IAccessContext): Promise<IAccessDecision> {
+    const decision = await this.wrapped.canAccess(context);
+    return this.trackDecision(context, decision);
+  }
+
   canAccessSync(context: IAccessContext): IAccessDecision {
     const decision = this.wrapped.canAccessSync(context);
-
-    if (!decision.granted) {
-      this.trackFeatureLock(context, decision);
-    } else {
-      this.trackFeatureAccess(context, decision);
-    }
-
-    return decision;
+    return this.trackDecision(context, decision);
   }
 
   getReason(context: IAccessContext): string {

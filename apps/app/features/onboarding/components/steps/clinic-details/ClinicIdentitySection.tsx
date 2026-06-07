@@ -36,6 +36,19 @@ export function ClinicIdentitySection({
   facilityLabel,
   shouldUseClinicTypeRadio,
 }: ClinicIdentitySectionProps) {
+  // Shared by the radio-group and select renderings of the clinic-type field
+  // below — both need to parse the raw string value back into the enum and
+  // commit it through the same `setValue` flags.
+  const handleClinicTypeChange = (value: string) => {
+    const parsed = parseStringEnumMember(CLINIC_TYPE_VALUES, value);
+    if (!parsed) return;
+    clinicForm.setValue("type", parsed, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+  };
+
   return (
     <div className="grid grid-cols-1 gap-4 rounded-lg border bg-muted/20 p-4 shadow-sm lg:grid-cols-3">
       <div className="space-y-2">
@@ -112,15 +125,7 @@ export function ClinicIdentitySection({
           <RadioGroup
             id="type"
             value={clinicForm.watch("type") ?? ""}
-            onValueChange={(val) => {
-              const parsed = parseStringEnumMember(CLINIC_TYPE_VALUES, val);
-              if (!parsed) return;
-              clinicForm.setValue("type", parsed, {
-                shouldDirty: true,
-                shouldTouch: true,
-                shouldValidate: true,
-              });
-            }}
+            onValueChange={handleClinicTypeChange}
             className="grid grid-cols-1 gap-2 sm:grid-cols-2"
             aria-invalid={!!clinicForm.formState.errors.type}
             aria-describedby={
@@ -151,15 +156,7 @@ export function ClinicIdentitySection({
           </RadioGroup>
         ) : (
           <Select
-            onValueChange={(val) => {
-              const parsed = parseStringEnumMember(CLINIC_TYPE_VALUES, val);
-              if (!parsed) return;
-              clinicForm.setValue("type", parsed, {
-                shouldDirty: true,
-                shouldTouch: true,
-                shouldValidate: true,
-              });
-            }}
+            onValueChange={handleClinicTypeChange}
             value={clinicForm.watch("type") ?? ""}
           >
             <SelectTrigger

@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import type { InventoryItem } from '@/domains/inventory/core/entities/inventory-item.entity';
+import type { InventoryItem } from '../domains/inventory/core/entities/inventory-item.entity';
 
 export function createMockPatient(
   overrides?: Partial<{

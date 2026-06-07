@@ -165,62 +165,49 @@ export class AuditLoggerService implements IAuditLogger {
   // which supports skip/take filters.
   private static readonly MAX_PAGE_SIZE = 200;
 
-  async getLogsForResource(
-    resourceType: string,
-    resourceId: string,
+  // Shared by `getLogsForResource`, `getLogsForUser`, `getLogsForClinic`, and
+  // `getLogsForAction` — all four are "most recent N rows matching a filter"
+  // reads that page, sort, and parse identically, so only the `where` clause
+  // varies. Keeping the query shape in one place stops the four lookups from
+  // drifting apart (e.g. one forgetting the page cap or the parse step).
+  private async findRecentLogs(
+    where: Prisma.AuditLogWhereInput,
   ): Promise<AuditLogEntry[]> {
     const logs = await this.prisma.auditLog.findMany({
-      where: {
-        entityType: resourceType,
-        entityId: resourceId,
-      },
+      where,
       orderBy: { createdAt: 'desc' },
       take: AuditLoggerService.MAX_PAGE_SIZE,
     });
 
     return this.parseAuditLogs(logs);
+  }
+
+  async getLogsForResource(
+    resourceType: string,
+    resourceId: string,
+  ): Promise<AuditLogEntry[]> {
+    return this.findRecentLogs({
+      entityType: resourceType,
+      entityId: resourceId,
+    });
   }
 
   async getLogsForUser(
     userId: string,
     clinicId: string,
   ): Promise<AuditLogEntry[]> {
-    const logs = await this.prisma.auditLog.findMany({
-      where: {
-        userId,
-        clinicId,
-      },
-      orderBy: { createdAt: 'desc' },
-      take: AuditLoggerService.MAX_PAGE_SIZE,
-    });
-
-    return this.parseAuditLogs(logs);
+    return this.findRecentLogs({ userId, clinicId });
   }
 
   async getLogsForClinic(clinicId: string): Promise<AuditLogEntry[]> {
-    const logs = await this.prisma.auditLog.findMany({
-      where: { clinicId },
-      orderBy: { createdAt: 'desc' },
-      take: AuditLoggerService.MAX_PAGE_SIZE,
-    });
-
-    return this.parseAuditLogs(logs);
+    return this.findRecentLogs({ clinicId });
   }
 
   async getLogsForAction(
     action: AuditAction,
     clinicId: string,
   ): Promise<AuditLogEntry[]> {
-    const logs = await this.prisma.auditLog.findMany({
-      where: {
-        action,
-        clinicId,
-      },
-      orderBy: { createdAt: 'desc' },
-      take: AuditLoggerService.MAX_PAGE_SIZE,
-    });
-
-    return this.parseAuditLogs(logs);
+    return this.findRecentLogs({ action, clinicId });
   }
 
   async deleteOldLogs(olderThanDays: number): Promise<number> {

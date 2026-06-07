@@ -115,7 +115,15 @@ export class InternalSubscriptionAdminService {
     };
   }
 
-  async upgradeTier(clinicId: string, newTier: ClinicTier) {
+  // Shared by `upgradeTier` and `downgradeTier` — both validate the clinic
+  // exists, write the new tier, and report success with a direction-specific
+  // message, so the write-and-report step lives in one place rather than the
+  // two directions drifting apart.
+  private async changeClinicTier(
+    clinicId: string,
+    newTier: ClinicTier,
+    direction: 'upgraded' | 'downgraded',
+  ) {
     await this.findClinicOrThrow(clinicId);
 
     const updatedClinic = await this.prisma.clinic.update({
@@ -126,23 +134,16 @@ export class InternalSubscriptionAdminService {
     return {
       success: true,
       clinic: updatedClinic,
-      message: `Clinic upgraded to ${newTier}`,
+      message: `Clinic ${direction} to ${newTier}`,
     };
   }
 
+  async upgradeTier(clinicId: string, newTier: ClinicTier) {
+    return this.changeClinicTier(clinicId, newTier, 'upgraded');
+  }
+
   async downgradeTier(clinicId: string, newTier: ClinicTier) {
-    await this.findClinicOrThrow(clinicId);
-
-    const updatedClinic = await this.prisma.clinic.update({
-      where: { id: clinicId },
-      data: { tier: newTier },
-    });
-
-    return {
-      success: true,
-      clinic: updatedClinic,
-      message: `Clinic downgraded to ${newTier}`,
-    };
+    return this.changeClinicTier(clinicId, newTier, 'downgraded');
   }
 
   getTierPricingInfo() {

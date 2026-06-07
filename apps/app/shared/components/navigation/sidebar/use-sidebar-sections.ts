@@ -46,29 +46,29 @@ export function useSidebarSections() {
 
   const isAdmin = !!user?.role && CLINIC_ADMIN_ROLES.has(user.role);
 
-  const canAccessNotifications = canAccessTarget(
+  // Shared by `canAccessNotifications` and `canAccessSettings` — both read
+  // checks evaluate the same access context (role, tier, mode, intelligence
+  // add-on) against `APP_ACCESS_MATRIX`, varying only in which target they
+  // check, so the context shape lives in one place rather than the two
+  // checks drifting apart.
+  const checkAppAccess = (target: Parameters<typeof canAccessTarget>[0]) =>
+    canAccessTarget(
+      target,
+      {
+        role: user?.role,
+        canAccessFeature: canAccess,
+        currentTier,
+        currentMode,
+        hasIntelligence,
+      },
+      "read",
+    );
+
+  const canAccessNotifications = checkAppAccess(
     APP_ACCESS_TARGETS.API_STAFF_NOTIFICATIONS,
-    {
-      role: user?.role,
-      canAccessFeature: canAccess,
-      currentTier,
-      currentMode,
-      hasIntelligence,
-    },
-    "read",
   );
 
-  const canAccessSettings = canAccessTarget(
-    APP_ACCESS_TARGETS.PAGE_SETTINGS,
-    {
-      role: user?.role,
-      canAccessFeature: canAccess,
-      currentTier,
-      currentMode,
-      hasIntelligence,
-    },
-    "read",
-  );
+  const canAccessSettings = checkAppAccess(APP_ACCESS_TARGETS.PAGE_SETTINGS);
 
   const canOpenBillingSettings = !!user?.role && canManageBilling(user.role);
 

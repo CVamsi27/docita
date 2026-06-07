@@ -95,10 +95,17 @@ export class PrescriptionsController {
     });
   }
 
-  @Get(':id')
-  @ZodSerializerDto(PrescriptionResponseDto)
-  async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
-    const { clinicId } = getClinicStaffRequestContext(req);
+  /**
+   * Shared by `findOne`, `getPdfStatus`, and `getPdf` — all three load the
+   * prescription and record the same PHI-read audit entry before doing
+   * their endpoint-specific work, so keeping the fetch+audit pairing here
+   * stops the trio's audit reason/action from drifting apart.
+   */
+  private async loadPrescriptionWithPhiAudit(
+    req: RequestWithUser,
+    id: string,
+    clinicId: string,
+  ) {
     const prescription = await this.prescriptionsService.findOne(id, clinicId);
     await logPatientPhiRead(
       this.auditService,
@@ -107,6 +114,13 @@ export class PrescriptionsController {
       'VIEW_HISTORY',
     );
     return prescription;
+  }
+
+  @Get(':id')
+  @ZodSerializerDto(PrescriptionResponseDto)
+  async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.loadPrescriptionWithPhiAudit(req, id, clinicId);
   }
 
   @Post()
@@ -145,13 +159,7 @@ export class PrescriptionsController {
   ) {
     setPrivateNoStoreHeaders(res);
     const { clinicId } = getClinicStaffRequestContext(req);
-    const prescription = await this.prescriptionsService.findOne(id, clinicId);
-    await logPatientPhiRead(
-      this.auditService,
-      req,
-      prescription.patientId,
-      'VIEW_HISTORY',
-    );
+    await this.loadPrescriptionWithPhiAudit(req, id, clinicId);
     return this.pdfJobService.getStatus(jobId, clinicId);
   }
 
@@ -165,13 +173,7 @@ export class PrescriptionsController {
   ) {
     setPrivateNoStoreHeaders(res);
     const { clinicId } = getClinicStaffRequestContext(req);
-    const prescription = await this.prescriptionsService.findOne(id, clinicId);
-    await logPatientPhiRead(
-      this.auditService,
-      req,
-      prescription.patientId,
-      'VIEW_HISTORY',
-    );
+    await this.loadPrescriptionWithPhiAudit(req, id, clinicId);
 
     if (isAsync === 'true') {
       const result = await this.prescriptionsService.generatePdfAsync(

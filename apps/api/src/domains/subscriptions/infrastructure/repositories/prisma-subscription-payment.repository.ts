@@ -5,6 +5,20 @@ import { Prisma } from '@workspace/db';
 import { SubscriptionPaymentTaxCalculator } from './subscription-payment-tax.calculator';
 import { toPrismaJson } from './prisma-subscription.repository.helpers';
 
+/**
+ * Shared shape for the gateway-callback fields that can accompany a payment
+ * status transition — used by both `updatePaymentStatus` /
+ * `updatePaymentStatusById` entry points and the `data` builder they funnel
+ * into, so the optional fields can't drift between the three.
+ */
+type PaymentStatusUpdateDetails = {
+  paymentId?: string;
+  signature?: string;
+  subscriptionId?: string;
+  invoiceUrl?: string;
+  invoiceNumber?: string;
+};
+
 @Injectable()
 export class PrismaSubscriptionPaymentRepository {
   constructor(
@@ -66,41 +80,40 @@ export class PrismaSubscriptionPaymentRepository {
   async updatePaymentStatus(
     orderId: string,
     status: string,
-    details?: {
-      paymentId?: string;
-      signature?: string;
-      subscriptionId?: string;
-      invoiceUrl?: string;
-      invoiceNumber?: string;
-    },
+    details?: PaymentStatusUpdateDetails,
   ): Promise<void> {
-    try {
-      await this.prisma.subscriptionPayment.updateMany({
-        where: { razorpayOrderId: orderId },
-        data: this.buildPaymentStatusUpdate(status, details),
-      });
-    } catch (error) {
-      throw new BadRequestException(
-        `Failed to update payment status: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
+    return this.runPaymentStatusUpdate(
+      { razorpayOrderId: orderId },
+      status,
+      details,
+    );
   }
 
   async updatePaymentStatusById(
     clinicId: string,
     paymentId: string,
     status: string,
-    details?: {
-      paymentId?: string;
-      signature?: string;
-      subscriptionId?: string;
-      invoiceUrl?: string;
-      invoiceNumber?: string;
-    },
+    details?: PaymentStatusUpdateDetails,
+  ): Promise<void> {
+    return this.runPaymentStatusUpdate(
+      { id: paymentId, clinicId },
+      status,
+      details,
+    );
+  }
+
+  /**
+   * Shared `updateMany` + error-wrap for both payment-status entry points —
+   * they only differ in how the target row is located (`where`).
+   */
+  private async runPaymentStatusUpdate(
+    where: Prisma.SubscriptionPaymentWhereInput,
+    status: string,
+    details?: PaymentStatusUpdateDetails,
   ): Promise<void> {
     try {
       await this.prisma.subscriptionPayment.updateMany({
-        where: { id: paymentId, clinicId },
+        where,
         data: this.buildPaymentStatusUpdate(status, details),
       });
     } catch (error) {
@@ -112,13 +125,7 @@ export class PrismaSubscriptionPaymentRepository {
 
   private buildPaymentStatusUpdate(
     status: string,
-    details?: {
-      paymentId?: string;
-      signature?: string;
-      subscriptionId?: string;
-      invoiceUrl?: string;
-      invoiceNumber?: string;
-    },
+    details?: PaymentStatusUpdateDetails,
   ) {
     return {
       status,

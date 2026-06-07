@@ -23,6 +23,17 @@ export interface ClaimReadinessResult {
   };
 }
 
+// Shared by the two early-return branches in `checkClaimReadiness` — an
+// invoice with no linked appointment and a missing linked appointment both
+// report a zeroed-out coding summary, so the all-zero shape lives in one
+// place rather than the two branches drifting apart.
+const ZERO_CLAIM_READINESS_SUMMARY = {
+  diagnoses: 0,
+  procedures: 0,
+  uncodedDiagnoses: 0,
+  uncodedProcedures: 0,
+} as const satisfies ClaimReadinessResult['summary'];
+
 @Injectable()
 export class ClaimValidationService {
   constructor(
@@ -51,12 +62,7 @@ export class ClaimValidationService {
         requiresClinicalCoding: false,
         claimReady: true,
         issues: [],
-        summary: {
-          diagnoses: 0,
-          procedures: 0,
-          uncodedDiagnoses: 0,
-          uncodedProcedures: 0,
-        },
+        summary: ZERO_CLAIM_READINESS_SUMMARY,
       };
     }
 
@@ -71,12 +77,7 @@ export class ClaimValidationService {
         requiresClinicalCoding: true,
         claimReady: false,
         issues: ['Appointment linked to invoice could not be found.'],
-        summary: {
-          diagnoses: 0,
-          procedures: 0,
-          uncodedDiagnoses: 0,
-          uncodedProcedures: 0,
-        },
+        summary: ZERO_CLAIM_READINESS_SUMMARY,
       };
     }
 

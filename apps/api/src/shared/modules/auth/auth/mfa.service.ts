@@ -67,17 +67,10 @@ export class MfaService {
         'No MFA setup in progress. Call /auth/mfa/setup first.',
       );
 
-    const result = await verify({
-      token: totpCode,
-      secret: user.mfaTempSecret,
-      epochTolerance: 1,
-    });
-    if (!result.valid) throw new UnauthorizedException('Invalid TOTP code');
+    await this.verifyTotpOrThrow(user.mfaTempSecret, totpCode);
 
-    const plainBackupCodes = this.generatePlainBackupCodes();
-    const hashedBackupCodes = await Promise.all(
-      plainBackupCodes.map((code) => bcrypt.hash(code, 10)),
-    );
+    const { plainBackupCodes, hashedBackupCodes } =
+      await this.generateHashedBackupCodes();
 
     await this.prisma.user.update({
       where: { id: userId },
@@ -102,12 +95,7 @@ export class MfaService {
     if (!user.mfaEnabled || !user.mfaSecret)
       throw new BadRequestException('MFA is not enabled');
 
-    const result = await verify({
-      token: totpCode,
-      secret: user.mfaSecret,
-      epochTolerance: 1,
-    });
-    if (!result.valid) throw new UnauthorizedException('Invalid TOTP code');
+    await this.verifyTotpOrThrow(user.mfaSecret, totpCode);
 
     await this.prisma.user.update({
       where: { id: userId },
@@ -133,23 +121,46 @@ export class MfaService {
     if (!user || !user.mfaEnabled || !user.mfaSecret)
       throw new BadRequestException('MFA is not enabled');
 
-    const result = await verify({
-      token: totpCode,
-      secret: user.mfaSecret,
-      epochTolerance: 1,
-    });
-    if (!result.valid) throw new UnauthorizedException('Invalid TOTP code');
+    await this.verifyTotpOrThrow(user.mfaSecret, totpCode);
 
-    const plainBackupCodes = this.generatePlainBackupCodes();
-    const hashedBackupCodes = await Promise.all(
-      plainBackupCodes.map((code) => bcrypt.hash(code, 10)),
-    );
+    const { plainBackupCodes, hashedBackupCodes } =
+      await this.generateHashedBackupCodes();
 
     await this.prisma.user.update({
       where: { id: userId },
       data: { mfaBackupCodes: hashedBackupCodes },
     });
     return { backupCodes: plainBackupCodes };
+  }
+
+  /**
+   * Verifies a TOTP code against a stored secret and throws the same
+   * `UnauthorizedException` used by every MFA mutation on failure — keeping
+   * the `epochTolerance` and error copy in one place avoids the three call
+   * sites (enable/disable/regenerate) drifting apart over time.
+   */
+  private async verifyTotpOrThrow(
+    secret: string,
+    totpCode: string,
+  ): Promise<void> {
+    const result = await verify({ token: totpCode, secret, epochTolerance: 1 });
+    if (!result.valid) throw new UnauthorizedException('Invalid TOTP code');
+  }
+
+  /**
+   * Generates a fresh batch of backup codes and their bcrypt hashes —
+   * shared by `enableMfa` and `regenerateBackupCodes`, which both need to
+   * return the plaintext codes once while persisting only the hashes.
+   */
+  private async generateHashedBackupCodes(): Promise<{
+    plainBackupCodes: string[];
+    hashedBackupCodes: string[];
+  }> {
+    const plainBackupCodes = this.generatePlainBackupCodes();
+    const hashedBackupCodes = await Promise.all(
+      plainBackupCodes.map((code) => bcrypt.hash(code, 10)),
+    );
+    return { plainBackupCodes, hashedBackupCodes };
   }
 
   async issueMfaChallenge(userId: string): Promise<string> {

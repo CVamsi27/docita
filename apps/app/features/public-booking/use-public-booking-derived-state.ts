@@ -1,19 +1,12 @@
 "use client";
 
 import { usePublicBookingFieldValidations } from "@/features/public-booking/use-public-booking-field-validations";
-import { usePublicBookingReadinessState } from "@/features/public-booking/use-public-booking-readiness-state";
+import {
+  usePublicBookingReadinessState,
+  type PublicBookingFieldParams,
+} from "@/features/public-booking/use-public-booking-readiness-state";
 
-interface DerivedStateParams {
-  siteKey: string | undefined;
-  turnstileToken: string | null;
-  phone: string;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  dpdpConsentAccepted: boolean;
-  requiresOtp: boolean | null;
-  verificationToken: string | null;
-  slotDate: string;
+interface DerivedStateParams extends PublicBookingFieldParams {
   submitFieldErrors: Record<string, string>;
 }
 

@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-06-07T14:57:54.704Z",
+    "detectionDate": "2026-06-07T19:13:35.336Z",
     "formats": {
       "typescript": {
         "sources": {
@@ -737,14 +737,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/payments/infrastructure/adapters/razorpay/razorpay-subscription.adapter.ts": {
-            "lines": 283,
-            "tokens": 2566,
+            "lines": 282,
+            "tokens": 2454,
             "sources": 1,
-            "clones": 6,
-            "duplicatedLines": 72,
-            "duplicatedTokens": 658,
-            "percentage": 25.44,
-            "percentageTokens": 25.64,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -941,14 +941,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/dashboards/dashboard/infrastructure/persistence/prisma-dashboard.repository.ts": {
-            "lines": 162,
-            "tokens": 1212,
+            "lines": 163,
+            "tokens": 1209,
             "sources": 1,
-            "clones": 8,
-            "duplicatedLines": 81,
-            "duplicatedTokens": 534,
-            "percentage": 50,
-            "percentageTokens": 44.06,
+            "clones": 5,
+            "duplicatedLines": 50,
+            "duplicatedTokens": 350,
+            "percentage": 30.67,
+            "percentageTokens": 28.95,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -1493,14 +1493,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/queue/infrastructure/prisma-queue-job.repository.ts": {
-            "lines": 130,
-            "tokens": 711,
+            "lines": 135,
+            "tokens": 716,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 22,
-            "duplicatedTokens": 140,
-            "percentage": 16.92,
-            "percentageTokens": 19.69,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -1541,14 +1541,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/monitoring/monitoring/monitoring.module.ts": {
-            "lines": 76,
-            "tokens": 577,
+            "lines": 69,
+            "tokens": 552,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 26,
-            "duplicatedTokens": 100,
-            "percentage": 34.21,
-            "percentageTokens": 17.33,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -2141,14 +2141,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/fhir/factories/fhir-condition.factory.ts": {
-            "lines": 205,
-            "tokens": 1554,
+            "lines": 191,
+            "tokens": 1513,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 22,
-            "duplicatedTokens": 110,
-            "percentage": 10.73,
-            "percentageTokens": 7.08,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -2393,14 +2393,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/document-generation/pdf/invoice-pdf-layout.helpers.ts": {
-            "lines": 440,
-            "tokens": 4222,
+            "lines": 431,
+            "tokens": 4093,
             "sources": 1,
-            "clones": 6,
-            "duplicatedLines": 74,
-            "duplicatedTokens": 550,
-            "percentage": 16.82,
-            "percentageTokens": 13.03,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -2849,14 +2849,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/auth/auth/mfa.service.ts": {
-            "lines": 249,
-            "tokens": 2329,
+            "lines": 260,
+            "tokens": 2336,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 44,
-            "duplicatedTokens": 422,
-            "percentage": 17.67,
-            "percentageTokens": 18.12,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -3017,14 +3017,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/auth/auth/auth-session.service.ts": {
-            "lines": 331,
-            "tokens": 2799,
+            "lines": 338,
+            "tokens": 2842,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 22,
-            "duplicatedTokens": 106,
-            "percentage": 6.65,
-            "percentageTokens": 3.79,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -4229,26 +4229,38 @@
             "newClones": 0
           },
           "apps/api/src/domains/users/presentation/controllers/users.controller.ts": {
-            "lines": 90,
-            "tokens": 654,
+            "lines": 67,
+            "tokens": 514,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 22,
-            "duplicatedTokens": 104,
-            "percentage": 24.44,
-            "percentageTokens": 15.9,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/api/src/domains/users/presentation/controllers/users.controller.access.ts": {
+            "lines": 25,
+            "tokens": 136,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/api/src/domains/users/infrastructure/repositories/prisma-user.repository.ts": {
-            "lines": 166,
-            "tokens": 1487,
+            "lines": 165,
+            "tokens": 1465,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 20,
-            "duplicatedTokens": 122,
-            "percentage": 12.05,
-            "percentageTokens": 8.2,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -4373,14 +4385,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/subscriptions/infrastructure/schedulers/subscription-reminder.scheduler.ts": {
-            "lines": 259,
-            "tokens": 2377,
+            "lines": 262,
+            "tokens": 2372,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 26,
-            "duplicatedTokens": 152,
-            "percentage": 10.04,
-            "percentageTokens": 6.39,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -4433,14 +4445,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/subscriptions/infrastructure/repositories/prisma-subscription-payment.repository.ts": {
-            "lines": 244,
-            "tokens": 2142,
+            "lines": 251,
+            "tokens": 2072,
             "sources": 1,
-            "clones": 7,
-            "duplicatedLines": 76,
-            "duplicatedTokens": 592,
-            "percentage": 31.15,
-            "percentageTokens": 27.64,
+            "clones": 1,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 86,
+            "percentage": 3.98,
+            "percentageTokens": 4.15,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -5057,14 +5069,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/subscriptions/application/ports/subscription.repository.port.ts": {
-            "lines": 154,
-            "tokens": 1206,
+            "lines": 153,
+            "tokens": 1180,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 42,
-            "duplicatedTokens": 316,
-            "percentage": 27.27,
-            "percentageTokens": 26.2,
+            "clones": 2,
+            "duplicatedLines": 20,
+            "duplicatedTokens": 154,
+            "percentage": 13.07,
+            "percentageTokens": 13.05,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -5201,14 +5213,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/reminders/application/services/reminder-scheduler.service.ts": {
-            "lines": 335,
-            "tokens": 2688,
+            "lines": 360,
+            "tokens": 2782,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 20,
-            "duplicatedTokens": 134,
-            "percentage": 5.97,
-            "percentageTokens": 4.99,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -5228,11 +5240,11 @@
             "lines": 97,
             "tokens": 790,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 23,
-            "duplicatedTokens": 151,
-            "percentage": 23.71,
-            "percentageTokens": 19.11,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -5381,14 +5393,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/prescriptions/presentation/controllers/prescription.controller.ts": {
-            "lines": 197,
-            "tokens": 1573,
+            "lines": 199,
+            "tokens": 1561,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 50,
-            "duplicatedTokens": 306,
-            "percentage": 25.38,
-            "percentageTokens": 19.45,
+            "clones": 2,
+            "duplicatedLines": 26,
+            "duplicatedTokens": 128,
+            "percentage": 13.07,
+            "percentageTokens": 8.2,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -5405,14 +5417,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/prescriptions/infrastructure/repositories/prescription.repository.ts": {
-            "lines": 290,
-            "tokens": 2240,
+            "lines": 289,
+            "tokens": 2223,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 24,
-            "duplicatedTokens": 130,
-            "percentage": 8.28,
-            "percentageTokens": 5.8,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -5849,14 +5861,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/patients/infrastructure/mappers/patient.mapper.ts": {
-            "lines": 116,
-            "tokens": 1093,
+            "lines": 123,
+            "tokens": 1045,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 24,
-            "duplicatedTokens": 226,
-            "percentage": 20.69,
-            "percentageTokens": 20.68,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -6017,14 +6029,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/patients/application/services/patientMetrics.service.ts": {
-            "lines": 194,
-            "tokens": 1283,
+            "lines": 202,
+            "tokens": 1303,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 22,
-            "duplicatedTokens": 156,
-            "percentage": 11.34,
-            "percentageTokens": 12.16,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -6089,14 +6101,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/patients/application/services/patient-tags.service.ts": {
-            "lines": 93,
-            "tokens": 768,
+            "lines": 101,
+            "tokens": 749,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 22,
-            "duplicatedTokens": 202,
-            "percentage": 23.66,
-            "percentageTokens": 26.3,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -6329,26 +6341,26 @@
             "newClones": 0
           },
           "apps/api/src/domains/patient-portal/presentation/controllers/patient-portal-clinical.controller.ts": {
-            "lines": 200,
-            "tokens": 1703,
+            "lines": 195,
+            "tokens": 1677,
             "sources": 1,
-            "clones": 5,
-            "duplicatedLines": 58,
-            "duplicatedTokens": 447,
-            "percentage": 29,
-            "percentageTokens": 26.25,
+            "clones": 3,
+            "duplicatedLines": 36,
+            "duplicatedTokens": 297,
+            "percentage": 18.46,
+            "percentageTokens": 17.71,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/api/src/domains/patient-portal/presentation/controllers/patient-portal-auth.controller.ts": {
             "lines": 108,
-            "tokens": 883,
+            "tokens": 875,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 20,
-            "duplicatedTokens": 102,
-            "percentage": 18.52,
-            "percentageTokens": 11.55,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -7109,14 +7121,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/enterprise-contracts/presentation/controllers/internal-enterprise-contracts.controller.ts": {
-            "lines": 255,
-            "tokens": 2172,
+            "lines": 260,
+            "tokens": 2136,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 40,
-            "duplicatedTokens": 312,
-            "percentage": 15.69,
-            "percentageTokens": 14.36,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -7181,26 +7193,26 @@
             "newClones": 0
           },
           "apps/api/src/domains/enterprise-contracts/application/services/enterprise-contracts-command.service.ts": {
-            "lines": 300,
-            "tokens": 2857,
+            "lines": 326,
+            "tokens": 2892,
             "sources": 1,
-            "clones": 5,
-            "duplicatedLines": 57,
-            "duplicatedTokens": 459,
-            "percentage": 19,
-            "percentageTokens": 16.07,
+            "clones": 2,
+            "duplicatedLines": 31,
+            "duplicatedTokens": 160,
+            "percentage": 9.51,
+            "percentageTokens": 5.53,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/api/src/domains/enterprise-contracts/application/services/enterprise-contract-invoice-command.service.ts": {
-            "lines": 375,
-            "tokens": 3429,
+            "lines": 397,
+            "tokens": 3475,
             "sources": 1,
-            "clones": 5,
-            "duplicatedLines": 53,
-            "duplicatedTokens": 455,
-            "percentage": 14.13,
-            "percentageTokens": 13.27,
+            "clones": 2,
+            "duplicatedLines": 31,
+            "duplicatedTokens": 160,
+            "percentage": 7.81,
+            "percentageTokens": 4.6,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -7901,14 +7913,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/doctor-clinics/infrastructure/repositories/prisma-doctor-clinics.repository.ts": {
-            "lines": 136,
-            "tokens": 964,
+            "lines": 137,
+            "tokens": 967,
             "sources": 1,
-            "clones": 3,
-            "duplicatedLines": 35,
-            "duplicatedTokens": 190,
-            "percentage": 25.74,
-            "percentageTokens": 19.71,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -8141,14 +8153,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/clinics/infrastructure/repositories/prisma-join-request.repository.ts": {
-            "lines": 203,
-            "tokens": 1845,
+            "lines": 210,
+            "tokens": 1860,
             "sources": 1,
-            "clones": 3,
-            "duplicatedLines": 30,
-            "duplicatedTokens": 204,
-            "percentage": 14.78,
-            "percentageTokens": 11.06,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -8561,14 +8573,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/clinical/infrastructure/persistence/prisma-medical-coding.repository.ts": {
-            "lines": 320,
-            "tokens": 3136,
+            "lines": 333,
+            "tokens": 3096,
             "sources": 1,
-            "clones": 6,
-            "duplicatedLines": 70,
-            "duplicatedTokens": 552,
-            "percentage": 21.88,
-            "percentageTokens": 17.6,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -9137,14 +9149,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/billing/core/services/claim-validation.service.ts": {
-            "lines": 132,
-            "tokens": 949,
+            "lines": 133,
+            "tokens": 946,
             "sources": 1,
-            "clones": 3,
-            "duplicatedLines": 34,
-            "duplicatedTokens": 189,
-            "percentage": 25.76,
-            "percentageTokens": 19.92,
+            "clones": 1,
+            "duplicatedLines": 14,
+            "duplicatedTokens": 85,
+            "percentage": 10.53,
+            "percentageTokens": 8.99,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -9773,14 +9785,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/appointments/infrastructure/repositories/prisma-follow-up.repository.ts": {
-            "lines": 114,
-            "tokens": 1051,
+            "lines": 100,
+            "tokens": 918,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 48,
-            "duplicatedTokens": 361,
-            "percentage": 42.11,
-            "percentageTokens": 34.35,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -9801,10 +9813,10 @@
             "tokens": 1677,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 11,
-            "duplicatedTokens": 72,
-            "percentage": 5.14,
-            "percentageTokens": 4.29,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 70,
+            "percentage": 4.67,
+            "percentageTokens": 4.17,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -9836,11 +9848,11 @@
             "lines": 323,
             "tokens": 2772,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 10,
-            "duplicatedTokens": 56,
-            "percentage": 3.1,
-            "percentageTokens": 2.02,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -10349,14 +10361,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/appointments/application/services/appointment-query.service.ts": {
-            "lines": 196,
-            "tokens": 1464,
+            "lines": 202,
+            "tokens": 1510,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 44,
-            "duplicatedTokens": 255,
-            "percentage": 22.45,
-            "percentageTokens": 17.42,
+            "clones": 2,
+            "duplicatedLines": 24,
+            "duplicatedTokens": 147,
+            "percentage": 11.88,
+            "percentageTokens": 9.74,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -10589,14 +10601,14 @@
             "newClones": 0
           },
           "apps/api/src/domains/analytics/core/factories/operational-analytics.factory.ts": {
-            "lines": 261,
-            "tokens": 2443,
+            "lines": 267,
+            "tokens": 2481,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 22,
-            "duplicatedTokens": 112,
-            "percentage": 8.43,
-            "percentageTokens": 4.58,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -10745,26 +10757,26 @@
             "newClones": 0
           },
           "apps/app/shared/lib/access-control/decorators/analytics-decorator.ts": {
-            "lines": 135,
-            "tokens": 964,
+            "lines": 139,
+            "tokens": 984,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 22,
-            "duplicatedTokens": 128,
-            "percentage": 16.3,
-            "percentageTokens": 13.28,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/app/shared/components/navigation/sidebar/use-sidebar-sections.ts": {
             "lines": 210,
-            "tokens": 1585,
+            "tokens": 1592,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 22,
-            "duplicatedTokens": 100,
-            "percentage": 10.48,
-            "percentageTokens": 6.31,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -11945,14 +11957,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/services/observability.service.ts": {
-            "lines": 417,
-            "tokens": 3639,
+            "lines": 421,
+            "tokens": 3641,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 22,
-            "duplicatedTokens": 244,
-            "percentage": 5.28,
-            "percentageTokens": 6.71,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -12425,14 +12437,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/public/public-patient-documents.service.ts": {
-            "lines": 251,
-            "tokens": 1948,
+            "lines": 269,
+            "tokens": 1998,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 22,
-            "duplicatedTokens": 132,
-            "percentage": 8.76,
-            "percentageTokens": 6.78,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -12656,23 +12668,23 @@
             "lines": 159,
             "tokens": 1321,
             "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 11,
+            "duplicatedTokens": 98,
+            "percentage": 6.92,
+            "percentageTokens": 7.42,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/api/src/shared/modules/internal/internal-subscription-admin.service.ts": {
+            "lines": 179,
+            "tokens": 1430,
+            "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
             "duplicatedTokens": 0,
             "percentage": 0,
             "percentageTokens": 0,
-            "newDuplicatedLines": 0,
-            "newClones": 0
-          },
-          "apps/api/src/shared/modules/internal/internal-subscription-admin.service.ts": {
-            "lines": 178,
-            "tokens": 1437,
-            "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 22,
-            "duplicatedTokens": 206,
-            "percentage": 12.36,
-            "percentageTokens": 14.34,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -12785,14 +12797,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/internal/internal-billing-metrics.service.ts": {
-            "lines": 177,
-            "tokens": 1646,
+            "lines": 172,
+            "tokens": 1574,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 28,
-            "duplicatedTokens": 238,
-            "percentage": 15.82,
-            "percentageTokens": 14.46,
+            "clones": 1,
+            "duplicatedLines": 11,
+            "duplicatedTokens": 98,
+            "percentage": 6.4,
+            "percentageTokens": 6.23,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -13386,13 +13398,13 @@
           },
           "apps/api/src/shared/modules/fhir/fhir.service.ts": {
             "lines": 381,
-            "tokens": 3080,
+            "tokens": 3108,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 20,
-            "duplicatedTokens": 148,
-            "percentage": 5.25,
-            "percentageTokens": 4.81,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -13577,14 +13589,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/database/database-backup.service.ts": {
-            "lines": 376,
-            "tokens": 3492,
+            "lines": 395,
+            "tokens": 3582,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 20,
-            "duplicatedTokens": 104,
-            "percentage": 5.32,
-            "percentageTokens": 2.98,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -13973,14 +13985,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/audit/audit-logger.service.ts": {
-            "lines": 279,
-            "tokens": 2242,
+            "lines": 266,
+            "tokens": 2126,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 20,
-            "duplicatedTokens": 114,
-            "percentage": 7.17,
-            "percentageTokens": 5.08,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -14837,14 +14849,14 @@
             "newClones": 0
           },
           "apps/api/src/shared/common/events/event.service.ts": {
-            "lines": 117,
-            "tokens": 1020,
+            "lines": 141,
+            "tokens": 1167,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 24,
-            "duplicatedTokens": 198,
-            "percentage": 20.51,
-            "percentageTokens": 19.41,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -16169,14 +16181,14 @@
             "newClones": 0
           },
           "apps/app/shared/lib/auth/use-auth-session-bootstrap.ts": {
-            "lines": 222,
-            "tokens": 1603,
+            "lines": 228,
+            "tokens": 1657,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 22,
-            "duplicatedTokens": 108,
-            "percentage": 9.91,
-            "percentageTokens": 6.74,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -16517,14 +16529,14 @@
             "newClones": 0
           },
           "apps/app/shared/lib/api/api-config.ts": {
-            "lines": 54,
-            "tokens": 224,
+            "lines": 32,
+            "tokens": 136,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 32,
-            "duplicatedTokens": 124,
-            "percentage": 59.26,
-            "percentageTokens": 55.36,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -16637,14 +16649,14 @@
             "newClones": 0
           },
           "apps/app/shared/lib/access-control/repository.ts": {
-            "lines": 201,
-            "tokens": 1730,
+            "lines": 207,
+            "tokens": 1753,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 22,
-            "duplicatedTokens": 180,
-            "percentage": 10.95,
-            "percentageTokens": 10.4,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -21605,14 +21617,14 @@
             "newClones": 0
           },
           "packages/types/src/whatsapp/default-templates.data.ts": {
-            "lines": 461,
-            "tokens": 2603,
+            "lines": 473,
+            "tokens": 2607,
             "sources": 1,
-            "clones": 8,
-            "duplicatedLines": 92,
-            "duplicatedTokens": 676,
-            "percentage": 19.96,
-            "percentageTokens": 25.97,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -22421,14 +22433,14 @@
             "newClones": 0
           },
           "packages/types/src/contracts/patients.ts": {
-            "lines": 174,
-            "tokens": 2052,
+            "lines": 179,
+            "tokens": 1864,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 56,
-            "duplicatedTokens": 742,
-            "percentage": 32.18,
-            "percentageTokens": 36.16,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -23633,14 +23645,14 @@
             "newClones": 0
           },
           "packages/data-access/src/hooks/use-public-booking.ts": {
-            "lines": 161,
-            "tokens": 1329,
+            "lines": 157,
+            "tokens": 1224,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 44,
-            "duplicatedTokens": 232,
-            "percentage": 27.33,
-            "percentageTokens": 17.46,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -24977,14 +24989,14 @@
             "newClones": 0
           },
           "apps/app/shared/hooks/use-patient-data.ts": {
-            "lines": 179,
-            "tokens": 1565,
+            "lines": 172,
+            "tokens": 1517,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 20,
-            "duplicatedTokens": 114,
-            "percentage": 11.17,
-            "percentageTokens": 7.28,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -25013,14 +25025,14 @@
             "newClones": 0
           },
           "apps/app/shared/hooks/use-feature-access.ts": {
-            "lines": 132,
-            "tokens": 1002,
+            "lines": 118,
+            "tokens": 914,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 20,
-            "duplicatedTokens": 152,
-            "percentage": 15.15,
-            "percentageTokens": 15.17,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -25181,14 +25193,14 @@
             "newClones": 0
           },
           "apps/app/features/public-booking/use-public-booking-submission-state.ts": {
-            "lines": 73,
-            "tokens": 529,
+            "lines": 65,
+            "tokens": 463,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 22,
-            "duplicatedTokens": 179,
-            "percentage": 30.14,
-            "percentageTokens": 33.84,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -25217,14 +25229,14 @@
             "newClones": 0
           },
           "apps/app/features/public-booking/use-public-booking-readiness-state.ts": {
-            "lines": 52,
-            "tokens": 387,
+            "lines": 62,
+            "tokens": 395,
             "sources": 1,
-            "clones": 3,
-            "duplicatedLines": 31,
-            "duplicatedTokens": 231,
-            "percentage": 59.62,
-            "percentageTokens": 59.69,
+            "clones": 2,
+            "duplicatedLines": 20,
+            "duplicatedTokens": 142,
+            "percentage": 32.26,
+            "percentageTokens": 35.95,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -25289,14 +25301,14 @@
             "newClones": 0
           },
           "apps/app/features/public-booking/use-public-booking-derived-state.ts": {
-            "lines": 25,
-            "tokens": 198,
+            "lines": 18,
+            "tokens": 124,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 11,
-            "duplicatedTokens": 90,
-            "percentage": 44,
-            "percentageTokens": 45.45,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -26862,14 +26874,14 @@
           }
         },
         "total": {
-          "lines": 205195,
-          "tokens": 1698889,
-          "sources": 2238,
-          "clones": 258,
-          "duplicatedLines": 3095,
-          "duplicatedTokens": 23471,
-          "percentage": 1.51,
-          "percentageTokens": 1.38,
+          "lines": 205344,
+          "tokens": 1698043,
+          "sources": 2239,
+          "clones": 188,
+          "duplicatedLines": 2312,
+          "duplicatedTokens": 17750,
+          "percentage": 1.13,
+          "percentageTokens": 1.05,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -27321,8 +27333,8 @@
             "newClones": 0
           },
           "apps/app/features/onboarding/components/steps/clinic-details/ClinicIdentitySection.tsx": {
-            "lines": 93,
-            "tokens": 738,
+            "lines": 77,
+            "tokens": 571,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -27441,14 +27453,14 @@
             "newClones": 0
           },
           "apps/app/features/appointments/components/sections/add-dialog/TimeSlotPicker.tsx": {
-            "lines": 84,
-            "tokens": 504,
+            "lines": 76,
+            "tokens": 476,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 22,
-            "duplicatedTokens": 112,
-            "percentage": 26.19,
-            "percentageTokens": 22.22,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -28931,6 +28943,18 @@
           "apps/app/features/patients/components/timeline/UnifiedTimelineContainer.tsx": {
             "lines": 22,
             "tokens": 151,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/features/patients/components/profile/PatientStatsCardsUI.tsx": {
+            "lines": 86,
+            "tokens": 535,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -30585,14 +30609,14 @@
             "newClones": 0
           },
           "apps/app/features/insurance-claims/components/forms/InsuranceClaimEditUI.tsx": {
-            "lines": 123,
-            "tokens": 768,
+            "lines": 128,
+            "tokens": 773,
             "sources": 1,
-            "clones": 6,
-            "duplicatedLines": 78,
-            "duplicatedTokens": 452,
-            "percentage": 63.41,
-            "percentageTokens": 58.85,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -34173,8 +34197,8 @@
             "newClones": 0
           },
           "apps/app/shared/components/auth/feature-gate.tsx": {
-            "lines": 35,
-            "tokens": 303,
+            "lines": 29,
+            "tokens": 261,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -38049,14 +38073,14 @@
             "newClones": 0
           },
           "scripts/monitoring/synthetic/run-probes.mjs": {
-            "lines": 522,
-            "tokens": 4276,
+            "lines": 507,
+            "tokens": 4027,
             "sources": 1,
-            "clones": 6,
-            "duplicatedLines": 62,
-            "duplicatedTokens": 490,
-            "percentage": 11.88,
-            "percentageTokens": 11.46,
+            "clones": 2,
+            "duplicatedLines": 20,
+            "duplicatedTokens": 180,
+            "percentage": 3.94,
+            "percentageTokens": 4.47,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -38926,14 +38950,14 @@
           }
         },
         "total": {
-          "lines": 55727,
-          "tokens": 408045,
-          "sources": 1004,
-          "clones": 18,
-          "duplicatedLines": 237,
-          "duplicatedTokens": 1602,
-          "percentage": 0.43,
-          "percentageTokens": 0.39,
+          "lines": 55773,
+          "tokens": 408099,
+          "sources": 1005,
+          "clones": 12,
+          "duplicatedLines": 166,
+          "duplicatedTokens": 1165,
+          "percentage": 0.3,
+          "percentageTokens": 0.29,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -39385,14 +39409,14 @@
             "newClones": 0
           },
           "apps/app/features/onboarding/components/steps/clinic-details/ClinicIdentitySection.tsx": {
-            "lines": 192,
-            "tokens": 1541,
+            "lines": 189,
+            "tokens": 1472,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 20,
-            "duplicatedTokens": 168,
-            "percentage": 10.42,
-            "percentageTokens": 10.9,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -39553,14 +39577,14 @@
             "newClones": 0
           },
           "apps/app/features/appointments/components/sections/add-dialog/TimeSlotPicker.tsx": {
-            "lines": 236,
-            "tokens": 1565,
+            "lines": 238,
+            "tokens": 1584,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 15,
             "duplicatedTokens": 68,
-            "percentage": 6.36,
-            "percentageTokens": 4.35,
+            "percentage": 6.3,
+            "percentageTokens": 4.29,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -41113,14 +41137,14 @@
             "newClones": 0
           },
           "apps/app/features/patients/components/profile/PatientStatsCardsUI.tsx": {
-            "lines": 115,
-            "tokens": 898,
+            "lines": 133,
+            "tokens": 774,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 40,
-            "duplicatedTokens": 272,
-            "percentage": 34.78,
-            "percentageTokens": 30.29,
+            "clones": 1,
+            "duplicatedLines": 12,
+            "duplicatedTokens": 74,
+            "percentage": 9.02,
+            "percentageTokens": 9.56,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -42889,8 +42913,8 @@
             "newClones": 0
           },
           "apps/app/features/insurance-claims/components/forms/InsuranceClaimEditUI.tsx": {
-            "lines": 185,
-            "tokens": 1169,
+            "lines": 189,
+            "tokens": 1158,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -45412,11 +45436,11 @@
             "lines": 206,
             "tokens": 1331,
             "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
+            "clones": 1,
+            "duplicatedLines": 12,
+            "duplicatedTokens": 74,
+            "percentage": 5.83,
+            "percentageTokens": 5.56,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -46792,23 +46816,23 @@
             "lines": 131,
             "tokens": 955,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 21,
-            "duplicatedTokens": 140,
-            "percentage": 16.03,
-            "percentageTokens": 14.66,
+            "clones": 1,
+            "duplicatedLines": 11,
+            "duplicatedTokens": 81,
+            "percentage": 8.4,
+            "percentageTokens": 8.48,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/app/shared/components/auth/feature-gate.tsx": {
-            "lines": 113,
-            "tokens": 829,
+            "lines": 134,
+            "tokens": 918,
             "sources": 1,
-            "clones": 3,
-            "duplicatedLines": 32,
-            "duplicatedTokens": 201,
-            "percentage": 28.32,
-            "percentageTokens": 24.25,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -51314,14 +51338,14 @@
           }
         },
         "total": {
-          "lines": 116890,
-          "tokens": 860289,
+          "lines": 116932,
+          "tokens": 860193,
           "sources": 1031,
-          "clones": 204,
-          "duplicatedLines": 2461,
-          "duplicatedTokens": 15392,
-          "percentage": 2.11,
-          "percentageTokens": 1.79,
+          "clones": 200,
+          "duplicatedLines": 2422,
+          "duplicatedTokens": 15116,
+          "percentage": 2.07,
+          "percentageTokens": 1.76,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -51552,14 +51576,14 @@
       }
     },
     "total": {
-      "lines": 379168,
-      "tokens": 2976654,
-      "sources": 4289,
-      "clones": 480,
-      "duplicatedLines": 5793,
-      "duplicatedTokens": 40465,
-      "percentage": 1.53,
-      "percentageTokens": 1.36,
+      "lines": 379405,
+      "tokens": 2975766,
+      "sources": 4291,
+      "clones": 400,
+      "duplicatedLines": 4900,
+      "duplicatedTokens": 34031,
+      "percentage": 1.29,
+      "percentageTokens": 1.14,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -51782,150 +51806,6 @@
       }
     },
     {
-      "format": "typescript",
-      "lines": 11,
-      "fragment": "),\n      );\n\n      return {\n        id: customer.id,\n        name: customer.name || '',\n        email: customer.email || '',\n        phone: customer.contact ? String(customer.contact) : undefined,\n        metadata: readRazorpayStringNotes(customer.notes),\n      };\n    } catch {",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/payments/infrastructure/adapters/razorpay/razorpay-subscription.adapter.ts",
-        "start": 90,
-        "end": 100,
-        "startLoc": {
-          "line": 90,
-          "column": 44,
-          "position": 813
-        },
-        "endLoc": {
-          "line": 100,
-          "column": 14,
-          "position": 904
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/payments/infrastructure/adapters/razorpay/razorpay-subscription.adapter.ts",
-        "start": 68,
-        "end": 78,
-        "startLoc": {
-          "line": 68,
-          "column": 10,
-          "position": 611
-        },
-        "endLoc": {
-          "line": 78,
-          "column": 14,
-          "position": 702
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 13,
-      "fragment": ",\n        }),\n      );\n\n      return {\n        id: customer.id,\n        name: customer.name || '',\n        email: customer.email || '',\n        phone: customer.contact ? String(customer.contact) : undefined,\n        metadata: readRazorpayStringNotes(customer.notes),\n      };\n    } catch (error) {\n      this.logger.error(`Failed to update customer ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/payments/infrastructure/adapters/razorpay/razorpay-subscription.adapter.ts",
-        "start": 117,
-        "end": 129,
-        "startLoc": {
-          "line": 117,
-          "column": 57,
-          "position": 1103
-        },
-        "endLoc": {
-          "line": 129,
-          "column": 52,
-          "position": 1211
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/payments/infrastructure/adapters/razorpay/razorpay-subscription.adapter.ts",
-        "start": 67,
-        "end": 79,
-        "startLoc": {
-          "line": 67,
-          "column": 40,
-          "position": 607
-        },
-        "endLoc": {
-          "line": 79,
-          "column": 52,
-          "position": 715
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 15,
-      "fragment": "),\n        ),\n      );\n\n      return {\n        id: subscription.id,\n        customerId: subscription.customer_id || '',\n        planId: subscription.plan_id,\n        status: subscription.status,\n        currentPeriodStart: new Date((subscription.current_start || 0) * 1000),\n        currentPeriodEnd: new Date((subscription.current_end || 0) * 1000),\n        cancelAtPeriodEnd: false,\n        metadata: subscription.notes,\n      };\n    } catch {",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/payments/infrastructure/adapters/razorpay/razorpay-subscription.adapter.ts",
-        "start": 213,
-        "end": 227,
-        "startLoc": {
-          "line": 213,
-          "column": 54,
-          "position": 2022
-        },
-        "endLoc": {
-          "line": 227,
-          "column": 14,
-          "position": 2152
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/payments/infrastructure/adapters/razorpay/razorpay-subscription.adapter.ts",
-        "start": 186,
-        "end": 200,
-        "startLoc": {
-          "line": 186,
-          "column": 51,
-          "position": 1775
-        },
-        "endLoc": {
-          "line": 200,
-          "column": 14,
-          "position": 1905
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
-      "fragment": ": true,\n  patient: {\n    select: {\n      id: true,\n      firstName: true,\n      lastName: true,\n    },\n  },\n} satisfies Prisma.AppointmentSelect;\n\n@",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/dashboards/dashboard/infrastructure/persistence/prisma-dashboard.repository.ts",
-        "start": 35,
-        "end": 45,
-        "startLoc": {
-          "line": 35,
-          "column": 7,
-          "position": 226
-        },
-        "endLoc": {
-          "line": 45,
-          "column": 2,
-          "position": 282
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/dashboards/dashboard/infrastructure/persistence/prisma-dashboard.repository.ts",
-        "start": 20,
-        "end": 30,
-        "startLoc": {
-          "line": 20,
-          "column": 12,
-          "position": 132
-        },
-        "endLoc": {
-          "line": 30,
-          "column": 6,
-          "position": 188
-        }
-      }
-    },
-    {
       "format": "tsx",
       "lines": 12,
       "fragment": "\nimport { formatDate } from \"@workspace/utils\";\nimport {\n  Card,\n  CardContent,\n  CardHeader,\n  CardTitle,\n} from \"@workspace/ui/components/indicators/card\";\nimport { Badge } from \"@workspace/ui/components/indicators/badge\";\nimport { Button } from \"@workspace/ui/components/form/button\";\nimport { DataState } from \"@workspace/ui/components/data-display/data-state\";\nimport { ",
@@ -52071,42 +51951,6 @@
     },
     {
       "format": "tsx",
-      "lines": 11,
-      "fragment": "\n            onValueChange={(val) => {\n              const parsed = parseStringEnumMember(CLINIC_TYPE_VALUES, val);\n              if (!parsed) return;\n              clinicForm.setValue(\"type\", parsed, {\n                shouldDirty: true,\n                shouldTouch: true,\n                shouldValidate: true,\n              });\n            }}\n            value",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/features/onboarding/components/steps/clinic-details/ClinicIdentitySection.tsx",
-        "start": 153,
-        "end": 163,
-        "startLoc": {
-          "line": 153,
-          "column": 18,
-          "position": 1233
-        },
-        "endLoc": {
-          "line": 163,
-          "column": 18,
-          "position": 1317
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/features/onboarding/components/steps/clinic-details/ClinicIdentitySection.tsx",
-        "start": 114,
-        "end": 124,
-        "startLoc": {
-          "line": 114,
-          "column": 51,
-          "position": 955
-        },
-        "endLoc": {
-          "line": 124,
-          "column": 22,
-          "position": 1039
-        }
-      }
-    },
-    {
-      "format": "tsx",
       "lines": 15,
       "fragment": ";\nimport {\n  Popover,\n  PopoverContent,\n  PopoverTrigger,\n} from \"@workspace/ui/components/overlay/popover\";\nimport {\n  Select,\n  SelectContent,\n  SelectItem,\n  SelectTrigger,\n  SelectValue,\n} from \"@workspace/ui/components/form/select\";\nimport {\n",
       "tokens": 0,
@@ -52138,42 +51982,6 @@
           "line": 17,
           "column": 10,
           "position": 87
-        }
-      }
-    },
-    {
-      "format": "javascript",
-      "lines": 12,
-      "fragment": "</FormLabel>\n            <FormControl>\n              <DateTimePicker\n                value={\n                  field.value instanceof Date\n                    ? field.value.toISOString()\n                    : field.value\n                }\n                onChange={field.onChange}\n                startHour={startHour}\n                endHour={endHour}\n                disabled",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/features/appointments/components/sections/add-dialog/TimeSlotPicker.tsx",
-        "start": 216,
-        "end": 227,
-        "startLoc": {
-          "line": 216,
-          "column": 43,
-          "position": 1473
-        },
-        "endLoc": {
-          "line": 227,
-          "column": 25,
-          "position": 1529
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/features/appointments/components/sections/add-dialog/TimeSlotPicker.tsx",
-        "start": 191,
-        "end": 202,
-        "startLoc": {
-          "line": 191,
-          "column": 34,
-          "position": 1334
-        },
-        "endLoc": {
-          "line": 202,
-          "column": 24,
-          "position": 1390
         }
       }
     },
@@ -52323,42 +52131,6 @@
     },
     {
       "format": "typescript",
-      "lines": 12,
-      "fragment": ": Date,\n  ): Promise<Array<{ id: string }>> {\n    return (\n      // RLS-BYPASS: background queue workers run without per-request clinic session\n      (await this.prisma.runUnrestricted(\n        async () =>\n          this.prisma.$queryRaw<Array<{ id: string }>>`\n            UPDATE \"QueueJob\"\n            SET status = 'FAILED',\n                \"failedReason\" = 'Recovered stale ACTIVE job after timeout',\n                \"updatedAt\" = NOW()\n            WHERE name = ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/queue/infrastructure/prisma-queue-job.repository.ts",
-        "start": 84,
-        "end": 95,
-        "startLoc": {
-          "line": 84,
-          "column": 16,
-          "position": 423
-        },
-        "endLoc": {
-          "line": 95,
-          "column": 26,
-          "position": 493
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/queue/infrastructure/prisma-queue-job.repository.ts",
-        "start": 59,
-        "end": 70,
-        "startLoc": {
-          "line": 59,
-          "column": 17,
-          "position": 305
-        },
-        "endLoc": {
-          "line": 70,
-          "column": 34,
-          "position": 375
-        }
-      }
-    },
-    {
-      "format": "typescript",
       "lines": 17,
       "fragment": ";\n  }\n\n  async getRequestStats(\n    startDate?: Date,\n    endDate?: Date,\n    clinicId?: string,\n  ): Promise<{\n    totalRequests: number;\n    successfulRequests: number;\n    failedRequests: number;\n    avgResponseTime: number;\n    requestsByPath: { path: string; count: number; avgDuration: number }[];\n    requestsByStatus: { statusCode: number; count: number }[];\n    requestsByHour: { hour: number; count: number }[];\n  }> {\n    return",
       "tokens": 0,
@@ -52462,42 +52234,6 @@
           "line": 62,
           "column": 10,
           "position": 515
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 14,
-      "fragment": ",\n    HealthService,\n    PrismaHealthIndicator,\n    RequestLogService,\n    ErrorTrackingService,\n    MetricsPersistenceService,\n    MetricsRecordingService,\n    WebVitalsMetricsService,\n    MetricsQueryService,\n    MetricsAggregationService,\n    MetricsService,\n    HealthCheckService,\n    OpsAlertService,\n  ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/monitoring/monitoring/monitoring.module.ts",
-        "start": 61,
-        "end": 74,
-        "startLoc": {
-          "line": 61,
-          "column": 22,
-          "position": 512
-        },
-        "endLoc": {
-          "line": 74,
-          "column": 3,
-          "position": 562
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/monitoring/monitoring/monitoring.module.ts",
-        "start": 44,
-        "end": 57,
-        "startLoc": {
-          "line": 44,
-          "column": 22,
-          "position": 442
-        },
-        "endLoc": {
-          "line": 57,
-          "column": 5,
-          "position": 492
         }
       }
     },
@@ -52719,222 +52455,6 @@
     },
     {
       "format": "typescript",
-      "lines": 12,
-      "fragment": ",\n            },\n          ],\n        },\n        verificationStatus: this.buildVerificationStatus(),\n        category: [\n          {\n            coding: [\n              {\n                system:\n                  'http://terminology.hl7.org/CodeSystem/condition-category',\n                code: diagnosis",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/fhir/factories/fhir-condition.factory.ts",
-        "start": 121,
-        "end": 132,
-        "startLoc": {
-          "line": 121,
-          "column": 32,
-          "position": 945
-        },
-        "endLoc": {
-          "line": 132,
-          "column": 32,
-          "position": 1000
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/fhir/factories/fhir-condition.factory.ts",
-        "start": 40,
-        "end": 51,
-        "startLoc": {
-          "line": 40,
-          "column": 40,
-          "position": 358
-        },
-        "endLoc": {
-          "line": 51,
-          "column": 27,
-          "position": 413
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 16,
-      "fragment": ",\n  context: PDFContext,\n  startY: number,\n  checkPageBreak: (\n    doc: typeof PDFDocument.prototype,\n    y: number,\n    needed: number,\n    ctx: PDFContext,\n  ) => number,\n  drawDivider: (\n    doc: typeof PDFDocument.prototype,\n    y: number,\n    ctx: PDFContext,\n  ) => void,\n): number {\n  const summary",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/document-generation/pdf/invoice-pdf-layout.helpers.ts",
-        "start": 228,
-        "end": 243,
-        "startLoc": {
-          "line": 228,
-          "column": 29,
-          "position": 2067
-        },
-        "endLoc": {
-          "line": 243,
-          "column": 16,
-          "position": 2178
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/document-generation/pdf/invoice-pdf-layout.helpers.ts",
-        "start": 145,
-        "end": 160,
-        "startLoc": {
-          "line": 145,
-          "column": 26,
-          "position": 1301
-        },
-        "endLoc": {
-          "line": 160,
-          "column": 15,
-          "position": 1412
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": "(\n  doc: typeof PDFDocument.prototype,\n  items: PDFInvoiceItem[],\n  context: PDFContext,\n  startY: number,\n  checkPageBreak: (\n    doc: typeof PDFDocument.prototype,\n    y: number,\n    needed: number,\n    ctx: PDFContext,\n  ) => number,\n  taxSummary",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/document-generation/pdf/invoice-pdf-layout.helpers.ts",
-        "start": 278,
-        "end": 289,
-        "startLoc": {
-          "line": 278,
-          "column": 29,
-          "position": 2520
-        },
-        "endLoc": {
-          "line": 289,
-          "column": 13,
-          "position": 2603
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/document-generation/pdf/invoice-pdf-layout.helpers.ts",
-        "start": 143,
-        "end": 154,
-        "startLoc": {
-          "line": 143,
-          "column": 33,
-          "position": 1281
-        },
-        "endLoc": {
-          "line": 154,
-          "column": 14,
-          "position": 1364
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": "(\n  doc: typeof PDFDocument.prototype,\n  data: InvoicePdfRenderData,\n  context: PDFContext,\n  startY: number,\n  checkPageBreak: (\n    doc: typeof PDFDocument.prototype,\n    y: number,\n    needed: number,\n    ctx: PDFContext,\n  ) => number,\n  fetchSignatureImage",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/document-generation/pdf/invoice-pdf-layout.helpers.ts",
-        "start": 370,
-        "end": 381,
-        "startLoc": {
-          "line": 370,
-          "column": 48,
-          "position": 3583
-        },
-        "endLoc": {
-          "line": 381,
-          "column": 22,
-          "position": 3664
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/document-generation/pdf/invoice-pdf-layout.helpers.ts",
-        "start": 226,
-        "end": 154,
-        "startLoc": {
-          "line": 226,
-          "column": 34,
-          "position": 2049
-        },
-        "endLoc": {
-          "line": 154,
-          "column": 14,
-          "position": 1364
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
-      "fragment": "!user.mfaEnabled || !user.mfaSecret)\n      throw new BadRequestException('MFA is not enabled');\n\n    const result = await verify({\n      token: totpCode,\n      secret: user.mfaSecret,\n      epochTolerance: 1,\n    });\n    if (!result.valid) throw new UnauthorizedException('Invalid TOTP code');\n\n    const",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/auth/auth/mfa.service.ts",
-        "start": 133,
-        "end": 143,
-        "startLoc": {
-          "line": 133,
-          "column": 18,
-          "position": 1258
-        },
-        "endLoc": {
-          "line": 143,
-          "column": 10,
-          "position": 1346
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/auth/auth/mfa.service.ts",
-        "start": 102,
-        "end": 112,
-        "startLoc": {
-          "line": 102,
-          "column": 9,
-          "position": 970
-        },
-        "endLoc": {
-          "line": 112,
-          "column": 10,
-          "position": 1058
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 13,
-      "fragment": ",\n      epochTolerance: 1,\n    });\n    if (!result.valid) throw new UnauthorizedException('Invalid TOTP code');\n\n    const plainBackupCodes = this.generatePlainBackupCodes();\n    const hashedBackupCodes = await Promise.all(\n      plainBackupCodes.map((code) => bcrypt.hash(code, 10)),\n    );\n\n    await this.prisma.user.update({\n      where: { id: userId },\n      data: { ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/auth/auth/mfa.service.ts",
-        "start": 138,
-        "end": 150,
-        "startLoc": {
-          "line": 138,
-          "column": 29,
-          "position": 1310
-        },
-        "endLoc": {
-          "line": 150,
-          "column": 15,
-          "position": 1433
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/auth/auth/mfa.service.ts",
-        "start": 72,
-        "end": 85,
-        "startLoc": {
-          "line": 72,
-          "column": 33,
-          "position": 666
-        },
-        "endLoc": {
-          "line": 85,
-          "column": 1,
-          "position": 789
-        }
-      }
-    },
-    {
-      "format": "typescript",
       "lines": 15,
       "fragment": ",\n      [context.getHandler(), context.getClass()],\n    );\n\n    if (!requiredTypes || requiredTypes.length === 0) return true;\n\n    const request = context.switchToHttp().getRequest();\n    const user = request.user;\n\n    if (!user || !user.clinicId)\n      throw forbiddenProblem('NO_CLINIC', 'User not associated with a clinic');\n\n    const clinic = await this.prisma.clinic.findUnique({\n      where: { id: user.clinicId },\n      select: { facilityType",
       "tokens": 0,
@@ -52966,42 +52486,6 @@
           "line": 35,
           "column": 21,
           "position": 367
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": ") {\n      await this.revokeTokenFamily(\n        tx,\n        storedToken.userId,\n        storedToken.tokenFamily,\n      );\n      throw new UnauthorizedException(\n        'Token reuse detected. All sessions have been revoked. Please log in again.',\n      );\n    }\n\n    return",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/auth/auth/auth-session.service.ts",
-        "start": 148,
-        "end": 159,
-        "startLoc": {
-          "line": 148,
-          "column": 28,
-          "position": 1240
-        },
-        "endLoc": {
-          "line": 159,
-          "column": 11,
-          "position": 1293
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/auth/auth/auth-session.service.ts",
-        "start": 110,
-        "end": 121,
-        "startLoc": {
-          "line": 110,
-          "column": 36,
-          "position": 939
-        },
-        "endLoc": {
-          "line": 121,
-          "column": 10,
-          "position": 992
         }
       }
     },
@@ -53079,186 +52563,6 @@
     },
     {
       "format": "typescript",
-      "lines": 12,
-      "fragment": ";\n  }\n\n  @SkipSubscriptionCheck()\n  @Roles(\n    Role.ADMIN,\n    Role.ADMIN_DOCTOR,\n    Role.DOCTOR,\n    Role.NURSE,\n    Role.RECEPTIONIST,\n  )\n  @Post",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/users/presentation/controllers/users.controller.ts",
-        "start": 67,
-        "end": 78,
-        "startLoc": {
-          "line": 67,
-          "column": 67,
-          "position": 500
-        },
-        "endLoc": {
-          "line": 78,
-          "column": 8,
-          "position": 552
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/users/presentation/controllers/users.controller.ts",
-        "start": 46,
-        "end": 57,
-        "startLoc": {
-          "line": 46,
-          "column": 19,
-          "position": 344
-        },
-        "endLoc": {
-          "line": 57,
-          "column": 7,
-          "position": 396
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
-      "fragment": "},\n        select: {\n          id: true,\n          email: true,\n          name: true,\n          createdAt: true,\n          updatedAt: true,\n          verificationData: true,\n        },\n      });\n      const",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/users/infrastructure/repositories/prisma-user.repository.ts",
-        "start": 122,
-        "end": 132,
-        "startLoc": {
-          "line": 122,
-          "column": 9,
-          "position": 1087
-        },
-        "endLoc": {
-          "line": 132,
-          "column": 12,
-          "position": 1148
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/users/infrastructure/repositories/prisma-user.repository.ts",
-        "start": 63,
-        "end": 73,
-        "startLoc": {
-          "line": 63,
-          "column": 29,
-          "position": 564
-        },
-        "endLoc": {
-          "line": 73,
-          "column": 9,
-          "position": 625
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 14,
-      "fragment": ",\n          );\n        }\n      });\n    } catch (error) {\n      if (isDatabaseAuthError(error)) {\n        this.databaseAccessDisabled = true;\n        this.logger.warn(\n          'Disabling subscription scheduler due to database authentication failure. Verify DATABASE_URL credentials.',\n        );\n        return;\n      }\n\n      this.logCronError('Lapsed subscription cron failed'",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/subscriptions/infrastructure/schedulers/subscription-reminder.scheduler.ts",
-        "start": 243,
-        "end": 256,
-        "startLoc": {
-          "line": 243,
-          "column": 115,
-          "position": 2287
-        },
-        "endLoc": {
-          "line": 256,
-          "column": 58,
-          "position": 2363
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/subscriptions/infrastructure/schedulers/subscription-reminder.scheduler.ts",
-        "start": 137,
-        "end": 150,
-        "startLoc": {
-          "line": 137,
-          "column": 79,
-          "position": 1411
-        },
-        "endLoc": {
-          "line": 150,
-          "column": 60,
-          "position": 1487
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 13,
-      "fragment": ": string,\n    status: string,\n    details?: {\n      paymentId?: string;\n      signature?: string;\n      subscriptionId?: string;\n      invoiceUrl?: string;\n      invoiceNumber?: string;\n    },\n  ): Promise<void> {\n    try {\n      await this.prisma.subscriptionPayment.updateMany({\n        where: { id",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/subscriptions/infrastructure/repositories/prisma-subscription-payment.repository.ts",
-        "start": 91,
-        "end": 103,
-        "startLoc": {
-          "line": 91,
-          "column": 14,
-          "position": 797
-        },
-        "endLoc": {
-          "line": 103,
-          "column": 20,
-          "position": 895
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/subscriptions/infrastructure/repositories/prisma-subscription-payment.repository.ts",
-        "start": 67,
-        "end": 79,
-        "startLoc": {
-          "line": 67,
-          "column": 12,
-          "position": 607
-        },
-        "endLoc": {
-          "line": 79,
-          "column": 33,
-          "position": 705
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
-      "fragment": " },\n        data: this.buildPaymentStatusUpdate(status, details),\n      });\n    } catch (error) {\n      throw new BadRequestException(\n        `Failed to update payment status: ${error instanceof Error ? error.message : 'Unknown error'}`,\n      );\n    }\n  }\n\n  private",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/subscriptions/infrastructure/repositories/prisma-subscription-payment.repository.ts",
-        "start": 103,
-        "end": 113,
-        "startLoc": {
-          "line": 103,
-          "column": 41,
-          "position": 902
-        },
-        "endLoc": {
-          "line": 113,
-          "column": 10,
-          "position": 976
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/subscriptions/infrastructure/repositories/prisma-subscription-payment.repository.ts",
-        "start": 79,
-        "end": 89,
-        "startLoc": {
-          "line": 79,
-          "column": 42,
-          "position": 709
-        },
-        "endLoc": {
-          "line": 89,
-          "column": 8,
-          "position": 783
-        }
-      }
-    },
-    {
-      "format": "typescript",
       "lines": 11,
       "fragment": " {\n  constructor(\n    private readonly prisma: PrismaService,\n    @Inject(CLOCK_PORT) private readonly clock: IClock,\n  ) {}\n\n  private getReadClient() {\n    return this.prisma.getReadClient();\n  }\n\n  async save",
       "tokens": 0,
@@ -53279,17 +52583,17 @@
       },
       "secondFile": {
         "name": "apps/api/src/domains/dashboards/dashboard/infrastructure/persistence/prisma-dashboard.repository.ts",
-        "start": 46,
-        "end": 56,
+        "start": 47,
+        "end": 57,
         "startLoc": {
-          "line": 46,
+          "line": 47,
           "column": 71,
-          "position": 296
+          "position": 293
         },
         "endLoc": {
-          "line": 56,
+          "line": 57,
           "column": 25,
-          "position": 366
+          "position": 363
         }
       }
     },
@@ -53768,17 +53072,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/domains/subscriptions/application/ports/subscription.repository.port.ts",
-        "start": 35,
-        "end": 45,
+        "start": 46,
+        "end": 56,
         "startLoc": {
-          "line": 35,
+          "line": 46,
           "column": 44,
-          "position": 251
+          "position": 311
         },
         "endLoc": {
-          "line": 45,
+          "line": 56,
           "column": 17,
-          "position": 319
+          "position": 379
         }
       },
       "secondFile": {
@@ -53804,140 +53108,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/domains/subscriptions/application/ports/subscription.repository.port.ts",
-        "start": 71,
-        "end": 81,
-        "startLoc": {
-          "line": 71,
-          "column": 3,
-          "position": 625
-        },
-        "endLoc": {
-          "line": 81,
-          "column": 21,
-          "position": 711
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/subscriptions/infrastructure/repositories/prisma-subscription-payment.repository.ts",
-        "start": 20,
-        "end": 30,
-        "startLoc": {
-          "line": 20,
-          "column": 9,
-          "position": 181
-        },
-        "endLoc": {
-          "line": 30,
-          "column": 21,
-          "position": 267
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
-      "fragment": "updatePaymentStatus(\n    orderId: string,\n    status: string,\n    details?: {\n      paymentId?: string;\n      signature?: string;\n      subscriptionId?: string;\n      invoiceUrl?: string;\n      invoiceNumber?: string;\n    },\n  ): Promise<void>;",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/subscriptions/application/ports/subscription.repository.port.ts",
         "start": 82,
         "end": 92,
         "startLoc": {
           "line": 82,
           "column": 3,
-          "position": 714
+          "position": 685
         },
         "endLoc": {
           "line": 92,
-          "column": 20,
-          "position": 790
+          "column": 21,
+          "position": 771
         }
       },
       "secondFile": {
         "name": "apps/api/src/domains/subscriptions/infrastructure/repositories/prisma-subscription-payment.repository.ts",
-        "start": 66,
-        "end": 76,
+        "start": 34,
+        "end": 44,
         "startLoc": {
-          "line": 66,
+          "line": 34,
           "column": 9,
-          "position": 602
+          "position": 235
         },
         "endLoc": {
-          "line": 76,
-          "column": 20,
-          "position": 678
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 13,
-      "fragment": "updatePaymentStatusById(\n    clinicId: string,\n    paymentId: string,\n    status: string,\n    details?: {\n      paymentId?: string;\n      signature?: string;\n      subscriptionId?: string;\n      invoiceUrl?: string;\n      invoiceNumber?: string;\n    },\n  ): Promise<void>;\n  findPaymentsByClinicId",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/subscriptions/application/ports/subscription.repository.port.ts",
-        "start": 93,
-        "end": 105,
-        "startLoc": {
-          "line": 93,
-          "column": 3,
-          "position": 793
-        },
-        "endLoc": {
-          "line": 105,
-          "column": 25,
-          "position": 879
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/subscriptions/infrastructure/repositories/prisma-subscription-payment.repository.ts",
-        "start": 89,
-        "end": 93,
-        "startLoc": {
-          "line": 89,
-          "column": 9,
-          "position": 785
-        },
-        "endLoc": {
-          "line": 93,
-          "column": 26,
-          "position": 793
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
-      "fragment": "(\n    appointment: AppointmentForReminder,\n    settings: _ReminderSettings,\n    existingReminderIds?: Set<string>,\n  ): Promise<void> {\n    if (existingReminderIds?.has(appointment.id)) {\n      return;\n    }\n\n    if (\n",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/reminders/application/services/reminder-scheduler.service.ts",
-        "start": 311,
-        "end": 321,
-        "startLoc": {
-          "line": 311,
-          "column": 49,
-          "position": 2546
-        },
-        "endLoc": {
-          "line": 321,
-          "column": 1,
-          "position": 2613
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/reminders/application/services/reminder-scheduler.service.ts",
-        "start": 272,
-        "end": 281,
-        "startLoc": {
-          "line": 272,
-          "column": 46,
-          "position": 2282
-        },
-        "endLoc": {
-          "line": 281,
-          "column": 17,
-          "position": 2349
+          "line": 44,
+          "column": 21,
+          "position": 321
         }
       }
     },
@@ -53974,78 +53170,6 @@
           "line": 139,
           "column": 11,
           "position": 1023
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 13,
-      "fragment": ") res: Response,\n  ) {\n    setPrivateNoStoreHeaders(res);\n    const { clinicId } = getClinicStaffRequestContext(req);\n    const prescription = await this.prescriptionsService.findOne(id, clinicId);\n    await logPatientPhiRead(\n      this.auditService,\n      req,\n      prescription.patientId,\n      'VIEW_HISTORY',\n    );\n\n",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/prescriptions/presentation/controllers/prescription.controller.ts",
-        "start": 164,
-        "end": 176,
-        "startLoc": {
-          "line": 164,
-          "column": 10,
-          "position": 1302
-        },
-        "endLoc": {
-          "line": 176,
-          "column": 1,
-          "position": 1391
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/prescriptions/presentation/controllers/prescription.controller.ts",
-        "start": 144,
-        "end": 109,
-        "startLoc": {
-          "line": 144,
-          "column": 31,
-          "position": 1129
-        },
-        "endLoc": {
-          "line": 109,
-          "column": 5,
-          "position": 807
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 13,
-      "fragment": ",\n          },\n        },\n        doctor: {\n          select: {\n            id: true,\n            name: true,\n            qualification: true,\n            registrationNumber: true,\n            signatureUrl: true,\n          },\n        },\n        ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/prescriptions/infrastructure/repositories/prescription.repository.ts",
-        "start": 135,
-        "end": 147,
-        "startLoc": {
-          "line": 135,
-          "column": 14,
-          "position": 1085
-        },
-        "endLoc": {
-          "line": 147,
-          "column": 9,
-          "position": 1150
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/prescriptions/infrastructure/repositories/prescription.repository.ts",
-        "start": 88,
-        "end": 100,
-        "startLoc": {
-          "line": 88,
-          "column": 30,
-          "position": 724
-        },
-        "endLoc": {
-          "line": 100,
-          "column": 7,
-          "position": 789
         }
       }
     },
@@ -54287,17 +53411,17 @@
       },
       "secondFile": {
         "name": "apps/api/src/domains/dashboards/dashboard/infrastructure/persistence/prisma-dashboard.repository.ts",
-        "start": 46,
-        "end": 56,
+        "start": 47,
+        "end": 57,
         "startLoc": {
-          "line": 46,
+          "line": 47,
           "column": 71,
-          "position": 296
+          "position": 293
         },
         "endLoc": {
-          "line": 56,
+          "line": 57,
           "column": 25,
-          "position": 366
+          "position": 363
         }
       }
     },
@@ -54370,114 +53494,6 @@
           "line": 123,
           "column": 44,
           "position": 979
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 13,
-      "fragment": ",\n      address: write.address ?? undefined,\n      insuranceProvider: write.insuranceProvider ?? undefined,\n      insurancePolicyNumber: write.insurancePolicyNumber ?? undefined,\n      insuranceGroupNumber: write.insuranceGroupNumber ?? undefined,\n      customData:\n        write.customData === undefined || write.customData === null\n          ? undefined\n          : toPrismaInputJsonValue(write.customData),\n      version: write.version,\n    };\n  }\n}",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/patients/infrastructure/mappers/patient.mapper.ts",
-        "start": 104,
-        "end": 116,
-        "startLoc": {
-          "line": 104,
-          "column": 71,
-          "position": 979
-        },
-        "endLoc": {
-          "line": 116,
-          "column": 2,
-          "position": 1092
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/patients/infrastructure/mappers/patient.mapper.ts",
-        "start": 80,
-        "end": 93,
-        "startLoc": {
-          "line": 80,
-          "column": 37,
-          "position": 728
-        },
-        "endLoc": {
-          "line": 93,
-          "column": 1,
-          "position": 841
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": "(clinicId, patientId),\n      this.patientMetricsRepository.findSelections(clinicId, patientId),\n    ]);\n\n    const selectionMap = new Map(\n      selections.map((selection) => [\n        selection.definitionId,\n        selection.isTracked,\n      ]),\n    );\n\n    return definitions",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/patients/application/services/patientMetrics.service.ts",
-        "start": 82,
-        "end": 93,
-        "startLoc": {
-          "line": 82,
-          "column": 52,
-          "position": 542
-        },
-        "endLoc": {
-          "line": 93,
-          "column": 23,
-          "position": 620
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/patients/application/services/patientMetrics.service.ts",
-        "start": 36,
-        "end": 47,
-        "startLoc": {
-          "line": 36,
-          "column": 51,
-          "position": 190
-        },
-        "endLoc": {
-          "line": 47,
-          "column": 22,
-          "position": 268
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": "}) {\n    if (!(await this.patientTagsRepository.patientExists(params))) {\n      throw new NotFoundException('Patient not found');\n    }\n\n    const existing = await this.patientTagsRepository.findTag({\n      patientId: params.patientId,\n      tagId: params.tagId,\n    });\n    if (!existing) throw new NotFoundException('Tag not found');\n\n    await",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/patients/application/services/patient-tags.service.ts",
-        "start": 80,
-        "end": 91,
-        "startLoc": {
-          "line": 80,
-          "column": 77,
-          "position": 642
-        },
-        "endLoc": {
-          "line": 91,
-          "column": 10,
-          "position": 743
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/patients/application/services/patient-tags.service.ts",
-        "start": 60,
-        "end": 71,
-        "startLoc": {
-          "line": 60,
-          "column": 3,
-          "position": 417
-        },
-        "endLoc": {
-          "line": 71,
-          "column": 11,
-          "position": 518
         }
       }
     },
@@ -54596,17 +53612,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/domains/patient-portal/presentation/controllers/patient-portal-clinical.controller.ts",
-        "start": 75,
-        "end": 86,
+        "start": 90,
+        "end": 101,
         "startLoc": {
-          "line": 75,
+          "line": 90,
           "column": 21,
-          "position": 645
+          "position": 695
         },
         "endLoc": {
-          "line": 86,
+          "line": 101,
           "column": 12,
-          "position": 722
+          "position": 772
         }
       },
       "secondFile": {
@@ -54632,17 +53648,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/domains/patient-portal/presentation/controllers/patient-portal-clinical.controller.ts",
-        "start": 125,
-        "end": 137,
+        "start": 130,
+        "end": 142,
         "startLoc": {
-          "line": 125,
+          "line": 130,
           "column": 24,
-          "position": 1096
+          "position": 1108
         },
         "endLoc": {
-          "line": 137,
+          "line": 142,
           "column": 12,
-          "position": 1181
+          "position": 1193
         }
       },
       "secondFile": {
@@ -54658,78 +53674,6 @@
           "line": 150,
           "column": 19,
           "position": 1202
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": "?: string;\n      limit?: string;\n      offset?: string;\n    },\n  ) {\n    const { patientId, clinicId } = await auditPatientPortalRead(\n      this.contextService,\n      this.auditService,\n      req,\n      'VIEW_HISTORY',\n    );\n    return",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/patient-portal/presentation/controllers/patient-portal-clinical.controller.ts",
-        "start": 132,
-        "end": 143,
-        "startLoc": {
-          "line": 132,
-          "column": 13,
-          "position": 1147
-        },
-        "endLoc": {
-          "line": 143,
-          "column": 11,
-          "position": 1222
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/patient-portal/presentation/controllers/patient-portal-clinical.controller.ts",
-        "start": 81,
-        "end": 92,
-        "startLoc": {
-          "line": 81,
-          "column": 9,
-          "position": 688
-        },
-        "endLoc": {
-          "line": 92,
-          "column": 10,
-          "position": 763
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
-      "fragment": ");\n  }\n\n  @Public()\n  @Throttle({\n    short: {\n      ttl: 60000,\n      limit: 5,\n    },\n  })\n  @Post('verify-otp'",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/patient-portal/presentation/controllers/patient-portal-auth.controller.ts",
-        "start": 76,
-        "end": 86,
-        "startLoc": {
-          "line": 76,
-          "column": 55,
-          "position": 594
-        },
-        "endLoc": {
-          "line": 86,
-          "column": 21,
-          "position": 645
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/patient-portal/presentation/controllers/patient-portal-auth.controller.ts",
-        "start": 60,
-        "end": 70,
-        "startLoc": {
-          "line": 60,
-          "column": 6,
-          "position": 455
-        },
-        "endLoc": {
-          "line": 70,
-          "column": 22,
-          "position": 506
         }
       }
     },
@@ -54879,253 +53823,73 @@
     },
     {
       "format": "typescript",
-      "lines": 11,
-      "fragment": "(contractId);\n    return {\n      ...invoice,\n      periodStart: invoice.periodStart.toISOString(),\n      periodEnd: invoice.periodEnd.toISOString(),\n      createdAt: invoice.createdAt.toISOString(),\n      updatedAt: invoice.updatedAt.toISOString(),\n    };\n  }\n\n  @Post(':contractId/adjustment-invoice'",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/enterprise-contracts/presentation/controllers/internal-enterprise-contracts.controller.ts",
-        "start": 182,
-        "end": 192,
-        "startLoc": {
-          "line": 182,
-          "column": 58,
-          "position": 1575
-        },
-        "endLoc": {
-          "line": 192,
-          "column": 41,
-          "position": 1654
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/enterprise-contracts/presentation/controllers/internal-enterprise-contracts.controller.ts",
-        "start": 165,
-        "end": 175,
-        "startLoc": {
-          "line": 165,
-          "column": 62,
-          "position": 1433
-        },
-        "endLoc": {
-          "line": 175,
-          "column": 40,
-          "position": 1512
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
-      "fragment": ");\n    return {\n      ...invoice,\n      periodStart: invoice.periodStart.toISOString(),\n      periodEnd: invoice.periodEnd.toISOString(),\n      createdAt: invoice.createdAt.toISOString(),\n      updatedAt: invoice.updatedAt.toISOString(),\n    };\n  }\n\n  @Post(':contractId/evaluate-true-up'",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/enterprise-contracts/presentation/controllers/internal-enterprise-contracts.controller.ts",
-        "start": 204,
-        "end": 214,
-        "startLoc": {
-          "line": 204,
-          "column": 5,
-          "position": 1744
-        },
-        "endLoc": {
-          "line": 214,
-          "column": 39,
-          "position": 1821
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/enterprise-contracts/presentation/controllers/internal-enterprise-contracts.controller.ts",
-        "start": 165,
-        "end": 175,
-        "startLoc": {
-          "line": 165,
-          "column": 73,
-          "position": 1435
-        },
-        "endLoc": {
-          "line": 175,
-          "column": 40,
-          "position": 1512
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": " },\n          data: {\n            plan: ClinicTier.ENTERPRISE,\n            basePriceCents: contract.platformFeeCents,\n            currency: contract.currency,\n            billingCycle: contract.billingCycle,\n            includedAppointments: contract.includedConsultations,\n            includedUsers: contract.includedUsers,\n            includedStorageGB: contract.includedStorageGB,\n          },\n        });\n        ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/enterprise-contracts/application/services/enterprise-contracts-command.service.ts",
-        "start": 216,
-        "end": 227,
-        "startLoc": {
-          "line": 216,
-          "column": 28,
-          "position": 2149
-        },
-        "endLoc": {
-          "line": 227,
-          "column": 9,
-          "position": 2231
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/enterprise-contracts/application/services/enterprise-contracts-command.service.ts",
-        "start": 117,
-        "end": 129,
-        "startLoc": {
-          "line": 117,
-          "column": 53,
-          "position": 1176
-        },
-        "endLoc": {
-          "line": 129,
-          "column": 1,
-          "position": 1258
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 13,
-      "fragment": "(\n    contractId: string,\n    clinicId: string,\n    actorUserId?: string,\n  ): Promise<ContractWithMembers> {\n    // RLS-BYPASS: enterprise contract administration spans member clinics by design\n    return this.persistence.runUnrestricted(async () => {\n      const contract = await this.persistence.enterpriseContract.findUnique({\n        where: { id: contractId },\n      });\n      if (!contract)\n        throw new NotFoundException(`Contract ${contractId} not found`);\n      if",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/enterprise-contracts/application/services/enterprise-contracts-command.service.ts",
-        "start": 244,
-        "end": 256,
-        "startLoc": {
-          "line": 244,
-          "column": 21,
-          "position": 2367
-        },
-        "endLoc": {
-          "line": 256,
-          "column": 9,
-          "position": 2485
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/enterprise-contracts/application/services/enterprise-contracts-command.service.ts",
-        "start": 184,
-        "end": 196,
-        "startLoc": {
-          "line": 184,
-          "column": 18,
-          "position": 1793
-        },
-        "endLoc": {
-          "line": 196,
-          "column": 12,
-          "position": 1911
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": "import {\n  Injectable,\n  NotFoundException,\n  BadRequestException,\n  Logger,\n  Inject,\n} from '@nestjs/common';\nimport {\n  ENTERPRISE_CONTRACT_PERSISTENCE_PORT,\n  type EnterpriseContractPersistencePort,\n} from '@/domains/enterprise-contracts/application/ports/enterprise-contract-persistence.port';\nimport { EnterpriseContractStatus, EnterpriseInvoiceKind",
+      "lines": 14,
+      "fragment": "import {\n  Injectable,\n  NotFoundException,\n  BadRequestException,\n  Logger,\n  Inject,\n} from '@nestjs/common';\nimport {\n  ENTERPRISE_CONTRACT_PERSISTENCE_PORT,\n  type EnterpriseContractPersistencePort,\n} from '@/domains/enterprise-contracts/application/ports/enterprise-contract-persistence.port';\nimport {\n  EnterpriseContractStatus,\n  EnterpriseInvoiceKind",
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/domains/enterprise-contracts/application/services/enterprise-contract-invoice-command.service.ts",
         "start": 1,
-        "end": 12,
+        "end": 14,
         "startLoc": {
           "line": 1,
           "column": 1,
           "position": 0
         },
         "endLoc": {
-          "line": 12,
-          "column": 57,
-          "position": 59
+          "line": 14,
+          "column": 24,
+          "position": 61
         }
       },
       "secondFile": {
         "name": "apps/api/src/domains/enterprise-contracts/application/services/enterprise-contracts-command.service.ts",
         "start": 1,
-        "end": 12,
+        "end": 14,
         "startLoc": {
           "line": 1,
           "column": 1,
           "position": 0
         },
         "endLoc": {
-          "line": 12,
-          "column": 42,
-          "position": 59
+          "line": 14,
+          "column": 9,
+          "position": 61
         }
       }
     },
     {
       "format": "typescript",
-      "lines": 12,
-      "fragment": ";\n\n      const invoice = await this.persistence.$transaction(async (tx) => {\n        const payment = await tx.subscriptionPayment.upsert({\n          where: {\n            clinicId_invoiceNumber: {\n              clinicId: contract.primaryClinicId,\n              invoiceNumber,\n            },\n          },\n          update: {\n            amountCents: contract",
+      "lines": 19,
+      "fragment": "\n  private async getContractOrThrow(\n    contractId: string,\n  ): Promise<EnterpriseContract> {\n    const contract = await this.persistence.enterpriseContract.findUnique({\n      where: { id: contractId },\n    });\n    if (!contract)\n      throw new NotFoundException(`Contract ${contractId} not found`);\n    return contract;\n  }\n\n  /**\n   * Upserts the `subscriptionPayment` row keyed by `clinicId`+`invoiceNumber`\n   * for an enterprise invoice — `generateAnnualPrepayInvoice` and\n   * `generateSetupFeeInvoice` both need an idempotent payment record before\n   * creating/updating their `enterpriseContractInvoice`, differing only in\n   * the amount and description they pass through.\n   */",
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/domains/enterprise-contracts/application/services/enterprise-contract-invoice-command.service.ts",
-        "start": 158,
-        "end": 169,
+        "start": 48,
+        "end": 66,
         "startLoc": {
-          "line": 158,
-          "column": 89,
-          "position": 1359
+          "line": 48,
+          "column": 6,
+          "position": 260
         },
         "endLoc": {
-          "line": 169,
-          "column": 34,
-          "position": 1447
+          "line": 66,
+          "column": 6,
+          "position": 359
         }
       },
       "secondFile": {
-        "name": "apps/api/src/domains/enterprise-contracts/application/services/enterprise-contract-invoice-command.service.ts",
-        "start": 69,
-        "end": 80,
+        "name": "apps/api/src/domains/enterprise-contracts/application/services/enterprise-contracts-command.service.ts",
+        "start": 47,
+        "end": 65,
         "startLoc": {
-          "line": 69,
-          "column": 281,
-          "position": 623
+          "line": 47,
+          "column": 6,
+          "position": 267
         },
         "endLoc": {
-          "line": 80,
-          "column": 34,
-          "position": 711
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
-      "fragment": ") {\n    // RLS-BYPASS: enterprise contract administration spans member clinics by design\n    return this.persistence.runUnrestricted(async () => {\n      const contract = await this.persistence.enterpriseContract.findUnique({\n        where: { id: contractId },\n      });\n      if (!contract)\n        throw new NotFoundException(`Contract ${contractId} not found`);\n      if (contract.status === EnterpriseContractStatus.TERMINATED)\n        throw new BadRequestException(\n          'Custom bill cannot be raised for terminated contracts'",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/enterprise-contracts/application/services/enterprise-contract-invoice-command.service.ts",
-        "start": 221,
-        "end": 231,
-        "startLoc": {
-          "line": 221,
-          "column": 3,
-          "position": 1813
-        },
-        "endLoc": {
-          "line": 231,
-          "column": 66,
-          "position": 1923
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/enterprise-contracts/application/services/enterprise-contract-invoice-command.service.ts",
-        "start": 38,
-        "end": 139,
-        "startLoc": {
-          "line": 38,
-          "column": 55,
-          "position": 254
-        },
-        "endLoc": {
-          "line": 139,
-          "column": 64,
-          "position": 1200
+          "line": 65,
+          "column": 6,
+          "position": 366
         }
       }
     },
@@ -55331,17 +54095,17 @@
       },
       "secondFile": {
         "name": "apps/api/src/domains/dashboards/dashboard/infrastructure/persistence/prisma-dashboard.repository.ts",
-        "start": 46,
-        "end": 56,
+        "start": 47,
+        "end": 57,
         "startLoc": {
-          "line": 46,
+          "line": 47,
           "column": 71,
-          "position": 296
+          "position": 293
         },
         "endLoc": {
-          "line": 56,
+          "line": 57,
           "column": 25,
-          "position": 366
+          "position": 363
         }
       }
     },
@@ -55600,78 +54364,6 @@
     {
       "format": "typescript",
       "lines": 12,
-      "fragment": ": true,\n          },\n        },\n        clinic: {\n          select: {\n            id: true,\n            name: true,\n          },\n        },\n      },\n    });\n  ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/doctor-clinics/infrastructure/repositories/prisma-doctor-clinics.repository.ts",
-        "start": 55,
-        "end": 66,
-        "startLoc": {
-          "line": 55,
-          "column": 17,
-          "position": 390
-        },
-        "endLoc": {
-          "line": 66,
-          "column": 3,
-          "position": 446
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/reminders/application/services/reminder-history.service.ts",
-        "start": 64,
-        "end": 76,
-        "startLoc": {
-          "line": 64,
-          "column": 17,
-          "position": 533
-        },
-        "endLoc": {
-          "line": 76,
-          "column": 1,
-          "position": 589
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 13,
-      "fragment": ",\n        active: true,\n      },\n      include: {\n        doctor: {\n          select: {\n            id: true,\n            name: true,\n            email: true,\n            role: true,\n          },\n        },\n      ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/doctor-clinics/infrastructure/repositories/prisma-doctor-clinics.repository.ts",
-        "start": 111,
-        "end": 123,
-        "startLoc": {
-          "line": 111,
-          "column": 17,
-          "position": 803
-        },
-        "endLoc": {
-          "line": 123,
-          "column": 7,
-          "position": 870
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/doctor-clinics/infrastructure/repositories/prisma-doctor-clinics.repository.ts",
-        "start": 46,
-        "end": 58,
-        "startLoc": {
-          "line": 46,
-          "column": 13,
-          "position": 336
-        },
-        "endLoc": {
-          "line": 58,
-          "column": 9,
-          "position": 403
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
       "fragment": "import {\n  Controller,\n  Get,\n  Post,\n  Put,\n  Delete,\n  Body,\n  Param,\n  Request,\n  UsePipes,\n} from '@nestjs/common';\nimport { ClinicsService",
       "tokens": 0,
       "firstFile": {
@@ -55816,78 +54508,6 @@
     {
       "format": "typescript",
       "lines": 11,
-      "fragment": " {\n  constructor(\n    private readonly prisma: PrismaService,\n    @Inject(CLOCK_PORT) private readonly clock: IClock,\n  ) {}\n\n  private getReadClient() {\n    return this.prisma.getReadClient();\n  }\n\n  async create",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/clinics/infrastructure/repositories/prisma-join-request.repository.ts",
-        "start": 19,
-        "end": 29,
-        "startLoc": {
-          "line": 19,
-          "column": 75,
-          "position": 181
-        },
-        "endLoc": {
-          "line": 29,
-          "column": 15,
-          "position": 251
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/dashboards/dashboard/infrastructure/persistence/prisma-dashboard.repository.ts",
-        "start": 46,
-        "end": 56,
-        "startLoc": {
-          "line": 46,
-          "column": 71,
-          "position": 296
-        },
-        "endLoc": {
-          "line": 56,
-          "column": 25,
-          "position": 366
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
-      "fragment": "},\n      });\n\n      await tx.user.update({\n        where: { id: input.userId },\n        data: { onboardingStep: 'CHOOSE_PATH' },\n      });\n    });\n  }\n\n  async expireOldRequests",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/clinics/infrastructure/repositories/prisma-join-request.repository.ts",
-        "start": 167,
-        "end": 177,
-        "startLoc": {
-          "line": 167,
-          "column": 55,
-          "position": 1479
-        },
-        "endLoc": {
-          "line": 177,
-          "column": 26,
-          "position": 1546
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/clinics/infrastructure/repositories/prisma-join-request.repository.ts",
-        "start": 152,
-        "end": 162,
-        "startLoc": {
-          "line": 152,
-          "column": 9,
-          "position": 1317
-        },
-        "endLoc": {
-          "line": 162,
-          "column": 17,
-          "position": 1384
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
       "fragment": " {\n  constructor(\n    private readonly prisma: PrismaService,\n    @Inject(CLOCK_PORT) private readonly clock: IClock,\n  ) {}\n\n  private getReadClient() {\n    return this.prisma.getReadClient();\n  }\n\n  async findByReferralCode",
       "tokens": 0,
       "firstFile": {
@@ -55907,17 +54527,17 @@
       },
       "secondFile": {
         "name": "apps/api/src/domains/dashboards/dashboard/infrastructure/persistence/prisma-dashboard.repository.ts",
-        "start": 46,
-        "end": 56,
+        "start": 47,
+        "end": 57,
         "startLoc": {
-          "line": 46,
+          "line": 47,
           "column": 71,
-          "position": 296
+          "position": 293
         },
         "endLoc": {
-          "line": 56,
+          "line": 57,
           "column": 25,
-          "position": 366
+          "position": 363
         }
       }
     },
@@ -56098,114 +54718,6 @@
           "line": 81,
           "column": 33,
           "position": 595
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 14,
-      "fragment": ".findMany({\n        where: {\n          OR: [\n            { code: { contains: query.trim(), mode: 'insensitive' } },\n            { description: { contains: query.trim(), mode: 'insensitive' } },\n          ],\n        },\n        orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],\n        take: limit,\n      }),\n    );\n  }\n\n  private",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/clinical/infrastructure/persistence/prisma-medical-coding.repository.ts",
-        "start": 99,
-        "end": 112,
-        "startLoc": {
-          "line": 99,
-          "column": 35,
-          "position": 998
-        },
-        "endLoc": {
-          "line": 112,
-          "column": 10,
-          "position": 1126
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/clinical/infrastructure/persistence/prisma-medical-coding.repository.ts",
-        "start": 84,
-        "end": 97,
-        "startLoc": {
-          "line": 84,
-          "column": 35,
-          "position": 812
-        },
-        "endLoc": {
-          "line": 97,
-          "column": 8,
-          "position": 940
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": ".findMany({\n      where: { code: { in: codes } },\n      select: {\n        code: true,\n        description: true,\n        category: true,\n        isCommon: true,\n      },\n    });\n  }\n\n  async createCommonCptCodes",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/clinical/infrastructure/persistence/prisma-medical-coding.repository.ts",
-        "start": 282,
-        "end": 293,
-        "startLoc": {
-          "line": 282,
-          "column": 40,
-          "position": 2828
-        },
-        "endLoc": {
-          "line": 293,
-          "column": 29,
-          "position": 2904
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/clinical/infrastructure/persistence/prisma-medical-coding.repository.ts",
-        "start": 240,
-        "end": 251,
-        "startLoc": {
-          "line": 240,
-          "column": 40,
-          "position": 2482
-        },
-        "endLoc": {
-          "line": 251,
-          "column": 29,
-          "position": 2558
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": ".update({\n          where: { code: code.code },\n          data: {\n            description: code.description,\n            category: code.category,\n            isCommon: true,\n          },\n        }),\n      ),\n    );\n  }\n}",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/clinical/infrastructure/persistence/prisma-medical-coding.repository.ts",
-        "start": 309,
-        "end": 320,
-        "startLoc": {
-          "line": 309,
-          "column": 28,
-          "position": 3063
-        },
-        "endLoc": {
-          "line": 320,
-          "column": 2,
-          "position": 3135
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/clinical/infrastructure/persistence/prisma-medical-coding.repository.ts",
-        "start": 267,
-        "end": 279,
-        "startLoc": {
-          "line": 267,
-          "column": 28,
-          "position": 2717
-        },
-        "endLoc": {
-          "line": 279,
-          "column": 1,
-          "position": 2789
         }
       }
     },
@@ -56494,42 +55006,6 @@
           "line": 38,
           "column": 11,
           "position": 237
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
-      "fragment": "],\n        summary: {\n          diagnoses: 0,\n          procedures: 0,\n          uncodedDiagnoses: 0,\n          uncodedProcedures: 0,\n        },\n      };\n    }\n\n    const diagnoses",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/billing/core/services/claim-validation.service.ts",
-        "start": 73,
-        "end": 83,
-        "startLoc": {
-          "line": 73,
-          "column": 69,
-          "position": 482
-        },
-        "endLoc": {
-          "line": 83,
-          "column": 20,
-          "position": 534
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/billing/core/services/claim-validation.service.ts",
-        "start": 53,
-        "end": 63,
-        "startLoc": {
-          "line": 53,
-          "column": 18,
-          "position": 353
-        },
-        "endLoc": {
-          "line": 63,
-          "column": 22,
-          "position": 405
         }
       }
     },
@@ -56931,109 +55407,37 @@
     },
     {
       "format": "typescript",
-      "lines": 14,
-      "fragment": ",\n      include: {\n        patient: {\n          select: {\n            id: true,\n            firstName: true,\n            lastName: true,\n            phoneNumber: true,\n          },\n        },\n        doctor: { select: { id: true, name: true } },\n      },\n      orderBy: { scheduledDate: 'asc' },\n      take: 50",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/appointments/infrastructure/repositories/prisma-follow-up.repository.ts",
-        "start": 70,
-        "end": 83,
-        "startLoc": {
-          "line": 70,
-          "column": 8,
-          "position": 640
-        },
-        "endLoc": {
-          "line": 83,
-          "column": 15,
-          "position": 745
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/appointments/infrastructure/repositories/prisma-follow-up.repository.ts",
-        "start": 42,
-        "end": 55,
-        "startLoc": {
-          "line": 42,
-          "column": 12,
-          "position": 397
-        },
-        "endLoc": {
-          "line": 55,
-          "column": 19,
-          "position": 502
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 13,
-      "fragment": " },\n      include: {\n        patient: {\n          select: {\n            id: true,\n            firstName: true,\n            lastName: true,\n            phoneNumber: true,\n          },\n        },\n        doctor: { select: { id: true, name: true } },\n      },\n      orderBy: { createdAt",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/appointments/infrastructure/repositories/prisma-follow-up.repository.ts",
-        "start": 90,
-        "end": 102,
-        "startLoc": {
-          "line": 90,
-          "column": 39,
-          "position": 819
-        },
-        "endLoc": {
-          "line": 102,
-          "column": 27,
-          "position": 914
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/reminders/application/services/reminder-history.service.ts",
-        "start": 50,
-        "end": 54,
-        "startLoc": {
-          "line": 50,
-          "column": 33,
-          "position": 447
-        },
-        "endLoc": {
-          "line": 54,
-          "column": 31,
-          "position": 490
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": " {\n  constructor(\n    private readonly prisma: PrismaService,\n    @Inject(CLOCK_PORT) private readonly clock: IClock,\n  ) {}\n\n  private getReadClient() {\n    return this.prisma.getReadClient();\n  }\n\n  async create(\n",
+      "lines": 11,
+      "fragment": " {\n  constructor(\n    private readonly prisma: PrismaService,\n    @Inject(CLOCK_PORT) private readonly clock: IClock,\n  ) {}\n\n  private getReadClient() {\n    return this.prisma.getReadClient();\n  }\n\n  async create",
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/domains/appointments/infrastructure/repositories/prisma-appointment-request.repository.ts",
         "start": 30,
-        "end": 41,
+        "end": 40,
         "startLoc": {
           "line": 30,
           "column": 89,
           "position": 254
         },
         "endLoc": {
-          "line": 41,
-          "column": 1,
-          "position": 326
+          "line": 40,
+          "column": 15,
+          "position": 324
         }
       },
       "secondFile": {
         "name": "apps/api/src/domains/dashboards/dashboard/infrastructure/persistence/prisma-dashboard.repository.ts",
-        "start": 46,
-        "end": 29,
+        "start": 47,
+        "end": 57,
         "startLoc": {
-          "line": 46,
+          "line": 47,
           "column": 71,
-          "position": 296
+          "position": 293
         },
         "endLoc": {
-          "line": 29,
-          "column": 21,
-          "position": 253
+          "line": 57,
+          "column": 25,
+          "position": 363
         }
       }
     },
@@ -57070,42 +55474,6 @@
           "line": 105,
           "column": 11,
           "position": 819
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
-      "fragment": " {\n        patient: {\n          select: {\n            id: true,\n            firstName: true,\n            lastName: true,\n            phoneNumber: true,\n          },\n        },\n        doctor: {\n",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/appointments/infrastructure/persistence/prisma-appointment-read.repository.ts",
-        "start": 88,
-        "end": 98,
-        "startLoc": {
-          "line": 88,
-          "column": 26,
-          "position": 706
-        },
-        "endLoc": {
-          "line": 98,
-          "column": 1,
-          "position": 762
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/appointments/infrastructure/repositories/prisma-follow-up.repository.ts",
-        "start": 43,
-        "end": 52,
-        "startLoc": {
-          "line": 43,
-          "column": 15,
-          "position": 402
-        },
-        "endLoc": {
-          "line": 52,
-          "column": 19,
-          "position": 458
         }
       }
     },
@@ -57322,42 +55690,6 @@
           "line": 63,
           "column": 10,
           "position": 430
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
-      "fragment": "}'`,\n        );\n      }\n      repoParams = {\n        ...repoParams,\n        startDate: bounds.rangeStart,\n        endDate: bounds.rangeEndExclusive,\n        intersectCalendarRange: true,\n      };\n    }\n",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/appointments/application/services/appointment-query.service.ts",
-        "start": 112,
-        "end": 122,
-        "startLoc": {
-          "line": 112,
-          "column": 86,
-          "position": 775
-        },
-        "endLoc": {
-          "line": 122,
-          "column": 1,
-          "position": 829
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/appointments/application/services/appointment-query.service.ts",
-        "start": 90,
-        "end": 99,
-        "startLoc": {
-          "line": 90,
-          "column": 38,
-          "position": 612
-        },
-        "endLoc": {
-          "line": 99,
-          "column": 7,
-          "position": 666
         }
       }
     },
@@ -57610,114 +55942,6 @@
           "line": 38,
           "column": 41,
           "position": 279
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": ",\n    };\n\n    await this.cacheManager.set(\n      cacheKey,\n      result,\n      this.configService.getAnalyticsCacheTtl() * 1000,\n    );\n    return result;\n  }\n\n  async getUncodedVisitsStats",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/domains/analytics/core/factories/operational-analytics.factory.ts",
-        "start": 236,
-        "end": 247,
-        "startLoc": {
-          "line": 236,
-          "column": 25,
-          "position": 2265
-        },
-        "endLoc": {
-          "line": 247,
-          "column": 30,
-          "position": 2321
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/domains/analytics/core/factories/operational-analytics.factory.ts",
-        "start": 179,
-        "end": 190,
-        "startLoc": {
-          "line": 179,
-          "column": 14,
-          "position": 1660
-        },
-        "endLoc": {
-          "line": 190,
-          "column": 31,
-          "position": 1716
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": "(context);\n\n    if (!decision.granted) {\n      this.trackFeatureLock(context, decision);\n    } else {\n      this.trackFeatureAccess(context, decision);\n    }\n\n    return decision;\n  }\n\n  getReason",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/shared/lib/access-control/decorators/analytics-decorator.ts",
-        "start": 70,
-        "end": 81,
-        "startLoc": {
-          "line": 70,
-          "column": 48,
-          "position": 438
-        },
-        "endLoc": {
-          "line": 81,
-          "column": 12,
-          "position": 502
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/shared/lib/access-control/decorators/analytics-decorator.ts",
-        "start": 58,
-        "end": 69,
-        "startLoc": {
-          "line": 58,
-          "column": 50,
-          "position": 349
-        },
-        "endLoc": {
-          "line": 69,
-          "column": 16,
-          "position": 413
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": ",\n    {\n      role: user?.role,\n      canAccessFeature: canAccess,\n      currentTier,\n      currentMode,\n      hasIntelligence,\n    },\n    \"read\",\n  );\n\n  const canOpenBillingSettings",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/shared/components/navigation/sidebar/use-sidebar-sections.ts",
-        "start": 62,
-        "end": 73,
-        "startLoc": {
-          "line": 62,
-          "column": 37,
-          "position": 495
-        },
-        "endLoc": {
-          "line": 73,
-          "column": 31,
-          "position": 545
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/shared/components/navigation/sidebar/use-sidebar-sections.ts",
-        "start": 50,
-        "end": 61,
-        "startLoc": {
-          "line": 50,
-          "column": 47,
-          "position": 434
-        },
-        "endLoc": {
-          "line": 61,
-          "column": 26,
-          "position": 484
         }
       }
     },
@@ -58546,78 +56770,6 @@
           "line": 37,
           "column": 24,
           "position": 305
-        }
-      }
-    },
-    {
-      "format": "tsx",
-      "lines": 11,
-      "fragment": "}\n              </h3>\n            </div>\n          </div>\n        </CardContent>\n      </Card>\n\n      <Card className=\"overflow-hidden border border-border bg-card shadow-sm\">\n        <CardContent className=\"p-4 sm:p-6\">\n          <div className=\"flex items-center gap-3 sm:gap-4\">\n            <div className=\"flex h-10 w-10 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/features/patients/components/profile/PatientStatsCardsUI.tsx",
-        "start": 67,
-        "end": 77,
-        "startLoc": {
-          "line": 67,
-          "column": 30,
-          "position": 558
-        },
-        "endLoc": {
-          "line": 77,
-          "column": 142,
-          "position": 626
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/features/patients/components/profile/PatientStatsCardsUI.tsx",
-        "start": 45,
-        "end": 55,
-        "startLoc": {
-          "line": 45,
-          "column": 49,
-          "position": 400
-        },
-        "endLoc": {
-          "line": 55,
-          "column": 142,
-          "position": 468
-        }
-      }
-    },
-    {
-      "format": "tsx",
-      "lines": 11,
-      "fragment": "}\n              </h3>\n            </div>\n          </div>\n        </CardContent>\n      </Card>\n\n      <Card className=\"overflow-hidden border border-border bg-card shadow-sm\">\n        <CardContent className=\"p-4 sm:p-6\">\n          <div className=\"flex items-center gap-3 sm:gap-4\">\n            <div className=\"flex h-10 w-10 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-lg bg-warning text-warning-foreground",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/features/patients/components/profile/PatientStatsCardsUI.tsx",
-        "start": 89,
-        "end": 99,
-        "startLoc": {
-          "line": 89,
-          "column": 29,
-          "position": 716
-        },
-        "endLoc": {
-          "line": 99,
-          "column": 142,
-          "position": 784
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/features/patients/components/profile/PatientStatsCardsUI.tsx",
-        "start": 45,
-        "end": 55,
-        "startLoc": {
-          "line": 45,
-          "column": 49,
-          "position": 400
-        },
-        "endLoc": {
-          "line": 55,
-          "column": 142,
-          "position": 468
         }
       }
     },
@@ -60064,114 +58216,6 @@
     {
       "format": "javascript",
       "lines": 14,
-      "fragment": "</FormLabel>\n                        <FormControl>\n                          <Input {...field} />\n                        </FormControl>\n                        <FormMessage />\n                      </FormItem>\n                    )}\n                  />\n                  <FormField\n                    control={form.control}\n                    name=\"policyNumber\"\n                    render={({ field }) => (\n                      <FormItem>\n                        <FormLabel>Policy ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/features/insurance-claims/components/forms/InsuranceClaimEditUI.tsx",
-        "start": 91,
-        "end": 104,
-        "startLoc": {
-          "line": 91,
-          "column": 50,
-          "position": 581
-        },
-        "endLoc": {
-          "line": 104,
-          "column": 43,
-          "position": 655
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/features/insurance-claims/components/forms/InsuranceClaimEditUI.tsx",
-        "start": 78,
-        "end": 91,
-        "startLoc": {
-          "line": 78,
-          "column": 43,
-          "position": 502
-        },
-        "endLoc": {
-          "line": 91,
-          "column": 39,
-          "position": 576
-        }
-      }
-    },
-    {
-      "format": "javascript",
-      "lines": 14,
-      "fragment": "</FormLabel>\n                        <FormControl>\n                          <Input {...field} />\n                        </FormControl>\n                        <FormMessage />\n                      </FormItem>\n                    )}\n                  />\n                  <FormField\n                    control={form.control}\n                    name=\"groupNumber\"\n                    render={({ field }) => (\n                      <FormItem>\n                        <FormLabel>Group ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/features/insurance-claims/components/forms/InsuranceClaimEditUI.tsx",
-        "start": 104,
-        "end": 117,
-        "startLoc": {
-          "line": 104,
-          "column": 49,
-          "position": 657
-        },
-        "endLoc": {
-          "line": 117,
-          "column": 42,
-          "position": 731
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/features/insurance-claims/components/forms/InsuranceClaimEditUI.tsx",
-        "start": 78,
-        "end": 91,
-        "startLoc": {
-          "line": 78,
-          "column": 43,
-          "position": 502
-        },
-        "endLoc": {
-          "line": 91,
-          "column": 39,
-          "position": 576
-        }
-      }
-    },
-    {
-      "format": "javascript",
-      "lines": 14,
-      "fragment": " (optional)</FormLabel>\n                        <FormControl>\n                          <Input {...field} />\n                        </FormControl>\n                        <FormMessage />\n                      </FormItem>\n                    )}\n                  />\n                  <FormField\n                    control={form.control}\n                    name=\"claimedAmount\"\n                    render={({ field }) => (\n                      <FormItem>\n                        <FormLabel>Claimed amount",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/features/insurance-claims/components/forms/InsuranceClaimEditUI.tsx",
-        "start": 117,
-        "end": 130,
-        "startLoc": {
-          "line": 117,
-          "column": 48,
-          "position": 733
-        },
-        "endLoc": {
-          "line": 130,
-          "column": 50,
-          "position": 811
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/features/insurance-claims/components/forms/InsuranceClaimEditUI.tsx",
-        "start": 91,
-        "end": 91,
-        "startLoc": {
-          "line": 91,
-          "column": 39,
-          "position": 577
-        },
-        "endLoc": {
-          "line": 91,
-          "column": 39,
-          "position": 576
-        }
-      }
-    },
-    {
-      "format": "javascript",
-      "lines": 14,
       "fragment": "</FormLabel>\n              <FormControl>\n                <Input {...field} />\n              </FormControl>\n              <FormMessage />\n            </FormItem>\n          )}\n        />\n\n        <FormField\n          control={control}\n          name=\"notes\"\n          render={({ field }) => (\n            <FormItem ",
       "tokens": 0,
       "firstFile": {
@@ -61251,42 +59295,6 @@
     },
     {
       "format": "typescript",
-      "lines": 12,
-      "fragment": ",\n  ): void {\n    const normalizedContext =\n      typeof context === 'string' ? { correlationId: context } : context;\n    Sentry.withScope((scope) => {\n      scope.setLevel(level);\n      if (normalizedContext) {\n        Object.entries(normalizedContext).forEach(([key, value]) => {\n          scope.setContext(key, toSentryContextValue(value));\n        });\n      }\n      Sentry.captureMessage",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/services/observability.service.ts",
-        "start": 132,
-        "end": 143,
-        "startLoc": {
-          "line": 132,
-          "column": 41,
-          "position": 1203
-        },
-        "endLoc": {
-          "line": 143,
-          "column": 28,
-          "position": 1325
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/services/observability.service.ts",
-        "start": 114,
-        "end": 125,
-        "startLoc": {
-          "line": 114,
-          "column": 42,
-          "position": 1026
-        },
-        "endLoc": {
-          "line": 125,
-          "column": 30,
-          "position": 1148
-        }
-      }
-    },
-    {
-      "format": "typescript",
       "lines": 11,
       "fragment": ".clear();\n  }\n\n  private cleanupExpiredEntries(now: number): void {\n    if (now < this.nextCleanupAt) {\n      return;\n    }\n\n    this.nextCleanupAt = now + this.WINDOW_MS;\n\n",
       "tokens": 0,
@@ -61395,42 +59403,6 @@
     },
     {
       "format": "typescript",
-      "lines": 12,
-      "fragment": ",\n        clinicId: '',\n        ipAddress,\n        userAgent,\n        success: false,\n        error: error instanceof Error ? error.message : 'Unknown error',\n      });\n      throw error;\n    }\n  }\n\n  private logAccess",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/public/public-patient-documents.service.ts",
-        "start": 227,
-        "end": 238,
-        "startLoc": {
-          "line": 227,
-          "column": 30,
-          "position": 1766
-        },
-        "endLoc": {
-          "line": 238,
-          "column": 20,
-          "position": 1832
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/public/public-patient-documents.service.ts",
-        "start": 151,
-        "end": 162,
-        "startLoc": {
-          "line": 151,
-          "column": 35,
-          "position": 1202
-        },
-        "endLoc": {
-          "line": 162,
-          "column": 16,
-          "position": 1268
-        }
-      }
-    },
-    {
-      "format": "typescript",
       "lines": 17,
       "fragment": "}\n\n  private formatUptime(seconds: number): string {\n    const days = Math.floor(seconds / 86400);\n    const hours = Math.floor((seconds % 86400) / 3600);\n    const minutes = Math.floor((seconds % 3600) / 60);\n    const secs = Math.floor(seconds % 60);\n\n    const parts: string[] = [];\n    if (days > 0) parts.push(`${days}d`);\n    if (hours > 0) parts.push(`${hours}h`);\n    if (minutes > 0) parts.push(`${minutes}m`);\n    if (secs > 0 || parts.length === 0) parts.push(`${secs}s`);\n\n    return parts.join(' ');\n  }\n}",
       "tokens": 0,
@@ -61468,72 +59440,36 @@
     {
       "format": "typescript",
       "lines": 12,
-      "fragment": "(clinicId: string, newTier: ClinicTier) {\n    await this.findClinicOrThrow(clinicId);\n\n    const updatedClinic = await this.prisma.clinic.update({\n      where: { id: clinicId },\n      data: { tier: newTier },\n    });\n\n    return {\n      success: true,\n      clinic: updatedClinic,\n      message: `Clinic downgraded to ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/internal/internal-subscription-admin.service.ts",
-        "start": 133,
-        "end": 144,
-        "startLoc": {
-          "line": 133,
-          "column": 22,
-          "position": 1080
-        },
-        "endLoc": {
-          "line": 144,
-          "column": 38,
-          "position": 1183
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/internal/internal-subscription-admin.service.ts",
-        "start": 118,
-        "end": 129,
-        "startLoc": {
-          "line": 118,
-          "column": 20,
-          "position": 958
-        },
-        "endLoc": {
-          "line": 129,
-          "column": 36,
-          "position": 1061
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 15,
-      "fragment": ")\n      .map((s) => ({\n        id: s.id,\n        clinicId: s.clinicId,\n        tier: s.plan,\n        status: s.status,\n        billingCycle: s.billingCycle,\n        currentPeriodStart: s.currentPeriodStart,\n        currentPeriodEnd: s.currentPeriodEnd,\n        amount: s.basePriceCents / 100,\n        currency: s.currency,\n        clinic: s.clinic,\n      }));\n\n    const currentMonthStart",
+      "fragment": "{\n      id: s.id,\n      clinicId: s.clinicId,\n      tier: s.plan,\n      status: s.status,\n      billingCycle: s.billingCycle,\n      currentPeriodStart: s.currentPeriodStart,\n      currentPeriodEnd: s.currentPeriodEnd,\n      amount: s.basePriceCents / 100,\n      currency: s.currency,\n      clinic: s.clinic,\n    })",
       "tokens": 0,
       "firstFile": {
         "name": "apps/api/src/shared/modules/internal/internal-billing-metrics.service.ts",
-        "start": 108,
-        "end": 122,
+        "start": 89,
+        "end": 100,
         "startLoc": {
-          "line": 108,
-          "column": 59,
-          "position": 970
+          "line": 89,
+          "column": 70,
+          "position": 753
         },
         "endLoc": {
-          "line": 122,
-          "column": 28,
-          "position": 1089
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/internal/internal-billing-metrics.service.ts",
-        "start": 93,
-        "end": 107,
-        "startLoc": {
-          "line": 93,
+          "line": 100,
           "column": 7,
-          "position": 826
+          "position": 851
+        }
+      },
+      "secondFile": {
+        "name": "apps/api/src/shared/modules/internal/internal-subscription-query.service.ts",
+        "start": 57,
+        "end": 68,
+        "startLoc": {
+          "line": 57,
+          "column": 12,
+          "position": 415
         },
         "endLoc": {
-          "line": 107,
-          "column": 35,
-          "position": 945
+          "line": 68,
+          "column": 7,
+          "position": 513
         }
       }
     },
@@ -61612,114 +59548,6 @@
     {
       "format": "typescript",
       "lines": 11,
-      "fragment": ".findMany({\n      where: {\n        patientId,\n        patient: { clinicId },\n      },\n      include: {\n        patient: { select: { firstName: true, lastName: true } },\n      },\n    });\n\n    return",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/fhir/fhir.service.ts",
-        "start": 151,
-        "end": 161,
-        "startLoc": {
-          "line": 151,
-          "column": 55,
-          "position": 1192
-        },
-        "endLoc": {
-          "line": 161,
-          "column": 11,
-          "position": 1266
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/fhir/fhir.service.ts",
-        "start": 112,
-        "end": 122,
-        "startLoc": {
-          "line": 112,
-          "column": 65,
-          "position": 901
-        },
-        "endLoc": {
-          "line": 122,
-          "column": 10,
-          "position": 975
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
-      "fragment": ");\n\n    try {\n      await this.runPgCommand('pg_dump', [\n        '--host',\n        this.databaseHost,\n        '--port',\n        this.databasePort,\n        '--username',\n        this.databaseUser,\n        '--schema-only'",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/database/database-backup.service.ts",
-        "start": 219,
-        "end": 229,
-        "startLoc": {
-          "line": 219,
-          "column": 62,
-          "position": 2050
-        },
-        "endLoc": {
-          "line": 229,
-          "column": 24,
-          "position": 2102
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/database/database-backup.service.ts",
-        "start": 176,
-        "end": 186,
-        "startLoc": {
-          "line": 176,
-          "column": 32,
-          "position": 1642
-        },
-        "endLoc": {
-          "line": 186,
-          "column": 19,
-          "position": 1694
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
-      "fragment": ",\n        clinicId,\n      },\n      orderBy: { createdAt: 'desc' },\n      take: AuditLoggerService.MAX_PAGE_SIZE,\n    });\n\n    return this.parseAuditLogs(logs);\n  }\n\n  async deleteOldLogs",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/modules/audit/audit-logger.service.ts",
-        "start": 216,
-        "end": 226,
-        "startLoc": {
-          "line": 216,
-          "column": 15,
-          "position": 1702
-        },
-        "endLoc": {
-          "line": 226,
-          "column": 22,
-          "position": 1759
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/modules/audit/audit-logger.service.ts",
-        "start": 190,
-        "end": 184,
-        "startLoc": {
-          "line": 190,
-          "column": 15,
-          "position": 1493
-        },
-        "endLoc": {
-          "line": 184,
-          "column": 23,
-          "position": 1436
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
       "fragment": ";\n\n  if (code === 'P1000') return true;\n\n  return (\n    message.includes('authentication failed against the database server') ||\n    message.includes('database credentials') ||\n    message.includes('password authentication failed')\n  );\n}\n",
       "tokens": 0,
       "firstFile": {
@@ -61750,42 +59578,6 @@
           "line": 27,
           "column": 1,
           "position": 254
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 13,
-      "fragment": " {\n    const correlationId = context.correlationId ?? nanoid();\n\n    const event = createEvent(type, payload, {\n      clinicId: context.clinicId,\n      userId: context.userId,\n      source: context.source,\n      correlationId,\n      timestamp: this.clock.now(),\n    });\n\n    this.logger.debug(\n      `Emitting async event: ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/api/src/shared/common/events/event.service.ts",
-        "start": 65,
-        "end": 77,
-        "startLoc": {
-          "line": 65,
-          "column": 19,
-          "position": 548
-        },
-        "endLoc": {
-          "line": 77,
-          "column": 30,
-          "position": 647
-        }
-      },
-      "secondFile": {
-        "name": "apps/api/src/shared/common/events/event.service.ts",
-        "start": 30,
-        "end": 42,
-        "startLoc": {
-          "line": 30,
-          "column": 10,
-          "position": 250
-        },
-        "endLoc": {
-          "line": 42,
-          "column": 24,
-          "position": 349
         }
       }
     },
@@ -61966,6 +59758,42 @@
           "line": 25,
           "column": 27,
           "position": 149
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 13,
+      "fragment": ">\n      <CardContent className=\"p-4 sm:p-6\">\n        <div className=\"flex items-center gap-3 sm:gap-4\">\n          <div\n            className={cn(\n              \"flex size-10 shrink-0 items-center justify-center rounded-lg sm:size-14\",\n              styles.iconBg,\n              styles.iconColor,\n            )}\n          >\n            <Icon className=\"h-5 w-5 sm:h-7 sm:w-7\" />\n          </div>\n          <div className=\"flex-1 min-w-0",
+      "tokens": 0,
+      "firstFile": {
+        "name": "packages/ui/src/components/data-display/stats-card.tsx",
+        "start": 58,
+        "end": 70,
+        "startLoc": {
+          "line": 58,
+          "column": 5,
+          "position": 355
+        },
+        "endLoc": {
+          "line": 70,
+          "column": 41,
+          "position": 429
+        }
+      },
+      "secondFile": {
+        "name": "apps/app/features/patients/components/profile/PatientStatsCardsUI.tsx",
+        "start": 39,
+        "end": 47,
+        "startLoc": {
+          "line": 39,
+          "column": 77,
+          "position": 196
+        },
+        "endLoc": {
+          "line": 47,
+          "column": 34,
+          "position": 260
         }
       }
     },
@@ -62367,114 +60195,6 @@
     },
     {
       "format": "typescript",
-      "lines": 12,
-      "fragment": ",\n        );\n      }),\n    ]);\n  } finally {\n    if (timeoutId !== undefined) {\n      window.clearTimeout(timeoutId);\n    }\n  }\n}\n\nexport",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/shared/lib/auth/use-auth-session-bootstrap.ts",
-        "start": 62,
-        "end": 73,
-        "startLoc": {
-          "line": 62,
-          "column": 20,
-          "position": 461
-        },
-        "endLoc": {
-          "line": 73,
-          "column": 7,
-          "position": 515
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/shared/lib/auth/use-auth-session-bootstrap.ts",
-        "start": 40,
-        "end": 51,
-        "startLoc": {
-          "line": 40,
-          "column": 37,
-          "position": 292
-        },
-        "endLoc": {
-          "line": 51,
-          "column": 6,
-          "position": 346
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 17,
-      "fragment": " {\n  API_ENDPOINTS,\n  APP_CONFIG,\n  APP_URLS,\n  STORAGE_KEYS,\n  getApiUrl,\n  getAppUrl,\n  getChangePasswordUrl,\n  getContactInquiryUrl,\n  getLoginUrl,\n  getPrescriptionPdfUrl,\n  getSocketUrl,\n  getSubscriptionConfigUrl,\n  getTierConfigUrl,\n} from \"./api-config-values\";\n\n",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/shared/lib/api/api-config.ts",
-        "start": 22,
-        "end": 38,
-        "startLoc": {
-          "line": 22,
-          "column": 7,
-          "position": 91
-        },
-        "endLoc": {
-          "line": 38,
-          "column": 1,
-          "position": 153
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/shared/lib/api/api-config.ts",
-        "start": 7,
-        "end": 22,
-        "startLoc": {
-          "line": 7,
-          "column": 7,
-          "position": 28
-        },
-        "endLoc": {
-          "line": 22,
-          "column": 7,
-          "position": 90
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": "\n    const response = await browserRequest(url);\n\n    if (!response.ok) {\n      if (response.status === 404) return [];\n      throw new Error(\n        \"We could not load your subscription details. Please try again.\",\n      );\n    }\n\n    const data: unknown = await response.json();\n    const overrides",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/shared/lib/access-control/repository.ts",
-        "start": 130,
-        "end": 141,
-        "startLoc": {
-          "line": 130,
-          "column": 64,
-          "position": 1089
-        },
-        "endLoc": {
-          "line": 141,
-          "column": 20,
-          "position": 1179
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/shared/lib/access-control/repository.ts",
-        "start": 101,
-        "end": 112,
-        "startLoc": {
-          "line": 101,
-          "column": 1,
-          "position": 842
-        },
-        "endLoc": {
-          "line": 112,
-          "column": 17,
-          "position": 932
-        }
-      }
-    },
-    {
-      "format": "typescript",
       "lines": 11,
       "fragment": ";\n}\n\nconst TIER_SENTINEL_FEATURES: Partial<Record<Tier, Feature>> = {\n  [Tier.STARTER]: Feature.BASIC_PATIENT_MANAGEMENT,\n  [Tier.ESSENTIAL]: Feature.INVOICING,\n  [Tier.PROFESSIONAL]: Feature.WHATSAPP_OWN_NUMBER,\n  [Tier.HOSPITAL]: Feature.WHATSAPP_MANAGED_NUMBER,\n};\n\nfunction",
       "tokens": 0,
@@ -62578,78 +60298,6 @@
           "line": 19,
           "column": 7,
           "position": 85
-        }
-      }
-    },
-    {
-      "format": "tsx",
-      "lines": 11,
-      "fragment": ";\n\n  if (hasAccess) {\n    return <>{children}</>;\n  }\n\n  if (fallback) {\n    return <>{fallback}</>;\n  }\n\n  if (showLockedCard",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/shared/components/auth/feature-gate.tsx",
-        "start": 42,
-        "end": 52,
-        "startLoc": {
-          "line": 42,
-          "column": 39,
-          "position": 267
-        },
-        "endLoc": {
-          "line": 52,
-          "column": 21,
-          "position": 326
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/shared/components/auth/feature-guard.tsx",
-        "start": 90,
-        "end": 100,
-        "startLoc": {
-          "line": 90,
-          "column": 64,
-          "position": 645
-        },
-        "endLoc": {
-          "line": 100,
-          "column": 19,
-          "position": 704
-        }
-      }
-    },
-    {
-      "format": "tsx",
-      "lines": 12,
-      "fragment": ");\n\n  if (hasAccess) {\n    return <>{children}</>;\n  }\n\n  if (fallback) {\n    return <>{fallback}</>;\n  }\n\n  if (showLockedCard) {\n    return <LockedFeatureCard tier",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/shared/components/auth/feature-gate.tsx",
-        "start": 77,
-        "end": 88,
-        "startLoc": {
-          "line": 77,
-          "column": 78,
-          "position": 566
-        },
-        "endLoc": {
-          "line": 88,
-          "column": 35,
-          "position": 637
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/shared/components/auth/feature-gate.tsx",
-        "start": 42,
-        "end": 53,
-        "startLoc": {
-          "line": 42,
-          "column": 38,
-          "position": 266
-        },
-        "endLoc": {
-          "line": 53,
-          "column": 38,
-          "position": 337
         }
       }
     },
@@ -65032,150 +62680,6 @@
     {
       "format": "typescript",
       "lines": 11,
-      "fragment": ",\n      variables: [\n        { name: 'patientName', required: true },\n        { name: 'clinicName', required: true },\n        { name: 'date', required: true },\n        { name: 'time', required: true },\n        { name: 'doctorName', required: true },\n      ],\n      buttonType: 'QUICK_REPLY',\n      buttons: [\n        { id: 'confirm', text: 'I am on my way'",
-      "tokens": 0,
-      "firstFile": {
-        "name": "packages/types/src/whatsapp/default-templates.data.ts",
-        "start": 83,
-        "end": 93,
-        "startLoc": {
-          "line": 83,
-          "column": 54,
-          "position": 447
-        },
-        "endLoc": {
-          "line": 93,
-          "column": 48,
-          "position": 569
-        }
-      },
-      "secondFile": {
-        "name": "packages/types/src/whatsapp/default-templates.data.ts",
-        "start": 13,
-        "end": 62,
-        "startLoc": {
-          "line": 13,
-          "column": 64,
-          "position": 37
-        },
-        "endLoc": {
-          "line": 62,
-          "column": 41,
-          "position": 384
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 13,
-      "fragment": ", required: true },\n      ],\n      buttonType: 'CALL_TO_ACTION',\n      buttons: [{ id: 'pay_now', text: 'Pay Now' }],\n      buttonUrlVariable: 'payToken',\n      textFallback: `Hi {{patientName}}, a quick reminder from *{{clinicName}}* that your invoice is still due.\n\nAmount: {{amount}}\nDue by: {{dueDate}}\n\nPay online here: {{payLink}}\n\nReach out if you have any questions.`",
-      "tokens": 0,
-      "firstFile": {
-        "name": "packages/types/src/whatsapp/default-templates.data.ts",
-        "start": 256,
-        "end": 268,
-        "startLoc": {
-          "line": 256,
-          "column": 26,
-          "position": 1444
-        },
-        "endLoc": {
-          "line": 268,
-          "column": 38,
-          "position": 1498
-        }
-      },
-      "secondFile": {
-        "name": "packages/types/src/whatsapp/default-templates.data.ts",
-        "start": 199,
-        "end": 212,
-        "startLoc": {
-          "line": 199,
-          "column": 25,
-          "position": 1155
-        },
-        "endLoc": {
-          "line": 212,
-          "column": 28,
-          "position": 1209
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 14,
-      "fragment": ",\n      variables: [\n        { name: 'patientName', required: true },\n        { name: 'clinicName', required: true },\n        { name: 'date', required: true },\n        { name: 'time', required: true },\n      ],\n      buttonType: 'NONE',\n      textFallback: `Hi {{patientName}}, your appointment at *{{clinicName}}* has been rescheduled.\n\nNew Date: {{date}}\nNew Time: {{time}}\n\nThank you for your patience. See you then.`",
-      "tokens": 0,
-      "firstFile": {
-        "name": "packages/types/src/whatsapp/default-templates.data.ts",
-        "start": 333,
-        "end": 346,
-        "startLoc": {
-          "line": 333,
-          "column": 44,
-          "position": 1813
-        },
-        "endLoc": {
-          "line": 346,
-          "column": 44,
-          "position": 1904
-        }
-      },
-      "secondFile": {
-        "name": "packages/types/src/whatsapp/default-templates.data.ts",
-        "start": 13,
-        "end": 322,
-        "startLoc": {
-          "line": 13,
-          "column": 64,
-          "position": 37
-        },
-        "endLoc": {
-          "line": 322,
-          "column": 51,
-          "position": 1780
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": ", required: true },\n        { name: 'amount', required: true },\n      ],\n      buttonType: 'CALL_TO_ACTION',\n      buttons: [{ id: 'pay_now', text: 'Pay Now' }],\n      buttonUrlVariable: 'payToken',\n      textFallback: `Hi {{patientName}}, here is the secure payment link for your invoice at *{{clinicName}}*.\n\nAmount: {{amount}}\nPay online here: {{payLink}}\n\nReach out if you have any questions.`",
-      "tokens": 0,
-      "firstFile": {
-        "name": "packages/types/src/whatsapp/default-templates.data.ts",
-        "start": 392,
-        "end": 403,
-        "startLoc": {
-          "line": 392,
-          "column": 29,
-          "position": 2110
-        },
-        "endLoc": {
-          "line": 403,
-          "column": 38,
-          "position": 2181
-        }
-      },
-      "secondFile": {
-        "name": "packages/types/src/whatsapp/default-templates.data.ts",
-        "start": 198,
-        "end": 212,
-        "startLoc": {
-          "line": 198,
-          "column": 23,
-          "position": 1138
-        },
-        "endLoc": {
-          "line": 212,
-          "column": 28,
-          "position": 1209
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
       "fragment": ".optional(),\n\n  specialization: z.string().optional(),\n  qualification: z.string().optional(),\n  registrationNumber: z.string().optional(),\n  licenseNumber: z.string().optional(),\n  yearsOfExperience: z.number().optional(),\n  consultationFee: z.number().optional(),\n});\n\nexport type UpdateMemberPayload",
       "tokens": 0,
       "firstFile": {
@@ -65242,78 +62746,6 @@
           "line": 17,
           "column": 1,
           "position": 231
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 14,
-      "fragment": "\n    firstName: input.firstName,\n    lastName: input.lastName,\n    gender: input.gender,\n    mrn: normalizeNullable(input.mrn),\n    email: normalizeNullable(input.email),\n    phoneNumber: normalizeNullable(input.phoneNumber),\n    dateOfBirth: normalizeDate(input.dateOfBirth),\n    address: normalizeNullable(input.address),\n    insuranceProvider: normalizeNullable(input.insuranceProvider),\n    insurancePolicyNumber: normalizeNullable(input.insurancePolicyNumber),\n    insuranceGroupNumber: normalizeNullable(input.insuranceGroupNumber),\n    metadata: normalizeNullable(input.metadata),\n  }),",
-      "tokens": 0,
-      "firstFile": {
-        "name": "packages/types/src/contracts/patients.ts",
-        "start": 106,
-        "end": 119,
-        "startLoc": {
-          "line": 106,
-          "column": 16,
-          "position": 1195
-        },
-        "endLoc": {
-          "line": 119,
-          "column": 6,
-          "position": 1334
-        }
-      },
-      "secondFile": {
-        "name": "packages/types/src/contracts/patients.ts",
-        "start": 90,
-        "end": 103,
-        "startLoc": {
-          "line": 90,
-          "column": 30,
-          "position": 1030
-        },
-        "endLoc": {
-          "line": 103,
-          "column": 6,
-          "position": 1169
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 16,
-      "fragment": " = z.object({\n  id: z.string(),\n  clinicId: z.string(),\n  mrn: z.string().nullable().optional(),\n  firstName: z.string(),\n  lastName: z.string(),\n  email: z.string().nullable().optional(),\n  phoneNumber: z.string().nullable().optional(),\n  gender: genderSchema,\n  dateOfBirth: z.date().nullable().optional(),\n  address: z.string().nullable().optional(),\n  insuranceProvider: z.string().nullable().optional(),\n  insurancePolicyNumber: z.string().nullable().optional(),\n  insuranceGroupNumber: z.string().nullable().optional(),\n  customData: z.unknown().nullable().optional(),\n  version",
-      "tokens": 0,
-      "firstFile": {
-        "name": "packages/types/src/contracts/patients.ts",
-        "start": 142,
-        "end": 157,
-        "startLoc": {
-          "line": 142,
-          "column": 43,
-          "position": 1627
-        },
-        "endLoc": {
-          "line": 157,
-          "column": 10,
-          "position": 1859
-        }
-      },
-      "secondFile": {
-        "name": "packages/types/src/contracts/patients.ts",
-        "start": 122,
-        "end": 137,
-        "startLoc": {
-          "line": 122,
-          "column": 44,
-          "position": 1345
-        },
-        "endLoc": {
-          "line": 137,
-          "column": 12,
-          "position": 1577
         }
       }
     },
@@ -65680,78 +63112,6 @@
     {
       "format": "typescript",
       "lines": 12,
-      "fragment": ",\n        {\n          method: \"POST\",\n          body: JSON.stringify(body),\n          skipAuth: true,\n          suppressGlobalErrorToast: true,\n        },\n      ),\n  });\n}\n\nexport function usePublicBookingOtpVerify",
-      "tokens": 0,
-      "firstFile": {
-        "name": "packages/data-access/src/hooks/use-public-booking.ts",
-        "start": 114,
-        "end": 125,
-        "startLoc": {
-          "line": 114,
-          "column": 51,
-          "position": 966
-        },
-        "endLoc": {
-          "line": 125,
-          "column": 42,
-          "position": 1024
-        }
-      },
-      "secondFile": {
-        "name": "packages/data-access/src/hooks/use-public-booking.ts",
-        "start": 98,
-        "end": 109,
-        "startLoc": {
-          "line": 98,
-          "column": 51,
-          "position": 819
-        },
-        "endLoc": {
-          "line": 109,
-          "column": 43,
-          "position": 877
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": ",\n        {\n          method: \"POST\",\n          body: JSON.stringify(body),\n          skipAuth: true,\n          suppressGlobalErrorToast: true,\n        },\n      ),\n  });\n}\n\nexport function usePublicBookingSubmit",
-      "tokens": 0,
-      "firstFile": {
-        "name": "packages/data-access/src/hooks/use-public-booking.ts",
-        "start": 130,
-        "end": 141,
-        "startLoc": {
-          "line": 130,
-          "column": 50,
-          "position": 1099
-        },
-        "endLoc": {
-          "line": 141,
-          "column": 39,
-          "position": 1157
-        }
-      },
-      "secondFile": {
-        "name": "packages/data-access/src/hooks/use-public-booking.ts",
-        "start": 98,
-        "end": 109,
-        "startLoc": {
-          "line": 98,
-          "column": 51,
-          "position": 819
-        },
-        "endLoc": {
-          "line": 109,
-          "column": 43,
-          "position": 877
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
       "fragment": ");\n  if (filters?.categoryId) params.set(\"categoryId\", filters.categoryId);\n  if (filters?.from) params.set(\"from\", filters.from);\n  if (filters?.to) params.set(\"to\", filters.to);\n  if (filters?.limit) params.set(\"limit\", String(filters.limit));\n  const query = params.toString();\n  return useAPIQuery<{\n    total: number;\n    timeline: Record<string, unknown>[];\n    byCategory: Record<string, Record<string, unknown>[]>;\n  }>(\n    queryKeys.patientPortal.metrics.vitalsHistory",
       "tokens": 0,
       "firstFile": {
@@ -65888,7 +63248,7 @@
         },
         "endLoc": {
           "line": 26,
-          "column": 2,
+          "column": 73,
           "position": 137
         }
       }
@@ -67371,78 +64731,6 @@
     },
     {
       "format": "typescript",
-      "lines": 11,
-      "fragment": ") {\n      setPatient(null);\n      setAppointments([]);\n      setDocuments([]);\n      setStatistics(null);\n      setLoading(false);\n      setError(null);\n      return;\n    }\n\n    try",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/shared/hooks/use-patient-data.ts",
-        "start": 60,
-        "end": 70,
-        "startLoc": {
-          "line": 60,
-          "column": 23,
-          "position": 543
-        },
-        "endLoc": {
-          "line": 70,
-          "column": 8,
-          "position": 600
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/shared/hooks/use-patient-data.ts",
-        "start": 50,
-        "end": 60,
-        "startLoc": {
-          "line": 50,
-          "column": 19,
-          "position": 481
-        },
-        "endLoc": {
-          "line": 60,
-          "column": 7,
-          "position": 538
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 11,
-      "fragment": " => {\n      const context = buildFeatureAccessContext({\n        feature,\n        userId: user?.id || \"current-user\",\n        currentTier,\n        hasIntelligence,\n        userRole: resolveUserRoleForAccess(user?.role),\n        clinicType: clinic?.type,\n      });\n\n      return accessService.canAccessSync",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/shared/hooks/use-feature-access.ts",
-        "start": 110,
-        "end": 120,
-        "startLoc": {
-          "line": 110,
-          "column": 49,
-          "position": 863
-        },
-        "endLoc": {
-          "line": 120,
-          "column": 41,
-          "position": 939
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/shared/hooks/use-feature-access.ts",
-        "start": 44,
-        "end": 104,
-        "startLoc": {
-          "line": 44,
-          "column": 74,
-          "position": 311
-        },
-        "endLoc": {
-          "line": 104,
-          "column": 45,
-          "position": 806
-        }
-      }
-    },
-    {
-      "format": "typescript",
       "lines": 18,
       "fragment": "\"use client\";\n\nimport { useCallback } from \"react\";\nimport { useRouter } from \"next/navigation\";\nimport { readInAppNavCount } from \"@/providers/navigation-history-provider\";\n\nexport function useBackNavigation(fallback: string) {\n  const router = useRouter();\n\n  return useCallback(() => {\n    if (readInAppNavCount() > 1) {\n      router.back();\n      return;\n    }\n    router.push(fallback);\n  }, [router, fallback]);\n}\n",
       "tokens": 0,
@@ -67479,109 +64767,37 @@
     },
     {
       "format": "typescript",
-      "lines": 12,
-      "fragment": " {\n  siteKey: string | undefined;\n  turnstileToken: string | null;\n  phone: string;\n  firstName: string;\n  lastName: string;\n  dateOfBirth: string;\n  dpdpConsentAccepted: boolean;\n  requiresOtp: boolean | null;\n  verificationToken: string | null;\n  slotDate: string;\n}",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/features/public-booking/use-public-booking-readiness-state.ts",
-        "start": 10,
-        "end": 21,
-        "startLoc": {
-          "line": 10,
-          "column": 26,
-          "position": 44
-        },
-        "endLoc": {
-          "line": 21,
-          "column": 2,
-          "position": 133
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/features/public-booking/use-public-booking-submission-state.ts",
-        "start": 8,
-        "end": 19,
-        "startLoc": {
-          "line": 8,
-          "column": 48,
-          "position": 62
-        },
-        "endLoc": {
-          "line": 19,
-          "column": 3,
-          "position": 151
-        }
-      }
-    },
-    {
-      "format": "typescript",
       "lines": 11,
       "fragment": "\n    phone: params.phone,\n    requiresOtp: params.requiresOtp,\n    verificationToken: params.verificationToken,\n    firstName: params.firstName,\n    dateOfBirth: params.dateOfBirth,\n    lastName: params.lastName,\n    dpdpConsentAccepted: params.dpdpConsentAccepted,\n  });\n\n  return",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/features/public-booking/use-public-booking-readiness-state.ts",
-        "start": 41,
-        "end": 51,
+        "start": 51,
+        "end": 61,
         "startLoc": {
-          "line": 41,
+          "line": 51,
           "column": 22,
-          "position": 300
+          "position": 308
         },
         "endLoc": {
-          "line": 51,
+          "line": 61,
           "column": 9,
-          "position": 371
+          "position": 379
         }
       },
       "secondFile": {
         "name": "apps/app/features/public-booking/use-public-booking-readiness-state.ts",
-        "start": 29,
-        "end": 39,
+        "start": 39,
+        "end": 49,
         "startLoc": {
-          "line": 29,
-          "column": 57,
-          "position": 207
-        },
-        "endLoc": {
           "line": 39,
+          "column": 57,
+          "position": 215
+        },
+        "endLoc": {
+          "line": 49,
           "column": 8,
-          "position": 278
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 12,
-      "fragment": " {\n  siteKey: string | undefined;\n  turnstileToken: string | null;\n  phone: string;\n  firstName: string;\n  lastName: string;\n  dateOfBirth: string;\n  dpdpConsentAccepted: boolean;\n  requiresOtp: boolean | null;\n  verificationToken: string | null;\n  slotDate: string;\n  submitFieldErrors",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/features/public-booking/use-public-booking-derived-state.ts",
-        "start": 6,
-        "end": 17,
-        "startLoc": {
-          "line": 6,
-          "column": 29,
-          "position": 34
-        },
-        "endLoc": {
-          "line": 17,
-          "column": 20,
-          "position": 124
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/features/public-booking/use-public-booking-submission-state.ts",
-        "start": 8,
-        "end": 19,
-        "startLoc": {
-          "line": 8,
-          "column": 48,
-          "position": 62
-        },
-        "endLoc": {
-          "line": 19,
-          "column": 19,
-          "position": 152
+          "position": 286
         }
       }
     },
@@ -67732,108 +64948,36 @@
     {
       "format": "javascript",
       "lines": 11,
-      "fragment": ";\n\n    for (let attempt = 1; attempt <= attempts; attempt += 1) {\n      try {\n        const { response, latencyMs } = await fetchWithTimeout(\n          url,\n          { headers: { Accept: \"application/json\" } },\n          FETCH_TIMEOUT_MS,\n        );\n\n        await assertDailyThoughtResponse",
+      "fragment": ";\n\n  for (let attempt = 1; attempt <= attempts; attempt += 1) {\n    try {\n      const { response, latencyMs } = await fetchWithTimeout(\n        url,\n        { headers: { Accept: \"application/json\" } },\n        FETCH_TIMEOUT_MS,\n      );\n\n      await validate",
       "tokens": 0,
       "firstFile": {
         "name": "scripts/monitoring/synthetic/run-probes.mjs",
-        "start": 176,
-        "end": 186,
+        "start": 350,
+        "end": 360,
         "startLoc": {
-          "line": 176,
-          "column": 49,
-          "position": 1390
+          "line": 350,
+          "column": 4,
+          "position": 2690
         },
         "endLoc": {
-          "line": 186,
-          "column": 41,
-          "position": 1480
+          "line": 360,
+          "column": 21,
+          "position": 2780
         }
       },
       "secondFile": {
         "name": "scripts/monitoring/synthetic/run-probes.mjs",
-        "start": 111,
-        "end": 121,
+        "start": 116,
+        "end": 126,
         "startLoc": {
-          "line": 111,
-          "column": 51,
-          "position": 811
+          "line": 116,
+          "column": 46,
+          "position": 793
         },
         "endLoc": {
-          "line": 121,
-          "column": 42,
-          "position": 901
-        }
-      }
-    },
-    {
-      "format": "javascript",
-      "lines": 11,
-      "fragment": "${attempt}/${attempts} (${latencyMs}ms)\\n`,\n          );\n        }\n\n        return { latencyMs };\n      } catch (error) {\n        lastError = error instanceof Error ? error.message : String(error);\n\n        if (attempt < attempts) {\n          process.stdout.write(\n            `daily-thought: attempt ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "scripts/monitoring/synthetic/run-probes.mjs",
-        "start": 190,
-        "end": 200,
-        "startLoc": {
-          "line": 190,
-          "column": 50,
-          "position": 1513
-        },
-        "endLoc": {
-          "line": 200,
-          "column": 37,
-          "position": 1604
-        }
-      },
-      "secondFile": {
-        "name": "scripts/monitoring/synthetic/run-probes.mjs",
-        "start": 125,
-        "end": 135,
-        "startLoc": {
-          "line": 125,
-          "column": 52,
-          "position": 934
-        },
-        "endLoc": {
-          "line": 135,
-          "column": 39,
-          "position": 1025
-        }
-      }
-    },
-    {
-      "format": "javascript",
-      "lines": 12,
-      "fragment": "${attempt}/${attempts} failed (${lastError}); retrying in ${SCHEDULED_PROBE_RETRY_DELAY_MS}ms...\\n`,\n          );\n          await sleep(SCHEDULED_PROBE_RETRY_DELAY_MS);\n        }\n      }\n    }\n\n    throw new Error(lastError);\n  });\n}\n\nasync function probeStaffLogin",
-      "tokens": 0,
-      "firstFile": {
-        "name": "scripts/monitoring/synthetic/run-probes.mjs",
-        "start": 200,
-        "end": 211,
-        "startLoc": {
-          "line": 200,
-          "column": 37,
-          "position": 1605
-        },
-        "endLoc": {
-          "line": 211,
-          "column": 31,
-          "position": 1669
-        }
-      },
-      "secondFile": {
-        "name": "scripts/monitoring/synthetic/run-probes.mjs",
-        "start": 135,
-        "end": 146,
-        "startLoc": {
-          "line": 135,
-          "column": 39,
-          "position": 1026
-        },
-        "endLoc": {
-          "line": 146,
-          "column": 42,
-          "position": 1090
+          "line": 126,
+          "column": 27,
+          "position": 883
         }
       }
     },

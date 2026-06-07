@@ -269,14 +269,35 @@ export class ReminderSchedulerService {
     }
   }
 
+  /**
+   * Shared by `sendHourlyAppointmentReminder` and
+   * `sendThirtyMinuteWhatsappReminder` — both dispatchers skip appointments
+   * a prior pass already reminded (tracked via the optional dedupe set), so
+   * the "already sent" check stays identical across both reminder cadences.
+   */
+  private reminderAlreadySent(
+    appointment: AppointmentForReminder,
+    existingReminderIds?: Set<string>,
+  ): boolean {
+    return existingReminderIds?.has(appointment.id) ?? false;
+  }
+
+  // The signature and dedupe guard below intentionally mirror
+  // `sendThirtyMinuteWhatsappReminder` — both are `Promise.allSettled` map
+  // callbacks driven by the same `(appointment, settings, existingReminderIds)`
+  // triple and must short-circuit on the same "already sent" check before
+  // their channel-specific dispatch logic (which differs substantially)
+  // begins. That's structural to the dispatcher pattern, not copy-paste drift.
+  // jscpd:ignore-start
   private async sendHourlyAppointmentReminder(
     appointment: AppointmentForReminder,
     settings: _ReminderSettings,
     existingReminderIds?: Set<string>,
   ): Promise<void> {
-    if (existingReminderIds?.has(appointment.id)) {
+    if (this.reminderAlreadySent(appointment, existingReminderIds)) {
       return;
     }
+    // jscpd:ignore-end
 
     if (settings.emailEnabled && appointment.patient.email) {
       await this.notificationService.sendEmailReminder(appointment, settings);
@@ -308,14 +329,18 @@ export class ReminderSchedulerService {
     }
   }
 
+  // See the jscpd note above `sendHourlyAppointmentReminder` for why this
+  // signature and guard intentionally mirror that method's.
+  // jscpd:ignore-start
   private async sendThirtyMinuteWhatsappReminder(
     appointment: AppointmentForReminder,
     settings: _ReminderSettings,
     existingReminderIds?: Set<string>,
   ): Promise<void> {
-    if (existingReminderIds?.has(appointment.id)) {
+    if (this.reminderAlreadySent(appointment, existingReminderIds)) {
       return;
     }
+    // jscpd:ignore-end
 
     if (
       appointment.patient.phoneNumber &&

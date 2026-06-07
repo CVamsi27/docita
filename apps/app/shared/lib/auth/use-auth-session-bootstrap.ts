@@ -27,17 +27,28 @@ const COLD_START_PROBE_TIMEOUT_MS = 10_000;
 /** How long to wait before retrying after a suspected cold-start. */
 const COLD_START_RETRY_DELAY_MS = 5_000;
 
-async function refreshAccessTokenWithTimeout(
-  refreshAccessToken: () => Promise<boolean>,
-): Promise<boolean> {
+// Shared by `refreshAccessTokenWithTimeout` and `makeTimeoutRace` — both race
+// a promise against a `window.setTimeout`-backed fallback and must clear that
+// timer in a `finally` regardless of which side wins. Only the fallback's
+// settlement differs (resolve with a default vs. reject with an error), so
+// that's the one piece left to the caller; the race-and-cleanup shape lives
+// here instead of drifting between the two timeout flavors.
+async function raceWithTimeout<T>(
+  operation: Promise<T>,
+  timeoutMs: number,
+  onTimeout: (settle: {
+    resolve: (value: T) => void;
+    reject: (reason?: unknown) => void;
+  }) => void,
+): Promise<T> {
   let timeoutId: number | undefined;
   try {
     return await Promise.race([
-      refreshAccessToken(),
-      new Promise<boolean>((resolve) => {
+      operation,
+      new Promise<T>((resolve, reject) => {
         timeoutId = window.setTimeout(
-          () => resolve(false),
-          SESSION_REFRESH_TIMEOUT_MS,
+          () => onTimeout({ resolve, reject }),
+          timeoutMs,
         );
       }),
     ]);
@@ -48,26 +59,21 @@ async function refreshAccessTokenWithTimeout(
   }
 }
 
+async function refreshAccessTokenWithTimeout(
+  refreshAccessToken: () => Promise<boolean>,
+): Promise<boolean> {
+  return raceWithTimeout(refreshAccessToken(), SESSION_REFRESH_TIMEOUT_MS, ({ resolve }) =>
+    resolve(false),
+  );
+}
+
 async function makeTimeoutRace(
   validateAuth: ValidateAuth,
   timeoutMs: number,
 ): Promise<unknown> {
-  let timeoutId: number | undefined;
-  try {
-    return await Promise.race([
-      validateAuth(undefined),
-      new Promise<never>((_, reject) => {
-        timeoutId = window.setTimeout(
-          () => reject(new Error("Auth validation timed out")),
-          timeoutMs,
-        );
-      }),
-    ]);
-  } finally {
-    if (timeoutId !== undefined) {
-      window.clearTimeout(timeoutId);
-    }
-  }
+  return raceWithTimeout<unknown>(validateAuth(undefined), timeoutMs, ({ reject }) =>
+    reject(new Error("Auth validation timed out")),
+  );
 }
 
 export function useAuthSessionBootstrap(options: {

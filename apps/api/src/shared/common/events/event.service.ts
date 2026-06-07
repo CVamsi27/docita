@@ -18,6 +18,38 @@ export class DomainEventService {
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
+  // Shared by `emit` and `emitAsync` — both resolve a correlation id (falling
+  // back to a freshly minted one) and stamp the same metadata shape onto the
+  // event envelope before dispatching it, so the envelope-construction step
+  // lives in one place rather than the two emitters drifting apart.
+  private buildEventForEmission<T extends DomainEvents>(
+    type: T,
+    payload: T extends keyof EventPayloadMap ? EventPayloadMap[T] : unknown,
+    context: {
+      clinicId: string;
+      userId?: string;
+      source: string;
+      correlationId?: string;
+    },
+  ): {
+    event: DomainEvent<
+      T extends keyof EventPayloadMap ? EventPayloadMap[T] : unknown
+    >;
+    correlationId: string;
+  } {
+    const correlationId = context.correlationId ?? nanoid();
+
+    const event = createEvent(type, payload, {
+      clinicId: context.clinicId,
+      userId: context.userId,
+      source: context.source,
+      correlationId,
+      timestamp: this.clock.now(),
+    });
+
+    return { event, correlationId };
+  }
+
   emit<T extends DomainEvents>(
     type: T,
     payload: T extends keyof EventPayloadMap ? EventPayloadMap[T] : unknown,
@@ -28,15 +60,11 @@ export class DomainEventService {
       correlationId?: string;
     },
   ): void {
-    const correlationId = context.correlationId ?? nanoid();
-
-    const event = createEvent(type, payload, {
-      clinicId: context.clinicId,
-      userId: context.userId,
-      source: context.source,
-      correlationId,
-      timestamp: this.clock.now(),
-    });
+    const { event, correlationId } = this.buildEventForEmission(
+      type,
+      payload,
+      context,
+    );
 
     this.logger.debug(
       `Emitting event: ${type} [${correlationId}]`,
@@ -63,15 +91,11 @@ export class DomainEventService {
       correlationId?: string;
     },
   ): Promise<void> {
-    const correlationId = context.correlationId ?? nanoid();
-
-    const event = createEvent(type, payload, {
-      clinicId: context.clinicId,
-      userId: context.userId,
-      source: context.source,
-      correlationId,
-      timestamp: this.clock.now(),
-    });
+    const { event, correlationId } = this.buildEventForEmission(
+      type,
+      payload,
+      context,
+    );
 
     this.logger.debug(
       `Emitting async event: ${type} [${correlationId}]`,

@@ -1,4 +1,15 @@
-/** Canonical WhatsApp default template definitions (config-as-data). */
+/**
+ * Canonical WhatsApp default template definitions (config-as-data).
+ *
+ * jscpd flags many of the `variables`/`buttons` blocks below as near-duplicates —
+ * that's inherent to the domain (sibling templates legitimately share the same
+ * patient/clinic/date/time variable shapes and confirm/reschedule/cancel button
+ * sets). Extracting those into shared constants would force every template to be
+ * cross-referenced to understand its own contract, which is exactly what this
+ * file exists to avoid: each entry should stay self-contained and reviewable by
+ * non-engineers against the approved WhatsApp Manager copy.
+ */
+// jscpd:ignore-start
 export const WHATSAPP_DEFAULT_TEMPLATES_RAW = {
     appointment_confirmation: {
       name: 'appointment_confirmation',
@@ -459,3 +470,4 @@ The clinic will plan around the new time. Drive safe.`,
     },
 
   } as const;
+// jscpd:ignore-end

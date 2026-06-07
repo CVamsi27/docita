@@ -32,15 +32,24 @@ export type {
   TierBadgeProps,
 } from "./feature-gate-sections";
 
-export function FeatureGate({
-  feature,
+// Shared by `FeatureGate` and `TierGate` — once each has resolved whether
+// the current user has access, both pick the rendered outcome the same way:
+// children when granted, the caller's fallback when provided, the locked
+// card when requested, otherwise nothing. Centralizing that decision keeps
+// the two gates from drifting apart on precedence.
+function renderGateOutcome({
+  hasAccess,
   children,
   fallback,
-  showLockedCard = false,
-}: FeatureGateProps) {
-  const { canAccess } = usePermissionStore();
-  const hasAccess = canAccess(feature);
-
+  showLockedCard,
+  lockedCard,
+}: {
+  hasAccess: boolean;
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+  showLockedCard: boolean;
+  lockedCard: React.ReactNode;
+}): React.ReactNode {
   if (hasAccess) {
     return <>{children}</>;
   }
@@ -50,10 +59,28 @@ export function FeatureGate({
   }
 
   if (showLockedCard) {
-    return <LockedFeatureCard feature={feature} />;
+    return lockedCard;
   }
 
   return null;
+}
+
+export function FeatureGate({
+  feature,
+  children,
+  fallback,
+  showLockedCard = false,
+}: FeatureGateProps) {
+  const { canAccess } = usePermissionStore();
+  const hasAccess = canAccess(feature);
+
+  return renderGateOutcome({
+    hasAccess,
+    children,
+    fallback,
+    showLockedCard,
+    lockedCard: <LockedFeatureCard feature={feature} />,
+  });
 }
 
 export function TierGate({
@@ -76,19 +103,13 @@ export function TierGate({
   }[tier];
   const hasAccess = canAccess(tierFeature ?? Feature.BASIC_PATIENT_MANAGEMENT);
 
-  if (hasAccess) {
-    return <>{children}</>;
-  }
-
-  if (fallback) {
-    return <>{fallback}</>;
-  }
-
-  if (showLockedCard) {
-    return <LockedFeatureCard tier={tier} />;
-  }
-
-  return null;
+  return renderGateOutcome({
+    hasAccess,
+    children,
+    fallback,
+    showLockedCard,
+    lockedCard: <LockedFeatureCard tier={tier} />,
+  });
 }
 
 export function useFeature(feature: Feature): boolean {

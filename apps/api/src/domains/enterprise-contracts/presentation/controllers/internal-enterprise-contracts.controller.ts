@@ -30,6 +30,29 @@ import { RequestWithUser } from '@/shared/common/types/common.types';
 export class InternalEnterpriseContractsController {
   constructor(private readonly contractsService: EnterpriseContractsService) {}
 
+  /**
+   * Serializes an enterprise-contract invoice for the API response, converting
+   * its `Date` fields to ISO strings — `generatePrepay`, `generateSetupFee`,
+   * and `generateAdjustment` all return the same `EnterpriseContractInvoice`
+   * shape (with `subscriptionPayment` included) and need identical conversion.
+   */
+  private serializeContractInvoice<
+    T extends {
+      periodStart: Date;
+      periodEnd: Date;
+      createdAt: Date;
+      updatedAt: Date;
+    },
+  >(invoice: T) {
+    return {
+      ...invoice,
+      periodStart: invoice.periodStart.toISOString(),
+      periodEnd: invoice.periodEnd.toISOString(),
+      createdAt: invoice.createdAt.toISOString(),
+      updatedAt: invoice.updatedAt.toISOString(),
+    };
+  }
+
   @Get()
   @ApiOperation({ summary: 'List all enterprise contracts' })
   async list() {
@@ -163,13 +186,7 @@ export class InternalEnterpriseContractsController {
   async generatePrepay(@Param('contractId') contractId: string) {
     const invoice =
       await this.contractsService.generateAnnualPrepayInvoice(contractId);
-    return {
-      ...invoice,
-      periodStart: invoice.periodStart.toISOString(),
-      periodEnd: invoice.periodEnd.toISOString(),
-      createdAt: invoice.createdAt.toISOString(),
-      updatedAt: invoice.updatedAt.toISOString(),
-    };
+    return this.serializeContractInvoice(invoice);
   }
 
   @Post(':contractId/setup-fee-invoice')
@@ -180,13 +197,7 @@ export class InternalEnterpriseContractsController {
   async generateSetupFee(@Param('contractId') contractId: string) {
     const invoice =
       await this.contractsService.generateSetupFeeInvoice(contractId);
-    return {
-      ...invoice,
-      periodStart: invoice.periodStart.toISOString(),
-      periodEnd: invoice.periodEnd.toISOString(),
-      createdAt: invoice.createdAt.toISOString(),
-      updatedAt: invoice.updatedAt.toISOString(),
-    };
+    return this.serializeContractInvoice(invoice);
   }
 
   @Post(':contractId/adjustment-invoice')
@@ -202,13 +213,7 @@ export class InternalEnterpriseContractsController {
       contractId,
       dto,
     );
-    return {
-      ...invoice,
-      periodStart: invoice.periodStart.toISOString(),
-      periodEnd: invoice.periodEnd.toISOString(),
-      createdAt: invoice.createdAt.toISOString(),
-      updatedAt: invoice.updatedAt.toISOString(),
-    };
+    return this.serializeContractInvoice(invoice);
   }
 
   @Post(':contractId/evaluate-true-up')
