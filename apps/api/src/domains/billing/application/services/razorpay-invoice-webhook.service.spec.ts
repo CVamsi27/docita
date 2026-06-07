@@ -1,5 +1,4 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import type { Prisma } from '@workspace/db';
 import type { PaymentWebhookPayload } from '@workspace/types';
 import type { IInvoiceRepository } from '@/domains/billing/core/repositories/invoice.repository';
 import type { IPaymentSessionRepository } from '@/domains/billing/core/repositories/payment-session.repository';
@@ -10,7 +9,7 @@ import { RazorpayInvoiceWebhookService } from './razorpay-invoice-webhook.servic
 
 describe('RazorpayInvoiceWebhookService', () => {
   it('appends payment capture to the outbox inside the invoice transaction', async () => {
-    const tx: Prisma.TransactionClient = Object.create(null);
+    const tx = Object.create(null);
     const session = {
       id: 'session-1',
       clinicId: 'clinic-1',
