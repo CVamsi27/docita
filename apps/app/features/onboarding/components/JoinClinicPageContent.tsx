@@ -1,9 +1,9 @@
 "use client";
 
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 import { Input } from "@workspace/ui/components/form/input";
 import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { ClearSearchButton } from "@/components/buttons/clear-search-button";
 import { cn } from "@workspace/ui/lib/utils";
 import { Card } from "@workspace/ui/components/indicators/card";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
@@ -75,20 +75,7 @@ export default function JoinClinicPage() {
               aria-label="Search facilities to join"
             />
             {searchQuery.trim() ? (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <SymbolTooltip label="Clear search">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => setSearchQuery("")}
-                    aria-label="Clear search"
-                  >
-                    <X className="h-4 w-4 text-muted-foreground" aria-hidden />
-                  </Button>
-                </SymbolTooltip>
-              </div>
+              <ClearSearchButton onClear={() => setSearchQuery("")} />
             ) : null}
           </div>
           <Button

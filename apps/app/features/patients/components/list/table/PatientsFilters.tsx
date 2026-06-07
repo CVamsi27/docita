@@ -11,9 +11,8 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/navigation/tabs";
 import { Input } from "@workspace/ui/components/form/input";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Search, X } from "lucide-react";
+import { ClearSearchButton } from "@/components/buttons/clear-search-button";
+import { Search } from "lucide-react";
 
 interface PatientsFiltersProps {
   filterType: "all" | "recent" | "new";
@@ -70,20 +69,10 @@ export function PatientsFilters({
               aria-label="Search patients"
             />
             {searchQuery.trim() ? (
-              <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
-                <SymbolTooltip label="Clear search">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => onSearchChange("")}
-                    aria-label="Clear search"
-                  >
-                    <X className="h-4 w-4 text-muted-foreground" aria-hidden />
-                  </Button>
-                </SymbolTooltip>
-              </div>
+              <ClearSearchButton
+                onClear={() => onSearchChange("")}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2"
+              />
             ) : null}
           </div>
         </div>

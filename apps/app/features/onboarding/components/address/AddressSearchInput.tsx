@@ -2,10 +2,10 @@
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
-import { LocateFixed, Search, X } from "lucide-react";
+import { ClearSearchButton } from "@/components/buttons/clear-search-button";
+import { LocateFixed, Search } from "lucide-react";
 import { Autocomplete } from "@react-google-maps/api";
 import {
   type ClinicAddressDetails,
@@ -113,22 +113,7 @@ export function AddressSearchInput({
                 className="absolute right-3 top-1/2 -translate-y-1/2"
               />
             ) : searchQuery.trim() ? (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <SymbolTooltip label="Clear search">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => {
-                      setSearchQuery("");
-                    }}
-                    aria-label="Clear search"
-                  >
-                    <X className="h-4 w-4 text-muted-foreground" aria-hidden />
-                  </Button>
-                </SymbolTooltip>
-              </div>
+              <ClearSearchButton onClear={() => setSearchQuery("")} />
             ) : null}
             {showSuggestions && suggestions.length > 0 ? (
               <div className="absolute z-50 mt-2 w-full rounded-lg border bg-popover shadow-lg">
