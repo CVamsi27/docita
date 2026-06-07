@@ -49,7 +49,8 @@ export class OCRFacadeService implements OnModuleInit, OnModuleDestroy {
         return { text: '', confidence: 0.05, documentType: 'GENERAL' };
       }
 
-      const fileExists = await this.imagePreprocessor.verifyImageFileExists(imagePath);
+      const fileExists =
+        await this.imagePreprocessor.verifyImageFileExists(imagePath);
       if (!fileExists) {
         this.logger.error(`[OCR] File not found or unreadable: ${imagePath}`);
         return {
@@ -59,12 +60,14 @@ export class OCRFacadeService implements OnModuleInit, OnModuleDestroy {
         };
       }
 
-      const processedBuffer = await this.imagePreprocessor.preprocessImage(imagePath);
+      const processedBuffer =
+        await this.imagePreprocessor.preprocessImage(imagePath);
       this.logger.log(
         `[OCR] Image preprocessed, buffer size: ${processedBuffer.length} bytes`,
       );
 
-      const extractedText = await this.textExtractor.extractTextFromBuffer(processedBuffer);
+      const extractedText =
+        await this.textExtractor.extractTextFromBuffer(processedBuffer);
 
       const documentType =
         this.documentClassifier.detectDocumentType(extractedText);

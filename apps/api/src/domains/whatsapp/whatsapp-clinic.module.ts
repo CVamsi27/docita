@@ -12,6 +12,12 @@ import {
   WhatsAppWebhookIngressService,
   PatientAppointmentResolverService,
   StaffNotificationService,
+  StaffNotificationRecipientResolver,
+  StaffNotificationPolicyService,
+  StaffNotificationWhatsAppDispatchService,
+  StaffNotificationInboxService,
+  PatientResponseConfirmationService,
+  PatientResponseStaffNotificationService,
 } from '@/domains/whatsapp/application/services';
 import { TemplatesFacadeService } from '@/shared/whatsapp/templates-facade.service';
 import { WhatsappTemplatesModule } from '@/shared/whatsapp/whatsapp-templates.module';
@@ -32,15 +38,15 @@ import {
 import { PrismaModule } from '@/prisma/prisma.module';
 import { PrismaService } from '@/prisma/prisma.service';
 import { WHATSAPP_PERSISTENCE_PORT } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
+import { NOTIFICATION_RECIPIENT_RESOLVER_TOKEN } from '@/domains/whatsapp/application/ports/notification-recipient-resolver.port';
 import { WhatsappEventListener } from '@/domains/whatsapp/application/listeners/whatsapp-event.listener';
+import { StaffNotificationListener } from '@/domains/whatsapp/application/listeners/staff-notification.listener';
 import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
-import { WhatsappNotificationsModule } from './whatsapp-notifications.module';
 
 @Module({
   imports: [
     PrismaModule,
     WhatsappTemplatesModule,
-    WhatsappNotificationsModule,
     forwardRef(() => SupportWhatsAppModule),
   ],
   controllers: [
@@ -77,7 +83,19 @@ import { WhatsappNotificationsModule } from './whatsapp-notifications.module';
     WhatsAppWebhookIngressService,
     ResponseHandlerService,
     PatientAppointmentResolverService,
+    StaffNotificationRecipientResolver,
+    {
+      provide: NOTIFICATION_RECIPIENT_RESOLVER_TOKEN,
+      useExisting: StaffNotificationRecipientResolver,
+    },
+    StaffNotificationPolicyService,
+    StaffNotificationWhatsAppDispatchService,
+    StaffNotificationInboxService,
+    PatientResponseConfirmationService,
+    PatientResponseStaffNotificationService,
+    StaffNotificationService,
     WhatsappEventListener,
+    StaffNotificationListener,
   ],
   exports: [
     WhatsappService,
@@ -91,8 +109,8 @@ import { WhatsappNotificationsModule } from './whatsapp-notifications.module';
     WhatsAppWebhookIngressService,
     ResponseHandlerService,
     PatientAppointmentResolverService,
-    SystemEventsService,
     StaffNotificationService,
+    SystemEventsService,
   ],
 })
 export class WhatsappModule {}

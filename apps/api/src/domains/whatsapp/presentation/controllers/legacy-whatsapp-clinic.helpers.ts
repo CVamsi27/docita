@@ -1,21 +1,9 @@
+export { requireClinicId } from './require-clinic-id';
 import { BadRequestException } from '@nestjs/common';
 
-type ClinicAuthUser = {
-  id?: string;
-  clinicId?: string | null;
-  role?: string;
-};
-
 type ClinicAuthRequest = {
-  user?: ClinicAuthUser;
+  user?: { id?: string; clinicId?: string | null; role?: string };
 };
-
-export function requireClinicId(req: ClinicAuthRequest): string {
-  const clinicId = req.user?.clinicId;
-  if (!clinicId)
-    throw new BadRequestException('User not associated with a clinic');
-  return clinicId;
-}
 
 export function requireClinicActor(req: ClinicAuthRequest): {
   clinicId: string;

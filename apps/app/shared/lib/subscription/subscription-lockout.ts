@@ -1,8 +1,9 @@
 // check-as-cast-density: allow-file — narrowing casts required by generic signatures or external types
 import type { Clinic } from "@/lib/contexts/clinic-context";
-import { TRIAL_GRACE_DAYS, BILLING_ROLES } from "@workspace/types";
+import { BILLING_ROLES } from "@workspace/types";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+export type { TrialState } from "./subscription-trial-state";
+export { getTrialState, getTrialGraceEndsAt } from "./subscription-trial-state";
 
 function subscriptionGraceUntilToDate(value: unknown): Date | null {
   if (value == null) return null;
@@ -16,32 +17,6 @@ function subscriptionGraceUntilToDate(value: unknown): Date | null {
 
 function toDateOrNull(value: unknown): Date | null {
   return subscriptionGraceUntilToDate(value);
-}
-
-export type TrialState = "ACTIVE" | "GRACE" | "EXPIRED";
-
-export function getTrialState(
-  clinic:
-    | Pick<Clinic, "subscriptionStatus" | "trialEndsAt">
-    | null
-    | undefined,
-): TrialState | null {
-  if (!clinic) return null;
-  if (clinic.subscriptionStatus !== "TRIALING") return null;
-  const trialEnd = toDateOrNull(clinic.trialEndsAt);
-  if (!trialEnd) return "ACTIVE";
-  const now = Date.now();
-  if (now < trialEnd.getTime()) return "ACTIVE";
-  if (now < trialEnd.getTime() + TRIAL_GRACE_DAYS * DAY_MS) return "GRACE";
-  return "EXPIRED";
-}
-
-export function getTrialGraceEndsAt(
-  clinic: Pick<Clinic, "trialEndsAt"> | null | undefined,
-): Date | null {
-  const trialEnd = toDateOrNull(clinic?.trialEndsAt);
-  if (!trialEnd) return null;
-  return new Date(trialEnd.getTime() + TRIAL_GRACE_DAYS * DAY_MS);
 }
 
 export function isPastSubscriptionGraceDeadline(

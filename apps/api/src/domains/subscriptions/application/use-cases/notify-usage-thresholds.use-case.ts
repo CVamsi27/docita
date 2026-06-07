@@ -136,7 +136,8 @@ export class NotifyUsageThresholdsUseCase {
       new Set(warningActions.map((action) => action.channel)),
     );
 
-    const existingReminders = await this.persistence.subscriptionReminder.findMany({
+    const existingReminders =
+      await this.persistence.subscriptionReminder.findMany({
         where: {
           clinicId,
           type: { in: reminderTypes },

@@ -28,6 +28,7 @@ export class EphemeralStoreCleanupScheduler {
         webhookTotal = 0,
         onboardingTotal = 0;
       for (let i = 0; i < 20; i += 1) {
+        // check-n-plus-1: allow — batched purge; each round depends on prior deleteMany
         const stale = await this.prisma.apiHttpIdempotencyRecord.findMany({
           where: {
             OR: [
@@ -46,6 +47,7 @@ export class EphemeralStoreCleanupScheduler {
         if (stale.length < BATCH) break;
       }
       for (let i = 0; i < 20; i += 1) {
+        // check-n-plus-1: allow — batched purge; each round depends on prior deleteMany
         const staleWh = await this.prisma.webhookReplayDedupe.findMany({
           where: { expiresAt: { lt: now } },
           select: { id: true },
@@ -59,6 +61,7 @@ export class EphemeralStoreCleanupScheduler {
         if (staleWh.length < BATCH) break;
       }
       for (let i = 0; i < 20; i += 1) {
+        // check-n-plus-1: allow — batched purge; each round depends on prior deleteMany
         const staleOnboarding = await this.prisma.onboardingSession.findMany({
           where: { expiresAt: { lt: now } },
           select: { id: true },

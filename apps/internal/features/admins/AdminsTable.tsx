@@ -24,7 +24,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
-import { formatInternalListDate } from "@/lib/formatters/format-display-date";
+import { formatInternalListDate } from "@/lib/formatters/format-internal-list-date";
 import type { Admin } from "./use-admins-page";
 
 interface AdminsTableProps {

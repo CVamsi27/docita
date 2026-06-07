@@ -10,7 +10,7 @@ import { Request } from 'express';
 import { createZodDto, ZodSerializerDto } from 'nestjs-zod';
 import { ErrorSeverity } from '@workspace/db';
 import { z } from 'zod';
-import { getMonitoringUserContext } from '@/shared/modules/auth/auth/request-user.util';
+import { getMonitoringUserContext } from '@/shared/modules/auth/auth/monitoring-user-context';
 import { MonitoringService } from './monitoring.service';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';

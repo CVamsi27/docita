@@ -63,7 +63,9 @@ export function useSubscriptionCheckout(
       billingCycle,
       planMode = "FULL",
     }: TierCheckoutParams) => {
-      if (!token) throw new Error("Please sign in to manage your subscription");
+      if (!token) {
+        throw new Error("Please sign in to manage your subscription");
+      }
       if (checkoutInFlightRef.current) {
         return;
       }

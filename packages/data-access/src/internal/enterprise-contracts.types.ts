@@ -143,3 +143,21 @@ export interface InternalEnterpriseContractRevisionRow {
   createdById: string | null;
   createdAt: string;
 }
+
+export interface InternalEnterpriseContractInvoicePreview {
+  period: { start: string; end: string };
+  currency: string;
+  lines: Array<{
+    key: string;
+    label: string;
+    quantity: number;
+    included: number;
+    overage: number;
+    unitCents: number;
+    chargeCents: number;
+    source: "SYSTEM" | "CUSTOM";
+  }>;
+  subtotalCents: number;
+  taxCents: number;
+  totalCents: number;
+}

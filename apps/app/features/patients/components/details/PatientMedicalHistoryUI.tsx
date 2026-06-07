@@ -158,53 +158,8 @@ export function PatientMedicalHistoryUI({
     </>
   );
 
-  if (isCompact) {
-    return (
-      <div className={className}>
-        {specialtySection}
-        <div className="space-y-6">
-          {sharedBlocks}
-        </div>
-        <PatientFamilyHistoryBlock
-          patient={patient}
-          readOnly={readOnly}
-          isCompact={isCompact}
-          newFamilyCondition={newFamilyCondition}
-          newFamilyRelation={newFamilyRelation}
-          onNewFamilyConditionChange={onNewFamilyConditionChange}
-          onNewFamilyRelationChange={onNewFamilyRelationChange}
-          onAddFamilyHistory={onAddFamilyHistory}
-          onRemoveFamilyHistory={onRemoveFamilyHistory}
-        />
-        <PatientSocialHistoryBlock
-          patient={patient}
-          readOnly={readOnly}
-          isCompact={isCompact}
-          onSocialHistoryUpdate={onSocialHistoryUpdate}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className={className}>
-      {specialtySection}
-      <Card>
-        <CardHeader className="py-4">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <History className="h-5 w-5 text-info" />
-            Patient Medical History
-          </CardTitle>
-          {!readOnly && (
-            <CardDescription>
-              Add or remove entries directly. Changes are saved automatically.
-            </CardDescription>
-          )}
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {sharedBlocks}
-        </CardContent>
-      </Card>
+  const historyBlocks = (
+    <>
       <PatientFamilyHistoryBlock
         patient={patient}
         readOnly={readOnly}
@@ -222,6 +177,35 @@ export function PatientMedicalHistoryUI({
         isCompact={isCompact}
         onSocialHistoryUpdate={onSocialHistoryUpdate}
       />
+    </>
+  );
+
+  return (
+    <div className={className}>
+      {specialtySection}
+      {isCompact ? (
+        <div className="space-y-6">
+          {sharedBlocks}
+        </div>
+      ) : (
+        <Card>
+          <CardHeader className="py-4">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <History className="h-5 w-5 text-info" />
+              Patient Medical History
+            </CardTitle>
+            {!readOnly && (
+              <CardDescription>
+                Add or remove entries directly. Changes are saved automatically.
+              </CardDescription>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {sharedBlocks}
+          </CardContent>
+        </Card>
+      )}
+      {historyBlocks}
     </div>
   );
 }

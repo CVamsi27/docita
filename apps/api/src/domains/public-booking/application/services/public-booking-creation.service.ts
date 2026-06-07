@@ -139,19 +139,54 @@ export class PublicBookingCreationService {
     const phone = normalizePhone(body.phoneNumber);
     return withBookingTenant(this.persistence, referralCode, async (clinic) => {
       const now = this.clock.now();
-      const otpRecord = await this.persistence.publicBookingOtp.findFirst({ where: { clinicId: clinic.id, phoneNumber: phone, expiresAt: { gt: now }, usedAt: null }, orderBy: { createdAt: 'desc' } });
-      if (!otpRecord) throw new UnauthorizedException('Invalid or expired code');
-      await this.persistence.publicBookingOtp.update({ where: { id: otpRecord.id }, data: { attempts: { increment: 1 } } });
-      const refreshed = await this.persistence.publicBookingOtp.findUnique({ where: { id: otpRecord.id } });
-      if (!refreshed || refreshed.attempts > 3) throw new UnauthorizedException('Too many attempts. Please request a new code.');
+      const otpRecord = await this.persistence.publicBookingOtp.findFirst({
+        where: {
+          clinicId: clinic.id,
+          phoneNumber: phone,
+          expiresAt: { gt: now },
+          usedAt: null,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (!otpRecord)
+        throw new UnauthorizedException('Invalid or expired code');
+      await this.persistence.publicBookingOtp.update({
+        where: { id: otpRecord.id },
+        data: { attempts: { increment: 1 } },
+      });
+      const refreshed = await this.persistence.publicBookingOtp.findUnique({
+        where: { id: otpRecord.id },
+      });
+      if (!refreshed || refreshed.attempts > 3)
+        throw new UnauthorizedException(
+          'Too many attempts. Please request a new code.',
+        );
       const isValid = await bcrypt.compare(body.otp, refreshed.otpHash);
       if (!isValid) throw new UnauthorizedException('Invalid code');
-      await this.persistence.publicBookingOtp.update({ where: { id: otpRecord.id }, data: { usedAt: this.clock.now() } });
-      const patient = await this.patientService.findByClinicIdAndPhoneNumber(clinic.id, phone);
+      await this.persistence.publicBookingOtp.update({
+        where: { id: otpRecord.id },
+        data: { usedAt: this.clock.now() },
+      });
+      const patient = await this.patientService.findByClinicIdAndPhoneNumber(
+        clinic.id,
+        phone,
+      );
       if (!patient) throw new UnauthorizedException('Patient not found');
       const plain = patient.toPlain();
-      const token = this.bookingTokenService.sign({ purpose: PUBLIC_BOOKING_JWT_PURPOSE, clinicId: clinic.id, patientId: patient.id, phoneNumber: phone });
-      return { bookingVerificationToken: token, patient: { firstName: plain.firstName, lastName: plain.lastName, email: plain.email } };
+      const token = this.bookingTokenService.sign({
+        purpose: PUBLIC_BOOKING_JWT_PURPOSE,
+        clinicId: clinic.id,
+        patientId: patient.id,
+        phoneNumber: phone,
+      });
+      return {
+        bookingVerificationToken: token,
+        patient: {
+          firstName: plain.firstName,
+          lastName: plain.lastName,
+          email: plain.email,
+        },
+      };
     });
   }
 

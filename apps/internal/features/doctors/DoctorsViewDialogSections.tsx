@@ -13,7 +13,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Label } from "@workspace/ui/components/form/label";
 import { Textarea } from "@workspace/ui/components/form/textarea";
 import { HOSPITAL_ROLE_LABELS, SPECIALIZATION_LABELS } from "@workspace/types";
-import { formatInternalListDate } from "@/lib/formatters/format-display-date";
+import { formatInternalListDate } from "@/lib/formatters/format-internal-list-date";
 import { type Doctor, getVerificationLabel } from "./doctor-helpers";
 
 export function DoctorInfoGrid({ doctor }: { doctor: Doctor }) {

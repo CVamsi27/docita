@@ -15,7 +15,6 @@ import type { AppointmentRequestResponse } from "@workspace/types";
 import {
   REJECT_REASON_CUSTOM,
   type SchedulableDoctor,
-  patientName,
   patientPhone,
   pickerIsoToLocalNoonDate,
   parsePickerIsoToLocalDate,
@@ -23,6 +22,33 @@ import {
   schedulingSummaryLines,
   utcRequestedSlotToWallLocal,
 } from "./request-row-helpers";
+
+function buildApproveGating(params: {
+  isMutating: boolean;
+  isPast: boolean;
+  isStartAllowed: boolean;
+  approveFieldErrors?: Partial<Record<ApproveScheduleFieldKey, string>>;
+}) {
+  const { isMutating, isPast, isStartAllowed, approveFieldErrors } = params;
+  const hasApproveFieldErrors = Boolean(
+    approveFieldErrors && (approveFieldErrors.doctorId || approveFieldErrors.startTime || approveFieldErrors.endTime),
+  );
+  const approveBlocked = isMutating || !isStartAllowed || hasApproveFieldErrors;
+  const approveError =
+    approveFieldErrors?.doctorId ?? approveFieldErrors?.startTime ?? approveFieldErrors?.endTime ??
+    (isPast ? "Start time is in the past." : null) ??
+    (!isStartAllowed ? "Not available for this doctor." : null);
+  return { hasApproveFieldErrors, approveBlocked, approveError };
+}
+
+function buildSlotDisplayLabels(startDayIso: string, startTimeHHmm: string, endHHmm: string) {
+  const slotLabel = `${formatScheduleTime(startTimeHHmm)}–${formatScheduleTime(endHHmm)}`;
+  const slotDayLabel = (() => {
+    const d = parsePickerIsoToLocalDate(startDayIso);
+    return d ? formatLocaleDateShortMonthYear(d) : startDayIso;
+  })();
+  return { slotLabel, slotDayLabel };
+}
 
 export interface UseAppointmentRequestRowInput {
   request: AppointmentRequestResponse;
@@ -182,27 +208,9 @@ export function useAppointmentRequestRow(input: UseAppointmentRequestRowInput) {
   const preferredDoctorLabel = request.preferredDoctor?.name?.trim() || null;
   const arrivalRelative = formatDistanceToNow(request.createdAt);
 
-  const hasApproveFieldErrors = Boolean(
-    approveFieldErrors &&
-      (approveFieldErrors.doctorId ||
-        approveFieldErrors.startTime ||
-        approveFieldErrors.endTime),
-  );
-  const approveBlocked =
-    isMutating || !isStartAllowed || hasApproveFieldErrors;
+  const { hasApproveFieldErrors, approveBlocked, approveError } = buildApproveGating({ isMutating, isPast, isStartAllowed, approveFieldErrors });
+  const { slotLabel, slotDayLabel } = buildSlotDisplayLabels(startDayIso, startTimeHHmm, endHHmm);
 
-  const approveError =
-    approveFieldErrors?.doctorId ??
-    approveFieldErrors?.startTime ??
-    approveFieldErrors?.endTime ??
-    (isPast ? "Start time is in the past." : null) ??
-    (!isStartAllowed ? "Not available for this doctor." : null);
-
-  const slotLabel = `${formatScheduleTime(startTimeHHmm)}–${formatScheduleTime(endHHmm)}`;
-  const slotDayLabel = (() => {
-    const d = parsePickerIsoToLocalDate(startDayIso);
-    return d ? formatLocaleDateShortMonthYear(d) : startDayIso;
-  })();
   const selectedDoctorName =
     doctorOptions.find((doc) => doc.id === effectiveDoctorId)?.name ??
     preferredDoctorLabel ??

@@ -51,10 +51,19 @@ export class WhatsappResendService {
     const prescription = await this.persistence.prescription.findUnique({
       where: { id },
       include: {
-        patient: { select: { id: true, firstName: true, lastName: true, phoneNumber: true } },
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
+        },
         doctor: { select: { name: true } },
         medications: true,
-        appointment: { include: { clinic: { select: { name: true, currency: true } } } },
+        appointment: {
+          include: { clinic: { select: { name: true, currency: true } } },
+        },
       },
     });
     if (!prescription) throw new NotFoundException('Prescription not found');
@@ -62,19 +71,36 @@ export class WhatsappResendService {
       throw new BadRequestException('Patient does not have a phone number');
 
     const isAuthorized = ['DOCTOR', 'ADMIN', 'INTERNAL'].includes(role);
-    if (!isAuthorized && prescription.approvalStatus !== ApprovalStatus.APPROVED)
+    if (
+      !isAuthorized &&
+      prescription.approvalStatus !== ApprovalStatus.APPROVED
+    )
       throw new BadRequestException('Prescription not approved for sharing');
 
-    const variables = toTemplateVariables(buildPrescriptionCreatedVariables({
-      prescriptionId: id, patientName: getPatientFullName(prescription.patient),
-      clinicName: prescription.appointment?.clinic?.name ?? '', doctorName: prescription.doctor.name,
-    }));
+    const variables = toTemplateVariables(
+      buildPrescriptionCreatedVariables({
+        prescriptionId: id,
+        patientName: getPatientFullName(prescription.patient),
+        clinicName: prescription.appointment?.clinic?.name ?? '',
+        doctorName: prescription.doctor.name,
+      }),
+    );
 
-    const resolved = await this.templatesService.resolveTemplate('prescription_created', variables, clinicId);
-    if (!resolved) throw new BadRequestException('Prescription template not found');
+    const resolved = await this.templatesService.resolveTemplate(
+      'prescription_created',
+      variables,
+      clinicId,
+    );
+    if (!resolved)
+      throw new BadRequestException('Prescription template not found');
     const messagePreview = this.templatesService.getMessageForMode(resolved);
 
-    const sendResult = await this.sendMessage.execute({ clinicId, recipientPhone: prescription.patient.phoneNumber, templateName: 'prescription_created', variables });
+    const sendResult = await this.sendMessage.execute({
+      clinicId,
+      recipientPhone: prescription.patient.phoneNumber,
+      templateName: 'prescription_created',
+      variables,
+    });
 
     await this.persistence.prescription.update({
       where: { id },
@@ -82,7 +108,9 @@ export class WhatsappResendService {
         whatsappSentAt: this.clock.now(),
         whatsappMessageId: sendResult.providerMessageId || sendResult.messageId,
         whatsappStatus: WhatsappLogStatus.SENT,
-        approvalStatus: isAuthorized ? ApprovalStatus.AUTO_APPROVED : prescription.approvalStatus,
+        approvalStatus: isAuthorized
+          ? ApprovalStatus.AUTO_APPROVED
+          : prescription.approvalStatus,
         approvedById: isAuthorized ? userId : prescription.approvedById,
         approvedAt: isAuthorized ? this.clock.now() : prescription.approvedAt,
         version: { increment: 1 },
@@ -90,10 +118,22 @@ export class WhatsappResendService {
     });
 
     await this.persistence.whatsappLog.create({
-      data: { clinicId, patientId: prescription.patient.id, prescriptionId: id, type: 'prescription', phoneNumber: prescription.patient.phoneNumber, message: messagePreview, status: WhatsappLogStatus.SENT, providerMessageId: sendResult.providerMessageId || sendResult.messageId },
+      data: {
+        clinicId,
+        patientId: prescription.patient.id,
+        prescriptionId: id,
+        type: 'prescription',
+        phoneNumber: prescription.patient.phoneNumber,
+        message: messagePreview,
+        status: WhatsappLogStatus.SENT,
+        providerMessageId: sendResult.providerMessageId || sendResult.messageId,
+      },
     });
 
-    return { success: true, messageId: sendResult.providerMessageId || sendResult.messageId };
+    return {
+      success: true,
+      messageId: sendResult.providerMessageId || sendResult.messageId,
+    };
   }
 
   async resendInvoice(
@@ -105,9 +145,22 @@ export class WhatsappResendService {
     const invoice = await this.persistence.invoice.findUnique({
       where: { id },
       include: {
-        patient: { select: { id: true, firstName: true, lastName: true, phoneNumber: true } },
-        appointment: { include: { clinic: { select: { name: true, currency: true } } } },
-        paymentSessions: { where: { status: PaymentSessionStatus.CREATED }, orderBy: { createdAt: 'desc' }, take: 1 },
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
+        },
+        appointment: {
+          include: { clinic: { select: { name: true, currency: true } } },
+        },
+        paymentSessions: {
+          where: { status: PaymentSessionStatus.CREATED },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
       },
     });
     if (!invoice) throw new NotFoundException('Invoice not found');
@@ -120,21 +173,37 @@ export class WhatsappResendService {
 
     const paymentSession = invoice.paymentSessions[0];
     if (!paymentSession)
-      throw new BadRequestException('Create an online payment link for this invoice before sending on WhatsApp');
+      throw new BadRequestException(
+        'Create an online payment link for this invoice before sending on WhatsApp',
+      );
 
-    const variables = toTemplateVariables(buildInvoiceReadyVariables({
-      invoiceId: id, patientName: getPatientFullName(invoice.patient),
-      clinicName: invoice.appointment?.clinic?.name ?? '', amount: invoice.total,
-      currency: invoice.currency ?? invoice.appointment?.clinic?.currency,
-      invoiceNumber: id.slice(-8).toUpperCase(), date: formatDate(invoice.createdAt, DATE_FORMATS.DATE_SHORT),
-      paymentSessionId: paymentSession.id,
-    }));
+    const variables = toTemplateVariables(
+      buildInvoiceReadyVariables({
+        invoiceId: id,
+        patientName: getPatientFullName(invoice.patient),
+        clinicName: invoice.appointment?.clinic?.name ?? '',
+        amount: invoice.total,
+        currency: invoice.currency ?? invoice.appointment?.clinic?.currency,
+        invoiceNumber: id.slice(-8).toUpperCase(),
+        date: formatDate(invoice.createdAt, DATE_FORMATS.DATE_SHORT),
+        paymentSessionId: paymentSession.id,
+      }),
+    );
 
-    const resolved = await this.templatesService.resolveTemplate('invoice_ready', variables, clinicId);
+    const resolved = await this.templatesService.resolveTemplate(
+      'invoice_ready',
+      variables,
+      clinicId,
+    );
     if (!resolved) throw new BadRequestException('Invoice template not found');
     const messagePreview = this.templatesService.getMessageForMode(resolved);
 
-    const sendResult = await this.sendMessage.execute({ clinicId, recipientPhone: invoice.patient.phoneNumber, templateName: 'invoice_ready', variables });
+    const sendResult = await this.sendMessage.execute({
+      clinicId,
+      recipientPhone: invoice.patient.phoneNumber,
+      templateName: 'invoice_ready',
+      variables,
+    });
 
     await this.persistence.invoice.update({
       where: { id },
@@ -142,16 +211,30 @@ export class WhatsappResendService {
         whatsappSentAt: this.clock.now(),
         whatsappMessageId: sendResult.providerMessageId || sendResult.messageId,
         whatsappStatus: WhatsappLogStatus.SENT,
-        approvalStatus: isAuthorized ? ApprovalStatus.AUTO_APPROVED : invoice.approvalStatus,
+        approvalStatus: isAuthorized
+          ? ApprovalStatus.AUTO_APPROVED
+          : invoice.approvalStatus,
         approvedById: isAuthorized ? userId : invoice.approvedById,
         approvedAt: isAuthorized ? this.clock.now() : invoice.approvedAt,
       },
     });
 
     await this.persistence.whatsappLog.create({
-      data: { clinicId, patientId: invoice.patient.id, invoiceId: id, type: 'invoice', phoneNumber: invoice.patient.phoneNumber, message: messagePreview, status: WhatsappLogStatus.SENT, providerMessageId: sendResult.providerMessageId || sendResult.messageId },
+      data: {
+        clinicId,
+        patientId: invoice.patient.id,
+        invoiceId: id,
+        type: 'invoice',
+        phoneNumber: invoice.patient.phoneNumber,
+        message: messagePreview,
+        status: WhatsappLogStatus.SENT,
+        providerMessageId: sendResult.providerMessageId || sendResult.messageId,
+      },
     });
 
-    return { success: true, messageId: sendResult.providerMessageId || sendResult.messageId };
+    return {
+      success: true,
+      messageId: sendResult.providerMessageId || sendResult.messageId,
+    };
   }
 }

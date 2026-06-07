@@ -1,5 +1,5 @@
 import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
-import { fetchLandingJson } from "@/lib/public-api";
+import { fetchLandingJson } from "@/lib/api-fetch";
 
 export interface PlatformStats {
   clinics: number;

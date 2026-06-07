@@ -1,0 +1,26 @@
+{
+  "minLines": 5,
+  "minTokens": 50,
+  "maxLines": 1000,
+  "maxSize": "100kb",
+  "mode": "strict",
+  "reporters": ["console", "json"],
+  "output": "./.jscpd-report",
+  "gitignore": true,
+  "ignore": [
+    "**/.next/**",
+    "**/dist/**",
+    "**/coverage/**",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "**/__tests__/**",
+    "**/test/**",
+    "**/tests/**",
+    "**/.turbo/**",
+    "**/pnpm-lock.yaml",
+    "**/*.generated.*",
+    "**/generated/**",
+    "**/migrations/**"
+  ],
+  "format": ["typescript", "tsx", "javascript", "jsx", "css", "json"]
+}

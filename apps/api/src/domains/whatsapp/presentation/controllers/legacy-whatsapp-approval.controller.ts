@@ -13,7 +13,7 @@ import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
 import { SuccessResponseDto } from '@/domains/whatsapp/presentation/dto/whatsapp-response.dto';
 import { LegacyWhatsappClinicAccess } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.access';
-import { requireClinicId } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.helpers';
+import { requireClinicId } from '@/domains/whatsapp/presentation/controllers/require-clinic-id';
 
 @Controller('whatsapp')
 @LegacyWhatsappClinicAccess()

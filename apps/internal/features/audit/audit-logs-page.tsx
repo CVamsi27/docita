@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/data-display/table";
 import { useInternalAuditLogs } from "@workspace/data-access/internal";
-import { formatInternalTimestamp } from "@/lib/formatters/format-display-date";
+import { formatInternalTimestamp } from "@/lib/formatters/format-internal-timestamp";
 
 export function AuditLogsPage() {
   const params = useMemo(() => "limit=100", []);

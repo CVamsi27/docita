@@ -13,50 +13,111 @@ import { loadWorkbookXlsx } from './xlsx-load-boundary';
 
 export type TabularRow = Array<string | number | Date | undefined>;
 
+export function getCell(
+  row: unknown,
+  index: number,
+): string | number | Date | undefined {
+  if (!Array.isArray(row)) return undefined;
+  const value = row[index];
+  return typeof value === 'string' || typeof value === 'number'
+    ? value
+    : undefined;
+}
+
+export function sanitizeCellValue(
+  value: unknown,
+): string | number | Date | undefined {
+  if (typeof value === 'string' || typeof value === 'number') return value;
+  if (value instanceof Date) return value;
+  if (typeof value === 'boolean') return value ? 'true' : 'false';
+  if (value && typeof value === 'object') {
+    const candidate = readExcelCellObject(value);
+    if (!candidate) return String(value);
+    if (candidate.result !== undefined)
+      return sanitizeCellValue(candidate.result);
+    if (typeof candidate.text === 'string') return candidate.text;
+    if (Array.isArray(candidate.richText))
+      return candidate.richText
+        .map((s) => s.text ?? '')
+        .join('')
+        .trim();
+  }
+  if (value == null) return undefined;
+  return String(value);
+}
+
+export function isRowEmpty(
+  row: Array<string | number | Date | undefined>,
+): boolean {
+  return row.every(
+    (cell) => cell === undefined || String(cell).trim().length === 0,
+  );
+}
+
+export function toHeaderString(
+  value: string | number | Date | undefined,
+): string {
+  return value === undefined ? '' : String(value).trim();
+}
+
+export function mapDataRows(
+  headers: string[],
+  dataRows: Array<Array<string | number | Date | undefined>>,
+): ExcelRow[] {
+  return dataRows.map((row) => {
+    const mapped: ExcelRow = {};
+    headers.forEach((header, index) => {
+      if (!header) return;
+      const value = row[index];
+      if (value !== undefined && String(value).trim() !== '')
+        mapped[header] = value;
+    });
+    return mapped;
+  });
+}
+
+function trimTrailingEmptyCells(
+  normalized: Array<string | number | Date | undefined>,
+): void {
+  while (
+    normalized.length > 0 &&
+    (normalized[normalized.length - 1] === undefined ||
+      String(normalized[normalized.length - 1]).trim() === '')
+  ) {
+    normalized.pop();
+  }
+}
+
+function extractNormalizedRow(
+  rawCells: unknown[],
+): Array<string | number | Date | undefined> {
+  const normalized = rawCells.map((cell) => {
+    const s = sanitizeCellValue(cell);
+    return s === '' ? undefined : s;
+  });
+  trimTrailingEmptyCells(normalized);
+  return normalized;
+}
+
 @Injectable()
 export class ImportFileParserService {
-  private readonly supportedImportExtensions = new Set(['.csv', '.xlsx']);
-
-  getCell(row: unknown, index: number): string | number | Date | undefined {
-    if (!Array.isArray(row)) return undefined;
-
-    const value = row[index];
-    return typeof value === 'string' || typeof value === 'number'
-      ? value
-      : undefined;
+  getCell(row: unknown, index: number) {
+    return getCell(row, index);
   }
-
-  sanitizeCellValue(value: unknown): string | number | Date | undefined {
-    if (typeof value === 'string' || typeof value === 'number') return value;
-    if (value instanceof Date) return value;
-    if (typeof value === 'boolean') return value ? 'true' : 'false';
-
-    if (value && typeof value === 'object') {
-      const candidate = readExcelCellObject(value);
-      if (!candidate) return String(value);
-
-      if (candidate.result !== undefined)
-        return this.sanitizeCellValue(candidate.result);
-
-      if (typeof candidate.text === 'string') return candidate.text;
-
-      if (Array.isArray(candidate.richText)) {
-        return candidate.richText
-          .map((segment) => segment.text ?? '')
-          .join('')
-          .trim();
-      }
-    }
-
-    if (value == null) return undefined;
-
-    return String(value);
+  sanitizeCellValue(value: unknown) {
+    return sanitizeCellValue(value);
   }
-
-  isRowEmpty(row: Array<string | number | Date | undefined>): boolean {
-    return row.every(
-      (cell) => cell === undefined || String(cell).trim().length === 0,
-    );
+  isRowEmpty(row: Array<string | number | Date | undefined>) {
+    return isRowEmpty(row);
+  }
+  toHeaderString(value: string | number | Date | undefined) {
+    return toHeaderString(value);
+  }
+  mapDataRows(
+    headers: string[],
+    dataRows: Array<Array<string | number | Date | undefined>>,
+  ) {
+    return mapDataRows(headers, dataRows);
   }
 
   getImportExtension(filePath: string): '.csv' | '.xlsx' {
@@ -65,10 +126,8 @@ export class ImportFileParserService {
       throw new BadRequestException(
         'Legacy .xls files are no longer supported. Please upload .xlsx or .csv.',
       );
-
     if (extension === '.csv') return '.csv';
     if (extension === '.xlsx') return '.xlsx';
-
     throw new BadRequestException('Only .xlsx and .csv files are allowed.');
   }
 
@@ -76,21 +135,22 @@ export class ImportFileParserService {
     filePath: string,
   ): Promise<Array<Array<string | number | Date | undefined>>> {
     const csvContent = await readFile(filePath, 'utf-8');
-    const result = Papa.parse<Array<string | number | Date | undefined>>(csvContent, { skipEmptyLines: 'greedy' });
-
+    const result = Papa.parse<Array<string | number | Date | undefined>>(
+      csvContent,
+      { skipEmptyLines: 'greedy' },
+    );
     if (result.errors.length > 0)
       throw new BadRequestException(
         `Failed to parse CSV: ${result.errors[0].message}`,
       );
-
     return result.data
       .map((row) =>
         row.map((cell) => {
-          const sanitized = this.sanitizeCellValue(cell);
-          return sanitized === '' ? undefined : sanitized;
+          const s = sanitizeCellValue(cell);
+          return s === '' ? undefined : s;
         }),
       )
-      .filter((row) => !this.isRowEmpty(row));
+      .filter((row) => !isRowEmpty(row));
   }
 
   async parseXlsxRows(
@@ -98,29 +158,16 @@ export class ImportFileParserService {
   ): Promise<Array<Array<string | number | Date | undefined>>> {
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(filePath);
-
     const worksheet = workbook.worksheets[0];
     if (!worksheet)
       throw new BadRequestException('Spreadsheet does not contain any sheets');
-
     const rows: Array<Array<string | number | Date | undefined>> = [];
     worksheet.eachRow({ includeEmpty: false }, (row) => {
-      const normalized = extractWorksheetRowCells(row.values)
-        .map((cell) => this.sanitizeCellValue(cell))
-        .map((cell) => (cell === '' ? undefined : cell));
-      while (
-        normalized.length > 0 &&
-        (normalized[normalized.length - 1] === undefined ||
-          String(normalized[normalized.length - 1]).trim() === '')
-      ) {
-        normalized.pop();
-      }
-
-      if (!this.isRowEmpty(normalized)) {
-        rows.push(normalized);
-      }
+      const normalized = extractNormalizedRow(
+        extractWorksheetRowCells(row.values),
+      );
+      if (!isRowEmpty(normalized)) rows.push(normalized);
     });
-
     return rows;
   }
 
@@ -128,32 +175,9 @@ export class ImportFileParserService {
     filePath: string,
   ): Promise<Array<Array<string | number | Date | undefined>>> {
     const extension = this.getImportExtension(filePath);
-    if (extension === '.csv') return this.parseCsvRows(filePath);
-    return this.parseXlsxRows(filePath);
-  }
-
-  toHeaderString(value: string | number | Date | undefined): string {
-    if (value === undefined) return '';
-
-    return String(value).trim();
-  }
-
-  mapDataRows(
-    headers: string[],
-    dataRows: Array<Array<string | number | Date | undefined>>,
-  ): ExcelRow[] {
-    return dataRows.map((row) => {
-      const mapped: ExcelRow = {};
-      headers.forEach((header, index) => {
-        if (!header) return;
-
-        const value = row[index];
-        if (value !== undefined && String(value).trim() !== '') {
-          mapped[header] = value;
-        }
-      });
-      return mapped;
-    });
+    return extension === '.csv'
+      ? this.parseCsvRows(filePath)
+      : this.parseXlsxRows(filePath);
   }
 
   getBulkImportExtension(fileName: string): '.csv' | '.xlsx' {
@@ -171,63 +195,40 @@ export class ImportFileParserService {
 
   parseCsvBufferToRecords(buffer: Buffer): BulkImportRow[] {
     const csvData = buffer.toString('utf-8');
-    const result = Papa.parse<Record<string, unknown>>(csvData, { header: true, skipEmptyLines: 'greedy', transformHeader: (header) => header.trim() });
-
+    const result = Papa.parse<Record<string, unknown>>(csvData, {
+      header: true,
+      skipEmptyLines: 'greedy',
+      transformHeader: (h) => h.trim(),
+    });
     if (result.errors.length > 0)
       throw new BadRequestException(
         `Failed to parse CSV: ${result.errors[0]?.message ?? 'unknown error'}`,
       );
-
     return result.data
       .map((row) => normalizeBulkImportRow(row))
       .filter((row) => Object.keys(row).length > 0);
   }
 
-  private async loadXlsxWorkbook(
-    workbook: ExcelJS.Workbook,
-    buffer: Buffer,
-  ): Promise<void> {
-    await loadWorkbookXlsx(workbook, buffer);
-  }
-
   async parseXlsxBufferToRecords(buffer: Buffer): Promise<BulkImportRow[]> {
     const workbook = new ExcelJS.Workbook();
-    await this.loadXlsxWorkbook(workbook, buffer);
-
+    await loadWorkbookXlsx(workbook, buffer);
     const worksheet = workbook.worksheets[0];
     if (!worksheet)
       throw new BadRequestException('Spreadsheet does not contain any sheets');
-
     const tabularRows: Array<Array<string | number | Date | undefined>> = [];
     worksheet.eachRow({ includeEmpty: false }, (row) => {
       const cells = Array.isArray(row.values) ? row.values : [];
-      const normalized = cells
-        .slice(1)
-        .map((cell) => this.sanitizeCellValue(cell))
-        .map((cell) => (cell === '' ? undefined : cell));
-      while (
-        normalized.length > 0 &&
-        (normalized[normalized.length - 1] === undefined ||
-          String(normalized[normalized.length - 1]).trim() === '')
-      ) {
-        normalized.pop();
-      }
-
-      if (!this.isRowEmpty(normalized)) {
-        tabularRows.push(normalized);
-      }
+      const normalized = extractNormalizedRow(cells.slice(1));
+      if (!isRowEmpty(normalized)) tabularRows.push(normalized);
     });
-
     if (tabularRows.length < 2)
       throw new BadRequestException(
         'Spreadsheet must have a header row and at least one data row',
       );
-
-    const headers = tabularRows[0].map((value) => this.toHeaderString(value));
-    if (headers.filter((header) => header.length > 0).length === 0)
+    const headers = tabularRows[0].map(toHeaderString);
+    if (headers.filter((h) => h.length > 0).length === 0)
       throw new BadRequestException('Header row is empty');
-
-    return this.mapDataRows(headers, tabularRows.slice(1)).map((row) =>
+    return mapDataRows(headers, tabularRows.slice(1)).map((row) =>
       normalizeBulkImportRow(row),
     );
   }
@@ -242,7 +243,6 @@ export class ImportFileParserService {
       if (rows.length === 0) throw new BadRequestException('CSV file is empty');
       return rows;
     }
-
     const rows = await this.parseXlsxBufferToRecords(buffer);
     if (rows.length === 0)
       throw new BadRequestException('Spreadsheet has no data rows');

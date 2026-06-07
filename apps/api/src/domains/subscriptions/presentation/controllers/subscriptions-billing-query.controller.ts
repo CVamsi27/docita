@@ -63,8 +63,10 @@ export class SubscriptionsBillingQueryController {
   ) {
     const clinicId = requireBillingClinicId(req);
     const { tier, cycle } = query;
-    const subscriptionEntity = await this.queryService.findSubscriptionEntity(clinicId);
-    const pricingOffer = await this.queryService.getClinicPricingOffer(clinicId);
+    const subscriptionEntity =
+      await this.queryService.findSubscriptionEntity(clinicId);
+    const pricingOffer =
+      await this.queryService.getClinicPricingOffer(clinicId);
     const offerPercent = pricingOffer?.percentOff ?? 0;
     const newTier = ClinicTier.fromString(tier);
     const newCycle = BillingCycle.fromString(cycle);

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { AppClinic, SubscriptionCurrentResponse } from "@workspace/types";
 import { Button } from "@workspace/ui/components/form/button";
 import { getTierInfo } from "@/lib/subscription/tier-access";
-import { getTrialState } from "@/lib/subscription/subscription-lockout";
+import { getTrialState } from "@/lib/subscription/subscription-trial-state";
 import { getClinicGstin } from "@workspace/utils";
 
 export interface SubscriptionSettingsState {

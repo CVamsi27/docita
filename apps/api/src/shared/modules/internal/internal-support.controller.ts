@@ -146,7 +146,8 @@ export class InternalSupportController {
   async markSupportWhatsAppThreadRead(
     @Param('threadPhoneNumber') threadPhoneNumber: string,
   ) {
-    const updatedCount = await this.supportWhatsAppInboxService.markThreadAsRead(
+    const updatedCount =
+      await this.supportWhatsAppInboxService.markThreadAsRead(
         threadPhoneNumber,
       );
 

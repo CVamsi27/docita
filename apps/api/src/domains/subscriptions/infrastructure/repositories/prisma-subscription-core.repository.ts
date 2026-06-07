@@ -67,7 +67,8 @@ export class PrismaSubscriptionCoreRepository {
 
   async findById(id: string): Promise<Subscription | null> {
     try {
-      const prismaSubscription = await this.getReadClient().subscription.findUnique({
+      const prismaSubscription =
+        await this.getReadClient().subscription.findUnique({
           where: { id },
         });
 
@@ -83,7 +84,8 @@ export class PrismaSubscriptionCoreRepository {
 
   async findByClinicId(clinicId: string): Promise<Subscription | null> {
     try {
-      const prismaSubscription = await this.getReadClient().subscription.findUnique({
+      const prismaSubscription =
+        await this.getReadClient().subscription.findUnique({
           where: { clinicId },
         });
 
@@ -99,7 +101,8 @@ export class PrismaSubscriptionCoreRepository {
 
   async findByStatus(status: string): Promise<Subscription[]> {
     try {
-      const prismaSubscriptions = await this.getReadClient().subscription.findMany({
+      const prismaSubscriptions =
+        await this.getReadClient().subscription.findMany({
           where: {
             status:
               parseStringEnumMember(SUBSCRIPTION_STATUS_VALUES, status) ??
@@ -122,7 +125,8 @@ export class PrismaSubscriptionCoreRepository {
       const renewalDate = new Date(now);
       renewalDate.setDate(renewalDate.getDate() + daysThreshold);
 
-      const prismaSubscriptions = await this.getReadClient().subscription.findMany({
+      const prismaSubscriptions =
+        await this.getReadClient().subscription.findMany({
           where: {
             currentPeriodEnd: {
               lte: renewalDate,
@@ -296,7 +300,8 @@ export class PrismaSubscriptionCoreRepository {
     reminderType: string;
     reminderCutoff: Date;
   }): Promise<string[]> {
-    const existingReminders = await this.getReadClient().subscriptionReminder.findMany({
+    const existingReminders =
+      await this.getReadClient().subscriptionReminder.findMany({
         where: {
           clinicId: { in: params.clinicIds },
           type: params.reminderType,

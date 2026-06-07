@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useClinic } from "@/lib/contexts/clinic-context";
 
 import { useInvoice } from "@workspace/data-access";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { InvoiceItem } from "@workspace/types";
 import {
@@ -11,12 +10,9 @@ import {
   formatDateSafe,
 } from "@/lib/formatters";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
-import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { invoicesApi } from "@/features/invoices/api/invoices.api";
-import { safeOpenSignedUrl } from "@/lib/security/signed-url-validator";
+import { pollInvoicePdfUrl } from "@/features/invoices/lib/poll-invoice-pdf";
 
-const POLL_INTERVAL_MS = 2000;
-const POLL_TIMEOUT_MS = 60000;
+
 
 export const useInvoiceDetailsLogic = (
   invoiceId: string,
@@ -59,33 +55,8 @@ export const useInvoiceDetailsLogic = (
     pdfAbortRef.current = controller;
 
     setIsDownloading(true);
-    const toastId = toast.loading("Preparing PDF…");
-
     try {
-      const { jobId } = await invoicesApi.enqueuePdf(invoiceId);
-
-      const deadline = Date.now() + POLL_TIMEOUT_MS;
-      while (Date.now() < deadline) {
-        if (controller.signal.aborted) return;
-        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-        const status = await invoicesApi.getPdfStatus(invoiceId, jobId);
-
-        if (status.status === "COMPLETED" && status.pdfUrl) {
-          toast.dismiss(toastId);
-          toast.success("PDF ready");
-          safeOpenSignedUrl(status.pdfUrl);
-          return;
-        }
-
-        if (status.status === "FAILED") throw new Error("PDF generation failed");
-      }
-
-      throw new Error("PDF generation timed out");
-    } catch {
-      toast.dismiss(toastId);
-      showUserFacingErrorToast(
-        "We could not download this invoice. Please try again.",
-      );
+      await pollInvoicePdfUrl(invoiceId, controller.signal);
     } finally {
       setIsDownloading(false);
       if (controller === pdfAbortRef.current) {

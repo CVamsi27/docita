@@ -14,7 +14,7 @@ import { ErrorSeverity } from '@workspace/db';
 import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { isObject } from '@/shared/modules/error-handling/filters/http-exception.helpers';
-import { getMonitoringUserContext } from '@/shared/modules/auth/auth/request-user.util';
+import { getMonitoringUserContext } from '@/shared/modules/auth/auth/monitoring-user-context';
 import { resolveExceptionResponse } from '@/shared/modules/error-handling/filters/http-exception-resolution';
 
 const MAX_REQUEST_BODY_KEYS = 20;

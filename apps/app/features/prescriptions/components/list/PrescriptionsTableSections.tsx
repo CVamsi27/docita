@@ -2,15 +2,13 @@ import React from "react";
 import Link from "next/link";
 import { formatDate, getPatientFullName } from "@workspace/utils";
 import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
   Download,
   Eye,
   Pill,
   Printer,
 } from "lucide-react";
 import type { DataTableColumn } from "@workspace/ui/components/data-display/data-table";
+import { SortableHeaderButton } from "@workspace/ui/components/data-display/sortable-header-button";
 import { ListRow } from "@workspace/ui/components/data-display/list-row";
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
@@ -37,23 +35,12 @@ export function SortableHeader({
   onSort: (key: SortKey) => void;
 }) {
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={() => onSort(column)}
-      className="gap-1 h-8 px-0 font-medium hover:bg-transparent"
-    >
-      {label}
-      {sortConfig.key === column ? (
-        sortConfig.direction === "asc" ? (
-          <ArrowUp className="h-3 w-3" />
-        ) : (
-          <ArrowDown className="h-3 w-3" />
-        )
-      ) : (
-        <ArrowUpDown className="h-3 w-3 opacity-50" />
-      )}
-    </Button>
+    <SortableHeaderButton
+      column={column}
+      label={label}
+      sortConfig={sortConfig}
+      onSort={onSort}
+    />
   );
 }
 

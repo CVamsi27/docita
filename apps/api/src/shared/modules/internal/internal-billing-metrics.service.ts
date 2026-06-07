@@ -123,7 +123,8 @@ export class InternalBillingMetricsService {
     const firstMonthStart = addMonths(currentMonthStart, -5);
     const nextMonthStart = addMonths(currentMonthStart, 1);
 
-    const groupedRevenue = await this.subscriptionPayments.getPaidRevenueGroupedByMonth(
+    const groupedRevenue =
+      await this.subscriptionPayments.getPaidRevenueGroupedByMonth(
         firstMonthStart,
         nextMonthStart,
       );

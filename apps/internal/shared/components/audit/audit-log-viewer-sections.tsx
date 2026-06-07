@@ -23,7 +23,7 @@ import {
 } from "@workspace/ui/components/form/select";
 import { DatePicker } from "@workspace/ui/components/form/date-picker";
 import type { InternalAuditLog } from "@workspace/data-access/internal";
-import { formatInternalTimestamp } from "@/lib/formatters/format-display-date";
+import { formatInternalTimestamp } from "@/lib/formatters/format-internal-timestamp";
 
 interface ToolbarSectionProps {
   isLoading: boolean;

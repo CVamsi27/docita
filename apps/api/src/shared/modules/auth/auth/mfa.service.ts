@@ -25,7 +25,10 @@ export class MfaService {
   async generateSetupSecret(
     userId: string,
   ): Promise<{ qrCodeUrl: string; manualEntryKey: string }> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true, mfaEnabled: true } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, mfaEnabled: true },
+    });
     if (!user) throw new UnauthorizedException('User not found');
     if (user.mfaEnabled)
       throw new BadRequestException(
@@ -34,8 +37,15 @@ export class MfaService {
 
     const secret = generateSecret();
 
-    await this.prisma.user.update({ where: { id: userId }, data: { mfaTempSecret: secret } });
-    const otpauthUrl = generateURI({ issuer: 'Docita', label: user.email, secret });
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { mfaTempSecret: secret },
+    });
+    const otpauthUrl = generateURI({
+      issuer: 'Docita',
+      label: user.email,
+      secret,
+    });
     const qrCodeUrl = await QRCode.toDataURL(otpauthUrl);
 
     return { qrCodeUrl, manualEntryKey: secret };
@@ -45,41 +55,69 @@ export class MfaService {
     userId: string,
     totpCode: string,
   ): Promise<{ backupCodes: string[] }> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { mfaTempSecret: true, mfaEnabled: true } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { mfaTempSecret: true, mfaEnabled: true },
+    });
     if (!user) throw new UnauthorizedException('User not found');
-    if (user.mfaEnabled) throw new BadRequestException('MFA is already enabled');
+    if (user.mfaEnabled)
+      throw new BadRequestException('MFA is already enabled');
     if (!user.mfaTempSecret)
       throw new BadRequestException(
         'No MFA setup in progress. Call /auth/mfa/setup first.',
       );
 
-    const result = await verify({ token: totpCode, secret: user.mfaTempSecret, epochTolerance: 1 });
+    const result = await verify({
+      token: totpCode,
+      secret: user.mfaTempSecret,
+      epochTolerance: 1,
+    });
     if (!result.valid) throw new UnauthorizedException('Invalid TOTP code');
 
     const plainBackupCodes = this.generatePlainBackupCodes();
-    const hashedBackupCodes = await Promise.all(plainBackupCodes.map((code) => bcrypt.hash(code, 10)));
+    const hashedBackupCodes = await Promise.all(
+      plainBackupCodes.map((code) => bcrypt.hash(code, 10)),
+    );
 
-    await this.prisma.user.update({ where: { id: userId }, data: {
-      mfaEnabled: true, mfaSecret: user.mfaTempSecret,
-      mfaTempSecret: null, mfaBackupCodes: hashedBackupCodes,
-    } });
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        mfaEnabled: true,
+        mfaSecret: user.mfaTempSecret,
+        mfaTempSecret: null,
+        mfaBackupCodes: hashedBackupCodes,
+      },
+    });
 
     this.logger.log('MFA enabled', { userId });
     return { backupCodes: plainBackupCodes };
   }
 
   async disableMfa(userId: string, totpCode: string): Promise<void> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { mfaEnabled: true, mfaSecret: true } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { mfaEnabled: true, mfaSecret: true },
+    });
     if (!user) throw new UnauthorizedException('User not found');
     if (!user.mfaEnabled || !user.mfaSecret)
       throw new BadRequestException('MFA is not enabled');
 
-    const result = await verify({ token: totpCode, secret: user.mfaSecret, epochTolerance: 1 });
+    const result = await verify({
+      token: totpCode,
+      secret: user.mfaSecret,
+      epochTolerance: 1,
+    });
     if (!result.valid) throw new UnauthorizedException('Invalid TOTP code');
 
-    await this.prisma.user.update({ where: { id: userId }, data: {
-      mfaEnabled: false, mfaSecret: null, mfaTempSecret: null, mfaBackupCodes: [],
-    } });
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        mfaEnabled: false,
+        mfaSecret: null,
+        mfaTempSecret: null,
+        mfaBackupCodes: [],
+      },
+    });
 
     this.logger.log('MFA disabled', { userId });
   }
@@ -88,24 +126,42 @@ export class MfaService {
     userId: string,
     totpCode: string,
   ): Promise<{ backupCodes: string[] }> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { mfaEnabled: true, mfaSecret: true } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { mfaEnabled: true, mfaSecret: true },
+    });
     if (!user || !user.mfaEnabled || !user.mfaSecret)
       throw new BadRequestException('MFA is not enabled');
 
-    const result = await verify({ token: totpCode, secret: user.mfaSecret, epochTolerance: 1 });
+    const result = await verify({
+      token: totpCode,
+      secret: user.mfaSecret,
+      epochTolerance: 1,
+    });
     if (!result.valid) throw new UnauthorizedException('Invalid TOTP code');
 
     const plainBackupCodes = this.generatePlainBackupCodes();
-    const hashedBackupCodes = await Promise.all(plainBackupCodes.map((code) => bcrypt.hash(code, 10)));
+    const hashedBackupCodes = await Promise.all(
+      plainBackupCodes.map((code) => bcrypt.hash(code, 10)),
+    );
 
-    await this.prisma.user.update({ where: { id: userId }, data: { mfaBackupCodes: hashedBackupCodes } });
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { mfaBackupCodes: hashedBackupCodes },
+    });
     return { backupCodes: plainBackupCodes };
   }
 
   async issueMfaChallenge(userId: string): Promise<string> {
     await this.prisma.mfaChallenge.deleteMany({ where: { userId } });
     const token = nanoid(64);
-    await this.prisma.mfaChallenge.create({ data: { userId, token, expiresAt: new Date(Date.now() + AUTH_CONSTANTS.MFA_CHALLENGE_TTL_MS) } });
+    await this.prisma.mfaChallenge.create({
+      data: {
+        userId,
+        token,
+        expiresAt: new Date(Date.now() + AUTH_CONSTANTS.MFA_CHALLENGE_TTL_MS),
+      },
+    });
     return token;
   }
 
@@ -113,7 +169,10 @@ export class MfaService {
     challengeToken: string,
     totpCode: string,
   ): Promise<string> {
-    const challenge = await this.prisma.mfaChallenge.findUnique({ where: { token: challengeToken }, select: { id: true, userId: true, expiresAt: true } });
+    const challenge = await this.prisma.mfaChallenge.findUnique({
+      where: { token: challengeToken },
+      select: { id: true, userId: true, expiresAt: true },
+    });
     if (!challenge || challenge.expiresAt < this.clock.now())
       throw new UnauthorizedException(
         'MFA challenge expired or invalid. Please log in again.',
@@ -121,7 +180,15 @@ export class MfaService {
 
     // RLS-BYPASS: auth resolves users before clinic tenant context is established
     const user = await this.prisma.runUnrestricted(async () =>
-      this.prisma.user.findUnique({ where: { id: challenge.userId }, select: { id: true, mfaEnabled: true, mfaSecret: true, mfaBackupCodes: true } }),
+      this.prisma.user.findUnique({
+        where: { id: challenge.userId },
+        select: {
+          id: true,
+          mfaEnabled: true,
+          mfaSecret: true,
+          mfaBackupCodes: true,
+        },
+      }),
     );
 
     if (!user) throw new UnauthorizedException('User not found');
@@ -129,7 +196,11 @@ export class MfaService {
     if (!user.mfaEnabled || !user.mfaSecret)
       throw new BadRequestException('MFA is not configured for this user');
 
-    const verifyResult = await verify({ token: totpCode, secret: user.mfaSecret, epochTolerance: 1 });
+    const verifyResult = await verify({
+      token: totpCode,
+      secret: user.mfaSecret,
+      epochTolerance: 1,
+    });
     if (!verifyResult.valid) {
       const isBackupCode = await this.verifyAndConsumeBackupCode(
         user.id,
@@ -153,9 +224,17 @@ export class MfaService {
       if (matches) {
         const remaining = [...hashedCodes];
         remaining.splice(i, 1);
-    // RLS-BYPASS: auth resolves users before clinic tenant context is established
-    await this.prisma.runUnrestricted(async () => this.prisma.user.update({ where: { id: userId }, data: { mfaBackupCodes: remaining } }));
-        this.logger.warn('Backup code used', { userId, remainingCodes: remaining.length });
+        // RLS-BYPASS: auth resolves users before clinic tenant context is established
+        await this.prisma.runUnrestricted(async () =>
+          this.prisma.user.update({
+            where: { id: userId },
+            data: { mfaBackupCodes: remaining },
+          }),
+        );
+        this.logger.warn('Backup code used', {
+          userId,
+          remainingCodes: remaining.length,
+        });
         return true;
       }
     }

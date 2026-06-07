@@ -80,7 +80,8 @@ export class NotifySubscriptionGraceDeadlineUseCase extends BaseSubscriptionNoti
     const { targetDate, reminderType } = request;
     const { startOfDay, endOfDay } = getUtcDayBounds(targetDate);
 
-    const subscriptions = await this.subscriptionRepo.findGraceDeadlineReminderCandidates({
+    const subscriptions =
+      await this.subscriptionRepo.findGraceDeadlineReminderCandidates({
         startOfDay,
         endOfDay,
       });

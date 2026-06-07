@@ -89,7 +89,10 @@ export class PatientAppointmentResolverService {
     phoneNumber: string,
   ): Promise<AppointmentContext | null> {
     const phoneVariants = this.buildPhoneVariants(phoneNumber);
-    const patient = await this.persistence.patient.findFirst({ where: { phoneNumber: { in: phoneVariants } }, select: { id: true } });
+    const patient = await this.persistence.patient.findFirst({
+      where: { phoneNumber: { in: phoneVariants } },
+      select: { id: true },
+    });
     if (!patient) return null;
 
     const now = this.clock.now();
@@ -97,7 +100,11 @@ export class PatientAppointmentResolverService {
     const windowEnd = new Date(now.getTime() + LOOKAHEAD_MS);
 
     const candidates = await this.persistence.appointment.findMany({
-      where: { patientId: patient.id, startTime: { gte: windowStart, lte: windowEnd }, status: { in: ACTIVE_STATUSES } },
+      where: {
+        patientId: patient.id,
+        startTime: { gte: windowStart, lte: windowEnd },
+        status: { in: ACTIVE_STATUSES },
+      },
       orderBy: { startTime: 'asc' },
       include: { patient: true, doctor: true, clinic: true },
     });
@@ -127,11 +134,15 @@ export class PatientAppointmentResolverService {
     const pool = upcoming.length > 0 ? upcoming : candidates;
     const nearest = pool.reduce((best, current) => {
       const bestDelta = Math.abs(best.startTime.getTime() - now.getTime());
-      const currentDelta = Math.abs(current.startTime.getTime() - now.getTime());
+      const currentDelta = Math.abs(
+        current.startTime.getTime() - now.getTime(),
+      );
       return currentDelta < bestDelta ? current : best;
     });
 
-    this.logger.log(`Resolved ambiguous patient reply to nearest appointment ${nearest.id}`);
+    this.logger.log(
+      `Resolved ambiguous patient reply to nearest appointment ${nearest.id}`,
+    );
     return toAppointmentContext(nearest);
   }
 

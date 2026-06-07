@@ -9,10 +9,8 @@ import {
   WhatsappUnreadNotificationsResponseDto,
 } from '@/domains/whatsapp/presentation/dto/whatsapp-response.dto';
 import { LegacyWhatsappClinicAccess } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.access';
-import {
-  requireClinicId,
-  requireUserId,
-} from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.helpers';
+import { requireClinicId } from '@/domains/whatsapp/presentation/controllers/require-clinic-id';
+import { requireUserId } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.helpers';
 
 @Controller('whatsapp')
 @LegacyWhatsappClinicAccess()
