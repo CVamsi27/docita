@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-06-07T19:48:44.455Z",
+    "detectionDate": "2026-06-07T20:12:41.994Z",
     "formats": {
       "typescript": {
         "sources": {
@@ -5010,7 +5010,7 @@
           },
           "apps/api/src/domains/subscriptions/application/services/subscription-overage-meter.helpers.ts": {
             "lines": 204,
-            "tokens": 1498,
+            "tokens": 1496,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -12882,7 +12882,7 @@
           },
           "apps/api/src/shared/modules/imports/xlsx-worksheet-parser.ts": {
             "lines": 55,
-            "tokens": 615,
+            "tokens": 624,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -13049,8 +13049,8 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/imports/import-types.ts": {
-            "lines": 66,
-            "tokens": 526,
+            "lines": 68,
+            "tokens": 553,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -13073,8 +13073,8 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/imports/import-row-utils.ts": {
-            "lines": 90,
-            "tokens": 983,
+            "lines": 88,
+            "tokens": 956,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -13134,7 +13134,7 @@
           },
           "apps/api/src/shared/modules/imports/import-file-parser.service.ts": {
             "lines": 103,
-            "tokens": 923,
+            "tokens": 932,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -13205,8 +13205,8 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/imports/csv-row-parser.ts": {
-            "lines": 45,
-            "tokens": 484,
+            "lines": 42,
+            "tokens": 490,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -15511,6 +15511,30 @@
           "apps/internal/shared/lib/config/env-schema.ts": {
             "lines": 27,
             "tokens": 260,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/internal/shared/lib/auth/use-auth-state.ts": {
+            "lines": 59,
+            "tokens": 463,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/internal/shared/lib/auth/use-auth-session.ts": {
+            "lines": 115,
+            "tokens": 1026,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -18160,6 +18184,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/app/features/onboarding/components/use-signature-upload.ts": {
+            "lines": 145,
+            "tokens": 1276,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/app/features/onboarding/components/types.ts": {
             "lines": 108,
             "tokens": 768,
@@ -19399,6 +19435,30 @@
           "apps/app/features/consultation/hooks/consultation-dashboard-helpers.ts": {
             "lines": 361,
             "tokens": 3376,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/features/consultation/components/use-consultation-mark-done.ts": {
+            "lines": 111,
+            "tokens": 816,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/features/consultation/components/use-consultation-completion.ts": {
+            "lines": 57,
+            "tokens": 414,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -24137,8 +24197,8 @@
             "newClones": 0
           },
           "apps/landing/src/lib/public-api.ts": {
-            "lines": 40,
-            "tokens": 360,
+            "lines": 30,
+            "tokens": 276,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -24175,6 +24235,18 @@
           "apps/landing/src/lib/landing-api-proxy.ts": {
             "lines": 40,
             "tokens": 362,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/landing/src/lib/get-app-base-url.ts": {
+            "lines": 10,
+            "tokens": 84,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -26621,8 +26693,8 @@
             "newClones": 0
           },
           "apps/api/scripts/generate-openapi.ts": {
-            "lines": 52,
-            "tokens": 387,
+            "lines": 65,
+            "tokens": 512,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -26946,9 +27018,9 @@
           }
         },
         "total": {
-          "lines": 202638,
-          "tokens": 1674045,
-          "sources": 2245,
+          "lines": 203135,
+          "tokens": 1678187,
+          "sources": 2251,
           "clones": 0,
           "duplicatedLines": 0,
           "duplicatedTokens": 0,
@@ -30524,6 +30596,30 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/app/features/invoices/components/dialogs/InvoiceStatusSection.tsx": {
+            "lines": 6,
+            "tokens": 77,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/features/invoices/components/dialogs/InvoiceItemsSection.tsx": {
+            "lines": 20,
+            "tokens": 192,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/app/features/invoices/components/dialogs/InvoiceItemRow.tsx": {
             "lines": 29,
             "tokens": 260,
@@ -30536,9 +30632,21 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/app/features/invoices/components/dialogs/EditInvoiceDialogUI.tsx": {
+            "lines": 19,
+            "tokens": 121,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/app/features/invoices/components/dialogs/EditInvoiceDialogContainer.tsx": {
-            "lines": 12,
-            "tokens": 75,
+            "lines": 11,
+            "tokens": 69,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -31329,8 +31437,8 @@
             "newClones": 0
           },
           "apps/app/features/consultation/components/structured/chief-complaint-item-row.tsx": {
-            "lines": 152,
-            "tokens": 1156,
+            "lines": 22,
+            "tokens": 111,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -31379,6 +31487,30 @@
           "apps/app/features/consultation/components/structured/DiagnosisInput.tsx": {
             "lines": 16,
             "tokens": 121,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/features/consultation/components/structured/ComplaintHeader.tsx": {
+            "lines": 38,
+            "tokens": 213,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/features/consultation/components/structured/ComplaintDetails.tsx": {
+            "lines": 91,
+            "tokens": 803,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -33418,7 +33550,7 @@
           },
           "apps/internal/shared/lib/auth/auth.tsx": {
             "lines": 19,
-            "tokens": 88,
+            "tokens": 104,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -34341,8 +34473,8 @@
             "newClones": 0
           },
           "apps/app/shared/components/ask-ai/ask-ai-overlay.tsx": {
-            "lines": 137,
-            "tokens": 886,
+            "lines": 67,
+            "tokens": 443,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -34379,6 +34511,30 @@
           "apps/app/shared/components/ask-ai/ask-ai-button.tsx": {
             "lines": 19,
             "tokens": 101,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/shared/components/ask-ai/AskAiMessageList.tsx": {
+            "lines": 26,
+            "tokens": 178,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/shared/components/ask-ai/AskAiInput.tsx": {
+            "lines": 12,
+            "tokens": 67,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -35048,9 +35204,21 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/app/features/patient-portal/components/PortalMetricsCards.tsx": {
+            "lines": 2,
+            "tokens": 26,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/app/features/patient-portal/components/PortalDashboardPageContent.tsx": {
-            "lines": 31,
-            "tokens": 243,
+            "lines": 16,
+            "tokens": 96,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -35205,8 +35373,8 @@
             "newClones": 0
           },
           "apps/app/features/onboarding/components/UploadSignatureOnboardingPageContent.tsx": {
-            "lines": 67,
-            "tokens": 398,
+            "lines": 69,
+            "tokens": 410,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -36225,8 +36393,8 @@
             "newClones": 0
           },
           "apps/app/features/consultation/components/ConsultationDetailPageContent.tsx": {
-            "lines": 195,
-            "tokens": 1354,
+            "lines": 104,
+            "tokens": 652,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -36933,8 +37101,32 @@
             "newClones": 0
           },
           "apps/internal/features/system-monitoring/tenant-scope-tab.tsx": {
-            "lines": 76,
-            "tokens": 547,
+            "lines": 32,
+            "tokens": 263,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/internal/features/system-monitoring/tenant-scope-rules-table.tsx": {
+            "lines": 4,
+            "tokens": 53,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/internal/features/system-monitoring/tenant-scope-coverage.tsx": {
+            "lines": 30,
+            "tokens": 235,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -38085,8 +38277,8 @@
             "newClones": 0
           },
           "apps/internal/app/page.tsx": {
-            "lines": 78,
-            "tokens": 590,
+            "lines": 0,
+            "tokens": 9,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -38135,6 +38327,18 @@
           "apps/internal/app/data-access-bridge.tsx": {
             "lines": 0,
             "tokens": 3,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/internal/app/InternalLoginForm.tsx": {
+            "lines": 78,
+            "tokens": 590,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -38890,9 +39094,9 @@
           }
         },
         "total": {
-          "lines": 53221,
-          "tokens": 390197,
-          "sources": 994,
+          "lines": 53120,
+          "tokens": 389572,
+          "sources": 1005,
           "clones": 0,
           "duplicatedLines": 0,
           "duplicatedTokens": 0,
@@ -42792,6 +42996,42 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/app/features/invoices/components/dialogs/InvoiceTotalSection.tsx": {
+            "lines": 18,
+            "tokens": 131,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/features/invoices/components/dialogs/InvoiceStatusSection.tsx": {
+            "lines": 38,
+            "tokens": 275,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/features/invoices/components/dialogs/InvoiceItemsSection.tsx": {
+            "lines": 53,
+            "tokens": 480,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/app/features/invoices/components/dialogs/InvoiceItemRow.tsx": {
             "lines": 60,
             "tokens": 532,
@@ -42805,8 +43045,8 @@
             "newClones": 0
           },
           "apps/app/features/invoices/components/dialogs/EditInvoiceDialogUI.tsx": {
-            "lines": 7,
-            "tokens": 26,
+            "lines": 66,
+            "tokens": 466,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -42817,8 +43057,8 @@
             "newClones": 0
           },
           "apps/app/features/invoices/components/dialogs/EditInvoiceDialogContainer.tsx": {
-            "lines": 113,
-            "tokens": 995,
+            "lines": 112,
+            "tokens": 989,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -43669,8 +43909,8 @@
             "newClones": 0
           },
           "apps/app/features/consultation/components/structured/chief-complaint-item-row.tsx": {
-            "lines": 209,
-            "tokens": 1598,
+            "lines": 62,
+            "tokens": 426,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -43719,6 +43959,30 @@
           "apps/app/features/consultation/components/structured/DiagnosisInput.tsx": {
             "lines": 91,
             "tokens": 767,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/features/consultation/components/structured/ComplaintHeader.tsx": {
+            "lines": 76,
+            "tokens": 456,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/features/consultation/components/structured/ComplaintDetails.tsx": {
+            "lines": 139,
+            "tokens": 1109,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -45901,8 +46165,8 @@
             "newClones": 0
           },
           "apps/internal/shared/lib/auth/auth.tsx": {
-            "lines": 247,
-            "tokens": 1980,
+            "lines": 148,
+            "tokens": 1189,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -47053,8 +47317,8 @@
             "newClones": 0
           },
           "apps/app/shared/components/ask-ai/ask-ai-overlay.tsx": {
-            "lines": 211,
-            "tokens": 1512,
+            "lines": 109,
+            "tokens": 782,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -47091,6 +47355,42 @@
           "apps/app/shared/components/ask-ai/ask-ai-button.tsx": {
             "lines": 67,
             "tokens": 441,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/shared/components/ask-ai/AskAiMessageList.tsx": {
+            "lines": 82,
+            "tokens": 521,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/shared/components/ask-ai/AskAiInput.tsx": {
+            "lines": 74,
+            "tokens": 545,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/shared/components/ask-ai/AskAiHeader.tsx": {
+            "lines": 20,
+            "tokens": 122,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -47820,6 +48120,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/app/features/patient-portal/components/PortalQuickActions.tsx": {
+            "lines": 39,
+            "tokens": 359,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/app/features/patient-portal/components/PortalProfilePageContent.tsx": {
             "lines": 185,
             "tokens": 1926,
@@ -47832,9 +48144,21 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/app/features/patient-portal/components/PortalMetricsCards.tsx": {
+            "lines": 175,
+            "tokens": 1653,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/app/features/patient-portal/components/PortalDashboardPageContent.tsx": {
-            "lines": 223,
-            "tokens": 1990,
+            "lines": 48,
+            "tokens": 317,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -47989,8 +48313,8 @@
             "newClones": 0
           },
           "apps/app/features/onboarding/components/UploadSignatureOnboardingPageContent.tsx": {
-            "lines": 240,
-            "tokens": 1774,
+            "lines": 98,
+            "tokens": 586,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -49069,8 +49393,8 @@
             "newClones": 0
           },
           "apps/app/features/consultation/components/ConsultationDetailPageContent.tsx": {
-            "lines": 234,
-            "tokens": 1668,
+            "lines": 132,
+            "tokens": 850,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -50065,8 +50389,44 @@
             "newClones": 0
           },
           "apps/internal/features/system-monitoring/tenant-scope-tab.tsx": {
-            "lines": 225,
-            "tokens": 1598,
+            "lines": 72,
+            "tokens": 510,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/internal/features/system-monitoring/tenant-scope-rules-table.tsx": {
+            "lines": 80,
+            "tokens": 494,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/internal/features/system-monitoring/tenant-scope-metrics-cards.tsx": {
+            "lines": 77,
+            "tokens": 541,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/internal/features/system-monitoring/tenant-scope-coverage.tsx": {
+            "lines": 72,
+            "tokens": 510,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -51373,8 +51733,8 @@
             "newClones": 0
           },
           "apps/internal/app/page.tsx": {
-            "lines": 217,
-            "tokens": 1793,
+            "lines": 69,
+            "tokens": 676,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -51447,6 +51807,30 @@
           "apps/internal/app/data-access-bridge.tsx": {
             "lines": 24,
             "tokens": 221,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/internal/app/InternalLoginHeader.tsx": {
+            "lines": 20,
+            "tokens": 125,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/internal/app/InternalLoginForm.tsx": {
+            "lines": 145,
+            "tokens": 1167,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -51566,9 +51950,9 @@
           }
         },
         "total": {
-          "lines": 115915,
-          "tokens": 851839,
-          "sources": 1055,
+          "lines": 116013,
+          "tokens": 852184,
+          "sources": 1070,
           "clones": 0,
           "duplicatedLines": 0,
           "duplicatedTokens": 0,
@@ -51741,8 +52125,8 @@
             "newClones": 0
           },
           "knip.json": {
-            "lines": 193,
-            "tokens": 915,
+            "lines": 200,
+            "tokens": 937,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -51790,8 +52174,8 @@
           }
         },
         "total": {
-          "lines": 503,
-          "tokens": 2573,
+          "lines": 510,
+          "tokens": 2595,
           "sources": 10,
           "clones": 0,
           "duplicatedLines": 0,
@@ -51804,9 +52188,9 @@
       }
     },
     "total": {
-      "lines": 373130,
-      "tokens": 2925512,
-      "sources": 4310,
+      "lines": 373631,
+      "tokens": 2929396,
+      "sources": 4342,
       "clones": 0,
       "duplicatedLines": 0,
       "duplicatedTokens": 0,

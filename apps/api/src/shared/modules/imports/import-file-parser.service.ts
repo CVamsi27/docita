@@ -8,8 +8,8 @@ import {
   isRowEmpty,
   toHeaderString,
   mapDataRows,
-  type TabularRow,
 } from './import-row-utils';
+import type { TabularRow } from './import-types';
 import { parseCsvRows, parseCsvBufferToRecords } from './csv-row-parser';
 import {
   parseXlsxRows,

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { getTrialState, getTrialGraceEndsAt } from "./subscription-trial-state";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -101,6 +101,34 @@ describe("getTrialState", () => {
       }),
     ).toBe("GRACE");
   });
+
+  it("returns EXPIRED exactly past trialEnd + GRACE_DAYS boundary", () => {
+    const brink = new Date(Date.now() - 3 * DAY_MS - 1);
+    expect(
+      getTrialState({
+        subscriptionStatus: "TRIALING",
+        trialEndsAt: brink,
+      }),
+    ).toBe("EXPIRED");
+  });
+
+  it("handles invalid date string as null (returns ACTIVE)", () => {
+    expect(
+      getTrialState({
+        subscriptionStatus: "TRIALING",
+        trialEndsAt: "not-a-real-date",
+      }),
+    ).toBe("ACTIVE");
+  });
+
+  it("handles trialEndsAt as a number (non-Date, non-string) as null (returns ACTIVE)", () => {
+    expect(
+      getTrialState({
+        subscriptionStatus: "TRIALING",
+        trialEndsAt: 1234567890 as unknown as Date,
+      }),
+    ).toBe("ACTIVE");
+  });
 });
 
 describe("getTrialGraceEndsAt", () => {
@@ -123,5 +151,17 @@ describe("getTrialGraceEndsAt", () => {
     const base = "2026-06-01T00:00:00Z";
     const expected = new Date(new Date(base).getTime() + 3 * DAY_MS);
     expect(getTrialGraceEndsAt({ trialEndsAt: base })).toEqual(expected);
+  });
+
+  it("returns null when trialEndsAt is an invalid Date object", () => {
+    expect(getTrialGraceEndsAt({ trialEndsAt: new Date("invalid") })).toBeNull();
+  });
+
+  it("returns null when trialEndsAt is an unparseable string", () => {
+    expect(getTrialGraceEndsAt({ trialEndsAt: "not-a-date" })).toBeNull();
+  });
+
+  it("returns null when trialEndsAt is a number (non-Date, non-string)", () => {
+    expect(getTrialGraceEndsAt({ trialEndsAt: 1234567890 as unknown as Date })).toBeNull();
   });
 });

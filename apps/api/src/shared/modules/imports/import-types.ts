@@ -1,3 +1,5 @@
+export type TabularRow = Array<string | number | Date | undefined>;
+
 export interface ExcelRow {
   [key: string]: string | number | Date | undefined;
 }

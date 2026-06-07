@@ -258,4 +258,99 @@ describe("LabTestsOrders", () => {
       expect(screen.getByDisplayValue("search text")).toBeInTheDocument();
     });
   });
+
+  describe("LabOrderActionsCell", () => {
+    it("disables verify button when isVerifying is true", () => {
+      setupMocks({
+        role: "ADMIN",
+        sortedTests: [makeOrder("1", { paidAt: null })],
+        isVerifying: true,
+      });
+
+      renderWithProviders(
+        <LabTestsOrders
+          isLoading={false}
+          filteredTests={[]}
+          searchQuery=""
+          setSearchQuery={() => {}}
+        />,
+      );
+
+      const verifyBtn = screen.getByText("Verify").closest("button");
+      expect(verifyBtn).toBeDisabled();
+    });
+
+    it('shows "View Results" text when order status is completed', () => {
+      setupMocks({
+        role: "ADMIN",
+        sortedTests: [makeOrder("1", { status: "completed" })],
+      });
+
+      renderWithProviders(
+        <LabTestsOrders
+          isLoading={false}
+          filteredTests={[]}
+          searchQuery=""
+          setSearchQuery={() => {}}
+        />,
+      );
+
+      expect(screen.getByText("View Results")).toBeInTheDocument();
+    });
+
+    it('shows "Details" text when order status is not completed', () => {
+      setupMocks({
+        role: "DOCTOR",
+        sortedTests: [makeOrder("1", { status: "ORDERED" })],
+      });
+
+      renderWithProviders(
+        <LabTestsOrders
+          isLoading={false}
+          filteredTests={[]}
+          searchQuery=""
+          setSearchQuery={() => {}}
+        />,
+      );
+
+      expect(screen.getByText("Details")).toBeInTheDocument();
+    });
+  });
+
+  describe("CategoryCell", () => {
+    it('renders "—" when labTest is null', () => {
+      setupMocks({
+        sortedTests: [makeOrder("1", { labTest: null })],
+      });
+
+      renderWithProviders(
+        <LabTestsOrders
+          isLoading={false}
+          filteredTests={[]}
+          searchQuery=""
+          setSearchQuery={() => {}}
+        />,
+      );
+
+      const dashes = screen.getAllByText("—");
+      expect(dashes.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("Empty state", () => {
+    it("renders empty state title when no tests", () => {
+      setupMocks({ sortedTests: [] });
+
+      renderWithProviders(
+        <LabTestsOrders
+          isLoading={false}
+          filteredTests={[]}
+          searchQuery=""
+          setSearchQuery={() => {}}
+        />,
+      );
+
+      expect(screen.getByText("No lab tests found")).toBeInTheDocument();
+    });
+  });
 });

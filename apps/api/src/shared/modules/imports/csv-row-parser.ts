@@ -1,13 +1,9 @@
 import { BadRequestException } from '@nestjs/common';
 import { readFile } from 'fs/promises';
 import Papa from 'papaparse';
-import type { BulkImportRow } from './import-types';
+import type { BulkImportRow, TabularRow } from './import-types';
 import { normalizeBulkImportRow } from './import-row-normalizer';
-import {
-  sanitizeCellValue,
-  isRowEmpty,
-  type TabularRow,
-} from './import-row-utils';
+import { sanitizeCellValue, isRowEmpty } from './import-row-utils';
 
 export async function parseCsvRows(filePath: string): Promise<TabularRow[]> {
   const csvContent = await readFile(filePath, 'utf-8');

@@ -7,8 +7,8 @@ import {
   isRowEmpty,
   toHeaderString,
   mapDataRows,
-  type TabularRow,
 } from './import-row-utils';
+import type { TabularRow } from './import-types';
 import { extractWorksheetRowCells } from './excel-cell-value';
 import { loadWorkbookXlsx } from './xlsx-load-boundary';
 

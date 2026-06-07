@@ -26,15 +26,5 @@ export function resolveApiUrl(path: string, baseOrigin = getBaseOrigin()): strin
   return `${baseUrl}${path}`;
 }
 
-export function getAppBaseUrl(): string {
-  const configuredUrl =
-    import.meta.env["PUBLIC_APP_URL"] ||
-    import.meta.env["NEXT_PUBLIC_APP_URL"] ||
-    import.meta.env["APP_URL"];
-
-  if (configuredUrl) return configuredUrl.replace(/\/+$/, "");
-
-  return "http://localhost:3000";
-}
-
 // fetchLandingJson is exported from api-fetch.ts — import it there directly.
+// getAppBaseUrl was moved to ./get-app-base-url — import from there instead.

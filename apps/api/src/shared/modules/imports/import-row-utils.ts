@@ -1,8 +1,6 @@
 import { readExcelCellObject } from './excel-cell-value';
 import type { ExcelRow } from './import-types';
 
-export type TabularRow = Array<string | number | Date | undefined>;
-
 export function getCell(
   row: unknown,
   index: number,

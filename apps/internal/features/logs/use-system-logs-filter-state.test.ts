@@ -145,4 +145,80 @@ describe("useSystemLogsFilterState", () => {
     });
     expect(result.current.refreshing).toBe(true);
   });
+
+  it("reads offset parameter and defaults to 0 for invalid values", () => {
+    mockSearchParams.get.mockImplementation((key: string) => {
+      if (key === "offset") return "-5";
+      return null;
+    });
+
+    const { result } = renderHook(() => useSystemLogsFilterState(50));
+    expect(result.current.selectedOffset).toBe(0);
+  });
+
+  it("reads offset parameter and defaults to 0 for NaN values", () => {
+    mockSearchParams.get.mockImplementation((key: string) => {
+      if (key === "offset") return "invalid";
+      return null;
+    });
+
+    const { result } = renderHook(() => useSystemLogsFilterState(50));
+    expect(result.current.selectedOffset).toBe(0);
+  });
+
+  it("does not call router.replace when buildFilterUrl returns null", () => {
+    vi.mocked(buildFilterUrl).mockReturnValue(null);
+
+    const { result } = renderHook(() => useSystemLogsFilterState(50));
+
+    act(() => {
+      result.current.updateFilterParams({ level: "ERROR" });
+    });
+
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it("debounced search effect calls updateFilterParams after 250ms", () => {
+    vi.useFakeTimers();
+    vi.mocked(buildFilterUrl).mockReturnValue("/system-logs?q=test");
+
+    const { result } = renderHook(() => useSystemLogsFilterState(50));
+
+    act(() => {
+      result.current.setSearchText("test");
+    });
+
+    expect(result.current.searchText).toBe("test");
+    expect(mockReplace).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+
+    expect(mockReplace).toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it("logsParams updates when filter state changes", () => {
+    const { result } = renderHook(() => useSystemLogsFilterState(50));
+
+    act(() => {
+      result.current.setSelectedLevel("ERROR");
+    });
+
+    expect(buildLogsQueryParams).toHaveBeenCalledWith(50, 0, "ERROR", "ALL", "");
+  });
+
+  it("reads module and limit parameters from URL on mount", () => {
+    mockSearchParams.get.mockImplementation((key: string) => {
+      if (key === "module") return "billing";
+      if (key === "limit") return "100";
+      return null;
+    });
+
+    const { result } = renderHook(() => useSystemLogsFilterState(50));
+
+    expect(result.current.selectedModule).toBe("billing");
+    expect(result.current.selectedLimit).toBe(100);
+  });
 });
