@@ -107,7 +107,8 @@ export class PatientMetricsService {
     const definitionIds = [
       ...new Set(dto.items.map((item) => item.definitionId)),
     ];
-    const definitions = await this.patientMetricsRepository.findDefinitionsForSelections(
+    const definitions =
+      await this.patientMetricsRepository.findDefinitionsForSelections(
         clinicId,
         patientId,
         definitionIds,

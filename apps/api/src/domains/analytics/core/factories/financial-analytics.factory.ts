@@ -65,7 +65,8 @@ export class FinancialAnalyticsFactory extends BaseAnalyticsFactory {
     endDate?: Date,
   ) {
     const cacheKey = `revenue-by-cpt-${clinicId}-${startDate?.toISOString()}-${endDate?.toISOString()}`;
-    const cachedResult = await this.cacheManager.get<CptRevenueMetric[]>(cacheKey);
+    const cachedResult =
+      await this.cacheManager.get<CptRevenueMetric[]>(cacheKey);
 
     if (cachedResult) return cachedResult;
 

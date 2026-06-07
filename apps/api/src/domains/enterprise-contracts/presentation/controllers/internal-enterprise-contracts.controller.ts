@@ -161,7 +161,8 @@ export class InternalEnterpriseContractsController {
     summary: 'Generate (or fetch existing) annual prepay invoice',
   })
   async generatePrepay(@Param('contractId') contractId: string) {
-    const invoice = await this.contractsService.generateAnnualPrepayInvoice(contractId);
+    const invoice =
+      await this.contractsService.generateAnnualPrepayInvoice(contractId);
     return {
       ...invoice,
       periodStart: invoice.periodStart.toISOString(),
@@ -177,7 +178,8 @@ export class InternalEnterpriseContractsController {
     summary: 'Generate (or fetch existing) setup fee invoice',
   })
   async generateSetupFee(@Param('contractId') contractId: string) {
-    const invoice = await this.contractsService.generateSetupFeeInvoice(contractId);
+    const invoice =
+      await this.contractsService.generateSetupFeeInvoice(contractId);
     return {
       ...invoice,
       periodStart: invoice.periodStart.toISOString(),
@@ -221,7 +223,8 @@ export class InternalEnterpriseContractsController {
   @Get(':contractId/estimate')
   @ApiOperation({ summary: 'Estimate current period invoice' })
   async estimate(@Param('contractId') contractId: string) {
-    const estimate = await this.contractsService.estimateCurrentPeriod(contractId);
+    const estimate =
+      await this.contractsService.estimateCurrentPeriod(contractId);
     if (!estimate) throw new NotFoundException('No active contract');
     return estimate;
   }
@@ -230,7 +233,8 @@ export class InternalEnterpriseContractsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Preview current period enterprise invoice' })
   async previewInvoice(@Param('contractId') contractId: string) {
-    const preview = await this.contractsService.previewCurrentPeriodInvoice(contractId);
+    const preview =
+      await this.contractsService.previewCurrentPeriodInvoice(contractId);
     if (!preview) throw new NotFoundException('No active contract');
     return preview;
   }

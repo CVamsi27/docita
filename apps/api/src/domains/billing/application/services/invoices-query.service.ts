@@ -212,7 +212,8 @@ export class InvoicesQueryService {
     const procedureCptMap = buildProcedureCptMap(
       invoice.appointment?.procedures,
     );
-    const resolvedSignature = await this.storedFileUrlResolver.resolveWithStoredUrl(
+    const resolvedSignature =
+      await this.storedFileUrlResolver.resolveWithStoredUrl(
         clinic.slaSignatureUrl ?? null,
       );
 

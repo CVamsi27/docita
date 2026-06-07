@@ -105,7 +105,8 @@ export class MedicationDoseQueryService {
 
     const now = this.clock.now();
 
-    const prescriptions = await this.repository.findPrescriptionsWithMedications(patientId, 10);
+    const prescriptions =
+      await this.repository.findPrescriptionsWithMedications(patientId, 10);
 
     const activeMedications: Array<{
       medicationId: string;

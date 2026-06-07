@@ -11,18 +11,17 @@ import {
 import type { IPdfDocumentRenderer } from './pdf-document-renderer.interface';
 import type { InvoicePdfInput, PrescriptionPdfInput } from './pdf.types';
 import type { PDFConfig } from './pdf-config.types';
-
+export type { PDFContext } from './pdf.types';
+export type { PDFConfig } from './pdf-config.types';
 export type {
   PDFClinicInfo,
   PDFDoctorInfo,
-  PDFPatientInfo,
-  PDFMedicationInfo,
   PDFInvoiceItem,
-  TableColumn,
+  PDFMedicationInfo,
+  PDFPatientInfo,
   PDFDocumentType,
-  PDFContext,
-} from './pdf.types';
-export type { PDFConfig } from './pdf-config.types';
+  TableColumn,
+} from '@workspace/types';
 
 @Injectable()
 export class PDFGeneratorService implements IPdfDocumentRenderer {
@@ -63,12 +62,36 @@ export class PDFGeneratorService implements IPdfDocumentRenderer {
         margin,
       };
       try {
-        context.currentY = this.layout.renderClinicHeader(doc, config.clinic, context, config.type);
-        context.currentY = this.layout.renderDocumentTitle(doc, config.title, config.documentId, config.date, context, config.showRxSymbol);
-        if (config.patient || config.doctor) context.currentY = this.layout.renderPatientDoctorInfo(doc, config.patient, config.doctor, context);
+        context.currentY = this.layout.renderClinicHeader(
+          doc,
+          config.clinic,
+          context,
+          config.type,
+        );
+        context.currentY = this.layout.renderDocumentTitle(
+          doc,
+          config.title,
+          config.documentId,
+          config.date,
+          context,
+          config.showRxSymbol,
+        );
+        if (config.patient || config.doctor)
+          context.currentY = this.layout.renderPatientDoctorInfo(
+            doc,
+            config.patient,
+            config.doctor,
+            context,
+          );
         context.currentY += 15;
-        for (const section of config.sections) section(doc, context, this.layout);
-        if (config.doctor) context.currentY = this.layout.renderDoctorSignature(doc, config.doctor, context);
+        for (const section of config.sections)
+          section(doc, context, this.layout);
+        if (config.doctor)
+          context.currentY = this.layout.renderDoctorSignature(
+            doc,
+            config.doctor,
+            context,
+          );
         if (config.footerText) this.layout.renderFooter(doc, config.footerText);
         doc.end();
       } catch (error) {

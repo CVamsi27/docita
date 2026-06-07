@@ -16,7 +16,7 @@ import { DEFAULT_COUNTRY_CODE } from "@workspace/utils";
 import { withStepErrorHandling } from "./clinic-registration-form-helpers";
 import { useOnboardingDraft } from "./use-onboarding-draft";
 
-export function useClinicRegistrationForm(onSuccess: () => void) {
+export function useClinicRegistrationForm(_onSuccess: () => void) {
   const flow = useClinicRegistrationFlow();
   const [stepError, setStepError] = useState<string | null>(null);
 

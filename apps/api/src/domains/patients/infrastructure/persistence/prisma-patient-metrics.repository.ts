@@ -109,7 +109,8 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
   }
 
   async findSelections(clinicId: string, patientId: string) {
-    const selections = await this.getReadClient().patientMetricSelection.findMany({
+    const selections =
+      await this.getReadClient().patientMetricSelection.findMany({
         where: { clinicId, patientId },
       });
 

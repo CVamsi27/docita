@@ -53,7 +53,8 @@ export class ClinicalSettingsService {
   async getMedicalCodingSettings(
     clinicId: string,
   ): Promise<ResolvedMedicalCodingSettings> {
-    const settings = await this.clinicalSettingsRepository.getClinicSettings(clinicId);
+    const settings =
+      await this.clinicalSettingsRepository.getClinicSettings(clinicId);
     return this.normalizeSettings(settings);
   }
 
@@ -61,7 +62,8 @@ export class ClinicalSettingsService {
     clinicId: string,
     patch: MedicalCodingSettings,
   ): Promise<ResolvedMedicalCodingSettings> {
-    const current = await this.clinicalSettingsRepository.getClinicSettings(clinicId);
+    const current =
+      await this.clinicalSettingsRepository.getClinicSettings(clinicId);
 
     const next = {
       ...current,

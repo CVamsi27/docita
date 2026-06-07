@@ -109,7 +109,8 @@ export class DoctorDelayService {
   async getActiveDelaysForClinic(
     clinicId: string,
   ): Promise<DoctorDelayResponse[]> {
-    const delays = await this.doctorDelayRepository.findActiveByClinic(clinicId);
+    const delays =
+      await this.doctorDelayRepository.findActiveByClinic(clinicId);
     return delays.map((d) => ({ ...d, affectedAppointmentCount: 0 }));
   }
 }

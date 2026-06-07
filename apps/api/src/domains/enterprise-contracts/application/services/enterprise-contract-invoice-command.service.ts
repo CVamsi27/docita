@@ -48,7 +48,8 @@ export class EnterpriseContractInvoiceCommandService {
           'Annual prepay only available for ACTIVE contracts',
         );
 
-      const existing = await this.persistence.enterpriseContractInvoice.findFirst({
+      const existing =
+        await this.persistence.enterpriseContractInvoice.findFirst({
           where: {
             contractId,
             kind: EnterpriseInvoiceKind.ANNUAL_PREPAY,
@@ -142,7 +143,8 @@ export class EnterpriseContractInvoiceCommandService {
           'Setup fee must be at least INR 2,500 before raising an invoice',
         );
 
-      const existing = await this.persistence.enterpriseContractInvoice.findFirst({
+      const existing =
+        await this.persistence.enterpriseContractInvoice.findFirst({
           where: {
             contractId,
             kind: EnterpriseInvoiceKind.SETUP_FEE,
@@ -315,7 +317,8 @@ export class EnterpriseContractInvoiceCommandService {
         return { alerted: false, observedPercent };
 
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const alreadyAlerted = await this.persistence.enterpriseTrueUpAlert.findFirst({
+      const alreadyAlerted =
+        await this.persistence.enterpriseTrueUpAlert.findFirst({
           where: { contractId, alertedAt: { gte: monthStart } },
         });
       if (alreadyAlerted) return { alerted: false, observedPercent };

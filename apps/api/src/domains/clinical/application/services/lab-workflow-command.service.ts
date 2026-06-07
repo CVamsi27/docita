@@ -118,15 +118,22 @@ export class LabWorkflowCommandService {
     if (ctx.status === 'COMPLETED' || ctx.status === 'CANCELLED')
       throw new BadRequestException('Lab order has already been finalised');
     if (!ctx.resultUrl)
-      throw new BadRequestException('Upload a result before releasing it to the patient');
+      throw new BadRequestException(
+        'Upload a result before releasing it to the patient',
+      );
     if (!ctx.paidAt)
-      throw new BadRequestException('Verify payment before releasing results to the patient');
+      throw new BadRequestException(
+        'Verify payment before releasing results to the patient',
+      );
 
     const now = this.clock.now();
 
     if (ctx.patient.phoneNumber) {
       const resultLink = this.storageProvider.supportsSignedUrls
-        ? await this.storageProvider.generateSignedUrl(ctx.resultUrl, GENERATED_PDF_SIGNED_URL_TTL_SECONDS)
+        ? await this.storageProvider.generateSignedUrl(
+            ctx.resultUrl,
+            GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
+          )
         : ctx.resultUrl;
 
       try {
@@ -134,22 +141,41 @@ export class LabWorkflowCommandService {
           clinicId,
           recipientPhone: ctx.patient.phoneNumber,
           templateName: 'lab_result_ready',
-          variables: { patientName: getPatientFullName(ctx.patient), clinicName: ctx.clinicName, testName: ctx.testName, resultDate: formatDate(now, DATE_FORMATS.DATE_MEDIUM), resultLink },
+          variables: {
+            patientName: getPatientFullName(ctx.patient),
+            clinicName: ctx.clinicName,
+            testName: ctx.testName,
+            resultDate: formatDate(now, DATE_FORMATS.DATE_MEDIUM),
+            resultLink,
+          },
         });
       } catch (error) {
         if (error instanceof ForbiddenException) {
-          this.logger.log(`Lab result WhatsApp skipped for order ${id}: ${error.message}`);
+          this.logger.log(
+            `Lab result WhatsApp skipped for order ${id}: ${error.message}`,
+          );
         } else {
-          this.logger.error(`Failed to send lab result WhatsApp for order ${id}`, error);
+          this.logger.error(
+            `Failed to send lab result WhatsApp for order ${id}`,
+            error,
+          );
         }
       }
     } else {
-      this.logger.warn(`Lab order ${id} released without WhatsApp: patient has no phone number`);
+      this.logger.warn(
+        `Lab order ${id} released without WhatsApp: patient has no phone number`,
+      );
     }
 
     await this.labRepository.markReleased(id, clinicId, now);
 
-    this.eventEmitter.emit(ApplicationEvents.LAB_RESULT_RELEASED, { orderId: id, clinicId, patientId: ctx.patient.id });
+    // allow-direct-emit: fire-and-forget notification after release completes;
+    // the result+payment gates are already checked above.
+    this.eventEmitter.emit(ApplicationEvents.LAB_RESULT_RELEASED, {
+      orderId: id,
+      clinicId,
+      patientId: ctx.patient.id,
+    });
   }
 
   async createLab(

@@ -1,7 +1,6 @@
 import { z } from "zod";
-import type { ClinicType } from "./roles";
-import type { HospitalRole, Specialization } from "./roles";
-import { clinicTypeSchema } from "./roles";
+// eslint-disable-next-line sort-imports
+import { type ClinicType, type HospitalRole, type Specialization, clinicTypeSchema } from "./roles";
 
 export const CLINIC_TYPE_LABELS: Record<ClinicType, string> = {
   GENERAL: "General Clinic", DENTAL: "Dental Clinic", PEDIATRIC: "Pediatric Clinic",

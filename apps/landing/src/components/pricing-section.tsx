@@ -6,7 +6,7 @@ import { motion, useReducedMotion } from "motion/react";
 
 import { type PlanMode } from "@workspace/types";
 import { FALLBACK_PRICING_CONFIG } from "@/lib/landing-data";
-import { landingFadeUpVariants, landingInViewViewport, landingStaggerContainer } from "@/lib/motion-prefs";
+import { landingInViewViewport, landingStaggerContainer } from "@/lib/motion-prefs";
 
 import { SETUP_START_PRICE, TIER_ORDER } from "./pricing-data";
 import { PricingTierCard } from "./pricing-tier-card";
@@ -18,7 +18,6 @@ interface PricingSectionProps {
 
 export function PricingSection({ appUrl }: PricingSectionProps) {
   const reduce = useReducedMotion();
-  const cardVariant = landingFadeUpVariants(reduce ?? false);
   const gridVariants = landingStaggerContainer(reduce ?? false, 0.06, 0.04);
 
   const [selectedMode, setSelectedMode] = useState<PlanMode>("FULL");

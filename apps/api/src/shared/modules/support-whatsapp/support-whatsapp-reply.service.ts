@@ -37,7 +37,8 @@ export class SupportWhatsAppReplyService {
     if (!trimmedMessage)
       throw new BadRequestException('Reply message cannot be empty');
 
-    const latestInboundMessage = await this.prisma.supportWhatsAppMessage.findFirst({
+    const latestInboundMessage =
+      await this.prisma.supportWhatsAppMessage.findFirst({
         where: {
           threadPhoneNumber: normalizedThreadPhoneNumber,
           direction: 'INBOUND',
@@ -91,51 +92,20 @@ export class SupportWhatsAppReplyService {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
-      try {
-        await this.markDraftReplyFailed(
-          draftProviderMessageId,
-          errorMessage,
-          sentAt,
-        );
-      } catch (persistError) {
-        this.logger.warn(
-          `Failed to persist failed WhatsApp reply draft ${draftProviderMessageId}: ${
-            persistError instanceof Error
-              ? persistError.message
-              : 'Unknown error'
-          }`,
-        );
-      }
-      this.logger.error(
-        `Failed to send WhatsApp reply to ${normalizedThreadPhoneNumber}: ${errorMessage}`,
-      );
-      throw new ServiceUnavailableException(
-        'Unable to send WhatsApp reply right now. Please try again.',
+      await this.handleSendError(
+        draftProviderMessageId,
+        normalizedThreadPhoneNumber,
+        errorMessage,
+        sentAt,
       );
     }
 
     if (!result.success || !result.messageId) {
-      const errorMessage = 'WhatsApp reply could not be sent';
-      try {
-        await this.markDraftReplyFailed(
-          draftProviderMessageId,
-          errorMessage,
-          sentAt,
-        );
-      } catch (persistError) {
-        this.logger.warn(
-          `Failed to persist failed WhatsApp reply draft ${draftProviderMessageId}: ${
-            persistError instanceof Error
-              ? persistError.message
-              : 'Unknown error'
-          }`,
-        );
-      }
-      this.logger.error(
-        `Failed to send WhatsApp reply to ${normalizedThreadPhoneNumber}: ${errorMessage}`,
-      );
-      throw new ServiceUnavailableException(
-        'Unable to send WhatsApp reply right now. Please try again.',
+      await this.handleSendError(
+        draftProviderMessageId,
+        normalizedThreadPhoneNumber,
+        'WhatsApp reply could not be sent',
+        sentAt,
       );
     }
 
@@ -214,5 +184,32 @@ export class SupportWhatsAppReplyService {
         respondedAt,
       },
     });
+  }
+
+  private async handleSendError(
+    draftProviderMessageId: string,
+    normalizedThreadPhoneNumber: string,
+    errorMessage: string,
+    sentAt: Date,
+  ): Promise<never> {
+    try {
+      await this.markDraftReplyFailed(
+        draftProviderMessageId,
+        errorMessage,
+        sentAt,
+      );
+    } catch (persistError) {
+      this.logger.warn(
+        `Failed to persist failed WhatsApp reply draft ${draftProviderMessageId}: ${
+          persistError instanceof Error ? persistError.message : 'Unknown error'
+        }`,
+      );
+    }
+    this.logger.error(
+      `Failed to send WhatsApp reply to ${normalizedThreadPhoneNumber}: ${errorMessage}`,
+    );
+    throw new ServiceUnavailableException(
+      'Unable to send WhatsApp reply right now. Please try again.',
+    );
   }
 }

@@ -63,12 +63,25 @@ export function useConsultationAutosave(
     [clinicType, getDraft],
   );
 
+  const markCleanAndClearSession = useCallback(() => {
+    useConsultationDraft.getState().markClean();
+    if (typeof window === "undefined") return;
+    try { window.sessionStorage.removeItem(draftSessionStorageKey(appointmentId)); }
+    catch (error) { logger.warn("Failed to clear consultation draft session key", { error }); }
+  }, [appointmentId]);
+
+  const syncDraftDiagnoses = useCallback(async (diagnosis: ReturnType<typeof getDraft>["diagnosis"], prevHash: string | null) => {
+    const codedDiagnoses = buildCodedDiagnoses(diagnosis);
+    const nextHash = await hashDiagnosesForSync(codedDiagnoses);
+    if ((codedDiagnoses.length > 0 && nextHash !== prevHash) || (codedDiagnoses.length === 0 && prevHash)) {
+      await syncDiagnoses.mutateAsync({ diagnoses: codedDiagnoses, contentHash: nextHash });
+      useConsultationDraft.getState().setDiagnosesContentHash(nextHash);
+    }
+  }, [syncDiagnoses]);
+
   const flush = useCallback(
     async (options: { force?: boolean } = {}): Promise<boolean> => {
-      if (readOnly) return false;
-      if (!appointmentId) return false;
-      if (inFlightRef.current) return false;
-
+      if (readOnly || !appointmentId || inFlightRef.current) return false;
       const state = getDraft();
       if (!state.dirty && !options.force) return false;
 
@@ -79,87 +92,38 @@ export function useConsultationAutosave(
         const patch = buildAppointmentPatch();
         const sentFingerprint = JSON.stringify(patch);
         const updated = await updateAppointment.mutateAsync(patch);
-        queryClient.setQueryData(
-          queryKeys.appointments.detail(appointmentId),
-          updated,
-        );
-        if (patientId) {
-          void queryClient.invalidateQueries({
-            queryKey: queryKeys.patientTimeline.prefix(patientId),
-            exact: false,
-          });
-        }
+        queryClient.setQueryData(queryKeys.appointments.detail(appointmentId), updated);
+        if (patientId) void queryClient.invalidateQueries({ queryKey: queryKeys.patientTimeline.prefix(patientId), exact: false });
 
-        const codedDiagnoses = buildCodedDiagnoses(state.diagnosis);
-        const nextHash = await hashDiagnosesForSync(codedDiagnoses);
-        const prevHash = state.diagnosesContentHash;
-
-        if (codedDiagnoses.length > 0 && nextHash !== prevHash) {
-          await syncDiagnoses.mutateAsync({
-            diagnoses: codedDiagnoses,
-            contentHash: nextHash,
-          });
-          useConsultationDraft.getState().setDiagnosesContentHash(nextHash);
-        } else if (codedDiagnoses.length === 0 && prevHash) {
-          await syncDiagnoses.mutateAsync({
-            diagnoses: [],
-            contentHash: nextHash,
-          });
-          useConsultationDraft.getState().setDiagnosesContentHash(nextHash);
-        }
+        await syncDraftDiagnoses(state.diagnosis, state.diagnosesContentHash);
 
         failureStreakRef.current = 0;
-        const driftedDuringSave =
-          JSON.stringify(buildAppointmentPatch()) !== sentFingerprint;
         inFlightRef.current = false;
-        if (driftedDuringSave) {
-          useConsultationDraft.setState({
-            dirty: true,
-            saveState: "dirty",
-            lastError: null,
-          });
+        if (JSON.stringify(buildAppointmentPatch()) !== sentFingerprint) {
+          useConsultationDraft.setState({ dirty: true, saveState: "dirty", lastError: null });
         } else {
-          useConsultationDraft.getState().markClean();
-          if (typeof window !== "undefined") {
-            try {
-              window.sessionStorage.removeItem(
-                draftSessionStorageKey(appointmentId),
-              );
-            } catch (error) {
-              logger.warn("Failed to clear consultation draft session key", {
-                error,
-              });
-            }
-          }
+          markCleanAndClearSession();
         }
         return true;
       } catch (error) {
         failureStreakRef.current += 1;
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Could not save consultation draft.";
+        const message = error instanceof Error ? error.message : "Could not save consultation draft.";
         useConsultationDraft.getState().markError(message);
-        if (failureStreakRef.current >= 2) {
-          showUserFacingErrorToast(message);
-        } else {
-          logger.warn("Consultation autosave failed", { error });
-        }
+        if (failureStreakRef.current >= 2) { showUserFacingErrorToast(message); } else { logger.warn("Consultation autosave failed", { error }); }
         return false;
       } finally {
-        if (inFlightRef.current) {
-          inFlightRef.current = false;
-        }
+        if (inFlightRef.current) inFlightRef.current = false;
       }
     },
     [
       appointmentId,
       buildAppointmentPatch,
       getDraft,
+      markCleanAndClearSession,
       patientId,
       queryClient,
       readOnly,
-      syncDiagnoses,
+      syncDraftDiagnoses,
       updateAppointment,
     ],
   );

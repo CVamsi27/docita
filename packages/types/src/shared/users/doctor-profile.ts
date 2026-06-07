@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { dayOfWeekSchema, genderSchema, hospitalRoleSchema, specializationSchema, userRoleSchema } from "./roles";
+import { dayOfWeekSchema, hospitalRoleSchema, specializationSchema, userRoleSchema } from "./roles";
 
 export const doctorEducationSchema = z.object({
   id: z.string().optional(), doctorId: z.string(), degree: z.string().min(1, "Enter the degree."),

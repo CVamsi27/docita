@@ -1,12 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useSystemLogsFilterState } from "./use-system-logs-filter-state";
-import {
-  buildFilterUrl,
-  buildLogsQueryParams,
-  parseLogLevel,
-  parseLogLimit,
-} from "./system-logs-helpers";
+import { buildFilterUrl, buildLogsQueryParams } from "./system-logs-helpers";
 
 const mockReplace = vi.hoisted(() => vi.fn());
 const mockSearchParams = vi.hoisted(() => ({

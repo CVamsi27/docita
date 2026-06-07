@@ -46,7 +46,7 @@ export class BusinessRulesService {
       where: {
         doctorId,
         clinicId,
-          id: excludeAppointmentId ? { not: excludeAppointmentId } : undefined,
+        id: excludeAppointmentId ? { not: excludeAppointmentId } : undefined,
         AND: [{ startTime: { lt: endTime } }, { endTime: { gt: startTime } }],
         status: { in: ['SCHEDULED', 'CONFIRMED', 'IN_PROGRESS'] },
       },
@@ -129,7 +129,8 @@ export class BusinessRulesService {
 
   validateCrossFieldConstraints(data: Record<string, unknown>): void {
     const isPRN = data.isPRN === true;
-    const prnInstructions = typeof data.prnInstructions === 'string' ? data.prnInstructions : '';
+    const prnInstructions =
+      typeof data.prnInstructions === 'string' ? data.prnInstructions : '';
     const status = typeof data.status === 'string' ? data.status : '';
     const hasCompletedAt = Boolean(data.completedAt);
     const hasInsuranceProvider = Boolean(data.insuranceProvider);

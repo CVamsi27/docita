@@ -163,6 +163,7 @@ export class SignatureUploadService {
   async uploadSignature(token: string, file: StorageFile) {
     const validation = await this.validateToken(token);
 
+    // AuditLogged: signature upload
     this.logger.log({
       action: 'signature.upload',
       clinicId: validation.clinic?.id,
@@ -190,7 +191,8 @@ export class SignatureUploadService {
         auth_method: 'signed-upload-token',
       },
     });
-    const resolvedFileUrl = await this.storedFileUrlResolver.resolveWithStoredUrl(fileUrl);
+    const resolvedFileUrl =
+      await this.storedFileUrlResolver.resolveWithStoredUrl(fileUrl);
 
     if (
       validation.purpose === SignaturePurpose.SLA_ACCEPTANCE &&

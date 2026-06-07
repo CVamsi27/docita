@@ -16,15 +16,18 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
     return this.prisma.runUnrestricted(operation);
   }
 
+  private async withUnrestricted<T>(fn: () => Promise<T>): Promise<T> {
+    return this.prisma.runUnrestricted(fn);
+  }
+
   async findPatientByUserId(userId: string) {
-    return this.prisma.runUnrestricted(async () =>
+    return this.withUnrestricted(() =>
       this.prisma.patient.findFirst({ where: { userId, deletedAt: null } }),
     );
   }
 
   async findPatientByPhone(phone: string) {
-    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
-    return this.prisma.runUnrestricted(async () =>
+    return this.withUnrestricted(() =>
       this.prisma.patient.findFirst({
         where: { phoneNumber: phone, deletedAt: null },
       }),
@@ -34,8 +37,7 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
   async findPatientWithUserByPhone(
     phone: string,
   ): Promise<PatientWithUser | null> {
-    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
-    return this.prisma.runUnrestricted(async () =>
+    return this.withUnrestricted(() =>
       this.prisma.patient.findFirst({
         where: { phoneNumber: phone, deletedAt: null },
         include: { user: true },
@@ -44,8 +46,7 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
   }
 
   async getPatientSummary(patientId: string): Promise<PatientSummary | null> {
-    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
-    return this.prisma.runUnrestricted(async () =>
+    return this.withUnrestricted(() =>
       this.prisma.patient.findFirst({
         where: { id: patientId },
         select: {
@@ -67,8 +68,7 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
     patientId: string,
     clinicId: string,
   ): Promise<boolean> {
-    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
-    const count = await this.prisma.runUnrestricted(async () =>
+    const count = await this.withUnrestricted(() =>
       this.prisma.consent.count({
         where: {
           patientId,
@@ -82,8 +82,7 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
   }
 
   async getPatientProfile(patientId: string): Promise<PatientProfile | null> {
-    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
-    return this.prisma.runUnrestricted(async () =>
+    return this.withUnrestricted(() =>
       this.prisma.patient.findFirst({
         where: { id: patientId },
         select: {
@@ -114,8 +113,7 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
     patientId: string,
     data: Record<string, unknown>,
   ): Promise<PatientProfile> {
-    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
-    return this.prisma.runUnrestricted(async () =>
+    return this.withUnrestricted(() =>
       this.prisma.patient.update({
         where: { id: patientId },
         data,
@@ -144,8 +142,7 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
   }
 
   async linkUserToPatient(patientId: string, userId: string): Promise<void> {
-    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
-    await this.prisma.runUnrestricted(async () =>
+    await this.withUnrestricted(() =>
       this.prisma.patient.update({
         where: { id: patientId },
         data: { userId },

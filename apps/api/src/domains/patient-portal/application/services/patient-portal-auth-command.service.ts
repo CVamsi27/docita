@@ -96,7 +96,8 @@ export class PatientPortalAuthCommandService {
 
     await this.repository.markOtpUsed(otpRecord.id);
 
-    const patientWithUser = await this.repository.findPatientWithUserByPhone(normalizedPhone);
+    const patientWithUser =
+      await this.repository.findPatientWithUserByPhone(normalizedPhone);
 
     if (!patientWithUser) throw new UnauthorizedException('Patient not found');
 

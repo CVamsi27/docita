@@ -9,13 +9,13 @@ import {
 import type {
   PDFClinicInfo,
   PDFDoctorInfo,
-  PDFPatientInfo,
-  PDFMedicationInfo,
   PDFInvoiceItem,
-  TableColumn,
+  PDFMedicationInfo,
+  PDFPatientInfo,
   PDFDocumentType,
-  PDFContext,
-} from './pdf.types';
+  TableColumn,
+} from '@workspace/types';
+import type { PDFContext } from './pdf.types';
 import {
   renderDoctorInfoColumn,
   renderPatientInfoColumn,

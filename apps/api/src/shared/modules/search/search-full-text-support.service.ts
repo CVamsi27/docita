@@ -56,7 +56,8 @@ export class SearchFullTextSupportService {
 
   private async detectSupport(): Promise<FullTextSupportState> {
     try {
-      const rows = await this.searchSchema.getPatientAndAppointmentTsvectorSupport();
+      const rows =
+        await this.searchSchema.getPatientAndAppointmentTsvectorSupport();
 
       const supportByTable = new Map(
         rows.map((row) => [row.tableName, row.hasSearchTsvector]),

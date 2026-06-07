@@ -1,26 +1,17 @@
 "use client";
 
-import { Plus, Shield, Users } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Label } from "@workspace/ui/components/form/label";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { internalClinicAdminTypeSchema } from "@workspace/types";
+import { Plus } from "lucide-react";
+import { Dialog, DialogContent } from "@workspace/ui/components/overlay/dialog";
 import type { CreateForm } from "./admin-helpers";
+import {
+  AdminDialogActions,
+  AdminDialogHeader,
+  AdminEmailField,
+  AdminNameField,
+  AdminPasswordField,
+  AdminPhoneNumberField,
+  AdminTypeSelect,
+} from "./admin-dialog-shell";
 
 interface AdminCreateDialogProps {
   open: boolean;
@@ -48,119 +39,59 @@ export function AdminCreateDialog({
       adminType: "admin",
     });
 
+  const handleFieldChange = <K extends keyof CreateForm>(
+    key: K,
+    value: CreateForm[K],
+  ) => onFormChange({ ...form, [key]: value });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Create New Admin
-          </DialogTitle>
-          <DialogDescription>
-            Add a new administrator to the selected clinic
-          </DialogDescription>
-        </DialogHeader>
+        <AdminDialogHeader
+          icon={<Plus className="h-5 w-5" />}
+          title="Create New Admin"
+          description="Add a new administrator to the selected clinic"
+        />
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
-            <Input
-              id="name"
-              placeholder="Admin name"
-              value={form.name}
-              onChange={(e) => onFormChange({ ...form, name: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email *</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={(e) =>
-                onFormChange({ ...form, email: e.target.value })
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password *</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter password"
-              value={form.password}
-              onChange={(e) =>
-                onFormChange({ ...form, password: e.target.value })
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="phoneNumber">Phone Number</Label>
-            <Input
-              id="phoneNumber"
-              type="tel"
-              placeholder="Phone number"
-              value={form.phoneNumber}
-              onChange={(e) =>
-                onFormChange({ ...form, phoneNumber: e.target.value })
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="adminType">Admin Type *</Label>
-            <Select
-              value={form.adminType}
-              onValueChange={(value) => {
-                const parsed = internalClinicAdminTypeSchema.safeParse(value);
-                if (!parsed.success) return;
-                onFormChange({ ...form, adminType: parsed.data });
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Admin type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="admin">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    Clinic Admin (manages clinics with multiple doctors)
-                  </div>
-                </SelectItem>
-                <SelectItem value="admin_doctor">
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
-                    Admin Doctor (for single-doctor clinics)
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground mt-1">
-              {form.adminType === "admin_doctor"
+          <AdminNameField
+            id="name"
+            value={form.name}
+            onChange={(v) => handleFieldChange("name", v)}
+          />
+          <AdminEmailField
+            id="email"
+            value={form.email}
+            onChange={(v) => handleFieldChange("email", v)}
+          />
+          <AdminPasswordField
+            id="password"
+            value={form.password}
+            onChange={(v) => handleFieldChange("password", v)}
+          />
+          <AdminPhoneNumberField
+            id="phoneNumber"
+            value={form.phoneNumber}
+            onChange={(v) => handleFieldChange("phoneNumber", v)}
+          />
+          <AdminTypeSelect
+            value={form.adminType}
+            onChange={(v) => handleFieldChange("adminType", v as CreateForm["adminType"])}
+            showIcons
+            helperText={
+              form.adminType === "admin_doctor"
                 ? "Admin Doctor can manage clinic operations and provide clinical care"
-                : "Clinic Admin manages clinic operations and staff"}
-            </p>
-          </div>
-          <div className="flex justify-end gap-2 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => {
-                resetForm();
-                onOpenChange(false);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button onClick={onCreate} disabled={saving}>
-              {saving && (
-                <DocitaLoadingIndicator
-                  variant="inline"
-                  decorative
-                  className="mr-2"
-                />
-              )}
-              Create Admin
-            </Button>
-          </div>
+                : "Clinic Admin manages clinic operations and staff"
+            }
+          />
+          <AdminDialogActions
+            onCancel={() => {
+              resetForm();
+              onOpenChange(false);
+            }}
+            onAction={onCreate}
+            actionLabel="Create Admin"
+            saving={saving}
+          />
         </div>
       </DialogContent>
     </Dialog>

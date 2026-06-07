@@ -88,7 +88,8 @@ export async function attachResolvedClinicSignatureUrl<
   }
 > {
   const rawSignatureUrl = readClinicSignatureUrl(clinic);
-  const resolved = await storedFileUrlResolver.resolveWithStoredUrl(rawSignatureUrl);
+  const resolved =
+    await storedFileUrlResolver.resolveWithStoredUrl(rawSignatureUrl);
 
   return {
     ...clinic,

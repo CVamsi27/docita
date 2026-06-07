@@ -51,6 +51,33 @@ export class DoctorsQueryService {
     };
   }
 
+  private async mapDoctorToResponse(
+    input: Parameters<typeof this.resolveDoctorSignatureUrl>[0],
+  ) {
+    const doctor = await this.resolveDoctorSignatureUrl(input);
+    return {
+      id: doctor.id,
+      role: doctor.role,
+      email: doctor.email,
+      name: doctor.name,
+      specialization: doctor.specialization,
+      hospitalRole: doctor.hospitalRole,
+      qualification: doctor.qualification,
+      registrationNumber: doctor.registrationNumber,
+      registrationCouncil: doctor.registrationCouncil,
+      registrationStateCode: doctor.registrationStateCode,
+      verificationStatus: doctor.verificationStatus,
+      verificationReason: doctor.verificationReason,
+      verificationCheckedAt: doctor.verificationCheckedAt,
+      signatureUrl: doctor.signatureUrl,
+      signatureStoredUrl: doctor.signatureStoredUrl,
+      profilePhotoUrl: doctor.profilePhotoUrl,
+      yearsOfExperience: doctor.yearsOfExperience,
+      consultationFee: doctor.consultationFee,
+      createdAt: doctor.createdAt,
+    };
+  }
+
   async findAll(clinicId: string) {
     const [doctorClinics, clinicUsers] = await Promise.all([
       this.persistence.doctorClinic.findMany({
@@ -93,57 +120,11 @@ export class DoctorsQueryService {
     const directUsers = clinicUsers.filter((u) => !doctorClinicIds.has(u.id));
 
     const mappedClinics = await Promise.all(
-      validDoctorClinics.map(async (dc) => {
-        const doctor = await this.resolveDoctorSignatureUrl(dc.doctor);
-        return {
-          id: doctor.id,
-          role: doctor.role,
-          email: doctor.email,
-          name: doctor.name,
-          specialization: doctor.specialization,
-          hospitalRole: doctor.hospitalRole,
-          qualification: doctor.qualification,
-          registrationNumber: doctor.registrationNumber,
-          registrationCouncil: doctor.registrationCouncil,
-          registrationStateCode: doctor.registrationStateCode,
-          verificationStatus: doctor.verificationStatus,
-          verificationReason: doctor.verificationReason,
-          verificationCheckedAt: doctor.verificationCheckedAt,
-          signatureUrl: doctor.signatureUrl,
-          signatureStoredUrl: doctor.signatureStoredUrl,
-          profilePhotoUrl: doctor.profilePhotoUrl,
-          yearsOfExperience: doctor.yearsOfExperience,
-          consultationFee: doctor.consultationFee,
-          createdAt: doctor.createdAt,
-        };
-      }),
+      validDoctorClinics.map((dc) => this.mapDoctorToResponse(dc.doctor)),
     );
 
     const mappedDirectUsers = await Promise.all(
-      directUsers.map(async (user) => {
-        const doctor = await this.resolveDoctorSignatureUrl(user);
-        return {
-          id: doctor.id,
-          role: doctor.role,
-          email: doctor.email,
-          name: doctor.name,
-          specialization: doctor.specialization,
-          hospitalRole: doctor.hospitalRole,
-          qualification: doctor.qualification,
-          registrationNumber: doctor.registrationNumber,
-          registrationCouncil: doctor.registrationCouncil,
-          registrationStateCode: doctor.registrationStateCode,
-          verificationStatus: doctor.verificationStatus,
-          verificationReason: doctor.verificationReason,
-          verificationCheckedAt: doctor.verificationCheckedAt,
-          signatureUrl: doctor.signatureUrl,
-          signatureStoredUrl: doctor.signatureStoredUrl,
-          profilePhotoUrl: doctor.profilePhotoUrl,
-          yearsOfExperience: doctor.yearsOfExperience,
-          consultationFee: doctor.consultationFee,
-          createdAt: doctor.createdAt,
-        };
-      }),
+      directUsers.map((user) => this.mapDoctorToResponse(user)),
     );
 
     return [...mappedClinics, ...mappedDirectUsers];

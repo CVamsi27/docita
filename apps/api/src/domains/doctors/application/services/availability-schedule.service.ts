@@ -72,12 +72,19 @@ export class AvailabilityScheduleService {
       data.dayOfWeek,
     );
 
-    if (existing) throw new BadRequestException(`Schedule already exists for this day. Use update instead.`);
+    if (existing)
+      throw new BadRequestException(
+        `Schedule already exists for this day. Use update instead.`,
+      );
 
     return this.repository.createSchedule({
-      doctor: { connect: { id: data.doctorId } }, clinic: { connect: { id: data.clinicId } },
-      dayOfWeek: data.dayOfWeek, startTime: data.startTime, endTime: data.endTime,
-      slotDuration: data.slotDuration || 30, isActive: data.isActive ?? true,
+      doctor: { connect: { id: data.doctorId } },
+      clinic: { connect: { id: data.clinicId } },
+      dayOfWeek: data.dayOfWeek,
+      startTime: data.startTime,
+      endTime: data.endTime,
+      slotDuration: data.slotDuration || 30,
+      isActive: data.isActive ?? true,
     });
   }
 
@@ -112,8 +119,10 @@ export class AvailabilityScheduleService {
       options?.actorRole === Role.ADMIN ||
       options?.actorRole === Role.ADMIN_DOCTOR;
     if (!isAdmin) {
-      if (!options?.actorUserId) throw new ForbiddenException('Authenticated user is required');
-      if (schedule.doctorId !== options.actorUserId) throw new ForbiddenException('You can only manage your own schedule');
+      if (!options?.actorUserId)
+        throw new ForbiddenException('Authenticated user is required');
+      if (schedule.doctorId !== options.actorUserId)
+        throw new ForbiddenException('You can only manage your own schedule');
     }
 
     const newStartTime = data.startTime || schedule.startTime;
@@ -144,8 +153,10 @@ export class AvailabilityScheduleService {
       options?.actorRole === Role.ADMIN ||
       options?.actorRole === Role.ADMIN_DOCTOR;
     if (!isAdmin) {
-      if (!options?.actorUserId) throw new ForbiddenException('Authenticated user is required');
-      if (schedule.doctorId !== options.actorUserId) throw new ForbiddenException('You can only manage your own schedule');
+      if (!options?.actorUserId)
+        throw new ForbiddenException('Authenticated user is required');
+      if (schedule.doctorId !== options.actorUserId)
+        throw new ForbiddenException('You can only manage your own schedule');
     }
 
     await this.repository.deleteSchedule(id);
@@ -183,7 +194,9 @@ export class AvailabilityScheduleService {
 
     await this.repository.deleteManySchedules(doctorId, clinicId);
 
-    await this.repository.createManySchedules(schedules.map((s) => ({ ...s, doctorId, clinicId })));
+    await this.repository.createManySchedules(
+      schedules.map((s) => ({ ...s, doctorId, clinicId })),
+    );
 
     return { count: schedules.length };
   }
@@ -242,13 +255,19 @@ export class AvailabilityScheduleService {
         );
     }
 
-    return this.repository.createTimeOff({
-      doctor: { connect: { id: data.doctorId } },
-      clinic: data.clinicId ? { connect: { id: data.clinicId } } : undefined,
-      startDate, endDate, reason: data.reason,
-      isFullDay: data.isFullDay ?? true,
-      startTime: data.startTime || null, endTime: data.endTime || null,
-    }, tx);
+    return this.repository.createTimeOff(
+      {
+        doctor: { connect: { id: data.doctorId } },
+        clinic: data.clinicId ? { connect: { id: data.clinicId } } : undefined,
+        startDate,
+        endDate,
+        reason: data.reason,
+        isFullDay: data.isFullDay ?? true,
+        startTime: data.startTime || null,
+        endTime: data.endTime || null,
+      },
+      tx,
+    );
   }
 
   async deleteTimeOff(
@@ -267,8 +286,10 @@ export class AvailabilityScheduleService {
       options?.actorRole === Role.ADMIN ||
       options?.actorRole === Role.ADMIN_DOCTOR;
     if (!isAdmin) {
-      if (!options?.actorUserId) throw new ForbiddenException('Authenticated user is required');
-      if (timeOff.doctorId !== options.actorUserId) throw new ForbiddenException('You can only manage your own time off');
+      if (!options?.actorUserId)
+        throw new ForbiddenException('Authenticated user is required');
+      if (timeOff.doctorId !== options.actorUserId)
+        throw new ForbiddenException('You can only manage your own time off');
     }
 
     await this.repository.deleteTimeOff(id);

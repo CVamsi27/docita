@@ -106,15 +106,39 @@ export class AppointmentMapper {
       differentialDiagnosis: raw.differentialDiagnosis || undefined,
       finalDiagnosis: raw.finalDiagnosis || undefined,
       followUpPlan: raw.followUpPlan || undefined,
-      generalExamination: parsePrismaJsonColumn(raw.generalExamination, generalExaminationSchema),
-      systemicExamination: parsePrismaJsonColumn(raw.systemicExamination, systemicExaminationSchema),
-      investigations: parsePrismaJsonColumn(raw.investigations, clinicalInvestigationsSchema),
+      generalExamination: parsePrismaJsonColumn(
+        raw.generalExamination,
+        generalExaminationSchema,
+      ),
+      systemicExamination: parsePrismaJsonColumn(
+        raw.systemicExamination,
+        systemicExaminationSchema,
+      ),
+      investigations: parsePrismaJsonColumn(
+        raw.investigations,
+        clinicalInvestigationsSchema,
+      ),
       growthData: parsePrismaJsonColumn(raw.growthData, growthChartDataSchema),
-      ophthalmologyExam: parsePrismaJsonColumn(raw.ophthalmologyExam, ophthalmologyExamDataSchema),
-      cardiologyExam: parsePrismaJsonColumn(raw.cardiologyExam, cardiologyExamDataSchema),
-      gynecologyExam: parsePrismaJsonColumn(raw.gynecologyExam, gynecologyExamDataSchema),
-      dermatologyExam: parsePrismaJsonColumn(raw.dermatologyExam, dermatologyExamDataSchema),
-      psychiatryExam: parsePrismaJsonColumn(raw.psychiatryExam, psychiatryExamDataSchema),
+      ophthalmologyExam: parsePrismaJsonColumn(
+        raw.ophthalmologyExam,
+        ophthalmologyExamDataSchema,
+      ),
+      cardiologyExam: parsePrismaJsonColumn(
+        raw.cardiologyExam,
+        cardiologyExamDataSchema,
+      ),
+      gynecologyExam: parsePrismaJsonColumn(
+        raw.gynecologyExam,
+        gynecologyExamDataSchema,
+      ),
+      dermatologyExam: parsePrismaJsonColumn(
+        raw.dermatologyExam,
+        dermatologyExamDataSchema,
+      ),
+      psychiatryExam: parsePrismaJsonColumn(
+        raw.psychiatryExam,
+        psychiatryExamDataSchema,
+      ),
       dentalChart: parsePrismaJsonColumn(raw.dentalChart, dentalChartSchema),
       type: raw.type || undefined,
       createdAt: raw.createdAt,
@@ -280,16 +304,44 @@ export class AppointmentMapper {
       createdAt: plain.createdAt,
       updatedAt: plain.updatedAt,
       version: plain.version,
-      ...(plain.generalExamination !== undefined ? { generalExamination: toPrismaInputJsonValue(plain.generalExamination) } : {}),
-      ...(plain.systemicExamination !== undefined ? { systemicExamination: toPrismaInputJsonValue(plain.systemicExamination) } : {}),
-      ...(plain.investigations !== undefined ? { investigations: toPrismaInputJsonValue(plain.investigations) } : {}),
-      ...(plain.growthData !== undefined ? { growthData: toPrismaInputJsonValue(plain.growthData) } : {}),
-      ...(plain.ophthalmologyExam !== undefined ? { ophthalmologyExam: toPrismaInputJsonValue(plain.ophthalmologyExam) } : {}),
-      ...(plain.cardiologyExam !== undefined ? { cardiologyExam: toPrismaInputJsonValue(plain.cardiologyExam) } : {}),
-      ...(plain.gynecologyExam !== undefined ? { gynecologyExam: toPrismaInputJsonValue(plain.gynecologyExam) } : {}),
-      ...(plain.dermatologyExam !== undefined ? { dermatologyExam: toPrismaInputJsonValue(plain.dermatologyExam) } : {}),
-      ...(plain.psychiatryExam !== undefined ? { psychiatryExam: toPrismaInputJsonValue(plain.psychiatryExam) } : {}),
-      ...(plain.dentalChart !== undefined ? { dentalChart: plain.dentalChart } : {}),
+      ...(plain.generalExamination !== undefined
+        ? {
+            generalExamination: toPrismaInputJsonValue(
+              plain.generalExamination,
+            ),
+          }
+        : {}),
+      ...(plain.systemicExamination !== undefined
+        ? {
+            systemicExamination: toPrismaInputJsonValue(
+              plain.systemicExamination,
+            ),
+          }
+        : {}),
+      ...(plain.investigations !== undefined
+        ? { investigations: toPrismaInputJsonValue(plain.investigations) }
+        : {}),
+      ...(plain.growthData !== undefined
+        ? { growthData: toPrismaInputJsonValue(plain.growthData) }
+        : {}),
+      ...(plain.ophthalmologyExam !== undefined
+        ? { ophthalmologyExam: toPrismaInputJsonValue(plain.ophthalmologyExam) }
+        : {}),
+      ...(plain.cardiologyExam !== undefined
+        ? { cardiologyExam: toPrismaInputJsonValue(plain.cardiologyExam) }
+        : {}),
+      ...(plain.gynecologyExam !== undefined
+        ? { gynecologyExam: toPrismaInputJsonValue(plain.gynecologyExam) }
+        : {}),
+      ...(plain.dermatologyExam !== undefined
+        ? { dermatologyExam: toPrismaInputJsonValue(plain.dermatologyExam) }
+        : {}),
+      ...(plain.psychiatryExam !== undefined
+        ? { psychiatryExam: toPrismaInputJsonValue(plain.psychiatryExam) }
+        : {}),
+      ...(plain.dentalChart !== undefined
+        ? { dentalChart: plain.dentalChart }
+        : {}),
     };
   }
 }

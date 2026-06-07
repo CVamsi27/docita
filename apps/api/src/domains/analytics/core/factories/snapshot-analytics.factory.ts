@@ -54,7 +54,8 @@ export class SnapshotAnalyticsFactory {
         clinicId,
         'daily',
       );
-      const demographics = await this.operationalFactory.getPatientDemographics(clinicId);
+      const demographics =
+        await this.operationalFactory.getPatientDemographics(clinicId);
       const topConditions = await this.clinicalFactory.getTopConditions(
         clinicId,
         10,
