@@ -6,17 +6,16 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useRef,
-  useState,
 } from "react";
 import { useRouter } from "next/navigation";
-import { client, setAuthLogoutCallback } from "../api/api-client";
+import { setAuthLogoutCallback } from "../api/api-client";
 import { postInternalAuthLogout } from "@workspace/data-access/internal";
-import { API_URL, MAIN_APP_URL } from "../api/api-config";
+import { API_URL } from "../api/api-config";
 import { INTERNAL_USER_KEY, internalSession } from "./session";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { isRecord } from "@workspace/utils";
+import { useAuthState } from "./use-auth-state";
+import { clearAuthStorage, useAuthSession } from "./use-auth-session";
 
 interface User {
   id: string;
@@ -39,127 +38,29 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-function clearAuthStorage() {
-  internalSession.clearSession();
-}
-
-function getMainAppLoginUrl() {
-  return `${MAIN_APP_URL.replace(/\/$/, "")}/login`;
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(() =>
-    internalSession.getToken(),
-  );
-  const [isLoading, setIsLoading] = useState(true);
-  const [isMounted, setIsMounted] = useState(false);
-  const logoutInFlightRef = useRef<Promise<void> | null>(null);
-  const hasLoggedOutRef = useRef(false);
-
+  const authState = useAuthState();
   const router = useRouter();
-  const validateTokenRequest = useCallback(async () => client.get("/auth/validate"), []);
 
-  const isInternalRole = useCallback(
-    (role?: string | null) => role === "INTERNAL",
-    [],
-  );
-
-  const validateToken = useCallback(async (): Promise<boolean> => {
-    try {
-      await validateTokenRequest();
-      return true;
-    } catch (error) {
-      const status =
-        isRecord(error) && typeof error.status === "number"
-          ? error.status
-          : undefined;
-      if (status === 404 || status === 401) {
-        clearAuthStorage();
-        return false;
-      }
-
-      if (status === 429) return true;
-
-      return false;
-    }
-  }, [validateTokenRequest]);
-
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      setIsMounted(true);
-
-      try {
-        const storedUser = localStorage.getItem(INTERNAL_USER_KEY);
-        const storedToken = internalSession.getToken();
-
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          if (isInternalRole(parsedUser.role)) {
-            if (storedToken) {
-              setToken(storedToken);
-              const isValid = await validateToken();
-              if (isValid) {
-                setUser(parsedUser);
-              } else {
-                const refreshed = await internalSession.refreshAccessToken();
-                const nextToken = internalSession.getToken();
-                setToken(nextToken);
-                if (refreshed && nextToken && (await validateToken())) {
-                  setUser(parsedUser);
-                } else {
-                  clearAuthStorage();
-                  setToken(null);
-                  setUser(null);
-                  showUserFacingErrorToast(
-                    null,
-                    "Please sign in again to continue",
-                    "auth",
-                  );
-                }
-              }
-            } else {
-              const refreshed = await internalSession.refreshAccessToken();
-              const nextToken = internalSession.getToken();
-              setToken(nextToken);
-              if (refreshed && nextToken && (await validateToken())) {
-                setUser(parsedUser);
-              } else {
-                clearAuthStorage();
-                setToken(null);
-                setUser(null);
-                showUserFacingErrorToast(
-                  null,
-                  "Please sign in again to continue",
-                  "auth",
-                );
-              }
-            }
-          } else {
-            clearAuthStorage();
-            window.location.replace(getMainAppLoginUrl());
-          }
-        }
-      } catch {
-        clearAuthStorage();
-      }
-      setIsLoading(false);
-    }, 0);
-
-    return () => clearTimeout(timer);
-  }, [isInternalRole, validateToken]);
+  const { validateToken, isInternalRole } = useAuthSession({
+    updateToken: authState.updateToken,
+    updateUser: authState.updateUser,
+    finishLoading: authState.finishLoading,
+    markMounted: authState.markMounted,
+    resetAuth: authState.resetAuth,
+  });
 
   const login = useCallback((newToken: string | null, newUser: User) => {
-    hasLoggedOutRef.current = false;
+    authState.hasLoggedOutRef.current = false;
     internalSession.setToken(newToken);
     localStorage.setItem(INTERNAL_USER_KEY, JSON.stringify(newUser));
-    setToken(newToken);
-    setUser(newUser);
-  }, []);
+    authState.setToken(newToken);
+    authState.setUser(newUser);
+  }, [authState]);
 
   const logout = useCallback(
     (reason?: string) => {
-      if (hasLoggedOutRef.current && !internalSession.getToken()) {
+      if (authState.hasLoggedOutRef.current && !internalSession.getToken()) {
         if (reason) {
           showUserFacingErrorToast(reason, "Please sign in again to continue", "auth");
         }
@@ -167,9 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return Promise.resolve();
       }
 
-      if (logoutInFlightRef.current) return logoutInFlightRef.current;
+      if (authState.logoutInFlightRef.current) return authState.logoutInFlightRef.current;
 
-      logoutInFlightRef.current = (async () => {
+      authState.logoutInFlightRef.current = (async () => {
         try {
           if (internalSession.getToken()) {
             const csrfToken = internalSession.getCsrfToken();
@@ -181,9 +82,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Logout should still complete locally if the backend call fails.
         } finally {
           clearAuthStorage();
-          setToken(null);
-          setUser(null);
-          hasLoggedOutRef.current = true;
+          authState.setToken(null);
+          authState.setUser(null);
+          authState.hasLoggedOutRef.current = true;
 
           if (reason) {
             showUserFacingErrorToast(
@@ -194,12 +95,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
 
           router.replace("/");
-          logoutInFlightRef.current = null;
+          authState.logoutInFlightRef.current = null;
         }
       })();
-      return logoutInFlightRef.current;
+      return authState.logoutInFlightRef.current;
     },
-    [router],
+    [router, authState],
   );
 
   useEffect(() => {
@@ -207,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setAuthLogoutCallback(null);
   }, [logout]);
 
-  if (!isMounted || isLoading) {
+  if (!authState.isMounted || authState.isLoading) {
     return (
       <div
         className="flex min-h-screen flex-col items-center justify-center gap-3"
@@ -220,15 +121,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  const isInternal = isInternalRole(user?.role);
+  const isInternal = isInternalRole(authState.user?.role);
 
   return (
     <AuthContext.Provider
       value={{
-        user,
-        token,
-        isLoading,
-        isAuthenticated: !!user,
+        user: authState.user,
+        token: authState.token,
+        isLoading: authState.isLoading,
+        isAuthenticated: !!authState.user,
         isInternal,
         login,
         logout,

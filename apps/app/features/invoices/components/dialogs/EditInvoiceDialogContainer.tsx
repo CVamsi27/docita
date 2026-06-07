@@ -105,7 +105,6 @@ export function EditInvoiceDialogContainer({
       onRemoveItem={removeItem}
       onUpdateItem={updateItem}
       onSubmit={handleSubmit}
-      calculateTotal={calculateTotal}
     />
   );
 }

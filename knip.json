@@ -7,7 +7,7 @@
     "enumMembers": "warn",
     "types": "warn"
   },
-  "ignoreBinaries": ["fallow", "printf", "tail", "tsx"],
+  "ignoreBinaries": ["printf", "tsx"],
   "ignoreWorkspaces": ["apps/worker"],
   "workspaces": {
     "apps/api": {
@@ -128,6 +128,9 @@
         "open-next.config.ts"
       ],
       "ignoreDependencies": [
+        "@fontsource/fraunces",
+        "@fontsource/inter",
+        "@fontsource/jetbrains-mono",
         "@tailwindcss/postcss",
         "@types/react-signature-canvas",
         "globals"
@@ -168,6 +171,7 @@
         "scripts/deploy/cloudflare-stubs/sentry-nextjs-cloudflare.ts"
       ],
       "ignoreDependencies": [
+        "fallow",
         "madge",
         "playwright",
         "ts-node"
@@ -184,6 +188,9 @@
         "src/components/form/debounced-search-input.tsx"
       ],
       "ignoreDependencies": [
+        "@fontsource/fraunces",
+        "@fontsource/inter",
+        "@fontsource/jetbrains-mono",
         "@hookform/resolvers",
         "zod",
         "@tailwindcss/postcss"

@@ -3,7 +3,7 @@ import { TIER_LIMITS, type SupportedCurrency, type TierName } from '@workspace/t
 import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
 import type { SubscriptionPersistencePort } from '@/domains/subscriptions/application/ports/subscription-persistence.port';
 
-export function clinicTierToTierName(tier: ClinicTier): TierName {
+function clinicTierToTierName(tier: ClinicTier): TierName {
   switch (tier) {
     case ClinicTier.STARTER:
       return 'STARTER';
