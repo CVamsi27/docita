@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-06-07T12:51:16.807Z",
+    "detectionDate": "2026-06-07T13:35:24.604Z",
     "formats": {
       "typescript": {
         "sources": {
@@ -15449,8 +15449,8 @@
             "newClones": 0
           },
           "apps/internal/shared/lib/api/api.ts": {
-            "lines": 206,
-            "tokens": 1996,
+            "lines": 220,
+            "tokens": 2050,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -26766,8 +26766,8 @@
           }
         },
         "total": {
-          "lines": 205393,
-          "tokens": 1700170,
+          "lines": 205407,
+          "tokens": 1700224,
           "sources": 2230,
           "clones": 274,
           "duplicatedLines": 3370,
@@ -33956,9 +33956,9 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
-          "apps/app/shared/components/feedback/error-page-shell.tsx": {
+          "apps/app/shared/components/feedback/coming-soon-badge.tsx": {
             "lines": 0,
-            "tokens": 10,
+            "tokens": 8,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -33968,9 +33968,9 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
-          "apps/app/shared/components/feedback/coming-soon-badge.tsx": {
+          "apps/app/shared/components/errors/error-page-shell.tsx": {
             "lines": 0,
-            "tokens": 8,
+            "tokens": 10,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -36465,8 +36465,8 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/upgrade/error.tsx": {
-            "lines": 0,
-            "tokens": 10,
+            "lines": 1,
+            "tokens": 9,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -36526,7 +36526,7 @@
           },
           "apps/app/app/(protected)/prescriptions/error.tsx": {
             "lines": 0,
-            "tokens": 10,
+            "tokens": 3,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -36538,7 +36538,7 @@
           },
           "apps/app/app/(protected)/lab-tests/error.tsx": {
             "lines": 0,
-            "tokens": 10,
+            "tokens": 3,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -36633,8 +36633,8 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/consultation/error.tsx": {
-            "lines": 0,
-            "tokens": 10,
+            "lines": 1,
+            "tokens": 9,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -38770,13 +38770,13 @@
           },
           "apps/internal/eslint.config.mjs": {
             "lines": 117,
-            "tokens": 566,
+            "tokens": 630,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 31,
-            "duplicatedTokens": 187,
-            "percentage": 26.5,
-            "percentageTokens": 33.04,
+            "duplicatedLines": 26,
+            "duplicatedTokens": 153,
+            "percentage": 22.22,
+            "percentageTokens": 24.29,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -38785,10 +38785,10 @@
             "tokens": 792,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 31,
-            "duplicatedTokens": 187,
-            "percentage": 18.45,
-            "percentageTokens": 23.61,
+            "duplicatedLines": 26,
+            "duplicatedTokens": 153,
+            "percentage": 15.48,
+            "percentageTokens": 19.32,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -38818,13 +38818,13 @@
           }
         },
         "total": {
-          "lines": 55747,
-          "tokens": 408387,
+          "lines": 55749,
+          "tokens": 408435,
           "sources": 1003,
           "clones": 19,
-          "duplicatedLines": 260,
-          "duplicatedTokens": 1770,
-          "percentage": 0.47,
+          "duplicatedLines": 255,
+          "duplicatedTokens": 1736,
+          "percentage": 0.46,
           "percentageTokens": 0.43,
           "newDuplicatedLines": 0,
           "newClones": 0
@@ -44164,11 +44164,11 @@
             "lines": 22,
             "tokens": 145,
             "sources": 1,
-            "clones": 12,
-            "duplicatedLines": 143,
-            "duplicatedTokens": 1125,
-            "percentage": 650,
-            "percentageTokens": 775.86,
+            "clones": 13,
+            "duplicatedLines": 144,
+            "duplicatedTokens": 1095,
+            "percentage": 654.55,
+            "percentageTokens": 755.17,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -46536,18 +46536,6 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
-          "apps/app/shared/components/feedback/error-page-shell.tsx": {
-            "lines": 40,
-            "tokens": 359,
-            "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
-            "newDuplicatedLines": 0,
-            "newClones": 0
-          },
           "apps/app/shared/components/feedback/coming-soon-badge.tsx": {
             "lines": 24,
             "tokens": 138,
@@ -46573,8 +46561,8 @@
             "newClones": 0
           },
           "apps/app/shared/components/errors/error-page-shell.tsx": {
-            "lines": 26,
-            "tokens": 184,
+            "lines": 56,
+            "tokens": 443,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -49309,14 +49297,14 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/upgrade/error.tsx": {
-            "lines": 40,
-            "tokens": 322,
+            "lines": 26,
+            "tokens": 182,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 17,
-            "duplicatedTokens": 123,
-            "percentage": 42.5,
-            "percentageTokens": 38.2,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -49369,14 +49357,14 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/prescriptions/error.tsx": {
-            "lines": 49,
-            "tokens": 428,
+            "lines": 22,
+            "tokens": 143,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 30,
-            "duplicatedTokens": 234,
-            "percentage": 61.22,
-            "percentageTokens": 54.67,
+            "clones": 1,
+            "duplicatedLines": 11,
+            "duplicatedTokens": 83,
+            "percentage": 50,
+            "percentageTokens": 58.04,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -49393,14 +49381,14 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/lab-tests/error.tsx": {
-            "lines": 49,
-            "tokens": 432,
+            "lines": 22,
+            "tokens": 143,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 37,
-            "duplicatedTokens": 305,
-            "percentage": 75.51,
-            "percentageTokens": 70.6,
+            "clones": 1,
+            "duplicatedLines": 11,
+            "duplicatedTokens": 83,
+            "percentage": 50,
+            "percentageTokens": 58.04,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -49441,14 +49429,14 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/import/error.tsx": {
-            "lines": 45,
-            "tokens": 389,
+            "lines": 22,
+            "tokens": 143,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 19,
-            "duplicatedTokens": 140,
-            "percentage": 42.22,
-            "percentageTokens": 35.99,
+            "duplicatedLines": 11,
+            "duplicatedTokens": 83,
+            "percentage": 50,
+            "percentageTokens": 58.04,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -49477,14 +49465,14 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/documents/error.tsx": {
-            "lines": 45,
-            "tokens": 381,
+            "lines": 22,
+            "tokens": 143,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 35,
-            "duplicatedTokens": 275,
-            "percentage": 77.78,
-            "percentageTokens": 72.18,
+            "clones": 1,
+            "duplicatedLines": 11,
+            "duplicatedTokens": 83,
+            "percentage": 50,
+            "percentageTokens": 58.04,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -49513,14 +49501,14 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/consultation/error.tsx": {
-            "lines": 40,
-            "tokens": 331,
+            "lines": 26,
+            "tokens": 191,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 17,
-            "duplicatedTokens": 123,
-            "percentage": 42.5,
-            "percentageTokens": 37.16,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -51206,14 +51194,14 @@
           }
         },
         "total": {
-          "lines": 117064,
-          "tokens": 862462,
-          "sources": 1031,
-          "clones": 210,
-          "duplicatedLines": 2603,
-          "duplicatedTokens": 16498,
-          "percentage": 2.22,
-          "percentageTokens": 1.91,
+          "lines": 116926,
+          "tokens": 861024,
+          "sources": 1030,
+          "clones": 208,
+          "duplicatedLines": 2548,
+          "duplicatedTokens": 16049,
+          "percentage": 2.18,
+          "percentageTokens": 1.86,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -51429,8 +51417,8 @@
             "newClones": 0
           },
           ".fallowrc.json": {
-            "lines": 48,
-            "tokens": 219,
+            "lines": 49,
+            "tokens": 226,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -51442,8 +51430,8 @@
           }
         },
         "total": {
-          "lines": 502,
-          "tokens": 2566,
+          "lines": 503,
+          "tokens": 2573,
           "sources": 10,
           "clones": 0,
           "duplicatedLines": 0,
@@ -51456,14 +51444,14 @@
       }
     },
     "total": {
-      "lines": 379584,
-      "tokens": 2980563,
-      "sources": 4281,
-      "clones": 504,
-      "duplicatedLines": 6251,
-      "duplicatedTokens": 43593,
-      "percentage": 1.65,
-      "percentageTokens": 1.46,
+      "lines": 379463,
+      "tokens": 2979234,
+      "sources": 4280,
+      "clones": 502,
+      "duplicatedLines": 6191,
+      "duplicatedTokens": 43110,
+      "percentage": 1.63,
+      "percentageTokens": 1.45,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -64467,109 +64455,73 @@
     },
     {
       "format": "tsx",
-      "lines": 11,
-      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <AppPageScaffold",
+      "lines": 12,
+      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Prescriptions",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/app/(protected)/prescriptions/error.tsx",
-        "start": 10,
-        "end": 20,
+        "start": 6,
+        "end": 17,
         "startLoc": {
-          "line": 10,
+          "line": 6,
           "column": 43,
-          "position": 95
+          "position": 38
         },
         "endLoc": {
-          "line": 20,
-          "column": 21,
-          "position": 173
+          "line": 17,
+          "column": 41,
+          "position": 121
         }
       },
       "secondFile": {
         "name": "apps/app/app/(protected)/specialty/dental-charts/error.tsx",
         "start": 6,
-        "end": 16,
+        "end": 17,
         "startLoc": {
           "line": 6,
           "column": 42,
           "position": 38
         },
         "endLoc": {
-          "line": 16,
-          "column": 20,
-          "position": 116
+          "line": 17,
+          "column": 41,
+          "position": 121
         }
       }
     },
     {
       "format": "tsx",
-      "lines": 18,
-      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <AppPageScaffold>\n      <Card className=\"mx-auto max-w-md border-destructive/30\">\n        <CardContent className=\"flex flex-col items-center pt-8 pb-8 text-center\">\n          <div className=\"mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10\">\n            <AlertCircle className=\"h-8 w-8 text-destructive\" aria-hidden />\n          </div>\n          <h2 className=\"ui-section-title mb-2 text-[var(--fs-xl)]\">\n            Error loading Lab",
+      "lines": 12,
+      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Lab Tests",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/app/(protected)/lab-tests/error.tsx",
-        "start": 10,
-        "end": 27,
+        "start": 6,
+        "end": 17,
         "startLoc": {
-          "line": 10,
+          "line": 6,
           "column": 38,
-          "position": 95
+          "position": 38
         },
         "endLoc": {
-          "line": 27,
-          "column": 30,
-          "position": 244
+          "line": 17,
+          "column": 37,
+          "position": 121
         }
       },
       "secondFile": {
         "name": "apps/app/app/(protected)/specialty/dental-charts/error.tsx",
         "start": 6,
-        "end": 27,
+        "end": 17,
         "startLoc": {
           "line": 6,
           "column": 42,
           "position": 38
         },
         "endLoc": {
-          "line": 27,
-          "column": 40,
-          "position": 244
-        }
-      }
-    },
-    {
-      "format": "tsx",
-      "lines": 21,
-      "fragment": ". Please retry or return to the\n            dashboard.\n          </p>\n          <div className=\"flex w-full flex-col gap-2 sm:flex-row sm:justify-center\">\n            <Button onClick={() => reset()}>\n              <RefreshCw className=\"mr-2 h-4 w-4\" aria-hidden />\n              Try again\n            </Button>\n            <Button variant=\"outline\" asChild>\n              <Link href=\"/dashboard\">\n                <Home className=\"mr-2 h-4 w-4\" aria-hidden />\n                Go to dashboard\n              </Link>\n            </Button>\n          </div>\n        </CardContent>\n      </Card>\n    </AppPageScaffold>\n  );\n}\n",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/app/(protected)/lab-tests/error.tsx",
-        "start": 30,
-        "end": 50,
-        "startLoc": {
-          "line": 30,
-          "column": 40,
-          "position": 276
-        },
-        "endLoc": {
-          "line": 50,
-          "column": 1,
-          "position": 432
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/app/(protected)/prescriptions/error.tsx",
-        "start": 30,
-        "end": 50,
-        "startLoc": {
-          "line": 30,
-          "column": 44,
-          "position": 272
-        },
-        "endLoc": {
-          "line": 50,
-          "column": 1,
-          "position": 428
+          "line": 17,
+          "column": 41,
+          "position": 121
         }
       }
     },
@@ -64647,73 +64599,73 @@
     },
     {
       "format": "tsx",
-      "lines": 17,
-      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  void error;\n\n  return (\n    <AppPageScaffold className=\"max-w-md\">\n      <Card className=\"ui-card-surface\">\n        <CardContent className=\"p-8 text-center\">\n          <div className=\"mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10\">\n            <AlertCircle className=\"h-7 w-7 text-destructive\" />\n          </div>\n          <h2 className=\"ui-section-title\">Error",
+      "lines": 12,
+      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Import",
       "tokens": 0,
       "firstFile": {
-        "name": "apps/app/app/(protected)/documents/error.tsx",
-        "start": 9,
-        "end": 25,
+        "name": "apps/app/app/(protected)/import/error.tsx",
+        "start": 6,
+        "end": 17,
         "startLoc": {
-          "line": 9,
-          "column": 39,
-          "position": 82
+          "line": 6,
+          "column": 36,
+          "position": 38
         },
         "endLoc": {
-          "line": 25,
-          "column": 49,
-          "position": 217
+          "line": 17,
+          "column": 34,
+          "position": 121
         }
       },
       "secondFile": {
         "name": "apps/app/app/(protected)/specialty/dental-charts/error.tsx",
         "start": 6,
-        "end": 25,
+        "end": 17,
         "startLoc": {
           "line": 6,
           "column": 42,
           "position": 38
         },
         "endLoc": {
-          "line": 25,
-          "column": 46,
-          "position": 217
+          "line": 17,
+          "column": 41,
+          "position": 121
         }
       }
     },
     {
       "format": "tsx",
-      "lines": 20,
-      "fragment": ", or return to the dashboard.\n          </p>\n          <div className=\"mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center\">\n            <Button onClick={reset}>\n              <RefreshCw className=\"mr-2 h-4 w-4\" />\n              Try again\n            </Button>\n            <Button variant=\"outline\" asChild>\n              <Link href=\"/dashboard\">\n                <Home className=\"mr-2 h-4 w-4\" />\n                Go to dashboard\n              </Link>\n            </Button>\n          </div>\n        </CardContent>\n      </Card>\n    </AppPageScaffold>\n  );\n}\n",
+      "lines": 12,
+      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Documents",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/app/(protected)/documents/error.tsx",
-        "start": 27,
-        "end": 46,
+        "start": 6,
+        "end": 17,
         "startLoc": {
-          "line": 27,
-          "column": 25,
-          "position": 241
+          "line": 6,
+          "column": 39,
+          "position": 38
         },
         "endLoc": {
-          "line": 46,
-          "column": 1,
-          "position": 381
+          "line": 17,
+          "column": 37,
+          "position": 121
         }
       },
       "secondFile": {
-        "name": "apps/app/app/(protected)/import/error.tsx",
-        "start": 27,
-        "end": 46,
+        "name": "apps/app/app/(protected)/specialty/dental-charts/error.tsx",
+        "start": 6,
+        "end": 17,
         "startLoc": {
-          "line": 27,
-          "column": 29,
-          "position": 249
+          "line": 6,
+          "column": 42,
+          "position": 38
         },
         "endLoc": {
-          "line": 46,
-          "column": 1,
-          "position": 389
+          "line": 17,
+          "column": 41,
+          "position": 121
         }
       }
     },
@@ -64750,42 +64702,6 @@
           "line": 15,
           "column": 1,
           "position": 94
-        }
-      }
-    },
-    {
-      "format": "tsx",
-      "lines": 18,
-      "fragment": "\"\n    >\n      <div className=\"flex flex-col gap-2 sm:flex-row sm:justify-center\">\n        <Button onClick={() => reset()}>\n          <RefreshCw className=\"mr-2 h-4 w-4\" />\n          Try again\n        </Button>\n        <Button variant=\"outline\" asChild>\n          <Link href=\"/dashboard\">\n            <Home className=\"mr-2 h-4 w-4\" />\n            Go to dashboard\n          </Link>\n        </Button>\n      </div>\n    </ErrorPageShell>\n  );\n}\n",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/app/app/(protected)/consultation/error.tsx",
-        "start": 24,
-        "end": 41,
-        "startLoc": {
-          "line": 24,
-          "column": 78,
-          "position": 208
-        },
-        "endLoc": {
-          "line": 41,
-          "column": 1,
-          "position": 331
-        }
-      },
-      "secondFile": {
-        "name": "apps/app/app/(protected)/upgrade/error.tsx",
-        "start": 24,
-        "end": 41,
-        "startLoc": {
-          "line": 24,
-          "column": 95,
-          "position": 199
-        },
-        "endLoc": {
-          "line": 41,
-          "column": 1,
-          "position": 322
         }
       }
     },
@@ -69471,17 +69387,17 @@
     },
     {
       "format": "javascript",
-      "lines": 19,
-      "fragment": "import {\n  noInlineInvalidateKeysSyntaxRule,\n  noInlineQueryKeySyntaxRule,\n  noInlineUseApiQueryKeySyntaxRule,\n} from \"@workspace/eslint-config/base\";\nimport { nextJsConfig } from \"@workspace/eslint-config/next-js\";\n\nexport default [\n  {\n    ignores: [\n      \".next/**\",\n      \"dist/**\",\n      \".open-next/**\",\n      \".wrangler/**\",\n      \"out/**\",\n      \"build/**\",\n      \"coverage/**\",\n      \"next-env.d.ts\",\n      ",
+      "lines": 14,
+      "fragment": ";\n\nexport default [\n  {\n    ignores: [\n      \".next/**\",\n      \"dist/**\",\n      \".open-next/**\",\n      \".wrangler/**\",\n      \"out/**\",\n      \"build/**\",\n      \"coverage/**\",\n      \"next-env.d.ts\",\n      ",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/eslint.config.mjs",
-        "start": 1,
+        "start": 6,
         "end": 19,
         "startLoc": {
-          "line": 1,
-          "column": 1,
-          "position": 0
+          "line": 6,
+          "column": 64,
+          "position": 34
         },
         "endLoc": {
           "line": 19,
@@ -69491,17 +69407,17 @@
       },
       "secondFile": {
         "name": "apps/internal/eslint.config.mjs",
-        "start": 1,
-        "end": 19,
+        "start": 8,
+        "end": 21,
         "startLoc": {
-          "line": 1,
-          "column": 1,
-          "position": 0
+          "line": 8,
+          "column": 56,
+          "position": 54
         },
         "endLoc": {
-          "line": 19,
+          "line": 21,
           "column": 5,
-          "position": 84
+          "position": 104
         }
       }
     },
@@ -69527,17 +69443,17 @@
       },
       "secondFile": {
         "name": "apps/internal/eslint.config.mjs",
-        "start": 23,
-        "end": 36,
+        "start": 25,
+        "end": 38,
         "startLoc": {
-          "line": 23,
+          "line": 25,
           "column": 73,
-          "position": 114
+          "position": 134
         },
         "endLoc": {
-          "line": 36,
+          "line": 38,
           "column": 30,
-          "position": 217
+          "position": 237
         }
       }
     },

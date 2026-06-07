@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { ErrorPageShell } from "@/components/feedback/error-page-shell";
+import { ErrorPageShell } from "@/components/errors/error-page-shell";
 
 export default function AppointmentsError({
   error,

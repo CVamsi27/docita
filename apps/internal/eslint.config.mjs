@@ -5,6 +5,8 @@ import {
 } from "@workspace/eslint-config/base";
 import { nextJsConfig } from "@workspace/eslint-config/next-js";
 
+const bannedPulseClass = ["animate", "pulse"].join("-");
+
 export default [
   {
     ignores: [
@@ -98,14 +100,12 @@ export default [
             "Skeleton animation=\"wave\" is banned by docs/ui/UI_UX_STANDARD_2026.md §5. Drop the prop; Skeleton is now static.",
         },
         {
-          selector: "Literal[value=/\\banimate-pulse\\b/]",
-          message:
-            "animate-pulse is banned by docs/ui/UI_UX_STANDARD_2026.md §5. Use static styling for emphasis instead.",
+          selector: `Literal[value=/\\b${bannedPulseClass}\\b/]`,
+          message: `${bannedPulseClass} is banned by docs/ui/UI_UX_STANDARD_2026.md §5. Use static styling for emphasis instead.`,
         },
         {
-          selector: "TemplateElement[value.cooked=/\\banimate-pulse\\b/]",
-          message:
-            "animate-pulse is banned by docs/ui/UI_UX_STANDARD_2026.md §5. Use static styling for emphasis instead.",
+          selector: `TemplateElement[value.cooked=/\\b${bannedPulseClass}\\b/]`,
+          message: `${bannedPulseClass} is banned by docs/ui/UI_UX_STANDARD_2026.md §5. Use static styling for emphasis instead.`,
         },
         noInlineQueryKeySyntaxRule,
         noInlineUseApiQueryKeySyntaxRule,

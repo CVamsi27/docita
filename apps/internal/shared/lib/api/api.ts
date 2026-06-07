@@ -13,19 +13,33 @@ import {
   WhatsAppBroadcastJobSummary,
 } from "@workspace/types";
 import type {
-  InternalBillingMetrics as BillingMetrics,
-  InternalEnterpriseContractEstimate as EnterpriseContractEstimate,
-  InternalEnterpriseContractInvoicePreview as EnterpriseContractInvoicePreview,
-  InternalEnterpriseContractInvoiceRow as EnterpriseContractInvoiceRow,
-  InternalEnterpriseContractRevisionRow as EnterpriseContractRevisionRow,
-  InternalEnterpriseContractRow as EnterpriseContractRow,
-  InternalEnterpriseTrueUpAlertRow as EnterpriseTrueUpAlertRow,
-  InternalFeedback as Feedback,
-  InternalFeedbackStats as FeedbackStats,
-  InternalPricingOfferRow as PricingOfferRow,
-  InternalSubscriptionOverview as SubscriptionOverview,
-  InternalTierPricingRow as TierPricingRow,
+  InternalBillingMetrics,
+  InternalEnterpriseContractEstimate,
+  InternalEnterpriseContractInvoicePreview,
+  InternalEnterpriseContractInvoiceRow,
+  InternalEnterpriseContractRevisionRow,
+  InternalEnterpriseContractRow,
+  InternalEnterpriseTrueUpAlertRow,
+  InternalFeedback,
+  InternalFeedbackStats,
+  InternalPricingOfferRow,
+  InternalSubscriptionOverview,
+  InternalTierPricingRow,
 } from "@workspace/data-access/internal";
+
+type BillingMetrics = InternalBillingMetrics;
+type EnterpriseContractEstimate = InternalEnterpriseContractEstimate;
+type EnterpriseContractInvoicePreview =
+  InternalEnterpriseContractInvoicePreview;
+type EnterpriseContractInvoiceRow = InternalEnterpriseContractInvoiceRow;
+type EnterpriseContractRevisionRow = InternalEnterpriseContractRevisionRow;
+type EnterpriseContractRow = InternalEnterpriseContractRow;
+type EnterpriseTrueUpAlertRow = InternalEnterpriseTrueUpAlertRow;
+type Feedback = InternalFeedback;
+type FeedbackStats = InternalFeedbackStats;
+type PricingOfferRow = InternalPricingOfferRow;
+type SubscriptionOverview = InternalSubscriptionOverview;
+type TierPricingRow = InternalTierPricingRow;
 
 export const feedbackAPI = {
   getAll: (
@@ -85,7 +99,7 @@ export const broadcastsAPI = {
 };
 
 type PaymentRecord = InternalBillingPaymentItem;
-export type { InternalPricingOfferRow as PricingOfferRow } from "@workspace/data-access/internal";
+export type { PricingOfferRow };
 
 export const billingAPI = {
   getMetrics: (): Promise<BillingMetrics> =>
