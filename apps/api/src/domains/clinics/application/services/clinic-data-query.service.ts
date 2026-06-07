@@ -15,6 +15,29 @@ import {
   toRecord,
 } from './clinic-data.helpers';
 
+/**
+ * Projects the settings-derived fields shared by every clinic list/search
+ * entry (`findAll`, `getUserClinics`). `findOne` adds extra fields
+ * (`subscriptionGraceUntil`, `enterpriseBranding`) on top of this same base,
+ * so centralizing the shared projection keeps the two list paths from
+ * drifting apart key-by-key.
+ */
+function projectClinicListEntry<T extends { settings: unknown; phone: string }>(
+  clinic: T,
+) {
+  const settings = toRecord(clinic.settings);
+  return {
+    ...clinic,
+    phoneNumber: clinic.phone,
+    gstin: readOptionalString(settings, 'gstin'),
+    description: readString(settings, 'description'),
+    openingTime: readString(settings, 'openingTime'),
+    closingTime: readString(settings, 'closingTime'),
+    workingDays: readStringArray(settings, 'workingDays'),
+    consultationDuration: readNumber(settings, 'consultationDuration'),
+  };
+}
+
 @Injectable()
 export class ClinicDataQueryService {
   constructor(
@@ -26,22 +49,12 @@ export class ClinicDataQueryService {
   async findAll() {
     const clinics = await this.repository.findAll();
     return Promise.all(
-      clinics.map(async (clinic) => {
-        const settings = toRecord(clinic.settings);
-        return attachResolvedClinicSignatureUrl(
-          {
-            ...clinic,
-            phoneNumber: clinic.phone,
-            gstin: readOptionalString(settings, 'gstin'),
-            description: readString(settings, 'description'),
-            openingTime: readString(settings, 'openingTime'),
-            closingTime: readString(settings, 'closingTime'),
-            workingDays: readStringArray(settings, 'workingDays'),
-            consultationDuration: readNumber(settings, 'consultationDuration'),
-          },
+      clinics.map((clinic) =>
+        attachResolvedClinicSignatureUrl(
+          projectClinicListEntry(clinic),
           this.storedFileUrlResolver,
-        );
-      }),
+        ),
+      ),
     );
   }
 
@@ -72,23 +85,12 @@ export class ClinicDataQueryService {
     const doctorClinics = await this.repository.findDoctorClinics(userId);
 
     return Promise.all(
-      doctorClinics.map(async (dc) => {
-        const clinic = dc.clinic;
-        const settings = toRecord(clinic.settings);
-        return attachResolvedClinicSignatureUrl(
-          {
-            ...clinic,
-            phoneNumber: clinic.phone,
-            gstin: readOptionalString(settings, 'gstin'),
-            description: readString(settings, 'description'),
-            openingTime: readString(settings, 'openingTime'),
-            closingTime: readString(settings, 'closingTime'),
-            workingDays: readStringArray(settings, 'workingDays'),
-            consultationDuration: readNumber(settings, 'consultationDuration'),
-          },
+      doctorClinics.map((dc) =>
+        attachResolvedClinicSignatureUrl(
+          projectClinicListEntry(dc.clinic),
           this.storedFileUrlResolver,
-        );
-      }),
+        ),
+      ),
     );
   }
 

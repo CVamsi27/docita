@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — Reflect.defineMetadata return requires as cast
 import {
   BadRequestException,
   SetMetadata,

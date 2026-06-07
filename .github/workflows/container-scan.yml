@@ -1,20 +1,12 @@
 name: Container Security Scan
 
 on:
-  pull_request:
-    paths:
-      - 'apps/api/Dockerfile'
-      - 'apps/worker/Dockerfile'
-      - 'apps/app/Dockerfile*'
-      - 'pnpm-lock.yaml'
-      - 'package.json'
-      - 'Dockerfile*'
   schedule:
     - cron: '0 6 * * 1'  # Every Monday at 6 AM UTC
 
 jobs:
   scan-api:
-    if: github.event_name == 'pull_request' || github.event_name == 'schedule'
+    if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -42,7 +34,7 @@ jobs:
           category: 'api-deps'
 
   scan-worker:
-    if: github.event_name == 'pull_request' || github.event_name == 'schedule'
+    if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -37,4 +37,4 @@ export function getAppBaseUrl(): string {
   return "http://localhost:3000";
 }
 
-export { fetchLandingJson, resolvePaymentRedirectLocation } from "./api-fetch";
+// fetchLandingJson is exported from api-fetch.ts — import it there directly.

@@ -21,6 +21,11 @@ import {
   logOutboundPatientTemplate,
   resolveAppointmentMapsLink,
 } from './system-events.helpers';
+import {
+  INVOICE_NOTIFICATION_INCLUDE,
+  NOTIFICATION_PATIENT_CONTACT_WITH_ID_SELECT,
+  PRESCRIPTION_NOTIFICATION_INCLUDE,
+} from './whatsapp-notification-query.helpers';
 
 // Facade — loads appointment/prescription/invoice context then delegates sends
 @Injectable()
@@ -56,15 +61,7 @@ export class SystemEventsService {
 
     const prescription = await this.persistence.prescription.findUnique({
       where: { id: prescriptionId },
-      include: {
-        patient: {
-          select: { firstName: true, lastName: true, phoneNumber: true },
-        },
-        doctor: { select: { name: true } },
-        appointment: {
-          include: { clinic: { select: { name: true, currency: true } } },
-        },
-      },
+      include: PRESCRIPTION_NOTIFICATION_INCLUDE,
     });
 
     if (!prescription || !prescription.patient.phoneNumber) return;
@@ -97,14 +94,7 @@ export class SystemEventsService {
 
     const invoice = await this.persistence.invoice.findUnique({
       where: { id: invoiceId },
-      include: {
-        patient: {
-          select: { firstName: true, lastName: true, phoneNumber: true },
-        },
-        appointment: {
-          include: { clinic: { select: { name: true, currency: true } } },
-        },
-      },
+      include: INVOICE_NOTIFICATION_INCLUDE,
     });
 
     if (!invoice || !invoice.patient.phoneNumber) return;
@@ -140,12 +130,7 @@ export class SystemEventsService {
       where: { id: appointmentId },
       include: {
         patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-          },
+          select: NOTIFICATION_PATIENT_CONTACT_WITH_ID_SELECT,
         },
         doctor: { select: { name: true } },
         clinic: { select: { name: true, settings: true } },
@@ -249,12 +234,7 @@ export class SystemEventsService {
       where: { id: appointmentId },
       include: {
         patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-          },
+          select: NOTIFICATION_PATIENT_CONTACT_WITH_ID_SELECT,
         },
         clinic: { select: { name: true, timezone: true } },
       },
@@ -306,12 +286,7 @@ export class SystemEventsService {
       where: { id: appointmentId },
       include: {
         patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-          },
+          select: NOTIFICATION_PATIENT_CONTACT_WITH_ID_SELECT,
         },
         clinic: { select: { name: true } },
       },

@@ -21,6 +21,7 @@ import {
   buildInvoiceReadyVariables,
   buildPrescriptionCreatedVariables,
 } from '@/shared/whatsapp/patient-whatsapp-template-variables';
+import { NOTIFICATION_PATIENT_CONTACT_WITH_ID_SELECT } from './whatsapp-notification-query.helpers';
 
 // AuditLogged: outbound WhatsApp resend delegates to SendMessageUseCase audit trail
 
@@ -52,12 +53,7 @@ export class WhatsappResendService {
       where: { id },
       include: {
         patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-          },
+          select: NOTIFICATION_PATIENT_CONTACT_WITH_ID_SELECT,
         },
         doctor: { select: { name: true } },
         medications: true,
@@ -101,12 +97,13 @@ export class WhatsappResendService {
       templateName: 'prescription_created',
       variables,
     });
+    const messageId = sendResult.providerMessageId || sendResult.messageId;
 
     await this.persistence.prescription.update({
       where: { id },
       data: {
         whatsappSentAt: this.clock.now(),
-        whatsappMessageId: sendResult.providerMessageId || sendResult.messageId,
+        whatsappMessageId: messageId,
         whatsappStatus: WhatsappLogStatus.SENT,
         approvalStatus: isAuthorized
           ? ApprovalStatus.AUTO_APPROVED
@@ -126,14 +123,11 @@ export class WhatsappResendService {
         phoneNumber: prescription.patient.phoneNumber,
         message: messagePreview,
         status: WhatsappLogStatus.SENT,
-        providerMessageId: sendResult.providerMessageId || sendResult.messageId,
+        providerMessageId: messageId,
       },
     });
 
-    return {
-      success: true,
-      messageId: sendResult.providerMessageId || sendResult.messageId,
-    };
+    return { success: true, messageId };
   }
 
   async resendInvoice(
@@ -146,12 +140,7 @@ export class WhatsappResendService {
       where: { id },
       include: {
         patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-          },
+          select: NOTIFICATION_PATIENT_CONTACT_WITH_ID_SELECT,
         },
         appointment: {
           include: { clinic: { select: { name: true, currency: true } } },
@@ -204,12 +193,13 @@ export class WhatsappResendService {
       templateName: 'invoice_ready',
       variables,
     });
+    const messageId = sendResult.providerMessageId || sendResult.messageId;
 
     await this.persistence.invoice.update({
       where: { id },
       data: {
         whatsappSentAt: this.clock.now(),
-        whatsappMessageId: sendResult.providerMessageId || sendResult.messageId,
+        whatsappMessageId: messageId,
         whatsappStatus: WhatsappLogStatus.SENT,
         approvalStatus: isAuthorized
           ? ApprovalStatus.AUTO_APPROVED
@@ -228,13 +218,10 @@ export class WhatsappResendService {
         phoneNumber: invoice.patient.phoneNumber,
         message: messagePreview,
         status: WhatsappLogStatus.SENT,
-        providerMessageId: sendResult.providerMessageId || sendResult.messageId,
+        providerMessageId: messageId,
       },
     });
 
-    return {
-      success: true,
-      messageId: sendResult.providerMessageId || sendResult.messageId,
-    };
+    return { success: true, messageId };
   }
 }

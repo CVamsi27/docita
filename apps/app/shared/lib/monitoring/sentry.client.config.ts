@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  bootstrapSentryClient,
+  createLazySentryClientLoader,
+} from "@workspace/utils";
+
 declare global {
   interface Window {
     __sentryReady?: boolean;
@@ -15,72 +20,38 @@ type SentrySeverityLevel =
   | "debug";
 
 const SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
-const isDev = process.env.NODE_ENV === "development";
 
-let sentryModule: SentryModule | null = null;
-let sentryModulePromise: Promise<SentryModule | null> | null = null;
-
-const isSentryEnabled = () =>
-  typeof window !== "undefined" && Boolean(SENTRY_DSN) && !isDev;
-
-async function loadSentryModule(): Promise<SentryModule | null> {
-  if (!isSentryEnabled()) {
-    return null;
-  }
-
-  if (sentryModule) return sentryModule;
-
-  if (!sentryModulePromise) {
-    sentryModulePromise = import("@sentry/nextjs")
-      .then((module) => {
-        sentryModule = module;
-        return module;
-      })
-      .catch(() => null);
-  }
-
-  return sentryModulePromise;
-}
+const {
+  isSentryEnabled,
+  getLoadedSentryModule,
+  loadSentryModule,
+  runWithSentryModule,
+} = createLazySentryClientLoader<SentryModule>({
+  importModule: () => import("@sentry/nextjs"),
+  dsn: SENTRY_DSN,
+});
 
 export function initializeSentryClient() {
-  if (!isSentryEnabled()) {
+  if (!isSentryEnabled() || window.__sentryReady) {
     return;
   }
 
-  if (window.__sentryReady) {
-    return;
-  }
-
-  void loadSentryModule().then((Sentry) => {
-    if (!Sentry) {
-      return;
-    }
-
-    try {
-      const userInfo = getUserContextFromStorage();
-      if (userInfo) {
-        Sentry.setUser({
-          id: userInfo.userId,
-          email: userInfo.email,
-          username: userInfo.role,
-        });
-
-        Sentry.setTag("clinic_id", userInfo.clinicId);
-        Sentry.setTag("role", userInfo.role);
-      }
-
-      window.addEventListener("unhandledrejection", (event) => {
-        Sentry.captureException(
-          new Error(
-            `Unhandled Promise Rejection: ${event.reason?.message || event.reason}`,
-          ),
-        );
+  bootstrapSentryClient({
+    loadSentryModule,
+    getContext: getUserContextFromStorage,
+    applyContext: (Sentry, userInfo) => {
+      Sentry.setUser({
+        id: userInfo.userId,
+        email: userInfo.email,
+        username: userInfo.role,
       });
 
+      Sentry.setTag("clinic_id", userInfo.clinicId);
+      Sentry.setTag("role", userInfo.role);
+    },
+    onReady: () => {
       window.__sentryReady = true;
-    } catch {
-      // Client-side monitoring must never block app boot.
-    }
+    },
   });
 }
 
@@ -111,8 +82,9 @@ export function captureException(
   const normalizedError = typeof error === "string" ? new Error(error) : error;
 
   try {
-    if (sentryModule) {
-      return sentryModule.captureException(normalizedError, {
+    const loadedModule = getLoadedSentryModule();
+    if (loadedModule) {
+      return loadedModule.captureException(normalizedError, {
         contexts: context ? { custom: context } : undefined,
       });
     }
@@ -142,13 +114,8 @@ export function captureMessage(
   }
 
   try {
-    if (sentryModule) {
-      sentryModule.captureMessage(message, level);
-      return;
-    }
-
-    void loadSentryModule().then((Sentry) => {
-      Sentry?.captureMessage(message, level);
+    runWithSentryModule((Sentry) => {
+      Sentry.captureMessage(message, level);
     });
   } catch {
     // Monitoring calls are best-effort and must remain non-blocking.
@@ -165,19 +132,8 @@ export function addBreadcrumb(
   }
 
   try {
-    if (sentryModule) {
-      sentryModule.addBreadcrumb({
-        message,
-        level: "info",
-        category,
-        data,
-        timestamp: Date.now() / 1000,
-      });
-      return;
-    }
-
-    void loadSentryModule().then((Sentry) => {
-      Sentry?.addBreadcrumb({
+    runWithSentryModule((Sentry) => {
+      Sentry.addBreadcrumb({
         message,
         level: "info",
         category,

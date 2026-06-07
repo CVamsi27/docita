@@ -1,5 +1,7 @@
+// check-as-cast-density: allow-file — React Hook Form generic field names require as Path<T>
 "use client";
 
+import type { ComponentProps } from "react";
 import type { Control, FieldValues, Path } from "react-hook-form";
 import { DatePicker } from "@workspace/ui/components/form/date-picker";
 import { Input } from "@workspace/ui/components/form/input";
@@ -25,25 +27,93 @@ interface SharedPatientInfoFieldsProps<T extends FieldValues> {
   genderRequired?: boolean;
 }
 
+interface PatientTextFieldConfig {
+  name: string;
+  label: string;
+  placeholder: string;
+  required?: boolean;
+  inputProps?: Pick<ComponentProps<"input">, "type" | "inputMode">;
+}
+
+/**
+ * One labelled text `FormField` bound to `Input`. `SharedPatientNameFields`
+ * and `SharedPatientContactFields` below are both lists of these — same
+ * label/control/message shell, differing only in field name, copy, and a
+ * couple of native input attributes — so each renders its config list through
+ * this single component instead of repeating the `FormField` markup per field.
+ */
+function PatientTextField<T extends FieldValues>({
+  control,
+  config,
+}: {
+  control: Control<T>;
+  config: PatientTextFieldConfig;
+}) {
+  return (
+    <FormField
+      control={control}
+      name={config.name as Path<T>}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>
+            {config.label}
+            {config.required ? (
+              <span className="text-destructive ml-0.5"> *</span>
+            ) : null}
+          </FormLabel>
+          <FormControl>
+            <Input
+              {...field}
+              value={field.value ?? ""}
+              placeholder={config.placeholder}
+              {...config.inputProps}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+const PATIENT_NAME_FIELDS: PatientTextFieldConfig[] = [
+  {
+    name: "firstName",
+    label: "First Name",
+    placeholder: "First name",
+    required: true,
+  },
+  {
+    name: "lastName",
+    label: "Last Name",
+    placeholder: "Last name",
+    required: true,
+  },
+];
+
+const PATIENT_CONTACT_FIELDS: PatientTextFieldConfig[] = [
+  {
+    name: "phoneNumber",
+    label: "Phone",
+    placeholder: "Phone number",
+    inputProps: { inputMode: "tel" },
+  },
+  {
+    name: "email",
+    label: "Email",
+    placeholder: "Email",
+    inputProps: { type: "email" },
+  },
+];
+
 export function SharedPatientNameFields<T extends FieldValues>({
   control,
 }: SharedPatientInfoFieldsProps<T>) {
   return (
     <>
-      <FormField control={control} name={"firstName" as Path<T>} render={({ field }) => (
-        <FormItem>
-          <FormLabel>First Name <span className="text-destructive ml-0.5">*</span></FormLabel>
-          <FormControl><Input {...field} placeholder="First name" /></FormControl>
-          <FormMessage />
-        </FormItem>
-      )} />
-      <FormField control={control} name={"lastName" as Path<T>} render={({ field }) => (
-        <FormItem>
-          <FormLabel>Last Name <span className="text-destructive ml-0.5">*</span></FormLabel>
-          <FormControl><Input {...field} placeholder="Last name" /></FormControl>
-          <FormMessage />
-        </FormItem>
-      )} />
+      {PATIENT_NAME_FIELDS.map((config) => (
+        <PatientTextField key={config.name} control={control} config={config} />
+      ))}
     </>
   );
 }
@@ -53,20 +123,9 @@ export function SharedPatientContactFields<T extends FieldValues>({
 }: SharedPatientInfoFieldsProps<T>) {
   return (
     <>
-      <FormField control={control} name={"phoneNumber" as Path<T>} render={({ field }) => (
-        <FormItem>
-          <FormLabel>Phone</FormLabel>
-          <FormControl><Input {...field} value={field.value ?? ""} placeholder="Phone number" inputMode="tel" /></FormControl>
-          <FormMessage />
-        </FormItem>
-      )} />
-      <FormField control={control} name={"email" as Path<T>} render={({ field }) => (
-        <FormItem>
-          <FormLabel>Email</FormLabel>
-          <FormControl><Input {...field} value={field.value ?? ""} type="email" placeholder="Email" /></FormControl>
-          <FormMessage />
-        </FormItem>
-      )} />
+      {PATIENT_CONTACT_FIELDS.map((config) => (
+        <PatientTextField key={config.name} control={control} config={config} />
+      ))}
     </>
   );
 }

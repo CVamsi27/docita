@@ -17,19 +17,25 @@ const checks = [
   {
     label: "App",
     middlewarePath: "apps/app/middleware.ts",
-    headersPath: "apps/app/shared/lib/security/security-headers.ts",
+    headersPaths: ["apps/app/shared/lib/security/security-headers.ts"],
     applyToken: "SECURITY_HEADERS",
   },
   {
     label: "Internal",
     middlewarePath: "apps/internal/middleware.ts",
-    headersPath: "apps/internal/shared/lib/security/security-headers.ts",
+    headersPaths: [
+      "apps/internal/shared/lib/security/security-headers.ts",
+      "packages/utils/src/security-headers.ts",
+    ],
     applyToken: "applyInternalSecurityHeaders",
   },
   {
     label: "Landing",
     middlewarePath: "apps/landing/src/middleware.ts",
-    headersPath: "apps/landing/src/lib/security-headers.ts",
+    headersPaths: [
+      "apps/landing/src/lib/security-headers.ts",
+      "packages/utils/src/security-headers.ts",
+    ],
     applyToken: "applyLandingSecurityHeaders",
   },
 ];
@@ -41,9 +47,8 @@ for (const check of checks) {
     path.join(repoRoot, check.middlewarePath),
     "utf8",
   );
-  const headers = fs.readFileSync(
-    path.join(repoRoot, check.headersPath),
-    "utf8",
+  const headerSources = check.headersPaths.map((p) =>
+    fs.readFileSync(path.join(repoRoot, p), "utf8"),
   );
 
   if (!middleware.includes(check.applyToken)) {
@@ -53,7 +58,9 @@ for (const check of checks) {
   }
 
   const missing = requiredHeaders.filter(
-    (header) => !middleware.includes(header) && !headers.includes(header),
+    (header) =>
+      !middleware.includes(header) &&
+      !headerSources.some((s) => s.includes(header)),
   );
 
   for (const header of missing) {

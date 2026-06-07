@@ -4,7 +4,6 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { ClinicTier, ClinicType } from '@workspace/db';
 import { ClinicFactory } from '@/domains/clinics/core/factories/clinic.factory';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
@@ -22,33 +21,11 @@ import {
   toInputJsonValue,
   toRecord,
 } from './clinic-data.helpers';
-
-interface CreateClinicData {
-  name: string;
-  address: string;
-  phone: string;
-  email: string;
-  logo?: string;
-  tier?: ClinicTier;
-  type?: ClinicType;
-  settings?: unknown;
-}
-
-interface UpdateClinicData {
-  name?: string;
-  address?: string;
-  phone?: string;
-  email?: string;
-  logo?: string;
-  tier?: ClinicTier;
-  type?: ClinicType;
-  settings?: unknown;
-}
-
-interface JoinClinicData {
-  clinicCode?: string;
-  clinicEmail?: string;
-}
+import type {
+  CreateClinicData,
+  JoinClinicData,
+  UpdateClinicData,
+} from './clinic-data.types';
 
 @Injectable()
 export class ClinicDataCommandService {

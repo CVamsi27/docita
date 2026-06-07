@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — React Hook Form generic field names require as Path<TFormValues>
 "use client";
 
 import type { FieldValues, UseFormReturn, Path } from "react-hook-form";

@@ -52,6 +52,25 @@ export class ClinicSettingsQueryService {
       : fallback;
   }
 
+  /**
+   * Loads a clinic's `settings` JSON as a plain record, or `null` when the
+   * clinic doesn't exist. `getPrescriptionDefaults` and `getOpdSlipSettings`
+   * both project a different slice of the same settings blob — sharing the
+   * fetch-and-normalize step keeps that lookup from drifting between them.
+   */
+  private async loadClinicSettingsRecord(
+    clinicId: string,
+  ): Promise<Record<string, unknown> | null> {
+    const clinic = await this.persistence.clinic.findUnique({
+      where: { id: clinicId },
+      select: { settings: true },
+    });
+
+    if (!clinic) return null;
+
+    return this.toRecord(clinic.settings);
+  }
+
   async getComplianceSummary(clinicId: string): Promise<AppComplianceSummary> {
     const openRequestStatuses = [
       DataSubjectRequestStatus.OPEN,
@@ -114,14 +133,9 @@ export class ClinicSettingsQueryService {
   }
 
   async getPrescriptionDefaults(clinicId: string) {
-    const clinic = await this.persistence.clinic.findUnique({
-      where: { id: clinicId },
-      select: { settings: true },
-    });
+    const settings = await this.loadClinicSettingsRecord(clinicId);
 
-    if (!clinic) return null;
-
-    const settings = this.toRecord(clinic.settings);
+    if (!settings) return null;
 
     return {
       defaultInstructions: this.readString(settings, 'defaultInstructions', ''),
@@ -141,14 +155,9 @@ export class ClinicSettingsQueryService {
   }
 
   async getOpdSlipSettings(clinicId: string) {
-    const clinic = await this.persistence.clinic.findUnique({
-      where: { id: clinicId },
-      select: { settings: true },
-    });
+    const settings = await this.loadClinicSettingsRecord(clinicId);
 
-    if (!clinic) return null;
-
-    const settings = this.toRecord(clinic.settings);
+    if (!settings) return null;
 
     return {
       revisitValidityDays: this.readNumber(

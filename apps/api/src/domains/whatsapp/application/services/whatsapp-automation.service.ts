@@ -18,6 +18,10 @@ import {
   buildInvoiceCreatedVariables,
   buildPrescriptionCreatedVariables,
 } from '@/shared/whatsapp/patient-whatsapp-template-variables';
+import {
+  INVOICE_NOTIFICATION_INCLUDE,
+  PRESCRIPTION_NOTIFICATION_INCLUDE,
+} from './whatsapp-notification-query.helpers';
 
 @Injectable()
 export class WhatsAppAutomationService {
@@ -39,15 +43,7 @@ export class WhatsAppAutomationService {
 
     const prescription = await this.persistence.prescription.findUnique({
       where: { id: prescriptionId },
-      include: {
-        patient: {
-          select: { firstName: true, lastName: true, phoneNumber: true },
-        },
-        doctor: { select: { name: true } },
-        appointment: {
-          include: { clinic: { select: { name: true, currency: true } } },
-        },
-      },
+      include: PRESCRIPTION_NOTIFICATION_INCLUDE,
     });
 
     if (!prescription?.patient.phoneNumber) return;
@@ -70,14 +66,7 @@ export class WhatsAppAutomationService {
 
     const invoice = await this.persistence.invoice.findUnique({
       where: { id: invoiceId },
-      include: {
-        patient: {
-          select: { firstName: true, lastName: true, phoneNumber: true },
-        },
-        appointment: {
-          include: { clinic: { select: { name: true, currency: true } } },
-        },
-      },
+      include: INVOICE_NOTIFICATION_INCLUDE,
     });
 
     if (!invoice?.patient.phoneNumber) return;
@@ -96,11 +85,19 @@ export class WhatsAppAutomationService {
     });
   }
 
-  async sendAppointmentConfirmation(
+  /**
+   * Loads an appointment for a WhatsApp automation send, gated on the
+   * clinic having automations enabled and the patient having a phone
+   * number to message. `sendAppointmentConfirmation` and
+   * `sendAppointmentUpdate` both need this exact gate-and-fetch shape —
+   * sharing it keeps the `include`/guard from drifting between them.
+   * Returns `null` when the send should be skipped.
+   */
+  private async loadNotifiableAppointment(
     appointmentId: string,
     clinicId: string,
-  ): Promise<void> {
-    if (!(await this.repository.isAutomationEnabled(clinicId))) return;
+  ) {
+    if (!(await this.repository.isAutomationEnabled(clinicId))) return null;
 
     const appointment = await this.persistence.appointment.findUnique({
       where: { id: appointmentId },
@@ -113,7 +110,18 @@ export class WhatsAppAutomationService {
       },
     });
 
-    if (!appointment?.patient.phoneNumber) return;
+    return appointment?.patient.phoneNumber ? appointment : null;
+  }
+
+  async sendAppointmentConfirmation(
+    appointmentId: string,
+    clinicId: string,
+  ): Promise<void> {
+    const appointment = await this.loadNotifiableAppointment(
+      appointmentId,
+      clinicId,
+    );
+    if (!appointment) return;
 
     await this.sendMessage.execute({
       clinicId,
@@ -134,19 +142,11 @@ export class WhatsAppAutomationService {
     clinicId: string,
     type: 'CANCELLED' | 'RESCHEDULED',
   ): Promise<void> {
-    if (!(await this.repository.isAutomationEnabled(clinicId))) return;
-
-    const appointment = await this.persistence.appointment.findUnique({
-      where: { id: appointmentId },
-      include: {
-        patient: {
-          select: { firstName: true, lastName: true, phoneNumber: true },
-        },
-        clinic: { select: { name: true } },
-      },
-    });
-
-    if (!appointment?.patient.phoneNumber) return;
+    const appointment = await this.loadNotifiableAppointment(
+      appointmentId,
+      clinicId,
+    );
+    if (!appointment) return;
 
     const templateName =
       type === 'CANCELLED'

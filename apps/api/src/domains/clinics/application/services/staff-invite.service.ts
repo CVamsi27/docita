@@ -9,6 +9,8 @@ import { parseStringEnumMember } from '@workspace/utils';
 import {
   isClinicFrontDesk,
   mapClinicMemberRoleToPrisma,
+  STAFF_CLINICAL_SELECT,
+  STAFF_IDENTITY_SELECT,
   type CreateClinicMemberData,
   type CreateDoctorData,
   type CreateReceptionistData,
@@ -65,14 +67,8 @@ export class StaffInviteService {
     const user = await this.persistence.user.create({
       data: userData,
       select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        phoneNumber: true,
-        specialization: true,
-        qualification: true,
-        registrationNumber: true,
+        ...STAFF_IDENTITY_SELECT,
+        ...STAFF_CLINICAL_SELECT,
         createdAt: true,
       },
     });
@@ -104,11 +100,7 @@ export class StaffInviteService {
         phoneNumber: data.phoneNumber,
       },
       select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        phoneNumber: true,
+        ...STAFF_IDENTITY_SELECT,
         createdAt: true,
       },
     });
@@ -152,14 +144,8 @@ export class StaffInviteService {
           : {}),
       },
       select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        phoneNumber: true,
-        specialization: true,
-        qualification: true,
-        registrationNumber: true,
+        ...STAFF_IDENTITY_SELECT,
+        ...STAFF_CLINICAL_SELECT,
         createdAt: true,
       },
     });

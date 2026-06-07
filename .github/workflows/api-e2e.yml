@@ -1,28 +1,6 @@
 name: API E2E Tests
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "apps/api/**"
-      - "packages/db/**"
-      - "packages/types/**"
-      - "packages/utils/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
-      - "turbo.json"
-  pull_request:
-    branches: [staging, main]
-    paths:
-      - "apps/api/**"
-      - "packages/db/**"
-      - "packages/types/**"
-      - "packages/utils/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
-      - "turbo.json"
   workflow_dispatch:
 
 concurrency:

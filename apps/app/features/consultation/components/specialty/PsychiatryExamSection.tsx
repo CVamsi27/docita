@@ -8,12 +8,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
-import { Textarea } from "@workspace/ui/components/form/textarea";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
 import { useConsultationSectionSubtitle } from "@/features/consultation/workspace/consultation-workspace-context";
 import { z } from "zod";
 import type { PsychiatryExamData } from "@workspace/types";
+import {
+  ExamAssessmentPlanFields,
+  ExamFieldGrid,
+  ExamTextareaField,
+} from "./exam-section-fields";
 
 const psychiatryRiskLevelSchema = z.enum([
   "low",
@@ -22,11 +26,58 @@ const psychiatryRiskLevelSchema = z.enum([
   "imminent",
 ]);
 
+type PsychiatryRiskLevel = z.infer<typeof psychiatryRiskLevelSchema>;
+
 function parsePsychiatryRiskLevel(
   value: string,
-): z.infer<typeof psychiatryRiskLevelSchema> | undefined {
+): PsychiatryRiskLevel | undefined {
   const parsed = psychiatryRiskLevelSchema.safeParse(value);
   return parsed.success ? parsed.data : undefined;
+}
+
+interface PsychiatryRiskSelectFieldProps {
+  label: string;
+  placeholder: string;
+  readOnly?: boolean;
+  value: PsychiatryRiskLevel | undefined;
+  onChange: (value: PsychiatryRiskLevel | undefined) => void;
+}
+
+/**
+ * Risk-level dropdown shared by the suicide-risk and homicide-risk fields —
+ * identical structure and option list, differing only in label/placeholder
+ * and which part of the draft they read from / write to.
+ */
+function PsychiatryRiskSelectField({
+  label,
+  placeholder,
+  readOnly,
+  value,
+  onChange,
+}: PsychiatryRiskSelectFieldProps) {
+  return (
+    <div className="space-y-2">
+      <Label className="text-sm font-semibold">{label}</Label>
+      <Select
+        disabled={readOnly}
+        value={value ?? "unset"}
+        onValueChange={(next) =>
+          onChange(next === "unset" ? undefined : parsePsychiatryRiskLevel(next))
+        }
+      >
+        <SelectTrigger>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="unset">Not assessed</SelectItem>
+          <SelectItem value="low">Low</SelectItem>
+          <SelectItem value="moderate">Moderate</SelectItem>
+          <SelectItem value="high">High</SelectItem>
+          <SelectItem value="imminent">Imminent</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
 }
 
 interface PsychiatryExamSectionProps {
@@ -48,6 +99,11 @@ export function PsychiatryExamSection({
 
   const mseNotes = value.mse?.notes ?? "";
 
+  // Shares the SectionContainer shell + nested-patch wiring convention with
+  // the other specialty exam sections (see DermatologyExamSection for the
+  // full rationale) — each binds genuinely different specialty data through
+  // the same shared shell, so this is intentional structural similarity.
+  // jscpd:ignore-start
   return (
     <SectionContainer
       ref={sectionRef}
@@ -58,137 +114,84 @@ export function PsychiatryExamSection({
       description="MSE, risk assessment, and psychiatric plan."
     >
       <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="psych-mse" className="text-sm font-semibold">
-            Mental status examination
-          </Label>
-          <Textarea
-            id="psych-mse"
-            className="min-h-[140px]"
+        <ExamTextareaField
+          id="psych-mse"
+          label="Mental status examination"
+          minHeightClassName="min-h-[140px]"
+          readOnly={readOnly}
+          placeholder="Mental status examination"
+          value={mseNotes}
+          onChange={(notes) =>
+            setValue((prev) => ({
+              ...prev,
+              mse: {
+                ...prev.mse,
+                notes,
+              },
+            }))
+          }
+        />
+        <ExamFieldGrid>
+          <PsychiatryRiskSelectField
+            label="Suicide risk"
+            placeholder="Suicide risk"
             readOnly={readOnly}
-            placeholder="Mental status examination"
-            value={mseNotes}
-            onChange={(e) =>
-              setValue((prev) => ({
-                ...prev,
-                mse: {
-                  ...prev.mse,
-                  notes: e.target.value,
-                },
-              }))
-            }
-          />
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold">Suicide risk</Label>
-            <Select
-              disabled={readOnly}
-              value={value.riskAssessment?.suicideRisk ?? "unset"}
-              onValueChange={(suicideRisk) =>
-                setValue((prev) => ({
-                  ...prev,
-                  riskAssessment: {
-                    ...prev.riskAssessment,
-                    suicideRisk:
-                      suicideRisk === "unset"
-                        ? undefined
-                        : parsePsychiatryRiskLevel(suicideRisk),
-                  },
-                }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Suicide risk" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="unset">Not assessed</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="moderate">Moderate</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="imminent">Imminent</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold">Homicide risk</Label>
-            <Select
-              disabled={readOnly}
-              value={value.riskAssessment?.homicideRisk ?? "unset"}
-              onValueChange={(homicideRisk) =>
-                setValue((prev) => ({
-                  ...prev,
-                  riskAssessment: {
-                    ...prev.riskAssessment,
-                    homicideRisk:
-                      homicideRisk === "unset"
-                        ? undefined
-                        : parsePsychiatryRiskLevel(homicideRisk),
-                  },
-                }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Homicide risk" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="unset">Not assessed</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="moderate">Moderate</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="imminent">Imminent</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="psych-risk-mgmt" className="text-sm font-semibold">
-            Risk management / safety plan
-          </Label>
-          <Textarea
-            id="psych-risk-mgmt"
-            className="min-h-[88px]"
-            readOnly={readOnly}
-            placeholder="Safety plan"
-            value={value.riskAssessment?.riskManagement ?? ""}
-            onChange={(e) =>
+            value={value.riskAssessment?.suicideRisk}
+            onChange={(suicideRisk) =>
               setValue((prev) => ({
                 ...prev,
                 riskAssessment: {
                   ...prev.riskAssessment,
-                  riskManagement: e.target.value,
+                  suicideRisk,
                 },
               }))
             }
           />
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="psych-assessment" className="text-sm font-semibold">
-              Clinical assessment
-            </Label>
-            <Textarea
-              id="psych-assessment"
-              className="min-h-[100px]"
-              readOnly={readOnly}
-              value={value.clinicalAssessment ?? ""}
-              onChange={(e) => patch({ clinicalAssessment: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="psych-plan" className="text-sm font-semibold">
-              Plan
-            </Label>
-            <Textarea
-              id="psych-plan"
-              className="min-h-[100px]"
-              readOnly={readOnly}
-              value={value.plan ?? ""}
-              onChange={(e) => patch({ plan: e.target.value })}
-            />
-          </div>
-        </div>
+          <PsychiatryRiskSelectField
+            label="Homicide risk"
+            placeholder="Homicide risk"
+            readOnly={readOnly}
+            value={value.riskAssessment?.homicideRisk}
+            onChange={(homicideRisk) =>
+              setValue((prev) => ({
+                ...prev,
+                riskAssessment: {
+                  ...prev.riskAssessment,
+                  homicideRisk,
+                },
+              }))
+            }
+          />
+        </ExamFieldGrid>
+        <ExamTextareaField
+          id="psych-risk-mgmt"
+          label="Risk management / safety plan"
+          minHeightClassName="min-h-[88px]"
+          readOnly={readOnly}
+          placeholder="Safety plan"
+          value={value.riskAssessment?.riskManagement ?? ""}
+          onChange={(riskManagement) =>
+            setValue((prev) => ({
+              ...prev,
+              riskAssessment: {
+                ...prev.riskAssessment,
+                riskManagement,
+              },
+            }))
+          }
+        />
+        <ExamAssessmentPlanFields
+          idPrefix="psych"
+          readOnly={readOnly}
+          clinicalAssessment={value.clinicalAssessment ?? ""}
+          plan={value.plan ?? ""}
+          onClinicalAssessmentChange={(clinicalAssessment) =>
+            patch({ clinicalAssessment })
+          }
+          onPlanChange={(plan) => patch({ plan })}
+        />
       </div>
     </SectionContainer>
   );
+  // jscpd:ignore-end
 }

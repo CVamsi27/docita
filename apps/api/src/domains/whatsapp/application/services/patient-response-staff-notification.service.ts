@@ -10,17 +10,14 @@ import {
   STAFF_PRIORITY_BY_PATIENT_RESPONSE,
   type PatientResponseType,
 } from '@/domains/whatsapp/application/policies/patient-response.policy';
-import {
-  formatDate,
-  formatTime,
-  DATE_FORMATS,
-  DEFAULT_TIMEZONE,
-  getPatientFullName,
-} from '@workspace/utils';
 import type {
   AppointmentContext,
   DelayContext,
 } from './patient-response.types';
+import {
+  buildAppointmentResponseBasics,
+  formatAppointmentResponseTime,
+} from './patient-response-template-formatting.helper';
 
 function isNonDelayPatientResponseType(
   responseType: PatientResponseType,
@@ -44,22 +41,20 @@ export class PatientResponseStaffNotificationService {
     responseId: string,
     delayContext: DelayContext,
   ): Promise<void> {
-    const appointmentTime = formatTime(appointment.startTime, 'h:mm a', {
-      timezone: DEFAULT_TIMEZONE,
-    });
+    const {
+      patientName,
+      date,
+      time: appointmentTime,
+    } = buildAppointmentResponseBasics(appointment);
 
     const nextAppointmentTimeLabel = delayContext.nextAppointmentTime
-      ? formatTime(delayContext.nextAppointmentTime, 'h:mm a', {
-          timezone: DEFAULT_TIMEZONE,
-        })
+      ? formatAppointmentResponseTime(delayContext.nextAppointmentTime)
       : '';
 
     const variables = {
       clinicName: appointment.clinic.name,
-      patientName: getPatientFullName(appointment.patient),
-      date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM, {
-        timezone: DEFAULT_TIMEZONE,
-      }),
+      patientName,
+      date,
       time: appointmentTime,
       responseType: this.getResponseLabel(responseType, delayContext),
       message: originalMessage,

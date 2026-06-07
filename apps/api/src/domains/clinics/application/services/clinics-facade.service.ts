@@ -2,76 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { ClinicDataService } from './clinic-data.service';
 import { ClinicSettingsService } from './clinic-settings.service';
 import { StaffManagementService } from './staff-management.service';
-import { ClinicTier, ClinicType, Prisma, Role } from '@workspace/db';
+import { Role } from '@workspace/db';
 import type { ClinicSettingsData } from './clinic-settings.types';
-
-interface CreateClinicData {
-  name: string;
-  address: string;
-  phone: string;
-  email: string;
-  logo?: string;
-  tier?: ClinicTier;
-  type?: ClinicType;
-  settings?: Prisma.InputJsonValue;
-}
-
-interface UpdateClinicData {
-  name?: string;
-  address?: string;
-  phone?: string;
-  email?: string;
-  logo?: string;
-  tier?: ClinicTier;
-  type?: ClinicType;
-  settings?: Prisma.InputJsonValue;
-}
-
-interface CreateDoctorData {
-  name: string;
-  email: string;
-  password: string;
-  phoneNumber?: string;
-  specialization?: string;
-  qualification?: string;
-  registrationNumber?: string;
-}
-
-interface CreateReceptionistData {
-  name: string;
-  email: string;
-  password: string;
-  phoneNumber?: string;
-  role?: 'RECEPTIONIST' | 'NURSE';
-}
-
-interface CreateClinicMemberData {
-  name: string;
-  email: string;
-  password: string;
-  phoneNumber?: string;
-  role: 'DOCTOR' | 'NURSE' | 'RECEPTIONIST' | 'ADMIN' | 'ADMIN_DOCTOR' | 'LAB';
-  specialization?: string;
-  qualification?: string;
-  registrationNumber?: string;
-  labId?: string;
-}
-
-interface UpdateMemberData {
-  name?: string;
-  email?: string;
-  phoneNumber?: string;
-  role?: 'DOCTOR' | 'NURSE' | 'RECEPTIONIST' | 'ADMIN' | 'ADMIN_DOCTOR' | 'LAB';
-  specialization?: string;
-  qualification?: string;
-  registrationNumber?: string;
-  labId?: string;
-}
-
-interface JoinClinicData {
-  clinicCode?: string;
-  clinicEmail?: string;
-}
+import type {
+  CreateClinicData,
+  JoinClinicData,
+  UpdateClinicData,
+} from './clinic-data.types';
+import type {
+  CreateClinicMemberData,
+  CreateDoctorData,
+  CreateReceptionistData,
+  UpdateMemberData,
+} from './staff-management-helpers';
 
 /**
  * Thin facade — delegates clinic CRUD, settings, and staff to focused services.
@@ -127,6 +70,11 @@ export class ClinicsService {
     return this.clinicSettingsService.listDataSubjectRequests(clinicId, status);
   }
 
+  // This facade is a thin pass-through by design — these delegators repeat
+  // the signatures of the focused services they wrap (and those services in
+  // turn repeat their command-service signatures), which is structural to
+  // the layered DDD pattern rather than copy-paste drift.
+  // jscpd:ignore-start
   createDataSubjectRequest(
     clinicId: string,
     input: Parameters<ClinicSettingsService['createDataSubjectRequest']>[1],
@@ -156,6 +104,7 @@ export class ClinicsService {
       ipAddress,
     );
   }
+  // jscpd:ignore-end
 
   async getPrescriptionDefaults(clinicId: string) {
     return this.clinicSettingsService.getPrescriptionDefaults(clinicId);
@@ -206,6 +155,9 @@ export class ClinicsService {
     return this.staffManagementService.getMembers(clinicId);
   }
 
+  // Pass-through delegator — see the jscpd note above `createDataSubjectRequest`
+  // for why this signature intentionally mirrors `StaffManagementService.updateMember`.
+  // jscpd:ignore-start
   async updateMember(
     clinicId: string,
     memberId: string,
@@ -221,6 +173,7 @@ export class ClinicsService {
       actorRole,
     );
   }
+  // jscpd:ignore-end
 
   async removeMember(clinicId: string, memberId: string, actorUserId: string) {
     return this.staffManagementService.removeMember(

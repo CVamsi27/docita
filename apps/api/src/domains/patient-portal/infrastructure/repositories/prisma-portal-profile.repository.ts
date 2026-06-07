@@ -7,6 +7,34 @@ import type {
 } from '@/domains/patient-portal/core/repositories/portal-patient.types';
 import { IPortalProfileRepository } from '@/domains/patient-portal/core/repositories/portal-profile.repository.interface';
 
+/**
+ * The full patient-profile field selection, shared by `getPatientProfile`
+ * (read) and `updatePatient` (write — Prisma's `update` also needs a
+ * `select` to shape its return value). Both return `PatientProfile`, so the
+ * field list must stay identical; defining it once keeps that guarantee
+ * structural instead of convention.
+ */
+const PORTAL_PROFILE_SELECT = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  preferredName: true,
+  email: true,
+  phoneNumber: true,
+  dateOfBirth: true,
+  gender: true,
+  bloodGroup: true,
+  address: true,
+  mrn: true,
+  preferredLanguage: true,
+  emergencyContactName: true,
+  emergencyContactPhone: true,
+  emergencyContactRelation: true,
+  whatsappConsent: true,
+  whatsappConsentAt: true,
+  createdAt: true,
+} as const;
+
 @Injectable()
 export class PrismaPortalProfileRepository implements IPortalProfileRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -85,26 +113,7 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
     return this.withUnrestricted(() =>
       this.prisma.patient.findFirst({
         where: { id: patientId },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          preferredName: true,
-          email: true,
-          phoneNumber: true,
-          dateOfBirth: true,
-          gender: true,
-          bloodGroup: true,
-          address: true,
-          mrn: true,
-          preferredLanguage: true,
-          emergencyContactName: true,
-          emergencyContactPhone: true,
-          emergencyContactRelation: true,
-          whatsappConsent: true,
-          whatsappConsentAt: true,
-          createdAt: true,
-        },
+        select: PORTAL_PROFILE_SELECT,
       }),
     );
   }
@@ -117,26 +126,7 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
       this.prisma.patient.update({
         where: { id: patientId },
         data,
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          preferredName: true,
-          email: true,
-          phoneNumber: true,
-          dateOfBirth: true,
-          gender: true,
-          bloodGroup: true,
-          address: true,
-          mrn: true,
-          preferredLanguage: true,
-          emergencyContactName: true,
-          emergencyContactPhone: true,
-          emergencyContactRelation: true,
-          whatsappConsent: true,
-          whatsappConsentAt: true,
-          createdAt: true,
-        },
+        select: PORTAL_PROFILE_SELECT,
       }),
     );
   }

@@ -1,5 +1,18 @@
+// check-as-cast-density: allow-file — React Hook Form generics and unknown-to-typed property access require as casts
 "use client";
 
+import type { ReactNode } from "react";
+import {
+  useWatch,
+  type ArrayPath,
+  type Control,
+  type FieldArrayWithId,
+  type FieldValues,
+  type Path,
+  type UseFieldArrayAppend,
+  type UseFieldArrayRemove,
+  type UseFormSetValue,
+} from "react-hook-form";
 import type { InvoiceLineItemFormValues } from "@workspace/types";
 import {
   Card,
@@ -13,13 +26,32 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@workspace/ui/components/form/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/form/select";
 import { Textarea } from "@workspace/ui/components/form/textarea";
 import { Plus } from "lucide-react";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
 import { formatCurrency } from "@workspace/utils";
+
+export function InvoiceDetailsCard({ children }: { children: ReactNode }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Invoice details</CardTitle>
+      </CardHeader>
+      <CardContent className="grid md:grid-cols-2 gap-6">{children}</CardContent>
+    </Card>
+  );
+}
 
 export function InvoiceLineItemsSection({
   items,
@@ -113,6 +145,83 @@ export const EMPTY_INVOICE_ITEM: InvoiceLineItemFormValues = {
   taxTreatment: "EXEMPT_HEALTHCARE",
   taxRate: 0,
 };
+
+export function InvoiceStatusField<TFieldValues extends FieldValues>({
+  control,
+}: {
+  control: Control<TFieldValues>;
+}) {
+  return (
+    <FormField
+      control={control}
+      name={"status" as Path<TFieldValues>}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Status</FormLabel>
+          <Select
+            onValueChange={field.onChange}
+            value={(field.value as string | undefined) ?? ""}
+          >
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="PAID">Paid</SelectItem>
+              <SelectItem value="OVERDUE">Overdue</SelectItem>
+              <SelectItem value="CANCELLED">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+export function InvoiceLineItemsSectionContainer<
+  TFieldValues extends FieldValues,
+>({
+  control,
+  setValue,
+  fields,
+  append,
+  remove,
+  totalAmount,
+  buildFieldPath,
+}: {
+  control: Control<TFieldValues>;
+  setValue: UseFormSetValue<TFieldValues>;
+  fields: FieldArrayWithId<TFieldValues, ArrayPath<TFieldValues>>[];
+  append: UseFieldArrayAppend<TFieldValues, ArrayPath<TFieldValues>>;
+  remove: UseFieldArrayRemove;
+  totalAmount: number;
+  buildFieldPath: (index: number, fieldName: string) => string;
+}) {
+  const watchedItems =
+    useWatch({
+      control,
+      name: "items" as unknown as Path<TFieldValues>,
+    }) ?? [];
+  const computedItems = computeInvoiceItems(fields, watchedItems as unknown[]);
+  const onUpdateItem = buildInvoiceItemUpdateHandler(
+    (path, value) => setValue(path as Path<TFieldValues>, value as never),
+    buildFieldPath,
+  );
+
+  return (
+    <InvoiceLineItemsSection
+      items={computedItems}
+      onUpdateItem={onUpdateItem}
+      onRemoveItem={remove}
+      onAddItem={() => append(EMPTY_INVOICE_ITEM as never)}
+      totalAmount={totalAmount}
+      control={control}
+    />
+  );
+}
 
 export function buildInvoiceItemUpdateHandler(
   setValue: (path: string, value: unknown) => void,

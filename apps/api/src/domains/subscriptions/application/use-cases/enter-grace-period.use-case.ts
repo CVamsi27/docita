@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
@@ -10,6 +10,7 @@ import {
 import { SubscriptionStatusEnum } from '@/domains/subscriptions/core/value-objects';
 import { computeSubscriptionGraceDeadline } from '@/domains/subscriptions/core/constants/subscription-lockout.constants';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { loadSubscriptionByIdOrThrow } from './subscription-lifecycle.helpers';
 
 @Injectable()
 export class EnterGracePeriodUseCase {
@@ -24,11 +25,10 @@ export class EnterGracePeriodUseCase {
   ) {}
 
   async execute(subscriptionId: string): Promise<void> {
-    const subscription = await this.subscriptionRepo.findById(subscriptionId);
-
-    if (!subscription) {
-      throw new NotFoundException(`Subscription ${subscriptionId} not found`);
-    }
+    const subscription = await loadSubscriptionByIdOrThrow(
+      this.subscriptionRepo,
+      subscriptionId,
+    );
 
     const now = this.clock.now();
     subscription.enterGracePeriod(computeSubscriptionGraceDeadline(now), now);

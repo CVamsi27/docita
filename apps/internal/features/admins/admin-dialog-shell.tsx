@@ -72,66 +72,37 @@ export function AdminDialogActions({
   );
 }
 
-interface AdminNameFieldProps {
+interface AdminTextFieldProps {
   id: string;
+  label: string;
   value: string;
   onChange: (value: string) => void;
+  type?: string;
+  placeholder: string;
 }
 
-export function AdminNameField({ id, value, onChange }: AdminNameFieldProps) {
+function AdminTextField({ id, label, value, onChange, type = "text", placeholder }: AdminTextFieldProps) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={id}>Name *</Label>
-      <Input
-        id={id}
-        placeholder="Admin name"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
+      <Label htmlFor={id}>{label}</Label>
+      <Input id={id} type={type} placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
     </div>
   );
 }
 
-interface AdminEmailFieldProps {
-  id: string;
-  value: string;
-  onChange: (value: string) => void;
-}
+interface AdminFieldProps { id: string; value: string; onChange: (value: string) => void; }
 
-export function AdminEmailField({ id, value, onChange }: AdminEmailFieldProps) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>Email *</Label>
-      <Input
-        id={id}
-        type="email"
-        placeholder="Email"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </div>
-  );
+export function AdminNameField({ id, value, onChange }: AdminFieldProps) {
+  return <AdminTextField id={id} label="Name *" placeholder="Admin name" value={value} onChange={onChange} />;
 }
-
-interface AdminPhoneNumberFieldProps {
-  id: string;
-  value: string;
-  onChange: (value: string) => void;
+export function AdminEmailField({ id, value, onChange }: AdminFieldProps) {
+  return <AdminTextField id={id} label="Email *" type="email" placeholder="Email" value={value} onChange={onChange} />;
 }
-
-export function AdminPhoneNumberField({ id, value, onChange }: AdminPhoneNumberFieldProps) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>Phone Number</Label>
-      <Input
-        id={id}
-        type="tel"
-        placeholder="Phone number"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </div>
-  );
+export function AdminPhoneNumberField({ id, value, onChange }: AdminFieldProps) {
+  return <AdminTextField id={id} label="Phone Number" type="tel" placeholder="Phone number" value={value} onChange={onChange} />;
+}
+export function AdminPasswordField({ id, value, onChange }: AdminFieldProps) {
+  return <AdminTextField id={id} label="Password *" type="password" placeholder="Enter password" value={value} onChange={onChange} />;
 }
 
 interface AdminTypeSelectProps {
@@ -139,27 +110,6 @@ interface AdminTypeSelectProps {
   onChange: (value: string) => void;
   showIcons?: boolean;
   helperText?: string;
-}
-
-interface AdminPasswordFieldProps {
-  id: string;
-  value: string;
-  onChange: (value: string) => void;
-}
-
-export function AdminPasswordField({ id, value, onChange }: AdminPasswordFieldProps) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>Password *</Label>
-      <Input
-        id={id}
-        type="password"
-        placeholder="Enter password"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </div>
-  );
 }
 
 export function AdminTypeSelect({ value, onChange, showIcons, helperText }: AdminTypeSelectProps) {

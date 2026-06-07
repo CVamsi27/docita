@@ -7,6 +7,7 @@ import {
 } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { isRecord } from '@workspace/utils';
 import {
+  APPOINTMENT_CONTEXT_INCLUDE,
   toAppointmentContext,
   type AppointmentContext,
 } from './patient-response.types';
@@ -151,11 +152,7 @@ export class PatientAppointmentResolverService {
   ): Promise<AppointmentContext | null> {
     const appointment = await this.persistence.appointment.findUnique({
       where: { id: appointmentId },
-      include: {
-        patient: true,
-        doctor: true,
-        clinic: true,
-      },
+      include: APPOINTMENT_CONTEXT_INCLUDE,
     });
 
     if (!appointment) return null;

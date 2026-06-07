@@ -1,12 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { createMountInitializer } from "@workspace/hooks";
 import { initializeSentryClient } from "@/lib/monitoring/sentry.client.config";
 
-export function SentryInitializer() {
-  useEffect(() => {
-    initializeSentryClient();
-  }, []);
-
-  return null;
-}
+export const SentryInitializer = createMountInitializer(initializeSentryClient);

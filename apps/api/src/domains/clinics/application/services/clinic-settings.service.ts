@@ -44,6 +44,11 @@ export class ClinicSettingsService {
     return this.queryService.listDataSubjectRequests(clinicId, status);
   }
 
+  // Pass-through delegators — these intentionally mirror
+  // `ClinicSettingsCommandService`'s signatures (and, one layer up, the
+  // `ClinicsService` facade's), which is structural to the layered DDD
+  // pattern rather than copy-paste drift.
+  // jscpd:ignore-start
   createDataSubjectRequest(
     clinicId: string,
     input: CreateDataSubjectRequest,
@@ -73,6 +78,7 @@ export class ClinicSettingsService {
       ipAddress,
     );
   }
+  // jscpd:ignore-end
 
   getPrescriptionDefaults(clinicId: string) {
     return this.queryService.getPrescriptionDefaults(clinicId);

@@ -2,18 +2,12 @@ import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { TemplatesService } from '@/domains/whatsapp/application/services/templates.service';
 import { type PatientResponseType } from '@/domains/whatsapp/application/policies/patient-response.policy';
-import {
-  formatDate,
-  formatTime,
-  DATE_FORMATS,
-  DEFAULT_TIMEZONE,
-  getPatientFullName,
-} from '@workspace/utils';
 import type {
   AppointmentContext,
   DelayContext,
 } from './patient-response.types';
 import { resolvePatientConfirmationPlan } from './patient-response-confirmation.handlers';
+import { buildAppointmentResponseBasics } from './patient-response-template-formatting.helper';
 
 @Injectable()
 export class PatientResponseConfirmationService {
@@ -30,14 +24,8 @@ export class PatientResponseConfirmationService {
     delayContext: DelayContext,
   ): Promise<void> {
     const variables: Record<string, string> = {
-      patientName: getPatientFullName(appointment.patient),
+      ...buildAppointmentResponseBasics(appointment),
       clinicName: appointment.clinic.name,
-      date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM, {
-        timezone: DEFAULT_TIMEZONE,
-      }),
-      time: formatTime(appointment.startTime, 'h:mm a', {
-        timezone: DEFAULT_TIMEZONE,
-      }),
       doctorName: appointment.doctor.name,
       delayMinutes:
         delayContext.delayMinutes !== null

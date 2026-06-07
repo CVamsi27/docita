@@ -2,8 +2,8 @@ name: Synthetic uptime monitoring
 
 on:
   schedule:
-    # Every hour
-    - cron: "0 * * * *"
+    # Every 6 hours
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 concurrency:

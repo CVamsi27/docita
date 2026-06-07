@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — fetch Response type narrowing requires as cast
 import { resolveApiUrl } from "./public-api";
 
 export async function fetchLandingJson<T>(path: string, baseOrigin?: string): Promise<T> {

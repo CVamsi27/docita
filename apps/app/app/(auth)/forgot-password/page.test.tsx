@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("next/navigation", () => ({
+  usePathname: () => "/",
   useSearchParams: () => mocks.searchParams,
   useRouter: () => mocks.router,
 }));

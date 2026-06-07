@@ -13,7 +13,11 @@ import {
   StorageFile,
 } from '@/domains/documents/application/ports/storage-provider.port';
 import { DoctorsQueryService } from './doctors-query.service';
-import { DoctorProfileService } from './doctor-profile.service';
+import {
+  DoctorProfileService,
+  type CreateCertificationData,
+  type CreateEducationData,
+} from './doctor-profile.service';
 import { DoctorAdminVerificationCommandService } from './doctor-admin-verification-command.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { parseStringEnumMember } from '@workspace/utils';
@@ -54,28 +58,6 @@ interface UpdateDoctorData {
   yearsOfExperience?: number;
   consultationFee?: number;
   role?: string;
-}
-
-interface CreateEducationData {
-  degree: string;
-  fieldOfStudy?: string;
-  institution: string;
-  location?: string;
-  startYear?: number;
-  endYear?: number;
-  isOngoing?: boolean;
-  grade?: string;
-  thesis?: string;
-  order?: number;
-}
-
-interface CreateCertificationData {
-  name: string;
-  issuingBody: string;
-  issueDate: Date;
-  expiryDate?: Date;
-  credentialId?: string;
-  credentialUrl?: string;
 }
 
 function normalizeRole(role: string | undefined): Role {

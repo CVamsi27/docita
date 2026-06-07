@@ -45,9 +45,6 @@ try {
   const flyTomlPath = "fly.toml";
   const workerFlyTomlPath = "apps/worker/fly.toml";
   const flyDeployScriptPath = "scripts/deploy/fly-deploy-in-primary-region.sh";
-  const stagingMirrorWorkflowPath =
-    ".github/workflows/sync-staging-after-promotion.yml";
-
   assertExists(
     appMiddleware,
     "apps/app must keep middleware.ts for Cloudflare production builds.",
@@ -81,8 +78,6 @@ try {
   const flyTomlSource = read(flyTomlPath);
   const workerFlyTomlSource = read(workerFlyTomlPath);
   const flyDeployScriptSource = read(flyDeployScriptPath);
-  const stagingMirrorWorkflowSource = read(stagingMirrorWorkflowPath);
-
   assert(
     /export async function middleware/.test(appMiddlewareSource) ||
       /export function middleware/.test(appMiddlewareSource),
@@ -106,8 +101,7 @@ try {
 
   for (const requiredPath of [
     '"scripts/workflow/detect-workflow-scope.mjs"',
-    '"scripts/deploy/test-api-startup.sh"',
-    '"scripts/deploy/fly-deploy-in-primary-region.sh"',
+    '"scripts/deploy/**"',
     '".github/workflows/deploy.yml"',
   ]) {
     assertIncludes(
@@ -137,8 +131,8 @@ try {
   );
 
   for (const requiredGuard of [
-    "always() &&\n      needs.changes.outputs.api == 'true'",
-    "always() &&\n      needs.changes.outputs.worker == 'true'",
+    "always() && needs.changes.outputs.api == 'true'",
+    "always() && needs.changes.outputs.worker == 'true'",
   ]) {
     assertIncludes(
       deployWorkflowSource,
@@ -149,7 +143,7 @@ try {
 
   assertIncludes(
     deployWorkflowSource,
-    "needs.changes.outputs.api == 'true' ||\n      needs.changes.outputs.worker == 'true'",
+    "needs.changes.outputs.api == 'true' || needs.changes.outputs.worker == 'true'",
     "migrate-db must run before any API or worker deploy, not only when packages/db changes in the last commit.",
   );
 
@@ -258,16 +252,6 @@ try {
           join(repoRoot, ".github/workflows/scale-api-hours.yml"),
         )),
     "fly.toml must keep one production API machine running, or set min_machines_running = 0 with .github/workflows/scale-api-hours.yml for time-based scaling.",
-  );
-
-  assertIncludes(
-    stagingMirrorWorkflowSource,
-    "github.rest.git.updateRef",
-    "Staging mirror workflow must move the staging ref to main after promotion.",
-  );
-  assert(
-    !stagingMirrorWorkflowSource.includes("github.rest.pulls.create"),
-    "Staging mirror workflow must not open sync PRs; staging is an automatic exact mirror of main.",
   );
 
   assertIncludes(

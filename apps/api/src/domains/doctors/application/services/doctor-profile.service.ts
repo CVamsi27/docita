@@ -16,7 +16,7 @@ import {
 } from '@/domains/documents/application/ports/storage-provider.port';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
-interface CreateEducationData {
+export interface CreateEducationData {
   degree: string;
   fieldOfStudy?: string;
   institution: string;
@@ -29,7 +29,7 @@ interface CreateEducationData {
   order?: number;
 }
 
-interface CreateCertificationData {
+export interface CreateCertificationData {
   name: string;
   issuingBody: string;
   issueDate: Date;
@@ -108,6 +108,51 @@ export class DoctorProfileService {
     };
   }
 
+  /**
+   * Generic ownership guard: when `doctorId` is supplied, confirms `lookup`
+   * resolves to a record before the caller's mutation proceeds. The two
+   * resource-specific guards below each pin this to one persistence delegate
+   * so call sites collapse to a single line instead of repeating the
+   * find-then-throw shape per mutation.
+   */
+  private async assertOwnedByDoctor(
+    lookup: () => Promise<unknown>,
+    doctorId: string | undefined,
+    notFoundMessage: string,
+  ): Promise<void> {
+    if (!doctorId) return;
+    const existing = await lookup();
+    if (!existing) throw new NotFoundException(notFoundMessage);
+  }
+
+  private assertEducationOwnedByDoctor(
+    educationId: string,
+    doctorId: string | undefined,
+  ): Promise<void> {
+    return this.assertOwnedByDoctor(
+      () =>
+        this.persistence.doctorEducation.findFirst({
+          where: { id: educationId, doctorId },
+        }),
+      doctorId,
+      'Education record not found',
+    );
+  }
+
+  private assertCertificationOwnedByDoctor(
+    certificationId: string,
+    doctorId: string | undefined,
+  ): Promise<void> {
+    return this.assertOwnedByDoctor(
+      () =>
+        this.persistence.doctorCertification.findFirst({
+          where: { id: certificationId, doctorId },
+        }),
+      doctorId,
+      'Certification record not found',
+    );
+  }
+
   async addEducation(doctorId: string, data: CreateEducationData) {
     return this.persistence.doctorEducation.create({
       data: { doctorId, ...data },
@@ -119,12 +164,7 @@ export class DoctorProfileService {
     data: Partial<CreateEducationData>,
     doctorId?: string,
   ) {
-    if (doctorId) {
-      const existing = await this.persistence.doctorEducation.findFirst({
-        where: { id: educationId, doctorId },
-      });
-      if (!existing) throw new NotFoundException('Education record not found');
-    }
+    await this.assertEducationOwnedByDoctor(educationId, doctorId);
     return this.persistence.doctorEducation.update({
       where: { id: educationId },
       data,
@@ -132,12 +172,7 @@ export class DoctorProfileService {
   }
 
   async removeEducation(educationId: string, doctorId?: string) {
-    if (doctorId) {
-      const existing = await this.persistence.doctorEducation.findFirst({
-        where: { id: educationId, doctorId },
-      });
-      if (!existing) throw new NotFoundException('Education record not found');
-    }
+    await this.assertEducationOwnedByDoctor(educationId, doctorId);
     await this.persistence.doctorEducation.delete({
       where: { id: educationId },
     });
@@ -155,13 +190,7 @@ export class DoctorProfileService {
     data: Partial<CreateCertificationData>,
     doctorId?: string,
   ) {
-    if (doctorId) {
-      const existing = await this.persistence.doctorCertification.findFirst({
-        where: { id: certificationId, doctorId },
-      });
-      if (!existing)
-        throw new NotFoundException('Certification record not found');
-    }
+    await this.assertCertificationOwnedByDoctor(certificationId, doctorId);
     return this.persistence.doctorCertification.update({
       where: { id: certificationId },
       data,
@@ -169,13 +198,7 @@ export class DoctorProfileService {
   }
 
   async removeCertification(certificationId: string, doctorId?: string) {
-    if (doctorId) {
-      const existing = await this.persistence.doctorCertification.findFirst({
-        where: { id: certificationId, doctorId },
-      });
-      if (!existing)
-        throw new NotFoundException('Certification record not found');
-    }
+    await this.assertCertificationOwnedByDoctor(certificationId, doctorId);
     await this.persistence.doctorCertification.delete({
       where: { id: certificationId },
     });

@@ -15,9 +15,12 @@ import {
   EmptyState,
   LoadingState,
 } from "@workspace/ui/components/feedback/empty-state";
+import { editInvoiceItemFieldPath } from "@/features/invoices/lib/invoice-form-paths";
 import { InvoiceEditDetailsSection } from "./InvoiceEditUISections";
-import { InvoiceEditLineItemsSection } from "./InvoiceEditUISections";
-import { InvoiceEditNotesSection } from "./InvoiceEditUISections";
+import {
+  InvoiceLineItemsSectionContainer,
+  InvoiceNotesSection,
+} from "./invoice-form-sections-shared";
 
 interface InvoiceEditUIProps {
   invoiceId: string;
@@ -82,16 +85,17 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
         >
           <InvoiceEditDetailsSection control={form.control} />
 
-          <InvoiceEditLineItemsSection
+          <InvoiceLineItemsSectionContainer
             control={form.control}
             setValue={form.setValue}
             fields={fields}
             append={append}
             remove={remove}
             totalAmount={totalAmount}
+            buildFieldPath={editInvoiceItemFieldPath}
           />
 
-          <InvoiceEditNotesSection control={form.control} />
+          <InvoiceNotesSection control={form.control} />
 
           <div className="flex justify-end gap-4">
             <Button type="button" variant="outline" onClick={goBack}>

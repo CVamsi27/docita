@@ -21,52 +21,39 @@ import { WebhooksModule } from './modules/webhooks';
 import { RlsModule } from './modules/rls';
 import { FeatureFlagsModule } from './modules/feature-flags';
 
+/**
+ * Every module SharedModule assembles is also re-exported as-is — it's the
+ * single aggregation point the rest of the API imports to reach all of these
+ * at once. `imports` and `exports` must therefore stay identical; declaring
+ * the list once keeps that a structural guarantee instead of two arrays that
+ * could silently drift apart.
+ */
+const SHARED_MODULES = [
+  OutboxModule,
+  AuthModule,
+  AuthorizationModule,
+  ImportsModule,
+  InternalModule,
+  AppConfigModule,
+  MonitoringModule,
+  FhirModule,
+  ContactModule,
+  AIModule,
+  AuditModule,
+  PerformanceModule,
+  ComplianceModule,
+  EventsModule,
+  CommonServicesModule,
+  PublicModule,
+  IdempotencyModule,
+  TenantRateLimitModule,
+  WebhooksModule,
+  RlsModule,
+  FeatureFlagsModule,
+];
+
 @Module({
-  imports: [
-    OutboxModule,
-    AuthModule,
-    AuthorizationModule,
-    ImportsModule,
-    InternalModule,
-    AppConfigModule,
-    MonitoringModule,
-    FhirModule,
-    ContactModule,
-    AIModule,
-    AuditModule,
-    PerformanceModule,
-    ComplianceModule,
-    EventsModule,
-    CommonServicesModule,
-    PublicModule,
-    IdempotencyModule,
-    TenantRateLimitModule,
-    WebhooksModule,
-    RlsModule,
-    FeatureFlagsModule,
-  ],
-  exports: [
-    OutboxModule,
-    AuthModule,
-    AuthorizationModule,
-    ImportsModule,
-    InternalModule,
-    AppConfigModule,
-    MonitoringModule,
-    FhirModule,
-    ContactModule,
-    AIModule,
-    AuditModule,
-    PerformanceModule,
-    ComplianceModule,
-    EventsModule,
-    CommonServicesModule,
-    PublicModule,
-    IdempotencyModule,
-    TenantRateLimitModule,
-    WebhooksModule,
-    RlsModule,
-    FeatureFlagsModule,
-  ],
+  imports: SHARED_MODULES,
+  exports: SHARED_MODULES,
 })
 export class SharedModule {}

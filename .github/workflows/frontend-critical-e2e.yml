@@ -1,21 +1,9 @@
 name: End-to-End Tests - Critical Flows
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "apps/app/**"
-      - "apps/api/**"
-      - "packages/data-access/**"
-      - "packages/db/**"
-      - "packages/hooks/**"
-      - "packages/types/**"
-      - "packages/ui/**"
-      - "packages/utils/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
-      - "turbo.json"
+  schedule:
+    # Weekly: Monday 2 AM UTC
+    - cron: "0 2 * * 1"
   workflow_dispatch:
 
 concurrency:

@@ -15,6 +15,7 @@ import { WsJwtAuthGuard } from '@/shared/modules/auth/auth/ws-jwt-auth.guard';
 import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { StaffNotificationType, NotificationPriority } from '@workspace/db';
+import { BaseWebSocketGateway } from './base-websocket.gateway';
 
 export interface NotificationData {
   id: string;
@@ -31,11 +32,6 @@ export interface NotificationData {
   createdAt: Date;
 }
 
-interface RateLimitTracker {
-  messageCount: number;
-  resetTime: number;
-}
-
 @WebSocketGateway({
   cors: {
     origin: getWebSocketCorsOrigins(),
@@ -44,92 +40,47 @@ interface RateLimitTracker {
 })
 @UseGuards(WsJwtAuthGuard)
 export class NotificationsGateway
+  extends BaseWebSocketGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer()
   server!: Server;
 
-  private logger = new Logger('NotificationsGateway');
-  private readonly RATE_LIMIT_MESSAGES = 20;
-  private readonly RATE_LIMIT_WINDOW_MS = 60000;
-  private rateLimitMap = new Map<string, RateLimitTracker>();
+  protected readonly logger = new Logger('NotificationsGateway');
+  protected readonly RATE_LIMIT_MESSAGES = 20;
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly jwtService: JwtService,
+    protected readonly jwtService: JwtService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
-  ) {}
-
-  async handleConnection(client: Socket) {
-    const authToken =
-      client.handshake.auth?.token ||
-      client.handshake.headers?.authorization?.split(' ')[1];
-
-    if (!authToken) {
-      this.logger.warn(
-        `Notification connection attempt without token: ${client.id}`,
-      );
-      client.disconnect();
-      return;
-    }
-
-    try {
-      const payload = await this.jwtService.verifyAsync(authToken);
-      client.data.user = payload;
-
-      this.rateLimitMap.set(client.id, {
-        messageCount: 0,
-        resetTime: Date.now() + this.RATE_LIMIT_WINDOW_MS,
-      });
-
-      client.join(`clinic:${payload.clinicId}`);
-      client.join(`user:${payload.sub}`);
-
-      this.logger.log(
-        `Client connected and subscribed to notifications: ${client.id} (${payload.email})`,
-      );
-    } catch {
-      this.logger.warn(
-        `Unauthorized notification connection attempt: ${client.id}`,
-      );
-      client.disconnect(true);
-    }
+  ) {
+    super();
   }
 
-  handleDisconnect(client: Socket) {
+  async handleConnection(client: Socket) {
+    await this.authenticateConnection(client, {
+      noTokenWarning: 'Notification connection attempt without token',
+      unauthorizedWarning: 'Unauthorized notification connection attempt',
+      onAuthenticated: (joiningClient, payload) => {
+        joiningClient.join(`clinic:${payload.clinicId}`);
+        joiningClient.join(`user:${payload.sub}`);
+
+        this.logger.log(
+          `Client connected and subscribed to notifications: ${joiningClient.id} (${payload.email})`,
+        );
+      },
+    });
+  }
+
+  override handleDisconnect(client: Socket) {
     this.rateLimitMap.delete(client.id);
     this.logger.log(`Client disconnected from notifications: ${client.id}`);
   }
 
-  private checkRateLimit(clientId: string): boolean {
-    const tracker = this.rateLimitMap.get(clientId);
-    if (!tracker) return true;
-
-    const now = Date.now();
-    if (now > tracker.resetTime) {
-      tracker.messageCount = 0;
-      tracker.resetTime = now + this.RATE_LIMIT_WINDOW_MS;
-    }
-
-    if (tracker.messageCount >= this.RATE_LIMIT_MESSAGES) return false;
-
-    tracker.messageCount++;
-    return true;
-  }
-
-  private emitRateLimitError(client: Socket): void {
-    client.emit('error', {
-      message: `Rate limit exceeded. Maximum ${this.RATE_LIMIT_MESSAGES} messages per ${this.RATE_LIMIT_WINDOW_MS / 1000}s allowed.`,
-      code: 'RATE_LIMIT_EXCEEDED',
-    });
-  }
-
   @SubscribeMessage('notifications:subscribe')
   handleSubscribe(client: Socket) {
-    if (!this.checkRateLimit(client.id)) {
-      this.emitRateLimitError(client);
-      return { event: 'error', data: { message: 'Rate limit exceeded' } };
-    }
+    const rateLimitError = this.rejectIfRateLimited(client);
+    if (rateLimitError) return rateLimitError;
 
     const user = client.data.user;
     this.logger.log(
