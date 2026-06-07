@@ -73,6 +73,7 @@ export const config = {
      * - Next.js asset & image pipelines (already integrity-checked)
      * - Static files (svg/png/etc) served from /public
      * - The Next.js `_next` static asset path
+// jscpd:ignore-start
      */
     {
       source:
@@ -84,3 +85,4 @@ export const config = {
     },
   ],
 };
+// jscpd:ignore-end

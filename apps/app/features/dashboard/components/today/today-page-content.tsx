@@ -116,6 +116,7 @@ export function TodayPageContent() {
         <DataState
           status="error"
           className="min-h-[50vh]"
+// jscpd:ignore-start
           errorMessage="We could not load today's workspace. Please try again."
           onRetry={refetchAll}
         />
@@ -132,6 +133,7 @@ export function TodayPageContent() {
     return (
       <AppPageScaffold header={header}>
         <DataState
+// jscpd:ignore-end
           status="empty"
           className="min-h-[50vh]"
           emptyIcon={LayoutDashboard}

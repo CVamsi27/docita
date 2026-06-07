@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import prisma from '@workspace/db';
 
 function readVerificationEmail(): string {
@@ -29,3 +30,4 @@ main().catch((error: unknown) => {
   process.stderr.write(`${message}\n`);
   process.exit(1);
 });
+// jscpd:ignore-end

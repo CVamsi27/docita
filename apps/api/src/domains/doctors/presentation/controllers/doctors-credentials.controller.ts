@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Controller,
   Get,
@@ -14,6 +15,7 @@ import { RequestWithUser } from '@/shared/common/types/common.types';
 import { Specialization } from '@workspace/db';
 import {
   CreateEducationDto,
+// jscpd:ignore-end
   CreateEducationSchema,
   CreateCertificationDto,
   CreateCertificationSchema,

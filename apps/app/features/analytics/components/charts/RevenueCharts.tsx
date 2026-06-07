@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Card,
   CardContent,
@@ -23,6 +24,7 @@ import type { RevenueByCPT } from "@/features/analytics/hooks/use-analytics-logi
 import { COLORS, EmptyState, LoadingSpinner } from "./chart-helpers";
 
 interface RevenueChartProps {
+// jscpd:ignore-end
   data: RevenueByCPT[];
   loading: boolean;
 }

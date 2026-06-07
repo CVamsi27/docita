@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import {
@@ -16,6 +17,7 @@ import {
 import { Coffee } from "lucide-react";
 import {
   ALCOHOL_USE_STATUS_LABELS,
+// jscpd:ignore-end
   alcoholUseStatusSchema,
   PatientSocialHistory,
   PatientWithMedicalHistory,

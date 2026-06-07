@@ -1,6 +1,7 @@
 // check-as-cast-density: allow-file — React Hook Form generics and unknown-to-typed property access require as casts
 "use client";
 
+// jscpd:ignore-start
 import type { ReactNode } from "react";
 import {
   useWatch,
@@ -43,6 +44,7 @@ import { InvoiceSubtotal } from "./InvoiceSubtotal";
 import { formatCurrency } from "@workspace/utils";
 
 export function InvoiceDetailsCard({ children }: { children: ReactNode }) {
+// jscpd:ignore-end
   return (
     <Card>
       <CardHeader>

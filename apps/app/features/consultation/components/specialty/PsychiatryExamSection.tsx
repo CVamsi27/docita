@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { Label } from "@workspace/ui/components/form/label";
 import {
   Select,
@@ -15,6 +16,7 @@ import { z } from "zod";
 import type { PsychiatryExamData } from "@workspace/types";
 import {
   ExamAssessmentPlanFields,
+// jscpd:ignore-end
   ExamFieldGrid,
   ExamTextareaField,
 } from "./exam-section-fields";

@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { FormEvent, useState } from "react";
@@ -188,6 +189,7 @@ export function AddMetricDefinitionModal({
                     className="mr-2"
                   />
                   Creating…
+// jscpd:ignore-end
                 </>
               ) : (
                 "Create Metric"

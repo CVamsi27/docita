@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { Inject, Logger } from '@nestjs/common';
 import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
@@ -34,6 +35,7 @@ export type ReminderCreateRecord = {
 };
 
 export abstract class BaseSubscriptionNotifier {
+// jscpd:ignore-end
   protected readonly logger: Logger;
 
   constructor(

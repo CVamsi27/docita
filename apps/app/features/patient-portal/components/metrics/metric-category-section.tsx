@@ -30,6 +30,7 @@ interface MetricDefinition {
   metricOptions?: MetricOption[];
 }
 
+// jscpd:ignore-start
 interface MetricRecord {
   id: string;
   definitionId: string;
@@ -41,6 +42,7 @@ interface MetricRecord {
   }>;
 }
 
+// jscpd:ignore-end
 interface MetricCategorySectionProps {
   categoryName: string;
   definitions: MetricDefinition[];

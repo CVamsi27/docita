@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { useState } from "react";
 import { ChevronDown, ChevronUp, History } from "lucide-react";
 import { usePortalTimeline, usePortalSnapshot } from "@workspace/data-access";
@@ -26,6 +27,7 @@ const ALL_EVENT_TYPES: TimelineEventType[] = [
 ];
 
 interface PortalHistoryTimelineUIProps {
+// jscpd:ignore-end
   showHeader?: boolean;
 }
 

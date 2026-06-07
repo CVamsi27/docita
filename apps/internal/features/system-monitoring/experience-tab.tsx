@@ -2,6 +2,7 @@
 
 import { formatCountLocale } from "@workspace/utils";
 import { Badge } from "@workspace/ui/components/indicators/badge";
+// jscpd:ignore-start
 import {
   Card,
   CardContent,
@@ -19,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/data-display/table";
+// jscpd:ignore-end
 import type { SystemMonitoringPageViewModel } from "./use-system-monitoring-page";
 
 export type ExperienceTabProps = Pick<

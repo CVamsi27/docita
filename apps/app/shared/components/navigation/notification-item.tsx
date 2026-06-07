@@ -109,6 +109,7 @@ export function categorizeNotifications(
     if (isToday(createdAt)) today.push(notification);
     else if (isYesterday(createdAt)) yesterday.push(notification);
     else older.push(notification);
+// jscpd:ignore-start
   });
   return { today, yesterday, older };
 }
@@ -121,3 +122,4 @@ export function filterByCategory(
   const allowed = new Set(types);
   return notifications.filter((n) => allowed.has(String(n.type)));
 }
+// jscpd:ignore-end

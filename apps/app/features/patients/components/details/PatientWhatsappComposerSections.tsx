@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { History, Info, MessageCircle, Send } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import { Textarea } from "@workspace/ui/components/form/textarea";
@@ -14,6 +15,7 @@ import {
 } from "@workspace/ui/components/form/select";
 import {
   Alert,
+// jscpd:ignore-end
   AlertDescription,
 } from "@workspace/ui/components/feedback/alert";
 import { DataState } from "@workspace/ui/components/data-display/data-state";

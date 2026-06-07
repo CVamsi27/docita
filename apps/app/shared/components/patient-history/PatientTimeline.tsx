@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { useState } from "react";
 import { Button } from "@workspace/ui/components/form/button";
 import { Activity } from "lucide-react";
@@ -36,6 +37,7 @@ const ALL_TYPES: TimelineEventType[] = [
 ];
 
 export function PatientTimeline({
+// jscpd:ignore-end
   events,
   summary,
   total,

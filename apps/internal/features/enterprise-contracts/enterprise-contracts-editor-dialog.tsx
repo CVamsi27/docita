@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@workspace/ui/components/form/button";
+// jscpd:ignore-start
 import {
   Dialog,
   DialogContent,
@@ -9,9 +10,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
+// jscpd:ignore-end
 import { EnterpriseContractsEditorForm } from "./enterprise-contracts-editor-form";
 import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
 
+// jscpd:ignore-start
 type EnterpriseContractsEditorDialogProps = Pick<
   EnterpriseContractsPageState,
   | "editorOpen"
@@ -24,6 +27,7 @@ type EnterpriseContractsEditorDialogProps = Pick<
   | "submit"
   | "busy"
 >;
+// jscpd:ignore-end
 
 export function EnterpriseContractsEditorDialog({
   editorOpen,

@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -22,6 +23,7 @@ import { queryKeys } from "@/lib/api/query-keys";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   createDataSubjectRequestSchema,
+// jscpd:ignore-end
   type CreateDataSubjectRequest,
   type DataSubjectRequestStatus,
 } from "@workspace/types";

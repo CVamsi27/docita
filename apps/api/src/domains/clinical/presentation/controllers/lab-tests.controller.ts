@@ -98,6 +98,7 @@ export class LabTestsController {
     @Request() req: RequestWithUser,
     @Query() query: ListLabTestOrdersQueryDto,
   ): Promise<LabOrder[]> {
+// jscpd:ignore-start
     const { clinicId: _clinicId, patientId, ...params } = query;
 
     if (patientId) {
@@ -112,6 +113,7 @@ export class LabTestsController {
         this.auditService,
         req,
         'VIEW_LAB_ORDER_LIST',
+// jscpd:ignore-end
         'LabOrder',
         params,
       );

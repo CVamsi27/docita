@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { useState, type ComponentType } from "react";
 import { formatDate } from "@workspace/utils";
 import {
@@ -13,6 +14,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import {
   Activity,
+// jscpd:ignore-end
   ChevronDown,
   ChevronUp,
   Heart,

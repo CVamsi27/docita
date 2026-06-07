@@ -17,7 +17,6 @@ import {
   SignatureUploadedCard,
   SignatureLinkLoadingCard,
   SignatureLinkErrorCard,
-  SignatureLinkMissingCard,
   SignatureUploadFormCard,
 } from "./UploadSignatureOnboardingSections";
 
@@ -186,7 +185,7 @@ function OnboardingSlaUploadInner() {
 
     return (
       <div className="app-shell-bg flex min-h-screen items-center justify-center p-4">
-        <SignatureLinkErrorCard errorMessage={errorMessage} />
+        <SignatureLinkErrorCard error={errorMessage} />
       </div>
     );
   }
@@ -194,7 +193,7 @@ function OnboardingSlaUploadInner() {
   if (!onboardingId || !sessionId || !uploadSecret?.trim()) {
     return (
       <div className="app-shell-bg flex min-h-screen items-center justify-center p-4">
-        <SignatureLinkMissingCard error={error} />
+        <SignatureLinkErrorCard error={error} />
       </div>
     );
   }

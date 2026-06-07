@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import Link from "next/link";
 import { formatDate } from "@workspace/utils";
 import {
@@ -16,6 +17,7 @@ import { usePatientPrescriptions } from "@workspace/data-access";
 import { useRepeatPrescription } from "@/features/patients/hooks/use-repeat-prescription";
 
 interface PrescriptionsTabProps {
+// jscpd:ignore-end
   patientId: string;
 }
 

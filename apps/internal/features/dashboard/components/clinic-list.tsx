@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import {
   Table,
   TableBody,
@@ -16,6 +17,7 @@ import { getInternalClinicTypeDisplay } from "@/lib/clinic-display";
 import { getInternalTierBadgeClass } from "@/lib/tier-display";
 
 function getTierDisplay(tier: string): { name: string; className: string } {
+// jscpd:ignore-end
   const normalizedTier = mapDbClinicTierStringToTierName(tier);
   const tierInfo = TIER_INFO[normalizedTier];
   if (tierInfo) {

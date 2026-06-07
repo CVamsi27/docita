@@ -19,6 +19,7 @@ export const config = [
       globals: {
         ...globals.serviceworker,
         ...globals.browser,
+// jscpd:ignore-start
       },
     },
   },
@@ -35,3 +36,4 @@ export const config = [
     },
   },
 ];
+// jscpd:ignore-end

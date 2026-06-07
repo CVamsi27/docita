@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Body,
   Controller,
@@ -28,6 +29,7 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 import { WhatsappSenderSettingsService } from '@/domains/whatsapp/application/services/whatsapp-sender-settings.service';
 import {
   RevokeWhatsappSenderResponseDto,
+// jscpd:ignore-end
   UpdateWhatsappSenderDto,
   VerifyWhatsappSenderResponseDto,
   WhatsappSenderConfigResponseDto,

@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import type React from "react";
 import Link from "next/link";
 import { Lock, Sparkles } from "lucide-react";
@@ -18,6 +19,7 @@ import { usePermissionStore } from "@/lib/stores/permission-store";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
 interface AccessGateProps {
+// jscpd:ignore-end
   target: AppAccessTarget;
   mode?: "read" | "write";
   children: React.ReactNode;

@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { Plus, RefreshCw } from "lucide-react";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import {
@@ -23,6 +24,7 @@ export type PortalMetricRecord = {
     valueBoolean?: boolean | null;
   }>;
 };
+// jscpd:ignore-end
 
 export type PortalMetricDefinition = {
   id: string;

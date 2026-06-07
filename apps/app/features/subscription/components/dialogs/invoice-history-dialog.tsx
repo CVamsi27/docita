@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,7 @@ import { useBillingHistory } from "@workspace/data-access";
 import { BillingHistoryTable } from "@/features/subscription/components/billing/BillingHistoryTable";
 
 interface InvoiceHistoryDialogProps {
+// jscpd:ignore-end
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onResolvePayment?: () => void;

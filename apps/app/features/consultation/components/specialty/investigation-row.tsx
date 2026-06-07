@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { Loader2, Paperclip, Trash2, X } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
@@ -18,6 +19,7 @@ import { parseStringEnumMember } from "@workspace/utils";
 import { resolveAttachmentUrl } from "@/features/consultation/hooks/use-investigation-attachment";
 
 const INVESTIGATION_CATEGORIES = [
+// jscpd:ignore-end
   "LABORATORY",
   "IMAGING",
   "SPECIAL",

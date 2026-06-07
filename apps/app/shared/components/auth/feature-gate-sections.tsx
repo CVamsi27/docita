@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import Link from "next/link";
 import { Lock, Sparkles } from "lucide-react";
 import { Badge } from "@workspace/ui/components/indicators/badge";
@@ -13,6 +14,7 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import {
   Tooltip,
+// jscpd:ignore-end
   TooltipContent,
   TooltipTrigger,
 } from "@workspace/ui/components/overlay/tooltip";

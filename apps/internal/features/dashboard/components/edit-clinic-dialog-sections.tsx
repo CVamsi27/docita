@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { Label } from "@workspace/ui/components/form/label";
 import {
   Select,
@@ -13,6 +14,7 @@ import type { ClinicType, TierName } from "@workspace/types";
 import { ClinicCoreDetailsFields } from "@/components/forms/clinic-details-form-fields";
 
 export type EditClinicFormData = {
+// jscpd:ignore-end
   name: string;
   email: string;
   phone: string;

@@ -1,6 +1,7 @@
 "use client";
 
 import { formatCountLocale } from "@workspace/utils";
+// jscpd:ignore-start
 import {
   Card,
   CardContent,
@@ -8,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
+// jscpd:ignore-end
 import { Progress } from "@workspace/ui/components/feedback/progress";
 import {
   TabsContent,

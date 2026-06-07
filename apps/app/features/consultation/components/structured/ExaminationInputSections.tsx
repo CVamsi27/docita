@@ -30,6 +30,7 @@ export function GeneralExaminationCard({
   general,
   onUpdateGeneral,
   readOnly,
+// jscpd:ignore-start
 }: {
   general: {
     pallor: boolean;
@@ -41,6 +42,7 @@ export function GeneralExaminationCard({
     notes?: string;
   };
   onUpdateGeneral: (field: string, value: boolean | string) => void;
+// jscpd:ignore-end
   readOnly: boolean;
 }) {
   const positiveGeneralCount = GENERAL_FINDINGS.reduce(

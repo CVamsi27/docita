@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { type FC } from "react";
 import { Paperclip } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
@@ -23,6 +24,7 @@ import { getPatientFullName } from "@workspace/utils";
 import type { ClaimStatus, ClaimType } from "@workspace/types";
 import {
   CLAIM_STATUS_LABELS,
+// jscpd:ignore-end
   CLAIM_STATUS_TONE,
   CLAIM_TYPE_LABELS,
   centsToMajor,

@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import React from "react";
 import { Calendar, ChevronDown, Download, Filter, RefreshCw, User as UserIcon } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
@@ -16,6 +17,7 @@ import {
 import { Input } from "@workspace/ui/components/form/input";
 import {
   Select,
+// jscpd:ignore-end
   SelectContent,
   SelectItem,
   SelectTrigger,

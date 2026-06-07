@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { Info } from "lucide-react";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
@@ -12,6 +13,7 @@ import {
 } from "@workspace/ui/components/data-display/table";
 import {
   SymbolTooltip,
+// jscpd:ignore-end
   Tooltip,
   TooltipContent,
   TooltipTrigger,

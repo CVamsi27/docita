@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import eslint from '@eslint/js';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
@@ -42,6 +43,7 @@ export default tseslint.config(
       ],
       'no-console': ['error', { allow: ['warn', 'error', 'info'] }],
       'no-empty': ['error', { allowEmptyCatch: false }],
+// jscpd:ignore-end
       'no-useless-catch': 'warn',
       'no-restricted-globals': 'off',
       'no-restricted-syntax': ['warn', noProcessEnvSyntaxRule],

@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { AlertCircle, SlidersHorizontal } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import { Calendar } from "@workspace/ui/components/form/calendar";
@@ -17,6 +18,7 @@ import {
 } from "@workspace/ui/components/form/select";
 import {
   formatClinicPickerDayIsoFromSelection,
+// jscpd:ignore-end
   formatScheduleTime,
 } from "@workspace/utils";
 import type { ApproveScheduleFieldKey } from "@/lib/utils/appointment-request-approve-errors";

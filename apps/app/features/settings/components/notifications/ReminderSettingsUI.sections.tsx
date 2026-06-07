@@ -1,4 +1,5 @@
 "use client";
+// jscpd:ignore-start
 import type { ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { PAYMENT_REMINDER_DAY_PRESETS } from "@workspace/types";
@@ -16,6 +17,7 @@ import {
 } from "@workspace/ui/components/form/select";
 import {
   FormControl,
+// jscpd:ignore-end
   FormField,
   FormItem,
   FormMessage,

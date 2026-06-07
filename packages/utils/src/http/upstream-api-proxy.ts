@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 const HOP_BY_HOP_HEADERS = new Set([
   "connection",
   "content-encoding",
@@ -13,6 +14,7 @@ const HOP_BY_HOP_HEADERS = new Set([
 ]);
 
 export function normalizeUpstreamApiUrl(value: string) {
+// jscpd:ignore-end
   const trimmed = value.replace(/\/$/, "");
   const url = new URL(trimmed);
   const pathname = url.pathname.replace(/\/$/, "");

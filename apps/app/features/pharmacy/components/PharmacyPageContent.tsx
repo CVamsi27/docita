@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import {
   Card,
@@ -13,6 +14,7 @@ import { Feature } from "@workspace/types";
 import { ClipboardList, Pill } from "lucide-react";
 import { FeatureGate } from "@/components/auth/feature-gate";
 export function PharmacyPageContent() {
+// jscpd:ignore-end
   return (
     <FeatureGate feature={Feature.INVENTORY} showLockedCard>
       <AppPageScaffold

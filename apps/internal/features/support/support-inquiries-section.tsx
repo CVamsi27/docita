@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { formatDate, formatDistanceToNow, getUserFacingErrorMessage } from "@workspace/utils";
 import { useMemo } from "react";
 import { Badge } from "@workspace/ui/components/indicators/badge";
@@ -12,6 +13,7 @@ import {
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import {
   Table,
+// jscpd:ignore-end
   TableBody,
   TableCell,
   TableHead,

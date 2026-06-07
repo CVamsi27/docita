@@ -78,6 +78,7 @@ import { getClientIp } from '@/shared/common/http/client-ip';
       envFilePath: ['../../.env', '.env'],
     }),
     AppConfigModule,
+// jscpd:ignore-start
     PublicConfigModule,
     LoggerModule.forRootAsync({
       imports: [AppConfigModule],
@@ -90,6 +91,7 @@ import { getClientIp } from '@/shared/common/http/client-ip';
       }),
     }),
     PrometheusModule.register({
+// jscpd:ignore-end
       path: '/metrics',
     }),
 

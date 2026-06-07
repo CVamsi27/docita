@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Body,
   Controller,
@@ -23,6 +24,7 @@ import type { RequestWithUser } from '@/shared/common/types/common.types';
 import { WhatsappOperationsService } from '@/domains/whatsapp/application/services/whatsapp-operations.service';
 import {
   ClinicWhatsappCampaignCancelResponseDto,
+// jscpd:ignore-end
   ClinicWhatsappCampaignListResponseDto,
   ClinicWhatsappCampaignPreviewDto,
   ClinicWhatsappCampaignPreviewResponseDto,

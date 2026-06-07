@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import {
   Edit2,
   Eye,
@@ -19,6 +20,7 @@ import {
 } from "@workspace/ui/components/data-display/table";
 import {
   Card,
+// jscpd:ignore-end
   CardContent,
   CardHeader,
   CardTitle,

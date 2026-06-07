@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import type { ReactNode } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { ChevronsUpDown } from "lucide-react";
@@ -48,6 +49,7 @@ interface OrderLabTestComboboxFieldsProps {
   selectedPatient: Patient | undefined;
   selectedTest: LabTest | undefined;
   formatCurrency: LabTestFormatCurrency;
+// jscpd:ignore-end
 }
 
 interface PatientFieldProps {

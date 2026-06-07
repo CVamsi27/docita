@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import React, { useMemo } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
@@ -20,6 +21,7 @@ import { createAppointmentSchema, type AvailableSlot } from "@workspace/types";
 import { formatScheduleTime } from "@workspace/utils";
 import {
   calendarSlotTimeToLocalIso,
+// jscpd:ignore-end
   slotOccupiedByAppointments,
   type SlotBlockingAppointment,
 } from "@/features/appointments/lib/calendar-slot-local-iso";

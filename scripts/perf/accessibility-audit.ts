@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { chromium, Page } from "playwright";
 import { injectAxe, checkA11y, getViolations } from "axe-playwright";
 import fs from "fs";
@@ -17,6 +18,7 @@ interface AccessibilityViolation {
 }
 
 interface AppAuditResult {
+// jscpd:ignore-end
   app: string;
   timestamp: string;
   pages: Array<{

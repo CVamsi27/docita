@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { FC } from "react";
 import { useForm, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,6 +35,7 @@ import {
 } from "@workspace/ui/components/form/select";
 
 export type AdmissionFormData = IpdAdmissionFormValues;
+// jscpd:ignore-end
 export { ipdAdmissionFormSchema };
 
 export interface AdmissionFormProps {

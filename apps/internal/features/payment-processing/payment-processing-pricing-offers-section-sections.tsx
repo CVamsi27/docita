@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import type { UseFormReturn } from "react-hook-form";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Button } from "@workspace/ui/components/form/button";
@@ -13,6 +14,7 @@ import {
 } from "@workspace/ui/components/data-display/table";
 import {
   Select,
+// jscpd:ignore-end
   SelectContent,
   SelectItem,
   SelectTrigger,

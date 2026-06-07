@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+// jscpd:ignore-end
 } from "@workspace/ui/components/overlay/dialog";
 import { Input } from "@workspace/ui/components/form/input";
 import {

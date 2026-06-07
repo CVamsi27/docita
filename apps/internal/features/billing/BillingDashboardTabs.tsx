@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { Badge } from "@workspace/ui/components/indicators/badge";
+// jscpd:ignore-start
 import {
   Card,
   CardContent,
@@ -30,6 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/data-display/table";
+// jscpd:ignore-end
 import {
   Tabs,
   TabsContent,

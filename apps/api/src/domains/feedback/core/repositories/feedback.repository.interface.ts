@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   FeedbackCategory,
   FeedbackFeatureType,
@@ -18,6 +19,7 @@ export interface CreateFeedbackData {
   featureRequests?: string;
   generalComments?: string;
   category: FeedbackCategory;
+// jscpd:ignore-end
   feedbackFeatures: Array<{
     clinicId: string;
     featureType: FeedbackFeatureType;

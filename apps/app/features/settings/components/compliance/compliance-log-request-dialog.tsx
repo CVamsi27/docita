@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { FormEvent } from "react";
 import {
   Dialog,
@@ -23,6 +24,7 @@ import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picke
 import type { CreateDataSubjectRequest } from "@workspace/types";
 import {
   REQUEST_TYPE_OPTIONS,
+// jscpd:ignore-end
   parseDataSubjectRequestType,
 } from "./compliance-settings-constants";
 

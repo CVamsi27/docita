@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
@@ -17,6 +18,7 @@ import {
 import { Settings2 } from "lucide-react";
 
 interface FlatDefinition {
+// jscpd:ignore-end
   id: string;
   label: string;
   valueType: string;

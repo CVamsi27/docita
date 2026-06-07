@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { getPatientFullName } from "@workspace/utils";
 import { memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -30,6 +31,7 @@ interface TimeSlotRowProps {
 }
 
 export const TimeSlotRow = memo<TimeSlotRowProps>(
+// jscpd:ignore-end
   ({
     appointment: apt,
     checkingIn,

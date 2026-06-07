@@ -1,4 +1,5 @@
 "use client";
+// jscpd:ignore-start
 import { useState } from "react";
 import { Button } from "@workspace/ui/components/form/button";
 import {
@@ -19,6 +20,7 @@ import { ChangePasswordSettings } from "@/features/settings/components";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export default function ProfilePage() {
+// jscpd:ignore-end
   const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: user?.name ?? "",

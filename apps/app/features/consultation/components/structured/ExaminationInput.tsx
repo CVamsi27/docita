@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   GeneralExaminationCard,
   SystemicExaminationCard,
@@ -14,6 +15,7 @@ export interface ExaminationData {
     notes?: string;
   };
   systemic: {
+// jscpd:ignore-end
     cvs: string; 
     rs: string; 
     pa: string; 

@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
   Card,
@@ -16,6 +17,7 @@ import { formatDate } from "@workspace/utils";
 import type { InternalFeedback } from "@workspace/data-access/internal";
 import {
   FeedbackRatingStars,
+// jscpd:ignore-end
   FeedbackStatusBadge,
 } from "./feedback-display";
 

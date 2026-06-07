@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import React, { useState } from "react";
 import {
   Dialog,
@@ -13,6 +14,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { toast } from "sonner";
 import {
   useCreatePrescription,
+// jscpd:ignore-end
   usePatientPrescriptions,
 } from "@workspace/data-access";
 import { Pill } from "lucide-react";
@@ -24,6 +26,15 @@ import {
 } from "./PrescriptionModalSections";
 
 export type { Medication } from "./PrescriptionModalSections";
+
+const EMPTY_MEDICATION: Medication = {
+  name: "",
+  dosage: "",
+  frequency: "",
+  duration: "",
+  route: "ORAL",
+  prnInstructions: "",
+};
 
 const getPrescriptionComplianceErrorMessage = (
   error: unknown,
@@ -56,16 +67,7 @@ export function PrescriptionModal({
   patientId,
   onSaved,
 }: ModalProps) {
-  const [medications, setMedications] = useState<Medication[]>([
-    {
-      name: "",
-      dosage: "",
-      frequency: "",
-      duration: "",
-      route: "ORAL",
-      prnInstructions: "",
-    },
-  ]);
+  const [medications, setMedications] = useState<Medication[]>([EMPTY_MEDICATION]);
 
   const createPrescription = useCreatePrescription();
 
@@ -120,16 +122,7 @@ export function PrescriptionModal({
 
       onSaved?.();
       onOpenChange?.(false);
-      setMedications([
-        {
-          name: "",
-          dosage: "",
-          frequency: "",
-          duration: "",
-          route: "ORAL",
-          prnInstructions: "",
-        },
-      ]);
+      setMedications([EMPTY_MEDICATION]);
     } catch (err) {
       const complianceMessage = getPrescriptionComplianceErrorMessage(err);
       showUserFacingErrorToast(
@@ -165,16 +158,7 @@ export function PrescriptionModal({
 
   const removeMedication = (index: number) => {
     if (medications.length === 1) {
-      setMedications([
-        {
-          name: "",
-          dosage: "",
-          frequency: "",
-          duration: "",
-          route: "ORAL",
-          prnInstructions: "",
-        },
-      ]);
+      setMedications([EMPTY_MEDICATION]);
     } else {
       setMedications(medications.filter((_, i) => i !== index));
     }

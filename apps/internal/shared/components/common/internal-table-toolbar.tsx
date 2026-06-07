@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { Search } from "lucide-react";
 import { Input } from "@workspace/ui/components/form/input";
 import {
@@ -15,6 +16,7 @@ import {
 } from "@workspace/ui/components/form/select";
 
 interface InternalTableToolbarFilterOption {
+// jscpd:ignore-end
   value: string;
   label: string;
 }

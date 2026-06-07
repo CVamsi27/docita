@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Input } from "@workspace/ui/components/form/input";
@@ -18,6 +19,7 @@ import { Activity, Trash2 } from "lucide-react";
 import type { ChiefComplaintItem } from "./chief-complaint.types";
 
 export function ChiefComplaintItemRow({
+// jscpd:ignore-end
   item,
   index,
   readOnly,

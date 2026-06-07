@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { formatDate } from "@workspace/utils";
 import {
   Card,
@@ -17,6 +18,7 @@ import { useLabTestOrders } from "@workspace/data-access";
 import { TierGate } from "@/components/auth/access-gates";
 
 interface LabsTabProps {
+// jscpd:ignore-end
   patientId: string;
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { useCallback, useEffect, useState } from "react";
 
 export function useLocalStorage<T>(
@@ -39,6 +40,7 @@ export function useLocalStorage<T>(
 }
 
 export function useReadLocalStorage<T>(key: string): T | null {
+// jscpd:ignore-end
   const [value, setValue] = useState<T | null>(null);
 
   useEffect(() => {

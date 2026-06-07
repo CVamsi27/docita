@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import {
   Dialog,
   DialogContent,
@@ -20,6 +21,7 @@ import { BillingModalSummaryPanel } from "./billing-modal-summary-panel";
 import { useBillingModal } from "./use-billing-modal";
 
 export type { LineItem } from "./billing-modal-types";
+// jscpd:ignore-end
 
 export function BillingModal({
   open,

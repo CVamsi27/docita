@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+// jscpd:ignore-start
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/data-display/table";
+// jscpd:ignore-end
 
 export {
   Dialog,

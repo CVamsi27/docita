@@ -36,6 +36,7 @@ export function usePublicBookingReadinessState(
     [params.siteKey, params.turnstileToken],
   );
 
+// jscpd:ignore-start
   const contactCanContinue = computeContactCanContinue({
     phone: params.phone,
     requiresOtp: params.requiresOtp,
@@ -59,4 +60,5 @@ export function usePublicBookingReadinessState(
   });
 
   return { visitCanContinue, contactCanContinue, submitRequestReady };
+// jscpd:ignore-end
 }

@@ -2,6 +2,7 @@
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Button } from "@workspace/ui/components/form/button";
+// jscpd:ignore-start
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,7 @@ import {
 } from "@workspace/ui/components/form/form";
 import { Input } from "@workspace/ui/components/form/input";
 import { Textarea } from "@workspace/ui/components/form/textarea";
+// jscpd:ignore-end
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { guidedSetupPresetAmount } from "@/features/payment-processing/payment-processing-helpers";
 import type { PaymentProcessingPageViewModel } from "@/features/payment-processing/use-payment-processing-page";

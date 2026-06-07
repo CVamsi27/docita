@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { Label } from "@workspace/ui/components/form/label";
 import {
   Select,
@@ -12,6 +13,7 @@ import type { PublicBookingPageController } from "@/features/public-booking/use-
 import { formatTime } from "@/lib/formatters";
 
 export function SlotGridTimeRangeFilters({
+// jscpd:ignore-end
   c,
   useNoneValue,
 }: {

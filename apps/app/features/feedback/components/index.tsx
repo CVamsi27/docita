@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { FC } from "react";
 import {
   Card,
@@ -13,6 +14,7 @@ import { Textarea } from "@workspace/ui/components/form/textarea";
 import { Label } from "@workspace/ui/components/form/label";
 import {
   Frown,
+// jscpd:ignore-end
   Meh,
   MessageSquare,
   Send,

@@ -23,6 +23,18 @@ import { vitalSignSchema } from "../clinical/vitals";
 import { prescriptionSchema } from "../clinical/medications";
 import { invoiceSchema } from "../billing/invoices";
 
+const patientRefSchema = z.object({
+  id: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  phoneNumber: z.string().nullable().optional(),
+});
+
+const doctorRefSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable().optional(),
+});
+
 export const appointmentResponseSchema = appointmentSchema;
 
 /**
@@ -58,20 +70,8 @@ export const appointmentListItemResponseSchema = z
     createdAt: z.string().or(z.date()),
     updatedAt: z.string().or(z.date()),
     version: z.number().int().nonnegative(),
-    patient: z
-      .object({
-        id: z.string(),
-        firstName: z.string(),
-        lastName: z.string(),
-        phoneNumber: z.string().nullable().optional(),
-      })
-      .optional(),
-    doctor: z
-      .object({
-        id: z.string(),
-        name: z.string().nullable().optional(),
-      })
-      .optional(),
+    patient: patientRefSchema.optional(),
+    doctor: doctorRefSchema.optional(),
     clinicName: z.string().optional(),
     clinic: z
       .object({
@@ -235,20 +235,8 @@ export const followUpResponseSchema = z.object({
   bookedAppointmentId: z.string().nullable().optional(),
   createdAt: z.string().or(z.date()),
   updatedAt: z.string().or(z.date()),
-  patient: z
-    .object({
-      id: z.string(),
-      firstName: z.string(),
-      lastName: z.string(),
-      phoneNumber: z.string().nullable().optional(),
-    })
-    .optional(),
-  doctor: z
-    .object({
-      id: z.string(),
-      name: z.string().nullable().optional(),
-    })
-    .optional(),
+  patient: patientRefSchema.optional(),
+  doctor: doctorRefSchema.optional(),
 });
 
 export const createFollowUpRequestSchema = z.object({
@@ -330,28 +318,9 @@ export const appointmentRequestResponseSchema = z.object({
   responseMessage: z.string().nullable().optional(),
   createdAt: z.string().or(z.date()),
   updatedAt: z.string().or(z.date()),
-  patient: z
-    .object({
-      id: z.string(),
-      firstName: z.string(),
-      lastName: z.string(),
-      phoneNumber: z.string().nullable().optional(),
-    })
-    .optional(),
-  preferredDoctor: z
-    .object({
-      id: z.string(),
-      name: z.string().nullable().optional(),
-    })
-    .nullable()
-    .optional(),
-  reviewedBy: z
-    .object({
-      id: z.string(),
-      name: z.string().nullable().optional(),
-    })
-    .nullable()
-    .optional(),
+  patient: patientRefSchema.optional(),
+  preferredDoctor: doctorRefSchema.nullable().optional(),
+  reviewedBy: doctorRefSchema.nullable().optional(),
 });
 
 export const appointmentRequestListResponseSchema = z.object({

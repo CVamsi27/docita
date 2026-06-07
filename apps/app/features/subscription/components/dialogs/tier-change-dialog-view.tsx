@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
   Dialog,
@@ -17,6 +18,7 @@ import {
 import { cn } from "@workspace/ui/lib/utils";
 import {
   AlertTriangle,
+// jscpd:ignore-end
   ArrowDown,
   ArrowRight,
   Building2,

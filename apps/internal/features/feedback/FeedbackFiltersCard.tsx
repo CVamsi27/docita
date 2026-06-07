@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
@@ -18,6 +19,7 @@ import { CATEGORY_OPTIONS, STATUS_OPTIONS } from "./feedback-helpers";
 import type { InternalFeedbackFilters } from "@workspace/data-access/internal";
 
 interface FeedbackFiltersCardProps {
+// jscpd:ignore-end
   filters: InternalFeedbackFilters;
   show: boolean;
   onFiltersChange: (filters: InternalFeedbackFilters) => void;

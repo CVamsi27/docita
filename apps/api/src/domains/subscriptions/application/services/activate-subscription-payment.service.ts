@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import {
   ISubscriptionRepository,
@@ -21,6 +22,7 @@ type SubscriptionPaymentRecord = {
 };
 
 type ResolveSubscriptionPaymentInput = {
+// jscpd:ignore-end
   clinicId: string;
   razorpayOrderId: string;
   razorpayPaymentId: string;

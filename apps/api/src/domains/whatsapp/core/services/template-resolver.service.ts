@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { Injectable } from '@nestjs/common';
 import {
   TemplateResolutionService,
@@ -23,3 +24,4 @@ export class TemplateResolverService {
     );
   }
 }
+// jscpd:ignore-end

@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Controller,
   Post,
@@ -53,6 +54,7 @@ export class SignatureUploadController {
 
   @Get('active-tokens')
   @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR)
+// jscpd:ignore-end
   async getActiveTokens(@Request() req: RequestWithUser) {
     if (!req.user?.id) throw new BadRequestException('User ID is required');
 

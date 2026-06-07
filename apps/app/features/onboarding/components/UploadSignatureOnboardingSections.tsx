@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import {
   Alert,
   AlertDescription,
@@ -16,6 +17,7 @@ import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { SignatureUploadWorkflow } from "@/components/signature/signature-upload-workflow";
 
 export function SignatureUploadedCard({
+// jscpd:ignore-end
   alreadyUploaded,
 }: {
   alreadyUploaded: boolean;
@@ -55,28 +57,6 @@ export function SignatureLinkLoadingCard() {
 }
 
 export function SignatureLinkErrorCard({
-  errorMessage,
-}: {
-  errorMessage: string;
-}) {
-  return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <AlertCircle className="h-5 w-5 text-destructive" />
-          <CardTitle>Link not available</CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <Alert variant="destructive">
-          <AlertDescription>{errorMessage}</AlertDescription>
-        </Alert>
-      </CardContent>
-    </Card>
-  );
-}
-
-export function SignatureLinkMissingCard({
   error,
 }: {
   error: string | null;

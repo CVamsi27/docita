@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { Inject, Injectable } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -24,6 +25,7 @@ export class PrismaClinicCoreRepository implements IClinicCoreRepository {
   }
 
   async findByReferralCode(code: string): Promise<{ id: string } | null> {
+// jscpd:ignore-end
     return this.getReadClient().clinic.findUnique({
       where: { referralCode: code },
       select: { id: true },

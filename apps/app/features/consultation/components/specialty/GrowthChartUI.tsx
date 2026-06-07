@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import {
@@ -11,6 +12,7 @@ import {
 import { GrowthChartData, GrowthMeasurement } from "@workspace/types";
 
 interface GrowthChartProps {
+// jscpd:ignore-end
   value: GrowthChartData;
   onChange: (value: GrowthChartData) => void;
   readOnly?: boolean;

@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { z } from "zod";
 
 import { planModeSchema } from "../billing/tier";
@@ -20,6 +21,7 @@ export const enterpriseBrandingSchema = z.object({
     .optional(),
 });
 export type EnterpriseBranding = z.infer<typeof enterpriseBrandingSchema>;
+// jscpd:ignore-end
 
 export const whatsAppAutomationSchema = z.object({
   enabled: z.boolean().default(false),

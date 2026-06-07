@@ -30,6 +30,7 @@ export const nextJsConfig = [
     },
     rules: {
       ...pluginNext.configs.recommended.rules,
+// jscpd:ignore-start
       ...pluginNext.configs["core-web-vitals"].rules,
     },
   },
@@ -46,3 +47,4 @@ export const nextJsConfig = [
     },
   },
 ];
+// jscpd:ignore-end

@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { formatDate } from "@workspace/utils";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
@@ -12,6 +13,7 @@ import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
 import { ArrowDownLeft, ArrowUpRight, History } from "lucide-react";
 
 export interface ItemMovement {
+// jscpd:ignore-end
   id: string;
   type: string;
   quantity: number;

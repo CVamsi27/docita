@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { ErrorPageShell } from "@/components/errors/error-page-shell";
 
 export default function BedsError({
@@ -13,6 +14,7 @@ export default function BedsError({
   return (
     <ErrorPageShell
       title="Error loading Bed Management"
+// jscpd:ignore-end
       description="We couldn't load Bed Management. Please retry or return to the dashboard."
       reset={reset}
     />

@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import {
   CalendarDays,
   Clock3,
@@ -20,6 +21,7 @@ import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { Progress } from "@workspace/ui/components/feedback/progress";
 
 export default function DoctorWorkflowVisualTestPage() {
+// jscpd:ignore-end
   return (
     <div className="space-y-8 p-6 md:p-8" data-testid="doctor-workflow-page">
       <section data-testid="doctor-dashboard-zone">

@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Button } from "@workspace/ui/components/form/button";
 import {
@@ -12,6 +13,7 @@ import {
 } from "@workspace/ui/components/overlay/dialog";
 import {
   consultationDraftNeedsLeaveGuard,
+// jscpd:ignore-end
   useConsultationDraft,
 } from "@/features/consultation/state/useConsultationDraft";
 

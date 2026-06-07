@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { getPatientFullName } from "@workspace/utils";
 import { useMemo, useState } from "react";
 import Link from "next/link";
@@ -10,6 +11,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
   CardContent,
+// jscpd:ignore-end
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";

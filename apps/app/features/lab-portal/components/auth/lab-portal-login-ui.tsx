@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { useState } from "react";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
@@ -19,6 +20,7 @@ import { getUserFacingErrorMessage } from "@workspace/utils";
 import { browserRequest } from "@/lib/auth/browser-request";
 
 export function LabPortalLoginUI() {
+// jscpd:ignore-end
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");

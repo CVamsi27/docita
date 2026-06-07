@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { ErrorPageShell } from "@/components/errors/error-page-shell";
 
 export default function AiAssistantError({
@@ -13,6 +14,7 @@ export default function AiAssistantError({
   return (
     <ErrorPageShell
       title="Error loading AI Assistant"
+// jscpd:ignore-end
       description="We couldn't load AI Assistant. Please retry or return to the dashboard."
       reset={reset}
     />

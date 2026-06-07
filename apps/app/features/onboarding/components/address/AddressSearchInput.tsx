@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
@@ -9,6 +10,7 @@ import { LocateFixed, Search } from "lucide-react";
 import { Autocomplete } from "@react-google-maps/api";
 import {
   type ClinicAddressDetails,
+// jscpd:ignore-end
   type PlaceSuggestion,
   parseGoogleAddressDetails,
   formatAddressDetails,

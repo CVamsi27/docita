@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';

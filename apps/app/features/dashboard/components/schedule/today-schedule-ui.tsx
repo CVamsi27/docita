@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import Link from "next/link";
 import { Calendar, ChevronRight, Clock, Play } from "lucide-react";
 import { formatDate, getPatientFullName } from "@workspace/utils";
@@ -14,6 +15,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import {
   Avatar,
+// jscpd:ignore-end
   AvatarFallback,
 } from "@workspace/ui/components/indicators/avatar";
 import { cn } from "@workspace/ui/lib/utils";

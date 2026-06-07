@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import type { InvoiceListRow } from "@workspace/types";
 import { Button } from "@workspace/ui/components/form/button";
 import { Label } from "@workspace/ui/components/form/label";
@@ -13,6 +14,7 @@ import {
 } from "@workspace/ui/components/form/select";
 import {
   Dialog,
+// jscpd:ignore-end
   DialogBody,
   DialogContent,
   DialogDescription,

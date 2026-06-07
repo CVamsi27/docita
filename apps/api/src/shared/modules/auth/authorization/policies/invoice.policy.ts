@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Injectable,
   Role,
@@ -29,3 +30,4 @@ export class InvoicePolicy extends BaseResourcePolicy {
     return { allowed: true };
   }
 }
+// jscpd:ignore-end

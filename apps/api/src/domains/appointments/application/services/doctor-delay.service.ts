@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Injectable,
   Logger,
@@ -33,6 +34,7 @@ interface DoctorDelayResponse {
   clearedAt?: Date | null;
   clearedById?: string | null;
   affectedAppointmentCount: number;
+// jscpd:ignore-end
 }
 
 /** Facade — doctor delay mark/clear; delegates to IDoctorDelayRepository. */

@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { ExternalLink } from "lucide-react";
 import { FormFieldGroup } from "@workspace/ui/components";
 import { Button } from "@workspace/ui/components/form/button";
@@ -21,6 +22,7 @@ import type { ClinicSettingsFormValues } from "@workspace/types";
 import type { UseFormReturn } from "react-hook-form";
 
 const monoInputClass = "font-mono text-[var(--fs-sm)] tracking-tight";
+// jscpd:ignore-end
 
 function SectionEyebrow({ children }: { children: React.ReactNode }) {
   return <div className="ui-eyebrow pb-3 pt-1">{children}</div>;

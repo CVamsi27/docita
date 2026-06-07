@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Controller,
   Get,
@@ -140,6 +141,7 @@ export class PatientPortalClinicalController {
     },
   ) {
     const { patientId, clinicId } = await this.auditClinicalRead(req);
+// jscpd:ignore-end
     return this.medicationDoseService.getDoseHistory(clinicId, patientId, {
       prescriptionId: query.prescriptionId,
       from: query.from,

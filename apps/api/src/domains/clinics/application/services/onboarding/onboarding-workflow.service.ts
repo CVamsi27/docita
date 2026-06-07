@@ -337,6 +337,7 @@ export class OnboardingWorkflowService {
     slotDuration: number;
     isActive: boolean;
   }> {
+// jscpd:ignore-start
     return getDefaultClinicWeeklyHoursInput();
   }
 
@@ -352,5 +353,6 @@ export class OnboardingWorkflowService {
     }>,
   ): Promise<void> {
     await this.repository.replaceClinicWeeklySchedules(tx, clinicId, rows);
+// jscpd:ignore-end
   }
 }

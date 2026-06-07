@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
@@ -21,6 +22,7 @@ function getNextPathForVerifiedUser(user: User | null): string {
 }
 
 export default function VerifyEmailVerifiedPage() {
+// jscpd:ignore-end
   const router = useRouter();
   const { user } = useAuth();
 

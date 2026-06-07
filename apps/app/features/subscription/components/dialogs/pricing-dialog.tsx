@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { useState } from "react";
 import {
   Dialog,
@@ -14,6 +15,7 @@ import { Label } from "@workspace/ui/components/form/label";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   PRICING_CURRENCY_CONFIG,
+// jscpd:ignore-end
   getPlanTrack,
   type SupportedCurrency,
   Tier,

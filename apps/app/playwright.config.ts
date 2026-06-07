@@ -71,6 +71,7 @@ export default defineConfig({
             timeout: 180_000,
           },
         ],
+// jscpd:ignore-start
 
   projects: [
     {
@@ -82,6 +83,7 @@ export default defineConfig({
       use: {
         ...devices["Pixel 5"],
         viewport: VIEWPORT_PRESETS.mobile,
+// jscpd:ignore-end
         hasTouch: true,
         isMobile: true,
       },

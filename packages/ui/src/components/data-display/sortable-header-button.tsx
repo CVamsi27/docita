@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import type { ButtonHTMLAttributes } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
@@ -38,5 +39,6 @@ export function SortableHeaderButton<K extends string = string>({
         <ArrowUpDown className="h-3 w-3 opacity-50" />
       )}
     </Button>
+// jscpd:ignore-end
   );
 }

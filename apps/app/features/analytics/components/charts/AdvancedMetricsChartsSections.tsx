@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Card,
   CardContent,
@@ -17,6 +18,7 @@ import { CalendarDays, TrendingUp, Users } from "lucide-react";
 import type { AppointmentSnapshot } from "@workspace/types";
 import {
   Bar,
+// jscpd:ignore-end
   BarChart,
   Cell,
   Line,

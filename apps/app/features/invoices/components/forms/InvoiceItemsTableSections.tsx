@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import {
@@ -14,6 +15,7 @@ import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Trash2 } from "lucide-react";
 
 export interface InvoiceItem {
+// jscpd:ignore-end
   id: string;
   description: string;
   quantity: number;

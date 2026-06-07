@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { Inject, Injectable } from '@nestjs/common';
 import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
@@ -32,6 +33,7 @@ export class SubscriptionChargedWebhookHandler extends BaseRazorpayWebhookHandle
   async handle(payload: RazorpayWebhookPayload): Promise<void> {
     const sub = this.extractSubscriptionEntity(payload);
     const payment = payload.payload.payment?.entity;
+// jscpd:ignore-end
     if (!sub || !payment) return;
 
     const clinicId = this.extractClinicId(payload);

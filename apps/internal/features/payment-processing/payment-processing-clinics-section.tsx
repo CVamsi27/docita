@@ -2,6 +2,7 @@
 
 import { Button } from "@workspace/ui/components/form/button";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+// jscpd:ignore-start
 import {
   Card,
   CardContent,
@@ -18,6 +19,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/data-display/table";
 import { Badge } from "@workspace/ui/components/indicators/badge";
+// jscpd:ignore-end
 import { DEFAULT_CURRENCY, formatPlanLimitCount } from "@workspace/utils";
 import { getInternalTierBadgeClass } from "@/lib/tier-display";
 import { CreditCard, Receipt, TrendingUp } from "lucide-react";

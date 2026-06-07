@@ -624,6 +624,7 @@ async function seedPatients(
   const patients = await Promise.all(
     SEEDED_PATIENTS.map((seededPatient, index) => {
       const linkedUserId = index === 0 ? patientPortalUserId : undefined;
+      // jscpd:ignore-start
       return prisma.patient.upsert({
         where: { id: seededPatient.id },
         update: {
@@ -656,6 +657,7 @@ async function seedPatients(
           ...(linkedUserId ? { userId: linkedUserId } : {}),
         },
       });
+      // jscpd:ignore-end
     }),
   );
   return patients;

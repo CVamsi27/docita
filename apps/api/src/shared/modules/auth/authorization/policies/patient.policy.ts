@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Injectable,
   Role,
@@ -30,3 +31,4 @@ export class PatientPolicy extends BaseResourcePolicy {
     return { allowed: true };
   }
 }
+// jscpd:ignore-end

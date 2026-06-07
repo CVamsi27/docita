@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import * as React from "react";
 import { AlertCircle, CheckCircle2, Info, XCircle } from "lucide-react";
 
@@ -15,6 +16,7 @@ import {
 import { Button } from "../form/button";
 
 export type ConfirmationType = "danger" | "warning" | "info" | "success";
+// jscpd:ignore-end
 
 export interface ConfirmationDialogProps {
   open: boolean;

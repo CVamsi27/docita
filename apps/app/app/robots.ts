@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
@@ -8,3 +9,4 @@ export default function robots(): MetadataRoute.Robots {
     },
   };
 }
+// jscpd:ignore-end

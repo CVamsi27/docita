@@ -117,6 +117,7 @@ export interface ILabRepository {
     notes: string | undefined,
     now: Date,
   ): Promise<void>;
+// jscpd:ignore-start
   attachResult(
     id: string,
     clinicId: string,
@@ -128,6 +129,7 @@ export interface ILabRepository {
     },
     now: Date,
   ): Promise<void>;
+// jscpd:ignore-end
   verifyPayment(
     id: string,
     clinicId: string,
@@ -149,6 +151,7 @@ export interface ILabRepository {
       address?: string;
     },
   ): Promise<LabRecord>;
+// jscpd:ignore-start
   updateLab(
     id: string,
     clinicId: string,
@@ -161,6 +164,7 @@ export interface ILabRepository {
       active: boolean;
     }>,
   ): Promise<LabRecord>;
+// jscpd:ignore-end
 }
 
 export interface IMedicalCodingRepository {

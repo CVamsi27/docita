@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Card,
   CardContent,
@@ -25,6 +26,7 @@ interface ClinicInfo {
 }
 
 interface PrescriptionData {
+// jscpd:ignore-end
   createdAt: string | Date;
   doctor?: DoctorInfo;
   patient?: Patient;

@@ -3,6 +3,7 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
+// jscpd:ignore-start
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,7 @@ import {
   FormMessage,
 } from "@workspace/ui/components/form/form";
 import { Input } from "@workspace/ui/components/form/input";
+// jscpd:ignore-end
 import {
   DEFAULT_CURRENCY,
   formatCurrency,

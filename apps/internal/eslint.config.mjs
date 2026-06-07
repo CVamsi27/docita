@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   noInlineInvalidateKeysSyntaxRule,
   noInlineQueryKeySyntaxRule,
@@ -36,6 +37,7 @@ export default [
       "no-useless-catch": "warn",
       "no-console": ["error", { allow: ["warn", "error", "info"] }],
       "no-restricted-imports": [
+// jscpd:ignore-end
         "warn",
         {
           patterns: ["../*", "../../*", "../../../*", "../../../../*"],

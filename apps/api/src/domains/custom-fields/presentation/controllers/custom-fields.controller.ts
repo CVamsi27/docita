@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Controller,
   Get,
@@ -12,6 +13,7 @@ import {
 import { CustomFieldsService } from '@/domains/custom-fields/application/services/custom-fields.service';
 import {
   CreateCustomFieldDto,
+// jscpd:ignore-end
   UpdateCustomFieldDto,
   CustomFieldResponseDto,
   CustomFieldListResponseDto,

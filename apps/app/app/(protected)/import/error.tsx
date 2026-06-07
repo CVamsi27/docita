@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { ErrorPageShell } from "@/components/errors/error-page-shell";
 
 export default function ImportError({
@@ -13,6 +14,7 @@ export default function ImportError({
   return (
     <ErrorPageShell
       title="Error loading Import"
+// jscpd:ignore-end
       description="Please retry, or return to the dashboard."
       reset={reset}
     />

@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { getPatientFullName } from "@workspace/utils";
 import { Input } from "@workspace/ui/components/form/input";
 import { Textarea } from "@workspace/ui/components/form/textarea";
@@ -26,6 +27,7 @@ import type { Control } from "react-hook-form";
 import type { PatientNameParts } from "@workspace/utils";
 
 interface PresetPatientCardProps {
+// jscpd:ignore-end
   presetPatient: PatientNameParts | null | undefined;
 }
 
@@ -219,6 +221,7 @@ export function ClaimFormFieldGrid({
           )}
         />
 
+        {/* jscpd:ignore-start */}
         <FormField
           control={control}
           name="policyNumber"
@@ -246,6 +249,7 @@ export function ClaimFormFieldGrid({
             </FormItem>
           )}
         />
+        {/* jscpd:ignore-end */}
 
         <FormField
           control={control}

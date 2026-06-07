@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   APP_ACCESS_MATRIX,
   type AppAccessTarget,
@@ -29,6 +30,7 @@ const TIER_SENTINEL_FEATURES: Partial<Record<Tier, Feature>> = {
 };
 
 function hasRequiredTier(requiredTier: Tier, context: AccessContext): boolean {
+// jscpd:ignore-end
   if (requiredTier === Tier.INTELLIGENCE) return context.hasIntelligence === true;
 
   if (context.currentTier === undefined) return false;

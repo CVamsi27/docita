@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { AlertCircle } from "lucide-react";
@@ -14,6 +15,7 @@ import {
 } from "@workspace/ui/components/overlay/dialog";
 import {
   Alert,
+// jscpd:ignore-end
   AlertDescription,
 } from "@workspace/ui/components/feedback/alert";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";

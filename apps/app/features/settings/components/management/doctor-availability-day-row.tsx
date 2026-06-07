@@ -5,6 +5,51 @@ import { Label } from "@workspace/ui/components/form/label";
 import { Switch } from "@workspace/ui/components/form/switch";
 import type { DaySchedule } from "./doctor-availability-config";
 
+function AvailabilityField({
+  dayOfWeek,
+  label,
+  field,
+  type,
+  min,
+  max,
+  step,
+  isActive,
+  value,
+  onChange,
+}: {
+  dayOfWeek: string;
+  label: string;
+  field: string;
+  type?: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  isActive: boolean;
+  value: string | number;
+  onChange: (value: string) => void;
+}) {
+  const id = `availability-${dayOfWeek}-${field}`;
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={id} className="text-xs text-muted-foreground">
+        {label}
+      </Label>
+      <Input
+        id={id}
+        name={id}
+        type={type ?? "time"}
+        autoComplete="off"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={!isActive}
+        min={min}
+        max={max}
+        step={step}
+      />
+    </div>
+  );
+}
+
 export function DoctorAvailabilityDayRow({
   day,
   onUpdate,
@@ -36,60 +81,34 @@ export function DoctorAvailabilityDayRow({
             : "grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3 opacity-40 pointer-events-none"
         }
       >
-        <div className="space-y-1">
-          <Label
-            htmlFor={`availability-${day.dayOfWeek}-start`}
-            className="text-xs text-muted-foreground"
-          >
-            Start
-          </Label>
-          <Input
-            id={`availability-${day.dayOfWeek}-start`}
-            name={`availability-${day.dayOfWeek}-start`}
-            type="time"
-            autoComplete="off"
-            value={day.startTime}
-            onChange={(e) => onUpdate({ startTime: e.target.value })}
-            disabled={!day.isActive}
-          />
-        </div>
-        <div className="space-y-1">
-          <Label
-            htmlFor={`availability-${day.dayOfWeek}-end`}
-            className="text-xs text-muted-foreground"
-          >
-            End
-          </Label>
-          <Input
-            id={`availability-${day.dayOfWeek}-end`}
-            name={`availability-${day.dayOfWeek}-end`}
-            type="time"
-            autoComplete="off"
-            value={day.endTime}
-            onChange={(e) => onUpdate({ endTime: e.target.value })}
-            disabled={!day.isActive}
-          />
-        </div>
-        <div className="space-y-1">
-          <Label
-            htmlFor={`availability-${day.dayOfWeek}-slot-duration`}
-            className="text-xs text-muted-foreground"
-          >
-            Slot (min)
-          </Label>
-          <Input
-            id={`availability-${day.dayOfWeek}-slot-duration`}
-            name={`availability-${day.dayOfWeek}-slot-duration`}
-            type="number"
-            autoComplete="off"
-            value={day.slotDuration}
-            onChange={(e) => onUpdate({ slotDuration: Number(e.target.value) })}
-            min={5}
-            max={60}
-            step={5}
-            disabled={!day.isActive}
-          />
-        </div>
+        <AvailabilityField
+          dayOfWeek={day.dayOfWeek}
+          label="Start"
+          field="start"
+          isActive={day.isActive}
+          value={day.startTime}
+          onChange={(v) => onUpdate({ startTime: v })}
+        />
+        <AvailabilityField
+          dayOfWeek={day.dayOfWeek}
+          label="End"
+          field="end"
+          isActive={day.isActive}
+          value={day.endTime}
+          onChange={(v) => onUpdate({ endTime: v })}
+        />
+        <AvailabilityField
+          dayOfWeek={day.dayOfWeek}
+          label="Slot (min)"
+          field="slot-duration"
+          type="number"
+          isActive={day.isActive}
+          value={day.slotDuration}
+          min={5}
+          max={60}
+          step={5}
+          onChange={(v) => onUpdate({ slotDuration: Number(v) })}
+        />
       </div>
     </div>
   );

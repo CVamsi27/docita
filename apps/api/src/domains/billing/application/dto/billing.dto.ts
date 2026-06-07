@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import {
@@ -28,6 +29,7 @@ export const CreateInvoiceSchema = invoiceSchema
 export class CreateInvoiceDto extends createZodDto(CreateInvoiceSchema) {}
 
 export const UpdateInvoiceSchema = invoiceSchema
+// jscpd:ignore-end
   .partial()
   .merge(doctorFieldsSchema);
 

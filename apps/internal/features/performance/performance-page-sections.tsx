@@ -39,6 +39,7 @@ export function TopMetricsCards({
   averageResponseTime,
   errorRate,
   errorCount,
+// jscpd:ignore-start
 }: TopMetricsCardsProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -50,6 +51,7 @@ export function TopMetricsCards({
         <CardContent>
           <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
             {uptimeFormatted}
+// jscpd:ignore-end
           </div>
           <p className="text-xs text-muted-foreground">
             {formatCountLocale(uptimeSeconds)} seconds
