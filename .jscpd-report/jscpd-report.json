@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-06-07T20:12:41.994Z",
+    "detectionDate": "2026-06-07T20:30:03.420Z",
     "formats": {
       "typescript": {
         "sources": {
@@ -13205,8 +13205,8 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/imports/csv-row-parser.ts": {
-            "lines": 42,
-            "tokens": 490,
+            "lines": 41,
+            "tokens": 478,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -27018,8 +27018,8 @@
           }
         },
         "total": {
-          "lines": 203135,
-          "tokens": 1678187,
+          "lines": 203134,
+          "tokens": 1678175,
           "sources": 2251,
           "clones": 0,
           "duplicatedLines": 0,
@@ -31655,6 +31655,18 @@
           "apps/app/features/consultation/components/modals/billing-modal-summary-panel.tsx": {
             "lines": 44,
             "tokens": 337,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/features/consultation/components/modals/VitalsModal.tsx": {
+            "lines": 97,
+            "tokens": 788,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -39094,9 +39106,9 @@
           }
         },
         "total": {
-          "lines": 53120,
-          "tokens": 389572,
-          "sources": 1005,
+          "lines": 53217,
+          "tokens": 390360,
+          "sources": 1006,
           "clones": 0,
           "duplicatedLines": 0,
           "duplicatedTokens": 0,
@@ -44173,8 +44185,8 @@
             "newClones": 0
           },
           "apps/app/features/consultation/components/modals/VitalsModal.tsx": {
-            "lines": 7,
-            "tokens": 26,
+            "lines": 192,
+            "tokens": 1499,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -51950,8 +51962,8 @@
           }
         },
         "total": {
-          "lines": 116013,
-          "tokens": 852184,
+          "lines": 116198,
+          "tokens": 853657,
           "sources": 1070,
           "clones": 0,
           "duplicatedLines": 0,
@@ -52012,18 +52024,6 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
-          "packages/ui/src/styles/fonts.css": {
-            "lines": 11,
-            "tokens": 54,
-            "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
-            "newDuplicatedLines": 0,
-            "newClones": 0
-          },
           "packages/ui/src/components/print-sheet.tsx": {
             "lines": 7,
             "tokens": 87,
@@ -52035,12 +52035,36 @@
             "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
+          },
+          "apps/internal/app/globals.css": {
+            "lines": 7,
+            "tokens": 28,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/app/globals.css": {
+            "lines": 7,
+            "tokens": 28,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
           }
         },
         "total": {
-          "lines": 853,
-          "tokens": 6858,
-          "sources": 6,
+          "lines": 856,
+          "tokens": 6860,
+          "sources": 7,
           "clones": 0,
           "duplicatedLines": 0,
           "duplicatedTokens": 0,
@@ -52125,8 +52149,8 @@
             "newClones": 0
           },
           "knip.json": {
-            "lines": 200,
-            "tokens": 937,
+            "lines": 197,
+            "tokens": 925,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -52174,8 +52198,8 @@
           }
         },
         "total": {
-          "lines": 510,
-          "tokens": 2595,
+          "lines": 507,
+          "tokens": 2583,
           "sources": 10,
           "clones": 0,
           "duplicatedLines": 0,
@@ -52188,9 +52212,9 @@
       }
     },
     "total": {
-      "lines": 373631,
-      "tokens": 2929396,
-      "sources": 4342,
+      "lines": 373912,
+      "tokens": 2931635,
+      "sources": 4344,
       "clones": 0,
       "duplicatedLines": 0,
       "duplicatedTokens": 0,

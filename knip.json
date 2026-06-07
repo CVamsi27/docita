@@ -188,9 +188,6 @@
         "src/components/form/debounced-search-input.tsx"
       ],
       "ignoreDependencies": [
-        "@fontsource/fraunces",
-        "@fontsource/inter",
-        "@fontsource/jetbrains-mono",
         "@hookform/resolvers",
         "zod",
         "@tailwindcss/postcss"

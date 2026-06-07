@@ -1,5 +1,6 @@
 // jscpd:ignore-start
 import React, { useState } from "react";
+// jscpd:ignore-start
 import {
   Dialog,
   DialogContent,
@@ -8,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
+// jscpd:ignore-end
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
@@ -193,7 +195,6 @@ export function VitalsModal({
           </Button>
           <Button onClick={handleSave} disabled={recordVitals.isPending}>
             {recordVitals.isPending ? "Saving…" : "Save Vitals"}
-// jscpd:ignore-end
           </Button>
         </DialogFooter>
       </DialogContent>

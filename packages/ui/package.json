@@ -77,7 +77,6 @@
   "exports": {
     ".": "./dist/index.js",
     "./globals.css": "./src/styles/globals.css",
-    "./fonts.css": "./src/styles/fonts.css",
     "./postcss.config": "./postcss.config.mjs",
     "./lib/*": "./dist/lib/*.js",
     "./components": "./dist/components/index.js",
