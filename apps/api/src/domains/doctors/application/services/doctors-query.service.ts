@@ -51,9 +51,27 @@ export class DoctorsQueryService {
     };
   }
 
-  private async mapDoctorToResponse(
-    input: Parameters<typeof this.resolveDoctorSignatureUrl>[0],
-  ) {
+  private async mapDoctorToResponse(input: {
+    id: string;
+    role: string;
+    email: string;
+    name: string | null;
+    specialization?: string | null;
+    hospitalRole?: string | null;
+    qualification?: string | null;
+    registrationNumber?: string | null;
+    registrationCouncil?: string | null;
+    registrationStateCode?: string | null;
+    verificationStatus?: string | null;
+    verificationReason?: string | null;
+    verificationCheckedAt?: Date | string | null;
+    signatureUrl?: string | null;
+    registrationCertificateUrl?: string | null;
+    profilePhotoUrl?: string | null;
+    yearsOfExperience?: number | null;
+    consultationFee?: number | null;
+    createdAt: Date | string;
+  }) {
     const doctor = await this.resolveDoctorSignatureUrl(input);
     return {
       id: doctor.id,

@@ -2,8 +2,8 @@ name: Synthetic uptime monitoring
 
 on:
   schedule:
-    # Every 5 minutes — detect breakage before users report it.
-    - cron: "*/5 * * * *"
+    # Every hour
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 concurrency:

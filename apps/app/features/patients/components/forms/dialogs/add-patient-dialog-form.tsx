@@ -1,7 +1,7 @@
 "use client";
 
 import type { BaseSyntheticEvent } from "react";
-import type { UseFormReturn } from "react-hook-form";
+import type { Control, UseFormReturn } from "react-hook-form";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Button } from "@workspace/ui/components/form/button";
 import { Checkbox } from "@workspace/ui/components/form/checkbox";
@@ -25,7 +25,7 @@ import {
   SharedPatientNameFields,
 } from "./shared-patient-info-fields";
 
-function DpdpConsentSection({ control }: { control: FormControl }) {
+function DpdpConsentSection({ control }: { control: Control<PatientCreateFormValues> }) {
   return (
     <FormField control={control} name="dpdpConsent" render={({ field, fieldState }) => (
       <FormItem className="rounded-md border border-border/70 bg-muted/30 p-4">

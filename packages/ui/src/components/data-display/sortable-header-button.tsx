@@ -2,24 +2,24 @@ import type { ButtonHTMLAttributes } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 
-interface SortConfig {
-  key: string;
+interface SortConfig<K extends string = string> {
+  key: K;
   direction: "asc" | "desc";
 }
 
-interface SortableHeaderButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  column: string;
+interface SortableHeaderButtonProps<K extends string = string> extends ButtonHTMLAttributes<HTMLButtonElement> {
+  column: K;
   label: string;
-  sortConfig: SortConfig | null;
-  onSort: (key: string) => void;
+  sortConfig: SortConfig<K> | null;
+  onSort: (key: K) => void;
 }
 
-export function SortableHeaderButton({
+export function SortableHeaderButton<K extends string = string>({
   column,
   label,
   sortConfig,
   onSort,
-}: SortableHeaderButtonProps) {
+}: SortableHeaderButtonProps<K>) {
   return (
     <Button
       variant="ghost"

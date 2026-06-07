@@ -5,6 +5,9 @@
 node_modules
 **/node_modules
 
+# jscpd duplication report output
+.jscpd-report
+
 # pnpm store (massive)
 .pnpm-store
 .pnpm

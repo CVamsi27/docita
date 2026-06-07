@@ -8,6 +8,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import sharp from 'sharp';
 import { nanoid } from 'nanoid';
+import {
+  getPublicUploadUrl,
+  normalizeStorageKey,
+  resolveSafeUploadPath,
+  sanitizeStorageFolder,
+} from './local-storage-path.helpers';
 
 export interface LocalStorageProviderOptions {
   apiUrl?: string;
@@ -35,47 +41,6 @@ export class LocalStorageProvider extends StorageProvider {
     }
   }
 
-  private normalizeStorageKey(rawPath: string): string {
-    const decoded = decodeURIComponent(rawPath).trim();
-    const normalized = path.posix.normalize(decoded).replace(/^\/+/, '');
-    if (
-      !normalized ||
-      normalized.startsWith('..') ||
-      path.isAbsolute(normalized)
-    ) {
-      throw new BadRequestException('Invalid file path');
-    }
-
-    return normalized;
-  }
-
-  private resolveSafeUploadPath(rawPath: string): string {
-    const normalized = this.normalizeStorageKey(rawPath);
-    const resolvedPath = path.resolve(this.uploadDir, normalized);
-    const uploadRoot = `${path.resolve(this.uploadDir)}${path.sep}`;
-    if (!resolvedPath.startsWith(uploadRoot)) {
-      throw new BadRequestException('Invalid file path');
-    }
-
-    return resolvedPath;
-  }
-
-  private getPublicUploadUrl(objectKey: string): string {
-    const normalized = this.normalizeStorageKey(objectKey);
-    return `${this.apiOrigin}/uploads/${normalized}`;
-  }
-
-  private sanitizeFolder(folder: string): string {
-    const normalized = folder.trim().replace(/^\/+|\/+$/g, '');
-    if (!normalized) return 'general';
-
-    if (!/^[a-zA-Z0-9/_-]+$/.test(normalized) || normalized.includes('..')) {
-      throw new BadRequestException('Invalid upload folder');
-    }
-
-    return normalized;
-  }
-
   private async writeImageToFile(
     source: Buffer | string,
     filePath: string,
@@ -91,7 +56,7 @@ export class LocalStorageProvider extends StorageProvider {
     folder: string = 'general',
     _options?: StorageUploadOptions,
   ): Promise<string> {
-    const safeFolder = this.sanitizeFolder(folder);
+    const safeFolder = sanitizeStorageFolder(folder);
     const destDir = path.join(this.uploadDir, safeFolder);
     if (!fs.existsSync(destDir)) {
       fs.mkdirSync(destDir, { recursive: true });
@@ -149,7 +114,7 @@ export class LocalStorageProvider extends StorageProvider {
         .replace(/^https?:\/\/[^/]+\/uploads\//i, '')
         .replace(/^\/uploads\//, '')
         .replace(/^uploads\//, '');
-    const filePath = this.resolveSafeUploadPath(relativePath);
+    const filePath = resolveSafeUploadPath(relativePath, this.uploadDir);
 
     if (fs.existsSync(filePath)) {
       await fs.promises.unlink(filePath);
@@ -162,8 +127,8 @@ export class LocalStorageProvider extends StorageProvider {
     _contentType: string,
     _options?: StorageUploadOptions,
   ): Promise<string> {
-    const safeObjectKey = this.normalizeStorageKey(objectKey);
-    const filePath = this.resolveSafeUploadPath(safeObjectKey);
+    const safeObjectKey = normalizeStorageKey(objectKey);
+    const filePath = resolveSafeUploadPath(safeObjectKey, this.uploadDir);
     const fileDir = path.dirname(filePath);
     if (!fs.existsSync(fileDir)) {
       fs.mkdirSync(fileDir, { recursive: true });
@@ -178,13 +143,13 @@ export class LocalStorageProvider extends StorageProvider {
     expiresInSeconds: number,
   ): Promise<string> {
     this.assertSignedUrlTtl(expiresInSeconds);
-    return this.getPublicUploadUrl(objectKey);
+    return getPublicUploadUrl(objectKey, this.apiOrigin);
   }
 
   async getObject(
     objectKey: string,
   ): Promise<{ buffer: Buffer; contentType: string }> {
-    const filePath = this.resolveSafeUploadPath(objectKey);
+    const filePath = resolveSafeUploadPath(objectKey, this.uploadDir);
     const buffer = await fs.promises.readFile(filePath);
     return { buffer, contentType: 'application/pdf' };
   }

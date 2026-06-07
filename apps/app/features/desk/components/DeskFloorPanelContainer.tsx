@@ -4,46 +4,17 @@ import { useMemo } from "react";
 import { Feature, Tier } from "@workspace/types";
 import { FeatureGate, TierGate } from "@/components/auth/feature-gate";
 
-import { useQueue, type QueueItem } from "@workspace/data-access";
+import { useQueue } from "@workspace/data-access";
 import { DEFAULT_SLOT_DURATION } from "@workspace/utils";
 import {
   isQueueTokenCompleted,
   isQueueTokenInProgress,
   isQueueTokenWaiting,
 } from "@/lib/utils/queue-token-status";
-import { getOpdQueueSummaryLine } from "@/features/consultation";
 import { DeskFloorPanelUI, type DeskFloorCurrent } from "./DeskFloorPanelUI";
-import type { DeskFloorRow } from "./DeskFloorPanelUISections";
+import { patientNameOf, recentSort, toRow, tokenSort } from "./desk-floor-panel-helpers";
 
 const RECENTLY_COMPLETED_LIMIT = 6;
-
-function patientNameOf(item: QueueItem): string {
-  const first = item.patient?.firstName?.trim() ?? "";
-  const last = item.patient?.lastName?.trim() ?? "";
-  return `${first} ${last}`.trim() || "Unknown patient";
-}
-
-function toRow(item: QueueItem): DeskFloorRow {
-  return {
-    id: item.id,
-    tokenNumber: item.tokenNumber,
-    patientName: patientNameOf(item),
-    scheduledTime: item.scheduledTime ?? null,
-    doctorName: item.doctor?.name ?? item.appointment?.doctor?.name ?? null,
-    visitSummary: getOpdQueueSummaryLine(item),
-    isWalkIn: item.tokenType === "walk-in" || item.tokenType === "late-arrival",
-  };
-}
-
-function tokenSort(a: DeskFloorRow, b: DeskFloorRow): number {
-  return a.tokenNumber - b.tokenNumber;
-}
-
-function recentSort(a: QueueItem, b: QueueItem): number {
-  const ta = a.completedAt ? new Date(a.completedAt).getTime() : 0;
-  const tb = b.completedAt ? new Date(b.completedAt).getTime() : 0;
-  return tb - ta;
-}
 
 export function DeskFloorPanelContainer() {
   const { data, isLoading, isError, refetch } = useQueue();

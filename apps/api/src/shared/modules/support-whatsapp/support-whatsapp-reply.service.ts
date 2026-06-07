@@ -83,7 +83,7 @@ export class SupportWhatsAppReplyService {
       select: threadMessageSelect,
     });
 
-    let result: { success: boolean; messageId?: string };
+    let result: { success: boolean; messageId?: string } = { success: false };
     try {
       result = await this.whatsappClient.sendTextMessage({
         to: normalizedThreadPhoneNumber,

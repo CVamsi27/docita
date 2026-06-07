@@ -26,26 +26,8 @@ export const isConsultationReadOnlyStatus = (
   status: Appointment["status"] | string | undefined,
 ): boolean => status === "completed" || status === "no-show";
 
-export const getAppointmentStatusDisplay = (status: string): string => {
-  const normalizedStatus = status?.replace(/-/g, "_").toUpperCase();
-
-  switch (normalizedStatus) {
-    case "SCHEDULED":
-      return "Scheduled";
-    case "CHECKED_IN":
-      return "Checked In";
-    case "IN_PROGRESS":
-      return "Active";
-    case "COMPLETED":
-      return "Completed";
-    case "CANCELLED":
-      return "Cancelled";
-    case "NO_SHOW":
-      return "No Show";
-    default:
-      return "Unknown";
-  }
-};
+export { getAppointmentStatusDisplay } from "./appointment-status-display";
+export { validateAppointmentData } from "./appointment-validation";
 
 export const canCheckIn = (appointment: Appointment): boolean => {
   if (
@@ -79,30 +61,3 @@ export const getAppointmentDuration = (appointment: Appointment): number => {
   return getMinutesDifference(appointment.startTime, appointment.endTime);
 };
 
-export const validateAppointmentData = (
-  data: Partial<Appointment>,
-): string[] => {
-  const errors: string[] = [];
-
-  if (!data.patientId) {
-    errors.push("Select a patient");
-  }
-
-  if (!data.doctorId) {
-    errors.push("Select a doctor");
-  }
-
-  if (!data.startTime) {
-    errors.push("Choose a start time");
-  }
-
-  if (data.startTime && data.endTime) {
-    const start = new Date(data.startTime);
-    const end = new Date(data.endTime);
-    if (start.getTime() > end.getTime()) {
-      errors.push("Choose an end time after the start time");
-    }
-  }
-
-  return errors;
-};
