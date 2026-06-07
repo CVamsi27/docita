@@ -3,7 +3,7 @@ import {
   isRenewalUnpaidWithOutstandingPending,
   isSubscriptionBillingHardLocked,
   isSubscriptionPeriodLapsed,
-} from "./subscription-lockout";
+} from "./subscription-billing-lock";
 
 describe("subscription-lockout", () => {
   it("detects a lapsed billing period", () => {

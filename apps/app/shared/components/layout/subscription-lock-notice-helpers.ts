@@ -1,4 +1,4 @@
-import { isRenewalUnpaidWithOutstandingPending } from "@/lib/subscription/subscription-lockout";
+import { isRenewalUnpaidWithOutstandingPending } from "@/lib/subscription/subscription-billing-lock";
 import { buildSubscriptionNoticeContext } from "./subscription-lock-notice-context";
 import {
   expiredNotice,

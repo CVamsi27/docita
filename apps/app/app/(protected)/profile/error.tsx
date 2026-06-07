@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { ErrorPageShell } from "@/components/errors/error-page-shell";
 
 export default function ProfileError({
@@ -10,7 +9,6 @@ export default function ProfileError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {}, [error]);
 
   return (
     <ErrorPageShell

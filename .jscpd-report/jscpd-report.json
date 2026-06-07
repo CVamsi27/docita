@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-06-07T14:32:52.124Z",
+    "detectionDate": "2026-06-07T14:57:54.704Z",
     "formats": {
       "typescript": {
         "sources": {
@@ -11116,9 +11116,21 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/app/features/patients/components/details/patient-metrics-value-formatter.ts": {
+            "lines": 21,
+            "tokens": 276,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/app/features/patients/components/details/patient-metrics-history-helpers.ts": {
-            "lines": 95,
-            "tokens": 900,
+            "lines": 76,
+            "tokens": 636,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -12844,6 +12856,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/api/src/shared/modules/imports/xlsx-worksheet-parser.ts": {
+            "lines": 55,
+            "tokens": 615,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/api/src/shared/modules/imports/xlsx-load-boundary.ts": {
             "lines": 12,
             "tokens": 97,
@@ -13024,6 +13048,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/api/src/shared/modules/imports/import-row-utils.ts": {
+            "lines": 90,
+            "tokens": 983,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/api/src/shared/modules/imports/import-row-normalizer.ts": {
             "lines": 140,
             "tokens": 1325,
@@ -13073,8 +13109,8 @@
             "newClones": 0
           },
           "apps/api/src/shared/modules/imports/import-file-parser.service.ts": {
-            "lines": 255,
-            "tokens": 2774,
+            "lines": 103,
+            "tokens": 923,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -13135,6 +13171,18 @@
           "apps/api/src/shared/modules/imports/document-classifier.service.ts": {
             "lines": 54,
             "tokens": 414,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/api/src/shared/modules/imports/csv-row-parser.ts": {
+            "lines": 45,
+            "tokens": 484,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -15692,11 +15740,11 @@
             "lines": 37,
             "tokens": 469,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 10,
-            "duplicatedTokens": 130,
-            "percentage": 27.03,
-            "percentageTokens": 27.72,
+            "clones": 2,
+            "duplicatedLines": 22,
+            "duplicatedTokens": 272,
+            "percentage": 59.46,
+            "percentageTokens": 58,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -15713,14 +15761,26 @@
             "newClones": 0
           },
           "apps/app/shared/lib/subscription/subscription-lockout.ts": {
-            "lines": 75,
-            "tokens": 782,
+            "lines": 35,
+            "tokens": 400,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 10,
-            "duplicatedTokens": 130,
-            "percentage": 13.33,
-            "percentageTokens": 16.62,
+            "duplicatedTokens": 132,
+            "percentage": 28.57,
+            "percentageTokens": 33,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/app/shared/lib/subscription/subscription-billing-lock.ts": {
+            "lines": 48,
+            "tokens": 511,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 12,
+            "duplicatedTokens": 140,
+            "percentage": 25,
+            "percentageTokens": 27.4,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -26802,14 +26862,14 @@
           }
         },
         "total": {
-          "lines": 205147,
-          "tokens": 1698517,
-          "sources": 2233,
-          "clones": 257,
-          "duplicatedLines": 3083,
-          "duplicatedTokens": 23329,
-          "percentage": 1.5,
-          "percentageTokens": 1.37,
+          "lines": 205195,
+          "tokens": 1698889,
+          "sources": 2238,
+          "clones": 258,
+          "duplicatedLines": 3095,
+          "duplicatedTokens": 23471,
+          "percentage": 1.51,
+          "percentageTokens": 1.38,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -44209,14 +44269,14 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/specialty/dental-charts/error.tsx": {
-            "lines": 22,
-            "tokens": 145,
+            "lines": 20,
+            "tokens": 114,
             "sources": 1,
             "clones": 13,
-            "duplicatedLines": 144,
-            "duplicatedTokens": 1095,
-            "percentage": 654.55,
-            "percentageTokens": 755.17,
+            "duplicatedLines": 132,
+            "duplicatedTokens": 879,
+            "percentage": 660,
+            "percentageTokens": 771.05,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -44305,14 +44365,14 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/hospital/beds/error.tsx": {
-            "lines": 22,
-            "tokens": 145,
+            "lines": 20,
+            "tokens": 114,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 11,
-            "duplicatedTokens": 83,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 65,
             "percentage": 50,
-            "percentageTokens": 57.24,
+            "percentageTokens": 57.02,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -46538,7 +46598,7 @@
           },
           "apps/app/shared/components/guards/subscription-guard.tsx": {
             "lines": 68,
-            "tokens": 613,
+            "tokens": 622,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -49381,14 +49441,14 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/settings/error.tsx": {
-            "lines": 22,
-            "tokens": 145,
+            "lines": 20,
+            "tokens": 114,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 11,
-            "duplicatedTokens": 83,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 65,
             "percentage": 50,
-            "percentageTokens": 57.24,
+            "percentageTokens": 57.02,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -49405,24 +49465,24 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/profile/error.tsx": {
-            "lines": 22,
-            "tokens": 145,
+            "lines": 20,
+            "tokens": 114,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 11,
-            "duplicatedTokens": 83,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 65,
             "percentage": 50,
-            "percentageTokens": 57.24,
+            "percentageTokens": 57.02,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/app/app/(protected)/prescriptions/error.tsx": {
-            "lines": 22,
-            "tokens": 143,
+            "lines": 20,
+            "tokens": 112,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 11,
-            "duplicatedTokens": 83,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 65,
             "percentage": 50,
             "percentageTokens": 58.04,
             "newDuplicatedLines": 0,
@@ -49441,38 +49501,38 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/lab-tests/error.tsx": {
-            "lines": 22,
-            "tokens": 143,
+            "lines": 20,
+            "tokens": 112,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 11,
-            "duplicatedTokens": 83,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 65,
             "percentage": 50,
             "percentageTokens": 58.04,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/app/app/(protected)/invoices/error.tsx": {
-            "lines": 22,
-            "tokens": 143,
+            "lines": 20,
+            "tokens": 112,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 11,
-            "duplicatedTokens": 83,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 65,
             "percentage": 50,
             "percentageTokens": 58.04,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/app/app/(protected)/inventory/error.tsx": {
-            "lines": 22,
-            "tokens": 145,
+            "lines": 20,
+            "tokens": 114,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 11,
-            "duplicatedTokens": 83,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 65,
             "percentage": 50,
-            "percentageTokens": 57.24,
+            "percentageTokens": 57.02,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -49489,12 +49549,12 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/import/error.tsx": {
-            "lines": 22,
-            "tokens": 143,
+            "lines": 20,
+            "tokens": 112,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 11,
-            "duplicatedTokens": 83,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 65,
             "percentage": 50,
             "percentageTokens": 58.04,
             "newDuplicatedLines": 0,
@@ -49525,12 +49585,12 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/documents/error.tsx": {
-            "lines": 22,
-            "tokens": 143,
+            "lines": 20,
+            "tokens": 112,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 11,
-            "duplicatedTokens": 83,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 65,
             "percentage": 50,
             "percentageTokens": 58.04,
             "newDuplicatedLines": 0,
@@ -49597,12 +49657,12 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/appointments/error.tsx": {
-            "lines": 22,
-            "tokens": 143,
+            "lines": 20,
+            "tokens": 112,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 11,
-            "duplicatedTokens": 83,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 65,
             "percentage": 50,
             "percentageTokens": 58.04,
             "newDuplicatedLines": 0,
@@ -49621,12 +49681,12 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/analytics/error.tsx": {
-            "lines": 22,
-            "tokens": 143,
+            "lines": 20,
+            "tokens": 112,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 11,
-            "duplicatedTokens": 83,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 65,
             "percentage": 50,
             "percentageTokens": 58.04,
             "newDuplicatedLines": 0,
@@ -49645,14 +49705,14 @@
             "newClones": 0
           },
           "apps/app/app/(protected)/ai-assistant/error.tsx": {
-            "lines": 22,
-            "tokens": 145,
+            "lines": 20,
+            "tokens": 114,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 11,
-            "duplicatedTokens": 83,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 65,
             "percentage": 50,
-            "percentageTokens": 57.24,
+            "percentageTokens": 57.02,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -51254,14 +51314,14 @@
           }
         },
         "total": {
-          "lines": 116916,
-          "tokens": 860683,
+          "lines": 116890,
+          "tokens": 860289,
           "sources": 1031,
           "clones": 204,
-          "duplicatedLines": 2473,
-          "duplicatedTokens": 15608,
-          "percentage": 2.12,
-          "percentageTokens": 1.81,
+          "duplicatedLines": 2461,
+          "duplicatedTokens": 15392,
+          "percentage": 2.11,
+          "percentageTokens": 1.79,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -51492,12 +51552,12 @@
       }
     },
     "total": {
-      "lines": 379146,
-      "tokens": 2976676,
-      "sources": 4284,
-      "clones": 479,
+      "lines": 379168,
+      "tokens": 2976654,
+      "sources": 4289,
+      "clones": 480,
       "duplicatedLines": 5793,
-      "duplicatedTokens": 40539,
+      "duplicatedTokens": 40465,
       "percentage": 1.53,
       "percentageTokens": 1.36,
       "newDuplicatedLines": 0,
@@ -61119,37 +61179,37 @@
     },
     {
       "format": "tsx",
-      "lines": 12,
-      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Bed Management",
+      "lines": 11,
+      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Bed Management",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/app/(protected)/hospital/beds/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 34,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 42,
-          "position": 121
+          "position": 90
         }
       },
       "secondFile": {
         "name": "apps/app/app/(protected)/specialty/dental-charts/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 42,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 41,
-          "position": 121
+          "position": 90
         }
       }
     },
@@ -62236,7 +62296,7 @@
     {
       "format": "typescript",
       "lines": 11,
-      "fragment": "(value: unknown): Date | null {\n  if (value == null) return null;\n  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;\n  if (typeof value === \"string\") {\n    const parsed = new Date(value);\n    return Number.isNaN(parsed.getTime()) ? null : parsed;\n  }\n  return null;\n}\n\nfunction",
+      "fragment": "(value: unknown): Date | null {\n  if (value == null) return null;\n  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;\n  if (typeof value === \"string\") {\n    const parsed = new Date(value);\n    return Number.isNaN(parsed.getTime()) ? null : parsed;\n  }\n  return null;\n}\n\nexport function",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/shared/lib/subscription/subscription-lockout.ts",
@@ -62249,8 +62309,8 @@
         },
         "endLoc": {
           "line": 18,
-          "column": 9,
-          "position": 196
+          "column": 16,
+          "position": 198
         }
       },
       "secondFile": {
@@ -62264,8 +62324,44 @@
         },
         "endLoc": {
           "line": 16,
-          "column": 7,
-          "position": 184
+          "column": 12,
+          "position": 186
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 13,
+      "fragment": ";\n\nfunction toDateOrNull(value: unknown): Date | null {\n  if (value == null) return null;\n  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;\n  if (typeof value === \"string\") {\n    const parsed = new Date(value);\n    return Number.isNaN(parsed.getTime()) ? null : parsed;\n  }\n  return null;\n}\n\nexport function isSubscriptionPeriodLapsed",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/app/shared/lib/subscription/subscription-billing-lock.ts",
+        "start": 2,
+        "end": 14,
+        "startLoc": {
+          "line": 2,
+          "column": 73,
+          "position": 26
+        },
+        "endLoc": {
+          "line": 14,
+          "column": 43,
+          "position": 166
+        }
+      },
+      "secondFile": {
+        "name": "apps/app/shared/lib/subscription/subscription-trial-state.ts",
+        "start": 4,
+        "end": 18,
+        "startLoc": {
+          "line": 4,
+          "column": 35,
+          "position": 48
+        },
+        "endLoc": {
+          "line": 18,
+          "column": 48,
+          "position": 200
         }
       }
     },
@@ -63963,37 +64059,37 @@
     },
     {
       "format": "tsx",
-      "lines": 12,
-      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading settings",
+      "lines": 11,
+      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading settings",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/app/(protected)/settings/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 38,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 36,
-          "position": 121
+          "position": 90
         }
       },
       "secondFile": {
         "name": "apps/app/app/(protected)/specialty/dental-charts/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 42,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 41,
-          "position": 121
+          "position": 90
         }
       }
     },
@@ -64035,253 +64131,253 @@
     },
     {
       "format": "tsx",
-      "lines": 12,
-      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Profile",
+      "lines": 11,
+      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Profile",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/app/(protected)/profile/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 37,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 35,
-          "position": 121
+          "position": 90
         }
       },
       "secondFile": {
         "name": "apps/app/app/(protected)/specialty/dental-charts/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 42,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 41,
-          "position": 121
+          "position": 90
         }
       }
     },
     {
       "format": "tsx",
-      "lines": 12,
-      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Prescriptions",
+      "lines": 11,
+      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Prescriptions",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/app/(protected)/prescriptions/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 43,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 41,
-          "position": 121
+          "position": 90
         }
       },
       "secondFile": {
         "name": "apps/app/app/(protected)/specialty/dental-charts/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 42,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 41,
-          "position": 121
+          "position": 90
         }
       }
     },
     {
       "format": "tsx",
-      "lines": 12,
-      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Lab Tests",
+      "lines": 11,
+      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Lab Tests",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/app/(protected)/lab-tests/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 38,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 37,
-          "position": 121
+          "position": 90
         }
       },
       "secondFile": {
         "name": "apps/app/app/(protected)/specialty/dental-charts/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 42,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 41,
-          "position": 121
+          "position": 90
         }
       }
     },
     {
       "format": "tsx",
-      "lines": 12,
-      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading invoices",
+      "lines": 11,
+      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading invoices",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/app/(protected)/invoices/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 38,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 36,
-          "position": 121
+          "position": 90
         }
       },
       "secondFile": {
         "name": "apps/app/app/(protected)/specialty/dental-charts/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 42,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 41,
-          "position": 121
+          "position": 90
         }
       }
     },
     {
       "format": "tsx",
-      "lines": 12,
-      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Inventory",
+      "lines": 11,
+      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Inventory",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/app/(protected)/inventory/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 39,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 37,
-          "position": 121
+          "position": 90
         }
       },
       "secondFile": {
         "name": "apps/app/app/(protected)/specialty/dental-charts/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 42,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 41,
-          "position": 121
+          "position": 90
         }
       }
     },
     {
       "format": "tsx",
-      "lines": 12,
-      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Import",
+      "lines": 11,
+      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Import",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/app/(protected)/import/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 36,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 34,
-          "position": 121
+          "position": 90
         }
       },
       "secondFile": {
         "name": "apps/app/app/(protected)/specialty/dental-charts/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 42,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 41,
-          "position": 121
+          "position": 90
         }
       }
     },
     {
       "format": "tsx",
-      "lines": 12,
-      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Documents",
+      "lines": 11,
+      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading Documents",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/app/(protected)/documents/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 39,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 37,
-          "position": 121
+          "position": 90
         }
       },
       "secondFile": {
         "name": "apps/app/app/(protected)/specialty/dental-charts/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 42,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 41,
-          "position": 121
+          "position": 90
         }
       }
     },
@@ -64323,109 +64419,109 @@
     },
     {
       "format": "tsx",
-      "lines": 12,
-      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <ErrorPageShell\n      title=\"We could not load appointments",
+      "lines": 11,
+      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n\n  return (\n    <ErrorPageShell\n      title=\"We could not load appointments",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/app/(protected)/appointments/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 42,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 44,
-          "position": 121
+          "position": 90
         }
       },
       "secondFile": {
         "name": "apps/app/app/(protected)/specialty/dental-charts/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 42,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 41,
-          "position": 121
+          "position": 90
         }
       }
     },
     {
       "format": "tsx",
-      "lines": 12,
-      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading analytics",
+      "lines": 11,
+      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading analytics",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/app/(protected)/analytics/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 39,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 37,
-          "position": 121
+          "position": 90
         }
       },
       "secondFile": {
         "name": "apps/app/app/(protected)/specialty/dental-charts/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 42,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 41,
-          "position": 121
+          "position": 90
         }
       }
     },
     {
       "format": "tsx",
-      "lines": 12,
-      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  useEffect(() => {}, [error]);\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading AI Assistant",
+      "lines": 11,
+      "fragment": "({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n\n  return (\n    <ErrorPageShell\n      title=\"Error loading AI Assistant",
       "tokens": 0,
       "firstFile": {
         "name": "apps/app/app/(protected)/ai-assistant/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 41,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 40,
-          "position": 121
+          "position": 90
         }
       },
       "secondFile": {
         "name": "apps/app/app/(protected)/specialty/dental-charts/error.tsx",
-        "start": 6,
-        "end": 17,
+        "start": 5,
+        "end": 15,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 42,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
-          "line": 17,
+          "line": 15,
           "column": 41,
-          "position": 121
+          "position": 90
         }
       }
     },
@@ -68087,12 +68183,12 @@
       },
       "secondFile": {
         "name": "apps/app/app/(protected)/specialty/dental-charts/error.tsx",
-        "start": 6,
+        "start": 5,
         "end": 22,
         "startLoc": {
-          "line": 6,
+          "line": 5,
           "column": 42,
-          "position": 38
+          "position": 25
         },
         "endLoc": {
           "line": 22,

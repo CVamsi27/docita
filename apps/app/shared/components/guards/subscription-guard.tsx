@@ -8,8 +8,8 @@ import { useSubscription } from "@workspace/data-access";
 import {
   getTrialState,
   isBillingAdminRole,
-  isSubscriptionBillingHardLocked,
 } from "@/lib/subscription/subscription-lockout";
+import { isSubscriptionBillingHardLocked } from "@/lib/subscription/subscription-billing-lock";
 import { SUBSCRIPTION_BILLING_RESOLVE_PATH } from "@/lib/subscription/subscription-settings-path";
 
 const SUBSCRIPTION_ALLOWED_PATHS = ["/settings", "/login", "/billing-locked"];
