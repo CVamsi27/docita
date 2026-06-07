@@ -341,6 +341,31 @@ export class BasePdfService {
     }
   }
 
+  protected createBufferedDocument(config: BasePDFConfig): {
+    doc: typeof PDFDocument.prototype;
+    context: PDFContext;
+    buffers: Buffer[];
+  } {
+    const { doc, context } = this.createDocument(config);
+    const buffers: Buffer[] = [];
+    doc.on('data', (buffer: Buffer) => buffers.push(buffer));
+    return { doc, context, buffers };
+  }
+
+  protected finalizeDocument(
+    doc: typeof PDFDocument.prototype,
+    buffers: Buffer[],
+    config: BasePDFConfig,
+    context: PDFContext,
+  ): Promise<Buffer> {
+    this.renderFooter(doc, config.footerText, context);
+    const bufferPromise = new Promise<Buffer>((resolve) => {
+      doc.on('end', () => resolve(Buffer.concat(buffers)));
+    });
+    doc.end();
+    return bufferPromise;
+  }
+
   protected drawDivider(
     doc: typeof PDFDocument.prototype,
     y: number,

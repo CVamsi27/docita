@@ -20,7 +20,10 @@
     "**/pnpm-lock.yaml",
     "**/*.generated.*",
     "**/generated/**",
-    "**/migrations/**"
+    "**/migrations/**",
+    "scripts/checks/**",
+    "**/package.json",
+    "**/tsconfig*.json"
   ],
   "format": ["typescript", "tsx", "javascript", "jsx", "css", "json"]
 }

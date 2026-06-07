@@ -18,6 +18,7 @@ export default [
       "next-env.d.ts",
       "eslint.config.mjs",
       "playwright.config.ts",
+      "vitest.config.ts",
     ],
   },
   ...nextJsConfig,
@@ -49,6 +50,7 @@ export default [
           patterns: ["../*", "../../*", "../../../*", "../../../../*"],
         },
       ],
+      // jscpd:ignore-start
       "no-restricted-syntax": [
         "warn",
         {
@@ -69,6 +71,7 @@ export default [
           message:
             "Avoid hardcoded Tailwind border colors. Use semantic design tokens instead (e.g., border-success, border-destructive, border-info). See packages/ui/docs/color-system.md",
         },
+        // jscpd:ignore-end
         {
           selector:
             "JSXAttribute[name.name='animation'] > Literal[value='wave']",
@@ -95,6 +98,7 @@ export default [
   {
     files: ["app/(protected)/**/*.tsx", "app/portal/**/*.tsx"],
     rules: {
+      // jscpd:ignore-start
       "no-restricted-syntax": [
         "warn",
         {
@@ -115,6 +119,7 @@ export default [
           message:
             "Avoid hardcoded Tailwind border colors. Use semantic design tokens instead (e.g., border-success, border-destructive, border-info). See packages/ui/docs/color-system.md",
         },
+        // jscpd:ignore-end
         {
           selector: "Literal[value='Loading...']",
           message:

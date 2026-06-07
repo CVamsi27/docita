@@ -107,23 +107,7 @@ export class AvailabilityScheduleService {
         `Invalid end time format: ${data.endTime}. Use HH:MM format.`,
       );
 
-    const schedule = await this.repository.findScheduleById(id);
-
-    if (
-      !schedule ||
-      (options?.clinicId && schedule.clinicId !== options.clinicId)
-    )
-      throw new NotFoundException('Schedule not found');
-
-    const isAdmin =
-      options?.actorRole === Role.ADMIN ||
-      options?.actorRole === Role.ADMIN_DOCTOR;
-    if (!isAdmin) {
-      if (!options?.actorUserId)
-        throw new ForbiddenException('Authenticated user is required');
-      if (schedule.doctorId !== options.actorUserId)
-        throw new ForbiddenException('You can only manage your own schedule');
-    }
+    const schedule = await this.getScheduleOrThrow(id, options);
 
     const newStartTime = data.startTime || schedule.startTime;
     const newEndTime = data.endTime || schedule.endTime;
@@ -141,23 +125,7 @@ export class AvailabilityScheduleService {
     id: string,
     options?: { clinicId?: string; actorUserId?: string; actorRole?: Role },
   ) {
-    const schedule = await this.repository.findScheduleById(id);
-
-    if (
-      !schedule ||
-      (options?.clinicId && schedule.clinicId !== options.clinicId)
-    )
-      throw new NotFoundException('Schedule not found');
-
-    const isAdmin =
-      options?.actorRole === Role.ADMIN ||
-      options?.actorRole === Role.ADMIN_DOCTOR;
-    if (!isAdmin) {
-      if (!options?.actorUserId)
-        throw new ForbiddenException('Authenticated user is required');
-      if (schedule.doctorId !== options.actorUserId)
-        throw new ForbiddenException('You can only manage your own schedule');
-    }
+    await this.getScheduleOrThrow(id, options);
 
     await this.repository.deleteSchedule(id);
     return { success: true };
@@ -311,5 +279,30 @@ export class AvailabilityScheduleService {
       bounds.rangeStart,
       new Date(bounds.rangeEndExclusive.getTime() - 1),
     );
+  }
+
+  private async getScheduleOrThrow(
+    id: string,
+    options?: { clinicId?: string; actorUserId?: string; actorRole?: Role },
+  ) {
+    const schedule = await this.repository.findScheduleById(id);
+
+    if (
+      !schedule ||
+      (options?.clinicId && schedule.clinicId !== options.clinicId)
+    )
+      throw new NotFoundException('Schedule not found');
+
+    const isAdmin =
+      options?.actorRole === Role.ADMIN ||
+      options?.actorRole === Role.ADMIN_DOCTOR;
+    if (!isAdmin) {
+      if (!options?.actorUserId)
+        throw new ForbiddenException('Authenticated user is required');
+      if (schedule.doctorId !== options.actorUserId)
+        throw new ForbiddenException('You can only manage your own schedule');
+    }
+
+    return schedule;
   }
 }

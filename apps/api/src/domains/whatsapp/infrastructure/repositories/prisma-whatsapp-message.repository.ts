@@ -11,6 +11,8 @@ import {
   toPrismaMessageStatus,
 } from './prisma-whatsapp.mappers';
 
+const MESSAGE_WITH_CONVERSATION_INCLUDE = { conversation: true } as const;
+
 @Injectable()
 export class PrismaWhatsAppMessageRepository {
   constructor(
@@ -73,7 +75,7 @@ export class PrismaWhatsAppMessageRepository {
     const readClient = this.getReadClient();
     const raw = await readClient.whatsappMessage.findUnique({
       where: { id },
-      include: { conversation: true },
+      include: MESSAGE_WITH_CONVERSATION_INCLUDE,
     });
     if (!raw) return null;
 
@@ -100,7 +102,7 @@ export class PrismaWhatsAppMessageRepository {
     const readClient = this.getReadClient();
     const raw = await readClient.whatsappMessage.findFirst({
       where: { providerMsgId: externalId },
-      include: { conversation: true },
+      include: MESSAGE_WITH_CONVERSATION_INCLUDE,
     });
     if (!raw) return null;
 

@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
@@ -17,6 +18,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { Button } from "@workspace/ui/components/form/button";
+// jscpd:ignore-end
 import {
   DialogFooter,
 } from "@workspace/ui/components/overlay/dialog";

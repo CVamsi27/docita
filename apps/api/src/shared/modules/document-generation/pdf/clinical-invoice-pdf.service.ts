@@ -60,10 +60,7 @@ export class ClinicalInvoicePdfService extends BasePdfService {
       footerText: 'Thank you for your business.',
     };
 
-    const { doc, context } = this.createDocument(config);
-    const buffers: Buffer[] = [];
-
-    doc.on('data', (buffer: Buffer) => buffers.push(buffer));
+    const { doc, context, buffers } = this.createBufferedDocument(config);
 
     let currentY = await this.renderHeader(doc, config, context);
 
@@ -140,14 +137,6 @@ export class ClinicalInvoicePdfService extends BasePdfService {
       fetchSignatureImage,
     );
 
-    this.renderFooter(doc, config.footerText, context);
-
-    const bufferPromise = new Promise<Buffer>((resolve) => {
-      doc.on('end', () => resolve(Buffer.concat(buffers)));
-    });
-
-    doc.end();
-
-    return bufferPromise;
+    return this.finalizeDocument(doc, buffers, config, context);
   }
 }

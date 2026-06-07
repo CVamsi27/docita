@@ -57,11 +57,7 @@ export class PrescriptionPdfService extends BasePdfService {
       footerText: `This prescription is valid for ${data.validityDays ?? 30} days from the date of issue. Not valid for medico-legal purposes.`,
     };
 
-    const { doc, context } = this.createDocument(config);
-    const buffers: Buffer[] = [];
-
-    doc.on('data', (buffer: Buffer) => buffers.push(buffer));
-    doc.on('end', () => {});
+    const { doc, context, buffers } = this.createBufferedDocument(config);
 
     let currentY = await this.renderHeader(doc, config, context);
 
@@ -205,15 +201,7 @@ export class PrescriptionPdfService extends BasePdfService {
       doc.fillColor('#000000');
     }
 
-    this.renderFooter(doc, config.footerText, context);
-
-    const bufferPromise = new Promise<Buffer>((resolve) => {
-      doc.on('end', () => resolve(Buffer.concat(buffers)));
-    });
-
-    doc.end();
-
-    return bufferPromise;
+    return this.finalizeDocument(doc, buffers, config, context);
   }
 
   private renderSectionTitle(

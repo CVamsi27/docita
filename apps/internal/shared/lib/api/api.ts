@@ -13,46 +13,18 @@ import {
   WhatsAppBroadcastJobSummary,
 } from "@workspace/types";
 import type {
+  InternalBillingMetrics as BillingMetrics,
   InternalEnterpriseContractEstimate as EnterpriseContractEstimate,
   InternalEnterpriseContractInvoicePreview as EnterpriseContractInvoicePreview,
   InternalEnterpriseContractInvoiceRow as EnterpriseContractInvoiceRow,
   InternalEnterpriseContractRevisionRow as EnterpriseContractRevisionRow,
   InternalEnterpriseContractRow as EnterpriseContractRow,
   InternalEnterpriseTrueUpAlertRow as EnterpriseTrueUpAlertRow,
+  InternalFeedback as Feedback,
+  InternalFeedbackStats as FeedbackStats,
+  InternalSubscriptionOverview as SubscriptionOverview,
+  InternalTierPricingRow as TierPricingRow,
 } from "@workspace/data-access/internal";
-
-interface Feedback {
-  id: string;
-  clinicId: string;
-  userId: string;
-  overallRating: number;
-  goodFeatures: string[];
-  goodFeaturesReason?: string;
-  badFeatures: string[];
-  badFeaturesReason?: string;
-  improvementAreas: string[];
-  improvementReason?: string;
-  featureRequests?: string;
-  generalComments?: string;
-  category: string;
-  status: string;
-  adminNotes?: string;
-  createdAt: string;
-  updatedAt: string;
-  user: { id: string; name: string; email: string; role: string };
-  clinic: { id: string; name: string; tier: string };
-}
-
-interface FeedbackStats {
-  total: number;
-  byStatus: Record<string, number>;
-  byCategory: Record<string, number>;
-  averageRating: number;
-  recentFeedback: number;
-  topGoodFeatures: { feature: string; count: number }[];
-  topBadFeatures: { feature: string; count: number }[];
-  topImprovementAreas: { feature: string; count: number }[];
-}
 
 export const feedbackAPI = {
   getAll: (
@@ -111,59 +83,7 @@ export const broadcastsAPI = {
     client.post("/internal/broadcasts", data),
 };
 
-interface SubscriptionOverview {
-  id: string;
-  clinic: {
-    name: string;
-    email: string;
-    referralCreditsMonths: number;
-  };
-  tier: string;
-  status: string;
-  billingCycle: string;
-  amount: number;
-  currency: string;
-  currentPeriodEnd: string;
-}
-
 type PaymentRecord = InternalBillingPaymentItem;
-
-interface BillingMetrics {
-  mrr: number;
-  arr: number;
-  activeSubscriptions: number;
-  trialSubscriptions: number;
-  churnRate: number;
-  expiringSubscriptions: SubscriptionOverview[];
-  gracePeriodSubscriptions: SubscriptionOverview[];
-  subscriptionsByTier: Record<string, number>;
-  subscriptionsByStatus: Record<string, number>;
-  revenueByMonth: { month: string; revenue: number }[];
-}
-
-interface TierPricingRow {
-  id: string;
-  tier: string;
-  name: string;
-  description: string;
-  tagline: string;
-  color: string;
-  displayOrder: number;
-  monthlyBasePriceCents: number;
-  includedPatients: number;
-  includedAppointments: number;
-  includedStorageGB: number;
-  includedUsers: number;
-  overagePatientCents: number;
-  overageAppointmentCents: number;
-  overageStorageCents: number;
-  overageUserCents: number;
-  overagePrescriptionCents: number;
-  overageInvoiceCents: number;
-  overageOcrPageCents: number;
-  overageApiCallCents: number;
-  isActive: boolean;
-}
 
 export interface PricingOfferRow {
   id: string;
