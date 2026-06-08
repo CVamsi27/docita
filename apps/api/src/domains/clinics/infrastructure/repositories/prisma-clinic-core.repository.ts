@@ -25,7 +25,7 @@ export class PrismaClinicCoreRepository implements IClinicCoreRepository {
   }
 
   async findByReferralCode(code: string): Promise<{ id: string } | null> {
-// jscpd:ignore-end
+    // jscpd:ignore-end
     return this.getReadClient().clinic.findUnique({
       where: { referralCode: code },
       select: { id: true },

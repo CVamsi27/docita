@@ -44,7 +44,7 @@ export class NotifyExpiringSubscriptionsUseCase extends BaseSubscriptionNotifier
   }
 
   private parseDays(reminderType: string): number | null {
-// jscpd:ignore-end
+    // jscpd:ignore-end
     const match = reminderType.match(/expiry_(\d+)d/);
     if (!match) return null;
     const days = Number(match[1]);

@@ -69,7 +69,7 @@ export class PatientPortalRecordsController {
       'VIEW_HISTORY',
     );
     return this.portalService.getPrescriptionById(
-// jscpd:ignore-end
+      // jscpd:ignore-end
       requireAuthenticatedUserId(req),
       id,
     );

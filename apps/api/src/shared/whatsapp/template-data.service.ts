@@ -23,7 +23,7 @@ interface TemplateVariable {
 }
 
 function toNullableJsonValue(
-// jscpd:ignore-end
+  // jscpd:ignore-end
   value: unknown,
 ): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput {
   if (value === null || value === undefined) return Prisma.JsonNull;

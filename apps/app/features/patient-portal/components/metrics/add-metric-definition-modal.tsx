@@ -189,7 +189,7 @@ export function AddMetricDefinitionModal({
                     className="mr-2"
                   />
                   Creating…
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
                 </>
               ) : (
                 "Create Metric"

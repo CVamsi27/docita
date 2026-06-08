@@ -19,7 +19,7 @@ export interface CreateFeedbackData {
   featureRequests?: string;
   generalComments?: string;
   category: FeedbackCategory;
-// jscpd:ignore-end
+  // jscpd:ignore-end
   feedbackFeatures: Array<{
     clinicId: string;
     featureType: FeedbackFeatureType;

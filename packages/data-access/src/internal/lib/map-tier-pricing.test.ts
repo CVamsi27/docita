@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  extractRawTierRows,
+  isInternalPaymentTierPricingRow,
   mapInternalTierPricingApiRow,
   normalizeInternalTierPricingResponse,
+  resolveMaxPatients,
+  tierPriceIsCustom,
 } from "./map-tier-pricing";
 
 const fallback = [
@@ -14,6 +18,86 @@ const fallback = [
     features: [],
   },
 ];
+
+describe("tierPriceIsCustom", () => {
+  it("returns true for ENTERPRISE regardless of price", () => {
+    expect(tierPriceIsCustom("ENTERPRISE", 50000)).toBe(true);
+    expect(tierPriceIsCustom("ENTERPRISE", null)).toBe(true);
+    expect(tierPriceIsCustom("ENTERPRISE", undefined)).toBe(true);
+  });
+
+  it("returns true when price is null for any tier", () => {
+    expect(tierPriceIsCustom("CORE", null)).toBe(true);
+    expect(tierPriceIsCustom("ESSENTIAL", null)).toBe(true);
+  });
+
+  it("returns false for a non-enterprise tier with a numeric price", () => {
+    expect(tierPriceIsCustom("CORE", 999)).toBe(false);
+  });
+});
+
+describe("isInternalPaymentTierPricingRow", () => {
+  it("returns true for a fully-shaped row", () => {
+    const row = {
+      tier: "CORE",
+      price: 999,
+      billingCycle: "monthly",
+      maxDoctors: 20,
+      maxPatients: 500,
+      features: [],
+    };
+    expect(isInternalPaymentTierPricingRow(row)).toBe(true);
+  });
+
+  it("returns false for null/undefined", () => {
+    expect(isInternalPaymentTierPricingRow(null)).toBe(false);
+    expect(isInternalPaymentTierPricingRow(undefined)).toBe(false);
+  });
+
+  it("returns false for non-object values", () => {
+    expect(isInternalPaymentTierPricingRow("string")).toBe(false);
+    expect(isInternalPaymentTierPricingRow(42)).toBe(false);
+  });
+
+  it("returns false for objects missing required fields", () => {
+    expect(isInternalPaymentTierPricingRow({ tier: "CORE" })).toBe(false);
+    expect(isInternalPaymentTierPricingRow({ tier: "CORE", price: 999 })).toBe(false);
+  });
+});
+
+describe("extractRawTierRows", () => {
+  it("returns the array directly when data is an array", () => {
+    const data = [{ tier: "CORE" }, { tier: "ESSENTIAL" }];
+    expect(extractRawTierRows(data)).toBe(data);
+  });
+
+  it("extracts tiers from a { tiers: [...] } envelope", () => {
+    const data = { tiers: [{ tier: "CORE" }] };
+    expect(extractRawTierRows(data)).toEqual([{ tier: "CORE" }]);
+  });
+
+  it("returns null for unrecognized shapes", () => {
+    expect(extractRawTierRows({ unexpected: true })).toBeNull();
+    expect(extractRawTierRows("string")).toBeNull();
+    expect(extractRawTierRows(null)).toBeNull();
+  });
+});
+
+describe("resolveMaxPatients", () => {
+  it("uses TIER_LIMITS for ESSENTIAL (999999 patients)", () => {
+    expect(resolveMaxPatients("ESSENTIAL", 5)).toBe(999_999);
+    expect(resolveMaxPatients("STARTER", 1)).toBe(50);
+  });
+
+  it("returns unlimited cap for unknown tier with negative maxDoctors", () => {
+    expect(resolveMaxPatients("CUSTOM_SKU", -1)).toBe(999_999);
+  });
+
+  it("returns default 500 for unknown tier with non-negative maxDoctors", () => {
+    expect(resolveMaxPatients("CUSTOM_SKU", 5)).toBe(500);
+    expect(resolveMaxPatients("CUSTOM_SKU", 0)).toBe(500);
+  });
+});
 
 describe("normalizeInternalTierPricingResponse", () => {
   it("maps a bare API array from /internal/tier-pricing", () => {

@@ -34,7 +34,7 @@ export class ClinicSettingsQueryService {
   }
 
   private readBoolean(
-// jscpd:ignore-end
+    // jscpd:ignore-end
     source: Record<string, unknown>,
     key: string,
     fallback: boolean,

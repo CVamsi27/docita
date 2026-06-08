@@ -32,7 +32,7 @@ export class DoctorAvailabilityService {
   }
 
   async getSchedulesByClinic(clinicId: string) {
-// jscpd:ignore-start
+    // jscpd:ignore-start
     return this.scheduleService.getSchedulesByClinic(clinicId);
   }
 
@@ -57,7 +57,7 @@ export class DoctorAvailabilityService {
       isActive?: boolean;
     },
     options?: { clinicId?: string } & ActorContext,
-// jscpd:ignore-end
+    // jscpd:ignore-end
   ) {
     return this.scheduleService.updateSchedule(id, data, options);
   }
@@ -66,7 +66,7 @@ export class DoctorAvailabilityService {
     id: string,
     options?: { clinicId?: string } & ActorContext,
   ) {
-// jscpd:ignore-start
+    // jscpd:ignore-start
     return this.scheduleService.deleteSchedule(id, options);
   }
 
@@ -82,7 +82,7 @@ export class DoctorAvailabilityService {
     }>,
   ) {
     return this.scheduleService.bulkUpsertSchedules(
-// jscpd:ignore-end
+      // jscpd:ignore-end
       doctorId,
       clinicId,
       schedules,

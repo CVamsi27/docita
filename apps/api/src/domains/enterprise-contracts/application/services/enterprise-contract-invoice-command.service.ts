@@ -65,7 +65,7 @@ export class EnterpriseContractInvoiceCommandService {
    * creating/updating their `enterpriseContractInvoice`, differing only in
    * the amount and description they pass through.
    */
-// jscpd:ignore-end
+  // jscpd:ignore-end
   private upsertContractInvoicePayment(
     tx: Prisma.TransactionClient,
     params: {

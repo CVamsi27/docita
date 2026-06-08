@@ -11,7 +11,7 @@ import {
 import { bindQueueJobHandler, coerceQueueJob } from './queue-job-boundary';
 
 interface InMemoryJob<T extends QueueJobData> extends QueueJob<T> {
-// jscpd:ignore-end
+  // jscpd:ignore-end
   status: 'waiting' | 'active' | 'completed' | 'failed';
   delayedUntil?: number;
 }

@@ -154,7 +154,7 @@ export function RecordMetricModal({
                     className="mr-2"
                   />
                   Saving…
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
                 </>
               ) : (
                 "Save"

@@ -45,7 +45,7 @@ type SubscriptionPaymentLookup = {
 };
 
 export function parseSubscriptionPaymentLookup(
-// jscpd:ignore-end
+  // jscpd:ignore-end
   value: unknown,
 ): SubscriptionPaymentLookup | null {
   if (!isRecord(value)) {

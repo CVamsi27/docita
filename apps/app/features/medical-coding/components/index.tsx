@@ -59,7 +59,7 @@ export const MedicalCodingSearch: FC<{
                   aria-label="Clear search"
                 >
                   <X className="h-4 w-4 text-muted-foreground" aria-hidden />
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
                 </Button>
               </SymbolTooltip>
             </div>

@@ -44,7 +44,7 @@ export interface IDoctorVerificationRepository {
 
   findDoctorsForReverification(): Promise<Array<{ id: string }>>;
 
-// jscpd:ignore-start
+  // jscpd:ignore-start
   updateVerificationStatus(
     doctorId: string,
     data: {
@@ -56,7 +56,7 @@ export interface IDoctorVerificationRepository {
       verificationCheckedAt: Date;
     },
   ): Promise<void>;
-// jscpd:ignore-end
+  // jscpd:ignore-end
 }
 
 export const DOCTOR_VERIFICATION_REPOSITORY_TOKEN = Symbol(

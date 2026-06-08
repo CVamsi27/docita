@@ -29,7 +29,7 @@ export const CreateInvoiceSchema = invoiceSchema
 export class CreateInvoiceDto extends createZodDto(CreateInvoiceSchema) {}
 
 export const UpdateInvoiceSchema = invoiceSchema
-// jscpd:ignore-end
+  // jscpd:ignore-end
   .partial()
   .merge(doctorFieldsSchema);
 

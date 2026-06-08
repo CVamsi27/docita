@@ -261,7 +261,7 @@ export class PrismaIpdRepository implements IpdRepository {
     return this.prisma.user.findFirst({
       where: {
         id: userId,
-// jscpd:ignore-start
+        // jscpd:ignore-start
         role: { in: [Role.DOCTOR, Role.ADMIN_DOCTOR, Role.NURSE] },
         OR: [
           { clinicId },
@@ -276,7 +276,7 @@ export class PrismaIpdRepository implements IpdRepository {
         ],
       },
       select: { id: true },
-// jscpd:ignore-end
+      // jscpd:ignore-end
     });
   }
 }

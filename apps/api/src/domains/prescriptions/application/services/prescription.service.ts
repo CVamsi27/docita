@@ -29,7 +29,7 @@ export class PrescriptionsService {
     },
   ) {
     return this.queryService.findAll(clinicId, params);
-// jscpd:ignore-end
+    // jscpd:ignore-end
   }
 
   findOne(id: string, clinicId: string): Promise<PrescriptionDetail> {

@@ -34,9 +34,7 @@ import {
   UploadLabResultDto,
   VerifyLabOrderPaymentDto,
 } from '@/domains/clinical/application/dto/lab-tests.dto';
-import {
-  APP_ACCESS_TARGETS,
-} from '@workspace/types';
+import { APP_ACCESS_TARGETS } from '@workspace/types';
 import type { LabQueueItem } from '@/domains/clinical/core/repositories/lab-workflow.repository.interface';
 import type { LabRecord } from '@/domains/clinical/core/repositories/lab-directory.repository.interface';
 import {

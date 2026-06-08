@@ -69,7 +69,7 @@ export function ConsultationListHeader({
             </SelectContent>
           </Select>
         ) : null}
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
       </div>
     </CardHeader>
   );

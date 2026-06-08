@@ -7,4 +7,4 @@
 //   - parsers/contact-parsers       (phone, email, emergency contact)
 //   - parsers/clinical-parsers      (diagnosis, medications, vitals, labs)
 //   - parsers/invoice-parsers       (total, tax, discount, subtotal, items)
-export * from "./parsers";
+export * from './parsers';

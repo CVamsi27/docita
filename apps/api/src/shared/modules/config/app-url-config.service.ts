@@ -7,9 +7,7 @@ import { EnvironmentConfigService } from './environment-config.service';
 
 @Injectable()
 export class AppUrlConfigService {
-  constructor(
-    private readonly environmentConfig: EnvironmentConfigService,
-  ) {}
+  constructor(private readonly environmentConfig: EnvironmentConfigService) {}
 
   getAppUrl(): string {
     return getEnv().APP_URL;

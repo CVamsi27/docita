@@ -85,7 +85,7 @@ export class MonitoringService implements OnModuleDestroy {
     endDate: Date,
     metricType?: MetricType,
   ): Promise<unknown[]> {
-// jscpd:ignore-start
+    // jscpd:ignore-start
     return this.metricsService.getSystemMetrics(startDate, endDate, metricType);
   }
 
@@ -125,7 +125,7 @@ export class MonitoringService implements OnModuleDestroy {
     errorTrend: { date: string; count: number }[];
   }> {
     return this.errorTrackingService.getErrorStats(
-// jscpd:ignore-end
+      // jscpd:ignore-end
       startDate,
       endDate,
       clinicId,

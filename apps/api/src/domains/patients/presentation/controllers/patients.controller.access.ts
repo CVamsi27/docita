@@ -37,5 +37,5 @@ export const PatientsMetricsApiAccess = () =>
   patientsApiAccess(APP_ACCESS_TARGETS.API_PATIENT_METRICS);
 
 export const PatientsPrescriptionsApiAccess = () =>
-// jscpd:ignore-end
+  // jscpd:ignore-end
   patientsApiAccess(APP_ACCESS_TARGETS.API_PRESCRIPTIONS);

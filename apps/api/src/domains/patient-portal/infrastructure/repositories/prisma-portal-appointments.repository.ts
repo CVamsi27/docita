@@ -37,7 +37,7 @@ export class PrismaPortalAppointmentsRepository implements IPortalAppointmentsRe
     );
   }
 
-// jscpd:ignore-start
+  // jscpd:ignore-start
   async getAppointments(
     patientId: string,
     clinicId: string,
@@ -49,7 +49,7 @@ export class PrismaPortalAppointmentsRepository implements IPortalAppointmentsRe
       skip: number;
     },
   ): Promise<{ items: unknown[]; total: number }> {
-// jscpd:ignore-end
+    // jscpd:ignore-end
     const where: Record<string, unknown> = { patientId, clinicId };
     if (filters.status) where.status = filters.status;
     if (filters.startDate || filters.endDate) {

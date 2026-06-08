@@ -1,42 +1,20 @@
-// jscpd:ignore-start
 import React, { useMemo } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { DateTimePicker } from "@workspace/ui/components/form/date-time-picker";
 import { createAppointmentSchema, type AvailableSlot } from "@workspace/types";
 import { formatScheduleTime } from "@workspace/utils";
 import {
   calendarSlotTimeToLocalIso,
-// jscpd:ignore-end
   slotOccupiedByAppointments,
   type SlotBlockingAppointment,
 } from "@/features/appointments/lib/calendar-slot-local-iso";
+import {
+  ApiSlotPickerField,
+  ManualTimeRangeFields,
+  type ApiSlotOption,
+} from "./time-slot-picker-sections";
 
 type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
-
-/**
- * Normalizes a `startTime`/`endTime` form value into the string shape
- * `DateTimePicker` expects — both fields can hold either a `Date` (set via
- * the picker) or an ISO string (set via slot selection), and both fields'
- * fallback render need the same conversion.
- */
-function toDateTimePickerValue(value: Date | string | undefined) {
-  return value instanceof Date ? value.toISOString() : value;
-}
 
 interface TimeSlotPickerProps {
   form: UseFormReturn<CreateAppointmentInput>;
@@ -70,6 +48,74 @@ function slotSelectableForBooking(
   );
 }
 
+/**
+ * Builds the selectable API-slot options for the given day/doctor — filtering
+ * to bookable slots and mapping them to the value/label shape the dropdown
+ * renders. Extracted from the component's `useMemo` body so the memo itself
+ * stays a thin "compute and cache" wrapper around a pure, independently
+ * readable transformation.
+ */
+function buildApiSlotOptions(
+  selectedDate: Date | undefined,
+  doctorId: string | undefined,
+  availabilitySlots: AvailableSlot[],
+  clinicTimezone: string,
+  blockingAppointments: SlotBlockingAppointment[],
+): ApiSlotOption[] {
+  if (!selectedDate || !doctorId) return [];
+  return availabilitySlots
+    .filter((s) =>
+      slotSelectableForBooking(
+        selectedDate,
+        s,
+        doctorId,
+        clinicTimezone,
+        blockingAppointments,
+      ),
+    )
+    .map((s) => ({
+      value: calendarSlotTimeToLocalIso(selectedDate, s.time, clinicTimezone),
+      endIso: calendarSlotTimeToLocalIso(
+        selectedDate,
+        s.endTime,
+        clinicTimezone,
+      ),
+      label: `${formatScheduleTime(s.time)} – ${formatScheduleTime(s.endTime)}`,
+    }))
+    .sort((a, b) => a.value.localeCompare(b.value));
+}
+
+/**
+ * Memoizes the API-slot options for the selected day/doctor. Wrapping
+ * `buildApiSlotOptions` in its own hook keeps the orchestrator's body focused
+ * on "which layout to render" rather than the memo's call-and-deps mechanics.
+ */
+function useApiSlotOptions(
+  selectedDate: Date | undefined,
+  doctorId: string | undefined,
+  availabilitySlots: AvailableSlot[],
+  clinicTimezone: string,
+  blockingAppointments: SlotBlockingAppointment[],
+): ApiSlotOption[] {
+  return useMemo(
+    () =>
+      buildApiSlotOptions(
+        selectedDate,
+        doctorId,
+        availabilitySlots,
+        clinicTimezone,
+        blockingAppointments,
+      ),
+    [
+      availabilitySlots,
+      blockingAppointments,
+      clinicTimezone,
+      doctorId,
+      selectedDate,
+    ],
+  );
+}
+
 export function TimeSlotPicker({
   form,
   startHour,
@@ -94,147 +140,32 @@ export function TimeSlotPicker({
    */
   const useApiSlotPicker = Boolean(selectedDate && doctorId);
   const slotsLoading = useApiSlotPicker && !availabilitySlotsReady;
-
-  const apiSlotOptions = useMemo(() => {
-    if (!selectedDate || !doctorId) return [];
-    return availabilitySlots
-      .filter((s) =>
-        slotSelectableForBooking(
-          selectedDate,
-          s,
-          doctorId,
-          clinicTimezone,
-          blockingAppointments,
-        ),
-      )
-      .map((s) => ({
-        value: calendarSlotTimeToLocalIso(selectedDate, s.time, clinicTimezone),
-        endIso: calendarSlotTimeToLocalIso(
-          selectedDate,
-          s.endTime,
-          clinicTimezone,
-        ),
-        label: `${formatScheduleTime(s.time)} – ${formatScheduleTime(s.endTime)}`,
-      }))
-      .sort((a, b) => a.value.localeCompare(b.value));
-  }, [
-    availabilitySlots,
-    blockingAppointments,
-    clinicTimezone,
-    doctorId,
+  const apiSlotOptions = useApiSlotOptions(
     selectedDate,
-  ]);
+    doctorId,
+    availabilitySlots,
+    clinicTimezone,
+    blockingAppointments,
+  );
 
   if (useApiSlotPicker) {
-    const disabled = slotsLoading || isResolvingDefaultSlot;
     return (
-      <div className="space-y-4">
-        <FormField
-          control={form.control}
-          name="startTime"
-          render={({ field }) => {
-            const valueStr =
-              typeof field.value === "string"
-                ? field.value
-                : field.value instanceof Date
-                  ? ""
-                  : "";
-            return (
-              <FormItem className="flex flex-col">
-                <FormLabel>Appointment slot</FormLabel>
-                <Select
-                  disabled={disabled}
-                  value={valueStr || undefined}
-                  onValueChange={(value) => {
-                    const match = apiSlotOptions.find((o) => o.value === value);
-                    field.onChange(value);
-                    if (match) {
-                      form.setValue("endTime", match.endIso, {
-                        shouldValidate: true,
-                      });
-                    }
-                  }}
-                >
-                  <FormControl>
-                    <SelectTrigger
-                      aria-invalid={!!form.formState.errors.startTime}
-                    >
-                      <SelectValue
-                        placeholder={
-                          disabled
-                            ? "Finding available slots…"
-                            : "Select a time slot"
-                        }
-                      />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {apiSlotOptions.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>
-                        {o.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            );
-          }}
-        />
-        {availabilitySlotsReady && apiSlotOptions.length === 0 && (
-          <p className="text-xs text-muted-foreground">
-            No open slots for this doctor on this day. Try another day or adjust
-            availability.
-          </p>
-        )}
-      </div>
+      <ApiSlotPickerField
+        form={form}
+        apiSlotOptions={apiSlotOptions}
+        disabled={slotsLoading || isResolvingDefaultSlot}
+        showEmptyMessage={availabilitySlotsReady && apiSlotOptions.length === 0}
+      />
     );
   }
 
-  // Manual fallback only renders with no date/doctor, where the slot lookup
-  // never runs — so no loading message is needed here.
   return (
-    <div className="space-y-4">
-      <FormField
-        control={form.control}
-        name="startTime"
-        render={({ field }) => (
-          <FormItem className="flex flex-col">
-            <FormLabel>Start time</FormLabel>
-            <FormControl>
-              <DateTimePicker
-                value={toDateTimePickerValue(field.value)}
-                onChange={field.onChange}
-                startHour={startHour}
-                endHour={endHour}
-                minDate={todayStart}
-                disabled={isResolvingDefaultSlot}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="endTime"
-        render={({ field }) => (
-          <FormItem className="flex flex-col">
-            <FormLabel>End time (optional)</FormLabel>
-            <FormControl>
-              <DateTimePicker
-                value={toDateTimePickerValue(field.value)}
-                onChange={field.onChange}
-                startHour={startHour}
-                endHour={endHour}
-                disabled={isResolvingDefaultSlot}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
+    <ManualTimeRangeFields
+      form={form}
+      startHour={startHour}
+      endHour={endHour}
+      todayStart={todayStart}
+      disabled={isResolvingDefaultSlot}
+    />
   );
 }

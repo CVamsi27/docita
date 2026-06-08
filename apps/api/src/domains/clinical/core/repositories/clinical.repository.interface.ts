@@ -11,7 +11,8 @@ import type { LabDirectoryRepository } from './lab-directory.repository.interfac
 
 /** Composite marker for the prisma lab repository, which implements all four sub-interfaces. */
 export interface ILabRepository
-  extends LabTestCatalogRepository,
+  extends
+    LabTestCatalogRepository,
     LabOrderRepository,
     LabWorkflowRepository,
     LabDirectoryRepository {}

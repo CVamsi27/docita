@@ -31,7 +31,7 @@ export class PrescriptionPdfOrchestratorService {
   constructor(
     @Inject('IPrescriptionRepository')
     private readonly repository: IPrescriptionRepository,
-// jscpd:ignore-start
+    // jscpd:ignore-start
     private pdfService: PrescriptionPdfService,
     private readonly storageProvider: StorageProvider,
     @Inject(StoredFileUrlResolverService)
@@ -42,7 +42,7 @@ export class PrescriptionPdfOrchestratorService {
     @Inject(PdfJobService)
     private readonly pdfJobService: PdfJobServicePort,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
-// jscpd:ignore-end
+    // jscpd:ignore-end
   ) {}
 
   async generatePDF(
@@ -147,7 +147,7 @@ export class PrescriptionPdfOrchestratorService {
         id,
         clinicId,
         buffer,
-// jscpd:ignore-start
+        // jscpd:ignore-start
         prescription,
       );
 
@@ -163,7 +163,7 @@ export class PrescriptionPdfOrchestratorService {
     clinicId: string,
   ): Promise<EnqueuePdfJobResponse> {
     return this.pdfJobService.enqueue(id, 'prescription', clinicId);
-// jscpd:ignore-end
+    // jscpd:ignore-end
   }
 
   async uploadAndPersist(
@@ -187,7 +187,7 @@ export class PrescriptionPdfOrchestratorService {
           doctor_id: prescription.doctor?.id,
           modified_at: generatedAt.toISOString(),
           modified_by: prescription.doctor?.id || 'system',
-// jscpd:ignore-start
+          // jscpd:ignore-start
           auth_method: 'prescription-service',
         },
       },
@@ -207,7 +207,7 @@ export class PrescriptionPdfOrchestratorService {
   }
 
   private async findOne(
-// jscpd:ignore-end
+    // jscpd:ignore-end
     id: string,
     clinicId: string,
   ): Promise<PrescriptionDetail> {

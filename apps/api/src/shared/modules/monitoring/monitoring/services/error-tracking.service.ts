@@ -39,7 +39,7 @@ export class ErrorTrackingService implements OnModuleDestroy {
       this.flushBuffer().catch((error) => {
         this.logger.error(
           `Failed to flush error buffer: ${this.formatError(error)}`,
-// jscpd:ignore-start
+          // jscpd:ignore-start
         );
       });
     }, this.FLUSH_INTERVAL);
@@ -53,7 +53,7 @@ export class ErrorTrackingService implements OnModuleDestroy {
     this.flushBuffer().catch((error) => {
       this.logger.error(
         `Failed to flush errors on shutdown: ${this.formatError(error)}`,
-// jscpd:ignore-end
+        // jscpd:ignore-end
       );
     });
   }

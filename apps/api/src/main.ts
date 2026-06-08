@@ -25,7 +25,12 @@ import { AppUrlConfigService } from './shared/modules/config/app-url-config.serv
 import { StorageConfigService } from './shared/modules/config/storage-config.service';
 import { AuthSecurityConfigService } from './shared/modules/config/auth-security-config.service';
 import { CommunicationConfigService } from './shared/modules/config/communication-config.service';
+import { EmailConfigService } from './shared/modules/config/email-config.service';
+import { SmsConfigService } from './shared/modules/config/sms-config.service';
+import { WhatsappConfigService } from './shared/modules/config/whatsapp-config.service';
 import { PaymentConfigService } from './shared/modules/config/payment-config.service';
+import { RazorpayConfigService } from './shared/modules/config/razorpay-config.service';
+import { OpsConfigService } from './shared/modules/config/ops-config.service';
 import { PlatformInfrastructureConfigService } from './shared/modules/config/platform-infrastructure-config.service';
 import { ExternalIntegrationsConfigService } from './shared/modules/config/external-integrations-config.service';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -50,8 +55,12 @@ const appConfigService = new AppConfigService(
   new AppUrlConfigService(new EnvironmentConfigService()),
   new StorageConfigService(),
   new AuthSecurityConfigService(),
-  new CommunicationConfigService(),
-  new PaymentConfigService(),
+  new CommunicationConfigService(
+    new EmailConfigService(),
+    new SmsConfigService(),
+    new WhatsappConfigService(),
+  ),
+  new PaymentConfigService(new RazorpayConfigService(), new OpsConfigService()),
   new PlatformInfrastructureConfigService(),
   new ExternalIntegrationsConfigService(),
 );

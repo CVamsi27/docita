@@ -40,7 +40,7 @@ export class MetricsQueryService {
     } catch (error) {
       this.logger.error(
         `Failed to retrieve system metrics: ${error instanceof Error ? error.message : 'Unknown error'}`,
-// jscpd:ignore-start
+        // jscpd:ignore-start
       );
       return [];
     }
@@ -71,7 +71,7 @@ export class MetricsQueryService {
 
     const [slowestEndpoints, distributionRows] = await Promise.all([
       this.prisma.apiRequest.groupBy({
-// jscpd:ignore-end
+        // jscpd:ignore-end
         by: ['path', 'method'],
         where,
         _avg: { duration: true },

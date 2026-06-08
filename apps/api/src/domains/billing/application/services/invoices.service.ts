@@ -65,7 +65,7 @@ export class InvoicesService {
     private readonly commandService: InvoicesCommandService,
   ) {}
 
-// jscpd:ignore-start
+  // jscpd:ignore-start
   // ── READ ─────────────────────────────────────────────────────────────────────
 
   async findAll(
@@ -81,7 +81,7 @@ export class InvoicesService {
     },
   ) {
     return this.queryService.findAll(clinicId, params);
-// jscpd:ignore-end
+    // jscpd:ignore-end
   }
 
   async findOne(id: string, clinicId: string): Promise<InvoiceDetail> {
@@ -139,7 +139,7 @@ export class InvoicesService {
   }
 
   async remove(id: string, clinicId: string): Promise<void> {
-// jscpd:ignore-start
+    // jscpd:ignore-start
     return this.commandService.remove(id, clinicId);
   }
 
@@ -153,7 +153,7 @@ export class InvoicesService {
     status: InvoiceStatus;
   }> {
     return this.commandService.submitClaim(id, clinicId);
-// jscpd:ignore-end
+    // jscpd:ignore-end
   }
 
   async uploadAndPersist(

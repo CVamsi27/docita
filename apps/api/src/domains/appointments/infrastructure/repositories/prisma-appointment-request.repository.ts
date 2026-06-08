@@ -39,7 +39,7 @@ export class PrismaAppointmentRequestRepository implements IAppointmentRequestRe
   }
 
   async create(
-// jscpd:ignore-end
+    // jscpd:ignore-end
     data: Prisma.AppointmentRequestUncheckedCreateInput,
   ): Promise<AppointmentRequestWithRelations> {
     const row: AppointmentRequestDbRow =

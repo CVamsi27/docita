@@ -18,7 +18,7 @@ export interface IPortalAppointmentsRepository {
       skip: number;
     },
   ): Promise<{ items: unknown[]; total: number }>;
-// jscpd:ignore-end
+  // jscpd:ignore-end
 
   getAppointmentById(
     appointmentId: string,

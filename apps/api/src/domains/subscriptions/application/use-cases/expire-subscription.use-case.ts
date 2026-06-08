@@ -26,7 +26,7 @@ export class ExpireSubscriptionUseCase {
 
   async execute(subscriptionId: string): Promise<void> {
     const subscription = await this.subscriptionRepo.findById(subscriptionId);
-// jscpd:ignore-end
+    // jscpd:ignore-end
 
     if (!subscription) {
       throw new NotFoundException(`Subscription ${subscriptionId} not found`);

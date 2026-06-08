@@ -29,7 +29,7 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
   }
 
   async findUserById(userId: string) {
-// jscpd:ignore-end
+    // jscpd:ignore-end
     return this.getReadClient().user.findFirst({
       where: { id: userId },
       select: { id: true, role: true, name: true, email: true },

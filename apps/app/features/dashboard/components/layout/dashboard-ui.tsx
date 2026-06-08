@@ -106,7 +106,7 @@ export function DashboardUI({
     return (
       <AppPageScaffold header={header}>
         <div className="space-y-4">
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
           <DataState
             status="empty"
             className="min-h-[50vh]"

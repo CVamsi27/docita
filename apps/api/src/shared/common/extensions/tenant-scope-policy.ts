@@ -6,12 +6,8 @@
 //   - tenant-scope-policy.coerce     (opaque-arg normalization)
 //   - tenant-scope-policy.rules      (model → rule lookup)
 //   - tenant-scope-policy.diagnostics (rule application + diagnostic builder)
-export {
-  coerceTenantExtensionArgs,
-} from './tenant-scope-policy.coerce';
-export {
-  getTenantScopeRule,
-} from './tenant-scope-policy.rules';
+export { coerceTenantExtensionArgs } from './tenant-scope-policy.coerce';
+export { getTenantScopeRule } from './tenant-scope-policy.rules';
 export {
   getTenantScopeDiagnostics,
   applyTenantScopeForTest,

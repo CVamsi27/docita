@@ -5,7 +5,12 @@ import { AppUrlConfigService } from './app-url-config.service';
 import { StorageConfigService } from './storage-config.service';
 import { AuthSecurityConfigService } from './auth-security-config.service';
 import { CommunicationConfigService } from './communication-config.service';
+import { EmailConfigService } from './email-config.service';
+import { SmsConfigService } from './sms-config.service';
+import { WhatsappConfigService } from './whatsapp-config.service';
 import { PaymentConfigService } from './payment-config.service';
+import { RazorpayConfigService } from './razorpay-config.service';
+import { OpsConfigService } from './ops-config.service';
 import { PlatformInfrastructureConfigService } from './platform-infrastructure-config.service';
 import { ExternalIntegrationsConfigService } from './external-integrations-config.service';
 import { validateEnv } from './app-config';
@@ -52,8 +57,26 @@ import { validateEnv } from './app-config';
     AppUrlConfigService,
     StorageConfigService,
     AuthSecurityConfigService,
-    CommunicationConfigService,
-    PaymentConfigService,
+    {
+      provide: CommunicationConfigService,
+      useFactory: (
+        email: EmailConfigService,
+        sms: SmsConfigService,
+        whatsapp: WhatsappConfigService,
+      ) => new CommunicationConfigService(email, sms, whatsapp),
+      inject: [EmailConfigService, SmsConfigService, WhatsappConfigService],
+    },
+    EmailConfigService,
+    SmsConfigService,
+    WhatsappConfigService,
+    {
+      provide: PaymentConfigService,
+      useFactory: (razorpay: RazorpayConfigService, ops: OpsConfigService) =>
+        new PaymentConfigService(razorpay, ops),
+      inject: [RazorpayConfigService, OpsConfigService],
+    },
+    RazorpayConfigService,
+    OpsConfigService,
     PlatformInfrastructureConfigService,
     ExternalIntegrationsConfigService,
   ],
@@ -64,7 +87,12 @@ import { validateEnv } from './app-config';
     StorageConfigService,
     AuthSecurityConfigService,
     CommunicationConfigService,
+    EmailConfigService,
+    SmsConfigService,
+    WhatsappConfigService,
     PaymentConfigService,
+    RazorpayConfigService,
+    OpsConfigService,
     PlatformInfrastructureConfigService,
     ExternalIntegrationsConfigService,
   ],

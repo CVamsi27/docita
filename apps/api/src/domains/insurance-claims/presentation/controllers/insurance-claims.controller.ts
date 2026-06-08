@@ -55,7 +55,7 @@ export class InsuranceClaimsController {
   ) {
     const { clinicId } = getClinicStaffRequestContext(req);
     const { patientId, invoiceId, status, claimType, search, cursor, limit } =
-// jscpd:ignore-start
+      // jscpd:ignore-start
       query ?? {};
 
     if (patientId) {
@@ -72,7 +72,7 @@ export class InsuranceClaimsController {
         'VIEW_PATIENT_LIST',
         'Patient',
         { scope: 'insurance-claims', status, claimType, search, cursor, limit },
-// jscpd:ignore-end
+        // jscpd:ignore-end
       );
     }
 

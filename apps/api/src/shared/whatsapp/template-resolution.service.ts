@@ -18,7 +18,7 @@ interface TemplateVariable {
 }
 
 function getMetaTemplateId(template: unknown): string | undefined {
-// jscpd:ignore-end
+  // jscpd:ignore-end
   if (!isRecord(template)) {
     return undefined;
   }

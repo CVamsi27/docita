@@ -13,7 +13,7 @@ import { DoctorsService } from '@/domains/doctors/application/services/doctors.s
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import {
   Feature,
-// jscpd:ignore-end
+  // jscpd:ignore-end
   RequireFeature,
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { Role } from '@workspace/db';

@@ -110,7 +110,7 @@ export function TemplateEditorDialog({
 
         <div className="space-y-2">
           <Label htmlFor="template-content">Message</Label>
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
           <Textarea
             id="template-content"
             value={content}

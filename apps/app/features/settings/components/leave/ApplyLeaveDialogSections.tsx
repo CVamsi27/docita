@@ -197,7 +197,7 @@ export function ApplyLeaveDialogFooter({
           />
         )}
         Submit Request
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
       </Button>
     </DialogFooter>
   );

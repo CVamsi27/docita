@@ -50,7 +50,7 @@ export function PromptDialog({
           <DialogDescription>{options.description || ""}</DialogDescription>
         </DialogHeader>
         <div className="py-4">
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
           <Input
             type={options.inputType || "text"}
             value={value}

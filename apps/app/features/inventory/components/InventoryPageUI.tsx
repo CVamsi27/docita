@@ -115,7 +115,7 @@ export const InventoryPageUI: FC = () => {
               >
                 <Plus className="h-4 w-4" />
                 Add Item
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
               </Button>
             </div>
           }

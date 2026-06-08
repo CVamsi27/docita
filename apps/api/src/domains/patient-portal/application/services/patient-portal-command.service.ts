@@ -32,7 +32,7 @@ export class PatientPortalCommandService {
     },
   ) {
     const { patientId } = await this.contextService.getPatientContext(userId);
-// jscpd:ignore-end
+    // jscpd:ignore-end
 
     const updateData: Record<string, unknown> = {};
     if (data.email !== undefined) updateData.email = data.email;

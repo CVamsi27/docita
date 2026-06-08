@@ -66,7 +66,7 @@ import { DoctorVerificationHttpClient } from './infrastructure/external/doctor-v
     SlotGenerationService,
     DoctorVerificationHttpClient,
     DoctorVerificationService,
-// jscpd:ignore-start
+    // jscpd:ignore-start
     SignatureUploadService,
     PrismaDoctorScheduleCoreRepository,
     PrismaDoctorTimeOffRepository,
@@ -84,7 +84,7 @@ import { DoctorVerificationHttpClient } from './infrastructure/external/doctor-v
       useExisting: PrismaDoctorTimeOffRepository,
     },
     PrismaAppointmentReadRepository,
-// jscpd:ignore-end
+    // jscpd:ignore-end
     PrismaAppointmentWriteRepository,
     PrismaAppointmentRepository,
     {

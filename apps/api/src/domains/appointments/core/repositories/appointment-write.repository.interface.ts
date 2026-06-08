@@ -19,7 +19,7 @@ export interface IAppointmentWriteRepository {
     } | null,
     currentStatus: AppointmentStatusEnum,
   ): Promise<void>;
-// jscpd:ignore-end
+  // jscpd:ignore-end
 
   /** Versioned partial update. Returns the number of rows affected (0 means tenant/id mismatch). */
   applyPatch(

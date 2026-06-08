@@ -36,7 +36,7 @@ export class RequestLogService implements OnModuleDestroy {
   private startFlushTimer(): void {
     this.flushTimer = setInterval(() => {
       this.flushBuffer().catch((error) => {
-// jscpd:ignore-start
+        // jscpd:ignore-start
         this.logger.error('Failed to flush request buffer', error);
       });
     }, this.FLUSH_INTERVAL);
@@ -49,7 +49,7 @@ export class RequestLogService implements OnModuleDestroy {
     }
     this.flushBuffer().catch((error) => {
       this.logger.error('Failed to flush requests on shutdown', error);
-// jscpd:ignore-end
+      // jscpd:ignore-end
     });
   }
 

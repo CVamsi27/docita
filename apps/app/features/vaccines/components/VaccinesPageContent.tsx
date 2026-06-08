@@ -29,7 +29,7 @@ export function VaccinesPageContent() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="size-4 text-muted-foreground" aria-hidden />
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
               Immunization schedule
             </CardTitle>
           </CardHeader>

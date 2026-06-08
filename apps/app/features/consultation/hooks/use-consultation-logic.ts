@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { isSessionRecoveryError } from "@/lib/auth/session-recovery";
@@ -8,7 +8,6 @@ import { useConsultationAppointment } from "./use-consultation-appointment";
 import { useConsultationAccess } from "./use-consultation-access";
 
 export const useConsultationLogic = (appointmentId: string) => {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { user, isLoading: authLoading } = useAuth();

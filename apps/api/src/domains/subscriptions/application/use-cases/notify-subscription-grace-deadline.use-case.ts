@@ -43,7 +43,7 @@ export class NotifySubscriptionGraceDeadlineUseCase extends BaseSubscriptionNoti
   }
 
   private buildEmail(sub: GraceCandidate, reminderType: string) {
-// jscpd:ignore-end
+    // jscpd:ignore-end
     const clinicName = sub.clinic?.name ?? `Clinic ${sub.clinicId}`;
     const deadlineLabel = formatDate(
       sub.graceUntil!,

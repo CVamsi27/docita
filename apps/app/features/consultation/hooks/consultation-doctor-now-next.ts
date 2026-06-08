@@ -43,7 +43,7 @@ function filterNextScheduled(
 
 function buildSortedWalkInQueue(
   queueRows: QueueItem[],
-  isLocalToday: BuildDoctorNowNextParams["isLocalToday"],
+  _isLocalToday: BuildDoctorNowNextParams["isLocalToday"],
 ): QueueItem[] {
   const walkInQueue = queueRows.filter(
     (q) => q.tokenType !== "scheduled" && isQueueTokenWaiting(q.status),

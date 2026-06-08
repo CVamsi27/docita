@@ -39,7 +39,7 @@ export function AlertDialog({
         </DialogHeader>
 
         <DialogFooter>
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
           <Button
             variant={getConfirmButtonVariant(options.variant)}
             onClick={onConfirm}

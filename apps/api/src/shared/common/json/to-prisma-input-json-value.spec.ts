@@ -1,4 +1,7 @@
-import { toPrismaInputJsonValue } from './to-prisma-input-json-value';
+import {
+  normalizeForPrismaInput,
+  toPrismaInputJsonValue,
+} from './to-prisma-input-json-value';
 
 describe('toPrismaInputJsonValue', () => {
   it('passes through null and undefined', () => {
@@ -24,7 +27,11 @@ describe('toPrismaInputJsonValue', () => {
 
   it('normalizes nested objects', () => {
     const input = { a: 1, b: 'hello', c: null };
-    expect(toPrismaInputJsonValue(input)).toEqual({ a: 1, b: 'hello', c: null });
+    expect(toPrismaInputJsonValue(input)).toEqual({
+      a: 1,
+      b: 'hello',
+      c: null,
+    });
   });
 
   it('normalizes arrays', () => {
@@ -65,5 +72,54 @@ describe('toPrismaInputJsonValue', () => {
       name: 'a',
       sibling: { name: 'b', sibling: '[Circular]' },
     });
+  });
+});
+
+describe('normalizeForPrismaInput', () => {
+  it('returns a fresh cycle context per call (no cross-call leak)', () => {
+    const a: Record<string, unknown> = { name: 'a' };
+    a.self = a;
+    // First call should detect the cycle.
+    expect(normalizeForPrismaInput(a)).toEqual({
+      name: 'a',
+      self: '[Circular]',
+    });
+
+    const b: Record<string, unknown> = { name: 'b' };
+    b.self = b;
+    // Second call should also detect its own cycle independently.
+    expect(normalizeForPrismaInput(b)).toEqual({
+      name: 'b',
+      self: '[Circular]',
+    });
+  });
+
+  it('handles deeply nested arrays within objects', () => {
+    const input = {
+      list: [
+        [1, 2, [3, 4]],
+        [{ a: 1 }, { a: 2 }],
+      ],
+    };
+    expect(normalizeForPrismaInput(input)).toEqual({
+      list: [
+        [1, 2, [3, 4]],
+        [{ a: 1 }, { a: 2 }],
+      ],
+    });
+  });
+
+  it('drops undefined values from arrays as well', () => {
+    expect(normalizeForPrismaInput([1, undefined, 'x'])).toEqual([1, 'x']);
+  });
+
+  it('converts null values within arrays to null', () => {
+    expect(normalizeForPrismaInput([1, null, 'x'])).toEqual([1, null, 'x']);
+  });
+
+  it('handles a bigint inside a nested structure', () => {
+    expect(
+      normalizeForPrismaInput({ count: BigInt(99), meta: { id: BigInt(1) } }),
+    ).toEqual({ count: '99', meta: { id: '1' } });
   });
 });

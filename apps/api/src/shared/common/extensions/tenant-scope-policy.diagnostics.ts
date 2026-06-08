@@ -1,15 +1,11 @@
 import { Prisma } from '@workspace/db';
-import { isRecord } from '@workspace/utils';
 import {
-  type PropertyValue,
-  type TenantExtensionArgs,
   type TenantScopeRule,
+  type TenantExtensionArgs,
+  type PropertyValue,
   TENANT_FIELD,
 } from './tenant-scope-policy.types';
-import {
-  coerceTenantExtensionArgs,
-  coerceTenantUpsertExtensionArgs,
-} from './tenant-scope-policy.coerce';
+import { coerceTenantUpsertExtensionArgs } from './tenant-scope-policy.coerce';
 import {
   DIRECT_SCOPE_EXCLUSIONS,
   getTenantScopeRule,
@@ -79,7 +75,9 @@ export function getTenantScopeDiagnostics(asOf: Date) {
 
 function getStaleRelationRules(modelNames: Set<string>): string[] {
   // Lazy import to avoid a circular dependency with rules.ts.
-  const { INDIRECT_TENANT_RELATION_PATHS } = require('./tenant-scope-policy.rules');
+  const {
+    INDIRECT_TENANT_RELATION_PATHS,
+  } = require('./tenant-scope-policy.rules');
   return Object.keys(INDIRECT_TENANT_RELATION_PATHS)
     .filter((model) => !modelNames.has(model))
     .sort((a, b) => a.localeCompare(b));

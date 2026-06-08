@@ -31,7 +31,7 @@ export class PrismaDoctorScheduleCoreRepository implements IDoctorScheduleCoreRe
 
     return this.getReadClient().doctorSchedule.findMany({
       where,
-// jscpd:ignore-start
+      // jscpd:ignore-start
       orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
       include: {
         doctor: {
@@ -45,7 +45,7 @@ export class PrismaDoctorScheduleCoreRepository implements IDoctorScheduleCoreRe
   }
 
   async findSchedulesByClinic(clinicId: string) {
-// jscpd:ignore-end
+    // jscpd:ignore-end
     return this.getReadClient().doctorSchedule.findMany({
       where: { clinicId, isActive: true },
       orderBy: [
@@ -127,7 +127,7 @@ export class PrismaDoctorScheduleCoreRepository implements IDoctorScheduleCoreRe
   }
 
   async createSchedule(data: Prisma.DoctorScheduleCreateInput) {
-// jscpd:ignore-start
+    // jscpd:ignore-start
     return this.prisma.doctorSchedule.create({
       data,
       include: {
@@ -151,7 +151,7 @@ export class PrismaDoctorScheduleCoreRepository implements IDoctorScheduleCoreRe
   }
 
   async findScheduleById(id: string) {
-// jscpd:ignore-end
+    // jscpd:ignore-end
     return this.getReadClient().doctorSchedule.findUnique({
       where: { id },
     });

@@ -4,10 +4,10 @@ import { ErrorPageShell } from "@/components/errors/error-page-shell";
 
 // jscpd:ignore-start
 export default function DentalChartsError({
-  error,
+  _error,
   reset,
 }: {
-  error: Error & { digest?: string };
+  _error: Error & { digest?: string };
   reset: () => void;
 }) {
 // jscpd:ignore-end

@@ -126,7 +126,7 @@ export class PublicBookingService {
     referralCode: string,
     authHeader: string | undefined,
   ): Promise<PublicBookingContextResponse> {
-// jscpd:ignore-start
+    // jscpd:ignore-start
     return this.creation.getBookingContext(referralCode, authHeader);
   }
 
@@ -138,7 +138,7 @@ export class PublicBookingService {
     userAgent?: string,
   ): Promise<PublicBookingSubmitResponse> {
     return this.submit.submitRequest(
-// jscpd:ignore-end
+      // jscpd:ignore-end
       referralCode,
       rawBody,
       authHeader,

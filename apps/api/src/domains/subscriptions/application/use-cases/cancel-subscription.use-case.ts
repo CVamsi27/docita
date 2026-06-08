@@ -17,7 +17,7 @@ import { SubscriptionStatusEnum } from '@/domains/subscriptions/core/value-objec
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 export interface CancelSubscriptionRequest {
-// jscpd:ignore-end
+  // jscpd:ignore-end
   clinicId: string;
   cancelAtPeriodEnd?: boolean;
   reason?: string;

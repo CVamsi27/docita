@@ -15,7 +15,7 @@ import {
 import { bindQueueJobHandler, coerceQueueJob } from './queue-job-boundary';
 import type {
   QueueJobRepository,
-// jscpd:ignore-end
+  // jscpd:ignore-end
   QueueJobRow,
 } from './ports/queue-job.repository.port';
 import { WorkerMetricsService } from './worker-metrics.service';

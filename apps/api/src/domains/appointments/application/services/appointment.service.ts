@@ -192,7 +192,7 @@ export class AppointmentService {
     clinicId: string,
     data: Partial<VitalSign>,
     accessContext: AppointmentAccessContext,
-// jscpd:ignore-end
+    // jscpd:ignore-end
   ): Promise<VitalSign> {
     return this.commandService.updateVitals(
       appointmentId,

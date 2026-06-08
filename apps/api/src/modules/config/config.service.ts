@@ -35,7 +35,7 @@ import {
 
 @Injectable()
 export class ConfigService {
-// jscpd:ignore-start
+  // jscpd:ignore-start
   constructor(private prisma: PrismaService) {}
 
   private toRecord(value: unknown): Record<string, unknown> {
@@ -56,7 +56,7 @@ export class ConfigService {
   }
 
   private readNumber(
-// jscpd:ignore-end
+    // jscpd:ignore-end
     source: Record<string, unknown>,
     key: string,
     fallback: number,

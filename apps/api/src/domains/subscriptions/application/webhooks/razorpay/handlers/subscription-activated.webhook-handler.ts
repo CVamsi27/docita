@@ -46,7 +46,7 @@ export class SubscriptionActivatedWebhookHandler extends BaseRazorpayWebhookHand
     if (!clinicId) return;
 
     const tier = ClinicTier.fromString(
-// jscpd:ignore-end
+      // jscpd:ignore-end
       readRazorpayNoteString(sub.notes, 'tier') || 'ESSENTIAL',
     );
     const cycle = BillingCycle.fromString(

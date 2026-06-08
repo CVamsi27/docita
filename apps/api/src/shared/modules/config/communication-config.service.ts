@@ -1,60 +1,55 @@
+// Facade that delegates to focused per-channel services:
+//   - EmailConfigService       (SMTP, ZeptoMail, email from/sender domain)
+//   - SmsConfigService          (SMS API key + sender id)
+//   - WhatsappConfigService     (Meta API config, per-clinic sender flag)
+// Consumers can either keep importing from this module (preserves the
+// previous surface) or inject the focused service directly.
 import { Injectable } from '@nestjs/common';
-import { getEnv } from './app-config';
-import { getEmailSenderDomainFromEmail } from './app-configuration-values';
+import { EmailConfigService } from './email-config.service';
+import { SmsConfigService } from './sms-config.service';
+import { WhatsappConfigService } from './whatsapp-config.service';
 
 @Injectable()
 export class CommunicationConfigService {
+  constructor(
+    private readonly email: EmailConfigService,
+    private readonly sms: SmsConfigService,
+    private readonly whatsapp: WhatsappConfigService,
+  ) {}
+
   getSmtpConfig() {
-    const config = getEnv();
-    return {
-      host: config.SMTP_HOST,
-      port: config.SMTP_PORT,
-      user: config.SMTP_USER || '',
-      pass: config.SMTP_PASS || '',
-    };
+    return this.email.getSmtpConfig();
   }
 
   getSmsConfig() {
-    const config = getEnv();
-    return {
-      apiKey: config.SMS_API_KEY || '',
-      senderId: config.SMS_SENDER_ID || '',
-    };
+    return this.sms.getSmsConfig();
   }
 
   getZeptoMailSendMailToken(): string {
-    return getEnv().ZEPTOMAIL_SENDMAIL_TOKEN || '';
+    return this.email.getZeptoMailSendMailToken();
   }
 
   getZeptoMailApiUrl(): string {
-    return getEnv().ZEPTOMAIL_API_URL;
+    return this.email.getZeptoMailApiUrl();
   }
 
   getZeptoMailWebhookSecret(): string {
-    return getEnv().ZEPTOMAIL_WEBHOOK_SECRET || '';
+    return this.email.getZeptoMailWebhookSecret();
   }
 
   getEmailSenderDomain(): string {
-    return getEmailSenderDomainFromEmail(getEnv().EMAIL_FROM);
+    return this.email.getEmailSenderDomain();
   }
 
   getEmailFrom(): string {
-    return getEnv().EMAIL_FROM;
+    return this.email.getEmailFrom();
   }
 
   getMetaConfig() {
-    const config = getEnv();
-    return {
-      accessToken: config.META_ACCESS_TOKEN || '',
-      phoneNumberId: config.META_PHONE_NUMBER_ID || '',
-      businessAccountId: config.META_BUSINESS_ACCOUNT_ID || '',
-      appSecret: config.META_APP_SECRET || '',
-      verifyToken: config.META_VERIFY_TOKEN || '',
-      productionMode: config.WHATSAPP_PRODUCTION_MODE,
-    };
+    return this.whatsapp.getMetaConfig();
   }
 
   isPerClinicWhatsappSenderEnabled(): boolean {
-    return getEnv().WHATSAPP_PER_CLINIC_SENDER_ENABLED;
+    return this.whatsapp.isPerClinicWhatsappSenderEnabled();
   }
 }

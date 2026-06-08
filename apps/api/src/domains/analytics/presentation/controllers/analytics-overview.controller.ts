@@ -37,7 +37,7 @@ import { parseAnalyticsDate } from '@/domains/analytics/presentation/controllers
 @UseGuards(TierGuard)
 @RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_ANALYTICS))
 export class AnalyticsOverviewController {
-// jscpd:ignore-end
+  // jscpd:ignore-end
   constructor(private readonly analyticsService: AnalyticsService) {}
 
   @Get('overview')

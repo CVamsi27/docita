@@ -10,7 +10,7 @@ import {
 } from '@/domains/subscriptions/application/ports/clinic-operations.port';
 import {
   BillingCycle,
-// jscpd:ignore-end
+  // jscpd:ignore-end
   ClinicTier,
   SubscriptionStatus,
   SubscriptionStatusEnum,

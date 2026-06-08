@@ -26,7 +26,7 @@ import { PrismaLeaveRepository } from './infrastructure/repositories/prisma-leav
     LeaveQueryService,
     LeaveService,
     LeavePlanService,
-// jscpd:ignore-start
+    // jscpd:ignore-start
     AvailabilityScheduleService,
     PrismaDoctorScheduleCoreRepository,
     PrismaDoctorTimeOffRepository,
@@ -44,7 +44,7 @@ import { PrismaLeaveRepository } from './infrastructure/repositories/prisma-leav
       useExisting: PrismaDoctorTimeOffRepository,
     },
     {
-// jscpd:ignore-end
+      // jscpd:ignore-end
       provide: LEAVE_REPOSITORY_TOKEN,
       useClass: PrismaLeaveRepository,
     },

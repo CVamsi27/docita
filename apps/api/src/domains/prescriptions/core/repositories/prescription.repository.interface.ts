@@ -20,7 +20,7 @@ export interface PaginatedResult<T> {
 }
 
 export interface PrescriptionDetail extends Prescription {
-// jscpd:ignore-end
+  // jscpd:ignore-end
   medications: Array<{
     id: string;
     name: string;

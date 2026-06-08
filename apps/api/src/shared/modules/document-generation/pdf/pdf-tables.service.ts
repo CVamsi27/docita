@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import PDFDocument from 'pdfkit';
 import type { TableColumn } from '@workspace/types';
 import type { PDFContext } from './pdf.types';
-import { PDF_ROUTE_LEGEND, PDF_FREQUENCY_LEGEND } from './pdf-legends.constants';
-import type {
-  PDFInvoiceItem,
-  PDFMedicationInfo,
-} from '@workspace/types';
+import {
+  PDF_ROUTE_LEGEND,
+  PDF_FREQUENCY_LEGEND,
+} from './pdf-legends.constants';
+import type { PDFInvoiceItem, PDFMedicationInfo } from '@workspace/types';
 
 @Injectable()
 export class PdfTablesService {

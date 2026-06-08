@@ -40,7 +40,7 @@ export class DoctorImportStrategy implements IImportStrategy {
   ): Promise<void> {
     void _audit;
     const email = readImportRowRequiredString(row, 'email');
-// jscpd:ignore-end
+    // jscpd:ignore-end
     const name = readImportRowRequiredString(row, 'name');
 
     const existing = await this.prisma.user.findUnique({

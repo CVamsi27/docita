@@ -288,7 +288,7 @@ export class InvoicesCommandService {
   }
 
   async remove(id: string, clinicId: string): Promise<void> {
-// jscpd:ignore-start
+    // jscpd:ignore-start
     await this.repository.delete(id, clinicId);
   }
 
@@ -302,7 +302,7 @@ export class InvoicesCommandService {
     status: InvoiceStatus;
   }> {
     await this.claimValidationService.assertClaimReady(id, clinicId);
-// jscpd:ignore-end
+    // jscpd:ignore-end
     const invoice = await this.queryService.findOne(id, clinicId);
 
     return {
@@ -334,7 +334,7 @@ export class InvoicesCommandService {
           doctor_id: invoice.appointment?.doctor?.id,
           modified_at: generatedAt.toISOString(),
           modified_by: invoice.appointment?.doctor?.id || 'system',
-// jscpd:ignore-start
+          // jscpd:ignore-start
           auth_method: 'invoice-service',
         },
       },

@@ -31,7 +31,11 @@ import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
     DocumentsModule,
     WhatsAppModule,
   ],
-  controllers: [LabTestsController, LabWorkflowController, MedicalCodingController],
+  controllers: [
+    LabTestsController,
+    LabWorkflowController,
+    MedicalCodingController,
+  ],
   providers: [
     FrontDeskClinicalBlockGuard,
     ClinicalService,

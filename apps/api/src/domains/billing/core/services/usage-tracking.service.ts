@@ -37,7 +37,7 @@ export class UsageTrackingService {
     metadata?: Prisma.InputJsonValue;
   }) {
     return this.command.recordUsageEvent(params);
-// jscpd:ignore-end
+    // jscpd:ignore-end
   }
 
   async trackWhatsAppMessage(

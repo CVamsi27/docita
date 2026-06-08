@@ -46,7 +46,7 @@ function PatientStatCard({
             <Icon className="h-5 w-5 sm:h-7 sm:w-7" />
           </div>
           <div className="min-w-0">
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
             <p className="font-medium text-muted-foreground uppercase tracking-widest text-[var(--fs-2xs)]">
               {label}
             </p>

@@ -57,7 +57,7 @@ export class InvoicesQueryService {
     @Inject(PAYMENT_SESSION_REPOSITORY_TOKEN)
     private readonly paymentSessionRepository: IPaymentSessionRepository,
     private readonly pdfService: PDFService,
-// jscpd:ignore-start
+    // jscpd:ignore-start
     private readonly claimValidationService: ClaimValidationService,
     private readonly storageProvider: StorageProvider,
     @Inject(StoredFileUrlResolverService)
@@ -67,7 +67,7 @@ export class InvoicesQueryService {
     >,
     @Inject(PdfJobService)
     private readonly pdfJobService: PdfJobServicePort,
-// jscpd:ignore-start
+    // jscpd:ignore-start
   ) {}
 
   async findAll(
@@ -83,9 +83,9 @@ export class InvoicesQueryService {
     },
   ) {
     const patientId = params?.patientId?.trim() || undefined;
-// jscpd:ignore-end
+    // jscpd:ignore-end
 
-// jscpd:ignore-end
+    // jscpd:ignore-end
     if (patientId) {
       const patient = await this.repository.findPatientContext(
         patientId,
@@ -261,7 +261,7 @@ export class InvoicesQueryService {
         id,
         clinicId,
         buffer,
-// jscpd:ignore-start
+        // jscpd:ignore-start
         invoice,
       );
 
@@ -277,6 +277,6 @@ export class InvoicesQueryService {
     clinicId: string,
   ): Promise<EnqueuePdfJobResponse> {
     return this.pdfJobService.enqueue(id, 'invoice', clinicId);
-// jscpd:ignore-end
+    // jscpd:ignore-end
   }
 }

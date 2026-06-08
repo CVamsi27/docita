@@ -21,7 +21,7 @@ export class UsageTrackingCommandService {
     metadata?: Prisma.InputJsonValue;
   }) {
     const {
-// jscpd:ignore-end
+      // jscpd:ignore-end
       clinicId,
       type,
       quantity = 1,

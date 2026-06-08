@@ -7,7 +7,10 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
 import { ILabRepository } from '@/domains/clinical/core/repositories/clinical.repository.interface';
-import type { LabOrderReleaseContext, LabQueueItem } from '@/domains/clinical/core/repositories/lab-workflow.repository.interface';
+import type {
+  LabOrderReleaseContext,
+  LabQueueItem,
+} from '@/domains/clinical/core/repositories/lab-workflow.repository.interface';
 import type { LabRecord } from '@/domains/clinical/core/repositories/lab-directory.repository.interface';
 import {
   LabTestOrderStatus,
@@ -358,7 +361,7 @@ export class PrismaLabRepository implements ILabRepository {
     });
   }
 
-// jscpd:ignore-start
+  // jscpd:ignore-start
   async attachResult(
     id: string,
     clinicId: string,
@@ -370,7 +373,7 @@ export class PrismaLabRepository implements ILabRepository {
     },
     now: Date,
   ): Promise<void> {
-// jscpd:ignore-end
+    // jscpd:ignore-end
     await this.prisma.labTestOrder.updateMany({
       where: { id, clinicId },
       data: {
@@ -428,7 +431,7 @@ export class PrismaLabRepository implements ILabRepository {
 
   async findLabById(id: string, clinicId: string): Promise<LabRecord | null> {
     return await this.getReadClient().lab.findFirst({
-// jscpd:ignore-start
+      // jscpd:ignore-start
       where: { id, clinicId },
     });
   }
@@ -444,7 +447,7 @@ export class PrismaLabRepository implements ILabRepository {
     },
   ): Promise<LabRecord> {
     return await this.prisma.lab.create({
-// jscpd:ignore-end
+      // jscpd:ignore-end
       data: {
         clinicId,
         name: data.name,
@@ -453,7 +456,7 @@ export class PrismaLabRepository implements ILabRepository {
         email: data.email || null,
         address: data.address || null,
       },
-// jscpd:ignore-start
+      // jscpd:ignore-start
     });
   }
 
@@ -470,7 +473,7 @@ export class PrismaLabRepository implements ILabRepository {
     }>,
   ): Promise<LabRecord> {
     const result = await this.prisma.lab.updateMany({
-// jscpd:ignore-end
+      // jscpd:ignore-end
       where: { id, clinicId },
       data,
     });

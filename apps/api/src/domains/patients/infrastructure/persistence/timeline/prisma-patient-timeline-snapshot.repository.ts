@@ -10,9 +10,9 @@ import type {
 } from '@/domains/patients/core/repositories/timeline/patient-timeline-snapshot.types';
 
 @Injectable()
+// jscpd:ignore-start
 export class PrismaPatientTimelineSnapshotRepository
   extends PrismaReadBase
-// jscpd:ignore-start
   implements IPatientTimelineSnapshotRepository
 {
   constructor(prisma: PrismaService) {
@@ -31,7 +31,7 @@ export class PrismaPatientTimelineSnapshotRepository
   }
 
   async fetchPatientConditions(
-// jscpd:ignore-end
+    // jscpd:ignore-end
     patientId: string,
   ): Promise<PatientConditionSnapshotRow[]> {
     return this.getReadClient().patientMedicalCondition.findMany({
@@ -112,7 +112,7 @@ export class PrismaPatientTimelineSnapshotRepository
   ): Promise<Array<{ status: string; _count: { status: number } }>> {
     const rows = await this.getReadClient().medicationDose.groupBy({
       by: ['status'],
-// jscpd:ignore-start
+      // jscpd:ignore-start
       where: { medicationId, patientId, clinicId },
       _count: { status: true },
     });
@@ -124,7 +124,7 @@ export class PrismaPatientTimelineSnapshotRepository
   }
 
   async groupMedicationDosesByMedicationIds(
-// jscpd:ignore-end
+    // jscpd:ignore-end
     patientId: string,
     clinicId: string,
     medicationIds: string[],

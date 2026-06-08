@@ -79,7 +79,7 @@ export class PrismaDoctorVerificationRepository implements IDoctorVerificationRe
     });
   }
 
-// jscpd:ignore-start
+  // jscpd:ignore-start
   async updateVerificationStatus(
     doctorId: string,
     data: {
@@ -91,7 +91,7 @@ export class PrismaDoctorVerificationRepository implements IDoctorVerificationRe
       verificationCheckedAt: Date;
     },
   ): Promise<void> {
-// jscpd:ignore-end
+    // jscpd:ignore-end
     const result = await this.prisma.user.updateMany({
       where: { id: doctorId },
       data: {

@@ -21,7 +21,7 @@ import { LeaveService } from '@/domains/leave/application/services/leave.service
 import { Feature } from '@workspace/types';
 import {
   ALL_STAFF_ROLES,
-// jscpd:ignore-end
+  // jscpd:ignore-end
   CLINIC_ADMIN_ROLES as ADMIN_ROLES,
 } from '@/shared/common/constants/role-groups';
 

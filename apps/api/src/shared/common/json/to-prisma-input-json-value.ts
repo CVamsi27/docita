@@ -1,37 +1,69 @@
 // check-as-cast-density: allow-file — canonical Prisma InputJsonValue serialization boundary
 import { Prisma } from '@workspace/db';
 
+type JsonLeaf = string | number | boolean | null;
+type JsonValue = JsonLeaf | { [key: string]: JsonValue } | JsonValue[];
+
+interface CircularAware {
+  seen: WeakSet<object>;
+}
+
+/**
+ * Normalize a domain value for Prisma `InputJsonValue` columns:
+ *
+ * - BigInts → decimal strings (Prisma JSON has no native BigInt)
+ * - Date → ISO 8601 string
+ * - Arrays → recursively normalized
+ * - Objects → shallow copy with normalized values; circular refs
+ *   replaced with the literal "[Circular]" string
+ * - `undefined` values are dropped from object entries
+ *
+ * The function is split from `toPrismaInputJsonValue` so each branch can be
+ * unit-tested in isolation; the wrapper just sets up the cycle tracker and
+ * returns the typed result.
+ */
+export function normalizeForPrismaInput(
+  value: unknown,
+  ctx: CircularAware = { seen: new WeakSet<object>() },
+): JsonValue | undefined {
+  if (typeof value === 'bigint') return value.toString();
+  if (value instanceof Date) return value.toISOString();
+  if (value === undefined) return undefined;
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => normalizeForPrismaInput(item, ctx))
+      .filter((entry): entry is JsonValue => entry !== undefined);
+  }
+
+  if (value !== null && typeof value === 'object') {
+    if (ctx.seen.has(value)) return '[Circular]';
+    ctx.seen.add(value);
+
+    const result: Record<string, JsonValue> = {};
+    for (const [key, childValue] of Object.entries(value)) {
+      const normalized = normalizeForPrismaInput(childValue, ctx);
+      if (normalized !== undefined) {
+        result[key] = normalized;
+      }
+    }
+    return result;
+  }
+
+  if (value === null) return null;
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
+    return value;
+  }
+  return undefined;
+}
+
 /** Serialize domain JSON payloads for Prisma `InputJsonValue` columns. */
 export function toPrismaInputJsonValue(value: unknown): Prisma.InputJsonValue {
   const seen = new WeakSet<object>();
-
-  const normalize = (input: unknown): unknown => {
-    if (typeof input === 'bigint') return input.toString();
-
-    if (input instanceof Date) return input.toISOString();
-
-    if (Array.isArray(input)) {
-      return input.map((item) => normalize(item) ?? null);
-    }
-
-    if (input !== null && typeof input === 'object') {
-      if (seen.has(input)) {
-        return '[Circular]';
-      }
-      seen.add(input);
-
-      return Object.fromEntries(
-        Object.entries(input).flatMap(([key, childValue]) => {
-          const normalizedChildValue = normalize(childValue);
-          return normalizedChildValue === undefined
-            ? []
-            : [[key, normalizedChildValue]];
-        }),
-      );
-    }
-
-    return input;
-  };
-
-  return normalize(value) as Prisma.InputJsonValue;
+  const ctx: CircularAware = { seen };
+  return normalizeForPrismaInput(value, ctx) as Prisma.InputJsonValue;
 }

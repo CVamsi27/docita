@@ -14,7 +14,7 @@ import {
 } from '@/domains/subscriptions/application/ports/payment-gateway.port';
 import {
   ClinicTier,
-// jscpd:ignore-end
+  // jscpd:ignore-end
   BillingCycle,
 } from '@/domains/subscriptions/core/value-objects';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';

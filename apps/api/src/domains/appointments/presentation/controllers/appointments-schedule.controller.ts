@@ -127,7 +127,7 @@ export class AppointmentsScheduleController {
     if (doctorScope.denied)
       throw new ForbiddenException(
         'Doctors can only access their appointments',
-// jscpd:ignore-start
+        // jscpd:ignore-start
       );
 
     if (patientId) {
@@ -142,7 +142,7 @@ export class AppointmentsScheduleController {
         this.auditService,
         req,
         'VIEW_APPOINTMENT_LIST',
-// jscpd:ignore-end
+        // jscpd:ignore-end
         'Appointment',
         {
           startDate,

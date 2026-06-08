@@ -16,7 +16,10 @@ import {
   GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
 } from '@/domains/documents/application/ports/storage-provider.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
-import type { LabDirectoryRepository, LabRecord } from '@/domains/clinical/core/repositories/lab-directory.repository.interface';
+import type {
+  LabDirectoryRepository,
+  LabRecord,
+} from '@/domains/clinical/core/repositories/lab-directory.repository.interface';
 import type { LabOrderRepository } from '@/domains/clinical/core/repositories/lab-order.repository.interface';
 import type { LabWorkflowRepository } from '@/domains/clinical/core/repositories/lab-workflow.repository.interface';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
@@ -177,7 +180,7 @@ export class LabWorkflowCommandService {
     this.eventEmitter.emit(ApplicationEvents.LAB_RESULT_RELEASED, {
       orderId: id,
       clinicId,
-// jscpd:ignore-start
+      // jscpd:ignore-start
       patientId: ctx.patient.id,
     });
   }
@@ -208,7 +211,7 @@ export class LabWorkflowCommandService {
     }>,
   ): Promise<LabRecord> {
     return await this.directoryRepository.updateLab(id, clinicId, data);
-// jscpd:ignore-end
+    // jscpd:ignore-end
   }
 
   private async loadOrder(id: string, clinicId: string): Promise<LabOrder> {

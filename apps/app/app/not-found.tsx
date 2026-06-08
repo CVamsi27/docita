@@ -22,7 +22,7 @@ export default function NotFound() {
           <p className="ui-page-subtitle mt-2">
             Sorry, we couldn&apos;t find the page you&apos;re looking for.
           </p>
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
             <Button asChild>
               <Link href="/today">

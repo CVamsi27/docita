@@ -65,12 +65,7 @@ describe('toNlmRows', () => {
   });
 
   it('falls back to the second column when no later column has text', () => {
-    const data = [
-      1,
-      ['99213'],
-      null,
-      [['99213', null, 'Office visit']],
-    ];
+    const data = [1, ['99213'], null, [['99213', null, 'Office visit']]];
     const rows = toNlmRows(data);
     expect(rows).toHaveLength(1);
     expect(rows[0].code).toBe('99213');
@@ -78,7 +73,15 @@ describe('toNlmRows', () => {
   });
 
   it('filters out rows with empty codes', () => {
-    const data = [2, ['A00', ''], null, [['A00', 'Cholera'], ['', '']]];
+    const data = [
+      2,
+      ['A00', ''],
+      null,
+      [
+        ['A00', 'Cholera'],
+        ['', ''],
+      ],
+    ];
     const rows = toNlmRows(data);
     expect(rows).toHaveLength(1);
     expect(rows[0].code).toBe('A00');

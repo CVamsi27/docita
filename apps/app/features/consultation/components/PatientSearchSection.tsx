@@ -50,7 +50,7 @@ export function PatientSearchSection({
             className={showClear ? "pl-9 pr-10" : "pl-9"}
             aria-label="Search patients for dental chart"
           />
-// jscpd:ignore-start
+{/* jscpd:ignore-start */}
           {showClear && (
             <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
               <SymbolTooltip label="Clear search">

@@ -14,7 +14,7 @@ export class PrismaDoctorTimeOffRepository implements IDoctorTimeOffRepository {
   async findTimeOffs(where: Prisma.DoctorTimeOffWhereInput) {
     return this.getReadClient().doctorTimeOff.findMany({
       where,
-// jscpd:ignore-start
+      // jscpd:ignore-start
       orderBy: { startDate: 'asc' },
       include: {
         doctor: {
@@ -28,7 +28,7 @@ export class PrismaDoctorTimeOffRepository implements IDoctorTimeOffRepository {
   }
 
   async findTimeOffsForSlots(where: Prisma.DoctorTimeOffWhereInput) {
-// jscpd:ignore-end
+    // jscpd:ignore-end
     return this.getReadClient().doctorTimeOff.findMany({
       where,
     });
@@ -58,7 +58,7 @@ export class PrismaDoctorTimeOffRepository implements IDoctorTimeOffRepository {
     tx?: Prisma.TransactionClient,
   ) {
     const client = tx ?? this.prisma;
-// jscpd:ignore-start
+    // jscpd:ignore-start
     return client.doctorTimeOff.create({
       data,
       include: {
@@ -70,7 +70,7 @@ export class PrismaDoctorTimeOffRepository implements IDoctorTimeOffRepository {
   }
 
   async findTimeOffById(id: string) {
-// jscpd:ignore-end
+    // jscpd:ignore-end
     return this.getReadClient().doctorTimeOff.findUnique({
       where: { id },
     });

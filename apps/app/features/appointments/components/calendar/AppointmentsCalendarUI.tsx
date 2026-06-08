@@ -123,7 +123,7 @@ export function AppointmentsCalendarUI({
             </SelectContent>
           </Select>
         )}
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
       </CardHeader>
 
       <CardContent className="p-0">

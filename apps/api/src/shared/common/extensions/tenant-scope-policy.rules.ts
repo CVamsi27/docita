@@ -1,10 +1,7 @@
 import { Prisma } from '@workspace/db';
-import { isRecord } from '@workspace/utils';
 import {
-  type TenantExtensionArgs,
   type TenantScopeRule,
   type TenantScopeRuleSnapshot,
-  type PropertyValue,
   TENANT_FIELD,
 } from './tenant-scope-policy.types';
 

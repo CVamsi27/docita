@@ -1,5 +1,14 @@
-import { ClinicTier, EnterpriseContractStatus, Role, UsageType } from '@workspace/db';
-import { TIER_LIMITS, type SupportedCurrency, type TierName } from '@workspace/types';
+import {
+  ClinicTier,
+  EnterpriseContractStatus,
+  Role,
+  UsageType,
+} from '@workspace/db';
+import {
+  TIER_LIMITS,
+  type SupportedCurrency,
+  type TierName,
+} from '@workspace/types';
 import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
 import type { SubscriptionPersistencePort } from '@/domains/subscriptions/application/ports/subscription-persistence.port';
 
@@ -73,10 +82,7 @@ export function resolveIncludedQuotas({
     tierLimits.appointments ??
     0;
   const includedUsers =
-    activeContract?.includedUsers ??
-    sub.includedUsers ??
-    tierLimits.users ??
-    0;
+    activeContract?.includedUsers ?? sub.includedUsers ?? tierLimits.users ?? 0;
 
   const whatsappEligibleTier =
     tier === ClinicTier.ESSENTIAL ||

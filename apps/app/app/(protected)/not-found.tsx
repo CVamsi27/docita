@@ -21,7 +21,7 @@ export default function NotFound() {
               aria-hidden
             />
           </div>
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
           <h1 className="ui-page-title">404</h1>
           <h2 className="ui-section-title mt-2 text-[var(--fs-lg)]">
             Page not found

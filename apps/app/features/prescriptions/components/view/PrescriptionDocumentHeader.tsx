@@ -1,6 +1,5 @@
 // jscpd:ignore-start
-import { formatDate, getPatientFullName } from "@workspace/utils";
-import type { Patient } from "@workspace/types";
+import { formatDate } from "@workspace/utils";
 import { formatGenderLabel } from "@/lib/formatters";
 import { SUPPORT_EMAIL } from "@/lib/constants/support-contact";
 

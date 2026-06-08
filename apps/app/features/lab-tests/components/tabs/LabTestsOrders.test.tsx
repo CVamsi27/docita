@@ -1,7 +1,12 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi, type Mock } from "vitest";
 import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
-import { LabTestsOrders } from "./LabTestsOrders";
+import {
+  LabOrderActionsCell,
+  LabTestsOrders,
+  PatientNameCell,
+  SortableHeader,
+} from "./LabTestsOrders";
 import type { LabTestOrder } from "@workspace/types";
 
 const mockHandleSort = vi.fn();
@@ -416,6 +421,128 @@ describe("LabTestsOrders", () => {
       );
 
       expect(screen.getByText("No lab tests found")).toBeInTheDocument();
+    });
+  });
+
+  describe("SortableHeader", () => {
+    it("renders label text", () => {
+      const { container } = render(
+        <SortableHeader label="Patient" column="patient" sortConfig={null} onSort={mockHandleSort} />,
+      );
+      expect(container.textContent).toContain("Patient");
+    });
+
+    it("renders neutral sort icon when not active", () => {
+      const { container } = render(
+        <SortableHeader label="Patient" column="patient" sortConfig={null} onSort={mockHandleSort} />,
+      );
+      expect(container.querySelector(".lucide-arrow-up-down")).not.toBeNull();
+      expect(container.querySelector(".lucide-arrow-up")).toBeNull();
+    });
+
+    it("renders ascending arrow when active and asc", () => {
+      const { container } = render(
+        <SortableHeader label="Patient" column="patient" sortConfig={{ key: "patient", direction: "asc" }} onSort={mockHandleSort} />,
+      );
+      expect(container.querySelector(".lucide-arrow-up")).not.toBeNull();
+      expect(container.querySelector(".lucide-arrow-down")).toBeNull();
+    });
+
+    it("renders descending arrow when active and desc", () => {
+      const { container } = render(
+        <SortableHeader label="Patient" column="patient" sortConfig={{ key: "patient", direction: "desc" }} onSort={mockHandleSort} />,
+      );
+      expect(container.querySelector(".lucide-arrow-down")).not.toBeNull();
+      expect(container.querySelector(".lucide-arrow-up")).toBeNull();
+    });
+
+    it("calls onSort on click", () => {
+      const onSort = vi.fn();
+      const { container } = render(
+        <SortableHeader label="Test Name" column="testName" sortConfig={null} onSort={onSort} />,
+      );
+      container.querySelector("button")?.click();
+      expect(onSort).toHaveBeenCalledWith("testName");
+    });
+  });
+
+  describe("LabOrderActionsCell", () => {
+    it("shows verify button for unpaid orders with permission", () => {
+      render(
+        <TooltipProvider>
+          <LabOrderActionsCell test={makeOrder("1")} canVerifyPayment={true} handleVerify={mockHandleVerify} isVerifying={false} />
+        </TooltipProvider>,
+      );
+      expect(screen.getByText("Verify")).toBeInTheDocument();
+    });
+
+    it("hides verify button for paid orders", () => {
+      render(
+        <TooltipProvider>
+          <LabOrderActionsCell test={makeOrder("1", { paidAt: "2026-01-16T10:00:00Z" })} canVerifyPayment={true} handleVerify={mockHandleVerify} isVerifying={false} />
+        </TooltipProvider>,
+      );
+      expect(screen.queryByText("Verify")).not.toBeInTheDocument();
+    });
+
+    it("hides verify button when user lacks permission", () => {
+      render(
+        <TooltipProvider>
+          <LabOrderActionsCell test={makeOrder("1")} canVerifyPayment={false} handleVerify={mockHandleVerify} isVerifying={false} />
+        </TooltipProvider>,
+      );
+      expect(screen.queryByText("Verify")).not.toBeInTheDocument();
+    });
+
+    it("disables verify button when isVerifying is true", () => {
+      render(
+        <TooltipProvider>
+          <LabOrderActionsCell test={makeOrder("1")} canVerifyPayment={true} handleVerify={mockHandleVerify} isVerifying={true} />
+        </TooltipProvider>,
+      );
+      expect(screen.getByText("Verify").closest("button")).toBeDisabled();
+    });
+
+    it('shows "View Results" for completed orders', () => {
+      render(
+        <TooltipProvider>
+          <LabOrderActionsCell test={makeOrder("1", { status: "completed" })} canVerifyPayment={false} handleVerify={mockHandleVerify} isVerifying={false} />
+        </TooltipProvider>,
+      );
+      expect(screen.getByText("View Results")).toBeInTheDocument();
+    });
+
+    it('shows "Details" for non-completed orders', () => {
+      render(
+        <TooltipProvider>
+          <LabOrderActionsCell test={makeOrder("1", { status: "ORDERED" })} canVerifyPayment={false} handleVerify={mockHandleVerify} isVerifying={false} />
+        </TooltipProvider>,
+      );
+      expect(screen.getByText("Details")).toBeInTheDocument();
+    });
+
+    it("calls handleVerify on Verify click", () => {
+      const handleVerify = vi.fn();
+      const test = makeOrder("1");
+      render(
+        <TooltipProvider>
+          <LabOrderActionsCell test={test} canVerifyPayment={true} handleVerify={handleVerify} isVerifying={false} />
+        </TooltipProvider>,
+      );
+      screen.getByText("Verify").click();
+      expect(handleVerify).toHaveBeenCalledWith(test);
+    });
+  });
+
+  describe("PatientNameCell", () => {
+    it("renders patient full name", () => {
+      render(<PatientNameCell test={makeOrder("1")} />);
+      expect(screen.getByText("John Doe")).toBeInTheDocument();
+    });
+
+    it('renders "Unknown" when patient is null', () => {
+      render(<PatientNameCell test={makeOrder("1", { patient: null })} />);
+      expect(screen.getByText("Unknown")).toBeInTheDocument();
     });
   });
 });

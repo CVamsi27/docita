@@ -56,7 +56,7 @@ export class PrismaDashboardRepository implements IDashboardRepository {
   }
 
   async getStatsSnapshot(clinicId: string): Promise<DashboardStatsSnapshot> {
-// jscpd:ignore-end
+    // jscpd:ignore-end
     const readClient = this.getReadClient();
     const now = this.clock.now();
 

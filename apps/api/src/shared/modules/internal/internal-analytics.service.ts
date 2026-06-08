@@ -292,7 +292,7 @@ export class InternalAnalyticsService {
       );
     }
   }
-// jscpd:ignore-start
+  // jscpd:ignore-start
   private formatDuration(seconds: number): string {
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);
@@ -309,7 +309,7 @@ export class InternalAnalyticsService {
   }
 
   async getUsageMetrics() {
-// jscpd:ignore-end
+    // jscpd:ignore-end
     try {
       const cacheKey = 'internal:usage-metrics';
       const cached = await this.cacheManager.get(cacheKey);

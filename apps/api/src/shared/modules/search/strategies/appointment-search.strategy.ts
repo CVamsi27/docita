@@ -31,7 +31,7 @@ export class AppointmentSearchStrategy extends SearchStrategyBase {
   ): Promise<SearchResult[]> {
     const [ftsResults, fuzzyResults] = await Promise.all([
       this.searchQueries.searchAppointmentsFullText(clinicId, query, limit),
-// jscpd:ignore-end
+      // jscpd:ignore-end
       this.searchQueries.searchAppointmentsFuzzy(clinicId, query, limit),
     ]);
 

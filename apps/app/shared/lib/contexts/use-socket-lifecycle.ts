@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Socket } from "socket.io-client";
-import { socketErrorData } from "./socket-context-helpers";
+import { resolveSocketUrl, socketErrorData } from "./socket-context-helpers";
 
 interface UseSocketLifecycleParams {
   enabled: boolean;
@@ -67,6 +67,21 @@ export function useSocketLifecycle({
     }
   }, [reconnectSocket]);
 
+  // The "Unauthorized" connect-error path and the "unauthorized" event path
+  // both attempt token recovery and fall back to logout + disconnect — they
+  // were duplicated inline on the socket instance, so the shared recovery
+  // flow is named once here instead.
+  const handleAuthFailure = useCallback(
+    async (socketInstance: Socket) => {
+      const recovered = await recoverSocketAuth();
+      if (!recovered) {
+        await logoutRef.current();
+        socketInstance.disconnect();
+      }
+    },
+    [recoverSocketAuth],
+  );
+
   useEffect(() => {
     if (!enabled || !isAuthenticated || !token) {
       if (socketRef.current) {
@@ -78,11 +93,7 @@ export function useSocketLifecycle({
       return;
     }
 
-    const socketUrl =
-      process.env["NEXT_PUBLIC_SOCKET_URL"] ||
-      (process.env["DOCITA_CLOUDFLARE"] === "1"
-        ? "https://api.docita.work"
-        : "http://localhost:3001");
+    const socketUrl = resolveSocketUrl();
 
     let cancelled = false;
 
@@ -128,24 +139,12 @@ export function useSocketLifecycle({
           err.message === "Unauthorized" ||
           errorPayload?.content?.message === "Unauthorized"
         ) {
-          void (async () => {
-            const recovered = await recoverSocketAuth();
-            if (!recovered) {
-              await logoutRef.current();
-              socketInstance.disconnect();
-            }
-          })();
+          void handleAuthFailure(socketInstance);
         }
       });
 
       socketInstance.on("unauthorized", () => {
-        void (async () => {
-          const recovered = await recoverSocketAuth();
-          if (!recovered) {
-            await logoutRef.current();
-            socketInstance.disconnect();
-          }
-        })();
+        void handleAuthFailure(socketInstance);
       });
 
       socketInstance.on("token_refresh", () => {
@@ -186,7 +185,7 @@ export function useSocketLifecycle({
         reconnectTimeoutRef.current = null;
       }
     };
-  }, [enabled, token, isAuthenticated, reconnectSocket, recoverSocketAuth]);
+  }, [enabled, token, isAuthenticated, reconnectSocket, handleAuthFailure]);
 
   return { socket, isConnected, reconnect };
 }

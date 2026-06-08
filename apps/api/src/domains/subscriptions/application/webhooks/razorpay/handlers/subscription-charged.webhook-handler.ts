@@ -33,7 +33,7 @@ export class SubscriptionChargedWebhookHandler extends BaseRazorpayWebhookHandle
   async handle(payload: RazorpayWebhookPayload): Promise<void> {
     const sub = this.extractSubscriptionEntity(payload);
     const payment = payload.payload.payment?.entity;
-// jscpd:ignore-end
+    // jscpd:ignore-end
     if (!sub || !payment) return;
 
     const clinicId = this.extractClinicId(payload);

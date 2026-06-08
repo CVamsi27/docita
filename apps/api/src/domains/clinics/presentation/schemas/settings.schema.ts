@@ -52,7 +52,7 @@ export const ClinicSettingsSchema = z.object({
         required: z.boolean(),
       }),
     )
-// jscpd:ignore-start
+    // jscpd:ignore-start
     .optional(),
   emailNotifications: z.boolean().optional(),
   smsNotifications: z.boolean().optional(),
@@ -76,7 +76,7 @@ export const ClinicSettingsSchema = z.object({
 
   defaultInstructions: z.string().optional(),
   defaultFooterText: z.string().optional(),
-// jscpd:ignore-end
+  // jscpd:ignore-end
   includeClinicHeader: z.boolean().optional(),
   includeDoctorSignature: z.boolean().optional(),
   includeQRCode: z.boolean().optional(),

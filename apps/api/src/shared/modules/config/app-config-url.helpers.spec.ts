@@ -1,12 +1,15 @@
 import {
   emailLinkBaseUrlFromAppUrl,
+  isIpAddress,
   parseHostname,
   resolveSharedCookieDomain,
 } from './app-config-url.helpers';
 
 describe('parseHostname', () => {
   it('extracts hostname from a full URL', () => {
-    expect(parseHostname('https://app.docita.work/path')).toBe('app.docita.work');
+    expect(parseHostname('https://app.docita.work/path')).toBe(
+      'app.docita.work',
+    );
   });
 
   it('lowercases the hostname', () => {
@@ -27,9 +30,9 @@ describe('emailLinkBaseUrlFromAppUrl', () => {
   });
 
   it('strips trailing slashes from the URL', () => {
-    expect(emailLinkBaseUrlFromAppUrl('https://app.docita.work///', false)).toBe(
-      'https://app.docita.work',
-    );
+    expect(
+      emailLinkBaseUrlFromAppUrl('https://app.docita.work///', false),
+    ).toBe('https://app.docita.work');
   });
 
   it('returns the origin when the path is just "/" in dev mode', () => {
@@ -83,8 +86,30 @@ describe('resolveSharedCookieDomain', () => {
   });
 
   it('returns undefined when hostnames share fewer than 2 segments', () => {
+    expect(resolveSharedCookieDomain(['app.com', 'app.org'])).toBeUndefined();
+  });
+
+  it('returns undefined when any hostname has an IPv6 colon notation', () => {
     expect(
-      resolveSharedCookieDomain(['app.com', 'app.org']),
+      resolveSharedCookieDomain(['app.docita.work', '::1']),
     ).toBeUndefined();
+  });
+});
+
+describe('isIpAddress', () => {
+  it('returns true for IPv4 addresses', () => {
+    expect(isIpAddress('192.168.1.1')).toBe(true);
+    expect(isIpAddress('10.0.0.1')).toBe(true);
+  });
+
+  it('returns true for IPv6 colon notation', () => {
+    expect(isIpAddress('::1')).toBe(true);
+    expect(isIpAddress('fe80::1')).toBe(true);
+  });
+
+  it('returns false for hostnames', () => {
+    expect(isIpAddress('example.com')).toBe(false);
+    expect(isIpAddress('localhost')).toBe(false);
+    expect(isIpAddress('192.168.1')).toBe(false);
   });
 });

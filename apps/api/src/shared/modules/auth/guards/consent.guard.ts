@@ -34,7 +34,7 @@ export class ConsentGuard implements CanActivate {
       REQUIRE_CONSENT_KEY,
       [context.getHandler(), context.getClass()],
     );
-// jscpd:ignore-end
+    // jscpd:ignore-end
 
     if (!requiredTypes || requiredTypes.length === 0) return true;
 

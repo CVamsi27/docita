@@ -35,7 +35,7 @@ export const OCRLabValues = ({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="text-xs">Glucose (mg/dL)</Label>
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
                     getScore("labValues_glucose"),

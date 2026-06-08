@@ -1,7 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
-import { reportClientError } from "@/lib/monitoring/client-error-reporting";
+import { useCallback, useEffect, useRef } from "react";
+import {
+  reportClientError,
+  type ClientErrorPayload,
+} from "@/lib/monitoring/client-error-reporting";
+
+const DEDUPE_WINDOW_MS = 5000;
+const MAX_DEDUPE_KEYS = 200;
 
 const getConsoleMessage = (args: unknown[]): string => {
   return args
@@ -18,57 +24,48 @@ const getConsoleMessage = (args: unknown[]): string => {
     .slice(0, 1000);
 };
 
-export function ClientErrorReporter() {
+const isMonitoringNoiseMessage = (message: string): boolean => {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes("/monitoring/client-errors") ||
+    normalized.includes("client-error-reporting.ts")
+  );
+};
+
+type ReportPayload = Omit<ClientErrorPayload, "path">;
+type ReportFn = (key: string, payload: ReportPayload) => void;
+
+/**
+ * Owns the dedupe window that keeps the same error/console-message from being
+ * reported repeatedly within a short burst — every reporting path (window
+ * errors, promise rejections, patched console methods) funnels through this
+ * single deduped `report`. Extracted from `ClientErrorReporter` so the
+ * dedupe bookkeeping isn't tangled with what triggers a report.
+ */
+function useDedupedClientErrorReporter(): ReportFn {
+  const reportedKeysRef = useRef(new Map<string, number>());
+
+  return useCallback((key, payload) => {
+    const reportedKeys = reportedKeysRef.current;
+    const now = Date.now();
+    const prev = reportedKeys.get(key);
+    if (prev && now - prev < DEDUPE_WINDOW_MS) return;
+    reportedKeys.set(key, now);
+    if (reportedKeys.size > MAX_DEDUPE_KEYS) {
+      const firstKey = reportedKeys.keys().next().value;
+      if (firstKey) reportedKeys.delete(firstKey);
+    }
+    void reportClientError({ ...payload, path: window.location.pathname });
+  }, []);
+}
+
+/**
+ * Wires up the `window` `error`/`unhandledrejection` listeners — the two
+ * "the page itself blew up" signals — and tears them down on unmount.
+ * Self-contained: its only shared dependency is the deduped `report`.
+ */
+function useWindowErrorReporting(report: ReportFn): void {
   useEffect(() => {
-    const reportedKeys = new Map<string, number>();
-    const shouldReport = true;
-    const shouldPrintToConsole = true;
-    const captureConsoleInfo =
-      process.env.NEXT_PUBLIC_CAPTURE_CONSOLE_INFO === "true";
-    const captureConsoleWarnings =
-      process.env.NEXT_PUBLIC_CAPTURE_CONSOLE_WARNINGS === "true";
-    const isMonitoringNoiseMessage = (message: string): boolean => {
-      const normalized = message.toLowerCase();
-      return (
-        normalized.includes("/monitoring/client-errors") ||
-        normalized.includes("client-error-reporting.ts")
-      );
-    };
-
-    const dedupe = (key: string): boolean => {
-      const now = Date.now();
-      const prev = reportedKeys.get(key);
-      if (prev && now - prev < 5000) return false;
-      reportedKeys.set(key, now);
-      if (reportedKeys.size > 200) {
-        const firstKey = reportedKeys.keys().next().value;
-        if (firstKey) {
-          reportedKeys.delete(firstKey);
-        }
-      }
-      return true;
-    };
-
-    const report = (
-      key: string,
-      payload: {
-        type: string;
-        message: string;
-        severity?: "DEBUG" | "INFO" | "WARNING" | "ERROR" | "CRITICAL";
-        stack?: string;
-        metadata?: Record<string, unknown>;
-      },
-    ) => {
-      if (!shouldReport || !dedupe(key)) {
-        return;
-      }
-
-      void reportClientError({
-        ...payload,
-        path: window.location.pathname,
-      });
-    };
-
     const handleError = (event: ErrorEvent) => {
       const message = event.message || "Unhandled error";
       const stack =
@@ -98,94 +95,113 @@ export function ClientErrorReporter() {
       });
     };
 
+    window.addEventListener("error", handleError);
+    window.addEventListener("unhandledrejection", handleRejection);
+    return () => {
+      window.removeEventListener("error", handleError);
+      window.removeEventListener("unhandledrejection", handleRejection);
+    };
+  }, [report]);
+}
+
+interface ConsoleReportConfig {
+  type: string;
+  severity: "WARNING" | "ERROR";
+  keyPrefix: string;
+  isEnabled: boolean;
+}
+
+/**
+ * Reports a captured `console.warn`/`console.error` call through the deduped
+ * `report`, after the noise filter and the feature's enable gate — the two
+ * patched console methods were near-identical copies of this exact "filter,
+ * gate, extract first error, report" shape (differing only in the report
+ * type, severity, key prefix, and gate condition), so the shared shape is
+ * named once and parameterized instead of duplicated twice.
+ */
+function reportFilteredConsoleMessage(
+  report: ReportFn,
+  args: unknown[],
+  config: ConsoleReportConfig,
+): void {
+  const message = getConsoleMessage(args);
+  if (isMonitoringNoiseMessage(message) || !config.isEnabled) return;
+  const firstError = args.find((arg): arg is Error => arg instanceof Error);
+  report(`${config.keyPrefix}:${message}`, {
+    type: config.type,
+    message,
+    severity: config.severity,
+    stack: firstError?.stack,
+  });
+}
+
+/**
+ * Patches `console.log`/`warn`/`error` to mirror their output into the
+ * deduped reporting pipeline (gated by env-configured capture flags), and
+ * restores the originals on unmount. Self-contained: its only shared
+ * dependency is the deduped `report`.
+ */
+function useConsolePatching(report: ReportFn): void {
+  useEffect(() => {
+    const shouldPrintToConsole = true;
+    const captureConsoleInfo =
+      process.env.NEXT_PUBLIC_CAPTURE_CONSOLE_INFO === "true";
+    const captureConsoleWarnings =
+      process.env.NEXT_PUBLIC_CAPTURE_CONSOLE_WARNINGS === "true";
+
     const consoleRef = globalThis.console;
     const originalConsoleLog = consoleRef.log.bind(consoleRef);
     const originalConsoleWarn = consoleRef.warn.bind(consoleRef);
     const originalConsoleError = consoleRef.error.bind(consoleRef);
 
     const patchedConsoleLog = (...args: unknown[]) => {
-      if (shouldPrintToConsole) {
-        originalConsoleLog(...args);
-      }
-
+      if (shouldPrintToConsole) originalConsoleLog(...args);
+      if (!captureConsoleInfo) return;
       const message = getConsoleMessage(args);
-
-      if (captureConsoleInfo) {
-        report(`console-log:${message}`, {
-          type: "ConsoleLog",
-          message,
-          severity: "INFO",
-        });
-      }
-    };
-
-    const patchedConsoleWarn = (...args: unknown[]) => {
-      if (shouldPrintToConsole) {
-        originalConsoleWarn(...args);
-      }
-
-      const message = getConsoleMessage(args);
-      if (isMonitoringNoiseMessage(message)) {
-        return;
-      }
-
-      if (captureConsoleWarnings) {
-        const firstError = args.find(
-          (arg): arg is Error => arg instanceof Error,
-        );
-        report(`console-warn:${message}`, {
-          type: "ConsoleWarning",
-          message,
-          severity: "WARNING",
-          stack: firstError?.stack,
-        });
-      }
-    };
-
-    const patchedConsoleError = (...args: unknown[]) => {
-      if (shouldPrintToConsole) {
-        originalConsoleError(...args);
-      }
-
-      const message = getConsoleMessage(args);
-      if (isMonitoringNoiseMessage(message)) {
-        return;
-      }
-
-      const firstError = args.find((arg): arg is Error => arg instanceof Error);
-      report(`console-error:${message}`, {
-        type: "ConsoleError",
+      report(`console-log:${message}`, {
+        type: "ConsoleLog",
         message,
-        severity: "ERROR",
-        stack: firstError?.stack,
+        severity: "INFO",
       });
     };
 
-    window.addEventListener("error", handleError);
-    window.addEventListener("unhandledrejection", handleRejection);
+    const patchedConsoleWarn = (...args: unknown[]) => {
+      if (shouldPrintToConsole) originalConsoleWarn(...args);
+      reportFilteredConsoleMessage(report, args, {
+        type: "ConsoleWarning",
+        severity: "WARNING",
+        keyPrefix: "console-warn",
+        isEnabled: captureConsoleWarnings,
+      });
+    };
+
+    const patchedConsoleError = (...args: unknown[]) => {
+      if (shouldPrintToConsole) originalConsoleError(...args);
+      reportFilteredConsoleMessage(report, args, {
+        type: "ConsoleError",
+        severity: "ERROR",
+        keyPrefix: "console-error",
+        isEnabled: true,
+      });
+    };
 
     // Patch log/warn only when capturing is enabled. Otherwise Next.js and other
     // dev tooling logs would appear to come from this file and obscure real sources.
-    if (captureConsoleInfo) {
-      consoleRef.log = patchedConsoleLog;
-    }
-    if (captureConsoleWarnings) {
-      consoleRef.warn = patchedConsoleWarn;
-    }
+    if (captureConsoleInfo) consoleRef.log = patchedConsoleLog;
+    if (captureConsoleWarnings) consoleRef.warn = patchedConsoleWarn;
     consoleRef.error = patchedConsoleError;
 
     return () => {
-      window.removeEventListener("error", handleError);
-      window.removeEventListener("unhandledrejection", handleRejection);
-      if (captureConsoleInfo) {
-        consoleRef.log = originalConsoleLog;
-      }
-      if (captureConsoleWarnings) {
-        consoleRef.warn = originalConsoleWarn;
-      }
+      if (captureConsoleInfo) consoleRef.log = originalConsoleLog;
+      if (captureConsoleWarnings) consoleRef.warn = originalConsoleWarn;
       consoleRef.error = originalConsoleError;
     };
-  }, []);
+  }, [report]);
+}
 
+export function ClientErrorReporter() {
+  const report = useDedupedClientErrorReporter();
+  useWindowErrorReporting(report);
+  useConsolePatching(report);
   return null;
 }

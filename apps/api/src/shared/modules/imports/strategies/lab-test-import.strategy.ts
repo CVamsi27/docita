@@ -32,7 +32,7 @@ export class LabTestImportStrategy implements IImportStrategy {
   ): Promise<void> {
     void _audit;
     const name = readImportRowRequiredString(row, 'testName');
-// jscpd:ignore-end
+    // jscpd:ignore-end
     const code =
       readImportRowOptionalString(row, 'testCode')?.trim() ||
       name.replace(/\s+/g, '-').toUpperCase();

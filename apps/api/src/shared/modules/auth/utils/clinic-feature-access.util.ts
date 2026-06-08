@@ -52,7 +52,7 @@ function getTierDisplayName(tier: Tier): string {
     [Tier.FRONT_DESK_CLINIC]: 'Front desk Clinic',
     [Tier.FRONT_DESK_HOSPITAL]: 'Front desk Hospital',
   };
-// jscpd:ignore-start
+  // jscpd:ignore-start
   return names[tier] || 'Unknown';
 }
 

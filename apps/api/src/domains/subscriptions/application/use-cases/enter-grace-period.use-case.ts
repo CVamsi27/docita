@@ -27,7 +27,7 @@ export class EnterGracePeriodUseCase {
 
   async execute(subscriptionId: string): Promise<void> {
     const subscription = await loadSubscriptionByIdOrThrow(
-// jscpd:ignore-end
+      // jscpd:ignore-end
       this.subscriptionRepo,
       subscriptionId,
     );

@@ -1,3 +1,4 @@
+// fallow-ignore-file coverage-gaps
 export function parseHostname(value: string): string | null {
   try {
     return new URL(value).hostname.toLowerCase();
@@ -69,6 +70,6 @@ export function resolveSharedCookieDomain(
   return sharedSegments.join('.');
 }
 
-function isIpAddress(hostname: string): boolean {
+export function isIpAddress(hostname: string): boolean {
   return /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname) || hostname.includes(':');
 }

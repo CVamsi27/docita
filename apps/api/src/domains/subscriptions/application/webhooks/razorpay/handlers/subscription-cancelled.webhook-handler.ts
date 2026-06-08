@@ -32,7 +32,7 @@ export class SubscriptionCancelledWebhookHandler extends BaseRazorpayWebhookHand
     const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
     if (subscription) {
       subscription.cancel(false, this.clock.now());
-// jscpd:ignore-end
+      // jscpd:ignore-end
       await this.subscriptionRepo.save(subscription);
     }
 

@@ -87,7 +87,7 @@ export const PrescriptionAssistantTab = ({
             <>
               <Sparkles className="h-4 w-4 mr-2" />
               Get Suggestions
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
             </>
           )}
         </Button>

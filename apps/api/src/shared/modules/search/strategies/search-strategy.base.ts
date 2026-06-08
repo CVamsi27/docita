@@ -15,7 +15,7 @@ import type { ISearchStrategy } from './search-strategy.interface';
 import { Inject } from '@nestjs/common';
 
 export abstract class SearchStrategyBase implements ISearchStrategy {
-// jscpd:ignore-end
+  // jscpd:ignore-end
   abstract readonly entityType: Exclude<SearchEntityType, 'all'>;
   protected abstract readonly fullTextKey: FullTextCapableEntity;
 

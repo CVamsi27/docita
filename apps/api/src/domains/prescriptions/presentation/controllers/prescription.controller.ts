@@ -65,7 +65,7 @@ export class PrescriptionsController {
     @Request() req: RequestWithUser,
     @Query() query?: ListPrescriptionsQueryDto,
   ) {
-// jscpd:ignore-start
+    // jscpd:ignore-start
     const { search, date, startDate, endDate, patientId, limit } = query ?? {};
 
     if (patientId) {
@@ -80,7 +80,7 @@ export class PrescriptionsController {
         this.auditService,
         req,
         'VIEW_PRESCRIPTION_LIST',
-// jscpd:ignore-end
+        // jscpd:ignore-end
         'Prescription',
         { search, date, startDate, endDate, limit },
       );

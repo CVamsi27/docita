@@ -2,10 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import PDFDocument from 'pdfkit';
 import { DATE_FORMATS, formatDate } from '@workspace/utils';
-import type {
-  PDFClinicInfo,
-  PDFDocumentType,
-} from '@workspace/types';
+import type { PDFClinicInfo, PDFDocumentType } from '@workspace/types';
 import type { PDFContext } from './pdf.types';
 
 @Injectable()

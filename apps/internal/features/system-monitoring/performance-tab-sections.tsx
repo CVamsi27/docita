@@ -45,7 +45,7 @@ export function StatCardGrid({
         <CardContent>
           <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
             {performance?.uptime.formatted ?? "N/A"}
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
           </div>
           <p className="text-xs text-muted-foreground">
             Process uptime from the runtime API

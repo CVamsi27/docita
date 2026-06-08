@@ -26,7 +26,7 @@ export class PrescriptionsQueryService {
     },
   ) {
     return this.repository.findAll({
-// jscpd:ignore-end
+      // jscpd:ignore-end
       clinicId,
       ...params,
     });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useRef, useState } from "react";
 import { useConsultationLogic } from "@/features/consultation/hooks/use-consultation-logic";
 import {

@@ -27,7 +27,7 @@ import { SignatureImageClient } from './infrastructure/external/signature-image.
     PrescriptionsCommandService,
     PrescriptionsService,
     PrescriptionPdfOrchestratorService,
-// jscpd:ignore-start
+    // jscpd:ignore-start
     PrescriptionPdfService,
     PrescriptionPdfProcessor,
     {
@@ -40,6 +40,6 @@ import { SignatureImageClient } from './infrastructure/external/signature-image.
     },
   ],
   exports: [PrescriptionsService, PrescriptionPdfService],
-// jscpd:ignore-end
+  // jscpd:ignore-end
 })
 export class PrescriptionsWorkerModule {}

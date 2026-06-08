@@ -87,7 +87,7 @@ export class PrismaInsuranceClaimRepository implements IInsuranceClaimRepository
       patientId,
       invoiceId,
       status,
-// jscpd:ignore-start
+      // jscpd:ignore-start
       claimType,
       search,
       cursor,
@@ -99,7 +99,7 @@ export class PrismaInsuranceClaimRepository implements IInsuranceClaimRepository
     }
 
     const filters: Prisma.InsuranceClaimWhereInput[] = [
-// jscpd:ignore-end
+      // jscpd:ignore-end
       this.ownershipFilter(clinicId),
     ];
     if (patientId) filters.push({ patientId });
@@ -138,7 +138,7 @@ export class PrismaInsuranceClaimRepository implements IInsuranceClaimRepository
 
     const rows = await readClient.insuranceClaim.findMany(query);
     const hasMore = rows.length > safeLimit;
-// jscpd:ignore-start
+    // jscpd:ignore-start
     const items = rows.slice(0, safeLimit).map(toInsuranceClaimRecord);
 
     return {
@@ -150,7 +150,7 @@ export class PrismaInsuranceClaimRepository implements IInsuranceClaimRepository
   }
 
   async findById(
-// jscpd:ignore-end
+    // jscpd:ignore-end
     id: string,
     clinicId: string,
   ): Promise<InsuranceClaimRecord | null> {

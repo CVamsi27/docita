@@ -32,7 +32,7 @@ export class PatientSearchStrategy extends SearchStrategyBase {
   ): Promise<SearchResult[]> {
     const [ftsResults, fuzzyResults] = await Promise.all([
       this.searchQueries.searchPatientsFullText(clinicId, query, limit),
-// jscpd:ignore-end
+      // jscpd:ignore-end
       this.searchQueries.searchPatientsFuzzy(clinicId, query, limit),
     ]);
 

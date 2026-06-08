@@ -60,7 +60,7 @@ export class UserRateLimitService {
   }
 
   resetAll(): void {
-// jscpd:ignore-start
+    // jscpd:ignore-start
     this.userAttempts.clear();
   }
 
@@ -71,7 +71,7 @@ export class UserRateLimitService {
 
     this.nextCleanupAt = now + this.WINDOW_MS;
     for (const [userId, tracker] of this.userAttempts.entries()) {
-// jscpd:ignore-end
+      // jscpd:ignore-end
       if (now > tracker.resetTime) {
         this.userAttempts.delete(userId);
       }

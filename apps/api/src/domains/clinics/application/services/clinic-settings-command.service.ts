@@ -122,7 +122,7 @@ export class ClinicSettingsCommandService {
     }
     if (this.payloadTouchesKeys(data, lockedThemeKeys)) {
       assertClinicHasFeatureOrThrow(snapshot, Feature.LOCKED_CUSTOM_THEME);
-// jscpd:ignore-start
+      // jscpd:ignore-start
     }
   }
 
@@ -134,7 +134,7 @@ export class ClinicSettingsCommandService {
   }
 
   async updateSettings(id: string, data: ClinicSettingsData) {
-// jscpd:ignore-end
+    // jscpd:ignore-end
     await this.assertTierGatedSettingsAllowed(id, data);
 
     const settingsToValidate = {

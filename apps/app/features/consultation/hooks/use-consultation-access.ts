@@ -7,7 +7,7 @@ import {
   useStartConsultation,
   useUpdateAppointment,
 } from "@workspace/data-access";
-import { isSessionRecoveryError } from "@/lib/auth/session-recovery";
+
 import { isConsultationReadOnlyStatus } from "@/features/appointments";
 import type { UpdateAppointmentInput } from "@workspace/types";
 

@@ -140,10 +140,7 @@ export function buildDataExportLog(args: {
   };
 }
 
-export type PatientAccessType =
-  | 'VIEW_HISTORY'
-  | 'VIEW_PROFILE'
-  | 'EXPORT_DATA';
+export type PatientAccessType = 'VIEW_HISTORY' | 'VIEW_PROFILE' | 'EXPORT_DATA';
 
 export function buildPatientAccessLog(args: {
   userId: string;

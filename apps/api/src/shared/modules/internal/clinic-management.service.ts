@@ -84,7 +84,7 @@ export class ClinicManagementService {
     const doctor = await this.prisma.user.findFirst({
       where: {
         id: doctorId,
-// jscpd:ignore-start
+        // jscpd:ignore-start
         role: { in: [Role.DOCTOR, Role.ADMIN_DOCTOR] },
         OR: [
           { clinicId },
@@ -100,7 +100,7 @@ export class ClinicManagementService {
       },
       select: {
         ...DOCTOR_DETAIL_SELECT,
-// jscpd:ignore-end
+        // jscpd:ignore-end
       },
     });
 

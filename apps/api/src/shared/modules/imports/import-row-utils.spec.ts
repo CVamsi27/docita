@@ -72,7 +72,12 @@ describe('toHeaderString', () => {
 
 describe('trimTrailingEmptyCells', () => {
   it('removes trailing undefined values', () => {
-    const arr: Array<string | number | Date | undefined> = ['a', 'b', undefined, undefined];
+    const arr: Array<string | number | Date | undefined> = [
+      'a',
+      'b',
+      undefined,
+      undefined,
+    ];
     trimTrailingEmptyCells(arr);
     expect(arr).toEqual(['a', 'b']);
   });
@@ -106,14 +111,18 @@ describe('mapDataRows', () => {
 
   it('skips empty header columns', () => {
     const headers = ['name', '', 'age'];
-    const data: Array<Array<string | number | Date | undefined>> = [['Alice', 'ignored', 30]];
+    const data: Array<Array<string | number | Date | undefined>> = [
+      ['Alice', 'ignored', 30],
+    ];
     const result = mapDataRows(headers, data);
     expect(result).toEqual([{ name: 'Alice', age: 30 }]);
   });
 
   it('skips undefined or empty values', () => {
     const headers = ['name', 'age'];
-    const data: Array<Array<string | number | Date | undefined>> = [['Alice', '']];
+    const data: Array<Array<string | number | Date | undefined>> = [
+      ['Alice', ''],
+    ];
     const result = mapDataRows(headers, data);
     expect(result).toEqual([{ name: 'Alice' }]);
   });

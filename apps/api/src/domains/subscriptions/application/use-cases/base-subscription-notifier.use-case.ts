@@ -35,7 +35,7 @@ export type ReminderCreateRecord = {
 };
 
 export abstract class BaseSubscriptionNotifier {
-// jscpd:ignore-end
+  // jscpd:ignore-end
   protected readonly logger: Logger;
 
   constructor(

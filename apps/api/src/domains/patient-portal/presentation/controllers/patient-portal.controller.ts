@@ -144,7 +144,7 @@ export class PatientPortalController {
     },
   ) {
     return this.portalService.updateProfile(
-// jscpd:ignore-end
+      // jscpd:ignore-end
       requireAuthenticatedUserId(req),
       body,
     );

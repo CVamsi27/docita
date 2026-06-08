@@ -26,9 +26,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 @Controller('appointments')
 @AppointmentsApiAccess()
 export class AppointmentsWorkflowController {
-  constructor(
-    private readonly appointmentService: AppointmentService,
-  ) {}
+  constructor(private readonly appointmentService: AppointmentService) {}
 
   @Patch(':id/cancel')
   @ApiOperation({ summary: 'Cancel appointment' })

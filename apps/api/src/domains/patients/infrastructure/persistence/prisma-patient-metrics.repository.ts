@@ -86,7 +86,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
   }
 
   async findCategories(clinicId: string, patientId: string) {
-// jscpd:ignore-end
+    // jscpd:ignore-end
     const categories = await this.getReadClient().metricCategory.findMany({
       where: { clinicId, isActive: true },
       orderBy: [{ order: 'asc' }, { name: 'asc' }],

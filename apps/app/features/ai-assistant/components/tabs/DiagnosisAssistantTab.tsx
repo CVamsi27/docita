@@ -76,7 +76,7 @@ export const DiagnosisAssistantTab = ({
             <>
               <Sparkles className="h-4 w-4 mr-2" />
               Get Differential Diagnoses
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
             </>
           )}
         </Button>

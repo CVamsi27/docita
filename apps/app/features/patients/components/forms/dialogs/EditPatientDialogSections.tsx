@@ -64,7 +64,7 @@ export function DialogActionButtons({
           />
         )}
         Save Changes
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
       </Button>
     </div>
   );

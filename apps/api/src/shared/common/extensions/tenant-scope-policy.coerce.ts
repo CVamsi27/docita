@@ -16,9 +16,7 @@ export function coerceTenantExtensionArgs(args: unknown): TenantExtensionArgs {
     ? data
         .filter(isRecord)
         .map((entry) => readPropertyValueRecord(entry))
-        .filter(
-          (entry): entry is Record<string, PropertyValue> => !!entry,
-        )
+        .filter((entry): entry is Record<string, PropertyValue> => !!entry)
     : readPropertyValueRecord(data);
 
   return {

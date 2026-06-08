@@ -22,7 +22,6 @@ type Doc = typeof PDFDocument.prototype;
 
 type ClinicHeaderArgs = [Doc, PDFClinicInfo, PDFContext, PDFDocumentType?];
 type DocumentTitleArgs = [Doc, string, string?, Date?, PDFContext?, boolean?];
-type PatientDoctorInfoArgs = [Doc, PDFPatientInfo?, PDFDoctorInfo?, PDFContext?];
 type MedicationsTableArgs = [Doc, PDFMedicationInfo[], PDFContext];
 type AbbreviationLegendArgs = [Doc, PDFMedicationInfo[], PDFContext];
 type InvoiceItemsTableArgs = [Doc, PDFInvoiceItem[], PDFContext];

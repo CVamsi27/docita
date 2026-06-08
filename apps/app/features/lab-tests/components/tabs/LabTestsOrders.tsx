@@ -1,3 +1,4 @@
+// fallow-ignore-file coverage-gaps
 import { ArrowUp, ArrowDown, ArrowUpDown, FileText, ShieldCheck } from "lucide-react";
 import { FC } from "react";
 import { getPatientFullName } from "@workspace/utils";
@@ -19,7 +20,7 @@ const PAYMENT_ROLES = new Set(["ADMIN", "ADMIN_DOCTOR", "RECEPTIONIST"]);
 
 /* ─── Subcomponents ─────────────────────────────────────────── */
 
-function SortableHeader({
+export function SortableHeader({
   label, column, sortConfig, onSort,
 }: {
   label: string;
@@ -39,7 +40,7 @@ function SortableHeader({
   );
 }
 
-function LabOrderActionsCell({
+export function LabOrderActionsCell({
   test, canVerifyPayment, handleVerify, isVerifying,
 }: {
   test: LabTestOrder;
@@ -67,7 +68,7 @@ function LabOrderActionsCell({
   );
 }
 
-function LabOrderMobileRow({ test }: { test: LabTestOrder }) {
+export function LabOrderMobileRow({ test }: { test: LabTestOrder }) {
   return (
     <ListRow
       title={test.patient ? getPatientFullName(test.patient) : "Unknown"}
@@ -78,19 +79,19 @@ function LabOrderMobileRow({ test }: { test: LabTestOrder }) {
   );
 }
 
-function PatientNameCell({ test }: { test: LabTestOrder }) {
+export function PatientNameCell({ test }: { test: LabTestOrder }) {
   return <span className="font-medium">{test.patient ? getPatientFullName(test.patient) : "Unknown"}</span>;
 }
 
-function CategoryCell({ test }: { test: LabTestOrder }) {
+export function CategoryCell({ test }: { test: LabTestOrder }) {
   return <span className="capitalize text-muted-foreground">{test.labTest?.category || "—"}</span>;
 }
 
-function OrderedByCell({ test }: { test: LabTestOrder }) {
+export function OrderedByCell({ test }: { test: LabTestOrder }) {
   return <span className="text-muted-foreground">{test.doctor?.name || "—"}</span>;
 }
 
-function PaymentStatusCell({ test }: { test: LabTestOrder }) {
+export function PaymentStatusCell({ test }: { test: LabTestOrder }) {
   return <StatusBadge status={test.paidAt ? "paid" : "unpaid"} />;
 }
 

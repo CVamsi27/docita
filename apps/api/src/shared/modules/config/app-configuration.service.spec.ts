@@ -1,6 +1,9 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { AuthSecurityConfigService } from './auth-security-config.service';
-import { WORKER_JWT_MODULE_PLACEHOLDER_SECRET, type EnvConfig } from './app-config';
+import {
+  WORKER_JWT_MODULE_PLACEHOLDER_SECRET,
+  type EnvConfig,
+} from './app-config';
 
 function makeService(config: Partial<EnvConfig>): AuthSecurityConfigService {
   const service = new AuthSecurityConfigService();

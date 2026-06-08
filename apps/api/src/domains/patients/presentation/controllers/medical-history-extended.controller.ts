@@ -55,7 +55,7 @@ export class MedicalHistoryExtendedController {
   }
 
   @Get('family')
-// jscpd:ignore-end
+  // jscpd:ignore-end
   async getFamilyHistory(
     @Param('patientId') patientId: string,
     @Request() req: RequestWithUser,

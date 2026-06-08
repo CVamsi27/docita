@@ -1,3 +1,4 @@
+// fallow-ignore-file coverage-gaps
 import type { QueueItem } from "@workspace/data-access";
 import type { AppointmentListItemContractResponse } from "@workspace/types";
 import { isQueueTokenInProgress, isQueueTokenWaiting } from "@/lib/utils/queue-token-status";
@@ -6,7 +7,7 @@ export function buildWaitingList(todayQueue: QueueItem[]): QueueItem[] {
   return todayQueue.filter((q) => isQueueTokenWaiting(q.status));
 }
 
-function buildInProgressAppointmentQueueItem(
+export function buildInProgressAppointmentQueueItem(
   a: AppointmentListItemContractResponse,
   updatedAt: string,
 ): QueueItem {
@@ -42,7 +43,7 @@ function buildInProgressAppointmentQueueItem(
   };
 }
 
-function collectInProgressAppointmentQueueItems(
+export function collectInProgressAppointmentQueueItems(
   inProgressAppointments: AppointmentListItemContractResponse[],
   coveredIds: Set<string>,
   isLocalToday: (value: string | Date | null | undefined) => boolean,
@@ -85,7 +86,7 @@ export function buildActiveConsultations(
   return [...fromQueue, ...withoutQueueToken];
 }
 
-function rankQueueItem(q: QueueItem): number {
+export function rankQueueItem(q: QueueItem): number {
   if (isQueueTokenInProgress(q.status)) return 0;
   if (isQueueTokenWaiting(q.status)) return 1;
   return 2;

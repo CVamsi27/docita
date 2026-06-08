@@ -36,7 +36,7 @@ export class DoctorDelayController {
 
   @Post()
   @Roles(
-// jscpd:ignore-end
+    // jscpd:ignore-end
     Role.ADMIN,
     Role.DOCTOR,
     Role.ADMIN_DOCTOR,

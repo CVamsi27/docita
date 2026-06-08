@@ -22,7 +22,7 @@ type SubscriptionPaymentRecord = {
 };
 
 type ResolveSubscriptionPaymentInput = {
-// jscpd:ignore-end
+  // jscpd:ignore-end
   clinicId: string;
   razorpayOrderId: string;
   razorpayPaymentId: string;

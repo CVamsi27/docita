@@ -17,7 +17,7 @@ export default function NotFound() {
         <CardContent className="p-8 text-center">
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
             <FileQuestion className="h-7 w-7 text-muted-foreground" />
-// jscpd:ignore-end
+{/* jscpd:ignore-end */}
           </div>
           <h1 className="ui-page-title">404</h1>
           <p className="ui-page-subtitle mt-2">

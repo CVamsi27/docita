@@ -128,7 +128,7 @@ export class Appointment {
     this.serviceId = props.serviceId;
     this.type = props.type;
     this.cancellationReason = props.cancellationReason;
-// jscpd:ignore-start
+    // jscpd:ignore-start
     this.cancelledAt = props.cancelledAt;
     this.metadata = props.metadata || {};
     this.createdAt = props.createdAt;
@@ -140,7 +140,7 @@ export class Appointment {
 
   private validate(): void {
     if (this.startTime >= this.endTime)
-// jscpd:ignore-end
+      // jscpd:ignore-end
       throw new InvariantViolationError(
         'Appointment start time must be before end time',
       );

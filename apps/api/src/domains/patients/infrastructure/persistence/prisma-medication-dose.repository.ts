@@ -11,9 +11,9 @@ import {
 } from '@/domains/patients/core/repositories/medication-dose.repository.interface';
 
 @Injectable()
+// jscpd:ignore-start
 export class PrismaMedicationDoseRepository
   extends PrismaReadBase
-// jscpd:ignore-start
   implements IMedicationDoseRepository
 {
   constructor(prisma: PrismaService) {
@@ -32,7 +32,7 @@ export class PrismaMedicationDoseRepository
   }
 
   async findMedicationWithPrescription(
-// jscpd:ignore-end
+    // jscpd:ignore-end
     medicationId: string,
   ): Promise<MedicationWithPrescription | null> {
     return this.getReadClient().medication.findFirst({
@@ -106,7 +106,7 @@ export class PrismaMedicationDoseRepository
   ): Promise<DoseAdherenceStat[]> {
     const rows = await this.getReadClient().medicationDose.groupBy({
       by: ['status'],
-// jscpd:ignore-start
+      // jscpd:ignore-start
       where,
       _count: { status: true },
     });
@@ -118,7 +118,7 @@ export class PrismaMedicationDoseRepository
   }
 
   async createManyDoses(
-// jscpd:ignore-end
+    // jscpd:ignore-end
     data: Array<Prisma.MedicationDoseUncheckedCreateInput>,
   ) {
     return this.prisma.medicationDose.createMany({

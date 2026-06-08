@@ -50,7 +50,7 @@ export class RecordAppointmentVitalsUseCase {
     if (!appointment)
       throw new NotFoundException(
         `Appointment with ID ${appointmentId} not found`,
-// jscpd:ignore-start
+        // jscpd:ignore-start
       );
     if (
       accessContext?.role === Role.DOCTOR &&
@@ -62,7 +62,7 @@ export class RecordAppointmentVitalsUseCase {
       );
 
     const payload = cleanVitalsPayload(data);
-// jscpd:ignore-end
+    // jscpd:ignore-end
 
     const updated = await this.persistence.vitalSign.updateMany({
       where: { appointmentId, clinicId },

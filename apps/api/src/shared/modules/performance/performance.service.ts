@@ -43,7 +43,7 @@ export class PerformanceService {
       },
       timestamp: this.clock.now().toISOString(),
     };
-// jscpd:ignore-start
+    // jscpd:ignore-start
   }
 
   private formatUptime(seconds: number): string {

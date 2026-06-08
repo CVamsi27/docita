@@ -82,7 +82,7 @@ export class Subscription {
     this.scheduledChange = props.scheduledChange ?? null;
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
-// jscpd:ignore-start
+    // jscpd:ignore-start
     this.version = props.version;
 
     this.validate();
@@ -94,7 +94,7 @@ export class Subscription {
 
   private validate(): void {
     if (this.currentPeriodStart >= this.currentPeriodEnd)
-// jscpd:ignore-end
+      // jscpd:ignore-end
       throw new InvariantViolationError(
         'Current period start must be before end',
       );

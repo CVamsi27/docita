@@ -25,7 +25,7 @@ const logger = new Logger('DocumentsModule');
   providers: [
     ...DOCUMENTS_SHARED_PROVIDERS,
     UploadSessionSecretGuard,
-// jscpd:ignore-start
+    // jscpd:ignore-start
     DocumentsQueryService,
     {
       provide: StorageProvider,
@@ -42,7 +42,7 @@ const logger = new Logger('DocumentsModule');
 
         if (!isProduction) {
           return new LocalStorageProvider({
-// jscpd:ignore-end
+            // jscpd:ignore-end
             apiUrl: configService.getApiUrl(),
           });
         }

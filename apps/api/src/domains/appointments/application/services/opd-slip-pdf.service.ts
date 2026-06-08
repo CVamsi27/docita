@@ -82,7 +82,7 @@ export class OpdSlipPdfService extends BasePdfService {
     });
 
     doc.end();
-// jscpd:ignore-start
+    // jscpd:ignore-start
     return bufferPromise;
   }
 
@@ -98,7 +98,7 @@ export class OpdSlipPdfService extends BasePdfService {
       .fontSize(10)
       .font('Helvetica-Bold')
       .text(title, context.margin + 8, currentY, {
-// jscpd:ignore-end
+        // jscpd:ignore-end
         width: context.contentWidth,
       });
     doc.fillColor('#000000');
@@ -179,7 +179,7 @@ export class OpdSlipPdfService extends BasePdfService {
     context: PDFContext,
     startY: number,
   ): number {
-// jscpd:ignore-start
+    // jscpd:ignore-start
     let currentY = this.checkPageBreak(doc, startY, 160, context);
 
     doc
@@ -191,7 +191,7 @@ export class OpdSlipPdfService extends BasePdfService {
     currentY += 28;
 
     const boxHeight = Math.max(
-// jscpd:ignore-end
+      // jscpd:ignore-end
       120,
       doc.page.height - context.margin - 120 - currentY,
     );

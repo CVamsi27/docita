@@ -40,7 +40,9 @@ export class AuthSecurityConfigService {
   }
 
   getPublicDocumentSigningSecret(): string {
-    return this.getConfig().PUBLIC_DOCUMENT_SIGNING_SECRET ?? this.getJwtSecret();
+    return (
+      this.getConfig().PUBLIC_DOCUMENT_SIGNING_SECRET ?? this.getJwtSecret()
+    );
   }
 
   getTurnstileSecretKey(): string | undefined {
