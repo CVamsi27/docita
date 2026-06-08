@@ -168,4 +168,13 @@ describe('resolveSharedCookieDomain', () => {
       resolveSharedCookieDomain(['API.Docita.Work', 'app.Docita.Work']),
     ).toBe('docita.work');
   });
+
+  it('returns undefined when a hostname has an empty trailing label (FQDN trailing dot)', () => {
+    // Exercises the `if (!segment) break` guard: a trailing dot produces an
+    // empty final label, so the rightmost segment comparison short-circuits
+    // before any shared segments can be collected.
+    expect(
+      resolveSharedCookieDomain(['docita.work.', 'app.docita.work.']),
+    ).toBeUndefined();
+  });
 });

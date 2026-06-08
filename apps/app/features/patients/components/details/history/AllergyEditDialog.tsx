@@ -28,6 +28,16 @@ interface AllergyEditDialogProps {
 const allergySeverityValues = ["MILD", "MODERATE", "SEVERE", "LIFE_THREATENING"] as const;
 const allergyTypeValues = ["DRUG", "FOOD", "ENVIRONMENTAL", "LATEX", "INSECT", "CONTRAST", "OTHER"] as const;
 
+/** Narrow a `Select` value (always `string`) to the allergy severity union without an `as` cast. */
+function isAllergySeverity(value: string): value is (typeof allergySeverityValues)[number] {
+  return allergySeverityValues.some((option) => option === value);
+}
+
+/** Narrow a `Select` value (always `string`) to the allergy type union without an `as` cast. */
+function isAllergyType(value: string): value is (typeof allergyTypeValues)[number] {
+  return allergyTypeValues.some((option) => option === value);
+}
+
 export function AllergyEditDialog({ editingAllergy, onCancel, onSave, onChange }: AllergyEditDialogProps) {
   return (
     <Dialog
@@ -57,7 +67,7 @@ export function AllergyEditDialog({ editingAllergy, onCancel, onSave, onChange }
             <Select
               value={editingAllergy.severity || "MODERATE"}
               onValueChange={(v: string) =>
-                onChange({ ...editingAllergy, severity: v as (typeof allergySeverityValues)[number] })
+                isAllergySeverity(v) && onChange({ ...editingAllergy, severity: v })
               }
             >
               <SelectTrigger>
@@ -76,7 +86,7 @@ export function AllergyEditDialog({ editingAllergy, onCancel, onSave, onChange }
             <Select
               value={editingAllergy.allergyType || "DRUG"}
               onValueChange={(v: string) =>
-                onChange({ ...editingAllergy, allergyType: v as (typeof allergyTypeValues)[number] })
+                isAllergyType(v) && onChange({ ...editingAllergy, allergyType: v })
               }
             >
               <SelectTrigger>

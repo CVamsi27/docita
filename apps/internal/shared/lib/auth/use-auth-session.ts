@@ -47,8 +47,8 @@ export function useAuthSession({
       return true;
     } catch (error) {
       const status =
-        isRecord(error) && typeof (error as Record<string, unknown>).status === "number"
-          ? (error as Record<string, unknown>).status
+        isRecord(error) && typeof error.status === "number"
+          ? error.status
           : undefined;
       if (status === 404 || status === 401) {
         clearAuthStorage();

@@ -82,6 +82,23 @@ describe("isPastSubscriptionGraceDeadline", () => {
     ).toBe(false);
   });
 
+  it("returns false when subscriptionGraceUntil is neither a Date nor a string", () => {
+    // Exercises the final fallthrough of the internal `subscriptionGraceUntilToDate`
+    // coercion (number/object values that are not null, Date, or string all map to null).
+    expect(
+      isPastSubscriptionGraceDeadline({
+        subscriptionStatus: "GRACE",
+        subscriptionGraceUntil: 1717200000000 as unknown as string,
+      }),
+    ).toBe(false);
+    expect(
+      isPastSubscriptionGraceDeadline({
+        subscriptionStatus: "PAST_DUE",
+        subscriptionGraceUntil: {} as unknown as string,
+      }),
+    ).toBe(false);
+  });
+
   it("uses Date.now() as default now", () => {
     const future = new Date(Date.now() + 86400000);
     expect(

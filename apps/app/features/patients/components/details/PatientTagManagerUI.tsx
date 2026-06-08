@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { Button } from "@workspace/ui/components/form/button";
 import {
   Dialog,
@@ -11,23 +10,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@workspace/ui/components/overlay/dialog";
-import { Input } from "@workspace/ui/components/form/input";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/navigation/tabs";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Search, Tag, X } from "lucide-react";
+import { Tag } from "lucide-react";
 import { getTagColorName } from "./tag-colors";
 import type { PatientTag, PresetTag } from "./patient-tag.types";
 import {
   CurrentTagsTab,
   CustomTagTab,
   PresetsTab,
-  groupPresetTags,
 } from "./patient-tag-manager-helpers";
+import { TagSearchField } from "./patient-tag-search-field";
+import { useTagInlineEditing } from "./use-tag-inline-editing";
+import { useTagSearchAndCreate } from "./use-tag-search-and-create";
 
 export type { PatientTag, PresetTag };
 
@@ -62,59 +61,16 @@ export function PatientTagManagerUI({
   onEditTag,
   hasTag,
 }: PatientTagManagerUIProps) {
-  const [editingTagId, setEditingTagId] = useState<string | null>(null);
-  const [editTagName, setEditTagName] = useState("");
-  const [editTagColor, setEditTagColor] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [editShowColorPicker, setEditShowColorPicker] = useState(false);
-
-  const groupedPresets = useMemo(
-    () => groupPresetTags(presetTags),
-    [presetTags],
-  );
-
-  const filteredTags = useMemo(() => {
-    if (!searchQuery.trim()) return tags;
-    return tags.filter((tag) =>
-      tag.tag.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [tags, searchQuery]);
-
-  const filteredPresets = useMemo(() => {
-    if (!searchQuery.trim()) return presetTags;
-    return presetTags.filter((tag) =>
-      tag.tag.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [presetTags, searchQuery]);
-
-  const startEditing = (tag: PatientTag) => {
-    setEditingTagId(tag.id);
-    setEditTagName(tag.tag);
-    setEditTagColor(tag.color);
-    setEditShowColorPicker(false);
-  };
-
-  const cancelEditing = () => {
-    setEditingTagId(null);
-    setEditTagName("");
-    setEditTagColor("");
-    setEditShowColorPicker(false);
-  };
-
-  const saveEdit = () => {
-    if (editingTagId && editTagName.trim() && onEditTag) {
-      onEditTag(editingTagId, editTagName.trim(), editTagColor);
-      cancelEditing();
-    }
-  };
-
-  const handleAddCustomTag = () => {
-    if (newTag.trim() && !hasTag(newTag)) {
-      onAddTag(newTag.trim(), newColor);
-      setShowColorPicker(false);
-    }
-  };
+  const editing = useTagInlineEditing(onEditTag);
+  const search = useTagSearchAndCreate({
+    tags,
+    presetTags,
+    newTag,
+    newColor,
+    hasTag,
+    onAddTag,
+    onNewColorChange,
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -135,31 +91,7 @@ export function PatientTagManagerUI({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="relative">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden
-          />
-          <Input
-            placeholder="Enter tags"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={searchQuery.trim() ? "pl-9 pr-10" : "pl-9"}
-            aria-label="Search tags"
-          />
-          {searchQuery && (
-            <SymbolTooltip label="Clear search">
-              <button
-                type="button"
-                aria-label="Clear search"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </SymbolTooltip>
-          )}
-        </div>
+        <TagSearchField value={search.searchQuery} onChange={search.setSearchQuery} onClear={search.clearSearch} />
 
         <Tabs defaultValue="current" className="w-full">
           <TabsList className="flex w-full overflow-x-auto overscroll-x-contain [scrollbar-width:thin] max-md:flex-nowrap md:grid md:grid-cols-3">
@@ -170,21 +102,18 @@ export function PatientTagManagerUI({
 
           <TabsContent value="current" className="mt-4">
             <CurrentTagsTab
-              filteredTags={filteredTags}
-              searchQuery={searchQuery}
-              editingTagId={editingTagId}
-              editTagName={editTagName}
-              editTagColor={editTagColor}
-              editShowColorPicker={editShowColorPicker}
-              onEditTagNameChange={setEditTagName}
-              onToggleEditColorPicker={() => setEditShowColorPicker((v) => !v)}
-              onSelectEditColor={(c) => {
-                setEditTagColor(c);
-                setEditShowColorPicker(false);
-              }}
-              onSaveEdit={saveEdit}
-              onCancelEdit={cancelEditing}
-              onStartEditing={startEditing}
+              filteredTags={search.filteredTags}
+              searchQuery={search.searchQuery}
+              editingTagId={editing.editingTagId}
+              editTagName={editing.editTagName}
+              editTagColor={editing.editTagColor}
+              editShowColorPicker={editing.editShowColorPicker}
+              onEditTagNameChange={editing.setEditTagName}
+              onToggleEditColorPicker={editing.toggleEditColorPicker}
+              onSelectEditColor={editing.selectEditColor}
+              onSaveEdit={editing.saveEdit}
+              onCancelEdit={editing.cancelEditing}
+              onStartEditing={editing.startEditing}
               onRemoveTag={onRemoveTag}
               onEditTag={onEditTag}
               getTagColorName={getTagColorName}
@@ -193,9 +122,9 @@ export function PatientTagManagerUI({
 
           <TabsContent value="presets" className="mt-4">
             <PresetsTab
-              searchQuery={searchQuery}
-              filteredPresets={filteredPresets}
-              groupedPresets={groupedPresets}
+              searchQuery={search.searchQuery}
+              filteredPresets={search.filteredPresets}
+              groupedPresets={search.groupedPresets}
               hasTag={hasTag}
               onAddTag={onAddTag}
             />
@@ -206,14 +135,11 @@ export function PatientTagManagerUI({
               newTag={newTag}
               newColor={newColor}
               loading={loading}
-              showColorPicker={showColorPicker}
+              showColorPicker={search.showColorPicker}
               onNewTagChange={onNewTagChange}
-              onToggleColorPicker={() => setShowColorPicker((v) => !v)}
-              onSelectNewColor={(c) => {
-                onNewColorChange(c);
-                setShowColorPicker(false);
-              }}
-              onAddCustomTag={handleAddCustomTag}
+              onToggleColorPicker={search.toggleColorPicker}
+              onSelectNewColor={search.selectNewColor}
+              onAddCustomTag={search.handleAddCustomTag}
               hasTag={hasTag}
               getTagColorName={getTagColorName}
             />

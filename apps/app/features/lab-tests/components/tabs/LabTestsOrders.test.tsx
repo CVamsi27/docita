@@ -59,10 +59,11 @@ function setupMocks(options: {
   role?: string;
   sortedTests?: LabTestOrder[];
   isVerifying?: boolean;
+  sortConfig?: { key: "patient" | "testName" | "orderDate" | "status"; direction: "asc" | "desc" } | null;
 }) {
   useAuth.mockReturnValue({ user: { role: options.role ?? "ADMIN" } });
   useLabTestsOrders.mockReturnValue({
-    sortConfig: null,
+    sortConfig: options.sortConfig ?? null,
     handleSort: mockHandleSort,
     sortedTests: options.sortedTests ?? [],
     handleVerify: mockHandleVerify,
@@ -183,6 +184,70 @@ describe("LabTestsOrders", () => {
       const patientHeader = screen.getByRole("button", { name: /Patient/i });
       fireEvent.click(patientHeader);
       expect(mockHandleSort).toHaveBeenCalledWith("patient");
+    });
+
+    it("renders the neutral sort icon when the column is not the active sort key", () => {
+      setupMocks({
+        sortedTests: [makeOrder("1")],
+        sortConfig: { key: "status", direction: "asc" },
+      });
+
+      const { container } = renderWithProviders(
+        <LabTestsOrders
+          isLoading={false}
+          filteredTests={[]}
+          searchQuery=""
+          setSearchQuery={() => {}}
+        />,
+      );
+
+      const patientHeader = screen.getByRole("button", { name: /Patient/i });
+      expect(patientHeader.querySelector(".lucide-arrow-up-down")).not.toBeNull();
+      expect(patientHeader.querySelector(".lucide-arrow-up")).toBeNull();
+      expect(patientHeader.querySelector(".lucide-arrow-down")).toBeNull();
+      expect(container).toBeTruthy();
+    });
+
+    it("renders the ascending arrow icon when the column is sorted ascending", () => {
+      setupMocks({
+        sortedTests: [makeOrder("1")],
+        sortConfig: { key: "patient", direction: "asc" },
+      });
+
+      renderWithProviders(
+        <LabTestsOrders
+          isLoading={false}
+          filteredTests={[]}
+          searchQuery=""
+          setSearchQuery={() => {}}
+        />,
+      );
+
+      const patientHeader = screen.getByRole("button", { name: /Patient/i });
+      expect(patientHeader.querySelector(".lucide-arrow-up")).not.toBeNull();
+      expect(patientHeader.querySelector(".lucide-arrow-down")).toBeNull();
+      expect(patientHeader.querySelector(".lucide-arrow-up-down")).toBeNull();
+    });
+
+    it("renders the descending arrow icon when the column is sorted descending", () => {
+      setupMocks({
+        sortedTests: [makeOrder("1")],
+        sortConfig: { key: "patient", direction: "desc" },
+      });
+
+      renderWithProviders(
+        <LabTestsOrders
+          isLoading={false}
+          filteredTests={[]}
+          searchQuery=""
+          setSearchQuery={() => {}}
+        />,
+      );
+
+      const patientHeader = screen.getByRole("button", { name: /Patient/i });
+      expect(patientHeader.querySelector(".lucide-arrow-down")).not.toBeNull();
+      expect(patientHeader.querySelector(".lucide-arrow-up")).toBeNull();
+      expect(patientHeader.querySelector(".lucide-arrow-up-down")).toBeNull();
     });
   });
 

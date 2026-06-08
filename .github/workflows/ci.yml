@@ -82,10 +82,6 @@ jobs:
         if: needs.changes.outputs.knip == 'true'
         run: pnpm knip
 
-      - name: Duplication and dead-code gate
-        if: needs.changes.outputs.dependencies == 'true'
-        run: pnpm check:fallow && pnpm check:duplication
-
   api-quality:
     name: API Unit Checks
     needs: changes

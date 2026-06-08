@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { AlertCircle, Home, RefreshCw } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
+import { logger } from "@/lib/monitoring/logger";
 
 export interface ErrorPageShellProps {
   title: string;
@@ -22,7 +23,7 @@ export function ErrorPageShell({
 }: ErrorPageShellProps) {
   useEffect(() => {
     if (error) {
-      console.error(error);
+      logger.error("Error page shown", { error });
     }
   }, [error]);
 

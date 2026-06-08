@@ -1,0 +1,42 @@
+"use client";
+
+import { Input } from "@workspace/ui/components/form/input";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Search, X } from "lucide-react";
+
+export interface TagSearchFieldProps {
+  value: string;
+  onChange: (value: string) => void;
+  onClear: () => void;
+}
+
+/** Search box for the tag manager dialog: filters current tags and presets, with a clear button once non-empty. */
+export function TagSearchField({ value, onChange, onClear }: TagSearchFieldProps) {
+  return (
+    <div className="relative">
+      <Search
+        className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+        aria-hidden
+      />
+      <Input
+        placeholder="Enter tags"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={value.trim() ? "pl-9 pr-10" : "pl-9"}
+        aria-label="Search tags"
+      />
+      {value && (
+        <SymbolTooltip label="Clear search">
+          <button
+            type="button"
+            aria-label="Clear search"
+            onClick={onClear}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </SymbolTooltip>
+      )}
+    </div>
+  );
+}

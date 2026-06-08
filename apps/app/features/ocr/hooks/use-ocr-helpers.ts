@@ -4,7 +4,7 @@ export {
   mapOcrFieldsToInvoiceForm,
   parseMoneyInput,
 } from "./use-ocr-invoice-mapping";
-export { buildOcrFormData } from "./use-ocr-form-data";
+export { buildOcrFormData, emptyOcrFormData } from "./use-ocr-form-data";
 export {
   buildOcrSavePayload,
   buildOcrVitalsPayload,
