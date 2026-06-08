@@ -24,6 +24,7 @@ import {
 } from "../clinical/clinical";
 import { cptCodeSchema, icdCodeSchema } from "../shared/medical-coding";
 import { optionalStringStripHtml } from "../api/zod-helpers";
+import { markInvoicePaidPaymentMethodSchema } from "../contracts/billing";
 export const appointmentPrioritySchema = z.enum([
   "ROUTINE",
   "URGENT",
@@ -104,6 +105,13 @@ export const appointmentSchema = z.object({
   gynecologyExam: gynecologyExamDataSchema.optional(),
   dermatologyExam: dermatologyExamDataSchema.optional(),
   psychiatryExam: psychiatryExamDataSchema.optional(),
+
+  // Advance / partial payment captured at booking time (applied to the
+  // appointment's invoice as a settled manual payment once it is generated).
+  advanceAmount: z.number().finite().min(0).optional(),
+  advancePaymentMethod: markInvoicePaidPaymentMethodSchema.optional(),
+  advanceReference: optionalStringStripHtml(120),
+  advanceNotes: optionalStringStripHtml(500),
 
   createdAt: z.string().or(z.date()).optional(),
   updatedAt: z.string().or(z.date()).optional(),

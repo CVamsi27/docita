@@ -79,6 +79,8 @@ export const invoiceSchema = z.object({
   discountTotal: moneyAmountSchema.optional(),
   taxTotal: moneyAmountSchema.optional(),
   grandTotal: moneyAmountSchema.optional(),
+  /** Total collected so far, in minor units (paise). Drives balance + PARTIALLY_PAID. */
+  amountPaidCents: z.number().int().nonnegative().optional(),
   taxSummary: invoiceTaxSummarySchema.optional(),
   sellerTaxSnapshot: taxRegistrationSnapshotSchema.optional(),
   buyerTaxSnapshot: taxRegistrationSnapshotSchema.optional(),
@@ -117,6 +119,24 @@ export const invoiceSchema = z.object({
 });
 export type Invoice = z.infer<typeof invoiceSchema>;
 
+/** Amount collected against an invoice so far, in major units (rupees). */
+export function invoiceAmountPaid(invoice: {
+  amountPaidCents?: number | null;
+}): number {
+  const cents = invoice.amountPaidCents ?? 0;
+  return Math.max(0, Math.round(cents)) / 100;
+}
+
+/** Outstanding balance for an invoice, in major units (rupees), floored at 0. */
+export function invoiceBalanceDue(invoice: {
+  total?: number;
+  grandTotal?: number;
+  amountPaidCents?: number | null;
+}): number {
+  const total = invoice.total ?? invoice.grandTotal ?? 0;
+  return Math.max(0, total - invoiceAmountPaid(invoice));
+}
+
 export const createInvoiceSchema = invoiceSchema.omit({
   id: true,
   createdAt: true,
@@ -135,7 +155,9 @@ export const invoiceListPatientSchema = z.object({
 });
 
 function asFiniteNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
 }
 
 /** Coerce persisted/API floats to valid money fields (max two decimal places). */
@@ -169,7 +191,8 @@ function normalizeInvoiceListItems(items: unknown): unknown {
       return entry;
     }
     const item = entry as Record<string, unknown>;
-    const rawPrice = asFiniteNumber(item.price) ?? asFiniteNumber(item.unitPrice);
+    const rawPrice =
+      asFiniteNumber(item.price) ?? asFiniteNumber(item.unitPrice);
     const price =
       rawPrice === undefined ? undefined : roundMoneyAmount(rawPrice);
     const unitPrice =
@@ -221,9 +244,7 @@ export function normalizeInvoiceListRowInput(input: unknown): unknown {
   const total = rawTotal === undefined ? row.total : roundMoneyAmount(rawTotal);
   const rawTotalAmount = asFiniteNumber(row.totalAmount);
   const totalAmount =
-    rawTotalAmount === undefined
-      ? total
-      : roundMoneyAmount(rawTotalAmount);
+    rawTotalAmount === undefined ? total : roundMoneyAmount(rawTotalAmount);
   return {
     ...row,
     patientId,
