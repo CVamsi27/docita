@@ -27,6 +27,7 @@ interface InvoiceBase {
   discountTotalCents: number;
   taxTotalCents: number;
   grandTotalCents: number;
+  amountPaidCents: number;
   status: InvoiceStatus;
   items: Prisma.JsonValue;
   issuedAt: Date | null;
@@ -88,6 +89,10 @@ export interface InvoiceDetail extends InvoiceBase {
   appointment?: {
     id: string;
     startTime: Date;
+    advanceAmountCents: number;
+    advancePaymentMethod: string | null;
+    advanceReference: string | null;
+    advanceNotes: string | null;
     doctor?: {
       id?: string;
       name: string;

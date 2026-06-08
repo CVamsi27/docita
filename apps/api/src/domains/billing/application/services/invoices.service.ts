@@ -5,6 +5,8 @@ import {
   type InvoiceItem,
   type InvoicePaymentActivityResponse,
   type EnqueuePdfJobResponse,
+  type CollectionsByModeQuery,
+  type CollectionsByModeResponse,
 } from '@workspace/types';
 import {
   IInvoiceRepository,
@@ -93,6 +95,13 @@ export class InvoicesService {
     clinicId: string,
   ): Promise<InvoicePaymentActivityResponse> {
     return this.queryService.listPaymentActivity(invoiceId, clinicId);
+  }
+
+  async getCollectionsByMode(
+    clinicId: string,
+    query: CollectionsByModeQuery,
+  ): Promise<CollectionsByModeResponse> {
+    return this.queryService.getCollectionsByMode(clinicId, query);
   }
 
   async getClaimReadiness(

@@ -125,6 +125,22 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
     return sessions.map((session) => this.mapSession(session));
   }
 
+  async findSettledByClinicInRange(
+    clinicId: string,
+    from: Date,
+    to: Date,
+  ): Promise<PaymentSession[]> {
+    const sessions = await this.getReadClient().paymentSession.findMany({
+      where: {
+        clinicId,
+        status: { in: ['CAPTURED', 'PAID'] },
+        createdAt: { gte: from, lt: to },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return sessions.map((session) => this.mapSession(session));
+  }
+
   async findPendingReminders(): Promise<PaymentSessionDetail[]> {
     const sessions = await this.getReadClient().paymentSession.findMany({
       where: {

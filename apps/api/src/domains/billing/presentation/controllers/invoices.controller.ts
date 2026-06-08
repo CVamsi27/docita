@@ -37,6 +37,8 @@ import {
   PaginatedInvoiceResponseDto,
   ListInvoicesQueryDto,
   InvoicePaymentActivityResponseDto,
+  CollectionsByModeQueryDto,
+  CollectionsByModeResponseDto,
 } from '@/domains/billing/application/dto/invoices.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { RequestWithUser } from '@/shared/common/types/common.types';
@@ -96,6 +98,24 @@ export class InvoicesController {
       date,
       search,
     });
+  }
+
+  @Get('reports/collections-by-mode')
+  @RequireFeature(Feature.INVOICING)
+  @ZodSerializerDto(CollectionsByModeResponseDto)
+  async getCollectionsByMode(
+    @Request() req: RequestWithUser,
+    @Query() query: CollectionsByModeQueryDto,
+  ) {
+    const { clinicId } = getBillingRequestContext(req);
+    await logClinicPhiListRead(
+      this.auditService,
+      req,
+      'VIEW_PATIENT_LIST',
+      'Patient',
+      { scope: 'collections-by-mode', from: query.from, to: query.to },
+    );
+    return this.invoicesService.getCollectionsByMode(clinicId, query);
   }
 
   @Get(':id/payment-activity')

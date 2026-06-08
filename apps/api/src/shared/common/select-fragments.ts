@@ -49,6 +49,7 @@ const INVOICE_COMMON_SELECT = {
   discountTotalCents: true,
   taxTotalCents: true,
   grandTotalCents: true,
+  amountPaidCents: true,
 } as const;
 
 export const INVOICE_CARD_SELECT = {
@@ -125,6 +126,10 @@ export const INVOICE_DETAIL_SELECT = {
     select: {
       id: true,
       startTime: true,
+      advanceAmountCents: true,
+      advancePaymentMethod: true,
+      advanceReference: true,
+      advanceNotes: true,
       doctor: {
         select: {
           id: true,

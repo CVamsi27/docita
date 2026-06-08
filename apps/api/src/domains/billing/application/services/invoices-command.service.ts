@@ -25,6 +25,7 @@ import {
   toPrismaJson,
 } from '@/domains/billing/core/utils/invoice-normalization';
 import { InvoicesQueryService } from './invoices-query.service';
+import { PaymentsCommandService } from './payments-command.service';
 import {
   parseTaxSettings,
   parseTaxRegistrationSnapshot,
@@ -56,6 +57,7 @@ export class InvoicesCommandService {
     private readonly storageProvider: StorageProvider,
     private readonly claimValidationService: ClaimValidationService,
     private readonly queryService: InvoicesQueryService,
+    private readonly paymentsCommand: PaymentsCommandService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
@@ -188,6 +190,24 @@ export class InvoicesCommandService {
       idempotencyKey: data.idempotencyKey,
     });
 
+    let createdInvoice = invoice;
+    if (data.appointmentId) {
+      try {
+        await this.paymentsCommand.applyAppointmentAdvance(
+          invoice.id,
+          patient.clinic.id,
+        );
+        createdInvoice =
+          (await this.repository.findById(invoice.id, patient.clinic.id)) ??
+          invoice;
+      } catch (err: unknown) {
+        this.logger.error(
+          `Failed to apply booking advance to invoice ${invoice.id}`,
+          err,
+        );
+      }
+    }
+
     this.eventEmitter.emit(ApplicationEvents.INVOICE_GENERATED, {
       // allow-direct-emit: post-commit fan-out to payment-link generation + usage tracking. The invoice itself is a single atomic write above. Outbox migration deferred (ADR 0010 §Follow-up).
       invoiceId: invoice.id,
@@ -201,7 +221,7 @@ export class InvoicesCommandService {
         );
       });
 
-    return invoice;
+    return createdInvoice;
   }
 
   async update(

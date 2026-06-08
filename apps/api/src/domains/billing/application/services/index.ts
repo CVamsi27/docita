@@ -4,6 +4,7 @@ export * from './invoices-command.service';
 export * from './payments.service';
 export * from './payments-command.service';
 export * from './payments-query.service';
+export * from './invoice-settlement.service';
 export * from './razorpay-invoice-webhook.service';
 export * from './scheduler.service';
 export * from './pdf.service';

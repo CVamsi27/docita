@@ -12,7 +12,10 @@ import {
   type InvoicePaymentActivityItem,
   type InvoicePaymentActivityResponse,
   type EnqueuePdfJobResponse,
+  type CollectionsByModeQuery,
+  type CollectionsByModeResponse,
   paymentSessionMetaJsonSchema,
+  formatPaymentChannelLabel,
 } from '@workspace/types';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import {
@@ -179,6 +182,62 @@ export class InvoicesQueryService {
     );
     return {
       items: sessions.map((s) => this.toPaymentActivityItem(s)),
+    };
+  }
+
+  async getCollectionsByMode(
+    clinicId: string,
+    query: CollectionsByModeQuery,
+  ): Promise<CollectionsByModeResponse> {
+    const from = new Date(`${query.from}T00:00:00.000Z`);
+    const toExclusive = new Date(`${query.to}T00:00:00.000Z`);
+    toExclusive.setUTCDate(toExclusive.getUTCDate() + 1);
+    if (Number.isNaN(from.getTime()) || Number.isNaN(toExclusive.getTime())) {
+      throw new BadRequestException('Invalid date range');
+    }
+    if (from >= toExclusive) {
+      throw new BadRequestException('`from` must not be after `to`');
+    }
+
+    const sessions =
+      await this.paymentSessionRepository.findSettledByClinicInRange(
+        clinicId,
+        from,
+        toExclusive,
+      );
+
+    const buckets = new Map<string, { count: number; amountCents: number }>();
+    let totalCents = 0;
+    let currency = 'INR';
+
+    for (const session of sessions) {
+      const { channel } = this.extractPaymentActivityMeta(session.meta);
+      const mode =
+        channel ?? (session.provider === 'razorpay' ? 'OTHER_ONLINE' : 'CASH');
+      const bucket = buckets.get(mode) ?? { count: 0, amountCents: 0 };
+      bucket.count += 1;
+      bucket.amountCents += session.amount;
+      buckets.set(mode, bucket);
+      totalCents += session.amount;
+      currency = session.currency;
+    }
+
+    const byMode = Array.from(buckets.entries())
+      .map(([mode, bucket]) => ({
+        mode,
+        label: formatPaymentChannelLabel(mode),
+        count: bucket.count,
+        amountCents: bucket.amountCents,
+      }))
+      .sort((a, b) => b.amountCents - a.amountCents);
+
+    return {
+      from: query.from,
+      to: query.to,
+      currency,
+      totalCents,
+      count: sessions.length,
+      byMode,
     };
   }
 

@@ -4,6 +4,8 @@ import {
   createInvoiceRequestSchema,
   invoiceResponseSchema,
   invoicePaymentActivityResponseSchema,
+  collectionsByModeQuerySchema,
+  collectionsByModeResponseSchema,
   listInvoicesQuerySchema,
   paginatedInvoiceListResponseSchema,
   updateInvoiceRequestSchema,
@@ -41,4 +43,12 @@ export class PaginatedInvoiceResponseDto extends createZodDto(
 
 export class InvoicePaymentActivityResponseDto extends createZodDto(
   invoicePaymentActivityResponseSchema,
+) {}
+
+export class CollectionsByModeQueryDto extends createZodDto(
+  collectionsByModeQuerySchema,
+) {}
+
+export class CollectionsByModeResponseDto extends createZodDto(
+  collectionsByModeResponseSchema,
 ) {}

@@ -2,7 +2,6 @@ import {
   Injectable,
   Logger,
   BadRequestException,
-  NotFoundException,
   Inject,
   ForbiddenException,
 } from '@nestjs/common';
@@ -13,7 +12,7 @@ import {
   CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN,
 } from '@/domains/payments/core/ports/payment-link-provider.port';
 import { Money } from '@/domains/payments/core/value-objects/money.vo';
-import { PaymentSessionStatus, InvoiceStatus } from '@workspace/db';
+import { PaymentSessionStatus } from '@workspace/db';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import type { PaymentWebhookPayload } from '@workspace/types';
 import {
@@ -31,7 +30,9 @@ import {
   type ITransactionRunner,
 } from '@/shared/common/ports/transaction-runner.port';
 import { RazorpayInvoiceWebhookService } from './razorpay-invoice-webhook.service';
+import { InvoiceSettlementService } from './invoice-settlement.service';
 import { isDocitaOnlinePaymentSession } from '@/domains/billing/core/rules/docita-online-payment-session';
+import { toPaiseAmount } from './payment-amount.util';
 import { DATE_FORMATS, formatDate, getPatientFullName } from '@workspace/utils';
 import {
   buildPaymentLinkVariables,
@@ -70,6 +71,7 @@ export class PaymentsCommandService {
     @Inject(TRANSACTION_RUNNER_PORT)
     private readonly transactionRunner: ITransactionRunner,
     private readonly razorpayInvoiceWebhook: RazorpayInvoiceWebhookService,
+    private readonly settlement: InvoiceSettlementService,
   ) {}
 
   async createPaymentSession(dto: {
@@ -93,7 +95,7 @@ export class PaymentsCommandService {
       expiresAt.getMinutes() + this.configService.getPaymentLinkTtlMinutes(),
     );
 
-    const amountInPaise = this.toPaise(dto.amount);
+    const amountInPaise = toPaiseAmount(dto.amount);
 
     if (dto.paymentMode === 'CASH') {
       const session = await this.repository.create({
@@ -230,80 +232,25 @@ export class PaymentsCommandService {
     };
   }
 
-  async markInvoicePaidManually(data: {
-    invoiceId: string;
-    clinicId: string;
-    performedByUserId: string;
-    paymentMethod: string;
-    amount?: number;
-    notes?: string;
-    reference?: string;
-  }) {
-    const invoice = await this.invoiceRepository.findById(
-      data.invoiceId,
-      data.clinicId,
-    );
-    if (!invoice) throw new NotFoundException('Invoice not found');
+  /**
+   * Record a manual front-desk settlement against an invoice. The actual
+   * "compute paid-state → record session → roll up the invoice" flow lives
+   * in `InvoiceSettlementService`, shared with `applyAppointmentAdvance` —
+   * this stays a thin pass-through so the public API here is unchanged.
+   */
+  async markInvoicePaidManually(
+    data: Parameters<InvoiceSettlementService['markInvoicePaidManually']>[0],
+  ) {
+    return this.settlement.markInvoicePaidManually(data);
+  }
 
-    if (!invoice.patientId)
-      throw new BadRequestException(
-        'Cannot record manual payment: invoice is not linked to a patient',
-      );
-
-    if (
-      invoice.status === InvoiceStatus.PAID ||
-      invoice.status === InvoiceStatus.CANCELLED
-    ) {
-      throw new BadRequestException(
-        `Cannot record payment: invoice is already ${invoice.status}`,
-      );
-    }
-
-    const normalizedChannel =
-      data.paymentMethod === 'OTHER' ? 'OTHER_ONLINE' : data.paymentMethod;
-
-    const invoiceTotal = invoice.totalCents / 100;
-    const resolvedAmount =
-      typeof data.amount === 'number' && data.amount > 0
-        ? data.amount
-        : invoiceTotal;
-
-    await this.transactionRunner.runInTransaction(async (tx) => {
-      await this.repository.create(
-        {
-          clinic: { connect: { id: data.clinicId } },
-          invoice: { connect: { id: data.invoiceId } },
-          patient: { connect: { id: invoice.patientId } },
-          provider: 'manual',
-          amount: this.toPaise(resolvedAmount),
-          currency: this.configService.getCurrencyCode(),
-          status: PaymentSessionStatus.CAPTURED,
-          expiresAt: this.clock.now(),
-          meta: {
-            channel: normalizedChannel,
-            method: normalizedChannel,
-            performedBy: data.performedByUserId,
-            amount: resolvedAmount,
-            notes: data.notes,
-            reference: data.reference,
-          },
-        },
-        tx,
-      );
-
-      await this.invoiceRepository.update(
-        invoice.id,
-        { status: InvoiceStatus.PAID },
-        data.clinicId,
-        tx,
-      );
-    });
-
-    this.logger.log(
-      `Invoice ${data.invoiceId} marked paid manually by ${data.performedByUserId}`,
-    );
-
-    return { success: true };
+  /**
+   * Apply an advance collected at booking to the appointment's freshly-created
+   * invoice as a settled manual payment — delegates to `InvoiceSettlementService`
+   * (see `markInvoicePaidManually` for why this stays a thin pass-through).
+   */
+  async applyAppointmentAdvance(invoiceId: string, clinicId: string) {
+    return this.settlement.applyAppointmentAdvance(invoiceId, clinicId);
   }
 
   async handleRazorpayWebhook(
@@ -352,18 +299,5 @@ export class PaymentsCommandService {
         error,
       );
     }
-  }
-
-  private toPaise(amount: number): number {
-    if (!Number.isFinite(amount) || amount < 0) {
-      throw new BadRequestException('Payment amount must be non-negative');
-    }
-    const paise = Math.round(amount * 100);
-    if (Math.abs(paise / 100 - amount) > Number.EPSILON) {
-      throw new BadRequestException(
-        'Payment amount must have at most two decimal places',
-      );
-    }
-    return paise;
   }
 }
