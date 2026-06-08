@@ -3,7 +3,7 @@
 // jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode } from "react";
 import { useParams } from "next/navigation";
 import {
   Alert,
@@ -17,12 +17,10 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
-import type { UploadResult } from "@workspace/data-access";
-import { uploadSignature, validateToken } from "@/lib/api/signature-helpers";
 import { SignatureUploadWorkflow } from "@/components/signature/signature-upload-workflow";
-import { getUserFacingErrorMessage } from "@workspace/utils";
 import { SupportContact } from "@/components/support-contact/support-contact";
 import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
+import { useUploadSignatureToken } from "./use-upload-signature-token";
 
 function UploadPageShell({ children }: { children: ReactNode }) {
 // jscpd:ignore-end
@@ -49,57 +47,17 @@ export default function UploadSignaturePage() {
   const params = useParams<{ token: string }>();
   const token = params.token ?? "";
 
-  const [validating, setValidating] = useState(true);
-  const [tokenValid, setTokenValid] = useState(false);
-  const [doctorName, setDoctorName] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadComplete, setUploadComplete] = useState(false);
-  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
-
-  useEffect(() => {
-    const checkToken = async () => {
-      try {
-        const validation = await validateToken(token);
-        setTokenValid(true);
-        setDoctorName(validation.doctor?.name ?? "");
-      } catch (err) {
-        setError(
-          getUserFacingErrorMessage(err, {
-            fallback: "This upload link is no longer available",
-            context: "verification",
-          }),
-        );
-        setTokenValid(false);
-      } finally {
-        setValidating(false);
-      }
-    };
-
-    if (token) {
-      void checkToken();
-    }
-  }, [token]);
-
-  const handleUpload = async (file: File) => {
-    setUploading(true);
-    setError(null);
-
-    try {
-      const result = await uploadSignature(token, file);
-      setUploadResult(result);
-      setUploadComplete(true);
-    } catch (err) {
-      setError(
-        getUserFacingErrorMessage(err, {
-          fallback: "We could not upload this signature. Please try again.",
-          context: "upload",
-        }),
-      );
-    } finally {
-      setUploading(false);
-    }
-  };
+  const {
+    validating,
+    tokenValid,
+    doctorName,
+    error,
+    setError,
+    uploading,
+    uploadComplete,
+    uploadResult,
+    handleUpload,
+  } = useUploadSignatureToken(token);
 
   if (validating) {
     return (
