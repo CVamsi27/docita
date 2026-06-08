@@ -1,6 +1,7 @@
 import {
   CLINIC_TYPE_FEATURES,
   type ClinicType,
+  type PlanMode,
   userRoleSchema,
 } from "@workspace/types";
 import { hasFeatureAccess, isFeatureGenerallyAvailable } from "@workspace/utils";
@@ -10,7 +11,7 @@ import { resolveTierName } from "./permission-state-setters";
 
 export interface PermissionAccessContext {
   currentTier: Tier;
-  currentMode: string;
+  currentMode: PlanMode;
   hasIntelligence: boolean;
   featureOverrides: Record<string, unknown>;
   userRole: string | null;
@@ -38,7 +39,7 @@ export function checkFeatureAccess(
     feature,
     ctx.hasIntelligence,
     ctx.featureOverrides,
-    ctx.currentMode as Parameters<typeof hasFeatureAccess>[4],
+    ctx.currentMode,
   );
 }
 

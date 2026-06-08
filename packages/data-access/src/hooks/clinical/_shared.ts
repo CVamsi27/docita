@@ -24,9 +24,6 @@ export const pdfJobStatusResponseSchema = z.object({
   pdfUrl: z.string().optional(),
 });
 
-type EnqueuePdfJobResponse = z.infer<typeof enqueuePdfJobResponseSchema>;
-type PdfJobStatusResponse = z.infer<typeof pdfJobStatusResponseSchema>;
-
 function validateAndOpenPdfUrl(url: string): boolean {
   if (!url || typeof url !== "string") return false;
 
@@ -56,14 +53,15 @@ function validateAndOpenPdfUrl(url: string): boolean {
       if (!Number.isNaN(expiresInSeconds)) {
         const dateFormat = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/;
         const match = dateParam.match(dateFormat);
-        if (match) {
+        const [, year, month, day, hour, minute, second] = match ?? [];
+        if (year && month && day && hour && minute && second) {
           const issuedAt = Date.UTC(
-            parseInt(match[1]!, 10),
-            parseInt(match[2]!, 10) - 1,
-            parseInt(match[3]!, 10),
-            parseInt(match[4]!, 10),
-            parseInt(match[5]!, 10),
-            parseInt(match[6]!, 10),
+            parseInt(year, 10),
+            parseInt(month, 10) - 1,
+            parseInt(day, 10),
+            parseInt(hour, 10),
+            parseInt(minute, 10),
+            parseInt(second, 10),
           );
           if (Date.now() > issuedAt + expiresInSeconds * 1000) {
             return false;
@@ -91,17 +89,13 @@ export function usePollPdfJob(
       const enqueueResponse = await fetcher<unknown>(
         `${endpoint}/${resourceId}?async=true`,
       );
-      const { jobId } = enqueuePdfJobResponseSchema.parse(
-        enqueueResponse,
-      ) as EnqueuePdfJobResponse;
+      const { jobId } = enqueuePdfJobResponseSchema.parse(enqueueResponse);
 
       const deadline = Date.now() + POLL_TIMEOUT_MS;
       while (Date.now() < deadline) {
         await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
         const statusResponse = await fetcher<unknown>(statusEndpoint(resourceId, jobId));
-        const status = pdfJobStatusResponseSchema.parse(
-          statusResponse,
-        ) as PdfJobStatusResponse;
+        const status = pdfJobStatusResponseSchema.parse(statusResponse);
 
         if (status.status === "COMPLETED" && status.pdfUrl) {
           if (typeof window !== "undefined") {

@@ -71,7 +71,14 @@ describe('CommunicationConfigService', () => {
   });
 
   it('getMetaConfig delegates to whatsapp', () => {
-    const meta = { accessToken: 'abc', phoneNumberId: '123', businessAccountId: 'biz', appSecret: 'secret', verifyToken: 'verify', productionMode: false };
+    const meta = {
+      accessToken: 'abc',
+      phoneNumberId: '123',
+      businessAccountId: 'biz',
+      appSecret: 'secret',
+      verifyToken: 'verify',
+      productionMode: false,
+    };
     whatsapp.getMetaConfig.mockReturnValue(meta);
     expect(service.getMetaConfig()).toBe(meta);
   });

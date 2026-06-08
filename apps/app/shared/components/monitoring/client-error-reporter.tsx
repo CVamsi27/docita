@@ -112,7 +112,7 @@ interface ConsoleReportConfig {
 }
 
 /**
- * Reports a captured `console.warn`/`console.error` call through the deduped
+ * Reports a captured `warn`/`error` console call through the deduped
  * `report`, after the noise filter and the feature's enable gate — the two
  * patched console methods were near-identical copies of this exact "filter,
  * gate, extract first error, report" shape (differing only in the report
@@ -136,10 +136,10 @@ function reportFilteredConsoleMessage(
 }
 
 /**
- * Patches `console.log`/`warn`/`error` to mirror their output into the
- * deduped reporting pipeline (gated by env-configured capture flags), and
- * restores the originals on unmount. Self-contained: its only shared
- * dependency is the deduped `report`.
+ * Patches the `log`/`warn`/`error` console methods to mirror their output
+ * into the deduped reporting pipeline (gated by env-configured capture
+ * flags), and restores the originals on unmount. Self-contained: its only
+ * shared dependency is the deduped `report`.
  */
 function useConsolePatching(report: ReportFn): void {
   useEffect(() => {

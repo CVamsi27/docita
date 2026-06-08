@@ -8,9 +8,47 @@ import * as Sentry from "@sentry/nestjs";
 import { NestFactory } from "@nestjs/core";
 import { Logger } from "nestjs-pino";
 import { AppConfigService } from "@/shared/modules/config/app-configuration.service";
+import { EnvironmentConfigService } from "@/shared/modules/config/environment-config.service";
+import { AppUrlConfigService } from "@/shared/modules/config/app-url-config.service";
+import { StorageConfigService } from "@/shared/modules/config/storage-config.service";
+import { AuthSecurityConfigService } from "@/shared/modules/config/auth-security-config.service";
+import { CommunicationConfigService } from "@/shared/modules/config/communication-config.service";
+import { EmailConfigService } from "@/shared/modules/config/email-config.service";
+import { SmsConfigService } from "@/shared/modules/config/sms-config.service";
+import { WhatsappConfigService } from "@/shared/modules/config/whatsapp-config.service";
+import { PaymentConfigService } from "@/shared/modules/config/payment-config.service";
+import { RazorpayConfigService } from "@/shared/modules/config/razorpay-config.service";
+import { OpsConfigService } from "@/shared/modules/config/ops-config.service";
+import { PlatformInfrastructureConfigService } from "@/shared/modules/config/platform-infrastructure-config.service";
+import { ExternalIntegrationsConfigService } from "@/shared/modules/config/external-integrations-config.service";
 import { StartupValidationService } from "@/shared/modules/services/startup-validation.service";
 import { validateEnv } from "@/shared/modules/config/app-config";
 import { WorkerModule } from "@/worker.module";
+
+/**
+ * Manually composed the same way `apps/api/src/main.ts` builds it — this runs
+ * before the Nest DI container exists, so `AppConfigService`'s constructor
+ * dependencies (split into focused config services) have to be wired by hand.
+ */
+function buildAppConfigService(): AppConfigService {
+  return new AppConfigService(
+    new EnvironmentConfigService(),
+    new AppUrlConfigService(new EnvironmentConfigService()),
+    new StorageConfigService(),
+    new AuthSecurityConfigService(),
+    new CommunicationConfigService(
+      new EmailConfigService(),
+      new SmsConfigService(),
+      new WhatsappConfigService(),
+    ),
+    new PaymentConfigService(
+      new RazorpayConfigService(),
+      new OpsConfigService(),
+    ),
+    new PlatformInfrastructureConfigService(),
+    new ExternalIntegrationsConfigService(),
+  );
+}
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_MS = 15_000;
 
@@ -21,7 +59,7 @@ async function bootstrap() {
     // is not serving HTTP auth.
     process.env.WORKER_ENTRYPOINT ??= "worker";
     validateEnv();
-    const appConfigService = new AppConfigService();
+    const appConfigService = buildAppConfigService();
     new StartupValidationService(appConfigService).validate();
   } catch (error) {
     process.stderr.write(
