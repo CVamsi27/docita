@@ -1,25 +1,25 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  ILabRepository,
-  LabQueueItem,
-  LabRecord,
-} from '@/domains/clinical/core/repositories/clinical.repository.interface';
+import type { LabQueueItem } from '@/domains/clinical/core/repositories/lab-workflow.repository.interface';
+import type { LabDirectoryRepository, LabRecord } from '@/domains/clinical/core/repositories/lab-directory.repository.interface';
+import type { LabWorkflowRepository } from '@/domains/clinical/core/repositories/lab-workflow.repository.interface';
 
 @Injectable()
 export class LabWorkflowQueryService {
   constructor(
-    @Inject('ILabRepository')
-    private readonly labRepository: ILabRepository,
+    @Inject('LabWorkflowRepository')
+    private readonly workflowRepository: LabWorkflowRepository,
+    @Inject('LabDirectoryRepository')
+    private readonly directoryRepository: LabDirectoryRepository,
   ) {}
 
   async listQueue(
     clinicId: string,
     params: { labId?: string; status?: string; search?: string },
   ): Promise<LabQueueItem[]> {
-    return await this.labRepository.findLabQueue(clinicId, params);
+    return await this.workflowRepository.findLabQueue(clinicId, params);
   }
 
   async listLabs(clinicId: string): Promise<LabRecord[]> {
-    return await this.labRepository.findAllLabs(clinicId);
+    return await this.directoryRepository.findAllLabs(clinicId);
   }
 }

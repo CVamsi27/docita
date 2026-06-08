@@ -3,37 +3,14 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { IcdCode, CptCode } from '@workspace/db';
 import { getAllCPTCodes } from '@workspace/utils';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
-
-type CodeSystem = 'ICD' | 'HCPCS';
-type NlmCodeRow = { code: string; description: string };
-
-const ICD_CATEGORY_MAP: Record<string, string> = {
-  A: 'Infectious Diseases',
-  B: 'Infectious Diseases',
-  C: 'Neoplasms',
-  D: 'Neoplasms',
-  E: 'Endocrine',
-  F: 'Mental Health',
-  G: 'Nervous System',
-  H: 'Eye and Ear',
-  I: 'Circulatory',
-  J: 'Respiratory',
-  K: 'Digestive',
-  L: 'Skin',
-  M: 'Musculoskeletal',
-  N: 'Genitourinary',
-  O: 'Pregnancy',
-  P: 'Perinatal',
-  Q: 'Congenital',
-  R: 'Symptoms',
-  S: 'Injury',
-  T: 'Injury',
-  V: 'External Causes',
-  W: 'External Causes',
-  X: 'External Causes',
-  Y: 'External Causes',
-  Z: 'Health Factors',
-};
+import {
+  type CodeSystem,
+  type NlmCodeRow,
+  mapCpt,
+  mapIcd,
+  readTotalFromNlmResponse,
+  toNlmRows,
+} from './nlm-coding-mappers';
 
 const NLM_ICD_URL = 'https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/search';
 const NLM_HCPCS_URL = 'https://clinicaltables.nlm.nih.gov/api/hcpcs/v3/search';
@@ -46,21 +23,6 @@ const NLM_SYNC_MAX_OFFSET = 7500;
 const ICD_SYNC_PREFIXES = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const HCPCS_SYNC_PREFIXES = 'ABCDEFGHIJKLMNOPQRSTUV'.split('');
 const ACTIVE_HCPCS_FILTER = 'obsolete:false';
-
-const SYNTHETIC_DATE = new Date(0);
-
-function cptCategory(code: string): string {
-  if (/^[A-Z]/i.test(code)) return 'HCPCS';
-  const num = parseInt(code, 10);
-  if (!Number.isFinite(num)) return 'Other';
-  if (num >= 99201 && num <= 99499) return 'Evaluation and Management';
-  if (num >= 10004 && num <= 69990) return 'Surgery';
-  if (num >= 70010 && num <= 79999) return 'Radiology';
-  if (num >= 80047 && num <= 89398) return 'Laboratory';
-  if (num >= 90281 && num <= 99199) return 'Medicine';
-  if (num >= 100 && num <= 1999) return 'Anesthesia';
-  return 'Other';
-}
 
 @Injectable()
 export class NlmCodingClient {
@@ -79,17 +41,13 @@ export class NlmCodingClient {
   private setDisabledUntil(system: CodeSystem, until: number): void {
     if (system === 'ICD') {
       this.icdSearchDisabledUntil = until;
-      return;
+    } else {
+      this.hcpcsSearchDisabledUntil = until;
     }
-
-    this.hcpcsSearchDisabledUntil = until;
   }
 
-  private isSearchTemporarilyDisabled(
-    system: CodeSystem,
-    nowMs: number = this.clock.now().getTime(),
-  ): boolean {
-    return nowMs < this.getDisabledUntil(system);
+  private isSearchTemporarilyDisabled(system: CodeSystem): boolean {
+    return this.getDisabledUntil(system) > this.clock.now().getTime();
   }
 
   private clearSearchUnavailable(system: CodeSystem): void {
@@ -98,7 +56,7 @@ export class NlmCodingClient {
 
   private markSearchUnavailable(system: CodeSystem, reason: string): void {
     const now = this.clock.now().getTime();
-    if (this.isSearchTemporarilyDisabled(system, now)) {
+    if (this.isSearchTemporarilyDisabled(system)) {
       return;
     }
 
@@ -109,31 +67,6 @@ export class NlmCodingClient {
         NLM_FAILURE_COOLDOWN_MS / 60000,
       )} minutes.`,
     );
-  }
-
-  private toNlmRows(data: unknown): NlmCodeRow[] {
-    if (!Array.isArray(data)) {
-      return [];
-    }
-
-    const codes = Array.isArray(data[1])
-      ? data[1].filter((code): code is string => typeof code === 'string')
-      : [];
-    const displayRows = Array.isArray(data[3]) ? data[3] : [];
-
-    return codes
-      .map((code, idx) => {
-        const rawRow = displayRows[idx];
-        const row = Array.isArray(rawRow)
-          ? rawRow.filter((cell): cell is string => typeof cell === 'string')
-          : [];
-        const description =
-          row.find((value, rowIndex) => rowIndex > 0 && value)?.trim() ??
-          row[1]?.trim() ??
-          '';
-        return { code: code.trim(), description };
-      })
-      .filter((row) => !!row.code);
   }
 
   private async fetchNlmRows(
@@ -155,42 +88,8 @@ export class NlmCodingClient {
 
     const data: unknown = await res.json();
     return {
-      total: Array.isArray(data) && typeof data[0] === 'number' ? data[0] : 0,
-      rows: this.toNlmRows(data),
-    };
-  }
-
-  private mapIcd(
-    code: string,
-    description: string,
-    isCommon: boolean,
-  ): IcdCode {
-    return {
-      id: code,
-      code,
-      description,
-      category: ICD_CATEGORY_MAP[code[0].toUpperCase()] ?? 'Other',
-      version: 'ICD-10',
-      isCommon,
-      createdAt: SYNTHETIC_DATE,
-      updatedAt: SYNTHETIC_DATE,
-    };
-  }
-
-  private mapCpt(
-    code: string,
-    description: string,
-    isCommon: boolean,
-  ): CptCode {
-    return {
-      id: code,
-      code,
-      description,
-      category: cptCategory(code),
-      isCommon,
-      price: 0,
-      createdAt: SYNTHETIC_DATE,
-      updatedAt: SYNTHETIC_DATE,
+      total: readTotalFromNlmResponse(data),
+      rows: toNlmRows(data),
     };
   }
 
@@ -267,7 +166,7 @@ export class NlmCodingClient {
         NLM_ICD_REQUEST_TIMEOUT_MS,
       );
       this.clearSearchUnavailable('ICD');
-      return rows.map((row) => this.mapIcd(row.code, row.description, false));
+      return rows.map((row) => mapIcd(row.code, row.description, false));
     } catch (err) {
       this.markSearchUnavailable(
         'ICD',
@@ -286,7 +185,7 @@ export class NlmCodingClient {
           code.description.toLowerCase().includes(lowerQuery) ||
           code.category.toLowerCase().includes(lowerQuery),
       )
-      .map((code) => this.mapCpt(code.code, code.description, false));
+      .map((code) => mapCpt(code.code, code.description, false));
   }
 
   async searchCptCodes(query: string): Promise<CptCode[]> {
@@ -307,7 +206,7 @@ export class NlmCodingClient {
           NLM_HCPCS_REQUEST_TIMEOUT_MS,
         );
         this.clearSearchUnavailable('HCPCS');
-        return rows.map((row) => this.mapCpt(row.code, row.description, false));
+        return rows.map((row) => mapCpt(row.code, row.description, false));
       } catch (err) {
         this.markSearchUnavailable(
           'HCPCS',
@@ -328,7 +227,7 @@ export class NlmCodingClient {
       ICD_SYNC_PREFIXES,
       { sf: 'code', df: 'code,name' },
       NLM_SYNC_REQUEST_TIMEOUT_MS,
-      (code, description) => this.mapIcd(code, description, true),
+      (code, description) => mapIcd(code, description, true),
       onBatch,
     );
   }
@@ -342,7 +241,7 @@ export class NlmCodingClient {
       HCPCS_SYNC_PREFIXES,
       { sf: 'code', df: 'code,display', q: ACTIVE_HCPCS_FILTER },
       NLM_SYNC_REQUEST_TIMEOUT_MS,
-      (code, description) => this.mapCpt(code, description, true),
+      (code, description) => mapCpt(code, description, true),
       onBatch,
     );
   }

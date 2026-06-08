@@ -17,6 +17,7 @@ import { LayoutDashboard } from "lucide-react";
 import { Section } from "@workspace/ui/components/layout/section";
 import { DEFAULT_SLOT_DURATION } from "@workspace/utils";
 import { formatDashboardSummary } from "@/features/dashboard/lib/format-dashboard-summary";
+import { isNewClinicDashboard } from "@/features/dashboard/lib/is-new-clinic-dashboard";
 import { DashboardHeaderContainer } from "./dashboard-header-container";
 import { DashboardSharedWorkspace } from "./dashboard-shared-workspace";
 import { DashboardShortcutsSection } from "./dashboard-shortcuts-section";
@@ -101,12 +102,7 @@ export function DashboardUI({
     );
   }
 
-  const isNewClinic =
-    stats.totalPatients === 0 &&
-    stats.todayAppointments === 0 &&
-    stats.activePrescriptions === 0;
-
-  if (isNewClinic) {
+  if (isNewClinicDashboard(stats)) {
     return (
       <AppPageScaffold header={header}>
         <div className="space-y-4">

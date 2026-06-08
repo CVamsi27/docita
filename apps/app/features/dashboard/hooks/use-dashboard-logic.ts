@@ -11,8 +11,8 @@ import { useRecentPatients } from "@workspace/data-access";
 import { usePendingJoinRequestCount } from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { type AppointmentListItem } from "@workspace/data-access";
 import { logger } from "@/lib/monitoring/logger";
+import { computeDashboardAppointments } from "./dashboard-appointment-utils";
 
 function defaultDashboardStats(): DashboardStats {
   return {
@@ -99,35 +99,10 @@ export const useDashboardLogic = () => {
     currentPatient,
     nextPatients,
     waitingCount,
-  } = useMemo(() => {
-    const appointmentsData = rawAppointmentsResponse?.items || [];
-    const validAppointments = appointmentsData.filter(
-      (appointment): appointment is AppointmentListItem =>
-        Boolean(appointment.id && appointment.startTime),
-    );
-
-    const sorted = [...validAppointments].sort(
-      (a, b) =>
-        new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
-    );
-
-    const completed = sorted.filter((a) => a.status === "completed").length;
-    const inProgress = sorted.filter((a) => a.status === "in-progress").length;
-    const waiting = sorted.filter((a) => a.status === "scheduled").length;
-
-    const current = sorted.find((a) => a.status === "in-progress");
-
-    const next = sorted.filter((a) => a.status === "scheduled").slice(0, 3);
-
-    return {
-      todayAppointments: sorted,
-      completedToday: completed,
-      inProgressToday: inProgress,
-      currentPatient: current,
-      nextPatients: next,
-      waitingCount: waiting,
-    };
-  }, [rawAppointmentsResponse]);
+  } = useMemo(
+    () => computeDashboardAppointments(rawAppointmentsResponse),
+    [rawAppointmentsResponse],
+  );
 
   const isLoading =
     loadingStats ||

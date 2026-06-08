@@ -5,46 +5,15 @@ import { ErrorSeverity } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { createSentryBeforeSend } from '@/shared/modules/error-handling/sentry.utils';
-
-interface MetricEntry {
-  name: string;
-  value: number | number[];
-  labels?: Record<string, string>;
-  timestamp: number;
-}
-
-interface StructuredLogOptions {
-  captureInSentry?: boolean;
-}
-
-function toSentryContextValue(value: unknown): Record<string, unknown> {
-  if (value && typeof value === 'object' && !Array.isArray(value)) {
-    return Object.fromEntries(Object.entries(value));
-  }
-
-  return { value };
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function getRecordStatus(value: unknown): string | undefined {
-  if (!isRecord(value)) {
-    return undefined;
-  }
-
-  const status = value.status;
-  return typeof status === 'string' ? status : undefined;
-}
-
-function getRecordString(
-  value: Record<string, unknown> | undefined,
-  key: string,
-): string | undefined {
-  const field = value?.[key];
-  return typeof field === 'string' ? field : undefined;
-}
+import {
+  getRecordStatus,
+  getRecordString,
+  isRecord,
+  mapLogLevelToErrorSeverity,
+  toSentryContextValue,
+  type MetricEntry,
+  type StructuredLogOptions,
+} from './observability.helpers';
 
 @Injectable()
 export class ObservabilityService implements OnModuleDestroy {
@@ -191,19 +160,6 @@ export class ObservabilityService implements OnModuleDestroy {
     }
   }
 
-  private mapSeverity(level: 'debug' | 'info' | 'warn' | 'error') {
-    switch (level) {
-      case 'debug':
-        return ErrorSeverity.DEBUG;
-      case 'warn':
-        return ErrorSeverity.WARNING;
-      case 'error':
-        return ErrorSeverity.ERROR;
-      default:
-        return ErrorSeverity.INFO;
-    }
-  }
-
   private async persistStructuredLog(
     level: 'debug' | 'info' | 'warn' | 'error',
     message: string,
@@ -220,7 +176,7 @@ export class ObservabilityService implements OnModuleDestroy {
           message: message.slice(0, 1000),
           path: typeof rawPath === 'string' ? rawPath : undefined,
           method: typeof rawMethod === 'string' ? rawMethod : 'OBSERVABILITY',
-          severity: this.mapSeverity(level),
+          severity: mapLogLevelToErrorSeverity(level),
           metadata: {
             source: 'api-observability',
             correlationId,

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { useClinic } from "@/lib/contexts/clinic-context";
 
 import { useInvoice } from "@workspace/data-access";
@@ -10,9 +10,7 @@ import {
   formatDateSafe,
 } from "@/lib/formatters";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
-import { pollInvoicePdfUrl } from "@/features/invoices/lib/poll-invoice-pdf";
-
-
+import { useInvoiceDownload } from "./use-invoice-download";
 
 export const useInvoiceDetailsLogic = (
   invoiceId: string,
@@ -22,48 +20,14 @@ export const useInvoiceDetailsLogic = (
   const { clinic } = useClinic();
   const clinicCurrency = useClinicCurrency();
   const printRef = useRef<HTMLDivElement>(null);
-  const hasAutoPrintedRef = useRef(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const pdfAbortRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    return () => {
-      pdfAbortRef.current?.abort();
-    };
-  }, []);
 
   const { data: invoice, isLoading, error } = useInvoice(invoiceId);
-
-  useEffect(() => {
-    if (!options?.autoPrint || hasAutoPrintedRef.current) {
-      return;
-    }
-
-    if (!isLoading && invoice) {
-      hasAutoPrintedRef.current = true;
-      window.print();
-    }
-  }, [options?.autoPrint, isLoading, invoice]);
-
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const handleDownload = async () => {
-    pdfAbortRef.current?.abort();
-    const controller = new AbortController();
-    pdfAbortRef.current = controller;
-
-    setIsDownloading(true);
-    try {
-      await pollInvoicePdfUrl(invoiceId, controller.signal);
-    } finally {
-      setIsDownloading(false);
-      if (controller === pdfAbortRef.current) {
-        pdfAbortRef.current = null;
-      }
-    }
-  };
+  const { isDownloading, handlePrint, handleDownload } = useInvoiceDownload(
+    invoiceId,
+    isLoading,
+    !!invoice,
+    options?.autoPrint,
+  );
 
   const calculateSubtotal = (items: InvoiceItem[]) => {
     return items.reduce(

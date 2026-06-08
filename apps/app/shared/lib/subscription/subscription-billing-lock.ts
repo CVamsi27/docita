@@ -1,16 +1,7 @@
 // jscpd:ignore-start
 import type { Clinic } from "@/lib/contexts/clinic-context";
 import { isPastSubscriptionGraceDeadline } from "./subscription-lockout";
-
-function toDateOrNull(value: unknown): Date | null {
-  if (value == null) return null;
-  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
-  if (typeof value === "string") {
-    const parsed = new Date(value);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-  }
-  return null;
-}
+import { toDateOrNull } from "./subscription-date-utils";
 
 export function isSubscriptionPeriodLapsed(
 // jscpd:ignore-end

@@ -175,7 +175,6 @@
     "@workspace/typescript-config": "workspace:*",
     "axe-playwright": "^2.2.2",
     "fallow": "2.89.0",
-    "fallow": "2.89.0",
     "jscpd": "^4.2.4",
     "madge": "^8.0.0",
     "prettier": "^3.6.2",

@@ -1,4 +1,5 @@
 "use client";
+// jscpd:ignore-start
 
 import { useState } from "react";
 import Link from "next/link";
@@ -9,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
+// jscpd:ignore-end
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { Button } from "@workspace/ui/components/form/button";
 import { Checkbox } from "@workspace/ui/components/form/checkbox";

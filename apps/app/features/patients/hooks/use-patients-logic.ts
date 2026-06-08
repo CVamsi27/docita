@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Feature, type Patient } from "@workspace/types";
+import { useRouter } from "next/navigation";
+import { type Patient } from "@workspace/types";
 import {
   getUserFacingErrorMessage,
   getPatientFullName,
@@ -8,6 +8,7 @@ import {
 
 import { usePatients } from "@workspace/data-access";
 import { usePermissionStore } from "@/lib/stores/permission-store";
+import { usePatientsDialogs } from "./use-patients-dialogs";
 
 type PatientsSortConfig = {
   key: keyof Patient | "fullName";
@@ -28,13 +29,6 @@ export function usePatientsLogic() {
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<PatientsSortConfig | null>(null);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
-  const [schedulingPatientId, setSchedulingPatientId] = useState<
-    string | undefined
-  >(undefined);
-  const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
-
   const {
     data: patientsResponse,
     isLoading,
@@ -45,35 +39,24 @@ export function usePatientsLogic() {
     page,
     search: searchQuery.trim() ? searchQuery.trim() : undefined,
   });
-  const searchParams = useSearchParams();
   const router = useRouter();
   const canAccess = usePermissionStore((state) => state.canAccess);
 
   useEffect(() => {
     setPage(1);
-// jscpd:ignore-start
   }, [searchQuery]);
 
-  const currentAction = searchParams.get("action");
-  useEffect(() => {
-    if (currentAction === "new") {
-      setIsAddDialogOpen(true);
-    }
-  }, [currentAction]);
-
-  const handleDialogChange = useCallback(
-    (open: boolean) => {
-      setIsAddDialogOpen(open);
-      if (!open) {
-        const newParams = new URLSearchParams(searchParams.toString());
-        newParams.delete("action");
-        const query = newParams.toString();
-// jscpd:ignore-end
-        router.replace(query ? `/patients?${query}` : "/patients");
-      }
-    },
-    [searchParams, router],
-  );
+  const {
+    isAddDialogOpen,
+    isScheduleDialogOpen,
+    schedulingPatientId,
+    editingPatient,
+    setEditingPatient,
+    setIsAddDialogOpen,
+    handleDialogChange,
+    handleScheduleDialogChange,
+    schedulePatient,
+  } = usePatientsDialogs(canAccess);
 
   const handleSort = useCallback((key: keyof Patient | "fullName") => {
     let direction: "asc" | "desc" = "asc";
@@ -130,25 +113,6 @@ export function usePatientsLogic() {
   const goToPrevPage = useCallback(() => {
     setPage((current) => (current > 1 ? current - 1 : current));
   }, []);
-
-  const handleScheduleDialogChange = useCallback((open: boolean) => {
-    setIsScheduleDialogOpen(open);
-    if (!open) {
-      setSchedulingPatientId(undefined);
-    }
-  }, []);
-
-  const schedulePatient = useCallback(
-    (patientId: string) => {
-      if (canAccess(Feature.CALENDAR_SLOTS)) {
-        setSchedulingPatientId(patientId);
-        setIsScheduleDialogOpen(true);
-        return;
-      }
-      router.push(`/appointments?action=new&patientId=${patientId}`);
-    },
-    [canAccess, router],
-  );
 
   return {
     state: {

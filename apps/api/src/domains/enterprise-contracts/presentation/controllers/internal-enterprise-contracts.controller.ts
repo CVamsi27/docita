@@ -19,7 +19,6 @@ import {
   UpsertEnterpriseContractDto,
   SetEnterpriseContractStatusDto,
   AddContractMemberDto,
-  EnterpriseAdjustmentInvoiceDto,
 } from '@/domains/enterprise-contracts/application/dto/enterprise-contract.dto';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 
@@ -29,29 +28,6 @@ import { RequestWithUser } from '@/shared/common/types/common.types';
 @ApiBearerAuth()
 export class InternalEnterpriseContractsController {
   constructor(private readonly contractsService: EnterpriseContractsService) {}
-
-  /**
-   * Serializes an enterprise-contract invoice for the API response, converting
-   * its `Date` fields to ISO strings — `generatePrepay`, `generateSetupFee`,
-   * and `generateAdjustment` all return the same `EnterpriseContractInvoice`
-   * shape (with `subscriptionPayment` included) and need identical conversion.
-   */
-  private serializeContractInvoice<
-    T extends {
-      periodStart: Date;
-      periodEnd: Date;
-      createdAt: Date;
-      updatedAt: Date;
-    },
-  >(invoice: T) {
-    return {
-      ...invoice,
-      periodStart: invoice.periodStart.toISOString(),
-      periodEnd: invoice.periodEnd.toISOString(),
-      createdAt: invoice.createdAt.toISOString(),
-      updatedAt: invoice.updatedAt.toISOString(),
-    };
-  }
 
   @Get()
   @ApiOperation({ summary: 'List all enterprise contracts' })
@@ -153,95 +129,6 @@ export class InternalEnterpriseContractsController {
       effectiveDate: r.effectiveDate.toISOString(),
       createdAt: r.createdAt.toISOString(),
     }));
-  }
-
-  @Get(':contractId/invoices')
-  @ApiOperation({ summary: 'List enterprise invoices (prepay / true-up)' })
-  async listInvoices(@Param('contractId') contractId: string) {
-    const invoices = await this.contractsService.listInvoices(contractId);
-    return invoices.map((i) => ({
-      ...i,
-      periodStart: i.periodStart.toISOString(),
-      periodEnd: i.periodEnd.toISOString(),
-      createdAt: i.createdAt.toISOString(),
-      updatedAt: i.updatedAt.toISOString(),
-    }));
-  }
-
-  @Get(':contractId/true-up-alerts')
-  @ApiOperation({ summary: 'List true-up alerts emitted for this contract' })
-  async listTrueUpAlerts(@Param('contractId') contractId: string) {
-    const alerts = await this.contractsService.listTrueUpAlerts(contractId);
-    return alerts.map((a) => ({
-      ...a,
-      alertedAt: a.alertedAt.toISOString(),
-    }));
-  }
-
-  @Post(':contractId/annual-prepay-invoice')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Generate (or fetch existing) annual prepay invoice',
-  })
-  async generatePrepay(@Param('contractId') contractId: string) {
-    const invoice =
-      await this.contractsService.generateAnnualPrepayInvoice(contractId);
-    return this.serializeContractInvoice(invoice);
-  }
-
-  @Post(':contractId/setup-fee-invoice')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Generate (or fetch existing) setup fee invoice',
-  })
-  async generateSetupFee(@Param('contractId') contractId: string) {
-    const invoice =
-      await this.contractsService.generateSetupFeeInvoice(contractId);
-    return this.serializeContractInvoice(invoice);
-  }
-
-  @Post(':contractId/adjustment-invoice')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Generate a custom enterprise adjustment invoice',
-  })
-  async generateAdjustment(
-    @Param('contractId') contractId: string,
-    @Body() dto: EnterpriseAdjustmentInvoiceDto,
-  ) {
-    const invoice = await this.contractsService.generateAdjustmentInvoice(
-      contractId,
-      dto,
-    );
-    return this.serializeContractInvoice(invoice);
-  }
-
-  @Post(':contractId/evaluate-true-up')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Force a true-up evaluation (alerts via email if threshold met)',
-  })
-  async evaluateTrueUp(@Param('contractId') contractId: string) {
-    return this.contractsService.evaluateAndAlertTrueUp(contractId);
-  }
-
-  @Get(':contractId/estimate')
-  @ApiOperation({ summary: 'Estimate current period invoice' })
-  async estimate(@Param('contractId') contractId: string) {
-    const estimate =
-      await this.contractsService.estimateCurrentPeriod(contractId);
-    if (!estimate) throw new NotFoundException('No active contract');
-    return estimate;
-  }
-
-  @Post(':contractId/invoice-preview')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Preview current period enterprise invoice' })
-  async previewInvoice(@Param('contractId') contractId: string) {
-    const preview =
-      await this.contractsService.previewCurrentPeriodInvoice(contractId);
-    if (!preview) throw new NotFoundException('No active contract');
-    return preview;
   }
 
   @Delete(':contractId')

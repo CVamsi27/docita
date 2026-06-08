@@ -1,6 +1,8 @@
 import { BadRequestException } from '@nestjs/common';
 import { LabWorkflowCommandService } from './lab-workflow-command.service';
-import type { ILabRepository } from '@/domains/clinical/core/repositories/clinical.repository.interface';
+import type { LabWorkflowRepository } from '@/domains/clinical/core/repositories/lab-workflow.repository.interface';
+import type { LabDirectoryRepository } from '@/domains/clinical/core/repositories/lab-directory.repository.interface';
+import type { LabOrderRepository } from '@/domains/clinical/core/repositories/lab-order.repository.interface';
 import type { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import type { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 
@@ -31,10 +33,12 @@ function makeService(overrides?: {
         },
   );
 
-  const labRepository = {
+  const workflowRepository = {
     findReleaseContext,
     markReleased,
-  } as unknown as ILabRepository;
+  } as unknown as LabWorkflowRepository;
+  const directoryRepository = {} as unknown as LabDirectoryRepository;
+  const orderRepository = {} as unknown as LabOrderRepository;
 
   const generateSignedUrl = jest
     .fn()
@@ -53,7 +57,9 @@ function makeService(overrides?: {
   const clock = { now: () => NOW };
 
   const service = new LabWorkflowCommandService(
-    labRepository,
+    workflowRepository,
+    directoryRepository,
+    orderRepository,
     storageProvider,
     sendMessage,
     eventEmitter,

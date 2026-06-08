@@ -20,6 +20,14 @@ import {
   isDevelopment,
 } from './shared/modules/config/app-config';
 import { AppConfigService } from './shared/modules/config/app-configuration.service';
+import { EnvironmentConfigService } from './shared/modules/config/environment-config.service';
+import { AppUrlConfigService } from './shared/modules/config/app-url-config.service';
+import { StorageConfigService } from './shared/modules/config/storage-config.service';
+import { AuthSecurityConfigService } from './shared/modules/config/auth-security-config.service';
+import { CommunicationConfigService } from './shared/modules/config/communication-config.service';
+import { PaymentConfigService } from './shared/modules/config/payment-config.service';
+import { PlatformInfrastructureConfigService } from './shared/modules/config/platform-infrastructure-config.service';
+import { ExternalIntegrationsConfigService } from './shared/modules/config/external-integrations-config.service';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import compression from 'compression';
 import helmet from 'helmet';
@@ -37,7 +45,16 @@ interface CloseableServer {
 }
 
 const config = validateEnv();
-const appConfigService = new AppConfigService();
+const appConfigService = new AppConfigService(
+  new EnvironmentConfigService(),
+  new AppUrlConfigService(new EnvironmentConfigService()),
+  new StorageConfigService(),
+  new AuthSecurityConfigService(),
+  new CommunicationConfigService(),
+  new PaymentConfigService(),
+  new PlatformInfrastructureConfigService(),
+  new ExternalIntegrationsConfigService(),
+);
 
 if (!isDevelopment()) {
   const originList = getCorsOrigins();

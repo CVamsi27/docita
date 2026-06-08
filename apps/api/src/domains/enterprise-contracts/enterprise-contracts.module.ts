@@ -8,12 +8,14 @@ import { EnterpriseContractsQueryService } from './application/services/enterpri
 import { EnterpriseContractsCommandService } from './application/services/enterprise-contracts-command.service';
 import { EnterpriseContractInvoiceCommandService } from './application/services/enterprise-contract-invoice-command.service';
 import { InternalEnterpriseContractsController } from './presentation/controllers/internal-enterprise-contracts.controller';
+import { InternalEnterpriseInvoicesController } from './presentation/controllers/internal-enterprise-invoices.controller';
 import { ClinicEnterpriseContractController } from './presentation/controllers/clinic-enterprise-contract.controller';
 
 @Module({
   imports: [PrismaModule, EmailModule],
   controllers: [
     InternalEnterpriseContractsController,
+    InternalEnterpriseInvoicesController,
     ClinicEnterpriseContractController,
   ],
   providers: [

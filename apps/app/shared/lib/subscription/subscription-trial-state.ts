@@ -1,18 +1,9 @@
 // jscpd:ignore-start
 import { TRIAL_GRACE_DAYS } from "@workspace/types";
 import type { Clinic } from "@/lib/contexts/clinic-context";
+import { toDateOrNull } from "./subscription-date-utils";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-function toDateOrNull(value: unknown): Date | null {
-  if (value == null) return null;
-  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
-  if (typeof value === "string") {
-    const parsed = new Date(value);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-  }
-  return null;
-}
 
 export type TrialState = "ACTIVE" | "GRACE" | "EXPIRED";
 

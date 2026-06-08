@@ -1,30 +1,28 @@
 import { create } from "zustand";
 import {
-  clinicFeatureOverridesSchema,
   type ClinicFeatureOverrides,
   Feature,
   FEATURE_TIER_MAP,
   type PlanMode,
-  planModeSchema,
   Tier,
   TIER_INFO,
-} from "@workspace/types/billing";
+} from "@workspace/types";
+import { mapDbClinicTierToTierAndMode } from "@workspace/types/access";
+import { type ClinicType } from "@workspace/types/shared";
+import { type Permission } from "@/lib/auth/permissions";
 import {
-  mapClinicTierDbStringToAccessTier,
-  mapDbClinicTierToTierAndMode,
-} from "@workspace/types/access";
+  checkClinicTypeFeature,
+  checkFeatureAccess,
+  resolveRequiredTierForFeature,
+  resolveTierDisplayInfo,
+  type PermissionAccessContext,
+} from "./permission-access-checks";
 import {
-  CLINIC_TYPE_FEATURES,
-  type ClinicType,
-  clinicTypeSchema,
-  userRoleSchema,
-} from "@workspace/types/shared";
-import {
-  getTierName,
-  hasFeatureAccess,
-  isFeatureGenerallyAvailable,
-} from "@workspace/utils";
-import { hasPermission, type Permission } from "@/lib/auth/permissions";
+  parseClinicTypeInput,
+  parseFeatureOverridesInput,
+  parsePlanModeInput,
+  parseTierInput,
+} from "./permission-state-setters";
 
 export { Tier, Feature, FEATURE_TIER_MAP, TIER_INFO };
 
@@ -72,6 +70,17 @@ interface PermissionState {
   };
 }
 
+function selectAccessContext(state: PermissionState): PermissionAccessContext {
+  return {
+    currentTier: state.currentTier,
+    currentMode: state.currentMode,
+    hasIntelligence: state.hasIntelligence,
+    featureOverrides: state.featureOverrides,
+    userRole: state.userRole,
+    clinicType: state.clinicType,
+  };
+}
+
 export const usePermissionStore = create<PermissionState>((set, get) => ({
   currentTier: Tier.STARTER,
   currentMode: "FULL",
@@ -82,15 +91,11 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   featureOverrides: {},
 
   setTier: (tier) => {
-    const parsedTier =
-      typeof tier === "string" ? mapClinicTierDbStringToAccessTier(tier) : tier;
-
-    set({ currentTier: parsedTier });
+    set({ currentTier: parseTierInput(tier) });
   },
 
   setMode: (mode) => {
-    const parsed = planModeSchema.safeParse(mode ?? "FULL");
-    set({ currentMode: parsed.success ? parsed.data : "FULL" });
+    set({ currentMode: parsePlanModeInput(mode) });
   },
 
   setIntelligence: (active) => set({ hasIntelligence: active }),
@@ -99,33 +104,15 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   setFacilityType: (type) => set({ facilityType: type }),
 
   setClinicType: (type) => {
-    if (type === null) {
-      set({ clinicType: null });
-      return;
-    }
-
-    const raw = typeof type === "string" ? type.toUpperCase() : type;
-    const parsed = clinicTypeSchema.safeParse(raw);
-    if (parsed.success) {
-      set({ clinicType: parsed.data });
-    }
+    set({ clinicType: parseClinicTypeInput(type) });
   },
 
   setFeatureOverrides: (overrides) => {
-    const parsed = clinicFeatureOverridesSchema.safeParse(overrides ?? {});
-    set({ featureOverrides: parsed.success ? parsed.data : {} });
+    set({ featureOverrides: parseFeatureOverridesInput(overrides) });
   },
 
   syncFromClinic: (clinic, userRole) => {
-    const {
-      setTier,
-      setMode,
-      setIntelligence,
-      setUserRole,
-      setClinicType,
-      setFeatureOverrides,
-    } = get();
-
+    const { setTier, setMode, setIntelligence, setUserRole, setClinicType, setFeatureOverrides } = get();
     const { tier: resolvedTierName, mode: resolvedMode } =
       mapDbClinicTierToTierAndMode(clinic.tier, clinic.planMode);
 
@@ -137,67 +124,29 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
     if (clinic.type) {
       setClinicType(clinic.type);
     }
-
     if (userRole) {
       setUserRole(userRole);
     }
   },
 
   canAccess: (feature, permission?) => {
-    const {
-      currentTier,
-      currentMode,
-      hasIntelligence,
-      featureOverrides,
-      userRole,
-    } = get();
-
-    if (!isFeatureGenerallyAvailable(feature)) {
-      return false;
-    }
-
-    if (permission && userRole) {
-      const parsedRole = userRoleSchema.safeParse(userRole);
-      if (!parsedRole.success || !hasPermission(parsedRole.data, permission)) {
-        return false;
-      }
-    }
-
-    const tierName = getTierName(currentTier);
-    return hasFeatureAccess(
-      tierName,
-      feature,
-      hasIntelligence,
-      featureOverrides,
-      currentMode,
-    );
+    return checkFeatureAccess(selectAccessContext(get()), feature, permission);
   },
 
   canAccessClinicFeature: (feature) => {
-    const { clinicType } = get();
-
-    if (!clinicType) return true;
-
-    const typeFeatures = CLINIC_TYPE_FEATURES[clinicType];
-    if (!typeFeatures) return true;
-
-    const match = Object.entries(typeFeatures).find(([key]) => key === feature);
-    if (match) return match[1] === true;
-
-    return true;
+    return checkClinicTypeFeature(get().clinicType, feature);
   },
 
   isFeatureLocked: (feature) => {
-    return !get().canAccess(feature);
+    return !checkFeatureAccess(selectAccessContext(get()), feature);
   },
 
   getRequiredTier: (feature) => {
-    return FEATURE_TIER_MAP[feature];
+    return resolveRequiredTierForFeature(feature);
   },
 
   getTierInfo: (tier) => {
     const targetTier = tier ?? get().currentTier;
-    const tierName = getTierName(targetTier);
-    return TIER_INFO[tierName];
+    return resolveTierDisplayInfo(targetTier);
   },
 }));

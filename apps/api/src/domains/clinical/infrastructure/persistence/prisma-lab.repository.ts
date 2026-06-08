@@ -6,12 +6,9 @@ import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-jso
 import { PrismaService } from '@/prisma/prisma.service';
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
-import {
-  ILabRepository,
-  LabOrderReleaseContext,
-  LabQueueItem,
-  LabRecord,
-} from '@/domains/clinical/core/repositories/clinical.repository.interface';
+import { ILabRepository } from '@/domains/clinical/core/repositories/clinical.repository.interface';
+import type { LabOrderReleaseContext, LabQueueItem } from '@/domains/clinical/core/repositories/lab-workflow.repository.interface';
+import type { LabRecord } from '@/domains/clinical/core/repositories/lab-directory.repository.interface';
 import {
   LabTestOrderStatus,
   LabType,

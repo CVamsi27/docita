@@ -3,6 +3,9 @@ import { FeatureFlagService } from './feature-flag.service';
 import { FeatureFlagGuard } from '@/shared/modules/auth/guards/feature-flag.guard';
 import { PDFGeneratorService } from '@/shared/modules/document-generation/pdf/pdf-generator.service';
 import { PdfLayoutService } from '@/shared/modules/document-generation/pdf/pdf-layout.service';
+import { PdfHeaderService } from '@/shared/modules/document-generation/pdf/pdf-header.service';
+import { PdfTablesService } from '@/shared/modules/document-generation/pdf/pdf-tables.service';
+import { PdfFooterService } from '@/shared/modules/document-generation/pdf/pdf-footer.service';
 import { PrescriptionPdfRenderer } from '@/shared/modules/document-generation/pdf/prescription-pdf.renderer';
 import { InvoicePdfRenderer } from '@/shared/modules/document-generation/pdf/invoice-pdf.renderer';
 import { PDF_DOCUMENT_RENDERER } from '@/shared/modules/document-generation/pdf/pdf-document-renderer.interface';
@@ -36,6 +39,9 @@ import { SystemClockService } from '@/shared/modules/time/system-clock.service';
     FeatureFlagService,
     FeatureFlagGuard,
     PdfLayoutService,
+    PdfHeaderService,
+    PdfTablesService,
+    PdfFooterService,
     PrescriptionPdfRenderer,
     InvoicePdfRenderer,
     ClinicalInvoicePdfService,

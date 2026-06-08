@@ -4,16 +4,12 @@ import {
   useDoctors,
   useQueueByDoctor,
 } from "@workspace/data-access";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import {
-  APP_ACCESS_TARGETS,
-  isClinicWideAppointmentRole,
-  resolveDoctorScopedAppointmentFilter,
-} from "@workspace/types";
+import { APP_ACCESS_TARGETS } from "@workspace/types";
 import { useClinicSettings } from "@workspace/data-access";
 import {
   DEFAULT_TIMEZONE,
@@ -25,6 +21,7 @@ import {
 } from "./consultation-dashboard-helpers";
 import { useConsultationNavigation } from "./use-consultation-navigation";
 import { useConsultationMetrics } from "./use-consultation-metrics";
+import { useDoctorScope } from "./use-consultation-doctor-scope";
 
 export type { DoctorNextUpRow } from "./consultation-dashboard-helpers";
 
@@ -48,28 +45,12 @@ export const useConsultationDashboard = () => {
     [clinicTz, today],
   );
 
-  const [selectedDoctorId, setSelectedDoctorId] = useState<string | undefined>();
-  const appliedDefaultDoctorRef = useRef(false);
-
-  useEffect(() => {
-    if (appliedDefaultDoctorRef.current || !user?.id) return;
-    if (user.role === "ADMIN_DOCTOR" || user.role === "DOCTOR") {
-      setSelectedDoctorId(user.id);
-    }
-    appliedDefaultDoctorRef.current = true;
-  }, [user?.id, user?.role]);
-
-  const canViewAllDoctors = isClinicWideAppointmentRole(user?.role);
-  const doctorScope = useMemo(
-    () =>
-      resolveDoctorScopedAppointmentFilter({
-        role: user?.role,
-        userId: user?.id,
-        requestedDoctorId: selectedDoctorId,
-      }),
-    [selectedDoctorId, user?.id, user?.role],
-  );
-  const doctorId = doctorScope.scopedDoctorId;
+  const {
+    selectedDoctorId,
+    setSelectedDoctorId,
+    doctorId,
+    canViewAllDoctors,
+  } = useDoctorScope({ userId: user?.id, userRole: user?.role });
 
   const { data: doctors = [] } = useDoctors();
 

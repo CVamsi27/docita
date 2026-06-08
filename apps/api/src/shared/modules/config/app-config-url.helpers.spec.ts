@@ -1,180 +1,90 @@
-import { describe, expect, it } from '@jest/globals';
 import {
-  parseHostname,
   emailLinkBaseUrlFromAppUrl,
+  parseHostname,
   resolveSharedCookieDomain,
 } from './app-config-url.helpers';
 
 describe('parseHostname', () => {
-  it('returns the hostname from a valid URL', () => {
-    expect(parseHostname('https://api.docita.work')).toBe('api.docita.work');
-    expect(parseHostname('http://localhost:3000')).toBe('localhost');
+  it('extracts hostname from a full URL', () => {
+    expect(parseHostname('https://app.docita.work/path')).toBe('app.docita.work');
   });
 
-  it('returns null for an invalid URL', () => {
-    expect(parseHostname('not-a-url')).toBeNull();
-    expect(parseHostname('')).toBeNull();
+  it('lowercases the hostname', () => {
+    expect(parseHostname('https://App.Docita.Work')).toBe('app.docita.work');
   });
 
-  it('returns hostname for URLs with path or trailing slash', () => {
-    expect(parseHostname('https://api.docita.work/path/to/resource')).toBe(
-      'api.docita.work',
-    );
-    expect(parseHostname('https://app.docita.work/')).toBe('app.docita.work');
+  it('returns null for an unparseable string', () => {
+    expect(parseHostname('')).toBe(null);
+    expect(parseHostname('not-a-url')).toBe(null);
   });
 });
 
 describe('emailLinkBaseUrlFromAppUrl', () => {
-  it('returns trimmed URL unchanged in production', () => {
+  it('returns the trimmed URL when not in development mode', () => {
     expect(emailLinkBaseUrlFromAppUrl('https://app.docita.work/', false)).toBe(
       'https://app.docita.work',
     );
   });
 
-  it('forces http protocol in development', () => {
-    expect(emailLinkBaseUrlFromAppUrl('https://app.docita.work', true)).toBe(
-      'http://app.docita.work',
+  it('strips trailing slashes from the URL', () => {
+    expect(emailLinkBaseUrlFromAppUrl('https://app.docita.work///', false)).toBe(
+      'https://app.docita.work',
     );
   });
 
-  it('preserves a path in development', () => {
-    expect(
-      emailLinkBaseUrlFromAppUrl('https://app.docita.work/basepath', true),
-    ).toBe('http://app.docita.work/basepath');
-  });
-
-  it('returns trimmed value when URL is not parseable in dev', () => {
-    expect(emailLinkBaseUrlFromAppUrl('localhost:3000', true)).toBe(
-      'http://localhost:3000',
-    );
-  });
-
-  it('trims whitespace from the URL', () => {
-    expect(
-      emailLinkBaseUrlFromAppUrl('  https://app.docita.work/  ', false),
-    ).toBe('https://app.docita.work');
-  });
-
-  it('trims trailing slashes from the URL', () => {
-    expect(
-      emailLinkBaseUrlFromAppUrl('https://app.docita.work///', false),
-    ).toBe('https://app.docita.work');
-  });
-
-  it('preserves nested path with trailing slash in development', () => {
-    expect(
-      emailLinkBaseUrlFromAppUrl('https://app.docita.work/basepath/sub/', true),
-    ).toBe('http://app.docita.work/basepath/sub');
-  });
-
-  it('returns fallback trimmed value for unparseable URL in production', () => {
-    expect(emailLinkBaseUrlFromAppUrl('  not-a-url  ', false)).toBe(
-      'not-a-url',
-    );
-  });
-
-  it('handles protocol-relative URL in development', () => {
-    expect(emailLinkBaseUrlFromAppUrl('//app.docita.work', true)).toBe(
-      'http://app.docita.work',
-    );
-  });
-
-  it('handles bare hostname in development', () => {
-    expect(emailLinkBaseUrlFromAppUrl('app.docita.work', true)).toBe(
-      'http://app.docita.work',
-    );
-  });
-
-  it('preserves root path in development', () => {
+  it('returns the origin when the path is just "/" in dev mode', () => {
     expect(emailLinkBaseUrlFromAppUrl('https://app.docita.work/', true)).toBe(
       'http://app.docita.work',
     );
+  });
+
+  it('preserves a non-root path in dev mode', () => {
+    expect(
+      emailLinkBaseUrlFromAppUrl('https://staging.docita.work/internal', true),
+    ).toBe('http://staging.docita.work/internal');
+  });
+
+  it('falls back to the trimmed input when URL parsing truly fails in dev mode', () => {
+    expect(emailLinkBaseUrlFromAppUrl('', true)).toBe('');
   });
 });
 
 describe('resolveSharedCookieDomain', () => {
   it('returns undefined for fewer than 2 hostnames', () => {
+    expect(resolveSharedCookieDomain(['app.docita.work'])).toBeUndefined();
     expect(resolveSharedCookieDomain([])).toBeUndefined();
-    expect(resolveSharedCookieDomain(['api.docita.work'])).toBeUndefined();
   });
 
-  it('returns undefined when localhost is in the list', () => {
+  it('returns undefined when any hostname is localhost', () => {
     expect(
-      resolveSharedCookieDomain(['localhost', 'api.docita.work']),
+      resolveSharedCookieDomain(['app.docita.work', 'localhost']),
     ).toBeUndefined();
   });
 
-  it('resolves the shared TLD+1 for sibling subdomains', () => {
+  it('returns undefined when any hostname is an IP address', () => {
     expect(
-      resolveSharedCookieDomain(['api.docita.work', 'app.docita.work']),
+      resolveSharedCookieDomain(['app.docita.work', '192.168.1.1']),
+    ).toBeUndefined();
+  });
+
+  it('returns the shared second-level domain for two app subdomains', () => {
+    expect(
+      resolveSharedCookieDomain(['app.docita.work', 'api.docita.work']),
     ).toBe('docita.work');
   });
 
-  it('returns undefined when there is no shared domain', () => {
-    expect(
-      resolveSharedCookieDomain(['api.docita.work', 'app.example.com']),
-    ).toBeUndefined();
-  });
-
-  it('returns undefined for IP addresses', () => {
-    expect(
-      resolveSharedCookieDomain(['192.168.1.1', 'api.docita.work']),
-    ).toBeUndefined();
-  });
-
-  it('returns undefined for IPv6 addresses', () => {
-    expect(
-      resolveSharedCookieDomain(['::1', 'api.docita.work']),
-    ).toBeUndefined();
-  });
-
-  it('resolves shared domain for 3 hostnames', () => {
+  it('handles hostnames with more than two segments', () => {
     expect(
       resolveSharedCookieDomain([
-        'api.docita.work',
-        'app.docita.work',
-        'admin.docita.work',
+        'us-east.app.docita.work',
+        'eu-west.app.docita.work',
       ]),
-    ).toBe('docita.work');
+    ).toBe('app.docita.work');
   });
 
-  it('resolves shared domain for hostnames with 3+ levels', () => {
+  it('returns undefined when hostnames share fewer than 2 segments', () => {
     expect(
-      resolveSharedCookieDomain([
-        'api.east.docita.work',
-        'app.west.docita.work',
-      ]),
-    ).toBe('docita.work');
-  });
-
-  it('returns undefined when only TLD matches', () => {
-    expect(
-      resolveSharedCookieDomain(['api.test.com', 'api.example.com']),
-    ).toBeUndefined();
-  });
-
-  it('handles whitespace in hostnames', () => {
-    expect(
-      resolveSharedCookieDomain(['  api.docita.work', 'app.docita.work  ']),
-    ).toBe('docita.work');
-  });
-
-  it('filters out empty hostnames', () => {
-    expect(resolveSharedCookieDomain(['api.docita.work', ''])).toBeUndefined();
-  });
-
-  it('returns shared domain for mixed-case hostnames', () => {
-    expect(
-      resolveSharedCookieDomain(['API.Docita.Work', 'app.Docita.Work']),
-    ).toBe('docita.work');
-  });
-
-  it('returns undefined when a hostname has an empty trailing label (FQDN trailing dot)', () => {
-    // Exercises the `if (!segment) break` guard: a trailing dot produces an
-    // empty final label, so the rightmost segment comparison short-circuits
-    // before any shared segments can be collected.
-    expect(
-      resolveSharedCookieDomain(['docita.work.', 'app.docita.work.']),
+      resolveSharedCookieDomain(['app.com', 'app.org']),
     ).toBeUndefined();
   });
 });

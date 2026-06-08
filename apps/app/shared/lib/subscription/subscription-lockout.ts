@@ -2,19 +2,10 @@
 // jscpd:ignore-start
 import type { Clinic } from "@/lib/contexts/clinic-context";
 import { BILLING_ROLES } from "@workspace/types";
+import { toDateOrNull } from "./subscription-date-utils";
 
 export type { TrialState } from "./subscription-trial-state";
 export { getTrialState, getTrialGraceEndsAt } from "./subscription-trial-state";
-
-function subscriptionGraceUntilToDate(value: unknown): Date | null {
-  if (value == null) return null;
-  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
-  if (typeof value === "string") {
-    const parsed = new Date(value);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-  }
-  return null;
-}
 
 export function isPastSubscriptionGraceDeadline(
 // jscpd:ignore-end
@@ -25,7 +16,7 @@ export function isPastSubscriptionGraceDeadline(
   now: number = Date.now(),
 ): boolean {
   if (!clinic) return false;
-  const until = subscriptionGraceUntilToDate(clinic.subscriptionGraceUntil);
+  const until = toDateOrNull(clinic.subscriptionGraceUntil);
   if (!until) return false;
   const status = clinic.subscriptionStatus;
   if (status !== "GRACE" && status !== "PAST_DUE") return false;

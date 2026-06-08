@@ -2,6 +2,7 @@
 
 import type { TeamMember } from "@/features/onboarding/components/types";
 import { Badge } from "@workspace/ui/components/indicators/badge";
+import { OnboardingStepFooter } from "@/features/onboarding/components/shared";
 import {
   ROLE_OPTIONS,
   isDoctorRole,
@@ -138,5 +139,32 @@ export function MemberSummarySection({
         ))}
       </div>
     </div>
+  );
+}
+
+export interface TeamInviteStepFooterSectionProps {
+  onBack?: () => void;
+  onSkip: () => void;
+  onSubmit: () => void;
+  hasValidMembers: boolean;
+}
+
+/** Step-navigation footer for the team-invite step: back/skip/primary actions. */
+export function TeamInviteStepFooterSection({
+  onBack,
+  onSkip,
+  onSubmit,
+  hasValidMembers,
+}: TeamInviteStepFooterSectionProps) {
+  return (
+    <OnboardingStepFooter
+      back={onBack ? { label: "Back to visit hours", onClick: onBack } : undefined}
+      skip={{ label: "Skip for now", onClick: onSkip }}
+      primary={{
+        label: hasValidMembers ? "Save team & continue" : "Continue to plan",
+        onClick: onSubmit,
+        disabled: !hasValidMembers,
+      }}
+    />
   );
 }
