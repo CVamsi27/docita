@@ -342,6 +342,14 @@ export class AppointmentMapper {
       ...(plain.dentalChart !== undefined
         ? { dentalChart: plain.dentalChart }
         : {}),
+      ...(plain.advance
+        ? {
+            advanceAmountCents: plain.advance.amountCents,
+            advancePaymentMethod: plain.advance.paymentMethod ?? null,
+            advanceReference: plain.advance.reference ?? null,
+            advanceNotes: plain.advance.notes ?? null,
+          }
+        : {}),
     };
   }
 }

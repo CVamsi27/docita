@@ -45,9 +45,18 @@ export interface AppointmentProps {
   cancellationReason?: string;
   cancelledAt?: Date;
   metadata?: Record<string, JsonValue | undefined>;
+  advance?: AppointmentAdvance;
   createdAt: Date;
   updatedAt: Date;
   version: number;
+}
+
+/** Advance / partial payment collected when the appointment is booked. */
+export interface AppointmentAdvance {
+  amountCents: number;
+  paymentMethod?: string;
+  reference?: string;
+  notes?: string;
 }
 
 export class Appointment {
@@ -88,6 +97,7 @@ export class Appointment {
   private cancellationReason?: string;
   private cancelledAt?: Date;
   private metadata: Record<string, JsonValue | undefined>;
+  private advance?: AppointmentAdvance;
   readonly createdAt: Date;
   private updatedAt: Date;
   readonly version: number;
@@ -131,6 +141,7 @@ export class Appointment {
     // jscpd:ignore-start
     this.cancelledAt = props.cancelledAt;
     this.metadata = props.metadata || {};
+    this.advance = props.advance;
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
     this.version = props.version;
@@ -284,6 +295,7 @@ export class Appointment {
       cancellationReason: this.cancellationReason,
       cancelledAt: this.cancelledAt,
       metadata: this.metadata,
+      advance: this.advance,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       version: this.version,

@@ -78,6 +78,15 @@ export class AppointmentsScheduleController {
       ),
       reason: parsed.notes,
       type: parsed.type,
+      advance:
+        typeof parsed.advanceAmount === 'number' && parsed.advanceAmount > 0
+          ? {
+              amountCents: Math.round(parsed.advanceAmount * 100),
+              paymentMethod: parsed.advancePaymentMethod,
+              reference: parsed.advanceReference,
+              notes: parsed.advanceNotes,
+            }
+          : undefined,
     };
 
     return this.appointmentService.createAppointment(payload);
