@@ -2,6 +2,7 @@
 
 import { Separator } from "@workspace/ui/components/layout/separator";
 import { Invoice, InvoiceItem } from "@workspace/types";
+import { invoiceAmountPaid, invoiceBalanceDue } from "@workspace/types";
 
 type InvoiceWithExtras = Invoice & {
   discount?: number;
@@ -25,6 +26,8 @@ export function InvoiceTotalsOnly({
   const taxTotal = invoice.taxTotal || 0;
   const grandTotal =
     invoice.grandTotal || invoice.totalAmount || invoice.total || 0;
+  const amountPaid = invoiceAmountPaid(invoice);
+  const balanceDue = invoiceBalanceDue(invoice);
 
   return (
     <div className="flex flex-col md:flex-row justify-between gap-6">
@@ -86,6 +89,18 @@ export function InvoiceTotalsOnly({
           <span>Total</span>
           <span>{formatCurrency(grandTotal)}</span>
         </div>
+        {amountPaid > 0 ? (
+          <>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Amount paid</span>
+              <span>{formatCurrency(amountPaid)}</span>
+            </div>
+            <div className="flex justify-between text-sm font-medium">
+              <span className="text-muted-foreground">Balance due</span>
+              <span>{formatCurrency(balanceDue)}</span>
+            </div>
+          </>
+        ) : null}
       </div>
     </div>
   );

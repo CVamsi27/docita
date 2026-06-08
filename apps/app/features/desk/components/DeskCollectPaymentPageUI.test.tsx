@@ -29,6 +29,13 @@ vi.mock("@workspace/data-access", () => ({
     isError: false,
     refetch: vi.fn(),
   }),
+  useCollectionsByModeReport: () => ({
+    data: { byMode: [], totalCents: 0, count: 0 },
+    isLoading: false,
+    isError: false,
+    error: undefined,
+    refetch: vi.fn(),
+  }),
 }));
 
 vi.mock("@/features/desk/hooks/use-desk-open-invoices", () => ({

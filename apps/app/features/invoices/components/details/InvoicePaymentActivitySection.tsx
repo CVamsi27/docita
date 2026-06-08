@@ -14,6 +14,7 @@ import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
 import { CreditCard } from "lucide-react";
 import { useInvoicePaymentActivity } from "@workspace/data-access";
 import type { InvoicePaymentActivityItem } from "@workspace/types";
+import { formatPaymentChannelLabel } from "@workspace/types";
 
 function formatProviderLabel(provider: string): string {
   return provider
@@ -78,7 +79,9 @@ export const InvoicePaymentActivitySection: FC<
                     <StatusBadge status={row.status} size="sm" />
                   </div>
                   {row.channel ? (
-                    <p className="ui-helper-text">{row.channel}</p>
+                    <p className="ui-helper-text">
+                      Paid by {formatPaymentChannelLabel(row.channel)}
+                    </p>
                   ) : null}
                   {row.reference ? (
                     <p className="break-all text-muted-foreground">
@@ -134,7 +137,7 @@ export const InvoicePaymentActivitySection: FC<
                           <span>{formatProviderLabel(row.provider)}</span>
                           {row.channel ? (
                             <span className="ui-helper-text">
-                              {row.channel}
+                              {formatPaymentChannelLabel(row.channel)}
                             </span>
                           ) : null}
                         </div>

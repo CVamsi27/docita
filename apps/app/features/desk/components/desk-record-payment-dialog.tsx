@@ -14,7 +14,7 @@ import {
 } from "@workspace/ui/components/form/select";
 import {
   Dialog,
-// jscpd:ignore-end
+  // jscpd:ignore-end
   DialogBody,
   DialogContent,
   DialogDescription,
@@ -32,6 +32,9 @@ import {
 export interface RecordPaymentDialogProps {
   dialogInvoice: InvoiceListRow | null;
   paymentMethod: DeskPaymentMethod;
+  amount: string;
+  balanceDue: number;
+  amountIsValid: boolean;
   reference: string;
   notes: string;
   canRecordPayment: boolean;
@@ -39,6 +42,7 @@ export interface RecordPaymentDialogProps {
   formatMoney: (amount: number | undefined) => string;
   onOpenChange: (open: boolean) => void;
   onPaymentMethodChange: (method: DeskPaymentMethod) => void;
+  onAmountChange: (value: string) => void;
   onReferenceChange: (value: string) => void;
   onNotesChange: (value: string) => void;
   onSubmit: () => void;
@@ -47,6 +51,9 @@ export interface RecordPaymentDialogProps {
 export function RecordPaymentDialog({
   dialogInvoice,
   paymentMethod,
+  amount,
+  balanceDue,
+  amountIsValid,
   reference,
   notes,
   canRecordPayment,
@@ -54,6 +61,7 @@ export function RecordPaymentDialog({
   formatMoney,
   onOpenChange,
   onPaymentMethodChange,
+  onAmountChange,
   onReferenceChange,
   onNotesChange,
   onSubmit,
@@ -65,8 +73,8 @@ export function RecordPaymentDialog({
           <MicroLabel className="text-muted-foreground">Desk</MicroLabel>
           <DialogTitle>Record desk payment</DialogTitle>
           <DialogDescription>
-            Record a manual payment collected at the front desk. The full invoice
-            amount will be marked as paid.
+            Record a payment collected at the front desk. Pay the full balance
+            or a partial advance — the invoice updates accordingly.
           </DialogDescription>
         </DialogHeader>
         <DialogBody>
@@ -79,6 +87,9 @@ export function RecordPaymentDialog({
               </p>
               <p className="text-[var(--fs-lg)] font-semibold">
                 {formatMoney(dialogInvoice.total ?? dialogInvoice.grandTotal)}
+              </p>
+              <p className="text-[var(--fs-xs)] text-muted-foreground">
+                Balance due {formatMoney(balanceDue)}
               </p>
             </div>
           ) : null}
@@ -106,6 +117,28 @@ export function RecordPaymentDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="desk-amount" className="text-[var(--fs-xs)]">
+              Amount received
+            </Label>
+            <Input
+              id="desk-amount"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              step="0.01"
+              value={amount}
+              onChange={(e) => onAmountChange(e.target.value)}
+              autoComplete="off"
+              aria-invalid={!amountIsValid}
+            />
+            {!amountIsValid ? (
+              <p className="text-[var(--fs-xs)] text-destructive">
+                Enter an amount between {formatMoney(0.01)} and{" "}
+                {formatMoney(balanceDue)}.
+              </p>
+            ) : null}
           </div>
           <div className="space-y-2">
             <Label htmlFor="desk-reference" className="text-[var(--fs-xs)]">
