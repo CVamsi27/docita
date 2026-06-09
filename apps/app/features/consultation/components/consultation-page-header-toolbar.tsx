@@ -5,7 +5,6 @@ import {
   ConsultationToolbarMarkDoneAction,
   ConsultationToolbarMobileMenu,
   ConsultationToolbarPrimaryActions,
-  ConsultationToolbarSidebarToggle,
   ConsultationToolbarUtilityActions,
 } from "./consultation-page-header-toolbar-sections";
 
@@ -13,8 +12,7 @@ interface ConsultationPageHeaderToolbarProps {
   readOnly: boolean;
   appointmentId: string;
   canCreateInvoice: boolean;
-  isDesktopSidebarOpen: boolean;
-  onToggleDesktopSidebar?: () => void;
+  existingInvoiceStatus?: string | null;
   onOpenCommandPalette?: () => void;
   onMarkDone?: () => void;
   isMarkingDone: boolean;
@@ -29,8 +27,7 @@ export function ConsultationPageHeaderToolbar({
   readOnly,
   appointmentId,
   canCreateInvoice,
-  isDesktopSidebarOpen,
-  onToggleDesktopSidebar,
+  existingInvoiceStatus,
   onOpenCommandPalette,
   onMarkDone,
   isMarkingDone,
@@ -49,6 +46,7 @@ export function ConsultationPageHeaderToolbar({
         readOnly={readOnly}
         appointmentId={appointmentId}
         canCreateInvoice={canCreateInvoice}
+        existingInvoiceStatus={existingInvoiceStatus}
         onOpenVitals={onOpenVitals}
         onOpenBilling={onOpenBilling}
       />
@@ -59,6 +57,7 @@ export function ConsultationPageHeaderToolbar({
       <ConsultationToolbarMobileMenu
         readOnly={readOnly}
         canCreateInvoice={canCreateInvoice}
+        existingInvoiceStatus={existingInvoiceStatus}
         onOpenVitals={onOpenVitals}
         onOpenBilling={onOpenBilling}
         onOpenAskAi={onOpenAskAi}
@@ -70,10 +69,6 @@ export function ConsultationPageHeaderToolbar({
         isMarkingDone={isMarkingDone}
         canMarkDone={canMarkDone}
         markDoneDisabledReason={markDoneDisabledReason}
-      />
-      <ConsultationToolbarSidebarToggle
-        isDesktopSidebarOpen={isDesktopSidebarOpen}
-        onToggleDesktopSidebar={onToggleDesktopSidebar}
       />
     </div>
   );

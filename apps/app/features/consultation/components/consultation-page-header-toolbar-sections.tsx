@@ -7,6 +7,7 @@ import {
   HeartPulse,
   MoreVertical,
   PanelLeft,
+  PencilLine,
   Sparkles,
 } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
@@ -28,6 +29,7 @@ interface ConsultationToolbarPrimaryActionsProps {
   readOnly: boolean;
   appointmentId: string;
   canCreateInvoice: boolean;
+  existingInvoiceStatus?: string | null;
   onOpenVitals: () => void;
   onOpenBilling: () => void;
 }
@@ -37,9 +39,13 @@ export function ConsultationToolbarPrimaryActions({
   readOnly,
   appointmentId,
   canCreateInvoice,
+  existingInvoiceStatus,
   onOpenVitals,
   onOpenBilling,
 }: ConsultationToolbarPrimaryActionsProps) {
+  const hasOpenInvoice =
+    existingInvoiceStatus === "PENDING" ||
+    existingInvoiceStatus === "PARTIALLY_PAID";
   return (
     <>
       {!readOnly ? (
@@ -69,10 +75,20 @@ export function ConsultationToolbarPrimaryActions({
           size="sm"
           className="hidden sm:inline-flex gap-1.5 h-8"
           onClick={onOpenBilling}
-          aria-label="Create invoice"
+          aria-label={hasOpenInvoice ? "Edit invoice" : "Create invoice"}
         >
-          <CreditCard className="h-3.5 w-3.5 text-success" aria-hidden="true" />
-          Invoice
+          {hasOpenInvoice ? (
+            <PencilLine
+              className="h-3.5 w-3.5 text-success"
+              aria-hidden="true"
+            />
+          ) : (
+            <CreditCard
+              className="h-3.5 w-3.5 text-success"
+              aria-hidden="true"
+            />
+          )}
+          {hasOpenInvoice ? "Edit Invoice" : "Invoice"}
         </Button>
       ) : null}
     </>
@@ -130,6 +146,7 @@ export function ConsultationToolbarUtilityActions({
 interface ConsultationToolbarMobileMenuProps {
   readOnly: boolean;
   canCreateInvoice: boolean;
+  existingInvoiceStatus?: string | null;
   onOpenVitals: () => void;
   onOpenBilling: () => void;
   onOpenAskAi: () => void;
@@ -140,11 +157,15 @@ interface ConsultationToolbarMobileMenuProps {
 export function ConsultationToolbarMobileMenu({
   readOnly,
   canCreateInvoice,
+  existingInvoiceStatus,
   onOpenVitals,
   onOpenBilling,
   onOpenAskAi,
   onOpenCommandPalette,
 }: ConsultationToolbarMobileMenuProps) {
+  const hasOpenInvoice =
+    existingInvoiceStatus === "PENDING" ||
+    existingInvoiceStatus === "PARTIALLY_PAID";
   return (
     <DropdownMenu>
       <Tooltip>
@@ -171,8 +192,12 @@ export function ConsultationToolbarMobileMenu({
         ) : null}
         {canCreateInvoice ? (
           <DropdownMenuItem onClick={onOpenBilling}>
-            <CreditCard className="mr-2 h-4 w-4 text-success" />
-            Invoice
+            {hasOpenInvoice ? (
+              <PencilLine className="mr-2 h-4 w-4 text-success" />
+            ) : (
+              <CreditCard className="mr-2 h-4 w-4 text-success" />
+            )}
+            {hasOpenInvoice ? "Edit Invoice" : "Invoice"}
           </DropdownMenuItem>
         ) : null}
         <DropdownMenuItem onClick={onOpenAskAi}>
