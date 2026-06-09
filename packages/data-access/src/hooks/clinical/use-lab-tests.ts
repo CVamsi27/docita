@@ -2,10 +2,12 @@
 
 import {
   CreateLabTestOrderRequest,
+  CreateLabTestRequest,
   Feature,
   type LabTest,
   type LabTestOrder,
   UpdateLabTestOrderRequest,
+  UpdateLabTestRequest,
 } from "@workspace/types";
 import { useAPIQuery } from "../../core/use-api-query";
 import { useAPIMutation } from "../../core/use-api-mutation";
@@ -94,3 +96,27 @@ export const useLabTestCatalog = () => {
     { enabled: labOk },
   );
 };
+
+export const useCreateLabTest = () =>
+  useAPIMutation<LabTest, CreateLabTestRequest>(
+    "/clinical/lab-tests",
+    "POST",
+    { invalidateKeys: [queryKeys.clinical.labTests.catalog()] },
+  );
+
+export const useUpdateLabTest = () =>
+  useAPIMutation<LabTest, { id: string } & UpdateLabTestRequest>(
+    (vars) => `/clinical/lab-tests/${vars.id}`,
+    "PUT",
+    {
+      body: ({ id: _id, ...body }) => body,
+      invalidateKeys: [queryKeys.clinical.labTests.catalog()],
+    },
+  );
+
+export const useDeleteLabTest = () =>
+  useAPIMutation<void, { id: string }>(
+    (vars) => `/clinical/lab-tests/${vars.id}`,
+    "DELETE",
+    { invalidateKeys: [queryKeys.clinical.labTests.catalog()] },
+  );

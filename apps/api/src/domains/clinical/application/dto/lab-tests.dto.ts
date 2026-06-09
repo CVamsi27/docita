@@ -9,12 +9,17 @@ import {
   recordSampleCollectionRequestSchema,
   updateLabRequestSchema,
   updateLabTestOrderRequestSchema,
+  updateLabTestRequestSchema,
   uploadLabResultRequestSchema,
   verifyLabOrderPaymentRequestSchema,
 } from '@workspace/types';
 
 export class CreateLabTestDto extends createZodDto(
   createLabTestRequestSchema,
+) {}
+
+export class UpdateLabTestDto extends createZodDto(
+  updateLabTestRequestSchema,
 ) {}
 
 export class CreateLabTestOrderDto extends createZodDto(

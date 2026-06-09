@@ -32,6 +32,8 @@ type LabTestCreateInput = {
   description?: string;
 };
 
+type LabTestUpdateInput = Partial<Omit<LabTestCreateInput, 'id' | 'clinicId'>>;
+
 type LabOrderCreateInput = {
   patientId: string;
   labTestId: string;
@@ -86,6 +88,29 @@ export class ClinicalService {
   async createTest(data: LabTestCreateInput): Promise<LabTest> {
     const test = LabTest.create(this.toLabTestInput(data));
     return await this.labTestRepository.saveTest(test);
+  }
+
+  async updateTest(id: string, data: LabTestUpdateInput): Promise<LabTest> {
+    const existing = await this.labTestRepository.findTestById(id);
+    if (!existing) throw new NotFoundException('Lab test not found');
+
+    const merged = LabTest.create({
+      id: existing.id,
+      clinicId: existing.clinicId,
+      name: data.name ?? existing.name,
+      category: data.category ?? existing.category,
+      active: data.active ?? existing.active,
+      code: data.code ?? existing.code,
+      price: data.price ?? existing.price,
+      description: data.description ?? existing.description,
+    });
+    return await this.labTestRepository.saveTest(merged);
+  }
+
+  async deleteTest(id: string): Promise<void> {
+    const existing = await this.labTestRepository.findTestById(id);
+    if (!existing) throw new NotFoundException('Lab test not found');
+    await this.labTestRepository.deleteTest(id);
   }
 
   async getAllOrders(

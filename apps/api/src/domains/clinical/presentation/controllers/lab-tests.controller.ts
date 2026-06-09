@@ -6,6 +6,9 @@ import {
   Param,
   Query,
   Put,
+  Delete,
+  HttpCode,
+  HttpStatus,
   Request,
   UseGuards,
   NotFoundException,
@@ -23,6 +26,7 @@ import {
   CreateLabTestOrderDto,
   LabStatsQueryDto,
   ListLabTestOrdersQueryDto,
+  UpdateLabTestDto,
   UpdateLabTestOrderDto,
 } from '@/domains/clinical/application/dto/lab-tests.dto';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
@@ -171,5 +175,31 @@ export class LabTestsController {
       ...data,
       clinicId: getClinicStaffRequestContext(req).clinicId,
     });
+  }
+
+  @Put(':id')
+  async updateTest(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+    @Body() data: UpdateLabTestDto,
+  ): Promise<LabTest> {
+    const existing = await this.clinicalService.getTestById(id);
+    if (existing.clinicId !== getClinicStaffRequestContext(req).clinicId) {
+      throw new NotFoundException('Lab test not found');
+    }
+    return await this.clinicalService.updateTest(id, data);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteTest(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ): Promise<void> {
+    const existing = await this.clinicalService.getTestById(id);
+    if (existing.clinicId !== getClinicStaffRequestContext(req).clinicId) {
+      throw new NotFoundException('Lab test not found');
+    }
+    await this.clinicalService.deleteTest(id);
   }
 }

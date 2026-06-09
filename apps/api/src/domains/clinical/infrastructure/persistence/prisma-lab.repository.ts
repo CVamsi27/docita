@@ -63,6 +63,10 @@ export class PrismaLabRepository implements ILabRepository {
     return this.mapToLabTest(saved);
   }
 
+  async deleteTest(id: string): Promise<void> {
+    await this.prisma.labTest.delete({ where: { id } });
+  }
+
   async findAllOrders(
     clinicId: string,
     params?: {
