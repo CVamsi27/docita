@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, type RefObject } from "react";
+import { useLocalStorage } from "@workspace/hooks";
 import {
   type Appointment,
   type PatientWithMedicalHistory,
@@ -32,6 +33,10 @@ export function ConsultationShell({
   paletteOpen,
   onPaletteOpenChange,
 }: ConsultationShellProps) {
+  const [rightRailOpen, setRightRailOpen] = useLocalStorage(
+    "consultation:right-rail-open",
+    true,
+  );
   const {
     sections,
     activeSectionId,
@@ -76,7 +81,8 @@ export function ConsultationShell({
           appointmentData={appointmentData}
         />
         <ConsultationRightRail
-          isSidebarOpen={isSidebarOpen}
+          isSidebarOpen={isSidebarOpen && rightRailOpen}
+          onToggle={() => setRightRailOpen((open) => !open)}
           appointmentData={appointmentData}
         />
         <CommandPalette
