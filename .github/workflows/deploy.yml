@@ -176,7 +176,10 @@ jobs:
       - name: Setup Flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy API to Fly.io
-        run: bash scripts/deploy/fly-deploy-in-primary-region.sh fly.toml "${{ steps.fly-config.outputs.app_name }}"
+        # API keeps blue-green for zero-downtime traffic cutover (the worker
+        # opts into rolling). Passed explicitly so the deployment contract is
+        # visible at the call site, not just the script default.
+        run: bash scripts/deploy/fly-deploy-in-primary-region.sh fly.toml "${{ steps.fly-config.outputs.app_name }}" --strategy bluegreen
       - name: Post-deploy synthetic probes
         env:
           SYNTHETIC_POST_DEPLOY: "1"
@@ -208,7 +211,7 @@ jobs:
       - name: Setup Flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy Worker to Fly.io
-        run: bash scripts/deploy/fly-deploy-in-primary-region.sh apps/worker/fly.toml "${{ steps.fly-config.outputs.app_name }}" --ha=false
+        run: bash scripts/deploy/fly-deploy-in-primary-region.sh apps/worker/fly.toml "${{ steps.fly-config.outputs.app_name }}" --strategy rolling --ha=false
 
   gate:
     name: Check Cloudflare deploy credentials
