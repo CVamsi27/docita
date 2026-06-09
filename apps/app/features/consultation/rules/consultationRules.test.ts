@@ -70,7 +70,7 @@ describe("Consultation Business Rules", () => {
   });
 
   describe("canCompleteConsultation", () => {
-    it("should require chief complaint, diagnosis, and vitals", () => {
+    it("should require chief complaint and diagnosis", () => {
       expect(
         canCompleteConsultation({
           chiefComplaint: "Pain",
@@ -80,10 +80,27 @@ describe("Consultation Business Rules", () => {
       ).toBe(true);
     });
 
-    it("should return false if missing required fields", () => {
+    it("should not require vitals to complete", () => {
       expect(
         canCompleteConsultation({
           chiefComplaint: "Pain",
+          hasDiagnosis: true,
+          hasVitals: false,
+        }),
+      ).toBe(true);
+      expect(
+        getConsultationCompletionMissingFields({
+          chiefComplaint: "Pain",
+          hasDiagnosis: true,
+          hasVitals: false,
+        }),
+      ).toEqual([]);
+    });
+
+    it("should return false if missing mandatory fields", () => {
+      expect(
+        canCompleteConsultation({
+          chiefComplaint: "",
           hasDiagnosis: false,
           hasVitals: false,
         }),
