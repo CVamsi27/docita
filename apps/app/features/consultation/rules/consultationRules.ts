@@ -59,21 +59,26 @@ export const calculateBMIFromVitals = (vitals: VitalSign): number | null => {
 export type ConsultationCompletionInput = {
   chiefComplaint?: string | null;
   hasDiagnosis: boolean;
+  /**
+   * Whether vitals were recorded. Vitals live in the Objective section, which
+   * is optional (`required: false`), so they are NOT required to mark a
+   * consultation done — kept here for display/telemetry only.
+   */
   hasVitals: boolean;
 };
 
 export const getConsultationCompletionMissingFields = (
   consultation: ConsultationCompletionInput,
 ): string[] => {
+  // Only the mandatory SOAP sections gate completion: Subjective (chief
+  // complaint) and Assessment (diagnosis). Vitals are optional and must not
+  // block marking the consultation done.
   const missing: string[] = [];
   if (!consultation.chiefComplaint?.trim()) {
     missing.push("Chief complaint");
   }
   if (!consultation.hasDiagnosis) {
     missing.push("Diagnosis");
-  }
-  if (!consultation.hasVitals) {
-    missing.push("Vitals");
   }
   return missing;
 };
