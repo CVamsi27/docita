@@ -1,8 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { PrescriptionPdfOrchestratorService } from '@/domains/prescriptions/application/services/prescription-pdf-orchestrator.service';
-import { InvoicesQueryService } from '@/domains/billing/application/services/invoices-query.service';
-import { InvoicesCommandService } from '@/domains/billing/application/services/invoices-command.service';
+import { InvoicesService } from '@/domains/billing/application/services/invoices.service';
 import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { PublicDocumentTokenService } from './public-document-token.service';
 import { PaymentSessionStatus } from '@workspace/db';
@@ -32,8 +31,7 @@ export class PublicPatientDocumentsService {
     private readonly tokenService: PublicDocumentTokenService,
     private readonly storageProvider: StorageProvider,
     private readonly prescriptionPdfOrchestrator: PrescriptionPdfOrchestratorService,
-    private readonly invoicesQueryService: InvoicesQueryService,
-    private readonly invoicesCommandService: InvoicesCommandService,
+    private readonly invoicesService: InvoicesService,
   ) {}
 
   async getPrescriptionPdf(
@@ -215,15 +213,15 @@ export class PublicPatientDocumentsService {
         return { buffer, filename: `invoice-${invoiceId}.pdf`, contentType };
       }
 
-      const buffer = await this.invoicesQueryService.generatePDF(
+      const buffer = await this.invoicesService.generatePDF(
         invoiceId,
         clinicId,
       );
-      const invoiceDetail = await this.invoicesQueryService.findOne(
+      const invoiceDetail = await this.invoicesService.findOne(
         invoiceId,
         clinicId,
       );
-      await this.invoicesCommandService.uploadAndPersist(
+      await this.invoicesService.uploadAndPersist(
         invoiceId,
         clinicId,
         buffer,
