@@ -14,6 +14,7 @@ import {
 import { Pill, Plus, Trash2 } from "lucide-react";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { MEDICATION_ROUTES } from "@/lib/services/clinic-feature.service";
+import { SIG_CODE_LABELS } from "@workspace/types";
 
 import { useMedicationSelection } from "./use-medication-selection";
 import { useMedicationRoutes } from "./use-medication-routes";
@@ -103,13 +104,32 @@ export function PrescriptionInput({
                   />
                 </div>
                 <div className="col-span-1 md:col-span-2">
-                  <Input
-                    placeholder="Frequency"
-                    value={med.frequency}
-                    onChange={(e) => updateFrequency(e.target.value)}
-                    readOnly={readOnly}
-                    className="bg-background"
-                  />
+                  {readOnly ? (
+                    <Input
+                      value={
+                        med.frequency in SIG_CODE_LABELS
+                          ? SIG_CODE_LABELS[med.frequency as keyof typeof SIG_CODE_LABELS]
+                          : med.frequency
+                      }
+                      readOnly
+                      className="bg-background"
+                    />
+                  ) : (
+                    <Select value={med.frequency} onValueChange={updateFrequency}>
+                      <SelectTrigger className="bg-background min-h-11 rounded-xl px-4">
+                        <SelectValue placeholder="Frequency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(Object.entries(SIG_CODE_LABELS) as [keyof typeof SIG_CODE_LABELS, string][]).map(
+                          ([code, label]) => (
+                            <SelectItem key={code} value={code}>
+                              {code} – {label}
+                            </SelectItem>
+                          ),
+                        )}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
                 <div className="col-span-1 md:col-span-2">
                   <Input
@@ -132,7 +152,7 @@ export function PrescriptionInput({
                     />
                   ) : (
                     <Select value={med.route} onValueChange={updateRoute}>
-                      <SelectTrigger className="bg-background">
+                      <SelectTrigger className="bg-background min-h-11 rounded-xl px-4">
                         <SelectValue placeholder="Route" />
                       </SelectTrigger>
                       <SelectContent>
@@ -182,8 +202,18 @@ export function PrescriptionInput({
       )}
 
       {medications.length === 0 && readOnly && (
-        <div className="rounded-[var(--radius-md)] border border-dashed py-8 text-center text-muted-foreground">
-          No medications prescribed.
+        <div className="rounded-[var(--radius-md)] border border-dashed border-border bg-muted/10 px-6 py-10 text-center">
+          <CategoryAvatar
+            icon={<Pill />}
+            tone="neutral"
+            size="lg"
+            aria-label="No medications"
+            className="mx-auto mb-3"
+          />
+          <p className="font-medium text-foreground">No medications prescribed</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            No medicines have been added to this prescription yet.
+          </p>
         </div>
       )}
     </div>
