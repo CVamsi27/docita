@@ -14,6 +14,7 @@ import {
 import { Pill, Plus, Trash2 } from "lucide-react";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { MEDICATION_ROUTES } from "@/lib/services/clinic-feature.service";
+import { SIG_CODE_LABELS } from "@workspace/types";
 
 import { useMedicationSelection } from "./use-medication-selection";
 import { useMedicationRoutes } from "./use-medication-routes";
@@ -21,6 +22,50 @@ import { usePrescriptionForm } from "./use-prescription-form";
 import type { Medication } from "./prescription-input.types";
 
 export type { Medication } from "./prescription-input.types";
+
+/** Maps a stored sig-code (e.g. "BID") to its label, falling back to the raw value. */
+function formatFrequencyLabel(frequency: string): string {
+  const labels: Record<string, string> = SIG_CODE_LABELS;
+  return labels[frequency] ?? frequency;
+}
+
+interface MedicationSelectFieldProps {
+  readOnly: boolean;
+  value: string;
+  /** Human-readable label shown in the read-only fallback input. */
+  readOnlyLabel: string;
+  placeholder: string;
+  onValueChange: (value: string) => void;
+  /** `SelectItem`/`SelectGroup` options rendered inside the dropdown. */
+  children: React.ReactNode;
+}
+
+/**
+ * A medication dropdown that falls back to a read-only input when the
+ * prescription is locked. Shared by the Frequency and Route fields so the
+ * read-only/select scaffolding lives in one place.
+ */
+function MedicationSelectField({
+  readOnly,
+  value,
+  readOnlyLabel,
+  placeholder,
+  onValueChange,
+  children,
+}: MedicationSelectFieldProps) {
+  if (readOnly) {
+    return <Input value={readOnlyLabel} readOnly className="bg-background" />;
+  }
+
+  return (
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectTrigger className="bg-background min-h-11 rounded-xl px-4">
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>{children}</SelectContent>
+    </Select>
+  );
+}
 
 interface PrescriptionInputProps {
   value: Medication[];
@@ -103,13 +148,19 @@ export function PrescriptionInput({
                   />
                 </div>
                 <div className="col-span-1 md:col-span-2">
-                  <Input
-                    placeholder="Frequency"
-                    value={med.frequency}
-                    onChange={(e) => updateFrequency(e.target.value)}
+                  <MedicationSelectField
                     readOnly={readOnly}
-                    className="bg-background"
-                  />
+                    value={med.frequency}
+                    placeholder="Frequency"
+                    readOnlyLabel={formatFrequencyLabel(med.frequency)}
+                    onValueChange={updateFrequency}
+                  >
+                    {Object.entries(SIG_CODE_LABELS).map(([code, label]) => (
+                      <SelectItem key={code} value={code}>
+                        {code} – {label}
+                      </SelectItem>
+                    ))}
+                  </MedicationSelectField>
                 </div>
                 <div className="col-span-1 md:col-span-2">
                   <Input
@@ -121,39 +172,27 @@ export function PrescriptionInput({
                   />
                 </div>
                 <div className="col-span-1 md:col-span-2">
-                  {readOnly ? (
-                    <Input
-                      value={
-                        MEDICATION_ROUTES.find((r) => r.value === med.route)
-                          ?.label || med.route
-                      }
-                      readOnly
-                      className="bg-background"
-                    />
-                  ) : (
-                    <Select value={med.route} onValueChange={updateRoute}>
-                      <SelectTrigger className="bg-background">
-                        <SelectValue placeholder="Route" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(groupedRoutes).map(
-                          ([category, routes]) => (
-                            <SelectGroup key={category}>
-                              <SelectLabel>{category} Routes</SelectLabel>
-                              {routes.map((route) => (
-                                <SelectItem
-                                  key={route.value}
-                                  value={route.value}
-                                >
-                                  {route.label}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          ),
-                        )}
-                      </SelectContent>
-                    </Select>
-                  )}
+                  <MedicationSelectField
+                    readOnly={readOnly}
+                    value={med.route}
+                    placeholder="Route"
+                    readOnlyLabel={
+                      MEDICATION_ROUTES.find((r) => r.value === med.route)
+                        ?.label || med.route
+                    }
+                    onValueChange={updateRoute}
+                  >
+                    {Object.entries(groupedRoutes).map(([category, routes]) => (
+                      <SelectGroup key={category}>
+                        <SelectLabel>{category} Routes</SelectLabel>
+                        {routes.map((route) => (
+                          <SelectItem key={route.value} value={route.value}>
+                            {route.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    ))}
+                  </MedicationSelectField>
                 </div>
                 <div className="col-span-1 md:col-span-12">
                   <Input
@@ -182,8 +221,18 @@ export function PrescriptionInput({
       )}
 
       {medications.length === 0 && readOnly && (
-        <div className="rounded-[var(--radius-md)] border border-dashed py-8 text-center text-muted-foreground">
-          No medications prescribed.
+        <div className="rounded-[var(--radius-md)] border border-dashed border-border bg-muted/10 px-6 py-10 text-center">
+          <CategoryAvatar
+            icon={<Pill />}
+            tone="neutral"
+            size="lg"
+            aria-label="No medications"
+            className="mx-auto mb-3"
+          />
+          <p className="font-medium text-foreground">No medications prescribed</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            No medicines have been added to this prescription yet.
+          </p>
         </div>
       )}
     </div>

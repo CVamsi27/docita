@@ -1,7 +1,8 @@
 "use client";
 
 import { Button } from "@workspace/ui/components/form/button";
-import { Plus } from "lucide-react";
+import { Plus, Stethoscope } from "lucide-react";
+import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { Feature } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { DiagnosisItemRow } from "./diagnosis-item-row";
@@ -82,8 +83,18 @@ export function DiagnosisInput({
         </Button>
       ) : null}
       {items.length === 0 && readOnly ? (
-        <div className="rounded-[var(--radius-md)] border border-dashed py-8 text-center text-muted-foreground">
-          No diagnosis recorded.
+        <div className="rounded-[var(--radius-md)] border border-dashed border-border bg-muted/10 px-6 py-10 text-center">
+          <CategoryAvatar
+            icon={<Stethoscope />}
+            tone="neutral"
+            size="lg"
+            aria-label="No diagnosis"
+            className="mx-auto mb-3"
+          />
+          <p className="font-medium text-foreground">No diagnosis recorded</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            This consultation does not have a documented diagnosis yet.
+          </p>
         </div>
       ) : null}
     </div>
