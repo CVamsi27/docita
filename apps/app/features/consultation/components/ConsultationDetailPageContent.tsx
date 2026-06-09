@@ -44,12 +44,11 @@ function ConsultationPageContent() {
     isError,
     isAccessDenied,
     clinic,
-    isSidebarOpen,
     fallbackRoute,
     appointmentError,
   } = state;
 
-  const { handleBack, toggleSidebar, retry } = handlers;
+  const { handleBack, retry } = handlers;
 
   const isRecoveringSession = useSessionRecoveryRedirect({
     error: appointmentError,
@@ -111,8 +110,6 @@ function ConsultationPageContent() {
       appointmentId={appointmentId}
       clinicType={clinic?.type}
       consultationReadOnly={consultationReadOnly}
-      isSidebarOpen={isSidebarOpen}
-      onToggleSidebar={toggleSidebar}
       saveHandlesRef={saveHandlesRef}
       paletteOpen={paletteOpen}
       onPaletteOpenChange={setPaletteOpen}

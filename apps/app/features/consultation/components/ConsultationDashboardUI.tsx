@@ -23,6 +23,22 @@ import {
   buildFollowUpAppointmentHref,
   deriveConsultationDashboardRoles,
 } from "./consultation-dashboard-ui-helpers";
+import { VitalsModal } from "./modals/VitalsModal";
+import { BillingModal } from "./modals/BillingModal";
+import { useAppointmentOpenInvoice } from "@/features/consultation/hooks/use-appointment-open-invoice";
+
+interface VitalsModalState {
+  open: boolean;
+  appointmentId?: string;
+  patientName?: string;
+}
+
+interface BillingModalState {
+  open: boolean;
+  appointmentId?: string;
+  patientId?: string;
+  patientName?: string;
+}
 
 export const ConsultationDashboardUI: FC = () => {
   const {
@@ -49,6 +65,26 @@ export const ConsultationDashboardUI: FC = () => {
   const { canCreateAppointment } = usePermissions();
   const [walkInOpen, setWalkInOpen] = useState(false);
   const rowActions = useAppointmentRowActions();
+
+  const [vitalsModal, setVitalsModal] = useState<VitalsModalState>({ open: false });
+  const [billingModal, setBillingModal] = useState<BillingModalState>({ open: false });
+
+  const { invoice: existingInvoice } = useAppointmentOpenInvoice(
+    billingModal.open ? billingModal.appointmentId : undefined,
+    billingModal.open ? billingModal.patientId : undefined,
+  );
+
+  const handleVitalsClick = useCallback(
+    (appointmentId: string, patientName: string) =>
+      setVitalsModal({ open: true, appointmentId, patientName }),
+    [],
+  );
+
+  const handleInvoiceClick = useCallback(
+    (appointmentId: string, patientId: string) =>
+      setBillingModal({ open: true, appointmentId, patientId }),
+    [],
+  );
 
   const handleScheduleFollowUp = useCallback(
     (patientId?: string | null) =>
@@ -82,6 +118,8 @@ export const ConsultationDashboardUI: FC = () => {
           handleScheduleFollowUp={handleScheduleFollowUp}
           handleStartConsultation={handleStartConsultation}
           goToConsultationWorkspace={goToConsultationWorkspace}
+          onVitalsClick={handleVitalsClick}
+          onInvoiceClick={handleInvoiceClick}
         />
       ) : null}
 
@@ -102,6 +140,8 @@ export const ConsultationDashboardUI: FC = () => {
           clinicType={clinicType}
           router={router}
           handleScheduleFollowUp={handleScheduleFollowUp}
+          onVitalsClick={handleVitalsClick}
+          onInvoiceClick={handleInvoiceClick}
         />
       ) : null}
 
@@ -111,6 +151,28 @@ export const ConsultationDashboardUI: FC = () => {
         selectedDoctorId={selectedDoctorId}
         onDoctorSelect={setSelectedDoctorId}
         doctorsList={doctorsList}
+      />
+
+      <VitalsModal
+        open={vitalsModal.open}
+        onOpenChange={(open) =>
+          setVitalsModal((prev) => ({ ...prev, open }))
+        }
+        appointmentId={vitalsModal.appointmentId}
+        patientName={vitalsModal.patientName}
+        onSaved={() => setVitalsModal({ open: false })}
+      />
+
+      <BillingModal
+        open={billingModal.open}
+        onOpenChange={(open) =>
+          setBillingModal((prev) => ({ ...prev, open }))
+        }
+        appointmentId={billingModal.appointmentId}
+        patientId={billingModal.patientId}
+        patientName={billingModal.patientName}
+        existingInvoice={existingInvoice}
+        onSaved={() => setBillingModal({ open: false })}
       />
     </AppPageScaffold>
   );

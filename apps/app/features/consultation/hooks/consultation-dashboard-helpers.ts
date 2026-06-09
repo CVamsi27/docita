@@ -15,6 +15,7 @@ export interface DashboardAppointment {
   patient?: { id?: string; firstName?: string; lastName?: string };
   type?: string;
   chiefComplaint?: string;
+  invoice?: { id?: string; status?: string; total?: number } | null;
 }
 
 export type DoctorNextUpRow =

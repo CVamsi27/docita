@@ -8,7 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@workspace/ui/components/overlay/collapsible";
-import { Clock, ChevronDown, User, X } from "lucide-react";
+import { ChevronDown, Clock, User, X } from "lucide-react";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { cn } from "@workspace/ui/lib/utils";
 import {
@@ -19,7 +19,6 @@ import {
 import { PatientTimeline } from "@/components/patient-history/PatientTimeline";
 import { formatGenderLabel } from "@/lib/formatters";
 
-/** The "no patient data" placeholder shown when the sidebar has nothing to render — split out as its own self-contained piece independent of the populated-state sections below it. */
 export function ConsultationSidebarEmptyState() {
   return (
     <Card className="ui-card-surface h-full">
@@ -40,7 +39,6 @@ interface ConsultationSidebarHeaderProps {
   onClose?: () => void;
 }
 
-/** The avatar/name/meta/close-button strip atop the sidebar — split out as its own self-contained header independent of the sections below it. */
 export function ConsultationSidebarHeader({
   initials,
   patientName,
@@ -81,34 +79,57 @@ export function ConsultationSidebarHeader({
 
 interface ConsultationSidebarHistoryTimelineProps {
   timelineData: PatientTimelineResponse;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-/** The "History" label plus compact timeline (or its empty state) — split out as its own self-contained section independent of the header above it. */
 export function ConsultationSidebarHistoryTimeline({
   timelineData,
+  open,
+  onOpenChange,
 }: ConsultationSidebarHistoryTimelineProps) {
   return (
-    <div className="space-y-2">
-      <MicroLabel className="flex items-center gap-1.5 text-muted-foreground">
-        <Clock className="h-3 w-3" aria-hidden="true" />
-        History
-        {timelineData.total > 0 ? (
-          <span className="font-normal normal-case">
-            ({timelineData.total})
+    <Collapsible open={open} onOpenChange={onOpenChange}>
+      <CollapsibleTrigger
+        className={cn(
+          "group flex w-full items-center gap-2 rounded py-0.5",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+        )}
+        aria-label={open ? "Hide visit history" : "Show visit history"}
+      >
+        <div className="h-px flex-1 bg-border/50 transition-colors group-hover:bg-border" />
+        <span className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground/70 transition-colors group-hover:text-muted-foreground">
+          <Clock className="h-3 w-3" aria-hidden="true" />
+          <span>
+            History
+            {timelineData.total > 0 ? ` (${timelineData.total})` : ""}
           </span>
-        ) : null}
-      </MicroLabel>
-      {timelineData.events.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-1">No previous visits</p>
-      ) : (
-        <PatientTimeline
-          mode="compact"
-          events={timelineData.events}
-          summary={timelineData.summary}
-          total={timelineData.total}
-        />
-      )}
-    </div>
+          <ChevronDown
+            className={cn(
+              "h-3 w-3 transition-transform duration-200",
+              open && "rotate-180",
+            )}
+            aria-hidden="true"
+          />
+        </span>
+        <div className="h-px flex-1 bg-border/50 transition-colors group-hover:bg-border" />
+      </CollapsibleTrigger>
+
+      <CollapsibleContent className="pt-2">
+        {timelineData.events.length === 0 ? (
+          <p className="text-xs text-muted-foreground py-1">
+            No previous visits
+          </p>
+        ) : (
+          <PatientTimeline
+            mode="compact"
+            events={timelineData.events}
+            summary={timelineData.summary}
+            total={timelineData.total}
+          />
+        )}
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
@@ -116,14 +137,11 @@ interface SurgicalHistoryListProps {
   items: PatientSurgicalHistory[];
 }
 
-/** The surgical-history list — split out as its own self-contained piece independent of the family-history list beside it. */
 export function SurgicalHistoryList({ items }: SurgicalHistoryListProps) {
   if (items.length === 0) return null;
   return (
     <div className="space-y-2">
-      <MicroLabel className="text-muted-foreground">
-        Surgical history
-      </MicroLabel>
+      <MicroLabel className="text-muted-foreground">Surgical history</MicroLabel>
       <ul className="space-y-1">
         {items.map((s, i) => (
           <li key={i} className="text-xs grid grid-cols-[1fr_auto] gap-2">
@@ -144,7 +162,6 @@ interface FamilyHistoryListProps {
   items: PatientFamilyHistory[];
 }
 
-/** The family-history list — split out as its own self-contained piece independent of the surgical-history list beside it. */
 export function FamilyHistoryList({ items }: FamilyHistoryListProps) {
   if (items.length === 0) return null;
   return (
@@ -154,9 +171,7 @@ export function FamilyHistoryList({ items }: FamilyHistoryListProps) {
         {items.map((h, i) => (
           <li key={i} className="text-xs grid grid-cols-[1fr_auto] gap-2">
             <span>{h.condition}</span>
-            <span className="text-muted-foreground italic">
-              {h.relationship}
-            </span>
+            <span className="text-muted-foreground italic">{h.relationship}</span>
           </li>
         ))}
       </ul>
@@ -171,7 +186,6 @@ interface ConsultationSidebarStructuredHistoryProps {
   onOpenChange: (open: boolean) => void;
 }
 
-/** The collapsible "Full structured history" disclosure composing the surgical/family lists — split out as its own self-contained section independent of the timeline above it. */
 export function ConsultationSidebarStructuredHistory({
   surgicalHistory,
   familyHistory,

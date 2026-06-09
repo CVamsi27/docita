@@ -49,6 +49,10 @@ vi.mock("@/hooks/use-permissions", () => ({
   usePermissions: () => ({ canCreateAppointment: true }),
 }));
 
+vi.mock("@/features/consultation/hooks/use-appointment-open-invoice", () => ({
+  useAppointmentOpenInvoice: () => ({ invoice: null, isLoading: false }),
+}));
+
 vi.mock("@workspace/data-access", async () => {
   const actual = await vi.importActual<typeof import("@workspace/data-access")>(
     "@workspace/data-access",
@@ -72,6 +76,14 @@ vi.mock("@/lib/errors/user-facing-errors", () => ({
 
 vi.mock("./ConsultationHistoryList", () => ({
   ConsultationHistoryList: () => null,
+}));
+
+vi.mock("./modals/BillingModal", () => ({
+  BillingModal: () => null,
+}));
+
+vi.mock("./modals/VitalsModal", () => ({
+  VitalsModal: () => null,
 }));
 
 describe("ConsultationDashboardUI", () => {
@@ -155,8 +167,12 @@ describe("ConsultationDashboardUI", () => {
 
     render(<ConsultationDashboardUI />);
     expect(screen.getByText("Prep")).toBeInTheDocument();
-    expect(screen.getByText("Ready for vitals")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Record vitals/i })).toBeInTheDocument();
+    expect(
+      screen.getByText(/Capture vitals and invoice patients/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("button", { name: /Vitals/i }).length,
+    ).toBeGreaterThan(0);
   });
 });
 

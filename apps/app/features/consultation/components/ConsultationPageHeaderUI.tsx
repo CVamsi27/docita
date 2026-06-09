@@ -23,8 +23,6 @@ export interface ConsultationPageHeaderUIProps {
   chiefComplaint?: string;
   onBack: () => void;
   MobileSidebarContent?: React.ReactNode;
-  isDesktopSidebarOpen?: boolean;
-  onToggleDesktopSidebar?: () => void;
   onOpenCommandPalette?: () => void;
   onMarkDone?: () => void;
   isMarkingDone?: boolean;
@@ -43,8 +41,6 @@ export function ConsultationPageHeaderUI({
   chiefComplaint,
   onBack,
   MobileSidebarContent,
-  isDesktopSidebarOpen = true,
-  onToggleDesktopSidebar,
   onOpenCommandPalette,
   onMarkDone,
   isMarkingDone = false,
@@ -54,8 +50,16 @@ export function ConsultationPageHeaderUI({
   const { openVitals } = useConsultationVitals();
   const { openOverlay } = useAskAi();
   const { canCreateInvoice } = usePermissions();
-  const { billingOpen, setBillingOpen, handleBillingSaved } =
-    useConsultationBillingFlow({ appointmentId, canCreateInvoice });
+  const {
+    billingOpen,
+    setBillingOpen,
+    handleBillingSaved,
+    existingInvoice,
+  } = useConsultationBillingFlow({
+    appointmentId,
+    canCreateInvoice,
+    patientId,
+  });
 
   const headerDisplay = buildConsultationHeaderDisplay({
     patientName,
@@ -92,8 +96,7 @@ export function ConsultationPageHeaderUI({
           readOnly={readOnly}
           appointmentId={appointmentId}
           canCreateInvoice={canCreateInvoice}
-          isDesktopSidebarOpen={isDesktopSidebarOpen}
-          onToggleDesktopSidebar={onToggleDesktopSidebar}
+          existingInvoiceStatus={existingInvoice?.status ?? null}
           onOpenCommandPalette={onOpenCommandPalette}
           onMarkDone={onMarkDone}
           isMarkingDone={isMarkingDone}
@@ -111,6 +114,7 @@ export function ConsultationPageHeaderUI({
           onOpenChange={setBillingOpen}
           appointmentId={appointmentId}
           patientId={patientId ?? ""}
+          existingInvoice={existingInvoice}
           onSaved={handleBillingSaved}
         />
       ) : null}

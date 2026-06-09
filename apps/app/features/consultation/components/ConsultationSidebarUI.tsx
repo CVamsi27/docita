@@ -39,12 +39,6 @@ function isAppointmentWrapper(
   return "appointment" in data;
 }
 
-/**
- * Resolves the patient and appointment id from either input shape the sidebar
- * accepts (a wrapper or a bare appointment) in one place — the two derivations
- * shared the same `isAppointmentWrapper` branch, so they're combined into a
- * single pure helper instead of two parallel ternaries in the component body.
- */
 function resolveSidebarPatientContext(rawData: AppointmentInput | undefined): {
   patient: Patient | undefined;
   appointmentId: string | undefined;
@@ -75,6 +69,7 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
   snapshot,
   onClose,
 }) => {
+  const [timelineOpen, setTimelineOpen] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
   const rawData = appointmentData ?? appointment;
   const { patient, appointmentId } = resolveSidebarPatientContext(rawData);
@@ -85,7 +80,7 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
   const initials = getInitials(patient.firstName ?? "", patient.lastName);
 
   return (
-    <div className="h-full overflow-y-auto p-4 space-y-6 bg-background">
+    <div className="h-full overflow-y-auto p-4 space-y-4 bg-background">
       <ConsultationSidebarHeader
         initials={initials}
         patientName={patientName}
@@ -100,7 +95,11 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
       )}
 
       {timelineData && (
-        <ConsultationSidebarHistoryTimeline timelineData={timelineData} />
+        <ConsultationSidebarHistoryTimeline
+          timelineData={timelineData}
+          open={timelineOpen}
+          onOpenChange={setTimelineOpen}
+        />
       )}
 
       {appointmentId ? <FollowUpWidget appointmentId={appointmentId} /> : null}

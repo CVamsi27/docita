@@ -83,53 +83,56 @@ export function SectionRail({
             onClick={() => onSelect(section.id)}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              "group flex items-center gap-3 rounded-md px-2.5 py-2 text-left transition-colors duration-150",
+              "group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-left transition-colors duration-150",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               isActive
                 ? "bg-primary/10 text-foreground"
-                : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
             )}
           >
             <span
               className={cn(
-                "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors duration-150",
+                "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-150",
                 isComplete
-                  ? "border-transparent bg-success text-success-foreground"
+                  ? "border-success/50 bg-success/10 text-success"
                   : isActive
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border bg-background text-muted-foreground",
+                    ? "border-primary/50 bg-primary/10 text-primary"
+                    : needsAttention
+                      ? "border-warning/40 bg-warning/5 text-muted-foreground"
+                      : "border-border/60 bg-background text-muted-foreground",
               )}
               aria-hidden="true"
             >
               {isComplete ? (
-                <Check className="h-4 w-4" />
+                <Check className="h-3.5 w-3.5" />
               ) : (
-                <Icon className="h-4 w-4" />
+                <Icon className="h-3.5 w-3.5" />
               )}
-              {needsAttention ? (
-                <span
-                  className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full border border-background bg-warning"
-                  aria-label="Required"
-                />
-              ) : null}
             </span>
-            <span className="flex flex-1 min-w-0 flex-col">
+            <span className="flex flex-1 min-w-0 flex-col gap-0.5">
               <span
                 className={cn(
-                  "truncate text-sm leading-tight",
+                  "truncate text-[13px] leading-tight",
                   isActive ? "font-semibold text-foreground" : "font-medium",
                 )}
               >
                 {section.shortLabel}
               </span>
               {section.subtitle ? (
-                <span className="truncate text-xs leading-snug text-muted-foreground">
+                <span className="truncate text-[11px] leading-snug text-muted-foreground">
                   {section.subtitle}
                 </span>
               ) : null}
-            </span>
-            <span className="sr-only">
-              {isComplete ? "Started" : needsAttention ? "Required" : ""}
+              {(isComplete || needsAttention) ? (
+                <span
+                  className={cn(
+                    "text-[10px] font-semibold leading-snug",
+                    isComplete ? "text-success" : "text-warning",
+                  )}
+                >
+                  {isComplete ? "Done" : "Required"}
+                </span>
+              ) : null}
             </span>
           </button>
         );
