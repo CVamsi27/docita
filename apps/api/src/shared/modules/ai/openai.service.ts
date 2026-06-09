@@ -24,7 +24,7 @@ export class OpenaiService {
     private configService: AppConfigService,
     @Optional() @Inject(CACHE_MANAGER) private cacheManager?: Cache,
   ) {
-    const aiConfig = this.configService.getOpenAiConfig();
+    const aiConfig = this.configService.getAiConfig();
     this.modelType = aiConfig.model;
     this.requestTimeout = aiConfig.requestTimeout;
     this.cacheEnabled = aiConfig.cacheEnabled;

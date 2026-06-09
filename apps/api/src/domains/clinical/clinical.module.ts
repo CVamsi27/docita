@@ -43,6 +43,7 @@ import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
     LabWorkflowQueryService,
     ClinicalSettingsService,
     ClinicalFactory,
+    PrismaLabRepository,
     NlmCodingClient,
     NlmCodeCatalogProvider,
     LicensedCptCodeCatalogProvider,

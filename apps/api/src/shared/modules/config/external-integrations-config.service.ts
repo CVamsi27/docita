@@ -3,10 +3,10 @@ import { getEnv } from './app-config';
 
 @Injectable()
 export class ExternalIntegrationsConfigService {
-  getOpenAiConfig() {
+  getAiConfig() {
     const config = getEnv();
     return {
-      apiKey: config.OPENAI_API_KEY,
+      apiKey: config.AI_API_KEY,
       model: config.OPENAI_MODEL,
       requestTimeout: config.AI_REQUEST_TIMEOUT,
       cacheEnabled: config.AI_CACHE_ENABLED,

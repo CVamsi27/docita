@@ -259,8 +259,8 @@ export class AppConfigService {
     return this.externalIntegrations.getHprVerificationConfig();
   }
 
-  getOpenAiConfig() {
-    return this.externalIntegrations.getOpenAiConfig();
+  getAiConfig() {
+    return this.externalIntegrations.getAiConfig();
   }
 
   getPort(): number {

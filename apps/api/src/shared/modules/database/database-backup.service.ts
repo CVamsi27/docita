@@ -28,7 +28,10 @@ export class DatabaseBackupService {
   ) {
     const dbUrl = new URL(this.configService.getDatabaseUrl());
 
-    this.backupDir = '/backups/postgresql';
+    // Prefer an explicit BACKUP_DIR env var; fall back to a project-local
+    // path so the process doesn't need write access outside its working tree.
+    this.backupDir =
+      process.env.BACKUP_DIR ?? path.join(process.cwd(), 'backups', 'postgresql');
     this.retentionDays = 30;
 
     this.databasePassword = decodeURIComponent(dbUrl.password);
