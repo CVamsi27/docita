@@ -23,6 +23,12 @@ import type { Medication } from "./prescription-input.types";
 
 export type { Medication } from "./prescription-input.types";
 
+/** Maps a stored sig-code (e.g. "BID") to its label, falling back to the raw value. */
+function formatFrequencyLabel(frequency: string): string {
+  const labels: Record<string, string> = SIG_CODE_LABELS;
+  return labels[frequency] ?? frequency;
+}
+
 interface MedicationSelectFieldProps {
   readOnly: boolean;
   value: string;
@@ -146,21 +152,10 @@ export function PrescriptionInput({
                     readOnly={readOnly}
                     value={med.frequency}
                     placeholder="Frequency"
-                    readOnlyLabel={
-                      med.frequency in SIG_CODE_LABELS
-                        ? SIG_CODE_LABELS[
-                            med.frequency as keyof typeof SIG_CODE_LABELS
-                          ]
-                        : med.frequency
-                    }
+                    readOnlyLabel={formatFrequencyLabel(med.frequency)}
                     onValueChange={updateFrequency}
                   >
-                    {(
-                      Object.entries(SIG_CODE_LABELS) as [
-                        keyof typeof SIG_CODE_LABELS,
-                        string,
-                      ][]
-                    ).map(([code, label]) => (
+                    {Object.entries(SIG_CODE_LABELS).map(([code, label]) => (
                       <SelectItem key={code} value={code}>
                         {code} – {label}
                       </SelectItem>
