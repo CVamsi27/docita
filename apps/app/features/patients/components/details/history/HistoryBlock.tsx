@@ -127,7 +127,8 @@ export function HistoryAddRow({
       className="flex flex-wrap gap-2 items-center"
       onKeyDown={(event) => {
         if (event.key !== "Enter") return;
-        const target = event.target as HTMLElement | null;
+        const target: HTMLElement | null =
+          event.target instanceof HTMLElement ? event.target : null;
         if (target?.tagName === "TEXTAREA") return;
         if (disabled) return;
         event.preventDefault();
