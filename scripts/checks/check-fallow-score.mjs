@@ -68,8 +68,25 @@ if (deadCodeIssues !== 0 || cloneGroups !== 0 || duplicatedLines !== 0 || duplic
       `  clone groups: ${cloneGroups}`,
       `  duplicated lines: ${duplicatedLines}`,
       `  duplication rate: ${duplicationRate}`,
+      "",
+      "Findings detail:",
     ].join("\n"),
   );
+  const findings = [
+    ...(report.check?.unused_files ?? []).map((f) => ({ kind: "unused_file", ...f })),
+    ...(report.check?.unused_exports ?? []).map((f) => ({ kind: "unused_export", ...f })),
+    ...(report.check?.unused_types ?? []).map((f) => ({ kind: "unused_type", ...f })),
+    ...(report.check?.private_type_leaks ?? []).map((f) => ({ kind: "private_type_leak", ...f })),
+    ...(report.check?.unused_dependencies ?? []).map((f) => ({ kind: "unused_dependency", ...f })),
+    ...(report.check?.unused_enum_members ?? []).map((f) => ({ kind: "unused_enum_member", ...f })),
+    ...(report.check?.unused_class_members ?? []).map((f) => ({ kind: "unused_class_member", ...f })),
+    ...(report.check?.unresolved_imports ?? []).map((f) => ({ kind: "unresolved_import", ...f })),
+    ...(report.check?.unlisted_dependencies ?? []).map((f) => ({ kind: "unlisted_dependency", ...f })),
+    ...(report.check?.duplicate_exports ?? []).map((f) => ({ kind: "duplicate_export", ...f })),
+  ];
+  for (const finding of findings) {
+    console.error(JSON.stringify(finding));
+  }
   process.exit(1);
 }
 
