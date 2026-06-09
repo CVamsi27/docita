@@ -8,20 +8,34 @@ import type { LineItem } from "./billing-modal-types";
  * Owns the billing draft's line-item rows: the seeded "Consultation Fee" row
  * (kept in sync with the clinic's default fee until the user edits its price),
  * and the add/update/remove mutations the line-item editor drives.
+ *
+ * Pass `seedItems` to load the draft from an existing invoice when editing
+ * (e.g. when a doctor opens billing for a visit that already has a pending
+ * invoice). The fee-sync effect is bypassed while seeded rows are present.
  */
-export function useBillingLineItems(defaultConsultationFee: number) {
+export function useBillingLineItems(
+  defaultConsultationFee: number,
+  seedItems?: LineItem[],
+) {
   const [hasCustomizedDefaultFee, setHasCustomizedDefaultFee] = useState(false);
   const [items, setItems] = useState<LineItem[]>(() =>
-    buildDefaultLineItems(defaultConsultationFee),
+    seedItems?.length
+      ? seedItems.map(cloneSeedRow)
+      : buildDefaultLineItems(defaultConsultationFee),
   );
+  const [hasSeedItems] = useState(Boolean(seedItems?.length));
 
   useEffect(() => {
-    if (hasCustomizedDefaultFee) return;
+    if (hasCustomizedDefaultFee || hasSeedItems) return;
     setItems((prev) => syncDefaultFeeItem(prev, defaultConsultationFee));
-  }, [defaultConsultationFee, hasCustomizedDefaultFee]);
+  }, [defaultConsultationFee, hasCustomizedDefaultFee, hasSeedItems]);
 
   const resetItems = () => {
-    setItems(buildDefaultLineItems(defaultConsultationFee));
+    setItems(
+      seedItems?.length
+        ? seedItems.map(cloneSeedRow)
+        : buildDefaultLineItems(defaultConsultationFee),
+    );
     setHasCustomizedDefaultFee(false);
   };
 
@@ -53,4 +67,12 @@ export function useBillingLineItems(defaultConsultationFee: number) {
   };
 
   return { items, addItem, updateItem, removeItem, resetItems };
+}
+
+function cloneSeedRow(item: LineItem): LineItem {
+  return {
+    description: item.description,
+    quantity: item.quantity,
+    price: item.price,
+  };
 }
