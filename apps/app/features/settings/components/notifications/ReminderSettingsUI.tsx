@@ -1,4 +1,5 @@
 "use client";
+// jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { FC, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -20,6 +21,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Bell } from "lucide-react";
 import {
   useClinicSettings,
+// jscpd:ignore-end
   useUpdateClinicSettings,
 } from "@workspace/data-access";
 import { toast } from "sonner";
@@ -72,9 +74,7 @@ export const ReminderSettingsUI: FC = () => {
     });
   };
 
-  if (isLoading) {
-    return <ReminderSettingsLoadingCard />;
-  }
+  if (isLoading) return <ReminderSettingsLoadingCard />;
 
   return (
     <Form {...form}>

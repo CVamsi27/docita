@@ -19,9 +19,7 @@ export class UploadSessionSecretGuard implements CanActivate {
 
     const rawId = req.params?.['id'];
     const id = typeof rawId === 'string' ? rawId.trim() : '';
-    if (!id) {
-      throw new BadRequestException('Upload session id is required');
-    }
+    if (!id) throw new BadRequestException('Upload session id is required');
 
     const rawSecret = req.headers['x-upload-secret'];
     const uploadSecretHeader = Array.isArray(rawSecret)
@@ -30,9 +28,8 @@ export class UploadSessionSecretGuard implements CanActivate {
     const uploadSecret =
       typeof uploadSecretHeader === 'string' ? uploadSecretHeader.trim() : '';
 
-    if (!uploadSecret) {
+    if (!uploadSecret)
       throw new UnauthorizedException('X-Upload-Secret header is required');
-    }
 
     await this.uploadsService.assertReadyForUpload(id, uploadSecret);
 

@@ -4,9 +4,7 @@ import { isOutstandingUnpaidSubscriptionPaymentStatus } from '@workspace/utils';
 export function clinicHasOutstandingPendingPayment(
   payments: ReadonlyArray<{ status: string }> | null | undefined,
 ): boolean {
-  if (!payments?.length) {
-    return false;
-  }
+  if (!payments?.length) return false;
   return payments.some((payment) =>
     isOutstandingUnpaidSubscriptionPaymentStatus(payment.status),
   );

@@ -5,9 +5,7 @@ export function isUnlimitedPlanLimit(value: number): boolean {
 }
 
 export function formatPlanLimitCount(value: number | undefined | null): string {
-  if (value === undefined || value === null) {
-    return "—";
-  }
+  if (value === undefined || value === null) return "—";
   if (isUnlimitedPlanLimit(value)) {
     return "Unlimited";
   }
@@ -29,9 +27,7 @@ export function formatInternalTierCardPrice(
   if (tierPriceIsCustom(tier, price)) {
     return "Custom";
   }
-  if (price === 0) {
-    return "Free";
-  }
+  if (price === 0) return "Free";
   return formatMoney(price ?? 0);
 }
 

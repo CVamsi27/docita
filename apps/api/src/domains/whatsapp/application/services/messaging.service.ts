@@ -43,7 +43,6 @@ export class MessagingService {
     const staleCutoff = new Date(
       now.getTime() - STALE_AFTER_HOURS * 60 * 60 * 1000,
     );
-
     const [totalPatients, subscribers, statusGroups, staleDeliveryCount] =
       await Promise.all([
         this.persistence.patient.count({ where: { clinicId } }),
@@ -71,7 +70,6 @@ export class MessagingService {
           },
         }),
       ]);
-
     const countByStatus = new Map(
       statusGroups.map((group) => [group.status, group._count._all]),
     );

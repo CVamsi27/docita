@@ -53,8 +53,7 @@ vi.mock("@/hooks/use-clinic-currency", () => ({
 }));
 
 vi.mock("@workspace/data-access", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("@workspace/data-access")>();
+  const actual = await importOriginal<typeof import("@workspace/data-access")>();
 
   return {
     ...actual,

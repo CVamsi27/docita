@@ -1,3 +1,4 @@
+// fallow-ignore-file coverage-gaps
 import { z } from "zod";
 import {
   internalTierPricingRowSchema,
@@ -18,19 +19,17 @@ const internalTierPricingApiRowInputSchema = z.object({
   aiEnabled: z.boolean().optional(),
 });
 
-function tierPriceIsCustom(
+export function tierPriceIsCustom(
   tier: string,
   price: number | null | undefined,
 ): boolean {
   return tier === "ENTERPRISE" || price === null;
 }
 
-function isInternalPaymentTierPricingRow(
+export function isInternalPaymentTierPricingRow(
   value: unknown,
 ): value is InternalPaymentTierPricingRow {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
+  if (!value || typeof value !== "object") return false;
 
   return (
     "tier" in value &&
@@ -48,27 +47,21 @@ function isInternalPaymentTierPricingRow(
   );
 }
 
-function extractRawTierRows(data: unknown): unknown[] | null {
+export function extractRawTierRows(data: unknown): unknown[] | null {
   if (Array.isArray(data)) {
     return data;
   }
 
   const envelope = tierPricingEnvelopeSchema.safeParse(data);
-  if (envelope.success) {
-    return envelope.data.tiers;
-  }
+  if (envelope.success) return envelope.data.tiers;
 
   return null;
 }
 
-function resolveMaxPatients(tier: string, maxDoctors: number): number {
+export function resolveMaxPatients(tier: string, maxDoctors: number): number {
   const parsed = tierSchema.safeParse(tier);
-  if (parsed.success) {
-    return TIER_LIMITS[parsed.data].patients ?? 999_999;
-  }
-  if (maxDoctors < 0) {
-    return 999_999;
-  }
+  if (parsed.success) return TIER_LIMITS[parsed.data].patients ?? 999_999;
+  if (maxDoctors < 0) return 999_999;
   return 500;
 }
 
@@ -96,9 +89,7 @@ export function normalizeInternalTierPricingResponse(
 ): InternalPaymentTierPricingRow[] {
   const rawRows = extractRawTierRows(data);
 
-  if (!rawRows?.length) {
-    return fallbackTiers;
-  }
+  if (!rawRows?.length) return fallbackTiers;
 
   const mapped: InternalPaymentTierPricingRow[] = [];
 

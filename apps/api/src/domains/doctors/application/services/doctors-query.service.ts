@@ -7,6 +7,7 @@ import { Role, Specialization, HospitalRole } from '@workspace/db';
 import {
   DOCTOR_LIST_SELECT,
   DOCTOR_CARD_SELECT,
+  DOCTOR_DETAIL_SELECT,
 } from '@/shared/common/select-fragments';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 
@@ -48,6 +49,51 @@ export class DoctorsQueryService {
       signatureStoredUrl: signature.storedUrl ?? undefined,
       registrationCertificateUrl: certificate.url ?? undefined,
       registrationCertificateStoredUrl: certificate.storedUrl ?? undefined,
+    };
+  }
+
+  private async mapDoctorToResponse(input: {
+    id: string;
+    role: string;
+    email: string;
+    name: string | null;
+    specialization?: string | null;
+    hospitalRole?: string | null;
+    qualification?: string | null;
+    registrationNumber?: string | null;
+    registrationCouncil?: string | null;
+    registrationStateCode?: string | null;
+    verificationStatus?: string | null;
+    verificationReason?: string | null;
+    verificationCheckedAt?: Date | string | null;
+    signatureUrl?: string | null;
+    registrationCertificateUrl?: string | null;
+    profilePhotoUrl?: string | null;
+    yearsOfExperience?: number | null;
+    consultationFee?: number | null;
+    createdAt: Date | string;
+  }) {
+    const doctor = await this.resolveDoctorSignatureUrl(input);
+    return {
+      id: doctor.id,
+      role: doctor.role,
+      email: doctor.email,
+      name: doctor.name,
+      specialization: doctor.specialization,
+      hospitalRole: doctor.hospitalRole,
+      qualification: doctor.qualification,
+      registrationNumber: doctor.registrationNumber,
+      registrationCouncil: doctor.registrationCouncil,
+      registrationStateCode: doctor.registrationStateCode,
+      verificationStatus: doctor.verificationStatus,
+      verificationReason: doctor.verificationReason,
+      verificationCheckedAt: doctor.verificationCheckedAt,
+      signatureUrl: doctor.signatureUrl,
+      signatureStoredUrl: doctor.signatureStoredUrl,
+      profilePhotoUrl: doctor.profilePhotoUrl,
+      yearsOfExperience: doctor.yearsOfExperience,
+      consultationFee: doctor.consultationFee,
+      createdAt: doctor.createdAt,
     };
   }
 
@@ -93,57 +139,11 @@ export class DoctorsQueryService {
     const directUsers = clinicUsers.filter((u) => !doctorClinicIds.has(u.id));
 
     const mappedClinics = await Promise.all(
-      validDoctorClinics.map(async (dc) => {
-        const doctor = await this.resolveDoctorSignatureUrl(dc.doctor);
-        return {
-          id: doctor.id,
-          role: doctor.role,
-          email: doctor.email,
-          name: doctor.name,
-          specialization: doctor.specialization,
-          hospitalRole: doctor.hospitalRole,
-          qualification: doctor.qualification,
-          registrationNumber: doctor.registrationNumber,
-          registrationCouncil: doctor.registrationCouncil,
-          registrationStateCode: doctor.registrationStateCode,
-          verificationStatus: doctor.verificationStatus,
-          verificationReason: doctor.verificationReason,
-          verificationCheckedAt: doctor.verificationCheckedAt,
-          signatureUrl: doctor.signatureUrl,
-          signatureStoredUrl: doctor.signatureStoredUrl,
-          profilePhotoUrl: doctor.profilePhotoUrl,
-          yearsOfExperience: doctor.yearsOfExperience,
-          consultationFee: doctor.consultationFee,
-          createdAt: doctor.createdAt,
-        };
-      }),
+      validDoctorClinics.map((dc) => this.mapDoctorToResponse(dc.doctor)),
     );
 
     const mappedDirectUsers = await Promise.all(
-      directUsers.map(async (user) => {
-        const doctor = await this.resolveDoctorSignatureUrl(user);
-        return {
-          id: doctor.id,
-          role: doctor.role,
-          email: doctor.email,
-          name: doctor.name,
-          specialization: doctor.specialization,
-          hospitalRole: doctor.hospitalRole,
-          qualification: doctor.qualification,
-          registrationNumber: doctor.registrationNumber,
-          registrationCouncil: doctor.registrationCouncil,
-          registrationStateCode: doctor.registrationStateCode,
-          verificationStatus: doctor.verificationStatus,
-          verificationReason: doctor.verificationReason,
-          verificationCheckedAt: doctor.verificationCheckedAt,
-          signatureUrl: doctor.signatureUrl,
-          signatureStoredUrl: doctor.signatureStoredUrl,
-          profilePhotoUrl: doctor.profilePhotoUrl,
-          yearsOfExperience: doctor.yearsOfExperience,
-          consultationFee: doctor.consultationFee,
-          createdAt: doctor.createdAt,
-        };
-      }),
+      directUsers.map((user) => this.mapDoctorToResponse(user)),
     );
 
     return [...mappedClinics, ...mappedDirectUsers];
@@ -153,44 +153,12 @@ export class DoctorsQueryService {
     const user = await this.persistence.user.findFirst({
       where: { id },
       select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        clinicId: true,
-        specialization: true,
-        hospitalRole: true,
-        qualification: true,
-        registrationNumber: true,
+        ...DOCTOR_DETAIL_SELECT,
         registrationCouncil: true,
         registrationStateCode: true,
-        licenseNumber: true,
-        licenseExpiry: true,
-        signatureUrl: true,
-        signatureUploadedAt: true,
-        verificationStatus: true,
-        verificationSource: true,
-        verificationRef: true,
-        verificationReason: true,
-        verificationData: true,
-        verificationCheckedAt: true,
         registrationCertificateUrl: true,
         verifiedByAdminId: true,
         verifiedByAdminAt: true,
-        profilePhotoUrl: true,
-        phoneNumber: true,
-        bio: true,
-        yearsOfExperience: true,
-        consultationFee: true,
-        createdAt: true,
-        updatedAt: true,
-        educationHistory: {
-          orderBy: { order: 'asc' },
-        },
-        certifications: {
-          orderBy: { issueDate: 'desc' },
-        },
-        additionalSpecializations: true,
       },
     });
 

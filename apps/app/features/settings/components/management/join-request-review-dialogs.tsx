@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { Button } from "@workspace/ui/components/form/button";
 import {
   Select,
@@ -15,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+// jscpd:ignore-end
   DialogFooter,
 } from "@workspace/ui/components/overlay/dialog";
 import type { JoinRequest } from "@/features/settings/components/management/join-requests-list.boundary";

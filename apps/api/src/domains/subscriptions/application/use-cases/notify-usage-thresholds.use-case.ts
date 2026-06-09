@@ -19,9 +19,7 @@ const USAGE_METERS = [
 ] as const;
 
 function parseUsageThreshold(value: number | null): 80 | 100 | null {
-  if (value === 80 || value === 100) {
-    return value;
-  }
+  if (value === 80 || value === 100) return value;
   return null;
 }
 

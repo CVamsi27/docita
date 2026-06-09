@@ -18,6 +18,18 @@ export const canEditInvoice = (invoice: { status: string }): boolean => {
   return invoice.status !== "PAID" && invoice.status !== "CANCELLED";
 };
 
+export const DEFAULT_INVOICE_ITEM = {
+  description: "",
+  quantity: 1,
+  price: 0,
+  taxTreatment: "EXEMPT_HEALTHCARE" as const,
+  taxRate: 0,
+};
+
+export function createDefaultInvoiceItems() {
+  return [{ ...DEFAULT_INVOICE_ITEM }];
+}
+
 export const validateInvoiceItems = (
   items: { description?: string; quantity: number; unitPrice: number }[],
 ): boolean => {

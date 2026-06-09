@@ -21,9 +21,7 @@ let cachedBaseUrl: string | null = null;
 
 function getAppApiClient(): APIClient {
   const baseURL = resolveClientBaseUrl();
-  if (cachedClient && cachedBaseUrl === baseURL) {
-    return cachedClient;
-  }
+  if (cachedClient && cachedBaseUrl === baseURL) return cachedClient;
 
   cachedBaseUrl = baseURL;
   cachedClient = getAPIClient({

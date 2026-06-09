@@ -60,16 +60,37 @@ export class PatientMapper {
     });
   }
 
+  /**
+   * Fields shared by the create and update Prisma input shapes — both
+   * forward the same optional contact/insurance/metadata columns from the
+   * persistence-write record verbatim (including the identical `customData`
+   * null-vs-JSON-value branch), so keeping them here stops the create and
+   * update paths from drifting on which optional fields they persist.
+   */
+  private static toPrismaWritableOptionalFields(
+    write: PatientPersistenceWrite,
+  ) {
+    return {
+      address: write.address ?? undefined,
+      insuranceProvider: write.insuranceProvider ?? undefined,
+      insurancePolicyNumber: write.insurancePolicyNumber ?? undefined,
+      insuranceGroupNumber: write.insuranceGroupNumber ?? undefined,
+      customData:
+        write.customData === undefined || write.customData === null
+          ? undefined
+          : toPrismaInputJsonValue(write.customData),
+      version: write.version,
+    };
+  }
+
   static toPrismaUncheckedCreateInput(
     domain: Patient,
   ): Prisma.PatientUncheckedCreateInput {
     const write = PatientMapper.toPersistence(domain);
-    if (!write.dateOfBirth) {
+    if (!write.dateOfBirth)
       throw new Error('Patient dateOfBirth is required for persistence');
-    }
-    if (!write.phoneNumber) {
+    if (!write.phoneNumber)
       throw new Error('Patient phoneNumber is required for persistence');
-    }
     return {
       id: write.id,
       clinicId: write.clinicId,
@@ -80,15 +101,7 @@ export class PatientMapper {
       phoneNumber: write.phoneNumber,
       gender: write.gender,
       dateOfBirth: write.dateOfBirth,
-      address: write.address ?? undefined,
-      insuranceProvider: write.insuranceProvider ?? undefined,
-      insurancePolicyNumber: write.insurancePolicyNumber ?? undefined,
-      insuranceGroupNumber: write.insuranceGroupNumber ?? undefined,
-      customData:
-        write.customData === undefined || write.customData === null
-          ? undefined
-          : toPrismaInputJsonValue(write.customData),
-      version: write.version,
+      ...PatientMapper.toPrismaWritableOptionalFields(write),
     };
   }
 
@@ -104,15 +117,7 @@ export class PatientMapper {
       phoneNumber: write.phoneNumber ?? undefined,
       gender: write.gender,
       ...(write.dateOfBirth ? { dateOfBirth: write.dateOfBirth } : {}),
-      address: write.address ?? undefined,
-      insuranceProvider: write.insuranceProvider ?? undefined,
-      insurancePolicyNumber: write.insurancePolicyNumber ?? undefined,
-      insuranceGroupNumber: write.insuranceGroupNumber ?? undefined,
-      customData:
-        write.customData === undefined || write.customData === null
-          ? undefined
-          : toPrismaInputJsonValue(write.customData),
-      version: write.version,
+      ...PatientMapper.toPrismaWritableOptionalFields(write),
     };
   }
 }

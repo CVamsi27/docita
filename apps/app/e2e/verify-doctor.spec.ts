@@ -125,18 +125,14 @@ async function fetchVerificationToken(email: string): Promise<string | null> {
     },
   ).trim();
 
-  if (!output) {
-    return null;
-  }
+  if (!output) return null;
 
   const parsed = JSON.parse(output) as {
     emailVerified?: boolean;
     emailVerificationToken?: string | null;
   };
 
-  if (parsed.emailVerified) {
-    return null;
-  }
+  if (parsed.emailVerified) return null;
 
   return parsed.emailVerificationToken ?? null;
 }
@@ -418,7 +414,9 @@ test.describe("Doctor Verification Flow", () => {
     page,
     request,
   }) => {
-    const doctor = sharedDoctor;
+    const doctor = await createDoctorWithSignature(request, {
+      uploadDoctorSignature: true,
+    });
 
     await addAuthCookies(page, doctor);
     await page.context().addInitScript(
@@ -522,7 +520,7 @@ test.describe("Doctor Verification Flow", () => {
     }
 
     await page.goto("/dashboard");
-    await page.waitForURL(/\/dashboard/, { timeout: 30000 });
+    await page.waitForURL(/\/today/, { timeout: 30000 });
   });
 
   test("lets admin doctors reuse the onboarding signature during verification", async ({

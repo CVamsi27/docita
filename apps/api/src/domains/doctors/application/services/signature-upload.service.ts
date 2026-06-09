@@ -41,9 +41,7 @@ export class SignatureUploadService {
     | (T & { signatureUrl?: string | null; signatureStoredUrl?: string | null })
     | null
   > {
-    if (!doctor) {
-      return null;
-    }
+    if (!doctor) return null;
 
     const resolved = await this.storedFileUrlResolver.resolveWithStoredUrl(
       doctor.signatureUrl ?? null,
@@ -67,9 +65,7 @@ export class SignatureUploadService {
       })
     | null
   > {
-    if (!clinic) {
-      return null;
-    }
+    if (!clinic) return null;
 
     const resolved = await this.storedFileUrlResolver.resolveWithStoredUrl(
       clinic.slaSignatureUrl ?? null,
@@ -92,15 +88,12 @@ export class SignatureUploadService {
     if (purpose === SignaturePurpose.DOCTOR_PRESCRIPTION) {
       const doctor = await this.repository.findUserById(userId);
 
-      if (!doctor) {
-        throw new NotFoundException('Doctor not found');
-      }
+      if (!doctor) throw new NotFoundException('Doctor not found');
 
-      if (doctor.role !== Role.DOCTOR && doctor.role !== Role.ADMIN_DOCTOR) {
+      if (doctor.role !== Role.DOCTOR && doctor.role !== Role.ADMIN_DOCTOR)
         throw new BadRequestException(
           'Only doctors can upload prescription signatures',
         );
-      }
 
       const token = randomBytes(32).toString('hex');
       const expiresAt = this.clock.now();
@@ -120,17 +113,14 @@ export class SignatureUploadService {
       };
     }
 
-    if (!clinicId) {
+    if (!clinicId)
       throw new BadRequestException(
         'clinicId is required for SLA_ACCEPTANCE tokens',
       );
-    }
 
     const clinic = await this.repository.findClinicById(clinicId);
 
-    if (!clinic) {
-      throw new NotFoundException('Clinic not found');
-    }
+    if (!clinic) throw new NotFoundException('Clinic not found');
 
     const token = randomBytes(32).toString('hex');
     const expiresAt = this.clock.now();
@@ -154,17 +144,13 @@ export class SignatureUploadService {
   async validateToken(token: string) {
     const uploadToken = await this.repository.findTokenByValue(token);
 
-    if (!uploadToken) {
-      throw new NotFoundException('Invalid upload token');
-    }
+    if (!uploadToken) throw new NotFoundException('Invalid upload token');
 
-    if (uploadToken.used) {
+    if (uploadToken.used)
       throw new BadRequestException('Token has already been used');
-    }
 
-    if (this.clock.now() > uploadToken.expiresAt) {
+    if (this.clock.now() > uploadToken.expiresAt)
       throw new BadRequestException('Token has expired');
-    }
 
     return {
       tokenId: uploadToken.id,
@@ -185,14 +171,12 @@ export class SignatureUploadService {
       purpose: validation.purpose,
     });
 
-    if (!file.mimetype.startsWith('image/')) {
+    if (!file.mimetype.startsWith('image/'))
       throw new BadRequestException('File must be an image');
-    }
 
     const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
+    if (file.size > maxSize)
       throw new BadRequestException('File size must not exceed 5MB');
-    }
 
     const modifiedAt = this.clock.now().toISOString();
     const fileUrl = await this.storageProvider.upload(file, 'signatures', {
@@ -219,22 +203,17 @@ export class SignatureUploadService {
         fileUrl,
         token,
       );
-
       return {
         success: true,
         signatureUrl: resolvedFileUrl.url ?? fileUrl,
         signatureStoredUrl: resolvedFileUrl.storedUrl ?? fileUrl,
         purpose: SignaturePurpose.SLA_ACCEPTANCE,
-        clinic: {
-          id: validation.clinic.id,
-          name: validation.clinic.name,
-        },
+        clinic: { id: validation.clinic.id, name: validation.clinic.name },
       };
     }
 
-    if (!validation.doctor) {
+    if (!validation.doctor)
       throw new BadRequestException('Invalid token: no associated doctor');
-    }
 
     await this.repository.updateDoctorSignature(
       validation.doctor.id,
@@ -247,22 +226,15 @@ export class SignatureUploadService {
       signatureUrl: resolvedFileUrl.url ?? fileUrl,
       signatureStoredUrl: resolvedFileUrl.storedUrl ?? fileUrl,
       purpose: SignaturePurpose.DOCTOR_PRESCRIPTION,
-      doctor: {
-        id: validation.doctor.id,
-        name: validation.doctor.name,
-      },
+      doctor: { id: validation.doctor.id, name: validation.doctor.name },
     };
   }
 
   async getActiveTokens(userId: string, clinicId?: string) {
-    if (clinicId) {
-      return this.repository.findActiveTokensByClinic(clinicId);
-    }
+    if (clinicId) return this.repository.findActiveTokensByClinic(clinicId);
 
     const user = await this.repository.findUserById(userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    if (!user) throw new NotFoundException('User not found');
 
     return this.repository.findActiveTokensByDoctor(userId);
   }
@@ -270,9 +242,7 @@ export class SignatureUploadService {
   async revokeToken(userId: string, tokenId: string) {
     const token = await this.repository.findTokenById(tokenId, userId);
 
-    if (!token) {
-      throw new NotFoundException('Token not found');
-    }
+    if (!token) throw new NotFoundException('Token not found');
 
     await this.repository.markTokenUsedById(tokenId);
     return { success: true };
@@ -281,9 +251,7 @@ export class SignatureUploadService {
   async revokeClinicToken(clinicId: string, tokenId: string) {
     const token = await this.repository.findClinicTokenById(tokenId, clinicId);
 
-    if (!token) {
-      throw new NotFoundException('Token not found');
-    }
+    if (!token) throw new NotFoundException('Token not found');
 
     await this.repository.markTokenUsedById(tokenId);
     return { success: true };

@@ -29,9 +29,7 @@ export async function routeOperationThroughActiveTx(
 ): Promise<unknown> {
   const { model, operation, args, query } = input;
   const store = activeTxStorage.getStore();
-  if (!store || !store.tx) {
-    return query(args);
-  }
+  if (!store || !store.tx) return query(args);
   const tx = store.tx;
 
   const modelKey = model.charAt(0).toLowerCase() + model.slice(1);
@@ -40,9 +38,8 @@ export async function routeOperationThroughActiveTx(
     Record<string, (input: unknown) => Promise<unknown>>
   >;
   const delegate = txClient[modelKey];
-  if (!delegate || typeof delegate[operation] !== 'function') {
+  if (!delegate || typeof delegate[operation] !== 'function')
     return query(args);
-  }
 
   const previousTx = tx;
   store.tx = null;

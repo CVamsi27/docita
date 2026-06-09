@@ -31,9 +31,7 @@ export function isPaidStatus(status: string): boolean {
 }
 
 export function isBillingRowPaid(invoice: BillingHistoryItem): boolean {
-  if (invoice.paidAt) {
-    return true;
-  }
+  if (invoice.paidAt) return true;
   const status = normalizeStatus(invoice.status);
   if (PAID_SUBSCRIPTION_STATUSES.has(status)) {
     return true;

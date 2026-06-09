@@ -10,6 +10,17 @@ import {
 import { mapPrescriptionDetailRow } from '@/domains/prescriptions/infrastructure/repositories/prescription-detail.mapper';
 import { Prescription, Prisma, Role } from '@workspace/db';
 
+// Shared by `findAll` and `findById` — both project the same prescribing
+// doctor fields (the ones a prescription document/printout needs), so the
+// projection lives in one place rather than the two queries drifting apart.
+const PRESCRIPTION_DOCTOR_SUMMARY_SELECT = {
+  id: true,
+  name: true,
+  qualification: true,
+  registrationNumber: true,
+  signatureUrl: true,
+} satisfies Prisma.UserSelect;
+
 @Injectable()
 export class PrismaPrescriptionRepository implements IPrescriptionRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -22,9 +33,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
     const { clinicId, search, date, startDate, endDate, patientId, limit } =
       params;
 
-    if (!clinicId) {
-      return [];
-    }
+    if (!clinicId) return [];
 
     const where: Prisma.PrescriptionWhereInput = {
       patient: { clinicId },
@@ -91,13 +100,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
           },
         },
         doctor: {
-          select: {
-            id: true,
-            name: true,
-            qualification: true,
-            registrationNumber: true,
-            signatureUrl: true,
-          },
+          select: PRESCRIPTION_DOCTOR_SUMMARY_SELECT,
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -138,13 +141,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
           },
         },
         doctor: {
-          select: {
-            id: true,
-            name: true,
-            qualification: true,
-            registrationNumber: true,
-            signatureUrl: true,
-          },
+          select: PRESCRIPTION_DOCTOR_SUMMARY_SELECT,
         },
         appointment: {
           select: {
@@ -285,9 +282,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
       },
     });
 
-    if (!doctor) {
-      return null;
-    }
+    if (!doctor) return null;
 
     return doctor;
   }

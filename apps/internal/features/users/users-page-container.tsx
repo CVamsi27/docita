@@ -33,9 +33,7 @@ export function UsersPageContainer() {
     handleViewUser,
     retry,
   } = useUsersData();
-
   const pageStatus = loading ? "loading" : hasError ? "error" : "success";
-
   return (
     <AppPageScaffold
       header={
@@ -73,7 +71,6 @@ export function UsersPageContainer() {
           onViewUser={handleViewUser}
         />
       </DataState>
-
       <UserDetailsDialog
         open={isViewOpen}
         onOpenChange={setIsViewOpen}

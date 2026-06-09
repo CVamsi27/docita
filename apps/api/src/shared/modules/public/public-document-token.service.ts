@@ -41,16 +41,14 @@ export class PublicDocumentTokenService {
 
   verify(token: string): VerifiedToken {
     const dotIndex = token.lastIndexOf('.');
-    if (dotIndex === -1) {
+    if (dotIndex === -1)
       throw new BadRequestException('Invalid document token format');
-    }
 
     const encodedPayload = token.slice(0, dotIndex);
     const encodedSignature = token.slice(dotIndex + 1);
 
-    if (!encodedPayload || !encodedSignature) {
+    if (!encodedPayload || !encodedSignature)
       throw new BadRequestException('Invalid document token format');
-    }
 
     let payload: string;
     try {
@@ -60,16 +58,14 @@ export class PublicDocumentTokenService {
     }
 
     const colonIndex = payload.indexOf(':');
-    if (colonIndex === -1) {
+    if (colonIndex === -1)
       throw new BadRequestException('Invalid document token payload');
-    }
 
     const type = payload.slice(0, colonIndex);
     const id = payload.slice(colonIndex + 1);
 
-    if (!type || !id) {
+    if (!type || !id)
       throw new BadRequestException('Invalid document token payload');
-    }
 
     const expectedHmac = createHmac('sha256', this.secret)
       .update(payload)

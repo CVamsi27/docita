@@ -1,19 +1,9 @@
 "use client";
 
-import { useCallback } from "react";
-import {
-  usePublicBookingOtpRequest,
-  usePublicBookingOtpVerify,
-  usePublicBookingPhoneCheck,
-  usePublicBookingSubmit,
-} from "@workspace/data-access";
-import { ApiError } from "@/lib/errors";
-import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  validateBookingFields,
-  buildBookingRequestBody,
-  processPublicBookingSubmitError,
-} from "./public-booking-submit-helpers";
+import { useBookingPhoneCheck } from "./use-public-booking-submit-phone-check";
+import { useBookingOtpRequest } from "./use-public-booking-submit-otp-request";
+import { useBookingOtpVerify } from "./use-public-booking-submit-otp-verify";
+import { useBookingSubmit } from "./use-public-booking-submit-handler";
 
 interface SubmitActionsState {
   phone: string;
@@ -50,11 +40,6 @@ export function usePublicBookingSubmitActions(
   referralCode: string,
   state: SubmitActionsState,
 ) {
-  const phoneCheck = usePublicBookingPhoneCheck(referralCode);
-  const otpRequest = usePublicBookingOtpRequest(referralCode);
-  const otpVerify = usePublicBookingOtpVerify(referralCode);
-  const submit = usePublicBookingSubmit(referralCode);
-
   const {
     phone,
     otp,
@@ -84,174 +69,52 @@ export function usePublicBookingSubmitActions(
     setDone,
   } = state;
 
-  const runPhoneCheck = useCallback(async () => {
-    try {
-      const res = await phoneCheck.mutateAsync({
-        phoneNumber: phone,
-        turnstileToken: turnstileToken ?? undefined,
-      });
-      setRequiresOtp(res.requiresOtp);
-      return res;
-    } catch (error) {
-      showUserFacingErrorToast(
-        error,
-        "We could not verify this phone number. Please try again.",
-        "generic",
-      );
-      throw error;
-    }
-  }, [phone, phoneCheck, turnstileToken, setRequiresOtp]);
-
-  const handleRequestOtp = useCallback(async () => {
-    try {
-      await runPhoneCheck();
-      await otpRequest.mutateAsync({
-        phoneNumber: phone,
-        turnstileToken: turnstileToken ?? undefined,
-      });
-    } catch (error) {
-      showUserFacingErrorToast(
-        error,
-        "We could not send a verification code. Please try again.",
-        "generic",
-      );
-    }
-  }, [otpRequest, phone, runPhoneCheck, turnstileToken]);
-
-  const handleVerifyOtp = useCallback(async () => {
-    try {
-      const res = await otpVerify.mutateAsync({ phoneNumber: phone, otp });
-      setVerificationToken(res.bookingVerificationToken);
-      setFirstName(res.patient.firstName);
-      setLastName(res.patient.lastName);
-      if (res.patient.email) setEmail(res.patient.email);
-      setSubmitFieldErrors((prev) => {
-        const next = { ...prev };
-        delete next.bookingVerificationToken;
-        return next;
-      });
-    } catch (error) {
-      showUserFacingErrorToast(
-        error,
-        "That code did not work. Please try again.",
-        "generic",
-      );
-    }
-  }, [
-    otp,
-    otpVerify,
+  const { phoneCheck, runPhoneCheck } = useBookingPhoneCheck(
+    referralCode,
     phone,
+    turnstileToken,
+    setRequiresOtp,
+  );
+  const { otpRequest, handleRequestOtp } = useBookingOtpRequest(
+    referralCode,
+    phone,
+    turnstileToken,
+    runPhoneCheck,
+  );
+  const { otpVerify, handleVerifyOtp } = useBookingOtpVerify(
+    referralCode,
+    phone,
+    otp,
     setVerificationToken,
     setFirstName,
     setLastName,
     setEmail,
     setSubmitFieldErrors,
-  ]);
-
-  const handleSubmit = useCallback(async () => {
-    setSubmitFieldErrors({});
-    setSubmitGeneralMessage(null);
-
-    try {
-      let otpRequired = requiresOtp;
-      if (otpRequired === null) {
-        const check = await runPhoneCheck();
-        otpRequired = check.requiresOtp;
-      }
-
-      const validationError = validateBookingFields({
-        slotDate,
-        phone,
-        requiresOtp: otpRequired,
-        verificationToken,
-        firstName,
-        lastName,
-        dateOfBirth,
-        dpdpConsentAccepted,
-      });
-      if (validationError) {
-        showUserFacingErrorToast(null, validationError, "generic");
-        return;
-      }
-
-      const submitPayload = buildBookingRequestBody({
-        phone,
-        firstName,
-        lastName,
-        email,
-        dateOfBirth,
-        doctorId,
-        selectedSlotDoctorId,
-        slotDate,
-        selectedStart,
-        selectedEnd,
-        reason,
-        notes,
-        turnstileToken,
-        verificationToken,
-        requiresOtp,
-        dpdpConsentAccepted,
-        otpRequired,
-      });
-
-      await submit.mutateAsync(submitPayload);
-      setDone(true);
-    } catch (error) {
-      const { fieldErrors, generalMessage } = processPublicBookingSubmitError(
-        error,
-        siteKey,
-      );
-
-      setSubmitFieldErrors(fieldErrors);
-      setSubmitGeneralMessage(generalMessage);
-
-      const hasFieldHints = Object.keys(fieldErrors).length > 0;
-      if (hasFieldHints) {
-        showUserFacingErrorToast(
-          null,
-          "Review the fields marked below and try again.",
-          "form",
-        );
-      } else if (generalMessage) {
-        // submitGeneralMessage Alert provides copy; skip extra toast noise.
-      } else if (error instanceof ApiError) {
-        showUserFacingErrorToast(
-          null,
-          "We could not submit your request. Please review your details and try again.",
-          "form",
-        );
-      } else {
-        showUserFacingErrorToast(
-          error,
-          "We could not submit your request. Please try again.",
-          "generic",
-        );
-      }
-    }
-  }, [
-    doctorId,
-    dpdpConsentAccepted,
+  );
+  const { submit, handleSubmit } = useBookingSubmit({
+    referralCode,
+    phone,
     firstName,
     lastName,
-    phone,
     email,
     dateOfBirth,
     reason,
     notes,
-    requiresOtp,
-    runPhoneCheck,
-    selectedEnd,
+    doctorId,
     selectedSlotDoctorId,
-    selectedStart,
-    siteKey,
     slotDate,
-    submit,
+    selectedStart,
+    selectedEnd,
     turnstileToken,
     verificationToken,
+    requiresOtp,
+    dpdpConsentAccepted,
+    siteKey,
+    runPhoneCheck,
     setSubmitFieldErrors,
     setSubmitGeneralMessage,
     setDone,
-  ]);
+  });
 
   return {
     phoneCheck,

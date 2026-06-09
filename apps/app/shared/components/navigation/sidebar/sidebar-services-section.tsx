@@ -1,15 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
-import { SidebarNavItem } from "@workspace/ui/components/navigation/sidebar-nav-item";
 import {
   AI_ASSISTANT_NAV_ITEM,
-  type NavItem,
   type NavSection,
-  sidebarNavLinkTestId,
 } from "@/components/navigation/nav-config";
+import { SidebarLink } from "@/components/navigation/sidebar/sidebar-nav-link";
 
 interface SidebarServicesSectionProps {
   dynamicSection: NavSection | null;
@@ -39,7 +35,7 @@ export function SidebarServicesSection({
             />
           )}
           {dynamicSection.items.map((item) => (
-            <ServiceNavLink
+            <SidebarLink
               key={item.href}
               item={item}
               collapsedRail={collapsedRail}
@@ -59,7 +55,7 @@ export function SidebarServicesSection({
               className="mx-auto my-1 h-px w-6 rounded-full bg-border/70"
             />
           )}
-          <ServiceNavLink
+          <SidebarLink
             item={AI_ASSISTANT_NAV_ITEM}
             collapsedRail={collapsedRail}
             showLabels={showLabels}
@@ -67,39 +63,5 @@ export function SidebarServicesSection({
         </div>
       ) : null}
     </>
-  );
-}
-
-function ServiceNavLink({
-  item,
-  collapsedRail,
-  showLabels,
-}: {
-  item: NavItem;
-  collapsedRail: boolean;
-  showLabels: boolean;
-}) {
-  const pathname = usePathname();
-  const isActive =
-    pathname === item.href || pathname.startsWith(`${item.href}/`);
-
-  return (
-    <SidebarNavItem
-      label={item.label}
-      icon={item.icon}
-      isActive={isActive}
-      collapsedRail={collapsedRail}
-      showLabels={showLabels}
-      renderLink={({ className, children, "aria-label": ariaLabel }) => (
-        <Link
-          href={item.href}
-          data-testid={sidebarNavLinkTestId(item.href)}
-          aria-label={ariaLabel}
-          className={className}
-        >
-          {children}
-        </Link>
-      )}
-    />
   );
 }

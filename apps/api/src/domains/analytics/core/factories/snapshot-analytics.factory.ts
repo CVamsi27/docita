@@ -143,9 +143,7 @@ export class SnapshotAnalyticsFactory {
     try {
       const snapshots = await this.getAnalyticsSnapshots(clinicId, days);
 
-      if (snapshots.length === 0) {
-        return null;
-      }
+      if (snapshots.length === 0) return null;
 
       const latestSnapshot = snapshots[0];
       const oldestSnapshot = snapshots[snapshots.length - 1];

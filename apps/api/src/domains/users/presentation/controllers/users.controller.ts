@@ -18,45 +18,26 @@ import {
   UpdateProfileSchema,
 } from '@/domains/users/application/dto/users.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
-import { Role } from '@workspace/db';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
-import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { StaffSelfServiceAccess } from './users.controller.access';
 
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @SkipSubscriptionCheck()
-  @Roles(
-    Role.ADMIN,
-    Role.ADMIN_DOCTOR,
-    Role.DOCTOR,
-    Role.NURSE,
-    Role.RECEPTIONIST,
-  )
+  @StaffSelfServiceAccess()
   @Get('profile')
   @ZodSerializerDto(UserResponseDto)
   async getProfile(@Request() req: RequestWithUser) {
-    if (!req.user?.id) {
+    if (!req.user?.id)
       throw new BadRequestException('User ID not found in token');
-    }
     const profile = await this.usersService.getProfile(req.user.id);
-    if (!profile) {
-      throw new BadRequestException('User not found');
-    }
+    if (!profile) throw new BadRequestException('User not found');
     return profile;
   }
 
-  @SkipSubscriptionCheck()
-  @Roles(
-    Role.ADMIN,
-    Role.ADMIN_DOCTOR,
-    Role.DOCTOR,
-    Role.NURSE,
-    Role.RECEPTIONIST,
-  )
+  @StaffSelfServiceAccess()
   @Put('profile')
   @ZodSerializerDto(UserResponseDto)
   @UsePipes(new ZodValidationPipe(UpdateProfileSchema))
@@ -64,21 +45,13 @@ export class UsersController {
     @Request() req: RequestWithUser,
     @Body() dto: UpdateProfileDto,
   ) {
-    if (!req.user?.id) {
+    if (!req.user?.id)
       throw new BadRequestException('User ID not found in token');
-    }
 
     return await this.usersService.updateProfile(req.user.id, dto);
   }
 
-  @SkipSubscriptionCheck()
-  @Roles(
-    Role.ADMIN,
-    Role.ADMIN_DOCTOR,
-    Role.DOCTOR,
-    Role.NURSE,
-    Role.RECEPTIONIST,
-  )
+  @StaffSelfServiceAccess()
   @Post('account/delete-request')
   @ZodSerializerDto(StaffAccountDeletionResponseDto)
   async requestAccountDeletion(
@@ -86,9 +59,8 @@ export class UsersController {
     @Body(new ZodValidationPipe(StaffAccountDeletionRequestSchema))
     _body: StaffAccountDeletionRequestDto,
   ) {
-    if (!req.user?.id) {
+    if (!req.user?.id)
       throw new BadRequestException('User ID not found in token');
-    }
 
     return await this.usersService.requestAccountDeletion(req.user.id);
   }

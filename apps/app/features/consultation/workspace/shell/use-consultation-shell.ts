@@ -56,9 +56,7 @@ export function useConsultationShell({
   const clinicFeatures = useMemo(() => {
     const normalized = clinicType?.toUpperCase() ?? "GENERAL";
     const parsed = parseStringEnumMember(clinicTypeSchema.options, normalized);
-    if (parsed) {
-      return CLINIC_TYPE_FEATURES[parsed];
-    }
+    if (parsed) return CLINIC_TYPE_FEATURES[parsed];
     return CLINIC_TYPE_FEATURES.GENERAL;
   }, [clinicType]);
 

@@ -20,14 +20,10 @@ async function fetchCsrfToken(server: string) {
 
   const cookies = response.get('Set-Cookie') ?? [];
   const csrfCookie = cookies.find((cookie) => cookie.startsWith('XSRF-TOKEN='));
-  if (!csrfCookie) {
-    throw new Error('XSRF-TOKEN cookie was not issued');
-  }
+  if (!csrfCookie) throw new Error('XSRF-TOKEN cookie was not issued');
 
   const token = csrfCookie.split(';')[0]?.split('=')[1];
-  if (!token) {
-    throw new Error('XSRF-TOKEN cookie did not contain a token');
-  }
+  if (!token) throw new Error('XSRF-TOKEN cookie did not contain a token');
 
   return { cookies, token };
 }

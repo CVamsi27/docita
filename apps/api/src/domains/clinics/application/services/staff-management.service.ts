@@ -12,6 +12,10 @@ import {
 import { Role } from '@workspace/db';
 import {
   isClinicFrontDesk,
+  STAFF_CLINICAL_SELECT,
+  STAFF_IDENTITY_SELECT,
+  STAFF_TIMESTAMPS_SELECT,
+  STAFF_VERIFICATION_SELECT,
   type CreateClinicMemberData,
   type CreateDoctorData,
   type CreateReceptionistData,
@@ -44,6 +48,25 @@ export class StaffManagementService {
     return this.staffInviteService.createReceptionist(clinicId, data);
   }
 
+  /**
+   * Looks up a clinic member by id, projecting just the `id`/`role` pair both
+   * `updateMember` and `removeMember` need before they can decide whether the
+   * action is allowed — defined once so the lookup-and-guard shape can't drift
+   * between the two mutations.
+   */
+  private findMemberRoleRecord(clinicId: string, memberId: string) {
+    return this.persistence.user.findFirst({
+      where: {
+        id: memberId,
+        clinicId,
+      },
+      select: {
+        id: true,
+        role: true,
+      },
+    });
+  }
+
   async getDoctors(clinicId: string) {
     return this.persistence.user.findMany({
       where: {
@@ -51,16 +74,9 @@ export class StaffManagementService {
         role: Role.DOCTOR,
       },
       select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        phoneNumber: true,
-        specialization: true,
-        qualification: true,
-        registrationNumber: true,
-        createdAt: true,
-        updatedAt: true,
+        ...STAFF_IDENTITY_SELECT,
+        ...STAFF_CLINICAL_SELECT,
+        ...STAFF_TIMESTAMPS_SELECT,
       },
       orderBy: {
         createdAt: 'desc',
@@ -75,13 +91,8 @@ export class StaffManagementService {
         role: Role.RECEPTIONIST,
       },
       select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        phoneNumber: true,
-        createdAt: true,
-        updatedAt: true,
+        ...STAFF_IDENTITY_SELECT,
+        ...STAFF_TIMESTAMPS_SELECT,
       },
       orderBy: {
         createdAt: 'desc',
@@ -95,23 +106,11 @@ export class StaffManagementService {
         clinicId,
       },
       select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        phoneNumber: true,
-        specialization: true,
+        ...STAFF_IDENTITY_SELECT,
         hospitalRole: true,
-        qualification: true,
-        registrationNumber: true,
-        signatureUploadedAt: true,
-        verificationStatus: true,
-        verificationReason: true,
-        verificationCheckedAt: true,
-        profilePhotoUrl: true,
-        labId: true,
-        createdAt: true,
-        updatedAt: true,
+        ...STAFF_CLINICAL_SELECT,
+        ...STAFF_VERIFICATION_SELECT,
+        ...STAFF_TIMESTAMPS_SELECT,
       },
       orderBy: {
         createdAt: 'desc',
@@ -126,16 +125,7 @@ export class StaffManagementService {
     actorUserId: string,
     actorRole: Role,
   ) {
-    const member = await this.persistence.user.findFirst({
-      where: {
-        id: memberId,
-        clinicId,
-      },
-      select: {
-        id: true,
-        role: true,
-      },
-    });
+    const member = await this.findMemberRoleRecord(clinicId, memberId);
 
     const isFrontDesk = await isClinicFrontDesk(this.persistence, clinicId);
     assertCanUpdateMember({
@@ -152,22 +142,10 @@ export class StaffManagementService {
       where: { id: memberId },
       data: buildMemberUpdateData(data, appLoginDisabled),
       select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        phoneNumber: true,
-        specialization: true,
-        qualification: true,
-        registrationNumber: true,
-        signatureUploadedAt: true,
-        verificationStatus: true,
-        verificationReason: true,
-        verificationCheckedAt: true,
-        profilePhotoUrl: true,
-        labId: true,
-        createdAt: true,
-        updatedAt: true,
+        ...STAFF_IDENTITY_SELECT,
+        ...STAFF_CLINICAL_SELECT,
+        ...STAFF_VERIFICATION_SELECT,
+        ...STAFF_TIMESTAMPS_SELECT,
       },
     });
 
@@ -175,28 +153,15 @@ export class StaffManagementService {
   }
 
   async removeMember(clinicId: string, memberId: string, actorUserId: string) {
-    const member = await this.persistence.user.findFirst({
-      where: {
-        id: memberId,
-        clinicId,
-      },
-      select: {
-        id: true,
-        role: true,
-      },
-    });
+    const member = await this.findMemberRoleRecord(clinicId, memberId);
 
-    if (!member) {
-      throw new NotFoundException('Member not found in this clinic');
-    }
+    if (!member) throw new NotFoundException('Member not found in this clinic');
 
-    if (actorUserId === memberId) {
+    if (actorUserId === memberId)
       throw new BadRequestException('You cannot remove your own account');
-    }
 
-    if (member.role === Role.ADMIN) {
+    if (member.role === Role.ADMIN)
       throw new ForbiddenException('Admin account cannot be removed here');
-    }
 
     await this.persistence.user.delete({
       where: { id: memberId },

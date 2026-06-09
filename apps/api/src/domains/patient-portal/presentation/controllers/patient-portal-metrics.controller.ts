@@ -43,9 +43,7 @@ export class PatientPortalMetricsController {
 
   private async resolveContext(req: RequestWithUser) {
     const userId = req.user?.id;
-    if (!userId) {
-      throw new UnauthorizedException('User context required');
-    }
+    if (!userId) throw new UnauthorizedException('User context required');
     return this.contextService.getPatientContext(userId);
   }
 

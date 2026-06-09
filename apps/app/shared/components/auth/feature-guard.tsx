@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import React from "react";
 import Link from "next/link";
 import { Lock, Sparkles } from "lucide-react";
@@ -23,6 +24,7 @@ import { usePermissionStore } from "@/lib/stores/permission-store";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
 interface FeatureGuardProps {
+// jscpd:ignore-end
   feature: Feature | string;
   children: React.ReactNode;
   fallback?: React.ReactNode;

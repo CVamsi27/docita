@@ -9,6 +9,7 @@ import {
   useConsultationWorkspace,
 } from "@/features/consultation/workspace/consultation-workspace-context";
 import { useConsultationVitals } from "@/features/consultation/workspace/consultation-vitals-context";
+import { useSectionCompletion } from "@/features/consultation/workspace/chrome/SectionRail-sections";
 import { ChiefComplaintInput } from "@/features/consultation/components/structured/ChiefComplaintInput";
 import { DiagnosisInput } from "@/features/consultation/components/structured/DiagnosisInput";
 import { ExaminationInput } from "@/features/consultation/components/structured/ExaminationInput";
@@ -52,6 +53,7 @@ interface SectionProps {
 export function SubjectiveSection({ readOnly, sectionRef }: SectionProps) {
   const { clinicFeatures } = useConsultationWorkspace();
   const subtitle = useConsultationSectionSubtitle("subjective");
+  const completion = useSectionCompletion();
   const chiefComplaint = useConsultationDraft((s) => s.chiefComplaint);
   const history = useConsultationDraft((s) => s.history);
   const setChiefComplaint = useConsultationDraft((s) => s.setChiefComplaint);
@@ -60,6 +62,7 @@ export function SubjectiveSection({ readOnly, sectionRef }: SectionProps) {
   const complaintCount = chiefComplaint.filter((c) =>
     c.complaint?.trim(),
   ).length;
+  const isComplete = Boolean(completion.subjective);
 
   return (
     <SectionContainer
@@ -68,11 +71,14 @@ export function SubjectiveSection({ readOnly, sectionRef }: SectionProps) {
       letter="S"
       title="Subjective"
       subtitle={subtitle}
+      description="What the patient tells you — complaints, history, context."
+      completed={isComplete}
     >
       {clinicFeatures.chiefComplaint ? (
         <SectionField
           title="Chief complaints"
           meta={`${complaintCount} recorded`}
+          hint="Add the patient's main reasons for today's visit."
         >
           <ChiefComplaintInput
             value={chiefComplaint}
@@ -82,7 +88,11 @@ export function SubjectiveSection({ readOnly, sectionRef }: SectionProps) {
         </SectionField>
       ) : null}
       {clinicFeatures.history ? (
-        <SectionField title="History of present illness" htmlFor="hpi">
+        <SectionField
+          title="History of present illness"
+          htmlFor="hpi"
+          hint="Onset, progression, and associated symptoms."
+        >
           <Textarea
             id="hpi"
             className="min-h-[120px]"
@@ -100,9 +110,11 @@ export function SubjectiveSection({ readOnly, sectionRef }: SectionProps) {
 export function ObjectiveSection({ readOnly, sectionRef }: SectionProps) {
   const { clinicFeatures } = useConsultationWorkspace();
   const subtitle = useConsultationSectionSubtitle("objective");
+  const completion = useSectionCompletion();
   const { openVitals } = useConsultationVitals();
   const examination = useConsultationDraft((s) => s.examination);
   const setExamination = useConsultationDraft((s) => s.setExamination);
+  const isComplete = Boolean(completion.objective);
   return (
     <SectionContainer
       ref={sectionRef}
@@ -110,6 +122,8 @@ export function ObjectiveSection({ readOnly, sectionRef }: SectionProps) {
       letter="O"
       title="Objective"
       subtitle={subtitle}
+      description="What you measure or observe — vitals and exam findings."
+      completed={isComplete}
       actions={
         clinicFeatures.vitals && !readOnly ? (
           <Button
@@ -136,11 +150,13 @@ export function ObjectiveSection({ readOnly, sectionRef }: SectionProps) {
 
 export function AssessmentSection({ readOnly, sectionRef }: SectionProps) {
   const subtitle = useConsultationSectionSubtitle("assessment");
+  const completion = useSectionCompletion();
   const diagnosis = useConsultationDraft((s) => s.diagnosis);
   const setDiagnosis = useConsultationDraft((s) => s.setDiagnosis);
   const diagnosisCount = diagnosis.filter((d) =>
     d.condition?.trim(),
   ).length;
+  const isComplete = Boolean(completion.assessment);
   return (
     <SectionContainer
       ref={sectionRef}
@@ -148,8 +164,14 @@ export function AssessmentSection({ readOnly, sectionRef }: SectionProps) {
       letter="A"
       title="Assessment"
       subtitle={subtitle}
+      description="Your clinical impression — diagnoses and differential."
+      completed={isComplete}
     >
-      <SectionField title="Diagnoses" meta={`${diagnosisCount} recorded`}>
+      <SectionField
+        title="Diagnoses"
+        meta={`${diagnosisCount} recorded`}
+        hint="Add the working or final diagnoses for this visit."
+      >
         <DiagnosisInput
           value={diagnosis}
           onChange={setDiagnosis}
@@ -166,6 +188,7 @@ export function PlanSection({
   patientAllergies,
 }: SectionProps & { patientAllergies?: PatientAllergy[] }) {
   const subtitle = useConsultationSectionSubtitle("plan");
+  const completion = useSectionCompletion();
   const prescriptions = useConsultationDraft((s) => s.prescriptions);
   const treatment = useConsultationDraft((s) => s.treatment);
   const followUpPlan = useConsultationDraft((s) => s.followUpPlan);
@@ -173,6 +196,7 @@ export function PlanSection({
   const setTreatment = useConsultationDraft((s) => s.setTreatment);
   const setFollowUpPlan = useConsultationDraft((s) => s.setFollowUpPlan);
   const allergyEntries = toAllergyEntries(patientAllergies);
+  const isComplete = Boolean(completion.plan);
   return (
     <SectionContainer
       ref={sectionRef}
@@ -180,6 +204,8 @@ export function PlanSection({
       letter="P"
       title="Plan"
       subtitle={subtitle}
+      description="What you will do — medications, treatment, follow-up."
+      completed={isComplete}
     >
       {allergyEntries.length > 0 ? (
         <AllergyBanner allergies={allergyEntries} />
@@ -187,6 +213,7 @@ export function PlanSection({
       <SectionField
         title="Medications"
         meta={`${prescriptions.length} added`}
+        hint="Prescribe medicines, doses, and durations for this patient."
       >
         <PrescriptionInput
           value={prescriptions}
@@ -195,7 +222,11 @@ export function PlanSection({
         />
       </SectionField>
       <div className="grid gap-3 md:grid-cols-2">
-        <SectionField title="Treatment notes" htmlFor="treatment-plan">
+        <SectionField
+          title="Treatment notes"
+          htmlFor="treatment-plan"
+          hint="Advice, procedures, and treatment given today."
+        >
           <Textarea
             id="treatment-plan"
             className="min-h-[110px]"
@@ -205,7 +236,11 @@ export function PlanSection({
             onChange={(e) => setTreatment(e.target.value)}
           />
         </SectionField>
-        <SectionField title="Follow-up plan" htmlFor="follow-up-plan">
+        <SectionField
+          title="Follow-up plan"
+          htmlFor="follow-up-plan"
+          hint="When to return and what to watch for."
+        >
           <Textarea
             id="follow-up-plan"
             className="min-h-[110px]"

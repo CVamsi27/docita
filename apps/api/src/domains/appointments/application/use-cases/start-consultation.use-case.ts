@@ -56,11 +56,10 @@ export class StartConsultationUseCase {
       );
     }
 
-    if (role !== Role.DOCTOR && role !== Role.ADMIN_DOCTOR) {
+    if (role !== Role.DOCTOR && role !== Role.ADMIN_DOCTOR)
       throw new ForbiddenException(
         'Only the assigned doctor can start this consultation',
       );
-    }
 
     const appointment = await this.readRepository.findForConsultationStart(
       appointmentId,
@@ -73,11 +72,10 @@ export class StartConsultationUseCase {
       );
     }
 
-    if (appointment.doctorId !== userId) {
+    if (appointment.doctorId !== userId)
       throw new ForbiddenException(
         'Only the assigned doctor can start this consultation',
       );
-    }
 
     if (!CONSULTATION_START_ALLOWED_STATUSES.has(appointment.status)) {
       throw new BadRequestException(

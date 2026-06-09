@@ -32,9 +32,7 @@ export async function loadInternalUsersForSelection(
   clinics: InternalClinicSummary[],
 ): Promise<InternalPortalUser[]> {
   if (selectedClinic === "all") {
-    if (clinics.length === 0) {
-      return [];
-    }
+    if (clinics.length === 0) return [];
 
     const allUsers = await Promise.all(
       clinics.map((clinic) => loadInternalClinicUsers(fetcher, clinic.id)),

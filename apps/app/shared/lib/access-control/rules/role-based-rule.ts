@@ -12,9 +12,7 @@ export class RoleBasedAccessRule implements IAccessRule {
 
   canAccess(context: IAccessContext): boolean {
 
-    if (!context.requiredPermission) {
-      return true;
-    }
+    if (!context.requiredPermission) return true;
 
     return hasPermission(context.userRole, context.requiredPermission);
   }

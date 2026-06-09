@@ -8,9 +8,7 @@ const createRetryFunction = () => {
   return (failureCount: number, error: DefaultError) => {
     if (error instanceof ApiError) {
 
-      if (error.statusCode >= 400 && error.statusCode < 500) {
-        return false;
-      }
+      if (error.statusCode >= 400 && error.statusCode < 500) return false;
     }
 
     return failureCount < 2;

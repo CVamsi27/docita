@@ -2,8 +2,6 @@
 
 import { useAuth } from "@/lib/auth/auth-context";
 import { useClinic } from "@/lib/contexts/clinic-context";
-import { getSupportPhoneNumber } from "@/lib/constants/support-contact";
-import { WhatsAppButton } from "@/components/whatsapp/whatsapp-button";
 import {
   PaymentRecoveryCard,
   BillingSubscriptionWorkspaceView,
@@ -21,13 +19,9 @@ import { BillingHistory } from "./subscription-billing-history";
 import {
   SubscriptionLoadingState,
   NonAdminSubscriptionView,
-  TrialAlert,
-  FreeStarterAlert,
-  GstinReminderAlert,
-  PaymentDueAlert,
-  GracePeriodAlert,
-  ExpiredSubscriptionAlert,
+  BillingSupportBlock,
 } from "./SubscriptionSettingsSections";
+import { SubscriptionAlertSection } from "./subscription-settings-alerts";
 
 export function SubscriptionSettings() {
   const { isAdmin } = useAuth();
@@ -43,28 +37,15 @@ export function SubscriptionSettings() {
     clinic,
   });
 
-  const supportPhone = getSupportPhoneNumber();
   const subscription = billing.subscription;
   const subscriptionSettingsState = deriveSubscriptionSettingsState({
     clinic,
     subscription,
   });
 
-  if (billing.isSubscriptionLoading) {
-    return <SubscriptionLoadingState />;
-  }
+  if (billing.isSubscriptionLoading) return <SubscriptionLoadingState />;
 
-  const {
-    tierName,
-    subscriptionStatusLabel,
-    trialDaysLeft,
-    freeStarterActive,
-    isPaymentDue,
-    isExpired,
-    isInGracePeriod,
-    showRecoveryCard,
-    needsGstinForInvoices,
-  } = subscriptionSettingsState;
+  const { tierName, subscriptionStatusLabel } = subscriptionSettingsState;
 
   if (!isAdmin) {
     return (
@@ -80,34 +61,17 @@ export function SubscriptionSettings() {
   return (
     <div className="space-y-6">
       <PaymentRecoveryCard
-        show={showRecoveryCard}
+        show={subscriptionSettingsState.showRecoveryCard}
         recoverablePayment={billing.recoverablePayment}
         resolvePayment={billing.resolvePayment}
         isResolving={isResolving}
       />
-      {trialDaysLeft !== null ? (
-        <TrialAlert trialDaysLeft={trialDaysLeft} tierName={tierName} />
-      ) : freeStarterActive ? (
-        <FreeStarterAlert />
-      ) : null}
 
-      {needsGstinForInvoices && <GstinReminderAlert />}
-
-      {isPaymentDue && !showRecoveryCard && (
-        <PaymentDueAlert
-          isResolving={isResolving}
-          resolvePayment={billing.resolvePayment}
-        />
-      )}
-
-      {isInGracePeriod && !showRecoveryCard && (
-        <GracePeriodAlert
-          isResolving={isResolving}
-          resolvePayment={billing.resolvePayment}
-        />
-      )}
-
-      {isExpired && <ExpiredSubscriptionAlert />}
+      <SubscriptionAlertSection
+        state={subscriptionSettingsState}
+        isResolving={isResolving}
+        resolvePayment={billing.resolvePayment}
+      />
 
       <Section
         id="billing-subscription-section"
@@ -117,21 +81,7 @@ export function SubscriptionSettings() {
       >
         <BillingSubscriptionWorkspaceView workspace={billing} />
 
-        <div className="flex flex-col gap-3 border-t border-border/60 pt-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-[var(--fs-sm)] text-muted-foreground">
-              Need help with billing or onboarding?
-            </p>
-            <WhatsAppButton
-              phoneNumber={supportPhone}
-              message="Hi Docita team, I need help with billing and onboarding"
-              label="Message support"
-              variant="outline"
-              size="sm"
-              className="shrink-0"
-            />
-          </div>
-        </div>
+        <BillingSupportBlock />
       </Section>
 
       <div className="scroll-mt-6">

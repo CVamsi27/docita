@@ -108,9 +108,8 @@ export class WhatsAppNotificationService {
     if (
       !clinic?.whatsappAutomation ||
       typeof clinic.whatsappAutomation === 'string'
-    ) {
+    )
       return false;
-    }
 
     const config = isRecord(clinic.whatsappAutomation)
       ? clinic.whatsappAutomation

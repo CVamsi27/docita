@@ -44,13 +44,10 @@ export class DoctorVerificationService {
   async verifyAndPersistDoctorVerification(doctorId: string) {
     const doctor = await this.repository.findDoctorForVerification(doctorId);
 
-    if (!doctor) {
-      return null;
-    }
+    if (!doctor) return null;
 
-    if (doctor.role !== Role.DOCTOR && doctor.role !== Role.ADMIN_DOCTOR) {
+    if (doctor.role !== Role.DOCTOR && doctor.role !== Role.ADMIN_DOCTOR)
       return null;
-    }
 
     if (!doctor.registrationNumber) {
       await this.repository.updateVerificationStatus(doctorId, {
@@ -161,9 +158,7 @@ export class DoctorVerificationService {
     }
 
     const hprResult = await this.tryHprVerification(input);
-    if (hprResult) {
-      return hprResult;
-    }
+    if (hprResult) return hprResult;
 
     const { apiUrl, apiKey } = this.configService.getDoctorVerificationConfig();
 
@@ -254,9 +249,7 @@ export class DoctorVerificationService {
   }): Promise<VerificationResult | null> {
     const { hprApiUrl, hprApiKey } =
       this.configService.getHprVerificationConfig();
-    if (!hprApiUrl || !hprApiKey) {
-      return null;
-    }
+    if (!hprApiUrl || !hprApiKey) return null;
 
     try {
       const {
@@ -284,9 +277,7 @@ export class DoctorVerificationService {
         return null;
       }
 
-      if (!payload.matched) {
-        return null;
-      }
+      if (!payload.matched) return null;
 
       return {
         status: DoctorVerificationStatus.VERIFIED,

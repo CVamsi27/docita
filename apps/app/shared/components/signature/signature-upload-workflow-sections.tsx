@@ -25,7 +25,6 @@ interface DrawSignatureTabProps {
   uploadButtonLabel: string;
   uploadingButtonLabel: string;
 }
-
 export function DrawSignatureTab({
   signatureDataUrl,
   onClearSignature,
@@ -43,7 +42,6 @@ export function DrawSignatureTab({
         <Pencil className="h-4 w-4" />
         <AlertDescription>{drawAlertText}</AlertDescription>
       </Alert>
-
       {!signatureDataUrl ? (
         <SignaturePad onSave={(dataUrl) => void onDrawSave(dataUrl)} />
       ) : (
@@ -52,7 +50,6 @@ export function DrawSignatureTab({
             dataUrl={signatureDataUrl}
             onEdit={onClearSignature}
           />
-
           {autoUploadOnDraw ? (
             uploading ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -88,7 +85,6 @@ export function DrawSignatureTab({
     </div>
   );
 }
-
 interface UploadSignatureTabProps {
   previewUrl: string | null;
   fileInputRef: RefObject<HTMLInputElement | null>;

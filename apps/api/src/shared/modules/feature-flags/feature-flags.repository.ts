@@ -84,9 +84,8 @@ export class FeatureFlagsRepository {
       }),
     );
     const out = toRecord(stored);
-    if (!out) {
+    if (!out)
       throw new Error('FeatureFlagDefinition upsert returned an empty row');
-    }
     return out;
   }
 

@@ -45,9 +45,7 @@ export class RateLimitInterceptor implements NestInterceptor {
       context.getHandler(),
     );
 
-    if (!rateLimitOptions) {
-      return next.handle();
-    }
+    if (!rateLimitOptions) return next.handle();
 
     const request = context.switchToHttp().getRequest();
     const key = this.generateKey(request, rateLimitOptions);
@@ -118,9 +116,7 @@ export class RateLimitInterceptor implements NestInterceptor {
     },
     options: RateLimitOptions,
   ): string {
-    if (options.keyGenerator) {
-      return options.keyGenerator(request);
-    }
+    if (options.keyGenerator) return options.keyGenerator(request);
 
     const ip = request.ip || request.socket?.remoteAddress || 'unknown';
     const userId = request.user?.id || 'anonymous';

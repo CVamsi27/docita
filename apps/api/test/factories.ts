@@ -15,9 +15,7 @@ import * as bcrypt from 'bcrypt';
 let prisma: PrismaClient;
 
 function normalizeRole(role: unknown): Role {
-  if (role === 'STAFF') {
-    return Role.RECEPTIONIST;
-  }
+  if (role === 'STAFF') return Role.RECEPTIONIST;
 
   switch (role) {
     case Role.DOCTOR:

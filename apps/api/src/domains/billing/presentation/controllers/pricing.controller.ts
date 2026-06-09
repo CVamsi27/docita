@@ -86,9 +86,8 @@ export class PricingController {
       users: query.users,
       whatsappMessages: query.whatsappMessages,
     });
-    if ('breakdown' in result) {
+    if ('breakdown' in result)
       return pricingEstimateResponseSchema.parse(result);
-    }
     return result;
   }
 }

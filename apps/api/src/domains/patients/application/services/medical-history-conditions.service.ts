@@ -41,7 +41,10 @@ export class MedicalHistoryConditionsService {
   }
 
   async createCondition(patientId: string, dto: CreateMedicalConditionInput) {
-    const validated = this.medicalHistoryFactory.createCondition(dto);
+    const validated = this.medicalHistoryFactory.createCondition({
+      ...dto,
+      patientId,
+    });
     return this.persistence.patientMedicalCondition.create({
       data: {
         patientId,

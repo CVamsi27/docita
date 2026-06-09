@@ -41,6 +41,7 @@ export * from "./form/date-picker";
 export * from "./form/iso-date-picker-field";
 export * from "./form/date-time-picker";
 export * from "./data-display/data-state";
+export * from "./data-display/sortable-header-button";
 export * from "./overlay/dialog";
 export * from "./overlay/dropdown-menu";
 export * from "./feedback/empty-state";

@@ -5,9 +5,7 @@ export function expectMatchesSchema<TSchema extends z.ZodTypeAny>(
   data: unknown,
 ): z.infer<TSchema> {
   const result = schema.safeParse(data);
-  if (result.success) {
-    return result.data;
-  }
+  if (result.success) return result.data;
 
   const formatted = result.error.issues
     .map((issue) => {

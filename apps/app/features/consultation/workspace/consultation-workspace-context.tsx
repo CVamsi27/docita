@@ -29,11 +29,9 @@ export function ConsultationWorkspaceProvider({
 
 export function useConsultationWorkspace(): ConsultationWorkspaceContextValue {
   const ctx = useContext(ConsultationWorkspaceContext);
-  if (!ctx) {
-    throw new Error(
+  if (!ctx) throw new Error(
       "useConsultationWorkspace must be used within ConsultationWorkspaceProvider",
     );
-  }
   return ctx;
 }
 

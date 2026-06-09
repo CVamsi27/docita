@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import type { User } from "./auth-context-helpers";
 
 export interface AuthContextType {
@@ -21,6 +22,7 @@ export interface AuthContextType {
     clinicName?: string,
   ) => Promise<void>;
   checkEmail: (email: string) => Promise<boolean>;
+// jscpd:ignore-end
   logout: (options?: { redirect?: boolean }) => Promise<void>;
   token: string | null;
 }

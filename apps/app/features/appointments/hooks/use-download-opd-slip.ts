@@ -19,11 +19,9 @@ export function useDownloadOpdSlip() {
       const response = await fetchWithSession(
         `/appointments/${appointmentId}/opd-slip`,
       );
-      if (!response.ok) {
-        throw new Error(
+      if (!response.ok) throw new Error(
           "We could not generate the OPD prescription slip. Please try again.",
         );
-      }
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank", "noopener,noreferrer");

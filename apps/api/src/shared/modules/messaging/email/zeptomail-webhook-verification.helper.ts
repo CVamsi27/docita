@@ -12,9 +12,7 @@ function headerString(req: Request, name: string): string | undefined {
 }
 
 function resolveRawBody(req: ZeptoMailWebhookRequest): Buffer {
-  if (req.rawBody && req.rawBody.length > 0) {
-    return req.rawBody;
-  }
+  if (req.rawBody && req.rawBody.length > 0) return req.rawBody;
   return Buffer.from(JSON.stringify(req.body ?? {}));
 }
 
@@ -27,9 +25,7 @@ export async function verifyZeptoMailWebhookIngress(params: {
   secret: string;
   verifier: WebhookVerifierService;
 }): Promise<boolean> {
-  if (!params.secret) {
-    return false;
-  }
+  if (!params.secret) return false;
 
   const rawBody = resolveRawBody(params.req);
   const signature = headerString(params.req, 'x-zoho-signature');
@@ -47,9 +43,7 @@ export async function verifyZeptoMailWebhookIngress(params: {
   const sharedSecretHeader =
     headerString(params.req, 'authorization') ??
     headerString(params.req, 'x-webhook-secret');
-  if (!sharedSecretHeader) {
-    return false;
-  }
+  if (!sharedSecretHeader) return false;
 
   const verification = await params.verifier.verify({
     provider: 'zeptomail',

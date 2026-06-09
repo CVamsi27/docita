@@ -10,7 +10,7 @@ describe('AiService', () => {
   let aiFactory: AiFactory;
 
   const mockAppConfigService = {
-    getOpenAiConfig: jest.fn().mockReturnValue({
+    getAiConfig: jest.fn().mockReturnValue({
       apiKey: undefined,
       model: 'gpt-4o',
       requestTimeout: 5000,
@@ -24,7 +24,7 @@ describe('AiService', () => {
   };
 
   beforeEach(async () => {
-    mockAppConfigService.getOpenAiConfig.mockReset().mockReturnValue({
+    mockAppConfigService.getAiConfig.mockReset().mockReturnValue({
       apiKey: undefined,
       model: 'gpt-4o',
       requestTimeout: 5000,
@@ -58,7 +58,7 @@ describe('AiService', () => {
 
   describe('generateText', () => {
     it('should return mock response when API key is missing', async () => {
-      mockAppConfigService.getOpenAiConfig.mockReturnValue({
+      mockAppConfigService.getAiConfig.mockReturnValue({
         apiKey: undefined,
         model: 'gpt-4o',
         requestTimeout: 5000,
@@ -72,7 +72,7 @@ describe('AiService', () => {
     });
 
     it('should use mock response even if API key exists (for now)', async () => {
-      mockAppConfigService.getOpenAiConfig.mockReturnValue({
+      mockAppConfigService.getAiConfig.mockReturnValue({
         apiKey: 'test-key',
         model: 'gpt-4o',
         requestTimeout: 5000,
@@ -110,7 +110,7 @@ describe('AiService', () => {
     });
 
     it('should fallback to mock schema generation if validation fails', async () => {
-      mockAppConfigService.getOpenAiConfig.mockReturnValue({
+      mockAppConfigService.getAiConfig.mockReturnValue({
         apiKey: undefined,
         model: 'gpt-4o',
         requestTimeout: 5000,

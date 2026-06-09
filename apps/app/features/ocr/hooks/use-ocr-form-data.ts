@@ -1,6 +1,36 @@
 import type { ProcessOcrFields } from "@workspace/data-access";
 import type { OCRFormData } from "@/features/ocr/types";
-import { mapOcrFieldsToInvoiceForm } from "./use-ocr-invoice-mapping";
+import { emptyOcrInvoiceForm, mapOcrFieldsToInvoiceForm } from "./use-ocr-invoice-mapping";
+
+/** Builds the blank OCR review form seeded before any document has been scanned. */
+export function emptyOcrFormData(): OCRFormData {
+  return {
+    firstName: "",
+    lastName: "",
+    age: "",
+    gender: "MALE",
+    dateOfBirth: "",
+    phoneNumber: "",
+    email: "",
+    address: "",
+    bloodType: "",
+    diagnosis: "",
+    symptoms: [],
+    allergies: [],
+    medicalHistory: [],
+    medications: [],
+    vitals: {
+      bp: "",
+      temp: "",
+      pulse: "",
+      respiratoryRate: "",
+      spO2: "",
+      glucose: "",
+    },
+    labValues: { glucose: "", hemoglobin: "", creatinine: "" },
+    invoice: emptyOcrInvoiceForm(),
+  };
+}
 
 export function buildOcrFormData(
   fields: ProcessOcrFields | undefined,

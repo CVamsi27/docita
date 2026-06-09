@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { Button } from "@workspace/ui/components/form/button";
 import {
   Select,
@@ -15,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
+// jscpd:ignore-end
 import type { JoinClinicSearchResult } from "@/features/onboarding/components/join-clinic-search-results";
 
 export function JoinClinicRequestDialog({

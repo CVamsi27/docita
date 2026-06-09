@@ -72,9 +72,7 @@ export function TestCommandList({
     .filter((test) =>
       test.name.toLowerCase().includes(testSearch.toLowerCase()),
     );
-  if (visibleTests.length === 0) {
-    return <CommandEmpty>No tests available</CommandEmpty>;
-  }
+  if (visibleTests.length === 0) return <CommandEmpty>No tests available</CommandEmpty>;
   return (
     <CommandGroup>
       {visibleTests.map((test) => (

@@ -33,15 +33,9 @@ export class ReferralService {
   async applyReferralCreditsOnFirstPayment(clinicId: string): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       const paymentCount = await tx.subscriptionPayment.count({
-        where: {
-          clinicId,
-          status: 'paid',
-        },
+        where: { clinicId, status: 'paid' },
       });
-
-      if (paymentCount > 1) {
-        return;
-      }
+      if (paymentCount > 1) return;
 
       const referral = await tx.referral.findFirst({
         where: {
@@ -49,14 +43,9 @@ export class ReferralService {
           status: 'SIGNED_UP',
           creditApplied: false,
         },
-        include: {
-          referrerClinic: true,
-        },
+        include: { referrerClinic: true },
       });
-
-      if (!referral) {
-        return;
-      }
+      if (!referral) return;
 
       const referrerCredits =
         referral.referrerClinic?.referralCreditsMonths || 0;
@@ -68,29 +57,19 @@ export class ReferralService {
       }
 
       const flipped = await tx.referral.updateMany({
-        where: {
-          id: referral.id,
-          status: 'SIGNED_UP',
-          creditApplied: false,
-        },
+        where: { id: referral.id, status: 'SIGNED_UP', creditApplied: false },
         data: {
           status: 'CONVERTED',
           creditApplied: true,
           convertedAt: this.clock.now(),
         },
       });
-
-      if (flipped.count === 0) {
-        return;
-      }
+      if (flipped.count === 0) return;
 
       await tx.clinic.update({
         where: { id: referral.referrerClinicId },
-        data: {
-          referralCreditsMonths: { increment: 1 },
-        },
+        data: { referralCreditsMonths: { increment: 1 } },
       });
-
       await tx.referralCredit.create({
         data: {
           clinicId: referral.referrerClinicId,
@@ -98,7 +77,6 @@ export class ReferralService {
           creditMonths: 1,
         },
       });
-
       this.logger.log(
         `Applied referral credit to clinic ${referral.referrerClinicId} from referral ${referral.id}`,
       );

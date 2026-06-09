@@ -20,9 +20,7 @@ export function SidebarRailAction({
   showTooltip = true,
   side = "right",
 }: SidebarRailActionProps) {
-  if (!showTooltip) {
-    return children;
-  }
+  if (!showTooltip) return children;
 
   return (
     <SidebarRailTooltip label={label} side={side}>

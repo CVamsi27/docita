@@ -99,11 +99,9 @@ export function useRazorpay() {
   const openCheckout = useCallback(
     async (options: RazorpayOptions): Promise<RazorpayCheckoutResult> => {
       const loaded = await loadRazorpay();
-      if (!loaded) {
-        throw new Error(
+      if (!loaded) throw new Error(
           "We could not open payment right now. Please check your connection and try again.",
         );
-      }
 
       return new Promise<RazorpayCheckoutResult>((resolve, reject) => {
         const RazorpayCtor = window.Razorpay;

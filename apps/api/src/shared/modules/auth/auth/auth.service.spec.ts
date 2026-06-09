@@ -276,9 +276,8 @@ describe('AuthService', () => {
     sessionService = module.get<AuthSessionService>(AuthSessionService);
     prismaService = module.get<typeof prismaService>(PrismaService);
     prismaService.$transaction.mockImplementation(async (ops: unknown) => {
-      if (typeof ops === 'function') {
+      if (typeof ops === 'function')
         return (ops as (tx: unknown) => Promise<unknown>)(prismaService);
-      }
       return Promise.all(ops as Promise<unknown>[]);
     });
     jwtService = module.get<JwtService>(JwtService);
@@ -592,9 +591,7 @@ describe('AuthService', () => {
           const args = callArgs[0] as {
             where?: { email?: string; id?: string };
           };
-          if (args?.where?.email) {
-            return null;
-          }
+          if (args?.where?.email) return null;
           if (args?.where?.id) {
             return {
               id: mockUserWithoutPassword.id,
@@ -1042,9 +1039,8 @@ describe('AuthService', () => {
       transactionSpy
         .mockRejectedValueOnce(acquireError)
         .mockImplementation(async (ops: unknown, options?: unknown) => {
-          if (typeof ops === 'function') {
+          if (typeof ops === 'function')
             return (ops as (tx: unknown) => Promise<unknown>)(prismaService);
-          }
           return Promise.all(ops as Promise<unknown>[]);
         });
 

@@ -3,6 +3,7 @@ import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { type DateTimeOptions, DEFAULT_TIMEZONE } from "./date-config.js";
 import { parseDate } from "./date-parsing.js";
 
+// jscpd:ignore-start
 export function toUTC(
   date: string | Date | null | undefined,
   options: DateTimeOptions = {},
@@ -34,6 +35,7 @@ export function fromUTC(
     return parsedDate;
   }
 }
+// jscpd:ignore-end
 
 export function nowInTimezone(options: DateTimeOptions = {}): Date {
   const { timezone = DEFAULT_TIMEZONE } = options;

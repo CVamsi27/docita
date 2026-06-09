@@ -117,9 +117,10 @@ export function useScrollListeners(params: {
 
 export function useFocusSectionTracking(params: {
   refs: ShellScrollRefs;
+  stepMode?: boolean;
   setActiveSectionId: (value: string | ((prev: string) => string)) => void;
 }) {
-  const { refs, setActiveSectionId } = params;
+  const { refs, stepMode = false, setActiveSectionId } = params;
   const { mainScrollRef, scrollSpySuppressedUntilRef, sectionsRef } = refs;
   useEffect(() => {
     const root = mainScrollRef.current;
@@ -130,6 +131,7 @@ export function useFocusSectionTracking(params: {
         root,
         sectionsRef,
         scrollSpySuppressedUntilRef,
+        stepMode,
         setActiveSectionId,
       });
     };
@@ -140,6 +142,7 @@ export function useFocusSectionTracking(params: {
     scrollSpySuppressedUntilRef,
     sectionsRef,
     setActiveSectionId,
+    stepMode,
   ]);
 }
 
@@ -148,6 +151,7 @@ function updateActiveSectionFromFocus(params: {
   root: HTMLElement;
   sectionsRef: MutableRefObject<ConsultationSection[]>;
   scrollSpySuppressedUntilRef: MutableRefObject<number>;
+  stepMode: boolean;
   setActiveSectionId: (value: string | ((prev: string) => string)) => void;
 }): void {
   const target = params.event.target;
@@ -157,6 +161,9 @@ function updateActiveSectionFromFocus(params: {
   if (!id) return;
   if (!params.sectionsRef.current.some((section) => section.id === id)) return;
   params.scrollSpySuppressedUntilRef.current = performance.now() + 520;
+  if (params.stepMode) {
+    return;
+  }
   params.setActiveSectionId((prev) => (prev === id ? prev : id));
 }
 

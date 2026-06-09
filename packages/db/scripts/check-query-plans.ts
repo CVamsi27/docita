@@ -60,9 +60,7 @@ async function getExistingIndexes(
   client: ExplainClient,
   indexNames: string[],
 ): Promise<Set<string>> {
-  if (indexNames.length === 0) {
-    return new Set<string>();
-  }
+  if (indexNames.length === 0) return new Set<string>();
 
   const rows = await client.$queryRawUnsafe<Array<{ indexname: string }>>(
     `SELECT indexname
@@ -242,7 +240,6 @@ async function run(): Promise<void> {
       const pass =
         missingRequiredIndexes.length === 0 && hasIndexAccess && !hasSeqScan;
       process.stdout.write(`${check.name}: ${pass ? "PASS" : "FAIL"}\n`);
-
       if (!pass) {
         hasFailure = true;
         process.stdout.write(`  required indexes: ${check.requiredIndexes.join(", ")}\n`);
@@ -259,7 +256,6 @@ async function run(): Promise<void> {
       }
     }
   });
-
   if (hasFailure) {
     process.exit(1);
   }

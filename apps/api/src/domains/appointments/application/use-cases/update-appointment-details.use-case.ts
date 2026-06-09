@@ -71,9 +71,8 @@ export class UpdateAppointmentDetailsUseCase {
         nextEnd,
         appointmentId,
       );
-      if (overlap.hasConflict) {
+      if (overlap.hasConflict)
         throw new BadRequestException('Doctor has conflicting appointment');
-      }
     }
 
     const prismaPatch = toPrismaAppointmentUpdate(data);

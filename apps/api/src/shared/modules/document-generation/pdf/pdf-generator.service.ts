@@ -11,18 +11,17 @@ import {
 import type { IPdfDocumentRenderer } from './pdf-document-renderer.interface';
 import type { InvoicePdfInput, PrescriptionPdfInput } from './pdf.types';
 import type { PDFConfig } from './pdf-config.types';
-
+export type { PDFContext } from './pdf.types';
+export type { PDFConfig } from './pdf-config.types';
 export type {
   PDFClinicInfo,
   PDFDoctorInfo,
-  PDFPatientInfo,
-  PDFMedicationInfo,
   PDFInvoiceItem,
-  TableColumn,
+  PDFMedicationInfo,
+  PDFPatientInfo,
   PDFDocumentType,
-  PDFContext,
-} from './pdf.types';
-export type { PDFConfig } from './pdf-config.types';
+  TableColumn,
+} from '@workspace/types';
 
 @Injectable()
 export class PDFGeneratorService implements IPdfDocumentRenderer {
@@ -53,18 +52,15 @@ export class PDFGeneratorService implements IPdfDocumentRenderer {
       const margin = config.margin ?? 50;
       const doc = new PDFDocument({ margin, size: 'A4' });
       const buffers: Buffer[] = [];
-
       doc.on('data', buffers.push.bind(buffers));
       doc.on('end', () => resolve(Buffer.concat(buffers)));
       doc.on('error', reject);
-
       const context = {
         currentY: margin,
         pageWidth: doc.page.width,
         contentWidth: doc.page.width - margin * 2,
         margin,
       };
-
       try {
         context.currentY = this.layout.renderClinicHeader(
           doc,
@@ -72,7 +68,6 @@ export class PDFGeneratorService implements IPdfDocumentRenderer {
           context,
           config.type,
         );
-
         context.currentY = this.layout.renderDocumentTitle(
           doc,
           config.title,
@@ -81,34 +76,23 @@ export class PDFGeneratorService implements IPdfDocumentRenderer {
           context,
           config.showRxSymbol,
         );
-
-        if (config.patient || config.doctor) {
+        if (config.patient || config.doctor)
           context.currentY = this.layout.renderPatientDoctorInfo(
             doc,
             config.patient,
             config.doctor,
             context,
           );
-        }
-
         context.currentY += 15;
-
-        for (const section of config.sections) {
+        for (const section of config.sections)
           section(doc, context, this.layout);
-        }
-
-        if (config.doctor) {
+        if (config.doctor)
           context.currentY = this.layout.renderDoctorSignature(
             doc,
             config.doctor,
             context,
           );
-        }
-
-        if (config.footerText) {
-          this.layout.renderFooter(doc, config.footerText);
-        }
-
+        if (config.footerText) this.layout.renderFooter(doc, config.footerText);
         doc.end();
       } catch (error) {
         this.logger.error('Error generating PDF', error);

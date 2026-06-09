@@ -2,10 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HelpCircle, Settings2, SlidersHorizontal } from "lucide-react";
+import {
+  HelpCircle,
+  Moon,
+  MoreHorizontal,
+  Settings2,
+  SlidersHorizontal,
+  Sun,
+} from "lucide-react";
+import { useTheme } from "next-themes";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/overlay/dropdown-menu";
 import { SidebarRailAction } from "@workspace/ui/components/navigation/sidebar-rail-action";
 import { SidebarRailTooltip } from "@workspace/ui/components/navigation/sidebar-rail-tooltip";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
@@ -13,6 +28,7 @@ import { NotificationBellWithBadges } from "@/components/navigation/notification
 import { ThemeToggleWithAppearanceSync } from "@/components/layout/theme-toggle-with-appearance-sync";
 import { AskAiButton } from "@/components/ask-ai/ask-ai-button";
 import { HELP_NAV_ITEM } from "@/components/navigation/nav-config";
+import { useAppearanceStore } from "@/lib/stores/appearance-store";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
 function TierDot({ color }: { color?: string }) {
@@ -21,14 +37,104 @@ function TierDot({ color }: { color?: string }) {
       className={cn(
         "h-2 w-2 rounded-full shrink-0",
         color === "blue" && "bg-info shadow-[0_0_8px_theme(colors.info)]",
-        color === "green" && "bg-success shadow-[0_0_8px_theme(colors.success)]",
-        color === "purple" && "bg-primary shadow-[0_0_8px_theme(colors.primary)]",
-        color === "violet" && "bg-primary shadow-[0_0_8px_theme(colors.primary)]",
-        color === "orange" && "bg-warning shadow-[0_0_8px_theme(colors.warning)]",
-        color === "pink" && "bg-secondary shadow-[0_0_8px_theme(colors.secondary)]",
+        color === "green" &&
+          "bg-success shadow-[0_0_8px_theme(colors.success)]",
+        color === "purple" &&
+          "bg-primary shadow-[0_0_8px_theme(colors.primary)]",
+        color === "violet" &&
+          "bg-primary shadow-[0_0_8px_theme(colors.primary)]",
+        color === "orange" &&
+          "bg-warning shadow-[0_0_8px_theme(colors.warning)]",
+        color === "pink" &&
+          "bg-secondary shadow-[0_0_8px_theme(colors.secondary)]",
         (!color || color === "gray") && "bg-muted-foreground",
       )}
     />
+  );
+}
+
+/** Overflow menu shown in the collapsed rail — keeps the secondary actions
+ * (theme, customize, settings, help) out of the narrow icon rail. */
+function CollapsedMoreMenu({
+  isAdmin,
+  canAccessSettings,
+  pendingJoinRequestCount,
+  onOpenCustomize,
+}: {
+  isAdmin: boolean;
+  canAccessSettings: boolean;
+  pendingJoinRequestCount: number;
+  onOpenCustomize: () => void;
+}) {
+  const pathname = usePathname();
+  const { resolvedTheme, setTheme } = useTheme();
+  const setAppearanceTheme = useAppearanceStore((s) => s.setTheme);
+  const isDark = resolvedTheme === "dark";
+  const ThemeIcon = isDark ? Moon : Sun;
+  const nextTheme = isDark ? "light" : "dark";
+
+  return (
+    <DropdownMenu>
+      <SidebarRailTooltip label="More actions" side="right">
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground"
+            aria-label="More actions"
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+      </SidebarRailTooltip>
+      <DropdownMenuContent side="right" align="end" className="w-48">
+        <DropdownMenuItem
+          onClick={() => {
+            setTheme(nextTheme);
+            setAppearanceTheme(nextTheme);
+          }}
+        >
+          <ThemeIcon className="mr-2 h-4 w-4" />
+          {isDark ? "Light mode" : "Dark mode"}
+        </DropdownMenuItem>
+
+        {isAdmin && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onOpenCustomize}>
+              <SlidersHorizontal className="mr-2 h-4 w-4" />
+              Customize sidebar
+            </DropdownMenuItem>
+          </>
+        )}
+
+        {canAccessSettings && (
+          <DropdownMenuItem asChild>
+            <Link href="/settings" className="flex items-center">
+              <Settings2 className="mr-2 h-4 w-4" />
+              Settings
+              {isAdmin && pendingJoinRequestCount > 0 && (
+                <span className="ml-auto h-2 w-2 rounded-full bg-destructive" />
+              )}
+            </Link>
+          </DropdownMenuItem>
+        )}
+
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link
+            href={HELP_NAV_ITEM.href}
+            className={cn(
+              "flex items-center",
+              pathname.startsWith(HELP_NAV_ITEM.href) && "text-primary",
+            )}
+          >
+            <HelpCircle className="mr-2 h-4 w-4" />
+            Help
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -53,15 +159,40 @@ export function QuickAccessIcons({
 }) {
   const pathname = usePathname();
 
+  /** Collapsed rail — keep only the notification bell and a "more" overflow menu
+   * to minimise the vertical footprint of the narrow icon strip. */
+  if (collapsedRail) {
+    return (
+      <div className="flex flex-col items-center gap-1 px-1 pt-2 pb-1.5">
+        {canAccessNotifications && (
+          <SidebarRailAction label="Notifications">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative h-8 w-8 shrink-0 overflow-visible text-muted-foreground hover:bg-muted hover:text-foreground"
+              onClick={onOpenNotifications}
+              aria-label={
+                notificationCount > 0
+                  ? `Notifications, ${notificationCount} unread`
+                  : "Notifications"
+              }
+            >
+              <NotificationBellWithBadges count={notificationCount} />
+            </Button>
+          </SidebarRailAction>
+        )}
+        <CollapsedMoreMenu
+          isAdmin={isAdmin}
+          canAccessSettings={canAccessSettings}
+          pendingJoinRequestCount={pendingJoinRequestCount}
+          onOpenCustomize={onOpenCustomize}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={cn(
-        "flex items-center justify-between gap-1.5 py-2",
-        collapsedRail
-          ? "flex-col items-center justify-center gap-1 px-1 pt-2 pb-1.5"
-          : "px-2",
-      )}
-    >
+    <div className="flex items-center justify-between gap-1.5 px-2 py-2">
       <ThemeToggleWithAppearanceSync />
 
       {isAdmin && (
@@ -151,7 +282,6 @@ export function PlanRowSection({
   tierInfo: { name: string; color?: string };
 }) {
   if (!isAdmin) return null;
-
   return (
     <div
       className={cn(
@@ -205,11 +335,7 @@ export function PlanRowSection({
   );
 }
 
-export function AskAiSection({
-  collapsedRail,
-}: {
-  collapsedRail: boolean;
-}) {
+export function AskAiSection({ collapsedRail }: { collapsedRail: boolean }) {
   return (
     <div
       className={cn(

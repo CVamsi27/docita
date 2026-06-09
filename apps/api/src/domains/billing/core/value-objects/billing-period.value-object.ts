@@ -5,9 +5,8 @@ export class BillingPeriod {
     readonly startDate: Date,
     readonly endDate: Date,
   ) {
-    if (startDate >= endDate) {
+    if (startDate >= endDate)
       throw new InvariantViolationError('Start date must be before end date');
-    }
   }
 
   contains(date: Date): boolean {

@@ -43,9 +43,7 @@ function morningOverviewAlert(input: DashboardAlertsBuildInput): AlertItem[] {
     input.density !== "full" ||
     input.hour >= 12 ||
     input.todayAppointments <= 0
-  ) {
-    return [];
-  }
+  ) return [];
   return [
     {
       id: "morning-overview",
@@ -78,9 +76,7 @@ function nextPatientAlert(input: DashboardAlertsBuildInput): AlertItem[] {
     input.density !== "full" ||
     !input.nextPatientName ||
     !input.nextPatientId
-  ) {
-    return [];
-  }
+  ) return [];
   return [
     {
       id: "next-patient",

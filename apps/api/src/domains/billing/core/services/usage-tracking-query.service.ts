@@ -28,7 +28,36 @@ export class UsageTrackingQueryService {
   }
 
   async getCurrentUsage(clinicId: string) {
-    const now = this.clock.now();
+    const { periodStart, periodEnd } = this.resolveBillingPeriod(
+      this.clock.now(),
+    );
+
+    const [subscription, clinic] = await Promise.all([
+      this.prisma.subscription.findUnique({
+        where: { clinicId },
+        select: {
+          plan: true,
+          includedAppointments: true,
+          includedUsers: true,
+          currency: true,
+        },
+      }),
+      this.prisma.clinic.findUnique({
+        where: { id: clinicId },
+        select: { tier: true },
+      }),
+    ]);
+
+    const counts = await this.fetchUsageCounts(
+      clinicId,
+      periodStart,
+      periodEnd,
+      clinic?.tier,
+    );
+    return this.buildUsageSummary(periodStart, periodEnd, subscription, counts);
+  }
+
+  private resolveBillingPeriod(now: Date) {
     const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const periodEnd = new Date(
       now.getFullYear(),
@@ -38,22 +67,15 @@ export class UsageTrackingQueryService {
       59,
       59,
     );
+    return { periodStart, periodEnd };
+  }
 
-    const subscription = await this.prisma.subscription.findUnique({
-      where: { clinicId },
-      select: {
-        plan: true,
-        includedAppointments: true,
-        includedUsers: true,
-        currency: true,
-      },
-    });
-
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: { tier: true },
-    });
-
+  private async fetchUsageCounts(
+    clinicId: string,
+    periodStart: Date,
+    periodEnd: Date,
+    clinicTier: string | undefined,
+  ) {
     const [
       consultations,
       whatsappMessages,
@@ -88,7 +110,7 @@ export class UsageTrackingQueryService {
       this.prisma.user.count({
         where: {
           clinicId,
-          ...(clinic?.tier === ClinicTier.FRONT_DESK
+          ...(clinicTier === ClinicTier.FRONT_DESK
             ? {
                 NOT: {
                   AND: [{ role: Role.DOCTOR }, { appLoginDisabled: true }],
@@ -116,8 +138,38 @@ export class UsageTrackingQueryService {
       }),
     ]);
 
-    const tierKey = resolveTierName(subscription?.plan);
-    const resolvedCurrency = this.resolveCurrency(subscription?.currency);
+    return {
+      consultations,
+      whatsappMessages,
+      aiCredits,
+      activeUsers,
+      maxUsersEvent,
+      maxUsersRecord,
+    };
+  }
+
+  private buildUsageSummary(
+    periodStart: Date,
+    periodEnd: Date,
+    subscription: {
+      plan: string | null;
+      includedAppointments: number | null;
+      includedUsers: number | null;
+      currency: string | null;
+    } | null,
+    counts: {
+      consultations: number;
+      whatsappMessages: { _sum: { quantity: number | null } };
+      aiCredits: { _sum: { quantity: number | null } };
+      activeUsers: number;
+      maxUsersEvent: { _max: { quantity: number | null } };
+      maxUsersRecord: { quantity: number } | null;
+    },
+  ) {
+    const tierKey = resolveTierName(subscription?.plan ?? undefined);
+    const resolvedCurrency = this.resolveCurrency(
+      subscription?.currency ?? undefined,
+    );
     const tierLimits = TIER_LIMITS[tierKey];
     const includedConsultations =
       subscription?.includedAppointments ?? tierLimits.appointments ?? 0;
@@ -130,19 +182,19 @@ export class UsageTrackingQueryService {
     const aiCreditRate = 0;
     const consultationOverage = Math.max(
       0,
-      consultations - includedConsultations,
+      counts.consultations - includedConsultations,
     );
-    const whatsappCurrent = whatsappMessages._sum.quantity ?? 0;
+    const whatsappCurrent = counts.whatsappMessages._sum.quantity ?? 0;
     const whatsappOverage = Math.max(0, whatsappCurrent - includedWhatsapp);
-    const aiCreditsCurrent = aiCredits._sum.quantity ?? 0;
+    const aiCreditsCurrent = counts.aiCredits._sum.quantity ?? 0;
     const aiCreditsOverage =
       aiCreditAllotment === null
         ? 0
         : Math.max(0, aiCreditsCurrent - includedAiCredits);
     const peakUsersInCycle = Math.max(
-      activeUsers,
-      maxUsersEvent._max.quantity ?? 0,
-      maxUsersRecord?.quantity ?? 0,
+      counts.activeUsers,
+      counts.maxUsersEvent._max.quantity ?? 0,
+      counts.maxUsersRecord?.quantity ?? 0,
     );
     const usersOverage = Math.max(0, peakUsersInCycle - includedUsers);
     const rates = {
@@ -179,7 +231,7 @@ export class UsageTrackingQueryService {
     );
     const meters = {
       consultations: {
-        current: consultations,
+        current: counts.consultations,
         included: includedConsultations,
         overage: consultationOverage,
       },
@@ -201,12 +253,9 @@ export class UsageTrackingQueryService {
     };
 
     return {
-      period: {
-        start: periodStart,
-        end: periodEnd,
-      },
+      period: { start: periodStart, end: periodEnd },
       usage: {
-        consultations,
+        consultations: counts.consultations,
         users: peakUsersInCycle,
         whatsappMessages: whatsappCurrent,
         aiCredits: aiCreditsCurrent,
@@ -228,7 +277,10 @@ export class UsageTrackingQueryService {
       total,
       meters,
       warnings: {
-        consultations: buildUsageWarning(consultations, includedConsultations),
+        consultations: buildUsageWarning(
+          counts.consultations,
+          includedConsultations,
+        ),
         users: buildUsageWarning(peakUsersInCycle, includedUsers),
         whatsappMessages: buildUsageWarning(whatsappCurrent, includedWhatsapp),
         aiCredits:
@@ -236,7 +288,7 @@ export class UsageTrackingQueryService {
             ? { percentUsed: 0, threshold: null }
             : buildUsageWarning(aiCreditsCurrent, includedAiCredits),
       },
-      tier: resolveClinicTierPlan(subscription?.plan),
+      tier: resolveClinicTierPlan(subscription?.plan ?? undefined),
     };
   }
 

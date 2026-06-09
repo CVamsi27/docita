@@ -12,9 +12,7 @@ export function createEnvToParse(source: NodeJS.ProcessEnv) {
   envToParse.META_BUSINESS_ACCOUNT_ID ??=
     envToParse.WHATSAPP_BUSINESS_ACCOUNT_ID;
 
-  if (envToParse.NODE_ENV !== 'test') {
-    return envToParse;
-  }
+  if (envToParse.NODE_ENV !== 'test') return envToParse;
 
   envToParse.DATABASE_URL ??=
     'postgresql://docita:docita@localhost:5434/docita_test';

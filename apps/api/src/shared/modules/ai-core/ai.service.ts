@@ -14,22 +14,20 @@ export class AiService {
     private configService: AppConfigService,
     private aiFactory: AiFactory,
   ) {
-    const apiKey = this.configService.getOpenAiConfig().apiKey;
+    const apiKey = this.configService.getAiConfig().apiKey;
     if (apiKey) {
       this.openai = new OpenAI({
         apiKey,
       });
     } else {
       this.logger.warn(
-        'OPENAI_API_KEY not found. AI features will mimic responses.',
+        'AI_API_KEY not configured. AI features will mimic responses.',
       );
     }
   }
 
   async generateText(prompt: AiPromptInput): Promise<string> {
-    if (!this.openai) {
-      return Promise.resolve(this.mockGenerateText(prompt));
-    }
+    if (!this.openai) return Promise.resolve(this.mockGenerateText(prompt));
 
     try {
       const completion = await this.openai.chat.completions.create({

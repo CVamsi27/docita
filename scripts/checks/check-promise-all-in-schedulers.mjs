@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
 import { readFileSync } from "node:fs";
-import process from "node:process";
-import { listSourceFiles } from "../lib/list-source-files.mjs";
+import {
+  gitLsSourceFiles,
+  reportFindingsAndExit,
+} from "../lib/check-runner.mjs";
 
 const SCHEDULER_PATH_RE =
   /(?:\/(?:scheduler|schedulers)\/|scheduler\.service\.ts$|-scheduler\.service\.ts$|\.scheduler\.ts$)/;
 
-const enforce = process.argv.includes("--enforce");
-
-const files = listSourceFiles(["apps/api/src"])
-  .filter((file) => /\.ts$/.test(file))
-  .filter((file) => SCHEDULER_PATH_RE.test(file));
+const files = gitLsSourceFiles(["apps/api/src"], {
+  extensions: [".ts"],
+}).filter((file) => SCHEDULER_PATH_RE.test(file));
 
 const findings = [];
 
@@ -27,22 +27,4 @@ for (const file of files) {
   }
 }
 
-if (findings.length > 0) {
-  console.error(
-    enforce
-      ? "Scheduler Promise.all check failed.\n"
-      : "Scheduler Promise.all report:\n",
-  );
-  for (const finding of findings) {
-    console.error(`- ${finding}`);
-  }
-  if (enforce) {
-    process.exit(1);
-  }
-  console.log(
-    `Scheduler Promise.all reported ${findings.length} finding(s). Use --enforce to fail.`,
-  );
-  process.exit(0);
-}
-
-console.log("Scheduler Promise.all check passed.");
+reportFindingsAndExit("Scheduler Promise.all check", findings);

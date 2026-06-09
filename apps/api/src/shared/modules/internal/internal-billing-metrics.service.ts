@@ -82,6 +82,25 @@ export class InternalBillingMetricsService {
       {},
     );
 
+    // Shared by `expiringSubscriptions` and `gracePeriodSubscriptions` below
+    // — both project the same subscription row onto the same billing-summary
+    // shape, so the projection lives in one place rather than the two lists
+    // drifting apart.
+    // jscpd:ignore-start
+    const toBillingSummary = (s: (typeof subscriptions)[number]) => ({
+      id: s.id,
+      clinicId: s.clinicId,
+      tier: s.plan,
+      status: s.status,
+      billingCycle: s.billingCycle,
+      currentPeriodStart: s.currentPeriodStart,
+      currentPeriodEnd: s.currentPeriodEnd,
+      amount: s.basePriceCents / 100,
+      currency: s.currency,
+      clinic: s.clinic,
+    });
+    // jscpd:ignore-end
+
     const sevenDaysFromNow = addDays(this.clock.now(), 7);
     const expiringSubscriptions = subscriptions
       .filter(
@@ -91,33 +110,11 @@ export class InternalBillingMetricsService {
           new Date(s.currentPeriodEnd) <= sevenDaysFromNow &&
           new Date(s.currentPeriodEnd) > this.clock.now(),
       )
-      .map((s) => ({
-        id: s.id,
-        clinicId: s.clinicId,
-        tier: s.plan,
-        status: s.status,
-        billingCycle: s.billingCycle,
-        currentPeriodStart: s.currentPeriodStart,
-        currentPeriodEnd: s.currentPeriodEnd,
-        amount: s.basePriceCents / 100,
-        currency: s.currency,
-        clinic: s.clinic,
-      }));
+      .map(toBillingSummary);
 
     const gracePeriodSubscriptions = subscriptions
       .filter((s) => s.status === SubscriptionStatus.GRACE)
-      .map((s) => ({
-        id: s.id,
-        clinicId: s.clinicId,
-        tier: s.plan,
-        status: s.status,
-        billingCycle: s.billingCycle,
-        currentPeriodStart: s.currentPeriodStart,
-        currentPeriodEnd: s.currentPeriodEnd,
-        amount: s.basePriceCents / 100,
-        currency: s.currency,
-        clinic: s.clinic,
-      }));
+      .map(toBillingSummary);
 
     const currentMonthStart = startOfMonth(this.clock.now());
     const firstMonthStart = addMonths(currentMonthStart, -5);

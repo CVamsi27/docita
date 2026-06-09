@@ -125,7 +125,10 @@ describe('MedicalHistoryService', () => {
 
       await service.createCondition(patientId, input);
 
-      expect(factory.createCondition).toHaveBeenCalledWith(input);
+      expect(factory.createCondition).toHaveBeenCalledWith({
+        ...input,
+        patientId,
+      });
       expect(
         mockPatientPersistencePort.patientMedicalCondition.create,
       ).toHaveBeenCalled();

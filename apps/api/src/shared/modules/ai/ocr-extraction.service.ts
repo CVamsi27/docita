@@ -135,9 +135,8 @@ export class OcrExtractionService {
       vitalFields: 0.8,
     };
 
-    if (!this.openaiService.client || !hasAiSubscription) {
+    if (!this.openaiService.client || !hasAiSubscription)
       return basicOcrParsing(ocrText, config);
-    }
 
     return this.openaiService
       .callChatCompletion({

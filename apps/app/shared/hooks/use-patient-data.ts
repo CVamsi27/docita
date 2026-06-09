@@ -47,17 +47,10 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
   const [error, setError] = useState<string | null>(null);
 
   const loadPatientData = useCallback(async () => {
-    if (!patientId) {
-      setPatient(null);
-      setAppointments([]);
-      setDocuments([]);
-      setStatistics(null);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
-    if (!tierPatientOk) {
+    // Both "nothing to load" cases — no patient id, or the tier doesn't
+    // allow patient management — reset to the same empty state, so they
+    // share one branch rather than drifting apart on what "empty" means.
+    if (!patientId || !tierPatientOk) {
       setPatient(null);
       setAppointments([]);
       setDocuments([]);

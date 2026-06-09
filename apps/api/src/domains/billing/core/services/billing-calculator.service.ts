@@ -17,9 +17,8 @@ export interface DiscountConfiguration {
 
 export class BillingCalculatorService {
   calculateTax(amount: Money, taxRate: number): Money {
-    if (taxRate < 0 || taxRate > 100) {
+    if (taxRate < 0 || taxRate > 100)
       throw new InvariantViolationError('Tax rate must be between 0 and 100');
-    }
     const taxAmount = (amount.amount * taxRate) / 100;
     return new Money(Math.round(taxAmount * 100) / 100, amount.currency);
   }
@@ -28,21 +27,18 @@ export class BillingCalculatorService {
     let discountAmount: number;
 
     if (discount.type === 'PERCENTAGE') {
-      if (discount.value < 0 || discount.value > 100) {
+      if (discount.value < 0 || discount.value > 100)
         throw new InvariantViolationError(
           'Discount percentage must be between 0 and 100',
         );
-      }
       discountAmount = (amount.amount * discount.value) / 100;
     } else {
-      if (discount.value < 0) {
+      if (discount.value < 0)
         throw new InvariantViolationError('Fixed discount cannot be negative');
-      }
-      if (discount.value > amount.amount) {
+      if (discount.value > amount.amount)
         throw new InvariantViolationError(
           'Fixed discount cannot exceed amount',
         );
-      }
       discountAmount = discount.value;
     }
 
@@ -50,9 +46,8 @@ export class BillingCalculatorService {
   }
 
   calculateItemsTotal(items: InvoiceItem[]): Money {
-    if (items.length === 0) {
+    if (items.length === 0)
       throw new InvariantViolationError('No items to calculate');
-    }
 
     return items
       .map((item) => item.getTotal())
@@ -60,9 +55,8 @@ export class BillingCalculatorService {
   }
 
   calculateItemsSubtotal(items: InvoiceItem[]): Money {
-    if (items.length === 0) {
+    if (items.length === 0)
       throw new InvariantViolationError('No items to calculate');
-    }
 
     return items
       .map((item) => item.getSubtotal())
@@ -70,9 +64,7 @@ export class BillingCalculatorService {
   }
 
   calculateTotalTax(items: InvoiceItem[]): Money {
-    if (items.length === 0) {
-      return new Money(0, DEFAULT_CURRENCY);
-    }
+    if (items.length === 0) return new Money(0, DEFAULT_CURRENCY);
 
     return items
       .map((item) => item.getTaxAmount())
@@ -80,9 +72,7 @@ export class BillingCalculatorService {
   }
 
   calculateTotalDiscount(items: InvoiceItem[]): Money {
-    if (items.length === 0) {
-      return new Money(0, DEFAULT_CURRENCY);
-    }
+    if (items.length === 0) return new Money(0, DEFAULT_CURRENCY);
 
     return items
       .map((item) => item.getDiscountAmount())

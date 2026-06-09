@@ -1,4 +1,4 @@
-import { isRenewalUnpaidWithOutstandingPending } from "@/lib/subscription/subscription-lockout";
+import { isRenewalUnpaidWithOutstandingPending } from "@/lib/subscription/subscription-billing-lock";
 import { buildSubscriptionNoticeContext } from "./subscription-lock-notice-context";
 import {
   expiredNotice,
@@ -42,9 +42,7 @@ export function resolveSubscriptionLockNotice(
   if (status === "EXPIRED") return expiredNotice();
   if (context.isTrialGrace) return trialGraceNotice(context);
   if (status === "PAUSED") return pausedNotice();
-  if (status === "GRACE" || status === "PAST_DUE") {
-    return graceOrPastDueNotice(status === "PAST_DUE", context);
-  }
+  if (status === "GRACE" || status === "PAST_DUE") return graceOrPastDueNotice(status === "PAST_DUE", context);
   if (status === "TRIALING") return trialActiveNotice(context);
   return paymentRequiredNotice();
 }

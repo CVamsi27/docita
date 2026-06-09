@@ -54,8 +54,6 @@ export function DialogStackProvider({ children }: { children: ReactNode }) {
 
 export function useDialogStack(): DialogStackContextValue {
   const ctx = useContext(DialogStackContext);
-  if (!ctx) {
-    throw new Error("useDialogStack must be used within a DialogStackProvider");
-  }
+  if (!ctx) throw new Error("useDialogStack must be used within a DialogStackProvider");
   return ctx;
 }

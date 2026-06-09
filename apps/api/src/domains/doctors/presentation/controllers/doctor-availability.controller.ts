@@ -51,9 +51,8 @@ export class DoctorAvailabilityController {
 
   @Get('schedules/clinic')
   getClinicSchedules(@Request() req: RequestWithUser) {
-    if (!req.user?.clinicId) {
+    if (!req.user?.clinicId)
       throw new BadRequestException('Clinic ID is required');
-    }
     return this.doctorAvailabilityService.getSchedulesByClinic(
       req.user.clinicId,
     );
@@ -65,9 +64,8 @@ export class DoctorAvailabilityController {
     @Request() req: RequestWithUser,
     @Body() dto: BulkScheduleDto,
   ) {
-    if (!req.user?.clinicId) {
+    if (!req.user?.clinicId)
       throw new BadRequestException('Clinic ID is required');
-    }
     const doctorId =
       isClinicAdminRole(req.user.role) && dto.doctorId
         ? dto.doctorId
@@ -101,9 +99,8 @@ export class DoctorAvailabilityController {
     @Request() req: RequestWithUser,
     @Body() dto: CreateScheduleDto,
   ) {
-    if (!req.user?.clinicId) {
+    if (!req.user?.clinicId)
       throw new BadRequestException('Clinic ID is required');
-    }
     const doctorId =
       isClinicAdminRole(req.user.role) && dto.doctorId
         ? dto.doctorId
@@ -195,9 +192,8 @@ export class DoctorAvailabilityController {
     @Query() query: DoctorAvailableSlotsQueryDto,
   ) {
     const { date, doctorId } = query;
-    if (!req.user?.clinicId) {
+    if (!req.user?.clinicId)
       throw new BadRequestException('Clinic ID is required');
-    }
     return this.doctorAvailabilityService.getAvailableSlots(
       req.user.clinicId,
       date,
@@ -210,9 +206,8 @@ export class DoctorAvailabilityController {
     @Request() req: RequestWithUser,
     @Query() query: DoctorUnavailableDoctorsQueryDto,
   ) {
-    if (!req.user?.clinicId) {
+    if (!req.user?.clinicId)
       throw new BadRequestException('Clinic ID is required');
-    }
     return this.doctorAvailabilityService
       .getUnavailableDoctorIdsForCalendarDate(req.user.clinicId, query.date)
       .then((doctorIds) => ({ doctorIds }));

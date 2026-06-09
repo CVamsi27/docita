@@ -22,7 +22,6 @@ import type {
   RequestFormState,
   RequestTextById,
 } from "./use-appointment-requests-panel-types";
-
 export function useAppointmentRequestsPanel() {
   const { clinic } = useClinic();
   const clinicTz = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
@@ -65,7 +64,6 @@ export function useAppointmentRequestsPanel() {
     setHiddenRequestIds,
     setSlotSuggestionGeneration,
   });
-
   return {
     pendingCount: queries.data?.count ?? 0,
     state: getPendingRequestsState(queries, sortedRequests.length),
@@ -86,7 +84,6 @@ export function useAppointmentRequestsPanel() {
     refetchRejectedRequests: queries.refetchRejectedRequests,
   };
 }
-
 function useAppointmentRequestQueries(
   showPastRequests: boolean,
 ): AppointmentRequestQueries {
@@ -180,10 +177,7 @@ function usePastRequests(
   rejectedItems: AppointmentRequestResponse[] | undefined,
 ) {
   return useMemo(() => {
-    const items = [
-      ...(approvedItems ?? []),
-      ...(rejectedItems ?? []),
-    ];
+    const items = [...(approvedItems ?? []), ...(rejectedItems ?? [])];
     const uniqueItems = Array.from(
       new Map(items.map((item) => [item.id, item])).values(),
     );
@@ -208,11 +202,7 @@ function getPastRequestsState(
   queries: AppointmentRequestQueries,
   visibleRequestCount: number,
 ): DataStateStatus {
-  if (queries.isApprovedRequestsLoading || queries.isRejectedRequestsLoading) {
-    return "loading";
-  }
-  if (queries.isApprovedRequestsError || queries.isRejectedRequestsError) {
-    return "error";
-  }
+  if (queries.isApprovedRequestsLoading || queries.isRejectedRequestsLoading) return "loading";
+  if (queries.isApprovedRequestsError || queries.isRejectedRequestsError) return "error";
   return visibleRequestCount === 0 ? "empty" : "success";
 }

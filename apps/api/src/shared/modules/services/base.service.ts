@@ -36,9 +36,7 @@ export abstract class BaseService<T> {
   private isServiceModelDelegate(
     value: unknown,
   ): value is ServiceModelDelegate<T> {
-    if (!value || typeof value !== 'object') {
-      return false;
-    }
+    if (!value || typeof value !== 'object') return false;
 
     return (
       isRecord(value) &&

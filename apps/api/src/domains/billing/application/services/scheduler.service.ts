@@ -120,9 +120,7 @@ export class SchedulerService {
     });
 
     const targetInvoices = result.items.filter((invoice) => {
-      if (!invoice.dueDate) {
-        return false;
-      }
+      if (!invoice.dueDate) return false;
       const dueDate = new Date(invoice.dueDate);
       return dueDate >= start && dueDate <= end;
     });

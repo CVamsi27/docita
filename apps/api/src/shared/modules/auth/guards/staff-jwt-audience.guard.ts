@@ -26,17 +26,13 @@ export class StaffJwtAudienceGuard implements CanActivate {
       PATIENT_PORTAL_SESSION_KEY,
       [context.getHandler(), context.getClass()],
     );
-    if (allowsPatientPortal) {
-      return true;
-    }
+    if (allowsPatientPortal) return true;
 
     const allowsLabPortal = this.reflector.getAllAndOverride<boolean>(
       LAB_PORTAL_SESSION_KEY,
       [context.getHandler(), context.getClass()],
     );
-    if (allowsLabPortal) {
-      return true;
-    }
+    if (allowsLabPortal) return true;
 
     const request = context.switchToHttp().getRequest<{
       user?: { jwtAudience?: string };

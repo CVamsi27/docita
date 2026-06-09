@@ -27,17 +27,28 @@ const COLD_START_PROBE_TIMEOUT_MS = 10_000;
 /** How long to wait before retrying after a suspected cold-start. */
 const COLD_START_RETRY_DELAY_MS = 5_000;
 
-async function refreshAccessTokenWithTimeout(
-  refreshAccessToken: () => Promise<boolean>,
-): Promise<boolean> {
+// Shared by `refreshAccessTokenWithTimeout` and `makeTimeoutRace` — both race
+// a promise against a `window.setTimeout`-backed fallback and must clear that
+// timer in a `finally` regardless of which side wins. Only the fallback's
+// settlement differs (resolve with a default vs. reject with an error), so
+// that's the one piece left to the caller; the race-and-cleanup shape lives
+// here instead of drifting between the two timeout flavors.
+async function raceWithTimeout<T>(
+  operation: Promise<T>,
+  timeoutMs: number,
+  onTimeout: (settle: {
+    resolve: (value: T) => void;
+    reject: (reason?: unknown) => void;
+  }) => void,
+): Promise<T> {
   let timeoutId: number | undefined;
   try {
     return await Promise.race([
-      refreshAccessToken(),
-      new Promise<boolean>((resolve) => {
+      operation,
+      new Promise<T>((resolve, reject) => {
         timeoutId = window.setTimeout(
-          () => resolve(false),
-          SESSION_REFRESH_TIMEOUT_MS,
+          () => onTimeout({ resolve, reject }),
+          timeoutMs,
         );
       }),
     ]);
@@ -48,26 +59,21 @@ async function refreshAccessTokenWithTimeout(
   }
 }
 
+async function refreshAccessTokenWithTimeout(
+  refreshAccessToken: () => Promise<boolean>,
+): Promise<boolean> {
+  return raceWithTimeout(refreshAccessToken(), SESSION_REFRESH_TIMEOUT_MS, ({ resolve }) =>
+    resolve(false),
+  );
+}
+
 async function makeTimeoutRace(
   validateAuth: ValidateAuth,
   timeoutMs: number,
 ): Promise<unknown> {
-  let timeoutId: number | undefined;
-  try {
-    return await Promise.race([
-      validateAuth(undefined),
-      new Promise<never>((_, reject) => {
-        timeoutId = window.setTimeout(
-          () => reject(new Error("Auth validation timed out")),
-          timeoutMs,
-        );
-      }),
-    ]);
-  } finally {
-    if (timeoutId !== undefined) {
-      window.clearTimeout(timeoutId);
-    }
-  }
+  return raceWithTimeout<unknown>(validateAuth(undefined), timeoutMs, ({ reject }) =>
+    reject(new Error("Auth validation timed out")),
+  );
 }
 
 export function useAuthSessionBootstrap(options: {
@@ -128,9 +134,6 @@ export function useAuthSessionBootstrap(options: {
     };
 
     const validateSession = async (isColdStartRetry = false): Promise<void> => {
-      // Use a shorter probe timeout on the first attempt so we detect a cold-start
-      // quickly. If this races out and the user has a valid token we show the
-      // "warming up" screen and retry once with the full timeout.
       const timeoutMs = isColdStartRetry
         ? VALIDATE_SESSION_TIMEOUT_MS
         : COLD_START_PROBE_TIMEOUT_MS;
@@ -140,11 +143,6 @@ export function useAuthSessionBootstrap(options: {
           await makeTimeoutRace(validateAuth, timeoutMs),
         );
         if (applied) return;
-        // applied = false means the response was well-formed but contained no
-        // parseable user (e.g. the API returned an HTML error page during a
-        // cold-start). Treat it as a transient API failure so the cold-start
-        // retry path below can fire, rather than falling straight through to
-        // setIsLoading(false) with user = null and redirecting to login.
         if (!isColdStartRetry && appSession.getToken()) {
           setIsApiStarting(true);
           await new Promise<void>((resolve) => {
@@ -155,15 +153,11 @@ export function useAuthSessionBootstrap(options: {
         return;
       } catch (error) {
         if (!isAuthFailure(error)) {
-          // Network error or timeout — could be an API cold-start.
-          // If the user has a valid token, signal the warming state and retry once.
           if (!isColdStartRetry && appSession.getToken()) {
             setIsApiStarting(true);
             await new Promise<void>((resolve) => {
               window.setTimeout(resolve, COLD_START_RETRY_DELAY_MS);
             });
-            // Retry is fire-and-forget within this call — the finally below
-            // will still clear isLoading/isApiStarting after it resolves.
             await validateSession(true);
           }
           // Either no token (unauthenticated) or second attempt still failed —
@@ -176,8 +170,7 @@ export function useAuthSessionBootstrap(options: {
           return;
         }
 
-        const refreshed =
-          await refreshAccessTokenWithTimeout(refreshAccessToken);
+        const refreshed = await refreshAccessTokenWithTimeout(refreshAccessToken);
         if (!refreshed) {
           clearSession();
           appSession.redirectToLogin();

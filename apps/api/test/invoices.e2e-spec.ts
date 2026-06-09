@@ -90,9 +90,8 @@ describe('Invoices (e2e)', () => {
 
     const accessToken = loginResponse.body.access_token;
     expect(typeof accessToken).toBe('string');
-    if (typeof accessToken !== 'string') {
+    if (typeof accessToken !== 'string')
       throw new Error('Login did not return access_token');
-    }
     expect(accessToken.length).toBeGreaterThan(20);
     token = accessToken;
   });
@@ -245,9 +244,8 @@ describe('Invoices (e2e)', () => {
 
       const accessToken = loginResponse.body.access_token;
       expect(typeof accessToken).toBe('string');
-      if (typeof accessToken !== 'string') {
+      if (typeof accessToken !== 'string')
         throw new Error('Login did not return access_token');
-      }
       starterToken = accessToken;
     });
 

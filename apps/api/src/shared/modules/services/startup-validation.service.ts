@@ -27,9 +27,8 @@ export class StartupValidationService {
     const encryptionKey = this.configService.getEncryptionKey();
     const nodeEnv = this.configService.getEnvironment();
 
-    if (!encryptionKey) {
+    if (!encryptionKey)
       throw new Error('ENCRYPTION_KEY is not set in environment variables');
-    }
 
     if (!/^[0-9a-fA-F]{64}$/.test(encryptionKey)) {
       throw new Error(
@@ -69,9 +68,8 @@ export class StartupValidationService {
     const jwtSecret = this.configService.getJwtSecret();
     const nodeEnv = this.configService.getEnvironment();
 
-    if (!jwtSecret) {
+    if (!jwtSecret)
       throw new Error('JWT_SECRET is not set in environment variables');
-    }
 
     const minLength = 32;
     if (jwtSecret.length < minLength) {
@@ -101,28 +99,21 @@ export class StartupValidationService {
   private validateDatabaseConfiguration(): void {
     const databaseUrl = this.configService.getDatabaseUrl();
 
-    if (!databaseUrl) {
+    if (!databaseUrl)
       throw new Error('DATABASE_URL is not set in environment variables');
-    }
-
     const nodeEnv = this.configService.getEnvironment();
     if (nodeEnv === 'production') {
       if (
         databaseUrl.includes('localhost') ||
         databaseUrl.includes('127.0.0.1')
-      ) {
+      )
         throw new Error(
-          'DATABASE_URL in production is pointing to localhost. ' +
-            'Use a remote database URL.',
+          'DATABASE_URL in production is pointing to localhost. Use a remote database URL.',
         );
-      }
-
-      if (databaseUrl.includes(':5434@localhost')) {
+      if (databaseUrl.includes(':5434@localhost'))
         throw new Error(
-          'DATABASE_URL in production cannot use local PostgreSQL. ' +
-            'Configure a production database instance.',
+          'DATABASE_URL in production cannot use local PostgreSQL. Configure a production database instance.',
         );
-      }
 
       const normalizedUrl = databaseUrl.toLowerCase();
       let sslMode: string | null = null;
@@ -142,17 +133,14 @@ export class StartupValidationService {
         normalizedUrl.includes('sslmode=verify-full') ||
         normalizedUrl.includes('ssl=true') ||
         normalizedUrl.includes('sslaccept=strict');
-
       if (!hasDbTlsEnabled) {
         const provider = this.configService.detectManagedDatabaseProvider();
-
         if (provider === 'Render') {
           this.logger.log(
             'DATABASE_URL validated for Render private networking',
           );
           return;
         }
-
         throw new Error(
           'DATABASE_URL must enforce TLS in production (for example add sslmode=require).',
         );
@@ -242,11 +230,10 @@ export class StartupValidationService {
     }
 
     const storageProvider = this.configService.getStorageProvider();
-    if (storageProvider !== 'r2') {
+    if (storageProvider !== 'r2')
       throw new Error(
         'STORAGE_PROVIDER must be set to "r2" in production to avoid local document storage.',
       );
-    }
 
     const r2Config = this.configService.getR2Config();
     const missing = [];

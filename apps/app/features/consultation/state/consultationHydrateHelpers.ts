@@ -207,9 +207,7 @@ export function buildChiefComplaintSeed(
   );
   const jsonRows = parseChiefComplaintsFromAppointmentData(data);
 
-  if (structured?.length) {
-    return normalizeComplaintList(structured);
-  }
+  if (structured?.length) return normalizeComplaintList(structured);
 
   if (jsonRows.length > 0) {
     return normalizeComplaintList(

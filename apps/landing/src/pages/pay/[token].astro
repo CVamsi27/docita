@@ -1,6 +1,6 @@
 ---
 import MainLayout from "@/layouts/main-layout.astro";
-import { resolvePaymentRedirectLocation } from "@/lib/public-api";
+import { resolvePaymentRedirectLocation } from "@/lib/api-fetch";
 
 const token = Astro.params.token?.trim();
 if (!token) {

@@ -26,12 +26,8 @@ export function normalizeRazorpayContactPhone(
     return undefined;
   }
   const digits = phone.replace(/\D/g, "");
-  if (!digits) {
-    return undefined;
-  }
-  if (digits.length >= 10) {
-    return digits.slice(-10);
-  }
+  if (!digits) return undefined;
+  if (digits.length >= 10) return digits.slice(-10);
   return digits;
 }
 

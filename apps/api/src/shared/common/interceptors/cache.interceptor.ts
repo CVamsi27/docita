@@ -112,14 +112,10 @@ export class CacheInterceptor implements NestInterceptor {
   }
 
   private normalizeUrl(url: string | undefined): string {
-    if (!url) {
-      return '/';
-    }
+    if (!url) return '/';
 
     const [path, query = ''] = url.split('?');
-    if (!query) {
-      return path;
-    }
+    if (!query) return path;
 
     const searchParams = new URLSearchParams(query);
     const sortedParams = [...searchParams.entries()].sort(([a], [b]) =>

@@ -7,9 +7,7 @@ export function normalizeImportPhoneNumber(
 
   const normalized = phone.toString().replace(/\D/g, '');
 
-  if (normalized.length === 10) {
-    return normalized;
-  }
+  if (normalized.length === 10) return normalized;
   if (normalized.length === 11 && normalized.startsWith('1')) {
     return normalized.substring(1);
   }
@@ -50,9 +48,7 @@ export function parseImportDate(
 ): Date | null {
   if (!dateStr) return null;
 
-  if (dateStr instanceof Date) {
-    return dateStr;
-  }
+  if (dateStr instanceof Date) return dateStr;
 
   if (typeof dateStr === 'number') {
     const excelEpoch = new Date(1899, 11, 30);

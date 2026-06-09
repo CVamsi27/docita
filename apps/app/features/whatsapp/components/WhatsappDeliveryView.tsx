@@ -11,11 +11,9 @@ import {
 
 export function WhatsappDeliveryView() {
   const stats = useWhatsappStats();
-  if (stats.isLoading) {
-    return (
+  if (stats.isLoading) return (
       <DataState status="loading" loadingMessage="Loading delivery health..." />
     );
-  }
   if (stats.isError || !stats.data) {
     return (
       <DataState

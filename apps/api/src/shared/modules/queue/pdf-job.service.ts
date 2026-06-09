@@ -109,9 +109,7 @@ export class PdfJobService implements PdfJobServicePort {
           where: { clinicId, documentId, documentType },
         });
 
-        if (!existing) {
-          throw error;
-        }
+        if (!existing) throw error;
 
         return existing;
       }

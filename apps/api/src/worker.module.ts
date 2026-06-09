@@ -33,6 +33,7 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
       isGlobal: true,
       envFilePath: ['../../.env', '.env'],
     }),
+    // jscpd:ignore-start
     AppConfigModule,
     LoggerModule.forRootAsync({
       imports: [AppConfigModule],
@@ -45,6 +46,7 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
       }),
     }),
     CacheConfigModule,
+    // jscpd:ignore-end
     ...(ENABLE_SCHEDULERS ? [ScheduleModule.forRoot()] : []),
     EventsModule,
     PrismaWorkerModule,

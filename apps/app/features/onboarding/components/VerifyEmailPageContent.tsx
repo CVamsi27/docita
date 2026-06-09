@@ -48,7 +48,6 @@ function VerifyEmailInner() {
         if (cancelled) {
           return;
         }
-
         if (res.ok) {
           setState("success");
           router.replace("/verify-email/verified");

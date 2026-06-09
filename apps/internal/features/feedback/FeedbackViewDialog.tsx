@@ -12,36 +12,14 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Label } from "@workspace/ui/components/form/label";
 import { Textarea } from "@workspace/ui/components/form/textarea";
-import { Lightbulb, Star, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Lightbulb, ThumbsDown, ThumbsUp } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import type { InternalFeedback } from "@workspace/data-access/internal";
+import {
+  FeedbackRatingStars,
+  FeedbackStatusBadge,
+} from "./feedback-display";
 import { STATUS_OPTIONS } from "./feedback-helpers";
-
-function getStatusBadge(status: string) {
-  const option = STATUS_OPTIONS.find((o) => o.value === status);
-  return (
-    <Badge className={option?.color || "badge-muted"}>
-      {option?.label || status}
-    </Badge>
-  );
-}
-
-function renderStars(rating: number) {
-  return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Star
-          key={star}
-          className={`h-4 w-4 ${
-            rating >= star
-              ? "text-warning fill-warning"
-              : "text-muted-foreground"
-          }`}
-        />
-      ))}
-    </div>
-  );
-}
 
 interface FeedbackViewDialogProps {
   feedback: InternalFeedback | null;
@@ -70,7 +48,7 @@ export function FeedbackViewDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             Feedback Details
-            {getStatusBadge(feedback.status)}
+            <FeedbackStatusBadge status={feedback.status} />
           </DialogTitle>
           <DialogDescription>
             From {feedback.user.name} ({feedback.user.email}) at{" "}
@@ -83,7 +61,7 @@ export function FeedbackViewDialog({
             <div>
               <Label className="text-muted-foreground">Overall Rating</Label>
               <div className="flex items-center gap-2">
-                {renderStars(feedback.overallRating)}
+                <FeedbackRatingStars rating={feedback.overallRating} />
                 <span className="font-bold">{feedback.overallRating}/5</span>
               </div>
             </div>

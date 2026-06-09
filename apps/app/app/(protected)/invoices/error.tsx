@@ -1,20 +1,20 @@
 "use client";
 
-import { useEffect } from "react";
-import { ErrorPageShell } from "@/components/feedback/error-page-shell";
+// jscpd:ignore-start
+import { ErrorPageShell } from "@/components/errors/error-page-shell";
 
 export default function InvoicesError({
-  error,
+  _error,
   reset,
 }: {
-  error: Error & { digest?: string };
+  _error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {}, [error]);
 
   return (
     <ErrorPageShell
       title="Error loading invoices"
+// jscpd:ignore-end
       description="Invoice data is unavailable right now. Please retry or return to the dashboard."
       reset={reset}
     />

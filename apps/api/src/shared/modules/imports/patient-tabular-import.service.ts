@@ -33,18 +33,16 @@ export class PatientTabularImportService {
     columnMapping: Record<string, string> | undefined,
     audit: ImportAuditContext,
   ): Promise<ImportResult> {
-    if (!audit.dpdpNoticeVersion) {
+    if (!audit.dpdpNoticeVersion)
       throw new BadRequestException(
         'DPDP consent attestation is required for patient imports',
       );
-    }
     try {
       const tableRows = await this.fileParser.parseTabularRows(filePath);
-      if (tableRows.length < 2) {
+      if (tableRows.length < 2)
         throw new BadRequestException(
           'File must have at least a header row and one data row',
         );
-      }
 
       const headers = tableRows[0].map((value) =>
         this.columnMapping.toHeaderString(value),

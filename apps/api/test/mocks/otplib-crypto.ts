@@ -1,13 +1,9 @@
 import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
 
 function toBuffer(value: Uint8Array | ArrayBuffer | string): Buffer {
-  if (typeof value === 'string') {
-    return Buffer.from(value);
-  }
+  if (typeof value === 'string') return Buffer.from(value);
 
-  if (value instanceof ArrayBuffer) {
-    return Buffer.from(value);
-  }
+  if (value instanceof ArrayBuffer) return Buffer.from(value);
 
   return Buffer.from(value);
 }
@@ -32,9 +28,7 @@ class NodeCryptoPlugin {
   }
 
   constantTimeEqual(a: Uint8Array, b: Uint8Array): boolean {
-    if (a.length !== b.length) {
-      return false;
-    }
+    if (a.length !== b.length) return false;
 
     return timingSafeEqual(Buffer.from(a), Buffer.from(b));
   }

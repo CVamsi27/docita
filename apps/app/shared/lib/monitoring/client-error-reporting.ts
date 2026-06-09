@@ -55,13 +55,9 @@ const trimValue = (value: string): string =>
   value.length > MAX_STRING_LENGTH ? value.slice(0, MAX_STRING_LENGTH) : value;
 
 const normalizeErrorMessage = (error: unknown): string => {
-  if (error instanceof Error) {
-    return trimValue(error.message);
-  }
+  if (error instanceof Error) return trimValue(error.message);
 
-  if (typeof error === "string") {
-    return trimValue(error);
-  }
+  if (typeof error === "string") return trimValue(error);
 
   try {
     return trimValue(JSON.stringify(error));
@@ -76,15 +72,12 @@ export const reportClientError = async (
   if (typeof window === "undefined") {
     return;
   }
-
   if (loadDisabledUntil() > Date.now()) {
     return;
   }
-
   if (typeof navigator !== "undefined" && navigator.onLine === false) {
     return;
   }
-
   // Gate on the in-memory session signal so we don't spam the endpoint
   // before bootstrap-refresh finishes (or when logged out). The actual
   // credential is the httpOnly access_token cookie via credentials: "include".

@@ -60,9 +60,7 @@ export function validateAttachmentFile(file: File): string | null {
   if (!ALLOWED_MIME_TYPES.some((mimeType) => mimeType === file.type)) {
     return "Only images (JPEG, PNG, WebP) and PDFs can be attached.";
   }
-  if (file.size > MAX_FILE_SIZE) {
-    return "File is too large. Attach a file under 10 MB.";
-  }
+  if (file.size > MAX_FILE_SIZE) return "File is too large. Attach a file under 10 MB.";
   return null;
 }
 
@@ -86,14 +84,11 @@ export function useInvestigationAttachment() {
       doctorId,
       investigationName,
     }: UploadArgs): Promise<InvestigationAttachmentResult> => {
-      // 1. Open an upload session to obtain a one-shot secret.
       const session = await apiFetch<UploadSessionCreateResponse>(
         "/uploads/session",
         { method: "POST" },
       );
 
-      // 2. Stream the file to the session (multipart). The browser sets the
-      //    multipart boundary, so we must not force a JSON content type here.
       const formData = new FormData();
       formData.append("file", file);
       const uploaded = await apiFetch<UploadSessionResponse>(
@@ -105,16 +100,12 @@ export function useInvestigationAttachment() {
         },
       );
 
-      if (!uploaded.fileUrl) {
-        throw new Error("Upload finished but no file URL was returned.");
-      }
+      if (!uploaded.fileUrl) throw new Error("Upload finished but no file URL was returned.");
 
       const attachmentName = file.name;
       const label = investigationName?.trim()
         ? `Investigation report: ${investigationName.trim()}`
         : "Investigation report";
-
-      // 3. Create a medical-document record so the file shows in Documents.
       let attachmentDocumentId: string | undefined;
       try {
         const doc = await api.post<MedicalDocumentResponse>(
@@ -135,8 +126,6 @@ export function useInvestigationAttachment() {
         );
         attachmentDocumentId = doc?.id;
       } catch {
-        // The file is already stored and linked to the row; a failed document
-        // record should not lose the attachment. Surface a soft warning upstream.
         attachmentDocumentId = undefined;
       }
 

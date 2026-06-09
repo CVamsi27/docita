@@ -9,7 +9,7 @@ import { Observable } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
 import { Request, Response } from 'express';
-import { getMonitoringUserContext } from '@/shared/modules/auth/auth/request-user.util';
+import { getMonitoringUserContext } from '@/shared/modules/auth/auth/monitoring-user-context';
 
 function toNumberHeader(value: unknown): number | undefined {
   if (typeof value === 'number' && Number.isFinite(value)) {

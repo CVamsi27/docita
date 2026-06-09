@@ -12,7 +12,7 @@ import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
 import { TrackHeartbeat } from '@/shared/modules/schedule/cron-heartbeat';
 import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admin-alerts.service';
 import { addUtcCalendarDays } from '@/shared/schedule/scheduler-date.util';
-import { isRecord } from '@workspace/utils';
+import { isDatabaseAuthError } from '@/shared/common/utils/is-database-auth-error';
 
 @Injectable()
 export class SubscriptionReminderScheduler {
@@ -28,24 +28,23 @@ export class SubscriptionReminderScheduler {
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
-  private isDatabaseAuthError(error: unknown): boolean {
-    if (!isRecord(error)) {
-      return false;
+  /**
+   * Shared `catch` handler for both cron jobs below — a database
+   * authentication failure permanently disables the scheduler (until the
+   * process restarts with corrected credentials), while any other error is
+   * just logged. Keeping the disable-and-warn branch in one place stops the
+   * two jobs' recovery behavior from drifting apart.
+   */
+  private handleCronFailure(failureMessage: string, error: unknown): void {
+    if (isDatabaseAuthError(error)) {
+      this.databaseAccessDisabled = true;
+      this.logger.warn(
+        'Disabling subscription scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
+      );
+      return;
     }
 
-    const code = typeof error.code === 'string' ? error.code : '';
-    const message =
-      typeof error.message === 'string' ? error.message.toLowerCase() : '';
-
-    if (code === 'P1000') {
-      return true;
-    }
-
-    return (
-      message.includes('authentication failed against the database server') ||
-      message.includes('database credentials') ||
-      message.includes('password authentication failed')
-    );
+    this.logCronError(failureMessage, error);
   }
 
   private logCronError(message: string, error: unknown): void {
@@ -159,15 +158,7 @@ export class SubscriptionReminderScheduler {
         }
       });
     } catch (error) {
-      if (this.isDatabaseAuthError(error)) {
-        this.databaseAccessDisabled = true;
-        this.logger.warn(
-          'Disabling subscription scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
-        );
-        return;
-      }
-
-      this.logCronError('Subscription reminder cron failed', error);
+      this.handleCronFailure('Subscription reminder cron failed', error);
     }
   }
 
@@ -265,15 +256,7 @@ export class SubscriptionReminderScheduler {
         }
       });
     } catch (error) {
-      if (this.isDatabaseAuthError(error)) {
-        this.databaseAccessDisabled = true;
-        this.logger.warn(
-          'Disabling subscription scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
-        );
-        return;
-      }
-
-      this.logCronError('Lapsed subscription cron failed', error);
+      this.handleCronFailure('Lapsed subscription cron failed', error);
     }
   }
 }

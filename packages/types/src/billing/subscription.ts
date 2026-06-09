@@ -1,17 +1,23 @@
 import { z } from "zod";
 
-export const SubscriptionTierConfigSchema = z.object({
-  id: z.string(),
-  tier: z.number(),
+const pricingConfigSchema = z.object({
+  monthly: z.number().or(z.literal("custom")),
+  yearly: z.number().or(z.literal("custom")),
+  currency: z.string(),
+});
+
+const tierMetaSchema = z.object({
   name: z.string(),
   description: z.string(),
   tagline: z.string(),
   color: z.string(),
-  pricing: z.object({
-    monthly: z.number().or(z.literal("custom")),
-    yearly: z.number().or(z.literal("custom")),
-    currency: z.string(),
-  }),
+  pricing: pricingConfigSchema,
+  features: z.array(z.string()),
+});
+
+export const SubscriptionTierConfigSchema = tierMetaSchema.extend({
+  id: z.string(),
+  tier: z.number(),
   limits: z.object({
     patients: z.number(),
     doctors: z.number(),
@@ -22,21 +28,9 @@ export const SubscriptionTierConfigSchema = z.object({
     prescriptions: z.number().optional(),
     invoices: z.number().optional(),
   }),
-  features: z.array(z.string()),
 });
 
-export const IntelligenceInfoSchema = z.object({
-  name: z.string(),
-  description: z.string(),
-  tagline: z.string(),
-  color: z.string(),
-  pricing: z.object({
-    monthly: z.number().or(z.literal("custom")),
-    yearly: z.number().or(z.literal("custom")),
-    currency: z.string(),
-  }),
-  features: z.array(z.string()),
-});
+export const IntelligenceInfoSchema = tierMetaSchema;
 
 export const SubscriptionConfigResponseSchema = z.object({
   tiers: z.array(SubscriptionTierConfigSchema),

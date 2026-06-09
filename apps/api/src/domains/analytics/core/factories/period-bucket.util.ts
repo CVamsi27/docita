@@ -17,9 +17,7 @@ export function toAnalyticsPeriodKey(
   date: Date,
   period: AnalyticsPeriod,
 ): string {
-  if (period === 'daily') {
-    return toIsoDate(date);
-  }
+  if (period === 'daily') return toIsoDate(date);
 
   if (period === 'weekly') {
     const weekStart = getWeekStart(date);
@@ -33,13 +31,9 @@ export function toTimeSeriesBucketKey(
   date: Date,
   groupBy: TimeSeriesGroupBy,
 ): string {
-  if (groupBy === 'day') {
-    return toIsoDate(date);
-  }
+  if (groupBy === 'day') return toIsoDate(date);
 
-  if (groupBy === 'week') {
-    return toIsoDate(getWeekStart(date));
-  }
+  if (groupBy === 'week') return toIsoDate(getWeekStart(date));
 
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }

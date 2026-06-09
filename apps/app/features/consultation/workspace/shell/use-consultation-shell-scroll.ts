@@ -63,6 +63,7 @@ export function useConsultationShellScroll({
     router,
     searchParams,
     refs,
+    activeSectionId,
     setActiveSectionId,
     setPendingUrlScrollToSectionId,
   });
@@ -73,7 +74,7 @@ export function useConsultationShellScroll({
     computeActiveSectionFromScroll,
   });
   useScrollListeners({ refs, scheduleScrollSpy });
-  useFocusSectionTracking({ refs, setActiveSectionId });
+  useFocusSectionTracking({ refs, stepMode, setActiveSectionId });
 
   return {
     activeSectionId,
@@ -241,6 +242,7 @@ function useUrlSectionSync(params: {
   router: ShellRouter;
   searchParams: ShellSearchParams;
   refs: ShellScrollRefs;
+  activeSectionId: string;
   setActiveSectionId: (value: string) => void;
   setPendingUrlScrollToSectionId: (value: string | null) => void;
 }) {
@@ -251,6 +253,7 @@ function useUrlSectionSync(params: {
     router,
     searchParams,
     refs,
+    activeSectionId,
     setActiveSectionId,
     setPendingUrlScrollToSectionId,
   } = params;
@@ -263,7 +266,9 @@ function useUrlSectionSync(params: {
     const defaultSectionId = sections[0]?.id ?? "subjective";
     const valid =
       sections.find((section) => section.id === resolved)?.id ?? defaultSectionId;
-    setActiveSectionId(valid);
+    if (valid !== activeSectionId) {
+      setActiveSectionId(valid);
+    }
     queueUrlScrollIfNeeded({
       refs,
       sectionQ,
@@ -281,6 +286,7 @@ function useUrlSectionSync(params: {
     );
     if (changed) router.replace(`?${cleanedParams}`, { scroll: false });
   }, [
+    activeSectionId,
     clinicType,
     refs,
     router,

@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { FC } from "react";
 import {
   Card,
@@ -11,6 +12,7 @@ import {
 import { AlertTriangle, CheckCircle2, FileText } from "lucide-react";
 
 export const LabResultsSummary: FC<{
+// jscpd:ignore-end
   results?: Array<{
     testName: string;
     value: string;

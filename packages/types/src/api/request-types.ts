@@ -7,7 +7,14 @@ type OnboardingStep =
   | "JOINING_CLINIC"
   | "COMPLETED";
 
-export interface AuthenticatedRequest {
+interface RequestBase {
+  headers: Record<string, string | string[] | undefined>;
+  body: unknown;
+  query: Record<string, string | string[] | undefined>;
+  params: Record<string, string>;
+}
+
+export interface AuthenticatedRequest extends RequestBase {
   user: {
     id: string;
     sub: string;
@@ -18,13 +25,9 @@ export interface AuthenticatedRequest {
     emailVerified?: boolean;
     onboardingStep?: OnboardingStep;
   };
-  headers: Record<string, string | string[] | undefined>;
-  body: unknown;
-  query: Record<string, string | string[] | undefined>;
-  params: Record<string, string>;
 }
 
-export interface OptionalAuthRequest {
+export interface OptionalAuthRequest extends RequestBase {
   user?: {
     id: string;
     clinicId: string | null;
@@ -33,8 +36,4 @@ export interface OptionalAuthRequest {
     emailVerified?: boolean;
     onboardingStep?: OnboardingStep;
   };
-  headers: Record<string, string | string[] | undefined>;
-  body: unknown;
-  query: Record<string, string | string[] | undefined>;
-  params: Record<string, string>;
 }

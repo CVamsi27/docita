@@ -27,7 +27,10 @@ import {
   clinicHasFeatureForAccess,
 } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import type { ClinicFeatureAuthSnapshot } from '@/shared/modules/auth/utils/clinic-feature-access.util';
-import { WHATSAPP_ACCESS_TOKEN_SECRET_KIND } from './whatsapp-sender-resolver.service';
+import {
+  fetchWhatsappAccessTokenSecret,
+  WHATSAPP_ACCESS_TOKEN_SECRET_KIND,
+} from './whatsapp-sender-resolver.service';
 import { MetaGraphPhoneProfileClient } from '@/domains/whatsapp/infrastructure/clients/meta-graph-phone-profile.client';
 
 /**
@@ -80,11 +83,10 @@ export class WhatsappSenderSettingsService {
     const clinic = await this.getClinic(clinicId);
 
     if (payload.mode === 'BYO') {
-      if (!payload.phoneNumberId || !payload.accessToken) {
+      if (!payload.phoneNumberId || !payload.accessToken)
         throw new BadRequestException(
           'Phone number ID and access token are required for BYO sender mode.',
         );
-      }
       if (!options.bypassFeatureGate) {
         assertClinicHasFeatureOrThrow(clinic, Feature.WHATSAPP_OWN_NUMBER);
       }
@@ -170,27 +172,19 @@ export class WhatsappSenderSettingsService {
     error: string | null;
   }> {
     const clinic = await this.getClinic(clinicId);
-    if (clinic.whatsappSenderMode === 'SHARED') {
+    if (clinic.whatsappSenderMode === 'SHARED')
       throw new BadRequestException(
         'Shared sender does not need verification.',
       );
-    }
-    if (!clinic.whatsappPhoneNumberId) {
+    if (!clinic.whatsappPhoneNumberId)
       throw new BadRequestException('WhatsApp phone number ID is missing.');
-    }
 
-    const secret = await this.persistence.clinicSecret.findUnique({
-      where: {
-        clinicId_kind: {
-          clinicId,
-          kind: WHATSAPP_ACCESS_TOKEN_SECRET_KIND,
-        },
-      },
-      select: { ciphertext: true },
-    });
-    if (!secret) {
+    const secret = await fetchWhatsappAccessTokenSecret(
+      this.persistence,
+      clinicId,
+    );
+    if (!secret)
       throw new BadRequestException('WhatsApp access token is missing.');
-    }
 
     const accessToken = this.encryptionService.decrypt(secret.ciphertext);
     try {
@@ -200,11 +194,10 @@ export class WhatsappSenderSettingsService {
           accessToken,
         );
 
-      if (!ok) {
+      if (!ok)
         throw new BadRequestException(
           data.error?.message || 'Meta verification failed',
         );
-      }
 
       const displayName =
         data.verified_name || data.display_phone_number || null;
@@ -324,9 +317,7 @@ export class WhatsappSenderSettingsService {
         whatsappLastVerifyError: true,
       },
     });
-    if (!clinic) {
-      throw new NotFoundException('Clinic not found');
-    }
+    if (!clinic) throw new NotFoundException('Clinic not found');
     return clinic;
   }
 

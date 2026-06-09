@@ -19,22 +19,18 @@ export function extractRegistrationFieldError(error: unknown): string | null {
   if (
     typeof registrationFieldError === "string" &&
     registrationFieldError.length > 0
-  ) {
-    return sanitizeUserFacingMessage(
+  ) return sanitizeUserFacingMessage(
       registrationFieldError,
       "Please check the registration number",
     );
-  }
 
   const firstFieldError = Object.values(fieldErrors).find(
     (value): value is string => typeof value === "string" && value.length > 0,
   );
-  if (firstFieldError) {
-    return sanitizeUserFacingMessage(
+  if (firstFieldError) return sanitizeUserFacingMessage(
       firstFieldError,
       "Please check the registration number",
     );
-  }
 
   return null;
 }

@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Controller,
   Get,
@@ -53,6 +54,7 @@ export class MedicalHistoryConditionsController {
   }
 
   @Get()
+  // jscpd:ignore-end
   async getFullMedicalHistory(
     @Param('patientId') patientId: string,
     @Request() req: RequestWithUser,

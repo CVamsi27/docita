@@ -57,7 +57,6 @@ export function PublicBookingDesktopLayout({
   facilityWord: string;
 }) {
   if (!c.clinic) return null;
-
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 md:gap-7 lg:gap-8">
       <PublicBookingHeroCompact
@@ -78,14 +77,12 @@ export function PublicBookingDesktopLayout({
                 doctorPickerVariant="chips"
               />
             </StepSection>
-
             <StepSection step={2} label="Your contact details" isLast>
               <PublicBookingContactSection c={c} facilityWord={facilityWord} />
               <PublicBookingPatientContextSection c={c} />
             </StepSection>
           </div>
         </div>
-
         {/* Right: sticky sidebar */}
         <aside
           className={cn(

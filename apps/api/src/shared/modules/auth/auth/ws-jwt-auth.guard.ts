@@ -14,9 +14,7 @@ export class WsJwtAuthGuard implements CanActivate {
         client.handshake.auth?.token ||
         client.handshake.headers?.authorization?.split(' ')[1];
 
-      if (!authToken) {
-        throw new WsException('Missing authentication token');
-      }
+      if (!authToken) throw new WsException('Missing authentication token');
 
       const payload = await this.jwtService.verifyAsync(authToken);
 

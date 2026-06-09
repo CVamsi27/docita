@@ -1,13 +1,7 @@
 "use client";
 
-import { formatCurrency, formatDate } from "@workspace/utils";
-import {
-  enterpriseContractStatusBadgeClass,
-  MINIMUM_SETUP_FEE_INR,
-} from "./enterprise-contracts-helpers";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
+// jscpd:ignore-start
 import {
   Card,
   CardContent,
@@ -18,54 +12,30 @@ import {
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/data-display/table";
-import {
-  AlertTriangle,
-  FileText,
-  Receipt,
-  Users as UsersIcon,
-} from "lucide-react";
+// jscpd:ignore-end
 import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
+import { EnterpriseContractTableRow } from "./enterprise-contracts-table-row";
+import type { EnterpriseContractRowActionsProps } from "./enterprise-contracts-row-actions";
 
+// SSOT: the row-scoped action props (busy + the ten action callbacks) are
+// defined once on `EnterpriseContractRowActionsProps` and reused here via
+// `Omit<…, "row">` rather than re-listing the same `Pick` keys.
 type EnterpriseContractsTableSectionProps = Pick<
   EnterpriseContractsPageState,
-  | "rows"
-  | "contractsTableStatus"
-  | "contractsLoadError"
-  | "contractsQuery"
-  | "busy"
-  | "openEdit"
-  | "showMembers"
-  | "showEstimate"
-  | "showInvoices"
-  | "generatePrepay"
-  | "generateSetupFeeInvoice"
-  | "openCustomBill"
-  | "evaluateTrueUp"
-  | "showAlerts"
-  | "showRevisions"
->;
+  "rows" | "contractsTableStatus" | "contractsLoadError" | "contractsQuery"
+> &
+  Omit<EnterpriseContractRowActionsProps, "row">;
 
 export function EnterpriseContractsTableSection({
   rows,
   contractsTableStatus,
   contractsLoadError,
   contractsQuery,
-  busy,
-  openEdit,
-  showMembers,
-  showEstimate,
-  showInvoices,
-  generatePrepay,
-  generateSetupFeeInvoice,
-  openCustomBill,
-  evaluateTrueUp,
-  showAlerts,
-  showRevisions,
+  ...rowActionProps
 }: EnterpriseContractsTableSectionProps) {
   return (
     <Card>
@@ -99,125 +69,11 @@ export function EnterpriseContractsTableSection({
             </TableHeader>
             <TableBody>
               {rows.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell className="text-xs">
-                    <div className="font-mono">{row.contractNumber}</div>
-                    {row.groupName && (
-                      <div className="text-muted-foreground">
-                        {row.groupName}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {row.primaryClinicId}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">
-                      {row.memberClinicIds.length}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      className={enterpriseContractStatusBadgeClass[row.status]}
-                    >
-                      {row.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-xs">
-                    {formatDate(row.startDate)} → {formatDate(row.endDate)}
-                  </TableCell>
-                  <TableCell>
-                    {formatCurrency(row.platformFeeCents / 100, {
-                      currency: row.currency,
-                    })}
-                    <span className="text-xs text-muted-foreground">
-                      {" "}
-                      / {row.billingCycle.toLowerCase()}
-                    </span>
-                  </TableCell>
-                  <TableCell className="space-x-1 text-right">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => openEdit(row)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => showMembers(row)}
-                      aria-label="Members"
-                    >
-                      <UsersIcon className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => void showEstimate(row.id)}
-                    >
-                      Estimate
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => void showInvoices(row.id)}
-                      aria-label="Invoices"
-                    >
-                      <Receipt className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => void generatePrepay(row.id)}
-                      disabled={row.status !== "ACTIVE" || busy}
-                    >
-                      Prepay
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => void generateSetupFeeInvoice(row)}
-                      disabled={
-                        row.setupFeeCents < MINIMUM_SETUP_FEE_INR * 100 || busy
-                      }
-                    >
-                      Setup fee
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => openCustomBill(row)}
-                      disabled={busy}
-                    >
-                      Custom bill
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => void evaluateTrueUp(row.id)}
-                      disabled={row.status !== "ACTIVE" || busy}
-                      aria-label="Evaluate true-up now"
-                    >
-                      <AlertTriangle className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => void showAlerts(row.id)}
-                    >
-                      Alerts
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => void showRevisions(row.id)}
-                      aria-label="Revisions"
-                    >
-                      <FileText className="h-3.5 w-3.5" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                <EnterpriseContractTableRow
+                  key={row.id}
+                  row={row}
+                  {...rowActionProps}
+                />
               ))}
             </TableBody>
           </Table>

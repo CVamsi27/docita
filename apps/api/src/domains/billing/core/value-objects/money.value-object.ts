@@ -6,9 +6,8 @@ export class Money {
     readonly amount: number,
     readonly currency: string = DEFAULT_CURRENCY,
   ) {
-    if (amount < 0) {
+    if (amount < 0)
       throw new InvariantViolationError('Amount cannot be negative');
-    }
   }
 
   add(other: Money): Money {
@@ -27,16 +26,14 @@ export class Money {
       );
     }
     const result = this.amount - other.amount;
-    if (result < 0) {
+    if (result < 0)
       throw new InvariantViolationError('Result cannot be negative');
-    }
     return new Money(result, this.currency);
   }
 
   multiply(factor: number): Money {
-    if (factor < 0) {
+    if (factor < 0)
       throw new InvariantViolationError('Factor cannot be negative');
-    }
     return new Money(this.amount * factor, this.currency);
   }
 
@@ -45,16 +42,14 @@ export class Money {
   }
 
   isGreaterThan(other: Money): boolean {
-    if (this.currency !== other.currency) {
+    if (this.currency !== other.currency)
       throw new InvariantViolationError('Cannot compare different currencies');
-    }
     return this.amount > other.amount;
   }
 
   isLessThan(other: Money): boolean {
-    if (this.currency !== other.currency) {
+    if (this.currency !== other.currency)
       throw new InvariantViolationError('Cannot compare different currencies');
-    }
     return this.amount < other.amount;
   }
 }

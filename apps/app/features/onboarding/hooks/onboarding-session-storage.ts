@@ -39,9 +39,7 @@ export function isRestartableOnboardingError(error: unknown): boolean {
   if (hasRestartOnboardingFlag(error)) {
     return true;
   }
-  if (error instanceof ApiError) {
-    return error.statusCode === 400 || error.statusCode === 404;
-  }
+  if (error instanceof ApiError) return error.statusCode === 400 || error.statusCode === 404;
   const rawMessage =
     error instanceof Error ? error.message : String(error ?? "");
   return RESTARTABLE_ONBOARDING_ERROR.test(rawMessage);
@@ -74,9 +72,7 @@ const persistedFormEnvelopeSchema = z.object({
 
 function parsePersistedFormData(raw: unknown): ClinicRegistrationData {
   const envelope = persistedFormEnvelopeSchema.safeParse(raw);
-  if (!envelope.success) {
-    return defaultClinicRegistrationData;
-  }
+  if (!envelope.success) return defaultClinicRegistrationData;
 
   const clinicDetails = parseClinicDetailsDraft(envelope.data.clinicDetails);
   const fallbackClinicDetails = isRecord(envelope.data.clinicDetails)

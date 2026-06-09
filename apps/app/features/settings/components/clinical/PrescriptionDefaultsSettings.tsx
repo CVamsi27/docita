@@ -8,13 +8,8 @@ import {
   useUpdatePrescriptionDefaults,
 } from "@workspace/data-access";
 import { toast } from "sonner";
-import {
-  Card,
-  CardContent,
-} from "@workspace/ui/components/indicators/card";
-import {
-  Form,
-} from "@workspace/ui/components/form/form";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
+import { Form } from "@workspace/ui/components/form/form";
 import {
   prescriptionDefaultsFormSchema,
   type PrescriptionDefaultsFormValues,
@@ -28,7 +23,6 @@ import {
   PrescriptionDefaultsCheckboxGroup,
   PrescriptionDefaultsFormActions,
 } from "./PrescriptionDefaultsSettingsSections";
-
 function PrescriptionDefaultsSettings() {
   const {
     data: initialSettings,
@@ -37,7 +31,6 @@ function PrescriptionDefaultsSettings() {
   } = usePrescriptionDefaults();
   const { mutate: updateSettings, isPending: saving } =
     useUpdatePrescriptionDefaults();
-
   const form = useForm<PrescriptionDefaultsFormValues>({
     resolver: zodResolver(prescriptionDefaultsFormSchema),
     defaultValues: {
@@ -48,7 +41,6 @@ function PrescriptionDefaultsSettings() {
       includeQRCode: false,
     },
   });
-
   useEffect(() => {
     if (initialSettings) {
       form.reset({
@@ -60,7 +52,6 @@ function PrescriptionDefaultsSettings() {
       });
     }
   }, [initialSettings, form]);
-
   const onSubmit = (values: PrescriptionDefaultsFormValues) => {
     updateSettings(values, {
       onSuccess: () => {
@@ -76,11 +67,7 @@ function PrescriptionDefaultsSettings() {
       },
     });
   };
-
-  if (loading) {
-    return <PrescriptionDefaultsSkeleton />;
-  }
-
+  if (loading) return <PrescriptionDefaultsSkeleton />;
   return (
     <Card>
       <PrescriptionDefaultsCardHeader />
@@ -101,6 +88,5 @@ function PrescriptionDefaultsSettings() {
     </Card>
   );
 }
-
 export const PrescriptionDefaultsSettingsContainer =
   PrescriptionDefaultsSettings;

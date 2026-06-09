@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { AlertCircle, Calendar, LayoutGrid, Plus } from "lucide-react";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { Button } from "@workspace/ui/components/form/button";
@@ -13,6 +14,7 @@ import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 
 export default function UiContractVisualTestPage() {
+// jscpd:ignore-end
   return (
     <div className="space-y-10 p-6 md:p-8">
       <section data-testid="scaffold-and-header">

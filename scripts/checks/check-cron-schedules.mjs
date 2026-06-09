@@ -1,23 +1,19 @@
 #!/usr/bin/env node
 
-import { execSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
-import process from "node:process";
+import { readFileSync } from "node:fs";
+import {
+  gitLsSourceFiles,
+  reportFindingsAndExit,
+} from "../lib/check-runner.mjs";
 
-const enforce = process.argv.includes("--enforce");
+const apiFiles = gitLsSourceFiles(["apps/api/src"], {
+  extensions: [".ts"],
+  exclude: [/\.(spec|test)\.[tj]sx?$/],
+});
 
-const apiFiles = execSync("git ls-files apps/api/src", { encoding: "utf8" })
-  .split("\n")
-  .filter(Boolean)
-  .filter((file) => /\.ts$/.test(file))
-  .filter((file) => !/\.(spec|test)\.[tj]sx?$/.test(file))
-  .filter((file) => existsSync(file));
-
-const workerFiles = execSync("git ls-files apps/worker", { encoding: "utf8" })
-  .split("\n")
-  .filter(Boolean)
-  .filter((file) => /\.ts$/.test(file))
-  .filter((file) => existsSync(file));
+const workerFiles = gitLsSourceFiles(["apps/worker"], {
+  extensions: [".ts"],
+});
 
 const findings = [];
 
@@ -50,20 +46,4 @@ for (const file of workerFiles) {
   }
 }
 
-if (findings.length > 0) {
-  console.error(
-    enforce ? "Cron schedules check failed.\n" : "Cron schedules report:\n",
-  );
-  for (const finding of findings) {
-    console.error(`- ${finding}`);
-  }
-  if (enforce) {
-    process.exit(1);
-  }
-  console.log(
-    `Cron schedules reported ${findings.length} finding(s). Use --enforce to fail.`,
-  );
-  process.exit(0);
-}
-
-console.log("Cron schedules check passed.");
+reportFindingsAndExit("Cron schedules check", findings);

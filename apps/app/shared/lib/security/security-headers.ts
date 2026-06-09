@@ -52,9 +52,7 @@ const SOCKET_SOURCES = [
 
 function resolveApiProxyOrigin(): string | undefined {
   const proxyTarget = process.env["API_PROXY_TARGET"]?.trim();
-  if (!proxyTarget) {
-    return undefined;
-  }
+  if (!proxyTarget) return undefined;
 
   try {
     return new URL(proxyTarget).origin;

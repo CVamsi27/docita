@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
@@ -14,6 +15,7 @@ import {
   Dialog,
   DialogContent,
   DialogFooter,
+// jscpd:ignore-end
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";

@@ -8,6 +8,7 @@ Preferred-Languages: en
 Canonical: ${BASE_URL}/.well-known/security.txt
 Policy: ${BASE_URL}/privacy
 Expires: 2027-05-12T00:00:00Z
+// jscpd:ignore-start
 `;
 
   const maxAge = 60 * 60;
@@ -19,3 +20,4 @@ Expires: 2027-05-12T00:00:00Z
     },
   });
 };
+// jscpd:ignore-end

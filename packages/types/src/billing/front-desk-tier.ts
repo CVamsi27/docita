@@ -4,9 +4,7 @@ import { Tier, tierSchema } from "./tier";
 export function isFrontDeskTier(
   tier: string | number | null | undefined,
 ): boolean {
-  if (tier === null || tier === undefined) {
-    return false;
-  }
+  if (tier === null || tier === undefined) return false;
   if (
     tier === Tier.FRONT_DESK ||
     tier === Tier.FRONT_DESK_CLINIC ||
@@ -14,9 +12,7 @@ export function isFrontDeskTier(
     tier === "FRONT_DESK" ||
     tier === "FRONT_DESK_CLINIC" ||
     tier === "FRONT_DESK_HOSPITAL"
-  ) {
-    return true;
-  }
+  ) return true;
   if (typeof tier === "string") {
     const parsed = tierSchema.safeParse(tier);
     return (

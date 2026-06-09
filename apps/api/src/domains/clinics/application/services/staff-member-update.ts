@@ -109,9 +109,8 @@ function assertSelfRoleChangeAllowed(params: {
     params.member &&
     params.data.role &&
     params.data.role !== params.member.role
-  ) {
+  )
     throw new BadRequestException('You cannot change your own role');
-  }
 }
 
 function assertClinicMemberRole(role: ClinicMemberRole | undefined): void {
@@ -140,11 +139,10 @@ function assertFrontDeskRoleAllowed(
   isFrontDesk: boolean,
 ): void {
   if (!role || !isFrontDesk) return;
-  if (role === Role.NURSE || role === Role.ADMIN_DOCTOR) {
+  if (role === Role.NURSE || role === Role.ADMIN_DOCTOR)
     throw new BadRequestException(
       'This role is not available for the front desk workspace.',
     );
-  }
 }
 
 function parseSpecialization(value: string | undefined) {

@@ -22,12 +22,8 @@ export const JWT_AUDIENCES = [
 export type JwtAudience = (typeof JWT_AUDIENCES)[number];
 
 export function jwtAudienceForRole(role: Role | string): JwtAudience {
-  if (role === Role.PATIENT) {
-    return JWT_AUDIENCE_PATIENT_PORTAL;
-  }
-  if (role === Role.LAB) {
-    return JWT_AUDIENCE_LAB_PORTAL;
-  }
+  if (role === Role.PATIENT) return JWT_AUDIENCE_PATIENT_PORTAL;
+  if (role === Role.LAB) return JWT_AUDIENCE_LAB_PORTAL;
   return JWT_AUDIENCE_STAFF;
 }
 

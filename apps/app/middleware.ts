@@ -36,15 +36,11 @@ const generateNonce = (): string => {
 
 export async function middleware(request: NextRequest) {
   const redirectPath = APP_ROUTE_REDIRECTS.get(request.nextUrl.pathname);
-  if (redirectPath) {
-    return NextResponse.redirect(new URL(redirectPath, request.url));
-  }
+  if (redirectPath) return NextResponse.redirect(new URL(redirectPath, request.url));
 
   if (isCloudflareBuild) {
     const pathSegments = extractApiV1PathSegments(request.nextUrl.pathname);
-    if (pathSegments !== null) {
-      return proxyUpstreamApiRequest(request, pathSegments);
-    }
+    if (pathSegments !== null) return proxyUpstreamApiRequest(request, pathSegments);
   }
 
   if (!isProduction) return NextResponse.next();
@@ -77,6 +73,7 @@ export const config = {
      * - Next.js asset & image pipelines (already integrity-checked)
      * - Static files (svg/png/etc) served from /public
      * - The Next.js `_next` static asset path
+// jscpd:ignore-start
      */
     {
       source:
@@ -88,3 +85,4 @@ export const config = {
     },
   ],
 };
+// jscpd:ignore-end

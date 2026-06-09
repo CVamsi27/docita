@@ -68,17 +68,15 @@ export class Payment {
   }
 
   capture(now: Date): void {
-    if (this.status !== PaymentStatus.PENDING) {
+    if (this.status !== PaymentStatus.PENDING)
       throw new InvariantViolationError('Can only capture pending payments');
-    }
     this.status = PaymentStatus.CAPTURED;
     this.touchUpdatedAt(now);
   }
 
   refund(amount: Money, now: Date): void {
-    if (this.status !== PaymentStatus.CAPTURED) {
+    if (this.status !== PaymentStatus.CAPTURED)
       throw new InvariantViolationError('Can only refund captured payments');
-    }
 
     const totalRefunded = this.refundedAmount.add(amount);
     if (totalRefunded.isGreaterThan(this.amount)) {
@@ -96,9 +94,8 @@ export class Payment {
   }
 
   fail(reason: string, now: Date): void {
-    if (this.status === PaymentStatus.CAPTURED) {
+    if (this.status === PaymentStatus.CAPTURED)
       throw new InvariantViolationError('Cannot fail a captured payment');
-    }
     this.status = PaymentStatus.FAILED;
     this.failureReason = reason;
     this.touchUpdatedAt(now);

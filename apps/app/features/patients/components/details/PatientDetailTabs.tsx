@@ -32,57 +32,37 @@ export function PatientDetailTabs({
   canRecordPatientVitals,
 }: PatientDetailTabsProps) {
   const tabs = usePatientDetailTabs();
-
   return (
     <div role="region" aria-label="Patient detail" className="w-full">
       <PatientClinicalChartSummary patientId={patientId} />
-
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div
-          className="flex flex-col gap-2"
-          data-testid="patient-detail-tab-bar"
-        >
+        <div className="flex flex-col gap-2" data-testid="patient-detail-tab-bar">
           <MicroLabel className="px-1">Sections</MicroLabel>
-          <PageTabs
-            items={tabs.items}
-            activeId={tabs.activeTab}
-            onSelect={tabs.handleSelectTab}
-            ariaLabel="Patient sections"
+          <PageTabs items={tabs.items} activeId={tabs.activeTab}
+            onSelect={tabs.handleSelectTab} ariaLabel="Patient sections"
           />
         </div>
         <div className="flex items-center gap-2 self-end sm:self-auto">
           <PatientTagManager patientId={patientId} />
         </div>
       </div>
-
       {tabs.activeTab === "records" ? (
         <div className="space-y-4" data-testid="patient-records-subtabs">
-          <PageTabs
-            items={tabs.recordsSubItems}
-            activeId={tabs.activeRecordsSubTab}
-            onSelect={tabs.handleSelectRecordsSubTab}
-            ariaLabel="Records sub-sections"
+          <PageTabs items={tabs.recordsSubItems} activeId={tabs.activeRecordsSubTab}
+            onSelect={tabs.handleSelectRecordsSubTab} ariaLabel="Records sub-sections"
           />
           <PatientDetailTabContent
-            activeTab={tabs.activeTab}
-            activeRecordsSubTab={tabs.activeRecordsSubTab}
-            patient={patient}
-            patientId={patientId}
-            appointments={appointments}
-            canEditPatient={canEditPatient}
-            canRecordPatientVitals={canRecordPatientVitals}
+            activeTab={tabs.activeTab} activeRecordsSubTab={tabs.activeRecordsSubTab}
+            patient={patient} patientId={patientId} appointments={appointments}
+            canEditPatient={canEditPatient} canRecordPatientVitals={canRecordPatientVitals}
             canViewInvoices={tabs.canViewInvoices}
           />
         </div>
       ) : (
         <PatientDetailTabContent
-          activeTab={tabs.activeTab}
-          activeRecordsSubTab={tabs.activeRecordsSubTab}
-          patient={patient}
-          patientId={patientId}
-          appointments={appointments}
-          canEditPatient={canEditPatient}
-          canRecordPatientVitals={canRecordPatientVitals}
+          activeTab={tabs.activeTab} activeRecordsSubTab={tabs.activeRecordsSubTab}
+          patient={patient} patientId={patientId} appointments={appointments}
+          canEditPatient={canEditPatient} canRecordPatientVitals={canRecordPatientVitals}
           canViewInvoices={tabs.canViewInvoices}
         />
       )}

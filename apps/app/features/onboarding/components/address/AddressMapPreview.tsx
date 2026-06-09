@@ -114,23 +114,19 @@ export function AddressMapPreview({
   onLeafletLoad,
   onLeafletPaint,
 }: AddressMapPreviewProps) {
-  if (!isMapViewportReady) {
-    return (
+  if (!isMapViewportReady) return (
       <div className="flex h-full items-center justify-center rounded-lg border bg-muted/30 p-6 text-sm text-muted-foreground">
         <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
         Preparing map…
       </div>
     );
-  }
 
-  if (hasGoogleKey && !isGoogleLoaded && !googleLoadError) {
-    return (
+  if (hasGoogleKey && !isGoogleLoaded && !googleLoadError) return (
       <div className="flex h-full items-center justify-center rounded-lg border bg-muted/30 p-6 text-sm text-muted-foreground">
         <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
         Loading map…
       </div>
     );
-  }
 
   if (shouldUseGoogle) {
     return (

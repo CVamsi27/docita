@@ -1,253 +1,59 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import type { PlanMode } from "@workspace/types";
-import { useClinicRegistrationFlow } from "@/features/onboarding/hooks/use-clinic-registration-flow";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import {
-  ClinicDetailsStep,
-  ClinicWeeklyHoursStep,
-  ComplianceStep,
-  PlanSelectionStep,
-  TeamInviteStep,
+  ClinicDetailsStep, ClinicWeeklyHoursStep, ComplianceStep,
+  PlanSelectionStep, TeamInviteStep,
 } from "@/features/onboarding/components/steps";
+import { getFacilityLabel, recommendTierForTeamSize } from "@workspace/utils";
 import {
-  type ClinicDetails,
-  clinicDetailsSchema,
-  complianceSchema,
-  type ComplianceSettings,
-  defaultComplianceValues,
-} from "@/features/onboarding/components/types";
-import {
-  DEFAULT_COUNTRY_CODE,
-  getFacilityLabel,
-  recommendTierForTeamSize,
-} from "@workspace/utils";
-
-import {
-  withStepErrorHandling,
-} from "./clinic-registration-form-helpers";
-import { useOnboardingDraft } from "./use-onboarding-draft";
-import {
-  ComplianceDraftWatcher,
-  DraftRestoreDialog,
-  OnboardingProgressCard,
-  StepErrorAlert,
-  StepGuard,
+  ComplianceDraftWatcher, DraftRestoreDialog, OnboardingProgressCard,
+  StepErrorAlert, StepGuard,
 } from "./clinic-registration-form-sections";
+import { useClinicRegistrationForm } from "./use-clinic-registration-form";
 
-export function ClinicRegistrationForm({
-  onSuccess,
-}: {
-  onSuccess: () => void;
-}) {
+export function ClinicRegistrationForm({ onSuccess }: { onSuccess: () => void }) {
   const { user } = useAuth();
   const { currency } = useLocaleCurrency();
-  const [stepError, setStepError] = useState<string | null>(null);
-  const {
-    step,
-    setStep,
-    formData,
-    onboardingId,
-    restoreOnboardingId,
-    ensureOnboardingId,
-    restartOnboarding,
-    setClinicDetails,
-    setClinicWeeklyHours,
-    setPlanSelection,
-    setTeamMembers,
-    goBackFromCompliance,
-    setComplianceDraft,
-    submitRegistration,
-  } = useClinicRegistrationFlow();
-
-  const clinicForm = useForm<ClinicDetails>({
-    resolver: zodResolver(clinicDetailsSchema),
-    mode: "onSubmit",
-    reValidateMode: "onChange",
-    criteriaMode: "all",
-    shouldFocusError: true,
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      address: "",
-      addressLine1: "",
-      addressLine2: "",
-      city: "",
-      state: "",
-      pincode: "",
-      facilityLabel: "CLINIC",
-      countryCode: DEFAULT_COUNTRY_CODE,
-      website: "",
-      gstin: "",
-      legalName: "",
-      type: "GENERAL",
-      ...formData.clinicDetails,
-    },
-  });
-
-  const complianceForm = useForm<ComplianceSettings>({
-    resolver: zodResolver(complianceSchema),
-    mode: "onSubmit",
-    reValidateMode: "onChange",
-    criteriaMode: "all",
-    shouldFocusError: true,
-    defaultValues: {
-      ...defaultComplianceValues,
-      ...formData.compliance,
-    },
-  });
-
-  const {
-    showDraftDialog,
-    setShowDraftDialog,
-    savedDraft,
-    handleRestoreDraft,
-    handleDiscardDraft,
-  } = useOnboardingDraft({
-    clinicForm,
-    complianceForm,
-    onboardingId,
-    restoreOnboardingId,
-    restartOnboarding,
-    onAfterDiscard: () => setStepError(null),
-  });
-
-  const handleSetClinicDetails = (data: ClinicDetails) => {
-    setStepError(null);
-    setClinicDetails(data);
-  };
-
-  const handleSetPlanSelection = (
-    tier: string,
-    billingCycle: "MONTHLY" | "YEARLY",
-    pricing: { monthly: number | "custom"; yearly: number | "custom" },
-    options?: {
-      currency?: string;
-      mode?: PlanMode;
-    },
-  ) => withStepErrorHandling(
-    () => setPlanSelection(tier, billingCycle, pricing, { ...options, currency }),
-    setStepError,
-    "We could not continue with this plan right now. Please try again.",
-    "save",
-  );
-
-  const handleSetTeamMembers = (
-    members: Parameters<typeof setTeamMembers>[0],
-  ) => withStepErrorHandling(
-    () => setTeamMembers(members),
-    setStepError,
-    "We could not continue setup. Please try again.",
-    "save",
-  );
-
-  const handleSkipTeamStep = () => withStepErrorHandling(
-    () => setTeamMembers([]),
-    setStepError,
-    "We could not continue setup. Please try again.",
-    "save",
-  );
-
-  const handleSubmitRegistration = (
-    data: ComplianceSettings,
-    successCallback: () => void,
-  ) => withStepErrorHandling(
-    () => submitRegistration(data, successCallback),
-    setStepError,
-    "We could not complete setup. Please check your details and try again.",
-    "form",
-  );
+  const h = useClinicRegistrationForm(onSuccess);
 
   return (
     <div className="space-y-6">
-      <ComplianceDraftWatcher
-        complianceForm={complianceForm}
-        setComplianceDraft={setComplianceDraft}
-      />
+      <ComplianceDraftWatcher complianceForm={h.complianceForm} setComplianceDraft={h.setComplianceDraft} />
+      <StepGuard step={h.step} formData={h.formData} restartOnboarding={h.restartOnboarding} setStepError={h.setStepError} />
+      <DraftRestoreDialog open={h.showDraftDialog} onOpenChange={h.setShowDraftDialog}
+        savedAt={h.savedDraft?.savedAt} onDiscard={h.handleDiscardDraft} onRestore={h.handleRestoreDraft} />
+      <StepErrorAlert message={h.stepError} onDismiss={() => h.setStepError(null)} />
+      <OnboardingProgressCard step={h.step} />
 
-      <StepGuard
-        step={step}
-        formData={formData}
-        restartOnboarding={restartOnboarding}
-        setStepError={setStepError}
-      />
+      {h.step === 1 && <ClinicDetailsStep clinicForm={h.clinicForm} onSubmit={h.handleSetClinicDetails} />}
 
-      <DraftRestoreDialog
-        open={showDraftDialog}
-        onOpenChange={setShowDraftDialog}
-        savedAt={savedDraft?.savedAt}
-        onDiscard={handleDiscardDraft}
-        onRestore={handleRestoreDraft}
-      />
-
-      <StepErrorAlert
-        message={stepError}
-        onDismiss={() => setStepError(null)}
-      />
-
-      <OnboardingProgressCard step={step} />
-
-      {step === 1 && (
-        <ClinicDetailsStep
-          clinicForm={clinicForm}
-          onSubmit={handleSetClinicDetails}
-        />
+      {h.step === 2 && (
+        <ClinicWeeklyHoursStep initialRows={h.formData.clinicWeeklyHours}
+          facilityWord={getFacilityLabel(h.formData.clinicDetails.facilityLabel ?? "CLINIC")}
+          onBack={() => h.setStep(1)}
+          onContinue={(rows) => { h.setStepError(null); h.setClinicWeeklyHours(rows); }} />
       )}
 
-      {step === 2 && (
-        <ClinicWeeklyHoursStep
-          initialRows={formData.clinicWeeklyHours}
-          facilityWord={getFacilityLabel(
-            formData.clinicDetails.facilityLabel ?? "CLINIC",
-          )}
-          onBack={() => setStep(1)}
-          onContinue={(rows) => {
-            setStepError(null);
-            setClinicWeeklyHours(rows);
-          }}
-        />
+      {h.step === 3 && (
+        <TeamInviteStep onBack={() => h.setStep(2)} onSkip={h.handleSkipTeamStep}
+          onComplete={h.handleSetTeamMembers} ownerName={user?.name} ownerEmail={user?.email}
+          ownerRole={user?.role === "ADMIN_DOCTOR" ? "ADMIN_DOCTOR" as const : "ADMIN" as const} />
       )}
 
-      {step === 3 && (
-        <TeamInviteStep
-          onBack={() => setStep(2)}
-          onSkip={handleSkipTeamStep}
-          onComplete={handleSetTeamMembers}
-          ownerName={user?.name}
-          ownerEmail={user?.email}
-          ownerRole={user?.role === "ADMIN_DOCTOR" ? ("ADMIN_DOCTOR" as const) : ("ADMIN" as const)}
-        />
+      {h.step === 4 && (
+        <PlanSelectionStep currency={currency}
+          defaultTier={recommendTierForTeamSize(1 + h.formData.teamMembers.length)?.tier ?? h.formData.planSelection.tier}
+          defaultBillingCycle={h.formData.planSelection.billingCycle}
+          teamUserCount={1 + h.formData.teamMembers.length} onBack={() => h.setStep(3)}
+          onSelect={h.handleSetPlanSelection} />
       )}
 
-      {step === 4 && (
-        <PlanSelectionStep
-          currency={currency}
-          defaultTier={
-            recommendTierForTeamSize(1 + formData.teamMembers.length)?.tier ??
-            formData.planSelection.tier
-          }
-          defaultBillingCycle={formData.planSelection.billingCycle}
-          teamUserCount={1 + formData.teamMembers.length}
-          onBack={() => setStep(3)}
-          onSelect={handleSetPlanSelection}
-        />
-      )}
-
-      {step === 5 && (
-        <ComplianceStep
-          complianceForm={complianceForm}
-          onBack={goBackFromCompliance}
-          onSubmit={complianceForm.handleSubmit((data: ComplianceSettings) =>
-            handleSubmitRegistration(data, onSuccess),
-          )}
-          onboardingId={onboardingId ?? undefined}
-          ensureOnboardingId={ensureOnboardingId}
-        />
+      {h.step === 5 && (
+        <ComplianceStep complianceForm={h.complianceForm} onBack={h.goBackFromCompliance}
+          onSubmit={h.complianceForm.handleSubmit((data) => h.handleSubmitRegistration(data, onSuccess))}
+          onboardingId={h.onboardingId ?? undefined} ensureOnboardingId={h.ensureOnboardingId} />
       )}
     </div>
   );

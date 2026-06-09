@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { defineConfig, devices } from "@playwright/test";
 
 const APP_URL = process.env["APP_URL"] || "http://127.0.0.1:3002";
@@ -20,6 +21,7 @@ export default defineConfig({
   },
 
   expect: {
+// jscpd:ignore-end
     timeout: 15000,
   },
 

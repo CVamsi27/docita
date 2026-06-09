@@ -110,9 +110,7 @@ export class ErrorHandlingService {
   }
 
   private sanitizePayload(payload: unknown): unknown {
-    if (!payload || typeof payload !== 'object') {
-      return '[non-object payload]';
-    }
+    if (!payload || typeof payload !== 'object') return '[non-object payload]';
 
     const stringPayload = JSON.stringify(payload);
 

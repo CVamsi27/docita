@@ -10,9 +10,7 @@ import { FileText } from "lucide-react";
 import { isRecord } from "@workspace/utils";
 
 function mapPrescriptionStatus(status: unknown): PatientPrescriptionStatus {
-  if (typeof status !== "string") {
-    return "ACTIVE";
-  }
+  if (typeof status !== "string") return "ACTIVE";
 
   return status.toUpperCase() === "COMPLETED" ? "COMPLETED" : "ACTIVE";
 }

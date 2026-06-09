@@ -47,8 +47,6 @@ export function isAbortError(error: unknown): boolean {
 }
 
 export function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
+  if (error instanceof Error) return error.message;
   return "Network error";
 }

@@ -1,10 +1,10 @@
-import { Button } from "@workspace/ui/components/form/button";
 import { DatePicker } from "@workspace/ui/components/form/date-picker";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Input } from "@workspace/ui/components/form/input";
 import { Scissors, X } from "lucide-react";
 import { PatientWithMedicalHistory } from "@workspace/types";
 import { formatDate } from "@/lib/formatters";
+import { HistoryAddRow, HistoryBlock, HistoryEmptyState } from "./HistoryBlock";
 
 interface PatientSurgeriesProps {
   patient: PatientWithMedicalHistory;
@@ -27,83 +27,78 @@ export function PatientSurgeries({
   onAddSurgery,
   onRemoveSurgery,
 }: PatientSurgeriesProps) {
+  const items = patient.surgicalHistory ?? [];
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <Scissors className="h-4 w-4 text-info" />
-        Surgical History
-      </div>
-      <div className="space-y-2 mb-3">
-        {patient.surgicalHistory?.map((surgery) => (
-          <div
-            key={surgery.id}
-            className="flex items-center justify-between p-2.5 rounded-lg border bg-card hover:bg-muted/20 transition-colors group"
+    <HistoryBlock
+      icon={<Scissors className="h-3.5 w-3.5 text-info" />}
+      title="Surgical History"
+      count={items.length}
+      addRow={
+        !readOnly ? (
+          <HistoryAddRow
+            disabled={!newSurgery.trim()}
+            onAdd={onAddSurgery}
           >
-            <div className="flex flex-col gap-0.5">
-              <span className="font-medium text-sm">
-                {surgery.procedureName}
-              </span>
-              {surgery.procedureDate && (
-                <span className="text-muted-foreground text-xs flex items-center gap-1">
-                  <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
-                  {formatDate(surgery.procedureDate)}
-                </span>
-              )}
-            </div>
-            {!readOnly && (
-              <SymbolTooltip label="Remove surgery">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (surgery.id) onRemoveSurgery(surgery.id);
-                  }}
-                  className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors duration-150"
-                  aria-label="Remove surgery"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </SymbolTooltip>
-            )}
-          </div>
-        ))}
-        {(!patient.surgicalHistory || patient.surgicalHistory.length === 0) && (
-          <div className="w-full py-6 text-center border-2 border-dashed rounded-lg bg-muted/10">
-            <span className="text-sm text-muted-foreground">
-              No surgical history recorded
-            </span>
-          </div>
-        )}
-      </div>
-      {!readOnly && (
-        <div className="flex gap-2 items-start pt-2 border-t border-border/40">
-          <div className="grid gap-2 flex-1">
-            <div className="relative">
-              <Scissors className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <div className="relative flex-1 min-w-[160px]">
+              <Scissors className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Procedure name"
                 value={newSurgery}
                 onChange={(e) => onNewSurgeryChange(e.target.value)}
-                className="pl-9"
+                className="h-9 pl-9"
               />
             </div>
-          </div>
-          <DatePicker
-            value={newSurgeryDate || undefined}
-            onChange={(date) =>
-              onNewSurgeryDateChange(date?.toISOString().slice(0, 10) ?? "")
-            }
-            placeholder="Procedure date"
-            className="w-44"
-          />
-          <Button
-            type="button"
-            onClick={onAddSurgery}
-            disabled={!newSurgery.trim()}
-          >
-            Add
-          </Button>
-        </div>
+            <DatePicker
+              value={newSurgeryDate || undefined}
+              onChange={(date) =>
+                onNewSurgeryDateChange(date?.toISOString().slice(0, 10) ?? "")
+              }
+              placeholder="Procedure date"
+              className="w-44 h-9"
+            />
+          </HistoryAddRow>
+        ) : null
+      }
+    >
+      {items.length > 0 ? (
+        // jscpd:ignore-start
+        <ul className="space-y-1.5">
+          {items.map((surgery) => (
+            <li
+              key={surgery.id}
+              className="group flex items-center justify-between gap-2 rounded-md border border-border/60 bg-background px-2.5 py-2 transition-colors hover:bg-muted/40"
+            >
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <span className="truncate text-sm font-medium text-foreground">
+                  {surgery.procedureName}
+                </span>
+                {surgery.procedureDate ? (
+                  <span className="text-xs text-muted-foreground">
+                    {formatDate(surgery.procedureDate)}
+                  </span>
+                ) : null}
+              </div>
+              {!readOnly ? (
+                <SymbolTooltip label="Remove surgery">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (surgery.id) onRemoveSurgery(surgery.id);
+                    }}
+                    className="shrink-0 rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive focus:opacity-100 group-hover:opacity-100"
+                    aria-label="Remove surgery"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </SymbolTooltip>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+        // jscpd:ignore-end
+      ) : (
+        <HistoryEmptyState message="No surgical history recorded" />
       )}
-    </div>
+    </HistoryBlock>
   );
 }

@@ -4,8 +4,6 @@ import type { PrescriptionDetail } from '@/domains/prescriptions/core/repositori
 export function mapPrescriptionDetailRow(
   row: unknown,
 ): PrescriptionDetail | null {
-  if (!row) {
-    return null;
-  }
+  if (!row) return null;
   return row as PrescriptionDetail;
 }

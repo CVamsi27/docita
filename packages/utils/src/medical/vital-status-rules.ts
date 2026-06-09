@@ -7,9 +7,7 @@ export function rangeVitalStatus(
     critical: { min: number; max: number };
   },
 ): VitalStatusType {
-  if (value >= range.critical.max || value < range.critical.min) {
-    return "critical";
-  }
+  if (value >= range.critical.max || value < range.critical.min) return "critical";
   if (value >= range.normal.max) return "elevated";
   if (value < range.normal.min) return "low";
   return "normal";

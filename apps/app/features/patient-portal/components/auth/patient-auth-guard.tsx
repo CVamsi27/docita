@@ -36,9 +36,7 @@ export function PatientAuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user || user.role !== "PATIENT") {
-    return null;
-  }
+  if (!user || user.role !== "PATIENT") return null;
 
   return <>{children}</>;
 }

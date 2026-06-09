@@ -35,9 +35,7 @@ export class AddOnBasedAccessRule implements IAccessRule {
     const featureStr = String(context.feature);
     const requiredAddOn = this.featureAddOnMap[featureStr];
 
-    if (!requiredAddOn) {
-      return false;
-    }
+    if (!requiredAddOn) return false;
 
     return context.addOns.some(
       (addOn) => addOn.type === requiredAddOn && addOn.status === "active",

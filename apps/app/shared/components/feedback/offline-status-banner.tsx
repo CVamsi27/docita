@@ -8,9 +8,7 @@ export function OfflineStatusBanner() {
   const { isOffline } = useNetworkStatus();
   const { t } = useI18n();
 
-  if (!isOffline) {
-    return null;
-  }
+  if (!isOffline) return null;
 
   return (
     <div

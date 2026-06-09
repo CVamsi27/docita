@@ -5,7 +5,6 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { bookingCardClass, bookingSectionShell } from "./booking-constants";
 import { cn } from "@workspace/ui/lib/utils";
-
 export function BookingActionPanel({
   onSubmit,
   isSubmitting,
@@ -17,7 +16,6 @@ export function BookingActionPanel({
   isSubmitting: boolean;
   className?: string;
   variant?: "default" | "compact";
-  /** When false, submit stays disabled (matches validation before sending). */
   submitEnabled?: boolean;
 }) {
   const isCompact = variant === "compact";

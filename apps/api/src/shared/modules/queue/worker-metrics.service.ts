@@ -1,47 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Counter, Gauge, Histogram, register } from 'prom-client';
-
-const ensureCounter = (
-  name: string,
-  help: string,
-  labelNames: readonly string[],
-): Counter<string> => {
-  const existing = register.getSingleMetric(name);
-  if (existing instanceof Counter) {
-    return existing;
-  }
-  return new Counter({ name, help, labelNames: [...labelNames] });
-};
-
-const ensureHistogram = (
-  name: string,
-  help: string,
-  labelNames: readonly string[],
-  buckets: readonly number[],
-): Histogram<string> => {
-  const existing = register.getSingleMetric(name);
-  if (existing instanceof Histogram) {
-    return existing;
-  }
-  return new Histogram({
-    name,
-    help,
-    labelNames: [...labelNames],
-    buckets: [...buckets],
-  });
-};
-
-const ensureGauge = (
-  name: string,
-  help: string,
-  labelNames: readonly string[],
-): Gauge<string> => {
-  const existing = register.getSingleMetric(name);
-  if (existing instanceof Gauge) {
-    return existing;
-  }
-  return new Gauge({ name, help, labelNames: [...labelNames] });
-};
+import {
+  ensureCounter,
+  ensureGauge,
+  ensureHistogram,
+} from '@/shared/common/utils/prom-metric-factories';
 
 @Injectable()
 export class WorkerMetricsService {

@@ -7,9 +7,7 @@ function normalizeBaseUrl(raw: string): string {
 }
 
 function getBaseOrigin(): string {
-  if (typeof window !== "undefined" && window.location?.origin) {
-    return window.location.origin;
-  }
+  if (typeof window !== "undefined" && window.location?.origin) return window.location.origin;
 
   return import.meta.env["PUBLIC_SITE_URL"] || "http://127.0.0.1:3003";
 }
@@ -28,45 +26,5 @@ export function resolveApiUrl(path: string, baseOrigin = getBaseOrigin()): strin
   return `${baseUrl}${path}`;
 }
 
-export function getAppBaseUrl(): string {
-  const configuredUrl =
-    import.meta.env["PUBLIC_APP_URL"] ||
-    import.meta.env["NEXT_PUBLIC_APP_URL"] ||
-    import.meta.env["APP_URL"];
-
-  if (configuredUrl) {
-    return configuredUrl.replace(/\/+$/, "");
-  }
-
-  return "http://localhost:3000";
-}
-
-export async function fetchLandingJson<T>(
-  path: string,
-  baseOrigin?: string,
-): Promise<T> {
-  const response = await fetch(resolveApiUrl(path, baseOrigin));
-
-  if (!response.ok) {
-    throw new Error("We could not load this section. Please refresh and try again.");
-  }
-
-  return (await response.json()) as T;
-}
-
-export async function resolvePaymentRedirectLocation(
-  token: string,
-  baseOrigin?: string,
-): Promise<string | null> {
-  const response = await fetch(
-    resolveApiUrl(`/public/patient/pay/${encodeURIComponent(token)}`, baseOrigin),
-    { redirect: "manual" },
-  );
-  const redirectLocation = response.headers.get("location");
-
-  if (redirectLocation && response.status >= 300 && response.status < 400) {
-    return redirectLocation;
-  }
-
-  return null;
-}
+// fetchLandingJson is exported from api-fetch.ts — import it there directly.
+// getAppBaseUrl was moved to ./get-app-base-url — import from there instead.

@@ -127,15 +127,11 @@ describe("PaymentProcessingPage", () => {
     showUserFacingErrorToastMock.mockReset();
 
     clientMocks.get.mockImplementation((url: string) => {
-      if (url === "/internal/clinics") {
-        return Promise.resolve([clinic]);
-      }
+      if (url === "/internal/clinics") return Promise.resolve([clinic]);
       if (url === "/internal/tier-pricing") {
         return Promise.resolve({ tiers: tierPricing });
       }
-      if (url === "/internal/billing/pricing/offers") {
-        return Promise.resolve([]);
-      }
+      if (url === "/internal/billing/pricing/offers") return Promise.resolve([]);
       if (url === "/internal/clinics/clinic_1/tier-info") {
         return Promise.resolve({
           currentTier: "ESSENTIAL",
@@ -145,9 +141,7 @@ describe("PaymentProcessingPage", () => {
           pricing: 999,
         });
       }
-      if (url === "/pricing/config?currency=INR") {
-        return Promise.resolve(pricingConfig);
-      }
+      if (url === "/pricing/config?currency=INR") return Promise.resolve(pricingConfig);
       return Promise.reject(new Error(`Unexpected GET ${url}`));
     });
     clientMocks.post.mockResolvedValue({});
@@ -231,15 +225,11 @@ describe("PaymentProcessingPage", () => {
 
   it("shows an empty facilities state", async () => {
     clientMocks.get.mockImplementation((url: string) => {
-      if (url === "/internal/clinics") {
-        return Promise.resolve([]);
-      }
+      if (url === "/internal/clinics") return Promise.resolve([]);
       if (url === "/internal/tier-pricing") {
         return Promise.resolve({ tiers: tierPricing });
       }
-      if (url === "/internal/billing/pricing/offers") {
-        return Promise.resolve([]);
-      }
+      if (url === "/internal/billing/pricing/offers") return Promise.resolve([]);
       return Promise.reject(new Error(`Unexpected GET ${url}`));
     });
 
@@ -250,18 +240,12 @@ describe("PaymentProcessingPage", () => {
 
   it("reports plan detail loading failures", async () => {
     clientMocks.get.mockImplementation((url: string) => {
-      if (url === "/internal/clinics") {
-        return Promise.resolve([clinic]);
-      }
+      if (url === "/internal/clinics") return Promise.resolve([clinic]);
       if (url === "/internal/tier-pricing") {
         return Promise.resolve({ tiers: tierPricing });
       }
-      if (url === "/internal/billing/pricing/offers") {
-        return Promise.resolve([]);
-      }
-      if (url === "/internal/clinics/clinic_1/tier-info") {
-        return Promise.reject(new Error("Tier info unavailable"));
-      }
+      if (url === "/internal/billing/pricing/offers") return Promise.resolve([]);
+      if (url === "/internal/clinics/clinic_1/tier-info") return Promise.reject(new Error("Tier info unavailable"));
       return Promise.reject(new Error(`Unexpected GET ${url}`));
     });
 

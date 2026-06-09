@@ -16,7 +16,7 @@ const enforce = process.argv.includes("--enforce");
 const DOCUMENTED_FACADES = loadDocumentedFacadeServiceNames();
 
 const SKIP_FILE =
-  /(query|command|use-case|policy|processor|orchestrator|calculator|registry|resolver|dispatch|composer|listener|validator|aggregator|mapper|helper|metrics|diagnosis|activation|checkout|pricing|snapshot|ingress|webhook|settings|scheduler|token|upload|availability|workflow|compliance|creation|submit|slots|generation|verification|admin|notification|history|tracking|aggregation|template|message|automation|resend|approval|messaging|definition|facade|pdf)\.service\.ts$/i;
+  /(query|command|use-case|policy|processor|orchestrator|calculator|registry|resolver|dispatch|composer|listener|validator|aggregator|mapper|helper|metrics|diagnosis|activation|checkout|pricing|snapshot|ingress|webhook|settings|scheduler|token|upload|availability|workflow|compliance|creation|submit|slots|generation|verification|admin|notification|history|tracking|aggregation|template|message|automation|resend|approval|messaging|definition|facade|pdf|settlement)\.service\.ts$/i;
 
 const MIN_LINES = 200;
 const MIN_PRISMA_CALLS = 6;

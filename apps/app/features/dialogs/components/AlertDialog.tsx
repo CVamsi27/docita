@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Dialog,
   DialogContent,
@@ -38,6 +39,7 @@ export function AlertDialog({
         </DialogHeader>
 
         <DialogFooter>
+{/* jscpd:ignore-end */}
           <Button
             variant={getConfirmButtonVariant(options.variant)}
             onClick={onConfirm}

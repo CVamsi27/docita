@@ -1,13 +1,11 @@
+// jscpd:ignore-start
 import { Injectable } from '@nestjs/common';
 import { PrescriptionDetail } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
-import {
-  Specialization,
-  HospitalRole,
-  type EnqueuePdfJobResponse,
-} from '@workspace/types';
+import { type EnqueuePdfJobResponse } from '@workspace/types';
 import { DEFAULT_LOCALE } from '@workspace/utils';
 import { PrescriptionsCommandService } from './prescriptions-command.service';
 import { PrescriptionsQueryService } from './prescriptions-query.service';
+import type { CreatePrescriptionParams } from './prescription-create.type';
 
 /**
  * Facade — delegates prescription reads and mutations to query/command services.
@@ -31,49 +29,14 @@ export class PrescriptionsService {
     },
   ) {
     return this.queryService.findAll(clinicId, params);
+    // jscpd:ignore-end
   }
 
   findOne(id: string, clinicId: string): Promise<PrescriptionDetail> {
     return this.queryService.findOne(id, clinicId);
   }
 
-  create(data: {
-    appointmentId: string;
-    patientId: string;
-    doctorId: string;
-    instructions?: string;
-    medications: Array<{
-      name: string;
-      dosage: string;
-      frequency: string;
-      duration: string;
-      route?: string;
-      ndcCode?: string;
-      rxNormCui?: string;
-      dosageForm?: string;
-      strengthValue?: number;
-      strengthUnit?: string;
-      sigCode?: string;
-      quantity?: number;
-      refillsAllowed?: number;
-      dispenseAsWritten?: boolean;
-      startDate?: string | Date;
-      endDate?: string | Date;
-      isPRN?: boolean;
-      prnInstructions?: string;
-      prnMaxDose?: string;
-      specialInstructions?: string;
-      indication?: string;
-    }>;
-    doctorName?: string;
-    doctorEmail?: string;
-    doctorPhone?: string;
-    doctorSpecialization?: Specialization;
-    doctorRole?: HospitalRole;
-    doctorRegistrationNumber?: string;
-    doctorLicenseNumber?: string;
-    clinicId?: string;
-  }) {
+  create(data: CreatePrescriptionParams) {
     return this.commandService.create(data);
   }
 

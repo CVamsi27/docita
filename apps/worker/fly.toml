@@ -17,23 +17,6 @@ primary_region = 'bom'
   STORAGE_PROVIDER = 'r2'
   ENABLE_SCHEDULERS = 'true'
 
-[[services]]
-  internal_port = 3000
-  protocol = 'tcp'
-
-  [[services.ports]]
-    port = 3000
-
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 25
-    soft_limit = 20
-
-  [[services.tcp_checks]]
-    interval = '15s'
-    timeout = '5s'
-    grace_period = '60s'
-
 [[vm]]
   memory = '512mb'
   cpu_kind = 'shared'

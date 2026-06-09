@@ -50,9 +50,7 @@ function tierRecord<V extends string | boolean | number>(
 
 function whatsappIncludedQuota(tier: Tier): number | undefined {
   const tierName = getTierName(tier);
-  if (tierName === STARTER || tierName === INTELLIGENCE) {
-    return undefined;
-  }
+  if (tierName === STARTER || tierName === INTELLIGENCE) return undefined;
   return WHATSAPP_ADDON_PRICING[tierName].includedQuota;
 }
 

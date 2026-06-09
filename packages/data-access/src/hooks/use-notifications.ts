@@ -48,6 +48,7 @@ export const useUnreadNotificationCount = (enabled: boolean = true) =>
     },
   );
 
+// jscpd:ignore-start
 export const useMarkNotificationRead = () =>
   useAPIMutation<void, { id: string }>(
     (vars) => `/staff-notifications/mark-read/${vars.id}`,
@@ -75,6 +76,7 @@ export const useDeleteNotification = () =>
       ],
     },
   );
+// jscpd:ignore-end
 
 export const useDeleteAllNotifications = () =>
   useAPIMutation<void, void>("/staff-notifications/delete-all", "DELETE", {

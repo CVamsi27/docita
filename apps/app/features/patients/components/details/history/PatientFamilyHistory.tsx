@@ -1,18 +1,13 @@
-import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
 import { Users, X } from "lucide-react";
 import { PatientWithMedicalHistory } from "@workspace/types";
+import { HistoryAddRow, HistoryBlock, HistoryEmptyState } from "./HistoryBlock";
 
 interface PatientFamilyHistoryProps {
   patient: PatientWithMedicalHistory;
   readOnly: boolean;
+  isCompact?: boolean;
   newFamilyCondition: string;
   newFamilyRelation: string;
   onNewFamilyConditionChange: (value: string) => void;
@@ -31,86 +26,76 @@ export function PatientFamilyHistory({
   onAddFamilyHistory,
   onRemoveFamilyHistory,
 }: PatientFamilyHistoryProps) {
+  const items = patient.familyHistory ?? [];
   return (
-    <Card className="mt-6">
-      <CardHeader className="py-4">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Users className="h-5 w-5 text-primary" />
-          Family History
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2 mb-4">
-          <div className="flex flex-col gap-2">
-            {patient.familyHistory?.map((history) => (
-              <div
-                key={history.id}
-                className="flex items-center justify-between p-2.5 rounded-lg border bg-card hover:bg-muted/20 transition-colors group"
-              >
-                <div className="flex flex-col gap-0.5">
-                  <span className="font-medium text-sm">
-                    {history.condition}
-                  </span>
-                  <span className="text-muted-foreground text-xs bg-muted px-1.5 py-0.5 rounded-md w-fit">
-                    {history.relationship}
-                  </span>
-                </div>
-                {!readOnly && (
-                  <SymbolTooltip label="Remove family history">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (history.id) onRemoveFamilyHistory(history.id);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors duration-150"
-                      aria-label="Remove family history"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </SymbolTooltip>
-                )}
-              </div>
-            ))}
-            {(!patient.familyHistory || patient.familyHistory.length === 0) && (
-              <div className="w-full py-6 text-center border-2 border-dashed rounded-lg bg-muted/10">
-                <span className="text-sm text-muted-foreground">
-                  No family history recorded
+    <HistoryBlock
+      icon={<Users className="h-3.5 w-3.5 text-primary" />}
+      title="Family History"
+      count={items.length}
+      addRow={
+        !readOnly ? (
+          <HistoryAddRow
+            disabled={
+              !newFamilyCondition.trim() || !newFamilyRelation.trim()
+            }
+            onAdd={onAddFamilyHistory}
+          >
+            <div className="relative flex-1 min-w-[140px]">
+              <Users className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Condition"
+                value={newFamilyCondition}
+                onChange={(e) => onNewFamilyConditionChange(e.target.value)}
+                className="h-9 pl-9"
+              />
+            </div>
+            <Input
+              placeholder="Relationship"
+              value={newFamilyRelation}
+              onChange={(e) => onNewFamilyRelationChange(e.target.value)}
+              className="h-9 w-32 sm:w-36"
+            />
+          </HistoryAddRow>
+        ) : null
+      }
+    >
+      {items.length > 0 ? (
+        // jscpd:ignore-start
+        <ul className="space-y-1.5">
+          {items.map((history) => (
+            <li
+              key={history.id}
+              className="group flex items-center justify-between gap-2 rounded-md border border-border/60 bg-background px-2.5 py-2 transition-colors hover:bg-muted/40"
+            >
+              <div className="flex min-w-0 flex-col gap-1">
+                <span className="truncate text-sm font-medium text-foreground">
+                  {history.condition}
+                </span>
+                <span className="w-fit rounded-md border border-border/60 bg-muted/40 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  {history.relationship}
                 </span>
               </div>
-            )}
-          </div>
-          {!readOnly && (
-            <div className="flex gap-2 items-start pt-2 border-t border-border/40">
-              <div className="grid gap-2 flex-1">
-                <div className="relative">
-                  <Users className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Condition"
-                    value={newFamilyCondition}
-                    onChange={(e) => onNewFamilyConditionChange(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-              <Input
-                placeholder="Relationship"
-                value={newFamilyRelation}
-                onChange={(e) => onNewFamilyRelationChange(e.target.value)}
-                className="w-36"
-              />
-              <Button
-                type="button"
-                onClick={onAddFamilyHistory}
-                disabled={
-                  !newFamilyCondition.trim() || !newFamilyRelation.trim()
-                }
-              >
-                Add
-              </Button>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+              {!readOnly ? (
+                <SymbolTooltip label="Remove family history">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (history.id) onRemoveFamilyHistory(history.id);
+                    }}
+                    className="shrink-0 rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive focus:opacity-100 group-hover:opacity-100"
+                    aria-label="Remove family history"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </SymbolTooltip>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+        // jscpd:ignore-end
+      ) : (
+        <HistoryEmptyState message="No family history recorded" />
+      )}
+    </HistoryBlock>
   );
 }

@@ -84,6 +84,5 @@ export async function fetchNextAvailableSlotWindow(
 
     return { startLocal, endLocal };
   }
-
   return null;
 }

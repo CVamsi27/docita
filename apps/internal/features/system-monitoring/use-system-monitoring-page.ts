@@ -29,7 +29,6 @@ export function useSystemMonitoringPage() {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const fastInterval = autoRefresh ? 30000 : false;
   const slowInterval = autoRefresh ? 60000 : false;
-
   const dashboardQuery = useInternalMonitoringDashboard({ refetchInterval: fastInterval });
   const monitoringHealthQuery = useInternalMonitoringHealth({ refetchInterval: fastInterval });
   const appHealthQuery = useInternalHealthCheck("system-monitoring", { refetchInterval: fastInterval });
@@ -41,7 +40,6 @@ export function useSystemMonitoringPage() {
   const queueHealthQuery = useInternalMonitoringQueueHealth({ refetchInterval: fastInterval });
 
   const loading = dashboardQuery.isLoading || monitoringHealthQuery.isLoading || appHealthQuery.isLoading || performanceQuery.isLoading || databaseQuery.isLoading || tenantScopeQuery.isLoading;
-
   const dashboard = dashboardQuery.data;
   const monitoringHealth = monitoringHealthQuery.data;
   const appHealth = appHealthQuery.data;

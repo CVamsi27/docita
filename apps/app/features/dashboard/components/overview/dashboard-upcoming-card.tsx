@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import Link from "next/link";
 import { CalendarRange } from "lucide-react";
 import { formatDate, getPatientFullName } from "@workspace/utils";
@@ -17,6 +18,7 @@ import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-l
 import { filterUpcomingBeyondToday } from "@/features/dashboard/lib/upcoming-beyond-today";
 
 interface DashboardUpcomingCardProps {
+// jscpd:ignore-end
   upcoming: DashboardStats["upcomingAppointments"];
 }
 

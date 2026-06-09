@@ -57,9 +57,7 @@ export function useAuthCredentialActions(options: {
 
   const login = async (email: string, password: string) => {
     const payload = loginSchema.parse({ email, password });
-    if (loginLockoutUntil && loginLockoutUntil > Date.now()) {
-      throw new Error(formatLoginLockoutMessage(loginLockoutUntil));
-    }
+    if (loginLockoutUntil && loginLockoutUntil > Date.now()) throw new Error(formatLoginLockoutMessage(loginLockoutUntil));
 
     try {
       const authPayload = extractAuthPayload(
@@ -76,15 +74,11 @@ export function useAuthCredentialActions(options: {
         );
       }
 
-      if (!userData) {
-        throw new Error(AUTH_RESPONSE_ERROR_MESSAGE);
-      }
+      if (!userData) throw new Error(AUTH_RESPONSE_ERROR_MESSAGE);
 
-      if (userData.role === "INTERNAL") {
-        throw new Error(
+      if (userData.role === "INTERNAL") throw new Error(
           "Internal accounts should use the Internal Console at /internal",
         );
-      }
 
       if (accessToken) {
         persistToken(accessToken);
@@ -111,13 +105,9 @@ export function useAuthCredentialActions(options: {
         throw new Error(formatLoginLockoutMessage(lockoutUntil));
       }
 
-      if (status === 401) {
-        throw { code: "INVALID_CREDENTIALS" } as const;
-      }
+      if (status === 401) throw { code: "INVALID_CREDENTIALS" } as const;
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       throw new Error(AUTH_RESPONSE_ERROR_MESSAGE);
     }
@@ -162,11 +152,9 @@ export function useAuthCredentialActions(options: {
       );
     }
 
-    if (!userData) {
-      throw new Error(
+    if (!userData) throw new Error(
         "We could not finish creating your account. Please try again.",
       );
-    }
 
     if (accessToken) {
       persistToken(accessToken);

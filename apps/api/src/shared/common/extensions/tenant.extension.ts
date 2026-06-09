@@ -12,15 +12,11 @@ export const tenantExtension = Prisma.defineExtension({
     $allModels: {
       async $allOperations({ model, operation, args, query }) {
         const rule = getTenantScopeRule(model);
-        if (!rule) {
-          return query(args);
-        }
+        if (!rule) return query(args);
 
         const tenant = getCurrentTenant();
 
-        if (tenant?.bypassed) {
-          return query(args);
-        }
+        if (tenant?.bypassed) return query(args);
 
         if (!tenant?.clinicId) {
           /**

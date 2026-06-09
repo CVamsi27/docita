@@ -1,3 +1,5 @@
+import { resolveApiUrl } from "@workspace/utils";
+
 const DEFAULT_API_URL = "/api/v1";
 
 const UPSTREAM_API_HOSTS = new Set([
@@ -12,21 +14,7 @@ const UPSTREAM_API_HOSTS = new Set([
  * auth cookies (set on app.docita.work) ride on every fetch. Pointing the
  * client at https://api.docita.work breaks refresh and protected routes.
  */
-export function resolveAppApiUrl(value: string, origin?: string): string {
-  if (/^https?:\/\//i.test(value)) {
-    return value.replace(/\/$/, "");
-  }
-
-  const runtimeOrigin =
-    origin ??
-    (typeof window !== "undefined" ? window.location.origin : undefined);
-
-  if (!runtimeOrigin) {
-    return value;
-  }
-
-  return new URL(value, runtimeOrigin).toString().replace(/\/$/, "");
-}
+export const resolveAppApiUrl = resolveApiUrl;
 
 /**
  * When a Cloudflare build accidentally inlines NEXT_PUBLIC_API_URL as the

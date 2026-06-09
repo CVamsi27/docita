@@ -126,8 +126,6 @@ interface ConsultationMainContentProps {
   appointmentId: string;
   clinicType?: string;
   consultationReadOnly: boolean;
-  isSidebarOpen: boolean;
-  onToggleSidebar: () => void;
   saveHandlesRef: React.RefObject<ConsultationSaveHandles | null>;
   paletteOpen: boolean;
   onPaletteOpenChange: (open: boolean) => void;
@@ -149,8 +147,6 @@ export function ConsultationMainContent({
   appointmentId,
   clinicType,
   consultationReadOnly,
-  isSidebarOpen,
-  onToggleSidebar,
   saveHandlesRef,
   paletteOpen,
   onPaletteOpenChange,
@@ -199,8 +195,6 @@ export function ConsultationMainContent({
               }
               onBack={onBack}
               MobileSidebarContent={MobileSidebar}
-              isDesktopSidebarOpen={isSidebarOpen}
-              onToggleDesktopSidebar={onToggleSidebar}
               onOpenCommandPalette={() => onPaletteOpenChange(true)}
               onMarkDone={onMarkDone}
               isMarkingDone={isMarkingDone}
@@ -212,7 +206,6 @@ export function ConsultationMainContent({
               appointmentData={appointmentData}
               clinicType={clinicType}
               readOnly={consultationReadOnly}
-              isSidebarOpen={isSidebarOpen}
               saveHandlesRef={saveHandlesRef}
               paletteOpen={paletteOpen}
               onPaletteOpenChange={onPaletteOpenChange}

@@ -45,9 +45,7 @@ export class CursorPaginationService {
   }
 
   private getSortValue(item: unknown, sortBy: string): unknown {
-    if (!item || typeof item !== 'object') {
-      return undefined;
-    }
+    if (!item || typeof item !== 'object') return undefined;
 
     return isRecord(item) ? item[sortBy] : undefined;
   }

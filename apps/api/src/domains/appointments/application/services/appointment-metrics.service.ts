@@ -74,9 +74,7 @@ export class AppointmentMetricsService {
       const definitionId = definitionIdsByKey.get(
         metric.definitionKey.trim().toLowerCase(),
       );
-      if (!definitionId) {
-        return [];
-      }
+      if (!definitionId) return [];
 
       return [
         this.persistence.patientMetricRecord.create({

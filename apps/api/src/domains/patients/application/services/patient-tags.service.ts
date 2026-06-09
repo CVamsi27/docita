@@ -51,12 +51,16 @@ export class PatientTagsService {
     });
   }
 
-  async update(params: {
+  /**
+   * Shared by `update` and `remove` — both must confirm the patient exists
+   * and the tag belongs to it before mutating, and respond with the same
+   * 404s when either check fails. Keeping the guard pairing here stops the
+   * two write paths' existence checks (and error messages) from drifting.
+   */
+  private async getExistingTagOrThrow(params: {
     clinicId: string;
     patientId: string;
     tagId: string;
-    tag?: string;
-    color?: string;
   }) {
     if (!(await this.patientTagsRepository.patientExists(params))) {
       throw new NotFoundException('Patient not found');
@@ -66,9 +70,19 @@ export class PatientTagsService {
       patientId: params.patientId,
       tagId: params.tagId,
     });
-    if (!existing) {
-      throw new NotFoundException('Tag not found');
-    }
+    if (!existing) throw new NotFoundException('Tag not found');
+
+    return existing;
+  }
+
+  async update(params: {
+    clinicId: string;
+    patientId: string;
+    tagId: string;
+    tag?: string;
+    color?: string;
+  }) {
+    await this.getExistingTagOrThrow(params);
 
     return this.patientTagsRepository.update({
       tagId: params.tagId,
@@ -80,17 +94,7 @@ export class PatientTagsService {
   }
 
   async remove(params: { clinicId: string; patientId: string; tagId: string }) {
-    if (!(await this.patientTagsRepository.patientExists(params))) {
-      throw new NotFoundException('Patient not found');
-    }
-
-    const existing = await this.patientTagsRepository.findTag({
-      patientId: params.patientId,
-      tagId: params.tagId,
-    });
-    if (!existing) {
-      throw new NotFoundException('Tag not found');
-    }
+    await this.getExistingTagOrThrow(params);
 
     await this.patientTagsRepository.remove({ tagId: params.tagId });
   }

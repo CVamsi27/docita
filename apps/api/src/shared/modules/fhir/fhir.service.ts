@@ -35,6 +35,15 @@ export class FhirService {
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
+  // Shared by `getConditions`, `getAllergyIntolerances`, and
+  // `getImmunizations` — all three FHIR resource lookups scope the same
+  // patient-owned model to the requesting clinic via `patientId` plus
+  // `patient.clinicId`, so the filter shape lives in one place rather than
+  // the three queries drifting apart.
+  private buildPatientClinicWhere(patientId: string, clinicId: string) {
+    return { patientId, patient: { clinicId } };
+  }
+
   async getPatientResource(
     patientId: string,
     clinicId: string,
@@ -110,10 +119,7 @@ export class FhirService {
     clinicId: string,
   ): Promise<FhirCondition[]> {
     const conditions = await this.prisma.patientMedicalCondition.findMany({
-      where: {
-        patientId,
-        patient: { clinicId },
-      },
+      where: this.buildPatientClinicWhere(patientId, clinicId),
       include: {
         patient: { select: { firstName: true, lastName: true } },
       },
@@ -149,10 +155,7 @@ export class FhirService {
     clinicId: string,
   ): Promise<FhirAllergyIntolerance[]> {
     const allergies = await this.prisma.patientAllergy.findMany({
-      where: {
-        patientId,
-        patient: { clinicId },
-      },
+      where: this.buildPatientClinicWhere(patientId, clinicId),
       include: {
         patient: { select: { firstName: true, lastName: true } },
       },
@@ -166,10 +169,7 @@ export class FhirService {
     clinicId: string,
   ): Promise<FhirImmunization[]> {
     const immunizations = await this.prisma.immunization.findMany({
-      where: {
-        patientId,
-        patient: { clinicId },
-      },
+      where: this.buildPatientClinicWhere(patientId, clinicId),
       orderBy: { administeredDate: 'desc' },
     });
 

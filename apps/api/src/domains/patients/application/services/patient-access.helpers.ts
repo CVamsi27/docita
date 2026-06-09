@@ -10,9 +10,8 @@ export async function assertMrnAvailable(
   if (!mrn) return;
 
   const existing = await repository.findByMrn(mrn, clinicId);
-  if (existing && existing.id !== currentPatientId) {
+  if (existing && existing.id !== currentPatientId)
     throw new ConflictException(
       'A patient with this MRN already exists in this clinic',
     );
-  }
 }

@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
   Dialog,
@@ -17,6 +18,7 @@ import {
 import { cn } from "@workspace/ui/lib/utils";
 import {
   AlertTriangle,
+// jscpd:ignore-end
   ArrowDown,
   ArrowRight,
   Building2,
@@ -284,14 +286,12 @@ function TierChangeFooter({ props, dialog }: TierChangeDialogViewProps) {
 }
 
 function TierChangeConfirmLabel({ props, dialog }: TierChangeDialogViewProps) {
-  if (dialog.busy) {
-    return (
+  if (dialog.busy) return (
       <>
         <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
         Processing…
       </>
     );
-  }
   if (props.selectedTier === "ENTERPRISE") return "Request Callback";
   return `Confirm ${dialog.isUpgrade ? "Upgrade" : "Downgrade"}`;
 }

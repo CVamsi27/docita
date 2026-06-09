@@ -21,9 +21,7 @@ export class EmailEventsListener {
 
   private maskEmail(email: string): string {
     const [localPart, domain] = email.split('@');
-    if (!localPart || !domain) {
-      return '***';
-    }
+    if (!localPart || !domain) return '***';
 
     const visible = localPart.slice(0, 2);
     return `${visible}${'*'.repeat(Math.max(localPart.length - 2, 1))}@${domain}`;

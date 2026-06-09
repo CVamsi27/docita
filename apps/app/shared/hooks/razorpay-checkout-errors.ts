@@ -43,9 +43,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function isPaymentCanceledError(
   error: unknown,
 ): error is RazorpayCheckoutError {
-  if (error instanceof PaymentCanceledError) {
-    return true;
-  }
+  if (error instanceof PaymentCanceledError) return true;
 
   return isRecord(error) && error.paymentCanceled === true;
 }

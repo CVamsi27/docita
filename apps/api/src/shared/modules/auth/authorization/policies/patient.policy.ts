@@ -1,12 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { Role } from '@workspace/db';
-import type {
-  AuthorizationAction,
-  AuthorizationContext,
-  AuthorizationDecision,
-  AuthorizationUser,
-  ResourcePolicy,
-} from '../types';
+// jscpd:ignore-start
+import {
+  Injectable,
+  Role,
+  BaseResourcePolicy,
+  type AuthorizationAction,
+  type AuthorizationContext,
+  type AuthorizationDecision,
+  type AuthorizationUser,
+} from './policy-shared';
 
 /**
  * PATIENT can only read/update their own record. Clinical staff need
@@ -14,20 +15,12 @@ import type {
  * assignment-pinning today; layered above the matrix role gate).
  */
 @Injectable()
-export class PatientPolicy implements ResourcePolicy {
-  can(
+export class PatientPolicy extends BaseResourcePolicy {
+  protected doCheck(
     _action: AuthorizationAction,
     user: AuthorizationUser,
     context: AuthorizationContext,
   ): AuthorizationDecision {
-    if (
-      context.resourceClinicId &&
-      user.clinicId &&
-      context.resourceClinicId !== user.clinicId
-    ) {
-      return { allowed: false, reason: 'tenant_mismatch' };
-    }
-
     if (user.role === Role.PATIENT) {
       const ownerId = context.resourceOwnerId ?? context.assignedPatientId;
       if (!ownerId || ownerId !== user.patientId) {
@@ -38,3 +31,4 @@ export class PatientPolicy implements ResourcePolicy {
     return { allowed: true };
   }
 }
+// jscpd:ignore-end

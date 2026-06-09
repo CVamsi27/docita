@@ -8,9 +8,7 @@ export function createCRUDResource<T extends { id?: string }>(
     getAll(
       params?: Record<string, string | number | boolean | undefined | null>,
     ): Promise<T[] | PaginatedResponse<T>> {
-      if (!params) {
-        return client.get(basePath);
-      }
+      if (!params) return client.get(basePath);
 
       return client.get(basePath, { params });
     },

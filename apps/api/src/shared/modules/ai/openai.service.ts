@@ -24,7 +24,7 @@ export class OpenaiService {
     private configService: AppConfigService,
     @Optional() @Inject(CACHE_MANAGER) private cacheManager?: Cache,
   ) {
-    const aiConfig = this.configService.getOpenAiConfig();
+    const aiConfig = this.configService.getAiConfig();
     this.modelType = aiConfig.model;
     this.requestTimeout = aiConfig.requestTimeout;
     this.cacheEnabled = aiConfig.cacheEnabled;
@@ -57,9 +57,8 @@ export class OpenaiService {
     signal?: AbortSignal;
   }): AsyncGenerator<string, void, void> {
     const { systemPrompt, messages, temperature = 0.4, signal } = params;
-    if (!this.openai) {
+    if (!this.openai)
       throw new ServiceUnavailableException('OpenAI client not initialized');
-    }
     const stream = await this.openai.chat.completions.create(
       {
         model: this.modelType,
@@ -106,9 +105,8 @@ export class OpenaiService {
       if (cached !== undefined && cached !== null) return cached;
     }
 
-    if (!this.openai) {
+    if (!this.openai)
       throw new ServiceUnavailableException('OpenAI client not initialized');
-    }
 
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
     const response = await Promise.race([

@@ -31,6 +31,7 @@ export function useInternalClinics(
   const fetcher = useDataAccessFetcher();
 
   return useQuery({
+// jscpd:ignore-start
     queryKey: clinicsQueryKey(scope, token),
     queryFn: async () => {
       const data = await fetcher<

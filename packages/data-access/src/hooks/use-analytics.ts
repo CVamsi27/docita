@@ -52,19 +52,20 @@ export const useAnalyticsOverview = (
   );
 };
 
+const useAdvancedAnalyticsTierAccess = () => {
+  const ctx = useDataAccessContext();
+  const basicOk = ctx.isTierFeatureEnabled(Feature.BASIC_ANALYTICS);
+  const advancedOk = ctx.isTierFeatureEnabled(Feature.ADVANCED_ANALYTICS);
+  return { basicOk, advancedOk, tierOk: basicOk && advancedOk };
+};
+
 export const useDiseaseTrends = (
   clinicId: string,
   startDate?: string,
   endDate?: string,
   options?: APIQueryOptions<DiseaseTrend[]>,
 ) => {
-  const basicOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.BASIC_ANALYTICS,
-  );
-  const advancedOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.ADVANCED_ANALYTICS,
-  );
-  const tierOk = basicOk && advancedOk;
+  const { tierOk } = useAdvancedAnalyticsTierAccess();
   const query: AnalyticsDateRangeQuery = { clinicId, startDate, endDate };
 
   return useAPIQuery<DiseaseTrend[]>(
@@ -83,13 +84,7 @@ export const useRevenueByCPT = (
   endDate?: string,
   options?: APIQueryOptions<AnalyticsRevenueByCptListResponse>,
 ) => {
-  const basicOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.BASIC_ANALYTICS,
-  );
-  const advancedOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.ADVANCED_ANALYTICS,
-  );
-  const tierOk = basicOk && advancedOk;
+  const { tierOk } = useAdvancedAnalyticsTierAccess();
   const query: AnalyticsDateRangeQuery = { clinicId, startDate, endDate };
 
   return useAPIQuery<AnalyticsRevenueByCptListResponse>(
@@ -108,13 +103,7 @@ export const useComplianceMetrics = (
   endDate?: string,
   options?: APIQueryOptions<AnalyticsCodingComplianceMetricsResponse>,
 ) => {
-  const basicOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.BASIC_ANALYTICS,
-  );
-  const advancedOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.ADVANCED_ANALYTICS,
-  );
-  const tierOk = basicOk && advancedOk;
+  const { tierOk } = useAdvancedAnalyticsTierAccess();
   const query: AnalyticsDateRangeQuery = { clinicId, startDate, endDate };
 
   return useAPIQuery<AnalyticsCodingComplianceMetricsResponse>(
@@ -137,13 +126,7 @@ export const useRevenueMetrics = (
   startDate?: Date,
   endDate?: Date,
 ) => {
-  const basicOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.BASIC_ANALYTICS,
-  );
-  const advancedOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.ADVANCED_ANALYTICS,
-  );
-  const tierOk = basicOk && advancedOk;
+  const { tierOk } = useAdvancedAnalyticsTierAccess();
   const revenueMetricsQuery: AnalyticsPeriodDateRangeQuery = {
     clinicId,
     period,
@@ -168,13 +151,7 @@ export const useAppointmentMetrics = (
   startDate?: Date,
   endDate?: Date,
 ) => {
-  const basicOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.BASIC_ANALYTICS,
-  );
-  const advancedOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.ADVANCED_ANALYTICS,
-  );
-  const tierOk = basicOk && advancedOk;
+  const { tierOk } = useAdvancedAnalyticsTierAccess();
   const appointmentMetricsQuery: AnalyticsPeriodDateRangeQuery = {
     clinicId,
     period,
@@ -198,13 +175,7 @@ export const usePatientDemographics = (
   startDate?: Date,
   endDate?: Date,
 ) => {
-  const basicOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.BASIC_ANALYTICS,
-  );
-  const advancedOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.ADVANCED_ANALYTICS,
-  );
-  const tierOk = basicOk && advancedOk;
+  const { tierOk } = useAdvancedAnalyticsTierAccess();
   const demographicsQuery: AnalyticsDateRangeQuery = {
     clinicId,
     startDate: startDate?.toISOString(),

@@ -289,9 +289,7 @@ export function validateContractForm(form: ContractFormState): string | null {
     !form.contractNumber ||
     !form.startDate ||
     !form.endDate
-  ) {
-    return "primaryClinicId, contractNumber, start and end dates are required";
-  }
+  ) return "primaryClinicId, contractNumber, start and end dates are required";
   return null;
 }
 

@@ -60,9 +60,7 @@ export class SubscriptionsController {
   @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
   @Get('current')
   async getCurrent(@Request() req: RequestWithUser) {
-    if (!req.user?.clinicId) {
-      throw new Error('Clinic ID not found');
-    }
+    if (!req.user?.clinicId) throw new Error('Clinic ID not found');
     return subscriptionCurrentResponseSchema.parse(
       await this.queryService.getSubscriptionDetails(req.user.clinicId),
     );
@@ -72,9 +70,7 @@ export class SubscriptionsController {
   @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
   @Get('usage')
   async getCurrentUsage(@Request() req: RequestWithUser) {
-    if (!req.user?.clinicId) {
-      throw new Error('Clinic ID not found');
-    }
+    if (!req.user?.clinicId) throw new Error('Clinic ID not found');
     const usage = await this.clinicUsage.getCurrentUsage(req.user.clinicId);
     return currentUsageSchema.parse(JSON.parse(JSON.stringify(usage)));
   }
@@ -86,9 +82,7 @@ export class SubscriptionsController {
     @Request() req: RequestWithUser,
     @Body() body: SubscriptionCheckoutRequestDto,
   ) {
-    if (!req.user?.clinicId) {
-      throw new Error('Clinic ID not found');
-    }
+    if (!req.user?.clinicId) throw new Error('Clinic ID not found');
     return this.createCheckoutUseCase.execute({
       clinicId: req.user.clinicId,
       tier: body.tier,
@@ -103,9 +97,7 @@ export class SubscriptionsController {
     @Request() req: RequestWithUser,
     @Body() body: SubscriptionCancelRequestDto,
   ) {
-    if (!req.user?.clinicId) {
-      throw new Error('Clinic ID not found');
-    }
+    if (!req.user?.clinicId) throw new Error('Clinic ID not found');
     return this.cancelSubscriptionUseCase.execute({
       clinicId: req.user.clinicId,
       reason: body.reason,
@@ -118,9 +110,7 @@ export class SubscriptionsController {
     @Request() req: RequestWithUser,
     @Body() body: SubscriptionActivateLegacyRequestDto,
   ) {
-    if (!req.user?.clinicId) {
-      throw new Error('Clinic ID not found');
-    }
+    if (!req.user?.clinicId) throw new Error('Clinic ID not found');
     const normalizedBillingCycle: 'MONTHLY' | 'YEARLY' =
       body.cycle === 'YEARLY' ? 'YEARLY' : 'MONTHLY';
 

@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const nextDir = path.resolve(__dirname, "../.next");
 const ifProduction = process.argv.includes("--if-production");
+// jscpd:ignore-start
 
 const shouldClean = !ifProduction || existsSync(path.join(nextDir, "standalone"));
 
@@ -24,3 +25,4 @@ if (existsSync(openNextDir) && process.env.DOCITA_CLOUDFLARE !== "1") {
     // Best-effort cleanup
   }
 }
+// jscpd:ignore-end

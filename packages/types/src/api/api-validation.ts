@@ -1,13 +1,9 @@
-
-
 import { z } from "zod";
 import {
   createPatientRequestSchema,
   updatePatientRequestSchema,
 } from "../contracts/patients";
-import {
-  createPrescriptionRequestSchema,
-} from "../contracts/prescriptions";
+import { createPrescriptionRequestSchema } from "../contracts/prescriptions";
 import { createLabTestRequestSchema } from "../contracts/lab-tests";
 import { appointmentStatusSchema, clinicTypeSchema } from "../shared/users";
 

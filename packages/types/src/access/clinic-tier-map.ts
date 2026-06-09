@@ -48,9 +48,7 @@ export function mapDbClinicTierStringToTierName(dbTier: string): TierName {
     return LEGACY_FRONT_DESK_TIER_TO_TIER_NAME[dbTier] ?? "ESSENTIAL";
   }
   const direct = tierSchema.safeParse(dbTier);
-  if (direct.success) {
-    return direct.data;
-  }
+  if (direct.success) return direct.data;
   return LEGACY_CLINIC_TIER_TO_TIER_NAME[dbTier] ?? "STARTER";
 }
 
@@ -63,9 +61,7 @@ export function mapClinicTierDbStringToAccessTier(dbTier: string): Tier {
     return Tier[LEGACY_FRONT_DESK_TIER_TO_TIER_NAME[dbTier] ?? "ESSENTIAL"];
   }
   const canonical = tierSchema.safeParse(dbTier);
-  if (canonical.success) {
-    return Tier[canonical.data];
-  }
+  if (canonical.success) return Tier[canonical.data];
   return LEGACY_CLINIC_TIER_TO_ACCESS_TIER[dbTier] ?? Tier.STARTER;
 }
 

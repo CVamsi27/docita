@@ -6,9 +6,7 @@ import {
 } from '@/shared/modules/observability/phi-redactor';
 
 export function shouldCaptureInSentry(error: unknown): boolean {
-  if (error instanceof HttpException) {
-    return error.getStatus() >= 500;
-  }
+  if (error instanceof HttpException) return error.getStatus() >= 500;
 
   return true;
 }

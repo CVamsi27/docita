@@ -48,7 +48,6 @@ export function PricingDialogTierCard({
   );
   const price = isYearly ? tierPricing.yearly : tierPricing.monthly;
   const isCustomTier = tierName === "ENTERPRISE" || price === "custom";
-
   return (
     <div
       className={cn(
@@ -99,9 +98,7 @@ export function resolvePricingDialogEstimate(
     | null
     | undefined,
 ): number | null {
-  if (tierName === "ENTERPRISE" || !estimate) {
-    return null;
-  }
+  if (tierName === "ENTERPRISE" || !estimate) return null;
 
   return isYearly ? estimate.totalYearly : estimate.totalMonthly;
 }

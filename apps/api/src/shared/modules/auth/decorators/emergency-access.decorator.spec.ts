@@ -23,9 +23,7 @@ describe('EmergencyAccess decorator', () => {
       'testRoute',
     );
 
-    if (!descriptor) {
-      throw new Error('Descriptor not found');
-    }
+    if (!descriptor) throw new Error('Descriptor not found');
 
     EmergencyAccess()(TestController.prototype, 'testRoute', descriptor);
 

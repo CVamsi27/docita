@@ -25,9 +25,7 @@ export function parseChiefComplaintsFromAppointmentData(
   }
 
   const raw = data["chiefComplaint"];
-  if (typeof raw !== "string") {
-    return [];
-  }
+  if (typeof raw !== "string") return [];
   const trimmed = raw.trim();
   return trimmed.startsWith("[") ? parseChiefComplaintJson(trimmed) : [];
 }

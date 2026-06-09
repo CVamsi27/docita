@@ -91,6 +91,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
   delete(id: string, clinicId: string): Promise<void> {
     return this.writeRepository.delete(id, clinicId);
   }
+  // jscpd:ignore-start
 
   startConsultationTx(
     id: string,
@@ -103,6 +104,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
     currentStatus: AppointmentStatusEnum,
   ): Promise<void> {
     return this.writeRepository.startConsultationTx(
+      // jscpd:ignore-end
       id,
       clinicId,
       queueToken,

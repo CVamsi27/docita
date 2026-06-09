@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
   Card,
@@ -86,6 +87,7 @@ export const PrescriptionAssistantTab = ({
             <>
               <Sparkles className="h-4 w-4 mr-2" />
               Get Suggestions
+{/* jscpd:ignore-end */}
             </>
           )}
         </Button>

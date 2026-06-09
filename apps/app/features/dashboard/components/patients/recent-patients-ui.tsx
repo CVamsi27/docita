@@ -27,7 +27,6 @@ export interface RecentPatient {
 export interface RecentPatientsUIProps {
   patients: RecentPatient[];
 }
-
 export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {
   return (
     <Card className="border border-border shadow-sm bg-card">
@@ -56,10 +55,7 @@ export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {
               icon={Users}
               title="No patients yet"
               description="Add your first patient"
-              action={{
-                label: "Add patient",
-                href: "/patients?action=new",
-              }}
+              action={{ label: "Add patient", href: "/patients?action=new" }}
             />
           </div>
         ) : (

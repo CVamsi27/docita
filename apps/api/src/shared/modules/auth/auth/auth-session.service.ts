@@ -71,9 +71,7 @@ export class AuthSessionService {
       } catch (error) {
         const canRetry =
           attempt < maxAttempts && isPrismaTransactionAcquireTimeout(error);
-        if (!canRetry) {
-          throw error;
-        }
+        if (!canRetry) throw error;
         this.logger.warn(
           `Refresh token transaction waiting for pool connection (attempt ${attempt}/${maxAttempts}); retrying`,
         );
@@ -110,14 +108,7 @@ export class AuthSessionService {
     }
 
     if (storedToken.replacedByToken) {
-      await this.revokeTokenFamily(
-        tx,
-        storedToken.userId,
-        storedToken.tokenFamily,
-      );
-      throw new UnauthorizedException(
-        'Token reuse detected. All sessions have been revoked. Please log in again.',
-      );
+      await this.revokeFamilyAndRejectReuse(tx, storedToken);
     }
 
     const { password: _password, ...userWithoutPassword } = storedToken.user;
@@ -148,14 +139,7 @@ export class AuthSessionService {
     });
 
     if (updated.count !== 1) {
-      await this.revokeTokenFamily(
-        tx,
-        storedToken.userId,
-        storedToken.tokenFamily,
-      );
-      throw new UnauthorizedException(
-        'Token reuse detected. All sessions have been revoked. Please log in again.',
-      );
+      await this.revokeFamilyAndRejectReuse(tx, storedToken);
     }
 
     return newTokens;
@@ -192,9 +176,8 @@ export class AuthSessionService {
       where: { id: sessionId },
     });
 
-    if (!session || session.userId !== userId) {
+    if (!session || session.userId !== userId)
       throw new BadRequestException('Session not found');
-    }
 
     await this.prisma.refreshToken.update({
       where: { id: sessionId },
@@ -330,5 +313,26 @@ export class AuthSessionService {
       },
       data: { revokedAt: this.clock.now() },
     });
+  }
+
+  /**
+   * Shared by both reuse-detection branches in `refresh` — a replaced token
+   * being presented again, and a failed compare-and-swap on the rotation
+   * update — which respond identically: revoke the whole token family and
+   * reject with the same "reuse detected" message. Keeping that pairing in
+   * one place stops the two call sites' wording/behavior from drifting.
+   */
+  private async revokeFamilyAndRejectReuse(
+    tx: Prisma.TransactionClient,
+    storedToken: { userId: string; tokenFamily: string | null },
+  ): Promise<never> {
+    await this.revokeTokenFamily(
+      tx,
+      storedToken.userId,
+      storedToken.tokenFamily,
+    );
+    throw new UnauthorizedException(
+      'Token reuse detected. All sessions have been revoked. Please log in again.',
+    );
   }
 }

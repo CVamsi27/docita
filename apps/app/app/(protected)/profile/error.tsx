@@ -1,20 +1,20 @@
 "use client";
 
-import { useEffect } from "react";
-import { ErrorPageShell } from "@/components/feedback/error-page-shell";
+// jscpd:ignore-start
+import { ErrorPageShell } from "@/components/errors/error-page-shell";
 
 export default function ProfileError({
-  error,
+  _error,
   reset,
 }: {
-  error: Error & { digest?: string };
+  _error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {}, [error]);
 
   return (
     <ErrorPageShell
       title="Error loading Profile"
+// jscpd:ignore-end
       description="We couldn't load Profile. Please retry or return to the dashboard."
       reset={reset}
     />

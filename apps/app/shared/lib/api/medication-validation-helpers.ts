@@ -121,9 +121,7 @@ function parseContraindicationResults(result: unknown): ContraindicationResult[]
       throw new Error("We could not review this medicine right now. Please try again.");
     }
     const severity = entry.severity;
-    if (severity !== "info" && severity !== "warning" && severity !== "critical") {
-      throw new Error("We could not review this medicine right now. Please try again.");
-    }
+    if (severity !== "info" && severity !== "warning" && severity !== "critical") throw new Error("We could not review this medicine right now. Please try again.");
     return {
       isContraindicated: entry.isContraindicated,
       severity,

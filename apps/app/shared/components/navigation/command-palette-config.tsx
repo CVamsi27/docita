@@ -33,21 +33,11 @@ export interface QuickAction {
 }
 
 export function quickActionRowIcon(action: QuickAction): ReactNode {
-  if (action.kind === "start-consultation") {
-    return <Stethoscope className="size-4" />;
-  }
-  if (action.id === "today-schedule") {
-    return <CalendarClock className="size-4" />;
-  }
-  if (action.id === "coding-queue") {
-    return <ClipboardList className="size-4" />;
-  }
-  if (action.id === "follow-ups-board") {
-    return <CheckSquare className="size-4" />;
-  }
-  if (action.id === "payment-desk") {
-    return <Banknote className="size-4" />;
-  }
+  if (action.kind === "start-consultation") return <Stethoscope className="size-4" />;
+  if (action.id === "today-schedule") return <CalendarClock className="size-4" />;
+  if (action.id === "coding-queue") return <ClipboardList className="size-4" />;
+  if (action.id === "follow-ups-board") return <CheckSquare className="size-4" />;
+  if (action.id === "payment-desk") return <Banknote className="size-4" />;
   return <PlusCircle className="size-4" />;
 }
 

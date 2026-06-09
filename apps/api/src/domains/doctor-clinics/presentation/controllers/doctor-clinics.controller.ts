@@ -30,11 +30,10 @@ export class DoctorClinicsController {
 
   private verifyClinicAccess(req: RequestWithUser, clinicId: string): void {
     const { clinicId: actorClinicId } = getClinicStaffRequestContext(req);
-    if (actorClinicId !== clinicId) {
+    if (actorClinicId !== clinicId)
       throw new ForbiddenException(
         'Cannot manage doctor-clinic assignments for another clinic',
       );
-    }
   }
 
   @Post()

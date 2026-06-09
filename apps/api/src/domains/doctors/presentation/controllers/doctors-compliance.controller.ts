@@ -64,9 +64,7 @@ export class DoctorsComplianceController {
       id,
       'Doctors can only upload their own registration certificate',
     );
-    if (!file) {
-      throw new BadRequestException('File is required');
-    }
+    if (!file) throw new BadRequestException('File is required');
     try {
       await assertAllowedFileSignature(file, ['pdf', 'png', 'jpeg'], {
         originalname: file.originalname,

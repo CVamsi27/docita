@@ -15,6 +15,7 @@ import {
   mapClinicTierDbStringToAccessTier,
   subscriptionCurrentResponseSchema,
   Tier,
+  type PlanMode,
   type SubscriptionCurrentResponse,
   type TierName,
 } from "@workspace/types";
@@ -26,7 +27,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@workspace/data-access";
 
-const TIER_NAMES: Record<number, string> = {
+export const TIER_NAMES: Record<number, string> = {
   [Tier.STARTER]: "Starter",
   [Tier.ESSENTIAL]: "Essential",
   [Tier.FRONT_DESK]: "Front desk",
@@ -38,132 +39,93 @@ const TIER_NAMES: Record<number, string> = {
   [Tier.INTELLIGENCE]: "Intelligence",
 };
 
+const ACTIVE_STATUSES = new Set(["ACTIVE", "TRIALING", "PAST_DUE", "PAYMENT_DUE", "GRACE", "PAUSED"]);
+
+async function fetchSubscription(token: string | null, clinicId: string | null | undefined): Promise<SubscriptionCurrentResponse | null> {
+  if (!token || !clinicId) return null;
+  try { return subscriptionCurrentResponseSchema.parse(await fetchJsonWithSession("/subscription/current")); }
+  catch { return null; }
+}
+
+function resolveCurrentTierValue(
+  subscriptionTier: string | undefined,
+  subscriptionHardLocked: boolean,
+): number {
+  if (!subscriptionTier) return Tier.STARTER;
+  const mapped = mapClinicTierDbStringToAccessTier(subscriptionTier);
+  return subscriptionHardLocked ? Math.min(mapped, Tier.STARTER) : mapped;
+}
+
+function buildHasFeature(params: {
+  featureOverrides: Record<string, boolean>;
+  subscriptionHardLocked: boolean;
+  tierNameForAccess: TierName;
+  hasIntelligence: boolean;
+  currentMode: PlanMode | undefined;
+  canAccessFromStore: (feature: Feature) => boolean;
+}) {
+  return (feature: Feature): boolean => {
+    if (params.featureOverrides[feature] !== undefined) return params.featureOverrides[feature];
+    if (params.subscriptionHardLocked) return hasFeatureAccess(getTierName(Tier.STARTER), feature, params.hasIntelligence, undefined, params.currentMode);
+    return params.canAccessFromStore(feature) || hasFeatureAccess(params.tierNameForAccess, feature, params.hasIntelligence, undefined, params.currentMode);
+  };
+}
+
 export function useTierAccess() {
   const { user, token } = useAuth();
-  const clinicContext = useOptionalClinic();
-  const clinic = clinicContext?.clinic ?? null;
+  const clinic = useOptionalClinic()?.clinic ?? null;
   const { currentMode, canAccess: canAccessFromStore } = usePermissionStore();
 
   const { data: subscription } = useQuery<SubscriptionCurrentResponse>({
     queryKey: queryKeys.clinic.subscription(user?.clinicId),
-    queryFn: async () => {
-      if (!token || !user?.clinicId) {
-        return null;
-      }
-
-      try {
-        return subscriptionCurrentResponseSchema.parse(
-          await fetchJsonWithSession("/subscription/current"),
-        );
-      } catch {
-        return null;
-      }
-    },
+    queryFn: () => fetchSubscription(token, user?.clinicId),
     enabled: !!user?.clinicId && !!token,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
   });
 
   const subscriptionHardLocked = useMemo(
-    () =>
-      isPastSubscriptionGraceDeadline(clinic) &&
-      !isBillingAdminRole(user?.role),
+    () => isPastSubscriptionGraceDeadline(clinic) && !isBillingAdminRole(user?.role),
     [clinic, user?.role],
   );
-
-  const currentTierValue = useMemo(() => {
-    if (!subscription?.tier) return Tier.STARTER;
-    const mapped = mapClinicTierDbStringToAccessTier(subscription.tier);
-    if (subscriptionHardLocked) {
-      return Math.min(mapped, Tier.STARTER);
-    }
-    return mapped;
-  }, [subscription?.tier, subscriptionHardLocked]);
-
+  const currentTierValue = useMemo(
+    () => resolveCurrentTierValue(subscription?.tier, subscriptionHardLocked),
+    [subscription?.tier, subscriptionHardLocked],
+  );
   const hasIntelligence = false;
   const featureOverrides = useMemo<Record<string, boolean>>(() => ({}), []);
-
-  const tierNameForAccess = useMemo((): TierName => {
-    if (subscriptionHardLocked) {
-      return getTierName(Tier.STARTER);
-    }
-    return getTierName(currentTierValue);
-  }, [currentTierValue, subscriptionHardLocked]);
+  const tierNameForAccess = useMemo(
+    (): TierName => getTierName(subscriptionHardLocked ? Tier.STARTER : currentTierValue),
+    [currentTierValue, subscriptionHardLocked],
+  );
 
   const hasTier = useCallback(
-    (requiredTier: Tier): boolean => {
-      if (subscriptionHardLocked && requiredTier > Tier.STARTER) {
-        return false;
-      }
-      return meetsMinimumTier(tierNameForAccess, requiredTier, hasIntelligence);
-    },
+    (requiredTier: Tier): boolean =>
+      subscriptionHardLocked && requiredTier > Tier.STARTER
+        ? false
+        : meetsMinimumTier(tierNameForAccess, requiredTier, hasIntelligence),
     [tierNameForAccess, hasIntelligence, subscriptionHardLocked],
   );
 
   const hasFeature = useCallback(
-    (feature: Feature): boolean => {
-      if (featureOverrides[feature] !== undefined) {
-        return featureOverrides[feature];
-      }
-
-      if (subscriptionHardLocked) {
-        return hasFeatureAccess(
-          getTierName(Tier.STARTER),
-          feature,
-          hasIntelligence,
-          undefined,
-          currentMode,
-        );
-      }
-
-      return (
-        canAccessFromStore(feature) ||
-        hasFeatureAccess(
-          tierNameForAccess,
-          feature,
-          hasIntelligence,
-          undefined,
-          currentMode,
-        )
-      );
-    },
-    [
-      tierNameForAccess,
-      hasIntelligence,
-      featureOverrides,
-      subscriptionHardLocked,
-      currentMode,
-      canAccessFromStore,
-    ],
+    (feature: Feature): boolean => buildHasFeature({ featureOverrides, subscriptionHardLocked, tierNameForAccess, hasIntelligence, currentMode, canAccessFromStore })(feature),
+    [tierNameForAccess, hasIntelligence, featureOverrides, subscriptionHardLocked, currentMode, canAccessFromStore],
   );
 
-  const getRequiredTier = useCallback((feature: Feature): string => {
-    const tier = FEATURE_TIER_MAP[feature];
-    return TIER_NAMES[tier] || "Unknown";
-  }, []);
+  const getRequiredTier = useCallback(
+    (feature: Feature): string => TIER_NAMES[FEATURE_TIER_MAP[feature]] || "Unknown",
+    [],
+  );
 
-  const isSubscriptionActive = useMemo(() => {
-    if (subscriptionHardLocked) {
-      return false;
-    }
-    const status = subscription?.subscriptionStatus;
-    // Match backend SubscriptionStatusGuard + upgrade UX.
-    return (
-      status === "ACTIVE" ||
-      status === "TRIALING" ||
-      status === "PAST_DUE" ||
-      status === "PAYMENT_DUE" ||
-      status === "GRACE" ||
-      status === "PAUSED"
-    );
-  }, [subscription?.subscriptionStatus, subscriptionHardLocked]);
+  const isSubscriptionActive = useMemo(
+    () => !subscriptionHardLocked && ACTIVE_STATUSES.has(subscription?.subscriptionStatus ?? ""),
+    [subscription?.subscriptionStatus, subscriptionHardLocked],
+  );
 
-  const displayTier = useMemo((): TierName => {
-    if (subscriptionHardLocked) {
-      return getTierName(Tier.STARTER);
-    }
-    return subscription?.tier ?? getTierName(Tier.STARTER);
-  }, [subscription?.tier, subscriptionHardLocked]);
+  const displayTier = useMemo(
+    (): TierName => subscriptionHardLocked ? getTierName(Tier.STARTER) : subscription?.tier ?? getTierName(Tier.STARTER),
+    [subscription?.tier, subscriptionHardLocked],
+  );
 
   return {
     currentTier: displayTier,

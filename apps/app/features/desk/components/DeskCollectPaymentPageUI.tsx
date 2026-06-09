@@ -2,6 +2,7 @@
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import type { InvoiceListRow } from "@workspace/types";
+import { invoiceBalanceDue } from "@workspace/types";
 import Link from "next/link";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
@@ -20,6 +21,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { DeskPatientSearch } from "./DeskPatientSearch";
 import { DeskOpenInvoices } from "./DeskOpenInvoices";
 import { RecordPaymentDialog } from "./desk-record-payment-dialog";
+import { DeskCollectionsByModeReport } from "./DeskCollectionsByModeReport";
 
 export function DeskCollectPaymentPageUI() {
   const clinicCurrency = useClinicCurrency();
@@ -34,8 +36,11 @@ export function DeskCollectPaymentPageUI() {
     null,
   );
   const [paymentMethod, setPaymentMethod] = useState<DeskPaymentMethod>("CASH");
+  const [amount, setAmount] = useState("");
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
+
+  const balanceDue = dialogInvoice ? invoiceBalanceDue(dialogInvoice) : 0;
 
   const canRecordPayment =
     user?.role !== undefined && ROLES_CAN_RECORD_PAYMENT.has(user.role);
@@ -75,6 +80,7 @@ export function DeskCollectPaymentPageUI() {
   useEffect(() => {
     if (!dialogInvoice) return;
     setPaymentMethod("CASH");
+    setAmount(invoiceBalanceDue(dialogInvoice).toFixed(2));
     setReference("");
     setNotes("");
   }, [dialogInvoice]);
@@ -88,7 +94,6 @@ export function DeskCollectPaymentPageUI() {
       : patients.length === 0 && hasSearchQuery
         ? "empty"
         : "success";
-
   const formatMoney = (amount: number | undefined) =>
     clinicCurrency.formatCurrency(amount ?? 0);
 
@@ -101,11 +106,18 @@ export function DeskCollectPaymentPageUI() {
     setSearchQuery("");
   };
 
+  const parsedAmount = Number.parseFloat(amount);
+  const amountIsValid =
+    Number.isFinite(parsedAmount) &&
+    parsedAmount > 0 &&
+    parsedAmount <= balanceDue + 0.001;
+
   const handleRecordSubmit = async () => {
-    if (!dialogInvoice?.id || !canRecordPayment) return;
+    if (!dialogInvoice?.id || !canRecordPayment || !amountIsValid) return;
     await recordSettlement.mutateAsync({
       invoiceId: dialogInvoice.id,
       paymentMethod,
+      amount: Math.round(parsedAmount * 100) / 100,
       reference: reference.trim() || undefined,
       notes: notes.trim() || undefined,
     });
@@ -151,20 +163,26 @@ export function DeskCollectPaymentPageUI() {
           onRetry={() => void refetchInvoices()}
           onRecordPayment={setDialogInvoice}
         />
+
+        <DeskCollectionsByModeReport formatMoney={formatMoney} />
       </div>
 
       <RecordPaymentDialog
         dialogInvoice={dialogInvoice}
         paymentMethod={paymentMethod}
+        amount={amount}
+        balanceDue={balanceDue}
+        amountIsValid={amountIsValid}
         reference={reference}
         notes={notes}
-        canRecordPayment={canRecordPayment}
+        canRecordPayment={canRecordPayment && amountIsValid}
         isSaving={recordSettlement.isPending}
         formatMoney={formatMoney}
         onOpenChange={(open) => {
           if (!open) setDialogInvoice(null);
         }}
         onPaymentMethodChange={setPaymentMethod}
+        onAmountChange={setAmount}
         onReferenceChange={setReference}
         onNotesChange={setNotes}
         onSubmit={() => void handleRecordSubmit()}

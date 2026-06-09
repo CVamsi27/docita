@@ -16,9 +16,7 @@ function collectProtectedPages(dir: string): string[] {
     if (statSync(fullPath).isDirectory()) {
       return collectProtectedPages(fullPath);
     }
-    if (entry !== "page.tsx") {
-      return [];
-    }
+    if (entry !== "page.tsx") return [];
 
     const routePath = `/${relative(protectedAppDir, dirname(fullPath))
       .split("/")

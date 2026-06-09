@@ -10,16 +10,13 @@ export function isDocitaOnlinePaymentSession(session: {
   shortUrl?: string | null;
   paymentLink?: string | null;
 }): boolean {
-  if (session.provider !== 'razorpay') {
-    return false;
-  }
+  if (session.provider !== 'razorpay') return false;
 
   if (
     session.status !== PaymentSessionStatus.CREATED &&
     session.status !== PaymentSessionStatus.PENDING
-  ) {
+  )
     return false;
-  }
 
   return Boolean(session.shortUrl?.trim() || session.paymentLink?.trim());
 }

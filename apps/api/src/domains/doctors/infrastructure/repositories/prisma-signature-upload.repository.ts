@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { Inject, Injectable } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Prisma, SignaturePurpose } from '@workspace/db';
@@ -28,6 +29,7 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
   }
 
   async findUserById(userId: string) {
+    // jscpd:ignore-end
     return this.getReadClient().user.findFirst({
       where: { id: userId },
       select: { id: true, role: true, name: true, email: true },

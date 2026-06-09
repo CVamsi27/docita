@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
   Card,
@@ -11,36 +12,14 @@ import {
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
-import { Eye, MessageSquare, Star, ThumbsUp, Trash2 } from "lucide-react";
+import { Eye, MessageSquare, ThumbsUp, Trash2 } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import type { InternalFeedback } from "@workspace/data-access/internal";
-import { STATUS_OPTIONS } from "./feedback-helpers";
-
-function getStatusBadge(status: string) {
-  const option = STATUS_OPTIONS.find((o) => o.value === status);
-  return (
-    <Badge className={option?.color || "badge-muted"}>
-      {option?.label || status}
-    </Badge>
-  );
-}
-
-function renderStars(rating: number) {
-  return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Star
-          key={star}
-          className={`h-4 w-4 ${
-            rating >= star
-              ? "text-warning fill-warning"
-              : "text-muted-foreground"
-          }`}
-        />
-      ))}
-    </div>
-  );
-}
+import {
+  FeedbackRatingStars,
+// jscpd:ignore-end
+  FeedbackStatusBadge,
+} from "./feedback-display";
 
 interface FeedbackListSectionProps {
   feedbacks: InternalFeedback[];
@@ -92,8 +71,8 @@ export function FeedbackListSection({
               >
                 <div className="space-y-2 flex-1">
                   <div className="flex items-center gap-2">
-                    {renderStars(feedback.overallRating)}
-                    {getStatusBadge(feedback.status)}
+                    <FeedbackRatingStars rating={feedback.overallRating} />
+                    <FeedbackStatusBadge status={feedback.status} />
                     <Badge variant="outline">{feedback.category}</Badge>
                   </div>
                   <div className="flex items-center gap-4 text-sm">

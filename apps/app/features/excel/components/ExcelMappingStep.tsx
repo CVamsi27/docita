@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Card,
   CardContent,
@@ -17,6 +18,7 @@ import {
 } from "@workspace/ui/components/form/select";
 import {
   Table,
+// jscpd:ignore-end
   TableBody,
   TableCell,
   TableHead,

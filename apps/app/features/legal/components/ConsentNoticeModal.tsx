@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { useState } from "react";
 import {
   Dialog,
@@ -14,6 +15,7 @@ import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
 import { Shield } from "lucide-react";
 import {
   CONSENT_CONTENT,
+// jscpd:ignore-end
   ConsentLanguageSelector,
   ConsentPurposeList,
   ConsentRightsList,

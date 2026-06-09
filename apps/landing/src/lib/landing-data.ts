@@ -1,5 +1,5 @@
 import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
-import { fetchLandingJson } from "@/lib/public-api";
+import { fetchLandingJson } from "@/lib/api-fetch";
 
 export interface PlatformStats {
   clinics: number;
@@ -191,9 +191,7 @@ export async function fetchPlatformStats(
   }
 
   const now = Date.now();
-  if (platformStatsCache && platformStatsCache.expiresAt > now) {
-    return platformStatsCache.stats;
-  }
+  if (platformStatsCache && platformStatsCache.expiresAt > now) return platformStatsCache.stats;
 
   try {
     const payload = await fetchLandingJson<Partial<PlatformStats>>(
@@ -211,9 +209,7 @@ export async function fetchPlatformStats(
       doctors === null ||
       patients === null ||
       prescriptions === null
-    ) {
-      return null;
-    }
+    ) return null;
 
     const stats = {
       clinics,
@@ -245,9 +241,7 @@ export function formatTierPrice(
   value: number | "custom",
   symbol: string,
 ): string {
-  if (value === "custom") {
-    return "Custom";
-  }
+  if (value === "custom") return "Custom";
 
   return `${symbol}${formatAmountLocale(value)}`;
 }

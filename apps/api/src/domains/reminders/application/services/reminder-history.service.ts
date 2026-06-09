@@ -28,9 +28,7 @@ export class ReminderHistoryService {
 
     const appointmentIds = appointments.map((appointment) => appointment.id);
 
-    if (appointmentIds.length === 0) {
-      return [];
-    }
+    if (appointmentIds.length === 0) return [];
 
     const reminders = await this.persistence.appointmentReminder.findMany({
       where: {

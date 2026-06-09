@@ -14,6 +14,64 @@ import {
 } from "./AuthSharedFields";
 import type { FieldErrors } from "@/features/auth/types/auth";
 
+function renderPasswordInput({
+  id,
+  value,
+  onChange,
+  fieldName,
+  placeholder,
+  showPassword,
+  onTogglePassword,
+  fieldErrors,
+}: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  fieldName: string;
+  placeholder: string;
+  showPassword: boolean;
+  onTogglePassword: () => void;
+  fieldErrors: FieldErrors;
+}) {
+  return (
+    <div className="relative">
+      <Input
+        id={id}
+        type={showPassword ? "text" : "password"}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        autoComplete="new-password"
+        required
+        className={`pr-10 h-11 bg-background/50 ${fieldClass(fieldErrors, fieldName)}`}
+        placeholder={placeholder}
+        aria-invalid={hasFieldError(fieldErrors, fieldName)}
+        aria-describedby={
+          hasFieldError(fieldErrors, fieldName) ? `${id}-error` : undefined
+        }
+      />
+      <SymbolTooltip
+        label={showPassword ? "Hide password" : "Show password"}
+        side="left"
+      >
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="absolute right-0 top-0 h-full w-10 text-muted-foreground hover:text-foreground"
+          onClick={onTogglePassword}
+          aria-label={showPassword ? "Hide password" : "Show password"}
+        >
+          {showPassword ? (
+            <EyeOff className="h-4 w-4" />
+          ) : (
+            <Eye className="h-4 w-4" />
+          )}
+        </Button>
+      </SymbolTooltip>
+    </div>
+  );
+}
+
 export function AuthSignupPasswordFields({
   password,
   confirmPassword,
@@ -38,43 +96,16 @@ export function AuthSignupPasswordFields({
           Password
           <span className="text-destructive ml-0.5">*</span>
         </Label>
-        <div className="relative">
-          <Input
-            id="signup-password"
-            type={showPassword ? "text" : "password"}
-            value={password}
-            onChange={(e) => onChangePassword(e.target.value)}
-            autoComplete="new-password"
-            required
-            className={`pr-10 h-11 bg-background/50 ${fieldClass(fieldErrors, "password")}`}
-            placeholder="Password"
-            aria-invalid={hasFieldError(fieldErrors, "password")}
-            aria-describedby={
-              hasFieldError(fieldErrors, "password")
-                ? "signup-password-error"
-                : undefined
-            }
-          />
-          <SymbolTooltip
-            label={showPassword ? "Hide password" : "Show password"}
-            side="left"
-          >
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 h-full w-10 text-muted-foreground hover:text-foreground"
-              onClick={onTogglePassword}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-            </Button>
-          </SymbolTooltip>
-        </div>
+        {renderPasswordInput({
+          id: "signup-password",
+          value: password,
+          onChange: onChangePassword,
+          fieldName: "password",
+          placeholder: "Password",
+          showPassword,
+          onTogglePassword,
+          fieldErrors,
+        })}
         {hasFieldError(fieldErrors, "password") ? (
           <InlineFieldError
             id="signup-password-error"
@@ -95,43 +126,16 @@ export function AuthSignupPasswordFields({
           Confirm Password
           <span className="text-destructive ml-0.5">*</span>
         </Label>
-        <div className="relative">
-          <Input
-            id="signup-confirm-password"
-            type={showPassword ? "text" : "password"}
-            value={confirmPassword}
-            onChange={(e) => onChangeConfirmPassword(e.target.value)}
-            autoComplete="new-password"
-            required
-            className={`pr-10 h-11 bg-background/50 ${fieldClass(fieldErrors, "confirmPassword")}`}
-            placeholder="Confirm password"
-            aria-invalid={hasFieldError(fieldErrors, "confirmPassword")}
-            aria-describedby={
-              hasFieldError(fieldErrors, "confirmPassword")
-                ? "signup-confirm-password-error"
-                : undefined
-            }
-          />
-          <SymbolTooltip
-            label={showPassword ? "Hide password" : "Show password"}
-            side="left"
-          >
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 h-full w-10 text-muted-foreground hover:text-foreground"
-              onClick={onTogglePassword}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-            </Button>
-          </SymbolTooltip>
-        </div>
+        {renderPasswordInput({
+          id: "signup-confirm-password",
+          value: confirmPassword,
+          onChange: onChangeConfirmPassword,
+          fieldName: "confirmPassword",
+          placeholder: "Confirm password",
+          showPassword,
+          onTogglePassword,
+          fieldErrors,
+        })}
         {hasFieldError(fieldErrors, "confirmPassword") ? (
           <InlineFieldError
             id="signup-confirm-password-error"

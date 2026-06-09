@@ -16,9 +16,7 @@ export default function JoinRequestStatusPage() {
     withdrawMutation,
   } = useJoinRequestStatusPage();
 
-  if (viewState === "terminal" && terminalState) {
-    return <JoinRequestStatusTerminal state={terminalState} />;
-  }
+  if (viewState === "terminal" && terminalState) return <JoinRequestStatusTerminal state={terminalState} />;
 
   if (viewState === "redirect" && redirectMessage) {
     return (
@@ -29,22 +27,16 @@ export default function JoinRequestStatusPage() {
     );
   }
 
-  if (viewState === "loading") {
-    return <PageTransitionLoader title="Loading request status…" />;
-  }
+  if (viewState === "loading") return <PageTransitionLoader title="Loading request status…" />;
 
-  if (viewState === "updating") {
-    return (
+  if (viewState === "updating") return (
       <PageTransitionLoader
         title="Updating status…"
         description="Checking the latest review decision…"
       />
     );
-  }
 
-  if (!request) {
-    return null;
-  }
+  if (!request) return null;
 
   return (
     <PreDashboardShell

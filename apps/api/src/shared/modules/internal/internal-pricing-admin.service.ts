@@ -25,9 +25,7 @@ export class InternalPricingAdminService {
         ? raw.percentOff
         : 0;
 
-    if (percentOff <= 0) {
-      return null;
-    }
+    if (percentOff <= 0) return null;
 
     return {
       title: typeof raw.title === 'string' ? raw.title : '',
@@ -89,13 +87,9 @@ export class InternalPricingAdminService {
     return offers
       .map((offer) => {
         const parsed = this.parseOfferValue(offer.value);
-        if (!parsed) {
-          return null;
-        }
+        if (!parsed) return null;
 
-        if (!offer.clinicId) {
-          return null;
-        }
+        if (!offer.clinicId) return null;
 
         return {
           id: offer.id,
@@ -150,11 +144,10 @@ export class InternalPricingAdminService {
         });
 
     const record = await persist;
-    if (!record.clinicId) {
+    if (!record.clinicId)
       throw new InvariantViolationError(
         'Pricing offer feature flag must have a clinicId',
       );
-    }
     return {
       id: record.id,
       clinicId: record.clinicId,

@@ -26,7 +26,7 @@ import {
   WhatsappTemplateListResponseDto,
 } from '@/domains/whatsapp/presentation/dto/whatsapp-response.dto';
 import { LegacyWhatsappClinicAccess } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.access';
-import { requireClinicId } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.helpers';
+import { requireClinicId } from '@/domains/whatsapp/presentation/controllers/require-clinic-id';
 
 function toClinicTemplate(row: WhatsappTemplate): ClinicWhatsappTemplate {
   return {
@@ -123,12 +123,10 @@ export class LegacyWhatsappTemplatesController {
   private async assertOwnedCustomTemplate(req: Request, id: string) {
     const clinicId = requireClinicId(req);
     const existing = await this.whatsappService.getTemplateById(id);
-    if (!existing || existing.clinicId !== clinicId || !existing.isActive) {
+    if (!existing || existing.clinicId !== clinicId || !existing.isActive)
       throw new NotFoundException('Template not found');
-    }
-    if (existing.isDefault) {
+    if (existing.isDefault)
       throw new ForbiddenException('Default templates cannot be modified');
-    }
   }
 }
 

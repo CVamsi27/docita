@@ -34,9 +34,7 @@ export class InternalLogService {
         filters,
       );
 
-      if (stored.data.length > 0) {
-        return stored;
-      }
+      if (stored.data.length > 0) return stored;
 
       return this.activityFallback.queryRecentActivityLogs(
         safeLimit,

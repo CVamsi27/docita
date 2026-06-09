@@ -40,48 +40,47 @@ export function MetricsTrackingCard({
           <p className="text-sm text-muted-foreground">Loading metrics</p>
         ) : (
           categories.map((category) => (
-              <div key={category.id} className="rounded-lg border p-3">
-                <div className="font-medium text-sm mb-2">
-                  {category.name || "Unnamed Category"}
-                </div>
-                <div className="space-y-2">
-                  {category.metricDefinitions.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">
-                      {emptyDefinitionsMessage}
-                    </p>
-                  ) : (
-                    category.metricDefinitions.map((definition) => {
-                      const isTracked =
-                        selectionMap.get(definition.id) ??
-                        Boolean(definition.isTrackedByDefault);
-
-                      return (
-                        <label
-                          key={definition.id}
-                          className="flex items-center justify-between gap-3 rounded border px-3 py-2"
-                        >
-                          <span className="text-sm">
-                            {definition.label || "Metric"}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-muted-foreground">
-                              Track
-                            </span>
-                            <Checkbox
-                              checked={isTracked}
-                              disabled={readOnly || isPending}
-                              onCheckedChange={(value) =>
-                                onToggleTracked(definition.id, Boolean(value))
-                              }
-                            />
-                          </div>
-                        </label>
-                      );
-                    })
-                  )}
-                </div>
+            <div key={category.id} className="rounded-lg border p-3">
+              <div className="font-medium text-sm mb-2">
+                {category.name || "Unnamed Category"}
               </div>
-            ))
+              <div className="space-y-2">
+                {category.metricDefinitions.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    {emptyDefinitionsMessage}
+                  </p>
+                ) : (
+                  category.metricDefinitions.map((definition) => {
+                    const isTracked =
+                      selectionMap.get(definition.id) ??
+                      Boolean(definition.isTrackedByDefault);
+                    return (
+                      <label
+                        key={definition.id}
+                        className="flex items-center justify-between gap-3 rounded border px-3 py-2"
+                      >
+                        <span className="text-sm">
+                          {definition.label || "Metric"}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">
+                            Track
+                          </span>
+                          <Checkbox
+                            checked={isTracked}
+                            disabled={readOnly || isPending}
+                            onCheckedChange={(value) =>
+                              onToggleTracked(definition.id, Boolean(value))
+                            }
+                          />
+                        </div>
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          ))
         )}
       </CardContent>
     </Card>

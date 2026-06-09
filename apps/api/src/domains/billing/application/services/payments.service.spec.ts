@@ -13,6 +13,7 @@ import type { ITransactionRunner } from '@/shared/common/ports/transaction-runne
 import { PaymentsCommandService } from './payments-command.service';
 import { PaymentsQueryService } from './payments-query.service';
 import { PaymentsService } from './payments.service';
+import { InvoiceSettlementService } from './invoice-settlement.service';
 import { RazorpayInvoiceWebhookService } from './razorpay-invoice-webhook.service';
 
 function buildInvoice(overrides: Partial<InvoiceDetail> = {}): InvoiceDetail {
@@ -33,6 +34,7 @@ function buildInvoice(overrides: Partial<InvoiceDetail> = {}): InvoiceDetail {
     discountTotalCents: 0,
     taxTotalCents: 0,
     grandTotalCents: 50000,
+    amountPaidCents: 0,
     taxSummary: null,
     sellerTaxSnapshot: null,
     buyerTaxSnapshot: null,
@@ -82,6 +84,8 @@ describe('PaymentsService', () => {
     findPendingReminders:
       jest.fn<IPaymentSessionRepository['findPendingReminders']>(),
     findByInvoiceId: jest.fn<IPaymentSessionRepository['findByInvoiceId']>(),
+    findSettledByClinicInRange:
+      jest.fn<IPaymentSessionRepository['findSettledByClinicInRange']>(),
   };
 
   const invoiceRepository: jest.Mocked<IInvoiceRepository> = {
@@ -151,6 +155,14 @@ describe('PaymentsService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    repository.findByInvoiceId.mockResolvedValue([]);
+    const settlement = new InvoiceSettlementService(
+      repository,
+      invoiceRepository,
+      configService,
+      clock,
+      transactionRunner,
+    );
     const command = new PaymentsCommandService(
       repository,
       invoiceRepository,
@@ -160,6 +172,7 @@ describe('PaymentsService', () => {
       clock,
       transactionRunner,
       razorpayInvoiceWebhook,
+      settlement,
     );
     const query = new PaymentsQueryService(repository);
     service = new PaymentsService(query, command);
@@ -235,7 +248,7 @@ describe('PaymentsService', () => {
 
       expect(invoiceRepository.update).toHaveBeenCalledWith(
         'inv_1',
-        { status: InvoiceStatus.PAID },
+        { amountPaidCents: 50000, status: InvoiceStatus.PAID },
         'clinic_1',
         expect.anything(),
       );

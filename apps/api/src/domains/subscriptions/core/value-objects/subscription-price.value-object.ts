@@ -6,9 +6,8 @@ export class SubscriptionPrice {
   readonly currency: string = DEFAULT_CURRENCY;
 
   constructor(paise: number) {
-    if (paise < 0) {
+    if (paise < 0)
       throw new InvariantViolationError('Price cannot be negative');
-    }
     if (!Number.isInteger(paise)) {
       throw new InvariantViolationError('Price must be an integer (paise)');
     }
@@ -28,11 +27,10 @@ export class SubscriptionPrice {
   }
 
   applyDiscount(percentOff: number): SubscriptionPrice {
-    if (percentOff < 0 || percentOff > 100) {
+    if (percentOff < 0 || percentOff > 100)
       throw new InvariantViolationError(
         'Discount percentage must be between 0 and 100',
       );
-    }
     const discountedPaise = Math.round(this.paise * ((100 - percentOff) / 100));
     return new SubscriptionPrice(discountedPaise);
   }
@@ -42,9 +40,8 @@ export class SubscriptionPrice {
   }
 
   prorate(daysUsed: number, totalCycleDays: number): SubscriptionPrice {
-    if (daysUsed < 0 || totalCycleDays <= 0) {
+    if (daysUsed < 0 || totalCycleDays <= 0)
       throw new InvariantViolationError('Invalid day values for proration');
-    }
     const proratedPaise = Math.round(this.paise * (daysUsed / totalCycleDays));
     return new SubscriptionPrice(proratedPaise);
   }

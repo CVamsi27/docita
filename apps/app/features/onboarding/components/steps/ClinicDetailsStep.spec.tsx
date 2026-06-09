@@ -10,8 +10,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("react-phone-number-input", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("react-phone-number-input")>();
+  const actual = await importOriginal<typeof import("react-phone-number-input")>();
 
   return {
     ...actual,
@@ -75,9 +74,7 @@ describe("clinicDetailsSchema", () => {
     });
 
     expect(result.success).toBe(false);
-    if (result.success) {
-      throw new Error("Expected validation to fail");
-    }
+    if (result.success) throw new Error("Expected validation to fail");
 
     const messages = result.error.issues.map((issue) => issue.message);
     expect(messages).toContain("Use at least 2 characters");
@@ -125,9 +122,7 @@ describe("clinicDetailsSchema", () => {
     });
 
     expect(result.success).toBe(false);
-    if (result.success) {
-      throw new Error("Expected validation to fail");
-    }
+    if (result.success) throw new Error("Expected validation to fail");
 
     const messages = result.error.issues.map((issue) => issue.message);
     expect(messages).toContain("Enter a valid phone number for GB");
@@ -152,9 +147,7 @@ describe("clinicDetailsSchema", () => {
     });
 
     expect(result.success).toBe(false);
-    if (result.success) {
-      throw new Error("Expected validation to fail");
-    }
+    if (result.success) throw new Error("Expected validation to fail");
 
     const messages = result.error.issues.map((issue) => issue.message);
     expect(messages).toContain("Enter a valid phone number for GB");

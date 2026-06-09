@@ -1,43 +1,30 @@
 #!/usr/bin/env node
 
-import { readdirSync, readFileSync } from "node:fs";
-import { extname, join, relative } from "node:path";
+import { readFileSync } from "node:fs";
+import { relative } from "node:path";
 import ts from "typescript";
+import { gitLsSourceFiles } from "../lib/check-runner.mjs";
 
-const SOURCE_ROOTS = ["apps/app", "apps/internal"];
-const INCLUDED_EXTENSIONS = new Set([".tsx", ".jsx"]);
-const EXCLUDED_FILE_SUFFIXES = [
-  ".spec.tsx",
-  ".test.tsx",
-  ".spec.jsx",
-  ".test.jsx",
-];
-const EXCLUDED_PATH_SEGMENTS = [
-  "/node_modules/",
-  "/.next/",
-  "/.open-next/",
-  "/coverage/",
-  "/playwright-report/",
-  "/test-results/",
-  "/e2e/",
-];
 const NATIVE_DISCLOSURE_TAGS = new Set(["details", "summary"]);
+
+const files = gitLsSourceFiles(["apps/app", "apps/internal"], {
+  extensions: [".tsx", ".jsx"],
+  exclude: [/\.(spec|test)\.[tj]sx?$/, /\/e2e\//],
+});
 
 const violations = [];
 
-for (const sourceRoot of SOURCE_ROOTS) {
-  for (const filePath of listSourceFiles(sourceRoot)) {
-    const contents = readFileSync(filePath, "utf8");
-    const source = ts.createSourceFile(
-      filePath,
-      contents,
-      ts.ScriptTarget.Latest,
-      true,
-      filePath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.JSX,
-    );
+for (const file of files) {
+  const contents = readFileSync(file, "utf8");
+  const source = ts.createSourceFile(
+    file,
+    contents,
+    ts.ScriptTarget.Latest,
+    true,
+    file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.JSX,
+  );
 
-    visit(source, source, filePath);
-  }
+  visit(source, source, file);
 }
 
 if (violations.length > 0) {
@@ -56,42 +43,6 @@ if (violations.length > 0) {
 }
 
 console.log("Native UI affordance check passed.");
-
-function listSourceFiles(directory) {
-  const entries = readdirSync(directory, { withFileTypes: true });
-  const files = [];
-
-  for (const entry of entries) {
-    const fullPath = join(directory, entry.name);
-    const normalizedPath = normalizePath(fullPath);
-    if (
-      EXCLUDED_PATH_SEGMENTS.some((segment) => normalizedPath.includes(segment))
-    ) {
-      continue;
-    }
-
-    if (entry.isDirectory()) {
-      files.push(...listSourceFiles(fullPath));
-      continue;
-    }
-    if (!entry.isFile()) {
-      continue;
-    }
-
-    if (
-      EXCLUDED_FILE_SUFFIXES.some((suffix) => normalizedPath.endsWith(suffix))
-    ) {
-      continue;
-    }
-    if (!INCLUDED_EXTENSIONS.has(extname(normalizedPath))) {
-      continue;
-    }
-
-    files.push(fullPath);
-  }
-
-  return files;
-}
 
 function visit(node, source, filePath) {
   if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {

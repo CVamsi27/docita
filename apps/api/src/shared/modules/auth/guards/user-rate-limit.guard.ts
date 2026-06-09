@@ -85,9 +85,7 @@ export class UserRateLimitGuard implements CanActivate {
 
     const userId = getAuthenticatedUserId(request.user);
 
-    if (!userId) {
-      return true;
-    }
+    if (!userId) return true;
 
     const method = (request.method ?? 'GET').toUpperCase();
     const url = request.originalUrl ?? request.url ?? '';

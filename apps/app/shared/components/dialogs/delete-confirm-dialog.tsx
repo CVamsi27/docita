@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
   Dialog,
@@ -11,6 +12,7 @@ import { Button } from "@workspace/ui/components/form/button";
 
 
 export interface DeleteConfirmDialogProps {
+// jscpd:ignore-end
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;

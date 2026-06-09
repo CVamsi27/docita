@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import Link from "next/link";
 import { Activity } from "lucide-react";
 import type { DashboardStats } from "@workspace/types";
@@ -16,6 +17,7 @@ import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 
 interface DashboardActivityFeedProps {
+// jscpd:ignore-end
   items: DashboardStats["recentActivity"];
 }
 

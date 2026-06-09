@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { RefreshCw, RotateCcw } from "lucide-react";
@@ -19,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
+// jscpd:ignore-end
 import { ConfirmationDialog } from "@workspace/ui/components/overlay/confirmation-dialog";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";

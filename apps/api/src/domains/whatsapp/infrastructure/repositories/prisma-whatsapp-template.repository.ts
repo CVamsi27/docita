@@ -118,9 +118,8 @@ export class PrismaWhatsAppTemplateRepository {
       !clinic?.tier ||
       !clinic.intelligenceAddon ||
       typeof clinic.name !== 'string'
-    ) {
+    )
       return null;
-    }
 
     return {
       tier: clinic.tier,

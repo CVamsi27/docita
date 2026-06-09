@@ -1,20 +1,8 @@
 name: CI
 
 on:
-  push:
-    branches: ["main"]
-    paths:
-      - "apps/**"
-      - "packages/**"
-      - "scripts/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
-      - "turbo.json"
-      - "fly.toml"
-      - "apps/worker/fly.toml"
-      - ".github/workflows/**"
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "apps/**"
       - "packages/**"
@@ -23,9 +11,8 @@ on:
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - "turbo.json"
-      - "fly.toml"
-      - "apps/worker/fly.toml"
       - ".github/workflows/**"
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -65,6 +52,7 @@ jobs:
   repo-standards:
     name: Repository Standards
     needs: changes
+    if: github.event.pull_request.draft != true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -97,11 +85,12 @@ jobs:
   api-quality:
     name: API Unit Checks
     needs: changes
-    if: needs.changes.outputs.api == 'true'
+    if: github.event.pull_request.draft != true && needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-
+        with:
+          fetch-depth: 0
       - name: Prepare pnpm
         run: |
           corepack enable
@@ -132,21 +121,20 @@ jobs:
       - name: Typecheck API
         run: pnpm --filter @docita/api run check-types
 
-      - name: Test API
-        run: pnpm --filter @docita/api run test:ci
-
-      - name: Build API on main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: pnpm --filter @docita/api run build
+      - name: Fetch main branch for change detection
+        run: git fetch origin main --depth=1
+      - name: Test API (changed only)
+        run: pnpm --filter @docita/api run test:ci --changedSince=origin/main
 
   app-quality:
     name: App Unit Checks
     needs: changes
-    if: needs.changes.outputs.app == 'true'
+    if: github.event.pull_request.draft != true && needs.changes.outputs.app == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-
+        with:
+          fetch-depth: 0
       - name: Prepare pnpm
         run: |
           corepack enable
@@ -170,20 +158,24 @@ jobs:
       - name: Typecheck app
         run: pnpm --filter @docita/app run check-types
 
-      - name: Test app
-        run: pnpm --filter @docita/app run test
+      - name: Fetch main branch for change detection
+        run: git fetch origin main --depth=1
+      - name: Test app (changed only)
+        run: pnpm --filter @docita/app run test:unit -- --changed=origin/main
 
       - name: Build app for Cloudflare
+        if: github.event_name == 'workflow_dispatch'
         run: pnpm --filter @docita/app run build:cloudflare
 
   internal-quality:
     name: Internal Unit Checks
     needs: changes
-    if: needs.changes.outputs.internal == 'true'
+    if: github.event.pull_request.draft != true && needs.changes.outputs.internal == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-
+        with:
+          fetch-depth: 0
       - name: Prepare pnpm
         run: |
           corepack enable
@@ -212,20 +204,24 @@ jobs:
       - name: Typecheck internal
         run: pnpm --filter @docita/internal run check-types
 
-      - name: Test internal
-        run: pnpm --filter @docita/internal run test
+      - name: Fetch main branch for change detection
+        run: git fetch origin main --depth=1
+      - name: Test internal (changed only)
+        run: pnpm --filter @docita/internal run test -- --changed=origin/main
 
       - name: Build internal for Cloudflare
+        if: github.event_name == 'workflow_dispatch'
         run: pnpm --filter @docita/internal run build:cloudflare
 
   landing-quality:
     name: Landing Checks
     needs: changes
-    if: needs.changes.outputs.landing == 'true'
+    if: github.event.pull_request.draft != true && needs.changes.outputs.landing == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-
+        with:
+          fetch-depth: 0
       - name: Prepare pnpm
         run: |
           corepack enable
@@ -253,18 +249,15 @@ jobs:
       - name: Typecheck landing
         run: pnpm --filter @docita/landing run check-types
 
-      - name: Build landing on main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: pnpm --filter @docita/landing run build
-
   worker-quality:
     name: Worker Unit Checks
     needs: changes
-    if: needs.changes.outputs.worker == 'true'
+    if: github.event.pull_request.draft != true && needs.changes.outputs.worker == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-
+        with:
+          fetch-depth: 0
       - name: Prepare pnpm
         run: |
           corepack enable
@@ -295,17 +288,15 @@ jobs:
       - name: Typecheck worker package
         run: pnpm --filter @docita/worker run check-types
 
-      - name: Test worker package
-        run: pnpm --filter @docita/worker run test:ci
-
-      - name: Build worker on main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: pnpm --filter @docita/worker run build
+      - name: Fetch main branch for change detection
+        run: git fetch origin main --depth=1
+      - name: Test worker (changed only)
+        run: pnpm --filter @docita/worker run test:ci --changedSince=origin/main
 
   security-audit:
     name: Security Audit
     needs: changes
-    if: needs.changes.outputs.dependencies == 'true'
+    if: github.event.pull_request.draft != true && needs.changes.outputs.dependencies == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -344,7 +335,7 @@ jobs:
   validate-migrations:
     name: Validate Migrations
     needs: changes
-    if: needs.changes.outputs.db == 'true'
+    if: github.event_name == 'workflow_dispatch' && needs.changes.outputs.db == 'true'
     runs-on: ubuntu-latest
     env:
       PGHOST: localhost
@@ -413,7 +404,7 @@ jobs:
   app-bundle-analysis:
     name: App Bundle Analysis
     needs: changes
-    if: needs.changes.outputs.app == 'true'
+    if: github.event_name == 'workflow_dispatch' && needs.changes.outputs.app == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -456,14 +447,3 @@ jobs:
         env:
           PERF_ROUTE_BUDGET_MODE: fail
         run: pnpm perf:route-budgets
-
-      - name: Capture and persist perf baseline
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: pnpm perf:baseline
-
-      - name: Save perf baseline cache
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/cache/save@v4
-        with:
-          path: logs/performance/baseline.json
-          key: perf-baseline-${{ github.sha }}

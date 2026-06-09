@@ -18,9 +18,7 @@ interface TesseractModule {
 }
 
 function isTesseractModule(value: unknown): value is TesseractModule {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
+  if (!value || typeof value !== 'object') return false;
 
   const createWorker = Reflect.get(value, 'createWorker');
   return typeof createWorker === 'function';
@@ -115,9 +113,8 @@ export class TextExtractorService {
     if (!this.worker || !this.workerReady) {
       this.logger.warn('[OCR] Worker not ready, attempting to re-initialize');
       await this.initialize();
-      if (!this.worker || !this.workerReady) {
+      if (!this.worker || !this.workerReady)
         throw new Error('Failed to initialize Tesseract worker');
-      }
     }
 
     this.logger.log('[OCR] Starting Tesseract OCR');

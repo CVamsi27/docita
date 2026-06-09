@@ -9,9 +9,7 @@ export function usageProgressPercentForBar(
   current: number,
   included: number,
 ): number {
-  if (included > 0) {
-    return Math.min(100, (current / included) * 100);
-  }
+  if (included > 0) return Math.min(100, (current / included) * 100);
   return 100;
 }
 

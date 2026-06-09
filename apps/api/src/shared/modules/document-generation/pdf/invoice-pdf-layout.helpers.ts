@@ -11,6 +11,25 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   OVERDUE: { bg: '#fee2e2', text: '#991b1b' },
 };
 
+/**
+ * Shared callback shapes threaded through the section renderers below.
+ * Extracted because every renderer needs the same page-break check and
+ * divider draw — keeping a single alias means the contract only needs to
+ * change in one place if `BasePdfService` ever evolves it.
+ */
+type CheckPageBreakFn = (
+  doc: typeof PDFDocument.prototype,
+  y: number,
+  needed: number,
+  ctx: PDFContext,
+) => number;
+
+type DrawDividerFn = (
+  doc: typeof PDFDocument.prototype,
+  y: number,
+  ctx: PDFContext,
+) => void;
+
 export function renderStatusBadge(
   doc: typeof PDFDocument.prototype,
   status: string,
@@ -39,85 +58,139 @@ export function renderStatusBadge(
   return currentY + 30;
 }
 
+interface ColumnDef {
+  width: number;
+  header: string;
+  align: 'left' | 'center' | 'right';
+  renderCell: (item: PDFInvoiceItem, sym: string) => string;
+}
+
+function getItemColumns(hasCpt: boolean, sym: string): ColumnDef[] {
+  if (hasCpt) {
+    return [
+      {
+        width: 160,
+        header: 'Description',
+        align: 'left',
+        renderCell: (i) => i.description,
+      },
+      {
+        width: 55,
+        header: 'CPT Code',
+        align: 'center',
+        renderCell: (i) => i.cptCode ?? '—',
+      },
+      {
+        width: 45,
+        header: 'Qty',
+        align: 'center',
+        renderCell: (i) => i.quantity.toString(),
+      },
+      {
+        width: 65,
+        header: 'Price',
+        align: 'right',
+        renderCell: (i) => `${sym}${i.unitPrice.toFixed(2)}`,
+      },
+      {
+        width: 55,
+        header: 'GST',
+        align: 'right',
+        renderCell: (i) => `${i.gstRate ?? 0}%`,
+      },
+      {
+        width: 75,
+        header: 'Amount',
+        align: 'right',
+        renderCell: (i) => `${sym}${i.amount.toFixed(2)}`,
+      },
+    ];
+  }
+  return [
+    {
+      width: 200,
+      header: 'Description',
+      align: 'left',
+      renderCell: (i) => i.description,
+    },
+    {
+      width: 50,
+      header: 'Qty',
+      align: 'center',
+      renderCell: (i) => i.quantity.toString(),
+    },
+    {
+      width: 70,
+      header: 'Price',
+      align: 'right',
+      renderCell: (i) => `${sym}${i.unitPrice.toFixed(2)}`,
+    },
+    {
+      width: 70,
+      header: 'GST',
+      align: 'right',
+      renderCell: (i) => `${i.gstRate ?? 0}%`,
+    },
+    {
+      width: 80,
+      header: 'Amount',
+      align: 'right',
+      renderCell: (i) => `${sym}${i.amount.toFixed(2)}`,
+    },
+  ];
+}
+
+function renderRow(
+  doc: typeof PDFDocument.prototype,
+  columns: ColumnDef[],
+  startX: number,
+  y: number,
+  renderFirst: (col: ColumnDef, x: number, w: number) => void,
+  renderOther: (col: ColumnDef, x: number) => void,
+): void {
+  let x = startX;
+  columns.forEach((col, i) => {
+    if (i === 0) {
+      renderFirst(col, x + 4, col.width);
+    } else {
+      renderOther(col, x);
+    }
+    x += col.width;
+  });
+}
+
 export function renderItemsTable(
   doc: typeof PDFDocument.prototype,
   items: PDFInvoiceItem[],
   context: PDFContext,
   startY: number,
-  checkPageBreak: (
-    doc: typeof PDFDocument.prototype,
-    y: number,
-    needed: number,
-    ctx: PDFContext,
-  ) => number,
-  drawDivider: (
-    doc: typeof PDFDocument.prototype,
-    y: number,
-    ctx: PDFContext,
-  ) => void,
+  checkPageBreak: CheckPageBreakFn,
+  drawDivider: DrawDividerFn,
 ): number {
   const hasCpt = items.some((item) => item.cptCode);
   let currentY = startY;
   const startX = context.margin;
+  const columns = getItemColumns(hasCpt, context.currencySymbol);
+  const totalW = columns.reduce((a, b) => a + b.width, 0);
 
-  // Column layout adapts when CPT codes are present
-  const colWidths = hasCpt
-    ? [160, 55, 45, 65, 55, 75] // Description | CPT | Qty | Price | GST | Amount
-    : [200, 50, 70, 70, 80]; // Description | Qty | Price | GST | Amount
-  const totalW = colWidths.reduce((a, b) => a + b, 0);
-
-  // Header row
   doc.rect(startX, currentY - 4, totalW, 22).fill(context.theme.primaryColor);
   doc
     .fillColor(context.theme.primaryTextColor)
     .fontSize(9)
     .font('Helvetica-Bold');
 
-  if (hasCpt) {
-    const [cDesc, cCpt, cQty, cPrice, cGst, cAmt] = colWidths;
-    doc.text('Description', startX + 4, currentY + 2, { width: cDesc });
-    doc.text('CPT Code', startX + cDesc, currentY + 2, {
-      width: cCpt,
-      align: 'center',
-    });
-    doc.text('Qty', startX + cDesc + cCpt, currentY + 2, {
-      width: cQty,
-      align: 'center',
-    });
-    doc.text('Price', startX + cDesc + cCpt + cQty, currentY + 2, {
-      width: cPrice,
-      align: 'right',
-    });
-    doc.text('GST', startX + cDesc + cCpt + cQty + cPrice, currentY + 2, {
-      width: cGst,
-      align: 'right',
-    });
-    doc.text(
-      'Amount',
-      startX + cDesc + cCpt + cQty + cPrice + cGst,
-      currentY + 2,
-      { width: cAmt, align: 'right' },
-    );
-  } else {
-    const [cDesc, cQty, cPrice, cGst, cAmt] = colWidths;
-    doc.text('Description', startX + 4, currentY + 2, { width: cDesc });
-    doc.text('Qty', startX + cDesc, currentY + 2, {
-      width: cQty,
-      align: 'center',
-    });
-    doc.text('Price', startX + cDesc + cQty, currentY + 2, {
-      width: cPrice,
-      align: 'right',
-    });
-    doc.text('GST', startX + cDesc + cQty + cPrice, currentY + 2, {
-      width: cGst,
-      align: 'right',
-    });
-    doc.text('Amount', startX + cDesc + cQty + cPrice + cGst, currentY + 2, {
-      width: cAmt,
-      align: 'right',
-    });
-  }
+  renderRow(
+    doc,
+    columns,
+    startX,
+    currentY + 2,
+    (col, x, w) => doc.text(col.header, x, currentY + 2, { width: w }),
+    (col, x) =>
+      doc.text(col.header, x, currentY + 2, {
+        width: col.width,
+        align: col.align,
+      }),
+  );
 
   doc.fillColor('#000000');
   currentY += 24;
@@ -135,61 +208,21 @@ export function renderItemsTable(
 
     doc.fillColor('#111827');
 
-    if (hasCpt) {
-      const [cDesc, cCpt, cQty, cPrice, cGst, cAmt] = colWidths;
-      doc.text(item.description, startX + 4, currentY, { width: cDesc - 4 });
-      doc.text(item.cptCode ?? '—', startX + cDesc, currentY, {
-        width: cCpt,
-        align: 'center',
-      });
-      doc.text(item.quantity.toString(), startX + cDesc + cCpt, currentY, {
-        width: cQty,
-        align: 'center',
-      });
-      doc.text(
-        `${context.currencySymbol}${item.unitPrice.toFixed(2)}`,
-        startX + cDesc + cCpt + cQty,
-        currentY,
-        { width: cPrice, align: 'right' },
-      );
-      doc.text(
-        `${item.gstRate ?? 0}%`,
-        startX + cDesc + cCpt + cQty + cPrice,
-        currentY,
-        { width: cGst, align: 'right' },
-      );
-      doc.text(
-        `${context.currencySymbol}${item.amount.toFixed(2)}`,
-        startX + cDesc + cCpt + cQty + cPrice + cGst,
-        currentY,
-        { width: cAmt, align: 'right' },
-      );
-    } else {
-      const [cDesc, cQty, cPrice, cGst, cAmt] = colWidths;
-      doc.text(item.description, startX + 4, currentY, { width: cDesc - 4 });
-      doc.text(item.quantity.toString(), startX + cDesc, currentY, {
-        width: cQty,
-        align: 'center',
-      });
-      doc.text(
-        `${context.currencySymbol}${item.unitPrice.toFixed(2)}`,
-        startX + cDesc + cQty,
-        currentY,
-        { width: cPrice, align: 'right' },
-      );
-      doc.text(
-        `${item.gstRate ?? 0}%`,
-        startX + cDesc + cQty + cPrice,
-        currentY,
-        { width: cGst, align: 'right' },
-      );
-      doc.text(
-        `${context.currencySymbol}${item.amount.toFixed(2)}`,
-        startX + cDesc + cQty + cPrice + cGst,
-        currentY,
-        { width: cAmt, align: 'right' },
-      );
-    }
+    renderRow(
+      doc,
+      columns,
+      startX,
+      currentY,
+      (col, x, w) =>
+        doc.text(col.renderCell(item, context.currencySymbol), x, currentY, {
+          width: w - 4,
+        }),
+      (col, x) =>
+        doc.text(col.renderCell(item, context.currencySymbol), x, currentY, {
+          width: col.width,
+          align: col.align,
+        }),
+    );
 
     doc.fillColor('#000000');
     currentY += 15;
@@ -205,17 +238,8 @@ export function renderTaxMetadata(
   data: InvoicePdfRenderData,
   context: PDFContext,
   startY: number,
-  checkPageBreak: (
-    doc: typeof PDFDocument.prototype,
-    y: number,
-    needed: number,
-    ctx: PDFContext,
-  ) => number,
-  drawDivider: (
-    doc: typeof PDFDocument.prototype,
-    y: number,
-    ctx: PDFContext,
-  ) => void,
+  checkPageBreak: CheckPageBreakFn,
+  drawDivider: DrawDividerFn,
 ): number {
   const summary = data.taxSummary;
   if (!summary) return startY;
@@ -239,9 +263,7 @@ export function renderTaxMetadata(
     summary.reverseCharge ? 'Reverse charge: Yes' : undefined,
   ].filter((detail): detail is string => Boolean(detail));
 
-  if (details.length === 0) {
-    return currentY;
-  }
+  if (details.length === 0) return currentY;
 
   doc.font('Helvetica').fontSize(8).fillColor('#374151');
   doc.text(details.join(' | '), context.margin, currentY, {
@@ -259,12 +281,7 @@ export function renderTotals(
   items: PDFInvoiceItem[],
   context: PDFContext,
   startY: number,
-  checkPageBreak: (
-    doc: typeof PDFDocument.prototype,
-    y: number,
-    needed: number,
-    ctx: PDFContext,
-  ) => number,
+  checkPageBreak: CheckPageBreakFn,
   taxSummary?: InvoiceTaxSummary,
 ): number {
   const subtotal =
@@ -346,24 +363,17 @@ export function renderTotals(
 
   return currentY + 40;
 }
-
 export async function renderAuthorizedSignature(
   doc: typeof PDFDocument.prototype,
   data: InvoicePdfRenderData,
   context: PDFContext,
   startY: number,
-  checkPageBreak: (
-    doc: typeof PDFDocument.prototype,
-    y: number,
-    needed: number,
-    ctx: PDFContext,
-  ) => number,
+  checkPageBreak: CheckPageBreakFn,
   fetchSignatureImage: (url: string) => Promise<Buffer>,
 ): Promise<number> {
   let currentY = checkPageBreak(doc, startY + 10, 95, context);
   const signatureX = context.margin + context.contentWidth - 190;
   const label = data.authorizedSignatureLabel || 'Authorized Signature';
-
   doc
     .font('Helvetica-Bold')
     .fontSize(9)
@@ -371,7 +381,6 @@ export async function renderAuthorizedSignature(
     .text(label, signatureX, currentY);
   doc.fillColor('#000000');
   currentY += 12;
-
   if (data.authorizedSignatureUrl) {
     try {
       const signatureBuffer = await fetchSignatureImage(
@@ -400,7 +409,6 @@ export async function renderAuthorizedSignature(
     doc.fillColor('#000000');
     currentY += 16;
   }
-
   doc
     .strokeColor('#94a3b8')
     .lineWidth(0.5)
@@ -409,10 +417,8 @@ export async function renderAuthorizedSignature(
     .stroke()
     .strokeColor('#000000')
     .lineWidth(1);
-
   return currentY + 20;
 }
-
 export async function fetchSignatureImage(url: string): Promise<Buffer> {
   // SSRF gate — see safe-external-url.ts.
   const safeUrl = assertSafeExternalUrl(url);

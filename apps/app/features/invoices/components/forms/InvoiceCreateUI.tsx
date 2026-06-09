@@ -10,9 +10,12 @@ import {
 import { Save } from "lucide-react";
 import { useInvoiceCreateLogic } from "@/features/invoices/hooks/use-invoice-create-logic";
 import { BackButton } from "@/components/navigation/back-button";
+import { createInvoiceItemFieldPath } from "@/features/invoices/lib/invoice-form-paths";
 import { InvoiceCreateDetailsSection } from "./InvoiceCreateUISections";
-import { InvoiceCreateLineItemsSection } from "./InvoiceCreateUISections";
-import { InvoiceCreateNotesSection } from "./InvoiceCreateUISections";
+import {
+  InvoiceLineItemsSectionContainer,
+  InvoiceNotesSection,
+} from "./invoice-form-sections-shared";
 
 export const InvoiceCreateUI: FC = () => {
   const {
@@ -60,16 +63,17 @@ export const InvoiceCreateUI: FC = () => {
             setPatientComboboxOpen={setPatientComboboxOpen}
           />
 
-          <InvoiceCreateLineItemsSection
+          <InvoiceLineItemsSectionContainer
             control={form.control}
             setValue={form.setValue}
             fields={fields}
             append={append}
             remove={remove}
             totalAmount={totalAmount}
+            buildFieldPath={createInvoiceItemFieldPath}
           />
 
-          <InvoiceCreateNotesSection control={form.control} />
+          <InvoiceNotesSection control={form.control} />
 
           <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
             <Button

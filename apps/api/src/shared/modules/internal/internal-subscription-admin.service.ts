@@ -7,6 +7,7 @@ import {
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ClinicTier, SubscriptionStatus } from '@workspace/db';
+import type { Prisma } from '@workspace/db';
 import { addDays } from '@workspace/utils';
 import {
   getBillingTierDetails,
@@ -28,9 +29,7 @@ export class InternalSubscriptionAdminService {
       },
     });
 
-    if (!subscription) {
-      throw new NotFoundException('Subscription not found');
-    }
+    if (!subscription) throw new NotFoundException('Subscription not found');
 
     await this.prisma.subscriptionReminder.create({
       data: {
@@ -51,13 +50,10 @@ export class InternalSubscriptionAdminService {
       where: { id: subscriptionId },
     });
 
-    if (!subscription) {
-      throw new NotFoundException('Subscription not found');
-    }
+    if (!subscription) throw new NotFoundException('Subscription not found');
 
-    if (subscription.status !== SubscriptionStatus.GRACE) {
+    if (subscription.status !== SubscriptionStatus.GRACE)
       throw new BadRequestException('Subscription is not in grace period');
-    }
 
     const newEndDate = addDays(new Date(subscription.currentPeriodEnd), days);
 
@@ -80,11 +76,7 @@ export class InternalSubscriptionAdminService {
       notes?: string;
     },
   ) {
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-    });
-
-    if (!clinic) throw new BadRequestException('Clinic not found');
+    const clinic = await this.findClinicOrThrow(clinicId);
 
     const updatedClinic = await this.prisma.clinic.update({
       where: { id: clinicId },
@@ -109,66 +101,79 @@ export class InternalSubscriptionAdminService {
   }
 
   async getClinicTierInfo(clinicId: string) {
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: {
-        id: true,
-        name: true,
-        tier: true,
-        currency: true,
-        subscriptionStatus: true,
-        intelligenceAddon: true,
-      },
+    const clinic = await this.findClinicWithSelectOrThrow(clinicId, {
+      id: true,
+      name: true,
+      tier: true,
+      currency: true,
+      subscriptionStatus: true,
+      intelligenceAddon: true,
     });
-
-    if (!clinic) throw new BadRequestException('Clinic not found');
-
     return {
       clinic,
-      tierInfo: getBillingTierDetails(clinic.tier),
+      tierInfo: getBillingTierDetails(String(clinic.tier)),
+    };
+  }
+
+  // Shared by `upgradeTier` and `downgradeTier` — both validate the clinic
+  // exists, write the new tier, and report success with a direction-specific
+  // message, so the write-and-report step lives in one place rather than the
+  // two directions drifting apart.
+  private async changeClinicTier(
+    clinicId: string,
+    newTier: ClinicTier,
+    direction: 'upgraded' | 'downgraded',
+  ) {
+    await this.findClinicOrThrow(clinicId);
+
+    const updatedClinic = await this.prisma.clinic.update({
+      where: { id: clinicId },
+      data: { tier: newTier },
+    });
+
+    return {
+      success: true,
+      clinic: updatedClinic,
+      message: `Clinic ${direction} to ${newTier}`,
     };
   }
 
   async upgradeTier(clinicId: string, newTier: ClinicTier) {
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-    });
-    if (!clinic) throw new BadRequestException('Clinic not found');
-
-    const updatedClinic = await this.prisma.clinic.update({
-      where: { id: clinicId },
-      data: { tier: newTier },
-    });
-
-    return {
-      success: true,
-      clinic: updatedClinic,
-      message: `Clinic upgraded to ${newTier}`,
-    };
+    return this.changeClinicTier(clinicId, newTier, 'upgraded');
   }
 
   async downgradeTier(clinicId: string, newTier: ClinicTier) {
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-    });
-    if (!clinic) throw new BadRequestException('Clinic not found');
-
-    const updatedClinic = await this.prisma.clinic.update({
-      where: { id: clinicId },
-      data: { tier: newTier },
-    });
-
-    return {
-      success: true,
-      clinic: updatedClinic,
-      message: `Clinic downgraded to ${newTier}`,
-    };
+    return this.changeClinicTier(clinicId, newTier, 'downgraded');
   }
 
   getTierPricingInfo() {
     return INTERNAL_BILLING_TIER_ORDER.map((tier) => ({
       tier,
-      ...getBillingTierDetails(tier),
+      ...getBillingTierDetails(String(tier)),
     }));
+  }
+
+  private async findClinicOrThrow(clinicId: string) {
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+    });
+
+    if (!clinic) throw new BadRequestException('Clinic not found');
+
+    return clinic;
+  }
+
+  private async findClinicWithSelectOrThrow<S extends Prisma.ClinicSelect>(
+    clinicId: string,
+    select: S,
+  ) {
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select,
+    });
+
+    if (!clinic) throw new BadRequestException('Clinic not found');
+
+    return clinic;
   }
 }

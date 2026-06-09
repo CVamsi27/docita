@@ -19,9 +19,7 @@ export class OverageInvoiceComposer {
           currency.toUpperCase(),
         )
       : null;
-    if (selected) {
-      return selected;
-    }
+    if (selected) return selected;
 
     return 'INR';
   }

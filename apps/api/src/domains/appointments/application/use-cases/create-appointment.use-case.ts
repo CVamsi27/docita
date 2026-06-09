@@ -24,6 +24,12 @@ export interface CreateAppointmentCommand {
   reason?: string;
   type?: string;
   metadata?: Record<string, JsonValue | undefined>;
+  advance?: {
+    amountCents: number;
+    paymentMethod?: string;
+    reference?: string;
+    notes?: string;
+  };
 }
 
 @Injectable()
@@ -38,9 +44,8 @@ export class CreateAppointmentUseCase {
   ) {}
 
   async execute(command: CreateAppointmentCommand): Promise<Appointment> {
-    if (command.startTime >= command.endTime) {
+    if (command.startTime >= command.endTime)
       throw new BadRequestException('Start time must be before end time');
-    }
 
     const overlap = await this.schedulingRules.validateAppointmentOverlap(
       command.doctorId,
@@ -78,6 +83,10 @@ export class CreateAppointmentUseCase {
       reason: command.reason,
       type: command.type || 'Standard',
       metadata: command.metadata || {},
+      advance:
+        command.advance && command.advance.amountCents > 0
+          ? command.advance
+          : undefined,
       createdAt: this.clock.now(),
       updatedAt: this.clock.now(),
       version: 1,

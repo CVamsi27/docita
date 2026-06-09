@@ -20,6 +20,19 @@ import {
   isDevelopment,
 } from './shared/modules/config/app-config';
 import { AppConfigService } from './shared/modules/config/app-configuration.service';
+import { EnvironmentConfigService } from './shared/modules/config/environment-config.service';
+import { AppUrlConfigService } from './shared/modules/config/app-url-config.service';
+import { StorageConfigService } from './shared/modules/config/storage-config.service';
+import { AuthSecurityConfigService } from './shared/modules/config/auth-security-config.service';
+import { CommunicationConfigService } from './shared/modules/config/communication-config.service';
+import { EmailConfigService } from './shared/modules/config/email-config.service';
+import { SmsConfigService } from './shared/modules/config/sms-config.service';
+import { WhatsappConfigService } from './shared/modules/config/whatsapp-config.service';
+import { PaymentConfigService } from './shared/modules/config/payment-config.service';
+import { RazorpayConfigService } from './shared/modules/config/razorpay-config.service';
+import { OpsConfigService } from './shared/modules/config/ops-config.service';
+import { PlatformInfrastructureConfigService } from './shared/modules/config/platform-infrastructure-config.service';
+import { ExternalIntegrationsConfigService } from './shared/modules/config/external-integrations-config.service';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import compression from 'compression';
 import helmet from 'helmet';
@@ -37,7 +50,20 @@ interface CloseableServer {
 }
 
 const config = validateEnv();
-const appConfigService = new AppConfigService();
+const appConfigService = new AppConfigService(
+  new EnvironmentConfigService(),
+  new AppUrlConfigService(new EnvironmentConfigService()),
+  new StorageConfigService(),
+  new AuthSecurityConfigService(),
+  new CommunicationConfigService(
+    new EmailConfigService(),
+    new SmsConfigService(),
+    new WhatsappConfigService(),
+  ),
+  new PaymentConfigService(new RazorpayConfigService(), new OpsConfigService()),
+  new PlatformInfrastructureConfigService(),
+  new ExternalIntegrationsConfigService(),
+);
 
 if (!isDevelopment()) {
   const originList = getCorsOrigins();
@@ -329,9 +355,7 @@ function configureGlobalMiddleware(app: INestApplication): PrismaService {
   app.use(
     compression({
       filter: (req, res) => {
-        if (req.headers['x-no-compression']) {
-          return false;
-        }
+        if (req.headers['x-no-compression']) return false;
         return compression.filter(req, res);
       },
       level: 6,

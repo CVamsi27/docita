@@ -17,7 +17,6 @@ import {
   RequestSummaryHeader,
   ScheduleSummary,
 } from "./request-summary-card-sections";
-
 export function RequestSummaryCard({
   selectedDoctorName,
   selectedCalendarDay,
@@ -40,7 +39,6 @@ export function RequestSummaryCard({
     selectedEnd,
     density,
   });
-
   return (
     <Card
       className={cn(

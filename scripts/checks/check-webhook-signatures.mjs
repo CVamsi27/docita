@@ -1,27 +1,21 @@
 #!/usr/bin/env node
 
-import { execSync } from "node:child_process";
 import fs from "node:fs";
-import path from "node:path";
-import process from "node:process";
+import {
+  gitLsSourceFiles,
+  reportFindingsAndExit,
+} from "../lib/check-runner.mjs";
 
-const repoRoot = process.cwd();
-const enforce = process.argv.includes("--enforce");
-
-const files = execSync("git ls-files apps/api/src", {
-  cwd: repoRoot,
-  encoding: "utf8",
-})
-  .split("\n")
-  .filter(Boolean)
-  .filter((file) => /webhook/i.test(file) && /\.controller\.ts$/.test(file));
+const files = gitLsSourceFiles(["apps/api/src"], {
+  include: [/webhook/i],
+  exclude: [/\.(spec|test)\.[tj]sx?$/],
+}).filter((file) => /\.controller\.ts$/.test(file));
 
 const findings = [];
 
 for (const file of files) {
-  const absolutePath = path.join(repoRoot, file);
-  if (!fs.existsSync(absolutePath)) continue;
-  const source = fs.readFileSync(absolutePath, "utf8");
+  if (!fs.existsSync(file)) continue;
+  const source = fs.readFileSync(file, "utf8");
   const hasPublicPost = /@Public\(\)[\s\S]{0,400}@Post\(/.test(source);
   if (!hasPublicPost) continue;
 
@@ -32,26 +26,11 @@ for (const file of files) {
   const usesRawBody = /\brawBody\b/.test(source);
 
   if (!verifiesSignature || !usesRawBody) {
-    findings.push({
-      file,
-      reason: `${verifiesSignature ? "" : "missing signature verifier"}${
-        !verifiesSignature && !usesRawBody ? "; " : ""
-      }${usesRawBody ? "" : "missing rawBody verification input"}`,
-    });
+    const reason = `${verifiesSignature ? "" : "missing signature verifier"}${
+      !verifiesSignature && !usesRawBody ? "; " : ""
+    }${usesRawBody ? "" : "missing rawBody verification input"}`;
+    findings.push(`${file}: ${reason}`);
   }
 }
 
-if (findings.length > 0) {
-  console.error(
-    enforce
-      ? "Webhook signature check failed.\n"
-      : "Webhook signature report:\n",
-  );
-  for (const finding of findings) {
-    console.error(`- ${finding.file}: ${finding.reason}`);
-  }
-  if (enforce) process.exit(1);
-  process.exit(0);
-}
-
-console.log("Webhook signature check passed.");
+reportFindingsAndExit("Webhook signature check", findings);

@@ -1,386 +1,285 @@
 import { Injectable } from '@nestjs/common';
-import {
-  EnvConfig,
-  WORKER_JWT_MODULE_PLACEHOLDER_SECRET,
-  getEnv,
-} from './app-config';
-import { resolveCurrencyFromLocale } from './app-config-currency.helpers';
-import { emailLinkBaseUrlFromAppUrl } from './app-config-url.helpers';
-import {
-  getEmailSenderDomainFromEmail,
-  getJwtSecretFromConfig,
-  getRequiredRedisUrl,
-  getSharedCookieDomainFromConfig,
-  parseInternalAllowedEmails,
-  shouldBypassGuardForE2eConfig,
-} from './app-configuration-values';
-import {
-  detectManagedDatabaseProvider,
-  type ManagedDatabaseProvider,
-} from './managed-database-provider';
+import { EnvironmentConfigService } from './environment-config.service';
+import { AppUrlConfigService } from './app-url-config.service';
+import { StorageConfigService } from './storage-config.service';
+import { AuthSecurityConfigService } from './auth-security-config.service';
+import { CommunicationConfigService } from './communication-config.service';
+import { PaymentConfigService } from './payment-config.service';
+import { PlatformInfrastructureConfigService } from './platform-infrastructure-config.service';
+import { ExternalIntegrationsConfigService } from './external-integrations-config.service';
+import type { EnvConfig } from './app-config';
+import type { ManagedDatabaseProvider } from './managed-database-provider';
 
 @Injectable()
 export class AppConfigService {
+  constructor(
+    private readonly environment: EnvironmentConfigService,
+    private readonly appUrl: AppUrlConfigService,
+    private readonly storage: StorageConfigService,
+    private readonly authSecurity: AuthSecurityConfigService,
+    private readonly communication: CommunicationConfigService,
+    private readonly payment: PaymentConfigService,
+    private readonly platform: PlatformInfrastructureConfigService,
+    private readonly externalIntegrations: ExternalIntegrationsConfigService,
+  ) {}
+
   getConfig(): EnvConfig {
-    return getEnv();
+    return this.platform.getConfig();
   }
 
   getAppUrl(): string {
-    return this.getConfig().APP_URL;
+    return this.appUrl.getAppUrl();
   }
 
   getEmailLinkBaseUrl(): string {
-    return emailLinkBaseUrlFromAppUrl(
-      this.getConfig().APP_URL,
-      this.isDevelopment(),
-    );
+    return this.appUrl.getEmailLinkBaseUrl();
   }
 
   getFrontendAppUrl(): string {
-    return this.getConfig().NEXT_PUBLIC_APP_URL;
+    return this.appUrl.getFrontendAppUrl();
   }
 
   getApiUrl(): string {
-    return this.getConfig().NEXT_PUBLIC_API_URL;
+    return this.appUrl.getApiUrl();
   }
 
   getSharedCookieDomain(): string | undefined {
-    return getSharedCookieDomainFromConfig(this.getConfig());
+    return this.appUrl.getSharedCookieDomain();
   }
 
   getStorageProvider(): 'local' | 'r2' {
-    return this.getConfig().STORAGE_PROVIDER;
+    return this.storage.getStorageProvider();
   }
 
   getR2Config() {
-    const config = this.getConfig();
-    return {
-      accountId: config.R2_ACCOUNT_ID || '',
-      accessKeyId: config.R2_ACCESS_KEY_ID || '',
-      secretAccessKey: config.R2_SECRET_ACCESS_KEY || '',
-      bucketName: config.R2_BUCKET_NAME || '',
-    };
+    return this.storage.getR2Config();
   }
 
   getPublicDocumentSigningSecret(): string {
-    return (
-      this.getConfig().PUBLIC_DOCUMENT_SIGNING_SECRET ?? this.getJwtSecret()
-    );
+    return this.authSecurity.getPublicDocumentSigningSecret();
   }
 
-  getEnvironment(): 'development' | 'staging' | 'production' | 'test' {
-    return this.getConfig().NODE_ENV;
+  getEnvironment() {
+    return this.environment.getEnvironment();
   }
 
   isProduction(): boolean {
-    return this.getConfig().NODE_ENV === 'production';
+    return this.environment.isProduction();
   }
 
   isDevelopment(): boolean {
-    return this.getEnvironment() === 'development';
+    return this.environment.isDevelopment();
   }
 
   isTest(): boolean {
-    return this.getEnvironment() === 'test';
+    return this.environment.isTest();
   }
 
   isApiE2eEnabled(): boolean {
-    return this.getConfig().DOCITA_API_E2E === 'true';
+    return this.environment.isApiE2eEnabled();
   }
 
   shouldAllowTestEmailAutoVerify(): boolean {
-    return this.getConfig().ALLOW_TEST_EMAIL_AUTOVERIFY;
+    return this.environment.shouldAllowTestEmailAutoVerify();
   }
 
   shouldBypassGuardForE2e(e2eHeaderValue: string | undefined): boolean {
-    return shouldBypassGuardForE2eConfig({
-      isProduction: this.isProduction(),
-      apiE2eEnabled: this.isApiE2eEnabled(),
-      e2eHeaderValue,
-    });
+    return this.environment.shouldBypassGuardForE2e(e2eHeaderValue);
   }
 
   getCptCatalogSource(): 'licensed' | 'nlm_hcpcs' {
-    return this.getConfig().CPT_CATALOG_SOURCE?.toLowerCase() === 'licensed'
-      ? 'licensed'
-      : 'nlm_hcpcs';
+    return this.externalIntegrations.getCptCatalogSource();
   }
 
   getCptLicensedApiConfig() {
-    const config = this.getConfig();
-    return {
-      apiBaseUrl: config.CPT_LICENSED_API_URL?.trim() || null,
-      apiKey: config.CPT_LICENSED_API_KEY?.trim() || null,
-      searchPath: config.CPT_LICENSED_SEARCH_PATH?.trim() || '/search',
-      syncPath: config.CPT_LICENSED_SYNC_PATH?.trim() || '/codes',
-    };
+    return this.externalIntegrations.getCptLicensedApiConfig();
   }
 
   getCpuCount(): number {
-    return this.getConfig().CPU_COUNT;
+    return this.environment.getCpuCount();
   }
 
   getPublicLandingStatsConfig() {
-    const config = this.getConfig();
-    return {
-      clinics: config.PUBLIC_LANDING_CLINICS,
-      doctors: config.PUBLIC_LANDING_DOCTORS,
-      patients: config.PUBLIC_LANDING_PATIENTS,
-      prescriptions: config.PUBLIC_LANDING_PRESCRIPTIONS,
-      appointments: config.PUBLIC_LANDING_APPOINTMENTS,
-      uptime: config.PUBLIC_LANDING_UPTIME,
-    };
+    return this.externalIntegrations.getPublicLandingStatsConfig();
   }
 
   getSlaAgreementConfig() {
-    const config = this.getConfig();
-    return {
-      uptimeTarget: config.SLA_UPTIME_TARGET,
-    };
+    return this.externalIntegrations.getSlaAgreementConfig();
   }
 
   getDatabaseUrl(): string {
-    return this.getConfig().DATABASE_URL;
+    return this.platform.getDatabaseUrl();
   }
 
   getRazorpayKeyId(): string {
-    return this.getConfig().RAZORPAY_KEY_ID || '';
+    return this.payment.getRazorpayKeyId();
   }
 
   getRazorpayKeySecret(): string {
-    return this.getConfig().RAZORPAY_KEY_SECRET || '';
+    return this.payment.getRazorpayKeySecret();
   }
 
   getRazorpayWebhookSecret(): string {
-    return this.getConfig().RAZORPAY_WEBHOOK_SECRET || '';
+    return this.payment.getRazorpayWebhookSecret();
   }
 
   getMetaConfig() {
-    return {
-      accessToken: this.getConfig().META_ACCESS_TOKEN || '',
-      phoneNumberId: this.getConfig().META_PHONE_NUMBER_ID || '',
-      businessAccountId: this.getConfig().META_BUSINESS_ACCOUNT_ID || '',
-      appSecret: this.getConfig().META_APP_SECRET || '',
-      verifyToken: this.getConfig().META_VERIFY_TOKEN || '',
-      productionMode: this.getConfig().WHATSAPP_PRODUCTION_MODE,
-    };
+    return this.communication.getMetaConfig();
   }
 
   isPerClinicWhatsappSenderEnabled(): boolean {
-    return this.getConfig().WHATSAPP_PER_CLINIC_SENDER_ENABLED;
+    return this.communication.isPerClinicWhatsappSenderEnabled();
   }
 
   isEnterpriseContractDynamicPricingEnabled(): boolean {
-    return this.getConfig().ENTERPRISE_CONTRACT_DYNAMIC_PRICING_ENABLED;
+    return this.payment.isEnterpriseContractDynamicPricingEnabled();
   }
 
   getSmtpConfig() {
-    return {
-      host: this.getConfig().SMTP_HOST,
-      port: this.getConfig().SMTP_PORT,
-      user: this.getConfig().SMTP_USER || '',
-      pass: this.getConfig().SMTP_PASS || '',
-    };
+    return this.communication.getSmtpConfig();
   }
 
   getSmsConfig() {
-    return {
-      apiKey: this.getConfig().SMS_API_KEY || '',
-      senderId: this.getConfig().SMS_SENDER_ID || '',
-    };
+    return this.communication.getSmsConfig();
   }
 
   getZeptoMailSendMailToken(): string {
-    return this.getConfig().ZEPTOMAIL_SENDMAIL_TOKEN || '';
+    return this.communication.getZeptoMailSendMailToken();
   }
 
   getZeptoMailApiUrl(): string {
-    return this.getConfig().ZEPTOMAIL_API_URL;
+    return this.communication.getZeptoMailApiUrl();
   }
 
   getZeptoMailWebhookSecret(): string {
-    return this.getConfig().ZEPTOMAIL_WEBHOOK_SECRET || '';
+    return this.communication.getZeptoMailWebhookSecret();
   }
 
   getOpsAlertWebhookUrl(): string {
-    return this.getConfig().OPS_ALERT_WEBHOOK_URL ?? '';
+    return this.payment.getOpsAlertWebhookUrl();
   }
 
   getEmailSenderDomain(): string {
-    return getEmailSenderDomainFromEmail(this.getConfig().EMAIL_FROM);
+    return this.communication.getEmailSenderDomain();
   }
 
   getEmailFrom(): string {
-    return this.getConfig().EMAIL_FROM;
+    return this.communication.getEmailFrom();
   }
 
   getAnalyticsCacheTtl(): number {
-    return this.getConfig().ANALYTICS_CACHE_TTL;
+    return this.platform.getAnalyticsCacheTtl();
   }
 
   getBulkImportConfig() {
-    return {
-      maxFileSize: this.getConfig().BULK_IMPORT_MAX_FILE_SIZE,
-      maxRows: this.getConfig().BULK_IMPORT_MAX_ROWS,
-      rateLimitInterval: this.getConfig().BULK_IMPORT_RATE_LIMIT_INTERVAL,
-    };
+    return this.externalIntegrations.getBulkImportConfig();
   }
 
   getSlowQueryThreshold(): number {
-    return this.getConfig().SLOW_QUERY_THRESHOLD_MS;
+    return this.platform.getSlowQueryThreshold();
   }
 
   getLogLevel(): string {
-    return this.getConfig().LOG_LEVEL;
+    return this.platform.getLogLevel();
   }
 
   getAppVersion(): string {
-    return this.getConfig().APP_VERSION;
+    return this.platform.getAppVersion();
   }
 
   getPaymentLinkTtlMinutes(): number {
-    return this.getConfig().PAYMENT_LINK_TTL_MINUTES;
+    return this.payment.getPaymentLinkTtlMinutes();
   }
 
   getRequestTimeoutMs(): number {
-    return this.getConfig().REQUEST_TIMEOUT_MS;
+    return this.platform.getRequestTimeoutMs();
   }
 
   getSecretsProvider(): 'env' | 'aws' {
-    return this.getConfig().SECRETS_PROVIDER;
+    return this.authSecurity.getSecretsProvider();
   }
 
   getInternalAllowedEmails(): string[] {
-    return parseInternalAllowedEmails(this.getConfig().INTERNAL_ALLOWED_EMAILS);
+    return this.platform.getInternalAllowedEmails();
   }
 
   getJwtSecret(): string {
-    const config = this.getConfig();
-    return getJwtSecretFromConfig({
-      jwtSecret: config.JWT_SECRET,
-      workerEntrypoint: config.WORKER_ENTRYPOINT,
-      workerPlaceholderSecret: WORKER_JWT_MODULE_PLACEHOLDER_SECRET,
-    });
+    return this.authSecurity.getJwtSecret();
   }
 
   getJwtExpiration(): string {
-    return this.getConfig().JWT_EXPIRATION ?? '15m';
+    return this.authSecurity.getJwtExpiration();
   }
 
   getTurnstileSecretKey(): string | undefined {
-    const key = this.getConfig().TURNSTILE_SECRET_KEY;
-    return key && key.length > 0 ? key : undefined;
+    return this.authSecurity.getTurnstileSecretKey();
   }
 
   isTurnstileEnforced(): boolean {
-    return Boolean(this.getTurnstileSecretKey());
+    return this.authSecurity.isTurnstileEnforced();
   }
 
   getEncryptionKey(): string {
-    return this.getConfig().ENCRYPTION_KEY;
+    return this.authSecurity.getEncryptionKey();
   }
 
-  getHistoricalEncryptionKeys(): Record<string, string | undefined> {
-    const config = this.getConfig();
-    return {
-      v2: config.ENCRYPTION_KEY_V2,
-      v3: config.ENCRYPTION_KEY_V3,
-      v4: config.ENCRYPTION_KEY_V4,
-      v5: config.ENCRYPTION_KEY_V5,
-    };
+  getHistoricalEncryptionKeys() {
+    return this.authSecurity.getHistoricalEncryptionKeys();
   }
 
   detectManagedDatabaseProvider(): ManagedDatabaseProvider | null {
-    return detectManagedDatabaseProvider(this.getDatabaseUrl());
+    return this.platform.detectManagedDatabaseProvider();
   }
 
   getSentryConfig() {
-    return {
-      dsn: this.getConfig().SENTRY_DSN,
-      tracesSampleRate: this.getConfig().SENTRY_TRACES_SAMPLE_RATE,
-      profilesSampleRate: this.getConfig().SENTRY_PROFILES_SAMPLE_RATE,
-    };
+    return this.platform.getSentryConfig();
   }
 
   getApiLogMode(): string {
-    return this.getConfig().API_LOG_MODE;
+    return this.platform.getApiLogMode();
   }
 
   getQueueBackend(): 'memory' | 'postgres' {
-    return this.getConfig().QUEUE_BACKEND;
+    return this.platform.getQueueBackend();
   }
 
   getCacheBackend(): 'memory' | 'redis' {
-    return this.getConfig().CACHE_BACKEND;
+    return this.platform.getCacheBackend();
   }
 
   getRedisUrl(): string {
-    return getRequiredRedisUrl(this.getConfig().REDIS_URL);
+    return this.platform.getRedisUrl();
   }
 
   getDoctorVerificationConfig() {
-    return {
-      apiUrl: this.getConfig().DOCTOR_VERIFICATION_API_URL,
-      apiKey: this.getConfig().DOCTOR_VERIFICATION_API_KEY,
-    };
+    return this.externalIntegrations.getDoctorVerificationConfig();
   }
 
   getHprVerificationConfig() {
-    return {
-      hprApiUrl: this.getConfig().HPR_API_URL,
-      hprApiKey: this.getConfig().HPR_API_KEY,
-    };
+    return this.externalIntegrations.getHprVerificationConfig();
   }
 
-  getOpenAiConfig() {
-    return {
-      apiKey: this.getConfig().OPENAI_API_KEY,
-      model: this.getConfig().OPENAI_MODEL,
-      requestTimeout: this.getConfig().AI_REQUEST_TIMEOUT,
-      cacheEnabled: this.getConfig().AI_CACHE_ENABLED,
-      cacheTtl: this.getConfig().AI_CACHE_TTL,
-    };
+  getAiConfig() {
+    return this.externalIntegrations.getAiConfig();
   }
 
   getPort(): number {
-    return this.getConfig().PORT;
+    return this.appUrl.getPort();
   }
 
   getCurrencyCode(acceptLanguage?: string): string {
-    return resolveCurrencyFromLocale(acceptLanguage);
+    return this.appUrl.getCurrencyCode(acceptLanguage);
   }
 
   isRlsEnabled(): boolean {
-    return this.getConfig().RLS_ENABLED;
+    return this.platform.isRlsEnabled();
   }
 
-  getTenantRateLimitDefaults(): {
-    rps: number;
-    rpm: number;
-    monthlyBudget: number;
-  } {
-    const config = this.getConfig();
-    return {
-      rps: config.TENANT_RATE_LIMIT_DEFAULT_RPS,
-      rpm: config.TENANT_RATE_LIMIT_DEFAULT_RPM,
-      monthlyBudget: config.TENANT_RATE_LIMIT_DEFAULT_MONTHLY_BUDGET,
-    };
+  getTenantRateLimitDefaults() {
+    return this.platform.getTenantRateLimitDefaults();
   }
 
   getPlatformTaxConfig() {
-    const config = this.getConfig();
-    return {
-      seller: {
-        countryCode: config.DOCITA_TAX_COUNTRY_CODE,
-        regime: config.DOCITA_TAX_REGIME,
-        registrationId: config.DOCITA_TAX_REGISTRATION_ID,
-        registrationLabel: config.DOCITA_TAX_REGISTRATION_LABEL,
-        legalName: config.DOCITA_TAX_LEGAL_NAME,
-        address: config.DOCITA_TAX_ADDRESS,
-        stateCode: config.DOCITA_TAX_STATE_CODE,
-        stateName: config.DOCITA_TAX_STATE_NAME,
-      },
-      subscriptionTaxRate: config.DOCITA_SUBSCRIPTION_TAX_RATE,
-    };
+    return this.externalIntegrations.getPlatformTaxConfig();
   }
 }

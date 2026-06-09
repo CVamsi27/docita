@@ -30,9 +30,7 @@ export class BulkImportJobQueryService {
     const job = await this.prisma.bulkImportJob.findFirst({
       where: { id: jobId, clinicId },
     });
-    if (!job) {
-      throw new NotFoundException('Import job not found');
-    }
+    if (!job) throw new NotFoundException('Import job not found');
     const errors =
       parsePrismaJsonColumn(job.errors, bulkImportJobErrorsJsonSchema) ?? [];
     return {

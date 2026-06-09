@@ -1,3 +1,16 @@
+/**
+ * Relations needed to build an `AppointmentContext` from a loaded
+ * appointment. `PatientAppointmentResolverService` and
+ * `ResponseHandlerService` both fetch an appointment by id with this exact
+ * relation set before normalizing it through `toAppointmentContext` —
+ * sharing the `include` shape keeps their queries from drifting apart.
+ */
+export const APPOINTMENT_CONTEXT_INCLUDE = {
+  patient: true,
+  doctor: true,
+  clinic: true,
+} as const;
+
 export type AppointmentContext = {
   id: string;
   startTime: Date;
@@ -28,9 +41,8 @@ type AppointmentWithRelations = {
 export function toAppointmentContext(
   appointment: AppointmentWithRelations,
 ): AppointmentContext | null {
-  if (!appointment.patient || !appointment.doctor || !appointment.clinic) {
+  if (!appointment.patient || !appointment.doctor || !appointment.clinic)
     return null;
-  }
 
   return {
     id: appointment.id,

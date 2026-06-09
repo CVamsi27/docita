@@ -82,9 +82,7 @@ export abstract class BaseRazorpayAdapter implements IPaymentGateway {
   protected toRecord(
     value: Prisma.JsonValue | Record<string, unknown>,
   ): Record<string, unknown> | null {
-    if (!value || typeof value !== 'object') {
-      return null;
-    }
+    if (!value || typeof value !== 'object') return null;
     if (Array.isArray(value)) {
       return null;
     }

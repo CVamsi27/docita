@@ -82,31 +82,24 @@ export class PatientPortalAuthCommandService {
 
     const otpRecord = await this.repository.findActiveOtp(normalizedPhone, now);
 
-    if (!otpRecord) {
-      throw new UnauthorizedException('Invalid or expired OTP');
-    }
+    if (!otpRecord) throw new UnauthorizedException('Invalid or expired OTP');
 
     await this.repository.incrementOtpAttempts(otpRecord.id);
 
-    if (otpRecord.attempts >= 3) {
+    if (otpRecord.attempts >= 3)
       throw new UnauthorizedException(
         'Too many attempts. Please request a new OTP.',
       );
-    }
 
     const isValid = await bcrypt.compare(otp, otpRecord.otpHash);
-    if (!isValid) {
-      throw new UnauthorizedException('Invalid OTP');
-    }
+    if (!isValid) throw new UnauthorizedException('Invalid OTP');
 
     await this.repository.markOtpUsed(otpRecord.id);
 
     const patientWithUser =
       await this.repository.findPatientWithUserByPhone(normalizedPhone);
 
-    if (!patientWithUser) {
-      throw new UnauthorizedException('Patient not found');
-    }
+    if (!patientWithUser) throw new UnauthorizedException('Patient not found');
 
     let user = patientWithUser.user;
 

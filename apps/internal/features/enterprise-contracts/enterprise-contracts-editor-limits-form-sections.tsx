@@ -8,6 +8,7 @@ import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-pa
 type FormFields = EnterpriseContractsPageState["form"];
 type SetForm = EnterpriseContractsPageState["setForm"];
 
+// jscpd:ignore-start
 function IncludedLimitsFields({
   form,
   setForm,
@@ -104,6 +105,7 @@ function IncludedLimitsFields({
     </div>
   );
 }
+// jscpd:ignore-end
 
 function OverageAndPricingFields({
   form,

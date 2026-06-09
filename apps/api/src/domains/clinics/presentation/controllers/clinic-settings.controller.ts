@@ -52,13 +52,10 @@ export class ClinicSettingsController {
   @ZodSerializerDto(ClinicResponseDto)
   async getSettings(@Request() req: RequestWithUser) {
     const clinicId = req.user?.clinicId;
-    if (!clinicId) {
+    if (!clinicId)
       throw new ForbiddenException('No clinic assigned to this user');
-    }
     const clinic = await this.clinicsService.findOne(clinicId);
-    if (!clinic) {
-      throw new NotFoundException('Clinic not found');
-    }
+    if (!clinic) throw new NotFoundException('Clinic not found');
     return clinic;
   }
 
@@ -70,18 +67,16 @@ export class ClinicSettingsController {
     @Body() dto: ClinicSettingsDto,
   ) {
     const clinicId = req.user?.clinicId;
-    if (!clinicId) {
+    if (!clinicId)
       throw new ForbiddenException('No clinic assigned to this user');
-    }
     return this.clinicsService.updateSettings(clinicId, dto);
   }
 
   @Get('members')
   async getMembers(@Request() req: RequestWithUser) {
     const clinicId = req.user?.clinicId;
-    if (!clinicId) {
+    if (!clinicId)
       throw new ForbiddenException('No clinic assigned to this user');
-    }
     return this.clinicsService.getMembers(clinicId);
   }
 
@@ -95,9 +90,8 @@ export class ClinicSettingsController {
     const clinicId = req.user?.clinicId;
     const actorUserId = req.user?.id;
     const actorRole = req.user?.role;
-    if (!clinicId || !actorUserId || !actorRole) {
+    if (!clinicId || !actorUserId || !actorRole)
       throw new ForbiddenException('No clinic assigned to this user');
-    }
     return this.clinicsService.updateMember(
       clinicId,
       memberId,
@@ -115,9 +109,8 @@ export class ClinicSettingsController {
   ) {
     const clinicId = req.user?.clinicId;
     const actorUserId = req.user?.id;
-    if (!clinicId || !actorUserId) {
+    if (!clinicId || !actorUserId)
       throw new ForbiddenException('No clinic assigned to this user');
-    }
     return this.clinicsService.removeMember(clinicId, memberId, actorUserId);
   }
 
@@ -125,9 +118,8 @@ export class ClinicSettingsController {
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR)
   async getPrescriptionDefaults(@Request() req: RequestWithUser) {
     const clinicId = req.user?.clinicId;
-    if (!clinicId) {
+    if (!clinicId)
       throw new ForbiddenException('No clinic assigned to this user');
-    }
     return this.clinicsService.getPrescriptionDefaults(clinicId);
   }
 
@@ -138,9 +130,8 @@ export class ClinicSettingsController {
     @Body() dto: Record<string, unknown>,
   ) {
     const clinicId = req.user?.clinicId;
-    if (!clinicId) {
+    if (!clinicId)
       throw new ForbiddenException('No clinic assigned to this user');
-    }
     return this.clinicsService.updatePrescriptionDefaults(clinicId, dto);
   }
 
@@ -148,9 +139,8 @@ export class ClinicSettingsController {
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.RECEPTIONIST)
   async getOpdSlipSettings(@Request() req: RequestWithUser) {
     const clinicId = req.user?.clinicId;
-    if (!clinicId) {
+    if (!clinicId)
       throw new ForbiddenException('No clinic assigned to this user');
-    }
     return this.clinicsService.getOpdSlipSettings(clinicId);
   }
 
@@ -162,9 +152,8 @@ export class ClinicSettingsController {
     @Body() dto: Partial<OpdSlipSettingsFormValues>,
   ) {
     const clinicId = req.user?.clinicId;
-    if (!clinicId) {
+    if (!clinicId)
       throw new ForbiddenException('No clinic assigned to this user');
-    }
     return this.clinicsService.updateOpdSlipSettings(clinicId, dto);
   }
 

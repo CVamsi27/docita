@@ -41,9 +41,7 @@ export async function completeOnboardingRegistration(
     throw error;
   }
 
-  if (!response.access_token || !response.user) {
-    return false;
-  }
+  if (!response.access_token || !response.user) return false;
 
   appSession.setToken(response.access_token);
   return true;

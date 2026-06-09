@@ -21,6 +21,10 @@ export const createLabTestRequestSchema = z.object({
   description: z.string().optional(),
 });
 
+export const updateLabTestRequestSchema = createLabTestRequestSchema
+  .omit({ clinicId: true })
+  .partial();
+
 export const createLabTestOrderRequestSchema = z.object({
   patientId: z.string(),
   labTestId: z.string(),
@@ -107,6 +111,7 @@ export type LabTestOrderContractResponse = z.infer<
   typeof labTestOrderResponseSchema
 >;
 export type CreateLabTestRequest = z.infer<typeof createLabTestRequestSchema>;
+export type UpdateLabTestRequest = z.infer<typeof updateLabTestRequestSchema>;
 export type CreateLabTestOrderRequest = z.infer<
   typeof createLabTestOrderRequestSchema
 >;

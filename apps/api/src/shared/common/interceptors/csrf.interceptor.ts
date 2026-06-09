@@ -119,9 +119,7 @@ export class CsrfInterceptor implements NestInterceptor {
   /** Unauthenticated online booking (may be cross-site; no session CSRF cookie). */
   private isPublicBookingWrite(request: Request): boolean {
     const method = request.method?.toUpperCase() ?? '';
-    if (method !== 'POST') {
-      return false;
-    }
+    if (method !== 'POST') return false;
     const path = this.getRequestPath(request);
     return (
       /^\/api(?:\/v\d+)?\/public\/booking\/clinics\//i.test(path) ||
@@ -162,8 +160,6 @@ export class CsrfInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
 
-    // CSRF protection is only needed for cookie-based auth.
-    // Bearer token requests are inherently CSRF-safe.
     const authHeader = readRequestHeaderString(
       request.headers,
       'authorization',
@@ -179,9 +175,6 @@ export class CsrfInterceptor implements NestInterceptor {
         csrfToken = randomBytes(24).toString('hex');
       }
 
-      // Always re-issue the token on safe requests. This keeps the host-only and
-      // shared-domain cookies in sync and helps browsers converge after we
-      // migrate cookie domains in production.
       this.setCsrfCookie(response, csrfToken);
     }
 
@@ -209,12 +202,6 @@ export class CsrfInterceptor implements NestInterceptor {
         !headerToken ||
         !safeTokenEqual(csrfToken, headerToken)
       ) {
-        // Re-issue a fresh token on the rejection so a legitimate client that
-        // simply never warmed its CSRF token (e.g. the first mutating call on a
-        // pre-clinic onboarding route, where the auth bootstrap GET is skipped)
-        // can read it from the X-CSRF-Token response header and retry. A
-        // cross-site attacker still cannot read the response, so double-submit
-        // protection is unchanged.
         this.setCsrfCookie(response, randomBytes(24).toString('hex'));
         throw forbiddenProblem(
           'INVALID_CSRF_TOKEN',

@@ -19,14 +19,11 @@ import {
   parseStringEnumMember,
   validateDosage,
 } from '@workspace/utils';
-import {
-  Specialization,
-  HospitalRole,
-  type EnqueuePdfJobResponse,
-} from '@workspace/types';
+import { type EnqueuePdfJobResponse } from '@workspace/types';
 import { DosageForm, SigCode } from '@workspace/db';
 import { PrescriptionDetail } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
 import { PrescriptionPdfOrchestratorService } from './prescription-pdf-orchestrator.service';
+import type { CreatePrescriptionParams } from './prescription-create.type';
 
 @Injectable()
 export class PrescriptionsCommandService {
@@ -41,43 +38,7 @@ export class PrescriptionsCommandService {
     private readonly pdfOrchestrator: PrescriptionPdfOrchestratorService,
   ) {}
 
-  async create(data: {
-    appointmentId: string;
-    patientId: string;
-    doctorId: string;
-    instructions?: string;
-    medications: Array<{
-      name: string;
-      dosage: string;
-      frequency: string;
-      duration: string;
-      route?: string;
-      ndcCode?: string;
-      rxNormCui?: string;
-      dosageForm?: string;
-      strengthValue?: number;
-      strengthUnit?: string;
-      sigCode?: string;
-      quantity?: number;
-      refillsAllowed?: number;
-      dispenseAsWritten?: boolean;
-      startDate?: string | Date;
-      endDate?: string | Date;
-      isPRN?: boolean;
-      prnInstructions?: string;
-      prnMaxDose?: string;
-      specialInstructions?: string;
-      indication?: string;
-    }>;
-    doctorName?: string;
-    doctorEmail?: string;
-    doctorPhone?: string;
-    doctorSpecialization?: Specialization;
-    doctorRole?: HospitalRole;
-    doctorRegistrationNumber?: string;
-    doctorLicenseNumber?: string;
-    clinicId?: string;
-  }) {
+  async create(data: CreatePrescriptionParams) {
     const doctorProfile = await this.repository.findDoctorCompliance(
       data.doctorId,
       data.clinicId,
@@ -106,11 +67,10 @@ export class PrescriptionsCommandService {
       });
     }
 
-    if (!data.clinicId) {
+    if (!data.clinicId)
       throw new BadRequestException(
         'Cannot create prescription without a clinic context',
       );
-    }
 
     const patient = await this.repository.findPatientWithAllergies(
       data.patientId,

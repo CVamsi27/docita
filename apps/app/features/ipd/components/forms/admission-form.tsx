@@ -1,7 +1,8 @@
 "use client";
 
+// jscpd:ignore-start
 import { FC } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ipdAdmissionFormSchema,
@@ -34,6 +35,7 @@ import {
 } from "@workspace/ui/components/form/select";
 
 export type AdmissionFormData = IpdAdmissionFormValues;
+// jscpd:ignore-end
 export { ipdAdmissionFormSchema };
 
 export interface AdmissionFormProps {
@@ -58,6 +60,59 @@ const DOCTOR_OPTIONS = [
   { value: "dr1", label: "Dr. Vamsi Krishna" },
   { value: "dr2", label: "Dr. Priya Sharma" },
 ];
+
+interface AdmissionSelectFieldOption {
+  value: string;
+  label: string;
+}
+
+interface AdmissionSelectFieldProps {
+  control: Control<IpdAdmissionFormValues>;
+  name: "wardId" | "bedId" | "attendingDoctorId";
+  label: string;
+  ariaLabel: string;
+  placeholder: string;
+  options: AdmissionSelectFieldOption[];
+}
+
+/**
+ * Ward, bed, and attending-doctor all render the same "labeled select with
+ * options drawn from a static list" `FormField` shape — only the bound field,
+ * copy, and option list differ — so that shape lives here once.
+ */
+const AdmissionSelectField: FC<AdmissionSelectFieldProps> = ({
+  control,
+  name,
+  label,
+  ariaLabel,
+  placeholder,
+  options,
+}) => (
+  <FormField
+    control={control}
+    name={name}
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>{label}</FormLabel>
+        <Select onValueChange={field.onChange} value={field.value}>
+          <FormControl>
+            <SelectTrigger className="w-full" aria-label={ariaLabel}>
+              <SelectValue placeholder={placeholder} />
+            </SelectTrigger>
+          </FormControl>
+          <SelectContent>
+            {options.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+);
 
 export const AdmissionForm: FC<AdmissionFormProps> = ({
   defaultValues,
@@ -108,89 +163,32 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
             />
 
             <div className="grid grid-cols-2 gap-4">
-              <FormField
+              <AdmissionSelectField
                 control={form.control}
                 name="wardId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ward</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger
-                          className="w-full"
-                          aria-label="Select Ward"
-                        >
-                          <SelectValue placeholder="Ward" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {WARD_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Ward"
+                ariaLabel="Select Ward"
+                placeholder="Ward"
+                options={WARD_OPTIONS}
               />
 
-              <FormField
+              <AdmissionSelectField
                 control={form.control}
                 name="bedId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Bed</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger
-                          className="w-full"
-                          aria-label="Select Bed"
-                        >
-                          <SelectValue placeholder="Bed" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {BED_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Bed"
+                ariaLabel="Select Bed"
+                placeholder="Bed"
+                options={BED_OPTIONS}
               />
             </div>
 
-            <FormField
+            <AdmissionSelectField
               control={form.control}
               name="attendingDoctorId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Attending doctor</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger
-                        className="w-full"
-                        aria-label="Select Doctor"
-                      >
-                        <SelectValue placeholder="Doctor" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {DOCTOR_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Attending doctor"
+              ariaLabel="Select Doctor"
+              placeholder="Doctor"
+              options={DOCTOR_OPTIONS}
             />
 
             <FormField

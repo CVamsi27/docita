@@ -11,15 +11,9 @@ function envBoolean(defaultValue: boolean) {
     .union([z.boolean(), z.string(), z.number()])
     .optional()
     .transform((value) => {
-      if (value === undefined) {
-        return defaultValue;
-      }
-      if (typeof value === 'boolean') {
-        return value;
-      }
-      if (typeof value === 'number') {
-        return value !== 0;
-      }
+      if (value === undefined) return defaultValue;
+      if (typeof value === 'boolean') return value;
+      if (typeof value === 'number') return value !== 0;
       const normalized = String(value).trim().toLowerCase();
       if (['false', '0', 'no', 'off'].includes(normalized)) {
         return false;
@@ -126,7 +120,8 @@ export const EnvSchema = z.object({
   PUBLIC_LANDING_APPOINTMENTS: z.coerce.number().int().min(0).optional(),
   PUBLIC_LANDING_UPTIME: z.string().optional(),
   SLA_UPTIME_TARGET: z.string().optional(),
-  OPENAI_API_KEY: z.string().optional(),
+  BACKUP_DIR: z.string().optional(),
+  AI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default('gpt-4-turbo'),
   AI_REQUEST_TIMEOUT: z.coerce.number().default(5000),
   AI_CACHE_ENABLED: z.coerce.boolean().default(true),

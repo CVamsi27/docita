@@ -83,9 +83,8 @@ export class StaffNotificationPolicyService {
     if (
       !clinic?.whatsappAutomation ||
       typeof clinic.whatsappAutomation !== 'object'
-    ) {
+    )
       return true;
-    }
 
     const automation = isJsonObject(clinic.whatsappAutomation)
       ? clinic.whatsappAutomation

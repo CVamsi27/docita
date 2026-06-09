@@ -120,9 +120,7 @@ export function formatTierPrice(
     tier === Tier.ENTERPRISE ||
     pricing.monthly === "custom" ||
     pricing.yearly === "custom"
-  ) {
-    return "Custom";
-  }
+  ) return "Custom";
   if (billingCycle === "YEARLY" && typeof pricing.yearly === "number") {
     return `${sym}${formatAmountLocale(pricing.yearly)}/yr`;
   }

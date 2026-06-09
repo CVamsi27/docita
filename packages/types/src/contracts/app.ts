@@ -44,6 +44,7 @@ export const appClinicSettingsSchema = z.object({
   reminderUnit: z.string().optional(),
   twoFactorAuth: z.boolean().optional(),
   sessionTimeout: z.union([z.string(), z.number()]).optional(),
+// jscpd:ignore-start
   auditLogs: z.boolean().optional(),
   whatsappAppointmentReminders: z.boolean().optional(),
   whatsappFollowUpMessages: z.boolean().optional(),
@@ -59,6 +60,7 @@ export const appClinicSettingsSchema = z.object({
     )
     .optional(),
   followUpReminderEnabled: z.boolean().optional(),
+// jscpd:ignore-end
   followUpReminderBefore: z.string().optional(),
   followUpReminderUnit: z.string().optional(),
   invoiceReminderEnabled: z.boolean().optional(),

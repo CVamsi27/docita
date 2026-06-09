@@ -21,9 +21,7 @@ const portalVerifyOtpResponseSchema = z.object({
 
 export function insertPortalE2eOtp(phoneNumber: string): boolean {
   const databaseUrl = readRepoDatabaseUrl();
-  if (!databaseUrl) {
-    return false;
-  }
+  if (!databaseUrl) return false;
 
   try {
     execFileSync(

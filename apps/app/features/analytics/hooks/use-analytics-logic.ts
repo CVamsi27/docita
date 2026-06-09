@@ -31,14 +31,10 @@ export const useAnalyticsLogic = () => {
     refetch: refetchOverview,
   } = useAnalyticsOverview();
 
-  const { data: diseaseTrends = [], isLoading: trendsLoading } = useDiseaseTrends(
-    defaultClinicId,
-    startDate,
-    endDate,
-    {
+  const { data: diseaseTrends = [], isLoading: trendsLoading } =
+    useDiseaseTrends(defaultClinicId, startDate, endDate, {
       enabled: activeTab === "disease-trends",
-    },
-  );
+    });
 
   const { data: revenueByCPTData = [], isLoading: revenueLoading } =
     useRevenueByCPT(defaultClinicId, startDate, endDate, {
@@ -61,36 +57,23 @@ export const useAnalyticsLogic = () => {
       })),
     [revenueByCPTData],
   );
-
   const complianceMetrics: ComplianceMetric[] = useMemo(() => {
-    if (!complianceMetricsData) {
-      return [];
-    }
-
+    if (!complianceMetricsData) return [];
     return [
       {
         category: "Coding",
         metric: "Coding Completeness",
         score: complianceMetricsData.codingCompletenessRate,
         value: complianceMetricsData.codingCompletenessRate,
-        issues: Math.max(
-          complianceMetricsData.totalVisits - complianceMetricsData.codedVisits,
-          0,
-        ),
-        status:
-          complianceMetricsData.codingCompletenessRate >= 90
-            ? "compliant"
-            : "warning",
+        issues: Math.max(complianceMetricsData.totalVisits - complianceMetricsData.codedVisits, 0),
+        status: complianceMetricsData.codingCompletenessRate >= 90 ? "compliant" : "warning",
       },
       {
         category: "Billing",
         metric: "Billing Rate",
         score: complianceMetricsData.billingRate,
         value: complianceMetricsData.billingRate,
-        issues: Math.max(
-          complianceMetricsData.totalVisits - complianceMetricsData.billedVisits,
-          0,
-        ),
+        issues: Math.max(complianceMetricsData.totalVisits - complianceMetricsData.billedVisits, 0),
         status:
           complianceMetricsData.billingRate >= 90 ? "compliant" : "warning",
       },
@@ -107,10 +90,7 @@ export const useAnalyticsLogic = () => {
             ),
           0,
         ),
-        status:
-          complianceMetricsData.primaryDiagnosisRate >= 90
-            ? "compliant"
-            : "warning",
+        status: complianceMetricsData.primaryDiagnosisRate >= 90 ? "compliant" : "warning",
       },
       {
         category: "Procedure",
@@ -118,14 +98,10 @@ export const useAnalyticsLogic = () => {
         score: 100 - complianceMetricsData.unbilledProceduresRate,
         value: 100 - complianceMetricsData.unbilledProceduresRate,
         issues: complianceMetricsData.proceduresWithoutPrice,
-        status:
-          complianceMetricsData.unbilledProceduresRate <= 10
-            ? "compliant"
-            : "warning",
+        status: complianceMetricsData.unbilledProceduresRate <= 10 ? "compliant" : "warning",
       },
     ];
   }, [complianceMetricsData]);
-
   const isLoading = overviewLoading;
   const isError = overviewError;
 

@@ -66,6 +66,42 @@ export interface CreateClinicMemberData {
   labId?: string;
 }
 
+/**
+ * Reusable Prisma `select` field groups for staff-member projections.
+ * `StaffManagementService` (`getDoctors`/`getReceptionists`/`getMembers`/
+ * `updateMember`) and `StaffInviteService` (`createDoctor`/
+ * `createReceptionist`/`createMember`) each project a different combination
+ * of these groups — composing the combinations from shared building blocks
+ * keeps their overlap structural instead of copy-pasted key lists that drift.
+ */
+export const STAFF_IDENTITY_SELECT = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  phoneNumber: true,
+} as const;
+
+export const STAFF_CLINICAL_SELECT = {
+  specialization: true,
+  qualification: true,
+  registrationNumber: true,
+} as const;
+
+export const STAFF_VERIFICATION_SELECT = {
+  signatureUploadedAt: true,
+  verificationStatus: true,
+  verificationReason: true,
+  verificationCheckedAt: true,
+  profilePhotoUrl: true,
+  labId: true,
+} as const;
+
+export const STAFF_TIMESTAMPS_SELECT = {
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
 export interface UpdateMemberData {
   name?: string;
   email?: string;

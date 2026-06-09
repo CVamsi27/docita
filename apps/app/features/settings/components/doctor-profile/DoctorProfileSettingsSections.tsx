@@ -122,7 +122,6 @@ export function DigitalSignatureCard({
     </Card>
   );
 }
-
 export function MedicalRegistrationCard({
   profile,
 }: {
@@ -140,7 +139,6 @@ export function MedicalRegistrationCard({
     verificationStatus,
   );
   const RegistrationBadgeIcon = registrationStatusBadge?.Icon;
-
   return (
     <Card>
       <CardHeader className="border-b border-border/60 pb-5">

@@ -1,14 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
-import { SidebarNavItem } from "@workspace/ui/components/navigation/sidebar-nav-item";
-import {
-  sidebarNavLinkTestId,
-  type NavItem,
-  type NavSection,
-} from "@/components/navigation/nav-config";
+import type { NavSection } from "@/components/navigation/nav-config";
+import { SidebarLink } from "@/components/navigation/sidebar/sidebar-nav-link";
 
 interface SidebarTrackSectionProps {
   orderedVisibleSections: NavSection[];
@@ -38,7 +32,7 @@ export function SidebarTrackSection({
               />
             )}
             {section.items.map((item) => (
-              <SidebarTrackNavLink
+              <SidebarLink
                 key={item.href}
                 item={item}
                 collapsedRail={collapsedRail}
@@ -49,39 +43,5 @@ export function SidebarTrackSection({
         );
       })}
     </>
-  );
-}
-
-function SidebarTrackNavLink({
-  item,
-  collapsedRail,
-  showLabels,
-}: {
-  item: NavItem;
-  collapsedRail: boolean;
-  showLabels: boolean;
-}) {
-  const pathname = usePathname();
-  const isActive =
-    pathname === item.href || pathname.startsWith(`${item.href}/`);
-
-  return (
-    <SidebarNavItem
-      label={item.label}
-      icon={item.icon}
-      isActive={isActive}
-      collapsedRail={collapsedRail}
-      showLabels={showLabels}
-      renderLink={({ className, children, "aria-label": ariaLabel }) => (
-        <Link
-          href={item.href}
-          data-testid={sidebarNavLinkTestId(item.href)}
-          aria-label={ariaLabel}
-          className={className}
-        >
-          {children}
-        </Link>
-      )}
-    />
   );
 }

@@ -46,9 +46,7 @@ export function runWithActiveTx<T>(tx: Tx, fn: () => Promise<T>): Promise<T> {
  */
 export async function runOutsideActiveTx<T>(fn: () => Promise<T>): Promise<T> {
   const store = activeTxStorage.getStore();
-  if (!store?.tx) {
-    return fn();
-  }
+  if (!store?.tx) return fn();
   const previousTx = store.tx;
   store.tx = null;
   try {

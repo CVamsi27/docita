@@ -22,9 +22,8 @@ export class OnboardingPaymentService {
 
   async createCheckout(onboardingId: string, data: OnboardingCheckoutDto) {
     const sessionData = await this.dataService.getSessionData(onboardingId);
-    if (!sessionData) {
+    if (!sessionData)
       throw new BadRequestException('Onboarding session not found or expired');
-    }
 
     const amountCents = this.validationService.getTierPricing(
       data.tier,
@@ -36,11 +35,10 @@ export class OnboardingPaymentService {
     // GSTIN is optional at onboarding; it is collected later in
     // Settings → Billing before the first paid GST invoice is issued.
 
-    if (amountCents <= 0) {
+    if (amountCents <= 0)
       throw new BadRequestException(
         'Selected plan does not support direct checkout',
       );
-    }
 
     const order = await this.paymentGateway.createOrder({
       amountCents,

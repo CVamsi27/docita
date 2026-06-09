@@ -19,10 +19,8 @@ function MedicationsContent({
   medications: ActiveMedication[];
 }) {
   const { data: adherence } = usePortalAdherence();
-
   const scheduledMedications = medications.filter((m) => !m.isPRN);
   const prnMedications = medications.filter((m) => m.isPRN);
-
   return (
     <div className="space-y-6">
       {adherence && adherence.totalDoses > 0 && (
@@ -31,9 +29,7 @@ function MedicationsContent({
           label="Overall Medication Adherence"
         />
       )}
-
       <ActiveMedicationsCard medications={medications} />
-
       {scheduledMedications.length > 0 && (
         <div className="space-y-4">
           <h2 className="ui-section-title text-[var(--fs-xl)]">

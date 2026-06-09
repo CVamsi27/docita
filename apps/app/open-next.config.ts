@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { defineCloudflareConfig } from "@opennextjs/cloudflare";
 import r2IncrementalCache from "@opennextjs/cloudflare/overrides/incremental-cache/r2-incremental-cache";
 
@@ -12,3 +13,4 @@ if (config.middleware?.external) {
 }
 
 export default config;
+// jscpd:ignore-end

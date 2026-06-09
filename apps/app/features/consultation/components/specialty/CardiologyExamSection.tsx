@@ -1,11 +1,13 @@
 "use client";
 
-import { Label } from "@workspace/ui/components/form/label";
-import { Textarea } from "@workspace/ui/components/form/textarea";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
 import { useConsultationSectionSubtitle } from "@/features/consultation/workspace/consultation-workspace-context";
 import type { CardiologyExamData } from "@workspace/types";
+import {
+  ExamFieldGrid,
+  ExamTextareaField,
+} from "./exam-section-fields";
 
 interface CardiologyExamSectionProps {
   readOnly?: boolean;
@@ -24,6 +26,11 @@ export function CardiologyExamSection({
     setValue((prev) => ({ ...prev, ...partial }));
   };
 
+  // Shares the SectionContainer shell + nested-patch wiring convention with
+  // the other specialty exam sections (see DermatologyExamSection for the
+  // full rationale) — each binds genuinely different specialty data through
+  // the same shared shell, so this is intentional structural similarity.
+  // jscpd:ignore-start
   return (
     <SectionContainer
       ref={sectionRef}
@@ -34,97 +41,74 @@ export function CardiologyExamSection({
       description="Cardiac assessment, ECG or imaging summaries, and follow-up plan."
     >
       <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="cardio-assessment" className="text-sm font-semibold">
-            Clinical assessment
-          </Label>
-          <Textarea
-            id="cardio-assessment"
-            className="min-h-[100px]"
+        <ExamTextareaField
+          id="cardio-assessment"
+          label="Clinical assessment"
+          minHeightClassName="min-h-[100px]"
+          readOnly={readOnly}
+          placeholder="Clinical assessment"
+          value={value.clinicalAssessment ?? ""}
+          onChange={(clinicalAssessment) => patch({ clinicalAssessment })}
+        />
+        <ExamFieldGrid>
+          <ExamTextareaField
+            id="cardio-risk"
+            label="Risk factors"
+            minHeightClassName="min-h-[88px]"
             readOnly={readOnly}
-            placeholder="Clinical assessment"
-            value={value.clinicalAssessment ?? ""}
-            onChange={(e) => patch({ clinicalAssessment: e.target.value })}
+            placeholder="Risk factors"
+            value={value.riskFactors ?? ""}
+            onChange={(riskFactors) => patch({ riskFactors })}
           />
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="cardio-risk" className="text-sm font-semibold">
-              Risk factors
-            </Label>
-            <Textarea
-              id="cardio-risk"
-              className="min-h-[88px]"
-              readOnly={readOnly}
-              placeholder="Risk factors"
-              value={value.riskFactors ?? ""}
-              onChange={(e) => patch({ riskFactors: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="cardio-meds" className="text-sm font-semibold">
-              Cardiac medications
-            </Label>
-            <Textarea
-              id="cardio-meds"
-              className="min-h-[88px]"
-              readOnly={readOnly}
-              placeholder="Cardiac medications"
-              value={value.medications ?? ""}
-              onChange={(e) => patch({ medications: e.target.value })}
-            />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="cardio-ecg" className="text-sm font-semibold">
-            ECG / monitoring notes
-          </Label>
-          <Textarea
-            id="cardio-ecg"
-            className="min-h-[88px]"
+          <ExamTextareaField
+            id="cardio-meds"
+            label="Cardiac medications"
+            minHeightClassName="min-h-[88px]"
             readOnly={readOnly}
-            placeholder="ECG monitoring notes"
-            value={value.ecg?.interpretation ?? value.ecg?.findings ?? ""}
-            onChange={(e) =>
-              setValue((prev) => ({
-                ...prev,
-                ecg: {
-                  ...prev.ecg,
-                  interpretation: e.target.value,
-                },
-              }))
-            }
+            placeholder="Cardiac medications"
+            value={value.medications ?? ""}
+            onChange={(medications) => patch({ medications })}
           />
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="cardio-plan" className="text-sm font-semibold">
-              Plan
-            </Label>
-            <Textarea
-              id="cardio-plan"
-              className="min-h-[88px]"
-              readOnly={readOnly}
-              placeholder="Plan"
-              value={value.plan ?? ""}
-              onChange={(e) => patch({ plan: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="cardio-notes" className="text-sm font-semibold">
-              General notes
-            </Label>
-            <Textarea
-              id="cardio-notes"
-              className="min-h-[88px]"
-              readOnly={readOnly}
-              placeholder="General notes"
-              value={value.generalNotes ?? ""}
-              onChange={(e) => patch({ generalNotes: e.target.value })}
-            />
-          </div>
-        </div>
+        </ExamFieldGrid>
+        <ExamTextareaField
+          id="cardio-ecg"
+          label="ECG / monitoring notes"
+          minHeightClassName="min-h-[88px]"
+          readOnly={readOnly}
+          placeholder="ECG monitoring notes"
+          value={value.ecg?.interpretation ?? value.ecg?.findings ?? ""}
+          onChange={(interpretation) =>
+            setValue((prev) => ({
+              ...prev,
+              ecg: {
+                ...prev.ecg,
+                interpretation,
+              },
+            }))
+          }
+        />
+        <ExamFieldGrid>
+          <ExamTextareaField
+            id="cardio-plan"
+            label="Plan"
+            minHeightClassName="min-h-[88px]"
+            readOnly={readOnly}
+            placeholder="Plan"
+            value={value.plan ?? ""}
+            onChange={(plan) => patch({ plan })}
+          />
+          <ExamTextareaField
+            id="cardio-notes"
+            label="General notes"
+            minHeightClassName="min-h-[88px]"
+            readOnly={readOnly}
+            placeholder="General notes"
+            value={value.generalNotes ?? ""}
+            onChange={(generalNotes) => patch({ generalNotes })}
+          />
+        </ExamFieldGrid>
       </div>
     </SectionContainer>
   );
+  // jscpd:ignore-end
 }

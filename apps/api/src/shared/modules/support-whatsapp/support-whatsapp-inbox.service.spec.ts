@@ -395,9 +395,7 @@ describe('SupportWhatsAppInboxService', () => {
 
     supportWhatsAppMessageFindFirst.mockImplementation(
       async (args: SupportWhatsAppMessageFindFirstArgs) => {
-        if (args.where.direction === 'OUTBOUND') {
-          return null;
-        }
+        if (args.where.direction === 'OUTBOUND') return null;
         return {
           providerMessageId: inboundMessage.id,
           supportPhoneNumber: '918790311010',

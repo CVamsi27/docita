@@ -24,13 +24,9 @@ async function getCsrfHeaders(server: string) {
   const response = await request(server).get('/health').expect(200);
   const cookies = response.get('Set-Cookie') ?? [];
   const csrfCookie = cookies.find((cookie) => cookie.startsWith('XSRF-TOKEN='));
-  if (!csrfCookie) {
-    throw new Error('CSRF cookie was not issued by /health');
-  }
+  if (!csrfCookie) throw new Error('CSRF cookie was not issued by /health');
   const token = csrfCookie.split(';')[0]?.split('=')[1];
-  if (!token) {
-    throw new Error('CSRF cookie did not contain a token');
-  }
+  if (!token) throw new Error('CSRF cookie did not contain a token');
   return {
     cookie: `XSRF-TOKEN=${token}`,
     token,

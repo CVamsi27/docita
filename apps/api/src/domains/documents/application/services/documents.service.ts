@@ -71,9 +71,7 @@ export class DocumentsQueryService {
       },
     });
 
-    if (!row) {
-      throw new NotFoundException('Document not found');
-    }
+    if (!row) throw new NotFoundException('Document not found');
 
     return this.mapToResponse(row);
   }

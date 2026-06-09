@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,24 +7,12 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
 import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { toast } from "sonner";
-import { useSaveVitals } from "@workspace/data-access";
 import { HeartPulse } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
-import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { useVitalsForm } from "./use-vitals-form";
+import { VitalsFieldGrid } from "./VitalsModalSections";
 
-export interface VitalsFormData {
-  height: string;
-  weight: string;
-  systolicBP: string;
-  diastolicBP: string;
-  pulse: string;
-  temperature: string;
-  spo2: string;
-  respiratoryRate: string;
-}
+export type { VitalsFormData } from "./use-vitals-form";
 
 export function VitalsModal({
   open,
@@ -34,63 +21,11 @@ export function VitalsModal({
   patientName,
   onSaved,
 }: ModalProps) {
-  const [vitals, setVitals] = useState<VitalsFormData>({
-    height: "",
-    weight: "",
-    systolicBP: "",
-    diastolicBP: "",
-    pulse: "",
-    temperature: "",
-    spo2: "",
-    respiratoryRate: "",
+  const { vitals, updateVital, handleSave, isSaving } = useVitalsForm({
+    appointmentId,
+    onSaved,
+    onOpenChange,
   });
-
-  const recordVitals = useSaveVitals(appointmentId || "");
-
-  const handleSave = async () => {
-    try {
-      if (!appointmentId) return;
-
-      const payload: Record<string, unknown> = { appointmentId };
-      Object.entries(vitals).forEach(([key, value]) => {
-        if (value.trim() !== "") {
-          payload[key] = parseFloat(value);
-        }
-      });
-
-      if (Object.keys(payload).length <= 1) {
-        showUserFacingErrorToast(
-          "Enter at least one vital sign before saving",
-        );
-        return;
-      }
-
-      await recordVitals.mutateAsync(payload);
-
-      toast.success("Vitals recorded");
-      onSaved?.();
-      onOpenChange?.(false);
-      setVitals({
-        height: "",
-        weight: "",
-        systolicBP: "",
-        diastolicBP: "",
-        pulse: "",
-        temperature: "",
-        spo2: "",
-        respiratoryRate: "",
-      });
-    } catch {
-      showUserFacingErrorToast(
-        "We could not save these vital signs. Please try again.",
-      );
-
-    }
-  };
-
-  const updateVital = (field: keyof VitalsFormData, value: string) => {
-    setVitals((prev) => ({ ...prev, [field]: value }));
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -107,91 +42,14 @@ export function VitalsModal({
           )}
         </DialogHeader>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Height (cm)</Label>
-            <Input
-              type="number"
-              value={vitals.height}
-              onChange={(e) => updateVital("height", e.target.value)}
-              placeholder="Height"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Weight (kg)</Label>
-            <Input
-              type="number"
-              value={vitals.weight}
-              onChange={(e) => updateVital("weight", e.target.value)}
-              placeholder="Weight"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Systolic BP</Label>
-            <Input
-              type="number"
-              value={vitals.systolicBP}
-              onChange={(e) => updateVital("systolicBP", e.target.value)}
-              placeholder="Systolic BP"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Diastolic BP</Label>
-            <Input
-              type="number"
-              value={vitals.diastolicBP}
-              onChange={(e) => updateVital("diastolicBP", e.target.value)}
-              placeholder="Diastolic BP"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Pulse (bpm)</Label>
-            <Input
-              type="number"
-              value={vitals.pulse}
-              onChange={(e) => updateVital("pulse", e.target.value)}
-              placeholder="Pulse"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Temp (°C)</Label>
-            <Input
-              type="number"
-              value={vitals.temperature}
-              onChange={(e) => updateVital("temperature", e.target.value)}
-              placeholder="Temperature"
-              step="0.1"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>SpO2 (%)</Label>
-            <Input
-              type="number"
-              value={vitals.spo2}
-              onChange={(e) => updateVital("spo2", e.target.value)}
-              placeholder="SpO2"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Resp. Rate</Label>
-            <Input
-              type="number"
-              value={vitals.respiratoryRate}
-              onChange={(e) => updateVital("respiratoryRate", e.target.value)}
-              placeholder="Respiratory rate"
-            />
-          </div>
-        </div>
+        <VitalsFieldGrid vitals={vitals} onFieldChange={updateVital} />
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange?.(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={recordVitals.isPending}>
-            {recordVitals.isPending ? "Saving…" : "Save Vitals"}
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? "Saving…" : "Save Vitals"}
           </Button>
         </DialogFooter>
       </DialogContent>

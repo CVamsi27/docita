@@ -57,14 +57,11 @@ export class WhatsAppWebhookIngressService {
 
   async processIncomingMessages(value: WebhookChangeValue): Promise<void> {
     await this.supportInboxService.recordIncomingMessages(value);
-
     for (const message of value.messages || []) {
       const phoneNumber = message.from;
       this.logger.log(`Incoming WhatsApp message: type=${message.type}`);
-
       let responseText = '';
       let buttonId = '';
-
       if (message.type === 'text' && message.text) {
         responseText = message.text.body;
       } else if (message.type === 'interactive' && message.interactive) {
@@ -79,13 +76,8 @@ export class WhatsAppWebhookIngressService {
         buttonId = message.button.payload;
         responseText = message.button.text;
       }
-
       const response = buttonId || responseText;
-
-      if (!response) {
-        continue;
-      }
-
+      if (!response) continue;
       try {
         const contextMessageId = this.readContextMessageId(message);
         await this.recordClinicConversationMessage({
@@ -101,7 +93,6 @@ export class WhatsAppWebhookIngressService {
             phoneNumber,
             contextProviderMessageId: contextMessageId,
           });
-
         if (appointmentContext) {
           await this.responseHandler.handlePatientResponseForAppointment(
             appointmentContext,

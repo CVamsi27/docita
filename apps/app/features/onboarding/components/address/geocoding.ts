@@ -103,9 +103,7 @@ export async function searchOSM(query: string): Promise<PlaceSuggestion[]> {
 export async function reverseGeocodeGoogle(
   position: LatLng,
 ): Promise<ClinicAddressSelection | null> {
-  if (typeof window === "undefined" || !window.google?.maps?.Geocoder) {
-    return null;
-  }
+  if (typeof window === "undefined" || !window.google?.maps?.Geocoder) return null;
 
   const geocoder = new window.google.maps.Geocoder();
   const result = await geocoder.geocode({ location: position });

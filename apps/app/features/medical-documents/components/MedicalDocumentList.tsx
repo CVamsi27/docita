@@ -10,15 +10,11 @@ import { useMedicalDocumentList } from "./use-medical-document-list";
 interface Props {
   patientId: string;
 }
-
 export function MedicalDocumentList({ patientId }: Props) {
   const list = useMedicalDocumentList(patientId);
-
-  if (list.loading) {
+  if (list.loading)
     return <DataState status="loading" loadingMessage="Loading documents…" />;
-  }
-
-  if (list.isError) {
+  if (list.isError)
     return (
       <DataState
         status="error"
@@ -26,8 +22,6 @@ export function MedicalDocumentList({ patientId }: Props) {
         onRetry={() => list.refetch()}
       />
     );
-  }
-
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -41,7 +35,6 @@ export function MedicalDocumentList({ patientId }: Props) {
           New
         </Button>
       </div>
-
       <MedicalDocumentCreateDialog
         open={list.showNew}
         onOpenChange={list.setShowNew}
@@ -59,7 +52,6 @@ export function MedicalDocumentList({ patientId }: Props) {
         onFileChange={list.handleFileChange}
         onMobileUpload={list.handleMobileUpload}
       />
-
       {list.documents.length === 0 ? (
         <DataState
           status="empty"

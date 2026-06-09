@@ -31,9 +31,7 @@ export function InvoiceItemsTableReadOnly({
 }: InvoiceItemsTableReadOnlyProps) {
   const rows = items ?? [];
 
-  if (rows.length === 0) {
-    return null;
-  }
+  if (rows.length === 0) return null;
 
   return (
     <div className="mb-6">

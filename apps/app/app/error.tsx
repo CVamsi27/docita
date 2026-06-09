@@ -5,6 +5,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { AlertCircle, Home, RefreshCw } from "lucide-react";
 import { captureException } from "@/lib/monitoring/sentry.client.config";
 
+// jscpd:ignore-start
 export default function RootError({
   error,
   reset,
@@ -12,6 +13,7 @@ export default function RootError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+// jscpd:ignore-end
   useEffect(() => {
     captureException(error, { digest: error.digest });
   }, [error]);

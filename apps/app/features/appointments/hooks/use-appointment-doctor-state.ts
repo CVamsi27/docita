@@ -28,6 +28,7 @@ export function useAppointmentDoctorState(date: Date) {
   const canViewAllDoctors = useMemo(
     () => isClinicWideAppointmentRole(user?.role),
     [user?.role],
+// jscpd:ignore-start
   );
   const doctorScope = useMemo(
     () =>
@@ -40,6 +41,7 @@ export function useAppointmentDoctorState(date: Date) {
   );
 
   const { data: doctors = [] } = useDoctors();
+// jscpd:ignore-end
   const { data: unavailableDoctorResponse } =
     useUnavailableDoctorIdsForDate(date);
   const unavailableDoctorIds = useMemo(

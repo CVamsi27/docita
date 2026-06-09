@@ -36,9 +36,7 @@ export function InternalProtectedGate({
     );
   }
 
-  if (!isAuthenticated || !isInternal) {
-    return null;
-  }
+  if (!isAuthenticated || !isInternal) return null;
 
   return children;
 }

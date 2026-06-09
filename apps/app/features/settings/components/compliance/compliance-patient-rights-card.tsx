@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import {
   Card,
   CardContent,
@@ -13,6 +14,7 @@ import { Inbox } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import type {
   AppComplianceSummary,
+// jscpd:ignore-end
   AppDataSubjectRequest,
   DataSubjectRequestStatus,
 } from "@workspace/types";

@@ -9,6 +9,27 @@ import { ResolvedWhatsappSender } from '@/domains/whatsapp/application/ports/wha
 
 export const WHATSAPP_ACCESS_TOKEN_SECRET_KIND = 'WHATSAPP_ACCESS_TOKEN';
 
+/**
+ * Looks up a clinic's encrypted WhatsApp access-token secret. Both the
+ * resolver (deciding which sender to use) and the settings service
+ * (verifying a clinic-owned sender) need this exact lookup — sharing it
+ * keeps the `clinicId_kind`/`select` shape from drifting between them.
+ */
+export function fetchWhatsappAccessTokenSecret(
+  persistence: WhatsappPersistencePort,
+  clinicId: string,
+) {
+  return persistence.clinicSecret.findUnique({
+    where: {
+      clinicId_kind: {
+        clinicId,
+        kind: WHATSAPP_ACCESS_TOKEN_SECRET_KIND,
+      },
+    },
+    select: { ciphertext: true },
+  });
+}
+
 @Injectable()
 export class WhatsappSenderResolver {
   private readonly logger = new Logger(WhatsappSenderResolver.name);
@@ -46,9 +67,8 @@ export class WhatsappSenderResolver {
       },
     });
 
-    if (!clinic || clinic.whatsappSenderMode === 'SHARED') {
+    if (!clinic || clinic.whatsappSenderMode === 'SHARED')
       return this.resolveShared();
-    }
 
     if (
       clinic.whatsappSenderStatus !== 'VERIFIED' ||
@@ -60,15 +80,10 @@ export class WhatsappSenderResolver {
       return { ...this.resolveShared(), fallbackActive: true };
     }
 
-    const secret = await this.persistence.clinicSecret.findUnique({
-      where: {
-        clinicId_kind: {
-          clinicId,
-          kind: WHATSAPP_ACCESS_TOKEN_SECRET_KIND,
-        },
-      },
-      select: { ciphertext: true },
-    });
+    const secret = await fetchWhatsappAccessTokenSecret(
+      this.persistence,
+      clinicId,
+    );
 
     if (!secret) {
       this.logger.warn(

@@ -1,5 +1,3 @@
-
-
 export interface FHIRExtendedPatient {
   id: string;
   clinicId: string;

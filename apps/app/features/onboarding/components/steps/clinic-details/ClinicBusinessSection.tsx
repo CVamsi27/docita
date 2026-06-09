@@ -32,7 +32,6 @@ export function ClinicBusinessSection({
           </p>
         )}
       </div>
-
       <div className="space-y-2">
         <Label htmlFor="gstin">GSTIN for invoices (optional)</Label>
         <Input
@@ -62,7 +61,6 @@ export function ClinicBusinessSection({
           </p>
         )}
       </div>
-
       <div className="space-y-2">
         <Label htmlFor="legalName">Legal name on tax invoice (optional)</Label>
         <Input

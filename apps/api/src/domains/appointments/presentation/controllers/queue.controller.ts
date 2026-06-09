@@ -46,30 +46,14 @@ export class QueueController {
     @Query('doctorId') doctorId?: string,
     @Query('search') search?: string,
   ) {
-    const { clinicId, userId, role } = getClinicStaffRequestContext(req);
-    const doctorScope = resolveDoctorScopedAppointmentFilter({
-      role,
-      userId,
-      requestedDoctorId: doctorId,
-    });
-
-    if (doctorScope.denied) {
-      throw new ForbiddenException('Doctors can only access their queue');
-    }
-
-    await logClinicPhiListRead(
-      this.auditService,
+    const { clinicId, scopedDoctorId } = await this.resolveQueueAccess(
       req,
-      'VIEW_APPOINTMENT_LIST',
-      'Appointment',
-      { scope: 'queue', doctorId: doctorScope.scopedDoctorId, search },
+      doctorId,
+      search,
+      'queue',
     );
 
-    return this.queueService.getQueue(
-      clinicId,
-      doctorScope.scopedDoctorId,
-      search,
-    );
+    return this.queueService.getQueue(clinicId, scopedDoctorId, search);
   }
 
   @Get('today')
@@ -79,30 +63,14 @@ export class QueueController {
     @Query('doctorId') doctorId?: string,
     @Query('search') search?: string,
   ) {
-    const { clinicId, userId, role } = getClinicStaffRequestContext(req);
-    const doctorScope = resolveDoctorScopedAppointmentFilter({
-      role,
-      userId,
-      requestedDoctorId: doctorId,
-    });
-
-    if (doctorScope.denied) {
-      throw new ForbiddenException('Doctors can only access their queue');
-    }
-
-    await logClinicPhiListRead(
-      this.auditService,
+    const { clinicId, scopedDoctorId } = await this.resolveQueueAccess(
       req,
-      'VIEW_APPOINTMENT_LIST',
-      'Appointment',
-      { scope: 'queue-today', doctorId: doctorScope.scopedDoctorId, search },
+      doctorId,
+      search,
+      'queue-today',
     );
 
-    return this.queueService.getTodayQueue(
-      clinicId,
-      doctorScope.scopedDoctorId,
-      search,
-    );
+    return this.queueService.getTodayQueue(clinicId, scopedDoctorId, search);
   }
 
   @Post('check-in/:appointmentId')
@@ -142,5 +110,32 @@ export class QueueController {
   resetQueue(@Request() req: RequestWithUser) {
     const { clinicId } = getClinicStaffRequestContext(req);
     return this.queueService.resetQueue(clinicId);
+  }
+
+  private async resolveQueueAccess(
+    req: RequestWithUser,
+    doctorId: string | undefined,
+    search: string | undefined,
+    scope: string,
+  ) {
+    const { clinicId, userId, role } = getClinicStaffRequestContext(req);
+    const doctorScope = resolveDoctorScopedAppointmentFilter({
+      role,
+      userId,
+      requestedDoctorId: doctorId,
+    });
+
+    if (doctorScope.denied)
+      throw new ForbiddenException('Doctors can only access their queue');
+
+    await logClinicPhiListRead(
+      this.auditService,
+      req,
+      'VIEW_APPOINTMENT_LIST',
+      'Appointment',
+      { scope, doctorId: doctorScope.scopedDoctorId, search },
+    );
+
+    return { clinicId, scopedDoctorId: doctorScope.scopedDoctorId };
   }
 }

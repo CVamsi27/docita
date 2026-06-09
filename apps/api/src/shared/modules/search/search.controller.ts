@@ -74,9 +74,8 @@ export class SearchController {
     @Query('types') types?: string,
     @Query('limit') limit?: string,
   ) {
-    if (!req.user.clinicId) {
+    if (!req.user.clinicId)
       throw new ForbiddenException('Search requires a clinic context');
-    }
 
     const searchTypes = parseSearchEntityTypes(types);
 

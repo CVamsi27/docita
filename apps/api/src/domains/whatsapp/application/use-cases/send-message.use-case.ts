@@ -104,9 +104,7 @@ export class SendMessageUseCase {
 
     const clinic = await this.repository.findClinicMessageContext(clinicId);
 
-    if (!clinic) {
-      throw new NotFoundException('Clinic not found');
-    }
+    if (!clinic) throw new NotFoundException('Clinic not found');
 
     assertClinicHasFeatureOrThrow(
       {
@@ -179,12 +177,9 @@ export class SendMessageUseCase {
     context: DeliveryContext,
   ): Promise<DeliveredMessage> {
     const resolved = await this.resolveTemplate(context);
-    if (resolved && context.templateName) {
+    if (resolved && context.templateName)
       return this.deliverResolvedTemplate(context, resolved);
-    }
-    if (context.text) {
-      return this.deliverTextMessage(context, context.text);
-    }
+    if (context.text) return this.deliverTextMessage(context, context.text);
     throw new InvariantViolationError(
       'Either templateName or text must be provided',
     );
@@ -305,12 +300,8 @@ export class SendMessageUseCase {
     senderMode: string,
     clinicName: string,
   ): string {
-    if (senderMode !== 'SHARED') {
-      return content;
-    }
-    if (!clinicName) {
-      return content;
-    }
+    if (senderMode !== 'SHARED') return content;
+    if (!clinicName) return content;
     const prefix = `From ${clinicName}`;
     if (content.toLowerCase().startsWith(prefix.toLowerCase())) {
       return content;

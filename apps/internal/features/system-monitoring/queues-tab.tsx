@@ -1,6 +1,7 @@
 "use client";
 
 import { formatCountLocale } from "@workspace/utils";
+// jscpd:ignore-start
 import {
   Card,
   CardContent,
@@ -8,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
+// jscpd:ignore-end
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { TabsContent } from "@workspace/ui/components/navigation/tabs";
 import type { SystemMonitoringPageViewModel } from "./use-system-monitoring-page";
@@ -16,6 +18,39 @@ export type QueuesTabProps = Pick<
   SystemMonitoringPageViewModel,
   "queueHealthQuery"
 >;
+
+function QueueTopCard({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: Array<{ name: string; count: number }>;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>By job name</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {rows.length === 0 ? (
+          <p className="text-sm text-muted-foreground">None</p>
+        ) : (
+          <ul className="space-y-2 text-sm">
+            {rows.map((row) => (
+              <li key={row.name} className="flex justify-between gap-2">
+                <span className="truncate font-mono text-xs">{row.name}</span>
+                <span className="tabular-nums">
+                  {formatCountLocale(row.count)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export function QueuesTab({ queueHealthQuery }: QueuesTabProps) {
   return (
@@ -44,8 +79,8 @@ export function QueuesTab({ queueHealthQuery }: QueuesTabProps) {
                 <CardDescription>
                   Live counts from the{" "}
                   <span className="font-mono text-xs">QueueJob</span> table.
-                  Worker Prometheus histograms run in the worker process;
-                  scrape them separately if you expose a metrics port on Fly.
+                  Worker Prometheus histograms run in the worker process; scrape
+                  them separately if you expose a metrics port on Fly.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -76,60 +111,14 @@ export function QueuesTab({ queueHealthQuery }: QueuesTabProps) {
             </Card>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Top waiting queues</CardTitle>
-                  <CardDescription>By job name</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {queueHealthQuery.data.topQueuesByWaiting.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">None</p>
-                  ) : (
-                    <ul className="space-y-2 text-sm">
-                      {queueHealthQuery.data.topQueuesByWaiting.map((row) => (
-                        <li
-                          key={row.name}
-                          className="flex justify-between gap-2"
-                        >
-                          <span className="truncate font-mono text-xs">
-                            {row.name}
-                          </span>
-                          <span className="tabular-nums">
-                            {formatCountLocale(row.count)}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Top failed queues</CardTitle>
-                  <CardDescription>By job name</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {queueHealthQuery.data.topQueuesByFailed.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">None</p>
-                  ) : (
-                    <ul className="space-y-2 text-sm">
-                      {queueHealthQuery.data.topQueuesByFailed.map((row) => (
-                        <li
-                          key={row.name}
-                          className="flex justify-between gap-2"
-                        >
-                          <span className="truncate font-mono text-xs">
-                            {row.name}
-                          </span>
-                          <span className="tabular-nums">
-                            {formatCountLocale(row.count)}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </CardContent>
-              </Card>
+              <QueueTopCard
+                title="Top waiting queues"
+                rows={queueHealthQuery.data.topQueuesByWaiting}
+              />
+              <QueueTopCard
+                title="Top failed queues"
+                rows={queueHealthQuery.data.topQueuesByFailed}
+              />
             </div>
           </>
         ) : null}

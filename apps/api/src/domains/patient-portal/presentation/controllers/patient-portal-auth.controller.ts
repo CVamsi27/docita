@@ -15,6 +15,16 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 import { stripRefreshTokenFromBody } from '@/shared/modules/auth/auth/auth-cookie.helpers';
 
+// Shared by `requestOtp` and `verifyOtp` — both are public OTP endpoints
+// that need the same brute-force-resistant rate limit, so the threshold
+// lives in one place rather than the two `@Throttle` configs drifting apart.
+const OTP_ENDPOINT_RATE_LIMIT = {
+  short: {
+    ttl: 60000,
+    limit: 5,
+  },
+} as const;
+
 class RequestOtpDto {
   phoneNumber!: string;
 }
@@ -61,29 +71,18 @@ export class PatientPortalAuthController {
   }
 
   @Public()
-  @Throttle({
-    short: {
-      ttl: 60000,
-      limit: 5,
-    },
-  })
+  @Throttle(OTP_ENDPOINT_RATE_LIMIT)
   @Post('request-otp')
   @ApiOperation({ summary: 'Request OTP for patient portal login' })
   @ApiResponse({ status: 200, description: 'OTP sent if account exists' })
   async requestOtp(@Body() dto: RequestOtpDto) {
-    if (!dto.phoneNumber) {
+    if (!dto.phoneNumber)
       throw new BadRequestException('phoneNumber is required');
-    }
     return this.authService.requestOtp(dto.phoneNumber);
   }
 
   @Public()
-  @Throttle({
-    short: {
-      ttl: 60000,
-      limit: 5,
-    },
-  })
+  @Throttle(OTP_ENDPOINT_RATE_LIMIT)
   @Post('verify-otp')
   @ApiOperation({ summary: 'Verify OTP and log in to patient portal' })
   @ApiResponse({ status: 200, description: 'Successfully logged in' })
@@ -92,9 +91,8 @@ export class PatientPortalAuthController {
     @Body() dto: VerifyOtpDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    if (!dto.phoneNumber || !dto.otp) {
+    if (!dto.phoneNumber || !dto.otp)
       throw new BadRequestException('phoneNumber and otp are required');
-    }
     try {
       const tokens = await this.authService.verifyOtp(dto.phoneNumber, dto.otp);
       this.setAuthCookies(res, tokens);

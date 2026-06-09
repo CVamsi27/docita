@@ -15,9 +15,8 @@ export function DoctorsApiAccess() {
 }
 
 export function requireClinicId(req: RequestWithUser): string {
-  if (!req.user?.clinicId) {
+  if (!req.user?.clinicId)
     throw new BadRequestException('Clinic ID is required');
-  }
   return req.user.clinicId;
 }
 
@@ -26,9 +25,8 @@ export function assertDoctorUpdatesSelf(
   doctorId: string,
   message = 'Doctors can only update their own profile',
 ): void {
-  if (req.user?.role === Role.DOCTOR && req.user.id !== doctorId) {
+  if (req.user?.role === Role.DOCTOR && req.user.id !== doctorId)
     throw new ForbiddenException(message);
-  }
 }
 
 export async function assertDoctorInClinic(

@@ -10,9 +10,7 @@ export function shouldSuppressDevToast(message: string): boolean {
 }
 
 export function apiErrorToastFallback(error: ApiClientError): string {
-  if (error.status === 429) {
-    return "Too many attempts. Please wait a moment before trying again.";
-  }
+  if (error.status === 429) return "Too many attempts. Please wait a moment before trying again.";
   return isClientError(error)
     ? "Please check the information and try again"
     : "Please review the information on this screen and try again";

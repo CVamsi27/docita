@@ -16,11 +16,10 @@ export class Discount {
   readonly description?: string;
 
   constructor(props: DiscountProps) {
-    if (props.percentOff < 0 || props.percentOff > 100) {
+    if (props.percentOff < 0 || props.percentOff > 100)
       throw new InvariantViolationError(
         'Discount percentage must be between 0 and 100',
       );
-    }
     this.type = props.type;
     this.percentOff = props.percentOff;
     this.expiresAt = props.expiresAt;
@@ -28,9 +27,7 @@ export class Discount {
   }
 
   isValid(asOf: Date): boolean {
-    if (!this.expiresAt) {
-      return true;
-    }
+    if (!this.expiresAt) return true;
     return asOf <= this.expiresAt;
   }
 

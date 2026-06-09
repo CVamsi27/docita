@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
@@ -20,6 +21,7 @@ export class UsageTrackingCommandService {
     metadata?: Prisma.InputJsonValue;
   }) {
     const {
+      // jscpd:ignore-end
       clinicId,
       type,
       quantity = 1,

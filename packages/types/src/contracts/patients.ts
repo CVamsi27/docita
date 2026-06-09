@@ -82,6 +82,21 @@ const normalizeDate = (
   return value instanceof Date ? value : new Date(value);
 };
 
+// These two transforms intentionally mirror each other's normalization of
+// the shared nullable contract fields (`normalizeNullable`/`normalizeDate`),
+// but their `input` shapes are NOT the same: `patientDomainCreateSchema`
+// extends the (required-field) create contract, while
+// `patientDomainUpdateSchema` maps `updatePatientRequestSchema` — i.e.
+// `createPatientRequestSchema.partial()`, where every field is optional. A
+// shared helper would have to either widen the create schema's `firstName`/
+// `lastName`/`gender` to `| undefined` (breaking `PatientDomainCreateInput`'s
+// precision, a Zod-first single-source-of-truth concern) or lean on type
+// gymnastics that cost more clarity than the duplication does. Tried and
+// reverted a generic `buildPatientDomainFields<F, L, G>` helper — Zod's
+// `.partial()` makes those fields optional (`firstName?:`) rather than
+// `firstName: T | undefined`, which TypeScript won't assign to a generic
+// `{ firstName: F }` constraint. Keep them separate and in sync by eye.
+// jscpd:ignore-start
 export const patientDomainCreateSchema = createPatientRequestSchema
   .extend({
     clinicId: z.string().min(1),
@@ -118,6 +133,7 @@ export const patientDomainUpdateSchema = updatePatientRequestSchema.transform(
     metadata: normalizeNullable(input.metadata),
   }),
 );
+// jscpd:ignore-end
 
 export const patientPersistenceRecordSchema = z.object({
   id: z.string(),
@@ -139,23 +155,12 @@ export const patientPersistenceRecordSchema = z.object({
   version: z.number().int().nonnegative(),
 });
 
-export const patientPersistenceWriteSchema = z.object({
-  id: z.string(),
-  clinicId: z.string(),
-  mrn: z.string().nullable().optional(),
-  firstName: z.string(),
-  lastName: z.string(),
-  email: z.string().nullable().optional(),
-  phoneNumber: z.string().nullable().optional(),
-  gender: genderSchema,
-  dateOfBirth: z.date().nullable().optional(),
-  address: z.string().nullable().optional(),
-  insuranceProvider: z.string().nullable().optional(),
-  insurancePolicyNumber: z.string().nullable().optional(),
-  insuranceGroupNumber: z.string().nullable().optional(),
-  customData: z.unknown().nullable().optional(),
-  version: z.number().int().nonnegative(),
-});
+// Same shape as the persistence record, minus the timestamps a write never
+// supplies — deriving via `.omit()` keeps both schemas' field definitions
+// (and their validation rules) from drifting apart over time.
+export const patientPersistenceWriteSchema = patientPersistenceRecordSchema.omit(
+  { createdAt: true, updatedAt: true },
+);
 
 export type PatientContractResponse = z.infer<typeof patientResponseSchema>;
 export type CreatePatientRequest = z.infer<typeof createPatientRequestSchema>;

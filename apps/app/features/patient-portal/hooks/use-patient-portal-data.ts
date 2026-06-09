@@ -33,9 +33,7 @@ export function usePatientPortalData(patientId?: string | null) {
   const summary = useMemo(() => summarizePortalSnapshot(snapshot), [snapshot]);
 
   const error = useMemo(() => {
-    if (!hasPatientId) {
-      return "We could not open this page. Please go back to your portal home and try again.";
-    }
+    if (!hasPatientId) return "We could not open this page. Please go back to your portal home and try again.";
     return appointmentsError
       ? getUserFacingErrorMessage(appointmentsError, {
           context: "load",

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { formatDate } from "@/lib/formatters";
 import { getFollowUpListQuery } from "@/features/follow-ups";
 import { useFollowUps } from "@workspace/data-access";
-import type { FollowUpResponse, FollowUpStatus } from "@workspace/types";
+import type { FollowUpResponse } from "@workspace/types";
 import {
   Card,
   CardContent,
@@ -17,15 +17,7 @@ import { Badge } from "@workspace/ui/components/indicators/badge";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { CalendarCheck } from "lucide-react";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
-
-const STATUS_LABELS: Record<FollowUpStatus, string> = {
-  PENDING: "Pending",
-  REMINDER_SENT: "Reminder sent",
-  BOOKED: "Booked",
-  COMPLETED: "Completed",
-  CANCELLED: "Cancelled",
-  EXPIRED: "Expired",
-};
+import { FOLLOW_UP_STATUS_LABELS as STATUS_LABELS } from "@/features/follow-ups/lib/follow-up-constants";
 
 function patientName(followUp: FollowUpResponse) {
   const firstName = followUp.patient?.firstName ?? "";
@@ -45,9 +37,7 @@ export function TodayFollowUpsPanel({ enabled }: TodayFollowUpsPanelProps) {
     isError,
   } = useFollowUps(enabled ? query : null);
 
-  if (!enabled) {
-    return null;
-  }
+  if (!enabled) return null;
 
   const preview = data.slice(0, 5);
 

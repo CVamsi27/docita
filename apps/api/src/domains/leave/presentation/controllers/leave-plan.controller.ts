@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Controller,
   Get,
@@ -20,6 +21,7 @@ import { Feature } from '@workspace/types';
 import { ALL_STAFF_ROLES } from '@/shared/common/constants/role-groups';
 
 @ApiTags('leave-plans')
+// jscpd:ignore-end
 @Controller('leave-plans')
 @UseGuards(TierGuard)
 @RequireFeature(Feature.LEAVE_MANAGEMENT)

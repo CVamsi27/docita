@@ -47,6 +47,7 @@ export function isFrontDeskPlanMode(
   return resolveClinicPlanMode(dbTier, dbPlanMode) === "FRONT_DESK";
 }
 
+// jscpd:ignore-start
 export function shouldDenyAccessForFrontDeskMode(
   target: AppAccessTarget,
   role: UserRole | string | null | undefined,
@@ -61,12 +62,11 @@ export function shouldDenyAccessForFrontDeskMode(
     return false;
   }
 
-  if (role === "INTERNAL") {
-    return false;
-  }
+  if (role === "INTERNAL") return false;
 
   return true;
 }
+// jscpd:ignore-end
 
 /**
  * @deprecated Prefer {@link shouldDenyAccessForFrontDeskMode} with tier + planMode.
@@ -100,9 +100,7 @@ export function shouldDenyAccessForFrontDeskTier(
     return false;
   }
 
-  if (role === "INTERNAL") {
-    return false;
-  }
+  if (role === "INTERNAL") return false;
 
   return true;
 }

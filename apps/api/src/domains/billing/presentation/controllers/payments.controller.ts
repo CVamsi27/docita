@@ -57,8 +57,7 @@ export class PaymentsController {
   @RequireFeature(Feature.PAYMENT_LINKS)
   @ZodSerializerDto(AnyResponseDto)
   async sendWhatsApp(@Param('id') id: string, @Request() req: RequestWithUser) {
-    const { clinicId } = getBillingRequestContext(req);
-    await this.paymentsService.verifySessionOwnership(id, clinicId);
+    const clinicId = await this.resolveClinicAndVerify(req, id);
     return this.paymentsService.sendPaymentLinkWhatsApp(id, clinicId);
   }
 
@@ -69,8 +68,16 @@ export class PaymentsController {
     @Param('id') id: string,
     @Request() req: RequestWithUser,
   ) {
-    const { clinicId } = getBillingRequestContext(req);
-    await this.paymentsService.verifySessionOwnership(id, clinicId);
+    const clinicId = await this.resolveClinicAndVerify(req, id);
     return this.paymentsService.getPaymentSession(id, clinicId);
+  }
+
+  private async resolveClinicAndVerify(
+    req: RequestWithUser,
+    sessionId: string,
+  ) {
+    const { clinicId } = getBillingRequestContext(req);
+    await this.paymentsService.verifySessionOwnership(sessionId, clinicId);
+    return clinicId;
   }
 }

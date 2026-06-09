@@ -51,26 +51,18 @@ export function useOnboarding(): UseOnboardingReturn {
       }),
   });
   const isSubmitting = submitMutation.isPending;
-
   const nextStep = useCallback(() => {
-    if (step < TOTAL_STEPS) {
-      setStep(step + 1);
-    }
+    if (step < TOTAL_STEPS) setStep(step + 1);
   }, [step]);
-
   const prevStep = useCallback(() => {
-    if (step > 1) {
-      setStep(step - 1);
-    }
+    if (step > 1) setStep(step - 1);
   }, [step]);
-
   const updateData = useCallback(
     <K extends keyof OnboardingData>(key: K, value: OnboardingData[K]) => {
       setData((prev) => ({ ...prev, [key]: value }));
     },
     [],
   );
-
   const submit = useCallback(async () => {
     try {
       setError(null);
@@ -85,13 +77,11 @@ export function useOnboarding(): UseOnboardingReturn {
       throw err;
     }
   }, [submitMutation]);
-
   const reset = useCallback(() => {
     setStep(1);
     setData(initialData);
     setError(null);
   }, []);
-
   return {
     step,
     totalSteps: TOTAL_STEPS,

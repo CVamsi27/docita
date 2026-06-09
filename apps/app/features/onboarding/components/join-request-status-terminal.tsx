@@ -27,7 +27,6 @@ export function JoinRequestStatusTerminal({
   const description = isRejected
     ? `${state.clinicName} did not approve your request to join.`
     : `You withdrew your request to join ${state.clinicName}.`;
-
   return (
     <PreDashboardShell
       currentStep="join-request-status"
@@ -40,7 +39,6 @@ export function JoinRequestStatusTerminal({
         <h1 className="ui-page-title">{title}</h1>
         <p className="ui-page-subtitle">{description}</p>
       </div>
-
       <Card className="ui-card-surface p-5 sm:p-6 space-y-5">
         <div className="flex items-start gap-3">
           <div className="rounded-full border border-destructive/20 bg-destructive/10 p-3 text-destructive">
@@ -57,7 +55,6 @@ export function JoinRequestStatusTerminal({
             ) : null}
           </div>
         </div>
-
         <Alert>
           <Building2 className="h-4 w-4" />
           <AlertTitle>Pick your next step</AlertTitle>
@@ -66,7 +63,6 @@ export function JoinRequestStatusTerminal({
             your own. Your account stays intact either way.
           </AlertDescription>
         </Alert>
-
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
           <Button asChild variant="outline" className="sm:order-1">
             <Link href="/choose-path" data-testid="join-request-create-clinic">

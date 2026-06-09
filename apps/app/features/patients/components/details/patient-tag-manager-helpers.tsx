@@ -61,9 +61,7 @@ export function PresetsTab({
                   t.tag.toLowerCase().includes(searchQuery.toLowerCase()),
                 )
               : categoryTags;
-
             if (visibleTags.length === 0) return null;
-
             return (
               <div key={category}>
                 <Label className="text-xs text-muted-foreground uppercase tracking-wider">

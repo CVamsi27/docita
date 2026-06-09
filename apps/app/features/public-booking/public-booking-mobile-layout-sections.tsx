@@ -41,9 +41,7 @@ export function visitContinueHint(
   turnstileToken: string | null | undefined,
 ): string | null {
   if (visitCanContinue) return null;
-  if (siteKey && !turnstileToken) {
-    return "Complete verification above, then continue.";
-  }
+  if (siteKey && !turnstileToken) return "Complete verification above, then continue.";
   return null;
 }
 
@@ -62,9 +60,7 @@ export function contactContinueHint(
   if (!phone.trim()) {
     return "Enter the phone number this clinic has on file.";
   }
-  if (requiresOtp === true && !verificationToken) {
-    return "Request the WhatsApp code and enter it above.";
-  }
+  if (requiresOtp === true && !verificationToken) return "Request the WhatsApp code and enter it above.";
   return null;
 }
 

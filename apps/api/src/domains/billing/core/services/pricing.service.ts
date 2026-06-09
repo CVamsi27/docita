@@ -52,7 +52,6 @@ export class PricingService {
   async getPricingConfig(currency?: string) {
     const validCurrency = this.resolveCurrency(currency);
 
-    const currencyConfig = PRICING_CURRENCY_CONFIG[validCurrency];
     const tierPricing = TIER_PRICING_BY_CURRENCY[validCurrency];
     const referralRewards = REFERRAL_REWARDS_BY_CURRENCY[validCurrency];
 
@@ -63,20 +62,9 @@ export class PricingService {
         (t) => !isLegacyDbPricingTier(t.tier),
       );
 
-      return {
-        currency: {
-          code: validCurrency,
-          symbol: currencyConfig.symbol,
-          name: currencyConfig.name,
-        },
-        supportedCurrencies: Object.entries(PRICING_CURRENCY_CONFIG).map(
-          ([code, cfg]) => ({
-            code,
-            symbol: cfg.symbol,
-            name: cfg.name,
-          }),
-        ),
-        tiers: canonicalTiers.map((tier) => {
+      return this.buildPricingResponse(
+        validCurrency,
+        canonicalTiers.map((tier) => {
           const canonicalTier = mapDbTierStringToCanonicalTier(tier.tier);
           const monthlyPrice =
             canonicalTier === 'ENTERPRISE'
@@ -96,14 +84,33 @@ export class PricingService {
             features: tier.features,
           });
         }),
-        discounts: {
-          annualPercent: ANNUAL_DISCOUNT_PERCENT,
-          semiAnnualPercent: SEMI_ANNUAL_DISCOUNT_PERCENT,
-          referralCredits: referralRewards.ESSENTIAL,
-        },
-      };
+        referralRewards.ESSENTIAL,
+      );
     }
 
+    return this.buildPricingResponse(
+      validCurrency,
+      PUBLISHED_PLAN_LADDER.map((tier) =>
+        this.toPricingTierPayload({
+          tier,
+          validCurrency,
+          monthly: tierPricing[tier].monthly,
+          yearly: tierPricing[tier].yearly,
+          includedAppointments: TIER_LIMITS[tier].appointments ?? 0,
+          includedUsers: TIER_LIMITS[tier].users ?? 1,
+          features: TIER_FEATURES[tier],
+        }),
+      ),
+      referralRewards.ESSENTIAL,
+    );
+  }
+
+  private buildPricingResponse<T>(
+    validCurrency: SupportedCurrency,
+    tiers: T[],
+    referralCredits: number,
+  ) {
+    const currencyConfig = PRICING_CURRENCY_CONFIG[validCurrency];
     return {
       currency: {
         code: validCurrency,
@@ -117,21 +124,11 @@ export class PricingService {
           name: cfg.name,
         }),
       ),
-      tiers: PUBLISHED_PLAN_LADDER.map((tier) =>
-        this.toPricingTierPayload({
-          tier,
-          validCurrency,
-          monthly: tierPricing[tier].monthly,
-          yearly: tierPricing[tier].yearly,
-          includedAppointments: TIER_LIMITS[tier].appointments ?? 0,
-          includedUsers: TIER_LIMITS[tier].users ?? 1,
-          features: TIER_FEATURES[tier],
-        }),
-      ),
+      tiers,
       discounts: {
         annualPercent: ANNUAL_DISCOUNT_PERCENT,
         semiAnnualPercent: SEMI_ANNUAL_DISCOUNT_PERCENT,
-        referralCredits: referralRewards.ESSENTIAL,
+        referralCredits,
       },
     };
   }

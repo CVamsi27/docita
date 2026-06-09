@@ -84,11 +84,10 @@ export class InsuranceClaimsCommandService {
     dto: UpdateInsuranceClaimInput,
   ): Promise<InsuranceClaimRecord> {
     const current = await this.requireClaim(id, clinicId);
-    if (current.status !== ClaimStatusEnum.DRAFT) {
+    if (current.status !== ClaimStatusEnum.DRAFT)
       throw new BadRequestException(
         'Only draft insurance claims can be edited.',
       );
-    }
 
     const { version, ...rest } = dto;
     this.assertCreateShape({
@@ -96,9 +95,8 @@ export class InsuranceClaimsCommandService {
       invoiceId:
         rest.invoiceId === undefined ? current.invoiceId : rest.invoiceId,
     });
-    if (rest.parentClaimId === id) {
+    if (rest.parentClaimId === id)
       throw new BadRequestException('A claim cannot be its own parent.');
-    }
     await this.assertReferencesBelongToPatientClinic(
       {
         patientId: current.patientId,
@@ -110,37 +108,32 @@ export class InsuranceClaimsCommandService {
     );
 
     const data: Prisma.InsuranceClaimUncheckedUpdateManyInput = {
-      ...(rest.claimType !== undefined ? { claimType: rest.claimType } : {}),
-      ...(rest.insurerName !== undefined
-        ? { insurerName: rest.insurerName }
-        : {}),
-      ...(rest.tpaName !== undefined ? { tpaName: rest.tpaName } : {}),
-      ...(rest.policyNumber !== undefined
-        ? { policyNumber: rest.policyNumber }
-        : {}),
-      ...(rest.groupNumber !== undefined
-        ? { groupNumber: rest.groupNumber }
-        : {}),
-      ...(rest.currency !== undefined ? { currency: rest.currency } : {}),
-      ...(rest.claimedAmountCents !== undefined
-        ? { claimedAmountCents: rest.claimedAmountCents }
-        : {}),
-      ...(rest.notes !== undefined ? { notes: rest.notes } : {}),
-      ...(rest.invoiceId !== undefined ? { invoiceId: rest.invoiceId } : {}),
-      ...(rest.appointmentId !== undefined
-        ? { appointmentId: rest.appointmentId }
-        : {}),
-      ...(rest.parentClaimId !== undefined
-        ? { parentClaimId: rest.parentClaimId }
-        : {}),
+      ...(rest.claimType !== undefined && { claimType: rest.claimType }),
+      ...(rest.insurerName !== undefined && { insurerName: rest.insurerName }),
+      ...(rest.tpaName !== undefined && { tpaName: rest.tpaName }),
+      ...(rest.policyNumber !== undefined && {
+        policyNumber: rest.policyNumber,
+      }),
+      ...(rest.groupNumber !== undefined && { groupNumber: rest.groupNumber }),
+      ...(rest.currency !== undefined && { currency: rest.currency }),
+      ...(rest.claimedAmountCents !== undefined && {
+        claimedAmountCents: rest.claimedAmountCents,
+      }),
+      ...(rest.notes !== undefined && { notes: rest.notes }),
+      ...(rest.invoiceId !== undefined && { invoiceId: rest.invoiceId }),
+      ...(rest.appointmentId !== undefined && {
+        appointmentId: rest.appointmentId,
+      }),
+      ...(rest.parentClaimId !== undefined && {
+        parentClaimId: rest.parentClaimId,
+      }),
     };
 
     const updated = await this.repository.update(id, clinicId, version, data);
-    if (!updated) {
+    if (!updated)
       throw new ConflictException(
         'Insurance claim was modified by another request. Reload and retry.',
       );
-    }
     return updated;
   }
 
@@ -208,11 +201,10 @@ export class InsuranceClaimsCommandService {
         amountCents: result.approvedAmountCents ?? null,
       },
     );
-    if (!updated) {
+    if (!updated)
       throw new ConflictException(
         'Insurance claim was modified by another request. Reload and retry.',
       );
-    }
 
     return updated;
   }
@@ -238,11 +230,10 @@ export class InsuranceClaimsCommandService {
   private assertCreateShape(
     input: Pick<CreateInsuranceClaimInput, 'claimType' | 'invoiceId'>,
   ): void {
-    if (input.claimType === 'REIMBURSEMENT' && !input.invoiceId) {
+    if (input.claimType === 'REIMBURSEMENT' && !input.invoiceId)
       throw new BadRequestException(
         'Reimbursement claims must be linked to a final invoice.',
       );
-    }
   }
 
   private async assertReferencesBelongToPatientClinic(
@@ -259,11 +250,10 @@ export class InsuranceClaimsCommandService {
         ...input,
         clinicId,
       });
-    if (!referencesAreScoped) {
+    if (!referencesAreScoped)
       throw new NotFoundException(
         'One or more insurance claim references were not found for this patient and clinic.',
       );
-    }
   }
 
   private async requireClaim(

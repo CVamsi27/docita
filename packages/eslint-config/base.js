@@ -35,10 +35,29 @@ export const noInlineInvalidateKeysSyntaxRule = {
     "Use queryKeys or appQueryKeys factories in invalidateKeys instead of inline string arrays.",
 };
 
+const ANIMATE_PULSE_RULES = {
+  "no-restricted-syntax": [
+    "warn",
+    {
+      selector: "Literal[value=/\\banimate-pulse\\b/]",
+      message:
+        "animate-pulse is banned by docs/ui/UI_UX_STANDARD_2026.md §5. Use static styling for emphasis instead.",
+    },
+    {
+      selector: "TemplateElement[value.cooked=/\\banimate-pulse\\b/]",
+      message:
+        "animate-pulse is banned by docs/ui/UI_UX_STANDARD_2026.md §5. Use static styling for emphasis instead.",
+    },
+  ],
+};
+
 export const config = [
   js.configs.recommended,
   eslintConfigPrettier,
   ...tseslint.configs.recommended,
+  {
+    rules: ANIMATE_PULSE_RULES,
+  },
   {
     plugins: {
       turbo: turboPlugin,

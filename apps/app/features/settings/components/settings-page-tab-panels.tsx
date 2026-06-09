@@ -12,7 +12,7 @@ import {
   SecuritySettings,
 } from "@/features/settings/components";
 import { HelpSupportSettingsPanel } from "./help-support/HelpSupportSettingsPanel";
-import { LabDirectorySettings } from "@/features/lab-tests";
+import { LabDirectorySettings, LabTestsCatalogSettings } from "@/features/lab-tests";
 import {
   DangerZoneSettingsLazy,
   DoctorAvailabilitySettingsLazy,
@@ -95,6 +95,7 @@ export function SettingsPageTabPanels({
         <TabsContent value="labs" className="mt-0 space-y-6">
           <RoleGuard requiredPermission="manageClinic">
             <LabDirectorySettings />
+            <LabTestsCatalogSettings />
           </RoleGuard>
         </TabsContent>
       )}

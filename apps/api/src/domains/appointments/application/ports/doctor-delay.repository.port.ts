@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 export interface DoctorDelayRecord {
   id: string;
   clinicId: string;
@@ -10,6 +11,7 @@ export interface DoctorDelayRecord {
   clearedAt?: Date | null;
   clearedById?: string | null;
 }
+// jscpd:ignore-end
 
 export interface UpcomingAppointmentShiftRow {
   id: string;

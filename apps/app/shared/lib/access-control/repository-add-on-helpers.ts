@@ -37,9 +37,7 @@ function parseAddOnType(value: unknown): AddOnType | null {
 }
 
 function parseAddOnStatus(value: unknown): IAddOn["status"] | null {
-  if (value !== "active" && value !== "inactive" && value !== "suspended") {
-    return null;
-  }
+  if (value !== "active" && value !== "inactive" && value !== "suspended") return null;
   return value;
 }
 

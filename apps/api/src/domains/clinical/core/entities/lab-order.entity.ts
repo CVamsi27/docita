@@ -42,15 +42,12 @@ export class LabOrder {
     labId?: string;
     orderedBy?: string;
   }): LabOrder {
-    if (!props.patientId) {
+    if (!props.patientId)
       throw new InvariantViolationError('Patient ID is required');
-    }
-    if (!props.labTestId) {
+    if (!props.labTestId)
       throw new InvariantViolationError('Lab Test ID is required');
-    }
-    if (!props.clinicId) {
+    if (!props.clinicId)
       throw new InvariantViolationError('Clinic ID is required');
-    }
 
     return new LabOrder(
       props.id || '',

@@ -36,17 +36,13 @@ export class MedicalDocumentsService {
       FIT_TO_WORK: MedicalDocumentType.FITNESS_CERTIFICATE,
     };
 
-    if (legacyAliases[normalized]) {
-      return legacyAliases[normalized];
-    }
+    if (legacyAliases[normalized]) return legacyAliases[normalized];
 
     const parsed = parseStringEnumMember(
       MEDICAL_DOCUMENT_TYPE_MEMBERS,
       normalized,
     );
-    if (parsed) {
-      return parsed;
-    }
+    if (parsed) return parsed;
     throw new BadRequestException(
       `Unsupported medical document type: ${rawType}`,
     );
@@ -121,9 +117,8 @@ export class MedicalDocumentsService {
 
   async sign(id: string, clinicId: string) {
     const doc = await this.findOne(id, clinicId);
-    if (doc.status === MedicalDocumentStatus.REVOKED) {
+    if (doc.status === MedicalDocumentStatus.REVOKED)
       throw new ForbiddenException('Cannot sign a revoked document');
-    }
     return this.medicalDocumentsRepository.update(id, {
       status: MedicalDocumentStatus.SIGNED,
       signedAt: this.clock.now(),

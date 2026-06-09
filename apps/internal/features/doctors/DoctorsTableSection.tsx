@@ -1,8 +1,7 @@
 "use client";
 
-import { Eye, Search, ShieldCheck, ShieldX, Stethoscope } from "lucide-react";
+import { Eye, ShieldCheck, ShieldX, Stethoscope } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Card,
@@ -11,13 +10,6 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
 import {
   Table,
   TableBody,
@@ -34,6 +26,7 @@ import {
   labelForSpecialization,
   parseDoctorVerificationStatus,
 } from "./doctor-helpers";
+import { InternalTableToolbar } from "@/components/common/internal-table-toolbar";
 
 interface DoctorsTableSectionProps {
   doctors: InternalDoctorListItem[];
@@ -56,40 +49,19 @@ export function DoctorsTableSection({
 }: DoctorsTableSectionProps) {
   return (
     <>
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Enter name, email, or specialization"
-                  value={doctorSearch}
-                  onChange={(e) => onDoctorSearchChange(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-            <Select
-              value={selectedClinic}
-              onValueChange={onSelectedClinicChange}
-            >
-              <SelectTrigger className="w-full md:w-[250px]">
-                <SelectValue placeholder="Facility" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All facilities</SelectItem>
-                {Array.isArray(clinics) &&
-                  clinics.map((clinic) => (
-                    <SelectItem key={clinic.id} value={clinic.id}>
-                      {clinic.name}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <InternalTableToolbar
+        searchValue={doctorSearch}
+        onSearchChange={onDoctorSearchChange}
+        searchPlaceholder="Enter name, email, or specialization"
+        filterValue={selectedClinic}
+        onFilterChange={onSelectedClinicChange}
+        filterOptions={clinics.map((c) => ({
+          value: c.id,
+          label: c.name,
+        }))}
+        filterPlaceholder="Facility"
+        filterAllLabel="All facilities"
+      />
 
       <Card>
         <CardHeader>

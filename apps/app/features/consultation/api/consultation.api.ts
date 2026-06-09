@@ -15,9 +15,7 @@ export const consultationApi = {
   // Start consultation for an appointment (requires doctor role).
   create: (data: { appointmentId: string }) => {
     const appointmentId = String(data.appointmentId ?? "").trim();
-    if (!appointmentId) {
-      throw new Error("appointmentId is required to start a consultation");
-    }
+    if (!appointmentId) throw new Error("appointmentId is required to start a consultation");
     return api
       .post(`/appointments/${appointmentId}/start-consultation`, {})
       .then((res) => startConsultationResponseSchema.parse(res));

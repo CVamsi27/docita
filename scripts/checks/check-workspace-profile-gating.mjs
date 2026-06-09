@@ -8,13 +8,11 @@
  * appear outside the allowlist below (this file + Front Desk migration SQL only).
  */
 
-import { execSync } from "node:child_process";
 import fs from "node:fs";
-import path from "node:path";
-import process from "node:process";
-
-const repoRoot = process.cwd();
-const sourceExtensions = new Set([".ts", ".tsx", ".mjs"]);
+import {
+  gitLsSourceFiles,
+  reportFindingsAndExit,
+} from "../lib/check-runner.mjs";
 
 const allowlist = new Set([
   "scripts/checks/check-workspace-profile-gating.mjs",
@@ -36,44 +34,25 @@ const forbidden = [
   /\bWorkspaceSelector\b/,
 ];
 
-function listFiles(root) {
-  return execSync(`git ls-files ${root}`, {
-    cwd: repoRoot,
-    encoding: "utf8",
-  })
-    .split("\n")
-    .filter((file) => sourceExtensions.has(path.extname(file)));
-}
-
-const files = [...listFiles("apps"), ...listFiles("packages"), ...listFiles("scripts")].filter(
-  (file) => !allowlist.has(file),
-);
+const files = gitLsSourceFiles(["apps", "packages", "scripts"], {
+  extensions: [".ts", ".tsx", ".mjs"],
+}).filter((file) => !allowlist.has(file));
 
 const violations = [];
 
 for (const file of files) {
-  const absolutePath = path.join(repoRoot, file);
-  if (!fs.existsSync(absolutePath)) continue;
-  const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
+  if (!fs.existsSync(file)) continue;
+  const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
   lines.forEach((line, index) => {
     const trimmed = line.trim();
     if (trimmed.startsWith("//") || trimmed.startsWith("*")) return;
     if (!forbidden.some((pattern) => pattern.test(line))) return;
-    violations.push({ file, line: index + 1, content: trimmed });
+    violations.push(`${file}:${index + 1}  ${trimmed}`);
   });
 }
 
-if (violations.length > 0) {
-  console.error("check:workspace-profile-gating failed.\n");
-  console.error(
+reportFindingsAndExit("check:workspace-profile-gating", violations, {
+  failAlways: true,
+  extraMessage:
     "Front Desk is tier-only (isFrontDeskTier / Tier.FRONT_DESK). Remove legacy workspaceProfile symbols and workspace pickers.",
-  );
-  for (const violation of violations) {
-    console.error(
-      `  ${violation.file}:${violation.line}  ${violation.content}`,
-    );
-  }
-  process.exit(1);
-}
-
-console.log("check:workspace-profile-gating passed (tier-only Front Desk; no legacy symbols).");
+});

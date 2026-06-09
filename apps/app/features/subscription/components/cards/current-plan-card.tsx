@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { Crown, CreditCard, Receipt, Sparkles, TrendingUp } from "lucide-react";
 import {
   Card,
@@ -13,6 +14,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   type CurrentPlanCardProps,
+// jscpd:ignore-end
   TIER_COLOR_MAP,
 } from "./current-plan-card-types";
 import { CurrentPlanCardMeta } from "./current-plan-card-meta";

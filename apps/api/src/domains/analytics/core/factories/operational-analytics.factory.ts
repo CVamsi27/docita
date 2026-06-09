@@ -38,12 +38,26 @@ export class OperationalAnalyticsFactory {
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
+  // Shared by `getAppointmentMetrics` and `getPatientDemographics` — both
+  // cache their freshly computed result under the configured analytics TTL
+  // and then return it, so the write-through-and-return step lives in one
+  // place rather than the two methods drifting apart.
+  private async cacheAnalyticsResult<T>(
+    cacheKey: string,
+    result: T,
+  ): Promise<T> {
+    await this.cacheManager.set(
+      cacheKey,
+      result,
+      this.configService.getAnalyticsCacheTtl() * 1000,
+    );
+    return result;
+  }
+
   async getOverview(clinicId: string, timezone: string = DEFAULT_TIMEZONE) {
     const cacheKey = `dashboard-overview-${clinicId}-${timezone}`;
     const cachedResult = await this.cacheManager.get<OverviewMetrics>(cacheKey);
-    if (cachedResult) {
-      return cachedResult;
-    }
+    if (cachedResult) return cachedResult;
 
     const now = this.clock.now();
     const thisMonthRange = getMonthRange(now, { timezone });
@@ -92,9 +106,7 @@ export class OperationalAnalyticsFactory {
   ) {
     const cacheKey = `analytics:patient-growth:${clinicId}:${days}:${timezone}`;
     const cached = await this.cacheManager.get<PatientGrowthPoint[]>(cacheKey);
-    if (cached) {
-      return cached;
-    }
+    if (cached) return cached;
 
     const dateRange = getLastNDaysRange(days, { timezone });
     const timestamps = await this.repository.getPatientCreationTimestamps(
@@ -183,12 +195,7 @@ export class OperationalAnalyticsFactory {
           : 0,
     };
 
-    await this.cacheManager.set(
-      cacheKey,
-      result,
-      this.configService.getAnalyticsCacheTtl() * 1000,
-    );
-    return result;
+    return this.cacheAnalyticsResult(cacheKey, result);
   }
 
   async getPatientDemographics(
@@ -240,12 +247,7 @@ export class OperationalAnalyticsFactory {
       genderDistribution,
     };
 
-    await this.cacheManager.set(
-      cacheKey,
-      result,
-      this.configService.getAnalyticsCacheTtl() * 1000,
-    );
-    return result;
+    return this.cacheAnalyticsResult(cacheKey, result);
   }
 
   async getUncodedVisitsStats(clinicId: string) {

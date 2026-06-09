@@ -31,13 +31,9 @@ function parseCheckoutTierParams(
     return null;
   }
   const parsed = tierSchema.safeParse(tier);
-  if (!parsed.success) {
-    return null;
-  }
+  if (!parsed.success) return null;
   const billingCycle = subscription?.billingCycle ?? "MONTHLY";
-  if (billingCycle !== "MONTHLY" && billingCycle !== "YEARLY") {
-    return null;
-  }
+  if (billingCycle !== "MONTHLY" && billingCycle !== "YEARLY") return null;
   return { tier: parsed.data, billingCycle };
 }
 

@@ -8,6 +8,7 @@ import { AppointmentMetricsService } from './application/services/appointment-me
 import { AppointmentMetricDefinitionService } from './application/services/appointment-metric-definition.service';
 import { AppointmentDiagnosisService } from './application/services/appointment-diagnosis.service';
 import { AppointmentsScheduleController } from './presentation/controllers/appointments-schedule.controller';
+import { AppointmentsWorkflowController } from './presentation/controllers/appointments-workflow.controller';
 import { AppointmentsConsultationController } from './presentation/controllers/appointments-consultation.controller';
 import { AppointmentsClinicalController } from './presentation/controllers/appointments-clinical.controller';
 import { OpdSlipController } from './presentation/controllers/opd-slip.controller';
@@ -59,6 +60,7 @@ import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
   imports: [PatientsModule, WhatsappModule, AuditModule],
   controllers: [
     AppointmentsScheduleController,
+    AppointmentsWorkflowController,
     AppointmentsConsultationController,
     AppointmentsClinicalController,
     AppointmentRequestController,

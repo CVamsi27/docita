@@ -10,14 +10,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
 import { MapPin, X } from "lucide-react";
 import type { ClinicAddressSelection } from "./address/address-utils";
 import { AddressMapPreview } from "./address/AddressMapPreview";
 import { AddressSearchInput } from "./address/AddressSearchInput";
 import { useClinicAddressPicker } from "./address/use-clinic-address-picker";
+import { ClinicAddressPickerFooter } from "./clinic-address-picker-dialog-sections";
 import styles from "./clinic-address-picker-dialog.module.css";
 
 export type {
@@ -146,64 +144,15 @@ export function ClinicAddressPickerDialog({
               </div>
             </div>
 
-            <div className="grid gap-3 border-t bg-muted/10 px-4 py-4 sm:px-6 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-end">
-              <div className="rounded-lg border bg-background px-3 py-2 text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  <span>Coordinates</span>
-                </div>
-                <p className="mt-1 font-mono text-foreground">
-                  {picker.picked
-                    ? `${picker.picked.lat.toFixed(6)}, ${picker.picked.lng.toFixed(6)}`
-                    : "Pick a location on the map"}
-                </p>
-              </div>
-
-              <div>
-                <Label htmlFor="resolved-address">Address</Label>
-                <div className="relative mt-2">
-                  <Input
-                    id="resolved-address"
-                    value={picker.addressValue}
-                    onChange={(event) =>
-                      picker.setAddressDraft(event.target.value)
-                    }
-                  />
-                  {picker.isResolving ? (
-                    <DocitaLoadingIndicator
-                      variant="inline"
-                      decorative
-                      className="absolute right-3 top-1/2 -translate-y-1/2"
-                    />
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="flex flex-col-reverse gap-2 sm:flex-row lg:justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => {
-                    if (!picker.picked) return;
-                    onConfirm({
-                      address: picker.addressValue,
-                      location: picker.picked,
-                      details: picker.addressDetails ?? undefined,
-                    });
-                    onOpenChange(false);
-                  }}
-                  disabled={!picker.picked || picker.isResolving}
-                >
-                  Use this location
-                </Button>
-              </div>
-            </div>
+            <ClinicAddressPickerFooter
+              picked={picker.picked}
+              addressValue={picker.addressValue}
+              isResolving={picker.isResolving}
+              onAddressDraftChange={picker.setAddressDraft}
+              addressDetails={picker.addressDetails}
+              onCancel={() => onOpenChange(false)}
+              onConfirm={onConfirm}
+            />
           </div>
         </div>
       </DialogContent>

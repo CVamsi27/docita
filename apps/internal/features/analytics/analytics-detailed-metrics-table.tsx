@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { memo } from "react";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
@@ -14,11 +15,11 @@ import { formatAmountLocale } from "@workspace/utils";
 import type { InternalDetailedMetricsRow } from "@workspace/data-access/internal";
 
 export type DetailedMetricsRow = InternalDetailedMetricsRow;
+// jscpd:ignore-end
 
 interface AnalyticsDetailedMetricsTableProps {
   rows: DetailedMetricsRow[];
 }
-
 function AnalyticsDetailedMetricsTableComponent({
   rows,
 }: AnalyticsDetailedMetricsTableProps) {
@@ -84,7 +85,6 @@ function AnalyticsDetailedMetricsTableComponent({
     </div>
   );
 }
-
 export const AnalyticsDetailedMetricsTable = memo(
   AnalyticsDetailedMetricsTableComponent,
 );

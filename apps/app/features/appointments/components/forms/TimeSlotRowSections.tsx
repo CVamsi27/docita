@@ -81,7 +81,6 @@ interface TimeSlotPatientInfoProps {
   isRetryingReminder: boolean;
   onStopPropagation: (e: React.SyntheticEvent) => void;
 }
-
 export const TimeSlotPatientInfo = memo<TimeSlotPatientInfoProps>(
   ({
     patientName,
@@ -104,7 +103,6 @@ export const TimeSlotPatientInfo = memo<TimeSlotPatientInfoProps>(
     if (doctorName) metaParts.push(`Dr. ${doctorName}`);
     if (phone) metaParts.push(phone);
     const metaLine = metaParts.join(" · ");
-
     return (
       <div className="min-w-0 flex-1">
         <div className="flex min-w-0 items-center gap-2">

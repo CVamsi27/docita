@@ -43,21 +43,16 @@ export class InternalAdditionalChargeService {
       where: { id: clinicId },
       select: { id: true, currency: true },
     });
-    if (!clinic) {
-      throw new BadRequestException('Clinic not found');
-    }
-
+    if (!clinic) throw new BadRequestException('Clinic not found');
     const amountCents = Math.round(data.amount * 100);
     if (!Number.isFinite(amountCents) || amountCents < 1) {
       throw new BadRequestException('Invalid amount');
     }
-
     const subscription = await this.prisma.subscription.findFirst({
       where: { clinicId },
       orderBy: { createdAt: 'desc' },
       select: { id: true },
     });
-
     const orderId = `int_addl_${randomUUID().replace(/-/g, '')}`;
     const categoryLabel =
       INTERNAL_ADDITIONAL_CHARGE_CATEGORY_LABELS[data.category];

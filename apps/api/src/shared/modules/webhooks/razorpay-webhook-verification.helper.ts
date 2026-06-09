@@ -18,14 +18,10 @@ export async function assertVerifiedRazorpayWebhook(params: {
   secret: string;
   verifier: WebhookVerifierService;
 }): Promise<Buffer> {
-  if (!params.signature) {
-    throw new BadRequestException('Missing signature');
-  }
+  if (!params.signature) throw new BadRequestException('Missing signature');
 
   const rawBody = params.req.rawBody;
-  if (!rawBody) {
-    throw new BadRequestException('Missing request body');
-  }
+  if (!rawBody) throw new BadRequestException('Missing request body');
 
   const verification = await params.verifier.verify({
     provider: 'razorpay',
@@ -35,9 +31,8 @@ export async function assertVerifiedRazorpayWebhook(params: {
   });
 
   if (!verification.ok) {
-    if (verification.failure === 'replayed') {
+    if (verification.failure === 'replayed')
       throw new ConflictException('Webhook already processed');
-    }
     throw new UnauthorizedException('Invalid webhook signature');
   }
 

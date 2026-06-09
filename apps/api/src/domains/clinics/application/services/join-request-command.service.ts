@@ -59,13 +59,10 @@ export class JoinRequestCommandService {
   ): Promise<MemberJoinRequest> {
     const request = await this.queryService.findById(requestId);
 
-    if (!request) {
-      throw new NotFoundException('Join request not found');
-    }
+    if (!request) throw new NotFoundException('Join request not found');
 
-    if (request.status !== 'PENDING') {
+    if (request.status !== 'PENDING')
       throw new BadRequestException('Request already processed');
-    }
 
     this.logger.log('Approving join request', { requestId });
 
@@ -97,13 +94,10 @@ export class JoinRequestCommandService {
   ): Promise<MemberJoinRequest> {
     const request = await this.queryService.findById(requestId);
 
-    if (!request) {
-      throw new NotFoundException('Join request not found');
-    }
+    if (!request) throw new NotFoundException('Join request not found');
 
-    if (request.status !== 'PENDING') {
+    if (request.status !== 'PENDING')
       throw new BadRequestException('Request already processed');
-    }
 
     this.logger.log('Rejecting join request', { requestId });
 
@@ -129,17 +123,13 @@ export class JoinRequestCommandService {
   ): Promise<MemberJoinRequest> {
     const request = await this.queryService.findById(requestId);
 
-    if (!request) {
-      throw new NotFoundException('Join request not found');
-    }
+    if (!request) throw new NotFoundException('Join request not found');
 
-    if (request.userId !== userId) {
+    if (request.userId !== userId)
       throw new BadRequestException('Not authorized to withdraw this request');
-    }
 
-    if (request.status !== 'PENDING') {
+    if (request.status !== 'PENDING')
       throw new BadRequestException('Can only withdraw pending requests');
-    }
 
     this.logger.log('Withdrawing join request', { requestId });
 

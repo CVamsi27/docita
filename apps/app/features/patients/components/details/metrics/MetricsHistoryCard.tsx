@@ -8,7 +8,7 @@ import {
 import type { MetricRecordResponse } from "@workspace/types";
 import { History } from "lucide-react";
 import { formatDateTime } from "@/lib/formatters";
-import { extractValue } from "@/features/patients/components/details/patient-metrics-history-helpers";
+import { extractValue } from "@/features/patients/components/details/patient-metrics-value-formatter";
 
 interface MetricsHistoryCardProps {
   title: string;

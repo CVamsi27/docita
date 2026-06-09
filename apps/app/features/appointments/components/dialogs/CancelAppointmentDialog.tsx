@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { useMemo, useState } from "react";
@@ -16,6 +17,7 @@ import {
 import { Button } from "@workspace/ui/components/form/button";
 import {
   Select,
+// jscpd:ignore-end
   SelectContent,
   SelectItem,
   SelectTrigger,

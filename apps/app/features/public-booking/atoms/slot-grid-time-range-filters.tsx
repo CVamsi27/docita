@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { Label } from "@workspace/ui/components/form/label";
 import {
   Select,
@@ -12,6 +13,7 @@ import type { PublicBookingPageController } from "@/features/public-booking/use-
 import { formatTime } from "@/lib/formatters";
 
 export function SlotGridTimeRangeFilters({
+// jscpd:ignore-end
   c,
   useNoneValue,
 }: {
@@ -19,7 +21,6 @@ export function SlotGridTimeRangeFilters({
   useNoneValue: boolean;
 }) {
   const noneVal = useNoneValue ? "__none__" : "";
-
   return (
     <>
       <div className="grid gap-2">
@@ -34,9 +35,8 @@ export function SlotGridTimeRangeFilters({
             if (c.timeRangeEnd) {
               const s = new Date(val).getTime();
               const e = new Date(c.timeRangeEnd).getTime();
-              if (Number.isFinite(s) && Number.isFinite(e) && e <= s) {
+              if (Number.isFinite(s) && Number.isFinite(e) && e <= s)
                 c.setTimeRangeEnd("");
-              }
             }
           }}
         >

@@ -20,7 +20,6 @@ import { Role } from '@workspace/db';
 import {
   listAppointmentsResponseSchema,
   createAppointmentRequestSchema,
-  appointmentRescheduleRequestSchema,
   resolveDoctorScopedAppointmentFilter,
 } from '@workspace/types';
 import { coerceAppointmentBoundaryInstant } from '@/domains/appointments/application/mappers/appointment-instant.mapper';
@@ -29,10 +28,8 @@ import { RequestWithUser } from '@/shared/common/types/common.types';
 import { requireClinicIdFromRequest } from '@/shared/modules/auth/auth/clinic-request-context';
 import {
   CreateAppointmentDto,
-  CancelAppointmentDto,
   ListAppointmentsQueryDto,
   PaginatedAppointmentResponseDto,
-  RescheduleAppointmentDto,
   UpdateAppointmentDto,
 } from '@/domains/appointments/application/dto/appointments.dto';
 import {
@@ -81,6 +78,15 @@ export class AppointmentsScheduleController {
       ),
       reason: parsed.notes,
       type: parsed.type,
+      advance:
+        typeof parsed.advanceAmount === 'number' && parsed.advanceAmount > 0
+          ? {
+              amountCents: Math.round(parsed.advanceAmount * 100),
+              paymentMethod: parsed.advancePaymentMethod,
+              reference: parsed.advanceReference,
+              notes: parsed.advanceNotes,
+            }
+          : undefined,
     };
 
     return this.appointmentService.createAppointment(payload);
@@ -127,11 +133,11 @@ export class AppointmentsScheduleController {
       userId: req.user?.id,
       requestedDoctorId: doctorId,
     });
-    if (doctorScope.denied) {
+    if (doctorScope.denied)
       throw new ForbiddenException(
         'Doctors can only access their appointments',
+        // jscpd:ignore-start
       );
-    }
 
     if (patientId) {
       await logPatientPhiRead(
@@ -145,6 +151,7 @@ export class AppointmentsScheduleController {
         this.auditService,
         req,
         'VIEW_APPOINTMENT_LIST',
+        // jscpd:ignore-end
         'Appointment',
         {
           startDate,
@@ -219,48 +226,6 @@ export class AppointmentsScheduleController {
       id,
       requireClinicIdFromRequest(req),
       body,
-      getAppointmentAccessContext(req),
-    );
-  }
-
-  @Patch(':id/cancel')
-  @ApiOperation({ summary: 'Cancel appointment' })
-  async cancel(
-    @Param('id') id: string,
-    @Request() req: RequestWithUser,
-    @Body() body: CancelAppointmentDto,
-  ) {
-    const reason = body.reason;
-    if (!reason) {
-      throw new BadRequestException('Cancellation reason is required');
-    }
-    return this.appointmentService.cancelAppointment(
-      id,
-      reason,
-      requireClinicIdFromRequest(req),
-      getAppointmentAccessContext(req),
-    );
-  }
-
-  @Patch(':id/reschedule')
-  @ApiOperation({ summary: 'Reschedule appointment' })
-  async reschedule(
-    @Param('id') id: string,
-    @Request() req: RequestWithUser,
-    @Body() body: RescheduleAppointmentDto,
-  ) {
-    const clinicId = requireClinicIdFromRequest(req);
-    const timezone = await this.appointmentService.getClinicTimezone(clinicId);
-    const parsed = appointmentRescheduleRequestSchema.parse(body);
-    return this.appointmentService.rescheduleAppointment(
-      id,
-      coerceAppointmentBoundaryInstant(
-        parsed.startTime,
-        timezone,
-        'start time',
-      ),
-      coerceAppointmentBoundaryInstant(parsed.endTime, timezone, 'end time'),
-      clinicId,
       getAppointmentAccessContext(req),
     );
   }

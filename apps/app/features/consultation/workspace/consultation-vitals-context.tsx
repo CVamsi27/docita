@@ -21,11 +21,9 @@ const ConsultationVitalsContext =
 
 export function useConsultationVitals(): ConsultationVitalsContextValue {
   const ctx = useContext(ConsultationVitalsContext);
-  if (!ctx) {
-    throw new Error(
+  if (!ctx) throw new Error(
       "useConsultationVitals must be used within ConsultationVitalsProvider",
     );
-  }
   return ctx;
 }
 

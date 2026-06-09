@@ -64,9 +64,7 @@ function parseJwtDuration(value: string): JwtDuration | null {
         const expiresIn = /^\d+$/.test(expiration)
           ? Number(expiration)
           : (parsedDuration ?? '7d');
-        if (!secret) {
-          throw new Error('JWT_SECRET is not defined');
-        }
+        if (!secret) throw new Error('JWT_SECRET is not defined');
         return {
           secret: secret,
           signOptions: {

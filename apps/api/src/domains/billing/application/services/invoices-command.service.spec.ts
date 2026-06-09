@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { InvoicesCommandService } from './invoices-command.service';
 import { InvoicesQueryService } from './invoices-query.service';
+import { PaymentsCommandService } from './payments-command.service';
 import { TaxCalculatorService } from '@/domains/billing/core/services/tax-calculator.service';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 import { ClaimValidationService } from '@/domains/billing/core/services/claim-validation.service';
@@ -95,6 +96,12 @@ describe('InvoicesCommandService', () => {
 
     clock = { now: () => new Date('2026-05-19T12:00:00.000Z') };
 
+    const paymentsCommand = {
+      applyAppointmentAdvance: jest
+        .fn<PaymentsCommandService['applyAppointmentAdvance']>()
+        .mockResolvedValue(undefined),
+    } as unknown as PaymentsCommandService;
+
     service = new InvoicesCommandService(
       repository as never,
       taxCalculator,
@@ -103,6 +110,7 @@ describe('InvoicesCommandService', () => {
       storageProvider,
       claimValidationService,
       queryService,
+      paymentsCommand,
       clock,
     );
   });

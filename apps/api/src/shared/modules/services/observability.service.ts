@@ -1,50 +1,17 @@
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import * as Sentry from '@sentry/nestjs';
-import { ErrorSeverity } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { createSentryBeforeSend } from '@/shared/modules/error-handling/sentry.utils';
-
-interface MetricEntry {
-  name: string;
-  value: number | number[];
-  labels?: Record<string, string>;
-  timestamp: number;
-}
-
-interface StructuredLogOptions {
-  captureInSentry?: boolean;
-}
-
-function toSentryContextValue(value: unknown): Record<string, unknown> {
-  if (value && typeof value === 'object' && !Array.isArray(value)) {
-    return Object.fromEntries(Object.entries(value));
-  }
-
-  return { value };
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function getRecordStatus(value: unknown): string | undefined {
-  if (!isRecord(value)) {
-    return undefined;
-  }
-
-  const status = value.status;
-  return typeof status === 'string' ? status : undefined;
-}
-
-function getRecordString(
-  value: Record<string, unknown> | undefined,
-  key: string,
-): string | undefined {
-  const field = value?.[key];
-  return typeof field === 'string' ? field : undefined;
-}
+import {
+  getRecordStatus,
+  getRecordString,
+  mapLogLevelToErrorSeverity,
+  toSentryContextValue,
+  type MetricEntry,
+  type StructuredLogOptions,
+} from './observability.helpers';
 
 @Injectable()
 export class ObservabilityService implements OnModuleDestroy {
@@ -108,10 +75,16 @@ export class ObservabilityService implements OnModuleDestroy {
     this.logger.debug('Sentry initialized');
   }
 
-  captureException(
-    error: unknown,
-    context?: Record<string, unknown> | string,
-    level: Sentry.SeverityLevel = 'error',
+  // Shared by `captureException` and `captureMessage` — both normalize the
+  // context shorthand (a bare string becomes `{ correlationId }`), open a
+  // Sentry scope at the requested severity, stamp the normalized context
+  // entries onto it, and only then hand off to the capture call that differs
+  // between them. Keeping the scope setup in one place stops the two
+  // reporters from drifting apart.
+  private withSentryScope(
+    context: Record<string, unknown> | string | undefined,
+    level: Sentry.SeverityLevel,
+    capture: () => void,
   ): void {
     const normalizedContext =
       typeof context === 'string' ? { correlationId: context } : context;
@@ -122,8 +95,16 @@ export class ObservabilityService implements OnModuleDestroy {
           scope.setContext(key, toSentryContextValue(value));
         });
       }
-      Sentry.captureException(error);
+      capture();
     });
+  }
+
+  captureException(
+    error: unknown,
+    context?: Record<string, unknown> | string,
+    level: Sentry.SeverityLevel = 'error',
+  ): void {
+    this.withSentryScope(context, level, () => Sentry.captureException(error));
   }
 
   captureMessage(
@@ -131,17 +112,7 @@ export class ObservabilityService implements OnModuleDestroy {
     context?: Record<string, unknown> | string,
     level: Sentry.SeverityLevel = 'info',
   ): void {
-    const normalizedContext =
-      typeof context === 'string' ? { correlationId: context } : context;
-    Sentry.withScope((scope) => {
-      scope.setLevel(level);
-      if (normalizedContext) {
-        Object.entries(normalizedContext).forEach(([key, value]) => {
-          scope.setContext(key, toSentryContextValue(value));
-        });
-      }
-      Sentry.captureMessage(message);
-    });
+    this.withSentryScope(context, level, () => Sentry.captureMessage(message));
   }
 
   logStructured(
@@ -187,19 +158,6 @@ export class ObservabilityService implements OnModuleDestroy {
     }
   }
 
-  private mapSeverity(level: 'debug' | 'info' | 'warn' | 'error') {
-    switch (level) {
-      case 'debug':
-        return ErrorSeverity.DEBUG;
-      case 'warn':
-        return ErrorSeverity.WARNING;
-      case 'error':
-        return ErrorSeverity.ERROR;
-      default:
-        return ErrorSeverity.INFO;
-    }
-  }
-
   private async persistStructuredLog(
     level: 'debug' | 'info' | 'warn' | 'error',
     message: string,
@@ -216,7 +174,7 @@ export class ObservabilityService implements OnModuleDestroy {
           message: message.slice(0, 1000),
           path: typeof rawPath === 'string' ? rawPath : undefined,
           method: typeof rawMethod === 'string' ? rawMethod : 'OBSERVABILITY',
-          severity: this.mapSeverity(level),
+          severity: mapLogLevelToErrorSeverity(level),
           metadata: {
             source: 'api-observability',
             correlationId,

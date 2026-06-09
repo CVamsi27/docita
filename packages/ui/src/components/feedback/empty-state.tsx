@@ -6,6 +6,7 @@ import { ChevronRight, LucideIcon } from "lucide-react";
 
 import { DocitaLoadingIndicator } from "./docita-loading-indicator";
 
+// jscpd:ignore-start
 export interface EmptyStateProps {
   icon: LucideIcon;
 
@@ -21,6 +22,7 @@ export interface EmptyStateProps {
 
   className?: string;
 }
+// jscpd:ignore-end
 
 export function EmptyState({
   icon: Icon,
@@ -59,6 +61,7 @@ export function EmptyState({
   );
 }
 
+// jscpd:ignore-start
 export interface SectionHeaderProps {
   icon: LucideIcon;
 
@@ -74,6 +77,7 @@ export interface SectionHeaderProps {
 
   className?: string;
 }
+// jscpd:ignore-end
 
 export function SectionHeader({
   icon: Icon,

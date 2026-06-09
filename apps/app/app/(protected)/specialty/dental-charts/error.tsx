@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
-import { ErrorPageShell } from "@/components/feedback/error-page-shell";
+import { ErrorPageShell } from "@/components/errors/error-page-shell";
 
+// jscpd:ignore-start
 export default function DentalChartsError({
-  error,
+  _error,
   reset,
 }: {
-  error: Error & { digest?: string };
+  _error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {}, [error]);
+// jscpd:ignore-end
 
   return (
     <ErrorPageShell

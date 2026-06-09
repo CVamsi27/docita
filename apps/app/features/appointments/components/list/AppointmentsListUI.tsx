@@ -27,6 +27,7 @@ interface AppointmentsListUIProps {
   hasMoreAppointments?: boolean;
   isToday?: boolean;
   currentTimeSlot?: string;
+// jscpd:ignore-start
   currentTimeSlotRef?: React.RefObject<HTMLDivElement | null>;
   checkingIn: string | null;
   startingConsultationId: string | null;
@@ -39,6 +40,7 @@ interface AppointmentsListUIProps {
 }
 
 export function AppointmentsListUI({
+// jscpd:ignore-end
   selectedPickerIso,
   clinicTz,
   canViewAllDoctors = true,

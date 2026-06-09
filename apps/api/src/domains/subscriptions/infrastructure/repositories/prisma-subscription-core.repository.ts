@@ -39,11 +39,10 @@ export class PrismaSubscriptionCoreRepository {
       });
 
       if (existing) {
-        if (existing.version !== subscription.version) {
+        if (existing.version !== subscription.version)
           throw new BadRequestException(
             'Subscription was modified by another user. Please refresh and try again.',
           );
-        }
 
         await this.prisma.subscription.update({
           where: { id: subscription.id },
@@ -59,25 +58,21 @@ export class PrismaSubscriptionCoreRepository {
         data: data,
       });
     } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
+      if (error instanceof BadRequestException) throw error;
       throw new BadRequestException(
         `Failed to save subscription: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     }
   }
 
-  async findById(id: string): Promise<Subscription | null> {
+  private async findUniqueSubscription(
+    where: { id: string } | { clinicId: string },
+  ): Promise<Subscription | null> {
     try {
       const prismaSubscription =
-        await this.getReadClient().subscription.findUnique({
-          where: { id },
-        });
+        await this.getReadClient().subscription.findUnique({ where });
 
-      if (!prismaSubscription) {
-        return null;
-      }
+      if (!prismaSubscription) return null;
 
       return SubscriptionMapper.toDomain(prismaSubscription);
     } catch (error) {
@@ -87,23 +82,12 @@ export class PrismaSubscriptionCoreRepository {
     }
   }
 
+  async findById(id: string): Promise<Subscription | null> {
+    return this.findUniqueSubscription({ id });
+  }
+
   async findByClinicId(clinicId: string): Promise<Subscription | null> {
-    try {
-      const prismaSubscription =
-        await this.getReadClient().subscription.findUnique({
-          where: { clinicId },
-        });
-
-      if (!prismaSubscription) {
-        return null;
-      }
-
-      return SubscriptionMapper.toDomain(prismaSubscription);
-    } catch (error) {
-      throw new BadRequestException(
-        `Failed to find subscription: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
+    return this.findUniqueSubscription({ clinicId });
   }
 
   async findByStatus(status: string): Promise<Subscription[]> {
@@ -164,11 +148,10 @@ export class PrismaSubscriptionCoreRepository {
         );
       }
 
-      if (existing.version !== subscription.version) {
+      if (existing.version !== subscription.version)
         throw new BadRequestException(
           'Subscription was modified by another user. Please refresh and try again.',
         );
-      }
 
       const data = SubscriptionMapper.toPersistence(subscription);
 
@@ -183,9 +166,8 @@ export class PrismaSubscriptionCoreRepository {
       if (
         error instanceof NotFoundException ||
         error instanceof BadRequestException
-      ) {
+      )
         throw error;
-      }
       throw new BadRequestException(
         `Failed to update subscription: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
@@ -256,6 +238,21 @@ export class PrismaSubscriptionCoreRepository {
     };
   }
 
+  private getReminderInclude() {
+    return {
+      clinic: {
+        include: {
+          users: {
+            where: {
+              role: { in: ['ADMIN' as const, 'ADMIN_DOCTOR' as const] },
+            },
+            select: { email: true, name: true },
+          },
+        },
+      },
+    };
+  }
+
   async findExpiryReminderCandidates(params: {
     startOfDay: Date;
     endOfDay: Date;
@@ -266,16 +263,7 @@ export class PrismaSubscriptionCoreRepository {
         status: { in: ['ACTIVE', 'TRIALING'] },
       },
       take: 1000,
-      include: {
-        clinic: {
-          include: {
-            users: {
-              where: { role: { in: ['ADMIN', 'ADMIN_DOCTOR'] } },
-              select: { email: true, name: true },
-            },
-          },
-        },
-      },
+      include: this.getReminderInclude(),
     });
   }
 
@@ -291,16 +279,7 @@ export class PrismaSubscriptionCoreRepository {
         },
       },
       take: 1000,
-      include: {
-        clinic: {
-          include: {
-            users: {
-              where: { role: { in: ['ADMIN', 'ADMIN_DOCTOR'] } },
-              select: { email: true, name: true },
-            },
-          },
-        },
-      },
+      include: this.getReminderInclude(),
     });
   }
 
@@ -345,9 +324,7 @@ export class PrismaSubscriptionCoreRepository {
         where: { id },
       });
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
+      if (error instanceof NotFoundException) throw error;
       throw new BadRequestException(
         `Failed to delete subscription: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );

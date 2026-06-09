@@ -27,7 +27,6 @@ export function usePaymentMutations(
       toast.success("Payment processed and tier updated successfully");
     },
   });
-
   const recordAdditionalChargeMutation = useMutation({
     mutationFn: (data: Record<string, unknown>) =>
       client.post(

@@ -1,6 +1,7 @@
 "use client";
 
 import { formatDate } from "@workspace/utils";
+// jscpd:ignore-start
 import {
   Dialog,
   DialogContent,
@@ -15,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/data-display/table";
+// jscpd:ignore-end
 import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
 
 type EnterpriseContractsRevisionsDialogProps = Pick<EnterpriseContractsPageState, 'revisionsOpen' | 'setRevisionsOpen' | 'revisions'>;

@@ -81,8 +81,6 @@ export function validateEnv(): EnvConfig {
 
 export function getEnv(): EnvConfig {
   const cached = EnvConfigStore.getCached();
-  if (cached) {
-    return cached;
-  }
+  if (cached) return cached;
   return validateEnv();
 }

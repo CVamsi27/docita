@@ -83,6 +83,8 @@ export const queryKeys = {
       ["invoices", id, "payment-activity"] as const,
     claimReadiness: (id: string) =>
       ["invoices", id, "claim-readiness"] as const,
+    collectionsByMode: (from: string, to: string) =>
+      ["invoices", "reports", "collections-by-mode", from, to] as const,
   },
   insuranceClaims: {
     all: () => ["insurance-claims"] as const,

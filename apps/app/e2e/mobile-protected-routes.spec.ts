@@ -26,9 +26,7 @@ test.describe("Mobile protected routes", () => {
 
   test.beforeAll(async ({ request }) => {
     user = await reuseSharedGeneralClinicUser(request);
-    if (!user) {
-      throw new Error("Failed to initialize shared clinic user");
-    }
+    if (!user) throw new Error("Failed to initialize shared clinic user");
 
     const patientRes = await request.post(`${API_URL}/patients`, {
       headers: { Authorization: `Bearer ${user.accessToken}` },

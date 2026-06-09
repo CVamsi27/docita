@@ -1,9 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { Prisma } from '@workspace/db';
 import {
   type DoctorClinicAssignmentRef,
   IDoctorClinicsRepository,
 } from '@/domains/doctor-clinics/application/ports/doctor-clinics.repository.port';
+
+// Shared by `createAssignment` and `findClinicDoctors` — both project the
+// same doctor identity fields onto the assignment row, so the projection
+// lives in one place rather than the two queries drifting apart.
+const DOCTOR_ASSIGNMENT_SUMMARY_SELECT = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+} satisfies Prisma.UserSelect;
 
 @Injectable()
 export class PrismaDoctorClinicsRepository implements IDoctorClinicsRepository {
@@ -48,12 +59,7 @@ export class PrismaDoctorClinicsRepository implements IDoctorClinicsRepository {
       },
       include: {
         doctor: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-          },
+          select: DOCTOR_ASSIGNMENT_SUMMARY_SELECT,
         },
         clinic: {
           select: {
@@ -113,12 +119,7 @@ export class PrismaDoctorClinicsRepository implements IDoctorClinicsRepository {
       },
       include: {
         doctor: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-          },
+          select: DOCTOR_ASSIGNMENT_SUMMARY_SELECT,
         },
       },
     });

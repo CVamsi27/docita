@@ -15,9 +15,7 @@ export function OptionalSentryInitializer({
 }: {
   enabled: boolean;
 }) {
-  if (!enabled) {
-    return null;
-  }
+  if (!enabled) return null;
 
   return <SentryInitializer />;
 }

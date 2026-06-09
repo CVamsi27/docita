@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { SubscriptionCurrentResponse } from "@workspace/types";
 import type { Clinic } from "@/lib/contexts/clinic-context";
-import { getTrialState } from "@/lib/subscription/subscription-lockout";
+import { getTrialState } from "@/lib/subscription/subscription-trial-state";
 
 type UseAutoResolveSubscriptionPaymentParams = {
   enabled: boolean;

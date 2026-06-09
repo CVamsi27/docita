@@ -30,9 +30,7 @@ export class CredentialValidationService {
   ) {}
 
   async checkEmailExists(email: string): Promise<boolean> {
-    if (this.emailLookupDisabled) {
-      return false;
-    }
+    if (this.emailLookupDisabled) return false;
 
     try {
       // RLS-BYPASS: auth resolves users before clinic tenant context is established
@@ -93,16 +91,13 @@ export class CredentialValidationService {
         where: { email, deletedAt: null },
       });
 
-      if (!user) {
-        return null;
-      }
+      if (!user) return null;
 
-      if (user.appLoginDisabled) {
+      if (user.appLoginDisabled)
         throw forbiddenProblem(
           'APP_LOGIN_DISABLED',
           'This profile cannot sign in to the app.',
         );
-      }
 
       await this.assertClinicTierAllowsRole(user.clinicId, user.role);
 

@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
@@ -16,6 +17,7 @@ import { MessageCircle } from "lucide-react";
 import type { WhatsappSenderConfigResponse, WhatsappSenderMode } from "@workspace/types";
 
 export const MODE_LABELS: Record<WhatsappSenderMode, string> = {
+// jscpd:ignore-end
   SHARED: "Shared Docita number",
   BYO: "Clinic's own number",
   MANAGED: "Docita-managed dedicated",

@@ -83,9 +83,7 @@ async function runAccessibilityAudit(
       await page.locator("body").waitFor({ state: "visible", timeout: 15_000 });
       break;
     } catch (error) {
-      if (attempt === 3) {
-        throw error;
-      }
+      if (attempt === 3) throw error;
       await page.waitForTimeout(1000);
     }
   }

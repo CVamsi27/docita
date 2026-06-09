@@ -17,14 +17,20 @@ export interface DateRange {
   end: Date;
 }
 
+function getZonedParsedDate(
+  date: string | Date,
+  options: DateTimeOptions,
+): { zonedDate: Date; timezone: string } {
+  const timezone = options.timezone ?? DEFAULT_TIMEZONE;
+  const parsedDate = parseDate(date) || new Date();
+  return { zonedDate: toZonedTime(parsedDate, timezone), timezone };
+}
+
 export function getDayRange(
   date: string | Date = new Date(),
   options: DateTimeOptions = {},
 ): DateRange {
-  const { timezone = DEFAULT_TIMEZONE } = options;
-
-  const parsedDate = parseDate(date) || new Date();
-  const zonedDate = toZonedTime(parsedDate, timezone);
+  const { zonedDate, timezone } = getZonedParsedDate(date, options);
 
   return {
     start: fromZonedTime(startOfDay(zonedDate), timezone),
@@ -36,10 +42,7 @@ export function getWeekRange(
   date: string | Date = new Date(),
   options: DateTimeOptions = {},
 ): DateRange {
-  const { timezone = DEFAULT_TIMEZONE } = options;
-
-  const parsedDate = parseDate(date) || new Date();
-  const zonedDate = toZonedTime(parsedDate, timezone);
+  const { zonedDate, timezone } = getZonedParsedDate(date, options);
 
   return {
     start: fromZonedTime(startOfWeek(zonedDate, { weekStartsOn: 1 }), timezone),
@@ -51,10 +54,7 @@ export function getMonthRange(
   date: string | Date = new Date(),
   options: DateTimeOptions = {},
 ): DateRange {
-  const { timezone = DEFAULT_TIMEZONE } = options;
-
-  const parsedDate = parseDate(date) || new Date();
-  const zonedDate = toZonedTime(parsedDate, timezone);
+  const { zonedDate, timezone } = getZonedParsedDate(date, options);
 
   return {
     start: fromZonedTime(startOfMonth(zonedDate), timezone),

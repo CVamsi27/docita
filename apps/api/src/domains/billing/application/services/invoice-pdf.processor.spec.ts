@@ -56,6 +56,7 @@ const buildInvoiceDetail = (
   discountTotalCents: 0,
   taxTotalCents: 0,
   grandTotalCents: 10000,
+  amountPaidCents: 0,
   taxSummary: null,
   sellerTaxSnapshot: null,
   buyerTaxSnapshot: null,

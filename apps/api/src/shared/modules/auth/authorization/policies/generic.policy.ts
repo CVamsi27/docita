@@ -4,8 +4,8 @@ import type {
   AuthorizationContext,
   AuthorizationDecision,
   AuthorizationUser,
-  ResourcePolicy,
 } from '../types';
+import { BaseResourcePolicy } from './base-policy';
 
 /**
  * Fallback policy for resources without bespoke ownership logic. Enforces the
@@ -13,19 +13,12 @@ import type {
  * belong to the user's clinic.
  */
 @Injectable()
-export class GenericTenantPolicy implements ResourcePolicy {
-  can(
+export class GenericTenantPolicy extends BaseResourcePolicy {
+  protected doCheck(
     _action: AuthorizationAction,
-    user: AuthorizationUser,
-    context: AuthorizationContext,
+    _user: AuthorizationUser,
+    _context: AuthorizationContext,
   ): AuthorizationDecision {
-    if (
-      context.resourceClinicId &&
-      user.clinicId &&
-      context.resourceClinicId !== user.clinicId
-    ) {
-      return { allowed: false, reason: 'tenant_mismatch' };
-    }
     return { allowed: true };
   }
 }

@@ -94,9 +94,7 @@ export class UploadsController {
     @UploadedFile() file: Express.Multer.File,
     @Request() req: RequestWithUser,
   ) {
-    if (!file) {
-      throw new BadRequestException('File is required');
-    }
+    if (!file) throw new BadRequestException('File is required');
 
     const rawSecret = req.headers['x-upload-secret'];
     const uploadSecretHeader = Array.isArray(rawSecret)
@@ -104,9 +102,8 @@ export class UploadsController {
       : rawSecret;
     const uploadSecret =
       typeof uploadSecretHeader === 'string' ? uploadSecretHeader.trim() : '';
-    if (!uploadSecret) {
+    if (!uploadSecret)
       throw new BadRequestException('Missing upload credentials');
-    }
 
     try {
       await assertAllowedFileSignature(file, ['pdf', 'png', 'jpeg', 'webp'], {

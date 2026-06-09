@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
 import { Label } from "@workspace/ui/components/form/label";
-import { formatInternalTimestamp } from "@/lib/formatters/format-display-date";
+import { formatInternalTimestamp } from "@/lib/formatters/format-internal-timestamp";
 import type { Admin } from "./use-admins-page";
 
 interface AdminViewDialogProps {

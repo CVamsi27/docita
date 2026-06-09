@@ -1,3 +1,8 @@
+import {
+  applySecurityHeaders,
+  BASE_SECURITY_HEADERS,
+} from "@workspace/utils";
+
 const PUBLIC_APP_URL =
   import.meta.env.PUBLIC_APP_URL || "https://app.docita.work";
 const API_ORIGIN =
@@ -45,40 +50,9 @@ const LANDING_SECURITY_HEADERS = [
     key: "Content-Security-Policy",
     value: buildLandingContentSecurityPolicy(),
   },
-  {
-    key: "Referrer-Policy",
-    value: "strict-origin-when-cross-origin",
-  },
-  {
-    key: "X-Content-Type-Options",
-    value: "nosniff",
-  },
-  {
-    key: "X-Frame-Options",
-    value: "DENY",
-  },
-  {
-    key: "Strict-Transport-Security",
-    value: "max-age=31536000; includeSubDomains; preload",
-  },
-  {
-    key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), payment=()",
-  },
-  {
-    key: "Cross-Origin-Opener-Policy",
-    value: "same-origin",
-  },
-  {
-    key: "Cross-Origin-Resource-Policy",
-    value: "same-origin",
-  },
+  ...BASE_SECURITY_HEADERS,
 ] as const;
 
 export function applyLandingSecurityHeaders(response: Response): Response {
-  for (const { key, value } of LANDING_SECURITY_HEADERS) {
-    response.headers.set(key, value);
-  }
-
-  return response;
+  return applySecurityHeaders(response, LANDING_SECURITY_HEADERS);
 }

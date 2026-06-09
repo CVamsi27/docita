@@ -210,9 +210,7 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
   ): Promise<Appointment[]> {
     const pickerDateStr = formatUtcInstantAsClinicPickerIso(date, timezone);
     const bounds = getClinicLocalDayUtcBounds(pickerDateStr, timezone);
-    if (!bounds) {
-      return [];
-    }
+    if (!bounds) return [];
 
     const items = await this.getReadClient().appointment.findMany({
       where: {

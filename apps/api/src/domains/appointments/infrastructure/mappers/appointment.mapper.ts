@@ -146,7 +146,6 @@ export class AppointmentMapper {
       version: raw.version,
     });
   }
-
   static toListItem(
     raw: PrismaAppointment & {
       patient?: {
@@ -326,9 +325,7 @@ export class AppointmentMapper {
         ? { growthData: toPrismaInputJsonValue(plain.growthData) }
         : {}),
       ...(plain.ophthalmologyExam !== undefined
-        ? {
-            ophthalmologyExam: toPrismaInputJsonValue(plain.ophthalmologyExam),
-          }
+        ? { ophthalmologyExam: toPrismaInputJsonValue(plain.ophthalmologyExam) }
         : {}),
       ...(plain.cardiologyExam !== undefined
         ? { cardiologyExam: toPrismaInputJsonValue(plain.cardiologyExam) }
@@ -344,6 +341,14 @@ export class AppointmentMapper {
         : {}),
       ...(plain.dentalChart !== undefined
         ? { dentalChart: plain.dentalChart }
+        : {}),
+      ...(plain.advance
+        ? {
+            advanceAmountCents: plain.advance.amountCents,
+            advancePaymentMethod: plain.advance.paymentMethod ?? null,
+            advanceReference: plain.advance.reference ?? null,
+            advanceNotes: plain.advance.notes ?? null,
+          }
         : {}),
     };
   }

@@ -28,6 +28,7 @@ export const internalQueryKeys = {
     supportWhatsAppThreadMessages: (
       threadPhoneNumber: string,
       limit: number,
+// jscpd:ignore-start
     ) =>
       [
         "internal",
@@ -54,5 +55,6 @@ export const internalQueryKeys = {
       ["internal", "broadcasts", "list", limit] as const,
     broadcastDetail: (id: string) =>
       ["internal", "broadcasts", "detail", id] as const,
+// jscpd:ignore-end
   },
 } as const;

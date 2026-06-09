@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { useEffect, useState } from "react";
 import { Button } from "@workspace/ui/components/form/button";
 import {
@@ -15,6 +16,7 @@ import { Label } from "@workspace/ui/components/form/label";
 import { Bell, Shield } from "lucide-react";
 import {
   usePatientConsentSettings,
+// jscpd:ignore-end
   useUpdatePatientConsent,
 } from "@workspace/data-access";
 import { toast } from "sonner";

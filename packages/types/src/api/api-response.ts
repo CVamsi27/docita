@@ -30,7 +30,6 @@ export type PaginatedResponse<T> = {
 };
 
 export const appErrorCodeSchema = z.enum([
-
   "UNAUTHORIZED",
   "FORBIDDEN",
   "TOKEN_EXPIRED",
@@ -66,7 +65,6 @@ export const appErrorCodeSchema = z.enum([
 export type AppErrorCode = z.infer<typeof appErrorCodeSchema>;
 
 export const ERROR_MESSAGES: Record<AppErrorCode, string> = {
-
   UNAUTHORIZED: "Please sign in again to continue",
   FORBIDDEN: "You do not have permission to perform this action",
   TOKEN_EXPIRED: "Please sign in again to continue",
@@ -88,7 +86,8 @@ export const ERROR_MESSAGES: Record<AppErrorCode, string> = {
 
   APPOINTMENT_CONFLICT:
     "This time is no longer available. Please choose another time",
-  SLOT_UNAVAILABLE: "This time is no longer available. Please choose another time",
+  SLOT_UNAVAILABLE:
+    "This time is no longer available. Please choose another time",
   INSUFFICIENT_PERMISSIONS: "You do not have permission to do that",
   SUBSCRIPTION_LIMIT_REACHED:
     "Your current plan has reached its limit for this action",
@@ -97,7 +96,8 @@ export const ERROR_MESSAGES: Record<AppErrorCode, string> = {
 
   INTERNAL_ERROR: "We could not complete this right now. Please try again",
   DATABASE_ERROR: "We could not complete this right now. Please try again",
-  EXTERNAL_SERVICE_ERROR: "We could not complete this right now. Please try again",
+  EXTERNAL_SERVICE_ERROR:
+    "We could not complete this right now. Please try again",
   RATE_LIMIT_EXCEEDED: "Too many attempts. Please wait a moment and try again",
 };
 
@@ -127,7 +127,6 @@ export type ApiResponse<T> =
   | ApiError;
 
 export const API_ROUTES = {
-
   auth: {
     login: "/auth/login",
     logout: "/auth/logout",

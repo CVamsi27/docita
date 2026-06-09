@@ -29,7 +29,6 @@ export function useConsultationKeyboardShortcuts({
   useEffect(() => {
     const isMac =
       typeof navigator !== "undefined" && /Mac/i.test(navigator.platform);
-
     const handler = (e: KeyboardEvent) => {
       const modKey = isMac ? e.metaKey : e.ctrlKey;
       if (modKey && e.key.toLowerCase() === "k") {

@@ -65,15 +65,11 @@ export const DEACTIVATE_GENERIC_ERROR = "We could not deactivate this admin acco
 export const ACTIVATE_GENERIC_ERROR = "We could not re-enable this admin account. Please try again.";
 
 export function validateCreateForm(form: CreateForm): string | null {
-  if (!form.name || !form.email || !form.password) {
-    return CREATE_MISSING_FIELDS_ERROR;
-  }
+  if (!form.name || !form.email || !form.password) return CREATE_MISSING_FIELDS_ERROR;
   return null;
 }
 
 export function validateEditForm(form: EditForm): string | null {
-  if (!form.name || !form.email) {
-    return EDIT_MISSING_FIELDS_ERROR;
-  }
+  if (!form.name || !form.email) return EDIT_MISSING_FIELDS_ERROR;
   return null;
 }

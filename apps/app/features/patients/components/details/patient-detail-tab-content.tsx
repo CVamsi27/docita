@@ -102,11 +102,9 @@ export function PatientDetailTabContent({
   if (activeTab === "summary") {
     return <SummaryTab patient={patient} patientId={patientId} />;
   }
-
   if (activeTab === "visits") {
     return <VisitsTab patientId={patientId} />;
   }
-
   if (activeTab === "records") {
     return (
       <>
@@ -130,14 +128,11 @@ export function PatientDetailTabContent({
       </>
     );
   }
-
   if (activeTab === "billing" && canViewInvoices) {
     return <BillingTab patientId={patientId} />;
   }
-
   if (activeTab === "communication") {
     return <PatientCommunicationTab patient={patient} patientId={patientId} />;
   }
-
   return null;
 }

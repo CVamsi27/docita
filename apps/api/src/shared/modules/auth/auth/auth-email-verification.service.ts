@@ -25,13 +25,10 @@ export class AuthEmailVerificationService {
         select: { id: true, email: true, name: true, emailVerified: true },
       });
 
-      if (!user) {
-        throw new BadRequestException('User not found');
-      }
+      if (!user) throw new BadRequestException('User not found');
 
-      if (user.emailVerified) {
+      if (user.emailVerified)
         throw new BadRequestException('Email is already verified');
-      }
 
       const token = nanoid(64);
       await this.prisma.user.update({
@@ -50,11 +47,10 @@ export class AuthEmailVerificationService {
         token,
       );
 
-      if (!result.success) {
+      if (!result.success)
         throw new ServiceUnavailableException(
           'We could not send the verification email right now. Please try again.',
         );
-      }
 
       return { message: 'Verification email sent' };
     });
@@ -72,9 +68,8 @@ export class AuthEmailVerificationService {
         select: { id: true },
       });
 
-      if (!user) {
+      if (!user)
         throw new BadRequestException('Invalid or expired verification token');
-      }
 
       await this.prisma.user.update({
         where: { id: user.id },

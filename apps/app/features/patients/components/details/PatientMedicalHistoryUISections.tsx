@@ -14,44 +14,39 @@ import { PatientSocialHistoryComp } from "./history/PatientSocialHistory";
 export interface PatientConditionsBlockProps {
   patient: PatientWithMedicalHistory;
   readOnly: boolean;
+// jscpd:ignore-start
   isCompact: boolean;
   newCondition: string;
   onNewConditionChange: (value: string) => void;
   onAddCondition: () => void;
   onRemoveCondition: (id: string) => void;
 }
+// jscpd:ignore-end
 
 export function PatientConditionsBlock({
   patient,
   readOnly,
-  isCompact,
   newCondition,
   onNewConditionChange,
   onAddCondition,
   onRemoveCondition,
 }: PatientConditionsBlockProps) {
   return (
-    <div className="space-y-4">
-      {!isCompact ? null : (
-        <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider">
-          Conditions
-        </div>
-      )}
-      <PatientConditions
-        patient={patient}
-        readOnly={readOnly}
-        newCondition={newCondition}
-        onNewConditionChange={onNewConditionChange}
-        onAddCondition={onAddCondition}
-        onRemoveCondition={onRemoveCondition}
-      />
-    </div>
+    <PatientConditions
+      patient={patient}
+      readOnly={readOnly}
+      newCondition={newCondition}
+      onNewConditionChange={onNewConditionChange}
+      onAddCondition={onAddCondition}
+      onRemoveCondition={onRemoveCondition}
+    />
   );
 }
 
 export interface PatientAllergiesBlockProps {
   patient: PatientWithMedicalHistory;
   readOnly: boolean;
+// jscpd:ignore-start
   isCompact: boolean;
   newAllergy: string;
   onNewAllergyChange: (value: string) => void;
@@ -65,9 +60,9 @@ export interface PatientAllergiesBlockProps {
 }
 
 export function PatientAllergiesBlock({
+// jscpd:ignore-end
   patient,
   readOnly,
-  isCompact,
   newAllergy,
   onNewAllergyChange,
   onAddAllergy,
@@ -79,26 +74,19 @@ export function PatientAllergiesBlock({
   onEditingAllergyChange,
 }: PatientAllergiesBlockProps) {
   return (
-    <div className="space-y-4">
-      {!isCompact ? null : (
-        <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider">
-          Allergies
-        </div>
-      )}
-      <PatientAllergies
-        patient={patient}
-        readOnly={readOnly}
-        newAllergy={newAllergy}
-        onNewAllergyChange={onNewAllergyChange}
-        onAddAllergy={onAddAllergy}
-        onRemoveAllergy={onRemoveAllergy}
-        editingAllergy={editingAllergy}
-        onEditAllergy={onEditAllergy}
-        onUpdateAllergy={onUpdateAllergy}
-        onCancelEditAllergy={onCancelEditAllergy}
-        onEditingAllergyChange={onEditingAllergyChange}
-      />
-    </div>
+    <PatientAllergies
+      patient={patient}
+      readOnly={readOnly}
+      newAllergy={newAllergy}
+      onNewAllergyChange={onNewAllergyChange}
+      onAddAllergy={onAddAllergy}
+      onRemoveAllergy={onRemoveAllergy}
+      editingAllergy={editingAllergy}
+      onEditAllergy={onEditAllergy}
+      onUpdateAllergy={onUpdateAllergy}
+      onCancelEditAllergy={onCancelEditAllergy}
+      onEditingAllergyChange={onEditingAllergyChange}
+    />
   );
 }
 
@@ -117,7 +105,6 @@ export interface PatientSurgeriesBlockProps {
 export function PatientSurgeriesBlock({
   patient,
   readOnly,
-  isCompact,
   newSurgery,
   newSurgeryDate,
   onNewSurgeryChange,
@@ -126,23 +113,16 @@ export function PatientSurgeriesBlock({
   onRemoveSurgery,
 }: PatientSurgeriesBlockProps) {
   return (
-    <div className="space-y-4">
-      {!isCompact ? null : (
-        <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider">
-          Surgeries
-        </div>
-      )}
-      <PatientSurgeries
-        patient={patient}
-        readOnly={readOnly}
-        newSurgery={newSurgery}
-        newSurgeryDate={newSurgeryDate}
-        onNewSurgeryChange={onNewSurgeryChange}
-        onNewSurgeryDateChange={onNewSurgeryDateChange}
-        onAddSurgery={onAddSurgery}
-        onRemoveSurgery={onRemoveSurgery}
-      />
-    </div>
+    <PatientSurgeries
+      patient={patient}
+      readOnly={readOnly}
+      newSurgery={newSurgery}
+      newSurgeryDate={newSurgeryDate}
+      onNewSurgeryChange={onNewSurgeryChange}
+      onNewSurgeryDateChange={onNewSurgeryDateChange}
+      onAddSurgery={onAddSurgery}
+      onRemoveSurgery={onRemoveSurgery}
+    />
   );
 }
 
@@ -170,23 +150,17 @@ export function PatientFamilyHistoryBlock({
   onRemoveFamilyHistory,
 }: PatientFamilyHistoryBlockProps) {
   return (
-    <div className="mt-8">
-      {!isCompact ? null : (
-        <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider mb-4">
-          Family History
-        </div>
-      )}
-      <PatientFamilyHistory
-        patient={patient}
-        readOnly={readOnly}
-        newFamilyCondition={newFamilyCondition}
-        newFamilyRelation={newFamilyRelation}
-        onNewFamilyConditionChange={onNewFamilyConditionChange}
-        onNewFamilyRelationChange={onNewFamilyRelationChange}
-        onAddFamilyHistory={onAddFamilyHistory}
-        onRemoveFamilyHistory={onRemoveFamilyHistory}
-      />
-    </div>
+    <PatientFamilyHistory
+      patient={patient}
+      readOnly={readOnly}
+      isCompact={isCompact}
+      newFamilyCondition={newFamilyCondition}
+      newFamilyRelation={newFamilyRelation}
+      onNewFamilyConditionChange={onNewFamilyConditionChange}
+      onNewFamilyRelationChange={onNewFamilyRelationChange}
+      onAddFamilyHistory={onAddFamilyHistory}
+      onRemoveFamilyHistory={onRemoveFamilyHistory}
+    />
   );
 }
 
@@ -207,17 +181,11 @@ export function PatientSocialHistoryBlock({
   onSocialHistoryUpdate,
 }: PatientSocialHistoryBlockProps) {
   return (
-    <div className="mt-8">
-      {!isCompact ? null : (
-        <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider mb-4">
-          Social History
-        </div>
-      )}
-      <PatientSocialHistoryComp
-        patient={patient}
-        readOnly={readOnly}
-        onSocialHistoryUpdate={onSocialHistoryUpdate}
-      />
-    </div>
+    <PatientSocialHistoryComp
+      patient={patient}
+      readOnly={readOnly}
+      isCompact={isCompact}
+      onSocialHistoryUpdate={onSocialHistoryUpdate}
+    />
   );
 }

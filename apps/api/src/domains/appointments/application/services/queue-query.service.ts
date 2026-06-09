@@ -20,12 +20,8 @@ export class QueueQueryService {
   ) {}
 
   async getQueue(clinicId: string, doctorId?: string, search?: string) {
-    const { today, tomorrow } = getTodayRange(this.clock);
-
-    const tokens = await this.queueRepository.findTodayTokens(
+    const tokens = await this.fetchTodayTokens(
       clinicId,
-      today,
-      tomorrow,
       doctorId,
       ['WAITING', 'IN_PROGRESS'],
       search,
@@ -35,12 +31,8 @@ export class QueueQueryService {
   }
 
   async getTodayQueue(clinicId: string, doctorId?: string, search?: string) {
-    const { today, tomorrow } = getTodayRange(this.clock);
-
-    const tokens = await this.queueRepository.findTodayTokens(
+    const tokens = await this.fetchTodayTokens(
       clinicId,
-      today,
-      tomorrow,
       doctorId,
       undefined,
       search,
@@ -78,10 +70,11 @@ export class QueueQueryService {
       };
     });
 
+    const waitingCount = tokens.filter((t) => t.status === 'WAITING').length;
     const stats = {
       total: tokens.length,
-      pending: tokens.filter((t) => t.status === 'WAITING').length,
-      waiting: tokens.filter((t) => t.status === 'WAITING').length,
+      pending: waitingCount,
+      waiting: waitingCount,
       inProgress: tokens.filter((t) => t.status === 'IN_PROGRESS').length,
       completed: tokens.filter((t) => t.status === 'COMPLETED').length,
       noShow: 0,
@@ -93,5 +86,22 @@ export class QueueQueryService {
     };
 
     return { patients, stats };
+  }
+
+  private async fetchTodayTokens(
+    clinicId: string,
+    doctorId?: string,
+    status?: string[],
+    search?: string,
+  ) {
+    const { today, tomorrow } = getTodayRange(this.clock);
+    return this.queueRepository.findTodayTokens(
+      clinicId,
+      today,
+      tomorrow,
+      doctorId,
+      status,
+      search,
+    );
   }
 }

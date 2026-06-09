@@ -11,7 +11,6 @@ interface CopyableLinkFieldProps {
   actionLabel?: string;
   onCopy?: (value: string) => Promise<void> | void;
 }
-
 export function CopyableLinkField({
   value,
   helperText,
@@ -19,21 +18,15 @@ export function CopyableLinkField({
   onCopy,
 }: CopyableLinkFieldProps) {
   const [copied, setCopied] = useState(false);
-
   const handleCopy = async () => {
     try {
-      if (onCopy) {
-        await onCopy(value);
-      } else {
-        await navigator.clipboard.writeText(value);
-      }
+      await (onCopy ? onCopy(value) : navigator.clipboard.writeText(value));
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       setCopied(false);
     }
   };
-
   return (
     <div className="w-full min-w-0 space-y-3">
       <div className="flex min-w-0 items-center gap-2 rounded-md border bg-background p-2">
@@ -59,13 +52,11 @@ export function CopyableLinkField({
           </SymbolTooltip>
         ) : null}
       </div>
-
       {helperText ? (
         <p className="text-center text-xs text-muted-foreground">
           {helperText}
         </p>
       ) : null}
-
       {actionLabel ? (
         <Button
           type="button"

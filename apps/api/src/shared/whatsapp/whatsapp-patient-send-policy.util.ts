@@ -26,9 +26,7 @@ export async function isClinicWhatsAppAutomationSendingAllowed(
     },
   });
 
-  if (!clinic) {
-    return false;
-  }
+  if (!clinic) return false;
 
   const snapshot: ClinicFeatureAuthSnapshot = {
     tier: clinic.tier,
@@ -43,9 +41,8 @@ export async function isClinicWhatsAppAutomationSendingAllowed(
   if (
     !clinic.whatsappAutomation ||
     typeof clinic.whatsappAutomation !== 'object'
-  ) {
+  )
     return true;
-  }
 
   const automation = isRecord(clinic.whatsappAutomation)
     ? clinic.whatsappAutomation

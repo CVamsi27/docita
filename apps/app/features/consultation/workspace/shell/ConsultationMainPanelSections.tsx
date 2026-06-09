@@ -1,9 +1,8 @@
 "use client";
 
 import { type ReactNode } from "react";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import {
   AssessmentSection,
   CardiologyExamSection,
@@ -122,43 +121,6 @@ export function buildConsultationSectionComponents(
   };
 }
 
-interface StepProgressBarProps {
-  activeIndex: number;
-  sectionsLength: number;
-  show: boolean;
-}
-
-export function StepProgressBar({
-  activeIndex,
-  sectionsLength,
-  show,
-}: StepProgressBarProps) {
-  if (!show) return null;
-
-  return (
-    <div className="flex items-center gap-3">
-      <MicroLabel className="shrink-0 text-muted-foreground">
-        Step {activeIndex + 1} of {sectionsLength}
-      </MicroLabel>
-      <div
-        className="h-1 flex-1 overflow-hidden rounded-full bg-border"
-        role="progressbar"
-        aria-valuenow={activeIndex + 1}
-        aria-valuemin={1}
-        aria-valuemax={sectionsLength}
-        aria-label="Consultation step progress"
-      >
-        <div
-          className="h-full rounded-full bg-primary transition-[width] duration-300 ease-out"
-          style={{
-            width: `${((activeIndex + 1) / sectionsLength) * 100}%`,
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
 interface StepNavigationProps {
   sections: ConsultationSection[];
   activeIndex: number;
@@ -209,9 +171,9 @@ export function StepNavigation({
           <ArrowRight className="h-3.5 w-3.5" aria-hidden />
         </Button>
       ) : (
-        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success">
-          <Check className="h-3.5 w-3.5" aria-hidden />
-          Last step
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success/8 px-3 py-1.5 text-xs font-medium text-success">
+          <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+          All steps done
         </span>
       )}
     </div>

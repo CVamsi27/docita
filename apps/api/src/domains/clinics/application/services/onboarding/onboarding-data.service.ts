@@ -157,9 +157,8 @@ export class OnboardingDataService {
         expiresAt: { gt: this.clock.now() },
       },
     });
-    if (!row) {
+    if (!row)
       throw new BadRequestException('Onboarding session not found or expired');
-    }
 
     return {
       id: row.id,
@@ -172,9 +171,8 @@ export class OnboardingDataService {
 
   private parseStep(value: string): OnboardingStep {
     const parsed = Object.values(OnboardingStep).find((step) => step === value);
-    if (!parsed) {
+    if (!parsed)
       throw new BadRequestException('Onboarding session is corrupted');
-    }
     return parsed;
   }
 

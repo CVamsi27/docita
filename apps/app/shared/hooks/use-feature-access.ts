@@ -40,86 +40,72 @@ export function useFeatureAccess() {
     [],
   );
 
-  const canAccess = useCallback(
-    (feature: Feature | string, requiredPermission?: Permission): boolean => {
-      const context = buildFeatureAccessContext({
+  // Shared by every callback below — each builds the same access-context
+  // shape from the same hook state (tier, intelligence add-on, user, clinic),
+  // differing only in a handful of per-call overrides (the resolved user id,
+  // whether the intelligence add-on counts, and an optional required
+  // permission). Centralizing it keeps the five evaluators from drifting
+  // apart on what "the current access context" means.
+  const buildContext = useCallback(
+    (
+      feature: Feature | string,
+      overrides?: {
+        userId?: string;
+        hasIntelligence?: boolean;
+        requiredPermission?: Permission;
+      },
+    ) =>
+      buildFeatureAccessContext({
         feature,
-        userId: user?.id || "current-user",
+        userId: overrides?.userId ?? (user?.id || "current-user"),
         currentTier,
-        hasIntelligence,
+        hasIntelligence: overrides?.hasIntelligence ?? hasIntelligence,
         userRole: resolveUserRoleForAccess(user?.role),
         clinicType: clinic?.type,
-        requiredPermission,
-      });
+        requiredPermission: overrides?.requiredPermission,
+      }),
+    [currentTier, hasIntelligence, user, clinic],
+  );
 
+  const canAccess = useCallback(
+    (feature: Feature | string, requiredPermission?: Permission): boolean => {
+      const context = buildContext(feature, { requiredPermission });
       return accessService.canAccessSync(context).granted;
     },
-    [currentTier, hasIntelligence, accessService, user, clinic],
+    [accessService, buildContext],
   );
 
   const canAccessAsync = useCallback(
     async (feature: Feature | string): Promise<boolean> => {
-      const context = buildFeatureAccessContext({
-        feature,
-        userId: user?.id || "current-user",
-        currentTier,
-        hasIntelligence: false,
-        userRole: resolveUserRoleForAccess(user?.role),
-        clinicType: clinic?.type,
-      });
-
+      const context = buildContext(feature, { hasIntelligence: false });
       const decision = await accessService.canAccess(context);
       return decision.granted;
     },
-    [currentTier, accessService, user, clinic],
+    [accessService, buildContext],
   );
 
   const getReason = useCallback(
     (feature: Feature | string): string => {
-      const context = buildFeatureAccessContext({
-        feature,
-        userId: "current-user",
-        currentTier,
-        hasIntelligence,
-        userRole: resolveUserRoleForAccess(user?.role),
-        clinicType: clinic?.type,
-      });
-
+      const context = buildContext(feature, { userId: "current-user" });
       return accessService.getReason(context);
     },
-    [currentTier, hasIntelligence, accessService, user, clinic],
+    [accessService, buildContext],
   );
 
   const getUpgradeOptions = useCallback(
     (feature: Feature | string): IUpgradeOption[] => {
-      const context = buildFeatureAccessContext({
-        feature,
-        userId: user?.id || "current-user",
-        currentTier,
-        hasIntelligence,
-        userRole: resolveUserRoleForAccess(user?.role),
-        clinicType: clinic?.type,
-      });
-
+      const context = buildContext(feature);
       return accessService.getUpgradeOptions(context);
     },
-    [currentTier, hasIntelligence, accessService, user, clinic],
+    [accessService, buildContext],
   );
 
   const getDecision = useCallback(
     (feature: Feature | string): IAccessDecision => {
-      const context = buildFeatureAccessContext({
-        feature,
-        userId: user?.id || "current-user",
-        currentTier,
-        hasIntelligence,
-        userRole: resolveUserRoleForAccess(user?.role),
-        clinicType: clinic?.type,
-      });
-
+      const context = buildContext(feature);
       return accessService.canAccessSync(context);
     },
-    [currentTier, hasIntelligence, accessService, user, clinic],
+    [accessService, buildContext],
   );
 
   return {

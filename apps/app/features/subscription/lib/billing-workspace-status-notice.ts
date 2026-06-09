@@ -94,9 +94,7 @@ export function buildCurrentPlanStatusNotice(input: {
     };
   }
 
-  if (subscriptionStatus === "ACTIVE") {
-    return undefined;
-  }
+  if (subscriptionStatus === "ACTIVE") return undefined;
 
   return {
     title: "Starter plan",

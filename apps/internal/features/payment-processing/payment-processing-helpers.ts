@@ -173,9 +173,7 @@ export function validatePricingOfferParams(
   if (!Number.isFinite(percent) || percent < 0 || percent > 95) {
     return "Percent off must be a number between 0 and 95.";
   }
-  if (!clinicId) {
-    return "Select a facility.";
-  }
+  if (!clinicId) return "Select a facility.";
   return null;
 }
 

@@ -22,7 +22,6 @@ interface PatientSnapshotStripProps {
   showVitals?: boolean;
   compact?: boolean;
 }
-
 export function PatientSnapshotStrip({
   snapshot,
   layout,
@@ -31,8 +30,7 @@ export function PatientSnapshotStrip({
 }: PatientSnapshotStripProps) {
   const { activeConditions, activeAllergies, activeMedications, latestVitals } =
     snapshot;
-
-  if (layout === "vertical") {
+  if (layout === "vertical")
     return (
       <div className="space-y-4">
         <VerticalSnapshotContent
@@ -42,8 +40,6 @@ export function PatientSnapshotStrip({
         />
       </div>
     );
-  }
-
   return (
     <Card>
       <CardContent className={compact ? "p-3" : "p-4"}>
@@ -79,7 +75,6 @@ export function PatientSnapshotStrip({
             </p>
           ) : null}
         </div>
-
         <HorizontalSnapshotContent
           activeConditions={activeConditions}
           activeAllergies={activeAllergies}

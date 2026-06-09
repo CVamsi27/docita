@@ -133,9 +133,7 @@ describe('ValidateClinicScope', () => {
       TestService.prototype,
       'list',
     );
-    if (!descriptor) {
-      throw new Error('Descriptor not found');
-    }
+    if (!descriptor) throw new Error('Descriptor not found');
 
     ValidateClinicScope()(TestService.prototype, 'list', descriptor);
     Object.defineProperty(TestService.prototype, 'list', descriptor);
@@ -159,9 +157,7 @@ describe('ValidateClinicScope', () => {
       TestService.prototype,
       'list',
     );
-    if (!descriptor) {
-      throw new Error('Descriptor not found');
-    }
+    if (!descriptor) throw new Error('Descriptor not found');
 
     ValidateClinicScope({
       argIndex: 1,

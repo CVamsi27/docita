@@ -16,11 +16,10 @@ type TestPrismaClient = PrismaClient & {
 export function setupTestDatabase() {
   const testDbUrl = process.env.DATABASE_URL;
 
-  if (!testDbUrl) {
+  if (!testDbUrl)
     throw new Error(
       'DATABASE_URL is not defined. Tests must run against a dedicated test database.',
     );
-  }
 
   const pool = new Pool(createUtcPoolConfig({ connectionString: testDbUrl }));
   const adapter = new PrismaPg(pool);

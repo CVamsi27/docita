@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { AppointmentsScheduleController } from './appointments-schedule.controller';
+import { AppointmentsWorkflowController } from './appointments-workflow.controller';
 import { AppointmentsConsultationController } from './appointments-consultation.controller';
 import { AppointmentsClinicalController } from './appointments-clinical.controller';
 import { AppointmentService as AppointmentsService } from '@/domains/appointments/application/services/appointment.service';
@@ -17,6 +18,7 @@ import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 
 describe('Appointments controllers', () => {
   let scheduleController: AppointmentsScheduleController;
+  let workflowController: AppointmentsWorkflowController;
   let consultationController: AppointmentsConsultationController;
   let clinicalController: AppointmentsClinicalController;
 
@@ -78,6 +80,7 @@ describe('Appointments controllers', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [
         AppointmentsScheduleController,
+        AppointmentsWorkflowController,
         AppointmentsConsultationController,
         AppointmentsClinicalController,
       ],
@@ -111,6 +114,7 @@ describe('Appointments controllers', () => {
       .compile();
 
     scheduleController = module.get(AppointmentsScheduleController);
+    workflowController = module.get(AppointmentsWorkflowController);
     consultationController = module.get(AppointmentsConsultationController);
     clinicalController = module.get(AppointmentsClinicalController);
 
@@ -119,6 +123,7 @@ describe('Appointments controllers', () => {
 
   it('should be defined', () => {
     expect(scheduleController).toBeDefined();
+    expect(workflowController).toBeDefined();
     expect(consultationController).toBeDefined();
     expect(clinicalController).toBeDefined();
   });
@@ -337,7 +342,7 @@ describe('Appointments controllers', () => {
     it('should cancel appointment with clinic-scoped access context', async () => {
       mockAppointmentsService.cancelAppointment.mockResolvedValue(undefined);
 
-      await scheduleController.cancel('apt-123', mockAuthRequest, {
+      await workflowController.cancel('apt-123', mockAuthRequest, {
         reason: 'Patient unavailable',
       });
 

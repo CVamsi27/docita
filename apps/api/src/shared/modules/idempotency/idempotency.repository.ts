@@ -93,7 +93,6 @@ export class IdempotencyRepository {
       now,
       IDEMPOTENCY_PROCESSING_TTL_SECONDS + IDEMPOTENCY_TTL_SECONDS_DEFAULT,
     );
-
     await this.prisma.apiHttpIdempotencyRecord.deleteMany({
       where: {
         scopedKey,
@@ -109,7 +108,6 @@ export class IdempotencyRepository {
         ],
       },
     });
-
     try {
       await this.prisma.apiHttpIdempotencyRecord.create({
         data: {
@@ -121,32 +119,25 @@ export class IdempotencyRepository {
         },
       });
     } catch (error) {
-      if (!isPrismaUniqueViolation(error)) {
-        throw error;
-      }
+      if (!isPrismaUniqueViolation(error)) throw error;
       const existing = await this.prisma.apiHttpIdempotencyRecord.findUnique({
         where: { scopedKey },
       });
-      if (!existing) {
-        throw error;
-      }
+      if (!existing) throw error;
       if (
         existing.status === 'PROCESSING' &&
         existing.processingExpiresAt > now
-      ) {
+      )
         throw new ConflictException(
           'A request with this Idempotency-Key is already in progress.',
         );
-      }
-      if (existing.status === 'COMPLETED' && existing.recordExpiresAt > now) {
+      if (existing.status === 'COMPLETED' && existing.recordExpiresAt > now)
         throw new ConflictException(
           'A request with this Idempotency-Key is already in progress.',
         );
-      }
       throw error;
     }
   }
-
   async completeProcessing(
     scopedKey: string,
     bodyHash: string,

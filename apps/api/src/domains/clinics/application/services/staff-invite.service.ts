@@ -9,6 +9,8 @@ import { parseStringEnumMember } from '@workspace/utils';
 import {
   isClinicFrontDesk,
   mapClinicMemberRoleToPrisma,
+  STAFF_CLINICAL_SELECT,
+  STAFF_IDENTITY_SELECT,
   type CreateClinicMemberData,
   type CreateDoctorData,
   type CreateReceptionistData,
@@ -30,9 +32,7 @@ export class StaffInviteService {
   private parseSpecialization(value: string): Specialization {
     const normalizedValue = value.trim().toUpperCase().replaceAll(/\s+/g, '_');
     const aliasedSpecialization = SPECIALIZATION_ALIASES[normalizedValue];
-    if (aliasedSpecialization) {
-      return aliasedSpecialization;
-    }
+    if (aliasedSpecialization) return aliasedSpecialization;
 
     const specialization = parseStringEnumMember(
       Object.values(Specialization),
@@ -67,14 +67,8 @@ export class StaffInviteService {
     const user = await this.persistence.user.create({
       data: userData,
       select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        phoneNumber: true,
-        specialization: true,
-        qualification: true,
-        registrationNumber: true,
+        ...STAFF_IDENTITY_SELECT,
+        ...STAFF_CLINICAL_SELECT,
         createdAt: true,
       },
     });
@@ -91,11 +85,10 @@ export class StaffInviteService {
 
   async createReceptionist(clinicId: string, data: CreateReceptionistData) {
     const isFrontDesk = await isClinicFrontDesk(this.persistence, clinicId);
-    if (isFrontDesk && data.role === Role.NURSE) {
+    if (isFrontDesk && data.role === Role.NURSE)
       throw new BadRequestException(
         'This role is not available for the front desk workspace.',
       );
-    }
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await this.persistence.user.create({
       data: {
@@ -107,11 +100,7 @@ export class StaffInviteService {
         phoneNumber: data.phoneNumber,
       },
       select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        phoneNumber: true,
+        ...STAFF_IDENTITY_SELECT,
         createdAt: true,
       },
     });
@@ -122,13 +111,11 @@ export class StaffInviteService {
   async createMember(clinicId: string, data: CreateClinicMemberData) {
     const isFrontDesk = await isClinicFrontDesk(this.persistence, clinicId);
     if (isFrontDesk) {
-      if (data.role === Role.NURSE || data.role === Role.ADMIN_DOCTOR) {
+      if (data.role === Role.NURSE || data.role === Role.ADMIN_DOCTOR)
         throw new BadRequestException(
           'This role is not available for the front desk workspace.',
         );
-      }
     }
-
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const prismaRole = mapClinicMemberRoleToPrisma(data.role);
     const needsDoctorClinic =
@@ -157,14 +144,8 @@ export class StaffInviteService {
           : {}),
       },
       select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        phoneNumber: true,
-        specialization: true,
-        qualification: true,
-        registrationNumber: true,
+        ...STAFF_IDENTITY_SELECT,
+        ...STAFF_CLINICAL_SELECT,
         createdAt: true,
       },
     });

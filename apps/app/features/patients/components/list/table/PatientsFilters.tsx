@@ -5,11 +5,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
-import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/navigation/tabs";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/navigation/tabs";
 import { Input } from "@workspace/ui/components/form/input";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Search, X } from "lucide-react";
+import { ClearSearchButton } from "@/components/buttons/clear-search-button";
+import { Search } from "lucide-react";
 
 interface PatientsFiltersProps {
   filterType: "all" | "recent" | "new";
@@ -38,7 +41,8 @@ export function PatientsFilters({
           <Tabs
             value={filterType}
             onValueChange={(v) => {
-              if (v === "all" || v === "recent" || v === "new") onFilterChange(v);
+              if (v === "all" || v === "recent" || v === "new")
+                onFilterChange(v);
             }}
             className="w-full min-w-0 sm:w-auto md:max-w-[400px]"
           >
@@ -53,7 +57,10 @@ export function PatientsFilters({
       <CardContent>
         <div className="flex w-full min-w-0 flex-wrap items-center gap-4 mb-6">
           <div className="relative min-w-0 flex-1 w-full sm:max-w-sm">
-            <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" aria-hidden />
+            <Search
+              className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"
+              aria-hidden
+            />
             <Input
               placeholder="Enter name or phone"
               className={`bg-background pl-9${searchQuery.trim() ? " pr-10" : ""}`}
@@ -62,20 +69,10 @@ export function PatientsFilters({
               aria-label="Search patients"
             />
             {searchQuery.trim() ? (
-              <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
-                <SymbolTooltip label="Clear search">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => onSearchChange("")}
-                    aria-label="Clear search"
-                  >
-                    <X className="h-4 w-4 text-muted-foreground" aria-hidden />
-                  </Button>
-                </SymbolTooltip>
-              </div>
+              <ClearSearchButton
+                onClear={() => onSearchChange("")}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2"
+              />
             ) : null}
           </div>
         </div>

@@ -39,9 +39,7 @@ export type VitalSign = z.infer<typeof vitalSignSchema>;
 
 export const vitalSignSchemaRefined = vitalSignSchema.refine(
   (data) => {
-    if (data.systolicBP && data.diastolicBP) {
-      return data.systolicBP > data.diastolicBP;
-    }
+    if (data.systolicBP && data.diastolicBP) return data.systolicBP > data.diastolicBP;
     return true;
   },
   {

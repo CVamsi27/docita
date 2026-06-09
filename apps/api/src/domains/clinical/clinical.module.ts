@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { LabTestsController } from './presentation/controllers/lab-tests.controller';
+import { LabWorkflowController } from './presentation/controllers/lab-workflow.controller';
 import { MedicalCodingController } from './presentation/controllers/medical-coding.controller';
 import { ClinicalService } from './application/services/clinical.service';
 import { LabWorkflowCommandService } from './application/services/lab-workflow-command.service';
@@ -30,7 +31,11 @@ import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
     DocumentsModule,
     WhatsAppModule,
   ],
-  controllers: [LabTestsController, MedicalCodingController],
+  controllers: [
+    LabTestsController,
+    LabWorkflowController,
+    MedicalCodingController,
+  ],
   providers: [
     FrontDeskClinicalBlockGuard,
     ClinicalService,
@@ -38,6 +43,7 @@ import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
     LabWorkflowQueryService,
     ClinicalSettingsService,
     ClinicalFactory,
+    PrismaLabRepository,
     NlmCodingClient,
     NlmCodeCatalogProvider,
     LicensedCptCodeCatalogProvider,
@@ -48,7 +54,23 @@ import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
     },
     {
       provide: 'ILabRepository',
-      useClass: PrismaLabRepository,
+      useExisting: PrismaLabRepository,
+    },
+    {
+      provide: 'LabTestCatalogRepository',
+      useExisting: PrismaLabRepository,
+    },
+    {
+      provide: 'LabOrderRepository',
+      useExisting: PrismaLabRepository,
+    },
+    {
+      provide: 'LabWorkflowRepository',
+      useExisting: PrismaLabRepository,
+    },
+    {
+      provide: 'LabDirectoryRepository',
+      useExisting: PrismaLabRepository,
     },
     {
       provide: 'IMedicalCodingRepository',

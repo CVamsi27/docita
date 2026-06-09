@@ -26,9 +26,7 @@ export function Providers({ children }: { children: ReactNode }) {
             refetchOnMount: false,
             retry: (failureCount: number, error: unknown) => {
               if (error instanceof APIRequestError) {
-                if (error.status !== undefined && error.status < 500) {
-                  return false;
-                }
+                if (error.status !== undefined && error.status < 500) return false;
               }
               return failureCount < 2;
             },

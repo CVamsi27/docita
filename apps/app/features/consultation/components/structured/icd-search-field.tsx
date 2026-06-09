@@ -52,13 +52,11 @@ export function IcdSearchField({
     );
   }
 
-  if (readOnly) {
-    return (
+  if (readOnly) return (
       <div className="px-3 py-2 rounded-md border bg-muted/10 text-sm text-muted-foreground">
         No ICD-10 code
       </div>
     );
-  }
 
   return (
     <div className="relative">

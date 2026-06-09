@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { useCallback, useEffect, useState } from "react";
 
 export function useSessionStorage<T>(

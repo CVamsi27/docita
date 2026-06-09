@@ -2,8 +2,11 @@ name: Synthetic uptime monitoring
 
 on:
   schedule:
-    # Every 5 minutes — detect breakage before users report it.
-    - cron: "*/5 * * * *"
+    # IST business hours only (8:30 AM – 8:30 PM IST = 03:00–15:00 UTC), the
+    # window scale-api-hours.yml keeps the API machine running. Outside it the
+    # API is intentionally scaled to 0, so probing it would just page on
+    # expected "downtime" — runs land at 8:30 AM, 2:30 PM, and 7:30 PM IST.
+    - cron: "0 3,9,14 * * *"
   workflow_dispatch:
 
 concurrency:

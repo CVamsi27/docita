@@ -22,15 +22,12 @@ export class LabTest {
     price?: number;
     description?: string;
   }): LabTest {
-    if (!props.name) {
+    if (!props.name)
       throw new InvariantViolationError('Lab test name is required');
-    }
-    if (!props.category) {
+    if (!props.category)
       throw new InvariantViolationError('Lab test category is required');
-    }
-    if (!props.clinicId) {
+    if (!props.clinicId)
       throw new InvariantViolationError('Clinic ID is required');
-    }
 
     return new LabTest(
       props.id || '',

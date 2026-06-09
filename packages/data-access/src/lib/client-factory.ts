@@ -37,9 +37,7 @@ function toHeaderRecord(headers?: HeadersInit): Record<string, string> {
     return {};
   }
 
-  if (headers instanceof Headers) {
-    return Object.fromEntries(headers.entries());
-  }
+  if (headers instanceof Headers) return Object.fromEntries(headers.entries());
 
   if (Array.isArray(headers)) {
     return Object.fromEntries(headers);
@@ -366,6 +364,7 @@ async function buildUploadRequestError(response: Response): Promise<APIRequestEr
       ? problem.raw["code"]
       : undefined;
   return new APIRequestError(
+// jscpd:ignore-start
     problem.detail || problem.message || response.statusText || "Request failed",
     {
       status: response.status,

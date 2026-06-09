@@ -60,13 +60,13 @@ export function getVisibleSettingsTabs({
     .map((category) => ({
       ...category,
       items: category.items.filter((item) => {
-        const requiredPermission = SETTINGS_TAB_REQUIRED_PERMISSIONS[item.value];
-        if (requiredPermission) {
-          if (!userRole || !hasPermission(userRole, requiredPermission)) {
-            return false;
-          }
-        }
-
+        const requiredPermission =
+          SETTINGS_TAB_REQUIRED_PERMISSIONS[item.value];
+        if (
+          requiredPermission &&
+          (!userRole || !hasPermission(userRole, requiredPermission))
+        )
+          return false;
         const minTier = SETTINGS_TAB_MIN_TIERS[item.value];
         if (
           minTier !== undefined &&
@@ -77,18 +77,16 @@ export function getVisibleSettingsTabs({
             undefined,
             currentMode,
           )
-        ) {
+        )
           return false;
-        }
-
-        if ("feature" in item && item.feature) {
-          if (!canAccessFeature(item.feature)) {
-            return false;
-          }
-        }
-
+        if (
+          "feature" in item &&
+          item.feature &&
+          !canAccessFeature(item.feature)
+        )
+          return false;
         const accessTarget = SETTINGS_TAB_ACCESS_TARGETS[item.value];
-        if (accessTarget) {
+        if (accessTarget)
           return canAccessTarget(
             accessTarget,
             {
@@ -100,8 +98,6 @@ export function getVisibleSettingsTabs({
             },
             "read",
           );
-        }
-
         if (!("roles" in item) || !item.roles) return true;
         return (
           !!userRole &&
@@ -110,9 +106,7 @@ export function getVisibleSettingsTabs({
       }),
     }))
     .filter((category) => category.items.length > 0);
-
   if (!searchQuery.trim()) return tabs;
-
   const query = searchQuery.toLowerCase();
   return tabs
     .map((category) => ({
@@ -136,7 +130,6 @@ export const useSettingsLogic = () => {
   const hasIntelligence = usePermissionStore((state) => state.hasIntelligence);
   const requestedTab = searchParams.get("tab") || "general";
   const [searchQuery, setSearchQuery] = useState("");
-
   const filteredTabs = useMemo(() => {
     return getVisibleSettingsTabs({
       userRole: user?.role,
@@ -154,14 +147,14 @@ export const useSettingsLogic = () => {
     searchQuery,
     user?.role,
   ]);
-
   const firstMatchingTab = filteredTabs[0]?.items[0]?.value;
 
-  const allVisibleTabValues = filteredTabs.flatMap((c) => c.items.map((i) => i.value));
+  const allVisibleTabValues = filteredTabs.flatMap((c) =>
+    c.items.map((i) => i.value),
+  );
   const defaultTab = allVisibleTabValues.includes(requestedTab)
     ? requestedTab
-    : (allVisibleTabValues[0] ?? "notifications");
-
+      : (allVisibleTabValues[0] ?? "notifications");
   const tabValue =
     searchQuery.trim() && firstMatchingTab ? firstMatchingTab : defaultTab;
 

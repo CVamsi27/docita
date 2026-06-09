@@ -630,6 +630,10 @@ model Appointment {
   /// @json:psychiatryExamDataSchema
   psychiatryExam          Json?
   encounterSummary        String?
+  advanceAmountCents      Int                   @default(0)
+  advancePaymentMethod    String?
+  advanceReference        String?
+  advanceNotes            String?
   clinic                  Clinic                @relation(fields: [clinicId], references: [id])
   doctor                  User                  @relation(fields: [doctorId], references: [id], onDelete: Restrict)
   patient                 Patient               @relation(fields: [patientId], references: [id], onDelete: Restrict)
@@ -853,6 +857,7 @@ model Invoice {
   discountTotalCents       Int              @default(0)
   taxTotalCents            Int              @default(0)
   grandTotalCents          Int              @default(0)
+  amountPaidCents          Int              @default(0)
   /// @json:invoiceTaxSummarySchema
   taxSummary               Json?
   /// @json:taxRegistrationSnapshotSchema

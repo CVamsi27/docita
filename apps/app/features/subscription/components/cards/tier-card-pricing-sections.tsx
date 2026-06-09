@@ -3,12 +3,7 @@ import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/b
 import { YearlyVsListAnnualPrice } from "@/features/subscription/lib/yearly-vs-list-annual-price";
 import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  CalendarDays,
-  Check,
-  Stethoscope,
-  Users,
-} from "lucide-react";
+import { CalendarDays, Check, Stethoscope, Users } from "lucide-react";
 import {
   LIMIT_ICONS,
   formatTierPrice,
@@ -45,9 +40,7 @@ export function TierCardPriceAmount({
     );
   }
 
-  return (
-    <>{formatTierPrice(tier, pricing, billingCycle, currencySymbol)}</>
-  );
+  return <>{formatTierPrice(tier, pricing, billingCycle, currencySymbol)}</>;
 }
 
 export function TierCardSummaryPricing({
@@ -226,7 +219,6 @@ export function TierCardFullPricing({
           </div>
         ) : null}
       </div>
-
       {limitHighlights?.length ? (
         <TierCardLimitHighlights limitHighlights={limitHighlights} />
       ) : usageHints ? (
@@ -243,9 +235,7 @@ export function TierCardSummaryOverage({
   overageHint?: string;
   overageItems?: string[];
 }) {
-  if (!overageItems?.length && !overageHint) {
-    return null;
-  }
+  if (!overageItems?.length && !overageHint) return null;
 
   return (
     <div className="mt-4 rounded-md border border-border/60 bg-muted/30 px-3 py-2.5">
@@ -295,9 +285,7 @@ export function TierCardKeyHighlights({
   highlights: string[];
   isSummary: boolean;
 }) {
-  if (!highlights.length) {
-    return null;
-  }
+  if (!highlights.length) return null;
 
   return (
     <ul

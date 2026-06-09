@@ -118,9 +118,7 @@ export class ConsentComplianceService {
       const existing = await this.prisma.consent.findFirst({
         where: { id: consentId, clinicId },
       });
-      if (!existing) {
-        throw new NotFoundException('Consent record not found');
-      }
+      if (!existing) throw new NotFoundException('Consent record not found');
     }
 
     const consent = await this.prisma.consent.update({
@@ -199,9 +197,7 @@ export class ConsentComplianceService {
       clinic?.whatsappAutomation,
     );
 
-    if (!requireConsentBeforeSending) {
-      return true;
-    }
+    if (!requireConsentBeforeSending) return true;
 
     const patient = await this.prisma.patient.findUnique({
       where: { id: patientId },

@@ -58,9 +58,7 @@ export class HealthCheckController {
       timestamp: new Date().toISOString(),
     };
 
-    if (!ready) {
-      throw new ServiceUnavailableException(body);
-    }
+    if (!ready) throw new ServiceUnavailableException(body);
 
     return body;
   }

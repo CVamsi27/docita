@@ -43,9 +43,7 @@ export class UploadsCommandService {
       where: { id },
     });
 
-    if (!session) {
-      throw new NotFoundException('Session not found');
-    }
+    if (!session) throw new NotFoundException('Session not found');
 
     validateSessionReadyForUpload(session, uploadSecret, this.clock);
   }
@@ -90,9 +88,7 @@ export class UploadsCommandService {
       where: { id },
     });
 
-    if (!session) {
-      throw new NotFoundException('Session not found');
-    }
+    if (!session) throw new NotFoundException('Session not found');
 
     validateSessionReadyForUpload(session, context?.uploadSecret, this.clock);
 
@@ -127,9 +123,8 @@ export class UploadsCommandService {
         fileUrl,
       },
     });
-    if (updateResult.count === 0) {
+    if (updateResult.count === 0)
       throw new NotFoundException('Session not found');
-    }
 
     const updated = await this.persistence.uploadSession.findFirst({
       where: { id },
@@ -143,9 +138,7 @@ export class UploadsCommandService {
         expiresAt: true,
       },
     });
-    if (!updated) {
-      throw new NotFoundException('Session not found');
-    }
+    if (!updated) throw new NotFoundException('Session not found');
 
     if (
       session.purpose === UploadSessionPurpose.DOCTOR_SIGNATURE &&

@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from "react";
 import { useInternalAuditLogs } from "@workspace/data-access/internal";
 import { toast } from "sonner";
-import { formatInternalTimestamp } from "@/lib/formatters/format-display-date";
+import { formatInternalTimestamp } from "@/lib/formatters/format-internal-timestamp";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   AuditLogFiltersSection,

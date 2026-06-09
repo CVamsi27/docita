@@ -153,30 +153,26 @@ function resolveHttpException(
 function resolveDomainException(
   exception: unknown,
 ): ResolvedExceptionResponse | null {
-  if (exception instanceof NotFoundDomainError) {
+  if (exception instanceof NotFoundDomainError)
     return domainResponse(
       HttpStatus.NOT_FOUND,
       'NotFoundDomainError',
       exception,
     );
-  }
-  if (exception instanceof ConflictDomainError) {
+  if (exception instanceof ConflictDomainError)
     return domainResponse(
       HttpStatus.CONFLICT,
       'ConflictDomainError',
       exception,
     );
-  }
-  if (exception instanceof InvariantViolationError) {
+  if (exception instanceof InvariantViolationError)
     return domainResponse(
       HttpStatus.UNPROCESSABLE_ENTITY,
       'InvariantViolationError',
       exception,
     );
-  }
-  if (exception instanceof DomainError) {
+  if (exception instanceof DomainError)
     return domainResponse(HttpStatus.BAD_REQUEST, 'DomainError', exception);
-  }
   return null;
 }
 
@@ -256,9 +252,8 @@ function buildNativeErrorDetails(exception: Error): Record<string, unknown> {
 
 function getRequestId(request: Request): string | undefined {
   const headerValue = request.headers['x-request-id'];
-  if (typeof headerValue === 'string' && headerValue.length > 0) {
+  if (typeof headerValue === 'string' && headerValue.length > 0)
     return headerValue;
-  }
   if (Array.isArray(headerValue) && typeof headerValue[0] === 'string') {
     return headerValue[0];
   }

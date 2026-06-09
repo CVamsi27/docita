@@ -33,9 +33,7 @@ export function TemplateListContent({
   onEdit,
   onDelete,
 }: TemplateListContentProps) {
-  if (isLoading) {
-    return <DataState status="loading" loadingMessage="Loading templates…" />;
-  }
+  if (isLoading) return <DataState status="loading" loadingMessage="Loading templates…" />;
 
   if (isError) {
     return (

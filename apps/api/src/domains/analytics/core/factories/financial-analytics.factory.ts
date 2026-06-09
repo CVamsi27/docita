@@ -22,9 +22,7 @@ export class FinancialAnalyticsFactory extends BaseAnalyticsFactory {
   ) {
     const cacheKey = `analytics:revenue-trends:${clinicId}:${period}:${days}:${timezone}`;
     const cached = await this.cacheManager.get<RevenueTrendPoint[]>(cacheKey);
-    if (cached) {
-      return cached;
-    }
+    if (cached) return cached;
 
     const dateRange = getLastNDaysRange(days, { timezone });
     const readClient = this.getReadClient();
@@ -70,9 +68,7 @@ export class FinancialAnalyticsFactory extends BaseAnalyticsFactory {
     const cachedResult =
       await this.cacheManager.get<CptRevenueMetric[]>(cacheKey);
 
-    if (cachedResult) {
-      return cachedResult;
-    }
+    if (cachedResult) return cachedResult;
 
     const where: Prisma.ProcedureWhereInput = {
       appointment: { clinicId },

@@ -14,13 +14,11 @@ export function extractApproveAppointmentRequestFieldErrors(
 ): Partial<Record<ApproveScheduleFieldKey, string>> {
   const fromApi = extractApiValidationErrors(error);
   const out: Partial<Record<ApproveScheduleFieldKey, string>> = {};
-
   const pick = (key: ApproveScheduleFieldKey, value: string | undefined) => {
     if (typeof value === "string" && value.trim().length > 0) {
       out[key] = value;
     }
   };
-
   pick("doctorId", fromApi.doctorId);
   pick("startTime", fromApi.startTime);
   pick("endTime", fromApi.endTime);

@@ -37,9 +37,7 @@ export async function handleSignatureUpload(
   token: string,
   file: Express.Multer.File,
 ) {
-  if (!file) {
-    throw new BadRequestException('File is required');
-  }
+  if (!file) throw new BadRequestException('File is required');
 
   try {
     await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp'], {

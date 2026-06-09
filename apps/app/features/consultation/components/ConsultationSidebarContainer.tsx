@@ -48,9 +48,7 @@ export const ConsultationSidebarContainer: FC<
       }
     : undefined;
 
-  if (isLoading) {
-    return <LoadingState message="Loading patient data…" className="h-full" />;
-  }
+  if (isLoading) return <LoadingState message="Loading patient data…" className="h-full" />;
 
   return (
     <ConsultationSidebarUI

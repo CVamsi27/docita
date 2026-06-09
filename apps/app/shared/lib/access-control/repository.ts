@@ -70,11 +70,9 @@ export class SubscriptionRepository implements ISubscriptionRepository {
 
     const response = await browserRequest(url);
 
-    if (!response.ok) {
-      throw new Error(
+    if (!response.ok) throw new Error(
         "We could not load your subscription details. Please try again.",
       );
-    }
 
     const data: unknown = await response.json();
     const subscription = normalizeSubscription(data);
@@ -89,6 +87,28 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     return subscription;
   }
 
+  // Shared by `getAddOns` and `getOverrides` — both fetch a JSON list from
+  // the API, treat a 404 as "no data yet" (empty list) rather than an error,
+  // and otherwise normalize the raw payload into typed entries. Centralizing
+  // the fetch/404/parse sequence keeps the two loaders from drifting apart on
+  // error handling while leaving each its own normalization shape.
+  private async fetchListOrEmpty<T>(
+    url: string,
+    parse: (data: unknown) => T[],
+  ): Promise<T[]> {
+    const response = await browserRequest(url);
+
+    if (!response.ok) {
+      if (response.status === 404) return [];
+      throw new Error(
+        "We could not load your subscription details. Please try again.",
+      );
+    }
+
+    const data: unknown = await response.json();
+    return parse(data);
+  }
+
   async getAddOns(userId: string, clinicId?: string): Promise<IAddOn[]> {
     const cacheKey = this.getCacheKey(userId, clinicId);
 
@@ -101,19 +121,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
       ? `${this.apiBaseUrl}/clinics/${clinicId}/add-ons`
       : `${this.apiBaseUrl}/users/${userId}/add-ons`;
 
-    const response = await browserRequest(url);
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        return [];
-      }
-      throw new Error(
-        "We could not load your subscription details. Please try again.",
-      );
-    }
-
-    const data: unknown = await response.json();
-    const addOns = parseAddOnList(data);
+    const addOns = await this.fetchListOrEmpty(url, parseAddOnList);
 
     this.addOnsCache.set(cacheKey, {
       data: addOns,
@@ -132,24 +140,16 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     }
 
     const url = `${this.apiBaseUrl}/users/${userId}/overrides`;
-    const response = await browserRequest(url);
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        return [];
-      }
-      throw new Error(
-        "We could not load your subscription details. Please try again.",
-      );
-    }
-
-    const data: unknown = await response.json();
-    const overrides = Array.isArray(data)
-      ? data
-          .filter(isRecord)
-          .map((override) => normalizeOverride(override))
-          .filter((override): override is IFeatureOverride => override !== null)
-      : [];
+    const overrides = await this.fetchListOrEmpty(url, (data) =>
+      Array.isArray(data)
+        ? data
+            .filter(isRecord)
+            .map((override) => normalizeOverride(override))
+            .filter(
+              (override): override is IFeatureOverride => override !== null,
+            )
+        : [],
+    );
 
     this.overridesCache.set(cacheKey, {
       data: overrides,

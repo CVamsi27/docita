@@ -1,11 +1,13 @@
 "use client";
 
-import { Label } from "@workspace/ui/components/form/label";
-import { Textarea } from "@workspace/ui/components/form/textarea";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
 import { useConsultationSectionSubtitle } from "@/features/consultation/workspace/consultation-workspace-context";
 import type { GynecologyExamData } from "@workspace/types";
+import {
+  ExamAssessmentPlanFields,
+  ExamTextareaField,
+} from "./exam-section-fields";
 
 interface GynecologyExamSectionProps {
   readOnly?: boolean;
@@ -26,6 +28,11 @@ export function GynecologyExamSection({
 
   const lmp = value.menstrualHistory?.lmp ?? "";
 
+  // Shares the SectionContainer shell + nested-patch wiring convention with
+  // the other specialty exam sections (see DermatologyExamSection for the
+  // full rationale) — each binds genuinely different specialty data through
+  // the same shared shell, so this is intentional structural similarity.
+  // jscpd:ignore-start
   return (
     <SectionContainer
       ref={sectionRef}
@@ -36,75 +43,52 @@ export function GynecologyExamSection({
       description="Menstrual and obstetric context, examination, and plan."
     >
       <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="gyn-lmp" className="text-sm font-semibold">
-            Last menstrual period (LMP)
-          </Label>
-          <Textarea
-            id="gyn-lmp"
-            className="min-h-[72px]"
-            readOnly={readOnly}
-            placeholder="Last menstrual period"
-            value={lmp}
-            onChange={(e) =>
-              setValue((prev) => ({
-                ...prev,
-                menstrualHistory: {
-                  ...prev.menstrualHistory,
-                  lmp: e.target.value,
-                },
-              }))
-            }
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="gyn-antenatal" className="text-sm font-semibold">
-            Antenatal / pregnancy notes
-          </Label>
-          <Textarea
-            id="gyn-antenatal"
-            className="min-h-[100px]"
-            readOnly={readOnly}
-            placeholder="Antenatal notes"
-            value={value.antenatalRecord?.notes ?? ""}
-            onChange={(e) =>
-              setValue((prev) => ({
-                ...prev,
-                antenatalRecord: {
-                  ...prev.antenatalRecord,
-                  notes: e.target.value,
-                },
-              }))
-            }
-          />
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="gyn-assessment" className="text-sm font-semibold">
-              Clinical assessment
-            </Label>
-            <Textarea
-              id="gyn-assessment"
-              className="min-h-[100px]"
-              readOnly={readOnly}
-              value={value.clinicalAssessment ?? ""}
-              onChange={(e) => patch({ clinicalAssessment: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="gyn-plan" className="text-sm font-semibold">
-              Plan
-            </Label>
-            <Textarea
-              id="gyn-plan"
-              className="min-h-[100px]"
-              readOnly={readOnly}
-              value={value.plan ?? ""}
-              onChange={(e) => patch({ plan: e.target.value })}
-            />
-          </div>
-        </div>
+        <ExamTextareaField
+          id="gyn-lmp"
+          label="Last menstrual period (LMP)"
+          minHeightClassName="min-h-[72px]"
+          readOnly={readOnly}
+          placeholder="Last menstrual period"
+          value={lmp}
+          onChange={(lmpValue) =>
+            setValue((prev) => ({
+              ...prev,
+              menstrualHistory: {
+                ...prev.menstrualHistory,
+                lmp: lmpValue,
+              },
+            }))
+          }
+        />
+        <ExamTextareaField
+          id="gyn-antenatal"
+          label="Antenatal / pregnancy notes"
+          minHeightClassName="min-h-[100px]"
+          readOnly={readOnly}
+          placeholder="Antenatal notes"
+          value={value.antenatalRecord?.notes ?? ""}
+          onChange={(notes) =>
+            setValue((prev) => ({
+              ...prev,
+              antenatalRecord: {
+                ...prev.antenatalRecord,
+                notes,
+              },
+            }))
+          }
+        />
+        <ExamAssessmentPlanFields
+          idPrefix="gyn"
+          readOnly={readOnly}
+          clinicalAssessment={value.clinicalAssessment ?? ""}
+          plan={value.plan ?? ""}
+          onClinicalAssessmentChange={(clinicalAssessment) =>
+            patch({ clinicalAssessment })
+          }
+          onPlanChange={(plan) => patch({ plan })}
+        />
       </div>
     </SectionContainer>
   );
+  // jscpd:ignore-end
 }

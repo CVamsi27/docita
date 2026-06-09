@@ -20,27 +20,22 @@ export class ImportPreviewService {
   async previewImport(filePath: string): Promise<ImportPreview> {
     try {
       const data = await this.fileParser.parseTabularRows(filePath);
-      if (data.length < 2) {
+      if (data.length < 2)
         throw new BadRequestException(
           'File must have at least a header row and one data row',
         );
-      }
-
       const headers = data[0].map((value) =>
         this.columnMapping.toHeaderString(value),
       );
-      if (headers.filter((header) => header.length > 0).length === 0) {
+      if (headers.filter((header) => header.length > 0).length === 0)
         throw new BadRequestException('Header row is empty');
-      }
-
       const allDataRows = data
         .slice(1)
         .filter((row) => !this.fileParser.isRowEmpty(row));
-      if (allDataRows.length === 0) {
+      if (allDataRows.length === 0)
         throw new BadRequestException(
           'File must have at least one non-empty data row',
         );
-      }
 
       const dataRows = allDataRows.slice(0, 5);
 
@@ -51,12 +46,9 @@ export class ImportPreviewService {
           .map((row) => String(this.fileParser.getCell(row, index) || ''))
           .filter((v) => v),
       }));
-
       const suggestedMappings: Record<string, string> = {};
       columns.forEach((col) => {
-        if (col.dbField) {
-          suggestedMappings[col.excelColumn] = col.dbField;
-        }
+        if (col.dbField) suggestedMappings[col.excelColumn] = col.dbField;
       });
 
       const sampleData = dataRows.map((row) => {

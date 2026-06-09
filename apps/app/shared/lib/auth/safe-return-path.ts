@@ -23,9 +23,7 @@ function isAuthShellPath(path: string): boolean {
 export function sanitizeAppReturnPath(
   raw: string | null | undefined,
 ): string | null {
-  if (raw == null || typeof raw !== "string") {
-    return null;
-  }
+  if (raw == null || typeof raw !== "string") return null;
 
   const path = raw.trim();
   if (!path.startsWith("/") || path.startsWith("//")) {
@@ -36,9 +34,7 @@ export function sanitizeAppReturnPath(
     return null;
   }
 
-  if (path.length > MAX_RETURN_PATH_LENGTH) {
-    return null;
-  }
+  if (path.length > MAX_RETURN_PATH_LENGTH) return null;
 
   const firstSegment = path.slice(1).split(/[/?#]/)[0];
   if (firstSegment?.includes("@")) {

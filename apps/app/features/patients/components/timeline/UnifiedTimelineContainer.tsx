@@ -48,10 +48,7 @@ export function UnifiedTimelineContainer({
     );
   };
 
-  if (isLoading && !data) {
-    return <DataState status="loading" loadingMessage="Loading timeline…" />;
-  }
-
+  if (isLoading && !data) return <DataState status="loading" loadingMessage="Loading timeline…" />;
   if (isError) {
     return (
       <DataState
@@ -61,7 +58,6 @@ export function UnifiedTimelineContainer({
       />
     );
   }
-
   if (!data) {
     return (
       <DataState
@@ -72,9 +68,7 @@ export function UnifiedTimelineContainer({
       />
     );
   }
-
   const hasMore = offset + limit < data.total;
-
   return (
     <UnifiedTimelineUI
       data={data}

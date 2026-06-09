@@ -65,14 +65,10 @@ function readClinicSignatureUrl(clinic: {
   const sla = toRecord(settings.sla);
 
   const nestedStoredUrl = readOptionalString(sla, 'signatureStoredUrl');
-  if (nestedStoredUrl) {
-    return nestedStoredUrl;
-  }
+  if (nestedStoredUrl) return nestedStoredUrl;
 
   const nestedSignatureUrl = readOptionalString(sla, 'signatureUrl');
-  if (nestedSignatureUrl) {
-    return nestedSignatureUrl;
-  }
+  if (nestedSignatureUrl) return nestedSignatureUrl;
 
   return clinic.slaSignatureUrl ?? null;
 }

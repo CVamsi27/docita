@@ -12,9 +12,7 @@ export function isSubscriptionBillingRowPaid(
   status: string | undefined | null,
   paidAt?: string | Date | null,
 ): boolean {
-  if (paidAt) {
-    return true;
-  }
+  if (paidAt) return true;
   return isPaidSubscriptionPaymentStatus(
     normalizeSubscriptionPaymentStatus(status),
   );

@@ -70,9 +70,7 @@ function renderWithDataAccess(ui: ReactElement) {
     endpoint: string,
     options?: RequestConfig,
   ): Promise<T> => {
-    if (endpoint === "/internal/billing/metrics") {
-      return billingApiMocks.getMetrics() as Promise<T>;
-    }
+    if (endpoint === "/internal/billing/metrics") return billingApiMocks.getMetrics() as Promise<T>;
     if (endpoint === "/internal/billing/subscriptions") {
       return billingApiMocks.getSubscriptions(
         options?.params ?? {},

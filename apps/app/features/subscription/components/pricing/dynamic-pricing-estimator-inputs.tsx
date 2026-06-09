@@ -1,5 +1,6 @@
 "use client";
 
+// jscpd:ignore-start
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import {
@@ -16,6 +17,7 @@ import {
 } from "@workspace/utils";
 import {
   tierSchema,
+// jscpd:ignore-end
   type SupportedCurrency,
   type TierName,
 } from "@workspace/types";

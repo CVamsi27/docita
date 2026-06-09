@@ -17,9 +17,7 @@ export class BloodPressureObservationBuilder implements IFhirObservationBuilder 
   ): FhirObservation[] {
     const systolicBP = vital.systolicBP;
     const diastolicBP = vital.diastolicBP;
-    if (!systolicBP || !diastolicBP) {
-      return [];
-    }
+    if (!systolicBP || !diastolicBP) return [];
 
     return [
       {

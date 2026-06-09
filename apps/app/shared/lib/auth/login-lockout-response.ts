@@ -50,9 +50,7 @@ export function parseLoginLockoutUntil(
 
 export function formatLoginLockoutMessage(lockoutUntil: number): string {
   const remainingMs = lockoutUntil - Date.now();
-  if (remainingMs <= 0) {
-    return "Your account lockout has expired. Please try signing in again.";
-  }
+  if (remainingMs <= 0) return "Your account lockout has expired. Please try signing in again.";
 
   const minutesRemaining = Math.ceil(remainingMs / 60_000);
   return `Account is locked due to too many failed login attempts. Try again in ${minutesRemaining} minute(s).`;

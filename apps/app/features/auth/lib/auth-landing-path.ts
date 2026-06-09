@@ -7,9 +7,7 @@ import type { UserRole } from "@workspace/types";
 const ROLES_LAND_ON_CONSULTATION = new Set<UserRole>(["DOCTOR", "ADMIN_DOCTOR"]);
 
 export function getPostAuthPath(user: User): string {
-  if (user.emailVerified === false) {
-    return "/verify-email-sent";
-  }
+  if (user.emailVerified === false) return "/verify-email-sent";
 
   if (!user.clinicId) {
     switch (user.onboardingStep) {
@@ -34,13 +32,9 @@ export function getPostAuthPath(user: User): string {
 export function getAuthenticatedLandingPath(user: User): string {
   const fallback = getPostAuthPath(user);
 
-  if (user.emailVerified === false || !user.clinicId) {
-    return fallback;
-  }
+  if (user.emailVerified === false || !user.clinicId) return fallback;
 
-  if (typeof window === "undefined") {
-    return fallback;
-  }
+  if (typeof window === "undefined") return fallback;
 
   const stored = sessionStorage.getItem(APP_REDIRECT_AFTER_LOGIN_KEY);
   sessionStorage.removeItem(APP_REDIRECT_AFTER_LOGIN_KEY);

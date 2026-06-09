@@ -1,5 +1,5 @@
 import PDFDocument from 'pdfkit';
-import type { PDFDoctorInfo, PDFPatientInfo } from './pdf.types';
+import type { PDFDoctorInfo, PDFPatientInfo } from '@workspace/types';
 
 export function renderPatientInfoColumn(params: {
   doc: typeof PDFDocument.prototype;

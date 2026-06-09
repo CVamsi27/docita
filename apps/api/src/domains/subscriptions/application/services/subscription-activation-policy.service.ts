@@ -28,9 +28,7 @@ export class SubscriptionActivationPolicyService {
     tier: ClinicTier,
     cycle: BillingCycle,
   ): boolean {
-    if (!subscription) {
-      return false;
-    }
+    if (!subscription) return false;
     return subscription.shouldPreservePeriodEndOnTierChange(tier, cycle);
   }
 

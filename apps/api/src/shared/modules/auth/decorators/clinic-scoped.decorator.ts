@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — Reflect.defineMetadata return requires as cast
 import {
   BadRequestException,
   SetMetadata,
@@ -23,6 +24,29 @@ export function ClinicScoped(options?: ClinicScopedOptions) {
   );
 }
 
+function readString(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function resolveClinicId(
+  request: Record<string, unknown>,
+  paramName: string,
+): { userClinicId: string | undefined; requestedClinicId: string | undefined } {
+  const user = request.user as Record<string, unknown> | undefined;
+  const query = request.query as Record<string, unknown> | undefined;
+  const body = request.body as Record<string, unknown> | undefined;
+  const params = request.params as Record<string, unknown> | undefined;
+  return {
+    userClinicId: readString(user?.clinicId),
+    requestedClinicId:
+      readString(query?.[paramName]) ??
+      readString(body?.[paramName]) ??
+      readString(params?.[paramName]),
+  };
+}
+
 @Injectable()
 export class ClinicScopedGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
@@ -33,14 +57,13 @@ export class ClinicScopedGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    const request = context.switchToHttp().getRequest();
-    const paramName = options?.paramName ?? 'clinicId';
-
-    const userClinicId = this.readString(request.user?.clinicId);
-    const requestedClinicId =
-      this.readString(request.query?.[paramName]) ??
-      this.readString(request.body?.[paramName]) ??
-      this.readString(request.params?.[paramName]);
+    const request = context
+      .switchToHttp()
+      .getRequest<Record<string, unknown>>();
+    const { userClinicId, requestedClinicId } = resolveClinicId(
+      request,
+      options?.paramName ?? 'clinicId',
+    );
     const clinicId = userClinicId ?? requestedClinicId;
 
     if (!clinicId) {
@@ -51,21 +74,10 @@ export class ClinicScopedGuard implements CanActivate {
       throw new BadRequestException('Clinic scope is required');
     }
 
-    if (
-      userClinicId &&
-      requestedClinicId &&
-      userClinicId !== requestedClinicId
-    ) {
+    if (userClinicId && requestedClinicId && userClinicId !== requestedClinicId)
       throw forbiddenProblem('CLINIC_SCOPE_MISMATCH', 'Clinic scope mismatch');
-    }
 
     return true;
-  }
-
-  private readString(value: unknown): string | undefined {
-    if (typeof value !== 'string') return undefined;
-    const trimmed = value.trim();
-    return trimmed ? trimmed : undefined;
   }
 }
 
@@ -91,9 +103,7 @@ export function ValidateClinicScope(options?: {
     ) {
       const clinicId = args[argIndex];
 
-      if (!clinicId) {
-        return emptyResult;
-      }
+      if (!clinicId) return emptyResult;
 
       return originalMethod.apply(this, args);
     };

@@ -22,14 +22,13 @@ export class OptimisticConcurrencyService {
     entityName: string,
     entityId: string,
   ): void {
-    if (providedVersion !== currentVersion) {
+    if (providedVersion !== currentVersion)
       throw new ConcurrencyConflictException(
         entityName,
         entityId,
         providedVersion,
         currentVersion,
       );
-    }
   }
 
   getVersionIncrement(): { increment: number } {

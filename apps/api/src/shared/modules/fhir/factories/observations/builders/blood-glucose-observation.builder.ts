@@ -7,9 +7,7 @@ import type {
 
 export class BloodGlucoseObservationBuilder implements IFhirObservationBuilder {
   build(vital: VitalWithRelations, context: VitalObservationContext) {
-    if (!vital.bloodGlucose) {
-      return [];
-    }
+    if (!vital.bloodGlucose) return [];
 
     return [
       buildQuantityVitalObservation({

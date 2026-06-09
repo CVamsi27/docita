@@ -54,9 +54,7 @@ export class ImportsOcrController {
     @UploadedFile() file: Express.Multer.File,
     @Request() req: ImportsAuthRequest,
   ) {
-    if (!file) {
-      throw new BadRequestException('File is required');
-    }
+    if (!file) throw new BadRequestException('File is required');
 
     try {
       await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp', 'gif'], {
@@ -81,26 +79,21 @@ export class ImportsOcrController {
     @Body() body: OcrImportCommitRequest,
     @Request() req: AuthenticatedRequest & ExpressRequest,
   ) {
-    if (!req.user.clinicId) {
+    if (!req.user.clinicId)
       throw new BadRequestException('Clinic ID is required');
-    }
-    if (body.clinicId !== req.user.clinicId) {
+    if (body.clinicId !== req.user.clinicId)
       throw new BadRequestException('Clinic mismatch');
-    }
     const isInternal = req.user.role === Role.INTERNAL;
-    if (!isInternal && body.doctorId !== req.user.id) {
+    if (!isInternal && body.doctorId !== req.user.id)
       throw new BadRequestException('doctorId must match the signed-in user');
-    }
-    if (!body.dpdpConsent || body.dpdpConsent.accepted !== true) {
+    if (!body.dpdpConsent || body.dpdpConsent.accepted !== true)
       throw new BadRequestException(
         'DPDP consent is required to commit this OCR-extracted patient record',
       );
-    }
-    if (body.dpdpConsent.noticeVersion !== DPDP_NOTICE_VERSION) {
+    if (body.dpdpConsent.noticeVersion !== DPDP_NOTICE_VERSION)
       throw new BadRequestException(
         'The DPDP notice has been updated. Refresh and re-collect consent before committing.',
       );
-    }
     return this.importsService.commitOcrImport(body, {
       ipAddress: req.ip,
       userAgent: readRequestHeaderString(req.headers, 'user-agent'),

@@ -18,6 +18,10 @@ vi.mock("@/features/consultation/workspace/consultation-vitals-context", () => (
   useConsultationVitals: () => ({ openVitals: vi.fn() }),
 }));
 
+vi.mock("@/features/consultation/hooks/use-appointment-open-invoice", () => ({
+  useAppointmentOpenInvoice: () => ({ invoice: null, isLoading: false }),
+}));
+
 vi.mock("@/components/ask-ai/ask-ai-context", () => ({
   useAskAi: () => ({ openOverlay: vi.fn(), closeOverlay: vi.fn(), open: false, scope: null }),
 }));
