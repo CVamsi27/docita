@@ -124,7 +124,7 @@ jobs:
       - name: Fetch main branch for change detection
         run: git fetch origin main --depth=1
       - name: Test API (changed only)
-        run: pnpm --filter @docita/api run test:ci -- --changedSince=origin/main
+        run: pnpm --filter @docita/api run test:ci --changedSince=origin/main
 
   app-quality:
     name: App Unit Checks
@@ -291,7 +291,7 @@ jobs:
       - name: Fetch main branch for change detection
         run: git fetch origin main --depth=1
       - name: Test worker (changed only)
-        run: pnpm --filter @docita/worker run test:ci -- --changedSince=origin/main
+        run: pnpm --filter @docita/worker run test:ci --changedSince=origin/main
 
   security-audit:
     name: Security Audit
