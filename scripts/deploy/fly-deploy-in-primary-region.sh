@@ -25,7 +25,19 @@ if [[ "$primary_region" != "bom" ]]; then
   exit 1
 fi
 
-deploy_args=(deploy --config "$config_path" --app "$app_name" --remote-only --strategy bluegreen "$@")
+# Parse --strategy from extra args; default to bluegreen for HTTP apps with
+# health checks. Use rolling for apps that have no http_service (e.g. worker).
+strategy="bluegreen"
+remaining_args=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --strategy=*) strategy="${1#--strategy=}"; shift ;;
+    --strategy) strategy="$2"; shift 2 ;;
+    *) remaining_args+=("$1"); shift ;;
+  esac
+done
+
+deploy_args=(deploy --config "$config_path" --app "$app_name" --remote-only --strategy "$strategy" "${remaining_args[@]}")
 
 echo "Deploying ${app_name} in configured primary region: ${primary_region}"
 flyctl "${deploy_args[@]}" --primary-region "$primary_region"

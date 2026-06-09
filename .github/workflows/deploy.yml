@@ -208,7 +208,7 @@ jobs:
       - name: Setup Flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy Worker to Fly.io
-        run: bash scripts/deploy/fly-deploy-in-primary-region.sh apps/worker/fly.toml "${{ steps.fly-config.outputs.app_name }}" --ha=false
+        run: bash scripts/deploy/fly-deploy-in-primary-region.sh apps/worker/fly.toml "${{ steps.fly-config.outputs.app_name }}" --strategy rolling --ha=false
 
   gate:
     name: Check Cloudflare deploy credentials
