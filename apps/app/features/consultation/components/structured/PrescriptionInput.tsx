@@ -23,6 +23,44 @@ import type { Medication } from "./prescription-input.types";
 
 export type { Medication } from "./prescription-input.types";
 
+interface MedicationSelectFieldProps {
+  readOnly: boolean;
+  value: string;
+  /** Human-readable label shown in the read-only fallback input. */
+  readOnlyLabel: string;
+  placeholder: string;
+  onValueChange: (value: string) => void;
+  /** `SelectItem`/`SelectGroup` options rendered inside the dropdown. */
+  children: React.ReactNode;
+}
+
+/**
+ * A medication dropdown that falls back to a read-only input when the
+ * prescription is locked. Shared by the Frequency and Route fields so the
+ * read-only/select scaffolding lives in one place.
+ */
+function MedicationSelectField({
+  readOnly,
+  value,
+  readOnlyLabel,
+  placeholder,
+  onValueChange,
+  children,
+}: MedicationSelectFieldProps) {
+  if (readOnly) {
+    return <Input value={readOnlyLabel} readOnly className="bg-background" />;
+  }
+
+  return (
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectTrigger className="bg-background min-h-11 rounded-xl px-4">
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>{children}</SelectContent>
+    </Select>
+  );
+}
+
 interface PrescriptionInputProps {
   value: Medication[];
   onChange: (medications: Medication[]) => void;
@@ -104,32 +142,30 @@ export function PrescriptionInput({
                   />
                 </div>
                 <div className="col-span-1 md:col-span-2">
-                  {readOnly ? (
-                    <Input
-                      value={
-                        med.frequency in SIG_CODE_LABELS
-                          ? SIG_CODE_LABELS[med.frequency as keyof typeof SIG_CODE_LABELS]
-                          : med.frequency
-                      }
-                      readOnly
-                      className="bg-background"
-                    />
-                  ) : (
-                    <Select value={med.frequency} onValueChange={updateFrequency}>
-                      <SelectTrigger className="bg-background min-h-11 rounded-xl px-4">
-                        <SelectValue placeholder="Frequency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(Object.entries(SIG_CODE_LABELS) as [keyof typeof SIG_CODE_LABELS, string][]).map(
-                          ([code, label]) => (
-                            <SelectItem key={code} value={code}>
-                              {code} – {label}
-                            </SelectItem>
-                          ),
-                        )}
-                      </SelectContent>
-                    </Select>
-                  )}
+                  <MedicationSelectField
+                    readOnly={readOnly}
+                    value={med.frequency}
+                    placeholder="Frequency"
+                    readOnlyLabel={
+                      med.frequency in SIG_CODE_LABELS
+                        ? SIG_CODE_LABELS[
+                            med.frequency as keyof typeof SIG_CODE_LABELS
+                          ]
+                        : med.frequency
+                    }
+                    onValueChange={updateFrequency}
+                  >
+                    {(
+                      Object.entries(SIG_CODE_LABELS) as [
+                        keyof typeof SIG_CODE_LABELS,
+                        string,
+                      ][]
+                    ).map(([code, label]) => (
+                      <SelectItem key={code} value={code}>
+                        {code} – {label}
+                      </SelectItem>
+                    ))}
+                  </MedicationSelectField>
                 </div>
                 <div className="col-span-1 md:col-span-2">
                   <Input
@@ -141,39 +177,27 @@ export function PrescriptionInput({
                   />
                 </div>
                 <div className="col-span-1 md:col-span-2">
-                  {readOnly ? (
-                    <Input
-                      value={
-                        MEDICATION_ROUTES.find((r) => r.value === med.route)
-                          ?.label || med.route
-                      }
-                      readOnly
-                      className="bg-background"
-                    />
-                  ) : (
-                    <Select value={med.route} onValueChange={updateRoute}>
-                      <SelectTrigger className="bg-background min-h-11 rounded-xl px-4">
-                        <SelectValue placeholder="Route" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(groupedRoutes).map(
-                          ([category, routes]) => (
-                            <SelectGroup key={category}>
-                              <SelectLabel>{category} Routes</SelectLabel>
-                              {routes.map((route) => (
-                                <SelectItem
-                                  key={route.value}
-                                  value={route.value}
-                                >
-                                  {route.label}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          ),
-                        )}
-                      </SelectContent>
-                    </Select>
-                  )}
+                  <MedicationSelectField
+                    readOnly={readOnly}
+                    value={med.route}
+                    placeholder="Route"
+                    readOnlyLabel={
+                      MEDICATION_ROUTES.find((r) => r.value === med.route)
+                        ?.label || med.route
+                    }
+                    onValueChange={updateRoute}
+                  >
+                    {Object.entries(groupedRoutes).map(([category, routes]) => (
+                      <SelectGroup key={category}>
+                        <SelectLabel>{category} Routes</SelectLabel>
+                        {routes.map((route) => (
+                          <SelectItem key={route.value} value={route.value}>
+                            {route.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    ))}
+                  </MedicationSelectField>
                 </div>
                 <div className="col-span-1 md:col-span-12">
                   <Input
