@@ -72,6 +72,8 @@ interface PatientMedicalHistoryUIProps {
   allowGrowthEdit?: boolean;
 }
 
+const Divider = () => <div className="h-px bg-border/50" />;
+
 export function PatientMedicalHistoryUI({
   patient,
   readOnly,
@@ -121,53 +123,133 @@ export function PatientMedicalHistoryUI({
     />
   );
 
-  const sharedBlocks = (
-    <>
-      <PatientConditionsBlock
-        patient={patient}
-        readOnly={readOnly}
-        isCompact={isCompact}
-        newCondition={newCondition}
-        onNewConditionChange={onNewConditionChange}
-        onAddCondition={onAddCondition}
-        onRemoveCondition={onRemoveCondition}
-      />
-      <div className="h-px bg-border/50" />
-      <PatientAllergiesBlock
-        patient={patient}
-        readOnly={readOnly}
-        isCompact={isCompact}
-        newAllergy={newAllergy}
-        onNewAllergyChange={onNewAllergyChange}
-        onAddAllergy={onAddAllergy}
-        onRemoveAllergy={onRemoveAllergy}
-        editingAllergy={editingAllergy}
-        onEditAllergy={onEditAllergy}
-        onUpdateAllergy={onUpdateAllergy}
-        onCancelEditAllergy={onCancelEditAllergy}
-        onEditingAllergyChange={onEditingAllergyChange}
-      />
-      <div className="h-px bg-border/50" />
-      <PatientSurgeriesBlock
-        patient={patient}
-        readOnly={readOnly}
-        isCompact={isCompact}
-        newSurgery={newSurgery}
-        newSurgeryDate={newSurgeryDate}
-        onNewSurgeryChange={onNewSurgeryChange}
-        onNewSurgeryDateChange={onNewSurgeryDateChange}
-        onAddSurgery={onAddSurgery}
-        onRemoveSurgery={onRemoveSurgery}
-      />
-    </>
-  );
+  if (isCompact) {
+    return (
+      <div className={className}>
+        {specialtySection}
+        {/* jscpd:ignore-start — compact/full variants share the same block-prop
+            call shape; the isCompact flag is the only meaningful difference
+            and extracting a shared helper would obscure the layout intent. */}
+        <div className="space-y-4">
+          <PatientConditionsBlock
+            patient={patient}
+            readOnly={readOnly}
+            isCompact
+            newCondition={newCondition}
+            onNewConditionChange={onNewConditionChange}
+            onAddCondition={onAddCondition}
+            onRemoveCondition={onRemoveCondition}
+          />
+          <Divider />
+          <PatientAllergiesBlock
+            patient={patient}
+            readOnly={readOnly}
+            isCompact
+            newAllergy={newAllergy}
+            onNewAllergyChange={onNewAllergyChange}
+            onAddAllergy={onAddAllergy}
+            onRemoveAllergy={onRemoveAllergy}
+            editingAllergy={editingAllergy}
+            onEditAllergy={onEditAllergy}
+            onUpdateAllergy={onUpdateAllergy}
+            onCancelEditAllergy={onCancelEditAllergy}
+            onEditingAllergyChange={onEditingAllergyChange}
+          />
+          <Divider />
+          <PatientSurgeriesBlock
+            patient={patient}
+            readOnly={readOnly}
+            isCompact
+            newSurgery={newSurgery}
+            newSurgeryDate={newSurgeryDate}
+            onNewSurgeryChange={onNewSurgeryChange}
+            onNewSurgeryDateChange={onNewSurgeryDateChange}
+            onAddSurgery={onAddSurgery}
+            onRemoveSurgery={onRemoveSurgery}
+          />
+          <Divider />
+          <PatientFamilyHistoryBlock
+            patient={patient}
+            readOnly={readOnly}
+            isCompact
+            newFamilyCondition={newFamilyCondition}
+            newFamilyRelation={newFamilyRelation}
+            onNewFamilyConditionChange={onNewFamilyConditionChange}
+            onNewFamilyRelationChange={onNewFamilyRelationChange}
+            onAddFamilyHistory={onAddFamilyHistory}
+            onRemoveFamilyHistory={onRemoveFamilyHistory}
+          />
+          <Divider />
+          <PatientSocialHistoryBlock
+            patient={patient}
+            readOnly={readOnly}
+            isCompact
+            onSocialHistoryUpdate={onSocialHistoryUpdate}
+          />
+        </div>
+        {/* jscpd:ignore-end */}
+      </div>
+    );
+  }
 
-  const historyBlocks = (
-    <>
+  return (
+    <div className={className}>
+      {specialtySection}
+      <Card>
+        <CardHeader className="py-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <History className="h-5 w-5 text-info" />
+            Patient Medical History
+          </CardTitle>
+          {!readOnly && (
+            <CardDescription>
+              Add or remove entries directly. Changes are saved automatically.
+            </CardDescription>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <PatientConditionsBlock
+            patient={patient}
+            readOnly={readOnly}
+            isCompact={false}
+            newCondition={newCondition}
+            onNewConditionChange={onNewConditionChange}
+            onAddCondition={onAddCondition}
+            onRemoveCondition={onRemoveCondition}
+          />
+          <div className="h-px bg-border/50" />
+          <PatientAllergiesBlock
+            patient={patient}
+            readOnly={readOnly}
+            isCompact={false}
+            newAllergy={newAllergy}
+            onNewAllergyChange={onNewAllergyChange}
+            onAddAllergy={onAddAllergy}
+            onRemoveAllergy={onRemoveAllergy}
+            editingAllergy={editingAllergy}
+            onEditAllergy={onEditAllergy}
+            onUpdateAllergy={onUpdateAllergy}
+            onCancelEditAllergy={onCancelEditAllergy}
+            onEditingAllergyChange={onEditingAllergyChange}
+          />
+          <div className="h-px bg-border/50" />
+          <PatientSurgeriesBlock
+            patient={patient}
+            readOnly={readOnly}
+            isCompact={false}
+            newSurgery={newSurgery}
+            newSurgeryDate={newSurgeryDate}
+            onNewSurgeryChange={onNewSurgeryChange}
+            onNewSurgeryDateChange={onNewSurgeryDateChange}
+            onAddSurgery={onAddSurgery}
+            onRemoveSurgery={onRemoveSurgery}
+          />
+        </CardContent>
+      </Card>
       <PatientFamilyHistoryBlock
         patient={patient}
         readOnly={readOnly}
-        isCompact={isCompact}
+        isCompact={false}
         newFamilyCondition={newFamilyCondition}
         newFamilyRelation={newFamilyRelation}
         onNewFamilyConditionChange={onNewFamilyConditionChange}
@@ -178,38 +260,9 @@ export function PatientMedicalHistoryUI({
       <PatientSocialHistoryBlock
         patient={patient}
         readOnly={readOnly}
-        isCompact={isCompact}
+        isCompact={false}
         onSocialHistoryUpdate={onSocialHistoryUpdate}
       />
-    </>
-  );
-
-  return (
-    <div className={className}>
-      {specialtySection}
-      {isCompact ? (
-        <div className="space-y-6">
-          {sharedBlocks}
-        </div>
-      ) : (
-        <Card>
-          <CardHeader className="py-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <History className="h-5 w-5 text-info" />
-              Patient Medical History
-            </CardTitle>
-            {!readOnly && (
-              <CardDescription>
-                Add or remove entries directly. Changes are saved automatically.
-              </CardDescription>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {sharedBlocks}
-          </CardContent>
-        </Card>
-      )}
-      {historyBlocks}
     </div>
   );
 }

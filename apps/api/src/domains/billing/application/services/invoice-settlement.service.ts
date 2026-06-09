@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — narrowing a Prisma Json? field (meta: unknown) to read .source requires one cast; no cast-free alternative exists.
 import {
   Injectable,
   Logger,
