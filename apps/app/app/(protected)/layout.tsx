@@ -24,7 +24,7 @@ import { ErrorBoundaryWrapper } from "@/components/errors/error-boundary";
 import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Command, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { ChevronLeft, ChevronRight, Command } from "lucide-react";
 import { useFeatureFlag } from "@/hooks/use-feature-flag";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
 import {
@@ -223,9 +223,9 @@ export default function ProtectedLayout({
                 aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
                 {isCollapsed ? (
-                  <PanelLeftOpen className="h-3 w-3 shrink-0" />
+                  <ChevronRight className="h-3 w-3 shrink-0" />
                 ) : (
-                  <PanelLeftClose className="h-3 w-3 shrink-0" />
+                  <ChevronLeft className="h-3 w-3 shrink-0" />
                 )}
               </Button>
             </SymbolTooltip>
