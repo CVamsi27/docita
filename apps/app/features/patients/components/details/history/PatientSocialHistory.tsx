@@ -24,10 +24,12 @@ import {
   SMOKING_STATUS_LABELS,
   smokingStatusSchema,
 } from "@workspace/types";
+import { HistoryBlock } from "./HistoryBlock";
 
 interface PatientSocialHistoryProps {
   patient: PatientWithMedicalHistory;
   readOnly: boolean;
+  isCompact?: boolean;
   onSocialHistoryUpdate: (
     field: keyof PatientSocialHistory,
     value: string,
@@ -37,8 +39,101 @@ interface PatientSocialHistoryProps {
 export function PatientSocialHistoryComp({
   patient,
   readOnly,
+  isCompact,
   onSocialHistoryUpdate,
 }: PatientSocialHistoryProps) {
+  const fields = (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="space-y-1.5">
+        <Label htmlFor="smokingStatus" className="text-xs font-medium">
+          Smoking status
+        </Label>
+        <Select
+          value={patient.socialHistory?.smokingStatus || "UNKNOWN"}
+          onValueChange={(value) =>
+            onSocialHistoryUpdate("smokingStatus", value)
+          }
+          disabled={readOnly}
+        >
+          <SelectTrigger id="smokingStatus" className="h-9">
+            <SelectValue placeholder="Smoking status" />
+          </SelectTrigger>
+          <SelectContent>
+            {smokingStatusSchema.options.map((status) => (
+              <SelectItem key={status} value={status}>
+                {SMOKING_STATUS_LABELS[status]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="alcoholUse" className="text-xs font-medium">
+          Alcohol use
+        </Label>
+        <Select
+          value={patient.socialHistory?.alcoholUse || "UNKNOWN"}
+          onValueChange={(value) =>
+            onSocialHistoryUpdate("alcoholUse", value)
+          }
+          disabled={readOnly}
+        >
+          <SelectTrigger id="alcoholUse" className="h-9">
+            <SelectValue placeholder="Alcohol use" />
+          </SelectTrigger>
+          <SelectContent>
+            {alcoholUseStatusSchema.options.map((status) => (
+              <SelectItem key={status} value={status}>
+                {ALCOHOL_USE_STATUS_LABELS[status]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="occupation" className="text-xs font-medium">
+          Occupation
+        </Label>
+        <Input
+          id="occupation"
+          placeholder="Occupation"
+          value={patient.socialHistory?.occupation || ""}
+          onChange={(e) => onSocialHistoryUpdate("occupation", e.target.value)}
+          disabled={readOnly}
+          className="h-9"
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="dietaryRestrictions" className="text-xs font-medium">
+          Dietary restrictions
+        </Label>
+        <Input
+          id="dietaryRestrictions"
+          placeholder="Dietary restrictions"
+          value={patient.socialHistory?.dietaryRestrictions || ""}
+          onChange={(e) =>
+            onSocialHistoryUpdate("dietaryRestrictions", e.target.value)
+          }
+          disabled={readOnly}
+          className="h-9"
+        />
+      </div>
+    </div>
+  );
+
+  if (isCompact) {
+    return (
+      <HistoryBlock
+        icon={<Coffee className="h-3.5 w-3.5 text-warning" />}
+        title="Social History"
+      >
+        {fields}
+      </HistoryBlock>
+    );
+  }
+
   return (
     <Card className="mt-6">
       <CardHeader className="py-4">
@@ -47,80 +142,7 @@ export function PatientSocialHistoryComp({
           Social history
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="smokingStatus">Smoking status</Label>
-            <Select
-              value={patient.socialHistory?.smokingStatus || "UNKNOWN"}
-              onValueChange={(value) =>
-                onSocialHistoryUpdate("smokingStatus", value)
-              }
-              disabled={readOnly}
-            >
-              <SelectTrigger id="smokingStatus">
-                <SelectValue placeholder="Smoking status" />
-              </SelectTrigger>
-              <SelectContent>
-                {smokingStatusSchema.options.map(
-                  (status) => (
-                    <SelectItem key={status} value={status}>
-                      {SMOKING_STATUS_LABELS[status]}
-                    </SelectItem>
-                  ),
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="alcoholUse">Alcohol use</Label>
-            <Select
-              value={patient.socialHistory?.alcoholUse || "UNKNOWN"}
-              onValueChange={(value) =>
-                onSocialHistoryUpdate("alcoholUse", value)
-              }
-              disabled={readOnly}
-            >
-              <SelectTrigger id="alcoholUse">
-                <SelectValue placeholder="Alcohol use" />
-              </SelectTrigger>
-              <SelectContent>
-                {alcoholUseStatusSchema.options.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {ALCOHOL_USE_STATUS_LABELS[status]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="occupation">Occupation</Label>
-            <Input
-              id="occupation"
-              placeholder="Occupation"
-              value={patient.socialHistory?.occupation || ""}
-              onChange={(e) =>
-                onSocialHistoryUpdate("occupation", e.target.value)
-              }
-              disabled={readOnly}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="dietaryRestrictions">Dietary restrictions</Label>
-            <Input
-              id="dietaryRestrictions"
-              placeholder="Dietary restrictions"
-              value={patient.socialHistory?.dietaryRestrictions || ""}
-              onChange={(e) =>
-                onSocialHistoryUpdate("dietaryRestrictions", e.target.value)
-              }
-              disabled={readOnly}
-            />
-          </div>
-        </div>
-      </CardContent>
+      <CardContent>{fields}</CardContent>
     </Card>
   );
 }

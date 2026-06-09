@@ -1,10 +1,10 @@
 import { AlertTriangle, Plus } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import type { PatientAllergy, PatientWithMedicalHistory } from "@workspace/types";
 import { AllergyBadge } from "./AllergyBadge";
 // jscpd:ignore-start
 import { AllergyEditDialog } from "./AllergyEditDialog";
+import { HistoryAddRow, HistoryBlock, HistoryEmptyState } from "./HistoryBlock";
 
 interface AllergyListSectionProps {
   patient: PatientWithMedicalHistory;
@@ -22,56 +22,52 @@ interface AllergyListSectionProps {
 
 export function AllergyListSection(props: AllergyListSectionProps) {
   const { patient, readOnly, newAllergy, onNewAllergyChange, onAddAllergy, onRemoveAllergy, editingAllergy, onEditAllergy, onUpdateAllergy, onCancelEditAllergy, onEditingAllergyChange } = props;
+  const items = patient.patientAllergies ?? [];
 
   return (
     <>
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <AlertTriangle className="h-4 w-4 text-warning" />
-          Allergies
-        </div>
-        <div className="flex flex-wrap gap-2 mb-3">
-          {patient.patientAllergies?.map((allergy) => (
-            <AllergyBadge
-              key={allergy.id}
-              allergy={allergy}
-              readOnly={readOnly}
-              onEdit={onEditAllergy}
-              onRemove={onRemoveAllergy}
-            />
-          ))}
-          {(!patient.patientAllergies || patient.patientAllergies.length === 0) && (
-            <div className="w-full py-6 text-center border-2 border-dashed rounded-lg surface-success">
-              <span className="text-sm font-medium flex items-center justify-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-success" />
-                No known allergies
-              </span>
-            </div>
-          )}
-        </div>
-        {!readOnly && (
-          <div className="flex gap-2 items-center pt-2 border-t border-border/40">
-            <div className="relative flex-1">
-              <Plus className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Allergy name"
-                value={newAllergy}
-                onChange={(e) => onNewAllergyChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    onAddAllergy();
-                  }
-                }}
-                className="pl-9"
+      <HistoryBlock
+        icon={<AlertTriangle className="h-3.5 w-3.5 text-warning" />}
+        title="Allergies"
+        count={items.length}
+        addRow={
+          !readOnly ? (
+            <HistoryAddRow
+              disabled={!newAllergy.trim()}
+              onAdd={onAddAllergy}
+            >
+              <div className="relative flex-1 min-w-[160px]">
+                <Plus className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Add allergy"
+                  value={newAllergy}
+                  onChange={(e) => onNewAllergyChange(e.target.value)}
+                  className="h-9 pl-9"
+                />
+              </div>
+            </HistoryAddRow>
+          ) : null
+        }
+      >
+        {items.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5">
+            {items.map((allergy) => (
+              <AllergyBadge
+                key={allergy.id}
+                allergy={allergy}
+                readOnly={readOnly}
+                onEdit={onEditAllergy}
+                onRemove={onRemoveAllergy}
               />
-            </div>
-            <Button type="button" onClick={onAddAllergy} disabled={!newAllergy.trim()}>
-              Add
-            </Button>
+            ))}
           </div>
+        ) : (
+          <HistoryEmptyState
+            message="No known allergies"
+            tone="success"
+          />
         )}
-      </div>
+      </HistoryBlock>
 
       <AllergyEditDialog
         editingAllergy={editingAllergy}
