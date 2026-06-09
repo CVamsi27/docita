@@ -92,7 +92,7 @@ export function DiagnosisItemRow({
             onValueChange={(val) => onUpdate("type", val)}
             disabled={readOnly}
           >
-            <SelectTrigger className="bg-background">
+            <SelectTrigger className="bg-background min-h-11 rounded-xl px-4">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
@@ -108,7 +108,7 @@ export function DiagnosisItemRow({
             onValueChange={(val) => onUpdate("status", val)}
             disabled={readOnly}
           >
-            <SelectTrigger className="bg-background">
+            <SelectTrigger className="bg-background min-h-11 rounded-xl px-4">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
