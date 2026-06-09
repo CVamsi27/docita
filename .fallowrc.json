@@ -39,7 +39,11 @@
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/e2e/**",
-    "**/test/**"
+    "**/test/**",
+    "**/next-env.d.ts"
+  ],
+  "ignoreUnresolvedImports": [
+    "**/.next/types/**"
   ],
   "health": {
     "maxCyclomatic": 9999,
