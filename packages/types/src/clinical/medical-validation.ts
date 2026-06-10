@@ -140,3 +140,42 @@ export interface AllergyCheck {
   warnings: string[];
 }
 
+/**
+ * Indian regulatory classes that constrain how a drug may be prescribed.
+ * - `SCHEDULE_X`: Schedule X of the Drugs and Cosmetics Rules, 1945 — requires
+ *   a special prescription retained for 2 years; cannot be prescribed via
+ *   telemedicine (NMC Telemedicine Practice Guidelines, 2020).
+ * - `NDPS_NARCOTIC`: Narcotic under the NDPS Act, 1985.
+ * - `PSYCHOTROPIC`: Psychotropic under the NDPS Act, 1985.
+ */
+export type ControlledSubstanceSchedule =
+  | "SCHEDULE_X"
+  | "NDPS_NARCOTIC"
+  | "PSYCHOTROPIC";
+
+export interface ControlledSubstanceMatch {
+  medication: string;
+  matchedTerm: string;
+  schedule: ControlledSubstanceSchedule;
+}
+
+export interface ControlledSubstanceCheck {
+  hasControlledSubstance: boolean;
+  matches: ControlledSubstanceMatch[];
+  warnings: string[];
+}
+
+/** Context that decides whether a controlled-substance match blocks or warns. */
+export interface ControlledSubstanceContext {
+  /** True when the prescription is issued during a teleconsultation. */
+  isTeleconsultation: boolean;
+}
+
+export interface ControlledSubstanceValidation {
+  isBlocked: boolean;
+  /** Stable error code surfaced to the client when blocked. */
+  code?: "CONTROLLED_SUBSTANCE_TELEMEDICINE_BLOCKED";
+  message?: string;
+  check: ControlledSubstanceCheck;
+}
+

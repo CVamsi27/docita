@@ -1,6 +1,7 @@
 export * from "./medical-calculations.js";
 export * from "./allergy-validation.js";
 export * from "./dosage-validation.js";
+export * from "./controlled-substance-validation.js";
 export * from "./medication-safety-validation.js";
 export * from "./contraindication-checker.js";
 export * from "./vital-validation.js";

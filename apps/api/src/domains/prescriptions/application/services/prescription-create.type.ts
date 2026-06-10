@@ -39,4 +39,10 @@ export interface CreatePrescriptionParams {
   doctorRegistrationNumber?: string;
   doctorLicenseNumber?: string;
   clinicId?: string;
+  /**
+   * True when this prescription is issued during a teleconsultation. Controlled
+   * substances (Schedule X / NDPS) cannot be prescribed via telemedicine
+   * (NMC Telemedicine Practice Guidelines, 2020). Defaults to in-person.
+   */
+  isTeleconsultation?: boolean;
 }

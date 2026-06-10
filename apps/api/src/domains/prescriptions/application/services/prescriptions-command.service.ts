@@ -17,6 +17,7 @@ import {
   DEFAULT_LOCALE,
   checkPrescriptionAllergies,
   parseStringEnumMember,
+  validateControlledSubstances,
   validateDosage,
 } from '@workspace/utils';
 import { type EnqueuePdfJobResponse } from '@workspace/types';
@@ -122,6 +123,23 @@ export class PrescriptionsCommandService {
           isValid: dosageValidation.isValid,
         });
       }
+    }
+
+    const controlledSubstances = validateControlledSubstances(data.medications, {
+      isTeleconsultation: data.isTeleconsultation ?? false,
+    });
+    if (controlledSubstances.isBlocked) {
+      throw new BadRequestException({
+        message: controlledSubstances.message,
+        code: controlledSubstances.code,
+        controlledSubstances: controlledSubstances.check.matches,
+      });
+    }
+    if (controlledSubstances.check.hasControlledSubstance) {
+      this.logger.warn('Prescription contains controlled substances', {
+        count: controlledSubstances.check.matches.length,
+        schedules: controlledSubstances.check.matches.map((m) => m.schedule),
+      });
     }
 
     const prescription = await this.repository.create({
