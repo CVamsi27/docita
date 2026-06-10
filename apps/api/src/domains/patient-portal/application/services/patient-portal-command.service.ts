@@ -84,17 +84,69 @@ export class PatientPortalCommandService {
 
   async requestDataDeletion(
     userId: string,
-    _data: { reason: string; confirmDeletion?: boolean },
+    data: { reason: string; confirmDeletion?: boolean },
   ) {
-    const { patientId } = await this.contextService.getPatientContext(userId);
+    const { patientId, clinicId } =
+      await this.contextService.getPatientContext(userId);
 
-    this.logger.log('Patient requested data deletion');
+    const request = await this.createPortalDataSubjectRequest({
+      clinicId,
+      patientId,
+      requestType: 'DELETION',
+      requestDetails: data.reason,
+    });
+
+    this.logger.log('Patient requested data deletion', {
+      requestId: request.id,
+    });
 
     return {
       message:
         'Your data deletion request has been received. Our team will process it within 30 days per DPDP guidelines.',
       patientId,
+      requestId: request.id,
       requestedAt: this.clock.now().toISOString(),
     };
+  }
+
+  async requestDataExport(userId: string, data: { reason?: string }) {
+    const { patientId, clinicId } =
+      await this.contextService.getPatientContext(userId);
+
+    const request = await this.createPortalDataSubjectRequest({
+      clinicId,
+      patientId,
+      requestType: 'EXPORT',
+      requestDetails: data.reason,
+    });
+
+    this.logger.log('Patient requested data export', {
+      requestId: request.id,
+    });
+
+    return {
+      message:
+        'Your data export request has been received. Our team will share a copy of your records within 30 days per DPDP guidelines.',
+      patientId,
+      requestId: request.id,
+      requestedAt: this.clock.now().toISOString(),
+    };
+  }
+
+  /**
+   * DPDP data-subject requests raised from the patient portal land in the
+   * clinic's compliance queue with a 30-day SLA (mirrors the staff-side
+   * default in ClinicDataSubjectRequestService).
+   */
+  private createPortalDataSubjectRequest(input: {
+    clinicId: string;
+    patientId: string;
+    requestType: 'DELETION' | 'EXPORT';
+    requestDetails?: string;
+  }) {
+    const dueAt = new Date(
+      this.clock.now().getTime() + 30 * 24 * 60 * 60 * 1000,
+    );
+    return this.repository.createDataSubjectRequest({ ...input, dueAt });
   }
 }

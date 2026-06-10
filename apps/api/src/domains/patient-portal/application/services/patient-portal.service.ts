@@ -73,4 +73,11 @@ export class PatientPortalService {
   ) {
     return this.commandService.requestDataDeletion(userId, data);
   }
+
+  requestDataExport(
+    userId: string,
+    data: Parameters<PatientPortalCommandService['requestDataExport']>[1],
+  ) {
+    return this.commandService.requestDataExport(userId, data);
+  }
 }

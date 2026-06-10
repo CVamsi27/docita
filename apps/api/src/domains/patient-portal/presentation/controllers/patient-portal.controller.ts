@@ -185,4 +185,18 @@ export class PatientPortalController {
       body,
     );
   }
+
+  @Post('profile/export-request')
+  @ApiOperation({
+    summary: 'Request a copy of patient data (DPDP portability)',
+  })
+  async requestDataExport(
+    @Request() req: RequestWithUser,
+    @Body() body: { reason?: string },
+  ) {
+    return this.portalService.requestDataExport(
+      requireAuthenticatedUserId(req),
+      body ?? {},
+    );
+  }
 }

@@ -61,6 +61,14 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
     return this.profile.linkUserToPatient(patientId, userId);
   }
 
+  createDataSubjectRequest(
+    input: Parameters<
+      PrismaPortalProfileRepository['createDataSubjectRequest']
+    >[0],
+  ) {
+    return this.profile.createDataSubjectRequest(input);
+  }
+
   getUpcomingAppointments(
     patientId: string,
     clinicId: string,

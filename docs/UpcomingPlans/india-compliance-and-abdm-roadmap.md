@@ -40,13 +40,12 @@
 
 **Deadlines:** Data Protection Board live (Nov 2025) · consent-manager provisions **13 Nov 2026** · bulk obligations (notice, breach reporting, retention/erasure, security safeguards, data-principal rights) **13 May 2027**. Penalties up to ₹250 Cr; a healthcare SaaS plausibly qualifies as a Significant Data Fiduciary (annual DPIA, DPO, audits).
 
-**Already in place:** DPDP consent capture (onboarding compliance + public booking), AES-256-GCM on 13 PHI fields (CI-enforced parity), [data-retention.scheduler.ts](../../apps/api/src/shared/modules/compliance/data-retention.scheduler.ts), audit logging + export.
+**Already in place (updated 2026-06-10 after round-2 audit):** DPDP consent capture (onboarding compliance + public booking) **with notice versioning** (`Consent.templateVersion`); AES-256-GCM on 13 PHI fields (CI-enforced parity); [data-retention.scheduler.ts](../../apps/api/src/shared/modules/compliance/data-retention.scheduler.ts); audit logging + export; **72 h breach runbook** (`docs/operations/BREACH_NOTIFICATION_RUNBOOK.md`); **staff erasure + export endpoints** (`/consent/patients/:id/delete|export`, anonymize-not-delete reconciles the 3-year NMC record floor); **DSR queue** (`DataSubjectRequest` + clinic service, +30-day default SLA, staff UI with overdue badges); **portal self-service requests** (`POST /portal/profile/delete-request|export-request` → DSR rows, channel `PORTAL`).
 
-**Gap items (ordered):**
-1. **72 h breach-notification runbook** — `docs/operations/BREACH_NOTIFICATION_RUNBOOK.md`: detection → assessment → Board + data-principal notification templates → postmortem. Surface an incident contact in app settings/footer.
-2. **Data-principal rights endpoints** — on-demand erasure + machine-readable export in `apps/api/src/domains/patients` (the retention scheduler handles expiry, not requests). Patient-portal surface for both. Erasure must respect the 3-year medical-record floor (NMC) — document the conflict resolution (anonymize billing/audit trails, retain clinical record until floor passes).
-3. **Consent versioning + withdrawal** — extend existing consent records with artefact version + withdrawal events.
-4. **Grievance redressal (90-day SLA)** — existing `contact` module + documented SLA + `docs/compliance/DPDP_READINESS.md` tracking table.
+**Remaining gap items:**
+1. **Overdue-DSR alerting** beyond the UI badge (email/WhatsApp digest — channel is a product decision).
+2. **DPIA + DPO designation** — organizational, not code.
+3. **Consent Manager integration** — only if/when a registered Consent Manager is onboarded (provisions effective 13 Nov 2026).
 
 ---
 
@@ -59,8 +58,8 @@
 ## 4. Telemedicine module (MEDIUM)
 
 NMC Telemedicine Practice Guidelines (2020) remain the framework. Design constraints they impose:
-- Video recommended for first consults; consult mode + consent must be logged.
-- **Schedule X / narcotics block-list enforced in prescription validation** — implement in `apps/api/src/domains/prescriptions` + mirror client-side. *Worth shipping before telemedicine itself; it's a clinical-safety win today.*
+- Video recommended for first consults; consult mode + consent must be logged (a `TELEHEALTH` consent type already exists in `packages/types/src/clinical/medical.ts`).
+- **Schedule X / narcotics block-list — ✅ shipped and live.** `validateControlledSubstances` runs on every prescription create; the modality is resolved from `Appointment.type` (`IN_PERSON` | `TELEHEALTH`), so TELEHEALTH appointments already reject controlled substances with `CONTROLLED_SUBSTANCE_TELEMEDICINE_BLOCKED`, and in-person prescriptions log a record-keeping warning.
 - E-prescription sharing via the existing WhatsApp delivery path is compliant.
 - ≥3-year record retention — already satisfied.
 
@@ -75,6 +74,6 @@ Build as an extension of the `consultation` domain behind `Feature.TELEMEDICINE`
 
 ## 6. Remaining quality backlog (from the audit)
 
-1. 12 features still on the zero-test allowlist — one PR each: `ai-assistant`, `analytics`, `dev-tools`, `excel`, `feedback`, `help`, `import`, `inbox`, `lab-portal`, `legal`, `medical-documents`, `mobile-upload`.
+1. ~~12 features on the zero-test allowlist~~ — **done 2026-06-10**: allowlist is empty; every feature has at least one colocated test. Next ratchet: upgrade the smoke tests to functional coverage feature-by-feature.
 2. Outbox `LISTEN/NOTIFY` — only if production `pg_stat_statements` shows the 5 s poll mattering.
 3. Major upgrades, each isolated: NestJS 12 (tracker exists), Zod 4, TypeScript 6, jscpd 5.

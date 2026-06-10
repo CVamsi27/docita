@@ -113,3 +113,34 @@ Full detail with phases and file-level scaffolding: [india-compliance-and-abdm-r
 ## 6. Verification record
 
 After all §2 changes: `pnpm lint` ✅ · `pnpm turbo check-types --continue` ✅ · `pnpm verify:standard` ✅ · `pnpm test` ✅ · `pnpm knip` ✅ · `pnpm audit --prod` 0 vulnerabilities ✅ · targeted suites (whatsapp ×25, data-access ×7, prescriptions ×1) ✅.
+
+---
+
+## 7. Round 2 — deeper pass (same day, hot-path code review)
+
+Round 1 was gate-level + grep-level. Round 2 read hot-path implementations (booking, payments, websockets, worker bootstrap, portal, compliance services) and the apps round 1 skipped (worker, internal, landing). Backlog items 1, 3 (rights endpoints), and 5 from §5 were also executed on this branch (commits `e0d736c`, `2258efe`, `cb3a503`), and round 2 closed the gaps below.
+
+### 7.1 Verified healthy (no action)
+
+| Area | Evidence |
+|---|---|
+| Double-booking | DB exclusion constraint `Appointment_no_active_overlap`, mapped to a friendly conflict error (`prisma-appointment-write.repository.ts:19`) |
+| Razorpay webhooks | Signature verified against raw body; 30-min dedupe window (`process-webhook.use-case.ts:46`) |
+| WebSockets | `BaseWebSocketGateway`: JWT verify on handshake, per-client rate limits, cleanup on disconnect |
+| API bootstrap | helmet + CSP, cookieParser, 1 MB body limit, raw-body saver for webhook HMAC (`main.ts`) |
+| Worker | Thin entrypoint reusing API config services with env validation + graceful shutdown |
+| React Query | `inferStaleTime` by key prefix (`packages/data-access/src/core/stale-time.ts`) |
+| Consent versioning | Already stored — `Consent.templateVersion` from `DPDP_NOTICE_VERSION` (round-1 doc understated this) |
+| DSR queue | Full model + clinic service (+30-day default SLA) + staff UI (round-1 doc understated this) |
+| apps/internal | 0 `as any` / `@ts-ignore` / `console.*` |
+| apps/landing | All fetch hits legitimate (Astro API proxy, build-time lib, contact form) |
+
+### 7.2 Functional gaps found and fixed
+
+1. **Portal data-rights requests were a stub.** `POST /portal/profile/delete-request` promised "processed within 30 days" but created no record. Fixed: it now creates a `DataSubjectRequest` (channel `PORTAL`, +30-day SLA) in the clinic's existing compliance queue, and a new `POST /portal/profile/export-request` covers DPDP portability. Specs cover both.
+2. **The Schedule X telemedicine block could never fire.** Nothing set `isTeleconsultation`. Fixed: `PrescriptionsCommandService.create` resolves the modality from `Appointment.type` (`TELEHEALTH` → blocked controlled substances with `CONTROLLED_SUBSTANCE_TELEMEDICINE_BLOCKED`; explicit flag still wins). Specs cover TELEHEALTH-blocked / in-person-allowed / ordinary-meds-allowed / explicit-flag-wins.
+3. **Overdue DSRs looked identical to fresh ones.** The compliance card now sorts overdue requests first and flags them with a destructive badge (`isDsrOverdue` / `sortDsrOverdueFirst`, unit-tested).
+
+### 7.3 Round-2 verification record
+
+Targeted suites (prescriptions-command ×4 + portal-command ×2 + compliance helpers ×6 + prior suites) ✅ · `pnpm --filter @docita/api run check-types` ✅ · `pnpm --filter @docita/app run check-types` ✅ · `pnpm verify:standard` ✅ (boundary checks green — portal writes its own adapter, no cross-domain imports) · fallow ✅ · jscpd ✅.

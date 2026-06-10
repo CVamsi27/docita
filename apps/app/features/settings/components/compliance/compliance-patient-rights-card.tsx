@@ -14,11 +14,16 @@ import { Inbox } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import type {
   AppComplianceSummary,
-// jscpd:ignore-end
+  // jscpd:ignore-end
   AppDataSubjectRequest,
   DataSubjectRequestStatus,
 } from "@workspace/types";
-import { toDisplayText, isOpenRequest } from "./compliance-settings-constants";
+import {
+  toDisplayText,
+  isOpenRequest,
+  isDsrOverdue,
+  sortDsrOverdueFirst,
+} from "./compliance-settings-constants";
 
 export function PatientRightsCard({
   compliance,
@@ -75,63 +80,70 @@ export function PatientRightsCard({
         </div>
         {dataSubjectRequests.length > 0 ? (
           <div className="sm:col-span-3 space-y-2 pt-2">
-            {dataSubjectRequests.slice(0, 5).map((request) => (
-              <div
-                key={request.id}
-                className="flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div>
-                  <p className="text-sm font-medium">
-                    {toDisplayText(request.requestType)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Due
-                    <span className="ml-1">
-                      {request.dueAt
-                        ? formatDate(request.dueAt, "dd MMMM yyyy")
-                        : "not set"}
-                    </span>
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline">
-                    {toDisplayText(request.status)}
-                  </Badge>
-                  {isOpenRequest(request.status) ? (
-                    <>
-                      {request.status === "OPEN" ? (
+            {sortDsrOverdueFirst(dataSubjectRequests, new Date())
+              .slice(0, 5)
+              .map((request) => (
+                <div
+                  key={request.id}
+                  className="flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div>
+                    <p className="text-sm font-medium">
+                      {toDisplayText(request.requestType)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Due
+                      <span className="ml-1">
+                        {request.dueAt
+                          ? formatDate(request.dueAt, "dd MMMM yyyy")
+                          : "not set"}
+                      </span>
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {isDsrOverdue(request, new Date()) ? (
+                      <Badge variant="destructive">Overdue</Badge>
+                    ) : null}
+                    <Badge variant="outline">
+                      {toDisplayText(request.status)}
+                    </Badge>
+                    {isOpenRequest(request.status) ? (
+                      <>
+                        {request.status === "OPEN" ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              onUpdateStatus(request.id, "IN_REVIEW")
+                            }
+                            disabled={updateRequestMutation.isPending}
+                          >
+                            Review
+                          </Button>
+                        ) : null}
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() =>
-                            onUpdateStatus(request.id, "IN_REVIEW")
+                            onUpdateStatus(request.id, "FULFILLED")
                           }
                           disabled={updateRequestMutation.isPending}
                         >
-                          Review
+                          Fulfill
                         </Button>
-                      ) : null}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => onUpdateStatus(request.id, "FULFILLED")}
-                        disabled={updateRequestMutation.isPending}
-                      >
-                        Fulfill
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onUpdateStatus(request.id, "REJECTED")}
-                        disabled={updateRequestMutation.isPending}
-                      >
-                        Reject
-                      </Button>
-                    </>
-                  ) : null}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => onUpdateStatus(request.id, "REJECTED")}
+                          disabled={updateRequestMutation.isPending}
+                        >
+                          Reject
+                        </Button>
+                      </>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         ) : null}
       </CardContent>

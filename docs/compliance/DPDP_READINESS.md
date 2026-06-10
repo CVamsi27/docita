@@ -30,8 +30,9 @@ independent audit, algorithmic-fairness review).
 | Right to erasure | ✅ | `POST /consent/patients/:id/delete` → anonymization, blocked while statutory obligations remain |
 | Retention / archival | ✅ | `DataRetentionScheduler` (audit 90d, WhatsApp 180d, appointments 2y, soft-deletes 30d) |
 | Breach notification (72h) | ✅ doc | [BREACH_NOTIFICATION_RUNBOOK.md](../operations/BREACH_NOTIFICATION_RUNBOOK.md) |
-| Grievance redressal (90d SLA) | ⚠️ partial | `contact` module exists; SLA tracking not yet instrumented — see §Grievance |
-| Patient-portal self-service rights | ⚠️ backlog | export/erasure are staff-initiated today; a portal-initiated request flow is the next step |
+| Grievance / DSR queue (90d SLA) | ✅ | `DataSubjectRequest` model + `ClinicDataSubjectRequestService` (dueAt defaults to **+30 days**, stricter than the 90-day rule) + staff queue in Settings → Compliance with overdue badges/ordering |
+| Patient-portal self-service rights | ✅ | `POST /portal/profile/delete-request` and `POST /portal/profile/export-request` create `DataSubjectRequest` rows (channel `PORTAL`) that land in the staff compliance queue |
+| Consent notice versioning | ✅ | `Consent.templateVersion` persisted from `DPDP_NOTICE_VERSION` (`consent-compliance.service.ts`) |
 | DPO designation + DPIA cadence | ☐ org | operational/legal task, outside the codebase |
 | Consent Manager integration | ☐ backlog | required only if/when we onboard a registered Consent Manager (≥ 13 Nov 2026) |
 
@@ -46,16 +47,17 @@ while there are unpaid invoices or future appointments
 (`checkPendingObligations`). No code change is needed for the 3-year floor — the
 record is never destroyed, only de-identified.
 
-## Grievance (open item)
+## Grievance / DSR workflow (in place)
 
-Patient/user complaints currently arrive via the `contact` module. To fully meet
-the 90-day SLA we need: (1) a complaint record with a due-date, (2) a staff queue
-surfacing approaching deadlines, (3) closure audit. Tracked in the India roadmap
-([india-compliance-and-abdm-roadmap.md](../UpcomingPlans/india-compliance-and-abdm-roadmap.md) §2).
+Requests reach the queue from two channels: staff log them in Settings →
+Compliance ("Log request"), and patients raise them directly from the portal
+(`delete-request` / `export-request`, channel `PORTAL`). Every row carries a
+due date (default +30 days), a status workflow (OPEN → IN_REVIEW →
+FULFILLED/REJECTED), and audit logging; the staff card sorts overdue requests
+first and flags them with a destructive badge (`isDsrOverdue` in
+`compliance-settings-constants.ts`).
 
 ## Backlog to close before 13 May 2027
 
-1. Patient-portal-initiated access/erasure requests (today they are staff-initiated).
-2. Grievance SLA instrumentation (above).
-3. Consent artefact versioning on the consent record (for re-consent on notice changes).
-4. DPIA + DPO designation (organizational).
+1. Overdue-DSR alerting beyond the UI badge (email/WhatsApp digest — channel choice is a product call).
+2. DPIA + DPO designation (organizational).
