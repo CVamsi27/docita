@@ -6,6 +6,9 @@ import {
 } from '@/domains/patient-portal/core/repositories/patient-portal.repository.interface';
 import { PatientPortalContextService } from './patient-portal-context.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { ConsentType } from '@workspace/db';
+import { DPDP_NOTICE_VERSION } from '@workspace/types';
+import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
 
 @Injectable()
 export class PatientPortalCommandService {
@@ -16,6 +19,7 @@ export class PatientPortalCommandService {
     private readonly repository: IPatientPortalRepository,
     private readonly contextService: PatientPortalContextService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
+    private readonly dpdpService: DPDPComplianceService,
   ) {}
 
   async updateProfile(
@@ -69,10 +73,27 @@ export class PatientPortalCommandService {
     }
 
     const updated = await this.repository.updatePatient(patientId, updateData);
-    const dataStorageConsent = await this.repository.hasActiveTreatmentConsent(
-      patientId,
-      clinicId,
-    );
+
+    // Persist the patient's DPDP data-storage decision as a DPDP_NOTICE
+    // consent (previously this flag was accepted by the API and dropped).
+    let dataStorageConsent: boolean;
+    if (data.dataStorageConsent !== undefined) {
+      const result = await this.dpdpService.setDpdpNoticeConsent({
+        patientId,
+        clinicId,
+        granted: data.dataStorageConsent,
+        noticeVersion: DPDP_NOTICE_VERSION,
+        actorUserId: userId,
+        givenByName: 'Patient (portal)',
+      });
+      dataStorageConsent = result.active;
+    } else {
+      dataStorageConsent = await this.dpdpService.hasValidConsent(
+        patientId,
+        clinicId,
+        ConsentType.DPDP_NOTICE,
+      );
+    }
 
     return {
       whatsappConsent: updated.whatsappConsent,

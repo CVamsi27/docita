@@ -46,10 +46,6 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
     return this.profile.getPatientProfile(patientId);
   }
 
-  hasActiveTreatmentConsent(patientId: string, clinicId: string) {
-    return this.profile.hasActiveTreatmentConsent(patientId, clinicId);
-  }
-
   updatePatient(
     patientId: string,
     data: Record<string, unknown>,

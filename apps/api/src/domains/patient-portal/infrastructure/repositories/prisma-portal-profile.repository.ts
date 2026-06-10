@@ -95,23 +95,6 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
     );
   }
 
-  async hasActiveTreatmentConsent(
-    patientId: string,
-    clinicId: string,
-  ): Promise<boolean> {
-    const count = await this.withUnrestricted(() =>
-      this.prisma.consent.count({
-        where: {
-          patientId,
-          clinicId,
-          status: 'ACTIVE',
-          consentType: 'TREATMENT',
-        },
-      }),
-    );
-    return count > 0;
-  }
-
   async getPatientProfile(patientId: string): Promise<PatientProfile | null> {
     return this.withUnrestricted(() =>
       this.prisma.patient.findFirst({

@@ -144,3 +144,23 @@ Round 1 was gate-level + grep-level. Round 2 read hot-path implementations (book
 ### 7.3 Round-2 verification record
 
 Targeted suites (prescriptions-command ×4 + portal-command ×2 + compliance helpers ×6 + prior suites) ✅ · `pnpm --filter @docita/api run check-types` ✅ · `pnpm --filter @docita/app run check-types` ✅ · `pnpm verify:standard` ✅ (boundary checks green — portal writes its own adapter, no cross-domain imports) · fallow ✅ · jscpd ✅.
+
+---
+
+## 8. Round 3 — third functional-stub sweep
+
+Same lens as round 2 (params accepted but ignored), applied to consent flows.
+
+### 8.1 Gap found and fixed: portal data-storage consent was dropped
+
+`POST /patient-portal/consent` accepted `dataStorageConsent` but the service only persisted `whatsappConsent` — the data-storage flag was silently discarded, and the value read back came from `hasActiveTreatmentConsent` (the **TREATMENT** consent type, a different concept). So a patient toggling "store my data" got a success toast while nothing changed, and the displayed state reflected the wrong consent.
+
+Fixed by mapping portal data-storage consent to `ConsentType.DPDP_NOTICE` — the same consent the patient-create path already records:
+- New `ConsentComplianceService.setDpdpNoticeConsent` (idempotent record-on-grant / withdraw-on-revoke), exposed via the `DPDPComplianceService` facade.
+- `PatientPortalCommandService.updateConsent` now persists the decision through it; `PatientPortalQueryService.getConsent` reads `hasValidConsent(DPDP_NOTICE)` and drives `isFirstLogin` from it (the consent banner was previously dead — `isFirstLogin` was hardcoded `false`, so it never opened).
+- Removed the now-unused `hasActiveTreatmentConsent` portal repository method (interface + Prisma impl + facade) to keep fallow at 100.
+- Specs: service-level `setDpdpNoticeConsent` (record-new / skip-duplicate / withdraw) + portal-level `updateConsent` (grant / revoke / whatsapp-only-reads-existing).
+
+### 8.2 Round-3 verification record
+
+API check-types ✅ · portal + compliance jest (22 tests) ✅ · `check:cross-domain-application-imports` ✅ (portal imports the shared `ComplianceModule`, not another domain) · fallow 100 ✅ · eslint touched files ✅.

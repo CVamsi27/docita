@@ -5,6 +5,8 @@ import {
 } from '@/domains/patient-portal/core/repositories/patient-portal.repository.interface';
 import { PatientPortalContextService } from './patient-portal-context.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { ConsentType } from '@workspace/db';
+import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
 
 function sumOutstandingInvoiceTotals(invoices: unknown[]): number {
   let sum = 0;
@@ -26,6 +28,7 @@ export class PatientPortalQueryService {
     private readonly repository: IPatientPortalRepository,
     private readonly contextService: PatientPortalContextService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
+    private readonly dpdpService: DPDPComplianceService,
   ) {}
 
   async getDashboard(userId: string) {
@@ -184,15 +187,18 @@ export class PatientPortalQueryService {
     const { patientId, clinicId } =
       await this.contextService.getPatientContext(userId);
     const patient = await this.repository.getPatientProfile(patientId);
-    const dataStorageConsent = await this.repository.hasActiveTreatmentConsent(
+    const dataStorageConsent = await this.dpdpService.hasValidConsent(
       patientId,
       clinicId,
+      ConsentType.DPDP_NOTICE,
     );
 
     return {
       whatsappConsent: patient?.whatsappConsent ?? false,
       whatsappConsentAt: patient?.whatsappConsentAt ?? null,
-      isFirstLogin: false,
+      // Surface the first-login consent banner until the patient has an active
+      // DPDP data-processing consent on record.
+      isFirstLogin: !dataStorageConsent,
       dataStorageConsent,
     };
   }

@@ -33,6 +33,7 @@ independent audit, algorithmic-fairness review).
 | Grievance / DSR queue (90d SLA) | ✅ | `DataSubjectRequest` model + `ClinicDataSubjectRequestService` (dueAt defaults to **+30 days**, stricter than the 90-day rule) + staff queue in Settings → Compliance with overdue badges/ordering |
 | Patient-portal self-service rights | ✅ | `POST /portal/profile/delete-request` and `POST /portal/profile/export-request` create `DataSubjectRequest` rows (channel `PORTAL`) that land in the staff compliance queue |
 | Consent notice versioning | ✅ | `Consent.templateVersion` persisted from `DPDP_NOTICE_VERSION` (`consent-compliance.service.ts`) |
+| Patient-portal consent toggle | ✅ | `POST /patient-portal/consent` persists data-storage consent as a `DPDP_NOTICE` consent (record/withdraw via `setDpdpNoticeConsent`); first-login banner driven by actual consent state |
 | DPO designation + DPIA cadence | ☐ org | operational/legal task, outside the codebase |
 | Consent Manager integration | ☐ backlog | required only if/when we onboard a registered Consent Manager (≥ 13 Nov 2026) |
 

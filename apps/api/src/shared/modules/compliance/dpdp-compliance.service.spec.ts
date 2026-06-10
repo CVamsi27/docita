@@ -18,10 +18,10 @@ describe('DPDPComplianceService', () => {
 
   const mockPrismaService = {
     consent: {
-      create: jest.fn(),
-      update: jest.fn(),
-      findFirst: jest.fn(),
-      findMany: jest.fn(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     patient: {
       findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -51,6 +51,7 @@ describe('DPDPComplianceService', () => {
   };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DpdpAuditEmitter,
@@ -130,6 +131,59 @@ describe('DPDPComplianceService', () => {
       expect(mockAnonymizationFactory.anonymizePatient).toHaveBeenCalledWith(
         'pat_1',
       );
+    });
+  });
+
+  describe('setDpdpNoticeConsent', () => {
+    it('records a new DPDP notice consent when none is active', async () => {
+      mockPrismaService.consent.findFirst.mockResolvedValue(null);
+      mockPrismaService.consent.create.mockResolvedValue({ id: 'consent_1' });
+
+      const result = await service.setDpdpNoticeConsent({
+        patientId: 'pat_1',
+        clinicId: 'clinic_1',
+        granted: true,
+        noticeVersion: 'v1',
+        actorUserId: 'user_1',
+      });
+
+      expect(mockPrismaService.consent.create).toHaveBeenCalled();
+      expect(result).toEqual({ active: true });
+    });
+
+    it('does not duplicate consent when one is already active', async () => {
+      mockPrismaService.consent.findFirst.mockResolvedValue({ id: 'consent_1' });
+
+      const result = await service.setDpdpNoticeConsent({
+        patientId: 'pat_1',
+        clinicId: 'clinic_1',
+        granted: true,
+        noticeVersion: 'v1',
+      });
+
+      expect(mockPrismaService.consent.create).not.toHaveBeenCalled();
+      expect(result).toEqual({ active: true });
+    });
+
+    it('withdraws the active consent when revoked', async () => {
+      mockPrismaService.consent.findFirst.mockResolvedValue({ id: 'consent_1' });
+      mockPrismaService.consent.update.mockResolvedValue({
+        id: 'consent_1',
+        clinicId: 'clinic_1',
+        consentType: 'DPDP_NOTICE',
+      });
+
+      const result = await service.setDpdpNoticeConsent({
+        patientId: 'pat_1',
+        clinicId: 'clinic_1',
+        granted: false,
+        noticeVersion: 'v1',
+      });
+
+      expect(mockPrismaService.consent.update).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 'consent_1' } }),
+      );
+      expect(result).toEqual({ active: false });
     });
   });
 });
