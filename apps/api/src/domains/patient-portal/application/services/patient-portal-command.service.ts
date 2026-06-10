@@ -1,5 +1,10 @@
 // jscpd:ignore-start
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  Inject,
+  BadRequestException,
+} from '@nestjs/common';
 import {
   IPatientPortalRepository,
   PATIENT_PORTAL_REPOSITORY_TOKEN,
@@ -107,6 +112,14 @@ export class PatientPortalCommandService {
     userId: string,
     data: { reason: string; confirmDeletion?: boolean },
   ) {
+    // Destructive intent — require explicit confirmation server-side, not just
+    // in the UI (a direct API call must not skip it).
+    if (data.confirmDeletion !== true) {
+      throw new BadRequestException(
+        'Data deletion must be explicitly confirmed.',
+      );
+    }
+
     const { patientId, clinicId } =
       await this.contextService.getPatientContext(userId);
 

@@ -164,3 +164,11 @@ Fixed by mapping portal data-storage consent to `ConsentType.DPDP_NOTICE` — th
 ### 8.2 Round-3 verification record
 
 API check-types ✅ · portal + compliance jest (22 tests) ✅ · `check:cross-domain-application-imports` ✅ (portal imports the shared `ComplianceModule`, not another domain) · fallow 100 ✅ · eslint touched files ✅.
+
+### 8.3 Input-enforcement hardening (R3-3)
+
+Two defensive fixes for accepted-but-unenforced inputs found in the round-3 sweep:
+- **`confirmDeletion` is now enforced server-side.** `requestDataDeletion` rejects with 400 unless `confirmDeletion === true` — the UI checkbox was the only gate, so a direct API call could file a deletion request without confirmation.
+- **`SmsChannel.isAvailable()` now reflects real configuration** (`apiKey` + `senderId`) instead of returning true for an empty config, so the notification orchestrator cannot pick the (unimplemented) SMS channel and report a non-existent send as success.
+
+Investigated and **rejected** in the same sweep (recorded so they aren't re-flagged): doctor-update `role` is consumed for the non-authz `DoctorClinic.role` (RBAC uses `User.role` from the JWT, never written here) — not a dropped param; `getOptimalPoolConfig(_nodeCount)` is an unwired design-intent param, not a bug.

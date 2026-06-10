@@ -63,6 +63,7 @@ describe('PatientPortalCommandService — DPDP data-subject requests', () => {
   it('records a DELETION request in the clinic compliance queue', async () => {
     const result = await service.requestDataDeletion('user-1', {
       reason: 'I want my records removed',
+      confirmDeletion: true,
     });
 
     expect(createDataSubjectRequestMock).toHaveBeenCalledWith({
@@ -74,6 +75,13 @@ describe('PatientPortalCommandService — DPDP data-subject requests', () => {
     });
     expect(result.requestId).toBe('dsr-1');
     expect(result.message).toContain('30 days');
+  });
+
+  it('rejects a deletion request that is not explicitly confirmed', async () => {
+    await expect(
+      service.requestDataDeletion('user-1', { reason: 'remove me' }),
+    ).rejects.toThrow(/confirmed/i);
+    expect(createDataSubjectRequestMock).not.toHaveBeenCalled();
   });
 
   it('records an EXPORT request with the same 30-day SLA', async () => {
