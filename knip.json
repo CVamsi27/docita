@@ -128,9 +128,6 @@
         "open-next.config.ts"
       ],
       "ignoreDependencies": [
-        "@fontsource/fraunces",
-        "@fontsource/inter",
-        "@fontsource/jetbrains-mono",
         "@tailwindcss/postcss",
         "@types/react-signature-canvas",
         "globals"

@@ -1,7 +1,6 @@
 [
   "ai-assistant",
   "analytics",
-  "desk",
   "dev-tools",
   "excel",
   "feedback",
@@ -11,8 +10,5 @@
   "lab-portal",
   "legal",
   "medical-documents",
-  "mobile-upload",
-  "ocr",
-  "prescriptions",
-  "public-booking"
+  "mobile-upload"
 ]

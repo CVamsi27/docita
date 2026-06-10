@@ -1,12 +1,10 @@
-import { Controller, Get, Param, Query, Req } from '@nestjs/common';
+import { Controller, Get, Param, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { ZodSerializerDto } from 'nestjs-zod';
 import type { ClinicWhatsappSentMessage } from '@workspace/types';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
 import {
   ClinicWhatsappSentMessageListResponseDto,
-  WhatsappLogListResponseDto,
-  WhatsappLogsQueryDto,
   WhatsappStatsResponseDto,
 } from '@/domains/whatsapp/presentation/dto/whatsapp-response.dto';
 import { LegacyWhatsappClinicAccess } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.access';
@@ -18,17 +16,6 @@ const PATIENT_SENT_MESSAGES_LIMIT = 50;
 @LegacyWhatsappClinicAccess()
 export class LegacyWhatsappLogsController {
   constructor(private readonly whatsappService: WhatsappService) {}
-
-  @Get('logs')
-  @ZodSerializerDto(WhatsappLogListResponseDto)
-  async getLogs(@Req() req: Request, @Query() query?: WhatsappLogsQueryDto) {
-    const clinicId = requireClinicId(req);
-    return this.whatsappService.getLogs(clinicId, {
-      limit: query?.limit,
-      patientId: query?.patientId,
-      type: query?.type,
-    });
-  }
 
   /**
    * Outbound-only sent-message history for a single patient. One-way send log

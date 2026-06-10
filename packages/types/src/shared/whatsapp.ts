@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { whatsappMessageTypeSchema } from "./users";
 
 export const whatsappTemplateParameterSchema = z.object({
   type: z.enum(["text", "currency", "date_time", "image", "document", "video"]),
@@ -42,18 +41,6 @@ export const whatsappMessageResponseSchema = z.object({
   messaging_product: z.string(),
   contacts: z.array(z.object({ input: z.string(), wa_id: z.string() })),
   messages: z.array(z.object({ id: z.string() })),
-});
-
-export const whatsappLogSchema = z.object({
-  id: z.string(),
-  clinicId: z.string(),
-  patientId: z.string().optional(),
-  type: whatsappMessageTypeSchema,
-  status: z.string(),
-  direction: z.enum(["inbound", "outbound"]),
-  messageId: z.string().optional(),
-  content: z.unknown().optional(),
-  createdAt: z.date().or(z.string()),
 });
 
 export const supportWhatsAppMessageDirectionSchema = z.enum([

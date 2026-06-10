@@ -8,8 +8,6 @@ import {
   successResponseSchema,
   updateWhatsappTemplateRequestSchema,
   whatsappDefaultTemplatesResponseSchema,
-  whatsappLogListResponseSchema,
-  whatsappLogsQuerySchema,
   whatsappMessageProviderResponseSchema,
   whatsappStatsDetailedResponseSchema,
   whatsappTemplateListResponseSchema,
@@ -42,9 +40,6 @@ export class WhatsappDefaultTemplatesResponseDto extends createZodDto(
 export class WhatsappMessageResponseDto extends createZodDto(
   whatsappMessageProviderResponseSchema,
 ) {}
-export class WhatsappLogListResponseDto extends createZodDto(
-  whatsappLogListResponseSchema,
-) {}
 export class WhatsappStatsResponseDto extends createZodDto(
   whatsappStatsDetailedResponseSchema,
 ) {}
@@ -55,10 +50,6 @@ export class WhatsappUnreadCountResponseDto extends createZodDto(
 
 export class WhatsappUnreadNotificationsResponseDto extends createZodDto(
   whatsappUnreadNotificationsResponseSchema,
-) {}
-
-export class WhatsappLogsQueryDto extends createZodDto(
-  whatsappLogsQuerySchema,
 ) {}
 
 export class WhatsappUnreadNotificationsQueryDto extends createZodDto(
