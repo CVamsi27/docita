@@ -126,7 +126,12 @@ export class PrescriptionsCommandService {
     }
 
     const controlledSubstances = validateControlledSubstances(data.medications, {
-      isTeleconsultation: data.isTeleconsultation ?? false,
+      isTeleconsultation:
+        data.isTeleconsultation ??
+        (await this.isTeleconsultationAppointment(
+          data.appointmentId,
+          data.clinicId,
+        )),
     });
     if (controlledSubstances.isBlocked) {
       throw new BadRequestException({
@@ -207,6 +212,23 @@ export class PrescriptionsCommandService {
     }
 
     return prescription;
+  }
+
+  /**
+   * NMC Telemedicine Practice Guidelines: controlled substances cannot be
+   * prescribed via teleconsultation. The appointment's modality is the source
+   * of truth when the caller doesn't state one explicitly.
+   */
+  private async isTeleconsultationAppointment(
+    appointmentId: string,
+    clinicId?: string,
+  ): Promise<boolean> {
+    if (!appointmentId) return false;
+    const type = await this.repository.findAppointmentType(
+      appointmentId,
+      clinicId,
+    );
+    return type === 'TELEHEALTH';
   }
 
   async generatePDF(

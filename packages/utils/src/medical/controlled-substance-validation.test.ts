@@ -49,7 +49,7 @@ describe("checkControlledSubstances", () => {
       { name: "Morphine" },
     ]);
     expect(result.matches).toHaveLength(1);
-    expect(result.matches[0].matchedTerm).toBe("morphine");
+    expect(result.matches[0]?.matchedTerm).toBe("morphine");
   });
 });
 
