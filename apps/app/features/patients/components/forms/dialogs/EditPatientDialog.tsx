@@ -52,6 +52,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
             ? String(patient.dateOfBirth).split("T")[0]
             : null,
           address: typeof patient.address === "string" ? patient.address : null,
+          abhaAddress: patient.abhaAddress ?? null,
           mrn: patient.mrn ?? null,
           metadata: null,
           clinicId: undefined,
@@ -96,6 +97,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
           phoneNumber: values.phoneNumber?.trim() || undefined,
           email: values.email?.trim() || undefined,
           dateOfBirth: values.dateOfBirth || undefined,
+          abhaAddress: values.abhaAddress?.trim() || undefined,
         }),
       );
       toast.success("Patient updated successfully");

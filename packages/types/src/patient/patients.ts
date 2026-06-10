@@ -106,6 +106,8 @@ export const patientSchema = z.object({
   insurancePolicyNumber: z.string().max(100).optional(),
   insuranceGroupNumber: z.string().max(100).optional(),
 
+  abhaAddress: z.string().max(64).nullable().optional(),
+
   emergencyContactName: z.string().max(100).optional(),
   emergencyContactPhone: z.string().max(20).optional(),
   emergencyContactRelation: z.string().max(50).optional(),

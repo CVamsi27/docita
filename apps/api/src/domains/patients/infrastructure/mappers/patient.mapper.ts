@@ -32,6 +32,7 @@ export class PatientMapper {
       insuranceProvider: parsed.insuranceProvider || undefined,
       insurancePolicyNumber: parsed.insurancePolicyNumber || undefined,
       insuranceGroupNumber: parsed.insuranceGroupNumber || undefined,
+      abhaAddress: parsed.abhaAddress || undefined,
       metadata,
       createdAt: parsed.createdAt,
       updatedAt: parsed.updatedAt,
@@ -55,6 +56,7 @@ export class PatientMapper {
       insuranceProvider: plain.insuranceProvider,
       insurancePolicyNumber: plain.insurancePolicyNumber,
       insuranceGroupNumber: plain.insuranceGroupNumber,
+      abhaAddress: plain.abhaAddress,
       customData: plain.metadata,
       version: plain.version,
     });
@@ -75,6 +77,7 @@ export class PatientMapper {
       insuranceProvider: write.insuranceProvider ?? undefined,
       insurancePolicyNumber: write.insurancePolicyNumber ?? undefined,
       insuranceGroupNumber: write.insuranceGroupNumber ?? undefined,
+      abhaAddress: write.abhaAddress ?? undefined,
       customData:
         write.customData === undefined || write.customData === null
           ? undefined

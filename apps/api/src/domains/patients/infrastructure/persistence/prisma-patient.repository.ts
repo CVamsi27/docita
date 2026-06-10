@@ -29,6 +29,7 @@ const PATIENT_PERSISTENCE_SELECT = {
   insuranceProvider: true,
   insurancePolicyNumber: true,
   insuranceGroupNumber: true,
+  abhaAddress: true,
   customData: true,
   createdAt: true,
   updatedAt: true,

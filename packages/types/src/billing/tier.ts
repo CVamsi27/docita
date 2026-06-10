@@ -128,6 +128,7 @@ export enum Feature {
   MULTI_DEVICE = "MULTI_DEVICE",
   ROLE_MANAGEMENT = "ROLE_MANAGEMENT",
   CONSENT_MANAGEMENT = "CONSENT_MANAGEMENT",
+  ABDM_INTEGRATION = "ABDM_INTEGRATION",
   DOCTOR_SIGNATURE = "DOCTOR_SIGNATURE",
   LEAVE_MANAGEMENT = "LEAVE_MANAGEMENT",
   WHATSAPP_MESSAGING = "WHATSAPP_MESSAGING",
@@ -186,6 +187,9 @@ export const PLANNED_FEATURES: ReadonlySet<Feature> = new Set([
   Feature.PREDICTIVE_NO_SHOW,
   Feature.PATIENT_SEGMENTATION,
   Feature.ANOMALY_DETECTION,
+  // ABHA capture is live; full ABDM gateway verification (M1 OTP) + M2/M3
+  // FHIR exchange are planned (require ABDM sandbox credentials).
+  Feature.ABDM_INTEGRATION,
 ]);
 
 /**
@@ -266,6 +270,7 @@ export const FEATURE_TIER_MAP: Record<Feature, Tier> = {
   [Feature.SMART_TASK_ENGINE]: Tier.ESSENTIAL,
   [Feature.PREDICTIVE_NO_SHOW]: Tier.ESSENTIAL,
   [Feature.ANOMALY_DETECTION]: Tier.ESSENTIAL,
+  [Feature.ABDM_INTEGRATION]: Tier.ESSENTIAL,
 
   [Feature.BROADCAST_CAMPAIGNS]: Tier.PROFESSIONAL,
   [Feature.PATIENT_SEGMENTATION]: Tier.PROFESSIONAL,

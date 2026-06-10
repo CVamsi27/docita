@@ -13,15 +13,19 @@
 - 840M+ ABHA IDs exist; Scan & Share OPD QR is live in large hospitals and increasingly expected.
 
 ### Current state
-`Patient.abhaAddress` column + index ([schema.prisma:341,373](../../packages/db/prisma/schema.prisma)) — capture only. No HFR/HPR, no milestone flows, no FHIR, no consent manager.
+`Patient.abhaAddress` column + index ([schema.prisma:341,373](../../packages/db/prisma/schema.prisma)). **M1 capture foundation now wired** (2026-06-10): see "Delivered" below. Still missing: HFR/HPR registration, gateway-verified ABHA create/link, milestone flows, FHIR, consent manager.
 
-### Phase M1 — ABHA verify/create at registration (~4–6 weeks)
+### Delivered — M1 capture foundation (2026-06-10)
+- `Feature.ABDM_INTEGRATION` added to [tier.ts](../../packages/types/src/billing/tier.ts) `Feature` enum + `FEATURE_TIER_MAP` (`Tier.ESSENTIAL`) + `PLANNED_FEATURES`; `FEATURE_DISPLAY` (PLANNED/coming-soon) and `FEATURE_ICONS` entries.
+- `abhaAddressSchema` + `abhaNumberSchema` validators in [packages/types/src/clinical/abdm.ts](../../packages/types/src/clinical/abdm.ts) (unit-tested), exported from the clinical barrel.
+- `abhaAddress` threaded end-to-end: patient contracts (create/update/response/domain/persistence), API `Patient` entity + mapper + repository select, and the Add/Edit patient form UI (ungated optional demographic field, like insurance).
+
+### Phase M1 (remaining) — gateway verify/create at registration (~4–6 weeks)
 - New domain `apps/api/src/domains/abdm/{application,core,infrastructure,presentation}` following the standard DDD layout (reference: `apps/api/src/domains/appointments`).
-- Additive models in `packages/db/prisma/schema/`: `AbhaLink` (patientId, abhaNumber, abhaAddress, verifiedAt, method), `AbdmConsentArtefact`, `CareContext`.
-- `Feature.ABDM_INTEGRATION` in [tier.ts](../../packages/types/src/billing/tier.ts) + `FEATURE_TIER_MAP` (suggest `Tier.ESSENTIAL` so the incentive argument works for small clinics) + access-matrix rows.
-- Zod contracts in `packages/types/src/contracts/abdm.ts`; hooks in `packages/data-access/src/hooks/use-abdm.ts`.
-- UI: ABHA field + verify action in the patient registration form and patient-detail header (`apps/app/features/patients`); clinic HFR/HPR ids in Settings (`apps/app/features/settings`).
-- ABDM sandbox first; encrypt ABDM session keys via the existing `EncryptionService`; HMAC-verify gateway callbacks like the existing webhook controllers.
+- Additive models in `packages/db/prisma/schema/`: `AbhaLink` (patientId, abhaNumber, verifiedAt, method), `AbdmConsentArtefact`, `CareContext`. (`abhaAddress` already lives on `Patient`.)
+- Zod request/response contracts in `packages/types/src/contracts/abdm.ts`; hooks in `packages/data-access/src/hooks/use-abdm.ts`.
+- UI: a **Verify** action next to the existing ABHA field (capture field is already shipped) + clinic HFR/HPR ids in Settings (`apps/app/features/settings`).
+- ABDM sandbox first; encrypt ABDM session keys via the existing `EncryptionService`; HMAC-verify gateway callbacks like the existing webhook controllers. Requires ABDM sandbox credentials.
 
 ### Phase M2 — link records, FHIR R4 (~6–10 weeks)
 - FHIR R4 bundle mappers (OPConsultRecord, Prescription, DiagnosticReport) from the existing `prescriptions` / `consultation` / `clinical` domains. There is already an `fhir.ts` stub in `packages/types/src/shared/` — extend it.

@@ -106,6 +106,11 @@ const PATIENT_CONTACT_FIELDS: PatientTextFieldConfig[] = [
     placeholder: "Email",
     inputProps: { type: "email" },
   },
+  {
+    name: "abhaAddress",
+    label: "ABHA Address",
+    placeholder: "name@abdm",
+  },
 ];
 
 export function SharedPatientNameFields<T extends FieldValues>({

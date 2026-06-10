@@ -33,6 +33,7 @@ export function useAddPatientDialog({
       gender: "MALE",
       dateOfBirth: "",
       address: null,
+      abhaAddress: null,
       dpdpConsent: undefined,
     },
   });
@@ -74,6 +75,7 @@ export function useAddPatientDialog({
           phoneNumber: values.phoneNumber?.trim() || undefined,
           email: values.email?.trim() || undefined,
           dateOfBirth: values.dateOfBirth || undefined,
+          abhaAddress: values.abhaAddress?.trim() || undefined,
         }),
       );
       toast.success("Patient added successfully");

@@ -53,6 +53,7 @@ describe('PatientService domain safeguards', () => {
     insuranceProvider: undefined,
     insurancePolicyNumber: undefined,
     insuranceGroupNumber: undefined,
+    abhaAddress: undefined,
     metadata: undefined,
     ...overrides,
   });
@@ -71,6 +72,7 @@ describe('PatientService domain safeguards', () => {
     insuranceProvider: undefined,
     insurancePolicyNumber: undefined,
     insuranceGroupNumber: undefined,
+    abhaAddress: undefined,
     metadata: undefined,
     ...overrides,
   });

@@ -24,17 +24,17 @@ describe('DPDPComplianceService', () => {
       findMany: jest.fn(),
     },
     patient: {
-      findUnique: jest.fn(),
-      update: jest.fn(),
+      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     invoice: {
-      count: jest.fn(),
+      count: jest.fn<(...args: unknown[]) => Promise<number>>(),
     },
     appointment: {
-      count: jest.fn(),
+      count: jest.fn<(...args: unknown[]) => Promise<number>>(),
     },
     clinic: {
-      findUnique: jest.fn(),
+      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
   };
 
@@ -43,11 +43,11 @@ describe('DPDPComplianceService', () => {
   };
 
   const mockAnonymizationFactory = {
-    anonymizePatient: jest.fn(),
+    anonymizePatient: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   const mockDataExportFactory = {
-    exportPatientData: jest.fn(),
+    exportPatientData: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   beforeEach(async () => {

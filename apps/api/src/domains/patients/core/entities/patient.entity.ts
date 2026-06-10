@@ -15,6 +15,7 @@ export interface PatientProps {
   insuranceProvider?: string;
   insurancePolicyNumber?: string;
   insuranceGroupNumber?: string;
+  abhaAddress?: string;
   metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
@@ -35,6 +36,7 @@ type PatientProfileUpdate = Partial<
     | 'insuranceProvider'
     | 'insurancePolicyNumber'
     | 'insuranceGroupNumber'
+    | 'abhaAddress'
     | 'metadata'
   >
 >;
@@ -53,6 +55,7 @@ export class Patient {
   private insuranceProvider?: string;
   private insurancePolicyNumber?: string;
   private insuranceGroupNumber?: string;
+  private abhaAddress?: string;
   private metadata: Record<string, unknown>;
   readonly createdAt: Date;
   private updatedAt: Date;
@@ -73,6 +76,7 @@ export class Patient {
     this.insurancePolicyNumber = props.insurancePolicyNumber;
     // jscpd:ignore-start
     this.insuranceGroupNumber = props.insuranceGroupNumber;
+    this.abhaAddress = props.abhaAddress;
     this.metadata = props.metadata || {};
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
@@ -136,6 +140,7 @@ export class Patient {
       this.insurancePolicyNumber = data.insurancePolicyNumber;
     if (data.insuranceGroupNumber !== undefined)
       this.insuranceGroupNumber = data.insuranceGroupNumber;
+    if (data.abhaAddress !== undefined) this.abhaAddress = data.abhaAddress;
     if (data.metadata !== undefined) this.metadata = data.metadata;
 
     this.updatedAt = now;
@@ -157,6 +162,7 @@ export class Patient {
       insuranceProvider: this.insuranceProvider,
       insurancePolicyNumber: this.insurancePolicyNumber,
       insuranceGroupNumber: this.insuranceGroupNumber,
+      abhaAddress: this.abhaAddress,
       metadata: this.metadata,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,

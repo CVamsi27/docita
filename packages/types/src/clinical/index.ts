@@ -1,4 +1,5 @@
 export * from "./clinical";
+export * from "./abdm";
 export * from "./vitals";
 export * from "./medical";
 export * from "./medical-validation";
