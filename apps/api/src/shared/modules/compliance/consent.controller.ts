@@ -104,6 +104,27 @@ export class ConsentController {
     );
   }
 
+  @Get('patients/:patientId/export')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
+  @HttpCode(200)
+  async exportPatientData(
+    @Param('patientId') patientId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    const ipAddress = req.ip || req.socket?.remoteAddress;
+    // Satisfies the DPDP right to access + data portability: returns a
+    // machine-readable copy of the patient's record and is audit-logged.
+    return this.dpdpService.handlePortabilityRequest(
+      {
+        patientId,
+        clinicId: requireClinicId(req.user?.clinicId),
+        requestType: DataSubjectRight.PORTABILITY,
+        requestedBy: req.user?.id ?? 'unknown',
+      },
+      ipAddress,
+    );
+  }
+
   @Post('patients/:patientId/delete')
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   @HttpCode(200)
