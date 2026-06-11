@@ -44,11 +44,16 @@ Do this **once**, as the company. Nothing per-clinic happens until Part A is
 done. (Detailed portal steps for each item are in Phases 3–6 below; this is the
 ordered checklist.)
 
-- [ ] **A0 — Company prerequisites.** Registered legal entity + company PAN; a
-      company domain & email; an authorised signatory + a technical contact.
-      Decide the integration role: **HIP** (we *create* records — prescriptions,
-      etc.) now, **HIU** (we *fetch* records) later for M3. M1 only needs the
-      ABHA/PHR APIs.
+- [ ] **A0 — Company prerequisites.** A company domain & email, an authorised
+      signatory + a technical contact, and a legal entity / PAN. *Note: a GSTIN
+      already embeds a PAN (chars 3–12); the 5th char gives the entity type
+      (`C`=company, `P`=proprietor). Sandbox (A1–A5) needs little; entity KYC
+      bites at **production (A6)** — if the GSTIN is a proprietorship, consider
+      incorporating a Pvt Ltd before production for the ABDM participant
+      agreement + DPDP data-fiduciary posture. Confirm ABDM's exact prod
+      document list on the live portal.* Decide the integration role: **HIP**
+      (we *create* records) now, **HIU** (fetch) later for M3. M1 only needs
+      the ABHA/PHR APIs.
 - [ ] **A1 — Create the ABDM Sandbox account.** [sandbox.abdm.gov.in](https://sandbox.abdm.gov.in/) →
       sign up with the company email → verify. *(One account for the company.)*
 - [ ] **A2 — Register Docita as an application / health-tech integrator** in the
