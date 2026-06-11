@@ -7,7 +7,30 @@
 > **Cost:** every ABDM portal/registration/API below is **free** (government
 > public good). The only cost is the engineering in Phase 4 + your time on the
 > portals. See [india-compliance-and-abdm-roadmap.md](../UpcomingPlans/india-compliance-and-abdm-roadmap.md).
->
+
+## Who does what (read this first — ABDM is multi-tenant)
+
+Docita is a SaaS bridge. There are **three distinct registrations**, with
+different owners and frequencies — do not conflate them:
+
+| Layer | Owner | When | Frequency | Lands in |
+|---|---|---|---|---|
+| **[PLATFORM] Gateway integration credentials** (`client_id`/`client_secret`/base URL) | **Docita (company)** | Once, ever | **One set total** | env vars `ABDM_*` |
+| **[PER CLINIC] HFR facility registration** (Facility ID) | The clinic/hospital | At clinic onboarding | Per tenant | `Clinic.hfrFacilityId` (to add) |
+| **[PER DOCTOR] HPR registration** (HPR ID) | Each doctor | At doctor onboarding | Per doctor | doctor `hprId` (to add) |
+
+So **Docita registers with the gateway once** (Phase 3); **each clinic registers
+its own facility** (Phase 1) and **each doctor their HPR ID** (Phase 2) as part
+of *Docita's onboarding flow*. At runtime Docita makes gateway calls with its
+single platform credential, **scoped to the calling clinic's HFR Facility ID**.
+
+> **Data-model implication (not yet built):** add additive `Clinic.hfrFacilityId`
+> and a doctor `hprId`, collected in onboarding/Settings, and pass the clinic's
+> HFR ID into `AbdmHttpGateway.verifyAbha`. The env vars stay platform-level.
+
+Phases below are tagged **[PLATFORM]** (Docita does once) /
+**[PER CLINIC]** / **[PER DOCTOR]** (part of tenant onboarding).
+
 > ⚠️ ABDM versions its APIs (v0.5 → v3 / "HIE-CM"). Treat the endpoint paths
 > here as canonical-but-confirm: always check the current contract in the
 > sandbox docs portal before wiring. The adapter is written to be updated in
@@ -21,7 +44,7 @@
 - [ ] An authorised signatory's Aadhaar + mobile (for KYC).
 - [ ] At least one doctor with their NMC/State Medical Council registration number.
 
-## Phase 1 — Register the facility (HFR)
+## Phase 1 — Register the facility (HFR)  ·  [PER CLINIC, at onboarding]
 
 Health Facility Registry — identifies your clinic to ABDM.
 
@@ -31,7 +54,7 @@ Health Facility Registry — identifies your clinic to ABDM.
 4. Submit for verification (typically 3–5 working days).
 5. **Record the Facility ID (HFR ID).** You'll store this per-clinic in Settings (Phase 6).
 
-## Phase 2 — Register the professionals (HPR)
+## Phase 2 — Register the professionals (HPR)  ·  [PER DOCTOR, at onboarding]
 
 Healthcare Professionals Registry — identifies each prescribing doctor.
 
@@ -39,7 +62,7 @@ Healthcare Professionals Registry — identifies each prescribing doctor.
 2. Create an HPR ID (e.g. `dr.asha@hpr`), linking their council + registration number.
 3. **Record each HPR ID.** These tie a doctor to ABDM-signed records in M2.
 
-## Phase 3 — Get developer/integration credentials (Sandbox)
+## Phase 3 — Get developer/integration credentials (Sandbox)  ·  [PLATFORM, Docita once]
 
 This is where the values for our env vars come from.
 
@@ -57,7 +80,7 @@ These three map directly to the env vars our code reads
 | client_id | `ABDM_CLIENT_ID` |
 | client_secret | `ABDM_CLIENT_SECRET` |
 
-## Phase 4 — Wire + test against the sandbox (engineering, M1)
+## Phase 4 — Wire + test against the sandbox (engineering, M1)  ·  [PLATFORM]
 
 1. Set the three env vars on the API + worker (Fly secrets): `fly secrets set ABDM_BASE_URL=... ABDM_CLIENT_ID=... ABDM_CLIENT_SECRET=...`. Once set, `getAbdmConfig().enabled` flips true and the endpoint stops returning 503.
 2. In [abdm-http.gateway.ts](../../apps/api/src/domains/patients/infrastructure/external/abdm-http.gateway.ts) `verifyAbha`, confirm against the sandbox docs and adjust:
@@ -73,14 +96,14 @@ These three map directly to the env vars our code reads
 2. Submit the demo/recording per the sandbox's milestone submission flow.
 3. ABDM reviews and certifies M1. (M2 = link care-contexts + FHIR; M3 = fetch external records — future phases.)
 
-## Phase 6 — Go to production
+## Phase 6 — Go to production  ·  [PLATFORM + per-clinic HFR/HPR storage]
 
 1. After M1 approval, request **production credentials** (prod `client_id`/`client_secret` + prod gateway base URL) via the sandbox/production onboarding.
 2. Set the production env vars (Phase 4 step 1) in the prod environment.
 3. Store each clinic's **HFR Facility ID** + doctors' **HPR IDs** in Settings (UI is a follow-up — see roadmap "Phase M1 (remaining)").
 4. Enable the ABHA **Verify** action in the patient screen (frontend follow-up).
 
-## Phase 7 — Enrol for incentives (DHIS, optional, revenue)
+## Phase 7 — Enrol for incentives (DHIS)  ·  [PER CLINIC, optional revenue]
 
 1. Enrol the facility in the **Digital Health Incentive Scheme** at **https://abdm.gov.in/DHIS**.
 2. Earn **₹20 per ABHA-linked record above 100/month** (up to ₹4 Cr/facility). This is income, not cost — a sales lever for clinics on Docita.
