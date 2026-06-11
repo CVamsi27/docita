@@ -82,3 +82,36 @@ Build as an extension of the `consultation` domain behind `Feature.TELEMEDICINE`
 1. ~~12 features on the zero-test allowlist~~ — **done 2026-06-10**: allowlist is empty; every feature has at least one colocated test. Next ratchet: upgrade the smoke tests to functional coverage feature-by-feature.
 2. Outbox `LISTEN/NOTIFY` — only if production `pg_stat_statements` shows the 5 s poll mattering.
 3. Major upgrades, each isolated: NestJS 12 (tracker exists), Zod 4, TypeScript 6, jscpd 5.
+
+---
+
+## 7. Landing-page update for ABDM (apps/landing)
+
+**Goal:** position Docita as ABDM/ABHA-ready for the India market, **honestly** —
+the landing ethos is "we describe what we operate, not unsupported
+certifications" ([differentiators-section.tsx](../../apps/landing/src/components/sections/differentiators-section.tsx)).
+So copy must say **ABHA capture is live; ABDM verification is built and in
+certification** — never "ABDM certified" until M1 is actually approved
+(see [abdm-onboarding.md](../runbooks/abdm-onboarding.md) Phase 5).
+
+Sequence the changes so they can ship before go-live and tighten after:
+
+### 7.1 Now (capture is live) — low effort
+- **Differentiators** ([differentiators-section.tsx](../../apps/landing/src/components/sections/differentiators-section.tsx)): the trust card already lists `"India residency · Mumbai"` and `"DPDP-aware consent"`. Add a chip: `"ABHA capture · ABDM-ready"`. Reuse the existing `Live`/`Planned` badge tone — mark **ABHA capture `Live`**, **ABDM verification `Planned`** (the same `tone: "wait"` pattern already used for "Prescription drafting" etc.).
+- **Trust page** ([trust/index.astro](../../apps/landing/src/pages/trust/index.astro)): under the posture list, add a bullet — "ABHA (Ayushman Bharat Health Account) capture on patient records; ABDM gateway verification implemented and pending sandbox certification." Keep it factual, matching the page's "current posture" voice.
+- **FAQ** ([faq-cta-section.tsx](../../apps/landing/src/components/sections/faq-cta-section.tsx)): add Q "Do you support ABDM / ABHA?" → A describing capture-today, verification-in-certification, and that the platform is built for the milestone path. Also mention the DHIS incentive (₹20/linked record) as a clinic benefit.
+
+### 7.2 At M1 go-live — copy tighten
+- Flip the differentiator badge from `Planned` → `Live` for ABDM verification.
+- Trust page: update to "ABDM M1 certified" **only once Phase 5 approval lands**.
+- Optional: a dedicated `/abdm` page (mirror the existing `/whatsapp-workflows` page pattern) explaining ABHA linking + the incentive, with a CTA.
+
+### 7.3 Constraints / reuse
+- New section copy goes through the existing landing primitives; **no new design tokens** (the landing refactors this session already extracted `resolvePricingTierCardViewModel`-style helpers — follow that decomposition).
+- If a feature list is added, source the badge tones from the same `Live`/`Planned` union already in `differentiators-section.tsx` rather than inventing a status system.
+- Run `pnpm --filter @docita/landing run check-types`, `audit:landing` (a11y), and the landing critical-flows test after edits.
+
+### 7.4 Out of scope (do not claim)
+- "ABDM certified" / milestone badges before certification.
+- ABHA *creation* (we verify/link; full create flow is a later milestone).
+- Any per-record incentive promise to clinics beyond linking to the public DHIS page.
