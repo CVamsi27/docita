@@ -113,9 +113,33 @@ Healthcare Professionals Registry — identifies each prescribing doctor.
 
 This is where the values for our env vars come from.
 
-1. Go to **https://sandbox.abdm.gov.in/** → sign up as a health-tech / developer.
-2. Create an **application** (a.k.a. "facility/HIP-HIU" registration) in the sandbox.
-3. Generate credentials — the sandbox issues a **`client_id`** and **`client_secret`**, and gives you the **gateway base URL** (sandbox: typically `https://dev.abdm.gov.in` / `https://sandbox.abdm.gov.in`).
+1. Go to **https://sandbox.abdm.gov.in/** → **ABDM Sandbox Request Form**.
+   Fill it as Docita the **HMIS/solution provider** (the platform), not a facility:
+
+   | Form field | Value |
+   |---|---|
+   | Select Integration | **ABDM Integration** (not UHI / NHCX) |
+   | Select Category | **Application on behalf of Organization** |
+   | Nature of entity | match the **GST certificate** (5th PAN char: `P`=proprietor, `C`=company, `F`=LLP/partnership) |
+   | Type of organization | the **Health-IT / Software** option (not "Hospital") |
+   | Category | digital-health / **HMIS solution provider** (closest) |
+   | Registered in India | **Yes** |
+   | Entity name | exact **legal name on the GST certificate** |
+   | GSTIN | the GSTIN |
+   | Product name | **Docita** |
+   | Website | `https://…` |
+   | Address / Pincode / State / District | from GST registration |
+   | Full name | authorised contact |
+   | Email (**= login username**) | a **shared company inbox** (e.g. `abdm@…`), never personal |
+   | Mobile / Password | +91 number + stored password |
+   | Solution type | **HMIS** |
+   | Intent | "Docita is a multi-tenant clinic/hospital HMIS SaaS; requesting sandbox access to integrate ABHA create/verify (M1) and consented record linking (M2/M3) as HIP/HIU on behalf of onboarded facilities." |
+
+   The four dropdowns' exact options vary — pick the closest health-IT/HMIS/
+   solution-provider choice; ABDM review flags mismatches. Entity name + Nature
+   of entity **must** match the GST or it's rejected.
+2. After approval, generate the **application** credentials in the sandbox console.
+3. Credentials — the sandbox issues a **`client_id`** and **`client_secret`**, and gives you the **gateway base URL** (sandbox: typically `https://dev.abdm.gov.in` / `https://sandbox.abdm.gov.in`).
 4. Note the **auth flow**: ABDM is session-token based — you `POST {baseUrl}/gateway/v0.5/sessions` (or the current `/api/hiecm/gateway/v3/sessions`) with `{ clientId, clientSecret }`, receive a short-lived **access token**, then send it as `Authorization: Bearer <token>` on subsequent calls. (Our adapter currently sends the secret directly — Phase 4 wires the session step.)
 
 These three map directly to the env vars our code reads
