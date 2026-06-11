@@ -125,14 +125,17 @@ export class PrescriptionsCommandService {
       }
     }
 
-    const controlledSubstances = validateControlledSubstances(data.medications, {
-      isTeleconsultation:
-        data.isTeleconsultation ??
-        (await this.isTeleconsultationAppointment(
-          data.appointmentId,
-          data.clinicId,
-        )),
-    });
+    const controlledSubstances = validateControlledSubstances(
+      data.medications,
+      {
+        isTeleconsultation:
+          data.isTeleconsultation ??
+          (await this.isTeleconsultationAppointment(
+            data.appointmentId,
+            data.clinicId,
+          )),
+      },
+    );
     if (controlledSubstances.isBlocked) {
       throw new BadRequestException({
         message: controlledSubstances.message,

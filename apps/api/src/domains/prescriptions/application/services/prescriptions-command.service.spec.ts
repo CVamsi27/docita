@@ -42,9 +42,7 @@ describe('PrescriptionsCommandService — controlled substances by modality', ()
     {} as PrescriptionPdfOrchestratorService,
   );
 
-  const baseParams = (
-    medicationName: string,
-  ): CreatePrescriptionParams => ({
+  const baseParams = (medicationName: string): CreatePrescriptionParams => ({
     appointmentId: 'appt-1',
     patientId: 'pat-1',
     doctorId: 'doc-1',
@@ -86,9 +84,7 @@ describe('PrescriptionsCommandService — controlled substances by modality', ()
     await expect(service.create(baseParams('Tramadol'))).rejects.toThrow(
       BadRequestException,
     );
-    await expect(
-      service.create(baseParams('Tramadol')),
-    ).rejects.toMatchObject({
+    await expect(service.create(baseParams('Tramadol'))).rejects.toMatchObject({
       response: expect.objectContaining({
         code: 'CONTROLLED_SUBSTANCE_TELEMEDICINE_BLOCKED',
       }),
