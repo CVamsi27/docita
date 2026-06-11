@@ -789,6 +789,7 @@ model Medication {
   prescription    Prescription     @relation(fields: [prescriptionId], references: [id])
   medicationDoses MedicationDose[]
 
+  @@index([prescriptionId])
   @@index([ndcCode])
   @@index([rxNormCui])
   @@index([name])
