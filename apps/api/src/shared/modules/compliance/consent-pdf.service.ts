@@ -54,6 +54,7 @@ export class ConsentPdfService {
       }),
       portalUrl,
       qrPng,
+      grievanceEmail: this.appConfig.getGrievanceContactEmail(),
     });
   }
 
@@ -62,6 +63,7 @@ export class ConsentPdfService {
     patientName: string;
     portalUrl: string;
     qrPng: Buffer;
+    grievanceEmail: string;
   }): Promise<Buffer> {
     const doc = new PDFDocument({ size: 'A4', margin: 48 });
     const chunks: Buffer[] = [];
@@ -187,6 +189,18 @@ export class ConsentPdfService {
       48,
       lineY + 22,
     );
+
+    // Grievance / data-protection contact (DPDP)
+    doc
+      .fillColor(INK)
+      .font('Helvetica-Bold')
+      .fontSize(8.5)
+      .text('Grievance / data-protection contact: ', 48, lineY + 40, {
+        continued: true,
+      })
+      .fillColor(TEAL)
+      .font('Helvetica')
+      .text(input.grievanceEmail);
 
     // Footer
     doc

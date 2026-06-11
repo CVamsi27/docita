@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { SUPPORT_EMAIL } from '@workspace/types';
 import { getEnv } from './app-config';
 
 @Injectable()
@@ -25,6 +26,11 @@ export class ExternalIntegrationsConfigService {
       apiUrl: config.DOCTOR_VERIFICATION_API_URL,
       apiKey: config.DOCTOR_VERIFICATION_API_KEY,
     };
+  }
+
+  /** DPDP grievance / DPO contact, defaulting to the platform support email. */
+  getGrievanceContactEmail(): string {
+    return getEnv().GRIEVANCE_CONTACT_EMAIL?.trim() || SUPPORT_EMAIL;
   }
 
   getHprVerificationConfig() {

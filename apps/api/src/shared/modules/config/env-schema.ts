@@ -105,6 +105,9 @@ export const EnvSchema = z.object({
   ABDM_BASE_URL: z.string().optional(),
   ABDM_CLIENT_ID: z.string().optional(),
   ABDM_CLIENT_SECRET: z.string().optional(),
+  // DPDP grievance / data-protection officer contact, published on the consent
+  // sheet and trust page. Defaults to the platform support email.
+  GRIEVANCE_CONTACT_EMAIL: z.string().optional(),
   META_BUSINESS_ACCOUNT_ID: z.string().optional(),
   SMTP_HOST: z.string().default('localhost'),
   SMTP_PORT: z.coerce.number().default(587),

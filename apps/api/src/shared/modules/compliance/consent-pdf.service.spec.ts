@@ -14,6 +14,7 @@ describe('ConsentPdfService', () => {
 
   const appConfig = {
     getAppUrl: () => 'https://app.docita.work',
+    getGrievanceContactEmail: () => 'support@docita.work',
   } as unknown as AppConfigService;
 
   const service = new ConsentPdfService(prisma, appConfig);
