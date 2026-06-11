@@ -1,5 +1,6 @@
 ---
 import MainLayout from "@/layouts/main-layout.astro";
+import { SUPPORT_EMAIL } from "@workspace/types";
 
 const controls = [
   "Encrypted transport and storage for sensitive data",
@@ -67,7 +68,7 @@ const nonClaims = [
           <p class="mt-3 text-sm text-muted-foreground">
             For data-protection questions, grievances, or to exercise your rights
             under the DPDP Act, 2023, contact our grievance officer at
-            <a class="text-primary hover:underline" href="mailto:support@docita.work">support@docita.work</a>.
+            <a class="text-primary hover:underline" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
             Patients can also view, export, or delete their data from the patient portal.
           </p>
 
