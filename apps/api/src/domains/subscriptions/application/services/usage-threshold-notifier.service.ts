@@ -69,6 +69,12 @@ function buildUsageWarningActions(
   });
 }
 
+/**
+ * Thin facade that delegates in-app notification creation and email delivery
+ * for usage-threshold warnings. Pure helpers (buildUsageWarningActions,
+ * readMeterCounts) live outside the class; persistence and messaging are
+ * injected via DI.
+ */
 @Injectable()
 export class UsageThresholdNotifierService {
   private readonly logger = new Logger(UsageThresholdNotifierService.name);
