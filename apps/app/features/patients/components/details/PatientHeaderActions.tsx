@@ -12,6 +12,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import type { Appointment } from "@workspace/types";
+import { AI_FEATURES_ENABLED } from "@/lib/config/ai-features";
 import { Feature, usePermissionStore } from "@/lib/stores/permission-store";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useStartConsultation } from "@workspace/data-access";
@@ -137,21 +138,23 @@ export function PatientHeaderActions({
 
   return (
     <>
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={() =>
-          openOverlay({
-            id: `patient:${patientId}`,
-            label: `on ${patientName}`,
-            payload: { kind: "patient", patientId },
-          })
-        }
-        data-testid="patient-ask-ai"
-      >
-        <Sparkles className="h-4 w-4 mr-1.5" />
-        Ask AI
-      </Button>
+      {AI_FEATURES_ENABLED && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() =>
+            openOverlay({
+              id: `patient:${patientId}`,
+              label: `on ${patientName}`,
+              payload: { kind: "patient", patientId },
+            })
+          }
+          data-testid="patient-ask-ai"
+        >
+          <Sparkles className="h-4 w-4 mr-1.5" />
+          Ask AI
+        </Button>
+      )}
 
       {showConsultationCta && (
         <Button

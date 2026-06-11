@@ -3,6 +3,7 @@ import {
   type ClinicFeatureOverrides,
   Feature,
   FEATURE_TIER_MAP,
+  type FacilityTypeType,
   type PlanMode,
   Tier,
   TIER_INFO,
@@ -23,10 +24,11 @@ import {
   parsePlanModeInput,
   parseTierInput,
 } from "./permission-state-setters";
+import { AI_FEATURES_ENABLED, AI_GATED_FEATURES } from "@/lib/config/ai-features";
 
 export { Tier, Feature, FEATURE_TIER_MAP, TIER_INFO };
 
-export type FacilityType = "CLINIC" | "HOSPITAL";
+export type FacilityType = FacilityTypeType;
 
 interface PermissionState {
   currentTier: Tier;
@@ -98,7 +100,11 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
     set({ currentMode: parsePlanModeInput(mode) });
   },
 
-  setIntelligence: (active) => set({ hasIntelligence: active }),
+  // AI master switch: Intelligence add-on is forced off in the UI while AI is
+  // globally disabled, so every intelligence-gated surface (Ask AI, command
+  // palette, AI hints) disappears.
+  setIntelligence: (active) =>
+    set({ hasIntelligence: AI_FEATURES_ENABLED && active }),
 
   setUserRole: (role) => set({ userRole: role }),
   setFacilityType: (type) => set({ facilityType: type }),
@@ -130,6 +136,9 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   },
 
   canAccess: (feature, permission?) => {
+    // AI master switch: AI-dependent features are unavailable in the UI while
+    // AI is globally disabled, regardless of tier/overrides.
+    if (!AI_FEATURES_ENABLED && AI_GATED_FEATURES.has(feature)) return false;
     return checkFeatureAccess(selectAccessContext(get()), feature, permission);
   },
 

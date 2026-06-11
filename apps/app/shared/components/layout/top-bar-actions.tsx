@@ -7,6 +7,7 @@ import { GlobalSearch } from "@/features/search";
 import { QuickAddPopover } from "@/components/navigation/quick-add-popover";
 import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 import { resolveAskAiScopeFromPathname } from "@/components/ask-ai/resolve-ask-ai-scope-from-pathname";
+import { AI_FEATURES_ENABLED } from "@/lib/config/ai-features";
 
 export function TopBarActions({ compact = false }: { compact?: boolean }) {
   const { openOverlay } = useAskAi();
@@ -16,7 +17,7 @@ export function TopBarActions({ compact = false }: { compact?: boolean }) {
     <>
       <GlobalSearch />
       <QuickAddPopover />
-      {compact ? null : (
+      {compact || !AI_FEATURES_ENABLED ? null : (
         <Button
           type="button"
           variant="ghost"
