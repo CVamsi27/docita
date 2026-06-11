@@ -38,6 +38,48 @@ Phases below are tagged **[PLATFORM]** (Docita does once) /
 
 ---
 
+## Part A — Register Docita first (one-time, before any clinic)
+
+Do this **once**, as the company. Nothing per-clinic happens until Part A is
+done. (Detailed portal steps for each item are in Phases 3–6 below; this is the
+ordered checklist.)
+
+- [ ] **A0 — Company prerequisites.** Registered legal entity + company PAN; a
+      company domain & email; an authorised signatory + a technical contact.
+      Decide the integration role: **HIP** (we *create* records — prescriptions,
+      etc.) now, **HIU** (we *fetch* records) later for M3. M1 only needs the
+      ABHA/PHR APIs.
+- [ ] **A1 — Create the ABDM Sandbox account.** [sandbox.abdm.gov.in](https://sandbox.abdm.gov.in/) →
+      sign up with the company email → verify. *(One account for the company.)*
+- [ ] **A2 — Register Docita as an application / health-tech integrator** in the
+      sandbox console → receive the **sandbox `client_id` + `client_secret` +
+      gateway base URL**. These are Docita's platform credentials (→ `ABDM_*`
+      env vars). See Phase 3.
+- [ ] **A3 — Engineering: wire + build to M1.** Set the three env vars; in
+      `AbdmHttpGateway` add the session-token call + confirm the ABHA verify
+      endpoint contract. See Phase 4.
+- [ ] **A4 — Self-test M1 in the sandbox** with ABDM's test ABHA IDs until
+      verify works end-to-end and persists. See Phase 4.
+- [ ] **A5 — Apply for M1 milestone certification.** Submit the demo/checklist
+      in the sandbox milestone program; ABDM reviews & certifies. See Phase 5.
+- [ ] **A6 — Production onboarding.** Apply for production access (this usually
+      requires **at least one real go-live facility** registered in HFR and a
+      signed ABDM participant/integration agreement). Receive **production**
+      `client_id`/`client_secret` + production gateway base URL → set the prod
+      env vars (Fly secrets). See Phase 6.
+- [ ] **A7 — Operational readiness.** Token caching/refresh, gateway error
+      handling + monitoring, PHI-safe logging (scrubbers already in place).
+
+> Note on A6: ABDM typically won't grant production access on sandbox testing
+> alone — it wants a real facility live. So your **first pilot clinic** (its HFR
+> registration, Part B) overlaps with finishing Part A. Plan one friendly clinic
+> as the go-live facility.
+
+Once Part A is certified and in production, onboarding any clinic is just
+**Part B** (HFR + HPR), which slots into Docita's existing onboarding flow.
+
+---
+
 ## Phase 0 — Prerequisites (before touching any portal)
 
 - [ ] Facility details: clinic name, address, type, ownership proof.
