@@ -28,3 +28,30 @@ export const abhaNumberSchema = z
 
 export type AbhaAddress = z.infer<typeof abhaAddressSchema>;
 export type AbhaNumber = z.infer<typeof abhaNumberSchema>;
+
+/** Request to verify a patient's ABHA against the ABDM gateway (M1). */
+export const verifyAbhaRequestSchema = z
+  .object({
+    abhaAddress: abhaAddressSchema.optional(),
+    abhaNumber: abhaNumberSchema.optional(),
+  })
+  .refine((v) => v.abhaAddress || v.abhaNumber, {
+    message: "Provide an ABHA address or ABHA number to verify",
+  });
+
+/** Outcome of an ABDM gateway verification, persisted on the patient. */
+export const abhaVerificationResultSchema = z.object({
+  verified: z.boolean(),
+  abhaAddress: z.string().nullable(),
+  abhaNumber: z.string().nullable(),
+  /** Verified KYC name returned by ABDM, for name-match confirmation. */
+  kycName: z.string().nullable(),
+  verifiedAt: z.string().nullable(),
+  /** Present when verification could not be performed or failed. */
+  error: z.string().nullable().optional(),
+});
+
+export type VerifyAbhaRequest = z.infer<typeof verifyAbhaRequestSchema>;
+export type AbhaVerificationResult = z.infer<
+  typeof abhaVerificationResultSchema
+>;

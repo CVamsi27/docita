@@ -30,6 +30,24 @@ export class ExternalIntegrationsConfigService {
     };
   }
 
+  /**
+   * ABDM gateway config for ABHA verification (M1). `enabled` is true only when
+   * a base URL and credentials are present, so the gateway adapter stays in a
+   * NOT_CONFIGURED state until real (sandbox or prod) credentials are supplied.
+   */
+  getAbdmConfig() {
+    const config = getEnv();
+    const baseUrl = config.ABDM_BASE_URL?.trim() || null;
+    const clientId = config.ABDM_CLIENT_ID?.trim() || null;
+    const clientSecret = config.ABDM_CLIENT_SECRET?.trim() || null;
+    return {
+      baseUrl,
+      clientId,
+      clientSecret,
+      enabled: Boolean(baseUrl && clientId && clientSecret),
+    };
+  }
+
   getCptCatalogSource(): 'licensed' | 'nlm_hcpcs' {
     return getEnv().CPT_CATALOG_SOURCE?.toLowerCase() === 'licensed'
       ? 'licensed'

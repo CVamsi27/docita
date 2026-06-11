@@ -339,6 +339,9 @@ model Patient {
   whatsappConversations       WhatsappConversation[]
   whatsappBroadcastRecipients WhatsAppBroadcastRecipient[]
   abhaAddress                 String?
+  abhaNumber                  String?
+  abhaKycName                 String?
+  abhaVerifiedAt              DateTime?                    @db.Timestamptz(3)
   deletedAt                   DateTime?                    @db.Timestamptz(3)
   medicalConditions           PatientMedicalCondition[]
   patientAllergies            PatientAllergy[]

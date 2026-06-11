@@ -20,12 +20,17 @@
 - `abhaAddressSchema` + `abhaNumberSchema` validators in [packages/types/src/clinical/abdm.ts](../../packages/types/src/clinical/abdm.ts) (unit-tested), exported from the clinical barrel.
 - `abhaAddress` threaded end-to-end: patient contracts (create/update/response/domain/persistence), API `Patient` entity + mapper + repository select, and the Add/Edit patient form UI (ungated optional demographic field, like insurance).
 
-### Phase M1 (remaining) — gateway verify/create at registration (~4–6 weeks)
-- New domain `apps/api/src/domains/abdm/{application,core,infrastructure,presentation}` following the standard DDD layout (reference: `apps/api/src/domains/appointments`).
-- Additive models in `packages/db/prisma/schema/`: `AbhaLink` (patientId, abhaNumber, verifiedAt, method), `AbdmConsentArtefact`, `CareContext`. (`abhaAddress` already lives on `Patient`.)
-- Zod request/response contracts in `packages/types/src/contracts/abdm.ts`; hooks in `packages/data-access/src/hooks/use-abdm.ts`.
-- UI: a **Verify** action next to the existing ABHA field (capture field is already shipped) + clinic HFR/HPR ids in Settings (`apps/app/features/settings`).
-- ABDM sandbox first; encrypt ABDM session keys via the existing `EncryptionService`; HMAC-verify gateway callbacks like the existing webhook controllers. Requires ABDM sandbox credentials.
+### Delivered — M1 verification layer, flag-gated (2026-06-11)
+- Additive `Patient.abhaNumber` / `abhaKycName` / `abhaVerifiedAt` (migration `20260611010000_add_abha_verification_fields`).
+- `verifyAbhaRequestSchema` + `abhaVerificationResultSchema` contracts.
+- `IAbdmGateway` port + `AbdmHttpGateway` adapter (timeout-guarded), **gated on `ABDM_BASE_URL`/`ABDM_CLIENT_ID`/`ABDM_CLIENT_SECRET`** — returns `ABDM_NOT_CONFIGURED` until set, so the endpoint is dormant (503) rather than broken.
+- `AbhaVerificationService` (persists + audits `ABHA_VERIFIED` on success only) + `POST /patients/:id/abha/verify`, gated by `Feature.ABDM_INTEGRATION` + patient-write roles. Unit-tested (configured/not-configured/unverified/not-found).
+- **Go-live = set the three env vars** + confirm the exact ABDM endpoint path/payload in `AbdmHttpGateway.verifyAbha` against the sandbox spec. No code rewrite needed.
+
+### Phase M1 (remaining) — registration UX + HFR/HPR
+- UI: a **Verify** action next to the existing ABHA field calling the endpoint above; clinic HFR/HPR ids in Settings (`apps/app/features/settings`).
+- Confirm the real ABDM verify endpoint contract against the sandbox (the adapter parses defensively but the path `/v1/abha/verify` and field names are placeholders).
+- Future: `CareContext` / consent-artefact models for M2 linking; encrypt ABDM session keys via the existing `EncryptionService`.
 
 ### Phase M2 — link records, FHIR R4 (~6–10 weeks)
 - FHIR R4 bundle mappers (OPConsultRecord, Prescription, DiagnosticReport) from the existing `prescriptions` / `consultation` / `clinical` domains. There is already an `fhir.ts` stub in `packages/types/src/shared/` — extend it.
