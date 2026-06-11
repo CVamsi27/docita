@@ -129,6 +129,11 @@ export const EnvSchema = z.object({
   AI_REQUEST_TIMEOUT: z.coerce.number().default(5000),
   AI_CACHE_ENABLED: z.coerce.boolean().default(true),
   AI_CACHE_TTL: z.coerce.number().default(86400),
+  // DPDP kill-switch: master gate for ALL external-AI (OpenAI) calls. OFF by
+  // default — no patient data leaves to OpenAI from any feature unless this is
+  // explicitly enabled AND an API key is set. Disclose AI processing in the
+  // consent notice before enabling.
+  AI_EXTERNAL_ENABLED: z.coerce.boolean().default(false),
   // DPDP: sending raw patient-document images to the cloud Vision API is a
   // cross-border PHI transfer that cannot be de-identified. OFF by default —
   // local OCR is used instead. Enable only with consent-notice disclosure.

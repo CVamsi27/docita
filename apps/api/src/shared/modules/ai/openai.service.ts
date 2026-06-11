@@ -30,7 +30,15 @@ export class OpenaiService {
     this.cacheEnabled = aiConfig.cacheEnabled;
     this.cacheTTL = aiConfig.cacheTtl;
 
-    if (!aiConfig.apiKey) {
+    // DPDP master kill-switch: the OpenAI client is only constructed when
+    // external AI is explicitly enabled AND a key is present. When disabled
+    // (the default), `client` is undefined and every AI feature degrades to a
+    // no-op / local path — no patient data can leave to OpenAI.
+    if (!aiConfig.externalEnabled) {
+      this.logger.warn(
+        'External AI disabled (AI_EXTERNAL_ENABLED=false) — no OpenAI calls will be made.',
+      );
+    } else if (!aiConfig.apiKey) {
       this.logger.warn('OpenAI API key not configured.');
     } else {
       this.openai = new OpenAI({ apiKey: aiConfig.apiKey });
