@@ -6,12 +6,12 @@ import {
   type ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
 } from '@/domains/subscriptions/application/ports';
-import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import { getUtcDayBounds } from '@/shared/schedule/scheduler-date.util';
 import {
   BaseSubscriptionNotifier,
   type SubscriptionWithClinic,
-} from './base-subscription-notifier.use-case';
+} from '@/domains/subscriptions/application/services/base-subscription-notifier';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { getUtcDayBounds } from '@/shared/schedule/scheduler-date.util';
 
 export interface NotifyGraceDeadlineRequest {
   targetDate: Date;

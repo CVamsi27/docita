@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Feature } from "@workspace/types";
-import { api } from "@/lib/api/api-client";
 import {
   useCreateMedicalDocument,
   useMedicalDocuments,
@@ -10,6 +9,7 @@ import {
   useSignMedicalDocument,
 } from "@workspace/data-access";
 import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
+import { uploadFileViaSession } from "@/lib/api/upload-session";
 import { logger } from "@/lib/monitoring/logger";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -73,21 +73,7 @@ export function useMedicalDocumentList(patientId: string) {
     try {
       let pdfUrl: string | undefined;
       if (newFile) {
-        const session = await api.post<{ id: string; uploadSecret: string }>(
-          `/uploads/session`,
-          {},
-        );
-        const formData = new FormData();
-        formData.append("file", newFile);
-        const uploaded = await api.post<{ fileUrl?: string | null }>(
-          `/uploads/session/${session.id}`,
-          formData,
-          {
-            headers: {
-              "X-Upload-Secret": session.uploadSecret,
-            },
-          },
-        );
+        const uploaded = await uploadFileViaSession(newFile);
         pdfUrl = uploaded?.fileUrl ?? undefined;
       }
 

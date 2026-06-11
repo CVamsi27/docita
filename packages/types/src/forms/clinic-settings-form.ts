@@ -2,6 +2,7 @@ import { z } from "zod";
 import { phoneSchema, requiredStringSchema } from "./common";
 import { facilityTypeSchema } from "../shared/users";
 
+// allow-no-base-schema: owner=clinic-settings reason=settings-json-projection review=2026-09-30
 export const clinicSettingsFormSchema = z.object({
   name: requiredStringSchema("Facility Name"),
   address: requiredStringSchema("Address"),

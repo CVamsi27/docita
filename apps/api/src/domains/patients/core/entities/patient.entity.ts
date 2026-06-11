@@ -16,6 +16,9 @@ export interface PatientProps {
   insurancePolicyNumber?: string;
   insuranceGroupNumber?: string;
   abhaAddress?: string;
+  abhaNumber?: string;
+  abhaKycName?: string;
+  abhaVerifiedAt?: Date;
   metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
@@ -56,6 +59,9 @@ export class Patient {
   private insurancePolicyNumber?: string;
   private insuranceGroupNumber?: string;
   private abhaAddress?: string;
+  private abhaNumber?: string;
+  private abhaKycName?: string;
+  private abhaVerifiedAt?: Date;
   private metadata: Record<string, unknown>;
   readonly createdAt: Date;
   private updatedAt: Date;
@@ -77,6 +83,9 @@ export class Patient {
     // jscpd:ignore-start
     this.insuranceGroupNumber = props.insuranceGroupNumber;
     this.abhaAddress = props.abhaAddress;
+    this.abhaNumber = props.abhaNumber;
+    this.abhaKycName = props.abhaKycName;
+    this.abhaVerifiedAt = props.abhaVerifiedAt;
     this.metadata = props.metadata || {};
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
@@ -163,6 +172,9 @@ export class Patient {
       insurancePolicyNumber: this.insurancePolicyNumber,
       insuranceGroupNumber: this.insuranceGroupNumber,
       abhaAddress: this.abhaAddress,
+      abhaNumber: this.abhaNumber,
+      abhaKycName: this.abhaKycName,
+      abhaVerifiedAt: this.abhaVerifiedAt,
       metadata: this.metadata,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,

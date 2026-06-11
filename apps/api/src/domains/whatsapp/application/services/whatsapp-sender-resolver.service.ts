@@ -30,6 +30,20 @@ export function fetchWhatsappAccessTokenSecret(
   });
 }
 
+export function resolveSharedWhatsappSender(
+  configService: AppConfigService,
+): ResolvedWhatsappSender {
+  const meta = configService.getMetaConfig();
+  return {
+    phoneNumberId: meta.phoneNumberId,
+    accessToken: meta.accessToken,
+    mode: 'SHARED',
+    senderPhoneNumberId: null,
+    displayName: null,
+    fallbackActive: false,
+  };
+}
+
 @Injectable()
 export class WhatsappSenderResolver {
   private readonly logger = new Logger(WhatsappSenderResolver.name);
@@ -42,15 +56,7 @@ export class WhatsappSenderResolver {
   ) {}
 
   resolveShared(): ResolvedWhatsappSender {
-    const meta = this.configService.getMetaConfig();
-    return {
-      phoneNumberId: meta.phoneNumberId,
-      accessToken: meta.accessToken,
-      mode: 'SHARED',
-      senderPhoneNumberId: null,
-      displayName: null,
-      fallbackActive: false,
-    };
+    return resolveSharedWhatsappSender(this.configService);
   }
 
   async resolve(clinicId: string): Promise<ResolvedWhatsappSender> {

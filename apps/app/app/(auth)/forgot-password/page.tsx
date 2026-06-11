@@ -15,11 +15,11 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
-import { api } from "@/lib/api/api-client";
 import { logger } from "@/lib/monitoring/logger";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 import { BackButton } from "@/components/navigation/back-button";
 import { AuthErrorDisplay } from "@/features/auth/components/AuthErrorDisplay";
+import { requestPasswordReset } from "@/features/auth/api/auth.api";
 
 export default function ForgotPasswordPage() {
   return (
@@ -59,7 +59,7 @@ function ForgotPasswordPageContent() {
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     setError("");
     try {
-      await api.post("/auth/forgot-password", { email: data.email });
+      await requestPasswordReset(data.email);
       setSubmitted(true);
     } catch (err) {
       logger.error("Forgot password request failed", { error: err });

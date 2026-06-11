@@ -18,6 +18,7 @@ import {
   clinicSettingsFormSchema,
   facilityTypeSchema,
   type ClinicSettingsFormValues,
+  type FacilityTypeType,
 } from "@workspace/types";
 
 const FACILITY_LABEL_VALUES = facilityTypeSchema.options;
@@ -58,7 +59,7 @@ export function useClinicGeneralSettings() {
     if (clinic) {
       const settings = clinic.settings as
         | {
-            facilityLabel?: "CLINIC" | "HOSPITAL";
+            facilityLabel?: FacilityTypeType;
             mapsLink?: string;
             taxSettings?: { legalName?: string };
           }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FC } from "react";
+import React, { FC, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -8,23 +8,51 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Patient } from "@workspace/types";
 import { useClinic } from "@/lib/contexts/clinic-context";
-import { useUpdatePatient } from "@workspace/data-access";
+import { useUpdatePatient, useVerifyPatientAbha } from "@workspace/data-access";
 import { FormDialog } from "@workspace/ui/components/form/form-dialog";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  Form,
-} from "@workspace/ui/components/form/form";
+import { Form } from "@workspace/ui/components/form/form";
 import { updatePatientRequestSchema } from "@workspace/types";
 import { parseStringEnumMember } from "@workspace/utils";
 import { validatePatientPhoneNumberForCountry } from "@/features/patients/rules/patient-rules";
-import { PatientBasicInfoFields, PatientDemographicFields, DialogActionButtons } from "./EditPatientDialogSections";
+import {
+  PatientBasicInfoFields,
+  PatientDemographicFields,
+  DialogActionButtons,
+} from "./EditPatientDialogSections";
 import { GENDER_VALUES } from "./EditPatientDialogHelpers";
+import {
+  AbhaVerificationField,
+  type AbhaVerificationUiState,
+} from "./abha-verification-field";
+import {
+  getAbhaVerificationErrorState,
+  getAbhaVerificationResultState,
+} from "./abha-verification-errors";
 
 interface EditPatientDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   patient?: Patient | null;
   onPatientUpdated?: () => void;
+}
+
+function getInitialAbhaStatus(
+  patient?: Patient | null,
+): AbhaVerificationUiState {
+  if (patient?.abhaVerifiedAt) {
+    return {
+      kind: "verified",
+      message: "ABHA verified",
+      detail: patient.abhaKycName
+        ? `ABDM KYC name: ${patient.abhaKycName}`
+        : "The ABHA identity is linked to this patient.",
+    };
+  }
+  return {
+    kind: "idle",
+    message: "Verify the ABHA address after saving or editing the value.",
+  };
 }
 
 export const EditPatientDialog: FC<EditPatientDialogProps> = ({
@@ -34,8 +62,15 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
   onPatientUpdated,
 }) => {
   const updatePatient = useUpdatePatient(patient?.id ?? "");
+  const verifyAbha = useVerifyPatientAbha();
   const { clinic } = useClinic();
   type PatientUpdateFormValues = z.infer<typeof updatePatientRequestSchema>;
+  const initialAbhaStatus = useMemo(
+    () => getInitialAbhaStatus(patient),
+    [patient],
+  );
+  const [abhaStatus, setAbhaStatus] =
+    useState<AbhaVerificationUiState>(initialAbhaStatus);
 
   const form = useForm<PatientUpdateFormValues>({
     resolver: zodResolver(updatePatientRequestSchema),
@@ -59,6 +94,11 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
         }
       : undefined,
   });
+  const abhaAddress = form.watch("abhaAddress");
+
+  useEffect(() => {
+    setAbhaStatus(initialAbhaStatus);
+  }, [initialAbhaStatus]);
 
   const handleInvalidSubmit = () => {
     showUserFacingErrorToast(
@@ -110,6 +150,26 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
     }
   }, handleInvalidSubmit);
 
+  const handleVerifyAbha = async () => {
+    if (!patient?.id) return;
+    const nextAbhaAddress = abhaAddress?.trim();
+    if (!nextAbhaAddress) return;
+
+    try {
+      const result = await verifyAbha.mutateAsync({
+        patientId: patient.id,
+        abhaAddress: nextAbhaAddress,
+      });
+      setAbhaStatus(getAbhaVerificationResultState(result));
+      if (result.verified) {
+        toast.success("ABHA verified successfully");
+        onPatientUpdated?.();
+      }
+    } catch (error) {
+      setAbhaStatus(getAbhaVerificationErrorState(error));
+    }
+  };
+
   if (!patient) return null;
 
   return (
@@ -123,12 +183,20 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
         <form onSubmit={handleSubmit} noValidate className="space-y-6">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <PatientBasicInfoFields control={form.control} />
+            <AbhaVerificationField
+              control={form.control}
+              currentValue={abhaAddress}
+              isPending={verifyAbha.isPending}
+              patientId={patient.id}
+              status={abhaStatus}
+              onVerify={handleVerifyAbha}
+            />
             <PatientDemographicFields control={form.control} />
           </div>
 
           <DialogActionButtons
             onCancel={() => onOpenChange?.(false)}
-            isPending={updatePatient.isPending}
+            isPending={updatePatient.isPending || verifyAbha.isPending}
           />
         </form>
       </Form>

@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
+import { useDoctorAvailabilitySlots } from "@workspace/data-access";
 import { TimeSlotPickerUI } from "./TimeSlotPickerUI";
-import { api } from "@/lib/api/api-client";
-import { logger } from "@/lib/monitoring/logger";
 
 interface TimeSlotPickerContainerProps {
   date: Date;
@@ -15,58 +14,26 @@ interface TimeSlot {
   available: boolean;
 }
 
-interface AvailableSlotResponse {
-  time: string;
-  endTime: string;
-  doctorId: string;
-  doctorName: string;
-  specialization?: string;
-  isAvailable: boolean;
-}
-
 export function TimeSlotPickerContainer({
   date,
   doctorId,
   onSlotSelect,
   selectedSlot = null,
 }: TimeSlotPickerContainerProps) {
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const slotsQuery = useDoctorAvailabilitySlots(date, doctorId);
+  const timeSlots = useMemo<TimeSlot[]>(
+    () =>
+      (slotsQuery.data ?? []).map((slot) => ({
+        time: slot.time,
+        available: slot.isAvailable,
+      })),
+    [slotsQuery.data],
+  );
 
-  useEffect(() => {
-    const fetchTimeSlots = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const queryParams = new URLSearchParams({
-          date: date.toISOString(),
-          doctorId,
-        });
-        const response = await api.get<AvailableSlotResponse[]>(
-          `/doctor-availability/slots?${queryParams.toString()}`,
-        );
-        const mapped: TimeSlot[] = response.map((slot) => ({
-          time: slot.time,
-          available: slot.isAvailable,
-        }));
-        setTimeSlots(mapped);
-      } catch (err) {
-        logger.error("Failed to fetch time slots", { error: err });
-        setError("We could not load available time slots. Please try again.");
-        setTimeSlots([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTimeSlots();
-  }, [date, doctorId]);
-
-  if (error) {
+  if (slotsQuery.isError) {
     return (
       <div className="text-center py-8 text-destructive">
-        <p>{error}</p>
+        <p>We could not load available time slots. Please try again.</p>
       </div>
     );
   }
@@ -77,7 +44,7 @@ export function TimeSlotPickerContainer({
       timeSlots={timeSlots}
       selectedSlot={selectedSlot}
       onSlotSelect={onSlotSelect}
-      loading={loading}
+      loading={slotsQuery.isLoading || slotsQuery.isFetching}
     />
   );
 }

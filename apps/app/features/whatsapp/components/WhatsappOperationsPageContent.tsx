@@ -11,7 +11,7 @@ import {
   PageTabs,
   type PageTabItem,
 } from "@workspace/ui/components/navigation/page-tabs";
-import { WhatsappTemplatesSettings } from "@/features/settings/components/whatsapp/WhatsappTemplatesSettings";
+import { WhatsappTemplatesSettings } from "@/features/settings";
 import { useAuth } from "@/lib/auth/auth-context";
 import { isAdmin } from "@/lib/auth/permissions";
 import { WhatsappCampaignsView } from "./WhatsappCampaignsView";

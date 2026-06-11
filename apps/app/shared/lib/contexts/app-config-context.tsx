@@ -11,7 +11,7 @@ import {
   DefaultValues,
   FormOptions,
 } from "@/lib/constants/app-config";
-import { apiFetch } from "@/lib/api/api-client";
+import { fetchAppConfig } from "@/lib/api/app-config.api";
 import { isNetworkError } from "@/lib/api/network-error";
 import { appQueryKeys } from "@/lib/api/query-keys";
 import { useOptionalAuth } from "@/lib/auth/auth-context";
@@ -63,11 +63,7 @@ export function AppConfigProvider({
 
   const configQuery = useQuery({
     queryKey: appQueryKeys.config.app(scopedClinicId, scopedUserId),
-    queryFn: () =>
-      apiFetch<AppConfig>("/config", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      }),
+    queryFn: fetchAppConfig,
     enabled:
       !shouldSkipConfigFetch &&
       Boolean(auth?.token && scopedUserId && scopedClinicId),

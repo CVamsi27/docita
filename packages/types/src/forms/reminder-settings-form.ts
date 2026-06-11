@@ -28,6 +28,7 @@ const reminderBlockFormSchema = z.object({
   unit: reminderTimeUnitSchema.optional(),
 });
 
+// allow-no-base-schema: owner=settings reason=ui-reminder-blocks review=2026-09-30
 export const reminderSettingsFormSchema = z
   .object({
     appointment: reminderBlockFormSchema,

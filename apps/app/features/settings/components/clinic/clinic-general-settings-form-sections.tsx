@@ -18,7 +18,10 @@ import {
 } from "@workspace/ui/components/form/select";
 import { cn } from "@workspace/ui/lib/utils";
 import { parseStringEnumMember } from "@workspace/utils";
-import type { ClinicSettingsFormValues } from "@workspace/types";
+import type {
+  ClinicSettingsFormValues,
+  FacilityTypeType,
+} from "@workspace/types";
 import type { UseFormReturn } from "react-hook-form";
 
 const monoInputClass = "font-mono text-[var(--fs-sm)] tracking-tight";
@@ -31,7 +34,7 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
 export function IdentitySection({ form, facilityLabel, facilityLabelValues }: {
   form: UseFormReturn<ClinicSettingsFormValues>;
   facilityLabel: string;
-  facilityLabelValues: readonly ["CLINIC", "HOSPITAL"];
+  facilityLabelValues: readonly FacilityTypeType[];
 }) {
   return (
     <section className="flex flex-col">

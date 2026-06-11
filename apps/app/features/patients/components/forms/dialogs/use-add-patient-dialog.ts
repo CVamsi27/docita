@@ -1,10 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useClinic } from "@/lib/contexts/clinic-context";
-import { useCreatePatient } from "@workspace/data-access";
+import { useCreatePatient, useVerifyPatientAbha } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   createPatientRequestSchema,
@@ -12,6 +13,11 @@ import {
   type PatientCreateFormValues,
 } from "@workspace/types";
 import { validatePatientPhoneNumberForCountry } from "@/features/patients/rules/patient-rules";
+import type { AbhaVerificationUiState } from "./abha-verification-field";
+import {
+  getAbhaVerificationErrorState,
+  getAbhaVerificationResultState,
+} from "./abha-verification-errors";
 
 export function useAddPatientDialog({
   onPatientAdded,
@@ -22,6 +28,13 @@ export function useAddPatientDialog({
 }) {
   const createPatient = useCreatePatient();
   const { clinic } = useClinic();
+  const [createdPatientId, setCreatedPatientId] = useState<string | null>(null);
+  const [abhaStatus, setAbhaStatus] = useState<AbhaVerificationUiState>({
+    kind: "idle",
+    message:
+      "Enter an ABHA address to verify after the patient record is saved.",
+  });
+  const verifyAbha = useVerifyPatientAbha();
 
   const form = useForm<PatientCreateFormValues>({
     resolver: zodResolver(patientCreateFormSchema),
@@ -39,6 +52,7 @@ export function useAddPatientDialog({
   });
 
   const dpdpAccepted = form.watch("dpdpConsent")?.accepted === true;
+  const abhaAddress = form.watch("abhaAddress");
 
   const handleInvalidSubmit = () => {
     showUserFacingErrorToast(
@@ -67,7 +81,7 @@ export function useAddPatientDialog({
         return;
       }
 
-      await createPatient.mutateAsync(
+      const patient = await createPatient.mutateAsync(
         createPatientRequestSchema.parse({
           ...values,
           firstName: values.firstName.trim(),
@@ -78,9 +92,41 @@ export function useAddPatientDialog({
           abhaAddress: values.abhaAddress?.trim() || undefined,
         }),
       );
-      toast.success("Patient added successfully");
-      form.reset();
+      const createdId = patient.id;
+      if (!createdId) {
+        toast.success("Patient added successfully");
+        form.reset();
+        onPatientAdded?.();
+        onOpenChange?.(false);
+        return;
+      }
+      setCreatedPatientId(createdId);
       onPatientAdded?.();
+
+      const nextAbhaAddress = values.abhaAddress?.trim();
+      if (nextAbhaAddress) {
+        try {
+          const result = await verifyAbha.mutateAsync({
+            patientId: createdId,
+            abhaAddress: nextAbhaAddress,
+          });
+          const nextStatus = getAbhaVerificationResultState(result);
+          setAbhaStatus(nextStatus);
+          if (!result.verified) {
+            toast.success("Patient added successfully");
+            return;
+          }
+          toast.success("Patient added and ABHA verified successfully");
+        } catch (error) {
+          setAbhaStatus(getAbhaVerificationErrorState(error));
+          toast.success("Patient added successfully");
+          return;
+        }
+      } else {
+        toast.success("Patient added successfully");
+      }
+      form.reset();
+      setCreatedPatientId(null);
       onOpenChange?.(false);
     } catch {
       showUserFacingErrorToast(
@@ -92,15 +138,43 @@ export function useAddPatientDialog({
   const handleClose = (open: boolean) => {
     if (!open) {
       form.reset();
+      setCreatedPatientId(null);
+      setAbhaStatus({
+        kind: "idle",
+        message:
+          "Enter an ABHA address to verify after the patient record is saved.",
+      });
     }
     onOpenChange?.(open);
+  };
+
+  const handleVerifyCreatedAbha = async () => {
+    const nextAbhaAddress = abhaAddress?.trim();
+    if (!createdPatientId || !nextAbhaAddress) return;
+
+    try {
+      const result = await verifyAbha.mutateAsync({
+        patientId: createdPatientId,
+        abhaAddress: nextAbhaAddress,
+      });
+      setAbhaStatus(getAbhaVerificationResultState(result));
+      if (result.verified) {
+        toast.success("ABHA verified successfully");
+      }
+    } catch (error) {
+      setAbhaStatus(getAbhaVerificationErrorState(error));
+    }
   };
 
   return {
     form,
     dpdpAccepted,
+    abhaAddress,
+    abhaStatus,
+    createdPatientId,
+    handleVerifyCreatedAbha,
     handleSubmit,
     handleClose,
-    isPending: createPatient.isPending,
+    isPending: createPatient.isPending || verifyAbha.isPending,
   };
 }

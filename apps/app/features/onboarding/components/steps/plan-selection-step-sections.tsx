@@ -25,7 +25,7 @@ import {
   TierCard,
   PLAN_ONBOARDING_KEY_HIGHLIGHTS,
 } from "@/features/subscription";
-import type { PlanFeature } from "@/features/subscription/components/sections/plan-features";
+import type { PlanFeature } from "@/features/subscription";
 import {
   applyModeToPricing,
   getAvailableModesForTier,

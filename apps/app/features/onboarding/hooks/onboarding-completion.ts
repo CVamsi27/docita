@@ -1,5 +1,4 @@
-import { apiFetch } from "@/lib/api/api-client";
-import { buildJsonHeaders } from "@/lib/auth/csrf";
+import { completeOnboarding } from "@/features/onboarding/api/onboarding.api";
 import { appSession } from "@/lib/auth/session";
 import { RESTARTABLE_ONBOARDING_ERROR } from "./onboarding-session-storage";
 import type { buildRegistrationPayload } from "./onboarding-payload";
@@ -8,26 +7,11 @@ interface RestartableOnboardingError extends Error {
   restartOnboarding?: boolean;
 }
 
-interface CompleteOnboardingResponse {
-  success?: boolean;
-  message?: string;
-  errors?: string[];
-  access_token?: string;
-  user?: unknown;
-}
-
 export async function completeOnboardingRegistration(
   onboardingId: string,
   payload: ReturnType<typeof buildRegistrationPayload>,
 ): Promise<boolean> {
-  const response = await apiFetch<CompleteOnboardingResponse>(
-    `/onboarding/${onboardingId}/complete`,
-    {
-      method: "POST",
-      headers: buildJsonHeaders(),
-      body: JSON.stringify(payload),
-    },
-  );
+  const response = await completeOnboarding(onboardingId, payload);
 
   if (response.success === false) {
     const raw = response.errors?.[0] ?? response.message ?? "";

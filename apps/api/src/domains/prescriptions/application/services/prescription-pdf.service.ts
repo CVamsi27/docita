@@ -6,6 +6,7 @@ import {
   BasePDFConfig,
   PDFContext,
 } from '@/shared/modules/document-generation/pdf/base-pdf.service';
+import { appendPdfPoweredByDocita } from '@/shared/modules/document-generation/pdf/pdf-branding';
 import {
   PDFClinicInfo,
   PDFDoctorInfo,
@@ -55,7 +56,9 @@ export class PrescriptionPdfService extends BasePdfService {
       patient: data.patient,
       doctor: data.doctor,
       date: data.date,
-      footerText: `This prescription is valid for ${data.validityDays ?? 30} days from the date of issue. Not valid for medico-legal purposes.`,
+      footerText: appendPdfPoweredByDocita(
+        `This prescription is valid for ${data.validityDays ?? 30} days from the date of issue. Not valid for medico-legal purposes.`,
+      ),
     };
 
     const { doc, context, buffers } = this.createBufferedDocument(config);

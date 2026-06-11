@@ -4,14 +4,14 @@ import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
   type ISubscriptionRepository,
 } from '@/domains/subscriptions/application/ports';
+import {
+  BaseSubscriptionNotifier,
+  type SubscriptionWithClinic,
+} from '@/domains/subscriptions/application/services/base-subscription-notifier';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { DATE_FORMATS, formatDate } from '@workspace/utils';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { getUtcDayBounds } from '@/shared/schedule/scheduler-date.util';
-import {
-  BaseSubscriptionNotifier,
-  type SubscriptionWithClinic,
-} from './base-subscription-notifier.use-case';
 
 export interface NotifyExpiringSubscriptionsRequest {
   targetDate: Date;

@@ -1,5 +1,6 @@
 ---
 import { DocitaWordmark } from "@workspace/ui/components/indicators/docita-logo";
+import { SUPPORT_EMAIL } from "@workspace/types";
 ---
 
 <footer class="landing-footer text-foreground/80 px-6 py-10">
@@ -29,6 +30,10 @@ import { DocitaWordmark } from "@workspace/ui/components/indicators/docita-logo"
     <div>
       <h2 class="font-semibold text-foreground">Deep dives</h2>
       <ul class="mt-4 space-y-2 text-sm">
+        <li><a href="/clinic-management-software-india" class="text-foreground/80 transition-colors hover:text-primary">Clinic management software India</a></li>
+        <li><a href="/opd-management-software" class="text-foreground/80 transition-colors hover:text-primary">OPD software</a></li>
+        <li><a href="/digital-prescription-software" class="text-foreground/80 transition-colors hover:text-primary">Digital prescriptions</a></li>
+        <li><a href="/clinic-billing-software" class="text-foreground/80 transition-colors hover:text-primary">Clinic billing</a></li>
         <li><a href="/paper-to-cloud" class="text-foreground/80 transition-colors hover:text-primary">Paper to cloud</a></li>
         <li><a href="/whatsapp-workflows" class="text-foreground/80 transition-colors hover:text-primary">WhatsApp workflows</a></li>
         <li><a href="/trust" class="text-foreground/80 transition-colors hover:text-primary">Trust &amp; hosting</a></li>
@@ -41,7 +46,7 @@ import { DocitaWordmark } from "@workspace/ui/components/indicators/docita-logo"
         <li><a href="/trust" class="text-foreground/80 transition-colors hover:text-primary">Trust & Hosting</a></li>
         <li><a href="/contact" class="text-foreground/80 transition-colors hover:text-primary">Help center</a></li>
         <li><a href="/contact" class="text-foreground/80 transition-colors hover:text-primary">Contact us</a></li>
-        <li><a href="mailto:support@docita.work" class="text-foreground/80 transition-colors hover:text-primary">support@docita.work</a></li>
+        <li><a href={`mailto:${SUPPORT_EMAIL}`} class="text-foreground/80 transition-colors hover:text-primary">{SUPPORT_EMAIL}</a></li>
       </ul>
     </div>
 

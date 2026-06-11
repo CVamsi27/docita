@@ -1,3 +1,5 @@
+import { SUPPORT_EMAIL } from "@workspace/types";
+
 export type BroadcastPresetId =
   | "docita_intro_v1"
   | "docita_hospital_referral_partner_v1"
@@ -14,7 +16,7 @@ interface BroadcastPreset {
 
 const CONTACT_BLOCK =
   "Web: docita.work\n" +
-  "Email: support@docita.work\n" +
+  `Email: ${SUPPORT_EMAIL}\n` +
   "Phone: +91 87903 11010";
 
 export const BROADCAST_PRESETS: BroadcastPreset[] = [

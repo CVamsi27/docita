@@ -51,17 +51,28 @@ normalize_db_url() {
     printf '%s\n' "$value"
 }
 
+read_database_url_from_file() {
+    local file="${1:-}"
+    local line=""
+
+    if [ -f "$file" ]; then
+        line=$(grep -E '^DATABASE_URL=' "$file" | tail -1 || true)
+    fi
+
+    normalize_db_url "$line"
+}
+
 # Function to get database URL
 get_db_url() {
-    local explicit_db_url="${DATABASE_URL:-}"
+    local db_url="${DATABASE_URL:-}"
 
-    if [ -z "$explicit_db_url" ] && [ -f "../../.env" ]; then
-        source ../../.env
+    if [ -z "$db_url" ]; then
+        db_url=$(read_database_url_from_file "../../.env")
     fi
-    if [ -z "$explicit_db_url" ] && [ -f ".env" ]; then
-        source .env
+    if [ -z "$db_url" ]; then
+        db_url=$(read_database_url_from_file ".env")
     fi
-    normalize_db_url "${explicit_db_url:-${DATABASE_URL:-}}"
+    normalize_db_url "$db_url"
 }
 
 # Function to remove unsupported URI query params before invoking libpq tools.

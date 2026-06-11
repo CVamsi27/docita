@@ -6,19 +6,22 @@ import SiteFooter from "@/components/site-footer.astro";
 import SiteHeader from "@/components/site-header.astro";
 import { StickyCta } from "@/components/sections/sticky-cta";
 import { getAppBaseUrl } from "@/lib/get-app-base-url";
+import { SUPPORT_EMAIL } from "@workspace/types";
 
 interface Props {
   title?: string;
   description?: string;
   canonicalPath?: string;
   noIndex?: boolean;
+  structuredData?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
 const {
-  title = "Docita - Clinic Management Software for Indian Clinics | Guided Setup",
+  title = "Docita - Clinic Management Software",
   description = "Docita helps Indian clinics move from paper files and Excel into appointments, prescriptions, billing, records, and patient communication in one reliable workflow",
   canonicalPath = "/",
   noIndex = false,
+  structuredData,
 } = Astro.props;
 
 const siteUrl = "https://docita.work";
@@ -43,9 +46,15 @@ const jsonLd = {
     "@type": "Organization",
     name: "Docita",
     url: siteUrl,
-    email: "support@docita.work",
+    email: SUPPORT_EMAIL,
   },
 };
+const structuredDataItems =
+  structuredData === undefined
+    ? []
+    : Array.isArray(structuredData)
+      ? structuredData
+      : [structuredData];
 ---
 
 <!doctype html>
@@ -94,6 +103,9 @@ const jsonLd = {
 
     {noIndex ? <meta name="robots" content="noindex,nofollow" /> : <meta name="robots" content="index,follow" />}
     <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    {structuredDataItems.map((item) => (
+      <script is:inline type="application/ld+json" set:html={JSON.stringify(item)} />
+    ))}
   </head>
   <body class="landing-surface min-h-screen bg-background font-sans text-foreground antialiased">
     <SiteHeader />

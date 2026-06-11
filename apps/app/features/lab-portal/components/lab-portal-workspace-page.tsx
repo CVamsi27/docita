@@ -1,6 +1,6 @@
 "use client";
 
-import { LabWorkspaceContent } from "@/features/lab-tests/components/workspace/lab-workspace-content";
+import { LabWorkspaceContent } from "@/features/lab-tests";
 
 export function LabPortalWorkspacePage() {
   return (

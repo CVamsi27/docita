@@ -14,7 +14,13 @@ import { InternalDataAccessBridge } from "@/app/data-access-bridge";
 const TOAST_DURATION_MS = 5000;
 const TOAST_VISIBLE_COUNT = Number.POSITIVE_INFINITY;
 
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({
+  children,
+  nonce,
+}: {
+  children: ReactNode;
+  nonce?: string;
+}) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -26,7 +32,8 @@ export function Providers({ children }: { children: ReactNode }) {
             refetchOnMount: false,
             retry: (failureCount: number, error: unknown) => {
               if (error instanceof APIRequestError) {
-                if (error.status !== undefined && error.status < 500) return false;
+                if (error.status !== undefined && error.status < 500)
+                  return false;
               }
               return failureCount < 2;
             },
@@ -46,6 +53,7 @@ export function Providers({ children }: { children: ReactNode }) {
       disableTransitionOnChange
       enableColorScheme
       storageKey="theme"
+      nonce={nonce}
     >
       <QueryClientProvider client={queryClient}>
         <AuthProvider>

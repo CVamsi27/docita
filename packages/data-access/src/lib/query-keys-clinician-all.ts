@@ -22,6 +22,7 @@ export const queryKeys = {
     detail: (id: string) => ["patients", "detail", id] as const,
     medicalHistory: (id: string) =>
       ["patients", "detail", id, "medical-history"] as const,
+    tags: (id: string) => ["patients", "detail", id, "tags"] as const,
     metrics: {
       root: (id: string) => ["patients", "detail", id, "metrics"] as const,
       categories: (id: string) =>

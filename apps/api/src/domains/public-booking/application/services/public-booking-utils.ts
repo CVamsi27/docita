@@ -1,5 +1,9 @@
 import { NotFoundException } from '@nestjs/common';
-import type { PublicBookingClinicResponse } from '@workspace/types';
+import {
+  facilityTypeSchema,
+  type FacilityTypeType,
+  type PublicBookingClinicResponse,
+} from '@workspace/types';
 import { type PublicBookingPersistencePort } from '@/domains/public-booking/application/ports/public-booking-persistence.port';
 import { runWithTenant } from '@/shared/common/middleware/tenant.middleware';
 import { isRecord } from '@workspace/utils';
@@ -19,12 +23,12 @@ export function normalizePhone(phone: string): string {
 
 function readFacilityLabelFromSettings(
   settings: unknown,
-): 'CLINIC' | 'HOSPITAL' | undefined {
+): FacilityTypeType | undefined {
   if (!isRecord(settings)) {
     return undefined;
   }
-  const raw = settings.facilityLabel;
-  return raw === 'HOSPITAL' || raw === 'CLINIC' ? raw : undefined;
+  const parsed = facilityTypeSchema.safeParse(settings.facilityLabel);
+  return parsed.success ? parsed.data : undefined;
 }
 
 export async function resolveClinicByReferralCode(

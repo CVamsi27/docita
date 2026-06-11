@@ -53,6 +53,7 @@ export * from "./hooks/use-medical-coding";
 export * from "./hooks/use-notifications";
 export * from "./hooks/use-patient-portal";
 export * from "./hooks/use-patient-timeline";
+export * from "./hooks/use-patient-tags";
 export * from "./hooks/use-patients";
 export * from "./hooks/use-patient-medical-history-mutations";
 export * from "./hooks/use-patient-metrics";

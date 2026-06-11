@@ -24,7 +24,7 @@ import { GENDER_OPTIONS } from "./add-patient-dialog-constants";
 
 interface SharedPatientInfoFieldsProps<T extends FieldValues> {
   control: Control<T>;
-// jscpd:ignore-end
+  // jscpd:ignore-end
   dateOfBirthRequired?: boolean;
   genderRequired?: boolean;
 }
@@ -106,11 +106,6 @@ const PATIENT_CONTACT_FIELDS: PatientTextFieldConfig[] = [
     placeholder: "Email",
     inputProps: { type: "email" },
   },
-  {
-    name: "abhaAddress",
-    label: "ABHA Address",
-    placeholder: "name@abdm",
-  },
 ];
 
 export function SharedPatientNameFields<T extends FieldValues>({
@@ -144,33 +139,66 @@ export function SharedPatientIdentityFields<T extends FieldValues>({
 }: SharedPatientInfoFieldsProps<T>) {
   return (
     <>
-      <FormField control={control} name={"gender" as Path<T>} render={({ field }) => (
-        <FormItem>
-          <FormLabel>Gender {genderRequired ? <span className="text-destructive ml-0.5">*</span> : null}</FormLabel>
-          <Select
-            value={field.value ?? ""}
-            onValueChange={(value) => {
-              const match = GENDER_OPTIONS.find((o) => o.value === value);
-              if (match) field.onChange(match.value);
-            }}
-          >
-            <FormControl><SelectTrigger><SelectValue placeholder="Gender" /></SelectTrigger></FormControl>
-            <SelectContent>
-              {GENDER_OPTIONS.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )} />
-      <FormField control={control} name={"dateOfBirth" as Path<T>} render={({ field }) => (
-        <FormItem>
-          <FormLabel>Date of Birth {dateOfBirthRequired ? <span className="text-destructive ml-0.5">*</span> : null}</FormLabel>
-          <FormControl>
-            <DatePicker value={field.value || undefined} onChange={(date) => field.onChange(date?.toISOString().slice(0, 10) ?? "")} placeholder="Date of birth" maxDate={new Date()} />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )} />
+      <FormField
+        control={control}
+        name={"gender" as Path<T>}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>
+              Gender{" "}
+              {genderRequired ? (
+                <span className="text-destructive ml-0.5">*</span>
+              ) : null}
+            </FormLabel>
+            <Select
+              value={field.value ?? ""}
+              onValueChange={(value) => {
+                const match = GENDER_OPTIONS.find((o) => o.value === value);
+                if (match) field.onChange(match.value);
+              }}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Gender" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {GENDER_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={control}
+        name={"dateOfBirth" as Path<T>}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>
+              Date of Birth{" "}
+              {dateOfBirthRequired ? (
+                <span className="text-destructive ml-0.5">*</span>
+              ) : null}
+            </FormLabel>
+            <FormControl>
+              <DatePicker
+                value={field.value || undefined}
+                onChange={(date) =>
+                  field.onChange(date?.toISOString().slice(0, 10) ?? "")
+                }
+                placeholder="Date of birth"
+                maxDate={new Date()}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </>
   );
 }

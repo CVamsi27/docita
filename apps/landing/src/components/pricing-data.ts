@@ -1,8 +1,19 @@
-import { getAvailableModesForTier, MODE_TIER_HIGHLIGHTS, PLAN_MODE_INFO, type PlanMode, type TierName, tierSchema } from "@workspace/types";
+import {
+  getAvailableModesForTier,
+  MODE_TIER_HIGHLIGHTS,
+  PLAN_MODE_INFO,
+  type PlanMode,
+  type TierName,
+  tierSchema,
+} from "@workspace/types";
 import { FALLBACK_PRICING_CONFIG, formatTierPrice } from "@/lib/landing-data";
 
 export const TIER_ORDER: readonly TierName[] = [
-  "STARTER", "ESSENTIAL", "PROFESSIONAL", "HOSPITAL", "ENTERPRISE",
+  "STARTER",
+  "ESSENTIAL",
+  "PROFESSIONAL",
+  "HOSPITAL",
+  "ENTERPRISE",
 ] as const;
 
 const STARTER_FEATURES = [
@@ -64,17 +75,29 @@ const FULL_FEATURES_BY_TIER: Partial<Record<TierName, string[]>> = {
   ENTERPRISE: ENTERPRISE_FULL_FEATURES,
 };
 
-export function getFeaturesForTier(id: TierName, mode: PlanMode, fallback: string[]): string[] {
+function getFeaturesForTier(
+  id: TierName,
+  mode: PlanMode,
+  fallback: string[],
+): string[] {
   if (mode === "FULL") return FULL_FEATURES_BY_TIER[id] ?? fallback;
-  return MODE_TIER_HIGHLIGHTS[mode]?.[id] ?? FULL_FEATURES_BY_TIER[id] ?? fallback;
+  return (
+    MODE_TIER_HIGHLIGHTS[mode]?.[id] ?? FULL_FEATURES_BY_TIER[id] ?? fallback
+  );
 }
 
-export function applyModeMultiplier(amount: number | "custom", mode: PlanMode): number | "custom" {
+function applyModeMultiplier(
+  amount: number | "custom",
+  mode: PlanMode,
+): number | "custom" {
   if (amount === "custom") return amount;
   return Math.round(amount * PLAN_MODE_INFO[mode].pricingMultiplier);
 }
 
-export const SETUP_START_PRICE = formatTierPrice(4999, FALLBACK_PRICING_CONFIG.currency.symbol);
+export const SETUP_START_PRICE = formatTierPrice(
+  4999,
+  FALLBACK_PRICING_CONFIG.currency.symbol,
+);
 
 export interface PricingTierData {
   id: string;
@@ -85,7 +108,7 @@ export interface PricingTierData {
   pricing: { monthly: number | "custom"; yearly: number | "custom" };
 }
 
-export interface PricingTierCardViewModel {
+interface PricingTierCardViewModel {
   tierId: TierName;
   effectiveMode: PlanMode;
   isFeatured: boolean;
@@ -106,19 +129,35 @@ export function resolvePricingTierCardViewModel(
   const parsedTierId = tierSchema.safeParse(tier.id);
   const tierId: TierName = parsedTierId.success ? parsedTierId.data : "STARTER";
   const supportedModes = getAvailableModesForTier(tierId);
-  const effectiveMode: PlanMode = supportedModes.includes(selectedMode) ? selectedMode : "FULL";
+  const effectiveMode: PlanMode = supportedModes.includes(selectedMode)
+    ? selectedMode
+    : "FULL";
   const isFeatured = tierId === "ESSENTIAL";
   const features = getFeaturesForTier(tierId, effectiveMode, tier.features);
-  const adjustedMonthly = applyModeMultiplier(tier.pricing.monthly, effectiveMode);
-  const adjustedYearly = applyModeMultiplier(tier.pricing.yearly, effectiveMode);
+  const adjustedMonthly = applyModeMultiplier(
+    tier.pricing.monthly,
+    effectiveMode,
+  );
+  const adjustedYearly = applyModeMultiplier(
+    tier.pricing.yearly,
+    effectiveMode,
+  );
   const adjustedPrice = isYearly ? adjustedYearly : adjustedMonthly;
-  const listYearly = typeof adjustedMonthly === "number" ? adjustedMonthly * 12 : null;
+  const listYearly =
+    typeof adjustedMonthly === "number" ? adjustedMonthly * 12 : null;
   const yearlySavings =
-    isYearly && listYearly !== null && typeof adjustedYearly === "number" && listYearly > adjustedYearly
+    isYearly &&
+    listYearly !== null &&
+    typeof adjustedYearly === "number" &&
+    listYearly > adjustedYearly
       ? listYearly - adjustedYearly
       : null;
-  const modeSuffix = effectiveMode === "FULL" ? null : ` · ${PLAN_MODE_INFO[effectiveMode].name}`;
-  const modeMismatched = effectiveMode !== selectedMode && selectedMode !== "FULL";
+  const modeSuffix =
+    effectiveMode === "FULL"
+      ? null
+      : ` · ${PLAN_MODE_INFO[effectiveMode].name}`;
+  const modeMismatched =
+    effectiveMode !== selectedMode && selectedMode !== "FULL";
 
   return {
     tierId,

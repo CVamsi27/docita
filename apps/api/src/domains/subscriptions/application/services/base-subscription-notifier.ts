@@ -7,7 +7,7 @@ import {
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
-export type ReminderBatchResult = {
+type ReminderBatchResult = {
   reminderType: string;
   matchedSubscriptions: number;
   attemptedClinics: number;
@@ -24,7 +24,7 @@ export type SubscriptionWithClinic = {
   } | null;
 };
 
-export type ReminderCreateRecord = {
+type ReminderCreateRecord = {
   clinicId: string;
   subscriptionId: string;
   type: string;

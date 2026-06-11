@@ -1,12 +1,12 @@
+import { facilityTypeSchema, type FacilityTypeType } from "@workspace/types";
 import type { Clinic } from "./clinic-context-types";
 
 export function getFacilityLabelFromSettings(
   value: Clinic["settings"],
-): "CLINIC" | "HOSPITAL" | undefined {
+): FacilityTypeType | undefined {
   if (!value || typeof value !== "object" || Array.isArray(value))
     return undefined;
   const facilityLabel = Object.fromEntries(Object.entries(value)).facilityLabel;
-  return facilityLabel === "CLINIC" || facilityLabel === "HOSPITAL"
-    ? facilityLabel
-    : undefined;
+  const parsed = facilityTypeSchema.safeParse(facilityLabel);
+  return parsed.success ? parsed.data : undefined;
 }

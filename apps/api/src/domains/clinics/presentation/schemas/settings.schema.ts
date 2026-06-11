@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ClinicType as _ClinicType } from '@workspace/db';
-import { taxRegimeSchema } from '@workspace/types';
+import { facilityTypeSchema, taxRegimeSchema } from '@workspace/types';
 const BankAccountSchema = z.object({
   accountHolderName: z.string().optional(),
   bankName: z.string().optional(),
@@ -88,7 +88,7 @@ export const ClinicSettingsSchema = z.object({
   opdSlipRevisitValidityDays: z.number().int().min(0).max(365).optional(),
   opdSlipFooterNote: z.string().trim().max(500).optional(),
 
-  facilityLabel: z.enum(['CLINIC', 'HOSPITAL']).optional(),
+  facilityLabel: facilityTypeSchema.optional(),
 
   /**
    * International tax planning:

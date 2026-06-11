@@ -152,7 +152,9 @@ describe('DPDPComplianceService', () => {
     });
 
     it('does not duplicate consent when one is already active', async () => {
-      mockPrismaService.consent.findFirst.mockResolvedValue({ id: 'consent_1' });
+      mockPrismaService.consent.findFirst.mockResolvedValue({
+        id: 'consent_1',
+      });
 
       const result = await service.setDpdpNoticeConsent({
         patientId: 'pat_1',
@@ -166,7 +168,9 @@ describe('DPDPComplianceService', () => {
     });
 
     it('withdraws the active consent when revoked', async () => {
-      mockPrismaService.consent.findFirst.mockResolvedValue({ id: 'consent_1' });
+      mockPrismaService.consent.findFirst.mockResolvedValue({
+        id: 'consent_1',
+      });
       mockPrismaService.consent.update.mockResolvedValue({
         id: 'consent_1',
         clinicId: 'clinic_1',

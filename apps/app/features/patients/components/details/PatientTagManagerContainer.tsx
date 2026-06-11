@@ -1,10 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { apiFetch } from "@/lib/api/api-client";
+import { useEffect, useState } from "react";
 import { type PatientTag, PatientTagManagerUI } from "./PatientTagManagerUI";
 import { DEFAULT_TAG_COLOR_VAR } from "./tag-colors";
-import { useClinicSettings } from "@workspace/data-access";
+import {
+  useClinicSettings,
+  useCreatePatientTag,
+  useDeletePatientTag,
+  usePatientTags,
+  useUpdatePatientTag,
+} from "@workspace/data-access";
 import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
 import { Feature } from "@workspace/types";
@@ -24,7 +29,6 @@ export function PatientTagManagerContainer({
   const [tags, setTags] = useState<PatientTag[]>([]);
   const [newTag, setNewTag] = useState("");
   const [newColor, setNewColor] = useState(DEFAULT_TAG_COLOR_VAR);
-  const [loading, setLoading] = useState(false);
   const tierPatientsOk = useTierFeatureEnabled(
     Feature.BASIC_PATIENT_MANAGEMENT,
   );
@@ -33,35 +37,21 @@ export function PatientTagManagerContainer({
   const presetTags = ClinicFeatureService.getPresetTags(
     resolveClinicTypeFeatures(clinic?.type).key,
   );
-
-  const loadTags = useCallback(async () => {
-    if (!tierPatientsOk) return;
-    try {
-      const data = await apiFetch<PatientTag[]>(`/patients/${patientId}/tags`);
-      setTags(data);
-    } catch (err) {
-      showUserFacingErrorToast(
-        err,
-        "We could not load these tags. Please try again.",
-        "generic",
-      );
-    }
-  }, [patientId, tierPatientsOk]);
+  const tagsQuery = usePatientTags(patientId, { enabled: open && tierPatientsOk });
+  const createTag = useCreatePatientTag(patientId);
+  const updateTag = useUpdatePatientTag(patientId);
+  const deleteTag = useDeletePatientTag(patientId);
 
   useEffect(() => {
-    if (!open || !tierPatientsOk) return;
-    void loadTags();
-  }, [open, tierPatientsOk, loadTags]);
+    if (tagsQuery.data) {
+      setTags(tagsQuery.data);
+    }
+  }, [tagsQuery.data]);
 
   const addTag = async (tag: string, color: string) => {
     if (!tierPatientsOk) return;
-    setLoading(true);
     try {
-      await apiFetch(`/patients/${patientId}/tags`, {
-        method: "POST",
-        body: JSON.stringify({ tag, color }),
-      });
-      await loadTags();
+      await createTag.mutateAsync({ tag, color });
       setNewTag("");
       setNewColor(DEFAULT_TAG_COLOR_VAR);
       onTagsUpdated?.();
@@ -71,8 +61,6 @@ export function PatientTagManagerContainer({
         "We could not add this tag. Please try again.",
         "save",
       );
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -82,9 +70,7 @@ export function PatientTagManagerContainer({
     setTags(tags.filter((t) => t.id !== tagId));
 
     try {
-      await apiFetch(`/patients/${patientId}/tags/${tagId}`, {
-        method: "DELETE",
-      });
+      await deleteTag.mutateAsync({ tagId });
       onTagsUpdated?.();
     } catch (err) {
       showUserFacingErrorToast(
@@ -110,9 +96,10 @@ export function PatientTagManagerContainer({
     );
 
     try {
-      await apiFetch(`/patients/${patientId}/tags/${tagId}`, {
-        method: "PATCH",
-        body: JSON.stringify({ tag: newName, color: newTagColor }),
+      await updateTag.mutateAsync({
+        tagId,
+        tag: newName,
+        color: newTagColor,
       });
       onTagsUpdated?.();
     } catch (err) {
@@ -137,7 +124,7 @@ export function PatientTagManagerContainer({
       presetTags={presetTags}
       newTag={newTag}
       newColor={newColor}
-      loading={loading}
+      loading={tagsQuery.isLoading || createTag.isPending}
       onNewTagChange={setNewTag}
       onNewColorChange={setNewColor}
       onAddTag={addTag}

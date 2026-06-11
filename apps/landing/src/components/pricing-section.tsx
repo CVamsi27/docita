@@ -35,7 +35,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           <span className="r2-eyebrow">Plans</span>
         </div>
         <h2 id="r2-pricing-heading" className="mt-4 max-w-3xl r2-display-sm text-foreground">
-          Pricing built for paid <em>clinic rollouts</em>&mdash;not free trials.
+          Pricing built for paid <em>clinic rollouts</em>.
         </h2>
         <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
           Software from {FALLBACK_PRICING_CONFIG.currency.symbol}499 / month.

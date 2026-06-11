@@ -27,6 +27,7 @@ export interface MedicalDocument {
 export interface CreateMedicalDocumentInput {
   type: string;
   patientId: string;
+  appointmentId?: string;
   title: string;
   content: Record<string, unknown>;
   doctorId: string;

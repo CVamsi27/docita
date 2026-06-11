@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { requiredStringSchema } from "./common";
 
+// allow-no-base-schema: owner=inventory reason=ui-string-number-inputs review=2026-09-30
 export const inventoryAddItemFormSchema = z.object({
   name: requiredStringSchema("Item Name"),
   category: requiredStringSchema("Category"),

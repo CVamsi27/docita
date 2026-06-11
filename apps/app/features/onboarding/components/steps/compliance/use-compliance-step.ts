@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import type { UseFormReturn } from "react-hook-form";
-import { apiFetch } from "@/lib/api/api-client";
-import { buildJsonHeaders } from "@/lib/auth/csrf";
+import {
+  createSlaSignatureSession,
+  fetchSlaSignatureSessionStatus,
+} from "@/features/onboarding/api/onboarding.api";
 import { toAbsoluteAppUrl } from "@/lib/utils/app-url";
 import { usePhoneSignatureQrFlow } from "@/hooks/use-phone-signature-qr-flow";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
@@ -12,26 +14,14 @@ import {
   resolveSignaturePreviewUrl,
   fetchQrSessionStatus,
   buildSignatureUploadRedirectUrl,
-  buildQrSessionStatusUrl,
-  buildCreateSignatureSessionUrl,
   LEGAL_DOCS_CONFIG,
   type LegalDocumentType,
-  type QrSessionStatusResponse,
 } from "./compliance-step-helpers";
 
 export interface UseComplianceStepProps {
   complianceForm: UseFormReturn<ComplianceSettings>;
   onboardingId?: string;
   ensureOnboardingId?: (options?: { forceRefresh?: boolean }) => Promise<string>;
-}
-
-async function createSignatureSession(
-  resolvedOnboardingId: string,
-): Promise<{ id: string; uploadSecret: string }> {
-  return apiFetch<{ id: string; uploadSecret: string }>(
-    buildCreateSignatureSessionUrl(resolvedOnboardingId),
-    { method: "POST", headers: buildJsonHeaders(), body: JSON.stringify({}) },
-  );
 }
 
 function useSignaturePreview({
@@ -50,7 +40,7 @@ function useSignaturePreview({
   const fetchSignaturePreview = useCallback(async (activeOnboardingId: string, sessionId: string) => {
     setSignaturePreviewLoading(true);
     try {
-      const data = await apiFetch<QrSessionStatusResponse>(buildQrSessionStatusUrl(activeOnboardingId, sessionId), { method: "GET", cache: "no-store" });
+      const data = await fetchSlaSignatureSessionStatus(activeOnboardingId, sessionId);
       setSignatureFileUrl(data.fileUrl ? resolveSignaturePreviewUrl(data.fileUrl) : null);
       setSignaturePreviewFailed(false);
     } catch {
@@ -118,12 +108,12 @@ export function useComplianceStep({ complianceForm, onboardingId, ensureOnboardi
     if (!activeOnboardingId) throw new Error("We could not create the signature link right now. Please try again.");
     let sessionData: { id: string; uploadSecret: string } | null = null;
     try {
-      sessionData = await createSignatureSession(activeOnboardingId);
+      sessionData = await createSlaSignatureSession(activeOnboardingId);
     } catch (error) {
       if (isStaleOnboardingSessionError(error) && ensureOnboardingId) {
         const refreshed = await ensureOnboardingId({ forceRefresh: true });
         try {
-          sessionData = await createSignatureSession(refreshed);
+          sessionData = await createSlaSignatureSession(refreshed);
           activeOnboardingId = refreshed;
         } catch {
           /* fall through to null-check below */

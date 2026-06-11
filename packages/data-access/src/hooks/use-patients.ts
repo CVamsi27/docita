@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { APIRequestError } from "../lib/errors";
 import { queryKeys } from "../lib/query-keys-clinician";
 import {
@@ -12,6 +12,9 @@ import {
   PatientSurgicalHistory,
   PatientWithMedicalHistory,
   UpdatePatientRequest,
+  type AbhaVerificationResult,
+  type VerifyAbhaRequest,
+  verifyAbhaRequestSchema,
 } from "@workspace/types";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
@@ -24,6 +27,10 @@ type UsePatientsOptions = {
   search?: string;
   enabled?: boolean;
 } | null;
+
+export type VerifyPatientAbhaVariables = VerifyAbhaRequest & {
+  patientId: string;
+};
 
 export const usePatients = (options?: UsePatientsOptions) => {
   const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(
@@ -171,6 +178,29 @@ export const useUpdatePatient = (id: string) =>
     invalidateKeys: [queryKeys.patients.all(), queryKeys.patients.byId(id)],
     suppressGlobalErrorToast: true,
   });
+
+export const useVerifyPatientAbha = () => {
+  const queryClient = useQueryClient();
+
+  return useAPIMutation<AbhaVerificationResult, VerifyPatientAbhaVariables>(
+    ({ patientId }) => `/patients/${patientId}/abha/verify`,
+    "POST",
+    {
+      body: ({ patientId: _patientId, ...data }) =>
+        verifyAbhaRequestSchema.parse(data),
+      suppressGlobalErrorToast: true,
+      onSuccess: (_data, variables) => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.patients.all() });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.patients.byId(variables.patientId),
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.patients.withMedicalHistory(variables.patientId),
+        });
+      },
+    },
+  );
+};
 
 export const useDeletePatient = (id: string) =>
   useAPIMutation<void, void>(`/patients/${id}`, "DELETE", {

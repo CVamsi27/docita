@@ -29,7 +29,11 @@ import {
 import { PrismaDoctorScheduleCoreRepository } from './infrastructure/repositories/prisma-doctor-schedule-core.repository';
 import { PrismaDoctorScheduleRepository } from './infrastructure/repositories/prisma-doctor-schedule.repository';
 import { PrismaDoctorTimeOffRepository } from './infrastructure/repositories/prisma-doctor-time-off.repository';
-import { APPOINTMENT_REPOSITORY_TOKEN } from '@/domains/appointments/core/repositories/appointment.repository.interface';
+import {
+  APPOINTMENT_READ_REPOSITORY_TOKEN,
+  APPOINTMENT_REPOSITORY_TOKEN,
+  APPOINTMENT_WRITE_REPOSITORY_TOKEN,
+} from '@/domains/appointments/core/repositories/appointment.repository.interface';
 import { SLOT_APPOINTMENT_LOOKUP_TOKEN } from './application/ports/slot-appointment-lookup.port';
 import { PrismaAppointmentReadRepository } from '@/domains/appointments/infrastructure/persistence/prisma-appointment-read.repository';
 import { PrismaAppointmentWriteRepository } from '@/domains/appointments/infrastructure/persistence/prisma-appointment-write.repository';
@@ -87,6 +91,14 @@ import { DoctorVerificationHttpClient } from './infrastructure/external/doctor-v
     // jscpd:ignore-end
     PrismaAppointmentWriteRepository,
     PrismaAppointmentRepository,
+    {
+      provide: APPOINTMENT_READ_REPOSITORY_TOKEN,
+      useExisting: PrismaAppointmentReadRepository,
+    },
+    {
+      provide: APPOINTMENT_WRITE_REPOSITORY_TOKEN,
+      useExisting: PrismaAppointmentWriteRepository,
+    },
     {
       provide: APPOINTMENT_REPOSITORY_TOKEN,
       useExisting: PrismaAppointmentRepository,

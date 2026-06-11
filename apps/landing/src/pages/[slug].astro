@@ -1,0 +1,169 @@
+---
+import MainLayout from "@/layouts/main-layout.astro";
+import {
+  getSeoLandingPage,
+  type SeoLandingPage,
+} from "@/lib/seo-pages";
+
+const { slug } = Astro.params;
+const page = getSeoLandingPage(slug ?? "");
+
+if (!page) {
+  return Astro.redirect("/404");
+}
+
+const relatedPages = page.relatedSlugs
+  .map((relatedSlug) => getSeoLandingPage(relatedSlug))
+  .filter((relatedPage): relatedPage is SeoLandingPage => Boolean(relatedPage));
+
+const structuredData = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: page.title,
+    description: page.description,
+    url: `https://docita.work/${page.slug}`,
+    about: page.keyword,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "Docita",
+      url: "https://docita.work",
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://docita.work",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: page.keyword,
+        item: `https://docita.work/${page.slug}`,
+      },
+    ],
+  },
+];
+---
+
+<MainLayout
+  canonicalPath={`/${page.slug}`}
+  title={page.title}
+  description={page.description}
+  structuredData={structuredData}
+>
+  <section class="px-6 py-16">
+    <div class="ui-page-shell">
+      <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+        <div class="max-w-3xl">
+          <p class="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-primary">
+            {page.keyword}
+          </p>
+          <h1 class="ui-page-title text-balance text-foreground">
+            {page.h1}
+          </h1>
+          <p class="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
+            {page.intro}
+          </p>
+          <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+            <a
+              href="/contact"
+              class="inline-flex items-center justify-center rounded-[var(--radius)] bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Book workflow mapping
+            </a>
+            <a
+              href="/trust"
+              class="inline-flex items-center justify-center rounded-[var(--radius)] border bg-background px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+            >
+              Review trust posture
+            </a>
+          </div>
+        </div>
+
+        <aside class="landing-surface-panel rounded-[var(--radius)] border border-border/70 p-6">
+          <h2 class="text-lg font-semibold">Best fit</h2>
+          <p class="mt-3 text-sm leading-6 text-muted-foreground">
+            {page.primaryUseCase}
+          </p>
+          <ul class="mt-5 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+            {page.fit.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </aside>
+      </div>
+
+      <div class="mt-12 grid gap-6 lg:grid-cols-3">
+        {page.sections.map((section) => (
+          <article class="landing-surface-panel rounded-[var(--radius)] border border-border/70 p-6">
+            <h2 class="text-xl font-semibold">{section.title}</h2>
+            <p class="mt-3 text-sm leading-6 text-muted-foreground">
+              {section.body}
+            </p>
+            {section.bullets ? (
+              <ul class="mt-4 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                {section.bullets.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            ) : null}
+          </article>
+        ))}
+      </div>
+
+      <section class="mt-12 landing-surface-panel--accent rounded-[var(--radius)] border border-primary/20 p-8">
+        <div class="grid gap-8 lg:grid-cols-[1fr_0.9fr] lg:items-center">
+          <div>
+            <h2 class="text-2xl font-semibold">See the workflow in context</h2>
+            <p class="mt-3 text-sm leading-6 text-muted-foreground">
+              A Docita walkthrough starts with your current clinic workflow. The
+              goal is to map appointment, consultation, billing, prescription,
+              and communication steps before recommending rollout scope.
+            </p>
+          </div>
+          <div class="flex flex-col gap-3 sm:flex-row lg:justify-end">
+            <a
+              href="/paper-to-cloud"
+              class="inline-flex items-center justify-center rounded-[var(--radius)] border bg-background px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+            >
+              Paper to cloud rollout
+            </a>
+            <a
+              href="/contact"
+              class="inline-flex items-center justify-center rounded-[var(--radius)] bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Request setup
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {relatedPages.length > 0 ? (
+        <section class="mt-12">
+          <h2 class="text-2xl font-semibold">Related workflows</h2>
+          <div class="mt-5 grid gap-4 md:grid-cols-3">
+            {relatedPages.map((relatedPage) => (
+              <a
+                href={`/${relatedPage.slug}`}
+                class="landing-surface-panel block rounded-[var(--radius)] border border-border/70 p-5 transition-colors hover:border-primary/40"
+              >
+                <span class="text-sm font-semibold text-primary">
+                  {relatedPage.keyword}
+                </span>
+                <span class="mt-2 block text-sm leading-6 text-muted-foreground">
+                  {relatedPage.description}
+                </span>
+              </a>
+            ))}
+          </div>
+        </section>
+      ) : null}
+    </div>
+  </section>
+</MainLayout>

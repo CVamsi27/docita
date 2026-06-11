@@ -8,8 +8,8 @@ import {
   VERIFICATION_EMAIL_STATUS_STORAGE_KEY,
   type User,
 } from "@/lib/auth/auth-context";
-import { apiFetch } from "@/lib/api/api-client";
 import { logger } from "@/lib/monitoring/logger";
+import { resendVerificationEmail } from "@/features/auth";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
 import { PreDashboardShell } from "@/features/auth";
@@ -157,7 +157,7 @@ export default function VerifyEmailSentPage() {
   const handleResend = async () => {
     setResending(true);
     try {
-      await apiFetch("/auth/resend-verification", { method: "POST" });
+      await resendVerificationEmail();
       const availableAt = Date.now() + VERIFICATION_EMAIL_COOLDOWN_MS;
       window.sessionStorage.setItem(
         VERIFICATION_EMAIL_COOLDOWN_STORAGE_KEY,

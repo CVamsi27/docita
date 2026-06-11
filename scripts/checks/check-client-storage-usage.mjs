@@ -48,6 +48,7 @@ const ALLOWLIST = new Set([
   // E2E session helper (test only)
   "apps/app/e2e/utils/session.ts",
   "apps/app/e2e/utils/patient-helpers.ts",
+  "apps/app/e2e/utils/portal-helpers.ts",
 
   // Consultation autosave (no PHI; only ids + draft timestamps)
   "apps/app/features/consultation/state/useConsultationAutosave.ts",
@@ -57,6 +58,7 @@ const ALLOWLIST = new Set([
 
   // Clinic registration form draft (legacy step; no PHI)
   "apps/app/features/onboarding/components/forms/clinic-registration-form.tsx",
+  "apps/app/features/onboarding/components/forms/clinic-registration-form-sections.tsx",
 
   // Onboarding session-storage shim (transient state only)
   "apps/app/features/onboarding/hooks/onboarding-session-storage.ts",
@@ -70,11 +72,20 @@ const ALLOWLIST = new Set([
 
   // Sidebar drag-to-reorder preference and collapse state (no PHI)
   "apps/app/shared/hooks/use-sidebar-nav-order.ts",
+  "apps/app/shared/hooks/use-sidebar-nav-order-impl.ts",
   "apps/app/shared/hooks/use-sidebar-preferences.ts",
+  "apps/app/shared/components/layout/subscription-lock-notice.tsx",
+  "apps/app/shared/hooks/phone-signature-qr-flow-helpers.ts",
 
   // Auth-context helpers (post-auth identifiers; mirror of safe-return-path)
   "apps/app/shared/lib/auth/auth-context-helpers.ts",
+  "apps/app/shared/lib/auth/e2e-session-token.ts",
+  "apps/app/shared/lib/auth/login-lockout-storage.ts",
   "apps/app/shared/lib/auth/use-auth-session-bootstrap.ts",
+
+  // Clinic-context helpers (post-auth clinic id only; no PHI payload)
+  "apps/app/shared/lib/contexts/clinic-storage.ts",
+  "apps/app/shared/lib/contexts/use-clinic-data-sync.ts",
 
   // i18n locale preference (no PHI)
   "apps/app/shared/lib/i18n/provider.tsx",
@@ -87,6 +98,7 @@ const ALLOWLIST = new Set([
   "apps/internal/app/layout.tsx",
   "apps/internal/shared/components/internal-theme-provider.tsx",
   "apps/internal/shared/lib/auth/auth.tsx",
+  "apps/internal/shared/lib/auth/use-auth-session.ts",
   "apps/internal/shared/lib/monitoring/sentry.client.config.ts",
   "apps/internal/shared/lib/stores/internal-filters-store.ts",
 ]);

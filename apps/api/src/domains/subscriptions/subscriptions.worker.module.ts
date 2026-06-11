@@ -8,6 +8,7 @@ import { SubscriptionReminderScheduler } from './infrastructure/schedulers/subsc
 import { OverageInvoiceComposer } from './infrastructure/schedulers/overage-invoice.composer';
 import { SubscriptionOverageMeterService } from './application/services/subscription-overage-meter.service';
 import { SubscriptionOveragePaymentService } from './application/services/subscription-overage-payment.service';
+import { UsageThresholdNotifierService } from './application/services/usage-threshold-notifier.service';
 import { OverageBillingScheduler } from './infrastructure/schedulers/overage-billing.scheduler';
 import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -38,6 +39,7 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     OverageInvoiceComposer,
     SubscriptionOveragePaymentService,
     SubscriptionOverageMeterService,
+    UsageThresholdNotifierService,
     BillMonthlyOveragesUseCase,
     NotifyUsageThresholdsUseCase,
     OverageBillingScheduler,

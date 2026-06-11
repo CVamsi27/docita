@@ -1,5 +1,5 @@
 import type { InvoiceListRow } from "@workspace/types";
-import { formatInvoicePaymentMethodLabel } from "@/features/invoices/lib/invoice-payment-display";
+import { formatInvoicePaymentMethodLabel } from "@/features/invoices";
 
 export interface DaybookMethodTotal {
   /** Raw payment-method key (e.g. "cash"); "unknown" when not recorded. */

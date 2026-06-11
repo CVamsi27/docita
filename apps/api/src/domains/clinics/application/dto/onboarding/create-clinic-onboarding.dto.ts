@@ -4,6 +4,7 @@ import { BillingCycle, ClinicTier, PlanMode } from '@workspace/db';
 import {
   clinicTypeSchema as importedClinicTypeSchema,
   dayOfWeekSchema,
+  facilityTypeSchema as importedFacilityTypeSchema,
   onboardingTrialEligibilityResponseSchema,
 } from '@workspace/types';
 export { ClinicTier, PlanMode };
@@ -24,6 +25,7 @@ export { BillingCycle };
 export const billingCycleSchema = z.nativeEnum(BillingCycle);
 export type { ClinicType } from '@workspace/types';
 export const clinicTypeSchema = importedClinicTypeSchema;
+export const facilityTypeSchema = importedFacilityTypeSchema;
 export const clinicDetailsSchema = z.object({
   name: z
     .string({ required_error: 'Clinic name is required' })
@@ -49,7 +51,7 @@ export const clinicDetailsSchema = z.object({
     .toUpperCase()
     .regex(/^[A-Z]{2}$/, 'countryCode must be a 2-letter ISO code')
     .optional(),
-  facilityLabel: z.enum(['CLINIC', 'HOSPITAL']).optional(),
+  facilityLabel: facilityTypeSchema.optional(),
   type: clinicTypeSchema.optional(),
   website: z.string().url('Invalid website URL').optional().or(z.literal('')),
   mrnPrefix: z.string().max(20).optional(),

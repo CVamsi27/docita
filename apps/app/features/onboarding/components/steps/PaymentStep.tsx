@@ -9,17 +9,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
-import { api } from "@/lib/api/api-client";
+import {
+  useActivateSubscription,
+  useCreateCheckout,
+} from "@workspace/data-access";
 import { getSupportContactText } from "@/lib/constants/support-contact";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   isPaymentCanceledError,
-// jscpd:ignore-end
+  // jscpd:ignore-end
   notifyPaymentCanceled,
   useRazorpay,
 } from "@/hooks/use-razorpay";
 import { BRAND_PRIMARY_HEX } from "@/lib/constants/branding";
-import { tierSchema } from "@workspace/types";
+import { tierSchema, type PlanMode } from "@workspace/types";
 import { parseStringEnumMember } from "@workspace/utils";
 import {
   PaymentSecurityAlerts,
@@ -46,6 +49,7 @@ interface PaymentStepProps {
   clinicEmail?: string;
   clinicPhone?: string;
   tier?: string;
+  planMode?: PlanMode;
 }
 
 export function PaymentStep({
@@ -59,10 +63,13 @@ export function PaymentStep({
   clinicEmail,
   clinicPhone,
   tier,
+  planMode = "FULL",
 }: PaymentStepProps) {
   const [autoPay, setAutoPay] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const { openCheckout } = useRazorpay();
+  const createCheckout = useCreateCheckout();
+  const activateSubscription = useActivateSubscription();
 
   const calculateTotal = () => {
     return selectedPlanPrice;
@@ -101,15 +108,10 @@ export function PaymentStep({
         return;
       }
 
-      // Use the canonical subscription billing checkout endpoint (creates Razorpay order).
-      const checkout = await api.post<{
-        orderId: string;
-        amountCents: number;
-        currency: string;
-        razorpayKeyId: string;
-      }>("/subscription/billing/checkout", {
+      const checkout = await createCheckout.mutateAsync({
         tier: resolvedTier,
         billingCycle,
+        planMode,
       });
 
       const checkoutResult = await openCheckout({
@@ -120,12 +122,13 @@ export function PaymentStep({
         description: `Subscription - ${billingCycle === "YEARLY" ? "Yearly" : "Monthly"}`,
         order_id: checkout.orderId,
         handler: async (response) => {
-          await api.post("/subscription/billing/activate", {
+          await activateSubscription.mutateAsync({
             razorpayPaymentId: response.razorpay_payment_id,
             razorpayOrderId: response.razorpay_order_id,
             razorpaySignature: response.razorpay_signature,
             tier: resolvedTier,
             billingCycle,
+            planMode,
           });
 
           onComplete({
@@ -187,10 +190,7 @@ export function PaymentStep({
       <CardContent>
         <div className="space-y-6">
           <PaymentSecurityAlerts currencyCode={currencyCode} />
-          <PaymentAutoPayField
-            autoPay={autoPay}
-            onAutoPayChange={setAutoPay}
-          />
+          <PaymentAutoPayField autoPay={autoPay} onAutoPayChange={setAutoPay} />
           <PaymentTotalSummary
             total={total}
             currencySymbol={currencySymbol}

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { WhatsappOperationsPageContent } from "./WhatsappOperationsPageContent";
 
 vi.mock("next/navigation", () => ({
+  usePathname: () => "/whatsapp",
   useRouter: () => ({ replace: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
 }));

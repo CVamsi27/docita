@@ -1,4 +1,4 @@
-import type { TaxRegime } from '@workspace/types';
+import type { FacilityTypeType, TaxRegime } from '@workspace/types';
 
 export interface ClinicSettingsData {
   name?: string;
@@ -55,7 +55,7 @@ export interface ClinicSettingsData {
   useSameBankAccountForSubscriptionAndReceipts?: boolean;
   subscriptionPaymentBankAccount?: BankAccountSettings;
   paymentReceivingBankAccount?: BankAccountSettings;
-  facilityLabel?: 'CLINIC' | 'HOSPITAL';
+  facilityLabel?: FacilityTypeType;
   taxSettings?: TaxSettingsData;
   sidebarNavOrder?: unknown;
   mapsLink?: string;

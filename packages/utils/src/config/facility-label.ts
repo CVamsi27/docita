@@ -1,4 +1,6 @@
-export type FacilityLabelValue = "CLINIC" | "HOSPITAL";
+import type { FacilityTypeType } from "@workspace/types";
+
+export type FacilityLabelValue = FacilityTypeType;
 
 export function getFacilityLabel(value?: FacilityLabelValue | null) {
   return value === "HOSPITAL" ? "Hospital" : "Clinic";

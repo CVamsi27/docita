@@ -11,6 +11,7 @@ import { ApplyPlanChangeWithoutPaymentUseCase } from '@/domains/subscriptions/ap
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 import { createFixedClockMock } from '@/test-utils';
+import { CheckoutPaymentOrderService } from '@/domains/subscriptions/application/services/checkout-payment-order.service';
 
 describe('CreateCheckoutUseCase', () => {
   const clock = createFixedClockMock();
@@ -106,11 +107,17 @@ describe('CreateCheckoutUseCase', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useCase = new CreateCheckoutUseCase(
+    const checkoutPaymentOrder = new CheckoutPaymentOrderService(
       subscriptionRepo,
       clinicOps,
       paymentGateway,
+      configService,
+    );
+    useCase = new CreateCheckoutUseCase(
+      subscriptionRepo,
+      clinicOps,
       checkoutPricing,
+      checkoutPaymentOrder,
       applyPlanChangeWithoutPayment,
       configService,
       featureFlagService,

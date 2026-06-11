@@ -1,4 +1,6 @@
 ---
+import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
+
 interface Props {
   title: string;
   description: string;
@@ -20,6 +22,16 @@ const { title, description, downloadHref, downloadLabel } = Astro.props;
     {downloadLabel}
   </a>
   <p class="mt-4 text-xs text-muted-foreground">
-  This link is for you only. No Docita login is required.
+    This link is for you only. No Docita login is required.
   </p>
+  <a
+    href="https://docita.work"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="mt-8 inline-flex items-center justify-center gap-1.5 border-t border-border/60 pt-4 text-xs text-muted-foreground transition-colors hover:text-foreground"
+  >
+    <span>Powered by</span>
+    <DocitaLogo showText={false} className="h-4 w-4" iconClassName="h-4 w-4" />
+    <span class="font-medium">Docita</span>
+  </a>
 </main>
