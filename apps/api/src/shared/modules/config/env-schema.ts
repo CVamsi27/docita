@@ -129,6 +129,10 @@ export const EnvSchema = z.object({
   AI_REQUEST_TIMEOUT: z.coerce.number().default(5000),
   AI_CACHE_ENABLED: z.coerce.boolean().default(true),
   AI_CACHE_TTL: z.coerce.number().default(86400),
+  // DPDP: sending raw patient-document images to the cloud Vision API is a
+  // cross-border PHI transfer that cannot be de-identified. OFF by default —
+  // local OCR is used instead. Enable only with consent-notice disclosure.
+  AI_CLOUD_OCR_ENABLED: z.coerce.boolean().default(false),
   TENANT_RATE_LIMIT_DEFAULT_RPS: z.coerce.number().int().positive().default(50),
   TENANT_RATE_LIMIT_DEFAULT_RPM: z.coerce
     .number()

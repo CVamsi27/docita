@@ -34,6 +34,8 @@ independent audit, algorithmic-fairness review).
 | Patient-portal self-service rights | ✅ | `POST /portal/profile/delete-request` and `POST /portal/profile/export-request` create `DataSubjectRequest` rows (channel `PORTAL`) that land in the staff compliance queue |
 | Consent notice versioning | ✅ | `Consent.templateVersion` persisted from `DPDP_NOTICE_VERSION` (`consent-compliance.service.ts`) |
 | Patient-portal consent toggle | ✅ | `POST /patient-portal/consent` persists data-storage consent as a `DPDP_NOTICE` consent (record/withdraw via `setDpdpNoticeConsent`); first-login banner driven by actual consent state |
+| AI/OCR data-minimisation | ✅ | Cloud Vision OCR **off by default** (`AI_CLOUD_OCR_ENABLED=false`) — raw patient images are not sent to OpenAI; text to AI is identifier-redacted (`redactPatientIdentifiers`). See [DPDP_SUBPROCESSORS.md](./DPDP_SUBPROCESSORS.md) |
+| Sub-processor register + DPAs | ⚠️ paperwork | Register + data-flow map + DPA how-to in [DPDP_SUBPROCESSORS.md](./DPDP_SUBPROCESSORS.md); signing the DPAs + publishing DPO contact is the open operational task |
 | DPO designation + DPIA cadence | ☐ org | operational/legal task, outside the codebase |
 | Consent Manager integration | ☐ backlog | required only if/when we onboard a registered Consent Manager (≥ 13 Nov 2026) |
 

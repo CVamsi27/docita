@@ -11,6 +11,9 @@ export class ExternalIntegrationsConfigService {
       requestTimeout: config.AI_REQUEST_TIMEOUT,
       cacheEnabled: config.AI_CACHE_ENABLED,
       cacheTtl: config.AI_CACHE_TTL,
+      // DPDP: false ⇒ patient-document images are never sent to the cloud
+      // Vision API; OCR falls back to the local (tesseract) path.
+      cloudOcrEnabled: config.AI_CLOUD_OCR_ENABLED,
     };
   }
 
