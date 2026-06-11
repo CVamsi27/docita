@@ -19,7 +19,7 @@ import {
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import { RequestWithUser } from '@/shared/common/types/common.types';
-import { AbhaVerificationService } from '@/domains/patients/application/services/abha-verification.service';
+import { AbhaVerificationCommandService } from '@/domains/patients/application/services/abha-verification-command.service';
 import { VerifyAbhaDto } from '@/domains/patients/application/dto/abha-verification.dto';
 
 @ApiTags('patients')
@@ -28,7 +28,9 @@ import { VerifyAbhaDto } from '@/domains/patients/application/dto/abha-verificat
 @RequireFeature(Feature.ABDM_INTEGRATION)
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS_WRITE))
 export class PatientAbdmController {
-  constructor(private readonly abhaVerification: AbhaVerificationService) {}
+  constructor(
+    private readonly abhaVerification: AbhaVerificationCommandService,
+  ) {}
 
   @Post('verify')
   @ApiOperation({ summary: 'Verify a patient ABHA against the ABDM gateway' })
