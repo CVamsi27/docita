@@ -18,6 +18,8 @@
       "**/*.spec.tsx",
       "**/*.test.ts",
       "**/*.test.tsx",
+      "**/*.test.mjs",
+      "**/*.spec.mjs",
       "**/e2e/**"
     ]
   },
@@ -38,6 +40,8 @@
     "**/*.spec.tsx",
     "**/*.test.ts",
     "**/*.test.tsx",
+    "**/*.test.mjs",
+    "**/*.spec.mjs",
     "**/e2e/**",
     "**/test/**",
     "**/next-env.d.ts"
