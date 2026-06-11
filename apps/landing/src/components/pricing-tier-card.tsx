@@ -4,13 +4,13 @@ import { ArrowRight } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
-import { getAvailableModesForTier, PLAN_MODE_INFO, type PlanMode, type TierName, tierSchema } from "@workspace/types";
+import type { PlanMode } from "@workspace/types";
 import { FALLBACK_PRICING_CONFIG, formatTierPrice } from "@/lib/landing-data";
-import { applyModeMultiplier, getFeaturesForTier } from "./pricing-data";
+import { type PricingTierData, resolvePricingTierCardViewModel } from "./pricing-data";
 import { landingFadeUpVariants } from "@/lib/motion-prefs";
 
 interface PricingTierCardProps {
-  tier: { id: string; name: string; tagline: string; description: string; features: string[]; pricing: { monthly: number | "custom"; yearly: number | "custom" } };
+  tier: PricingTierData;
   selectedMode: PlanMode;
   isYearly: boolean;
   appUrl: string;
@@ -19,19 +19,16 @@ interface PricingTierCardProps {
 export function PricingTierCard({ tier, selectedMode, isYearly, appUrl }: PricingTierCardProps) {
   const reduce = useReducedMotion();
   const cardVariant = landingFadeUpVariants(reduce ?? false);
-  const parsedTierId = tierSchema.safeParse(tier.id);
-  const tierId: TierName = parsedTierId.success ? parsedTierId.data : "STARTER";
-  const supportedModes = getAvailableModesForTier(tierId);
-  const effectiveMode: PlanMode = supportedModes.includes(selectedMode) ? selectedMode : "FULL";
-  const isFeatured = tierId === "ESSENTIAL";
-  const features = getFeaturesForTier(tierId, effectiveMode, tier.features);
-  const adjustedMonthly = applyModeMultiplier(tier.pricing.monthly, effectiveMode);
-  const adjustedYearly = applyModeMultiplier(tier.pricing.yearly, effectiveMode);
-  const adjustedPrice = isYearly ? adjustedYearly : adjustedMonthly;
-  const listYearly = typeof adjustedMonthly === "number" ? adjustedMonthly * 12 : null;
-  const yearlySavings = isYearly && listYearly !== null && typeof adjustedYearly === "number" && listYearly > adjustedYearly ? listYearly - adjustedYearly : null;
-  const modeSuffix = effectiveMode === "FULL" ? null : ` · ${PLAN_MODE_INFO[effectiveMode].name}`;
-  const modeMismatched = effectiveMode !== selectedMode && selectedMode !== "FULL";
+  const {
+    isFeatured,
+    features,
+    adjustedPrice,
+    listYearly,
+    yearlySavings,
+    modeSuffix,
+    modeMismatched,
+    effectiveMode,
+  } = resolvePricingTierCardViewModel(tier, selectedMode, isYearly);
 
   return (
     <motion.article

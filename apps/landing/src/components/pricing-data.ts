@@ -1,4 +1,4 @@
-import { MODE_TIER_HIGHLIGHTS, PLAN_MODE_INFO, type PlanMode, type TierName } from "@workspace/types";
+import { getAvailableModesForTier, MODE_TIER_HIGHLIGHTS, PLAN_MODE_INFO, type PlanMode, type TierName, tierSchema } from "@workspace/types";
 import { FALLBACK_PRICING_CONFIG, formatTierPrice } from "@/lib/landing-data";
 
 export const TIER_ORDER: readonly TierName[] = [
@@ -75,3 +75,60 @@ export function applyModeMultiplier(amount: number | "custom", mode: PlanMode): 
 }
 
 export const SETUP_START_PRICE = formatTierPrice(4999, FALLBACK_PRICING_CONFIG.currency.symbol);
+
+export interface PricingTierData {
+  id: string;
+  name: string;
+  tagline: string;
+  description: string;
+  features: string[];
+  pricing: { monthly: number | "custom"; yearly: number | "custom" };
+}
+
+export interface PricingTierCardViewModel {
+  tierId: TierName;
+  effectiveMode: PlanMode;
+  isFeatured: boolean;
+  features: string[];
+  adjustedPrice: number | "custom";
+  listYearly: number | null;
+  yearlySavings: number | null;
+  modeSuffix: string | null;
+  modeMismatched: boolean;
+}
+
+/** Resolves the pricing, feature list, and mode-mismatch state shown on a pricing tier card. */
+export function resolvePricingTierCardViewModel(
+  tier: PricingTierData,
+  selectedMode: PlanMode,
+  isYearly: boolean,
+): PricingTierCardViewModel {
+  const parsedTierId = tierSchema.safeParse(tier.id);
+  const tierId: TierName = parsedTierId.success ? parsedTierId.data : "STARTER";
+  const supportedModes = getAvailableModesForTier(tierId);
+  const effectiveMode: PlanMode = supportedModes.includes(selectedMode) ? selectedMode : "FULL";
+  const isFeatured = tierId === "ESSENTIAL";
+  const features = getFeaturesForTier(tierId, effectiveMode, tier.features);
+  const adjustedMonthly = applyModeMultiplier(tier.pricing.monthly, effectiveMode);
+  const adjustedYearly = applyModeMultiplier(tier.pricing.yearly, effectiveMode);
+  const adjustedPrice = isYearly ? adjustedYearly : adjustedMonthly;
+  const listYearly = typeof adjustedMonthly === "number" ? adjustedMonthly * 12 : null;
+  const yearlySavings =
+    isYearly && listYearly !== null && typeof adjustedYearly === "number" && listYearly > adjustedYearly
+      ? listYearly - adjustedYearly
+      : null;
+  const modeSuffix = effectiveMode === "FULL" ? null : ` · ${PLAN_MODE_INFO[effectiveMode].name}`;
+  const modeMismatched = effectiveMode !== selectedMode && selectedMode !== "FULL";
+
+  return {
+    tierId,
+    effectiveMode,
+    isFeatured,
+    features,
+    adjustedPrice,
+    listYearly,
+    yearlySavings,
+    modeSuffix,
+    modeMismatched,
+  };
+}
