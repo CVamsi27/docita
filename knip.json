@@ -135,7 +135,6 @@
       ]
     },
     "apps/internal": {
-      "playwright": false,
       "entry": [
         "app/**/*.{ts,tsx}",
         "features/**/*.{ts,tsx}",
