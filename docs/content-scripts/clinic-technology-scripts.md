@@ -560,7 +560,7 @@ On-screen text:
 |---|---|---|---|
 | Scene 1: Day 1 confusion | Onboarding/setup screens. Show the initial setup flow. | Docita app — Onboarding | 1. Log in to Docita app at `https://app.docita.work` 2. Navigate to `/onboarding` or `/choose-path` 3. Show the setup wizard: facility details, doctor setup 4. Show the person looking slightly overwhelmed (natural reaction) |
 | Scene 2: Day 3-5 workflow | Quick montage: adding a patient, booking an appointment, creating a prescription, generating an invoice. | Docita app — Multiple screens | 1. Navigate to `/patients` → click "Add Patient" → show the form 2. Navigate to `/appointments` → click "New Appointment" → show booking 3. Navigate to `/prescriptions` → click "New Prescription" → show creation 4. Navigate to `/invoices/new` → show invoice creation |
-| Scene 3: Day 7 confidence | The person using the system quickly and confidently. Show fast, fluid navigation between screens. | Docita app — Quick navigation | 1. Start at `/dashboard` or `/today` 2. Quickly navigate to `/patients` → click a patient → back to `/appointments` → back to `/prescriptions` 3. Show the person smiling, confident, fast |
+| Scene 3: Day 7 confidence | The person using the system quickly and confidently. Show fast, fluid navigation between screens. | Docita app — Quick navigation | 1. Start at `/today` 2. Quickly navigate to `/patients` → click a patient → back to `/appointments` → back to `/prescriptions` 3. Show the person smiling, confident, fast |
 
 Screenshot guidance:
 
@@ -751,7 +751,7 @@ On-screen text:
 | Scene 2: After (digital) — Prescription | Docita prescription creation showing how fast it is. | Docita app — Prescriptions | 1. Log in to Docita app at `https://app.docita.work` 2. Navigate to `/prescriptions` → Click "New Prescription" 3. Quickly add a patient, select medicines, and generate the prescription 4. Show the time: under 30 seconds from start to finish |
 | Scene 3: After (digital) — Invoice | Docita invoice creation showing the speed. | Docita app — Invoices | 1. Navigate to `/invoices/new` 2. Select a patient, add line items, generate the invoice 3. Show the speed: under 2 minutes |
 | Scene 4: After (digital) — Follow-ups | Docita follow-ups page showing automatic tracking. | Docita app — Follow-ups | 1. Navigate to `/follow-ups` 2. Show the list of pending and completed follow-ups 3. Show that follow-ups are tracked automatically — no phone calls needed |
-| Scene 5: Dashboard | Docita dashboard showing the daily overview. | Docita app — Dashboard | 1. Navigate to `/dashboard` or `/today` 2. Show the daily summary: patients seen, revenue collected, follow-ups pending 3. Show the owner viewing this with confidence |
+| Scene 5: Dashboard | Docita dashboard showing the daily overview. | Docita app — Dashboard | 1. Navigate to `/today` 2. Show the daily summary: patients seen, revenue collected, follow-ups pending 3. Show the owner viewing this with confidence |
 
 Screenshot guidance:
 
@@ -787,11 +787,11 @@ Doctor 1: Dr. Anita Sharma (General Physician)
 Doctor 2: Dr. Rajesh Patel (Pediatrician)
 
 Demo Patients:
-- Amit Kumar, Male, 35, +91-98765-43210
-- Priya Patel, Female, 28, +91-98765-43211
-- Rahul Singh, Male, 45, +91-98765-43212
-- Sneha Reddy, Female, 52, +91-98765-43213
-- Vikram Joshi, Male, 60, +91-98765-43214
+- Amit Kumar, Male, 35, +91-98000-00001
+- Priya Patel, Female, 28, +91-98000-00002
+- Rahul Singh, Male, 45, +91-98000-00003
+- Sneha Reddy, Female, 52, +91-98000-00004
+- Vikram Joshi, Male, 60, +91-98000-00005
 
 Sample Appointments:
 - Amit Kumar with Dr. Sharma, today 10:00 AM
