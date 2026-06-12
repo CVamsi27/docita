@@ -1,7 +1,6 @@
 // jscpd:ignore-start
 import {
   Body,
-  ConflictException,
   Controller,
   Get,
   Headers,
@@ -11,7 +10,6 @@ import {
   Post,
   Query,
   Request,
-  UnauthorizedException,
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
@@ -32,9 +30,9 @@ import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.ut
 import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';
-import { ExternalIntegrationsConfigService } from '@/shared/modules/config/external-integrations-config.service';
-import { WebhookVerifierService } from '@/shared/modules/webhooks';
-import { AbdmExchangeService } from '@/domains/abdm/application/services/abdm-exchange.service';
+import { AbdmQueryService } from '@/domains/abdm/application/services/abdm-query.service';
+import { AbdmCommandService } from '@/domains/abdm/application/services/abdm-command.service';
+import { AbdmCallbackCommandService } from '@/domains/abdm/application/services/abdm-callback-command.service';
 import {
   AbdmCareContextListResponseDto,
   AbdmCareContextResponseDto,
@@ -52,7 +50,10 @@ import {
 @RequireFeature(Feature.ABDM_INTEGRATION)
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS_READ))
 export class AbdmController {
-  constructor(private readonly abdm: AbdmExchangeService) {}
+  constructor(
+    private readonly queries: AbdmQueryService,
+    private readonly commands: AbdmCommandService,
+  ) {}
 
   @Get('care-contexts')
   @ZodSerializerDto(AbdmCareContextListResponseDto)
@@ -61,7 +62,10 @@ export class AbdmController {
     @Query('patientId') patientId?: string,
   ) {
     const { clinicId } = getClinicStaffRequestContext(req);
-    return this.abdm.listCareContexts(clinicId, patientId?.trim() || undefined);
+    return this.queries.listCareContexts(
+      clinicId,
+      patientId?.trim() || undefined,
+    );
   }
 
   @Post('care-contexts')
@@ -73,7 +77,7 @@ export class AbdmController {
     @Body() dto: CreateAbdmCareContextDto,
   ) {
     const { clinicId } = getClinicStaffRequestContext(req);
-    return this.abdm.createCareContext(clinicId, dto);
+    return this.commands.createCareContext(clinicId, dto);
   }
 
   @Post('care-contexts/:id/link-request')
@@ -84,7 +88,7 @@ export class AbdmController {
     @Param('id') careContextId: string,
   ) {
     const { clinicId } = getClinicStaffRequestContext(req);
-    return this.abdm.requestCareContextLink(clinicId, careContextId);
+    return this.commands.requestCareContextLink(clinicId, careContextId);
   }
 
   @Post('care-contexts/:id/share-request')
@@ -95,7 +99,7 @@ export class AbdmController {
     @Param('id') careContextId: string,
   ) {
     const { clinicId } = getClinicStaffRequestContext(req);
-    return this.abdm.requestCareContextShare(clinicId, careContextId);
+    return this.commands.requestCareContextShare(clinicId, careContextId);
   }
 
   @Post('consent-requests')
@@ -107,14 +111,14 @@ export class AbdmController {
     @Body() dto: CreateAbdmConsentRequestDto,
   ) {
     const { clinicId } = getClinicStaffRequestContext(req);
-    return this.abdm.createConsentRequest(clinicId, dto);
+    return this.commands.createConsentRequest(clinicId, dto);
   }
 
   @Get('ops-inbox')
   @ZodSerializerDto(AbdmOpsInboxResponseDto)
   getOpsInbox(@Request() req: RequestWithUser) {
     const { clinicId } = getClinicStaffRequestContext(req);
-    return this.abdm.getOpsInbox(clinicId);
+    return this.queries.getOpsInbox(clinicId);
   }
 
   @Get('external-records')
@@ -124,7 +128,7 @@ export class AbdmController {
     @Query('patientId') patientId?: string,
   ) {
     const { clinicId } = getClinicStaffRequestContext(req);
-    return this.abdm.listExternalRecords(
+    return this.queries.listExternalRecords(
       clinicId,
       patientId?.trim() || undefined,
     );
@@ -133,11 +137,7 @@ export class AbdmController {
 
 @Controller('abdm/callbacks')
 export class AbdmGatewayCallbackController {
-  constructor(
-    private readonly abdm: AbdmExchangeService,
-    private readonly integrationsConfig: ExternalIntegrationsConfigService,
-    private readonly webhookVerifier: WebhookVerifierService,
-  ) {}
+  constructor(private readonly callbacks: AbdmCallbackCommandService) {}
 
   @Public()
   @Post(':clinicId/:type')
@@ -152,26 +152,13 @@ export class AbdmGatewayCallbackController {
     @Body() dto: AbdmGatewayCallbackDto,
   ) {
     const rawBody = req.rawBody ?? Buffer.from(JSON.stringify(dto));
-    const callbackSecret =
-      this.integrationsConfig.getAbdmConfig().callbackSecret;
-    const verification = await this.webhookVerifier.verify({
-      provider: 'abdm',
+    return this.callbacks.recordCallback({
+      clinicId,
+      type,
       rawBody,
-      signature: '',
-      authMode: 'shared-secret-header',
       sharedSecretHeader,
-      secret: callbackSecret ?? '',
-      signedTimestampSeconds: timestamp ? Number(timestamp) : undefined,
+      timestamp,
+      callback: dto,
     });
-
-    if (!verification.ok) {
-      if (verification.failure === 'replayed') {
-        throw new ConflictException('Webhook already processed');
-      }
-      throw new UnauthorizedException('Invalid ABDM callback signature');
-    }
-
-    await this.abdm.recordGatewayCallback(clinicId, type, dto);
-    return { status: 'ok' };
   }
 }

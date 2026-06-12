@@ -50,6 +50,14 @@ function calculateEligibleAboveThreshold(category1: number, category2: number) {
   return { category1Eligible, category2Eligible };
 }
 
+/**
+ * Facade for the ABDM readiness dashboard read model.
+ *
+ * The endpoint needs one consistent snapshot across clinic settings, patient
+ * ABHA status, HFR/HPR readiness, and DHIS record counts. Keeping the
+ * orchestration here avoids leaking that dashboard-specific aggregation into
+ * controllers while persistence still flows through the clinic port.
+ */
 @Injectable()
 export class ClinicAbdmDashboardService {
   constructor(

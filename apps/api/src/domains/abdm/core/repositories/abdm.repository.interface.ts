@@ -134,4 +134,4 @@ export interface AbdmRepository {
   ): Promise<AbdmExternalRecord[]>;
 }
 
-export const ABDM_REPOSITORY = Symbol('AbdmRepository');
+export const ABDM_REPOSITORY_TOKEN = Symbol('AbdmRepository');

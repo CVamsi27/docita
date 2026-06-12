@@ -14,6 +14,10 @@ const files = {
     root,
     "apps/api/src/domains/abdm/presentation/controllers/abdm.controller.ts",
   ),
+  callbackCommand: path.join(
+    root,
+    "apps/api/src/domains/abdm/application/services/abdm-callback-command.service.ts",
+  ),
   contracts: path.join(root, "packages/types/src/clinical/abdm.ts"),
   dataAccess: path.join(root, "packages/data-access/src/hooks/use-abdm.ts"),
 };
@@ -34,6 +38,7 @@ function assertIncludes(content, needle, label) {
 const schema = readRequired(files.schema);
 const service = readRequired(files.service);
 const controller = readRequired(files.controller);
+const callbackCommand = readRequired(files.callbackCommand);
 const contracts = readRequired(files.contracts);
 const dataAccess = readRequired(files.dataAccess);
 
@@ -52,12 +57,12 @@ assertIncludes(
   "M2 care-context generation must use the shared FHIR service",
 );
 assertIncludes(
-  controller,
+  callbackCommand,
   "this.webhookVerifier.verify",
   "ABDM callbacks must use replay-protected webhook verification",
 );
 assertIncludes(
-  controller,
+  callbackCommand,
   "provider: 'abdm'",
   "ABDM callback verification must use the abdm provider key",
 );

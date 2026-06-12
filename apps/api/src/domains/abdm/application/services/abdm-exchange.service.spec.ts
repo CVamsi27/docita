@@ -8,6 +8,7 @@ import type { ExternalIntegrationsConfigService } from '@/shared/modules/config/
 import type { AbdmGatewayClient } from '@/domains/abdm/infrastructure/abdm-gateway.client';
 import type { AbdmRepository } from '@/domains/abdm/core/repositories/abdm.repository.interface';
 import { AbdmExchangeService } from './abdm-exchange.service';
+import { AbdmCallbackStateService } from './abdm-callback-state.service';
 
 describe('AbdmExchangeService', () => {
   const repository = {
@@ -50,13 +51,20 @@ describe('AbdmExchangeService', () => {
       | 'notifyHealthInformation'
     >
   >;
+  const clock = { now: () => new Date('2026-06-12T00:00:00.000Z') };
+  const callbackState = new AbdmCallbackStateService(
+    repository,
+    gateway as unknown as AbdmGatewayClient,
+    clock,
+  );
 
   const service = new AbdmExchangeService(
     repository,
     fhirService as unknown as FhirService,
     integrationsConfig,
     gateway as unknown as AbdmGatewayClient,
-    { now: () => new Date('2026-06-12T00:00:00.000Z') },
+    callbackState,
+    clock,
   );
 
   beforeEach(() => {
