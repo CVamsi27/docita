@@ -2797,7 +2797,7 @@ Docita helps clinics create clean, professional prescriptions. Connected to the 
 Hook text:
 
 ```text
-A clinic set up Docita in one morning. Here is what happened.
+Clinic setup in one morning.
 ```
 
 Shots:
@@ -2884,7 +2884,7 @@ Week 2:
 
 - Long: Five-Minute Clinic Setup
 - Long: How to Use Docita Day by Day (Video 15) — adoption guide
-- Shorts: setup speedrun, start from today, one doctor one front desk, day-by-day guide
+- Shorts: setup speedrun, start from today, one doctor one front desk, clinic setup in one morning
 
 Week 3:
 
