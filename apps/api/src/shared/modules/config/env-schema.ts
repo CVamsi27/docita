@@ -105,6 +105,7 @@ export const EnvSchema = z.object({
   ABDM_BASE_URL: z.string().optional(),
   ABDM_CLIENT_ID: z.string().optional(),
   ABDM_CLIENT_SECRET: z.string().optional(),
+  ABDM_CALLBACK_SECRET: z.string().optional(),
   // DPDP grievance / data-protection officer contact, published on the consent
   // sheet and trust page. Defaults to the platform support email.
   GRIEVANCE_CONTACT_EMAIL: z.string().optional(),

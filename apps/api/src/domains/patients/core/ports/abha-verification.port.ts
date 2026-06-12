@@ -20,6 +20,8 @@ export interface IAbdmGateway {
 
 /** Minimal persistence port for ABHA verification state on a patient. */
 export interface IAbhaVerificationStore {
+  isClinicAbdmEnabled(clinicId: string): Promise<boolean>;
+
   findPatientForVerification(
     patientId: string,
     clinicId: string,

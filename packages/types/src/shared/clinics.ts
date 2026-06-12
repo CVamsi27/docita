@@ -63,6 +63,8 @@ export const clinicSchema = z.object({
   queueBufferMinutes: z.number(),
   useDoctorQueues: z.boolean(),
   mrnPrefix: z.string().nullable().optional(),
+  abdmEnabled: z.boolean().optional(),
+  hfrFacilityId: z.string().nullable().optional(),
   razorpayCustomerId: z.string().nullable().optional(),
   referralCode: z.string().nullable().optional(),
   domain: z.string().nullable().optional(),

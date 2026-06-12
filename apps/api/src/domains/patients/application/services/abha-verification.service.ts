@@ -50,6 +50,14 @@ export class AbhaVerificationService {
       throw new NotFoundException('Patient was not found in this clinic');
     }
 
+    if (!(await this.store.isClinicAbdmEnabled(clinicId))) {
+      throw new ServiceUnavailableException({
+        message:
+          'ABDM is turned off for this facility. Enable ABDM in settings after credentials are available.',
+        code: 'ABDM_TENANT_DISABLED',
+      });
+    }
+
     if (!this.gateway.isConfigured()) {
       throw new ServiceUnavailableException({
         message:

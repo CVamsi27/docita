@@ -44,6 +44,7 @@ export interface DoctorAfterUpdate {
   registrationNumber: string | null;
   registrationCouncil: string | null;
   registrationStateCode: string | null;
+  hprId: string | null;
   licenseNumber: string | null;
   signatureUrl: string | null;
   signatureUploadedAt: Date | null;

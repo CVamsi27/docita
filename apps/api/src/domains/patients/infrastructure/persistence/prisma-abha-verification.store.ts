@@ -6,6 +6,14 @@ import type { IAbhaVerificationStore } from '@/domains/patients/core/ports/abha-
 export class PrismaAbhaVerificationStore implements IAbhaVerificationStore {
   constructor(private readonly prisma: PrismaService) {}
 
+  async isClinicAbdmEnabled(clinicId: string): Promise<boolean> {
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { abdmEnabled: true },
+    });
+    return clinic?.abdmEnabled === true;
+  }
+
   async findPatientForVerification(patientId: string, clinicId: string) {
     return this.prisma.patient.findFirst({
       where: { id: patientId, clinicId, deletedAt: null },

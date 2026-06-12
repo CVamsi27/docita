@@ -56,6 +56,8 @@ export interface ClinicSettingsData {
   subscriptionPaymentBankAccount?: BankAccountSettings;
   paymentReceivingBankAccount?: BankAccountSettings;
   facilityLabel?: FacilityTypeType;
+  abdmEnabled?: boolean;
+  hfrFacilityId?: string;
   taxSettings?: TaxSettingsData;
   sidebarNavOrder?: unknown;
   mapsLink?: string;

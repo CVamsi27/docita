@@ -6,6 +6,7 @@ import {
   UpdateClinicMemberRequest,
   UpdateClinicSettingsRequest,
   User,
+  type AbdmClinicDashboard,
   type AppClinicSettings,
 } from "@workspace/types";
 import { queryKeys } from "../lib/query-keys-clinician";
@@ -21,13 +22,25 @@ export const useClinicSettings = (queryOptions?: { enabled?: boolean }) =>
     gcTime: 30 * 60 * 1000,
   });
 
+export const useClinicAbdmDashboard = (queryOptions?: { enabled?: boolean }) =>
+  useAPIQuery<AbdmClinicDashboard>(
+    queryKeys.clinic.abdmDashboard(),
+    "/clinic/abdm/dashboard",
+    {
+      enabled: queryOptions?.enabled,
+      staleTime: 5 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
+    },
+  );
+
 export const useClinicMembers = () =>
   useAPIQuery<User[]>(queryKeys.clinic.members(), "/clinic/members");
 
 export const useCreateClinicDoctor = (clinicId?: string) =>
   useAPIMutation<User, CreateClinicDoctorRequest>(
     () => {
-      if (!clinicId) throw new Error(
+      if (!clinicId)
+        throw new Error(
           "We could not identify this facility. Please refresh and try again.",
         );
       return `/clinics/${clinicId}/doctors`;
@@ -42,7 +55,8 @@ export const useCreateClinicDoctor = (clinicId?: string) =>
 export const useCreateClinicReceptionist = (clinicId?: string) =>
   useAPIMutation<User, CreateClinicReceptionistRequest>(
     () => {
-      if (!clinicId) throw new Error(
+      if (!clinicId)
+        throw new Error(
           "We could not identify this facility. Please refresh and try again.",
         );
       return `/clinics/${clinicId}/receptionists`;
@@ -57,7 +71,8 @@ export const useCreateClinicReceptionist = (clinicId?: string) =>
 export const useCreateClinicMember = (clinicId?: string) =>
   useAPIMutation<User, CreateClinicMemberRequest>(
     () => {
-      if (!clinicId) throw new Error(
+      if (!clinicId)
+        throw new Error(
           "We could not identify this facility. Please refresh and try again.",
         );
       return `/clinics/${clinicId}/members`;
@@ -94,6 +109,10 @@ export const useUpdateClinicSettings = () =>
     "/clinic/settings",
     "PUT",
     {
-      invalidateKeys: [queryKeys.clinic.settings()],
+      invalidateKeys: [
+        queryKeys.clinic.settings(),
+        queryKeys.clinic.abdmDashboard(),
+        queryKeys.abdm.all(),
+      ],
     },
   );

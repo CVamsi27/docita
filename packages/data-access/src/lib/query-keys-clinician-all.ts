@@ -190,10 +190,19 @@ export const queryKeys = {
       ["clinic-subscription", clinicId] as const,
     subscriptionSettings: () => ["clinic", "subscription"] as const,
     settings: () => ["clinic", "settings"] as const,
+    abdmDashboard: () => ["clinic", "abdm", "dashboard"] as const,
     members: () => ["clinic", "members"] as const,
     medicalCodingSettings: () => ["clinic", "medical-coding-settings"] as const,
     prescriptionDefaults: () => ["clinic", "prescription-defaults"] as const,
     opdSlipSettings: () => ["clinic", "opd-slip-settings"] as const,
+  },
+  abdm: {
+    all: () => ["abdm"] as const,
+    careContexts: (patientId?: string | null) =>
+      ["abdm", "care-contexts", patientId ?? ""] as const,
+    opsInbox: () => ["abdm", "ops-inbox"] as const,
+    externalRecords: (patientId?: string | null) =>
+      ["abdm", "external-records", patientId ?? ""] as const,
   },
   doctors: {
     all: () => ["doctors"] as const,

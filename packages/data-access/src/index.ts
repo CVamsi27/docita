@@ -7,7 +7,11 @@ export { createCRUDResource } from "./lib/crud-resource";
 export * from "./lib/browser-session";
 export * from "./lib/query-keys";
 export { toQueryString, withQueryString } from "./lib/query-string";
-export type { QueryPrimitive, QueryValue, QueryParams } from "./lib/query-string";
+export type {
+  QueryPrimitive,
+  QueryValue,
+  QueryParams,
+} from "./lib/query-string";
 export {
   IDEMPOTENCY_HEADER,
   generateIdempotencyKey,
@@ -16,10 +20,7 @@ export {
 
 export { DataAccessProvider } from "./provider/data-access-provider";
 export type { DataAccessConfig } from "./provider/context";
-export {
-  useDataAccessContext,
-  useDataAccessFetcher,
-} from "./provider/hooks";
+export { useDataAccessContext, useDataAccessFetcher } from "./provider/hooks";
 
 export { useAPIQuery } from "./core/use-api-query";
 export { useAPIQueryValidated } from "./core/use-api-query-validated";
@@ -36,6 +37,7 @@ export type {
 
 // hooks barrel
 export * from "./hooks/use-analytics";
+export * from "./hooks/use-abdm";
 export * from "./hooks/use-appointments";
 export * from "./hooks/use-doctor-delays";
 export * from "./hooks/use-billing";

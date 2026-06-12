@@ -30,6 +30,7 @@ import { PrismaModule } from '@/prisma/prisma.module';
 import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
 import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
 import { ComplianceModule } from '@/shared/modules/compliance/compliance.module';
+import { AbdmModule } from '@/domains/abdm/abdm.module';
 import { MedicalHistoryFactory } from './core/factories/medical-history.factory';
 import { VitalsFactory } from './core/factories/vitals.factory';
 import { AiModule } from '@/shared/modules/ai-core/ai.module';
@@ -52,7 +53,14 @@ import {
 } from './core/ports/abha-verification.port';
 
 @Module({
-  imports: [PrismaModule, AuthModule, AuditModule, AiModule, ComplianceModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    AuditModule,
+    AiModule,
+    ComplianceModule,
+    AbdmModule,
+  ],
   controllers: [
     PatientsController,
     PatientTagsController,

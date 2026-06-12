@@ -27,6 +27,8 @@ export interface UpdateClinicInput {
   tier?: ClinicTier;
   type?: ClinicType;
   settings?: Prisma.InputJsonValue;
+  abdmEnabled?: boolean;
+  hfrFacilityId?: string | null;
 }
 
 export interface ClinicStats {

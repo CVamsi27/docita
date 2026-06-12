@@ -1,0 +1,1 @@
+ALTER TABLE "Clinic" ADD COLUMN "abdmEnabled" BOOLEAN NOT NULL DEFAULT false;

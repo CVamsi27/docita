@@ -16,9 +16,12 @@ describe('AbhaVerificationService', () => {
 
   const findPatientForVerification =
     jest.fn<IAbhaVerificationStore['findPatientForVerification']>();
+  const isClinicAbdmEnabled =
+    jest.fn<IAbhaVerificationStore['isClinicAbdmEnabled']>();
   const saveVerification =
     jest.fn<IAbhaVerificationStore['saveVerification']>();
   const store = {
+    isClinicAbdmEnabled,
     findPatientForVerification,
     saveVerification,
   } as IAbhaVerificationStore;
@@ -36,8 +39,24 @@ describe('AbhaVerificationService', () => {
       id: 'pat-1',
       abhaAddress: 'asha.verma@abdm',
     });
+    isClinicAbdmEnabled.mockResolvedValue(true);
     saveVerification.mockResolvedValue(undefined);
     logAction.mockResolvedValue(undefined);
+  });
+
+  it('returns 503 when ABDM is disabled for the clinic', async () => {
+    isClinicAbdmEnabled.mockResolvedValue(false);
+
+    await expect(
+      service.verifyForPatient(
+        'pat-1',
+        'clinic-1',
+        { abhaAddress: 'asha.verma@abdm' },
+        'user-1',
+      ),
+    ).rejects.toThrow(ServiceUnavailableException);
+    expect(verifyAbha).not.toHaveBeenCalled();
+    expect(saveVerification).not.toHaveBeenCalled();
   });
 
   it('throws NotFound when the patient is not in the clinic', async () => {

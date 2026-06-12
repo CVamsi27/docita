@@ -63,7 +63,7 @@ export const userSchema = z.object({
   clinicId: z.string().optional(), labId: z.string().nullable().optional(),
   specialization: specializationSchema.optional(), hospitalRole: hospitalRoleSchema.optional(),
   qualification: z.string().optional(), registrationNumber: z.string().optional(), registrationCouncil: z.string().optional(),
-  registrationStateCode: z.string().optional(), licenseNumber: z.string().optional(), licenseExpiry: z.string().or(z.date()).optional(),
+  registrationStateCode: z.string().optional(), hprId: z.string().optional(), licenseNumber: z.string().optional(), licenseExpiry: z.string().or(z.date()).optional(),
   signatureUrl: z.string().optional(), signatureStoredUrl: z.string().nullable().optional(),
   signatureUploadedAt: z.string().or(z.date()).optional(),
   verificationStatus: z.enum(["UNVERIFIED", "PENDING", "VERIFIED", "REJECTED", "FAILED"]).optional(),

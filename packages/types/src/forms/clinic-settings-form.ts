@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { phoneSchema, requiredStringSchema } from "./common";
 import { facilityTypeSchema } from "../shared/users";
+import { hfrFacilityIdSchema } from "../clinical/abdm";
 
 // allow-no-base-schema: owner=clinic-settings reason=settings-json-projection review=2026-09-30
 export const clinicSettingsFormSchema = z.object({
@@ -8,9 +9,7 @@ export const clinicSettingsFormSchema = z.object({
   address: requiredStringSchema("Address"),
   phone: phoneSchema,
   gstin: z.union([z.string().trim(), z.literal("")]).optional(),
-  legalName: z
-    .union([z.string().trim().max(160), z.literal("")])
-    .optional(),
+  legalName: z.union([z.string().trim().max(160), z.literal("")]).optional(),
   facilityLabel: facilityTypeSchema.optional(),
   mapsLink: z
     .union([
@@ -18,6 +17,8 @@ export const clinicSettingsFormSchema = z.object({
       z.literal(""),
     ])
     .optional(),
+  abdmEnabled: z.boolean().optional(),
+  hfrFacilityId: z.union([hfrFacilityIdSchema, z.literal("")]).optional(),
 });
 
 export type ClinicSettingsFormValues = z.infer<typeof clinicSettingsFormSchema>;

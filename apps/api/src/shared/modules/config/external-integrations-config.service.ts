@@ -51,10 +51,12 @@ export class ExternalIntegrationsConfigService {
     const baseUrl = config.ABDM_BASE_URL?.trim() || null;
     const clientId = config.ABDM_CLIENT_ID?.trim() || null;
     const clientSecret = config.ABDM_CLIENT_SECRET?.trim() || null;
+    const callbackSecret = config.ABDM_CALLBACK_SECRET?.trim() || null;
     return {
       baseUrl,
       clientId,
       clientSecret,
+      callbackSecret,
       enabled: Boolean(baseUrl && clientId && clientSecret),
     };
   }

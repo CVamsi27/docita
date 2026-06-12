@@ -46,6 +46,7 @@ import { InventoryModule } from './domains/inventory/inventory.module';
 import { LeaveModule } from './domains/leave/leave.module';
 import { IpdModule } from './domains/ipd/ipd.module';
 import { PublicBookingModule } from './domains/public-booking/public-booking.module';
+import { AbdmModule } from './domains/abdm/abdm.module';
 import { TenantContextInterceptor } from './shared/common/interceptors/tenant-context.interceptor';
 import { CacheInterceptor } from './shared/common/interceptors/cache.interceptor';
 import { PatientDataAuditInterceptor } from './shared/common/interceptors/patient-audit.interceptor';
@@ -164,6 +165,7 @@ import { getClientIp } from '@/shared/common/http/client-ip';
     LeaveModule,
     IpdModule,
     PublicBookingModule,
+    AbdmModule,
   ],
   controllers: [AppController],
   providers: [
