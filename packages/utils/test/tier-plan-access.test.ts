@@ -13,7 +13,8 @@ import {
 } from "../src/billing/tier-rules";
 import { Tier } from "@workspace/types";
 
-const BILLABLE_PLAN_SKUS = [
+const PLAN_SKUS = [
+  "FREE",
   "STARTER",
   "FRONT_DESK",
   "ESSENTIAL",
@@ -31,8 +32,8 @@ describe("tier plan feature access parity", () => {
     }
   });
 
-  it("matches hasFeatureAccess with getFeaturesForTier / getAllFeaturesUpToTier for billed SKUs", () => {
-    for (const sku of BILLABLE_PLAN_SKUS) {
+  it("matches hasFeatureAccess with getFeaturesForTier / getAllFeaturesUpToTier for plan SKUs", () => {
+    for (const sku of PLAN_SKUS) {
       const expected = ALL_MAPPED_FEATURES.filter((f) =>
         hasFeatureAccess(sku, f, false),
       );

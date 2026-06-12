@@ -11,6 +11,7 @@ export const DOMAIN_TO_PRISMA_CLINIC_TIER: Record<
   ClinicTierEnum,
   PrismaClinicTier
 > = {
+  [ClinicTierEnum.FREE]: PrismaClinicTier.FREE,
   [ClinicTierEnum.STARTER]: PrismaClinicTier.STARTER,
   [ClinicTierEnum.ESSENTIAL]: PrismaClinicTier.ESSENTIAL,
   [ClinicTierEnum.FRONT_DESK]: PrismaClinicTier.FRONT_DESK,

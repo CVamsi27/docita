@@ -14,6 +14,8 @@ import type { SubscriptionPersistencePort } from '@/domains/subscriptions/applic
 
 function clinicTierToTierName(tier: ClinicTier): TierName {
   switch (tier) {
+    case ClinicTier.FREE:
+      return 'FREE';
     case ClinicTier.STARTER:
       return 'STARTER';
     case ClinicTier.ESSENTIAL:

@@ -36,6 +36,8 @@ type ResolvedSubscriptionBillingContact = ReturnType<
 
 @Injectable()
 export class CheckoutPaymentOrderService {
+  // AuditLogged: checkout intent state is persisted through subscription payments;
+  // final payment success/failure is audited by the Razorpay webhook flow.
   private readonly logger = new Logger(CheckoutPaymentOrderService.name);
 
   constructor(

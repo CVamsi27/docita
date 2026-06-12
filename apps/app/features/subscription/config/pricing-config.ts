@@ -17,10 +17,11 @@ export const PRICING_DIALOG_TIERS: TierName[] = [...PUBLISHED_PLAN_LADDER];
 
 /** Paid plans only — excludes Starter for usage-based estimator UX. */
 export const PRICING_ESTIMATOR_TIERS: TierName[] = PUBLISHED_PLAN_LADDER.filter(
-	(tier) => tier !== "STARTER",
+	(tier) => tier !== "FREE" && tier !== "STARTER",
 );
 
 export const PRICING_DIALOG_TIER_ICONS: Record<TierName, LucideIcon> = {
+	FREE: Zap,
 	STARTER: Zap,
 	ESSENTIAL: Rocket,
 	FRONT_DESK: ClipboardList,
@@ -33,6 +34,7 @@ export const PRICING_DIALOG_TIER_ICONS: Record<TierName, LucideIcon> = {
 };
 
 export const PRICING_DIALOG_TIER_GRADIENTS: Record<TierName, string> = {
+	FREE: "from-success/15 to-success/8",
 	STARTER: "from-muted to-muted/60",
 	ESSENTIAL: "from-info/20 to-info/10",
 	FRONT_DESK: "from-info/15 to-info/8",
@@ -45,6 +47,7 @@ export const PRICING_DIALOG_TIER_GRADIENTS: Record<TierName, string> = {
 };
 
 export const PRICING_DIALOG_TIER_BORDERS: Record<TierName, string> = {
+	FREE: "border-success/25 hover:border-success/45",
 	STARTER: "border-border hover:border-border/70",
 	ESSENTIAL: "border-info/30 hover:border-info/50",
 	FRONT_DESK: "border-info/25 hover:border-info/45",

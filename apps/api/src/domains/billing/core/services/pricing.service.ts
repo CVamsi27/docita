@@ -191,7 +191,7 @@ export class PricingService {
     const userOverage =
       Math.max(0, users - (limits.users || 1)) * overageRates.userRate;
     const whatsappPricing =
-      tierKey !== 'STARTER' && tierKey !== 'INTELLIGENCE'
+      tierKey !== 'FREE' && tierKey !== 'STARTER' && tierKey !== 'INTELLIGENCE'
         ? getWhatsAppAddonPricingByCurrency(tierKey, validCurrency)
         : null;
     const whatsappOverage =

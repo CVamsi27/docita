@@ -12,6 +12,7 @@ import {
 } from "@workspace/utils";
 
 const STARTER = "STARTER" satisfies TierName;
+const FREE = "FREE" satisfies TierName;
 const INTELLIGENCE = "INTELLIGENCE" satisfies TierName;
 
 const PLAN_LIMITS = TIER_LIMITS;
@@ -36,6 +37,7 @@ function tierRecord<V extends string | boolean | number>(
   build: (tier: Tier) => V,
 ): Record<Tier, V> {
   return {
+    [Tier.FREE]: build(Tier.FREE),
     [Tier.STARTER]: build(Tier.STARTER),
     [Tier.FRONT_DESK]: build(Tier.FRONT_DESK),
     [Tier.FRONT_DESK_CLINIC]: build(Tier.FRONT_DESK_CLINIC),
@@ -50,7 +52,8 @@ function tierRecord<V extends string | boolean | number>(
 
 function whatsappIncludedQuota(tier: Tier): number | undefined {
   const tierName = getTierName(tier);
-  if (tierName === STARTER || tierName === INTELLIGENCE) return undefined;
+  if (tierName === FREE || tierName === STARTER || tierName === INTELLIGENCE)
+    return undefined;
   return WHATSAPP_ADDON_PRICING[tierName].includedQuota;
 }
 

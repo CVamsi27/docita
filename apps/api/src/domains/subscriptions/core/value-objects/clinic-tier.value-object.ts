@@ -1,6 +1,7 @@
 import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
 export enum ClinicTierEnum {
+  FREE = 'FREE',
   STARTER = 'STARTER',
   ESSENTIAL = 'ESSENTIAL',
   FRONT_DESK = 'FRONT_DESK',
@@ -12,6 +13,7 @@ export enum ClinicTierEnum {
 }
 
 const TIER_HIERARCHY: Record<ClinicTierEnum, number> = {
+  [ClinicTierEnum.FREE]: 0,
   [ClinicTierEnum.STARTER]: 1,
   [ClinicTierEnum.ESSENTIAL]: 2,
   [ClinicTierEnum.FRONT_DESK]: 2,
@@ -32,7 +34,6 @@ const LEGACY_TIER_MAP: Record<string, ClinicTierEnum> = {
   // Old internal names
   GROWTH: ClinicTierEnum.ESSENTIAL,
   SCALE: ClinicTierEnum.PROFESSIONAL,
-  FREE: ClinicTierEnum.STARTER,
 };
 
 export class ClinicTier {
@@ -48,6 +49,10 @@ export class ClinicTier {
 
   isStarter(): boolean {
     return this.value === ClinicTierEnum.STARTER;
+  }
+
+  isFree(): boolean {
+    return this.value === ClinicTierEnum.FREE;
   }
 
   isEssential(): boolean {

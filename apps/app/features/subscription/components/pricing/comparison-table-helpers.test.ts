@@ -7,8 +7,9 @@ import {
 } from "./comparison-table-helpers";
 
 describe("comparisonTiersForMode", () => {
-  it("shows all five clinical tiers in Full mode", () => {
+  it("shows all published clinical tiers in Full mode", () => {
     expect(comparisonTiersForMode("FULL")).toEqual([
+      Tier.FREE,
       Tier.STARTER,
       Tier.ESSENTIAL,
       Tier.PROFESSIONAL,

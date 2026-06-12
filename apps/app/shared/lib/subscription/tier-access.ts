@@ -47,6 +47,7 @@ import {
 
 /** Linear plan ladder for onboarding highlights (excludes INTELLIGENCE add-on). */
 const PLAN_TIER_LADDER: Tier[] = [
+  Tier.FREE,
   Tier.STARTER,
   Tier.FRONT_DESK,
   Tier.ESSENTIAL,
@@ -69,6 +70,11 @@ export const PLAN_DESCRIPTIONS: Record<
   Tier,
   { tagline: string; description: string }
 > = {
+  [Tier.FREE]: {
+    tagline: "Start on WhatsApp",
+    description:
+      "Free distribution tier for basic patient records and WhatsApp-first setup",
+  },
   [Tier.STARTER]: {
     tagline: "Go digital from day one",
     description: "Basic clinical workflow for solo doctors moving off paper",

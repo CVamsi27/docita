@@ -42,6 +42,7 @@ export function readClinicFeatureOverrides(
 
 function getTierDisplayName(tier: Tier): string {
   const names: Record<Tier, string> = {
+    [Tier.FREE]: 'Free',
     [Tier.STARTER]: 'Starter',
     [Tier.ESSENTIAL]: 'Essential',
     [Tier.PROFESSIONAL]: 'Professional',

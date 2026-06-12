@@ -2,7 +2,6 @@ import { type PlanMode, Tier, type TierName, tierSchema } from "../billing/tier"
 
 const LEGACY_CLINIC_TIER_TO_ACCESS_TIER: Record<string, Tier> = {
   CAPTURE: Tier.STARTER,
-  FREE: Tier.STARTER,
   CORE: Tier.ESSENTIAL,
   PLUS: Tier.ESSENTIAL,
   PRO: Tier.PROFESSIONAL,
@@ -11,7 +10,6 @@ const LEGACY_CLINIC_TIER_TO_ACCESS_TIER: Record<string, Tier> = {
 
 const LEGACY_CLINIC_TIER_TO_TIER_NAME: Record<string, TierName> = {
   CAPTURE: "STARTER",
-  FREE: "STARTER",
   CORE: "ESSENTIAL",
   PLUS: "ESSENTIAL",
   PRO: "PROFESSIONAL",

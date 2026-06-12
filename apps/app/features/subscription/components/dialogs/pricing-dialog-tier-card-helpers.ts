@@ -6,6 +6,7 @@ import {
 } from "@workspace/types";
 
 export const TIER_ICON_CLASSES: Record<TierName, string> = {
+  FREE: "tier-capture",
   STARTER: "tier-capture",
   ESSENTIAL: "tier-core",
   FRONT_DESK: "tier-core",

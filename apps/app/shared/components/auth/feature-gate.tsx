@@ -91,6 +91,7 @@ export function TierGate({
 }: TierGateProps) {
   const canAccess = usePermissionStore((state) => state.canAccess);
   const tierFeature = {
+    [Tier.FREE]: Feature.BASIC_PATIENT_MANAGEMENT,
     [Tier.STARTER]: Feature.BASIC_PATIENT_MANAGEMENT,
     [Tier.ESSENTIAL]: Feature.INVOICING,
     [Tier.PROFESSIONAL]: Feature.WHATSAPP_OWN_NUMBER,

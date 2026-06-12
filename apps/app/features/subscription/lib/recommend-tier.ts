@@ -12,10 +12,10 @@ import {
  * Tier ladder used for "next plan" suggestions. Excludes INTELLIGENCE (add-on).
  * Order matches the published plan ladder, not the numeric Tier enum.
  */
-type WhatsappPricingTier = Exclude<TierName, "STARTER" | "INTELLIGENCE">;
+type WhatsappPricingTier = Exclude<TierName, "FREE" | "STARTER" | "INTELLIGENCE">;
 
 function isWhatsappPricingTier(tier: TierName): tier is WhatsappPricingTier {
-  return tier !== "STARTER" && tier !== "INTELLIGENCE";
+  return tier !== "FREE" && tier !== "STARTER" && tier !== "INTELLIGENCE";
 }
 
 function readWhatsappIncludedQuota(tier: TierName): number {

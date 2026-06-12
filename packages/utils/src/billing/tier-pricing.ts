@@ -30,14 +30,14 @@ export function getOverageRatesByCurrency(
 }
 
 export function getWhatsAppAddonPricingByCurrency(
-  tier: Exclude<TierName, "STARTER" | "INTELLIGENCE">,
+  tier: Exclude<TierName, "FREE" | "STARTER" | "INTELLIGENCE">,
   currency: SupportedCurrency = "INR",
 ): AddOnPricing {
   return WHATSAPP_ADDON_PRICING_BY_CURRENCY[currency][tier];
 }
 
 export function getIntelligenceAddonPricingByCurrency(
-  tier: Exclude<TierName, "STARTER" | "INTELLIGENCE">,
+  tier: Exclude<TierName, "FREE" | "STARTER" | "INTELLIGENCE">,
   currency: SupportedCurrency = "INR",
 ): AddOnPricing {
   return INTELLIGENCE_ADDON_PRICING_BY_CURRENCY[currency][tier];
