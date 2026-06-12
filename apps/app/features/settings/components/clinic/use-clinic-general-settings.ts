@@ -74,6 +74,8 @@ export function useClinicGeneralSettings() {
         facilityLabel:
           clinic.facilityType ?? settings?.facilityLabel ?? "CLINIC",
         mapsLink: settings?.mapsLink ?? "",
+        abdmEnabled: clinic.abdmEnabled ?? false,
+        hfrFacilityId: clinic.hfrFacilityId ?? "",
       });
     }
   }, [clinic, form]);
@@ -81,10 +83,12 @@ export function useClinicGeneralSettings() {
   const watchedMapsLink = form.watch("mapsLink")?.trim() ?? "";
 
   const handleSubmit = (data: ClinicSettingsFormValues) => {
-    const { legalName, ...rest } = data;
+    const { legalName, hfrFacilityId, ...rest } = data;
     const trimmedLegalName = (legalName ?? "").trim();
+    const trimmedHfrFacilityId = (hfrFacilityId ?? "").trim();
     const payload: Parameters<typeof updateClinic>[0] = {
       ...rest,
+      hfrFacilityId: trimmedHfrFacilityId,
       ...(trimmedLegalName.length > 0
         ? { taxSettings: { legalName: trimmedLegalName } }
         : {}),

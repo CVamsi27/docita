@@ -6,6 +6,7 @@ import { LatestVitalsSection } from "@/features/patients/components/details/summ
 import { MedicalHistorySection } from "@/features/patients/components/details/summary/MedicalHistorySection";
 import { OngoingMedicationsSection } from "@/features/patients/components/details/summary/OngoingMedicationsSection";
 import { RecentConsultationsSection } from "@/features/patients/components/details/summary/RecentConsultationsSection";
+import { AbdmExternalRecordsSection } from "@/features/patients/components/details/summary/AbdmExternalRecordsSection";
 
 interface SummaryTabProps {
   patient: PatientWithMedicalHistory;
@@ -24,6 +25,10 @@ export function SummaryTab({ patient, patientId }: SummaryTabProps) {
         <MedicalHistorySection patient={patient} patientId={patientId} />
         <RecentConsultationsSection patientId={patientId} />
       </div>
+      <AbdmExternalRecordsSection
+        patientId={patientId}
+        abhaVerified={Boolean(patient.abhaVerifiedAt)}
+      />
     </div>
   );
 }

@@ -143,6 +143,7 @@ export function AddPatientDialogForm({
           <SharedPatientContactFields control={form.control} />
           <AbhaVerificationField
             control={form.control}
+            name="abhaAddress"
             currentValue={abhaAddress}
             isPending={isPending}
             patientId={createdPatientId}

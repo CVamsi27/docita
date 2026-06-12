@@ -12,6 +12,7 @@ const settingsMocks = vi.hoisted(() => ({
     address: "12 Health Street",
     phone: "+919000000000",
     gstin: "",
+    hfrFacilityId: "HFR-123",
     referralCode: "DOCITA123",
     settings: { facilityLabel: "CLINIC" },
   },
@@ -84,6 +85,7 @@ describe("ClinicGeneralSettings", () => {
     render(<ClinicGeneralSettings />);
 
     expect(screen.getByDisplayValue("Care Clinic")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("HFR-123")).toBeInTheDocument();
     expect(screen.getByText("DOCITA123")).toBeInTheDocument();
 
     fireEvent.click(
@@ -115,6 +117,7 @@ describe("ClinicGeneralSettings", () => {
           address: "12 Health Street",
           phone: "+919000000000",
           facilityLabel: "CLINIC",
+          hfrFacilityId: "HFR-123",
         }),
         expect.objectContaining({
           onSuccess: expect.any(Function),

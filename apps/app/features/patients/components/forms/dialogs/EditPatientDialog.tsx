@@ -44,9 +44,6 @@ function getInitialAbhaStatus(
     return {
       kind: "verified",
       message: "ABHA verified",
-      detail: patient.abhaKycName
-        ? `ABDM KYC name: ${patient.abhaKycName}`
-        : "The ABHA identity is linked to this patient.",
     };
   }
   return {
@@ -185,6 +182,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
             <PatientBasicInfoFields control={form.control} />
             <AbhaVerificationField
               control={form.control}
+              name="abhaAddress"
               currentValue={abhaAddress}
               isPending={verifyAbha.isPending}
               patientId={patient.id}

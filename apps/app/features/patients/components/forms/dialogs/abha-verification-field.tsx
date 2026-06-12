@@ -21,12 +21,15 @@ import { Badge } from "@workspace/ui/components/indicators/badge";
 
 export type AbhaVerificationUiState =
   | { kind: "idle"; message?: string }
-  | { kind: "verified"; message: string; detail?: string }
+  | { kind: "verified"; message: string }
   | { kind: "not-configured"; message: string }
   | { kind: "failed"; message: string };
 
-interface AbhaVerificationFieldProps<T extends FieldValues> {
+interface AbhaVerificationFieldProps<
+  T extends FieldValues & { abhaAddress?: unknown },
+> {
   control: Control<T>;
+  name: Path<T>;
   currentValue?: string | null;
   isPending: boolean;
   patientId?: string | null;
@@ -71,15 +74,20 @@ function AbhaVerificationStatus({
         <span>{status.message ?? "ABHA verification pending"}</span>
         {getStatusBadge(status)}
       </AlertTitle>
-      {status.kind === "verified" && status.detail ? (
-        <AlertDescription>{status.detail}</AlertDescription>
+      {status.kind === "verified" ? (
+        <AlertDescription>
+          ABHA verification completed for this patient.
+        </AlertDescription>
       ) : null}
     </Alert>
   );
 }
 
-export function AbhaVerificationField<T extends FieldValues>({
+export function AbhaVerificationField<
+  T extends FieldValues & { abhaAddress?: unknown },
+>({
   control,
+  name,
   currentValue,
   isPending,
   patientId,
@@ -92,7 +100,7 @@ export function AbhaVerificationField<T extends FieldValues>({
     <div className="md:col-span-2">
       <FormField
         control={control}
-        name={"abhaAddress" as Path<T>}
+        name={name}
         render={({ field }) => (
           <FormItem>
             <FormLabel>ABHA Address</FormLabel>

@@ -7,6 +7,8 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
+import { FormFieldGroup } from "@workspace/ui/components";
+import { Input } from "@workspace/ui/components/form/input";
 import type { AppAuthUser, User } from "@workspace/types";
 import { SignatureUploadQR } from "@/features/settings/components/signature-upload-qr";
 import Link from "next/link";
@@ -178,6 +180,77 @@ export function MedicalRegistrationCard({
               </Button>
             </div>
           )}
+      </CardContent>
+    </Card>
+  );
+}
+
+export function HprIdCard({
+  value,
+  savedValue,
+  isPending,
+  onChange,
+  onSave,
+}: {
+  value: string;
+  savedValue: string;
+  isPending: boolean;
+  onChange: (value: string) => void;
+  onSave: () => void;
+}) {
+  const hasSavedValue = savedValue.trim().length > 0;
+  const isDirty = value.trim() !== savedValue.trim();
+
+  return (
+    <Card>
+      <CardHeader className="border-b border-border/60 pb-5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <CardTitle>HPR ID</CardTitle>
+            <CardDescription>
+              Health Professional Registry ID used for ABDM-linked records.
+            </CardDescription>
+          </div>
+          {hasSavedValue ? (
+            <Badge
+              variant="outline"
+              className="gap-1.5 border-primary/30 text-primary"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Saved
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="gap-1.5 text-muted-foreground">
+              <Clock className="h-3.5 w-3.5" />
+              Pending
+            </Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4 pt-5">
+        <FormFieldGroup
+          label="HPR ID"
+          htmlFor="doctor-hpr-id"
+          hint="Add this before generating ABDM M2 records for this doctor."
+        >
+          <Input
+            id="doctor-hpr-id"
+            autoComplete="off"
+            placeholder="Enter HPR ID"
+            className="font-mono text-[var(--fs-sm)] tracking-tight"
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+          />
+        </FormFieldGroup>
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            onClick={onSave}
+            disabled={isPending || !isDirty}
+          >
+            {isPending ? "Saving..." : "Save HPR ID"}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
