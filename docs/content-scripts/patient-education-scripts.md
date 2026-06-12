@@ -63,7 +63,7 @@ Call 108 or your local emergency number immediately. Do not drive yourself. Chew
 
 Every minute counts.
 
-General information only. This is not a substitute for emergency care.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -355,7 +355,7 @@ For mild fever, cold, body ache, or minor cuts, visit your regular doctor or a c
 
 Going to the ER for minor issues wastes emergency resources. But not going when it is serious wastes your life.
 
-General information only. This is not a substitute for emergency care.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:

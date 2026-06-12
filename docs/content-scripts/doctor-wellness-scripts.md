@@ -172,7 +172,7 @@ Set clinic hours and stick to them. Do not take calls during dinner. Take one fu
 
 Your family deserves the best version of you, not the leftovers.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -208,7 +208,7 @@ That feeling is normal. It means you care about doing well.
 
 Trust your training. Seek second opinions when needed. You do not have to know everything. You have to know where to find the answer.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:

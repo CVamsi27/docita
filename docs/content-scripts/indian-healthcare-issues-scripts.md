@@ -171,7 +171,7 @@ Before buying a policy: read the exclusions. Check the waiting period for pre-ex
 
 Ask your insurance agent to explain the fine print in plain language. If they cannot, find another agent.
 
-General information only. Consult a certified insurance advisor.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:

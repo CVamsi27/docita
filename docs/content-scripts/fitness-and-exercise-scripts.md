@@ -27,7 +27,7 @@ Ten squats. Ten push-ups. Ten lunges. Thirty second plank. Repeat three rounds.
 
 That is a full body workout in under fifteen minutes. No equipment. No commute. No excuse.
 
-General information only. Consult a healthcare professional before starting exercise.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -62,7 +62,7 @@ Every two hours at your desk, do this: roll your neck five times each direction.
 
 Four moves. Two minutes. Your body stays functional through the workday.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -98,7 +98,7 @@ Walking is lower impact, easier to sustain, and still improves heart health, red
 
 Aim for 30 minutes of brisk walking daily. That is about 4,000 to 5,000 steps at a pace where you can talk but not sing.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -136,7 +136,7 @@ Cat-cow for spine mobility. Child's pose for back release. Downward dog for hams
 
 Five minutes. Every morning. Your body will thank you by noon.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -172,7 +172,7 @@ Start with 20 seconds. Add 5 seconds every week. By month two, you will hold a f
 
 Your core supports everything you do: sitting, standing, lifting, walking. Train it daily.
 
-General information only. Consult a healthcare professional before starting exercise.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -245,7 +245,7 @@ Arm circles. Leg swings. Hip rotations. Light marching in place.
 
 Five minutes of warm-up can save you weeks of recovery from an injury.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -282,7 +282,7 @@ Hold each stretch for 20 to 30 seconds. Do not bounce. Breathe through it.
 
 Hamstrings. Quads. Shoulders. Hips. Five minutes is enough.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -318,7 +318,7 @@ Walking is low impact, sustainable, and can be done at any age. It reduces cardi
 
 Start with 15 minutes after dinner. Build to 30 minutes. Make it a habit, not a workout.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -355,7 +355,7 @@ Push-ups for chest and arms. Lunges for legs. Glute bridges for back and hips. W
 
 Three sets of ten each. Three times a week. That is enough to build a foundation.
 
-General information only. Consult a healthcare professional before starting exercise.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -391,7 +391,7 @@ Fix: place one hand on your chest, one on your belly. Breathe in through your no
 
 Five rounds of this activates your parasympathetic nervous system. Your body calms down.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -464,7 +464,7 @@ Fifteen minutes of daily movement — walking, stretching, bodyweight exercises 
 
 Health is built through habits, not heroics.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -501,7 +501,7 @@ Use your phone or a basic step counter. Track for one week without changing anyt
 
 Small increases. Big health impact.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -573,7 +573,7 @@ Morning exercise works if you are a morning person. Evening exercise works if yo
 
 Consistency matters more than timing. Pick a time. Stick with it.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -610,7 +610,7 @@ Under-desk leg raises: ten per set. Seated calf raises: twenty per set. Desk pus
 
 Do two sets between meetings. Nobody notices. Your body notices.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -649,7 +649,7 @@ Neck rolls. Shoulder shrugs. Seated forward fold. Gentle spinal twist.
 
 Your sleep quality will improve.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:

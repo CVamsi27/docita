@@ -63,7 +63,7 @@ Fibre helps digestion, controls blood sugar, lowers cholesterol, and keeps you f
 
 Add one extra serving of vegetables or fruit per day. Switch from white rice to brown rice or millets occasionally. Add sprouts or legumes to lunch.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -99,7 +99,7 @@ It was balanced before "balanced" became a hashtag.
 
 Stop overthinking your diet. Cook what you know. Eat on a plate. Stop when full.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -243,7 +243,7 @@ The recommended intake is about 3 to 4 teaspoons per day for an adult. Most Indi
 
 Measure your oil. Use mustard or sesame oil for Indian cooking. Do not deep fry when you can saute or steam.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -279,7 +279,7 @@ Every food has calories. Some have fewer. Cucumber and celery are low in calorie
 
 Eat them because they are healthy. Not because you think they erase other food.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -315,7 +315,7 @@ Drink water before you feel thirsty. Thirst means you are already dehydrated.
 
 Eat water-rich foods too: watermelon, cucumber, oranges, and curd.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -351,7 +351,7 @@ Cooking at home gives you control over what goes into your food.
 
 You do not need gourmet recipes. Rice, dal, sabzi, and curd is a complete meal.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -387,7 +387,7 @@ A breakfast of only paratha or poha will burn through fast. Add eggs, sprouts, p
 
 The fix is not eating more. It is eating the right thing.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -423,7 +423,7 @@ During the week, assembling a meal takes five minutes instead of thirty.
 
 You eat better, spend less, and avoid ordering junk when you are too tired to cook.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -460,7 +460,7 @@ A bowl of dal has about 9 grams of protein. Two eggs give you 12. A 100 gram ser
 
 No supplements needed. Just balanced home cooking.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -568,7 +568,7 @@ If sugar, refined flour, or hydrogenated oil are in the first three spots, that 
 
 The simplest rule: if it has more than five ingredients you cannot pronounce, put it back.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -604,7 +604,7 @@ Millets are gluten-free, high in fibre, and have a lower glycaemic index than ri
 
 Bring them back. One meal a week is a good start.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -640,7 +640,7 @@ Eat fruit as a snack, not just after dinner. Aim for two to three servings a day
 
 Seasonal Indian fruit is affordable and nutritious: banana, papaya, guava, orange, watermelon.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -676,7 +676,7 @@ This is not a compromise meal. This is how India has eaten for thousands of year
 
 Add a vegetable and curd, and you have a balanced plate.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -712,7 +712,7 @@ Chew each bite. Put the spoon down between bites. Talk to someone at the table.
 
 Eating slowly improves digestion and reduces overeating.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:

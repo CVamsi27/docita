@@ -27,7 +27,7 @@ But chronic stress raises cortisol, weakens immunity, disrupts sleep, and damage
 
 Rest is not lazy. Rest is maintenance. Schedule it like you schedule meetings.
 
-General information only. Consult a healthcare professional if stress is persistent.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -135,7 +135,7 @@ But every yes to something that does not matter is a no to your health, your fam
 
 Start small: decline one unnecessary meeting. Skip one obligation that drains you. Protect one hour for yourself.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -171,7 +171,7 @@ Turn off non-essential notifications. Put the phone in another room during meals
 
 Your attention span will recover in days.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -237,7 +237,7 @@ Shots:
 Voiceover:
 
 ```text
-Sleep deprivation increases anxiety by up to 30 percent and depression risk significantly.
+Studies suggest sleep deprivation increases anxiety by up to 30 percent and depression risk significantly.
 
 Most mental health struggles are worsened by poor sleep. And most poor sleep is worsened by phone use, caffeine, and irregular schedules.
 
@@ -279,7 +279,7 @@ Try the 4-7-8 technique: inhale for 4 seconds, hold for 7, exhale for 8. Repeat 
 
 This activates your parasympathetic nervous system. Your body shifts from panic to calm in under a minute.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -315,7 +315,7 @@ Write three things: what happened today, how you feel, and what you need.
 
 Five minutes before bed. No phone. Just pen and paper. It externalizes your thoughts and reduces rumination.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -351,7 +351,7 @@ Set boundaries: unfollow accounts that make you feel inadequate. Use screen time
 
 Your pace is your pace.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -387,7 +387,7 @@ Loneliness is not about being alone. It is about feeling disconnected.
 
 Call one person today. Meet one friend this week. Join one community group. Connection is medicine.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -423,7 +423,7 @@ Break the loop: set a 5-minute timer for the decision. When the timer ends, deci
 
 Action beats perfection. Always.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -532,7 +532,7 @@ None of these are dramatic. All of them compound.
 
 Mental health is built in small daily choices, not grand gestures.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:

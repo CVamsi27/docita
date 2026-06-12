@@ -33,7 +33,7 @@ These scripts build **brand authority** for Docita by providing genuine healthca
 4. **Do not claim certifications or approvals.** Docita does not have NABL, ABDM certification, or similar unless explicitly stated elsewhere.
 5. **Do not disparage competitors by name.** Talk about categories of problems, not specific products.
 6. **Do not use trending copyrighted audio.** Use licensed music from YouTube Audio Library, Pixabay, or Uppbeat only.
-7. **Include a small disclaimer on health-related videos:** "General information only. Not medical advice. Consult a healthcare professional."
+7. **Include a small disclaimer on health-related videos:** "General information only. Consult a healthcare professional. Consult a healthcare professional."
 8. **ABDM/ABHA references** should use "where enabled" and link to the sandbox setup guide if technical.
 
 ## Soft CTA Template
@@ -56,7 +56,7 @@ https://docita.work
 ```
 
 ```text
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 Docita — docita.work
 ```
 

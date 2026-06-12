@@ -31,7 +31,7 @@ Seven minutes. No app needed. No gym needed. Just a better start.
 
 Built for clinics that care about getting the basics right. Docita — docita.work.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -104,7 +104,7 @@ Drink one full glass of water before your first cup. Your brain, skin, and energ
 
 Aim for two to three litres through the day. More if you are active or it is summer.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -176,7 +176,7 @@ Set a daily limit. Turn off non-essential notifications. Keep the phone out of t
 
 Your attention is your most valuable resource. Protect it.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -212,7 +212,7 @@ Walking improves cardiovascular health, reduces stress, helps digestion, and cos
 
 Walk to the market. Take the stairs. Walk during phone calls. Add steps to your day without adding time.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -249,7 +249,7 @@ Half your plate: vegetables and salad. One quarter: protein like dal, paneer, ch
 
 That is it. Balanced nutrition without counting calories or buying supplements.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -358,7 +358,7 @@ Fix: inhale for four seconds, hold for four, exhale for four, hold for four. Rep
 
 Box breathing is used by athletes, pilots, and doctors. It works because it is simple.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -394,7 +394,7 @@ Roti and rice are staple carbohydrates. They provide energy. The problem is not 
 
 Balance the plate. Do not ban the food.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -460,13 +460,13 @@ Shots:
 Voiceover:
 
 ```text
-Hand washing reduces respiratory infections by up to 21 percent and diarrheal illness by up to 40 percent.
+Studies suggest hand washing reduces respiratory infections by up to 21 percent and diarrheal illness by up to 40 percent.
 
 Wash for 20 seconds. Before eating. After the toilet. After touching public surfaces.
 
 It is the most effective health habit that almost nobody does consistently.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -502,7 +502,7 @@ Put the phone down 30 minutes before bed. Read a book. Talk to someone. Or just 
 
 Your sleep quality will improve within days.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -538,7 +538,7 @@ Every two hours, stand up. Roll your shoulders. Touch your toes. Stretch your ne
 
 Two minutes. Every two hours. That is all it takes to keep your body from locking up.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -574,7 +574,7 @@ Five to ten minutes of outdoor light in the first hour of waking. Before the pho
 
 It is free. It is simple. And it changes how you feel through the day.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -611,7 +611,7 @@ The problem is not snacking. The problem is choosing chips, cookies, and cold dr
 
 Try nuts, fruit, curd, or a small plate of sprouts. Same habit, different fuel.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
@@ -648,7 +648,7 @@ Health is not one big thing. It is ten small things done daily.
 
 Start with one. Master it. Add the next.
 
-General information only. Not medical advice.
+General information only. Consult a healthcare professional.
 ```
 
 On-screen text:
