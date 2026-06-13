@@ -3,6 +3,7 @@ import {
   TIER_PRICING_REPOSITORY_TOKEN,
   ITierPricingRepository,
 } from '@/domains/billing/core/repositories/tier-pricing.repository';
+import { TierPricing } from '@workspace/db';
 import {
   TIER_PRICING,
   TIER_LIMITS,
@@ -30,6 +31,8 @@ import {
   toPricingTierPayload,
 } from './pricing-helpers';
 
+const TIER_PRICING_CACHE_TTL_MS = 5 * 60 * 1000;
+
 @Injectable()
 export class PricingService {
   constructor(
@@ -38,6 +41,20 @@ export class PricingService {
   ) {}
 
   private readonly supportedCurrencies = SUPPORTED_PRICING_CURRENCIES;
+
+  private cachedTiers: { data: TierPricing[]; expiry: number } | null = null;
+
+  private async getActiveTiers(): Promise<TierPricing[]> {
+    if (this.cachedTiers && Date.now() < this.cachedTiers.expiry) {
+      return this.cachedTiers.data;
+    }
+    const tiers = await this.tierPricingRepo.findManyActive();
+    this.cachedTiers = {
+      data: tiers,
+      expiry: Date.now() + TIER_PRICING_CACHE_TTL_MS,
+    };
+    return tiers;
+  }
 
   private resolveCurrency(currency?: string): SupportedCurrency {
     return resolveCurrency(this.supportedCurrencies, currency);
@@ -55,7 +72,7 @@ export class PricingService {
     const tierPricing = TIER_PRICING_BY_CURRENCY[validCurrency];
     const referralRewards = REFERRAL_REWARDS_BY_CURRENCY[validCurrency];
 
-    const dbTiers = await this.tierPricingRepo.findManyActive();
+    const dbTiers = await this.getActiveTiers();
 
     if (dbTiers.length > 0) {
       const canonicalTiers = dbTiers.filter(
