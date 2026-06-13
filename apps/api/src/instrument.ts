@@ -1,3 +1,12 @@
+if (typeof BigInt !== 'undefined' && !('toJSON' in BigInt.prototype)) {
+  (BigInt.prototype as unknown as { toJSON: () => number | string }).toJSON =
+    function () {
+      const n = Number(this);
+      if (!Number.isFinite(n)) return this.toString();
+      return n;
+    };
+}
+
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import * as Sentry from '@sentry/nestjs';
