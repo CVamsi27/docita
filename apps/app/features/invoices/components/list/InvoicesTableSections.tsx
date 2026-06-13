@@ -21,6 +21,15 @@ import type {
   SortKey,
 } from "@/features/invoices/hooks/use-invoices-logic";
 
+/**
+ * Display token for an invoice: the human invoice number when present,
+ * otherwise a short slice of the id as a fallback. Matches the invoice
+ * detail header so the list and detail views agree.
+ */
+function formatInvoiceToken(invoice: InvoiceListRow): string {
+  return invoice.invoiceNumber ?? (invoice.id ?? "").substring(0, 8);
+}
+
 function SortableHeader({
   label,
   column,
@@ -56,7 +65,7 @@ function SortableHeader({
 
 export function InvoiceNumberCell({ invoice }: { invoice: InvoiceListRow }) {
   return (
-    <span className="font-medium">#{(invoice.id ?? "").substring(0, 8)}</span>
+    <span className="font-medium">#{formatInvoiceToken(invoice)}</span>
   );
 }
 
@@ -148,7 +157,11 @@ export function MobileCard({
 
   return (
     <ListRow
-      token={invoice.id ? `#${invoice.id.substring(0, 8)}` : undefined}
+      token={
+        invoice.invoiceNumber || invoice.id
+          ? `#${formatInvoiceToken(invoice)}`
+          : undefined
+      }
       title={invoice.patient ? getPatientFullName(invoice.patient) : "N/A"}
       meta={formatCurrency(invoice.totalAmount ?? invoice.total)}
       time={
