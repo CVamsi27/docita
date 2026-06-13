@@ -1,16 +1,23 @@
-import { AppointmentStatus, InvoiceStatus, PrismaClient } from '@workspace/db';
+import {
+  AppointmentStatus,
+  FollowUpStatus,
+  InvoiceStatus,
+  PrismaClient,
+} from '@workspace/db';
 import {
   DEFAULT_TIMEZONE,
   formatClinicTodayPickerIso,
   formatUtcInstantAsClinicPickerIso,
   fromLocalISOString,
 } from '@workspace/utils';
-import { SEED_PATIENT_PHONE_NUMBER } from './seed-constants';
+import { seedPatientPhone } from './seed-constants';
 
 type SeedEntityRef = { id: string };
 
 interface SeedPatientsAndEncountersParams {
   clinicId: string;
+  /** The login/demo account (admin.doctor@docita.work) — gets the richest schedule. */
+  adminDoctorId: string;
   doctor1Id: string;
   doctor2Id: string;
   patientPortalUserId: string;
@@ -24,7 +31,6 @@ interface SeedPatient {
   gender: 'MALE' | 'FEMALE';
   bloodGroup: string;
   allergies: string | null;
-  phoneNumber: string;
   email: string;
   address: string;
   medicalHistory: string[];
@@ -39,7 +45,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'O+',
     allergies: 'Penicillin',
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'rajesh.kumar@docita.work',
     address: '123 MG Road, Bangalore',
     medicalHistory: ['Hypertension', 'Diabetes Type 2'],
@@ -52,7 +57,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'A+',
     allergies: null,
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'priya.nair@docita.work',
     address: '456 Brigade Road, Bangalore',
     medicalHistory: ['Asthma'],
@@ -65,7 +69,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'B+',
     allergies: 'Sulfa drugs',
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'amit.patel@docita.work',
     address: '789 Residency Road, Bangalore',
     medicalHistory: ['Arthritis'],
@@ -78,7 +81,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'AB+',
     allergies: null,
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'lakshmi.iyer@docita.work',
     address: '321 Indiranagar, Bangalore',
     medicalHistory: [],
@@ -91,7 +93,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'O-',
     allergies: 'Latex',
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'suresh.reddy@docita.work',
     address: '654 Koramangala, Bangalore',
     medicalHistory: ['Migraine'],
@@ -104,7 +105,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'B-',
     allergies: null,
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'anita.desai@docita.work',
     address: '12 HSR Layout, Bangalore',
     medicalHistory: ['Hypothyroidism'],
@@ -117,7 +117,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'A-',
     allergies: 'Aspirin',
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'vikram.singh@docita.work',
     address: '88 Jayanagar, Bangalore',
     medicalHistory: ['Coronary Artery Disease'],
@@ -130,7 +129,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'O+',
     allergies: null,
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'meera.krishnan@docita.work',
     address: '5 BTM Layout, Bangalore',
     medicalHistory: [],
@@ -143,7 +141,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'AB-',
     allergies: null,
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'arjun.menon@docita.work',
     address: '17 Whitefield, Bangalore',
     medicalHistory: ['Anxiety'],
@@ -156,7 +153,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'A+',
     allergies: 'Peanuts',
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'divya.pillai@docita.work',
     address: '99 Marathahalli, Bangalore',
     medicalHistory: ['GERD'],
@@ -169,7 +165,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'B+',
     allergies: null,
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'karan.verma@docita.work',
     address: '23 Banashankari, Bangalore',
     medicalHistory: ['Hypertension', 'COPD'],
@@ -182,7 +177,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'O+',
     allergies: 'Shellfish',
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'sneha.rao@docita.work',
     address: '60 Hebbal, Bangalore',
     medicalHistory: [],
@@ -195,7 +189,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'O+',
     allergies: null,
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'rohit.sharma@docita.work',
     address: '14 Yelahanka, Bangalore',
     medicalHistory: ['Type 2 Diabetes'],
@@ -208,7 +201,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'B+',
     allergies: 'Ibuprofen',
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'kavita.joshi@docita.work',
     address: '7 Malleswaram, Bangalore',
     medicalHistory: ['Osteoporosis'],
@@ -221,7 +213,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'A+',
     allergies: null,
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'deepak.gupta@docita.work',
     address: '202 Electronic City, Bangalore',
     medicalHistory: ['Allergic Rhinitis'],
@@ -234,7 +225,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'AB+',
     allergies: null,
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'pooja.bhatt@docita.work',
     address: '40 Domlur, Bangalore',
     medicalHistory: ['PCOS'],
@@ -247,7 +237,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'O+',
     allergies: 'Dust',
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'rahul.mehta@docita.work',
     address: '11 RT Nagar, Bangalore',
     medicalHistory: ['Childhood Asthma'],
@@ -260,7 +249,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'A-',
     allergies: null,
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'ritu.khanna@docita.work',
     address: '9 Frazer Town, Bangalore',
     medicalHistory: ['Rheumatoid Arthritis'],
@@ -273,7 +261,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'B-',
     allergies: 'Codeine',
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'sanjay.kapoor@docita.work',
     address: '88 Basaveshwaranagar, Bangalore',
     medicalHistory: ['Hypertension', 'Cataract'],
@@ -286,7 +273,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'O+',
     allergies: null,
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'neha.agarwal@docita.work',
     address: '21 Sarjapur, Bangalore',
     medicalHistory: [],
@@ -299,7 +285,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'A+',
     allergies: null,
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'aditya.chandra@docita.work',
     address: '4 Vijayanagar, Bangalore',
     medicalHistory: ['Eczema'],
@@ -312,7 +297,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'B+',
     allergies: 'Pollen',
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'shreya.saxena@docita.work',
     address: '55 Bellandur, Bangalore',
     medicalHistory: ['Migraine'],
@@ -325,7 +309,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'O+',
     allergies: null,
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'naveen.hegde@docita.work',
     address: '6 Rajajinagar, Bangalore',
     medicalHistory: ['Hyperlipidemia'],
@@ -338,7 +321,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'FEMALE',
     bloodGroup: 'AB+',
     allergies: null,
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'aishwarya.bose@docita.work',
     address: '18 Sadashivnagar, Bangalore',
     medicalHistory: ['Hypothyroidism', 'Anemia'],
@@ -351,7 +333,6 @@ const SEEDED_PATIENTS: SeedPatient[] = [
     gender: 'MALE',
     bloodGroup: 'O-',
     allergies: 'Sulfonamides',
-    phoneNumber: SEED_PATIENT_PHONE_NUMBER,
     email: 'prakash.naidu@docita.work',
     address: '77 JP Nagar, Bangalore',
     medicalHistory: ['Type 2 Diabetes', 'Diabetic Retinopathy'],
@@ -372,7 +353,7 @@ const APPOINTMENT_NOTES = [
 interface AppointmentPlan {
   id: string;
   patientIndex: number;
-  doctorKey: 'd1' | 'd2';
+  doctorKey: 'admin' | 'd1' | 'd2';
   daysOffset: number;
   hour: number;
   minute: number;
@@ -385,9 +366,103 @@ interface AppointmentPlan {
 function buildAppointmentPlans(): AppointmentPlan[] {
   return [
     ...buildPastAppointmentPlans(),
+    ...buildTodayAppointmentPlans(),
     ...buildFutureAppointmentPlans(),
     getRajeshCanonicalAppointmentPlan(),
   ];
+}
+
+/**
+ * A full, realistic clinic day for the demo login (admin.doctor), so the
+ * Appointments calendar and Today queue look busy on camera instead of
+ * empty. Mixed statuses tell the story of a day in progress: earlier slots
+ * done, one in progress now, the rest still to come.
+ */
+function buildTodayAppointmentPlans(): AppointmentPlan[] {
+  const slots: Array<{
+    hour: number;
+    minute: number;
+    patientIndex: number;
+    status: AppointmentStatus;
+    type: string;
+  }> = [
+    {
+      hour: 9,
+      minute: 0,
+      patientIndex: 4,
+      status: AppointmentStatus.COMPLETED,
+      type: 'consultation',
+    },
+    {
+      hour: 9,
+      minute: 30,
+      patientIndex: 8,
+      status: AppointmentStatus.COMPLETED,
+      type: 'follow-up',
+    },
+    {
+      hour: 10,
+      minute: 0,
+      patientIndex: 12,
+      status: AppointmentStatus.COMPLETED,
+      type: 'check-up',
+    },
+    {
+      hour: 10,
+      minute: 30,
+      patientIndex: 2,
+      status: AppointmentStatus.IN_PROGRESS,
+      type: 'consultation',
+    },
+    {
+      hour: 11,
+      minute: 0,
+      patientIndex: 15,
+      status: AppointmentStatus.CONFIRMED,
+      type: 'follow-up',
+    },
+    {
+      hour: 11,
+      minute: 30,
+      patientIndex: 19,
+      status: AppointmentStatus.CONFIRMED,
+      type: 'consultation',
+    },
+    {
+      hour: 12,
+      minute: 0,
+      patientIndex: 6,
+      status: AppointmentStatus.SCHEDULED,
+      type: 'check-up',
+    },
+    {
+      hour: 14,
+      minute: 30,
+      patientIndex: 10,
+      status: AppointmentStatus.CONFIRMED,
+      type: 'consultation',
+    },
+    {
+      hour: 15,
+      minute: 0,
+      patientIndex: 21,
+      status: AppointmentStatus.SCHEDULED,
+      type: 'follow-up',
+    },
+  ];
+
+  return slots.map((slot, i) => ({
+    id: `seed-apt-today-${i.toString().padStart(2, '0')}`,
+    patientIndex: slot.patientIndex % SEEDED_PATIENTS.length,
+    doctorKey: 'admin',
+    daysOffset: 0,
+    hour: slot.hour,
+    minute: slot.minute,
+    durationMin: 30,
+    status: slot.status,
+    type: slot.type,
+    note: APPOINTMENT_NOTES[i % APPOINTMENT_NOTES.length],
+  }));
 }
 
 function buildPastAppointmentPlans(): AppointmentPlan[] {
@@ -412,7 +487,7 @@ function buildPastAppointmentPlans(): AppointmentPlan[] {
     plans.push({
       id: `seed-apt-past-${i.toString().padStart(2, '0')}`,
       patientIndex,
-      doctorKey: i % 2 === 0 ? 'd1' : 'd2',
+      doctorKey: (['admin', 'd1', 'd2'] as const)[i % 3],
       daysOffset,
       hour: 9 + (i % 8),
       minute: (i % 2) * 30,
@@ -454,7 +529,7 @@ function buildFutureAppointmentPlans(): AppointmentPlan[] {
     plans.push({
       id: `seed-apt-future-${i.toString().padStart(2, '0')}`,
       patientIndex,
-      doctorKey: i % 2 === 0 ? 'd2' : 'd1',
+      doctorKey: (['admin', 'd2', 'd1'] as const)[i % 3],
       daysOffset,
       hour: 10 + (i % 7),
       minute: (i % 2) * 30,
@@ -590,10 +665,12 @@ export async function seedPatientsAndEncounters(
   prisma: PrismaClient,
   params: SeedPatientsAndEncountersParams,
 ): Promise<SeedEntityRef[]> {
-  const { clinicId, doctor1Id, doctor2Id, patientPortalUserId } = params;
+  const { clinicId, adminDoctorId, doctor1Id, doctor2Id, patientPortalUserId } =
+    params;
   const patients = await seedPatients(prisma, clinicId, patientPortalUserId);
   const appointments = await seedAppointments(prisma, {
     clinicId,
+    adminDoctorId,
     doctor1Id,
     doctor2Id,
     patients,
@@ -612,8 +689,172 @@ export async function seedPatientsAndEncounters(
   );
   await seedInvoices(prisma, clinicId, appointments, rajeshAppointment);
   await seedDocuments(prisma, clinicId, patients);
+  await seedDiagnoses(prisma, completedAppointments);
+  await seedFollowUps(prisma, completedAppointments);
 
   return patients.map((patient) => ({ id: patient.id }));
+}
+
+const FOLLOW_UP_REASONS = [
+  'Review blood pressure and medication response',
+  'Re-check fasting glucose and HbA1c',
+  'Post-consultation symptom review',
+  'Review lab results',
+  'Medication titration follow-up',
+  'Routine chronic-care review',
+];
+
+/**
+ * Scheduled follow-ups so the Follow-ups page and the Today "Follow-ups due
+ * today" card show real callbacks on camera. A few land today, the rest are
+ * spread across the next two weeks; one per group is already reminded.
+ */
+async function seedFollowUps(
+  prisma: PrismaClient,
+  completedAppointments: Awaited<ReturnType<typeof seedAppointments>>,
+): Promise<void> {
+  const dayOffsets = [0, 0, 0, 1, 1, 2, 2, 3, 7, 7, 14, 14];
+  const targets = completedAppointments.slice(0, dayOffsets.length);
+  for (let i = 0; i < targets.length; i++) {
+    const appt = targets[i];
+    const status =
+      i % 5 === 4 ? FollowUpStatus.REMINDER_SENT : FollowUpStatus.PENDING;
+    const data = {
+      appointmentId: appt.id,
+      patientId: appt.patientId,
+      doctorId: appt.doctorId,
+      clinicId: appt.clinicId,
+      scheduledDate: dateOffset(dayOffsets[i]),
+      reason: FOLLOW_UP_REASONS[i % FOLLOW_UP_REASONS.length],
+      status,
+      reminderSentAt:
+        status === FollowUpStatus.REMINDER_SENT ? dateOffset(-1) : null,
+    };
+    await prisma.followUp.upsert({
+      where: { id: `seed-followup-${appt.id}` },
+      update: data,
+      create: { id: `seed-followup-${appt.id}`, ...data },
+    });
+  }
+}
+
+/**
+ * A small ICD-10 catalogue of common primary-care conditions, spread across
+ * several body systems so the analytics "Top diagnoses" and "Disease
+ * distribution" charts render with real data on camera instead of empty
+ * states. Categories drive the distribution donut.
+ */
+const SEED_ICD_CODES: Array<{
+  code: string;
+  description: string;
+  category: string;
+}> = [
+  {
+    code: 'E11.9',
+    description: 'Type 2 diabetes mellitus without complications',
+    category: 'Endocrine',
+  },
+  {
+    code: 'I10',
+    description: 'Essential (primary) hypertension',
+    category: 'Circulatory',
+  },
+  {
+    code: 'J45.909',
+    description: 'Unspecified asthma, uncomplicated',
+    category: 'Respiratory',
+  },
+  {
+    code: 'J06.9',
+    description: 'Acute upper respiratory infection, unspecified',
+    category: 'Respiratory',
+  },
+  { code: 'M54.5', description: 'Low back pain', category: 'Musculoskeletal' },
+  {
+    code: 'M17.9',
+    description: 'Osteoarthritis of knee, unspecified',
+    category: 'Musculoskeletal',
+  },
+  {
+    code: 'K21.9',
+    description: 'Gastro-oesophageal reflux disease without oesophagitis',
+    category: 'Digestive',
+  },
+  {
+    code: 'E78.5',
+    description: 'Hyperlipidaemia, unspecified',
+    category: 'Endocrine',
+  },
+  {
+    code: 'E03.9',
+    description: 'Hypothyroidism, unspecified',
+    category: 'Endocrine',
+  },
+  {
+    code: 'N39.0',
+    description: 'Urinary tract infection, site not specified',
+    category: 'Genitourinary',
+  },
+  {
+    code: 'F41.9',
+    description: 'Anxiety disorder, unspecified',
+    category: 'Mental health',
+  },
+  { code: 'R51', description: 'Headache', category: 'Symptoms & signs' },
+];
+
+const DIAGNOSIS_NOTES = [
+  'Stable on current management; continue therapy.',
+  'Symptoms improving since last visit.',
+  'Newly diagnosed; treatment plan initiated.',
+  'Reviewed labs; medication adjusted.',
+  'Counselled on lifestyle modification.',
+  'Follow-up advised in four weeks.',
+];
+
+async function seedDiagnoses(
+  prisma: PrismaClient,
+  completedAppointments: Awaited<ReturnType<typeof seedAppointments>>,
+): Promise<void> {
+  const icdCodeIdByCode = new Map<string, string>();
+  for (const entry of SEED_ICD_CODES) {
+    const icdCode = await prisma.icdCode.upsert({
+      where: { code: entry.code },
+      update: {
+        description: entry.description,
+        category: entry.category,
+        isCommon: true,
+      },
+      create: {
+        code: entry.code,
+        description: entry.description,
+        category: entry.category,
+        version: 'ICD-10',
+        isCommon: true,
+      },
+    });
+    icdCodeIdByCode.set(entry.code, icdCode.id);
+  }
+
+  for (let i = 0; i < completedAppointments.length; i++) {
+    const appt = completedAppointments[i];
+    const entry = SEED_ICD_CODES[i % SEED_ICD_CODES.length];
+    const icdCodeId = icdCodeIdByCode.get(entry.code);
+    await prisma.diagnosis.upsert({
+      where: { id: `seed-diag-${appt.id}` },
+      update: {
+        appointmentId: appt.id,
+        icdCodeId,
+        notes: DIAGNOSIS_NOTES[i % DIAGNOSIS_NOTES.length],
+      },
+      create: {
+        id: `seed-diag-${appt.id}`,
+        appointmentId: appt.id,
+        icdCodeId,
+        notes: DIAGNOSIS_NOTES[i % DIAGNOSIS_NOTES.length],
+      },
+    });
+  }
 }
 
 async function seedPatients(
@@ -634,7 +875,7 @@ async function seedPatients(
           gender: seededPatient.gender,
           bloodGroup: seededPatient.bloodGroup,
           allergies: seededPatient.allergies,
-          phoneNumber: seededPatient.phoneNumber,
+          phoneNumber: seedPatientPhone(index),
           email: seededPatient.email,
           address: seededPatient.address,
           medicalHistory: [...seededPatient.medicalHistory],
@@ -649,7 +890,7 @@ async function seedPatients(
           gender: seededPatient.gender,
           bloodGroup: seededPatient.bloodGroup,
           allergies: seededPatient.allergies,
-          phoneNumber: seededPatient.phoneNumber,
+          phoneNumber: seedPatientPhone(index),
           email: seededPatient.email,
           address: seededPatient.address,
           medicalHistory: [...seededPatient.medicalHistory],
@@ -667,13 +908,18 @@ async function seedAppointments(
   prisma: PrismaClient,
   params: {
     clinicId: string;
+    adminDoctorId: string;
     doctor1Id: string;
     doctor2Id: string;
     patients: Awaited<ReturnType<typeof seedPatients>>;
   },
 ) {
   const plans = buildAppointmentPlans();
-  const doctorByKey = { d1: params.doctor1Id, d2: params.doctor2Id };
+  const doctorByKey = {
+    admin: params.adminDoctorId,
+    d1: params.doctor1Id,
+    d2: params.doctor2Id,
+  };
 
   const appointments = await Promise.all(
     plans.map((plan) => {
@@ -799,6 +1045,26 @@ async function seedPrescriptions(
   }
 }
 
+/**
+ * Indian financial year code (e.g. "2627" for FY 2026-27) for the current
+ * date, mirroring the API's invoice-number format so seeded invoices read
+ * like real ones (DC2627-000001) on camera instead of leaking the row id.
+ */
+const SEED_INVOICE_FINANCIAL_YEAR = (() => {
+  const now = new Date();
+  const startYear =
+    now.getMonth() + 1 >= 4 ? now.getFullYear() : now.getFullYear() - 1;
+  return `${String(startYear).slice(-2)}${String(startYear + 1).slice(-2)}`;
+})();
+
+const SEED_INVOICE_PREFIX = 'DC';
+
+function seedInvoiceNumber(sequence: number): string {
+  return `${SEED_INVOICE_PREFIX}${SEED_INVOICE_FINANCIAL_YEAR}-${String(
+    sequence,
+  ).padStart(6, '0')}`;
+}
+
 async function seedInvoices(
   prisma: PrismaClient,
   clinicId: string,
@@ -821,6 +1087,28 @@ async function seedInvoices(
       create: { id: invoiceId, ...data },
     });
   }
+
+  // Advance the clinic's invoice counter past the seeded numbers so an
+  // invoice created live during a demo gets the next number (no collision
+  // with the seeded DC{FY}-NNNNNN values).
+  await prisma.invoiceSequence.upsert({
+    where: {
+      clinicId_financialYear: {
+        clinicId,
+        financialYear: SEED_INVOICE_FINANCIAL_YEAR,
+      },
+    },
+    update: {
+      currentValue: invoiceTargets.length,
+      prefix: SEED_INVOICE_PREFIX,
+    },
+    create: {
+      clinic: { connect: { id: clinicId } },
+      financialYear: SEED_INVOICE_FINANCIAL_YEAR,
+      prefix: SEED_INVOICE_PREFIX,
+      currentValue: invoiceTargets.length,
+    },
+  });
 }
 
 function getSeedInvoiceData(
@@ -847,6 +1135,7 @@ function getSeedInvoiceData(
       appointmentId: appt.id,
       patientId: appt.patientId,
       clinicId,
+      invoiceNumber: seedInvoiceNumber(index + 1),
       total: consultFee + rxFee + vitalsFee,
       status: INVOICE_STATUS_PLAN[index] ?? InvoiceStatus.PAID,
       items,

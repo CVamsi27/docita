@@ -51,6 +51,7 @@ async function main() {
     const {
       defaultClinic,
       clinicAdmin,
+      adminDoctor,
       doctor1,
       doctor2,
       doctor3,
@@ -60,6 +61,7 @@ async function main() {
 
     const patients = await seedPatientsAndEncounters(prisma, {
       clinicId: defaultClinic.id,
+      adminDoctorId: adminDoctor.id,
       doctor1Id: doctor1.id,
       doctor2Id: doctor2.id,
       patientPortalUserId: patientPortalUser.id,
@@ -69,9 +71,11 @@ async function main() {
 
     await seedSchedulesAndLabTests(prisma, {
       clinicId: defaultClinic.id,
+      adminDoctorId: adminDoctor.id,
       doctor1Id: doctor1.id,
       doctor2Id: doctor2.id,
       doctor3Id: doctor3.id,
+      patientIds: patients.map((p) => p.id),
     });
 
     await seedIpd(prisma, {
