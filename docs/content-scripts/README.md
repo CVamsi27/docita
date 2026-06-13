@@ -1,8 +1,25 @@
 # Docita Content Scripts Library
 
-This folder contains ready-to-record short-form video scripts for general healthcare content. These are **not** product demo scripts — they are educational and lifestyle content that builds brand authority and drives organic reach.
+This folder contains every recorded-video script for Docita, in two streams:
 
-Use these scripts alongside the product-focused playbook at [`../product/DOCITA_VIDEO_MARKETING_PLAYBOOK.md`](../product/DOCITA_VIDEO_MARKETING_PLAYBOOK.md).
+1. **Educational / lifestyle scripts** — general healthcare content that builds brand authority and organic reach. These are **not** product demos; the Docita mention is a soft sign-off.
+2. **Product / demo scripts** — videos that show the app itself (the founder's marketing playbook), split into a common reference, long-form, and short-form files.
+
+> Keep the two streams distinct so the channel does not feel like a non-stop ad. Mix educational and product videos in the calendar (see Campaign Rhythm below).
+
+## Product / Demo Scripts
+
+The product video playbook lives here, split for easy execution:
+
+| File | What it holds |
+|---|---|
+| [`product-common.md`](product-common.md) | The shared "common for all" reference: positioning, audience map, compliance guardrails, long/short templates, screen map, brand tone, music, demo account data, recording + editing checklists, file naming, editor handoff, and the 7-week campaign order. Read this first. |
+| [`product-long-form-scripts.md`](product-long-form-scripts.md) | 15 core long-form scripts (what is Docita, free trial, setup, doctor/owner/front-desk perspectives, patient journey, WhatsApp, hospital) **plus 10 expansion video ideas** (lab, public booking, import/OCR, analytics, ABDM/ABHA, multi-clinic, security, objection-handling, inventory, beds). Each has scene-by-scene screen action, voiceover, editor notes, and the shorts to cut. |
+| [`product-short-form-scripts.md`](product-short-form-scripts.md) | 50+ short-form scripts grouped by theme, **each fully elaborated** with a Recording Instructions table (exact route + navigation + screenshot guidance) so the recorder has zero guesswork, plus a new-ideas backlog. |
+
+> History note: these three files replace the former `docs/product/DOCITA_VIDEO_MARKETING_PLAYBOOK.md`, which was migrated here in full, reorganized, and elaborated (every short-form scene now has step-by-step recording instructions).
+
+## Educational / Lifestyle Scripts
 
 ## How to Use These Scripts
 
@@ -68,18 +85,25 @@ Each script is designed to be:
 
 ## Campaign Rhythm Suggestion
 
-- Post 3–4 content scripts per week across platforms.
+- Post 3–4 educational scripts per week across platforms.
 - Mix categories: 1 healthy living + 1 nutrition + 1 Indian healthcare + 1 clinic technology per week.
-- Product demo videos from the playbook should be 1 per week.
+- Run **1 product video per week** from the product files — anchor on a long-form ([`product-long-form-scripts.md`](product-long-form-scripts.md)) and cut 3–4 shorts from it ([`product-short-form-scripts.md`](product-short-form-scripts.md)). The full 7-week launch sequence is in [`product-common.md`](product-common.md).
 - Repurpose long-form scripts into 2–3 shorts each.
 - Track which hooks get the most views and double down on those topics.
 
-## File Naming
+## File Layout
 
 ```text
 docs/content-scripts/
   README.md                            (this file)
-  content-guidelines.md                (tone, compliance, editing rules)
+  content-guidelines.md                (educational tone, compliance, editing rules)
+
+  # Product / demo scripts
+  product-common.md                    (shared reference: positioning, screen map, templates, compliance, campaign)
+  product-long-form-scripts.md         (15 core long-form + 10 expansion ideas)
+  product-short-form-scripts.md        (50+ shorts, each with full recording instructions)
+
+  # Educational / lifestyle scripts
   healthy-living-scripts.md
   nutrition-and-diet-scripts.md
   fitness-and-exercise-scripts.md
