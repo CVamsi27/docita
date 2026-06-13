@@ -6,7 +6,7 @@ import {
   useRevenueByCPT,
 } from "@workspace/data-access";
 import { useClinic } from "@/lib/contexts/clinic-context";
-import type { ComplianceMetric } from "@workspace/types";
+import type { ComplianceMetric, DiseaseTrend } from "@workspace/types";
 
 export type {
   AnalyticsOverview,
@@ -31,10 +31,30 @@ export const useAnalyticsLogic = () => {
     refetch: refetchOverview,
   } = useAnalyticsOverview();
 
-  const { data: diseaseTrends = [], isLoading: trendsLoading } =
+  const { data: diseaseTrendsData = [], isLoading: trendsLoading } =
     useDiseaseTrends(defaultClinicId, startDate, endDate, {
       enabled: activeTab === "disease-trends",
     });
+
+  // The API returns rows shaped as `{ icdCode, count }`, but the charts read
+  // `disease`/`count`/`percentage`. Derive a human label and the share of
+  // total so the bar labels and pie slice labels render real values instead
+  // of "undefined".
+  const diseaseTrends = useMemo<DiseaseTrend[]>(() => {
+    const total = diseaseTrendsData.reduce(
+      (sum, row) => sum + (row.count ?? 0),
+      0,
+    );
+    return diseaseTrendsData.map((row) => {
+      const count = row.count ?? 0;
+      return {
+        ...row,
+        disease: row.icdCode?.code ?? row.disease ?? "Uncoded",
+        count,
+        percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+      };
+    });
+  }, [diseaseTrendsData]);
 
   const { data: revenueByCPTData = [], isLoading: revenueLoading } =
     useRevenueByCPT(defaultClinicId, startDate, endDate, {
