@@ -105,12 +105,49 @@ export class PrismaLabRepository implements ILabRepository {
 
     const orders = await readClient.labTestOrder.findMany({
       where,
-      include: { labTest: true },
+      include: {
+        labTest: true,
+        patient: { select: { id: true, firstName: true, lastName: true } },
+      },
       orderBy: { createdAt: 'desc' },
       take: 1000,
     });
 
-    return orders.map((o) => this.mapToLabOrder(o));
+    // Resolve ordering-doctor names in one batch (orderedBy is a user id, not
+    // a Prisma relation on LabTestOrder).
+    const orderedByIds = [
+      ...new Set(
+        orders
+          .map((o) => o.orderedBy)
+          .filter((id): id is string => typeof id === 'string'),
+      ),
+    ];
+    const doctors = orderedByIds.length
+      ? await readClient.user.findMany({
+          where: { id: { in: orderedByIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+    const doctorNameById = new Map(doctors.map((d) => [d.id, d.name]));
+
+    return orders.map((o) =>
+      this.mapToLabOrder(o, {
+        patient: o.patient ?? undefined,
+        labTest: o.labTest
+          ? {
+              id: o.labTest.id,
+              name: o.labTest.name,
+              category: o.labTest.category,
+              code: o.labTest.code ?? undefined,
+              price: o.labTest.price ?? undefined,
+            }
+          : undefined,
+        doctor:
+          o.orderedBy && doctorNameById.has(o.orderedBy)
+            ? { name: doctorNameById.get(o.orderedBy) as string }
+            : undefined,
+      }),
+    );
   }
 
   async findOrderById(id: string): Promise<LabOrder | null> {
@@ -203,7 +240,20 @@ export class PrismaLabRepository implements ILabRepository {
     );
   }
 
-  private mapToLabOrder(prismaOrder: PrismaLabTestOrder): LabOrder {
+  private mapToLabOrder(
+    prismaOrder: PrismaLabTestOrder,
+    relations?: {
+      patient?: { id: string; firstName: string; lastName: string };
+      labTest?: {
+        id: string;
+        name: string;
+        category: string;
+        code?: string;
+        price?: number;
+      };
+      doctor?: { name: string };
+    },
+  ): LabOrder {
     const parsedResult = parsePrismaJsonColumn(
       prismaOrder.result,
       labTestOrderResultJsonSchema,
@@ -235,6 +285,9 @@ export class PrismaLabRepository implements ILabRepository {
       prismaOrder.paymentMethod || undefined,
       prismaOrder.paymentReference || undefined,
       prismaOrder.releasedAt || undefined,
+      relations?.patient,
+      relations?.labTest,
+      relations?.doctor,
     );
   }
 

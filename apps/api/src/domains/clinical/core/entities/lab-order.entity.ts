@@ -25,6 +25,21 @@ export class LabOrder {
     public readonly paymentMethod?: string,
     public readonly paymentReference?: string,
     public readonly releasedAt?: Date,
+    // Read-only relations populated on list/detail reads so the lab worklist
+    // can show patient, test, and ordering-doctor names instead of raw ids.
+    public readonly patient?: {
+      id: string;
+      firstName: string;
+      lastName: string;
+    },
+    public readonly labTest?: {
+      id: string;
+      name: string;
+      category: string;
+      code?: string;
+      price?: number;
+    },
+    public readonly doctor?: { name: string },
   ) {}
 
   static create(props: {
