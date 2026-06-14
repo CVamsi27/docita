@@ -43,7 +43,7 @@ Expansion ideas (record after the core sequence):
 
 ## Video 1: What Is Docita
 
-**Title:** `What is Docita? The complete clinic operating system`
+**Title:** `What is Docita? The complete healthcare operating system`
 
 **Goal:** The definitive intro. Anyone who asks "what is this product?" should land here.
 
@@ -54,7 +54,7 @@ Expansion ideas (record after the core sequence):
 **Hook (0:00–0:15):**
 
 ```text
-Clinics run serious work through scattered tools. Docita brings it all into one place.
+Clinics and hospitals run serious work through scattered tools. Docita brings it all into one place.
 ```
 
 **Timeline (≈9:05, full product tour):**
@@ -76,9 +76,9 @@ Clinics run serious work through scattered tools. Docita brings it all into one 
 Intro voiceover:
 
 ```text
-Most clinics run their day across paper registers, Excel sheets, phone calls, WhatsApp chats, and separate billing software. Nothing is connected. The front desk does not know what the doctor documented. The doctor does not know what billing collected. The owner does not know what happened today without asking five people.
+Most clinics and hospitals run their day across paper registers, Excel sheets, phone calls, WhatsApp chats, and separate billing software. Nothing is connected. The front desk does not know what the doctor documented. The doctor does not know what billing collected. The owner does not know what happened today without asking five people.
 
-Docita is a clinic operating system. It connects appointments, patient records, consultations, prescriptions, invoices, follow-ups, WhatsApp communication, lab tests, inventory, and facility operations into one workspace.
+Docita is a healthcare operating system. It connects appointments, patient records, consultations, prescriptions, invoices, follow-ups, WhatsApp communication, lab tests, inventory, and facility operations into one workspace.
 ```
 
 ### Scene 1 — The problem
@@ -160,7 +160,7 @@ Designed for Indian private clinics and hospitals. Built around the way Indian f
 **Outro:**
 
 ```text
-Docita: the clinic operating system. Run your appointments, consultations, prescriptions, billing, and follow-ups from one connected workspace. Start your 30-day free trial today.
+Docita: the healthcare operating system. Run your appointments, consultations, prescriptions, billing, and follow-ups from one connected workspace. Start your 30-day free trial today.
 
 https://docita.work
 support@docita.work
@@ -169,7 +169,7 @@ support@docita.work
 
 Music: calm, confident, modern tech bed; build slightly during the feature walkthrough; keep the trial CTA warm and direct.
 
-**Shorts to cut:** what is docita, clinic software that connects everything, from paper and excel to one workspace, 30-day free trial no credit card, start with one doctor and today's appointments, the clinic operating system.
+**Shorts to cut:** what is docita, clinic software that connects everything, from paper and excel to one workspace, 30-day free trial no credit card, start with one doctor and today's appointments, the healthcare operating system.
 
 ---
 

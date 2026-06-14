@@ -31,7 +31,7 @@ Do not open with "please use our software." Open with the operational pain:
 - Clinics lose time because appointments, patient notes, billing, prescriptions, and WhatsApp messages live in separate places.
 - Doctors do not want more admin work. They want patient context, prescription flow, and fewer interruptions.
 - Facility owners want visibility: what happened today, who is waiting, what was billed, and what follow-up is pending.
-- Docita should feel like a clinic operating layer, not just appointment software.
+- Docita should feel like a healthcare operating layer, not just appointment software.
 
 Core message:
 
