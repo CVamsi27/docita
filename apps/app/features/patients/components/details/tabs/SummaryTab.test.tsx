@@ -27,8 +27,22 @@ vi.mock("@workspace/data-access", () => ({
   }),
   usePatientSnapshot: () => ({
     data: {
-      activeConditions: [],
-      activeAllergies: [],
+      activeConditions: [
+        {
+          id: "condition-1",
+          conditionName: "Type 2 diabetes",
+          status: "ACTIVE",
+          severity: "MODERATE",
+        },
+      ],
+      activeAllergies: [
+        {
+          id: "allergy-1",
+          allergen: "Penicillin",
+          severity: "SEVERE",
+          allergyType: "DRUG",
+        },
+      ],
       activeMedications: [],
       latestVitals: {
         systolicBP: 120,

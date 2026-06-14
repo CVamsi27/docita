@@ -2,21 +2,23 @@ import { Badge } from "@workspace/ui/components/indicators/badge";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { Section } from "@workspace/ui/components/layout/section";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
-import type { PatientWithMedicalHistory } from "@workspace/types";
+import { usePatientSnapshot } from "@workspace/data-access";
 import { HeartPulse } from "lucide-react";
 import { SummarySectionAction } from "./SummarySectionAction";
 
 interface ClinicalOverviewSectionProps {
-  patient: PatientWithMedicalHistory;
   patientId: string;
 }
 
 export function ClinicalOverviewSection({
-  patient,
   patientId,
 }: ClinicalOverviewSectionProps) {
-  const conditions = patient.medicalConditions ?? [];
-  const allergies = patient.patientAllergies ?? [];
+  // Read the active problem list from the patient snapshot (same source as the
+  // clinical snapshot strip) rather than the base patient record, which does
+  // not carry the structured conditions/allergies relations.
+  const { data: snapshot } = usePatientSnapshot(patientId);
+  const conditions = snapshot?.activeConditions ?? [];
+  const allergies = snapshot?.activeAllergies ?? [];
   const recordsHref = `/patients/${patientId}?tab=records&subtab=history`;
 
   return (

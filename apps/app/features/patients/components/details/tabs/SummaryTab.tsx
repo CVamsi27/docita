@@ -16,7 +16,7 @@ interface SummaryTabProps {
 export function SummaryTab({ patient, patientId }: SummaryTabProps) {
   return (
     <div className="space-y-4">
-      <ClinicalOverviewSection patient={patient} patientId={patientId} />
+      <ClinicalOverviewSection patientId={patientId} />
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)]">
         <OngoingMedicationsSection patientId={patientId} />
         <LatestVitalsSection patientId={patientId} />
