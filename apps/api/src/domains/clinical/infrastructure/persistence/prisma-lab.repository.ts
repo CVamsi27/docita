@@ -144,7 +144,7 @@ export class PrismaLabRepository implements ILabRepository {
           : undefined,
         doctor:
           o.orderedBy && doctorNameById.has(o.orderedBy)
-            ? { name: doctorNameById.get(o.orderedBy) as string }
+            ? { name: doctorNameById.get(o.orderedBy)! }
             : undefined,
       }),
     );
