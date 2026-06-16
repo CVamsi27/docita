@@ -45,6 +45,7 @@ import { PatientTagsController } from './presentation/controllers/patient-tags.c
 import { PatientAbdmController } from './presentation/controllers/patient-abdm.controller';
 import { AbhaVerificationCommandService } from './application/services/abha-verification-command.service';
 import { AbhaVerificationService } from './application/services/abha-verification.service';
+import { AbhaMobileVerificationService } from './application/services/abha-mobile-verification.service';
 import { AbdmHttpGateway } from './infrastructure/external/abdm-http.gateway';
 import { PrismaAbhaVerificationStore } from './infrastructure/persistence/prisma-abha-verification.store';
 import {
@@ -75,6 +76,7 @@ import {
     { provide: PATIENT_PERSISTENCE_PORT, useExisting: PrismaService },
     AbhaVerificationCommandService,
     AbhaVerificationService,
+    AbhaMobileVerificationService,
     { provide: ABDM_GATEWAY, useClass: AbdmHttpGateway },
     { provide: ABHA_VERIFICATION_STORE, useClass: PrismaAbhaVerificationStore },
     PatientQueryService,

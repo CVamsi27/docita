@@ -52,11 +52,20 @@ export class ExternalIntegrationsConfigService {
     const clientId = config.ABDM_CLIENT_ID?.trim() || null;
     const clientSecret = config.ABDM_CLIENT_SECRET?.trim() || null;
     const callbackSecret = config.ABDM_CALLBACK_SECRET?.trim() || null;
+    // ABHA profile/verification calls go to a different host than the gateway.
+    const isSandbox = Boolean(baseUrl?.includes('dev.abdm.gov.in'));
+    const abhaBaseUrl =
+      config.ABDM_ABHA_BASE_URL?.trim() ||
+      (isSandbox ? 'https://abhasbx.abdm.gov.in' : 'https://abha.abdm.gov.in');
+    const abhaPublicKey = config.ABDM_ABHA_PUBLIC_KEY?.trim() || null;
     return {
       baseUrl,
       clientId,
       clientSecret,
       callbackSecret,
+      abhaBaseUrl,
+      abhaPublicKey,
+      isSandbox,
       enabled: Boolean(baseUrl && clientId && clientSecret),
     };
   }

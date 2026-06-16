@@ -38,6 +38,9 @@ describe('ClinicAbdmDashboardService', () => {
       clientId: 'client',
       clientSecret: 'secret',
       callbackSecret: 'callback-secret',
+      abhaBaseUrl: 'https://abhasbx.abdm.gov.in',
+      abhaPublicKey: null,
+      isSandbox: true,
       enabled: true,
     });
   });
@@ -102,6 +105,9 @@ describe('ClinicAbdmDashboardService', () => {
       clientId: null,
       clientSecret: null,
       callbackSecret: null,
+      abhaBaseUrl: 'https://abhasbx.abdm.gov.in',
+      abhaPublicKey: null,
+      isSandbox: false,
       enabled: false,
     });
     (persistence.patient.count as jest.Mock)

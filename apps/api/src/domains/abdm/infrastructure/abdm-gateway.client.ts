@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type {
   AbhaVerificationResult,
@@ -83,11 +84,28 @@ export class AbdmGatewayClient {
     return this.config.getAbdmConfig().enabled;
   }
 
+  /**
+   * Obtain a gateway access token. Exposed so sibling ABDM clients (e.g. the
+   * ABHA profile client on the abhasbx host) can reuse the same bearer.
+   */
+  async getAccessToken(): Promise<string> {
+    const abdm = this.config.getAbdmConfig();
+    if (!abdm.enabled || !abdm.baseUrl) {
+      throw new Error('ABDM gateway credentials not configured');
+    }
+    return this.getSessionToken(abdm.baseUrl);
+  }
+
   async verifyAbha(input: VerifyAbhaRequest): Promise<AbhaVerificationResult> {
     const abdm = this.config.getAbdmConfig();
     if (!abdm.enabled || !abdm.baseUrl) return NOT_CONFIGURED;
 
     try {
+      // DEPRECATED(ABDM M1): this `abha/verify` path 404s — ABHA APIs are not on
+      // the gateway host. The real mobile→OTP verification flow lives in
+      // `AbdmAbhaClient` (abdm-abha.client.ts) against abhasbx.abdm.gov.in.
+      // This method is retained only for the existing `IAbdmGateway` contract
+      // until the service/controller are migrated to the new client.
       const response = await this.postGateway('abha/verify', {
         healthIdNumber: input.abhaNumber,
         healthId: input.abhaAddress,
@@ -194,6 +212,20 @@ export class AbdmGatewayClient {
     }
   }
 
+  /**
+   * Common headers every ABDM gateway call requires. `REQUEST-ID` (a fresh UUID)
+   * and `TIMESTAMP` (ISO-8601) are mandatory — without them the gateway rejects
+   * the request with 401 before it reaches credential validation.
+   */
+  private gatewayHeaders(baseUrl: string): Record<string, string> {
+    return {
+      'Content-Type': 'application/json',
+      'REQUEST-ID': randomUUID(),
+      TIMESTAMP: this.clock.now().toISOString(),
+      'X-CM-ID': baseUrl.includes('dev.abdm.gov.in') ? 'sbx' : 'abdm',
+    };
+  }
+
   private async postGateway(path: string, body: unknown): Promise<Response> {
     const abdm = this.config.getAbdmConfig();
     if (!abdm.enabled || !abdm.baseUrl) {
@@ -203,8 +235,7 @@ export class AbdmGatewayClient {
     return fetchWithTimeout(gatewayUrl(abdm.baseUrl, path), {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'X-CM-ID': abdm.baseUrl.includes('dev.abdm.gov.in') ? 'sbx' : 'abdm',
+        ...this.gatewayHeaders(abdm.baseUrl),
         Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify(body),
@@ -224,13 +255,11 @@ export class AbdmGatewayClient {
 
     const response = await fetchWithTimeout(gatewayUrl(baseUrl, 'sessions'), {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CM-ID': baseUrl.includes('dev.abdm.gov.in') ? 'sbx' : 'abdm',
-      },
+      headers: this.gatewayHeaders(baseUrl),
       body: JSON.stringify({
         clientId: abdm.clientId,
         clientSecret: abdm.clientSecret,
+        grantType: 'client_credentials',
       }),
     });
     if (!response.ok) {

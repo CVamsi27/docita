@@ -106,6 +106,12 @@ export const EnvSchema = z.object({
   ABDM_CLIENT_ID: z.string().optional(),
   ABDM_CLIENT_SECRET: z.string().optional(),
   ABDM_CALLBACK_SECRET: z.string().optional(),
+  // ABHA profile/verification host (M1). Distinct from the gateway host above:
+  // ABHA APIs live on abhasbx.abdm.gov.in (sandbox) / abha.abdm.gov.in (prod).
+  ABDM_ABHA_BASE_URL: z.string().optional(),
+  // RSA public key (PEM or base64 body) used to encrypt mobile/OTP for ABHA
+  // APIs. Falls back to the published sandbox key when unset on the sandbox host.
+  ABDM_ABHA_PUBLIC_KEY: z.string().optional(),
   // DPDP grievance / data-protection officer contact, published on the consent
   // sheet and trust page. Defaults to the platform support email.
   GRIEVANCE_CONTACT_EMAIL: z.string().optional(),

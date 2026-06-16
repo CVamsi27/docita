@@ -5,6 +5,7 @@ import { RequestWithUser } from '@/shared/common/types/common.types';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { AbhaVerificationCommandService } from '@/domains/patients/application/services/abha-verification-command.service';
+import { AbhaMobileVerificationService } from '@/domains/patients/application/services/abha-mobile-verification.service';
 import { PatientAbdmController } from './patient-abdm.controller';
 
 describe('PatientAbdmController', () => {
@@ -12,6 +13,11 @@ describe('PatientAbdmController', () => {
 
   const verifyForPatient =
     jest.fn<AbhaVerificationCommandService['verifyForPatient']>();
+  const mobileVerification = {
+    searchByMobile: jest.fn(),
+    requestOtp: jest.fn(),
+    verifyOtp: jest.fn(),
+  };
 
   const buildRequest = (): RequestWithUser => {
     const request = Object.create({}) as RequestWithUser;
@@ -30,6 +36,10 @@ describe('PatientAbdmController', () => {
         {
           provide: AbhaVerificationCommandService,
           useValue: { verifyForPatient },
+        },
+        {
+          provide: AbhaMobileVerificationService,
+          useValue: mobileVerification,
         },
       ],
     })

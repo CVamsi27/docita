@@ -1,4 +1,21 @@
 import { createZodDto } from 'nestjs-zod';
-import { verifyAbhaRequestSchema } from '@workspace/types';
+import {
+  abhaRequestOtpRequestSchema,
+  abhaSearchByMobileRequestSchema,
+  abhaVerifyOtpRequestSchema,
+  verifyAbhaRequestSchema,
+} from '@workspace/types';
 
 export class VerifyAbhaDto extends createZodDto(verifyAbhaRequestSchema) {}
+
+export class AbhaSearchByMobileDto extends createZodDto(
+  abhaSearchByMobileRequestSchema,
+) {}
+
+export class AbhaRequestOtpDto extends createZodDto(
+  abhaRequestOtpRequestSchema,
+) {}
+
+export class AbhaVerifyOtpDto extends createZodDto(
+  abhaVerifyOtpRequestSchema,
+) {}

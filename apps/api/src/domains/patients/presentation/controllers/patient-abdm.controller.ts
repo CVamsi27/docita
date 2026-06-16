@@ -9,7 +9,13 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ZodValidationPipe } from 'nestjs-zod';
-import { APP_ACCESS_TARGETS, verifyAbhaRequestSchema } from '@workspace/types';
+import {
+  APP_ACCESS_TARGETS,
+  abhaRequestOtpRequestSchema,
+  abhaSearchByMobileRequestSchema,
+  abhaVerifyOtpRequestSchema,
+  verifyAbhaRequestSchema,
+} from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {
@@ -20,7 +26,13 @@ import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.ut
 import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { AbhaVerificationCommandService } from '@/domains/patients/application/services/abha-verification-command.service';
-import { VerifyAbhaDto } from '@/domains/patients/application/dto/abha-verification.dto';
+import { AbhaMobileVerificationService } from '@/domains/patients/application/services/abha-mobile-verification.service';
+import {
+  AbhaRequestOtpDto,
+  AbhaSearchByMobileDto,
+  AbhaVerifyOtpDto,
+  VerifyAbhaDto,
+} from '@/domains/patients/application/dto/abha-verification.dto';
 
 @ApiTags('patients')
 @Controller('patients/:patientId/abha')
@@ -30,6 +42,7 @@ import { VerifyAbhaDto } from '@/domains/patients/application/dto/abha-verificat
 export class PatientAbdmController {
   constructor(
     private readonly abhaVerification: AbhaVerificationCommandService,
+    private readonly abhaMobile: AbhaMobileVerificationService,
   ) {}
 
   @Post('verify')
@@ -45,6 +58,57 @@ export class PatientAbdmController {
       patientId,
       clinicId,
       dto,
+      userId,
+    );
+  }
+
+  @Post('search')
+  @ApiOperation({
+    summary: 'List ABHA accounts mapped to a mobile number (M1)',
+  })
+  @UsePipes(new ZodValidationPipe(abhaSearchByMobileRequestSchema))
+  async search(
+    @Request() req: RequestWithUser,
+    @Param('patientId') patientId: string,
+    @Body() dto: AbhaSearchByMobileDto,
+  ) {
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.abhaMobile.searchByMobile(patientId, clinicId, dto.mobile);
+  }
+
+  @Post('request-otp')
+  @ApiOperation({ summary: 'Request an OTP for a selected ABHA account (M1)' })
+  @UsePipes(new ZodValidationPipe(abhaRequestOtpRequestSchema))
+  async requestOtp(
+    @Request() req: RequestWithUser,
+    @Param('patientId') patientId: string,
+    @Body() dto: AbhaRequestOtpDto,
+  ) {
+    const { clinicId } = getClinicStaffRequestContext(req);
+    return this.abhaMobile.requestOtp(
+      patientId,
+      clinicId,
+      dto.txnId,
+      dto.index,
+    );
+  }
+
+  @Post('verify-otp')
+  @ApiOperation({
+    summary: 'Verify the ABHA OTP and persist the identity (M1)',
+  })
+  @UsePipes(new ZodValidationPipe(abhaVerifyOtpRequestSchema))
+  async verifyOtp(
+    @Request() req: RequestWithUser,
+    @Param('patientId') patientId: string,
+    @Body() dto: AbhaVerifyOtpDto,
+  ) {
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
+    return this.abhaMobile.verifyOtp(
+      patientId,
+      clinicId,
+      dto.txnId,
+      dto.otp,
       userId,
     );
   }

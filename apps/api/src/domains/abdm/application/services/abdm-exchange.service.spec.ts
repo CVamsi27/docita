@@ -140,6 +140,9 @@ describe('AbdmExchangeService', () => {
       clientId: null,
       clientSecret: null,
       callbackSecret: null,
+      abhaBaseUrl: 'https://abhasbx.abdm.gov.in',
+      abhaPublicKey: null,
+      isSandbox: false,
       enabled: false,
     });
     gateway.isConfigured.mockReturnValue(false);

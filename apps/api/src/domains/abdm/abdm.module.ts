@@ -7,6 +7,7 @@ import { CommonServicesModule } from '@/shared/modules/services/common-services.
 import { ABDM_REPOSITORY_TOKEN } from '@/domains/abdm/core/repositories/abdm.repository.interface';
 import { PrismaAbdmRepository } from '@/domains/abdm/infrastructure/repositories/prisma-abdm.repository';
 import { AbdmGatewayClient } from '@/domains/abdm/infrastructure/abdm-gateway.client';
+import { AbdmAbhaClient } from '@/domains/abdm/infrastructure/abdm-abha.client';
 import { AbdmExchangeService } from '@/domains/abdm/application/services/abdm-exchange.service';
 import { AbdmQueryService } from '@/domains/abdm/application/services/abdm-query.service';
 import { AbdmCommandService } from '@/domains/abdm/application/services/abdm-command.service';
@@ -33,12 +34,13 @@ import {
     AbdmCallbackCommandService,
     AbdmCallbackStateService,
     AbdmGatewayClient,
+    AbdmAbhaClient,
     PrismaAbdmRepository,
     {
       provide: ABDM_REPOSITORY_TOKEN,
       useExisting: PrismaAbdmRepository,
     },
   ],
-  exports: [AbdmExchangeService, AbdmGatewayClient],
+  exports: [AbdmExchangeService, AbdmGatewayClient, AbdmAbhaClient],
 })
 export class AbdmModule {}
