@@ -113,6 +113,7 @@ export const settingsTabs = [
         description: "ABHA, M2 readiness & DHIS",
         roles: ADMIN_ROLES,
         feature: Feature.ABDM_INTEGRATION,
+        comingSoon: true,
       },
     ],
   },

@@ -34,6 +34,7 @@ const ESSENTIAL_FULL_FEATURES = [
   "Queue management",
   "Audit logs & compliance",
   "Insurance billing",
+  "ABDM / ABHA integration (coming soon)",
 ];
 
 const PROFESSIONAL_FULL_FEATURES = [
@@ -45,6 +46,7 @@ const PROFESSIONAL_FULL_FEATURES = [
   "API access (planned)",
   "Custom letterhead (planned)",
   "Priority support with SLA",
+  "ABDM / ABHA integration (coming soon)",
 ];
 
 const HOSPITAL_FULL_FEATURES = [
@@ -56,6 +58,7 @@ const HOSPITAL_FULL_FEATURES = [
   "Multi-branch analytics dashboards",
   "Dedicated customer success manager",
   "Higher API throughput for integrations",
+  "ABDM / ABHA integration (coming soon)",
 ];
 
 const ENTERPRISE_FULL_FEATURES = [
