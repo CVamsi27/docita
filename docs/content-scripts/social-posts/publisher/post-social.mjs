@@ -206,6 +206,7 @@ async function postToLinkedIn(post) {
 
 // ── Main posting logic ──
 const POSTS_PATH = resolve(__dirname, "posts.json");
+const SOCIAL_MD_PATH = resolve(ROOT, "SOCIAL_POSTS.md");
 
 function syncPostsJsonStatus() {
   if (!existsSync(POSTS_PATH)) return;
@@ -219,6 +220,18 @@ function syncPostsJsonStatus() {
   }
   writeFileSync(POSTS_PATH, JSON.stringify(posts, null, 2));
   console.log("  [sync] Updated posts.json status markers");
+}
+
+function syncSocialPostsMd(postId) {
+  if (!existsSync(SOCIAL_MD_PATH)) return;
+  let md = readFileSync(SOCIAL_MD_PATH, "utf8");
+  // Find the ### <ID> section and flip its status
+  const sectionRe = new RegExp(`(### ${postId} —.*?\\n\\n\\*\\*Status:\\*\\*) \\[ \\] done`, "s");
+  if (sectionRe.test(md)) {
+    md = md.replace(sectionRe, "$1 [x] done");
+    writeFileSync(SOCIAL_MD_PATH, md);
+    console.log(`  [sync] Marked ${postId} done in SOCIAL_POSTS.md`);
+  }
 }
 
 async function postOne(post) {
@@ -241,6 +254,7 @@ async function postOne(post) {
     posted[post.id] = { ...(posted[post.id] ?? {}), ...updates };
     writeFileSync(POSTED_PATH, JSON.stringify(posted, null, 2));
     syncPostsJsonStatus();
+    syncSocialPostsMd(post.id);
   }
 }
 

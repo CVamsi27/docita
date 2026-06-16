@@ -12,7 +12,7 @@ See `posts.json → status` for per-platform details.
 
 ### P1 — What Is Docita?
 
-**Post date:** 2026-06-15
+**Status:** [ ] done
 **Image:** `images/shot-today.png`
 **Alt text:** Docita dashboard showing today's appointment schedule
 
@@ -55,7 +55,7 @@ Built for Indian clinics and hospitals. Try free for 30 days → docita.work
 
 ### P2 — WhatsApp Chaos
 
-**Post date:** 2026-06-16
+**Status:** [ ] done
 **Image:** `images/card-whatsapp-chaos.svg`
 **Alt text:** Text card: "Appointments via WhatsApp. Chaos guaranteed."
 
@@ -96,7 +96,7 @@ Docita replaces the WhatsApp chaos with online booking, confirmations, and autom
 
 ### E1 — Drink Water First
 
-**Post date:** 2026-06-17
+**Status:** [ ] done
 **Image:** `images/card-water-first.svg`
 **Alt text:** Text card: "Water first. Coffee second."
 
@@ -145,7 +145,7 @@ General information only. Consult a healthcare professional.
 
 ### P3 — Everything in One Place
 
-**Post date:** 2026-06-18
+**Status:** [ ] done
 **Image:** `images/card-one-place.svg`
 **Alt text:** Text card: "One place. Zero tabs."
 
@@ -186,7 +186,7 @@ Zero tabs. Zero chaos. Just better care.
 
 ### P4 — Auto Follow-Ups
 
-**Post date:** 2026-06-19
+**Status:** [ ] done
 **Image:** `images/card-follow-ups.svg`
 **Alt text:** Text card: "Patients forget. Docita reminds."
 
@@ -231,7 +231,7 @@ Docita sends automated WhatsApp reminders so patients actually show up. Set it o
 
 ### E2 — Sleep Is Not Laziness
 
-**Post date:** 2026-06-20
+**Status:** [ ] done
 **Image:** `images/card-sleep.svg`
 **Alt text:** Text card: "Sleep is not laziness."
 
@@ -282,7 +282,7 @@ General information only. Consult a healthcare professional.
 
 ### P5 — Online Booking
 
-**Post date:** 2026-06-21
+**Status:** [ ] done
 **Image:** `images/shot-appointments.png`
 **Alt text:** Docita appointments screen showing online bookings
 
@@ -323,7 +323,7 @@ Docita handles online booking, WhatsApp confirmations, and automated reminders.
 
 ### P6 — Digital Prescriptions
 
-**Post date:** 2026-06-22
+**Status:** [ ] done
 **Image:** `images/shot-prescription.png`
 **Alt text:** Docita prescription builder screen
 
@@ -368,7 +368,7 @@ Doctors using Docita's prescription builder report faster consultations and fewe
 
 ### E3 — The Indian Thali
 
-**Post date:** 2026-06-23
+**Status:** [ ] done
 **Image:** `images/card-thali.svg`
 **Alt text:** Text card: "The Indian thali is nearly perfect."
 
@@ -419,7 +419,7 @@ General information only. Consult a healthcare professional.
 
 ### P7 — GST Invoicing
 
-**Post date:** 2026-06-24
+**Status:** [ ] done
 **Image:** `images/shot-invoices.png`
 **Alt text:** Docita invoices list with GST invoice numbers
 
@@ -462,7 +462,7 @@ Clinics using Docita report cutting their billing time by 70%.
 
 ### P8 — Patient Records
 
-**Post date:** 2026-06-25
+**Status:** [ ] done
 **Image:** `images/shot-patients.png`
 **Alt text:** Docita patient list with records
 
@@ -505,7 +505,7 @@ No more paper files. No more guessing.
 
 ### E4 — 20-20-20 Rule
 
-**Post date:** 2026-06-26
+**Status:** [ ] done
 **Image:** `images/card-2020.svg`
 **Alt text:** Text card: "20-20-20 rule."
 
@@ -555,7 +555,7 @@ General information only. Consult a healthcare professional.
 
 ### P9 — Analytics Dashboard
 
-**Post date:** 2026-06-27
+**Status:** [ ] done
 **Image:** `images/shot-analytics.png`
 **Alt text:** Docita analytics dashboard with clinic performance charts
 
@@ -603,7 +603,7 @@ Data-driven decisions start with the right data.
 
 ### P10 — Import from Excel
 
-**Post date:** 2026-06-28
+**Status:** [ ] done
 **Image:** `images/card-excel.svg`
 **Alt text:** Text card: "Excel was not built for clinics."
 
@@ -648,7 +648,7 @@ No data loss. No headaches.
 
 ### E5 — Protein at Every Meal
 
-**Post date:** 2026-06-29
+**Status:** [ ] done
 **Image:** `images/card-protein.svg`
 **Alt text:** Text card: "Protein at every meal."
 
@@ -699,7 +699,7 @@ General information only. Consult a healthcare professional.
 
 ### P11 — Lab Orders
 
-**Post date:** 2026-06-30
+**Status:** [ ] done
 **Image:** `images/shot-lab-tests.png`
 **Alt text:** Docita lab orders screen
 
@@ -740,7 +740,7 @@ One place. One record. Complete visibility.
 
 ### P12 — Hospital Beds
 
-**Post date:** 2026-07-01
+**Status:** [ ] done
 **Image:** `images/shot-hospital-beds.png`
 **Alt text:** Docita hospital bed management screen
 
@@ -783,7 +783,7 @@ Docita works for single clinics and scales to multi-department hospitals.
 
 ### E6 — Walking Myth
 
-**Post date:** 2026-07-02
+**Status:** [ ] done
 **Image:** `images/card-walking.svg`
 **Alt text:** Text card: "10,000 steps is a myth."
 
@@ -834,7 +834,7 @@ General information only. Consult a healthcare professional.
 
 ### P13 — Onboarding in Minutes
 
-**Post date:** 2026-07-03
+**Status:** [ ] done
 **Image:** `images/shot-onboarding.png`
 **Alt text:** Docita onboarding screen — clinic setup
 
@@ -879,7 +879,7 @@ No IT team. No training week. No setup fee. 30 days free.
 
 ### P14 — Consultation Notes
 
-**Post date:** 2026-07-04
+**Status:** [ ] done
 **Image:** `images/shot-consultation.png`
 **Alt text:** Docita consultation screen with clinical notes
 
@@ -922,7 +922,7 @@ Good documentation is good care.
 
 ### E7 — Doctor Burnout
 
-**Post date:** 2026-07-05
+**Status:** [ ] done
 **Image:** `images/card-burnout.svg`
 **Alt text:** Text card: "Admin work won't fix itself."
 
@@ -968,7 +968,7 @@ Reducing admin burden through better tools isn't a luxury. It's a clinical imper
 
 ### P15 — Free Trial CTA
 
-**Post date:** 2026-07-06
+**Status:** [ ] done
 **Image:** `images/card-one-patient-test.svg`
 **Alt text:** Text card: "One patient. One appointment. See the magic."
 
@@ -1013,7 +1013,7 @@ Most clinic owners get it in the first 10 minutes. 30 days free. No credit card.
 
 ### P16 — Start Small
 
-**Post date:** 2026-07-07
+**Status:** [ ] done
 **Image:** `images/card-start-small.svg`
 **Alt text:** Text card: "Start small. Grow fast."
 
@@ -1056,7 +1056,7 @@ No re-implementation. No new training. Just growth.
 
 ### E8 — Posture
 
-**Post date:** 2026-07-08
+**Status:** [ ] done
 **Image:** `images/card-posture.svg`
 **Alt text:** Text card: "Sit like your back matters."
 
@@ -1114,7 +1114,7 @@ General information only. Consult a healthcare professional.
 
 ### P17 — Receptionist Never Sleeps
 
-**Post date:** 2026-07-09
+**Status:** [ ] done
 **Image:** `images/card-receptionist.svg`
 **Alt text:** Text card: "Your receptionist never sleeps."
 
@@ -1157,7 +1157,7 @@ Docita's online booking runs 24/7: instant WhatsApp confirmation, automated remi
 
 ### P18 — No Handoffs Lost
 
-**Post date:** 2026-07-10
+**Status:** [ ] done
 **Image:** `images/card-handoffs.svg`
 **Alt text:** Text card: "Nothing falls through the cracks."
 
@@ -1202,7 +1202,7 @@ Complete clinical continuity for every patient.
 
 ### E9 — Sleep & Mental Health
 
-**Post date:** 2026-07-11
+**Status:** [ ] done
 **Image:** `images/card-sleep.svg`
 **Alt text:** Text card: "Sleep is not laziness."
 
@@ -1251,7 +1251,7 @@ General information only. Consult a healthcare professional.
 
 ### P19 — Billing Stress Stops Here
 
-**Post date:** 2026-07-12
+**Status:** [ ] done
 **Image:** `images/card-stress-badge.svg`
 **Alt text:** Text card: "The billing stress stops here."
 
