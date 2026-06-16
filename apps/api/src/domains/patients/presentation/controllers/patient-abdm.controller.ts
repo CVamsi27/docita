@@ -12,7 +12,6 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import {
   APP_ACCESS_TARGETS,
   abhaRequestOtpRequestSchema,
-  abhaSearchByMobileRequestSchema,
   abhaVerifyOtpRequestSchema,
   verifyAbhaRequestSchema,
 } from '@workspace/types';
@@ -29,7 +28,6 @@ import { AbhaVerificationCommandService } from '@/domains/patients/application/s
 import { AbhaMobileVerificationService } from '@/domains/patients/application/services/abha-mobile-verification.service';
 import {
   AbhaRequestOtpDto,
-  AbhaSearchByMobileDto,
   AbhaVerifyOtpDto,
   VerifyAbhaDto,
 } from '@/domains/patients/application/dto/abha-verification.dto';
@@ -62,22 +60,8 @@ export class PatientAbdmController {
     );
   }
 
-  @Post('search')
-  @ApiOperation({
-    summary: 'List ABHA accounts mapped to a mobile number (M1)',
-  })
-  @UsePipes(new ZodValidationPipe(abhaSearchByMobileRequestSchema))
-  async search(
-    @Request() req: RequestWithUser,
-    @Param('patientId') patientId: string,
-    @Body() dto: AbhaSearchByMobileDto,
-  ) {
-    const { clinicId } = getClinicStaffRequestContext(req);
-    return this.abhaMobile.searchByMobile(patientId, clinicId, dto.mobile);
-  }
-
   @Post('request-otp')
-  @ApiOperation({ summary: 'Request an OTP for a selected ABHA account (M1)' })
+  @ApiOperation({ summary: 'Request an OTP for ABHA verification (M1)' })
   @UsePipes(new ZodValidationPipe(abhaRequestOtpRequestSchema))
   async requestOtp(
     @Request() req: RequestWithUser,
@@ -85,12 +69,7 @@ export class PatientAbdmController {
     @Body() dto: AbhaRequestOtpDto,
   ) {
     const { clinicId } = getClinicStaffRequestContext(req);
-    return this.abhaMobile.requestOtp(
-      patientId,
-      clinicId,
-      dto.txnId,
-      dto.index,
-    );
+    return this.abhaMobile.requestOtp(patientId, clinicId, dto.mobile);
   }
 
   @Post('verify-otp')

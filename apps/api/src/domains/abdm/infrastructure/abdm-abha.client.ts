@@ -5,6 +5,7 @@ import { isRecord } from '@workspace/utils';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { ExternalIntegrationsConfigService } from '@/shared/modules/config/external-integrations-config.service';
+import { AbdmGatewayClient } from './abdm-gateway.client';
 
 const NOT_CONFIGURED: AbhaVerificationResult = {
   verified: false,
@@ -21,6 +22,7 @@ export class AbdmAbhaClient {
 
   constructor(
     private readonly config: ExternalIntegrationsConfigService,
+    private readonly gatewayClient: AbdmGatewayClient,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
@@ -28,46 +30,49 @@ export class AbdmAbhaClient {
     return this.config.getAbdmConfig().enabled;
   }
 
-  async searchByMobile(
+  /**
+   * Request OTP for ABHA login via mobile number.
+   * Uses V3 API: POST /v3/profile/login/request/otp
+   */
+  async requestOtp(
     mobile: string,
-  ): Promise<{ txnId: string; accounts: unknown[] }> {
-    const response = await this.post('v2/account/searchByMobile', {
-      mobile,
-    });
+  ): Promise<{ txnId: string; maskedTarget: string | null }> {
+    const response = await this.postWithAuth(
+      'v3/profile/login/request/otp',
+      {
+        scope: ['abha-login', 'mobile-verify'],
+        loginHint: 'mobile',
+        loginId: mobile,
+        otpSystem: 'abdm',
+      },
+      { skipAuth: true },
+    );
     const body: unknown = await response.json();
     const record = isRecord(body) ? body : {};
     return {
       txnId: typeof record.txnId === 'string' ? record.txnId : '',
-      accounts: Array.isArray(record.accounts) ? record.accounts : [],
+      maskedTarget: null,
     };
   }
 
-  async requestOtp(
-    txnId: string,
-    index: number,
-  ): Promise<{ txnId: string; maskedTarget: string | null }> {
-    const response = await this.post('v2/account/requestAbhaOtp', {
-      txnId,
-      index,
-    });
-    const body: unknown = await response.json();
-    const record = isRecord(body) ? body : {};
-    return {
-      txnId: typeof record.txnId === 'string' ? record.txnId : txnId,
-      maskedTarget:
-        typeof record.maskedMobile === 'string'
-          ? record.maskedMobile
-          : typeof record.maskedTarget === 'string'
-            ? record.maskedTarget
-            : null,
-    };
-  }
-
+  /**
+   * Verify OTP to complete ABHA login and get profile token.
+   * Uses V3 API: POST /v3/profile/login/verify
+   */
   async verifyOtp(txnId: string, otp: string): Promise<AbhaVerificationResult> {
-    const response = await this.post('v2/account/verifyMobileOtp', {
-      txnId,
-      otp,
-    });
+    const response = await this.postWithAuth(
+      'v3/profile/login/verify',
+      {
+        authData: {
+          authMethods: ['otp'],
+          otp: {
+            txnId,
+            otpValue: otp,
+          },
+        },
+      },
+      { tToken: txnId },
+    );
     if (!response.ok) {
       return {
         ...NOT_CONFIGURED,
@@ -76,23 +81,20 @@ export class AbdmAbhaClient {
     }
     const body: unknown = await response.json();
     const record = isRecord(body) ? body : {};
-    const abhaAddress =
-      typeof record.healthId === 'string' ? record.healthId : null;
     const abhaNumber =
-      typeof record.healthIdNumber === 'string' ? record.healthIdNumber : null;
-    const kycName = typeof record.name === 'string' ? record.name : null;
+      typeof record.abhaNumber === 'string' ? record.abhaNumber : null;
 
     return {
       verified: true,
-      abhaAddress,
+      abhaAddress: null,
       abhaNumber,
-      kycName,
+      kycName: null,
       verifiedAt: this.clock.now().toISOString(),
       error: null,
     };
   }
 
-  private headers(): Record<string, string> {
+  private baseHeaders(): Record<string, string> {
     return {
       'Content-Type': 'application/json',
       'REQUEST-ID': randomUUID(),
@@ -100,15 +102,27 @@ export class AbdmAbhaClient {
     };
   }
 
-  private async post(path: string, body: unknown): Promise<Response> {
+  private async postWithAuth(
+    path: string,
+    body: unknown,
+    opts?: { skipAuth?: boolean; tToken?: string },
+  ): Promise<Response> {
     const abdm = this.config.getAbdmConfig();
     if (!abdm.enabled || !abdm.abhaBaseUrl) {
       throw new Error('ABDM ABHA credentials not configured');
     }
     const url = `${abdm.abhaBaseUrl.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
+    const headers = this.baseHeaders();
+    if (!opts?.skipAuth) {
+      const accessToken = await this.gatewayClient.getAccessToken();
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+    if (opts?.tToken) {
+      headers['T-TOKEN'] = opts.tToken;
+    }
     return fetchWithTimeout(url, {
       method: 'POST',
-      headers: this.headers(),
+      headers,
       body: JSON.stringify(body),
     });
   }

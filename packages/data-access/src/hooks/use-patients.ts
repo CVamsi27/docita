@@ -13,7 +13,6 @@ import {
   PatientWithMedicalHistory,
   UpdatePatientRequest,
   type AbhaRequestOtpResult,
-  type AbhaSearchByMobileResult,
   type AbhaVerificationResult,
   type VerifyAbhaRequest,
   verifyAbhaRequestSchema,
@@ -34,15 +33,9 @@ export type VerifyPatientAbhaVariables = VerifyAbhaRequest & {
   patientId: string;
 };
 
-export type SearchAbhaByMobileVariables = {
-  patientId: string;
-  mobile: string;
-};
-
 export type RequestAbhaOtpVariables = {
   patientId: string;
-  txnId: string;
-  index: number;
+  mobile: string;
 };
 
 export type VerifyAbhaOtpVariables = {
@@ -221,10 +214,10 @@ export const useVerifyPatientAbha = () => {
   );
 };
 
-/** M1 ABHA verification — step 1: list ABHA accounts for a mobile number. */
-export const useSearchAbhaByMobile = () =>
-  useAPIMutation<AbhaSearchByMobileResult, SearchAbhaByMobileVariables>(
-    ({ patientId }) => `/patients/${patientId}/abha/search`,
+/** M1 ABHA verification — step 1: request OTP for a mobile number. */
+export const useRequestAbhaOtp = () =>
+  useAPIMutation<AbhaRequestOtpResult, RequestAbhaOtpVariables>(
+    ({ patientId }) => `/patients/${patientId}/abha/request-otp`,
     "POST",
     {
       body: ({ mobile }) => ({ mobile }),
@@ -232,18 +225,7 @@ export const useSearchAbhaByMobile = () =>
     },
   );
 
-/** M1 ABHA verification — step 2: request an OTP for a chosen account index. */
-export const useRequestAbhaOtp = () =>
-  useAPIMutation<AbhaRequestOtpResult, RequestAbhaOtpVariables>(
-    ({ patientId }) => `/patients/${patientId}/abha/request-otp`,
-    "POST",
-    {
-      body: ({ txnId, index }) => ({ txnId, index }),
-      suppressGlobalErrorToast: true,
-    },
-  );
-
-/** M1 ABHA verification — step 3: verify the OTP and persist the identity. */
+/** M1 ABHA verification — step 2: verify the OTP and persist the identity. */
 export const useVerifyAbhaOtp = () => {
   const queryClient = useQueryClient();
 

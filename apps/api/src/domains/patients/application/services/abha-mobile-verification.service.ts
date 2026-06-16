@@ -16,10 +16,9 @@ import {
 
 /**
  * ABDM M1: mobile → OTP verification flow against the ABHA sandbox
- * (`abhasbx.abdm.gov.in`). The flow is stateful across three calls:
- *   1. search by mobile → masked accounts + txnId
- *   2. request OTP for a chosen account index → txnId
- *   3. verify OTP → persisted {@link AbhaVerificationResult}
+ * (`abhasbx.abdm.gov.in`). The flow is stateful across two calls:
+ *   1. request OTP with mobile → txnId
+ *   2. verify OTP → persisted {@link AbhaVerificationResult}
  */
 @Injectable()
 export class AbhaMobileVerificationService {
@@ -33,23 +32,11 @@ export class AbhaMobileVerificationService {
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
-  async searchByMobile(patientId: string, clinicId: string, mobile: string) {
+  async requestOtp(patientId: string, clinicId: string, mobile: string) {
     await this.assertClinicAbdmEnabled(clinicId);
     this.assertConfigured();
 
-    return this.abhaClient.searchByMobile(mobile);
-  }
-
-  async requestOtp(
-    patientId: string,
-    clinicId: string,
-    txnId: string,
-    index: number,
-  ) {
-    await this.assertClinicAbdmEnabled(clinicId);
-    this.assertConfigured();
-
-    return this.abhaClient.requestOtp(txnId, index);
+    return this.abhaClient.requestOtp(mobile);
   }
 
   async verifyOtp(

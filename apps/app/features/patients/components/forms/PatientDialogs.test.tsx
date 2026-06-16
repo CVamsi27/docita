@@ -14,7 +14,7 @@ import { useAddPatientDialog } from "./dialogs/use-add-patient-dialog";
 const createPatientMock = vi.fn();
 const updatePatientMock = vi.fn();
 const verifyAbhaMock = vi.fn();
-const searchAbhaMock = vi.fn();
+const requestAbhaOtpMock = vi.fn();
 
 vi.mock("@/lib/contexts/clinic-context", () => ({
   useClinic: () => ({
@@ -35,11 +35,10 @@ vi.mock("@workspace/data-access", () => ({
     mutateAsync: verifyAbhaMock,
     isPending: false,
   }),
-  useSearchAbhaByMobile: () => ({
-    mutateAsync: searchAbhaMock,
+  useRequestAbhaOtp: () => ({
+    mutateAsync: requestAbhaOtpMock,
     isPending: false,
   }),
-  useRequestAbhaOtp: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useVerifyAbhaOtp: () => ({ mutateAsync: vi.fn(), isPending: false }),
   APIRequestError: class APIRequestError extends Error {},
 }));
@@ -49,6 +48,7 @@ describe("AddPatientDialog", () => {
     createPatientMock.mockReset();
     updatePatientMock.mockReset();
     verifyAbhaMock.mockReset();
+    requestAbhaOtpMock.mockReset();
     createPatientMock.mockResolvedValue({
       id: "patient-1",
       clinicId: "clinic-1",
@@ -145,22 +145,13 @@ describe("EditPatientDialog", () => {
   beforeEach(() => {
     createPatientMock.mockReset();
     updatePatientMock.mockReset();
-    searchAbhaMock.mockReset();
-    searchAbhaMock.mockResolvedValue({
+    requestAbhaOtpMock.mockReset();
+    requestAbhaOtpMock.mockResolvedValue({
       txnId: "txn-1",
-      accounts: [
-        {
-          index: 1,
-          abhaNumber: "xx-xxxx-xxxx-0624",
-          name: "Asha Verma",
-          gender: "F",
-          authMethods: ["MOBILE_OTP"],
-        },
-      ],
     });
   });
 
-  it("opens the OTP verification flow and searches by mobile", async () => {
+  it("opens the OTP verification flow and requests OTP for mobile", async () => {
     render(
       <EditPatientDialog
         open
@@ -185,18 +176,13 @@ describe("EditPatientDialog", () => {
     // Step 1: the OTP dialog opens with a mobile-number input.
     const mobileInput = await screen.findByLabelText("Mobile number");
     fireEvent.change(mobileInput, { target: { value: "9876543210" } });
-    fireEvent.click(screen.getByRole("button", { name: "Search" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send OTP" }));
 
     await waitFor(() => {
-      expect(searchAbhaMock).toHaveBeenCalledWith({
+      expect(requestAbhaOtpMock).toHaveBeenCalledWith({
         patientId: "patient-1",
         mobile: "9876543210",
       });
     });
-
-    // Step 2: the discovered ABHA account is listed for selection.
-    expect(
-      await screen.findByText(/xx-xxxx-xxxx-0624/),
-    ).toBeInTheDocument();
   });
 });

@@ -2,11 +2,7 @@
 
 import React, { FC, useState } from "react";
 import type { AbhaVerificationResult } from "@workspace/types";
-import {
-  useSearchAbhaByMobile,
-  useRequestAbhaOtp,
-  useVerifyAbhaOtp,
-} from "@workspace/data-access";
+import { useRequestAbhaOtp, useVerifyAbhaOtp } from "@workspace/data-access";
 import {
   Dialog,
   DialogContent,
@@ -26,15 +22,7 @@ interface AbhaOtpVerificationDialogProps {
   onVerified: (result: AbhaVerificationResult) => void;
 }
 
-type Step = "mobile" | "accounts" | "otp";
-
-interface AccountEntry {
-  index: number;
-  abhaNumber: string;
-  name: string;
-  gender: string | null;
-  authMethods: string[];
-}
+type Step = "mobile" | "otp";
 
 export const AbhaOtpVerificationDialog: FC<AbhaOtpVerificationDialogProps> = ({
   open,
@@ -45,12 +33,9 @@ export const AbhaOtpVerificationDialog: FC<AbhaOtpVerificationDialogProps> = ({
   const [step, setStep] = useState<Step>("mobile");
   const [mobile, setMobile] = useState("");
   const [txnId, setTxnId] = useState("");
-  const [accounts, setAccounts] = useState<AccountEntry[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [otp, setOtp] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const searchMutation = useSearchAbhaByMobile();
   const requestOtpMutation = useRequestAbhaOtp();
   const verifyOtpMutation = useVerifyAbhaOtp();
 
@@ -58,11 +43,8 @@ export const AbhaOtpVerificationDialog: FC<AbhaOtpVerificationDialogProps> = ({
     setStep("mobile");
     setMobile("");
     setTxnId("");
-    setAccounts([]);
-    setSelectedIndex(null);
     setOtp("");
     setError(null);
-    searchMutation.reset();
     requestOtpMutation.reset();
     verifyOtpMutation.reset();
   };
@@ -72,30 +54,12 @@ export const AbhaOtpVerificationDialog: FC<AbhaOtpVerificationDialogProps> = ({
     onOpenChange(value);
   };
 
-  const handleSearch = async () => {
+  const handleRequestOtp = async () => {
     setError(null);
-    try {
-      const result = await searchMutation.mutateAsync({
-        patientId,
-        mobile,
-      });
-      setTxnId(result.txnId);
-      setAccounts((result.accounts as AccountEntry[]) ?? []);
-      setStep("accounts");
-    } catch (err) {
-      const state = getAbhaVerificationErrorState(err);
-      setError(state.message ?? null);
-    }
-  };
-
-  const handleRequestOtp = async (account: AccountEntry) => {
-    setError(null);
-    setSelectedIndex(account.index);
     try {
       const result = await requestOtpMutation.mutateAsync({
         patientId,
-        txnId,
-        index: account.index,
+        mobile,
       });
       setTxnId(result.txnId);
       setStep("otp");
@@ -121,7 +85,6 @@ export const AbhaOtpVerificationDialog: FC<AbhaOtpVerificationDialogProps> = ({
     }
   };
 
-  const isSearching = searchMutation.isPending;
   const isRequestingOtp = requestOtpMutation.isPending;
   const isVerifying = verifyOtpMutation.isPending;
 
@@ -132,8 +95,7 @@ export const AbhaOtpVerificationDialog: FC<AbhaOtpVerificationDialogProps> = ({
           <DialogTitle>Verify ABHA via OTP</DialogTitle>
           <DialogDescription>
             {step === "mobile" &&
-              "Enter the patient's mobile number to search for linked ABHA accounts."}
-            {step === "accounts" && "Select the ABHA account to verify."}
+              "Enter the patient's mobile number to receive an OTP for ABHA verification."}
             {step === "otp" && "Enter the OTP sent to the registered mobile."}
           </DialogDescription>
         </DialogHeader>
@@ -172,59 +134,14 @@ export const AbhaOtpVerificationDialog: FC<AbhaOtpVerificationDialogProps> = ({
               </Button>
               <Button
                 type="button"
-                onClick={handleSearch}
-                disabled={mobile.length !== 10 || isSearching}
+                onClick={handleRequestOtp}
+                disabled={mobile.length !== 10 || isRequestingOtp}
               >
-                {isSearching ? (
+                {isRequestingOtp ? (
                   <DocitaLoadingIndicator variant="inline" decorative />
                 ) : (
-                  "Search"
+                  "Send OTP"
                 )}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {step === "accounts" && (
-          <div className="space-y-4">
-            {accounts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No ABHA accounts found for this mobile number.
-              </p>
-            ) : (
-              <ul className="space-y-2">
-                {accounts.map((account) => (
-                  <li key={account.index}>
-                    <Button
-                      type="button"
-                      variant={
-                        selectedIndex === account.index ? "default" : "outline"
-                      }
-                      className="w-full justify-start text-left"
-                      onClick={() => handleRequestOtp(account)}
-                      disabled={isRequestingOtp}
-                    >
-                      <span className="flex-1">
-                        <span className="font-medium">{account.name}</span>
-                        <span className="ml-2 text-muted-foreground">
-                          {account.abhaNumber}
-                        </span>
-                      </span>
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setStep("mobile");
-                  setAccounts([]);
-                }}
-              >
-                Back
               </Button>
             </div>
           </div>
@@ -252,7 +169,7 @@ export const AbhaOtpVerificationDialog: FC<AbhaOtpVerificationDialogProps> = ({
                 type="button"
                 variant="outline"
                 onClick={() => {
-                  setStep("accounts");
+                  setStep("mobile");
                   setOtp("");
                 }}
               >
