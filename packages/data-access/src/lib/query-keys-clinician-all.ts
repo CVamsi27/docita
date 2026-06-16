@@ -316,6 +316,7 @@ export const queryKeys = {
     campaigns: () => ["whatsapp", "operations", "campaigns"] as const,
     patientSentMessages: (patientId: string) =>
       ["whatsapp", "sent-messages", patientId] as const,
+    recentSentMessages: () => ["whatsapp", "recent-sent"] as const,
     notifications: {
       unreadCount: () => ["whatsapp", "notifications", "unread-count"] as const,
       unread: (limit: number) =>

@@ -223,6 +223,7 @@ export const clinicWhatsappSentMessageSchema = z.object({
   status: z.string(),
   phoneNumber: z.string(),
   createdAt: z.string().or(z.date()),
+  patientName: z.string().optional(),
 });
 
 export const clinicWhatsappSentMessageListResponseSchema = z.array(

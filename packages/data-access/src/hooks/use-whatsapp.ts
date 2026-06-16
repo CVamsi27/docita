@@ -136,6 +136,17 @@ export const usePatientWhatsappSentMessages = (patientId: string) => {
   );
 };
 
+export const useClinicRecentSentMessages = () => {
+  const whatsappOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.WHATSAPP_MESSAGING,
+  );
+  return useAPIQuery<ClinicWhatsappSentMessage[]>(
+    queryKeys.whatsapp.recentSentMessages(),
+    "/whatsapp/recent-sent",
+    { enabled: whatsappOk, staleTime: 30_000 },
+  );
+};
+
 export const useClinicWhatsappTemplates = () => {
   const whatsappOk = useDataAccessContext().isTierFeatureEnabled(
     Feature.WHATSAPP_MESSAGING,

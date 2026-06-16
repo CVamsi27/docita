@@ -11,6 +11,7 @@ import { LegacyWhatsappClinicAccess } from '@/domains/whatsapp/presentation/cont
 import { requireClinicId } from '@/domains/whatsapp/presentation/controllers/require-clinic-id';
 
 const PATIENT_SENT_MESSAGES_LIMIT = 50;
+const CLINIC_RECENT_SENT_LIMIT = 100;
 
 @Controller('whatsapp')
 @LegacyWhatsappClinicAccess()
@@ -40,6 +41,33 @@ export class LegacyWhatsappLogsController {
       status: row.status,
       phoneNumber: row.phoneNumber,
       createdAt: row.createdAt,
+    }));
+  }
+
+  /**
+   * Clinic-wide outbound sent-message history (no inbound / conversation
+   * threading). Powers the WhatsApp "Sent" tab in the main clinician app.
+   * Readable by every role with WhatsApp access.
+   */
+  @Get('recent-sent')
+  @ZodSerializerDto(ClinicWhatsappSentMessageListResponseDto)
+  async getRecentSentMessages(
+    @Req() req: Request,
+  ): Promise<ClinicWhatsappSentMessage[]> {
+    const clinicId = requireClinicId(req);
+    const rows = await this.whatsappService.getLogs(clinicId, {
+      limit: CLINIC_RECENT_SENT_LIMIT,
+    });
+    return rows.map((row) => ({
+      id: row.id,
+      message: row.message,
+      type: row.type,
+      status: row.status,
+      phoneNumber: row.phoneNumber,
+      createdAt: row.createdAt,
+      patientName: row.patient
+        ? `${row.patient.firstName} ${row.patient.lastName}`
+        : undefined,
     }));
   }
 
