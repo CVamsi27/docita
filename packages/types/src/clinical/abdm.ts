@@ -71,6 +71,67 @@ export type AbhaVerificationResult = z.infer<
   typeof abhaVerificationResultSchema
 >;
 
+/**
+ * M1 ABHA verification via the mobile → OTP flow (ABDM `abhasbx` host). The flow
+ * is stateful across three calls, threaded by `txnId`:
+ *   1. search by mobile → masked accounts + txnId
+ *   2. request OTP for a chosen account index → txnId
+ *   3. verify OTP → persisted {@link AbhaVerificationResult}
+ */
+export const abhaMobileSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{10}$/, "Enter a 10-digit mobile number");
+
+export const abhaSearchByMobileRequestSchema = z.object({
+  mobile: abhaMobileSchema,
+});
+
+export const abhaAccountSummarySchema = z.object({
+  index: z.number().int().nonnegative(),
+  /** Masked ABHA number, e.g. `xx-xxxx-xxxx-0624`. */
+  abhaNumber: z.string(),
+  name: z.string(),
+  gender: z.string().nullable(),
+  authMethods: z.array(z.string()),
+});
+
+export const abhaSearchByMobileResultSchema = z.object({
+  txnId: z.string(),
+  accounts: z.array(abhaAccountSummarySchema),
+});
+
+export const abhaRequestOtpRequestSchema = z.object({
+  txnId: z.string().min(1),
+  index: z.number().int().nonnegative(),
+});
+
+export const abhaRequestOtpResultSchema = z.object({
+  txnId: z.string(),
+  maskedTarget: z.string().nullable(),
+});
+
+export const abhaVerifyOtpRequestSchema = z.object({
+  txnId: z.string().min(1),
+  otp: z
+    .string()
+    .trim()
+    .regex(/^\d{4,8}$/, "Enter the OTP sent to the registered mobile"),
+});
+
+export type AbhaAccountSummary = z.infer<typeof abhaAccountSummarySchema>;
+export type AbhaSearchByMobileRequest = z.infer<
+  typeof abhaSearchByMobileRequestSchema
+>;
+export type AbhaSearchByMobileResult = z.infer<
+  typeof abhaSearchByMobileResultSchema
+>;
+export type AbhaRequestOtpRequest = z.infer<
+  typeof abhaRequestOtpRequestSchema
+>;
+export type AbhaRequestOtpResult = z.infer<typeof abhaRequestOtpResultSchema>;
+export type AbhaVerifyOtpRequest = z.infer<typeof abhaVerifyOtpRequestSchema>;
+
 export const abdmReadinessStatusSchema = z.enum([
   "READY",
   "PENDING",

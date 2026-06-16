@@ -12,6 +12,8 @@ import {
   PatientSurgicalHistory,
   PatientWithMedicalHistory,
   UpdatePatientRequest,
+  type AbhaRequestOtpResult,
+  type AbhaSearchByMobileResult,
   type AbhaVerificationResult,
   type VerifyAbhaRequest,
   verifyAbhaRequestSchema,
@@ -30,6 +32,23 @@ type UsePatientsOptions = {
 
 export type VerifyPatientAbhaVariables = VerifyAbhaRequest & {
   patientId: string;
+};
+
+export type SearchAbhaByMobileVariables = {
+  patientId: string;
+  mobile: string;
+};
+
+export type RequestAbhaOtpVariables = {
+  patientId: string;
+  txnId: string;
+  index: number;
+};
+
+export type VerifyAbhaOtpVariables = {
+  patientId: string;
+  txnId: string;
+  otp: string;
 };
 
 export const usePatients = (options?: UsePatientsOptions) => {
@@ -188,6 +207,51 @@ export const useVerifyPatientAbha = () => {
     {
       body: ({ patientId: _patientId, ...data }) =>
         verifyAbhaRequestSchema.parse(data),
+      suppressGlobalErrorToast: true,
+      onSuccess: (_data, variables) => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.patients.all() });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.patients.byId(variables.patientId),
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.patients.withMedicalHistory(variables.patientId),
+        });
+      },
+    },
+  );
+};
+
+/** M1 ABHA verification — step 1: list ABHA accounts for a mobile number. */
+export const useSearchAbhaByMobile = () =>
+  useAPIMutation<AbhaSearchByMobileResult, SearchAbhaByMobileVariables>(
+    ({ patientId }) => `/patients/${patientId}/abha/search`,
+    "POST",
+    {
+      body: ({ mobile }) => ({ mobile }),
+      suppressGlobalErrorToast: true,
+    },
+  );
+
+/** M1 ABHA verification — step 2: request an OTP for a chosen account index. */
+export const useRequestAbhaOtp = () =>
+  useAPIMutation<AbhaRequestOtpResult, RequestAbhaOtpVariables>(
+    ({ patientId }) => `/patients/${patientId}/abha/request-otp`,
+    "POST",
+    {
+      body: ({ txnId, index }) => ({ txnId, index }),
+      suppressGlobalErrorToast: true,
+    },
+  );
+
+/** M1 ABHA verification — step 3: verify the OTP and persist the identity. */
+export const useVerifyAbhaOtp = () => {
+  const queryClient = useQueryClient();
+
+  return useAPIMutation<AbhaVerificationResult, VerifyAbhaOtpVariables>(
+    ({ patientId }) => `/patients/${patientId}/abha/verify-otp`,
+    "POST",
+    {
+      body: ({ txnId, otp }) => ({ txnId, otp }),
       suppressGlobalErrorToast: true,
       onSuccess: (_data, variables) => {
         queryClient.invalidateQueries({ queryKey: queryKeys.patients.all() });

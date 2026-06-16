@@ -35,6 +35,10 @@ interface AbhaVerificationFieldProps<
   patientId?: string | null;
   status: AbhaVerificationUiState;
   onVerify?: () => void;
+  /** Verify label (defaults to "Verify"). */
+  verifyLabel?: string;
+  /** When false, the verify action is available even without a typed ABHA. */
+  requireValueToVerify?: boolean;
 }
 
 function getStatusBadge(status: AbhaVerificationUiState) {
@@ -93,8 +97,14 @@ export function AbhaVerificationField<
   patientId,
   status,
   onVerify,
+  verifyLabel = "Verify",
+  requireValueToVerify = true,
 }: AbhaVerificationFieldProps<T>) {
-  const canVerify = Boolean(patientId && currentValue?.trim() && onVerify);
+  const canVerify = Boolean(
+    patientId &&
+      onVerify &&
+      (currentValue?.trim() || !requireValueToVerify),
+  );
 
   return (
     <div className="md:col-span-2">
@@ -124,7 +134,7 @@ export function AbhaVerificationField<
                 ) : (
                   <ShieldCheck className="h-4 w-4" aria-hidden />
                 )}
-                Verify
+                {verifyLabel}
               </Button>
             </div>
             <FormMessage />

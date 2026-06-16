@@ -6,9 +6,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { Patient } from "@workspace/types";
+import { Patient, type AbhaVerificationResult } from "@workspace/types";
 import { useClinic } from "@/lib/contexts/clinic-context";
-import { useUpdatePatient, useVerifyPatientAbha } from "@workspace/data-access";
+import { useUpdatePatient } from "@workspace/data-access";
 import { FormDialog } from "@workspace/ui/components/form/form-dialog";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { Form } from "@workspace/ui/components/form/form";
@@ -25,10 +25,8 @@ import {
   AbhaVerificationField,
   type AbhaVerificationUiState,
 } from "./abha-verification-field";
-import {
-  getAbhaVerificationErrorState,
-  getAbhaVerificationResultState,
-} from "./abha-verification-errors";
+import { getAbhaVerificationResultState } from "./abha-verification-errors";
+import { AbhaOtpVerificationDialog } from "./abha-otp-verification-dialog";
 
 interface EditPatientDialogProps {
   open?: boolean;
@@ -59,8 +57,8 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
   onPatientUpdated,
 }) => {
   const updatePatient = useUpdatePatient(patient?.id ?? "");
-  const verifyAbha = useVerifyPatientAbha();
   const { clinic } = useClinic();
+  const [otpDialogOpen, setOtpDialogOpen] = useState(false);
   type PatientUpdateFormValues = z.infer<typeof updatePatientRequestSchema>;
   const initialAbhaStatus = useMemo(
     () => getInitialAbhaStatus(patient),
@@ -147,23 +145,10 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
     }
   }, handleInvalidSubmit);
 
-  const handleVerifyAbha = async () => {
-    if (!patient?.id) return;
-    const nextAbhaAddress = abhaAddress?.trim();
-    if (!nextAbhaAddress) return;
-
-    try {
-      const result = await verifyAbha.mutateAsync({
-        patientId: patient.id,
-        abhaAddress: nextAbhaAddress,
-      });
-      setAbhaStatus(getAbhaVerificationResultState(result));
-      if (result.verified) {
-        toast.success("ABHA verified successfully");
-        onPatientUpdated?.();
-      }
-    } catch (error) {
-      setAbhaStatus(getAbhaVerificationErrorState(error));
+  const handleAbhaVerified = (result: AbhaVerificationResult) => {
+    setAbhaStatus(getAbhaVerificationResultState(result));
+    if (result.verified) {
+      onPatientUpdated?.();
     }
   };
 
@@ -184,20 +169,30 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
               control={form.control}
               name="abhaAddress"
               currentValue={abhaAddress}
-              isPending={verifyAbha.isPending}
+              isPending={false}
               patientId={patient.id}
               status={abhaStatus}
-              onVerify={handleVerifyAbha}
+              onVerify={() => setOtpDialogOpen(true)}
+              verifyLabel="Verify via OTP"
+              requireValueToVerify={false}
             />
             <PatientDemographicFields control={form.control} />
           </div>
 
           <DialogActionButtons
             onCancel={() => onOpenChange?.(false)}
-            isPending={updatePatient.isPending || verifyAbha.isPending}
+            isPending={updatePatient.isPending}
           />
         </form>
       </Form>
+      {patient.id ? (
+        <AbhaOtpVerificationDialog
+          open={otpDialogOpen}
+          onOpenChange={setOtpDialogOpen}
+          patientId={patient.id}
+          onVerified={handleAbhaVerified}
+        />
+      ) : null}
     </FormDialog>
   );
 };
