@@ -1,0 +1,20 @@
+{
+  "name": "docita-social-publisher",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "manifest": "node build-manifest.mjs",
+    "rasterize": "node rasterize.mjs",
+    "schedule": "node make-schedule.mjs",
+    "build": "node build-manifest.mjs && node rasterize.mjs && node make-schedule.mjs",
+    "verify": "node post-x.mjs --verify",
+    "post:x:dry": "node post-x.mjs --dry-run",
+    "post:x": "node post-x.mjs"
+  },
+  "dependencies": {
+    "twitter-api-v2": "^1.18.0"
+  },
+  "devDependencies": {
+    "puppeteer": "^23.0.0"
+  }
+}
