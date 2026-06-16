@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// fallow-ignore-file unused-file
 // Parses SOCIAL_POSTS.md → posts.json
 // No external dependencies. Run: node build-manifest.mjs
 import { readFileSync, writeFileSync, existsSync } from "fs";

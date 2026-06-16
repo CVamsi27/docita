@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// fallow-ignore-file unused-file
 // Posts to X (Twitter) via API v2 + OAuth 1.0a
 // Flags: --verify (read-only auth check), --dry-run, --now (post next unposted), --id <ID>
 // Requires: npm install (twitter-api-v2)

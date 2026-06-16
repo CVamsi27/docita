@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// fallow-ignore-file unused-file
 // Rasterizes SVG cards to PNG and copies screenshots into images-png/
 // Requires puppeteer — run: npm install (in publisher/ dir)
 // Or run from: /Documents/Docita/videos/capture/ where puppeteer is pre-installed.

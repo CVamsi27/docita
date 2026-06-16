@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// fallow-ignore-file unused-file
 // Generates branded 1080×1080 SVG cards for social posts.
 // No dependencies — run: node gen-cards.mjs
 import { writeFileSync, mkdirSync } from "fs";
