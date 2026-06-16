@@ -150,3 +150,97 @@ ABDM_CALLBACK_SECRET=<shared-secret-for-callbacks>
 - [ ] External records rendered in patient timeline
 - [ ] Capture evidence: API calls + ABDM portal confirmation
 - [ ] Submit to ABDM portal
+
+---
+
+## 6. Blockers & Gaps (as of 2026-06-16)
+
+### Critical Blockers (must fix before sandbox exit)
+
+| # | Blocker | Milestone | Impact | Effort |
+|---|---------|-----------|--------|--------|
+| B1 | **No live OTP round-trip** — M1 code is done but we've never completed a full OTP flow with a real registered sandbox mobile. All V3 endpoints return "Invalid Mobile Number" for test numbers. | M1 | Cannot claim M1 complete without this | Need a registered sandbox mobile number |
+| B2 | **WASA security audit not booked** — CERT-IN empanelled agency required. Takes 1–2 weeks. Must be done before sandbox exit. | All | Blocks production credentials | Find agency, schedule audit |
+| B3 | **NRCeS FHIR validation missing** — FHIR R4 bundles are generated but not validated against India-specific NRCeS profiles. ABDM requires this for M2. | M2 | M2 certification will fail | Implement validation library |
+| B4 | **No encryption for FHIR push** — `pushHealthInformation` expects pre-encrypted content from callback payload. Actual RSA encryption of FHIR bundles before push is not implemented. | M2 | Data push will fail in production | Implement RSA-OAEP encryption |
+| B5 | **Demo to ABDM panel not scheduled** — After sandbox exit, a live demo to an ABDM panel is required. | All | Blocks production credentials | Schedule after WASA |
+
+### Minor Gaps (should fix, won't block sandbox exit)
+
+| # | Gap | Milestone | Impact | Effort |
+|---|-----|-----------|--------|--------|
+| G1 | **No HFR facility ID UI** — `Clinic.hfrFacilityId` column exists but no Settings UI to collect it. | M2 | Clinics can't register in HFR | Small frontend task |
+| G2 | **No HPR doctor ID UI** — `User.hprId` column exists but no UI to collect doctor HPR IDs. | M2 | Doctors can't register in HPR | Small frontend task |
+| G3 | **No patient timeline for external records** — M3 code stores received records but no UI to view them in patient timeline. | M3 | HIU feature incomplete | Frontend task |
+| G4 | **No ops inbox UI** — M3 code has API for consent requests but no UI to manage retries/pending consents. | M3 | Staff can't manage consent flow | Frontend task |
+| G5 | **Legacy verifyAbha path still in code** — Old `POST /patients/:id/abha/verify` calls a 404 endpoint. Marked deprecated but not removed. | M1 | Dead code, confusing | Cleanup task |
+
+### Strategic Decisions (product, not technical)
+
+| # | Decision | Context |
+|---|----------|---------|
+| D1 | **Ship without ABDM** — ABDM is optional for clinics. Feature-gated via `Feature.ABDM_INTEGRATION` (off by default). Core product works without it. | Ship now, iterate on ABDM later |
+| D2 | **M4 / PHR / Health Locker not needed** — ABHA *creation*, PHR app, and Health Locker are not relevant for a clinic management SaaS. | Skip these milestones |
+| D3 | **PM-JAY hospitals will need ABDM** — If targeting PM-JAY empanelled hospitals, ABDM becomes mandatory. Prioritize for that segment. | Revenue-driven prioritization |
+
+---
+
+## 7. Certification Process Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    ABDM CERTIFICATION FLOW                  │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  1. Register on sandbox                                     │
+│     └── Fill declaration form (you are here)                │
+│                                                             │
+│  2. Get sandbox credentials                                 │
+│     └── ABDM team reviews, gives Client ID + Secret         │
+│     └── Timeline: ~3-4 days                                 │
+│                                                             │
+│  3. Implement M1/M2/M3 in sandbox                           │
+│     └── Build flows, test against sandbox APIs              │
+│     └── Timeline: weeks to months                           │
+│                                                             │
+│  4. Functional testing                                      │
+│     └── Run mandatory test cases for each milestone         │
+│     └── Capture evidence (API calls, screenshots)           │
+│                                                             │
+│  5. WASA security audit  ◄── BLOCKER                        │
+│     └── CERT-IN empanelled agency                           │
+│     └── Timeline: 1-2 weeks                                │
+│                                                             │
+│  6. Sandbox exit application                                │
+│     └── Submit test report + WASA report                    │
+│                                                             │
+│  7. Demo to ABDM panel  ◄── BLOCKER                         │
+│     └── Live demonstration of workflows                     │
+│     └── Scheduled by ABDM team                              │
+│                                                             │
+│  8. Production credentials                                  │
+│     └── If approved, get production API keys                │
+│     └── Go live!                                            │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 8. Timeline Summary
+
+```
+June 2026
+├── Week 3 (now): Fill declaration form, start live OTP testing
+├── Week 4: Complete M1 live round-trip, book WASA agency
+
+July 2026
+├── Week 1-2: M2 live sandbox testing, NRCeS validation
+├── Week 3: WASA audit
+├── Week 4: Sandbox exit application
+
+August 2026
+├── Week 1-2: Demo to ABDM panel
+├── Week 3: Production credentials (if approved)
+└── Week 4: Go live with ABDM in production
+```
