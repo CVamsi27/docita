@@ -64,6 +64,9 @@ export const clinicDetailsSchema = z.object({
     .optional()
     .or(z.literal('')),
   legalName: z.string().trim().max(160).optional().or(z.literal('')),
+  // Whether this facility participates in ABDM/ABHA. Persists to
+  // Clinic.abdmEnabled; admins can change it later in Settings → ABDM.
+  abdmEnabled: z.boolean().optional(),
   mapsLocation: z
     .object({
       lat: z.number(),

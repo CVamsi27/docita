@@ -47,6 +47,7 @@ export class PrismaOnboardingTxRepository implements IOnboardingTxRepository {
         timezone: data.timezone,
         active: true,
         referralCode: data.referralCode,
+        abdmEnabled: data.abdmEnabled ?? false,
         settings: data.settings,
       },
     });
