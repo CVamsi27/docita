@@ -15,6 +15,8 @@ import { seedIpd } from './seed-ipd';
 import { seedInventory } from './seed-inventory';
 import { seedOperations } from './seed-operations';
 import { seedPdfs } from './seed-pdfs';
+import { seedWhatsappLogs } from './seed-whatsapp';
+import { seedMedicalDocuments } from './seed-medical-documents';
 
 async function assertSeedSchemaReady(pool: Pool): Promise<void> {
   const LATEST_MIGRATION = '20260502180000_starter_list_price_inr_499';
@@ -112,6 +114,17 @@ async function main() {
     });
 
     await seedPdfs(prisma, { clinicId: defaultClinic.id });
+
+    await seedWhatsappLogs(prisma, {
+      clinicId: defaultClinic.id,
+      patients,
+    });
+
+    await seedMedicalDocuments(prisma, {
+      clinicId: defaultClinic.id,
+      doctor1Id: doctor1.id,
+      patients,
+    });
   } finally {
     await prisma.$disconnect();
     await pool.end();

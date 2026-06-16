@@ -2,6 +2,7 @@ import {
   AppointmentStatus,
   FollowUpStatus,
   InvoiceStatus,
+  Prisma,
   PrismaClient,
 } from '@workspace/db';
 import {
@@ -566,54 +567,121 @@ const MEDICATION_TEMPLATES: Array<{
   dosage: string;
   frequency: string;
   duration: string;
+  route: string;
+  dosageForm: string;
+  sigCode: string;
+  quantity: number;
+  refillsAllowed: number;
 }> = [
   {
     name: 'Metformin',
     dosage: '500mg',
     frequency: 'Twice daily',
     duration: '30 days',
+    route: 'Oral',
+    dosageForm: 'TABLET',
+    sigCode: 'BID',
+    quantity: 60,
+    refillsAllowed: 2,
   },
   {
     name: 'Amlodipine',
     dosage: '5mg',
     frequency: 'Once daily',
     duration: '30 days',
+    route: 'Oral',
+    dosageForm: 'TABLET',
+    sigCode: 'QD',
+    quantity: 30,
+    refillsAllowed: 2,
   },
   {
     name: 'Atorvastatin',
     dosage: '10mg',
     frequency: 'At bedtime',
     duration: '30 days',
+    route: 'Oral',
+    dosageForm: 'TABLET',
+    sigCode: 'QHS',
+    quantity: 30,
+    refillsAllowed: 2,
   },
   {
     name: 'Pantoprazole',
     dosage: '40mg',
     frequency: 'Before breakfast',
     duration: '14 days',
+    route: 'Oral',
+    dosageForm: 'TABLET',
+    sigCode: 'QAM',
+    quantity: 14,
+    refillsAllowed: 0,
   },
   {
     name: 'Levothyroxine',
     dosage: '50mcg',
     frequency: 'Once daily',
     duration: '90 days',
+    route: 'Oral',
+    dosageForm: 'TABLET',
+    sigCode: 'QD',
+    quantity: 90,
+    refillsAllowed: 3,
   },
   {
     name: 'Salbutamol Inhaler',
     dosage: '100mcg',
     frequency: 'As needed',
     duration: '30 days',
+    route: 'Inhalation',
+    dosageForm: 'INHALER',
+    sigCode: 'PRN',
+    quantity: 1,
+    refillsAllowed: 1,
   },
   {
     name: 'Paracetamol',
     dosage: '500mg',
     frequency: 'Every 6 hours',
     duration: '5 days',
+    route: 'Oral',
+    dosageForm: 'TABLET',
+    sigCode: 'Q6H',
+    quantity: 20,
+    refillsAllowed: 0,
   },
   {
     name: 'Azithromycin',
     dosage: '500mg',
     frequency: 'Once daily',
     duration: '5 days',
+    route: 'Oral',
+    dosageForm: 'TABLET',
+    sigCode: 'QD',
+    quantity: 5,
+    refillsAllowed: 0,
+  },
+  {
+    name: 'Cetirizine',
+    dosage: '10mg',
+    frequency: 'Once daily at night',
+    duration: '7 days',
+    route: 'Oral',
+    dosageForm: 'TABLET',
+    sigCode: 'QHS',
+    quantity: 7,
+    refillsAllowed: 0,
+  },
+  {
+    name: 'Omeprazole',
+    dosage: '20mg',
+    frequency: 'Before breakfast',
+    duration: '14 days',
+    route: 'Oral',
+    dosageForm: 'CAPSULE',
+    sigCode: 'QAM',
+    quantity: 14,
+    refillsAllowed: 0,
   },
 ];
 
@@ -904,6 +972,51 @@ async function seedPatients(
   return patients;
 }
 
+const CHIEF_COMPLAINTS = [
+  'Fever and cough for 3 days',
+  'Intermittent headaches for 2 weeks',
+  'Joint pain in both knees for 1 month',
+  'Abdominal pain after meals',
+  'Chest discomfort on exertion',
+  'Skin rash on forearm',
+  'Lower back pain for 1 week',
+  'Fatigue and weight gain',
+  'Recurrent sneezing and nasal discharge',
+  'Insomnia for 2 weeks',
+];
+
+const CONSULTATION_NOTES = [
+  'Patient presents with acute symptoms. Vitals stable. No signs of distress. Examination unremarkable. Prescribed symptomatic treatment.',
+  'Chronic condition follow-up. Patient reports compliance with current regimen. BP/BSL within target range. Continue current medications.',
+  'New onset symptoms. Detailed history taken. Differential diagnoses considered. Investigations ordered. Will review results at follow-up.',
+  'Post-procedure review. Wound healing well. No signs of infection. Patient reports pain 3/10. Medications adjusted.',
+  'Routine health screening. All vitals normal. Lifestyle counselling provided. Discussed diet and exercise modifications.',
+];
+
+const TREATMENT_PLANS = [
+  'Continue current medications. Follow up in 2 weeks. Maintain food diary. Regular exercise 30 min/day.',
+  'Medication adjusted based on latest labs. Follow up in 4 weeks. Low sodium diet. Monitor BP daily.',
+  'Short course of antibiotics prescribed. Rest and fluids. Return if symptoms worsen. Follow up in 1 week.',
+  'Physiotherapy referral made. Analgesics for pain relief. Avoid heavy lifting. Review in 2 weeks.',
+  'Lifestyle modifications counselled. Weight management plan discussed. Follow up in 3 months for reassessment.',
+];
+
+const CLINICAL_IMPRESSIONS = [
+  'Viral upper respiratory infection. Supportive care advised.',
+  'Essential hypertension, well-controlled on current medications.',
+  'Musculoskeletal strain. Rule out osteoarthritis pending X-ray.',
+  'Functional dyspepsia. PPI trial started.',
+  'Generalized anxiety disorder. Started on low-dose anxiolytic.',
+];
+
+const HPI_TEMPLATES = [
+  'Symptoms started 3 days ago. Gradual onset. No aggravating factors identified. No similar episodes in the past.',
+  'Chronic symptoms, fluctuating intensity. Better with rest, worse with activity. No radiation of pain.',
+  'Intermittent symptoms for the past month. No associated fever, weight loss, or night sweats. No significant past history.',
+  'Acute onset, severe intensity initially, now moderate. No relation to meals or time of day. No associated nausea.',
+  'Progressive symptoms over 2 weeks. No relieving or aggravating factors identified. Patient anxious about symptoms.',
+];
+
 async function seedAppointments(
   prisma: PrismaClient,
   params: {
@@ -927,6 +1040,7 @@ async function seedAppointments(
       const baseDate = dateOffset(plan.daysOffset);
       const startTime = withTime(baseDate, plan.hour, plan.minute);
       const endTime = new Date(startTime.getTime() + plan.durationMin * 60_000);
+      const isCompleted = plan.status === AppointmentStatus.COMPLETED;
       const data = {
         patientId: patient.id,
         doctorId: doctorByKey[plan.doctorKey],
@@ -936,6 +1050,36 @@ async function seedAppointments(
         status: plan.status,
         type: plan.type,
         notes: plan.note,
+        ...(isCompleted
+          ? {
+              chiefComplaint:
+                CHIEF_COMPLAINTS[plan.patientIndex % CHIEF_COMPLAINTS.length],
+              consultationNotes:
+                CONSULTATION_NOTES[
+                  plan.patientIndex % CONSULTATION_NOTES.length
+                ],
+              treatmentPlan:
+                TREATMENT_PLANS[plan.patientIndex % TREATMENT_PLANS.length],
+              clinicalImpression:
+                CLINICAL_IMPRESSIONS[
+                  plan.patientIndex % CLINICAL_IMPRESSIONS.length
+                ],
+              historyOfPresentIllness:
+                HPI_TEMPLATES[plan.patientIndex % HPI_TEMPLATES.length],
+              pastMedicalHistory:
+                patient.medicalHistory.length > 0
+                  ? patient.medicalHistory.join(', ')
+                  : 'Nil',
+              generalExamination: {
+                appearance: 'Alert and oriented',
+                build: 'Average',
+                pallor: 'No pallor',
+                icterus: 'No icterus',
+                cyanosis: 'No cyanosis',
+                lymphadenopathy: 'No lymphadenopathy',
+              },
+            }
+          : {}),
       };
       return prisma.appointment.upsert({
         where: { id: plan.id },
@@ -1030,15 +1174,27 @@ async function seedPrescriptions(
       where: { prescriptionId: prescription.id },
     });
     const medCount = 2 + (i % 3);
+    const now = new Date();
     await prisma.medication.createMany({
       data: Array.from({ length: medCount }, (_, k) => {
         const tpl = MEDICATION_TEMPLATES[(i + k) % MEDICATION_TEMPLATES.length];
+        const startDate = new Date(now);
+        const endDate = new Date(now);
+        endDate.setDate(endDate.getDate() + parseInt(tpl.duration) || 30);
         return {
           prescriptionId: prescription.id,
           name: tpl.name,
           dosage: tpl.dosage,
           frequency: tpl.frequency,
           duration: tpl.duration,
+          route: tpl.route,
+          dosageForm:
+            tpl.dosageForm as Prisma.MedicationCreateInput['dosageForm'],
+          sigCode: tpl.sigCode as Prisma.MedicationCreateInput['sigCode'],
+          quantity: tpl.quantity,
+          refillsAllowed: tpl.refillsAllowed,
+          startDate,
+          endDate,
         };
       }),
     });
@@ -1123,11 +1279,59 @@ function getSeedInvoiceData(
   const consultFee = 800 + (index % 5) * 100;
   const rxFee = 200;
   const vitalsFee = 300;
+  const labFee = index % 3 === 0 ? 500 : 0;
+  const procedureFee = index % 4 === 0 ? 1000 : 0;
+
   const items = [
-    { description: 'Consultation Fee', quantity: 1, price: consultFee },
-    { description: 'Prescription', quantity: 1, price: rxFee },
-    { description: 'Vitals Check', quantity: 1, price: vitalsFee },
+    {
+      description: 'Consultation Fee',
+      quantity: 1,
+      price: consultFee,
+      gstRate: 0,
+    },
+    { description: 'Prescription', quantity: 1, price: rxFee, gstRate: 0 },
+    { description: 'Vitals Check', quantity: 1, price: vitalsFee, gstRate: 0 },
+    ...(labFee > 0
+      ? [
+          {
+            description: 'Lab Investigation',
+            quantity: 1,
+            price: labFee,
+            gstRate: 18,
+          },
+        ]
+      : []),
+    ...(procedureFee > 0
+      ? [
+          {
+            description: 'Minor Procedure',
+            quantity: 1,
+            price: procedureFee,
+            gstRate: 18,
+          },
+        ]
+      : []),
   ];
+
+  const subtotal = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  );
+  const taxTotal = items.reduce(
+    (sum, item) =>
+      sum + Math.round((item.price * item.quantity * item.gstRate) / 100),
+    0,
+  );
+  const grandTotal = subtotal + taxTotal;
+
+  const taxSummary = items
+    .filter((item) => item.gstRate > 0)
+    .map((item) => ({
+      rate: item.gstRate,
+      taxableAmount: item.price * item.quantity,
+      taxAmount: Math.round((item.price * item.quantity * item.gstRate) / 100),
+    }));
+
   return {
     appt,
     invoiceId,
@@ -1136,9 +1340,15 @@ function getSeedInvoiceData(
       patientId: appt.patientId,
       clinicId,
       invoiceNumber: seedInvoiceNumber(index + 1),
-      total: consultFee + rxFee + vitalsFee,
+      total: grandTotal,
+      subtotal,
+      taxTotal,
+      grandTotal,
       status: INVOICE_STATUS_PLAN[index] ?? InvoiceStatus.PAID,
       items,
+      taxSummary: taxSummary.length > 0 ? taxSummary : undefined,
+      placeOfSupplyStateCode: '29',
+      reverseCharge: false,
     },
   };
 }
@@ -1209,6 +1419,34 @@ function getSeedDocumentPlans(
       name: 'CT Scan - Chest',
       type: 'OTHER',
       url: '/uploads/seed/documents/ct-karan.pdf',
+    },
+    {
+      id: 'seed-document-amit-lipid',
+      patientId: patients[2].id,
+      name: 'Lipid Profile Report',
+      type: 'LAB_REPORT',
+      url: '/uploads/seed/documents/lipid-amit.pdf',
+    },
+    {
+      id: 'seed-document-anita-thyroid',
+      patientId: patients[5].id,
+      name: 'Thyroid Function Test',
+      type: 'LAB_REPORT',
+      url: '/uploads/seed/documents/thyroid-anita.pdf',
+    },
+    {
+      id: 'seed-document-rohit-hba1c',
+      patientId: patients[12].id,
+      name: 'HbA1c Test Report',
+      type: 'LAB_REPORT',
+      url: '/uploads/seed/documents/hba1c-rohit.pdf',
+    },
+    {
+      id: 'seed-document-shreya-mri',
+      patientId: patients[20].id,
+      name: 'MRI Brain',
+      type: 'OTHER',
+      url: '/uploads/seed/documents/mri-shreya.pdf',
     },
   ];
 }
