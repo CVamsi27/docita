@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// fallow-ignore-file unused-file
 // Reads posts.json → schedule.json + buffer-import.csv + CALENDAR.md
 // Run: node make-schedule.mjs --start 2026-06-15
 import { readFileSync, writeFileSync } from "fs";

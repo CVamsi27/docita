@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// fallow-ignore-file unused-file
 // Posts to X (Twitter) and/or LinkedIn via their APIs
 // Flags: --verify (read-only auth check), --dry-run, --now (post next unposted), --id <ID>, --x, --linkedin, --all
 // Requires: npm install (twitter-api-v2)
