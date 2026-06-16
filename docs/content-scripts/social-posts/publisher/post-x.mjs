@@ -2,23 +2,12 @@
 // Posts to X (Twitter) via API v2 + OAuth 1.0a
 // Flags: --verify (read-only auth check), --dry-run, --now (post next unposted), --id <ID>
 // Requires: npm install (twitter-api-v2)
-import { readFileSync, writeFileSync, existsSync } from "fs";
-import { resolve, dirname } from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(__dirname, "..");
-const POSTED_PATH = resolve(__dirname, "posted.json");
-
-// Tiny .env parser — no dotenv dependency
-function loadEnv(path) {
-  if (!existsSync(path)) return;
-  for (const line of readFileSync(path, "utf8").split("\n")) {
-    const m = line.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.+?)\s*$/);
-    if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
-  }
-}
-loadEnv(resolve(__dirname, ".env"));
+import {
+  loadSchedule,
+  loadPosted,
+  savePosted,
+  resolveMedia,
+} from "./social-utils.mjs";
 
 const { TwitterApi } = await import("twitter-api-v2").catch(() => {
   console.error("twitter-api-v2 not installed. Run: npm install"); process.exit(1);
@@ -61,22 +50,8 @@ if (VERIFY) {
   process.exit(0);
 }
 
-const schedPath = resolve(__dirname, "schedule.json");
-if (!existsSync(schedPath)) {
-  console.error("schedule.json not found. Run: node make-schedule.mjs first."); process.exit(1);
-}
-const schedule = JSON.parse(readFileSync(schedPath, "utf8"));
-const posted = existsSync(POSTED_PATH) ? JSON.parse(readFileSync(POSTED_PATH, "utf8")) : {};
-
-function resolveMedia(imgFile) {
-  const pngPath = imgFile.replace("images/", "images-png/").replace(/\.svg$/, ".png");
-  const candidates = [
-    resolve(ROOT, pngPath),
-    resolve(ROOT, imgFile),
-  ];
-  return candidates.find(p => existsSync(p)) ?? null;
-}
-
+const schedule = loadSchedule();
+const posted = loadPosted();
 async function postOne(post) {
   const mediaPath = resolveMedia(post.image?.file ?? "");
   let media_id;
@@ -101,7 +76,7 @@ async function postOne(post) {
   if (media_id) payload.media = { media_ids: [media_id] };
   const result = await client.v2.tweet(payload);
   posted[post.id] = { tweetId: result.data.id, postedAt: new Date().toISOString() };
-  writeFileSync(POSTED_PATH, JSON.stringify(posted, null, 2));
+  savePosted(posted);
   console.log(`Posted ${post.id} → https://x.com/docita_work/status/${result.data.id}`);
 }
 
