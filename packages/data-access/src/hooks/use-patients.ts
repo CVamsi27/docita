@@ -191,6 +191,19 @@ export const useUpdatePatient = (id: string) =>
     suppressGlobalErrorToast: true,
   });
 
+function invalidatePatientQueries(
+  queryClient: ReturnType<typeof useQueryClient>,
+  patientId: string,
+) {
+  queryClient.invalidateQueries({ queryKey: queryKeys.patients.all() });
+  queryClient.invalidateQueries({
+    queryKey: queryKeys.patients.byId(patientId),
+  });
+  queryClient.invalidateQueries({
+    queryKey: queryKeys.patients.withMedicalHistory(patientId),
+  });
+}
+
 export const useVerifyPatientAbha = () => {
   const queryClient = useQueryClient();
 
@@ -202,13 +215,7 @@ export const useVerifyPatientAbha = () => {
         verifyAbhaRequestSchema.parse(data),
       suppressGlobalErrorToast: true,
       onSuccess: (_data, variables) => {
-        queryClient.invalidateQueries({ queryKey: queryKeys.patients.all() });
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.patients.byId(variables.patientId),
-        });
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.patients.withMedicalHistory(variables.patientId),
-        });
+        invalidatePatientQueries(queryClient, variables.patientId);
       },
     },
   );
@@ -236,13 +243,7 @@ export const useVerifyAbhaOtp = () => {
       body: ({ txnId, otp }) => ({ txnId, otp }),
       suppressGlobalErrorToast: true,
       onSuccess: (_data, variables) => {
-        queryClient.invalidateQueries({ queryKey: queryKeys.patients.all() });
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.patients.byId(variables.patientId),
-        });
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.patients.withMedicalHistory(variables.patientId),
-        });
+        invalidatePatientQueries(queryClient, variables.patientId);
       },
     },
   );
