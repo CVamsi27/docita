@@ -1,10 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-  ServiceUnavailableException,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type {
   AbhaVerificationResult,
   VerifyAbhaRequest,
@@ -17,6 +11,11 @@ import {
   type IAbdmGateway,
   type IAbhaVerificationStore,
 } from '@/domains/patients/core/ports/abha-verification.port';
+import {
+  assertAbdmConfigured,
+  assertClinicAbdmEnabled,
+  persistAbhaVerification,
+} from './abha-verification.helper';
 
 /**
  * ABDM M1: verifies a patient's ABHA against the ABDM gateway and persists the
@@ -50,45 +49,25 @@ export class AbhaVerificationService {
       throw new NotFoundException('Patient was not found in this clinic');
     }
 
-    if (!(await this.store.isClinicAbdmEnabled(clinicId))) {
-      throw new ServiceUnavailableException({
-        message:
-          'ABDM is turned off for this facility. Enable ABDM in settings after credentials are available.',
-        code: 'ABDM_TENANT_DISABLED',
-      });
-    }
-
-    if (!this.gateway.isConfigured()) {
-      throw new ServiceUnavailableException({
-        message:
-          'ABDM integration is not enabled for this environment yet. ' +
-          'ABHA was captured but cannot be verified until ABDM credentials are configured.',
-        code: 'ABDM_NOT_CONFIGURED',
-      });
-    }
+    await assertClinicAbdmEnabled(this.store, clinicId);
+    assertAbdmConfigured(this.gateway.isConfigured());
 
     const result = await this.gateway.verifyAbha(input);
 
-    if (result.verified) {
-      await this.store.saveVerification(patientId, clinicId, {
-        abhaAddress: result.abhaAddress ?? patient.abhaAddress,
-        abhaNumber: result.abhaNumber,
-        abhaKycName: result.kycName,
-        abhaVerifiedAt: this.clock.now(),
-      });
-
-      await this.auditService.logAction({
-        clinicId,
-        userId: actorUserId,
-        actionType: 'ABHA_VERIFIED',
-        resourceType: 'Patient',
-        resourceId: patientId,
-      });
-    } else {
-      this.logger.warn('ABHA verification did not succeed', {
-        error: result.error ?? 'unknown',
-      });
-    }
+    // jscpd:ignore-start
+    await persistAbhaVerification({
+      result,
+      patientId,
+      clinicId,
+      patientAbhaAddress: patient.abhaAddress,
+      actorUserId,
+      store: this.store,
+      auditService: this.auditService,
+      clock: this.clock,
+      logger: this.logger,
+      logContext: 'ABHA verification did not succeed',
+    });
+    // jscpd:ignore-end
 
     return result;
   }

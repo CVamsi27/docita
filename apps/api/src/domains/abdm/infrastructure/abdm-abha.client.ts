@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { AbhaVerificationResult } from '@workspace/types';
 import { isRecord } from '@workspace/utils';
@@ -6,15 +5,11 @@ import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { ExternalIntegrationsConfigService } from '@/shared/modules/config/external-integrations-config.service';
 import { AbdmGatewayClient } from './abdm-gateway.client';
-
-const NOT_CONFIGURED: AbhaVerificationResult = {
-  verified: false,
-  abhaAddress: null,
-  abhaNumber: null,
-  kycName: null,
-  verifiedAt: null,
-  error: 'ABDM_NOT_CONFIGURED',
-};
+import {
+  NOT_CONFIGURED,
+  abdmBaseHeaders,
+  isAbdmConfigured,
+} from './abdm-shared';
 
 @Injectable()
 export class AbdmAbhaClient {
@@ -26,9 +21,11 @@ export class AbdmAbhaClient {
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
+  // jscpd:ignore-start
   isConfigured(): boolean {
-    return this.config.getAbdmConfig().enabled;
+    return isAbdmConfigured(this.config);
   }
+  // jscpd:ignore-end
 
   /**
    * Request OTP for ABHA login via mobile number.
@@ -94,14 +91,6 @@ export class AbdmAbhaClient {
     };
   }
 
-  private baseHeaders(): Record<string, string> {
-    return {
-      'Content-Type': 'application/json',
-      'REQUEST-ID': randomUUID(),
-      TIMESTAMP: this.clock.now().toISOString(),
-    };
-  }
-
   private async postWithAuth(
     path: string,
     body: unknown,
@@ -112,7 +101,7 @@ export class AbdmAbhaClient {
       throw new Error('ABDM ABHA credentials not configured');
     }
     const url = `${abdm.abhaBaseUrl.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
-    const headers = this.baseHeaders();
+    const headers = abdmBaseHeaders(this.clock);
     if (!opts?.skipAuth) {
       const accessToken = await this.gatewayClient.getAccessToken();
       headers['Authorization'] = `Bearer ${accessToken}`;

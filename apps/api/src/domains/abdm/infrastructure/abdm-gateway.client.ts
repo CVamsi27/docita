@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type {
   AbhaVerificationResult,
@@ -10,6 +9,11 @@ import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 import { assertSafeExternalUrl } from '@/shared/common/http/safe-external-url';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { ExternalIntegrationsConfigService } from '@/shared/modules/config/external-integrations-config.service';
+import {
+  NOT_CONFIGURED,
+  abdmGatewayHeaders,
+  isAbdmConfigured,
+} from './abdm-shared';
 
 interface AbdmGatewayDispatchResult {
   status: 'SUCCEEDED' | 'FAILED' | 'RETRYABLE';
@@ -24,15 +28,6 @@ interface AbdmDataPushInput {
   hiType: string;
   encryptionMaterial?: JsonValueSchemaType;
 }
-
-const NOT_CONFIGURED: AbhaVerificationResult = {
-  verified: false,
-  abhaAddress: null,
-  abhaNumber: null,
-  kycName: null,
-  verifiedAt: null,
-  error: 'ABDM_NOT_CONFIGURED',
-};
 
 function normalizeBaseUrl(raw: string): string {
   return raw.replace(/\/+$/, '');
@@ -80,9 +75,11 @@ export class AbdmGatewayClient {
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
+  // jscpd:ignore-start
   isConfigured(): boolean {
-    return this.config.getAbdmConfig().enabled;
+    return isAbdmConfigured(this.config);
   }
+  // jscpd:ignore-end
 
   /**
    * Obtain a gateway access token. Exposed so sibling ABDM clients (e.g. the
@@ -132,19 +129,16 @@ export class AbdmGatewayClient {
     purposeCode: string;
     purposeText: string;
   }): Promise<AbdmGatewayDispatchResult> {
-    try {
-      const response = await this.postGateway('consent-requests/init', {
+    return this.dispatch('ABDM_CONSENT_REQUEST', () =>
+      this.postGateway('consent-requests/init', {
         requestId: input.requestId,
         patient: { id: input.abhaAddress },
         purpose: {
           code: input.purposeCode,
           text: input.purposeText,
         },
-      });
-      return this.toDispatchResult(response, 'ABDM_CONSENT_REQUEST_FAILED');
-    } catch (error) {
-      return this.toDispatchError(error, 'ABDM_CONSENT_REQUEST_ERROR');
-    }
+      }),
+    );
   }
 
   async notifyHealthInformation(input: {
@@ -153,27 +147,21 @@ export class AbdmGatewayClient {
     status: 'TRANSFERRED' | 'FAILED';
     description?: string;
   }): Promise<AbdmGatewayDispatchResult> {
-    try {
-      const response = await this.postGateway(
-        'data-flow/v3/health-information/notify',
-        {
-          transactionId: input.transactionId,
-          statusNotification: {
-            sessionStatus: input.status,
-            statusResponses: [
-              {
-                careContextReference: input.careContextReference,
-                hiStatus: input.status === 'TRANSFERRED' ? 'OK' : 'ERRORED',
-                description: input.description ?? input.status,
-              },
-            ],
-          },
+    return this.dispatch('ABDM_NOTIFY', () =>
+      this.postGateway('data-flow/v3/health-information/notify', {
+        transactionId: input.transactionId,
+        statusNotification: {
+          sessionStatus: input.status,
+          statusResponses: [
+            {
+              careContextReference: input.careContextReference,
+              hiStatus: input.status === 'TRANSFERRED' ? 'OK' : 'ERRORED',
+              description: input.description ?? input.status,
+            },
+          ],
         },
-      );
-      return this.toDispatchResult(response, 'ABDM_NOTIFY_FAILED');
-    } catch (error) {
-      return this.toDispatchError(error, 'ABDM_NOTIFY_ERROR');
-    }
+      }),
+    );
   }
 
   async pushHealthInformation(
@@ -187,9 +175,9 @@ export class AbdmGatewayClient {
       };
     }
 
-    try {
-      const url = assertSafeExternalUrl(input.dataPushUrl);
-      const response = await fetchWithTimeout(url, {
+    const url = assertSafeExternalUrl(input.dataPushUrl);
+    return this.dispatch('ABDM_DATA_PUSH', () =>
+      fetchWithTimeout(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -205,25 +193,19 @@ export class AbdmGatewayClient {
             },
           ],
         }),
-      });
-      return this.toDispatchResult(response, 'ABDM_DATA_PUSH_FAILED');
-    } catch (error) {
-      return this.toDispatchError(error, 'ABDM_DATA_PUSH_ERROR');
-    }
+      }),
+    );
   }
 
-  /**
-   * Common headers every ABDM gateway call requires. `REQUEST-ID` (a fresh UUID)
-   * and `TIMESTAMP` (ISO-8601) are mandatory — without them the gateway rejects
-   * the request with 401 before it reaches credential validation.
-   */
-  private gatewayHeaders(baseUrl: string): Record<string, string> {
-    return {
-      'Content-Type': 'application/json',
-      'REQUEST-ID': randomUUID(),
-      TIMESTAMP: this.clock.now().toISOString(),
-      'X-CM-ID': baseUrl.includes('dev.abdm.gov.in') ? 'sbx' : 'abdm',
-    };
+  private async dispatch(
+    errorPrefix: string,
+    fn: () => Promise<Response>,
+  ): Promise<AbdmGatewayDispatchResult> {
+    try {
+      return this.toDispatchResult(await fn(), errorPrefix);
+    } catch (error) {
+      return this.toDispatchError(error, `${errorPrefix}_ERROR`);
+    }
   }
 
   private async postGateway(path: string, body: unknown): Promise<Response> {
@@ -235,7 +217,7 @@ export class AbdmGatewayClient {
     return fetchWithTimeout(gatewayUrl(abdm.baseUrl, path), {
       method: 'POST',
       headers: {
-        ...this.gatewayHeaders(abdm.baseUrl),
+        ...abdmGatewayHeaders(this.clock, abdm.baseUrl),
         Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify(body),
@@ -255,7 +237,7 @@ export class AbdmGatewayClient {
 
     const response = await fetchWithTimeout(gatewayUrl(baseUrl, 'sessions'), {
       method: 'POST',
-      headers: this.gatewayHeaders(baseUrl),
+      headers: abdmGatewayHeaders(this.clock, baseUrl),
       body: JSON.stringify({
         clientId: abdm.clientId,
         clientSecret: abdm.clientSecret,

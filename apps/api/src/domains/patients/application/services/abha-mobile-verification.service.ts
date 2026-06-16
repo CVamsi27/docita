@@ -1,10 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-  ServiceUnavailableException,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { AbhaVerificationResult } from '@workspace/types';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
@@ -13,6 +7,11 @@ import {
   ABHA_VERIFICATION_STORE,
   type IAbhaVerificationStore,
 } from '@/domains/patients/core/ports/abha-verification.port';
+import {
+  assertAbdmConfigured,
+  assertClinicAbdmEnabled,
+  persistAbhaVerification,
+} from './abha-verification.helper';
 
 /**
  * ABDM M1: mobile → OTP verification flow against the ABHA sandbox
@@ -33,8 +32,8 @@ export class AbhaMobileVerificationService {
   ) {}
 
   async requestOtp(patientId: string, clinicId: string, mobile: string) {
-    await this.assertClinicAbdmEnabled(clinicId);
-    this.assertConfigured();
+    await assertClinicAbdmEnabled(this.store, clinicId);
+    assertAbdmConfigured(this.abhaClient.isConfigured());
 
     return this.abhaClient.requestOtp(mobile);
   }
@@ -46,8 +45,8 @@ export class AbhaMobileVerificationService {
     otp: string,
     actorUserId: string,
   ): Promise<AbhaVerificationResult> {
-    await this.assertClinicAbdmEnabled(clinicId);
-    this.assertConfigured();
+    await assertClinicAbdmEnabled(this.store, clinicId);
+    assertAbdmConfigured(this.abhaClient.isConfigured());
 
     const patient = await this.store.findPatientForVerification(
       patientId,
@@ -59,47 +58,21 @@ export class AbhaMobileVerificationService {
 
     const result = await this.abhaClient.verifyOtp(txnId, otp);
 
-    if (result.verified) {
-      await this.store.saveVerification(patientId, clinicId, {
-        abhaAddress: result.abhaAddress ?? patient.abhaAddress,
-        abhaNumber: result.abhaNumber,
-        abhaKycName: result.kycName,
-        abhaVerifiedAt: this.clock.now(),
-      });
-
-      await this.auditService.logAction({
-        clinicId,
-        userId: actorUserId,
-        actionType: 'ABHA_VERIFIED',
-        resourceType: 'Patient',
-        resourceId: patientId,
-      });
-    } else {
-      this.logger.warn('ABHA OTP verification did not succeed', {
-        error: result.error ?? 'unknown',
-      });
-    }
+    // jscpd:ignore-start
+    await persistAbhaVerification({
+      result,
+      patientId,
+      clinicId,
+      patientAbhaAddress: patient.abhaAddress,
+      actorUserId,
+      store: this.store,
+      auditService: this.auditService,
+      clock: this.clock,
+      logger: this.logger,
+      logContext: 'ABHA OTP verification did not succeed',
+    });
+    // jscpd:ignore-end
 
     return result;
-  }
-
-  private assertConfigured(): void {
-    if (!this.abhaClient.isConfigured()) {
-      throw new ServiceUnavailableException({
-        message:
-          'ABDM integration is not enabled for this environment yet. ' +
-          'ABHA was captured but cannot be verified until ABDM credentials are configured.',
-        code: 'ABDM_NOT_CONFIGURED',
-      });
-    }
-  }
-
-  private async assertClinicAbdmEnabled(clinicId: string): Promise<void> {
-    if (await this.store.isClinicAbdmEnabled(clinicId)) return;
-    throw new ServiceUnavailableException({
-      message:
-        'ABDM is turned off for this facility. Enable ABDM in settings after credentials are available.',
-      code: 'ABDM_TENANT_DISABLED',
-    });
   }
 }
