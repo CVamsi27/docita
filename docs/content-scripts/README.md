@@ -75,7 +75,17 @@ Doctor burnout, admin burden, time management, career growth, work-life balance 
 Digital prescriptions, patient records, billing, WhatsApp workflows, clinic software, import from Excel.
 **16 scripts**
 
-## Total: 140 scripts
+### 9. DPDP Compliance
+**File:** [`dpdp-compliance-scripts.md`](dpdp-compliance-scripts.md)
+India's Digital Personal Data Protection Act 2023: consent capture, encryption, patient rights, breach notification, audit trails.
+**1 long-form + 6 shorts + 5 posts**
+
+### 10. ABDM Compliance
+**File:** [`abdm-compliance-scripts.md`](abdm-compliance-scripts.md)
+Ayushman Bharat Digital Mission, ABHA health IDs, DHIS incentives, Scan & Share, clinic integration.
+**1 long-form + 6 shorts + 5 posts**
+
+## Total: 164 scripts
 
 Each script is designed to be:
 - Recorded in under 60 seconds
@@ -88,6 +98,7 @@ Each script is designed to be:
 - Post 3–4 educational scripts per week across platforms.
 - Mix categories: 1 healthy living + 1 nutrition + 1 Indian healthcare + 1 clinic technology per week.
 - Run **1 product video per week** from the product files — anchor on a long-form ([`product-long-form-scripts.md`](product-long-form-scripts.md)) and cut 3–4 shorts from it ([`product-short-form-scripts.md`](product-short-form-scripts.md)). The full 7-week launch sequence is in [`product-common.md`](product-common.md).
+- Compliance content (DPDP, ABDM) fits naturally on Wednesdays (Indian healthcare issues) or Saturdays (clinic technology) — use the awareness shorts as hooks and link to the long-form explainer.
 - Repurpose long-form scripts into 2–3 shorts each.
 - Track which hooks get the most views and double down on those topics.
 
@@ -112,4 +123,8 @@ docs/content-scripts/
   mental-health-scripts.md
   doctor-wellness-scripts.md
   clinic-technology-scripts.md
+
+  # Compliance scripts
+  dpdp-compliance-scripts.md
+  abdm-compliance-scripts.md
 ```

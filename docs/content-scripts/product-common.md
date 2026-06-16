@@ -15,12 +15,23 @@ This is the shared brief for every **product / demo** video about Docita. It is 
 Use this exact block wherever a CTA card or caption footer is needed.
 
 ```text
-https://docita.work
-support@docita.work
-+918790311010
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
 ```
 
 App lives at `https://app.docita.work`. Marketing site lives at `https://docita.work`. Always send prospects to the marketing site; only show `app.docita.work` URLs inside screen recordings.
+
+### Important links (single source of truth for descriptions)
+
+| Purpose | Link |
+|---|---|
+| Marketing site / homepage | https://docita.work |
+| Start 30-day free trial (no credit card) | https://docita.work |
+| Product / app (only inside screen recordings) | https://app.docita.work |
+| Support email | support@docita.work |
+| Phone | +91 87903 11010 |
+| Public patient booking (per facility) | https://app.docita.work/book/[referralCode] |
+
+Every video script in `product-long-form-scripts.md` and `product-short-form-scripts.md` now carries a **📋 Description (paste when publishing)** block built from these links. Social/LinkedIn/X captions use the footer in [`DOCITA_SOCIAL_POST_BANK.md`](../product/DOCITA_SOCIAL_POST_BANK.md). Add social handles here once the accounts are live.
 
 ---
 
@@ -121,9 +132,7 @@ Outro card:
 Run your clinic workflow from one place.
 
 Docita
-https://docita.work
-support@docita.work
-+918790311010
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
 ```
 
 ### Short-form template

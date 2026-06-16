@@ -5,15 +5,13 @@ Use this document for LinkedIn and X posts promoting Docita to doctors, clinics,
 Append this footer to every post unless the platform character limit requires a shorter version:
 
 ```text
-https://docita.work
-support@docita.work
-+918790311010
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
 ```
 
 Short X footer:
 
 ```text
-docita.work | support@docita.work | +918790311010
+Visit us at docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
 ```
 
 ## Posting Rules
@@ -104,9 +102,7 @@ Steps:
 4. Add the footer:
 
    ```text
-   https://docita.work
-   support@docita.work
-   +918790311010
+   Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
    ```
 
 5. Add 2 to 4 hashtags.
@@ -186,7 +182,7 @@ Steps with native composer:
 4. Use the short footer if character count is tight:
 
    ```text
-   docita.work | support@docita.work | +918790311010
+   Visit us at docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
    ```
 
 5. Add one asset if the post needs a screenshot or video.
@@ -263,9 +259,7 @@ Steps:
    ```text
    Docita helps clinics run appointments, patient records, prescriptions, invoices, follow-ups, and communication from one workspace.
 
-   https://docita.work
-   support@docita.work
-   +918790311010
+   Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
    ```
 
 7. Add tags if useful.
@@ -1833,7 +1827,5 @@ Week 6:
 Use this at the end of every published post:
 
 ```text
-https://docita.work
-support@docita.work
-+918790311010
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
 ```

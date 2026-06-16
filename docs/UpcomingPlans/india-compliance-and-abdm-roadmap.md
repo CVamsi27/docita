@@ -25,7 +25,19 @@
 - `verifyAbhaRequestSchema` + `abhaVerificationResultSchema` contracts.
 - `IAbdmGateway` port + `AbdmHttpGateway` adapter (timeout-guarded), **gated on `ABDM_BASE_URL`/`ABDM_CLIENT_ID`/`ABDM_CLIENT_SECRET`** — returns `ABDM_NOT_CONFIGURED` until set, so the endpoint is dormant (503) rather than broken.
 - `AbhaVerificationService` (persists + audits `ABHA_VERIFIED` on success only) + `POST /patients/:id/abha/verify`, gated by `Feature.ABDM_INTEGRATION` + patient-write roles. Unit-tested (configured/not-configured/unverified/not-found).
-- **Go-live = set the three env vars** + confirm the exact ABDM endpoint path/payload in `AbdmHttpGateway.verifyAbha` against the sandbox spec. No code rewrite needed.
+- **Go-live = set the three env vars** + confirm the exact ABDM endpoint path/payload in `AbdmHttpGateway.verifyAbha` against the sandbox spec.
+
+### Sandbox findings (2026-06-15) — auth works, verify path is a stub
+- Sandbox creds (`SBXID_044062`) wired in the **root `.env`** with `ABDM_BASE_URL=https://dev.abdm.gov.in`. Creds and base URL confirmed correct.
+- **Fixed a real auth bug:** `AbdmGatewayClient` was missing the mandatory `REQUEST-ID` (UUID) + `TIMESTAMP` (ISO-8601) headers, so ABDM 401'd every gateway call (`www-authenticate: Basic`). Added `gatewayHeaders()` on both `getSessionToken` and `postGateway`, plus `grantType: client_credentials`. **Session handshake now returns a valid token** (verified live against the sandbox).
+- **Old `verifyAbha` was a stub:** the path `/api/hiecm/gateway/v3/abha/verify` returns 404 — ABHA APIs are **not on the gateway host**. Per the M1 spec, ABHA profile/verification lives on `abhasbx.abdm.gov.in/abha/api/v3/...` (prod: `abha.abdm.gov.in`), authenticated with the gateway session token, with mobile/index/OTP **RSA-encrypted** (`RSA/ECB/OAEPWithSHA-1AndMGF1Padding`).
+- **Real M1 mobile→OTP flow now built end-to-end:**
+  - Gateway client ([abdm-abha.client.ts](../../apps/api/src/domains/abdm/infrastructure/abdm-abha.client.ts)): `searchAbhaByMobile` → `requestLoginOtp` → `verifyLoginOtp`, RSA-OAEP-SHA1 encryption, config `ABDM_ABHA_BASE_URL` + `ABDM_ABHA_PUBLIC_KEY` (sandbox key bundled).
+  - Service + endpoints: `AbhaMobileVerificationService` + `POST /patients/:id/abha/{search,request-otp,verify-otp}` (feature-gated, persists + audits `ABHA_VERIFIED` on success).
+  - Data-access: `useSearchAbhaByMobile` / `useRequestAbhaOtp` / `useVerifyAbhaOtp`.
+  - UI: `AbhaOtpVerificationDialog` (mobile → pick account → OTP) launched from the Edit Patient dialog's "Verify via OTP" action. Old single-call `verifyAbha` (404 path) left deprecated for the `IAbdmGateway` contract.
+  - Tested: API 27 ABDM/ABHA unit tests + app `PatientDialogs` flow test; tsc/lint/knip clean.
+- **Step 1 (search) is live-verified** against the sandbox (txnId + masked ABHAs). **Remaining before claiming M1:** a real OTP round-trip (steps 2–3 are spec-built + unit-tested but need a live OTP to a registered sandbox mobile). Until that passes, do not set an M1 completion date.
 
 ### Phase M1 (remaining) — registration UX + HFR/HPR
 - UI: a **Verify** action next to the existing ABHA field calling the endpoint above; clinic HFR/HPR ids in Settings (`apps/app/features/settings`).

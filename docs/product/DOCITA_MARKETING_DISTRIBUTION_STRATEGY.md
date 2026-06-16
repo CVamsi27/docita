@@ -5,9 +5,7 @@ This document captures the practical go-to-market strategy for making clinics, h
 Primary CTA:
 
 ```text
-https://docita.work
-support@docita.work
-+918790311010
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
 ```
 
 ## Core Positioning
@@ -180,7 +178,7 @@ The receptionist should not be the clinic database.
 
 Docita helps move appointment, patient, billing, and follow-up memory into a shared workflow.
 
-docita.work | support@docita.work | +918790311010
+Visit us at docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
 ```
 
 Useful links:
@@ -236,9 +234,7 @@ Hi Doctor, I am building Docita for clinics and hospitals.
 
 Instead of asking you to switch software, I can show how your current appointment-to-prescription workflow would look inside Docita in 15 minutes.
 
-Demo: https://docita.work
-support@docita.work
-+918790311010
+Demo: Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
 ```
 
 Do not:
@@ -401,7 +397,7 @@ Create and complete Docita's Google Business Profile for local trust and search 
 Add:
 
 - Website: `https://docita.work`.
-- Phone: `+918790311010`.
+- Phone: `+91 87903 11010`.
 - Support email: `support@docita.work`.
 - Product screenshots from the clinic setup, OPD, prescription, invoice, and
   patient portal workflows.

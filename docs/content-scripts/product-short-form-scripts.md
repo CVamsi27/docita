@@ -24,6 +24,9 @@ These shorts can be **cut from long-form footage** (record once, cut many) or **
 
 ---
 
+> ### 🎙️ How to record voiceover for any script here
+> Every video below has a **Timeline** block — the scene-by-scene clock the rendered cut follows. To record VO **without watching the video**: read each scene's voiceover **inside its `m:ss–m:ss` window**, start each block near its start time, and just pause if your line is shorter (the screen + music hold the gap). Where a scene row shows a `` `m:ss–m:ss` ``, that is exactly when that line lands on screen. Record calm and even, leave ~0.5s between blocks, then hand me the audio — I align it to the picture and duck the music under your voice.
+
 ### Short 1: What Is Docita
 
 Hook text:
@@ -49,7 +52,7 @@ Shots:
 3. Connected patient journey flash: appointment → consultation → prescription → invoice.
 4. CTA card.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Appointments, patient records, consultations, prescriptions, invoices, follow-ups, and WhatsApp communication, all connected in one workspace. That is Docita.
@@ -73,6 +76,22 @@ Screenshot guidance:
 
 - Scene 2: capture the dashboard tiles in one clean frame — this is the "everything in one place" proof.
 - Scene 3: capture the four screens as a rapid montage; the point is that each one references the same patient.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+What Is Docita
+
+Clinics run serious work through scattered tools. Here is the fix. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -101,7 +120,7 @@ Shots:
 3. Invoice connected to the visit.
 4. Follow-up still visible.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:32`):
 
 ```text
 The front desk books an appointment. The doctor sees it. The consultation is documented. Billing can see it. The prescription is connected to the patient. The invoice is connected to the visit. Nothing is disconnected.
@@ -125,6 +144,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 1 is the money shot: the timeline where visits, prescriptions, and invoices live together. Zoom on two entries to show they are the same patient.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Why Docita Is Different
+
+Most clinic software connects features. Docita connects the journey. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -157,7 +192,7 @@ Shots:
 5. Follow-up.
 6. WhatsApp.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:36`):
 
 ```text
 From booking to consultation to billing to follow-up to patient communication. One workspace. One connected journey.
@@ -183,6 +218,22 @@ On-screen text:
 Screenshot guidance:
 
 - Cut each screen at ~1.5s. The rhythm itself is the message — six steps, one patient, no tool-switching.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+One System for Everything
+
+One patient. One system. Every step connected. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -211,7 +262,7 @@ Shots:
 3. First appointment booked.
 4. CTA card.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:28`):
 
 ```text
 Every clinic should test software with real work. Start your 30-day free trial today. Set up one doctor, book appointments, run consultations, and see if the connected workflow works for your clinic.
@@ -234,6 +285,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 1: capture the signup CTA clearly — it is the action you want viewers to take. Caption "no credit card" near it.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+30-Day Free Trial — What to Test
+
+Try Docita free for 30 days. No credit card. Limited time. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -262,7 +329,7 @@ Shots:
 3. First consultation.
 4. CTA card.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Docita is offering a 30-day free trial for every clinic. This is a limited-period offer. No credit card to start. Test it with your real patients, real doctors, and real workflow.
@@ -287,6 +354,22 @@ Screenshot guidance:
 - Keep this one energetic. The CTA card at the end must show the offer terms exactly as they appear on `docita.work` at publish time.
 
 > Compliance: only say "limited-period" while the live offer is actually time-limited. Re-caption or re-cut if the offer changes.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Grab the Free Trial
+
+Free trial is live. Grab it before it ends. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -313,7 +396,7 @@ Shots:
 2. Patient journey montage.
 3. CTA card.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:25`):
 
 ```text
 Appointments, consultations, prescriptions, invoices, and follow-ups should not live in separate systems. Docita brings them into one workflow.
@@ -339,6 +422,22 @@ Screenshot guidance:
 ---
 
 # B. Setup and adoption
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Founder Demo
+
+I built Docita because clinics run serious work through scattered tools. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -369,7 +468,7 @@ Shots:
 4. Appointment booked.
 5. Dashboard.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:33`):
 
 ```text
 This is Docita setup in speedrun mode: create the clinic, add the doctor, add a patient, book the first appointment, and start running today's workflow.
@@ -394,6 +493,22 @@ On-screen text:
 Screenshot guidance:
 
 - Speed-ramp the whole thing. End on `/today` with one appointment visible — proof that "empty to running" took minutes. Optional clock overlay.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Setup Speedrun
+
+Clinic setup should not take a month. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -420,7 +535,7 @@ Shots:
 2. Front desk user.
 3. Today's queue with both working.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:25`):
 
 ```text
 Start with one doctor and one front desk user. The doctor consults. The front desk runs the queue. That is enough to begin. Expand later.
@@ -443,6 +558,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 1+2 together: capture the two roles in one frame to show "this is the whole team you need to start."
+
+
+**📋 Description (paste when publishing):**
+
+```text
+One Doctor, One Front Desk, One Workspace
+
+You do not need the whole facility online on day one. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -471,7 +602,7 @@ Shots:
 3. First prescriptions.
 4. First invoices.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:32`):
 
 ```text
 One morning to set up. One week to run. The connected workflow made a difference by day three. Try it yourself, 30 days free.
@@ -495,6 +626,22 @@ On-screen text:
 Screenshot guidance:
 
 - This is the "testimonial" tone short. Keep it warm. End on the Paid invoice — the first complete loop.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Clinic Setup in One Morning
+
+Clinic setup in one morning. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -523,7 +670,7 @@ Shots:
 3. Appointment.
 4. Dashboard.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Start with today's patients and appointments. Then add history gradually as patients return.
@@ -547,6 +694,22 @@ On-screen text:
 Screenshot guidance:
 
 - The contrast is the point: `/import` exists but the action is "add today's patient." Caption: "history can wait. Today can't."
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Start From Today
+
+Do not digitize everything on day one. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -575,7 +738,7 @@ Shots:
 3. Import.
 4. Dashboard.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Start with today's patients and today's appointments. Add history gradually as the clinic uses the system. Waiting for a perfect database means waiting forever.
@@ -599,6 +762,22 @@ On-screen text:
 Screenshot guidance:
 
 - Hold longest on `/appointments` (today's real work). `/import` is a quick glance — it is the thing you are telling people *not* to obsess over.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Do Not Wait for a Perfect Migration
+
+Do not wait for a perfect migration. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -626,7 +805,7 @@ Shots:
 2. Patient add (fast).
 3. Appointment booking (fast).
 
-Voiceover:
+**Voiceover** (read across `0:00–0:25`):
 
 ```text
 Software adoption works only when the first workflow is also fast and familiar. Adding a patient and booking a visit should feel as quick as the register it replaces.
@@ -649,6 +828,22 @@ On-screen text:
 Screenshot guidance:
 
 - Time Scene 2 and 3 with an on-screen timer. The proof is "this is not slower than the register."
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Paper Persists Because It Is Fast
+
+Paper persists because it is fast. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -677,7 +872,7 @@ Shots:
 3. Front desk queue.
 4. Consultation.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Clinic software works only when staff and doctors can use it during the real day, not just during a clean demo. Docita is built for the busy day, not the demo.
@@ -701,6 +896,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 2/3 should look like a real morning, not an empty demo. That realism is the message.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Adoption Is a Feature
+
+Adoption is a product feature. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -727,7 +938,7 @@ Shots:
 2. Patients list.
 3. Appointment booking.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:28`):
 
 ```text
 Use Excel to begin if needed, but run the clinic from a connected workflow. Import your sheet, then let appointments, prescriptions, and billing connect to each patient.
@@ -750,6 +961,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 1 is the key frame: the column-mapping step that turns a flat sheet into connected records. Never show a real spreadsheet.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Excel Is a Start, Not the System
+
+Excel is a start. It should not be the operating system. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -776,7 +1003,7 @@ Shots:
 2. OCR a paper register page.
 3. Imported patients in the list.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Bring old records in two ways: import a spreadsheet, or scan a paper register with OCR. Start with names and numbers, add the rest as patients return.
@@ -803,6 +1030,22 @@ Screenshot guidance:
 ---
 
 # C. Doctor value
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Import From Excel and OCR
+
+Your old register does not have to be lost. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -831,7 +1074,7 @@ Shots:
 3. Consultation.
 4. Prescription.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Docita keeps the patient context, consultation, prescription, and follow-up connected so the doctor can focus on the visit, not the admin.
@@ -855,6 +1098,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 2 is the point: opening a patient already shows their history. No searching. Caption "no asking the front desk again."
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Doctors Do Not Need More Software
+
+A doctor does not need more interruptions. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -880,7 +1139,7 @@ Shots:
 1. Today list.
 2. Tap patient → detail loads with history.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:20`):
 
 ```text
 Before the consultation even starts, the doctor sees previous visits, prescriptions, documents, and follow-ups. No paper files. No guessing.
@@ -902,6 +1161,22 @@ On-screen text:
 Screenshot guidance:
 
 - One clean frame of the populated timeline is the whole short. Pick a demo patient with the richest history (Sneha Reddy / Amit Kumar).
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Patient Context Before Consultation
+
+Open the patient. The context is already there. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -932,7 +1207,7 @@ Shots:
 4. Create prescription.
 5. Add follow-up.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Open the patient. See their history. Document the visit. Create the prescription. Add follow-up. All connected. All in one place.
@@ -957,6 +1232,22 @@ On-screen text:
 Screenshot guidance:
 
 - Keep cuts tight (~5s each) so the whole loop fits 30s. End on the saved follow-up — the visit is fully closed in one place.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Doctor Workflow in 30 Seconds
+
+Doctor workflow in 30 seconds. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -983,7 +1274,7 @@ Shots:
 2. Prescription preview.
 3. Patient link (where enabled).
 
-Voiceover:
+**Voiceover** (read across `0:00–0:26`):
 
 ```text
 Docita helps clinics create cleaner prescriptions and keep them connected to the patient record, so they are never a blurry photo lost in a chat.
@@ -1006,6 +1297,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 2: capture the full, legible Rx preview. Contrast it mentally with a handwritten scrawl. This is the legibility/safety proof.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Prescription Should Not Become a Lost Photo
+
+A prescription should not become a lost photo. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -1032,7 +1339,7 @@ Shots:
 2. Prescription preview.
 3. Patient-facing link.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:26`):
 
 ```text
 Docita helps clinics create clean, professional prescriptions. Connected to the patient record. Ready to share digitally where enabled.
@@ -1055,6 +1362,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 2 again is the hero frame. If the demo clinic has a logo/header configured, make sure it shows — that is what "professional" looks like.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+A Prescription Should Look Professional
+
+A prescription should look professional, not handwritten. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -1081,7 +1404,7 @@ Shots:
 2. Follow-ups page.
 3. Patient detail follow-up section.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:28`):
 
 ```text
 Docita keeps follow-ups visible so the next action does not disappear into a notebook or chat thread. Schedule it in the consult; the team sees it on the follow-ups board.
@@ -1108,6 +1431,22 @@ Screenshot guidance:
 ---
 
 # D. Front desk value
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Follow-Ups Should Not Depend on Memory
+
+Follow-ups should not depend on memory. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -1136,7 +1475,7 @@ Shots:
 3. Patient detail.
 4. Collect payment.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 If the front desk is messy, the whole day feels messy. Docita gives the team one connected workflow for appointments, patients, billing, and follow-up.
@@ -1160,6 +1499,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 2 (desk floor with live states) is the most "operating room" frame. Capture patients in different states to show flow control.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Your Front Desk Is the Operating Room
+
+The front desk is the operating room of a clinic. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -1190,7 +1545,7 @@ Shots:
 4. Collect payment.
 5. Send WhatsApp update.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Add the patient. Book the visit. Manage today's queue. Collect payment. Send an update. All from one screen.
@@ -1215,6 +1570,22 @@ On-screen text:
 Screenshot guidance:
 
 - Five tight cuts (~5s each). End on the WhatsApp send so the loop closes with the patient being informed.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Front Desk Workflow in 30 Seconds
+
+Front desk workflow in 30 seconds. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -1243,7 +1614,7 @@ Shots:
 3. Desk floor.
 4. Collect payment.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Docita helps front desk teams manage the flow without carrying everything in memory. The system remembers, so your receptionist does not have to.
@@ -1267,6 +1638,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 3: the floor view that holds the whole day's state. The caption "the system remembers" lands over this frame.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Your Receptionist Should Not Be the Database
+
+Your receptionist should not be the database. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -1295,7 +1682,7 @@ Shots:
 3. Invoice generated.
 4. Payment collected.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 The appointment becomes a visit, the visit becomes an invoice, and the invoice becomes a collected payment, without re-entering anything.
@@ -1319,6 +1706,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 3 → Scene 4 transition is the proof: the invoice carries the visit context, and collecting flips status to Paid. Capture both states.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+From Appointment to Payment
+
+From appointment to payment, on one screen. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -1347,7 +1750,7 @@ Shots:
 3. Patient detail (quick lookup).
 4. Billing.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Walk-ins, delays, payments, calls, and follow-ups all hit the front desk at once. Docita is built around that operating pressure.
@@ -1371,6 +1774,22 @@ On-screen text:
 Screenshot guidance:
 
 - Make the queue look genuinely busy (use all 5 demo patients + a walk-in). The realism is the selling point.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Clinic Software Should Survive a Busy Morning
+
+Clinic software should survive a busy morning. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -1397,7 +1816,7 @@ Shots:
 2. Patient detail.
 3. Follow-ups.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:26`):
 
 ```text
 When everything depends on one person remembering, the workflow is fragile. Docita makes the work visible so it survives a sick day, a busy day, or a new hire.
@@ -1420,6 +1839,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 3: the follow-ups backlog is the strongest "not in someone's head" proof. Show pending + overdue entries.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Staff Memory Is Not a System
+
+Staff memory is not a system. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -1448,7 +1883,7 @@ Shots:
 3. Billing invoice.
 4. Follow-up.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Front desk to doctor, doctor to billing, billing to patient, patient to follow-up. Docita helps connect those handoffs so nothing is dropped between them.
@@ -1477,6 +1912,22 @@ Screenshot guidance:
 
 # E. Owner value
 
+
+**📋 Description (paste when publishing):**
+
+```text
+Clinics Run on Handoffs
+
+Clinics run on handoffs. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
+
 ---
 
 ### Short 29: Do You Know What Happened Today?
@@ -1504,7 +1955,7 @@ Shots:
 3. Invoices.
 4. Follow-ups.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Docita helps facility owners see the day across appointments, patients, billing, and follow-ups, without asking five people.
@@ -1528,6 +1979,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 1 dashboard is the hero. One frame should answer "what happened today" — capture it cleanly.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Do You Know What Happened Today?
+
+Clinic owners: do you know what happened today? Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -1556,7 +2023,7 @@ Shots:
 3. Invoices.
 4. Follow-ups.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Docita gives owners a connected view of the day. Appointments, patients, billing, and follow-ups in one dashboard. No more asking around.
@@ -1580,6 +2047,22 @@ On-screen text:
 Screenshot guidance:
 
 - Nearly identical to Short 29 — record both from the same session, change only the hook caption. Use Short 29 for "question" platforms (Reels) and this for "statement" platforms (LinkedIn).
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Stop Asking Five People
+
+Stop asking five people what happened today. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -1608,7 +2091,7 @@ Shots:
 3. Invoices.
 4. Follow-ups.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Docita gives facility teams a more connected view of daily operations. The numbers come from the work staff already captured, not a separate report.
@@ -1632,6 +2115,22 @@ On-screen text:
 Screenshot guidance:
 
 - The point is that Analytics (Scene 2) is *derived* from real records (Scene 3/4). Show the chart, then the underlying list, to prove it is not invented.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+If You Have to Ask, You Don't Have Visibility
+
+If you have to ask five people what happened, you do not have visibility. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -1660,7 +2159,7 @@ Shots:
 3. Invoice.
 4. Dashboard.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 A dashboard is useful only when the actual clinic work is captured correctly. Capture the work, and visibility comes for free.
@@ -1684,6 +2183,22 @@ On-screen text:
 Screenshot guidance:
 
 - Order matters: show the three capture steps, *then* the dashboard. The dashboard is the payoff, not the start.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Visibility Is Captured Workflow
+
+Visibility is not a dashboard. It is captured workflow. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -1712,7 +2227,7 @@ Shots:
 3. Invoices.
 4. Follow-ups.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Can I see what happened today without asking five people? Docita is built to make that answer yes.
@@ -1736,6 +2251,22 @@ On-screen text:
 Screenshot guidance:
 
 - The `/today` "now serving" board (Scene 2) is a strong, distinctive visual — lead the social caption with it.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Clinic Owners Should Ask One Question
+
+Clinic owners should ask one question. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -1762,7 +2293,7 @@ Shots:
 2. Invoices (pending vs paid).
 3. Dashboard.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:26`):
 
 ```text
 No magic revenue claims. The return is fewer missed follow-ups, cleaner billing, and a day you can actually see. That is where real ROI starts.
@@ -1789,6 +2320,22 @@ Screenshot guidance:
 ---
 
 # F. The connected journey
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Real ROI Without Fake Promises
+
+The real ROI of clinic software is fewer missed steps. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -1819,7 +2366,7 @@ Shots:
 4. Prescription.
 5. Invoice.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:33`):
 
 ```text
 The real value is that the patient journey stays connected from booking to consultation to billing to follow-up.
@@ -1844,6 +2391,22 @@ On-screen text:
 Screenshot guidance:
 
 - Keep the same demo patient across all five frames. Optional chapter labels (Appointment / Patient / Consult / Rx / Invoice) burned in.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+One Patient, One Journey
+
+One patient. One journey. One system. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -1874,7 +2437,7 @@ Shots:
 4. Prescription.
 5. Invoice.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:33`):
 
 ```text
 If the system cannot carry one patient from booking to follow-up without losing context, it will not survive a busy clinic day.
@@ -1900,6 +2463,22 @@ Screenshot guidance:
 
 - Frame this as a buyer's test. Caption each step with "context still here?" to reinforce continuity.
 
+
+**📋 Description (paste when publishing):**
+
+```text
+Before Buying, Test One Patient Journey
+
+Before buying clinic software, test one patient journey. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
+
 ---
 
 ### Short 37: Stop Demoing Every Feature
@@ -1923,7 +2502,7 @@ Shots:
 1. Patient journey montage.
 2. Chapter labels.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:25`):
 
 ```text
 The best clinic software demo is one patient journey from appointment to consultation to billing to follow-up.
@@ -1945,6 +2524,22 @@ On-screen text:
 Screenshot guidance:
 
 - This is a meta/sales-craft short (good for LinkedIn). The montage is the whole thing; labels carry the message.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Stop Demoing Every Feature
+
+Stop demoing every feature. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -1972,7 +2567,7 @@ Shots:
 2. Connected record with full history.
 3. Doctor finding a past Rx + invoice.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 A real patient record connects visits, consultations, prescriptions, invoices, documents, and follow-ups. When a patient returns, you see everything. No searching. No guessing.
@@ -1995,6 +2590,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 2: capture all the sections in one scroll. That richness, next to the 2-field contact, is the entire argument.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Connected Records Beat Disconnected Ones
+
+Name and phone number is a contact list, not a patient record. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -2021,7 +2632,7 @@ Shots:
 2. Invoice creation.
 3. Payment tracking.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:28`):
 
 ```text
 In most clinics, billing starts from zero. In Docita, the invoice is connected to the visit, the prescription, and the patient. Cleaner billing. Less back-and-forth.
@@ -2049,6 +2660,22 @@ Screenshot guidance:
 
 # G. WhatsApp and communication
 
+
+**📋 Description (paste when publishing):**
+
+```text
+Connected Billing
+
+Billing should know what the doctor did. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
+
 ---
 
 ### Short 40: WhatsApp Is Useful, WhatsApp Chaos Is Not
@@ -2074,7 +2701,7 @@ Shots:
 2. Appointment update tied to an appointment.
 3. Prescription or invoice link.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:28`):
 
 ```text
 Docita helps bring clinic communication into a structured workflow where enabled. Appointment updates, prescription links, and invoice links stay connected to the patient, not lost in personal chats.
@@ -2097,6 +2724,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 1: the template library with placeholders like `{{patient_name}}`, `{{appointment_time}}`. Structured fields vs free-text chats is the contrast. No real numbers.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+WhatsApp Is Useful, WhatsApp Chaos Is Not
+
+WhatsApp is useful. WhatsApp chaos is not. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -2123,7 +2766,7 @@ Shots:
 2. Share to WhatsApp (where enabled).
 3. The link tied to the patient record.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:28`):
 
 ```text
 A prescription link sent from a personal phone is gone the moment the chat scrolls. Sent from Docita, it stays connected to the patient and the clinic record.
@@ -2146,6 +2789,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 3 is the differentiator: the link is logged on the record, not just floating in a chat. Capture the timeline entry.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Prescription Links Should Not Be Lost in Personal Chats
+
+Prescription links should not be lost in personal chats. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -2172,7 +2831,7 @@ Shots:
 2. Patient detail.
 3. Prescription or invoice link.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:26`):
 
 ```text
 Appointment updates, prescriptions, invoices, and follow-ups should stay connected to the patient workflow where enabled, so the clinic always knows what was sent.
@@ -2195,6 +2854,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 2: the communication log on the patient. Accountability = "the clinic, not one staff phone, owns the record."
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Patient Communication Needs Accountability
+
+Patient communication needs accountability. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -2221,7 +2896,7 @@ Shots:
 2. Prescription in the portal.
 3. Billing in the portal.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:28`):
 
 ```text
 Docita can provide patient-facing access to relevant information where enabled, without making the clinic depend on scattered document sharing.
@@ -2248,6 +2923,22 @@ Screenshot guidance:
 ---
 
 # H. Scale: multi-doctor, multi-clinic, hospital
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Patient Portal — No App Needed
+
+Patients should not need a clinic app for every document. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -2276,7 +2967,7 @@ Shots:
 3. Patient detail.
 4. Dashboard.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Docita helps multi-doctor clinics keep appointments, patient records, and operational work connected, with doctor-wise schedules and one shared queue.
@@ -2300,6 +2991,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 1: the doctor filter switching between Dr. Sharma and Dr. Patel is the proof of structured multi-doctor scheduling.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Multi-Doctor Clinics Need Structure
+
+One doctor is simple. Multiple doctors need coordination. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -2326,7 +3033,7 @@ Shots:
 2. Queue.
 3. Dashboard.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:26`):
 
 ```text
 When multiple doctors are consulting, the front desk needs one screen that shows the whole day. Docita keeps doctor schedules, patient flow, and appointments organized.
@@ -2349,6 +3056,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 2 (unified queue with multiple doctors) is the "no confusion" frame. The front desk sees everyone from one place.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Three Doctors, One Front Desk, No Confusion
+
+Three doctors, one front desk, no confusion. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -2377,7 +3100,7 @@ Shots:
 3. Appointments.
 4. Analytics.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 As facilities add doctors, teams, or locations, they need consistent workflows, not scattered memory. Switch between clinics and see each one clearly.
@@ -2401,6 +3124,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 1 (the clinic switcher) is the multi-location hook. Show two distinct facility names to prove "one account, many clinics."
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Memory Stops Scaling When the Clinic Grows
+
+Memory stops scaling when the clinic grows. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -2431,7 +3170,7 @@ Shots:
 4. Lab tests.
 5. Billing.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:35`):
 
 ```text
 Docita is designed to connect facility workflows across front desk, doctors, billing, lab, and operations where enabled, so departments stay aligned.
@@ -2461,6 +3200,22 @@ Screenshot guidance:
 
 # I. Specialized: lab, documents, booking, security
 
+
+**📋 Description (paste when publishing):**
+
+```text
+In a Hospital, Coordination Is the Product
+
+In a hospital, coordination is the product. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
+
 ---
 
 ### Short 48: Lab Work Should Not Disappear
@@ -2486,7 +3241,7 @@ Shots:
 2. Lab tests.
 3. Documents or patient detail.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 Where enabled, Docita helps lab orders and reports stay connected to the patient journey, from the order in the consult to the result on the record.
@@ -2509,6 +3264,22 @@ On-screen text:
 Screenshot guidance:
 
 - Only film if lab is enabled. Use demo values that do not imply a real diagnosis. The connection (order in consult → result on record) is the message.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Lab Work Should Not Disappear
+
+Lab work should not disappear after the consultation. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -2535,7 +3306,7 @@ Shots:
 2. Patient detail documents section.
 3. Prescription or invoice.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:28`):
 
 ```text
 Docita keeps generated and uploaded documents closer to the patient record, so finding a report next month does not mean digging through a chat or a drawer.
@@ -2558,6 +3329,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 2: documents attached directly to the patient. That adjacency is the "easy to find later" proof.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Medical Documents Should Be Easy to Find
+
+Medical documents should be easy to find later. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -2584,7 +3371,7 @@ Shots:
 2. Public booking page.
 3. Appointment appears in the clinic queue.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:30`):
 
 ```text
 A public booking link lets patients choose a doctor, pick a time, and confirm, no phone call needed. The appointment lands in your queue instantly.
@@ -2607,6 +3394,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 2 → Scene 3 is the proof: patient books on the public page, and it instantly shows in the clinic's queue. Capture both.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Patients Should Book Without Calling You
+
+Patients should be able to book without calling you. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -2633,7 +3436,7 @@ Shots:
 2. Patient detail follow-up section.
 3. Consultation follow-up creation.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:28`):
 
 ```text
 Follow-ups should not live in a chat thread. Docita keeps follow-ups connected to the patient and the visit. The next action is always visible.
@@ -2656,6 +3459,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 1: the board with an Overdue (red) entry is the strongest "a chat can't do this" frame. Use Sneha Reddy's overdue follow-up from the demo data.
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Your Follow-Up System Is a WhatsApp Chat — Fix That
+
+Your follow-up system is a WhatsApp chat. Fix that. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 
@@ -2682,7 +3501,7 @@ Shots:
 2. Settings — roles and access.
 3. Patient detail with demo label.
 
-Voiceover:
+**Voiceover** (read across `0:00–0:28`):
 
 ```text
 Docita is built with healthcare workflows, access control, auditability, and privacy expectations in mind. Front desk, doctors, and admins each see what they need.
@@ -2705,6 +3524,22 @@ On-screen text:
 Screenshot guidance:
 
 - Scene 2: the roles list shows "each person sees what they need." Do not claim NABL/ABDM/ISO/HIPAA certification — say "built with access control, audit logging, and privacy in mind."
+
+
+**📋 Description (paste when publishing):**
+
+```text
+Security and Trust
+
+Clinic software must be built like serious healthcare infrastructure. Docita — the healthcare operating system for clinics & hospitals. One connected workspace for appointments, records, prescriptions, billing and follow-ups.
+
+▶ 30-day free trial, no credit card: https://docita.work
+Visit us at https://docita.work  ·  mail us at support@docita.work  ·  contact us at +91 87903 11010
+
+Demo data shown. Docita supports clinical workflow documentation and does not replace medical judgment.
+
+#Docita #ClinicSoftware #HospitalManagement #HealthcareOS #Shorts #India
+```
 
 ---
 

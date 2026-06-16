@@ -1,8 +1,12 @@
 # Docita Social Posts Bank
 
-28 posts (19 product `P#` + 9 educational `E#`) for Instagram and X.  
+28 posts (19 product `P#` + 9 educational `E#`) for Instagram, X, and LinkedIn.  
 Calendar: 2026-06-15 (Mon) → 2026-07-12 (Sun), one post per day.  
 Order: `P1 P2 E1 P3 P4 E2 P5 P6 E3 P7 P8 E4 P9 P10 E5 P11 P12 E6 P13 P14 E7 P15 P16 E8 P17 P18 E9 P19`
+
+Status markers (updated by `post-social.mjs` after each post):  
+`[ ]` = not posted  |  `[x]` = posted  
+See `posts.json → status` for per-platform details.
 
 ---
 
@@ -36,6 +40,17 @@ Docita is the healthcare operating system built for Indian clinics and hospitals
 Try free for 30 days → docita.work
 ```
 
+**LinkedIn**
+```
+Most clinic owners juggle 4-5 different tools every day — one for appointments, another for prescriptions, a separate one for billing, and WhatsApp for everything else.
+
+Docita brings it all into one screen: appointments, patient records, prescriptions, invoicing, lab orders, and follow-ups.
+
+Built for Indian clinics and hospitals. Try free for 30 days → docita.work
+
+#ClinicManagement #HealthTech #DigitalHealthcare #IndiaHealthcare
+```
+
 ---
 
 ### P2 — WhatsApp Chaos
@@ -64,6 +79,17 @@ If your appointment book is a WhatsApp thread, you already know the problem.
 Missed messages. Double bookings. No records.
 
 There's a better way → docita.work
+```
+
+**LinkedIn**
+```
+If your front desk manages appointments through WhatsApp messages, you've seen this: missed requests, double bookings, and no audit trail.
+
+Clinics that switch to a structured booking system report fewer no-shows and zero double-bookings.
+
+Docita replaces the WhatsApp chaos with online booking, confirmations, and automated reminders — all in one place.
+
+#ClinicOperations #PatientExperience #HealthTech #IndiaHealthcare
 ```
 
 ---
@@ -102,6 +128,19 @@ General information only. Consult a healthcare professional.
 Docita — docita.work
 ```
 
+**LinkedIn**
+```
+Small habits, compound results.
+
+Drinking water first thing in the morning is one of the simplest changes a healthcare professional can make. Rehydrating after sleep kick-starts metabolism and improves focus — two things every clinician needs.
+
+Coffee can wait 20 minutes.
+
+General information only. Consult a healthcare professional.
+
+#PhysicianWellness #HealthTips #DoctorLife
+```
+
 ---
 
 ### P3 — Everything in One Place
@@ -130,6 +169,17 @@ Patient records. Prescriptions. Invoices. Follow-ups. Lab orders.
 All in one place. Zero tabs.
 
 Docita — docita.work
+```
+
+**LinkedIn**
+```
+Every tab you open during a consultation is time away from your patient.
+
+When patient records, prescriptions, invoices, follow-ups, and lab orders live in one platform, consultations get faster and nothing falls through the cracks.
+
+Zero tabs. Zero chaos. Just better care.
+
+#ClinicSoftware #HealthTech #EMR #IndiaHealthcare
 ```
 
 ---
@@ -164,6 +214,17 @@ Docita sends automated reminders so they actually show up.
 Set it once. It runs itself.
 
 docita.work
+```
+
+**LinkedIn**
+```
+Missed follow-ups are one of the biggest revenue leaks for clinics — and they hurt patient outcomes too.
+
+When patients forget to come back, the clinic loses revenue and the patient loses continuity of care.
+
+Docita sends automated WhatsApp reminders so patients actually show up. Set it once. It runs itself.
+
+#PatientRetention #ClinicRevenue #HealthTech #IndiaHealthcare
 ```
 
 ---
@@ -204,6 +265,19 @@ General information only. Consult a healthcare professional.
 Docita — docita.work
 ```
 
+**LinkedIn**
+```
+Healthcare professionals are notoriously bad at taking care of their own health.
+
+Sleep deprivation leads to higher blood pressure, weakened immunity, weight gain, and impaired decision-making — exactly what you don't want in a clinical setting.
+
+You wouldn't run a clinic on a drained phone. Don't run your body on one either.
+
+General information only. Consult a healthcare professional.
+
+#PhysicianWellness #SleepHealth #DoctorLife
+```
+
 ---
 
 ### P5 — Online Booking
@@ -232,6 +306,17 @@ Patients can book their own appointments — no phone call needed.
 Your front desk handles walk-ins. Docita handles everything else.
 
 Online booking + WhatsApp confirmations → docita.work
+```
+
+**LinkedIn**
+```
+Your front desk shouldn't spend all day answering phone calls for appointment bookings.
+
+Online booking lets patients schedule their own slots — 24/7. Your team focuses on walk-ins and in-clinic care instead.
+
+Docita handles online booking, WhatsApp confirmations, and automated reminders.
+
+#OnlineBooking #ClinicAutomation #PatientExperience #HealthTech
 ```
 
 ---
@@ -266,6 +351,17 @@ No more handwriting complaints. No more lost slips.
 Digital prescriptions → patient's WhatsApp, instantly.
 
 docita.work
+```
+
+**LinkedIn**
+```
+Handwritten prescriptions still lose patients time and create confusion about dosage.
+
+Digital prescriptions are legible, searchable, and sent directly to the patient's WhatsApp — in about 30 seconds.
+
+Doctors using Docita's prescription builder report faster consultations and fewer patient callbacks asking "what did you write?"
+
+#DigitalPrescription #ClinicalDocumentation #HealthTech #IndiaHealthcare
 ```
 
 ---
@@ -306,6 +402,19 @@ General information only. Consult a healthcare professional.
 Docita — docita.work
 ```
 
+**LinkedIn**
+```
+The Indian thali is one of the most balanced meal formats in the world — protein from dal, micronutrients from sabzi, carbs from roti, probiotics from curd.
+
+The problem isn't the thali. It's replacing it with processed snacks.
+
+Sometimes the best health advice is the simplest.
+
+General information only. Consult a healthcare professional.
+
+#Nutrition #HealthyEating #IndianFood #HealthTips
+```
+
 ---
 
 ### P7 — GST Invoicing
@@ -338,6 +447,17 @@ Numbered, professional, GST-ready — instantly.
 docita.work
 ```
 
+**LinkedIn**
+```
+End-of-month billing shouldn't take 3 days.
+
+Docita generates numbered, professional GST invoices with one click — complete with GST breakdowns, payment tracking, and revenue summaries.
+
+Clinics using Docita report cutting their billing time by 70%.
+
+#GSTInvoice #MedicalBilling #ClinicSoftware #IndiaHealthcare
+```
+
 ---
 
 ### P8 — Patient Records
@@ -368,6 +488,17 @@ Past visits, diagnoses, prescriptions, lab results — all there.
 No more paper files.
 
 docita.work
+```
+
+**LinkedIn**
+```
+"What did I prescribe last time?" — a question no doctor should have to ask.
+
+When every patient has a complete digital record — past visits, diagnoses, prescriptions, lab results, allergies — consultations become faster and safer.
+
+No more paper files. No more guessing.
+
+#PatientRecords #EMR #HealthTech #ClinicalDocumentation
 ```
 
 ---
@@ -407,6 +538,19 @@ General information only. Consult a healthcare professional.
 Docita — docita.work
 ```
 
+**LinkedIn**
+```
+Clinicians spend hours in front of screens — EMR systems, lab reports, billing dashboards.
+
+The 20-20-20 rule helps reduce digital eye strain: every 20 minutes, look at something 20 feet away for 20 seconds.
+
+Simple, free, and effective. Set a timer.
+
+General information only. Consult a healthcare professional.
+
+#EyeHealth #DoctorWellness #HealthTips #WorkplaceHealth
+```
+
 ---
 
 ### P9 — Analytics Dashboard
@@ -444,6 +588,17 @@ No spreadsheets. Just clarity.
 docita.work
 ```
 
+**LinkedIn**
+```
+Most clinic owners know their revenue, but not the trends behind it.
+
+Docita's analytics dashboard surfaces revenue trends, top diagnoses, appointment fill rates, and patient retention — without touching a spreadsheet.
+
+Data-driven decisions start with the right data.
+
+#ClinicAnalytics #DataDriven #HealthTech #ClinicManagement
+```
+
 ---
 
 ### P10 — Import from Excel
@@ -476,6 +631,17 @@ Upload your file. Docita maps the columns and moves your patients across — in 
 No data loss. No re-entry.
 
 docita.work
+```
+
+**LinkedIn**
+```
+Many clinics started with Excel for patient records. It worked — until it didn't.
+
+Switching to a proper EMR doesn't have to mean re-entering every patient manually. Docita's import tool reads your Excel file, maps the columns, and moves your data across — in minutes.
+
+No data loss. No headaches.
+
+#DataMigration #ClinicSoftware #EMR #HealthTech
 ```
 
 ---
@@ -516,6 +682,19 @@ General information only. Consult a healthcare professional.
 Docita — docita.work
 ```
 
+**LinkedIn**
+```
+India's protein gap isn't about availability — it's about habit.
+
+Indian cuisine has excellent protein sources: eggs, dal, paneer, curd, rajma, chana. The issue is that most meals skip protein as the centrepiece.
+
+As healthcare professionals, we advise patients on nutrition. It starts with our own plates.
+
+General information only. Consult a healthcare professional.
+
+#Nutrition #ProteinIntake #HealthTips #IndianFood
+```
+
 ---
 
 ### P11 — Lab Orders
@@ -544,6 +723,17 @@ Order labs. Track results. All in the patient's record.
 No separate register. No sticky notes.
 
 docita.work
+```
+
+**LinkedIn**
+```
+Lab orders that live outside the patient record create confusion — for the clinic and the patient.
+
+When lab orders, results, and status are linked directly to the patient's file, follow-ups become clearer and nothing gets lost.
+
+One place. One record. Complete visibility.
+
+#LabOrders #PatientCare #ClinicSoftware #HealthTech
 ```
 
 ---
@@ -576,6 +766,17 @@ Occupied. Vacant. Due for discharge — at a glance.
 Docita scales from single clinic to multi-department hospital.
 
 docita.work
+```
+
+**LinkedIn**
+```
+Hospital bed management shouldn't require a whiteboard and a prayer.
+
+When you can see which beds are occupied, vacant, or due for discharge — at a glance — operations run smoother and patients get admitted faster.
+
+Docita works for single clinics and scales to multi-department hospitals.
+
+#HospitalManagement #BedManagement #HealthTech #IndiaHealthcare
 ```
 
 ---
@@ -616,6 +817,19 @@ General information only. Consult a healthcare professional.
 Docita — docita.work
 ```
 
+**LinkedIn**
+```
+The 10,000-step target came from a 1965 Japanese pedometer marketing campaign — not a clinical study.
+
+Research suggests 5,000–7,000 steps per day significantly reduces mortality risk. The best step count is the one you'll actually do consistently.
+
+Start where you are. Add 500 steps a week.
+
+General information only. Consult a healthcare professional.
+
+#FitnessMyths #HealthTips #WalkingHealth #PhysicianWellness
+```
+
 ---
 
 ### P13 — Onboarding in Minutes
@@ -650,6 +864,17 @@ That's it. You're live.
 No IT team. No training week. 30 days free → docita.work
 ```
 
+**LinkedIn**
+```
+Switching clinic software used to mean weeks of setup, training, and IT support.
+
+With Docita, you can go live in minutes: add your clinic profile, invite your team, import your patients. That's it.
+
+No IT team. No training week. No setup fee. 30 days free.
+
+#ClinicSetup #HealthTech #SaaS #IndiaHealthcare
+```
+
 ---
 
 ### P14 — Consultation Notes
@@ -680,6 +905,17 @@ Chief complaint. Vitals. Diagnosis. Treatment plan. Follow-up.
 Structured, searchable, shareable.
 
 docita.work
+```
+
+**LinkedIn**
+```
+Unstructured consultation notes lose their value after the patient leaves.
+
+When notes are structured — chief complaint, vitals, diagnosis, treatment plan, follow-up — they become searchable, shareable, and genuinely useful at the next visit.
+
+Good documentation is good care.
+
+#ClinicalDocumentation #EMR #HealthTech #PatientCare
 ```
 
 ---
@@ -717,6 +953,17 @@ Reducing admin burden is a patient safety issue. An exhausted doctor is not a sa
 Docita — docita.work
 ```
 
+**LinkedIn**
+```
+Studies show doctors spend up to 2 hours on paperwork for every hour of direct patient care.
+
+That's not just an efficiency problem — it's a patient safety issue. Burned-out clinicians make more errors.
+
+Reducing admin burden through better tools isn't a luxury. It's a clinical imperative.
+
+#DoctorBurnout #PhysicianWellness #HealthTech #MedicalAdmin
+```
+
 ---
 
 ### P15 — Free Trial CTA
@@ -751,6 +998,17 @@ Add one patient. Book one appointment. See the workflow.
 docita.work
 ```
 
+**LinkedIn**
+```
+The biggest hesitation with switching clinic software? "What if it doesn't work for us?"
+
+You don't need to migrate everything. Add one patient. Book one appointment. See the full workflow in action.
+
+Most clinic owners get it in the first 10 minutes. 30 days free. No credit card.
+
+#FreeTrial #ClinicSoftware #HealthTech #TryDocita
+```
+
 ---
 
 ### P16 — Start Small
@@ -781,6 +1039,17 @@ Docita scales to multiple branches, doctors, and departments.
 Same login. Complete visibility.
 
 docita.work
+```
+
+**LinkedIn**
+```
+Your first clinic runs on one system. Your fifth should too.
+
+Docita scales from a single practice to multiple branches, doctors, and departments — same login, same interface, complete visibility across every facility.
+
+No re-implementation. No new training. Just growth.
+
+#MultiClinic #HospitalManagement #HealthTech #ClinicSoftware
 ```
 
 ---
@@ -825,6 +1094,22 @@ General information only. Consult a healthcare professional.
 Docita — docita.work
 ```
 
+**LinkedIn**
+```
+Back pain is the second most common reason Indians visit a doctor — and most of it is preventable.
+
+Three free posture fixes:
+1. Screen at eye level
+2. Feet flat on the floor
+3. Shoulders back
+
+Set a 30-minute timer. Your back will thank you.
+
+General information only. Consult a healthcare professional.
+
+#PostureTips #WorkplaceHealth #HealthTips #BackPain
+```
+
 ---
 
 ### P17 — Receptionist Never Sleeps
@@ -855,6 +1140,17 @@ Patients book at 11pm. Your front desk is asleep. Docita isn't.
 Online booking + WhatsApp confirmation + reminders — 24/7.
 
 docita.work
+```
+
+**LinkedIn**
+```
+Patients don't only think about appointments during business hours.
+
+When someone books at 11pm, they expect a confirmation — not silence until morning.
+
+Docita's online booking runs 24/7: instant WhatsApp confirmation, automated reminders, and zero manual intervention.
+
+#OnlineBooking #ClinicAutomation #PatientExperience #HealthTech
 ```
 
 ---
@@ -889,6 +1185,17 @@ Every doctor sees the same record. No duplicate tests. No missed history.
 Complete continuity.
 
 docita.work
+```
+
+**LinkedIn**
+```
+When a patient sees a specialist, a GP, and a surgeon — the handoff is usually a mess.
+
+With Docita, every doctor sees the same record. No "what did the previous doctor say?" No duplicate tests ordered.
+
+Complete clinical continuity for every patient.
+
+#PatientCare #ClinicalHandoffs #EMR #HealthTech
 ```
 
 ---
@@ -927,6 +1234,19 @@ General information only. Consult a healthcare professional.
 Docita — docita.work
 ```
 
+**LinkedIn**
+```
+The healthcare industry glorifies sleeplessness as dedication. It's not — it's a mental health risk.
+
+Chronic sleep deprivation increases anxiety, irritability, and depression. For clinicians making critical decisions daily, sleep is non-negotiable.
+
+You cannot pour from an empty cup.
+
+General information only. Consult a healthcare professional.
+
+#MentalHealth #PhysicianWellness #SleepHealth #DoctorLife
+```
+
 ---
 
 ### P19 — Billing Stress Stops Here
@@ -955,4 +1275,15 @@ End-of-month billing panic? That's a solved problem.
 Every consultation tracked. GST invoices auto-generated. Revenue up to date — in real time.
 
 docita.work
+```
+
+**LinkedIn**
+```
+End-of-month billing panic is a sign your systems aren't connected.
+
+When every consultation is tracked automatically and GST invoices generate in real time, there's no month-end scramble.
+
+Clinics using Docita see their revenue summary update live — no Excel汇总 needed.
+
+#MedicalBilling #ClinicSoftware #GST #HealthTech
 ```
