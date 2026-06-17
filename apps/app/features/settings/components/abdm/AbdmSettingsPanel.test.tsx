@@ -9,7 +9,7 @@ describe("AbdmSettingsPanel", () => {
     expect(screen.getByText("ABDM Integration")).toBeInTheDocument();
     expect(screen.getByText("Coming soon")).toBeInTheDocument();
     expect(
-      screen.getByText(/gateway certification is in progress/),
+      screen.getByText(/gateway certification is in progress/i),
     ).toBeInTheDocument();
   });
 
