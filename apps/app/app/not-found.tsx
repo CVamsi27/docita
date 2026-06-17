@@ -1,5 +1,6 @@
 "use client";
 
+// fallow-ignore-next-line unused-export
 export const dynamic = "force-dynamic";
 // jscpd:ignore-start
 import Link from "next/link";
