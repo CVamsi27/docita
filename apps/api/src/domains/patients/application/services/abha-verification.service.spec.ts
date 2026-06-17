@@ -12,7 +12,14 @@ describe('AbhaVerificationService', () => {
 
   const isConfigured = jest.fn<IAbdmGateway['isConfigured']>();
   const verifyAbha = jest.fn<IAbdmGateway['verifyAbha']>();
-  const gateway = { isConfigured, verifyAbha } as IAbdmGateway;
+  const requestOtp = jest.fn<IAbdmGateway['requestOtp']>();
+  const verifyOtp = jest.fn<IAbdmGateway['verifyOtp']>();
+  const gateway = {
+    isConfigured,
+    verifyAbha,
+    requestOtp,
+    verifyOtp,
+  } as IAbdmGateway;
 
   const findPatientForVerification =
     jest.fn<IAbhaVerificationStore['findPatientForVerification']>();

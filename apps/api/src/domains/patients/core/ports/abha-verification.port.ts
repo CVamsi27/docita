@@ -16,6 +16,19 @@ export interface IAbdmGateway {
   /** True when ABDM credentials are configured (gateway can actually call out). */
   isConfigured(): boolean;
   verifyAbha(input: VerifyAbhaRequest): Promise<AbhaVerificationResult>;
+
+  /**
+   * Request OTP for ABHA login via mobile number.
+   * Returns a transaction ID used to complete verification.
+   */
+  requestOtp(
+    mobile: string,
+  ): Promise<{ txnId: string; maskedTarget: string | null }>;
+
+  /**
+   * Verify OTP to complete ABHA login and return the verification result.
+   */
+  verifyOtp(txnId: string, otp: string): Promise<AbhaVerificationResult>;
 }
 
 /** Minimal persistence port for ABHA verification state on a patient. */
