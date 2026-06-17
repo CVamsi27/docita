@@ -5,7 +5,7 @@ import { RequestWithUser } from '@/shared/common/types/common.types';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { AbhaVerificationCommandService } from '@/domains/patients/application/services/abha-verification-command.service';
-import { AbhaMobileVerificationService } from '@/domains/patients/application/services/abha-mobile-verification.service';
+import { AbhaMobileVerificationCommandService } from '@/domains/patients/application/services/abha-mobile-verification-command.service';
 import { PatientAbdmController } from './patient-abdm.controller';
 
 describe('PatientAbdmController', () => {
@@ -14,7 +14,6 @@ describe('PatientAbdmController', () => {
   const verifyForPatient =
     jest.fn<AbhaVerificationCommandService['verifyForPatient']>();
   const mobileVerification = {
-    searchByMobile: jest.fn(),
     requestOtp: jest.fn(),
     verifyOtp: jest.fn(),
   };
@@ -38,7 +37,7 @@ describe('PatientAbdmController', () => {
           useValue: { verifyForPatient },
         },
         {
-          provide: AbhaMobileVerificationService,
+          provide: AbhaMobileVerificationCommandService,
           useValue: mobileVerification,
         },
       ],
