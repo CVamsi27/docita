@@ -1,3 +1,5 @@
+"use client";
+
 export {
   InventoryItemDetailsUI,
   type InventoryItemDetailsUIProps,
