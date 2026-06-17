@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 export interface NotFoundContentProps {
   /** Optional subtitle shown below the 404 heading. */
@@ -13,6 +13,36 @@ export interface NotFoundContentProps {
 
 const DEFAULT_DESCRIPTION =
   "Sorry, we couldn\u2019t find the page you\u2019re looking for.";
+
+/** Shared inline style for a primary (filled) action button rendered on the not-found page. */
+export const notFoundPrimaryStyle: CSSProperties = {
+  padding: "0 20px",
+  height: 40,
+  borderRadius: 8,
+  background: "var(--color-foreground)",
+  color: "var(--color-background)",
+  display: "inline-flex",
+  alignItems: "center",
+  fontSize: 14,
+  fontWeight: 600,
+  textDecoration: "none",
+  transition: "opacity 0.15s",
+};
+
+/** Shared inline style for a secondary (outlined) action button rendered on the not-found page. */
+export const notFoundSecondaryStyle: CSSProperties = {
+  padding: "0 20px",
+  height: 40,
+  borderRadius: 8,
+  border: "1px solid var(--color-border)",
+  color: "var(--color-foreground)",
+  display: "inline-flex",
+  alignItems: "center",
+  fontSize: 14,
+  fontWeight: 600,
+  textDecoration: "none",
+  transition: "opacity 0.15s",
+};
 
 export function NotFoundContent({
   subtitle,
