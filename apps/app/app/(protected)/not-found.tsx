@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 // jscpd:ignore-start
 import Link from "next/link";
 import {
