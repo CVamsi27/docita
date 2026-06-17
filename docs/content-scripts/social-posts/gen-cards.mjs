@@ -17,7 +17,7 @@ const HEAD_SIZE = 70, LINE_H = 92, SUB_SIZE = 32, EYE_SIZE = 22;
 // Wordmark only — centred, with bottom padding.
 const WM_H = 44;
 const WM_W = Math.round(WM_H * 857 / 413); // ≈91px — preserves 857×413 aspect ratio
-const WM_BOTTOM_PAD = 28; // px from card bottom edge
+const WM_BOTTOM_PAD = 52; // px from card bottom edge
 
 function hex2rgb(h) {
   const r = parseInt(h.slice(1,3),16), g = parseInt(h.slice(3,5),16), b = parseInt(h.slice(5,7),16);
