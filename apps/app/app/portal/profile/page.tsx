@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import PageContent from "@/features/patient-portal/components/PortalProfilePageContent";
 
 export default function Page() {
