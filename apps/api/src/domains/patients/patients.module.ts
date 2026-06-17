@@ -46,6 +46,7 @@ import { PatientAbdmController } from './presentation/controllers/patient-abdm.c
 import { AbhaVerificationCommandService } from './application/services/abha-verification-command.service';
 import { AbhaVerificationService } from './application/services/abha-verification.service';
 import { AbhaMobileVerificationService } from './application/services/abha-mobile-verification.service';
+import { AbhaMobileVerificationCommandService } from './application/services/abha-mobile-verification-command.service';
 import { AbdmHttpGateway } from './infrastructure/external/abdm-http.gateway';
 import { PrismaAbhaVerificationStore } from './infrastructure/persistence/prisma-abha-verification.store';
 import {
@@ -77,6 +78,7 @@ import {
     AbhaVerificationCommandService,
     AbhaVerificationService,
     AbhaMobileVerificationService,
+    AbhaMobileVerificationCommandService,
     { provide: ABDM_GATEWAY, useClass: AbdmHttpGateway },
     { provide: ABHA_VERIFICATION_STORE, useClass: PrismaAbhaVerificationStore },
     PatientQueryService,

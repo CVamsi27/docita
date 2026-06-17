@@ -25,7 +25,7 @@ import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.ut
 import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { AbhaVerificationCommandService } from '@/domains/patients/application/services/abha-verification-command.service';
-import { AbhaMobileVerificationService } from '@/domains/patients/application/services/abha-mobile-verification.service';
+import { AbhaMobileVerificationCommandService } from '@/domains/patients/application/services/abha-mobile-verification-command.service';
 import {
   AbhaRequestOtpDto,
   AbhaVerifyOtpDto,
@@ -40,7 +40,7 @@ import {
 export class PatientAbdmController {
   constructor(
     private readonly abhaVerification: AbhaVerificationCommandService,
-    private readonly abhaMobile: AbhaMobileVerificationService,
+    private readonly abhaMobile: AbhaMobileVerificationCommandService,
   ) {}
 
   @Post('verify')
