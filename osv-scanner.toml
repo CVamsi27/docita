@@ -1,0 +1,7 @@
+[[IgnoredVulns]]
+id = "GHSA-gv7w-rqvm-qjhr"
+reason = "Deno module RCE — project does not use Deno; esbuild is consumed via vite/Next.js build tooling only"
+
+[[IgnoredVulns]]
+id = "GHSA-g7r4-m6w7-qqqr"
+reason = "Windows dev-server path traversal — low severity, dev-only, not applicable to production; fixed in esbuild 0.28.1+ which is not yet compatible with vite 6.x"
