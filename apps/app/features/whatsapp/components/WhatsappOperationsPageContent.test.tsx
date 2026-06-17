@@ -12,6 +12,10 @@ vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => ({ user: { role: "ADMIN_DOCTOR" } }),
 }));
 
+vi.mock("./WhatsappRecentSentView", () => ({
+  WhatsappRecentSentView: () => <div>Recent sent messages</div>,
+}));
+
 vi.mock("./WhatsappConversationsView", () => ({
   WhatsappConversationsView: () => <div>Conversation inbox</div>,
 }));
@@ -38,7 +42,7 @@ describe("WhatsappOperationsPageContent", () => {
     expect(
       screen.getByRole("heading", { name: "WhatsApp" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Conversation inbox")).toBeInTheDocument();
+    expect(screen.getByText("Recent sent messages")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /Sender settings/i }),
     ).toHaveAttribute("href", "/settings/whatsapp-sender");
