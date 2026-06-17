@@ -19,7 +19,7 @@ interface MedicalDocumentSeed {
   patientIndex: number;
   doctorKey: 'd1';
   title: string;
-  content: Record<string, unknown>;
+  content: Prisma.InputJsonValue;
   status: MedicalDocumentStatus;
   daysOffset: number;
 }
@@ -177,7 +177,7 @@ export async function seedMedicalDocuments(
       doctorId: doctor1Id,
       clinicId,
       title: doc.title,
-      content: doc.content as Prisma.InputJsonValue,
+      content: doc.content,
       status: doc.status,
       createdAt,
       signedAt,

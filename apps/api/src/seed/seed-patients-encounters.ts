@@ -568,8 +568,8 @@ const MEDICATION_TEMPLATES: Array<{
   frequency: string;
   duration: string;
   route: string;
-  dosageForm: string;
-  sigCode: string;
+  dosageForm: Prisma.MedicationCreateInput['dosageForm'];
+  sigCode: Prisma.MedicationCreateInput['sigCode'];
   quantity: number;
   refillsAllowed: number;
 }> = [
@@ -1188,9 +1188,8 @@ async function seedPrescriptions(
           frequency: tpl.frequency,
           duration: tpl.duration,
           route: tpl.route,
-          dosageForm:
-            tpl.dosageForm as Prisma.MedicationCreateInput['dosageForm'],
-          sigCode: tpl.sigCode as Prisma.MedicationCreateInput['sigCode'],
+          dosageForm: tpl.dosageForm,
+          sigCode: tpl.sigCode,
           quantity: tpl.quantity,
           refillsAllowed: tpl.refillsAllowed,
           startDate,

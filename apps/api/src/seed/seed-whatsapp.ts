@@ -18,6 +18,9 @@ interface WhatsappLogSeed {
   hoursOffset: number;
 }
 
+const PROVIDER = 'WHATSAPP_CLOUD' as const;
+const SENDER_MODE = 'MANAGED' as const;
+
 function getWhatsappLogs(): WhatsappLogSeed[] {
   return [
     // Appointment reminders - recent at top
@@ -170,12 +173,12 @@ export async function seedWhatsappLogs(
       clinicId,
       patientId: patient.id,
       type: log.type,
-      provider: 'WHATSAPP_CLOUD' as const,
+      provider: PROVIDER,
       phoneNumber: log.phoneNumber,
       message: log.message,
-      status: log.status as 'SENT' | 'DELIVERED' | 'READ',
+      status: log.status,
       deliveredAt,
-      senderMode: 'MANAGED' as const,
+      senderMode: SENDER_MODE,
     };
 
     await prisma.whatsappLog.upsert({
