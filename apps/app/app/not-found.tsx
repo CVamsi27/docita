@@ -1,10 +1,8 @@
-// jscpd:ignore-start
 "use client";
 
 import Link from "next/link";
 import { FileQuestion, Home } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
-import { BackButton } from "@/components/navigation/back-button";
 // jscpd:ignore-start
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { Card, CardContent } from "@workspace/ui/components/indicators/card";
@@ -30,12 +28,9 @@ export default function NotFound() {
                 Go to workspace
               </Link>
             </Button>
-            <BackButton
-              fallback="/login"
-              label="Go back"
-              variant="outline"
-              size="default"
-            />
+            <Button asChild variant="outline">
+              <Link href="/login">Go back</Link>
+            </Button>
           </div>
         </CardContent>
       </Card>
