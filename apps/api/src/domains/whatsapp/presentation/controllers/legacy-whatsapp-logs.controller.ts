@@ -2,6 +2,7 @@ import { Controller, Get, Param, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { ZodSerializerDto } from 'nestjs-zod';
 import type { ClinicWhatsappSentMessage } from '@workspace/types';
+import { getPatientFullName } from '@workspace/utils';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
 import {
   ClinicWhatsappSentMessageListResponseDto,
@@ -65,9 +66,7 @@ export class LegacyWhatsappLogsController {
       status: row.status,
       phoneNumber: row.phoneNumber,
       createdAt: row.createdAt,
-      patientName: row.patient
-        ? `${row.patient.firstName} ${row.patient.lastName}`
-        : undefined,
+      patientName: getPatientFullName(row.patient) || undefined,
     }));
   }
 
