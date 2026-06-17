@@ -232,6 +232,10 @@
       "ws": "8.21.0",
       "ts-node>diff": "4.0.4",
       "form-data": "^4.0.6",
+      "js-yaml": ">=4.2.0",
+      "@opentelemetry/core": ">=2.8.0",
+      "esbuild": ">=0.28.1",
+      "@babel/core": ">=7.29.6",
       "webpack": "^5.104.1"
     },
     "auditConfig": {
