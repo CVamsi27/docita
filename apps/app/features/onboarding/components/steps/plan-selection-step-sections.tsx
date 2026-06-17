@@ -197,7 +197,7 @@ interface TierCardGridProps {
   featuresByTier: FeaturesByTierEntry[];
   pricingConfigTiers: TierPricing[];
   resolvedCurrency: string;
-  selectedTier: string;
+  selectedTier: TierName | string;
   selectedMode: PlanMode;
   billingCycle: "MONTHLY" | "YEARLY";
   teamRecommendation: TeamRecommendation | null;

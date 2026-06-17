@@ -177,6 +177,9 @@ config = process.env.NEXT_PUBLIC_SENTRY_DSN && !isCloudflareBuild
         excludeReplayIframe: true,
         excludeReplayWorker: true,
       },
+      webpack: {
+        excludeServerRoutes: ["/_global-error"],
+      },
     })
   : config;
 
