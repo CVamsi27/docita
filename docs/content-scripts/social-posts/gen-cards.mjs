@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Generates branded 1080×1080 SVG cards for social posts.
 // No dependencies — run: node gen-cards.mjs
-import { writeFileSync, mkdirSync } from "fs";
+import { writeFileSync, mkdirSync, readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { resolve, dirname } from "path";
 
@@ -10,23 +10,19 @@ const OUT = resolve(__dirname, "images");
 mkdirSync(OUT, { recursive: true });
 
 const W = 1080, H = 1080, PAD = 96;
-const INK = "#0E1419", INK2 = "#1A2230", PAPER = "#FAF9F5";
-const TEAL = "#4DE3D2", ROSE = "#E5484D", SUCCESS = "#3BA776";
+const INK = "#0E1419", PAPER = "#FAF9F5";
+const TEAL = "#4DE3D2", ROSE = "#E5484D";
 const HEAD_SIZE = 70, LINE_H = 92, SUB_SIZE = 32, EYE_SIZE = 22;
+
+// Embed the real Docita round-mark logo as base64 PNG
+const LOGO_PATH = resolve(__dirname, "images/docita-logo-192.png");
+const LOGO_B64 = readFileSync(LOGO_PATH).toString("base64");
+const LOGO_URI = `data:image/png;base64,${LOGO_B64}`;
+const LOGO_SIZE = 64; // px to display on the card
 
 function hex2rgb(h) {
   const r = parseInt(h.slice(1,3),16), g = parseInt(h.slice(3,5),16), b = parseInt(h.slice(5,7),16);
   return `${r},${g},${b}`;
-}
-
-function wrap(words, maxChars) {
-  const lines = []; let cur = "";
-  for (const w of words) {
-    if ((cur + (cur?" ":"") + w).length > maxChars) { if (cur) lines.push(cur); cur = w; }
-    else cur = (cur ? cur + " " : "") + w;
-  }
-  if (cur) lines.push(cur);
-  return lines;
 }
 
 function card({ slug, eyebrow, lines, sub, accent = "paper", disclaimer = "" }) {
@@ -44,10 +40,16 @@ function card({ slug, eyebrow, lines, sub, accent = "paper", disclaimer = "" }) 
   const subY = textStartY + lines.length * LINE_H + 36;
   const eyeY = PAD + EYE_SIZE;
   const disclaimerSvg = disclaimer
-    ? `<text x="${W/2}" y="${H - PAD - 60}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="18" fill="${PAPER}" opacity="0.45">${disclaimer}</text>`
+    ? `<text x="${W/2}" y="${H - PAD - 52}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="18" fill="${PAPER}" opacity="0.45">${disclaimer}</text>`
     : "";
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
+  // Footer: logo mark centred, then "Docita" wordmark to the right
+  const logoX = W/2 - LOGO_SIZE/2 - 54;
+  const logoY = H - PAD - LOGO_SIZE/2 - 6;
+  const wordmarkX = W/2 + 6;
+  const wordmarkY = H - PAD - 2;
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
   <defs>
     <radialGradient id="glow" cx="50%" cy="50%" r="55%">
       <stop offset="0%" stop-color="rgb(${rgb})" stop-opacity="0.18"/>
@@ -57,12 +59,12 @@ function card({ slug, eyebrow, lines, sub, accent = "paper", disclaimer = "" }) 
   <rect width="${W}" height="${H}" fill="${INK}"/>
   <rect width="${W}" height="${H}" fill="url(#glow)"/>
   <rect x="32" y="32" width="${W-64}" height="${H-64}" rx="16" fill="none" stroke="${accentColor}" stroke-width="1.5" opacity="0.35"/>
-  <text x="${W/2}" y="${eyeY}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="${EYE_SIZE}" font-weight="400" fill="${accentColor}" letter-spacing="3" text-transform="uppercase">${eyebrow.toUpperCase()}</text>
+  <text x="${W/2}" y="${eyeY}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="${EYE_SIZE}" font-weight="400" fill="${accentColor}" letter-spacing="3">${eyebrow.toUpperCase()}</text>
   ${linesSvg}
   ${sub ? `<text x="${W/2}" y="${subY}" text-anchor="middle" font-family="Inter,sans-serif" font-size="${SUB_SIZE}" font-weight="400" fill="${PAPER}" opacity="0.65">${sub}</text>` : ""}
   ${disclaimerSvg}
-  <text x="${W/2}" y="${H - PAD + 8}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="38" font-weight="800" fill="${PAPER}" letter-spacing="1">Docita</text>
-  <text x="${W/2 + 78}" y="${H - PAD - 8}" text-anchor="start" font-family="Inter,sans-serif" font-size="19" fill="${TEAL}" font-weight="700">+</text>
+  <image href="${LOGO_URI}" x="${logoX}" y="${logoY}" width="${LOGO_SIZE}" height="${LOGO_SIZE}"/>
+  <text x="${wordmarkX}" y="${wordmarkY}" text-anchor="start" font-family="Nunito,sans-serif" font-size="42" font-weight="800" fill="${PAPER}" letter-spacing="0.5">Docita</text>
 </svg>`;
   writeFileSync(`${OUT}/${slug}.svg`, svg);
   console.log(`  wrote ${slug}.svg`);
@@ -252,6 +254,6 @@ const cards = [
   },
 ];
 
-console.log(`Generating ${cards.length} cards…`);
+console.log(`Generating ${cards.length} cards with real Docita logo…`);
 cards.forEach(card);
 console.log("Done.");
