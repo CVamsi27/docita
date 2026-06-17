@@ -2,7 +2,7 @@
 // Rasterizes SVG cards to PNG and copies screenshots into images-png/
 // Requires puppeteer — run: npm install (in publisher/ dir)
 // Or run from: /Documents/Docita/videos/capture/ where puppeteer is pre-installed.
-import { readdirSync, copyFileSync, readFileSync, mkdirSync } from "fs";
+import { readdirSync, copyFileSync, mkdirSync } from "fs";
 import { resolve, dirname, extname, basename } from "path";
 import { fileURLToPath } from "url";
 
@@ -33,9 +33,9 @@ for (const f of files) {
   const out = resolve(IMG_OUT, outName);
 
   if (ext === ".svg") {
-    const svg = readFileSync(src, "utf8");
-    const dataUrl = "data:image/svg+xml;base64," + Buffer.from(svg).toString("base64");
-    await page.goto(dataUrl, { waitUntil: "networkidle0" });
+    // Use file:// so relative hrefs in the SVG (logo, wordmark PNGs) resolve correctly.
+    const fileUrl = `file://${src}`;
+    await page.goto(fileUrl, { waitUntil: "networkidle0" });
     await page.screenshot({ path: out, type: "png" });
     console.log(`  rasterized ${f} → ${outName}`);
   } else if (ext === ".png" || ext === ".jpg" || ext === ".jpeg") {

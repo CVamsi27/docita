@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Generates branded 1080×1080 SVG cards for social posts.
 // No dependencies — run: node gen-cards.mjs
-import { writeFileSync, mkdirSync, readFileSync } from "fs";
+import { writeFileSync, mkdirSync } from "fs";
 import { fileURLToPath } from "url";
 import { resolve, dirname } from "path";
 
@@ -14,11 +14,12 @@ const INK = "#0E1419", PAPER = "#FAF9F5";
 const TEAL = "#4DE3D2", ROSE = "#E5484D";
 const HEAD_SIZE = 70, LINE_H = 92, SUB_SIZE = 32, EYE_SIZE = 22;
 
-// Embed the real Docita round-mark logo as base64 PNG
-const LOGO_PATH = resolve(__dirname, "images/docita-logo-192.png");
-const LOGO_B64 = readFileSync(LOGO_PATH).toString("base64");
-const LOGO_URI = `data:image/png;base64,${LOGO_B64}`;
-const LOGO_SIZE = 64; // px to display on the card
+// Use relative hrefs — rasterizer opens SVGs via file:// so they resolve correctly.
+// Logo mark + wordmark live in the same images/ directory as the generated SVGs.
+const LOGO_SIZE = 54;   // round mark display size (px)
+const WM_H = 44;        // wordmark display height (px)
+const WM_W = Math.round(WM_H * 857 / 413); // ≈91px — preserves 857×413 aspect ratio
+const FOOTER_GAP = 14;  // gap between logo and wordmark
 
 function hex2rgb(h) {
   const r = parseInt(h.slice(1,3),16), g = parseInt(h.slice(3,5),16), b = parseInt(h.slice(5,7),16);
@@ -40,14 +41,19 @@ function card({ slug, eyebrow, lines, sub, accent = "paper", disclaimer = "" }) 
   const subY = textStartY + lines.length * LINE_H + 36;
   const eyeY = PAD + EYE_SIZE;
   const disclaimerSvg = disclaimer
-    ? `<text x="${W/2}" y="${H - PAD - 52}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="18" fill="${PAPER}" opacity="0.45">${disclaimer}</text>`
+    ? `<text x="${W/2}" y="${H - PAD - 56}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="18" fill="${PAPER}" opacity="0.45">${disclaimer}</text>`
     : "";
 
-  // Footer: logo mark centred, then "Docita" wordmark to the right
-  const logoX = W/2 - LOGO_SIZE/2 - 54;
-  const logoY = H - PAD - LOGO_SIZE/2 - 6;
-  const wordmarkX = W/2 + 6;
-  const wordmarkY = H - PAD - 2;
+  // Footer: logo mark + wordmark PNG, centred as a group.
+  // SVG images use relative hrefs — works because SVG and PNGs are in the same images/ dir.
+  const footerCenterY = H - 58;            // vertical centre of footer row
+  const footerW = LOGO_SIZE + FOOTER_GAP + WM_W;
+  const footerLeft = (W - footerW) / 2;    // left edge of the group (centred)
+
+  const logoX = footerLeft;
+  const logoY = footerCenterY - LOGO_SIZE / 2;
+  const wmX   = footerLeft + LOGO_SIZE + FOOTER_GAP;
+  const wmY   = footerCenterY - WM_H / 2;
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
   <defs>
@@ -63,8 +69,8 @@ function card({ slug, eyebrow, lines, sub, accent = "paper", disclaimer = "" }) 
   ${linesSvg}
   ${sub ? `<text x="${W/2}" y="${subY}" text-anchor="middle" font-family="Inter,sans-serif" font-size="${SUB_SIZE}" font-weight="400" fill="${PAPER}" opacity="0.65">${sub}</text>` : ""}
   ${disclaimerSvg}
-  <image href="${LOGO_URI}" x="${logoX}" y="${logoY}" width="${LOGO_SIZE}" height="${LOGO_SIZE}"/>
-  <text x="${wordmarkX}" y="${wordmarkY}" text-anchor="start" font-family="Nunito,sans-serif" font-size="42" font-weight="800" fill="${PAPER}" letter-spacing="0.5">Docita</text>
+  <image href="docita-logo-192.png" x="${logoX}" y="${logoY}" width="${LOGO_SIZE}" height="${LOGO_SIZE}"/>
+  <image href="Docita_Wordmark_HQ.png" x="${wmX}" y="${wmY}" width="${WM_W}" height="${WM_H}"/>
 </svg>`;
   writeFileSync(`${OUT}/${slug}.svg`, svg);
   console.log(`  wrote ${slug}.svg`);
