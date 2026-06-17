@@ -18,7 +18,7 @@ See `posts.json → status` for per-platform details.
 
 **Instagram**
 ```
-Your clinic. One screen.
+Your facility. One screen.
 
 Appointments, records, billing, prescriptions — all connected.
 
@@ -31,7 +31,7 @@ Start your 30-day free trial → docita.work
 
 **X**
 ```
-Your clinic. One screen.
+Your facility. One screen.
 
 Appointments, records, billing, prescriptions — all connected.
 
@@ -42,7 +42,7 @@ Try free for 30 days → docita.work
 
 **LinkedIn**
 ```
-Most clinic owners juggle 4-5 different tools every day — one for appointments, another for prescriptions, a separate one for billing, and WhatsApp for everything else.
+Most facility owners juggle 4-5 different tools every day — one for appointments, another for prescriptions, a separate one for billing, and WhatsApp for everything else.
 
 Docita brings it all into one screen: appointments, patient records, prescriptions, invoicing, lab orders, and follow-ups.
 
@@ -85,7 +85,7 @@ There's a better way → docita.work
 ```
 If your front desk manages appointments through WhatsApp messages, you've seen this: missed requests, double bookings, and no audit trail.
 
-Clinics that switch to a structured booking system report fewer no-shows and zero double-bookings.
+Facilities that switch to a structured booking system report fewer no-shows and zero double-bookings.
 
 Docita replaces the WhatsApp chaos with online booking, confirmations, and automated reminders — all in one place.
 
@@ -194,7 +194,7 @@ Zero tabs. Zero chaos. Just better care.
 ```
 Patients forget their follow-ups. That's just human.
 
-But missed follow-ups mean worse outcomes — and lost revenue for your clinic.
+But missed follow-ups mean worse outcomes — and lost revenue for your facility.
 
 Docita sends automated reminders so your patients show up.
 
@@ -220,7 +220,7 @@ docita.work
 ```
 Missed follow-ups are one of the biggest revenue leaks for clinics — and they hurt patient outcomes too.
 
-When patients forget to come back, the clinic loses revenue and the patient loses continuity of care.
+When patients forget to come back, the facility loses revenue and the patient loses continuity of care.
 
 Docita sends automated WhatsApp reminders so patients actually show up. Set it once. It runs itself.
 
@@ -312,7 +312,7 @@ Online booking + WhatsApp confirmations → docita.work
 ```
 Your front desk shouldn't spend all day answering phone calls for appointment bookings.
 
-Online booking lets patients schedule their own slots — 24/7. Your team focuses on walk-ins and in-clinic care instead.
+Online booking lets patients schedule their own slots — 24/7. Your team focuses on walk-ins and in-facility care instead.
 
 Docita handles online booking, WhatsApp confirmations, and automated reminders.
 
@@ -453,7 +453,7 @@ End-of-month billing shouldn't take 3 days.
 
 Docita generates numbered, professional GST invoices with one click — complete with GST breakdowns, payment tracking, and revenue summaries.
 
-Clinics using Docita report cutting their billing time by 70%.
+Facilities using Docita report cutting their billing time by 70%.
 
 #GSTInvoice #MedicalBilling #ClinicSoftware #IndiaHealthcare
 ```
@@ -563,7 +563,7 @@ General information only. Consult a healthcare professional.
 ```
 What gets measured gets managed.
 
-Docita's analytics dashboard shows you exactly what's happening in your clinic:
+Docita's analytics dashboard shows you exactly what's happening in your facility:
 
 — Revenue trends
 — Top diagnoses
@@ -590,7 +590,7 @@ docita.work
 
 **LinkedIn**
 ```
-Most clinic owners know their revenue, but not the trends behind it.
+Most facility owners know their revenue, but not the trends behind it.
 
 Docita's analytics dashboard surfaces revenue trends, top diagnoses, appointment fill rates, and patient retention — without touching a spreadsheet.
 
@@ -635,7 +635,7 @@ docita.work
 
 **LinkedIn**
 ```
-Many clinics started with Excel for patient records. It worked — until it didn't.
+Many facilities started with Excel for patient records. It worked — until it didn't.
 
 Switching to a proper EMR doesn't have to mean re-entering every patient manually. Docita's import tool reads your Excel file, maps the columns, and moves your data across — in minutes.
 
@@ -727,7 +727,7 @@ docita.work
 
 **LinkedIn**
 ```
-Lab orders that live outside the patient record create confusion — for the clinic and the patient.
+Lab orders that live outside the patient record create confusion — for the facility and the patient.
 
 When lab orders, results, and status are linked directly to the patient's file, follow-ups become clearer and nothing gets lost.
 
@@ -763,7 +763,7 @@ Running a hospital? Managing beds just got easier.
 
 Occupied. Vacant. Due for discharge — at a glance.
 
-Docita scales from single clinic to multi-department hospital.
+Docita scales from single facility to multi-department hospital.
 
 docita.work
 ```
@@ -840,9 +840,9 @@ General information only. Consult a healthcare professional.
 
 **Instagram**
 ```
-Set up your clinic in minutes. Not days.
+Set up your facility in minutes. Not days.
 
-Add your clinic profile. Invite your team. Import your patients.
+Add your facility profile. Invite your team. Import your patients.
 
 That's it. You're live.
 
@@ -855,9 +855,9 @@ Try it free for 30 days → docita.work
 
 **X**
 ```
-Set up your clinic in minutes. Not days.
+Set up your facility in minutes. Not days.
 
-Clinic profile. Team. Patients.
+Facility profile. Team. Patients.
 
 That's it. You're live.
 
@@ -866,9 +866,9 @@ No IT team. No training week. 30 days free → docita.work
 
 **LinkedIn**
 ```
-Switching clinic software used to mean weeks of setup, training, and IT support.
+Switching healthcare software used to mean weeks of setup, training, and IT support.
 
-With Docita, you can go live in minutes: add your clinic profile, invite your team, import your patients. That's it.
+With Docita, you can go live in minutes: add your facility profile, invite your team, import your patients. That's it.
 
 No IT team. No training week. No setup fee. 30 days free.
 
@@ -978,7 +978,7 @@ You don't need to migrate everything to try Docita.
 
 Add one patient. Book one appointment. See the full workflow.
 
-Most clinic owners get it in the first 10 minutes.
+Most facility owners get it in the first 10 minutes.
 
 30 days free. No credit card.
 
@@ -1000,11 +1000,11 @@ docita.work
 
 **LinkedIn**
 ```
-The biggest hesitation with switching clinic software? "What if it doesn't work for us?"
+The biggest hesitation with switching healthcare software? "What if it doesn't work for us?"
 
 You don't need to migrate everything. Add one patient. Book one appointment. See the full workflow in action.
 
-Most clinic owners get it in the first 10 minutes. 30 days free. No credit card.
+Most facility owners get it in the first 10 minutes. 30 days free. No credit card.
 
 #FreeTrial #ClinicSoftware #HealthTech #TryDocita
 ```
@@ -1019,7 +1019,7 @@ Most clinic owners get it in the first 10 minutes. 30 days free. No credit card.
 
 **Instagram**
 ```
-Start with one clinic.
+Start with one facility.
 
 Docita grows with you — to multiple branches, multiple doctors, multiple departments.
 
@@ -1032,7 +1032,7 @@ Docita — docita.work
 
 **X**
 ```
-Start with one clinic.
+Start with one facility.
 
 Docita scales to multiple branches, doctors, and departments.
 
@@ -1283,7 +1283,7 @@ End-of-month billing panic is a sign your systems aren't connected.
 
 When every consultation is tracked automatically and GST invoices generate in real time, there's no month-end scramble.
 
-Clinics using Docita see their revenue summary update live — no Excel汇总 needed.
+Facilities using Docita see their revenue summary update live — no Excel汇总 needed.
 
 #MedicalBilling #ClinicSoftware #GST #HealthTech
 ```

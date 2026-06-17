@@ -1,16 +1,7 @@
-"use client";
+import { InsuranceClaimDetailsPageClient } from "./claim-details-page-client";
 
-import { useParams } from "next/navigation";
-import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/components/auth/feature-gate";
-import { InsuranceClaimDetailsUI } from "@/features/insurance-claims/components";
+export const dynamic = "force-dynamic";
 
 export default function InsuranceClaimDetailsPage() {
-  const params = useParams<{ id: string }>();
-  const id = params.id ?? "";
-  return (
-    <FeatureGate feature={Feature.INSURANCE_BILLING} showLockedCard>
-      <InsuranceClaimDetailsUI id={id} />
-    </FeatureGate>
-  );
+  return <InsuranceClaimDetailsPageClient />;
 }
