@@ -14,12 +14,10 @@ const INK = "#0E1419", PAPER = "#FAF9F5";
 const TEAL = "#4DE3D2", ROSE = "#E5484D";
 const HEAD_SIZE = 70, LINE_H = 92, SUB_SIZE = 32, EYE_SIZE = 22;
 
-// Use relative hrefs — rasterizer opens SVGs via file:// so they resolve correctly.
-// Logo mark + wordmark live in the same images/ directory as the generated SVGs.
-const LOGO_SIZE = 54;   // round mark display size (px)
-const WM_H = 44;        // wordmark display height (px)
+// Wordmark only — centred, with bottom padding.
+const WM_H = 44;
 const WM_W = Math.round(WM_H * 857 / 413); // ≈91px — preserves 857×413 aspect ratio
-const FOOTER_GAP = 14;  // gap between logo and wordmark
+const WM_BOTTOM_PAD = 28; // px from card bottom edge
 
 function hex2rgb(h) {
   const r = parseInt(h.slice(1,3),16), g = parseInt(h.slice(3,5),16), b = parseInt(h.slice(5,7),16);
@@ -44,16 +42,9 @@ function card({ slug, eyebrow, lines, sub, accent = "paper", disclaimer = "" }) 
     ? `<text x="${W/2}" y="${H - PAD - 56}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="18" fill="${PAPER}" opacity="0.45">${disclaimer}</text>`
     : "";
 
-  // Footer: logo mark + wordmark PNG, centred as a group.
-  // SVG images use relative hrefs — works because SVG and PNGs are in the same images/ dir.
-  const footerCenterY = H - 58;            // vertical centre of footer row
-  const footerW = LOGO_SIZE + FOOTER_GAP + WM_W;
-  const footerLeft = (W - footerW) / 2;    // left edge of the group (centred)
-
-  const logoX = footerLeft;
-  const logoY = footerCenterY - LOGO_SIZE / 2;
-  const wmX   = footerLeft + LOGO_SIZE + FOOTER_GAP;
-  const wmY   = footerCenterY - WM_H / 2;
+  // Wordmark centred horizontally, with WM_BOTTOM_PAD from card bottom.
+  const wmX = (W - WM_W) / 2;
+  const wmY = H - WM_H - WM_BOTTOM_PAD;
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
   <defs>
@@ -69,7 +60,6 @@ function card({ slug, eyebrow, lines, sub, accent = "paper", disclaimer = "" }) 
   ${linesSvg}
   ${sub ? `<text x="${W/2}" y="${subY}" text-anchor="middle" font-family="Inter,sans-serif" font-size="${SUB_SIZE}" font-weight="400" fill="${PAPER}" opacity="0.65">${sub}</text>` : ""}
   ${disclaimerSvg}
-  <image href="docita-logo-192.png" x="${logoX}" y="${logoY}" width="${LOGO_SIZE}" height="${LOGO_SIZE}"/>
   <image href="Docita_Wordmark_HQ.png" x="${wmX}" y="${wmY}" width="${WM_W}" height="${WM_H}"/>
 </svg>`;
   writeFileSync(`${OUT}/${slug}.svg`, svg);

@@ -13,6 +13,5 @@
     <text x="540" y="596" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="70" font-weight="700" fill="#4DE3D2" letter-spacing="-1">Zero tabs.</text>
   <text x="540" y="724" text-anchor="middle" font-family="Inter,sans-serif" font-size="32" font-weight="400" fill="#FAF9F5" opacity="0.65">Records, billing, appointments — unified.</text>
   
-  <image href="docita-logo-192.png" x="460.5" y="995" width="54" height="54"/>
-  <image href="Docita_Wordmark_HQ.png" x="528.5" y="1000" width="91" height="44"/>
+  <image href="Docita_Wordmark_HQ.png" x="494.5" y="1008" width="91" height="44"/>
 </svg>
