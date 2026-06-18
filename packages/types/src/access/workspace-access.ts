@@ -1,7 +1,6 @@
 import { APP_ACCESS_TARGETS, type AppAccessTarget } from "./access-matrix";
 import type { UserRole } from "../shared/users";
 import { type PlanMode } from "../billing/tier";
-import { isFrontDeskTier } from "../billing/front-desk-tier";
 import { mapDbClinicTierToTierAndMode } from "./clinic-tier-map";
 
 /**
@@ -70,6 +69,7 @@ export function shouldDenyAccessForFrontDeskMode(
 
 /**
  * @deprecated Prefer {@link shouldDenyAccessForFrontDeskMode} with tier + planMode.
+ * Retained temporarily for callers that haven't migrated yet.
  */
 export function shouldDenyAccessForFrontDeskTier(
   target: AppAccessTarget,
@@ -77,30 +77,19 @@ export function shouldDenyAccessForFrontDeskTier(
   tier?: string | number | null,
   dbPlanMode?: string | null,
 ): boolean {
-  if (dbPlanMode !== undefined && dbPlanMode !== null) {
-    const tierName =
-      typeof tier === "string"
-        ? tier
-        : tier != null
-          ? String(tier)
-          : "STARTER";
-    return shouldDenyAccessForFrontDeskMode(
-      target,
-      role,
-      tierName,
-      dbPlanMode,
-    );
-  }
-
-  if (!isFrontDeskTier(tier)) {
-    return false;
-  }
-
-  if (!isFrontDeskBlockedAccessTarget(target)) {
-    return false;
-  }
-
-  if (role === "INTERNAL") return false;
-
-  return true;
+  // Delegate to the non-deprecated version which handles both the
+  // legacy FRONT_DESK_* tier strings (pre-migration) and the new
+  // (tier, mode=FRONT_DESK) model.
+  const tierName =
+    typeof tier === "string"
+      ? tier
+      : tier != null
+        ? String(tier)
+        : "STARTER";
+  return shouldDenyAccessForFrontDeskMode(
+    target,
+    role,
+    tierName,
+    dbPlanMode,
+  );
 }

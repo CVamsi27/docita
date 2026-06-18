@@ -7,11 +7,14 @@ export type InternalClinicAdminType = z.infer<
 >;
 
 export type ClinicTierType =
-  | "CAPTURE"
-  | "CORE"
-  | "PLUS"
-  | "PRO"
+  | "STARTER"
+  | "ESSENTIAL"
+  | "PROFESSIONAL"
+  | "HOSPITAL"
   | "ENTERPRISE"
+  | "FRONT_DESK"
+  | "FRONT_DESK_CLINIC"
+  | "FRONT_DESK_HOSPITAL"
   | "INTELLIGENCE";
 
 export interface CreateClinicDto {
