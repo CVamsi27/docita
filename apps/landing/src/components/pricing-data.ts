@@ -23,6 +23,7 @@ const STARTER_FEATURES = [
   "Patient profiles & visit history",
   "Excel import & CSV export",
   "Single doctor",
+  "30-day free trial",
 ];
 
 const ESSENTIAL_FULL_FEATURES = [
@@ -34,7 +35,7 @@ const ESSENTIAL_FULL_FEATURES = [
   "Queue management",
   "Audit logs & compliance",
   "Insurance billing",
-  "ABDM / ABHA integration (coming soon)",
+  "30-day free trial",
 ];
 
 const PROFESSIONAL_FULL_FEATURES = [
@@ -42,11 +43,9 @@ const PROFESSIONAL_FULL_FEATURES = [
   "2,000 consultations / month",
   "Up to 5 doctors",
   "WhatsApp messaging (2,000 msgs)",
-  "Multi-location analytics (planned)",
-  "API access (planned)",
-  "Custom letterhead (planned)",
+  "Multi-location analytics",
   "Priority support with SLA",
-  "ABDM / ABHA integration (coming soon)",
+  "30-day free trial",
 ];
 
 const HOSPITAL_FULL_FEATURES = [
@@ -57,14 +56,12 @@ const HOSPITAL_FULL_FEATURES = [
   "WhatsApp messaging (6,000 msgs pooled)",
   "Multi-branch analytics dashboards",
   "Dedicated customer success manager",
-  "Higher API throughput for integrations",
-  "ABDM / ABHA integration (coming soon)",
+  "30-day free trial",
 ];
 
 const ENTERPRISE_FULL_FEATURES = [
   "Unlimited patients, users & branches",
   "Everything in Hospital",
-  "Data warehouse export (BI tools)",
   "Custom contract & invoicing",
   "Dedicated account manager",
   "Custom SLA",

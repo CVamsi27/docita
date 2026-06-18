@@ -12,7 +12,7 @@ interface PricingModeToggleProps {
 
 export function PricingModeToggle({ selectedMode, billingPeriod, onModeChange, onBillingChange }: PricingModeToggleProps) {
   return (
-    <div className="flex shrink-0 flex-col items-start gap-3 self-start sm:items-end">
+    <div className="flex shrink-0 items-center gap-4 self-start sm:items-end">
       <div className="inline-flex items-center gap-1 rounded-full border bg-muted/40 p-1" role="tablist" aria-label="Plan mode">
         {PLAN_MODES.map((mode) => {
           const info = PLAN_MODE_INFO[mode];
@@ -33,6 +33,7 @@ export function PricingModeToggle({ selectedMode, billingPeriod, onModeChange, o
           );
         })}
       </div>
+      <span className="hidden h-5 w-px bg-border sm:block" aria-hidden />
       <div className="inline-flex items-center gap-1 rounded-full border bg-muted/40 p-1" role="tablist" aria-label="Billing period">
         {(["monthly", "yearly"] as const).map((period) => {
           const active = billingPeriod === period;

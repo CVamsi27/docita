@@ -61,7 +61,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
           <div className="col-span-12 mt-0 sm:mt-4 lg:col-span-7 lg:mt-0 lg:pr-6 xl:col-span-6">
             <motion.div variants={item}>
               <span className="r2-eyebrow r2-eyebrow-accent">
-                India · Private clinics · OPD
+                Clinics & Hospitals · India
               </span>
             </motion.div>
 
@@ -74,7 +74,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
                 One <em>rhythm</em> for your whole OPD floor.
               </span>{" "}
               <span className="mt-2 block r2-display-sm text-muted-foreground">
-                Queue, chart, bill, follow up&mdash;without the shuffle.
+                Queue, chart, bill, follow up&mdash;for any practice size.
               </span>
             </motion.h1>
 
@@ -83,8 +83,8 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
               className="mt-6 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
             >
               A single operating layer for reception and clinicians: tokens,
-              records, prescriptions, invoices, and WhatsApp&mdash;tight enough
-              to feel obvious, deep enough for real clinic days.
+              records, prescriptions, invoices, and WhatsApp&mdash;built for
+              solo clinics and multi-branch hospitals alike.
             </motion.p>
 
             <motion.div
@@ -98,7 +98,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
                 className="h-12 rounded-xl px-7 text-base font-semibold shadow-md"
               >
                 <a href={`${appUrl}/onboarding`}>
-                  Start clinic setup
+                  Start setup
                   <ArrowRight className="h-5 w-5" />
                 </a>
               </Button>
@@ -184,7 +184,7 @@ function HeroProductCard({
         <span className="r2-product-chrome-dot" aria-hidden />
         <span className="r2-product-chrome-dot" aria-hidden />
         <span className="r2-product-chrome-dot" aria-hidden />
-        <span className="ml-2">SUNDAR CLINIC · MON 10:42</span>
+        <span className="ml-2">SUNDAR HOSPITAL · MON 10:42</span>
         <span className="ml-auto inline-flex items-center gap-1.5">
           <span
             className="h-1.5 w-1.5 rounded-full bg-success"

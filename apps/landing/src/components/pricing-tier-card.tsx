@@ -71,7 +71,7 @@ export function PricingTierCard({ tier, selectedMode, isYearly, appUrl }: Pricin
       </div>
 
       <ul className="space-y-1.5" role="list">
-        {features.slice(0, isFeatured ? 8 : 6).map((feature) => (
+        {features.slice(0, isFeatured ? 7 : 5).map((feature) => (
           <li key={feature} className="r2-price-feature">
             <span className="text-foreground">{feature}</span>
           </li>

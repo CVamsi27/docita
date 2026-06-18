@@ -10,8 +10,8 @@ interface FaqCtaSectionProps {
 
 const FAQS: ReadonlyArray<{ q: string; a: string }> = [
   {
-    q: "How fast can my clinic actually go live?",
-    a: "Discovery call on day zero, first OPD day live within 48 hours, and full rollout (queue + EMR + prescriptions + billing + WhatsApp) inside two weeks for standard clinics. Larger or multi-doctor rollouts plan around your team's calendar, not ours.",
+    q: "How fast can my facility actually go live?",
+    a: "Discovery call on day zero, first OPD day live within 48 hours, and full rollout (queue + EMR + prescriptions + billing + WhatsApp) inside two weeks for standard practices. Larger or multi-doctor hospital rollouts plan around your team's calendar, not ours.",
   },
   {
     q: "What about my existing patient list and scans?",
