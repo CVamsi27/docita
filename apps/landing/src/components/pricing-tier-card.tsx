@@ -25,24 +25,28 @@ export function PricingTierCard({ tier, selectedMode, isYearly, appUrl }: Pricin
     adjustedPrice,
     listYearly,
     yearlySavings,
-    modeSuffix,
-    modeMismatched,
     effectiveMode,
   } = resolvePricingTierCardViewModel(tier, selectedMode, isYearly);
 
   return (
     <motion.article
       variants={cardVariant}
-      className={cn("r2-price-card", isFeatured && "r2-price-card--featured", modeMismatched && "opacity-60")}
+      className={cn("r2-price-card", isFeatured && "r2-price-card--featured")}
     >
       <div className="flex items-baseline justify-between">
         <h3 className="text-lg font-semibold tracking-tight text-foreground">
           {tier.name}
-          {modeSuffix ? <span className="text-muted-foreground">{modeSuffix}</span> : null}
         </h3>
-        {isFeatured ? (
-          <span className="r2-mono text-[var(--fs-2xs)] font-semibold uppercase tracking-[0.14em] text-primary">Most chosen</span>
-        ) : null}
+        <div className="flex items-center gap-2">
+          {effectiveMode !== "FULL" ? (
+            <span className="r2-mono rounded-md border border-border/60 bg-muted px-2 py-0.5 text-[var(--fs-2xs)] font-medium text-muted-foreground">
+              {effectiveMode === "FRONT_DESK" ? "Front Desk" : "Core"}
+            </span>
+          ) : null}
+          {isFeatured ? (
+            <span className="r2-mono text-[var(--fs-2xs)] font-semibold uppercase tracking-[0.14em] text-primary">Popular</span>
+          ) : null}
+        </div>
       </div>
       <p className="mt-1 text-xs font-medium text-pretty leading-snug text-muted-foreground">{tier.tagline}</p>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground min-h-[3rem]">{tier.description}</p>
@@ -78,10 +82,10 @@ export function PricingTierCard({ tier, selectedMode, isYearly, appUrl }: Pricin
         ))}
       </ul>
 
-      <Button asChild className="mt-auto w-full gap-2" variant={isFeatured ? "primary" : "outline"} disabled={modeMismatched}>
+      <Button asChild className="mt-auto w-full gap-2" variant={isFeatured ? "primary" : "outline"}>
         <a href={`${appUrl}/onboarding?tier=${tier.id}&mode=${effectiveMode}&billing=${isYearly ? "yearly" : "monthly"}`}>
-          {modeMismatched ? "Only on Full" : "Start setup"}
-          {!modeMismatched ? <ArrowRight className="h-4 w-4" /> : null}
+          {"Start setup"}
+          <ArrowRight className="h-4 w-4" />
         </a>
       </Button>
     </motion.article>

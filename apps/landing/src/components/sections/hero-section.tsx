@@ -61,7 +61,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
           <div className="col-span-12 mt-0 sm:mt-4 lg:col-span-7 lg:mt-0 lg:pr-6 xl:col-span-6">
             <motion.div variants={item}>
               <span className="r2-eyebrow r2-eyebrow-accent">
-                Clinics & Hospitals · India
+                Clinics & Hospitals
               </span>
             </motion.div>
 
@@ -71,7 +71,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
               className="mt-6 r2-display text-foreground"
             >
               <span className="block">
-                One <em>rhythm</em> for your whole OPD floor.
+                One <em>rhythm</em> for your whole practice.
               </span>{" "}
               <span className="mt-2 block r2-display-sm text-muted-foreground">
                 Queue, chart, bill, follow up&mdash;for any practice size.
@@ -84,7 +84,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
             >
               A single operating layer for reception and clinicians: tokens,
               records, prescriptions, invoices, and WhatsApp&mdash;built for
-              solo clinics and multi-branch hospitals alike.
+              solo practices and multi-branch hospitals alike.
             </motion.p>
 
             <motion.div
@@ -177,14 +177,13 @@ function HeroProductCard({
       onMouseLeave={onHoverEnd}
       onFocusCapture={onHoverStart}
       onBlurCapture={onHoverEnd}
-      role="region"
-      aria-label="Live clinic operations preview"
+      role="region"                  aria-label="Live practice operations preview"
     >
       <div className="r2-product-chrome">
         <span className="r2-product-chrome-dot" aria-hidden />
         <span className="r2-product-chrome-dot" aria-hidden />
         <span className="r2-product-chrome-dot" aria-hidden />
-        <span className="ml-2">SUNDAR HOSPITAL · MON 10:42</span>
+        <span className="ml-2">CITY MEDICAL CENTER · MON 10:42</span>
         <span className="ml-auto inline-flex items-center gap-1.5">
           <span
             className="h-1.5 w-1.5 rounded-full bg-success"

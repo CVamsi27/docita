@@ -116,8 +116,6 @@ interface PricingTierCardViewModel {
   adjustedPrice: number | "custom";
   listYearly: number | null;
   yearlySavings: number | null;
-  modeSuffix: string | null;
-  modeMismatched: boolean;
 }
 
 /** Resolves the pricing, feature list, and mode-mismatch state shown on a pricing tier card. */
@@ -152,13 +150,6 @@ export function resolvePricingTierCardViewModel(
     listYearly > adjustedYearly
       ? listYearly - adjustedYearly
       : null;
-  const modeSuffix =
-    effectiveMode === "FULL"
-      ? null
-      : ` · ${PLAN_MODE_INFO[effectiveMode].name}`;
-  const modeMismatched =
-    effectiveMode !== selectedMode && selectedMode !== "FULL";
-
   return {
     tierId,
     effectiveMode,
@@ -167,7 +158,5 @@ export function resolvePricingTierCardViewModel(
     adjustedPrice,
     listYearly,
     yearlySavings,
-    modeSuffix,
-    modeMismatched,
   };
 }

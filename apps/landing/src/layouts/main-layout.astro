@@ -18,7 +18,7 @@ interface Props {
 
 const {
   title = "Docita - Clinic Management Software",
-  description = "Docita helps Indian clinics move from paper files and Excel into appointments, prescriptions, billing, records, and patient communication in one reliable workflow",
+  description = "Docita helps clinics and hospitals move from paper files and Excel into appointments, prescriptions, billing, records, and patient communication in one reliable workflow",
   canonicalPath = "/",
   noIndex = false,
   structuredData,
@@ -40,7 +40,7 @@ const jsonLd = {
     "@type": "Offer",
     price: "499",
     priceCurrency: "INR",
-    description: "Monthly clinic software plans with guided setup available",
+    description: "Monthly clinic and hospital software plans with guided setup available",
   },
   creator: {
     "@type": "Organization",
@@ -97,7 +97,7 @@ const structuredDataItems =
     <meta property="og:image" content="https://docita.work/branding/Dark-background.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Docita - Clinic Management Software for Indian Clinics" />
+    <meta property="og:image:alt" content="Docita - Clinic & Hospital Management Software" />
     <meta property="og:locale" content="en_IN" />
 
     <meta name="twitter:card" content="summary_large_image" />
@@ -111,7 +111,7 @@ const structuredDataItems =
     {structuredDataItems.map((item) => (
       <script is:inline type="application/ld+json" set:html={JSON.stringify(item)} />
     ))}
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8M9WEK4LEE"></script>
+    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-8M9WEK4LEE"></script>
     <script is:inline>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}

@@ -11,7 +11,7 @@ interface FaqCtaSectionProps {
 const FAQS: ReadonlyArray<{ q: string; a: string }> = [
   {
     q: "How fast can my facility actually go live?",
-    a: "Discovery call on day zero, first OPD day live within 48 hours, and full rollout (queue + EMR + prescriptions + billing + WhatsApp) inside two weeks for standard practices. Larger or multi-doctor hospital rollouts plan around your team's calendar, not ours.",
+    a: "Discovery call on day zero, first workflow live within 48 hours, and full rollout (queue + EMR + prescriptions + billing + WhatsApp) inside two weeks for standard practices. Larger or multi-doctor hospital rollouts plan around your team's calendar, not ours.",
   },
   {
     q: "What about my existing patient list and scans?",
@@ -78,7 +78,7 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
                 className="mt-3 r2-display-sm"
                 style={{ color: "inherit" }}
               >
-                Get one OPD day on Docita this week.
+                Get your first workflow live on Docita this week.
               </h3>
               <p className="mt-4 text-sm leading-relaxed text-background/80 sm:text-base">
                 Book a guided setup. We will walk your current workflow,
@@ -94,7 +94,7 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
                   className="h-12 rounded-xl px-7 text-base font-semibold"
                 >
                   <a href={`${appUrl}/onboarding`}>
-                    Start clinic setup
+                    Start setup
                     <ArrowRight className="h-5 w-5" />
                   </a>
                 </Button>

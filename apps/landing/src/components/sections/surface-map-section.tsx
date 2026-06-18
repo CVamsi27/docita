@@ -72,8 +72,7 @@ const COLUMNS: SurfaceColumn[] = [
     ],
   },
   {
-    role: "Admin",
-    title: "Run the clinic, not a tab graveyard",
+    role: "Admin",              title: "Run the practice, not a tab graveyard",
     description:
       "Multi-doctor, multi-location, billing, inventory, analytics, audit, and IPD beds — without leaving Docita.",
     items: [
@@ -109,7 +108,7 @@ export function SurfaceMapSection() {
     >
       <div className="ui-page-shell">
         <div className="flex items-center gap-3">
-          <span className="r2-eyebrow">Built for the whole clinic</span>
+          <span className="r2-eyebrow">Built for the whole practice</span>
         </div>
 
         <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-end lg:gap-12">
@@ -118,10 +117,10 @@ export function SurfaceMapSection() {
             className="max-w-3xl r2-display-sm text-foreground"
           >
             Reception, doctor, admin&mdash;
-            <em>and your patients</em>&mdash;all on the same layer.
+            <em>and your patients</em>&mdash;all on one platform.
           </h2>
           <p className="max-w-md text-base leading-relaxed text-muted-foreground">
-            Most clinic stacks ship one role and bolt on the rest. Docita is
+            Most practice stacks ship one role and bolt on the rest. Docita is
             built role-first, with deep surfaces for each side of the desk.
           </p>
         </div>
