@@ -18,6 +18,7 @@ CREATE TYPE "ClinicTier_new" AS ENUM ('STARTER', 'ESSENTIAL', 'PROFESSIONAL', 'H
 
 ALTER TABLE "Clinic" ALTER COLUMN "tier" DROP DEFAULT;
 ALTER TABLE "Subscription" ALTER COLUMN "plan" DROP DEFAULT;
+ALTER TABLE "TierPricing" ALTER COLUMN "tier" DROP DEFAULT;
 
 ALTER TABLE "Clinic"
   ALTER COLUMN "tier" TYPE "ClinicTier_new"
@@ -26,6 +27,10 @@ ALTER TABLE "Clinic"
 ALTER TABLE "Subscription"
   ALTER COLUMN "plan" TYPE "ClinicTier_new"
   USING "plan"::text::"ClinicTier_new";
+
+ALTER TABLE "TierPricing"
+  ALTER COLUMN "tier" TYPE "ClinicTier_new"
+  USING "tier"::text::"ClinicTier_new";
 
 DROP TYPE "ClinicTier";
 ALTER TYPE "ClinicTier_new" RENAME TO "ClinicTier";
