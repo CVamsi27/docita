@@ -425,7 +425,7 @@ jobs:
 
       - name: Restore perf baseline from prior main runs
         if: github.event_name == 'pull_request'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: logs/performance/baseline.json
           key: perf-baseline-${{ github.sha }}
