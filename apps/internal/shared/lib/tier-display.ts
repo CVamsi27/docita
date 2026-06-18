@@ -21,7 +21,6 @@ const TIER_COLOR_TO_BADGE_CLASS: Record<string, string> = {
 
 const TIER_CHART_COLOR_BY_NAME: Partial<Record<TierName, string>> = {
   STARTER: "bg-muted",
-  FRONT_DESK: "bg-info",
   ESSENTIAL: "bg-success",
   PROFESSIONAL: "bg-primary",
   HOSPITAL: "bg-processing",
