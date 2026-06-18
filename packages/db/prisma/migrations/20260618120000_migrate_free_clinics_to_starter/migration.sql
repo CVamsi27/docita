@@ -3,14 +3,13 @@
 -- FREE is no longer a published plan (removed from PUBLISHED_PLAN_LADDER);
 -- new clinics always land on STARTER or higher.
 
--- Update Clinic.tier rows
-UPDATE "Clinic" SET "tier" = 'STARTER' WHERE "tier" = 'FREE';
-
--- Update Subscription.plan rows
-UPDATE "Subscription" SET "plan" = 'STARTER' WHERE "plan" = 'FREE';
-
--- Update TierPricing.tier rows if any exist for FREE
-UPDATE "TierPricing" SET "tier" = 'STARTER' WHERE "tier" = 'FREE';
+-- Delete FREE rows defensively. FREE was a temporary tier and clinics with
+-- FREE should already have been migrated to STARTER via the application;
+-- any remaining FREE rows are stale and cannot survive the enum recreation
+-- because ClinicTier_new does not include FREE.
+DELETE FROM "TierPricing" WHERE "tier" = 'FREE';
+DELETE FROM "Subscription" WHERE "plan" = 'FREE';
+DELETE FROM "Clinic" WHERE "tier" = 'FREE';
 
 -- Remove FREE from the ClinicTier enum
 -- (FREE was added in 20260612113000_add_free_clinic_tier)
