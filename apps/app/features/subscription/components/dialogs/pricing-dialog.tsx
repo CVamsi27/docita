@@ -16,7 +16,6 @@ import { cn } from "@workspace/ui/lib/utils";
 import {
   PRICING_CURRENCY_CONFIG,
 // jscpd:ignore-end
-  getPlanTrack,
   type SupportedCurrency,
   Tier,
   type TierName,
@@ -60,14 +59,9 @@ export function PricingDialog({
   const tiers: TierName[] = PRICING_DIALOG_TIERS;
   const planSections = [
     {
-      id: "clinical",
-      label: "Clinical",
-      tiers: tiers.filter((tier) => getPlanTrack(tier) === "CLINICAL"),
-    },
-    {
-      id: "front-desk",
-      label: "Front Desk Operations",
-      tiers: tiers.filter((tier) => getPlanTrack(tier) === "FRONT_DESK"),
+      id: "plans",
+      label: "Plans",
+      tiers,
     },
   ].filter((section) => section.tiers.length > 0);
   const currencyConfig = PRICING_CURRENCY_CONFIG[currency];

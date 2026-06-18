@@ -5,6 +5,7 @@ import { z } from "zod";
  * (Front Desk surfaces). The slip itself carries no clinical authoring — these
  * settings only tune the printed validity notice and an optional footer line.
  */
+// allow-no-base-schema: owner=front-desk reason=ui-print-settings review=2026-09-30
 export const opdSlipSettingsFormSchema = z.object({
   /**
    * Free-revisit window printed on the slip, in days. `0` (or unset) hides the

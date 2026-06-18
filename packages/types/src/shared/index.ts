@@ -8,6 +8,7 @@ export * from "./clinics";
 export * from "./sidebar-nav";
 export * from "./doctor-clinics";
 export * from "./contact";
+export * from "./support-contact";
 export * from "./custom-fields";
 export * from "./referrals";
 export * from "./fhir";

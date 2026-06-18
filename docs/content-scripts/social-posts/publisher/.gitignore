@@ -1,0 +1,6 @@
+.env
+posted.json
+node_modules/
+posts.json
+schedule.json
+buffer-import.csv

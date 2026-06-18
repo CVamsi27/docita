@@ -33,25 +33,14 @@ function normalizeRole(role: unknown): Role {
 
 function normalizeClinicTier(tier: unknown): ClinicTier {
   switch (tier) {
-    case 'CAPTURE':
-      return ClinicTier.STARTER;
-    case 'CORE':
-    case 'PLUS':
-      return ClinicTier.ESSENTIAL;
-    case 'PRO':
-    case 'CLINIC':
-      return ClinicTier.PROFESSIONAL;
     case ClinicTier.STARTER:
     case ClinicTier.ESSENTIAL:
-    case ClinicTier.FRONT_DESK:
-    case ClinicTier.FRONT_DESK_CLINIC:
-    case ClinicTier.FRONT_DESK_HOSPITAL:
     case ClinicTier.PROFESSIONAL:
     case ClinicTier.HOSPITAL:
     case ClinicTier.ENTERPRISE:
       return tier;
     default:
-      return ClinicTier.ESSENTIAL;
+      return ClinicTier.STARTER;
   }
 }
 

@@ -1,12 +1,16 @@
-import { Injectable } from '@nestjs/common';
-import { IWhatsAppRepository } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  type IWhatsAppMessageRepository,
+  type IWhatsAppRepository,
+  type IWhatsAppTemplateRepository,
+  type WhatsAppClinicMessageContext,
+  WHATSAPP_MESSAGE_REPOSITORY_TOKEN,
+  WHATSAPP_TEMPLATE_REPOSITORY_TOKEN,
+} from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import {
   WhatsAppMessage,
   WhatsAppTemplate,
 } from '@/domains/whatsapp/core/entities';
-import { PrismaWhatsAppMessageRepository } from './prisma-whatsapp-message.repository';
-import { PrismaWhatsAppTemplateRepository } from './prisma-whatsapp-template.repository';
-import type { WhatsAppClinicMessageContext } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import type {
   PrismaWhatsAppDatabase,
   PrismaWhatsAppMessageRecord,
@@ -24,8 +28,10 @@ export type {
 @Injectable()
 export class PrismaWhatsAppRepository implements IWhatsAppRepository {
   constructor(
-    private readonly messages: PrismaWhatsAppMessageRepository,
-    private readonly templates: PrismaWhatsAppTemplateRepository,
+    @Inject(WHATSAPP_MESSAGE_REPOSITORY_TOKEN)
+    private readonly messages: IWhatsAppMessageRepository,
+    @Inject(WHATSAPP_TEMPLATE_REPOSITORY_TOKEN)
+    private readonly templates: IWhatsAppTemplateRepository,
   ) {}
 
   ensureConversation(

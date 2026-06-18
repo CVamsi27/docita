@@ -8,6 +8,7 @@ import { SentryInitializer } from "@/components/monitoring/sentry-initializer";
 import { ClientErrorReporter } from "@/components/monitoring/client-error-reporter";
 import { WebVitalsReporter } from "@/components/layout/web-vitals-reporter";
 import { ApiAvailabilityOverlay } from "@/components/feedback/api-availability-overlay";
+import { esbuildHelperBootstrapScript } from "@workspace/utils";
 
 export const metadata = {
   title: "Docita - Healthcare OS",
@@ -25,14 +26,6 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 5,
 };
-
-const esbuildHelperBootstrapScript = `
-if (typeof globalThis.__name !== "function") {
-  globalThis.__name = function(target) {
-    return target;
-  };
-}
-`;
 
 export default async function RootLayout({
   children,

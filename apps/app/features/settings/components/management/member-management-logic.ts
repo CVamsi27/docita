@@ -1,4 +1,4 @@
-// check-as-cast-density: allow-file
+// check-as-cast-density: allow-file — MemberRole cast needed for Set membership checks
 import { User } from "@workspace/types";
 import { isAdmin } from "@/lib/auth/permissions";
 import { parseStringEnumMember } from "@workspace/utils";

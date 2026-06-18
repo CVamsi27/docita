@@ -63,7 +63,7 @@ const appointmentRequest: AppointmentRequestResponse = {
   patientId: "patient_1",
   clinicId: "clinic_1",
   preferredDoctorId: null,
-  preferredDate: "2026-06-12T00:00:00.000Z",
+  preferredDate: "2026-12-12T00:00:00.000Z",
   preferredTime: "09:30",
   reason: "Fever and cough",
   notes: "Patient requested morning slot",

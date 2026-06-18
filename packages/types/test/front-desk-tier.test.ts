@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { Tier, isFrontDeskTier } from "../src";
+import { isFrontDeskTier } from "../src";
 
 describe("front-desk tier helpers", () => {
-  it("isFrontDeskTier accepts enum and string", () => {
-    expect(isFrontDeskTier(Tier.FRONT_DESK)).toBe(true);
+  it("isFrontDeskTier detects FRONT_DESK plan mode string", () => {
     expect(isFrontDeskTier("FRONT_DESK")).toBe(true);
     expect(isFrontDeskTier("ESSENTIAL")).toBe(false);
     expect(isFrontDeskTier(null)).toBe(false);
+    expect(isFrontDeskTier(undefined)).toBe(false);
+    expect(isFrontDeskTier(0)).toBe(false);
   });
 });

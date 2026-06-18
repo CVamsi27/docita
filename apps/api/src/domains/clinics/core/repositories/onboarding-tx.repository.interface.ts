@@ -24,6 +24,7 @@ export interface OnboardingClinicWriteData {
   mrnPrefix: string;
   timezone: string;
   referralCode: string;
+  abdmEnabled?: boolean;
   settings: Prisma.InputJsonValue;
 }
 

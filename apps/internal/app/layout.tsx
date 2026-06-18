@@ -2,6 +2,7 @@ import "./globals.css";
 import { headers } from "next/headers";
 import { OptionalSentryInitializer } from "@/components/optional-sentry-initializer";
 import { Providers } from "./providers";
+import { esbuildHelperBootstrapScript } from "@workspace/utils";
 
 export const metadata = {
   title: "Docita Internal - Internal Console",
@@ -35,7 +36,16 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://api.docita.work" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href="https://api.docita.work"
+          crossOrigin="anonymous"
+        />
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: esbuildHelperBootstrapScript }}
+        />
         <script
           suppressHydrationWarning
           nonce={nonce}
@@ -46,7 +56,7 @@ export default async function RootLayout({
         <OptionalSentryInitializer
           enabled={process.env.DOCITA_CLOUDFLARE !== "1"}
         />
-        <Providers>{children}</Providers>
+        <Providers nonce={nonce}>{children}</Providers>
       </body>
     </html>
   );

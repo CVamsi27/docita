@@ -5,7 +5,10 @@ import type {
   PatientSummary,
   PatientWithUser,
 } from '@/domains/patient-portal/core/repositories/portal-patient.types';
-import { IPortalProfileRepository } from '@/domains/patient-portal/core/repositories/portal-profile.repository.interface';
+import {
+  IPortalProfileRepository,
+  type PortalDataSubjectRequestInput,
+} from '@/domains/patient-portal/core/repositories/portal-profile.repository.interface';
 
 /**
  * The full patient-profile field selection, shared by `getPatientProfile`
@@ -92,23 +95,6 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
     );
   }
 
-  async hasActiveTreatmentConsent(
-    patientId: string,
-    clinicId: string,
-  ): Promise<boolean> {
-    const count = await this.withUnrestricted(() =>
-      this.prisma.consent.count({
-        where: {
-          patientId,
-          clinicId,
-          status: 'ACTIVE',
-          consentType: 'TREATMENT',
-        },
-      }),
-    );
-    return count > 0;
-  }
-
   async getPatientProfile(patientId: string): Promise<PatientProfile | null> {
     return this.withUnrestricted(() =>
       this.prisma.patient.findFirst({
@@ -136,6 +122,26 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
       this.prisma.patient.update({
         where: { id: patientId },
         data: { userId },
+      }),
+    );
+  }
+
+  async createDataSubjectRequest(
+    input: PortalDataSubjectRequestInput,
+  ): Promise<{ id: string; dueAt: Date | null }> {
+    return this.withUnrestricted(() =>
+      this.prisma.dataSubjectRequest.create({
+        data: {
+          clinicId: input.clinicId,
+          patientId: input.patientId,
+          requestType: input.requestType,
+          requestChannel: 'PORTAL',
+          requestedByName: 'Patient (portal)',
+          requestedByRelation: 'SELF',
+          requestDetails: input.requestDetails,
+          dueAt: input.dueAt,
+        },
+        select: { id: true, dueAt: true },
       }),
     );
   }

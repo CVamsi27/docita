@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import { useMutation } from "@tanstack/react-query";
 import type { OnboardingData } from "@/features/onboarding/schemas/onboarding.schemas";
-import { apiFetch } from "@/lib/api/api-client";
+import { registerOnboarding } from "@/features/onboarding/api/onboarding.api";
 
 interface UseOnboardingReturn {
   step: number;
@@ -28,7 +28,7 @@ const TOTAL_STEPS = 4;
 const initialData: Partial<OnboardingData> = {
   clinicDetails: undefined,
   planSelection: {
-    tier: "CAPTURE",
+    tier: "STARTER",
     billingCycle: "MONTHLY",
   },
   teamInvites: { members: [] },
@@ -44,11 +44,7 @@ export function useOnboarding(): UseOnboardingReturn {
   const [data, setData] = useState<Partial<OnboardingData>>(initialData);
   const [error, setError] = useState<string | null>(null);
   const submitMutation = useMutation({
-    mutationFn: () =>
-      apiFetch("/onboarding/register", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+    mutationFn: () => registerOnboarding(data),
   });
   const isSubmitting = submitMutation.isPending;
   const nextStep = useCallback(() => {

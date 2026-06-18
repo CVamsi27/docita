@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { PatientDetailPageClient } from "@/features/patients/components/details/PatientDetailPageClient";
 
 interface PatientDetailPageProps {

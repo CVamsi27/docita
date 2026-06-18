@@ -3,6 +3,7 @@ import { DATE_FORMATS, formatDate } from '@workspace/utils';
 import { PdfLayoutService } from './pdf-layout.service';
 import type { PrescriptionPdfInput } from './pdf.types';
 import type { PDFConfig } from './pdf-config.types';
+import { appendPdfPoweredByDocita } from './pdf-branding';
 
 @Injectable()
 export class PrescriptionPdfRenderer {
@@ -91,7 +92,9 @@ export class PrescriptionPdfRenderer {
           );
         },
       ],
-      footerText: `This prescription is valid for ${validityDays} days from the date of issue. Not valid for medico-legal purposes.`,
+      footerText: appendPdfPoweredByDocita(
+        `This prescription is valid for ${validityDays} days from the date of issue. Not valid for medico-legal purposes.`,
+      ),
     };
   }
 }

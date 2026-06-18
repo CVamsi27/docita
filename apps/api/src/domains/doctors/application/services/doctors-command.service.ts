@@ -49,6 +49,7 @@ interface UpdateDoctorData {
   registrationNumber?: string;
   registrationCouncil?: string | null;
   registrationStateCode?: string | null;
+  hprId?: string;
   licenseNumber?: string;
   licenseExpiry?: Date;
   signatureUrl?: string;
@@ -141,6 +142,7 @@ export class DoctorsCommandService {
       registrationNumber,
       registrationCouncil,
       registrationStateCode,
+      hprId,
       licenseNumber,
       licenseExpiry,
       signatureUrl,
@@ -165,6 +167,7 @@ export class DoctorsCommandService {
       updateData.registrationCouncil = registrationCouncil;
     if (registrationStateCode !== undefined)
       updateData.registrationStateCode = registrationStateCode;
+    if (hprId !== undefined) updateData.hprId = hprId.trim() || null;
     if (licenseNumber !== undefined) updateData.licenseNumber = licenseNumber;
     if (licenseExpiry !== undefined) updateData.licenseExpiry = licenseExpiry;
     if (signatureUrl !== undefined) {

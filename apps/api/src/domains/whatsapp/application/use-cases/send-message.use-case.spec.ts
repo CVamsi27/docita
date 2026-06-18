@@ -16,6 +16,7 @@ import {
   WhatsAppMessageStatus,
 } from '../../core/entities/whatsapp-message.entity';
 import { WhatsAppTemplate } from '../../core/entities/whatsapp-template.entity';
+import { WhatsappMessageDeliveryService } from '../services/whatsapp-message-delivery.service';
 
 describe('SendMessageUseCase', () => {
   let useCase: SendMessageUseCase;
@@ -80,6 +81,20 @@ describe('SendMessageUseCase', () => {
     emit: emitMock,
   } as unknown as EventEmitter2;
 
+  function createUseCase() {
+    const delivery = new WhatsappMessageDeliveryService(
+      mockClient,
+      mockTemplateResolver,
+      mockConfigService,
+    );
+    return new SendMessageUseCase(
+      mockRepository,
+      delivery,
+      mockEventEmitter,
+      createFixedClockMock(),
+    );
+  }
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -117,14 +132,7 @@ describe('SendMessageUseCase', () => {
       productionMode: false,
     });
 
-    useCase = new SendMessageUseCase(
-      mockRepository,
-      mockClient,
-      mockTemplateResolver,
-      mockConfigService,
-      mockEventEmitter,
-      createFixedClockMock(),
-    );
+    useCase = createUseCase();
   });
 
   describe('plain text message', () => {
@@ -250,14 +258,7 @@ describe('SendMessageUseCase', () => {
         productionMode: true,
       });
 
-      useCase = new SendMessageUseCase(
-        mockRepository,
-        mockClient,
-        mockTemplateResolver,
-        mockConfigService,
-        mockEventEmitter,
-        createFixedClockMock(),
-      );
+      useCase = createUseCase();
 
       resolveTemplateMock.mockResolvedValue({
         content: 'Hello',

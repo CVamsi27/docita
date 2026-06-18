@@ -26,7 +26,10 @@ export class SmsChannel implements IMessageChannel {
 
   async isAvailable(): Promise<boolean> {
     await Promise.resolve();
-    return !!this.smsConfig;
+    // Only advertise availability when real credentials are configured — an
+    // empty config must not let the orchestrator pick this channel and report
+    // a non-existent send as success.
+    return !!this.smsConfig?.apiKey && !!this.smsConfig?.senderId;
   }
 
   async send(

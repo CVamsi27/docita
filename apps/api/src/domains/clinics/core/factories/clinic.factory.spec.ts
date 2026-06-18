@@ -54,7 +54,7 @@ describe('ClinicFactory', () => {
         email: 'test@clinic.com',
         phone: '1234567890',
         address: '123 St',
-        tier: 'GROWTH' as ClinicTier,
+        tier: 'ESSENTIAL' as ClinicTier,
         settings: { customField: 'value' },
       };
 
@@ -65,7 +65,7 @@ describe('ClinicFactory', () => {
         email: data.email,
         phone: data.phone,
         address: data.address,
-        tier: 'GROWTH',
+        tier: 'ESSENTIAL',
         active: true,
         settings: { testSetting: true, customField: 'value' },
       });

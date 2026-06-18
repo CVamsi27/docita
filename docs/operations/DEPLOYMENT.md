@@ -172,7 +172,7 @@ Production API deploys from GitHub Actions use **Fly.io blue-green** (`flyctl de
 
 This gives near-instant rollback via `fly releases rollback` without a separate green environment. The worker has no HTTP service and continues to use a rolling deploy (`--ha=false`).
 
-After each API deploy, **synthetic uptime probes** run automatically (`pnpm monitor:synthetic`). Failures block the deploy job and emit a Sentry event when `SENTRY_DSN` is configured. Scheduled probes also run every 5 minutes via `.github/workflows/synthetic-monitoring.yml`.
+After each API deploy, **synthetic uptime probes** run automatically (`pnpm monitor:synthetic`). Failures block the deploy job and emit a Sentry event when `SENTRY_DSN` is configured. Scheduled probes run 3x/day during IST business hours via [`.github/workflows/synthetic-monitoring.yml`](../../.github/workflows/synthetic-monitoring.yml) — see [`SYNTHETIC_MONITORING.md`](./SYNTHETIC_MONITORING.md) for the full alerting matrix including Fly auto-recovery.
 
 ## Row-level security (production)
 

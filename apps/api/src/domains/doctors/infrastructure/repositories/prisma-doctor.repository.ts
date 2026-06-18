@@ -99,6 +99,7 @@ export class PrismaDoctorRepository implements IDoctorRepository {
         registrationNumber: true,
         registrationCouncil: true,
         registrationStateCode: true,
+        hprId: true,
         licenseNumber: true,
         signatureUrl: true,
         signatureUploadedAt: true,

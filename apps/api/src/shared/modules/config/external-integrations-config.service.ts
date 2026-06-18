@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { SUPPORT_EMAIL } from '@workspace/types';
 import { getEnv } from './app-config';
 
 @Injectable()
@@ -11,6 +12,11 @@ export class ExternalIntegrationsConfigService {
       requestTimeout: config.AI_REQUEST_TIMEOUT,
       cacheEnabled: config.AI_CACHE_ENABLED,
       cacheTtl: config.AI_CACHE_TTL,
+      // DPDP master kill-switch: false ⇒ no external-AI (OpenAI) calls at all.
+      externalEnabled: config.AI_EXTERNAL_ENABLED,
+      // DPDP: false ⇒ patient-document images are never sent to the cloud
+      // Vision API; OCR falls back to the local (tesseract) path.
+      cloudOcrEnabled: config.AI_CLOUD_OCR_ENABLED,
     };
   }
 
@@ -22,11 +28,45 @@ export class ExternalIntegrationsConfigService {
     };
   }
 
+  /** DPDP grievance / DPO contact, defaulting to the platform support email. */
+  getGrievanceContactEmail(): string {
+    return getEnv().GRIEVANCE_CONTACT_EMAIL?.trim() || SUPPORT_EMAIL;
+  }
+
   getHprVerificationConfig() {
     const config = getEnv();
     return {
       hprApiUrl: config.HPR_API_URL,
       hprApiKey: config.HPR_API_KEY,
+    };
+  }
+
+  /**
+   * ABDM gateway config for ABHA verification (M1). `enabled` is true only when
+   * a base URL and credentials are present, so the gateway adapter stays in a
+   * NOT_CONFIGURED state until real (sandbox or prod) credentials are supplied.
+   */
+  getAbdmConfig() {
+    const config = getEnv();
+    const baseUrl = config.ABDM_BASE_URL?.trim() || null;
+    const clientId = config.ABDM_CLIENT_ID?.trim() || null;
+    const clientSecret = config.ABDM_CLIENT_SECRET?.trim() || null;
+    const callbackSecret = config.ABDM_CALLBACK_SECRET?.trim() || null;
+    // ABHA profile/verification calls go to a different host than the gateway.
+    const isSandbox = Boolean(baseUrl?.includes('dev.abdm.gov.in'));
+    const abhaBaseUrl =
+      config.ABDM_ABHA_BASE_URL?.trim() ||
+      (isSandbox ? 'https://abhasbx.abdm.gov.in' : 'https://abha.abdm.gov.in');
+    const abhaPublicKey = config.ABDM_ABHA_PUBLIC_KEY?.trim() || null;
+    return {
+      baseUrl,
+      clientId,
+      clientSecret,
+      callbackSecret,
+      abhaBaseUrl,
+      abhaPublicKey,
+      isSandbox,
+      enabled: Boolean(baseUrl && clientId && clientSecret),
     };
   }
 

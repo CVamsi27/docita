@@ -25,7 +25,7 @@ import {
   TierCard,
   PLAN_ONBOARDING_KEY_HIGHLIGHTS,
 } from "@/features/subscription";
-import type { PlanFeature } from "@/features/subscription/components/sections/plan-features";
+import type { PlanFeature } from "@/features/subscription";
 import {
   applyModeToPricing,
   getAvailableModesForTier,
@@ -197,7 +197,7 @@ interface TierCardGridProps {
   featuresByTier: FeaturesByTierEntry[];
   pricingConfigTiers: TierPricing[];
   resolvedCurrency: string;
-  selectedTier: string;
+  selectedTier: TierName | string;
   selectedMode: PlanMode;
   billingCycle: "MONTHLY" | "YEARLY";
   teamRecommendation: TeamRecommendation | null;

@@ -1,40 +1,7 @@
-"use client";
+import { BedManagementPageClient } from "./bed-management-page-client";
 
-import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/components/auth/feature-gate";
-import { useIpdLogic } from "@/features/ipd/hooks/use-ipd-logic";
-import { BedManagementUI } from "@/features/ipd/components";
+export const dynamic = "force-dynamic";
 
-export default function BedManagementPage() {
-  const {
-    wards,
-    isLoading,
-    isError,
-    refetch,
-    stats,
-    searchQuery,
-    setSearchQuery,
-    showAdmissionModal,
-    setShowAdmissionModal,
-    admitPatient,
-    isAdmitting,
-  } = useIpdLogic();
-
-  return (
-    <FeatureGate feature={Feature.FULL_EHR} showLockedCard>
-      <BedManagementUI
-        wards={wards}
-        isLoading={isLoading}
-        isError={isError}
-        onRetry={() => void refetch()}
-        stats={stats}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        showAdmissionModal={showAdmissionModal}
-        setShowAdmissionModal={setShowAdmissionModal}
-        onAdmitPatient={admitPatient}
-        isAdmitting={isAdmitting}
-      />
-    </FeatureGate>
-  );
+export default function Page() {
+  return <BedManagementPageClient />;
 }

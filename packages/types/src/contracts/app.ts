@@ -13,6 +13,7 @@ export const appAuthUserSchema = userSchema
     registrationNumber: true,
     registrationCouncil: true,
     registrationStateCode: true,
+    hprId: true,
     verificationStatus: true,
     verificationReason: true,
     registrationCertificateUrl: true,

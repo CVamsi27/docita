@@ -19,6 +19,7 @@ import {
 } from './application/use-cases';
 import { SubscriptionsQueryService } from './application/services/subscriptions-query.service';
 import { SubscriptionCheckoutPricingService } from './application/services/subscription-checkout-pricing.service';
+import { CheckoutPaymentOrderService } from './application/services/checkout-payment-order.service';
 import { SubscriptionActivationPolicyService } from './application/services/subscription-activation-policy.service';
 import { SubscriptionBillingSnapshotService } from './application/services/subscription-billing-snapshot.service';
 import { ActivateSubscriptionPaymentService } from './application/services/activate-subscription-payment.service';
@@ -41,6 +42,7 @@ import { ClinicOperationsAdapter } from './infrastructure/adapters/clinic-operat
 export const SUBSCRIPTIONS_COMMON_PROVIDERS = [
   SubscriptionPricingService,
   SubscriptionCheckoutPricingService,
+  CheckoutPaymentOrderService,
   SubscriptionActivationPolicyService,
   SubscriptionBillingSnapshotService,
   ActivateSubscriptionPaymentService,

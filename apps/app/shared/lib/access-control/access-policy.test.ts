@@ -104,12 +104,13 @@ describe("canAccessTarget", () => {
     ).toBe(false);
   });
 
-  it("blocks clinical surfaces on FRONT_DESK tier while keeping appointments", () => {
+  it("blocks clinical surfaces in FRONT_DESK mode while keeping appointments", () => {
     expect(
       canAccessTarget(APP_ACCESS_TARGETS.PAGE_CONSULTATION, {
         role: "ADMIN",
         canAccessFeature: () => true,
-        currentTier: Tier.FRONT_DESK,
+        currentTier: Tier.ESSENTIAL,
+        currentMode: "FRONT_DESK",
       }),
     ).toBe(false);
 
@@ -117,7 +118,8 @@ describe("canAccessTarget", () => {
       canAccessTarget(APP_ACCESS_TARGETS.PAGE_APPOINTMENTS, {
         role: "RECEPTIONIST",
         canAccessFeature: () => true,
-        currentTier: Tier.FRONT_DESK,
+        currentTier: Tier.ESSENTIAL,
+        currentMode: "FRONT_DESK",
       }),
     ).toBe(true);
 
@@ -125,7 +127,8 @@ describe("canAccessTarget", () => {
       canAccessTarget(APP_ACCESS_TARGETS.PAGE_APPOINTMENTS, {
         role: "ADMIN",
         canAccessFeature: () => true,
-        currentTier: Tier.FRONT_DESK,
+        currentTier: Tier.ESSENTIAL,
+        currentMode: "FRONT_DESK",
       }),
     ).toBe(true);
 

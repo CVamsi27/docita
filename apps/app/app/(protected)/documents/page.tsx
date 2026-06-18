@@ -1,40 +1,7 @@
-"use client";
+import { DocumentsPageClient } from "./documents-page-client";
 
-import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/components/auth/feature-gate";
-import { useDocumentsLogic } from "@/features/documents/hooks/use-documents-logic";
-import { DocumentsPageUI } from "@/features/documents/components/DocumentsPageUI";
+export const dynamic = "force-dynamic";
 
-export default function DocumentsPage() {
-  const {
-    documents,
-    totalDocuments,
-    loading,
-    isError,
-    retry,
-    searchQuery,
-    setSearchQuery,
-    sortConfig,
-    handleSort,
-    handleView,
-    handleDownload,
-  } = useDocumentsLogic();
-
-  return (
-    <FeatureGate feature={Feature.DOCUMENT_ARCHIVAL} showLockedCard>
-      <DocumentsPageUI
-        documents={documents}
-        totalCount={totalDocuments}
-        loading={loading}
-        isError={isError}
-        onRetry={retry}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        sortConfig={sortConfig}
-        handleSort={handleSort}
-        handleView={handleView}
-        handleDownload={handleDownload}
-      />
-    </FeatureGate>
-  );
+export default function Page() {
+  return <DocumentsPageClient />;
 }

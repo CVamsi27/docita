@@ -10,6 +10,12 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+// These tests exercise the Ask AI button, which only renders when the global
+// AI switch is on.
+vi.mock("@/lib/config/ai-features", () => ({
+  AI_FEATURES_ENABLED: true,
+}));
+
 const mockPatient: Patient = {
   id: "patient-abc-123",
   firstName: "Ada",

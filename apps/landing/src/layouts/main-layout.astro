@@ -6,19 +6,22 @@ import SiteFooter from "@/components/site-footer.astro";
 import SiteHeader from "@/components/site-header.astro";
 import { StickyCta } from "@/components/sections/sticky-cta";
 import { getAppBaseUrl } from "@/lib/get-app-base-url";
+import { SUPPORT_EMAIL } from "@workspace/types";
 
 interface Props {
   title?: string;
   description?: string;
   canonicalPath?: string;
   noIndex?: boolean;
+  structuredData?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
 const {
-  title = "Docita - Clinic Management Software for Indian Clinics | Guided Setup",
-  description = "Docita helps Indian clinics move from paper files and Excel into appointments, prescriptions, billing, records, and patient communication in one reliable workflow",
+  title = "Docita - Clinic Management Software",
+  description = "Docita helps clinics and hospitals move from paper files and Excel into appointments, prescriptions, billing, records, and patient communication in one reliable workflow",
   canonicalPath = "/",
   noIndex = false,
+  structuredData,
 } = Astro.props;
 
 const siteUrl = "https://docita.work";
@@ -37,15 +40,21 @@ const jsonLd = {
     "@type": "Offer",
     price: "499",
     priceCurrency: "INR",
-    description: "Monthly clinic software plans with guided setup available",
+    description: "Monthly clinic and hospital software plans with guided setup available",
   },
   creator: {
     "@type": "Organization",
     name: "Docita",
     url: siteUrl,
-    email: "support@docita.work",
+    email: SUPPORT_EMAIL,
   },
 };
+const structuredDataItems =
+  structuredData === undefined
+    ? []
+    : Array.isArray(structuredData)
+      ? structuredData
+      : [structuredData];
 ---
 
 <!doctype html>
@@ -86,14 +95,29 @@ const jsonLd = {
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content="https://docita.work/branding/Dark-background.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Docita - Clinic & Hospital Management Software" />
+    <meta property="og:locale" content="en_IN" />
 
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@docita_work" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content="https://docita.work/branding/Dark-background.png" />
 
     {noIndex ? <meta name="robots" content="noindex,nofollow" /> : <meta name="robots" content="index,follow" />}
     <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    {structuredDataItems.map((item) => (
+      <script is:inline type="application/ld+json" set:html={JSON.stringify(item)} />
+    ))}
+    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-8M9WEK4LEE"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-8M9WEK4LEE');
+    </script>
   </head>
   <body class="landing-surface min-h-screen bg-background font-sans text-foreground antialiased">
     <SiteHeader />

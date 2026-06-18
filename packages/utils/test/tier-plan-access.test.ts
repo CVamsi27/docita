@@ -13,9 +13,8 @@ import {
 } from "../src/billing/tier-rules";
 import { Tier } from "@workspace/types";
 
-const BILLABLE_PLAN_SKUS = [
+const PLAN_SKUS = [
   "STARTER",
-  "FRONT_DESK",
   "ESSENTIAL",
   "PROFESSIONAL",
   "HOSPITAL",
@@ -25,14 +24,15 @@ const BILLABLE_PLAN_SKUS = [
 const ALL_MAPPED_FEATURES = Object.keys(FEATURE_TIER_MAP) as Feature[];
 
 describe("tier plan feature access parity", () => {
-  it("denies every FRONT_DESK_BLOCKED_FEATURES flag on FRONT_DESK", () => {
+  it("denies every FRONT_DESK_BLOCKED_FEATURES flag via FRONT_DESK mode", () => {
+    // FRONT_DESK is now a PlanMode, not a TierName.
     for (const feature of FRONT_DESK_BLOCKED_FEATURES) {
-      expect(hasFeatureAccess("FRONT_DESK", feature, false)).toBe(false);
+      expect(hasFeatureAccess("ESSENTIAL", feature, false, {}, "FRONT_DESK")).toBe(false);
     }
   });
 
-  it("matches hasFeatureAccess with getFeaturesForTier / getAllFeaturesUpToTier for billed SKUs", () => {
-    for (const sku of BILLABLE_PLAN_SKUS) {
+  it("matches hasFeatureAccess with getFeaturesForTier / getAllFeaturesUpToTier for plan SKUs", () => {
+    for (const sku of PLAN_SKUS) {
       const expected = ALL_MAPPED_FEATURES.filter((f) =>
         hasFeatureAccess(sku, f, false),
       );
@@ -48,7 +48,6 @@ describe("tier plan feature access parity", () => {
       true,
     );
     expect(meetsMinimumTier("HOSPITAL", Tier.ESSENTIAL, false)).toBe(true);
-    expect(meetsMinimumTier("FRONT_DESK", Tier.FRONT_DESK, false)).toBe(true);
   });
 
   it("includes Starter-era GA clinical basics on ESSENTIAL (cumulative access)", () => {

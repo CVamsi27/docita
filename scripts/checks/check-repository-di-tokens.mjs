@@ -14,6 +14,11 @@ const files = gitLsSourceFiles(["apps/api/src/domains"], {
 });
 
 const advisories = [];
+const REPOSITORY_CLASS_RE = /\bPrisma[A-Z][A-Za-z]*Repository\b/g;
+const TOKEN_PROVIDER_RE =
+  /\{[^{}]*\bprovide\s*:\s*([^,\n}]+)[^{}]*\b(?:useClass|useExisting)\s*:\s*(Prisma[A-Z][A-Za-z]*Repository)\b[^{}]*\}/gs;
+const CONCRETE_PROVIDER_RE =
+  /\{[^{}]*\bprovide\s*:\s*(Prisma[A-Z][A-Za-z]*Repository)\b[^{}]*\b(?:useClass|useExisting)\s*:\s*\1\b[^{}]*\}/s;
 
 for (const file of files) {
   let source;
@@ -22,21 +27,36 @@ for (const file of files) {
   } catch {
     continue;
   }
-  const repoClassMatches = [
-    ...source.matchAll(/Prisma[A-Z][A-Za-z]*Repository/g),
-  ];
-  if (repoClassMatches.length === 0) continue;
-  const hasTokenizedProvider =
-    /provide:\s*['"]I[A-Z][A-Za-z]*Repository['"]/.test(source);
-  if (!hasTokenizedProvider) {
+  const repoClasses = new Set(
+    [...source.matchAll(REPOSITORY_CLASS_RE)].map((match) => match[0]),
+  );
+  if (repoClasses.size === 0) continue;
+
+  const tokenizedRepoClasses = new Set();
+  for (const match of source.matchAll(TOKEN_PROVIDER_RE)) {
+    const provideToken = match[1]?.trim() ?? "";
+    const repoClass = match[2];
+    if (!repoClass || CONCRETE_PROVIDER_RE.test(match[0])) continue;
+    if (
+      /^['"]I[A-Z][A-Za-z]*Repository['"]$/.test(provideToken) ||
+      /^[A-Z][A-Z0-9_]*REPOSITORY_TOKEN$/.test(provideToken)
+    ) {
+      tokenizedRepoClasses.add(repoClass);
+    }
+  }
+
+  const unboundRepoClasses = [...repoClasses].filter(
+    (repoClass) => !tokenizedRepoClasses.has(repoClass),
+  );
+  if (unboundRepoClasses.length > 0) {
     advisories.push(
-      `${file}: declares Prisma*Repository but no string-token provider (\`provide: 'I*Repository'\`)`,
+      `${file}: ${unboundRepoClasses.join(", ")} lack token providers`,
     );
   }
 }
 
 reportFindingsAndExit("repository-di-tokens", advisories, {
-  advisory: true,
+  advisory: !process.argv.includes("--enforce"),
   extraMessage:
-    "Add a provider like `{ provide: 'IXRepository', useClass: PrismaXRepository }` so consumers can `@Inject('IXRepository')` instead of binding to the concrete class.",
+    "Add a provider like `{ provide: X_REPOSITORY_TOKEN, useClass: PrismaXRepository }` or `{ provide: 'IXRepository', useClass: PrismaXRepository }` so consumers can inject an abstraction instead of a concrete class.",
 });

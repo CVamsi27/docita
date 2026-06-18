@@ -6,12 +6,14 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/navigation/tabs";
+import { ComingSoonBadge } from "@/components/feedback/coming-soon-badge";
 
 export interface SettingsTabItem {
   value: string;
   label: string;
   icon: ElementType;
   description: string;
+  comingSoon?: boolean;
 }
 
 export interface SettingsCategory {
@@ -83,6 +85,7 @@ export function SettingsPageTabNav({
                     <span className="min-w-0 truncate text-left">
                       {item.label}
                     </span>
+                    {item.comingSoon && <ComingSoonBadge className="ml-auto shrink-0" />}
                   </TabsTrigger>
                 );
               })}

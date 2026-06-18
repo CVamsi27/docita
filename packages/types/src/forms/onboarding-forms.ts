@@ -12,7 +12,7 @@ export const onboardingClinicDetailsSchema = z.object({
 });
 
 export const onboardingPlanSelectionSchema = z.object({
-  tier: z.enum(["CAPTURE", "CORE", "PLUS", "PRO", "ENTERPRISE"]),
+  tier: z.enum(["STARTER", "ESSENTIAL", "PROFESSIONAL", "HOSPITAL", "ENTERPRISE"]),
   billingCycle: z.enum(["MONTHLY", "YEARLY"]),
   referralCode: z.string().optional(),
 });

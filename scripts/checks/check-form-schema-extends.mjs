@@ -13,6 +13,8 @@ import {
 const FORM_SCHEMA_RE = /export\s+const\s+([A-Za-z0-9_]+FormSchema)\s*=/g;
 const EXTENDS_BASE_RE =
   /(?:\.extend|\.pick|\.omit|\.partial|extends|=\s*)[A-Za-z0-9_]+Schema\b/;
+const ALLOW_NO_BASE_RE = /allow-no-base-schema:\s*(.+)$/m;
+const REVIEW_DATE_RE = /\breview=\d{4}-\d{2}-\d{2}\b/;
 
 const files = gitLsSourceFiles(["packages/types/src/forms"], {
   extensions: [".ts"],
@@ -33,6 +35,25 @@ for (const file of files) {
     const after = source.slice(match.index);
     const declarationBody = after.slice(0, 400);
     if (!EXTENDS_BASE_RE.test(declarationBody)) {
+      const nearbyComment = source.slice(
+        Math.max(0, match.index - 300),
+        match.index,
+      );
+      const allow = nearbyComment.match(ALLOW_NO_BASE_RE)?.[1]?.trim();
+      if (
+        allow &&
+        /\bowner=[A-Za-z0-9_-]+\b/.test(allow) &&
+        /\breason=[A-Za-z0-9_-]+\b/.test(allow) &&
+        REVIEW_DATE_RE.test(allow)
+      ) {
+        continue;
+      }
+      if (allow) {
+        advisories.push(
+          `${file}: ${name} has malformed allow-no-base-schema metadata; expected owner=<team> reason=<slug> review=YYYY-MM-DD`,
+        );
+        continue;
+      }
       advisories.push(
         `${file}: ${name} does not appear to derive from a *Schema base`,
       );
@@ -41,7 +62,7 @@ for (const file of files) {
 }
 
 reportFindingsAndExit("form-schema-extends", advisories, {
-  advisory: true,
+  advisory: !process.argv.includes("--enforce"),
   extraMessage:
-    "If the form schema is purely UI-only (no API analogue), add `// allow-no-base-schema: <reason>` near the declaration. Otherwise, derive from packages/types/src/<domain>/ via .extend / .pick / .omit.",
+    "If the form schema is purely UI-only (no API analogue), add `// allow-no-base-schema: owner=<team> reason=<slug> review=YYYY-MM-DD` near the declaration. Otherwise, derive from packages/types/src/<domain>/ via .extend / .pick / .omit.",
 });

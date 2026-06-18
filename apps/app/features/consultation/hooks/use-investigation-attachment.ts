@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useCreateMedicalDocument } from "@workspace/data-access";
 import { MAX_FILE_SIZE } from "@workspace/utils";
-import { api, apiFetch } from "@/lib/api/api-client";
-import { buildCsrfHeaders } from "@/lib/auth/csrf";
+import { uploadFileViaSession } from "@/lib/api/upload-session";
 import { toAbsoluteAppUrl } from "@/lib/utils/app-url";
 
 const ALLOWED_MIME_TYPES = [
@@ -26,21 +26,6 @@ interface UploadArgs {
   appointmentId: string;
   doctorId: string;
   investigationName?: string;
-}
-
-interface UploadSessionCreateResponse {
-  id: string;
-  uploadSecret: string;
-}
-
-interface UploadSessionResponse {
-  id: string;
-  status: string;
-  fileUrl?: string | null;
-}
-
-interface MedicalDocumentResponse {
-  id: string;
 }
 
 /**
@@ -75,6 +60,7 @@ export function validateAttachmentFile(file: File): string | null {
  */
 export function useInvestigationAttachment() {
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const createDocument = useCreateMedicalDocument();
 
   const upload = useCallback(
     async ({
@@ -84,21 +70,7 @@ export function useInvestigationAttachment() {
       doctorId,
       investigationName,
     }: UploadArgs): Promise<InvestigationAttachmentResult> => {
-      const session = await apiFetch<UploadSessionCreateResponse>(
-        "/uploads/session",
-        { method: "POST" },
-      );
-
-      const formData = new FormData();
-      formData.append("file", file);
-      const uploaded = await apiFetch<UploadSessionResponse>(
-        `/uploads/session/${session.id}`,
-        {
-          method: "POST",
-          headers: buildCsrfHeaders({ "X-Upload-Secret": session.uploadSecret }),
-          body: formData,
-        },
-      );
+      const uploaded = await uploadFileViaSession(file);
 
       if (!uploaded.fileUrl) throw new Error("Upload finished but no file URL was returned.");
 
@@ -108,22 +80,19 @@ export function useInvestigationAttachment() {
         : "Investigation report";
       let attachmentDocumentId: string | undefined;
       try {
-        const doc = await api.post<MedicalDocumentResponse>(
-          "/medical-documents",
-          {
-            type: "OTHER",
-            patientId,
-            appointmentId,
-            doctorId,
-            title: label,
-            content: {
-              source: "consultation-investigation",
-              investigationName: investigationName ?? "",
-              fileName: attachmentName,
-            },
-            pdfUrl: uploaded.fileUrl,
+        const doc = await createDocument.mutateAsync({
+          type: "OTHER",
+          patientId,
+          appointmentId,
+          doctorId,
+          title: label,
+          content: {
+            source: "consultation-investigation",
+            investigationName: investigationName ?? "",
+            fileName: attachmentName,
           },
-        );
+          pdfUrl: uploaded.fileUrl,
+        });
         attachmentDocumentId = doc?.id;
       } catch {
         attachmentDocumentId = undefined;
@@ -135,7 +104,7 @@ export function useInvestigationAttachment() {
         attachmentDocumentId,
       };
     },
-    [],
+    [createDocument],
   );
 
   return { upload, uploadingId, setUploadingId };

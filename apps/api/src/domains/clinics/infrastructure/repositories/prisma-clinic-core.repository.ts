@@ -104,6 +104,8 @@ export class PrismaClinicCoreRepository implements IClinicCoreRepository {
         tier: data.tier,
         type: data.type,
         settings: data.settings,
+        abdmEnabled: data.abdmEnabled,
+        hfrFacilityId: data.hfrFacilityId,
       },
     });
   }
@@ -131,6 +133,8 @@ export class PrismaClinicCoreRepository implements IClinicCoreRepository {
             logo: true,
             active: true,
             settings: true,
+            abdmEnabled: true,
+            hfrFacilityId: true,
             createdAt: true,
             updatedAt: true,
           },

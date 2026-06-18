@@ -25,7 +25,7 @@ const STEPS: RhythmStep[] = [
     time: "09:00",
     title: "Walk-in checks in",
     detail:
-      "Reception drops the patient on the live OPD queue with a token. No duplicate register.",
+      "Reception drops the patient on the live patient queue with a token. No duplicate register.",
   },
   {
     time: "10:30",
@@ -85,19 +85,19 @@ export function ClinicRhythmSection() {
     >
       <div className="ui-page-shell">
         <div className="flex items-center gap-3">
-          <span className="r2-eyebrow">A clinic day, in rhythm</span>
+          <span className="r2-eyebrow">A practice day, in rhythm</span>
         </div>
 
         <h2
           id="r2-rhythm-heading"
           className="mt-4 max-w-3xl r2-display-sm text-foreground"
         >
-          Watch <em>one visit</em> move from front desk to follow-up
+          Watch <em>one visit</em> flow from front desk to follow-up
           &mdash;without a single re-typed field.
         </h2>
         <p className="mt-4 max-w-2xl text-base text-muted-foreground">
           The same token carries through queue, EMR, prescription, billing, and
-          WhatsApp&mdash;tap any step to jump, or let it play.
+          WhatsApp&mdash;tap any step to preview, or let it play.
         </p>
       </div>
 
@@ -112,7 +112,7 @@ export function ClinicRhythmSection() {
           <ol
             className="r2-rhythm-list"
             role="list"
-            aria-label="Clinic day timeline"
+            aria-label="Practice day timeline"
           >
             {STEPS.map((step, i) => {
               const isActive = i === active;
@@ -168,7 +168,7 @@ function RhythmStage({ active }: { active: number }) {
     >
       <div className="r2-rhythm-frame" data-frame="0">
         <RhythmCard
-          chrome="OPD QUEUE · 09:00"
+          chrome="PATIENT QUEUE · 09:00"
           rows={[
             ["07", "R. Iyer", "Follow-up", "in"],
             ["08", "K. Patel", "New patient", "waiting"],

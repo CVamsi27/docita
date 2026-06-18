@@ -102,9 +102,9 @@ describe('InvoicesQueryService', () => {
   describe('findAll', () => {
     it('should list invoices for a clinic with invoicing feature', async () => {
       (repository.findClinicFeatureContext as jest.Mock).mockResolvedValueOnce({
-        tier: 'PRO',
+        tier: 'ESSENTIAL',
         intelligenceAddon: false,
-        features: ['INVOICING'],
+        features: {},
       } as never);
       const invoices = [{ id: 'inv-1' }, { id: 'inv-2' }];
       repository.findAll.mockResolvedValueOnce(invoices as never);

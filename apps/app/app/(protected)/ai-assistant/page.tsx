@@ -1,16 +1,7 @@
-"use client";
+import { AIAssistantPageClient } from "./ai-assistant-page-client";
 
-import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/components/auth/feature-gate";
-import { useAIAssistantLogic } from "@/features/ai-assistant/hooks/use-ai-assistant-logic";
-import { AIAssistantUI } from "@/features/ai-assistant/components/AIAssistantUI";
+export const dynamic = "force-dynamic";
 
-export default function AIAssistantPage() {
-  const { state, handlers } = useAIAssistantLogic();
-
-  return (
-    <FeatureGate feature={Feature.AI_PRESCRIPTION_ASSISTANT} showLockedCard>
-      <AIAssistantUI state={state} handlers={handlers} />
-    </FeatureGate>
-  );
+export default function Page() {
+  return <AIAssistantPageClient />;
 }

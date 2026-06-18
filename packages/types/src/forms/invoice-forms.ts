@@ -2,6 +2,7 @@ import { z } from "zod";
 import { taxTreatmentSchema } from "../billing/tax";
 import { invoiceStatusSchema } from "../shared/users";
 
+// allow-no-base-schema: owner=billing reason=ui-major-unit-line-item review=2026-09-30
 export const invoiceLineItemFormSchema = z.object({
   id: z.string().optional(),
   description: z.string().min(1, "Enter a description"),
@@ -14,6 +15,7 @@ export const invoiceLineItemFormSchema = z.object({
   sacCode: z.string().optional(),
 });
 
+// allow-no-base-schema: owner=billing reason=ui-major-unit-invoice-edit review=2026-09-30
 export const invoiceEditFormSchema = z.object({
   status: invoiceStatusSchema,
   discount: z.number().min(0),
@@ -21,6 +23,7 @@ export const invoiceEditFormSchema = z.object({
   items: z.array(invoiceLineItemFormSchema).min(1, "Add at least one item"),
 });
 
+// allow-no-base-schema: owner=billing reason=ui-major-unit-invoice-create review=2026-09-30
 export const createInvoiceFormSchema = z.object({
   patientId: z.string().min(1, "Select a patient"),
   status: z.enum(["PENDING", "PAID", "OVERDUE", "CANCELLED"]),

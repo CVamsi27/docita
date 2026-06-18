@@ -94,3 +94,4 @@ export * from "./navigation/step-progress";
 export * from "./overlay/wizard-dialog";
 export * from "./indicators/category-avatar";
 export * from "./feedback/progress-gauge";
+export * from "./feedback/not-found-content";

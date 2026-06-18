@@ -6,6 +6,7 @@ import { WhatsappModule } from '@/domains/whatsapp/whatsapp-clinic.module';
 import { PatientsModule } from '@/domains/patients/patients.module';
 import { AppointmentsModule } from '@/domains/appointments/appointments.module';
 import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
+import { ComplianceModule } from '@/shared/modules/compliance/compliance.module';
 
 import { PatientPortalAuthService } from './application/services/patient-portal-auth.service';
 import { PatientPortalAuthCommandService } from './application/services/patient-portal-auth-command.service';
@@ -43,6 +44,7 @@ import {
     PatientsModule,
     AppointmentsModule,
     AuditModule,
+    ComplianceModule,
   ],
   controllers: [
     PatientPortalAuthController,

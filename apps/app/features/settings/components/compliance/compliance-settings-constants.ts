@@ -1,5 +1,6 @@
 import {
   dataSubjectRequestTypeSchema,
+  type AppDataSubjectRequest,
   type CreateDataSubjectRequest,
   type DataSubjectRequestStatus,
   type DataSubjectRequestType,
@@ -70,4 +71,22 @@ export function toDisplayText(value: string): string {
 
 export function isOpenRequest(status: DataSubjectRequestStatus): boolean {
   return status === "OPEN" || status === "IN_REVIEW";
+}
+
+/** An unresolved request whose DPDP due date has passed. */
+export function isDsrOverdue(
+  request: Pick<AppDataSubjectRequest, "status" | "dueAt">,
+  now: Date,
+): boolean {
+  if (!isOpenRequest(request.status) || !request.dueAt) return false;
+  return new Date(request.dueAt).getTime() < now.getTime();
+}
+
+/** Overdue requests first (most urgent at the top), original order otherwise. */
+export function sortDsrOverdueFirst<
+  T extends Pick<AppDataSubjectRequest, "status" | "dueAt">,
+>(requests: T[], now: Date): T[] {
+  return [...requests].sort(
+    (a, b) => Number(isDsrOverdue(b, now)) - Number(isDsrOverdue(a, now)),
+  );
 }

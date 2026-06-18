@@ -27,8 +27,22 @@ vi.mock("@workspace/data-access", () => ({
   }),
   usePatientSnapshot: () => ({
     data: {
-      activeConditions: [],
-      activeAllergies: [],
+      activeConditions: [
+        {
+          id: "condition-1",
+          conditionName: "Type 2 diabetes",
+          status: "ACTIVE",
+          severity: "MODERATE",
+        },
+      ],
+      activeAllergies: [
+        {
+          id: "allergy-1",
+          allergen: "Penicillin",
+          severity: "SEVERE",
+          allergyType: "DRUG",
+        },
+      ],
       activeMedications: [],
       latestVitals: {
         systolicBP: 120,
@@ -89,6 +103,22 @@ vi.mock("@workspace/data-access", () => ({
     isError: false,
     refetch: vi.fn(),
   }),
+  useAbdmExternalRecords: () => ({
+    data: [
+      {
+        id: "external-1",
+        patientId: "patient-1",
+        consentRequestId: "consent-1",
+        sourceHipId: "REMOTE_HIP",
+        careContextReference: "REMOTE-CTX-1",
+        hiType: "DiagnosticReport",
+        receivedAt: "2026-06-01T08:00:00.000Z",
+      },
+    ],
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  }),
 }));
 
 describe("SummaryTab", () => {
@@ -119,6 +149,7 @@ describe("SummaryTab", () => {
                 procedureName: "Appendectomy",
               },
             ],
+            abhaVerifiedAt: "2026-05-30T08:00:00.000Z",
           } as never
         }
         patientId="patient-1"
@@ -131,6 +162,10 @@ describe("SummaryTab", () => {
     expect(screen.getByText("87%")).toBeInTheDocument();
     expect(screen.getByText("Latest vitals")).toBeInTheDocument();
     expect(screen.getByText("Recent consultations")).toBeInTheDocument();
+    expect(screen.getByText("External ABDM records")).toBeInTheDocument();
+    expect(
+      screen.getByText("REMOTE_HIP", { exact: false }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Surgeries")).toBeInTheDocument();
     expect(screen.getAllByText("Type 2 diabetes").length).toBeGreaterThan(0);
     expect(
@@ -150,9 +185,8 @@ describe("SummaryTab", () => {
       "href",
       "/patients/patient-1?tab=records&subtab=vitals",
     );
-    expect(screen.getByRole("link", { name: "See all visits" })).toHaveAttribute(
-      "href",
-      "/patients/patient-1?tab=visits",
-    );
+    expect(
+      screen.getByRole("link", { name: "See all visits" }),
+    ).toHaveAttribute("href", "/patients/patient-1?tab=visits");
   });
 });

@@ -2,7 +2,9 @@ import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
-const repoRoot = path.resolve(new URL("../..", import.meta.url).pathname);
+const repoRoot =
+  process.env.DOCITA_CHECK_ROOT ??
+  path.resolve(new URL("../..", import.meta.url).pathname);
 
 export function listTrackedFiles() {
   return execSync("git ls-files", { cwd: repoRoot, encoding: "utf8" })

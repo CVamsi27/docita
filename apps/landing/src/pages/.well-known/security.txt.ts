@@ -1,9 +1,10 @@
 import type { APIRoute } from "astro";
+import { SUPPORT_EMAIL } from "@workspace/types";
 
 const BASE_URL = "https://docita.work";
 
 export const GET: APIRoute = () => {
-  const body = `Contact: mailto:support@docita.work
+  const body = `Contact: mailto:${SUPPORT_EMAIL}
 Preferred-Languages: en
 Canonical: ${BASE_URL}/.well-known/security.txt
 Policy: ${BASE_URL}/privacy

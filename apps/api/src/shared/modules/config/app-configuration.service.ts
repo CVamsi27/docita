@@ -263,6 +263,10 @@ export class AppConfigService {
     return this.externalIntegrations.getAiConfig();
   }
 
+  getGrievanceContactEmail(): string {
+    return this.externalIntegrations.getGrievanceContactEmail();
+  }
+
   getPort(): number {
     return this.appUrl.getPort();
   }

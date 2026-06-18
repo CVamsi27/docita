@@ -4,6 +4,11 @@ import {
   proxyUpstreamApiRequest,
 } from "@workspace/utils/http/upstream-api-proxy";
 import {
+  resolveInternalApiProxyBaseUrl,
+  shouldProxyInternalApiRequest,
+} from "./shared/lib/internal-api-proxy";
+import { isPortalPath } from "./shared/lib/internal-portal-routes";
+import {
   applyInternalSecurityHeaders,
   buildInternalContentSecurityPolicy,
 } from "./shared/lib/security/security-headers";
@@ -18,7 +23,6 @@ import {
  * keep hot-reload functional (HMR uses inline scripts we cannot sign).
  */
 const isProduction = process.env.NODE_ENV === "production";
-const isCloudflareBuild = process.env["DOCITA_CLOUDFLARE"] === "1";
 
 function generateNonce(): string {
   const bytes = new Uint8Array(16);
@@ -61,37 +65,19 @@ function applyHeadersWithNonce(
 const STATIC_EXT =
   /\.(?:svg|png|jpg|jpeg|gif|webp|ico|avif|woff2?|ttf|txt|xml|json|webmanifest)$/i;
 
-/** Routes served by the Internal Console (see `app/(protected)`). */
-const PORTAL_ROUTE_PREFIXES = [
-  "/dashboard",
-  "/users",
-  "/admins",
-  "/payment-processing",
-  "/billing",
-  "/pricing",
-  "/analytics",
-  "/system-monitoring",
-  "/feedback",
-  "/support",
-  "/broadcasts",
-  "/logs",
-  "/audits",
-  "/performance",
-  "/doctors",
-] as const;
-
-function isPortalPath(pathname: string): boolean {
-  return PORTAL_ROUTE_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-  );
-}
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (isCloudflareBuild) {
-    const pathSegments = extractApiV1PathSegments(pathname);
-    if (pathSegments !== null) return proxyUpstreamApiRequest(request, pathSegments);
+  const pathSegments = extractApiV1PathSegments(pathname);
+  if (
+    pathSegments !== null &&
+    shouldProxyInternalApiRequest(request.nextUrl.hostname)
+  ) {
+    return proxyUpstreamApiRequest(
+      request,
+      pathSegments,
+      resolveInternalApiProxyBaseUrl(request.nextUrl.hostname),
+    );
   }
 
   if (
@@ -102,10 +88,13 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/fonts/") ||
     STATIC_EXT.test(pathname)
   ) {
-    return applyHeadersWithNonce(request, NextResponse.next());
+    return applyHeadersWithNonce(request, NextResponse.next(), {
+      render: pathname.startsWith("/api/"),
+    });
   }
 
-  if (pathname === "/robots.txt") return applyHeadersWithNonce(request, NextResponse.next());
+  if (pathname === "/robots.txt")
+    return applyHeadersWithNonce(request, NextResponse.next());
 
   if (pathname === "/") {
     return applyHeadersWithNonce(request, NextResponse.next(), {
@@ -120,7 +109,8 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  if (pathname === "/dashboard/doctors") return applyHeadersWithNonce(
+  if (pathname === "/dashboard/doctors")
+    return applyHeadersWithNonce(
       request,
       NextResponse.redirect(new URL("/doctors", request.url)),
     );
@@ -138,7 +128,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-// jscpd:ignore-start
+  // jscpd:ignore-start
   matcher: [
     {
       source:

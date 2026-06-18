@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import type { Metadata } from "next";
 import { PublicBookingPage } from "@/features/public-booking/public-booking-page";
 

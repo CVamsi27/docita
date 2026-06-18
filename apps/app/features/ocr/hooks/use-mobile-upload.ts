@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { apiFetch } from "@/lib/api/api-client";
+import {
+  createUploadSession,
+  fetchUploadSessionStatus,
+} from "@/lib/api/upload-session";
 import { browserBlob } from "@/lib/auth/browser-request";
 import { toAbsoluteAppUrl } from "@/lib/utils/app-url";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
@@ -34,18 +37,7 @@ export const useMobileUpload = () => {
       clearPolling();
       pollIntervalRef.current = setInterval(async () => {
         try {
-          const cacheBuster = Date.now();
-          const data = await apiFetch<{ status?: string; fileUrl?: string }>(
-            `/uploads/session/${id}?t=${cacheBuster}`,
-            {
-              method: "GET",
-              cache: "no-store",
-              headers: {
-                "Cache-Control": "no-cache, no-store, must-revalidate",
-                Pragma: "no-cache",
-              },
-            },
-          );
+          const data = await fetchUploadSessionStatus(id);
 
           if (data.status === "uploaded" && data.fileUrl) {
             clearPolling();
@@ -83,12 +75,7 @@ export const useMobileUpload = () => {
   const startMobileUpload = useCallback(
     async (onUploadComplete: (file: File, url: string) => void) => {
       try {
-        const data = await apiFetch<{ id: string; uploadSecret: string }>(
-          `/uploads/session`,
-          {
-            method: "POST",
-          },
-        );
+        const data = await createUploadSession();
 
         setQrUrl(
           toAbsoluteAppUrl(

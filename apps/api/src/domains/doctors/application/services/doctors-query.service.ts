@@ -63,6 +63,7 @@ export class DoctorsQueryService {
     registrationNumber?: string | null;
     registrationCouncil?: string | null;
     registrationStateCode?: string | null;
+    hprId?: string | null;
     verificationStatus?: string | null;
     verificationReason?: string | null;
     verificationCheckedAt?: Date | string | null;
@@ -85,6 +86,7 @@ export class DoctorsQueryService {
       registrationNumber: doctor.registrationNumber,
       registrationCouncil: doctor.registrationCouncil,
       registrationStateCode: doctor.registrationStateCode,
+      hprId: doctor.hprId,
       verificationStatus: doctor.verificationStatus,
       verificationReason: doctor.verificationReason,
       verificationCheckedAt: doctor.verificationCheckedAt,
@@ -117,6 +119,7 @@ export class DoctorsQueryService {
           registrationNumber: true,
           registrationCouncil: true,
           registrationStateCode: true,
+          hprId: true,
           verificationStatus: true,
           verificationReason: true,
           verificationCheckedAt: true,
@@ -156,6 +159,7 @@ export class DoctorsQueryService {
         ...DOCTOR_DETAIL_SELECT,
         registrationCouncil: true,
         registrationStateCode: true,
+        hprId: true,
         registrationCertificateUrl: true,
         verifiedByAdminId: true,
         verifiedByAdminAt: true,

@@ -29,6 +29,10 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
         form={dialog.form}
         dpdpAccepted={dialog.dpdpAccepted}
         isPending={dialog.isPending}
+        abhaAddress={dialog.abhaAddress}
+        abhaStatus={dialog.abhaStatus}
+        createdPatientId={dialog.createdPatientId}
+        onVerifyAbha={dialog.handleVerifyCreatedAbha}
         onSubmit={dialog.handleSubmit}
         onCancel={() => dialog.handleClose(false)}
       />

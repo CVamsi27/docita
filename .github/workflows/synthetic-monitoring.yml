@@ -32,4 +32,7 @@ jobs:
           SYNTHETIC_MONITOR_PASSWORD: ${{ secrets.SYNTHETIC_MONITOR_PASSWORD }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           OPS_ALERT_WEBHOOK_URL: ${{ secrets.OPS_ALERT_WEBHOOK_URL }}
+          # Enables one-shot Fly machine restart when the API looks frozen on
+          # resume (see fly-recovery.mjs). Reuses the existing api deploy token.
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
         run: node scripts/monitoring/synthetic/run-probes.mjs

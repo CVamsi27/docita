@@ -2,6 +2,7 @@ import { z } from "zod";
 import { genderSchema } from "../shared/users";
 import { dpdpConsentPayloadSchema } from "./dpdp";
 import { pastDateOfBirthSchema } from "../patient/patients";
+import { abhaAddressSchema, abhaNumberSchema } from "../clinical/abdm";
 
 export { pastDateOfBirthSchema };
 
@@ -20,6 +21,10 @@ export const patientResponseSchema = z
   insuranceProvider: z.string().optional(),
   insurancePolicyNumber: z.string().optional(),
   insuranceGroupNumber: z.string().optional(),
+  abhaAddress: z.string().optional(),
+  abhaNumber: abhaNumberSchema.nullable().optional(),
+  abhaKycName: z.string().nullable().optional(),
+  abhaVerifiedAt: z.union([z.string(), z.date()]).nullable().optional(),
   metadata: z.record(z.unknown()).optional(),
   createdAt: z.union([z.string(), z.date()]),
   updatedAt: z.union([z.string(), z.date()]),
@@ -44,6 +49,7 @@ export const createPatientRequestSchema = z
   insuranceProvider: z.string().max(100).nullable().optional(),
   insurancePolicyNumber: z.string().max(100).nullable().optional(),
   insuranceGroupNumber: z.string().max(100).nullable().optional(),
+  abhaAddress: abhaAddressSchema.nullable().optional(),
   metadata: z.record(z.unknown()).nullable().optional(),
   clinicId: z.string().optional(),
   /**
@@ -114,6 +120,7 @@ export const patientDomainCreateSchema = createPatientRequestSchema
     insuranceProvider: normalizeNullable(input.insuranceProvider),
     insurancePolicyNumber: normalizeNullable(input.insurancePolicyNumber),
     insuranceGroupNumber: normalizeNullable(input.insuranceGroupNumber),
+    abhaAddress: normalizeNullable(input.abhaAddress),
     metadata: normalizeNullable(input.metadata),
   }));
 
@@ -130,6 +137,7 @@ export const patientDomainUpdateSchema = updatePatientRequestSchema.transform(
     insuranceProvider: normalizeNullable(input.insuranceProvider),
     insurancePolicyNumber: normalizeNullable(input.insurancePolicyNumber),
     insuranceGroupNumber: normalizeNullable(input.insuranceGroupNumber),
+    abhaAddress: normalizeNullable(input.abhaAddress),
     metadata: normalizeNullable(input.metadata),
   }),
 );
@@ -149,6 +157,10 @@ export const patientPersistenceRecordSchema = z.object({
   insuranceProvider: z.string().nullable().optional(),
   insurancePolicyNumber: z.string().nullable().optional(),
   insuranceGroupNumber: z.string().nullable().optional(),
+  abhaAddress: z.string().nullable().optional(),
+  abhaNumber: z.string().nullable().optional(),
+  abhaKycName: z.string().nullable().optional(),
+  abhaVerifiedAt: z.date().nullable().optional(),
   customData: z.unknown().nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),

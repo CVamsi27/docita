@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Sparkles } from "lucide-react";
-import { recommendTierForTeamSize } from "@workspace/utils";
+import { recommendTierForTeamSize, getTierName } from "@workspace/utils";
 import {
   OnboardingStepBody,
   OnboardingStepCard,
@@ -24,7 +24,6 @@ import {
   tierSchema,
   type PlanMode,
 } from "@workspace/types";
-import { getTierName } from "@workspace/utils";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import {
   DISPLAY_TIERS,

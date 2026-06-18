@@ -1,4 +1,6 @@
-export const SUPPORT_EMAIL = "support@docita.work";
+import { SUPPORT_EMAIL as SHARED_SUPPORT_EMAIL } from "@workspace/types";
+
+export const SUPPORT_EMAIL = SHARED_SUPPORT_EMAIL;
 export const ADMIN_EMAIL = "admin@docita.work";
 
 /** Prefilled text when users open WhatsApp for general product help. */
@@ -16,7 +18,8 @@ export const SUPPORT_WHATSAPP_MESSAGE_PUBLIC_BOOKING =
 const FALLBACK_SUPPORT_PHONE = "918790311010";
 
 export function getSupportPhoneNumber(): string {
-  const configuredPhone = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER?.trim();
+  const configuredPhone =
+    process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER?.trim();
   return configuredPhone || FALLBACK_SUPPORT_PHONE;
 }
 

@@ -1,8 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { apiFetch } from "@/lib/api/api-client";
 import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
+import {
+  fetchPatientAppointments,
+  fetchPatientDocuments,
+  fetchPatientWithMedicalHistory,
+} from "@/lib/api/patient-data.api";
 import {
   Appointment,
   Document,
@@ -65,14 +69,12 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
       setError(null);
 
       const [patientData, appointmentsData, documentsData] = await Promise.all([
-        apiFetch<PatientWithMedicalHistory>(`/patients/${patientId}`),
+        fetchPatientWithMedicalHistory(patientId),
         tierCalendarOk
-          ? apiFetch<{ items: Appointment[] }>(
-              `/appointments?patientId=${patientId}&limit=100`,
-            )
+          ? fetchPatientAppointments(patientId)
           : Promise.resolve({ items: [] satisfies Appointment[] }),
         tierDocsOk
-          ? apiFetch<Document[]>(`/medical-documents?patientId=${patientId}`)
+          ? fetchPatientDocuments(patientId)
           : Promise.resolve([] satisfies Document[]),
       ]);
 

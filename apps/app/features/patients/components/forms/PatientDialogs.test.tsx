@@ -1,6 +1,20 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
-import { AddPatientDialog } from "./PatientDialogs";
+import {
+  act,
+  fireEvent,
+  render,
+  renderHook,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DPDP_NOTICE_VERSION } from "@workspace/types";
+import { AddPatientDialog, EditPatientDialog } from "./PatientDialogs";
+import { useAddPatientDialog } from "./dialogs/use-add-patient-dialog";
+
+const createPatientMock = vi.fn();
+const updatePatientMock = vi.fn();
+const verifyAbhaMock = vi.fn();
+const requestAbhaOtpMock = vi.fn();
 
 vi.mock("@/lib/contexts/clinic-context", () => ({
   useClinic: () => ({
@@ -10,16 +24,54 @@ vi.mock("@/lib/contexts/clinic-context", () => ({
 
 vi.mock("@workspace/data-access", () => ({
   useCreatePatient: () => ({
-    mutateAsync: vi.fn().mockResolvedValue(undefined),
+    mutateAsync: createPatientMock,
     isPending: false,
   }),
   useUpdatePatient: () => ({
-    mutateAsync: vi.fn().mockResolvedValue(undefined),
+    mutateAsync: updatePatientMock,
     isPending: false,
   }),
+  useVerifyPatientAbha: () => ({
+    mutateAsync: verifyAbhaMock,
+    isPending: false,
+  }),
+  useRequestAbhaOtp: () => ({
+    mutateAsync: requestAbhaOtpMock,
+    isPending: false,
+  }),
+  useVerifyAbhaOtp: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  APIRequestError: class APIRequestError extends Error {},
 }));
 
 describe("AddPatientDialog", () => {
+  beforeEach(() => {
+    createPatientMock.mockReset();
+    updatePatientMock.mockReset();
+    verifyAbhaMock.mockReset();
+    requestAbhaOtpMock.mockReset();
+    createPatientMock.mockResolvedValue({
+      id: "patient-1",
+      clinicId: "clinic-1",
+      firstName: "Asha",
+      lastName: "Verma",
+      phoneNumber: "9876543210",
+      gender: "FEMALE",
+      dateOfBirth: "1990-01-01",
+      createdAt: "2026-06-11T00:00:00.000Z",
+      updatedAt: "2026-06-11T00:00:00.000Z",
+      version: 1,
+    });
+    updatePatientMock.mockResolvedValue({});
+    verifyAbhaMock.mockResolvedValue({
+      verified: true,
+      abhaAddress: "asha.verma@abdm",
+      abhaNumber: "12345678901234",
+      kycName: "Asha Verma",
+      verifiedAt: "2026-06-11T00:00:00.000Z",
+      error: null,
+    });
+  });
+
   it("does not render when closed", () => {
     render(<AddPatientDialog open={false} />);
 
@@ -34,6 +86,7 @@ describe("AddPatientDialog", () => {
     expect(screen.getByLabelText("Last Name *")).toBeInTheDocument();
     expect(screen.getByLabelText("Phone")).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
+    expect(screen.getByLabelText("ABHA Address")).toBeInTheDocument();
     expect(screen.getByLabelText("Gender *")).toBeInTheDocument();
     expect(screen.getByLabelText(/Date of Birth/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText("First name")).toBeInTheDocument();
@@ -58,5 +111,78 @@ describe("AddPatientDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("verifies ABHA after creating a patient with an ABHA address", async () => {
+    const { result } = renderHook(() => useAddPatientDialog({}));
+
+    await act(async () => {
+      result.current.form.setValue("firstName", "Asha");
+      result.current.form.setValue("lastName", "Verma");
+      result.current.form.setValue("phoneNumber", "9876543210");
+      result.current.form.setValue("gender", "FEMALE");
+      result.current.form.setValue("dateOfBirth", "1990-01-01");
+      result.current.form.setValue("abhaAddress", "asha.verma@abdm");
+      result.current.form.setValue("dpdpConsent", {
+        accepted: true,
+        noticeVersion: DPDP_NOTICE_VERSION,
+        relation: "SELF",
+      });
+      await result.current.handleSubmit();
+    });
+
+    await waitFor(() => {
+      expect(createPatientMock).toHaveBeenCalled();
+      expect(verifyAbhaMock).toHaveBeenCalledWith({
+        patientId: "patient-1",
+        abhaAddress: "asha.verma@abdm",
+      });
+    });
+  });
+});
+
+describe("EditPatientDialog", () => {
+  beforeEach(() => {
+    createPatientMock.mockReset();
+    updatePatientMock.mockReset();
+    requestAbhaOtpMock.mockReset();
+    requestAbhaOtpMock.mockResolvedValue({
+      txnId: "txn-1",
+    });
+  });
+
+  it("opens the OTP verification flow and requests OTP for mobile", async () => {
+    render(
+      <EditPatientDialog
+        open
+        patient={{
+          id: "patient-1",
+          clinicId: "clinic-1",
+          firstName: "Asha",
+          lastName: "Verma",
+          phoneNumber: "9876543210",
+          gender: "FEMALE",
+          dateOfBirth: "1990-01-01",
+          abhaAddress: "asha.verma@abdm",
+          createdAt: "2026-06-11T00:00:00.000Z",
+          updatedAt: "2026-06-11T00:00:00.000Z",
+          version: 1,
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Verify via OTP" }));
+
+    // Step 1: the OTP dialog opens with a mobile-number input.
+    const mobileInput = await screen.findByLabelText("Mobile number");
+    fireEvent.change(mobileInput, { target: { value: "9876543210" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send OTP" }));
+
+    await waitFor(() => {
+      expect(requestAbhaOtpMock).toHaveBeenCalledWith({
+        patientId: "patient-1",
+        mobile: "9876543210",
+      });
+    });
   });
 });

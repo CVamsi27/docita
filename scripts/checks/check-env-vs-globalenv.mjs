@@ -14,7 +14,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const REPO_ROOT = join(__dirname, "..", "..");
+const REPO_ROOT = process.env.DOCITA_CHECK_ROOT ?? join(__dirname, "..", "..");
 
 const ENV_FILES = [
   ".env.example",
@@ -158,8 +158,9 @@ async function main() {
     return;
   }
 
+  const enforce = process.argv.includes("--enforce");
   console.warn(
-    `[env-vs-globalenv] ADVISORY: ${missing.length} env vars in .env.example files are not in turbo.json globalEnv / task env:`,
+    `[env-vs-globalenv] ${enforce ? "FAILED" : "ADVISORY"}: ${missing.length} env vars in .env.example files are not in turbo.json globalEnv / task env:`,
   );
   for (const key of missing.sort()) {
     console.warn(`  - ${key}`);
@@ -167,6 +168,7 @@ async function main() {
   console.warn(
     "Add to turbo.json#globalEnv (build cache invalidation) or extend the ALLOWLIST in this script if the var is read at process start only.",
   );
+  if (enforce) process.exit(1);
 }
 
 main().catch((err) => {

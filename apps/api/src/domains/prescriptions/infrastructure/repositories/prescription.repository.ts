@@ -286,4 +286,19 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
 
     return doctor;
   }
+
+  async findAppointmentType(
+    appointmentId: string,
+    clinicId?: string,
+  ): Promise<string | null> {
+    const appointment = await this.getReadClient().appointment.findFirst({
+      where: {
+        id: appointmentId,
+        ...(clinicId ? { clinicId } : {}),
+      },
+      select: { type: true },
+    });
+
+    return appointment?.type ?? null;
+  }
 }

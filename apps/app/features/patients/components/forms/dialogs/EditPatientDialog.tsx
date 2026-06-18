@@ -1,30 +1,53 @@
 "use client";
 
-import React, { FC } from "react";
+import React, { FC, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { Patient } from "@workspace/types";
+import { Patient, type AbhaVerificationResult } from "@workspace/types";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { useUpdatePatient } from "@workspace/data-access";
 import { FormDialog } from "@workspace/ui/components/form/form-dialog";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  Form,
-} from "@workspace/ui/components/form/form";
+import { Form } from "@workspace/ui/components/form/form";
 import { updatePatientRequestSchema } from "@workspace/types";
 import { parseStringEnumMember } from "@workspace/utils";
 import { validatePatientPhoneNumberForCountry } from "@/features/patients/rules/patient-rules";
-import { PatientBasicInfoFields, PatientDemographicFields, DialogActionButtons } from "./EditPatientDialogSections";
+import {
+  PatientBasicInfoFields,
+  PatientDemographicFields,
+  DialogActionButtons,
+} from "./EditPatientDialogSections";
 import { GENDER_VALUES } from "./EditPatientDialogHelpers";
+import {
+  AbhaVerificationField,
+  type AbhaVerificationUiState,
+} from "./abha-verification-field";
+import { getAbhaVerificationResultState } from "./abha-verification-errors";
+import { AbhaOtpVerificationDialog } from "./abha-otp-verification-dialog";
 
 interface EditPatientDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   patient?: Patient | null;
   onPatientUpdated?: () => void;
+}
+
+function getInitialAbhaStatus(
+  patient?: Patient | null,
+): AbhaVerificationUiState {
+  if (patient?.abhaVerifiedAt) {
+    return {
+      kind: "verified",
+      message: "ABHA verified",
+    };
+  }
+  return {
+    kind: "idle",
+    message: "Verify the ABHA address after saving or editing the value.",
+  };
 }
 
 export const EditPatientDialog: FC<EditPatientDialogProps> = ({
@@ -35,7 +58,14 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
 }) => {
   const updatePatient = useUpdatePatient(patient?.id ?? "");
   const { clinic } = useClinic();
+  const [otpDialogOpen, setOtpDialogOpen] = useState(false);
   type PatientUpdateFormValues = z.infer<typeof updatePatientRequestSchema>;
+  const initialAbhaStatus = useMemo(
+    () => getInitialAbhaStatus(patient),
+    [patient],
+  );
+  const [abhaStatus, setAbhaStatus] =
+    useState<AbhaVerificationUiState>(initialAbhaStatus);
 
   const form = useForm<PatientUpdateFormValues>({
     resolver: zodResolver(updatePatientRequestSchema),
@@ -52,12 +82,18 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
             ? String(patient.dateOfBirth).split("T")[0]
             : null,
           address: typeof patient.address === "string" ? patient.address : null,
+          abhaAddress: patient.abhaAddress ?? null,
           mrn: patient.mrn ?? null,
           metadata: null,
           clinicId: undefined,
         }
       : undefined,
   });
+  const abhaAddress = form.watch("abhaAddress");
+
+  useEffect(() => {
+    setAbhaStatus(initialAbhaStatus);
+  }, [initialAbhaStatus]);
 
   const handleInvalidSubmit = () => {
     showUserFacingErrorToast(
@@ -96,6 +132,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
           phoneNumber: values.phoneNumber?.trim() || undefined,
           email: values.email?.trim() || undefined,
           dateOfBirth: values.dateOfBirth || undefined,
+          abhaAddress: values.abhaAddress?.trim() || undefined,
         }),
       );
       toast.success("Patient updated successfully");
@@ -107,6 +144,13 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
       );
     }
   }, handleInvalidSubmit);
+
+  const handleAbhaVerified = (result: AbhaVerificationResult) => {
+    setAbhaStatus(getAbhaVerificationResultState(result));
+    if (result.verified) {
+      onPatientUpdated?.();
+    }
+  };
 
   if (!patient) return null;
 
@@ -121,6 +165,17 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
         <form onSubmit={handleSubmit} noValidate className="space-y-6">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <PatientBasicInfoFields control={form.control} />
+            <AbhaVerificationField
+              control={form.control}
+              name="abhaAddress"
+              currentValue={abhaAddress}
+              isPending={false}
+              patientId={patient.id}
+              status={abhaStatus}
+              onVerify={() => setOtpDialogOpen(true)}
+              verifyLabel="Verify via OTP"
+              requireValueToVerify={false}
+            />
             <PatientDemographicFields control={form.control} />
           </div>
 
@@ -130,6 +185,14 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
           />
         </form>
       </Form>
+      {patient.id ? (
+        <AbhaOtpVerificationDialog
+          open={otpDialogOpen}
+          onOpenChange={setOtpDialogOpen}
+          patientId={patient.id}
+          onVerified={handleAbhaVerified}
+        />
+      ) : null}
     </FormDialog>
   );
 };

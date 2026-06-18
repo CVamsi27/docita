@@ -11,6 +11,7 @@ interface InvoiceHeaderSectionProps {
   invoiceId: string;
   invoice: {
     id?: string;
+    invoiceNumber?: string | null;
     status: string;
     whatsappStatus?: string | null;
     whatsappSentAt?: string | Date | null;
@@ -42,7 +43,9 @@ export const InvoiceHeaderSection: FC<InvoiceHeaderSectionProps> = ({
         <div className="flex flex-wrap items-center gap-2 min-w-0">
           <BackButton fallback="/invoices" className="shrink-0" />
           <h1 className="ui-page-title text-[var(--fs-xl)] sm:text-[var(--fs-2xl)]">
-            Invoice #{(invoice.id ?? "").substring(0, 8).toUpperCase()}
+            Invoice #
+            {invoice.invoiceNumber ??
+              (invoice.id ?? "").substring(0, 8).toUpperCase()}
           </h1>
           <StatusBadge status={invoice.status} />
         </div>

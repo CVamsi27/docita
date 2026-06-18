@@ -33,6 +33,7 @@ model User {
   registrationNumber         String?
   registrationCouncil        String?
   registrationStateCode      String?
+  hprId                      String?
   signatureUrl               String?
   signatureUploadedAt        DateTime?                @db.Timestamptz(3)
   bio                        String?
@@ -114,6 +115,7 @@ model User {
   lab                          Lab?                     @relation(fields: [labId], references: [id])
 
   @@index([clinicId])
+  @@index([hprId])
   @@index([specialization])
   @@index([clinicId, role, createdAt], map: "User_clinicId_role_createdAt_idx")
   @@index([verificationStatus])
@@ -339,6 +341,9 @@ model Patient {
   whatsappConversations       WhatsappConversation[]
   whatsappBroadcastRecipients WhatsAppBroadcastRecipient[]
   abhaAddress                 String?
+  abhaNumber                  String?
+  abhaKycName                 String?
+  abhaVerifiedAt              DateTime?                    @db.Timestamptz(3)
   deletedAt                   DateTime?                    @db.Timestamptz(3)
   medicalConditions           PatientMedicalCondition[]
   patientAllergies            PatientAllergy[]
@@ -358,6 +363,10 @@ model Patient {
   patientDoctors              PatientDoctor[]
   dataSubjectRequests         DataSubjectRequest[]
   insuranceClaims             InsuranceClaim[]
+  abdmCareContexts            AbdmCareContext[]
+  abdmTransactions            AbdmTransaction[]
+  abdmConsentRequests         AbdmConsentRequest[]
+  abdmExternalRecords         AbdmExternalRecord[]
 
   @@unique([clinicId, mrn], map: "Patient_clinicId_mrn_key")
   @@index([mrn])
@@ -789,6 +798,7 @@ model Medication {
   prescription    Prescription     @relation(fields: [prescriptionId], references: [id])
   medicationDoses MedicationDose[]
 
+  @@index([prescriptionId])
   @@index([ndcCode])
   @@index([rxNormCui])
   @@index([name])
@@ -1159,8 +1169,7 @@ model Clinic {
   active                       Boolean                   @default(true)
   tier                         ClinicTier                @default(STARTER)
   /// Top-level Full/Front Desk/Core toggle paired with `tier`.
-  /// Legacy FRONT_DESK_* rows on `tier` ignore this column and are surfaced
-  /// as mode = FRONT_DESK by `mapDbClinicTierToTierAndMode`.
+  /// PlanMode.FRONT_DESK = reception/queue/billing; clinical features blocked.
   planMode                     PlanMode                  @default(FULL)
   type                         ClinicType                @default(GENERAL)
   /// @json:jsonObjectSchema
@@ -1195,6 +1204,8 @@ model Clinic {
   queueBufferMinutes           Int                       @default(10)
   useDoctorQueues              Boolean                   @default(false)
   mrnPrefix                    String?
+  abdmEnabled                  Boolean                   @default(false)
+  hfrFacilityId                String?
   razorpayCustomerId           String?
   referralCode                 String?                   @unique
   domain                       String?
@@ -1271,6 +1282,180 @@ model Clinic {
   inventoryMovements           InventoryMovement[]
   apiQuota                     ClinicApiQuota?
   insuranceClaims              InsuranceClaim[]
+  abdmCareContexts             AbdmCareContext[]
+  abdmTransactions             AbdmTransaction[]
+  abdmConsentRequests          AbdmConsentRequest[]
+  abdmExternalRecords          AbdmExternalRecord[]
+
+  @@index([hfrFacilityId])
+}
+
+model AbdmCareContext {
+  id              String                @id @default(cuid())
+  clinicId        String
+  patientId       String
+  sourceType      AbdmCareContextSource
+  sourceId        String
+  referenceNumber String
+  display         String
+  hiType          String
+  status          AbdmCareContextStatus @default(READY)
+  /// @json:jsonObjectSchema
+  fhirBundle      Json?
+  linkedAt        DateTime?             @db.Timestamptz(3)
+  lastSharedAt    DateTime?             @db.Timestamptz(3)
+  createdAt       DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime              @updatedAt @db.Timestamptz(3)
+
+  clinic       Clinic               @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patient      Patient              @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  transactions AbdmTransaction[]
+  externalRows AbdmExternalRecord[]
+
+  @@unique([clinicId, sourceType, sourceId], map: "AbdmCareContext_clinic_source_key")
+  @@unique([clinicId, referenceNumber], map: "AbdmCareContext_clinic_ref_key")
+  @@index([clinicId, patientId])
+  @@index([clinicId, status])
+  @@index([patientId, createdAt])
+}
+
+model AbdmTransaction {
+  id            String                   @id @default(cuid())
+  clinicId      String
+  patientId     String?
+  careContextId String?
+  type          AbdmTransactionType
+  direction     AbdmTransactionDirection
+  status        AbdmTransactionStatus    @default(PENDING)
+  requestId     String?
+  transactionId String?
+  correlationId String?
+  /// @json:jsonObjectSchema
+  payload       Json?
+  error         String?
+  retryCount    Int                      @default(0)
+  nextRetryAt   DateTime?                @db.Timestamptz(3)
+  createdAt     DateTime                 @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime                 @updatedAt @db.Timestamptz(3)
+
+  clinic      Clinic           @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patient     Patient?         @relation(fields: [patientId], references: [id], onDelete: SetNull)
+  careContext AbdmCareContext? @relation(fields: [careContextId], references: [id], onDelete: SetNull)
+
+  @@index([clinicId, status, createdAt])
+  @@index([clinicId, type, createdAt])
+  @@index([requestId])
+  @@index([transactionId])
+  @@index([nextRetryAt])
+}
+
+model AbdmConsentRequest {
+  id          String                   @id @default(cuid())
+  clinicId    String
+  patientId   String
+  abhaAddress String
+  purposeCode String
+  purposeText String
+  status      AbdmConsentRequestStatus @default(DRAFT)
+  requestId   String?
+  consentId   String?
+  artefactId  String?
+  requestedAt DateTime?                @db.Timestamptz(3)
+  grantedAt   DateTime?                @db.Timestamptz(3)
+  expiresAt   DateTime?                @db.Timestamptz(3)
+  /// @json:jsonObjectSchema
+  rawArtifact Json?
+  createdAt   DateTime                 @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime                 @updatedAt @db.Timestamptz(3)
+
+  clinic          Clinic               @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patient         Patient              @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  externalRecords AbdmExternalRecord[]
+
+  @@index([clinicId, patientId])
+  @@index([clinicId, status, createdAt])
+  @@index([requestId])
+  @@index([consentId])
+}
+
+model AbdmExternalRecord {
+  id                   String   @id @default(cuid())
+  clinicId             String
+  patientId            String
+  consentRequestId     String?
+  sourceHipId          String?
+  careContextReference String?
+  careContextId        String?
+  hiType               String
+  /// @json:jsonObjectSchema
+  fhirBundle           Json?
+  receivedAt           DateTime @default(now()) @db.Timestamptz(3)
+  createdAt            DateTime @default(now()) @db.Timestamptz(3)
+
+  clinic         Clinic              @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patient        Patient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  consentRequest AbdmConsentRequest? @relation(fields: [consentRequestId], references: [id], onDelete: SetNull)
+  careContext    AbdmCareContext?    @relation(fields: [careContextId], references: [id], onDelete: SetNull)
+
+  @@index([clinicId, patientId, receivedAt])
+  @@index([consentRequestId])
+  @@index([careContextReference])
+}
+
+enum AbdmCareContextSource {
+  OP_CONSULTATION
+  PRESCRIPTION
+  DIAGNOSTIC_REPORT
+  DISCHARGE_SUMMARY
+  HEALTH_DOCUMENT
+  INVOICE
+}
+
+enum AbdmCareContextStatus {
+  READY
+  LINK_REQUESTED
+  LINKED
+  SHARE_REQUESTED
+  SHARED
+  FAILED
+}
+
+enum AbdmTransactionType {
+  M1_ABHA_VERIFY
+  M2_GENERATE_CONTEXT
+  M2_LINK_CONTEXT
+  M2_DISCOVER_CALLBACK
+  M2_LINK_CALLBACK
+  M2_DATA_REQUEST
+  M2_DATA_PUSH
+  M2_NOTIFY
+  M3_CONSENT_REQUEST
+  M3_CONSENT_CALLBACK
+  M3_DATA_FETCH
+}
+
+enum AbdmTransactionDirection {
+  INBOUND
+  OUTBOUND
+  INTERNAL
+}
+
+enum AbdmTransactionStatus {
+  PENDING
+  ACKNOWLEDGED
+  SUCCEEDED
+  FAILED
+  RETRYABLE
+}
+
+enum AbdmConsentRequestStatus {
+  DRAFT
+  REQUESTED
+  GRANTED
+  DENIED
+  EXPIRED
+  REVOKED
+  FAILED
 }
 
 model ClinicSecret {
@@ -2646,9 +2831,6 @@ enum ClinicTier {
   PROFESSIONAL
   HOSPITAL
   ENTERPRISE
-  FRONT_DESK
-  FRONT_DESK_CLINIC
-  FRONT_DESK_HOSPITAL
 }
 
 /// Top-level mode toggle that pairs with `ClinicTier` to produce a billed plan.

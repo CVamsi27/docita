@@ -5,15 +5,12 @@ import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { APIRequestError } from "@workspace/data-access";
 import { getUserFacingErrorMessage } from "@workspace/utils";
-import { buildCsrfHeaders } from "@/lib/auth/csrf";
-import { apiFetch } from "@/lib/api/api-client";
 import { appQueryKeys } from "@/lib/api/query-keys";
-
-interface SignatureSessionStatus {
-  status?: string;
-  uploaded?: boolean;
-  fileUrl?: string | null;
-}
+import {
+  fetchSlaSignatureSessionStatus,
+  uploadSlaSignatureSession,
+  type SignatureSessionStatus,
+} from "@/features/onboarding/api/onboarding.api";
 
 export function useSignatureUpload() {
   const searchParams = useSearchParams();
@@ -46,10 +43,7 @@ export function useSignatureUpload() {
           "This signature link is incomplete. Please open the full link again.",
         );
       }
-      return await apiFetch<SignatureSessionStatus>(
-        `/onboarding/${onboardingId}/sla-signature-session/${sessionId}/status?ts=${Date.now()}`,
-        { method: "GET", cache: "no-store" },
-      );
+      return await fetchSlaSignatureSessionStatus(onboardingId, sessionId);
     },
     retry: false,
   });
@@ -61,18 +55,12 @@ export function useSignatureUpload() {
           "This signature link is incomplete. Please open the full link again.",
         );
       }
-      const formData = new FormData();
-      formData.append("file", file);
-      return await apiFetch<{ success?: boolean }>(
-        `/onboarding/${onboardingId}/sla-signature-session/${sessionId}`,
-        {
-          method: "POST",
-          headers: buildCsrfHeaders({
-            "X-Upload-Secret": uploadSecret.trim(),
-          }),
-          body: formData,
-        },
-      );
+      return await uploadSlaSignatureSession({
+        onboardingId,
+        sessionId,
+        uploadSecret: uploadSecret.trim(),
+        file,
+      });
     },
   });
 

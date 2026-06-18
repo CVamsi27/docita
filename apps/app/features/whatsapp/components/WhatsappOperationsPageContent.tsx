@@ -11,15 +11,15 @@ import {
   PageTabs,
   type PageTabItem,
 } from "@workspace/ui/components/navigation/page-tabs";
-import { WhatsappTemplatesSettings } from "@/features/settings/components/whatsapp/WhatsappTemplatesSettings";
+import { WhatsappTemplatesSettings } from "@/features/settings";
 import { useAuth } from "@/lib/auth/auth-context";
 import { isAdmin } from "@/lib/auth/permissions";
 import { WhatsappCampaignsView } from "./WhatsappCampaignsView";
-import { WhatsappConversationsView } from "./WhatsappConversationsView";
+import { WhatsappRecentSentView } from "./WhatsappRecentSentView";
 import { WhatsappDeliveryView } from "./WhatsappDeliveryView";
 
 const TABS: PageTabItem[] = [
-  { id: "conversations", label: "Conversations" },
+  { id: "sent", label: "Sent" },
   { id: "campaigns", label: "Campaigns" },
   { id: "templates", label: "Templates" },
   { id: "delivery", label: "Delivery" },
@@ -32,8 +32,8 @@ function WhatsappOperationsContent() {
   const activeTab = useMemo(() => {
     const requested = searchParams?.get("tab");
     return TABS.some((tab) => tab.id === requested)
-      ? (requested ?? "conversations")
-      : "conversations";
+      ? (requested ?? "sent")
+      : "sent";
   }, [searchParams]);
   const canManageSender = isAdmin(user?.role);
 
@@ -43,7 +43,7 @@ function WhatsappOperationsContent() {
       header={
         <PageHeader
           title="WhatsApp"
-          description="Patient conversations, approved outreach, templates, and delivery health."
+          description="Outbound messages, campaigns, templates, and delivery health."
           actions={
             canManageSender ? (
               <Button variant="outline" asChild>
@@ -62,7 +62,7 @@ function WhatsappOperationsContent() {
         activeId={activeTab}
         onSelect={(tab) => router.replace(`/whatsapp?tab=${tab}`)}
       />
-      {activeTab === "conversations" ? <WhatsappConversationsView /> : null}
+      {activeTab === "sent" ? <WhatsappRecentSentView /> : null}
       {activeTab === "campaigns" ? <WhatsappCampaignsView /> : null}
       {activeTab === "templates" ? <WhatsappTemplatesSettings /> : null}
       {activeTab === "delivery" ? <WhatsappDeliveryView /> : null}

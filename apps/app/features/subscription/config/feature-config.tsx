@@ -47,6 +47,7 @@ export const FEATURE_ICONS: Record<Feature, LucideIcon> = {
   [Feature.MULTI_DEVICE]: Shield,
   [Feature.ROLE_MANAGEMENT]: Users,
   [Feature.CONSENT_MANAGEMENT]: Shield,
+  [Feature.ABDM_INTEGRATION]: Shield,
   [Feature.DOCTOR_SIGNATURE]: FileText,
 
   [Feature.MULTI_DOCTOR]: Users,

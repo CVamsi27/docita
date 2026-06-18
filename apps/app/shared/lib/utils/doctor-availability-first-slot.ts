@@ -1,10 +1,9 @@
-import type { AvailableSlot } from "@workspace/types";
 import {
   addDaysToPickerIsoDate,
   clinicDateAndTimeToWallDatetimeLocal,
   formatClinicPickerDayIsoFromSelection,
 } from "@workspace/utils";
-import { api } from "@/lib/api/api-client";
+import { fetchDoctorAvailabilitySlots } from "@/lib/api/doctor-availability.api";
 
 /** First available opening on the preferred calendar day only (legacy helper). */
 export async function fetchFirstAvailableDatetimeLocal(
@@ -51,12 +50,10 @@ export async function fetchNextAvailableSlotWindow(
 
   for (let i = 0; i < maxDays; i++) {
     const dayStr = addDaysToPickerIsoDate(dateStr, i);
-    const slots = await api.get<AvailableSlot[]>(
-      `/doctor-availability/slots?${new URLSearchParams({
-        date: dayStr,
-        doctorId,
-      }).toString()}`,
-    );
+    const slots = await fetchDoctorAvailabilitySlots({
+      date: dayStr,
+      doctorId,
+    });
     const first = slots.find(
       (s) =>
         s.isAvailable === true &&

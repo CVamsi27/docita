@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+// allow-no-base-schema: owner=lab-tests reason=ui-order-selector-form review=2026-09-30
 export const createLabTestOrderFormSchema = z.object({
   patientId: z.string().min(1, "Select a patient"),
   labTestId: z.string().min(1, "Select a test"),

@@ -169,6 +169,57 @@ export class ConsentComplianceService {
     return !!consent;
   }
 
+  /**
+   * Idempotently sets the patient's DPDP data-processing consent
+   * (`DPDP_NOTICE`). Granting records a fresh notice consent only when none is
+   * active; revoking withdraws the active one. Used by the patient portal so a
+   * patient's own consent toggle is persisted and audited (previously dropped).
+   */
+  async setDpdpNoticeConsent(input: {
+    patientId: string;
+    clinicId: string;
+    granted: boolean;
+    noticeVersion: string;
+    actorUserId?: string;
+    givenByName?: string;
+  }): Promise<{ active: boolean }> {
+    const existing = await this.prisma.consent.findFirst({
+      where: {
+        patientId: input.patientId,
+        clinicId: input.clinicId,
+        consentType: ConsentType.DPDP_NOTICE,
+        status: ConsentStatus.ACTIVE,
+        OR: [{ validUntil: null }, { validUntil: { gte: this.clock.now() } }],
+      },
+      select: { id: true },
+    });
+
+    if (input.granted) {
+      if (!existing) {
+        await this.recordDpdpNoticeConsent({
+          patientId: input.patientId,
+          clinicId: input.clinicId,
+          noticeVersion: input.noticeVersion,
+          givenByName: input.givenByName,
+          createdBy: input.actorUserId,
+        });
+      }
+      return { active: true };
+    }
+
+    if (existing) {
+      await this.withdrawConsent(
+        existing.id,
+        'Withdrawn by patient via portal',
+        input.givenByName ?? 'Patient (portal)',
+        undefined,
+        input.clinicId,
+        input.actorUserId,
+      );
+    }
+    return { active: false };
+  }
+
   async getConsentHistory(
     patientId: string,
     clinicId: string,

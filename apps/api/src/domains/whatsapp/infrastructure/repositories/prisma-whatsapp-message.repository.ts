@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { WhatsAppMessage } from '@/domains/whatsapp/core/entities';
+import type { IWhatsAppMessageRepository } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import type {
   PrismaWhatsAppDatabase,
@@ -14,7 +15,7 @@ import {
 const MESSAGE_WITH_CONVERSATION_INCLUDE = { conversation: true } as const;
 
 @Injectable()
-export class PrismaWhatsAppMessageRepository {
+export class PrismaWhatsAppMessageRepository implements IWhatsAppMessageRepository {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaWhatsAppDatabase,
     @Inject(CLOCK_PORT) private readonly clock: IClock,

@@ -1,7 +1,9 @@
 import { UseFormReturn } from "react-hook-form";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
+import { Switch } from "@workspace/ui/components/form/switch";
 import { cn } from "@workspace/ui/lib/utils";
+import { ComingSoonBadge } from "@/components/feedback/coming-soon-badge";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
 
 interface ClinicBusinessSectionProps {
@@ -76,6 +78,32 @@ export function ClinicBusinessSection({
           Used for the bill-to name on Docita tax invoices. Leave blank to use
           your facility name.
         </p>
+      </div>
+      <div className="md:col-span-2">
+        <div className="flex items-center justify-between gap-4 rounded-lg border bg-background p-3">
+          <div className="space-y-0.5">
+            <Label htmlFor="abdmEnabled" className="flex items-center gap-2">
+              Enable ABHA / ABDM for this facility
+              <ComingSoonBadge />
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Turn on if this facility will capture and verify patients&apos;
+              ABHA (India&apos;s digital health ID). Optional — you can change
+              this anytime in Settings → ABDM.
+            </p>
+          </div>
+          <Switch
+            id="abdmEnabled"
+            checked={Boolean(clinicForm.watch("abdmEnabled"))}
+            disabled
+            onCheckedChange={(checked) =>
+              clinicForm.setValue("abdmEnabled", checked, {
+                shouldDirty: true,
+              })
+            }
+            aria-label="Enable ABHA and ABDM for this facility (coming soon)"
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,16 +1,7 @@
-"use client";
+import { InvoiceDetailsPageClient } from "./invoice-details-page-client";
 
-import { useParams } from "next/navigation";
-import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/components/auth/feature-gate";
-import { InvoiceDetailsUI } from "@/features/invoices/components";
+export const dynamic = "force-dynamic";
 
 export default function InvoiceDetailsPage() {
-  const params = useParams<{ id: string }>();
-  const id = params.id ?? "";
-  return (
-    <FeatureGate feature={Feature.INVOICING} showLockedCard>
-      <InvoiceDetailsUI invoiceId={id} />
-    </FeatureGate>
-  );
+  return <InvoiceDetailsPageClient />;
 }

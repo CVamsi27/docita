@@ -1,17 +1,13 @@
 "use client";
 
 import { useCallback, type RefObject } from "react";
-import { apiFetch } from "@/lib/api/api-client";
-import { buildCsrfHeaders, buildJsonHeaders } from "@/lib/auth/csrf";
+import {
+  createSlaSignatureSession,
+  initializeOnboarding,
+  uploadSlaSignatureSession as uploadSlaSignatureSessionApi,
+  validateOnboardingProgress,
+} from "@/features/onboarding/api/onboarding.api";
 import { handleOnboardingValidateError } from "./clinic-registration-helpers";
-
-async function validateOnboardingProgress(onboardingId: string): Promise<void> {
-  await apiFetch(`/onboarding/${onboardingId}/progress`, {
-    method: "GET",
-    headers: buildJsonHeaders(),
-    cache: "no-store",
-  });
-}
 
 export function useOnboardingIdActions({
   onboardingId,
@@ -23,13 +19,10 @@ export function useOnboardingIdActions({
   validatedOnboardingIdRef: RefObject<string | null>;
 }) {
   const initializeOnboardingId = useCallback(async (): Promise<string> => {
-    const data = await apiFetch<{ onboardingId: string }>(
-      "/onboarding/initialize",
-      { method: "POST", headers: buildJsonHeaders(), body: JSON.stringify({}) },
-    );
-    setOnboardingId(data.onboardingId);
-    validatedOnboardingIdRef.current = data.onboardingId;
-    return data.onboardingId;
+    const initializedOnboardingId = await initializeOnboarding();
+    setOnboardingId(initializedOnboardingId);
+    validatedOnboardingIdRef.current = initializedOnboardingId;
+    return initializedOnboardingId;
   }, [setOnboardingId, validatedOnboardingIdRef]);
 
   const ensureOnboardingId = useCallback(
@@ -70,22 +63,12 @@ async function uploadSlaSignatureSession(
   ensureOnboardingId: () => Promise<string>,
 ): Promise<string> {
   const oid = await ensureOnboardingId();
-  const sessionData = await apiFetch<{ id: string; uploadSecret: string }>(
-    `/onboarding/${oid}/sla-signature-session`,
-    {
-      method: "POST",
-      headers: buildJsonHeaders(),
-      body: JSON.stringify({}),
-    },
-  );
-  const body = new FormData();
-  body.append("file", file);
-  await apiFetch(`/onboarding/${oid}/sla-signature-session/${sessionData.id}`, {
-    method: "POST",
-    headers: buildCsrfHeaders({
-      "X-Upload-Secret": sessionData.uploadSecret,
-    }),
-    body,
+  const sessionData = await createSlaSignatureSession(oid);
+  await uploadSlaSignatureSessionApi({
+    onboardingId: oid,
+    sessionId: sessionData.id,
+    uploadSecret: sessionData.uploadSecret,
+    file,
   });
   return sessionData.id;
 }

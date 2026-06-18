@@ -19,6 +19,7 @@ import {
   DoctorProfileSettingsLazy,
   DoctorTimeAwaySettingsLazy,
   EnterpriseBrandingSettingsLazy,
+  AbdmSettingsPanelLazy,
   LeaveManagementSettingsLazy,
   MemberManagementSettingsLazy,
   SubscriptionSettingsPanel,
@@ -96,6 +97,14 @@ export function SettingsPageTabPanels({
           <RoleGuard requiredPermission="manageClinic">
             <LabDirectorySettings />
             <LabTestsCatalogSettings />
+          </RoleGuard>
+        </TabsContent>
+      )}
+
+      {visibleTabValues.has("abdm") && (
+        <TabsContent value="abdm" className="mt-0 space-y-6">
+          <RoleGuard requiredPermission="manageClinic">
+            <AbdmSettingsPanelLazy />
           </RoleGuard>
         </TabsContent>
       )}

@@ -1,4 +1,6 @@
-"use client";
+export const dynamic = "force-dynamic";
+
+
 
 import { LabTestsPageUI } from "@/features/lab-tests/components";
 

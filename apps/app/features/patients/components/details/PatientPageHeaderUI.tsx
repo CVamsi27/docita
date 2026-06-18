@@ -9,6 +9,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import type { Patient } from "@workspace/types";
 import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 import { formatGenderLabel } from "@/lib/formatters";
+import { AI_FEATURES_ENABLED } from "@/lib/config/ai-features";
 
 interface PatientPageHeaderUIProps {
   patient: Patient;
@@ -56,18 +57,20 @@ export function PatientPageHeaderUI({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={askAiForPatient}
-            data-testid="patient-ask-ai"
-            className="gap-2"
-            aria-label={`Ask AI about ${patientName || "this patient"}`}
-          >
-            <Sparkles className="size-4 text-primary" aria-hidden />
-            Ask AI
-          </Button>
+          {AI_FEATURES_ENABLED && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={askAiForPatient}
+              data-testid="patient-ask-ai"
+              className="gap-2"
+              aria-label={`Ask AI about ${patientName || "this patient"}`}
+            >
+              <Sparkles className="size-4 text-primary" aria-hidden />
+              Ask AI
+            </Button>
+          )}
           {onEdit && <Button onClick={onEdit}>Edit Patient</Button>}
         </div>
       </div>

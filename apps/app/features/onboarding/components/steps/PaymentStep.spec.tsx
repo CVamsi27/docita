@@ -22,6 +22,11 @@ vi.mock("@/lib/api/api-client", () => ({
   },
 }));
 
+vi.mock("@workspace/data-access", () => ({
+  useActivateSubscription: () => ({ mutateAsync: vi.fn() }),
+  useCreateCheckout: () => ({ mutateAsync: vi.fn() }),
+}));
+
 describe("PaymentStep", () => {
   it("calls onComplete immediately when plan price is zero (no checkout)", () => {
     const onComplete = vi.fn();
@@ -62,5 +67,4 @@ describe("PaymentStep", () => {
 
     expect(onBack).toHaveBeenCalled();
   });
-
 });

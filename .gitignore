@@ -68,6 +68,7 @@ apps/api/uploads
 
 # Prisma client output (rebuilt during Docker build)
 **/prisma/generated
+packages/db/backups/
 
 # Sensitive files — KEEP PRIVATE
 *.key.pem

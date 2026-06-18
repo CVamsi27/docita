@@ -9,8 +9,8 @@ import {
   type ResetPasswordFormValues,
 } from "@workspace/types";
 import { getUserFacingErrorMessage } from "@workspace/utils";
-import { api } from "@/lib/api/api-client";
 import { logger } from "@/lib/monitoring/logger";
+import { resetPassword } from "@/features/auth/api/auth.api";
 
 /**
  * Owns the reset-password page's full flow — token resolution, form state,
@@ -38,7 +38,7 @@ export function useResetPasswordFlow() {
 
     setError("");
     try {
-      await api.post("/auth/reset-password", {
+      await resetPassword({
         token,
         newPassword: data.newPassword,
       });

@@ -2,7 +2,10 @@
 
 import type { UseFormReturn } from "react-hook-form";
 import { Form } from "@workspace/ui/components/form/form";
-import type { ClinicSettingsFormValues } from "@workspace/types";
+import type {
+  ClinicSettingsFormValues,
+  FacilityTypeType,
+} from "@workspace/types";
 import {
   IdentitySection,
   LocationSection,
@@ -22,7 +25,7 @@ export function ClinicGeneralSettingsForm({
   facilityLabel: string;
   watchedMapsLink: string;
   isPending: boolean;
-  facilityLabelValues: readonly ["CLINIC", "HOSPITAL"];
+  facilityLabelValues: readonly FacilityTypeType[];
   onSubmit: (data: ClinicSettingsFormValues) => void;
 }) {
   return (

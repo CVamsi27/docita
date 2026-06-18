@@ -102,6 +102,19 @@ export const EnvSchema = z.object({
   DOCTOR_VERIFICATION_API_KEY: z.string().optional(),
   HPR_API_URL: z.string().optional(),
   HPR_API_KEY: z.string().optional(),
+  ABDM_BASE_URL: z.string().optional(),
+  ABDM_CLIENT_ID: z.string().optional(),
+  ABDM_CLIENT_SECRET: z.string().optional(),
+  ABDM_CALLBACK_SECRET: z.string().optional(),
+  // ABHA profile/verification host (M1). Distinct from the gateway host above:
+  // ABHA APIs live on abhasbx.abdm.gov.in (sandbox) / abha.abdm.gov.in (prod).
+  ABDM_ABHA_BASE_URL: z.string().optional(),
+  // RSA public key (PEM or base64 body) used to encrypt mobile/OTP for ABHA
+  // APIs. Falls back to the published sandbox key when unset on the sandbox host.
+  ABDM_ABHA_PUBLIC_KEY: z.string().optional(),
+  // DPDP grievance / data-protection officer contact, published on the consent
+  // sheet and trust page. Defaults to the platform support email.
+  GRIEVANCE_CONTACT_EMAIL: z.string().optional(),
   META_BUSINESS_ACCOUNT_ID: z.string().optional(),
   SMTP_HOST: z.string().default('localhost'),
   SMTP_PORT: z.coerce.number().default(587),
@@ -126,6 +139,15 @@ export const EnvSchema = z.object({
   AI_REQUEST_TIMEOUT: z.coerce.number().default(5000),
   AI_CACHE_ENABLED: z.coerce.boolean().default(true),
   AI_CACHE_TTL: z.coerce.number().default(86400),
+  // DPDP kill-switch: master gate for ALL external-AI (OpenAI) calls. OFF by
+  // default — no patient data leaves to OpenAI from any feature unless this is
+  // explicitly enabled AND an API key is set. Disclose AI processing in the
+  // consent notice before enabling.
+  AI_EXTERNAL_ENABLED: z.coerce.boolean().default(false),
+  // DPDP: sending raw patient-document images to the cloud Vision API is a
+  // cross-border PHI transfer that cannot be de-identified. OFF by default —
+  // local OCR is used instead. Enable only with consent-notice disclosure.
+  AI_CLOUD_OCR_ENABLED: z.coerce.boolean().default(false),
   TENANT_RATE_LIMIT_DEFAULT_RPS: z.coerce.number().int().positive().default(50),
   TENANT_RATE_LIMIT_DEFAULT_RPM: z.coerce
     .number()

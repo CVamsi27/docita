@@ -62,12 +62,12 @@ export function StickyCta({ appUrl }: StickyCtaProps) {
           </span>
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold sm:text-base">
-              30-day free trial is back.
+              Get your clinic workflow live.
             </div>
             <div className="truncate text-xs leading-5 text-muted-foreground sm:text-sm">
-              <span className="sm:hidden">Essential at INR 0, no card.</span>
+              <span className="sm:hidden">Start guided setup.</span>
               <span className="hidden sm:inline">
-                Start Essential at INR 0 today, no credit card required.
+                Start guided setup for appointments, EMR, billing, and follow-ups.
               </span>
             </div>
           </div>
@@ -81,7 +81,7 @@ export function StickyCta({ appUrl }: StickyCtaProps) {
           >
             <a href={`${appUrl}/onboarding`}>
               <span className="sm:hidden">Start</span>
-              <span className="hidden sm:inline">Start free trial</span>
+              <span className="hidden sm:inline">Start setup</span>
               <ArrowRight className="h-4 w-4 shrink-0" />
             </a>
           </Button>

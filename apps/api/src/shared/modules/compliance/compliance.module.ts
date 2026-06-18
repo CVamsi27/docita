@@ -4,6 +4,7 @@ import { DpdpAuditEmitter } from './dpdp-audit.emitter';
 import { ConsentComplianceService } from './consent-compliance.service';
 import { DataSubjectRequestService } from './data-subject-request.service';
 import { ConsentController } from './consent.controller';
+import { ConsentPdfService } from './consent-pdf.service';
 import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { AnonymizationFactory } from './factories/anonymization.factory';
@@ -23,6 +24,7 @@ import { ArchivalService } from './archival.service';
     AnonymizationFactory,
     DataExportFactory,
     ArchivalService,
+    ConsentPdfService,
   ],
   exports: [DPDPComplianceService, ArchivalService],
 })

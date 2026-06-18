@@ -4,7 +4,7 @@ import {
   type WhatsappPersistencePort,
 } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { Prisma, Role, type StaffNotificationType } from '@workspace/db';
-import { isFrontDeskTier } from '@workspace/types';
+import { isFrontDeskPlanMode } from '@workspace/types';
 import type {
   INotificationRecipientResolver,
   NotificationRecipient,
@@ -107,9 +107,9 @@ export class StaffNotificationRecipientResolver implements INotificationRecipien
 
     const clinic = await this.persistence.clinic.findUnique({
       where: { id: clinicId },
-      select: { tier: true },
+      select: { tier: true, planMode: true },
     });
-    if (isFrontDeskTier(clinic?.tier)) {
+    if (isFrontDeskPlanMode(clinic?.tier ?? 'STARTER', clinic?.planMode)) {
       return ['ADMIN', 'ADMIN_DOCTOR', 'RECEPTIONIST'];
     }
 

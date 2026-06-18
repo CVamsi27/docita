@@ -10,30 +10,38 @@ const allowedPatterns = [
   /^apps\/app\/middleware\.ts$/,
   /^apps\/internal\/middleware\.ts$/,
   /^packages\/utils\/src\/http\/upstream-api-proxy\.ts$/,
-  /^apps\/app\/shared\/lib\/api\/api-client\.ts$/,
-  /^apps\/app\/shared\/lib\/api\/api-availability\.ts$/,
-  /^apps\/app\/shared\/lib\/auth\/fetch-with-session\.ts$/,
-  /^apps\/app\/shared\/lib\/auth\/browser-session\.ts$/,
-  /^apps\/app\/shared\/lib\/auth\/browser-request\.ts$/,
+  /^apps\/(app|internal)\/shared\/lib\/api\//,
+  /^apps\/(app|internal)\/shared\/lib\/auth\//,
+  /^apps\/(app|internal)\/features\/[^/]+\/api\/[^/]+\.api\.ts$/,
 ];
 
-const files = gitLsSourceFiles(["apps/app"], {
+const files = gitLsSourceFiles(["apps/app", "apps/internal"], {
   extensions: [".ts", ".tsx"],
   exclude: [/\.(test|spec)\.[tj]sx?$/, ...allowedPatterns],
 });
 
 const violations = [];
+const forbiddenPatterns = [
+  { name: "fetch", pattern: /\bfetch\s*(?:<[^>]+>)?\s*\(/ },
+  { name: "apiFetch", pattern: /\bapiFetch\s*(?:<[^>]+>)?\s*\(/ },
+  {
+    name: "api client",
+    pattern: /\bapi\.(?:get|post|put|patch|delete)\s*(?:<[^>]+>)?\s*\(/,
+  },
+];
 
 for (const file of files) {
   if (!fs.existsSync(file)) continue;
   const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
   lines.forEach((line, index) => {
-    if (!/\bfetch\s*\(/.test(line)) return;
-    violations.push(`${file}:${index + 1} ${line.trim()}`);
+    for (const forbidden of forbiddenPatterns) {
+      if (!forbidden.pattern.test(line)) continue;
+      violations.push(`${file}:${index + 1} ${forbidden.name}: ${line.trim()}`);
+    }
   });
 }
 
-reportFindingsAndExit("Frontend fetch boundary check", violations, {
+reportFindingsAndExit("Frontend API boundary check", violations, {
   extraMessage:
-    "Client features must use packages/data-access hooks or the approved app API wrappers.",
+    "Feature code must use packages/data-access hooks or approved API adapters under shared/lib/api, shared/lib/auth, or features/*/api/*.api.ts.",
 });

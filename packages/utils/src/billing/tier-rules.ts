@@ -2,7 +2,6 @@ import {
   type ClinicFeatureOverrides,
   Feature,
   FEATURE_TIER_MAP,
-  FRONT_DESK_BLOCKED_FEATURES,
   INTELLIGENCE_ADDONS,
   INTELLIGENCE_BUNDLE_DISCOUNT,
   MODE_BLOCKED_FEATURES,
@@ -29,8 +28,8 @@ export function getMinimumTierForFeature(feature: Feature): Tier {
 }
 
 export function assertNotIntelligenceComparison(tier: Tier): void {
-  if (tier === Tier.INTELLIGENCE || tier === Tier.FRONT_DESK) throw new Error(
-      'Tier.INTELLIGENCE and Tier.FRONT_DESK must use feature access checks, not numeric tier comparisons.',
+  if (tier === Tier.INTELLIGENCE) throw new Error(
+      'Tier.INTELLIGENCE must use feature access checks, not numeric tier comparisons.',
     );
 }
 
@@ -39,7 +38,6 @@ export function deriveAnnualPrice(monthly: number): number {
 }
 
 export function getTierValue(tierName: TierName): Tier {
-  if (tierName === 'FRONT_DESK') return Tier.FRONT_DESK;
   return Tier[tierName];
 }
 
@@ -57,12 +55,6 @@ export function getTierName(tier: Tier): TierName {
       return 'ENTERPRISE';
     case Tier.INTELLIGENCE:
       return 'INTELLIGENCE';
-    case Tier.FRONT_DESK:
-      return 'FRONT_DESK';
-    case Tier.FRONT_DESK_CLINIC:
-      return 'FRONT_DESK_CLINIC';
-    case Tier.FRONT_DESK_HOSPITAL:
-      return 'FRONT_DESK_HOSPITAL';
     default: {
       const _exhaustive: never = tier;
       return _exhaustive;
@@ -104,13 +96,6 @@ export function hasFeatureAccess(
 
   if (requiredTier === Tier.INTELLIGENCE) return hasIntelligence;
 
-  if (tier === 'FRONT_DESK' || tier === 'FRONT_DESK_CLINIC' || tier === 'FRONT_DESK_HOSPITAL') {
-    if (FRONT_DESK_BLOCKED_FEATURES.has(feature)) {
-      return false;
-    }
-    return Tier.ESSENTIAL >= requiredTier;
-  }
-
   return getTierValue(tier) >= requiredTier;
 }
 
@@ -121,10 +106,6 @@ export function meetsMinimumTier(
   hasIntelligence = false,
 ): boolean {
   if (minimumTier === Tier.INTELLIGENCE) return hasIntelligence;
-
-  if (minimumTier === Tier.FRONT_DESK) return tier === 'FRONT_DESK' || tier === 'FRONT_DESK_CLINIC' || tier === 'FRONT_DESK_HOSPITAL';
-
-  if (tier === 'FRONT_DESK' || tier === 'FRONT_DESK_CLINIC' || tier === 'FRONT_DESK_HOSPITAL') return Tier.ESSENTIAL >= minimumTier;
 
   return getTierValue(tier) >= minimumTier;
 }

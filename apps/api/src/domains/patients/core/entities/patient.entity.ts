@@ -15,6 +15,10 @@ export interface PatientProps {
   insuranceProvider?: string;
   insurancePolicyNumber?: string;
   insuranceGroupNumber?: string;
+  abhaAddress?: string;
+  abhaNumber?: string;
+  abhaKycName?: string;
+  abhaVerifiedAt?: Date;
   metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
@@ -35,6 +39,7 @@ type PatientProfileUpdate = Partial<
     | 'insuranceProvider'
     | 'insurancePolicyNumber'
     | 'insuranceGroupNumber'
+    | 'abhaAddress'
     | 'metadata'
   >
 >;
@@ -53,6 +58,10 @@ export class Patient {
   private insuranceProvider?: string;
   private insurancePolicyNumber?: string;
   private insuranceGroupNumber?: string;
+  private abhaAddress?: string;
+  private abhaNumber?: string;
+  private abhaKycName?: string;
+  private abhaVerifiedAt?: Date;
   private metadata: Record<string, unknown>;
   readonly createdAt: Date;
   private updatedAt: Date;
@@ -73,6 +82,10 @@ export class Patient {
     this.insurancePolicyNumber = props.insurancePolicyNumber;
     // jscpd:ignore-start
     this.insuranceGroupNumber = props.insuranceGroupNumber;
+    this.abhaAddress = props.abhaAddress;
+    this.abhaNumber = props.abhaNumber;
+    this.abhaKycName = props.abhaKycName;
+    this.abhaVerifiedAt = props.abhaVerifiedAt;
     this.metadata = props.metadata || {};
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
@@ -136,6 +149,7 @@ export class Patient {
       this.insurancePolicyNumber = data.insurancePolicyNumber;
     if (data.insuranceGroupNumber !== undefined)
       this.insuranceGroupNumber = data.insuranceGroupNumber;
+    if (data.abhaAddress !== undefined) this.abhaAddress = data.abhaAddress;
     if (data.metadata !== undefined) this.metadata = data.metadata;
 
     this.updatedAt = now;
@@ -157,6 +171,10 @@ export class Patient {
       insuranceProvider: this.insuranceProvider,
       insurancePolicyNumber: this.insurancePolicyNumber,
       insuranceGroupNumber: this.insuranceGroupNumber,
+      abhaAddress: this.abhaAddress,
+      abhaNumber: this.abhaNumber,
+      abhaKycName: this.abhaKycName,
+      abhaVerifiedAt: this.abhaVerifiedAt,
       metadata: this.metadata,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,

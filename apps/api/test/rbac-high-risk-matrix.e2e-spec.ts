@@ -54,7 +54,7 @@ describe('RBAC high-risk matrix (e2e)', () => {
 
     beforeEach(async () => {
       await resetDatabase();
-      const clinic = await factories.clinic({ tier: 'CAPTURE' });
+      const clinic = await factories.clinic({ tier: 'STARTER' });
       const { user, plainPassword } = await factories.user({
         clinicId: clinic.id,
         role: Role.DOCTOR,

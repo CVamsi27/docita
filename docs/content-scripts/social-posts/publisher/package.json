@@ -1,0 +1,29 @@
+{
+  "name": "docita-social-publisher",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "manifest": "node build-manifest.mjs",
+    "rasterize": "node rasterize.mjs",
+    "schedule": "node make-schedule.mjs",
+    "build": "node build-manifest.mjs && node rasterize.mjs && node make-schedule.mjs",
+    "verify": "node post-social.mjs --verify",
+    "verify:x": "node post-social.mjs --verify --x",
+    "verify:linkedin": "node post-social.mjs --verify --linkedin",
+    "post:x:dry": "node post-social.mjs --dry-run --x",
+    "post:linkedin:dry": "node post-social.mjs --dry-run --linkedin",
+    "post:all:dry": "node post-social.mjs --dry-run --all",
+    "post:x": "node post-social.mjs --x",
+    "post:linkedin": "node post-social.mjs --linkedin",
+    "post:all": "node post-social.mjs --all",
+    "post:x:now": "node post-social.mjs --now --x",
+    "post:linkedin:now": "node post-social.mjs --now --linkedin",
+    "post:all:now": "node post-social.mjs --now --all"
+  },
+  "dependencies": {
+    "twitter-api-v2": "^1.18.0"
+  },
+  "devDependencies": {
+    "puppeteer": "^23.0.0"
+  }
+}

@@ -35,19 +35,27 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           <span className="r2-eyebrow">Plans</span>
         </div>
         <h2 id="r2-pricing-heading" className="mt-4 max-w-3xl r2-display-sm text-foreground">
-          Pricing built for paid <em>clinic rollouts</em>&mdash;not free trials.
+          Plans for <em>every practice size</em>.
         </h2>
         <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
+          From solo practitioners to multi-branch hospitals.
           Software from {FALLBACK_PRICING_CONFIG.currency.symbol}499 / month.
-          Guided setup is scoped separately and starts from {SETUP_START_PRICE}.
+          Guided setup starts from {SETUP_START_PRICE}.
           Annual plans include 2 months free.
         </p>
 
         <div className="mt-8 flex flex-col gap-4 border-t border-border/60 pt-6 sm:flex-row sm:items-start sm:justify-between">
-          <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
-            Pick a <span className="font-medium text-foreground">plan mode</span>{" "}
-            then the tier that matches your scale. Pricing is per-clinic.
-          </p>
+          <div className="max-w-xl space-y-1">
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Pick a <span className="font-medium text-foreground">workspace mode</span>{" "}
+              then the tier that matches your scale. Pricing is per-facility.
+            </p>
+            <p className="text-xs text-muted-foreground/70">
+              <span className="font-medium text-muted-foreground">Full</span> = complete clinical suite.{' '}
+              <span className="font-medium text-muted-foreground">Front Desk</span> = reception & billing only.{' '}
+              <span className="font-medium text-muted-foreground">Core</span> = core clinical without WhatsApp & AI.
+            </p>
+          </div>
           <PricingModeToggle
             selectedMode={selectedMode}
             billingPeriod={billingPeriod}

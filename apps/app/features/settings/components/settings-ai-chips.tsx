@@ -5,6 +5,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 import { useFeatureFlag } from "@/hooks/use-feature-flag";
+import { AI_FEATURES_ENABLED } from "@/lib/config/ai-features";
 
 export type SettingsAiChipScope =
   | "doctor-profile"
@@ -64,7 +65,7 @@ export function SettingsAiChips({ scope, className }: SettingsAiChipsProps) {
   const enabled = useFeatureFlag("settings_ai_chips");
   const { openOverlay } = useAskAi();
 
-  if (enabled !== true) return null;
+  if (!AI_FEATURES_ENABLED || enabled !== true) return null;
 
   const suggestions = SUGGESTIONS[scope];
   const label = SCOPE_LABEL[scope];

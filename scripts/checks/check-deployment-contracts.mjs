@@ -31,6 +31,24 @@ function assertExists(relativePath, message) {
   assert(existsSync(join(repoRoot, relativePath)), message);
 }
 
+function assertCloudflareBootstrapContract(layoutSource, layoutPath, helperSource) {
+  assertIncludes(
+    helperSource,
+    "globalThis.__name",
+    "Shared Cloudflare bootstrap helper must define the esbuild __name compatibility shim.",
+  );
+  assertIncludes(
+    layoutSource,
+    "esbuildHelperBootstrapScript",
+    `${layoutPath} must keep the Cloudflare __name bootstrap helper.`,
+  );
+  assertIncludes(
+    layoutSource,
+    "dangerouslySetInnerHTML={{ __html: esbuildHelperBootstrapScript }}",
+    `${layoutPath} must inject the Cloudflare __name bootstrap script.`,
+  );
+}
+
 function parseTomlSingleQuotedEnvValue(source, key) {
   const match = source.match(new RegExp(`${key}\\s*=\\s*'([^']*)'`));
   return match?.[1] ?? null;
@@ -42,6 +60,9 @@ try {
   const deployWorkflowPath = ".github/workflows/deploy.yml";
   const detectScopePath = "scripts/workflow/detect-workflow-scope.mjs";
   const appLayoutPath = "apps/app/app/layout.tsx";
+  const internalLayoutPath = "apps/internal/app/layout.tsx";
+  const esbuildBootstrapHelperPath =
+    "packages/utils/src/runtime/esbuild-helper-bootstrap.ts";
   const flyTomlPath = "fly.toml";
   const workerFlyTomlPath = "apps/worker/fly.toml";
   const flyDeployScriptPath = "scripts/deploy/fly-deploy-in-primary-region.sh";
@@ -65,6 +86,8 @@ try {
   const appMiddlewareSource = read(appMiddleware);
   const internalMiddlewareSource = read(internalMiddleware);
   const appLayoutSource = read(appLayoutPath);
+  const internalLayoutSource = read(internalLayoutPath);
+  const esbuildBootstrapHelperSource = read(esbuildBootstrapHelperPath);
   const deployWorkflowSource = read(deployWorkflowPath);
   const detectScopeSource = read(detectScopePath);
   const deployScopeSource = `${detectScopeSource}\n${read(
@@ -97,6 +120,26 @@ try {
     appLayoutSource,
     'get("x-nonce")',
     "apps/app/app/layout.tsx must read x-nonce from request headers.",
+  );
+  assertIncludes(
+    internalMiddlewareSource,
+    'requestHeaders.set("x-nonce", nonce);',
+    "apps/internal/middleware.ts must propagate x-nonce for CSP-safe production boot scripts.",
+  );
+  assertIncludes(
+    internalLayoutSource,
+    'get("x-nonce")',
+    "apps/internal/app/layout.tsx must read x-nonce from request headers.",
+  );
+  assertCloudflareBootstrapContract(
+    appLayoutSource,
+    appLayoutPath,
+    esbuildBootstrapHelperSource,
+  );
+  assertCloudflareBootstrapContract(
+    internalLayoutSource,
+    internalLayoutPath,
+    esbuildBootstrapHelperSource,
   );
 
   for (const requiredPath of [

@@ -252,6 +252,12 @@ export class ClinicSettingsCommandService {
         ...(data.facilityLabel !== undefined && {
           facilityType: data.facilityLabel,
         }),
+        ...(data.abdmEnabled !== undefined && {
+          abdmEnabled: data.abdmEnabled,
+        }),
+        ...(data.hfrFacilityId !== undefined && {
+          hfrFacilityId: data.hfrFacilityId.trim() || null,
+        }),
         ...(data.avgConsultationMinutes !== undefined && {
           avgConsultationMinutes: data.avgConsultationMinutes,
         }),

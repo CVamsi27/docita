@@ -39,7 +39,7 @@ vi.mock("@/features/onboarding/hooks/use-clinic-registration-flow", () => ({
     formData: {
       clinicDetails: {},
       planSelection: {
-        tier: "CAPTURE",
+        tier: "STARTER",
         billingCycle: "MONTHLY",
         isCoreTrial: true,
       },

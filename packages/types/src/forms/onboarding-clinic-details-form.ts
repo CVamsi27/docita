@@ -49,6 +49,11 @@ export const onboardingClinicDetailsBaseSchema = z.object({
     .max(160, "Legal name is too long")
     .optional()
     .or(z.literal("")),
+  /**
+   * Whether this facility participates in ABDM/ABHA (India digital health).
+   * Drives `Clinic.abdmEnabled`; admins can change it later in Settings → ABDM.
+   */
+  abdmEnabled: z.boolean().optional(),
 });
 
 export type OnboardingClinicDetailsBase = z.infer<

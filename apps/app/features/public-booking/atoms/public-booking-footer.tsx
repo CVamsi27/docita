@@ -48,7 +48,7 @@ export function PublicBookingPoweredByFooter({
           className="h-auto min-h-0 gap-1 rounded-full px-2 py-0 text-[length:var(--fs-2xs)] font-normal text-muted-foreground hover:bg-muted/35 hover:text-foreground sm:gap-1.5 sm:px-2.5 sm:py-0.5"
         >
           <a
-            href="https://docita.com"
+            href="https://docita.work"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5"

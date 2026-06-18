@@ -65,6 +65,12 @@ export class DPDPComplianceService {
     );
   }
 
+  setDpdpNoticeConsent(
+    input: Parameters<ConsentComplianceService['setDpdpNoticeConsent']>[0],
+  ): Promise<{ active: boolean }> {
+    return this.consentCompliance.setDpdpNoticeConsent(input);
+  }
+
   getConsentHistory(patientId: string, clinicId: string): Promise<unknown[]> {
     return this.consentCompliance.getConsentHistory(patientId, clinicId);
   }

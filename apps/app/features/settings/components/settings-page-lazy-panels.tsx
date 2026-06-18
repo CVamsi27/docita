@@ -82,3 +82,8 @@ export const EnterpriseBrandingSettingsLazy = lazySettingsPanel(
   () => import("./branding/EnterpriseBrandingSettings"),
   (mod) => mod.EnterpriseBrandingSettings,
 );
+
+export const AbdmSettingsPanelLazy = lazySettingsPanel(
+  () => import("./abdm/AbdmSettingsPanel"),
+  (mod) => mod.AbdmSettingsPanel,
+);

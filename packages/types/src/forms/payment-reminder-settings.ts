@@ -7,6 +7,7 @@ const paymentReminderDaysArraySchema = z
   .array(z.number().int().min(1).max(30))
   .max(5, "At most five reminder days");
 
+// allow-no-base-schema: owner=billing reason=ui-reminder-day-editor review=2026-09-30
 export const overduePaymentReminderFormSchema = z
   .object({
     enabled: z.boolean(),

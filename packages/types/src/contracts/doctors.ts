@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { hprIdSchema } from "../clinical/abdm";
 import { userSchema } from "../shared/users";
 
 export const createDoctorRequestSchema = z.object({
@@ -12,6 +13,7 @@ export const createDoctorRequestSchema = z.object({
   registrationNumber: z.string().optional(),
   registrationCouncil: z.string().optional(),
   registrationStateCode: z.string().optional(),
+  hprId: z.union([hprIdSchema, z.literal("")]).optional(),
   licenseNumber: z.string().optional(),
   phoneNumber: z.string().optional(),
   bio: z.string().optional(),

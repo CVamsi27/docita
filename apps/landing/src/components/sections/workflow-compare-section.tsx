@@ -1,13 +1,11 @@
 "use client";
 
-import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "motion/react";
+import { LayoutGroup, motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import { Check, X } from "lucide-react";
 
 import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/form/toggle-group";
 import { cn } from "@workspace/ui/lib/utils";
-
-import { landingSpringTransition } from "@/lib/motion-prefs";
 
 const COMPARE = {
   today: {
@@ -36,7 +34,6 @@ const COMPARE_TAB_KEYS: CompareKey[] = ["today", "docita"];
 export function WorkflowCompareSection() {
   const reduce = useReducedMotion();
   const [tab, setTab] = useState<CompareKey>("docita");
-  const active = COMPARE[tab];
 
   return (
     <section
@@ -61,7 +58,7 @@ export function WorkflowCompareSection() {
             <div
               className="w-full max-w-sm justify-self-start lg:justify-self-end"
               role="group"
-              aria-label="Workflow comparison"
+              aria-label="Emphasise a workflow"
             >
               <div className="relative rounded-xl border border-border/60 bg-card p-1 shadow-sm">
                 {!reduce ? (
@@ -120,31 +117,6 @@ export function WorkflowCompareSection() {
             isActive={tab === "docita"}
           />
         </div>
-
-        <div className="mt-8 overflow-hidden rounded-2xl border border-border/60 bg-card p-6 shadow-sm sm:p-8">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={tab}
-              initial={reduce ? false : { opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={reduce ? undefined : { opacity: 0, y: -8 }}
-              transition={landingSpringTransition(reduce ?? false)}
-            >
-              <p className="r2-eyebrow r2-eyebrow-accent">{active.eyebrow}</p>
-              <ul className="mt-4 space-y-3 text-base leading-relaxed text-muted-foreground">
-                {active.points.map((line) => (
-                  <li key={line} className="flex gap-3">
-                    <span
-                      className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
-                      aria-hidden
-                    />
-                    <span>{line}</span>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          </AnimatePresence>
-        </div>
       </div>
     </section>
   );
@@ -157,34 +129,66 @@ interface CompareColumnProps {
 }
 
 function CompareColumn({ tone, data, isActive }: CompareColumnProps) {
-  const Icon = tone === "today" ? X : Check;
-  const accentClass =
-    tone === "today" ? "text-muted-foreground" : "text-primary";
+  const isDocita = tone === "docita";
+  const Icon = isDocita ? Check : X;
 
   return (
     <div
       className={cn(
-        "relative rounded-2xl border bg-card p-5 transition-colors sm:p-6",
+        "relative flex flex-col rounded-2xl border bg-card p-5 transition-[opacity,border-color,box-shadow] duration-200 sm:p-6",
         isActive
-          ? "border-foreground/20 shadow-md"
-          : "border-border/60 opacity-70",
+          ? isDocita
+            ? "border-primary/35 shadow-md"
+            : "border-foreground/20 shadow-md"
+          : "border-border/60 opacity-65",
       )}
     >
-      <div className="flex items-center justify-between">
-        <p className="r2-eyebrow">{data.label}</p>
+      {isDocita ? (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-0.5 rounded-t-2xl bg-gradient-to-r from-primary via-primary/60 to-transparent"
+        />
+      ) : null}
+
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="r2-eyebrow">{data.label}</p>
+          <p className="mt-1.5 text-base font-semibold tracking-tight text-foreground">
+            {data.eyebrow}
+          </p>
+        </div>
         <span
           className={cn(
-            "inline-flex h-7 w-7 items-center justify-center rounded-full border border-current",
-            accentClass,
+            "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border",
+            isDocita
+              ? "border-primary/40 bg-primary/10 text-primary"
+              : "border-border text-muted-foreground",
           )}
           aria-hidden
         >
-          <Icon className="h-3.5 w-3.5" />
+          <Icon className="h-4 w-4" />
         </span>
       </div>
-      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-        {data.eyebrow}
-      </p>
+
+      <ul className="mt-5 space-y-3" role="list">
+        {data.points.map((line) => (
+          <li
+            key={line}
+            className="flex gap-3 text-sm leading-relaxed text-muted-foreground"
+          >
+            <Icon
+              className={cn(
+                "mt-0.5 h-4 w-4 shrink-0",
+                isDocita ? "text-primary" : "text-muted-foreground/70",
+              )}
+              aria-hidden
+            />
+            <span className={isDocita ? "text-foreground/90" : undefined}>
+              {line}
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

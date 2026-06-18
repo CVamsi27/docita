@@ -11,7 +11,7 @@ import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffo
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { User } from "lucide-react";
 import { PatientDetailTabLoadingShell } from "@/features/patients/components/details/patient-detail-tab-loading-shell";
-import { AddAppointmentDialogContainer } from "@/features/appointments/components/dialogs/AddAppointmentDialogContainer";
+import { AddAppointmentDialogContainer } from "@/features/appointments";
 import { usePatientDetailLogic } from "@/features/patients/hooks/use-patient-detail-logic";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";

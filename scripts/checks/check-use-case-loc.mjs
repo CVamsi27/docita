@@ -29,8 +29,7 @@ for (const file of files) {
   }
   const loc = source
     .split("\n")
-    .filter((line) => line.trim() && !line.trim().startsWith("//"))
-    .length;
+    .filter((line) => line.trim() && !line.trim().startsWith("//")).length;
   if (loc > SOFT_CAP) {
     findings.push(`${file}: ${loc} lines (soft cap ${SOFT_CAP})`);
   }
@@ -43,8 +42,9 @@ if (findings.length === 0) {
   process.exit(0);
 }
 
+const enforce = process.argv.includes("--enforce");
 process.stderr.write(
-  `[use-case-loc] ADVISORY: ${findings.length} use-case file(s) over ${SOFT_CAP} lines:\n`,
+  `[use-case-loc] ${enforce ? "FAILED" : "ADVISORY"}: ${findings.length} use-case file(s) over ${SOFT_CAP} lines:\n`,
 );
 for (const finding of findings) {
   process.stderr.write(`  - ${finding}\n`);
@@ -52,4 +52,4 @@ for (const finding of findings) {
 process.stderr.write(
   "Consider extracting business rules to domain helpers or pure calculators. Use-cases should orchestrate repositories + domain logic.\n",
 );
-process.exit(0); // advisory
+process.exit(enforce ? 1 : 0);

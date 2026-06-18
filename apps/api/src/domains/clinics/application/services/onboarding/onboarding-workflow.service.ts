@@ -101,6 +101,7 @@ export class OnboardingWorkflowService {
       mrnPrefix: clinicData.mrnPrefix || 'CLI',
       timezone: clinicData.timezone || DEFAULT_TIMEZONE,
       referralCode,
+      abdmEnabled: clinicData.abdmEnabled ?? false,
       settings: toPrismaInputJsonValue({
         dataResidency: clinicData.dataResidency || 'IN',
         operatingCountryCode: clinicData.countryCode || 'IN',

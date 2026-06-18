@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { planModeSchema } from "../billing/tier";
 import { taxRegimeSchema } from "../billing/tax";
+import { hfrFacilityIdSchema } from "../clinical/abdm";
 import { jsonObjectSchema } from "../shared/json-schema";
 import { sidebarNavOrderSchema } from "../shared/sidebar-nav";
 import { facilityTypeSchema } from "../shared/users";
@@ -78,7 +79,7 @@ export const updateClinicSettingsRequestSchema = z.object({
   avgConsultationMinutes: z.number().int().min(1).max(120).optional(),
   lateArrivalGraceMinutes: z.number().int().min(0).max(120).optional(),
   queueBufferMinutes: z.number().int().min(0).max(120).optional(),
-// jscpd:ignore-start
+  // jscpd:ignore-start
   useDoctorQueues: z.boolean().optional(),
   type: z.string().optional(),
   reminderBefore: z.union([z.string(), z.number()]).optional(),
@@ -106,7 +107,7 @@ export const updateClinicSettingsRequestSchema = z.object({
   followUpReminderBefore: z.string().optional(),
   followUpReminderUnit: z.string().optional(),
   invoiceReminderEnabled: z.boolean().optional(),
-// jscpd:ignore-end
+  // jscpd:ignore-end
   invoiceReminderBefore: z.string().optional(),
   invoiceReminderUnit: z.string().optional(),
   prescriptionReminderEnabled: z.boolean().optional(),
@@ -125,6 +126,8 @@ export const updateClinicSettingsRequestSchema = z.object({
   sidebarNavOrder: sidebarNavOrderSchema.optional(),
   mapsLocation: mapsLocationSchema.optional(),
   mapsLink: z.union([z.string().url(), z.literal("")]).optional(),
+  abdmEnabled: z.boolean().optional(),
+  hfrFacilityId: z.union([hfrFacilityIdSchema, z.literal("")]).optional(),
   brandName: z.string().max(80).optional(),
   lockedTheme: z
     .object({
@@ -209,6 +212,8 @@ export const clinicResponseSchema = createClinicRequestSchema.extend({
   createdAt: z.union([z.string(), z.date()]).optional(),
   referralCode: z.string().optional(),
   gstin: z.union([z.string(), z.null()]).optional(),
+  abdmEnabled: z.boolean().optional(),
+  hfrFacilityId: z.union([z.string(), z.null()]).optional(),
   slaSignatureUrl: z.union([z.string(), z.null()]).optional(),
   slaSignatureStoredUrl: z.union([z.string(), z.null()]).optional(),
   slaSignatureAcceptedAt: z.union([z.string(), z.date(), z.null()]).optional(),

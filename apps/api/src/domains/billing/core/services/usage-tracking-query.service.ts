@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
-import { UsageType, ClinicTier, Role } from '@workspace/db';
+import { UsageType } from '@workspace/db';
 import {
   TIER_LIMITS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
@@ -44,7 +44,7 @@ export class UsageTrackingQueryService {
       }),
       this.prisma.clinic.findUnique({
         where: { id: clinicId },
-        select: { tier: true },
+        select: { tier: true, planMode: true },
       }),
     ]);
 
@@ -53,6 +53,7 @@ export class UsageTrackingQueryService {
       periodStart,
       periodEnd,
       clinic?.tier,
+      clinic?.planMode,
     );
     return this.buildUsageSummary(periodStart, periodEnd, subscription, counts);
   }
@@ -75,6 +76,7 @@ export class UsageTrackingQueryService {
     periodStart: Date,
     periodEnd: Date,
     clinicTier: string | undefined,
+    planMode: string | null | undefined,
   ) {
     const [
       consultations,
@@ -110,10 +112,10 @@ export class UsageTrackingQueryService {
       this.prisma.user.count({
         where: {
           clinicId,
-          ...(clinicTier === ClinicTier.FRONT_DESK
+          ...(planMode === 'FRONT_DESK'
             ? {
                 NOT: {
-                  AND: [{ role: Role.DOCTOR }, { appLoginDisabled: true }],
+                  AND: [{ role: 'DOCTOR' }, { appLoginDisabled: true }],
                 },
               }
             : {}),

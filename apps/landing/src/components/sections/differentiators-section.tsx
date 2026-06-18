@@ -54,7 +54,7 @@ export function DifferentiatorsSection() {
           id="r2-diff-heading"
           className="mt-4 max-w-3xl r2-display-sm text-foreground"
         >
-          Three things <em>local CMS</em> usually skip&mdash;and we lead with.
+          Three things <em>local tools</em> usually skip&mdash;and we lead with.
         </h2>
 
         <motion.div

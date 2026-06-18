@@ -2,7 +2,7 @@
 
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
-import { AddAppointmentDialogContainer } from "@/features/appointments/components/dialogs/AddAppointmentDialogContainer";
+import { AddAppointmentDialogContainer } from "@/features/appointments";
 import {
   AddPatientDialog,
   EditPatientDialog,

@@ -10,6 +10,11 @@ vi.mock("@/hooks/use-feature-flag", () => ({
   useFeatureFlag: (key: string) => key === "settings_ai_chips",
 }));
 
+// The chip behaviour below only applies when the global AI switch is on.
+vi.mock("@/lib/config/ai-features", () => ({
+  AI_FEATURES_ENABLED: true,
+}));
+
 function ScopeProbe() {
   const { open, scope } = useAskAi();
   return (

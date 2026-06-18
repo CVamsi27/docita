@@ -111,4 +111,13 @@ export interface IPrescriptionRepository {
     doctorId: string,
     clinicId?: string,
   ): Promise<DoctorComplianceProfile | null>;
+  /**
+   * Consultation modality of the appointment ("IN_PERSON" | "TELEHEALTH"),
+   * used to enforce the NMC telemedicine controlled-substance block at
+   * prescription creation. Null when the appointment is not found.
+   */
+  findAppointmentType(
+    appointmentId: string,
+    clinicId?: string,
+  ): Promise<string | null>;
 }

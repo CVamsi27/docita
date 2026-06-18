@@ -44,7 +44,9 @@ export const useUnreadNotificationCount = (enabled: boolean = true) =>
     whatsappUnreadCountResponseSchema,
     {
       enabled,
-      refetchInterval: 10000,
+      // Realtime updates arrive via the notifications WebSocket gateway
+      // (socket handlers invalidate this key); polling is only a fallback.
+      refetchInterval: 60000,
     },
   );
 

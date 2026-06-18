@@ -1,8 +1,4 @@
-export interface PatientTag {
-  id: string;
-  tag: string;
-  color: string;
-}
+export type { PatientTag } from "@workspace/types";
 
 export interface PresetTag {
   tag: string;

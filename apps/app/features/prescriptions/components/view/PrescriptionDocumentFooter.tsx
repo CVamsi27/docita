@@ -38,6 +38,7 @@ export function PrescriptionDocumentFooter({ doctorInfo, doctorName }: Prescript
 
       <div className="pt-4 border-t text-center text-xs text-muted-foreground space-y-1">
         <p className="font-medium">This is a digitally generated prescription</p>
+        <p>Powered by Docita</p>
         <p>Prescription support: {SUPPORT_EMAIL}</p>
         <p>Valid for dispensing within 30 days from the date of issue unless otherwise specified</p>
       </div>

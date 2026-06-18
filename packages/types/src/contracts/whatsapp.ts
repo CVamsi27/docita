@@ -1,6 +1,5 @@
 import { z } from "zod";
 import {
-  whatsappLogSchema,
   whatsappMessageResponseSchema,
   whatsappStatsSchema,
   whatsappTemplateSchema,
@@ -224,6 +223,7 @@ export const clinicWhatsappSentMessageSchema = z.object({
   status: z.string(),
   phoneNumber: z.string(),
   createdAt: z.string().or(z.date()),
+  patientName: z.string().optional(),
 });
 
 export const clinicWhatsappSentMessageListResponseSchema = z.array(
@@ -384,12 +384,6 @@ export type UpdateWhatsappSenderRequest = z.infer<
   typeof updateWhatsappSenderRequestSchema
 >;
 
-export const whatsappLogsQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(500).optional(),
-  patientId: z.string().optional(),
-  type: z.string().optional(),
-});
-
 export const whatsappUnreadNotificationsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(500).optional(),
 });
@@ -505,7 +499,6 @@ export const whatsappStatsDetailedResponseSchema = z.object({
   outboundLast30Days: z.number().int().min(0).optional(),
 });
 
-export const whatsappLogListResponseSchema = z.array(whatsappLogSchema);
 export const whatsappStatsResponseSchema = whatsappStatsSchema;
 export const whatsappMessageProviderResponseSchema =
   whatsappMessageResponseSchema;
@@ -532,7 +525,6 @@ export type WhatsAppTemplateListResponse = z.infer<
 export type WhatsAppDefaultTemplatesResponse = z.infer<
   typeof whatsappDefaultTemplatesResponseSchema
 >;
-export type WhatsAppLogsQuery = z.infer<typeof whatsappLogsQuerySchema>;
 export type WhatsAppUnreadNotificationsQuery = z.infer<
   typeof whatsappUnreadNotificationsQuerySchema
 >;
@@ -558,9 +550,6 @@ export type CreateWhatsAppBroadcastRequest = z.infer<
 export type SuccessResponse = z.infer<typeof successResponseSchema>;
 export type WhatsAppStatsDetailedResponse = z.infer<
   typeof whatsappStatsDetailedResponseSchema
->;
-export type WhatsAppLogListResponse = z.infer<
-  typeof whatsappLogListResponseSchema
 >;
 export type WhatsAppStatsResponse = z.infer<typeof whatsappStatsResponseSchema>;
 export type WhatsAppMessageProviderResponse = z.infer<

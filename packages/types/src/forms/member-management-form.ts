@@ -25,6 +25,7 @@ function requireDoctorRegistration(
   }
 }
 
+// allow-no-base-schema: owner=team-management reason=ui-invite-password review=2026-09-30
 export const inviteTeamMemberFormSchema = z
   .object({
     name: z.string().min(1, "Enter the team member's name"),
@@ -39,6 +40,7 @@ export const inviteTeamMemberFormSchema = z
   })
   .superRefine(requireDoctorRegistration);
 
+// allow-no-base-schema: owner=team-management reason=ui-member-editor review=2026-09-30
 export const memberManagementFormSchema = z
   .object({
     name: z.string().min(1, "Enter the team member's name"),

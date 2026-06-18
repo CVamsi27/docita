@@ -41,6 +41,7 @@ export function useClinicRegistrationForm(_onSuccess: () => void) {
       website: "",
       gstin: "",
       legalName: "",
+      abdmEnabled: false,
       type: "GENERAL",
       ...flow.formData.clinicDetails,
     },

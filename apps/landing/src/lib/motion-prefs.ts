@@ -5,7 +5,7 @@ export const landingInViewViewport = {
   amount: 0.2,
 } as const;
 
-export function landingSpringTransition(prefersReducedMotion: boolean | null) {
+function landingSpringTransition(prefersReducedMotion: boolean | null) {
   if (prefersReducedMotion) {
     return { duration: 0 };
   }

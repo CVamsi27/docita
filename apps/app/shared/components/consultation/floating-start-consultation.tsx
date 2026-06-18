@@ -1,20 +1,10 @@
 "use client";
 
-import { getPatientFullName } from "@workspace/utils";
-
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { ChevronUp, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import { usePermissions } from "@/hooks/use-permissions";
-import { useQueueByDoctor, useStartConsultation } from "@workspace/data-access";
-import { useAuth } from "@/lib/auth/auth-context";
-import { usePermissionStore } from "@/lib/stores/permission-store";
-import { canAccessTarget } from "@/lib/access-control/access-policy";
-import { APP_ACCESS_TARGETS } from "@workspace/types";
-import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { useFloatingStartConsultation } from "./use-floating-start-consultation";
 
 interface FloatingStartConsultationProps {
   patientId?: string;
@@ -29,82 +19,17 @@ export function FloatingStartConsultation({
   className,
   minimized = false,
 }: FloatingStartConsultationProps) {
-  const router = useRouter();
-  const { canStartConsultation } = usePermissions();
-  const { user } = useAuth();
-  const { canAccess, currentTier, hasIntelligence } = usePermissionStore();
-  const startConsultation = useStartConsultation();
-  const [isMinimized, setIsMinimized] = useState(minimized);
-  const canAccessQueueApi = canAccessTarget(
-    APP_ACCESS_TARGETS.API_QUEUE,
-    {
-      role: user?.role,
-      canAccessFeature: canAccess,
-      currentTier,
-      hasIntelligence,
-    },
-    "read",
-  );
-  const queueEnabled =
-    canStartConsultation &&
-    canAccessQueueApi &&
-    !appointmentId &&
-    !patientId &&
-    !!user?.id;
-  const { data: doctorQueue } = useQueueByDoctor(
-    user?.id,
-    undefined,
-    queueEnabled,
-  );
+  const {
+    shouldRender,
+    isMinimized,
+    setIsMinimized,
+    isResumeFlow,
+    patientName,
+    isStartPending,
+    onStartConsultation,
+  } = useFloatingStartConsultation({ patientId, appointmentId, minimized });
 
-  const queueCandidate = useMemo(() => {
-    if (!doctorQueue || doctorQueue.length === 0) return null;
-
-    return (
-      doctorQueue.find(
-        (item) =>
-          item.appointmentId && item.status.toUpperCase() === "IN_PROGRESS",
-      ) ??
-      doctorQueue.find(
-        (item) => item.appointmentId && item.status.toUpperCase() === "WAITING",
-      ) ??
-      doctorQueue.find((item) => item.appointmentId) ??
-      null
-    );
-  }, [doctorQueue]);
-
-  const resolvedAppointmentId = appointmentId ?? queueCandidate?.appointmentId;
-  const resolvedPatientId = patientId ?? queueCandidate?.patientId;
-  const patientName = queueCandidate?.patient
-    ? getPatientFullName(queueCandidate.patient)
-    : null;
-  const isResumeFlow =
-    queueCandidate?.status?.toUpperCase() === "IN_PROGRESS" && !appointmentId;
-
-  const handleStartConsultation = async () => {
-    if (resolvedAppointmentId) {
-      try {
-        const result = await startConsultation.mutateAsync({
-          appointmentId: resolvedAppointmentId,
-        });
-        router.push(`/consultation/${result.appointmentId}`);
-      } catch (error) {
-        showUserFacingErrorToast(
-          error,
-          "We could not start this consultation. Please try again.",
-          "save",
-        );
-      }
-    } else if (resolvedPatientId) {
-      router.push(`/consultation?patientId=${resolvedPatientId}`);
-    } else {
-      router.push("/consultation");
-    }
-  };
-
-  if (!resolvedPatientId && !resolvedAppointmentId) return null;
-
-  if (!canStartConsultation) return null;
+  if (!shouldRender) return null;
 
   return (
     <div
@@ -159,8 +84,8 @@ export function FloatingStartConsultation({
           <Button
             variant="secondary"
             className="w-full"
-            disabled={startConsultation.isPending}
-            onClick={() => void handleStartConsultation()}
+            disabled={isStartPending}
+            onClick={onStartConsultation}
           >
             {isResumeFlow ? "Resume Now" : "Begin Now"}
           </Button>

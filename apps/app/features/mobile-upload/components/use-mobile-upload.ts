@@ -1,15 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
-import { apiFetch } from "@/lib/api/api-client";
-import { buildCsrfHeaders } from "@/lib/auth/csrf";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { uploadFileToSession } from "@/lib/api/upload-session";
 import { resolveUploadErrorPresentation } from "./mobile-upload-error-helpers";
-
-interface UploadSessionResponse {
-  status?: string;
-  fileUrl?: string;
-}
 
 /**
  * Owns the mobile-upload page's session/file/mutation state: resolves the
@@ -32,21 +26,15 @@ export function useMobileUpload() {
 
   const uploadMutation = useMutation({
     mutationFn: async (selectedFile: File) => {
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-
       const secret = uploadSecretFromQuery?.trim();
       if (!secret) throw new Error("Missing upload credentials in this link.");
 
-      return await apiFetch<UploadSessionResponse>(
-        `/uploads/session/${sessionId}`,
-        {
-          method: "POST",
-          headers: buildCsrfHeaders({ "X-Upload-Secret": secret }),
-          body: formData,
-          suppressGlobalErrorToast: true,
-        },
-      );
+      return await uploadFileToSession({
+        sessionId,
+        uploadSecret: secret,
+        file: selectedFile,
+        suppressGlobalErrorToast: true,
+      });
     },
   });
 

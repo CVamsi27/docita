@@ -1,0 +1,91 @@
+"use client";
+
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth/auth-context";
+import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
+import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+
+function OnboardingWizardLoading() {
+  return (
+    <div
+      className="flex min-h-[320px] flex-col items-center justify-center gap-4 py-12"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading onboarding wizard"
+    >
+      <DocitaLoadingIndicator variant="section" withStatusRole={false} />
+      <p className="ui-page-subtitle text-muted-foreground">Loading wizard…</p>
+    </div>
+  );
+}
+
+const ClinicOnboardingWizard = dynamic(
+  () =>
+    import("@/features/onboarding/components").then((mod) => ({
+      default: mod.ClinicOnboardingWizard,
+    })),
+  { ssr: false, loading: () => <OnboardingWizardLoading /> },
+);
+
+export function OnboardingPageClient() {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+  const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
+  useEffect(() => {
+    if (isLoading) return;
+    if (!isAuthenticated) {
+      setRedirectMessage("Redirecting to login…");
+      router.replace("/login?next=/onboarding");
+      return;
+    }
+    if (user?.clinicId || user?.onboardingStep === "COMPLETED") {
+      setRedirectMessage(
+        "Registration successful. Taking you to your workspace…",
+      );
+      router.replace("/today");
+      return;
+    }
+    if (user?.onboardingStep === "JOINING_CLINIC") {
+      setRedirectMessage("Taking you to your join request status…");
+      router.replace("/join-request-status");
+      return;
+    }
+    if (
+      user?.onboardingStep === "CHOOSE_PATH" ||
+      user?.onboardingStep === "NOT_STARTED"
+    ) {
+      setRedirectMessage("Taking you to facility setup choices…");
+      router.replace("/choose-path");
+    }
+  }, [isAuthenticated, isLoading, user, router]);
+  if (redirectMessage)
+    return (
+      <PageTransitionLoader
+        title="Redirecting…"
+        description={redirectMessage}
+      />
+    );
+
+  return (
+    <PreDashboardShell
+      currentStep="onboarding"
+      contentMaxWidth="max-w-5xl"
+      showBrandingPanel={false}
+      showProgress={false}
+      showSignOut
+    >
+      <div className="mx-auto w-full max-w-3xl space-y-1.5">
+        <p className="ui-eyebrow">Facility setup</p>
+        <h1 className="ui-page-title">Set up your facility</h1>
+        <p className="ui-page-subtitle">
+          Complete your facility registration to get started.
+        </p>
+      </div>
+
+      <ClinicOnboardingWizard />
+    </PreDashboardShell>
+  );
+}

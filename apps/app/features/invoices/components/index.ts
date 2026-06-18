@@ -1,15 +1,18 @@
-export * from "./dialogs/EditInvoiceDialogContainer";
-export * from "./dialogs/EditInvoiceDialogUI";
+"use client";
 
-export * from "./forms/InvoiceCreateUI";
-export * from "./forms/InvoiceEditUI";
-export * from "./forms/InvoiceItemsTable";
-export * from "./forms/InvoiceSubtotal";
+export { EditInvoiceDialogContainer } from "./dialogs/EditInvoiceDialogContainer";
+export { EditInvoiceDialogUI } from "./dialogs/EditInvoiceDialogUI";
+export type { EditInvoiceDialogUIProps } from "./dialogs/EditInvoiceDialogUI";
 
-export * from "./details/InvoiceDetailsUI";
-export * from "./details/InvoiceHeader";
-export * from "./details/InvoiceBillTo";
-export * from "./details/InvoiceItemsTableReadOnly";
-export * from "./details/InvoiceTotalsOnly";
+export { InvoiceCreateUI } from "./forms/InvoiceCreateUI";
+export { InvoiceEditUI } from "./forms/InvoiceEditUI";
+export { InvoiceItemsTable } from "./forms/InvoiceItemsTable";
+export { InvoiceSubtotal } from "./forms/InvoiceSubtotal";
 
-export * from "./list/InvoicesPageUI";
+export { InvoiceDetailsUI } from "./details/InvoiceDetailsUI";
+export { InvoiceHeader } from "./details/InvoiceHeader";
+export { InvoiceBillTo } from "./details/InvoiceBillTo";
+export { InvoiceItemsTableReadOnly } from "./details/InvoiceItemsTableReadOnly";
+export { InvoiceTotalsOnly } from "./details/InvoiceTotalsOnly";
+
+export { InvoicesPageUI } from "./list/InvoicesPageUI";

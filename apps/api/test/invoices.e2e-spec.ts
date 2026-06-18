@@ -224,7 +224,7 @@ describe('Invoices (e2e)', () => {
     beforeEach(async () => {
       await resetDatabase();
 
-      const clinic = await factories.clinic({ tier: 'CAPTURE' });
+      const clinic = await factories.clinic({ tier: 'STARTER' });
       const clinicId = clinic.id;
 
       const { user, plainPassword } = await factories.user({

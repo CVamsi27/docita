@@ -1,4 +1,6 @@
-"use client";
+export const dynamic = "force-dynamic";
+
+
 
 import { AuthPageContainer } from "@/features/auth/components/AuthPageContainer";
 

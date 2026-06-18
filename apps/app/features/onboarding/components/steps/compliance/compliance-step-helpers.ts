@@ -1,6 +1,6 @@
 import { APIRequestError } from "@workspace/data-access";
 import { getAppApiUrl } from "@/lib/api/api-config";
-import { apiFetch } from "@/lib/api/api-client";
+import { fetchSlaSignatureSessionStatus } from "@/features/onboarding/api/onboarding.api";
 
 export type LegalDocumentType = "sla" | "privacy" | "dpa";
 
@@ -96,9 +96,9 @@ export async function fetchQrSessionStatus(
   activeOnboardingId: string,
   sessionId: string,
 ): Promise<boolean> {
-  const data = await apiFetch<QrSessionStatusResponse>(
-    buildQrSessionStatusUrl(activeOnboardingId, sessionId),
-    { method: "GET", cache: "no-store" },
+  const data = await fetchSlaSignatureSessionStatus(
+    activeOnboardingId,
+    sessionId,
   );
   const status = data.status?.toLowerCase();
   return Boolean(

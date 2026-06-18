@@ -6,10 +6,12 @@ import {
   Get,
   Param,
   Req,
+  Res,
   UseGuards,
   HttpCode,
   Query,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   DPDPComplianceService,
   DataSubjectRight,
@@ -22,6 +24,7 @@ import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { DeletePatientDataDto } from './dto/compliance.dto';
+import { ConsentPdfService } from './consent-pdf.service';
 
 const recordConsentSchema = z.object({
   patientId: z.string(),
@@ -53,7 +56,10 @@ function requireClinicId(clinicId: string | null | undefined): string {
 @Controller('consent')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ConsentController {
-  constructor(private readonly dpdpService: DPDPComplianceService) {}
+  constructor(
+    private readonly dpdpService: DPDPComplianceService,
+    private readonly consentPdfService: ConsentPdfService,
+  ) {}
 
   @Post()
   @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR)
@@ -85,6 +91,25 @@ export class ConsentController {
     );
   }
 
+  @Get('patients/:patientId/consent-pdf')
+  @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR, Role.RECEPTIONIST)
+  async getConsentPdf(
+    @Param('patientId') patientId: string,
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
+  ) {
+    const buffer = await this.consentPdfService.generateForPatient(
+      patientId,
+      requireClinicId(req.user?.clinicId),
+    );
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="docita-consent-${patientId}.pdf"`,
+      'Content-Length': String(buffer.length),
+    });
+    res.end(buffer);
+  }
+
   @Post(':consentId/withdraw')
   @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR)
   async withdrawConsent(
@@ -101,6 +126,27 @@ export class ConsentController {
       ipAddress,
       req.user?.clinicId ?? undefined,
       req.user?.id,
+    );
+  }
+
+  @Get('patients/:patientId/export')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
+  @HttpCode(200)
+  async exportPatientData(
+    @Param('patientId') patientId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    const ipAddress = req.ip || req.socket?.remoteAddress;
+    // Satisfies the DPDP right to access + data portability: returns a
+    // machine-readable copy of the patient's record and is audit-logged.
+    return this.dpdpService.handlePortabilityRequest(
+      {
+        patientId,
+        clinicId: requireClinicId(req.user?.clinicId),
+        requestType: DataSubjectRight.PORTABILITY,
+        requestedBy: req.user?.id ?? 'unknown',
+      },
+      ipAddress,
     );
   }
 

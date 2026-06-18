@@ -7,6 +7,7 @@ import { claimTypeSchema } from "../billing/insurance-claims";
  * API boundary, mirroring how invoice forms handle prices.
  */
 
+// allow-no-base-schema: owner=billing reason=ui-major-unit-claim-create review=2026-09-30
 export const createInsuranceClaimFormSchema = z.object({
   patientId: z.string().min(1, "Select a patient"),
   claimType: claimTypeSchema,

@@ -83,4 +83,99 @@ describe('PricingService', () => {
     expect(enterprise?.pricing.monthly).toBe('custom');
     expect(enterprise?.pricing.yearly).toBe('custom');
   });
+
+  it('returns an error for invalid estimate tiers', () => {
+    expect(service.calculateEstimate({ tier: 'INTELLIGENCE' })).toEqual({
+      error: 'Invalid tier',
+    });
+  });
+
+  it('returns the enterprise contact-sales estimate', () => {
+    expect(
+      service.calculateEstimate({
+        tier: 'ENTERPRISE',
+        currency: 'usd',
+      }),
+    ).toMatchObject({
+      tier: 'ENTERPRISE',
+      currency: {
+        code: 'USD',
+        symbol: '$',
+      },
+      basePrice: 'Contact Sales',
+      totalMonthly: 'Contact Sales',
+    });
+  });
+
+  it('applies yearly discount math to estimates', () => {
+    const estimate = service.calculateEstimate({
+      tier: 'ESSENTIAL',
+      billingCycle: 'yearly',
+      consultations: 500,
+      users: 5,
+    });
+
+    expect(estimate).toMatchObject({
+      tier: 'ESSENTIAL',
+      billingCycle: 'yearly',
+      breakdown: {
+        discount: {
+          percent: 17,
+        },
+      },
+    });
+    expect(estimate.totalMonthly).toBeLessThan(999);
+  });
+
+  it('applies semi-annual discount math to estimates', () => {
+    const estimate = service.calculateEstimate({
+      tier: 'PROFESSIONAL',
+      billingCycle: 'semi_annual',
+      appointments: 1_000,
+      users: 3,
+    });
+
+    expect(estimate).toMatchObject({
+      tier: 'PROFESSIONAL',
+      billingCycle: 'semi_annual',
+      breakdown: {
+        discount: {
+          percent: 8,
+          amount: 199.92000000000002,
+        },
+      },
+    });
+  });
+
+  it('includes WhatsApp message overages for paid clinical tiers', () => {
+    const estimate = service.calculateEstimate({
+      tier: 'PROFESSIONAL',
+      currency: 'INR',
+      consultations: 1_000,
+      users: 3,
+      whatsappMessages: 20_000,
+    });
+
+    if (!('breakdown' in estimate)) {
+      throw new Error('Expected a priced estimate with a breakdown.');
+    }
+    const { breakdown } = estimate;
+    if (!breakdown) {
+      throw new Error('Expected estimate breakdown details.');
+    }
+
+    expect(estimate).toMatchObject({
+      tier: 'PROFESSIONAL',
+      breakdown: {
+        overages: {
+          whatsappMessages: {
+            count: expect.any(Number),
+            charge: expect.any(Number),
+          },
+        },
+      },
+    });
+    expect(breakdown.overages.whatsappMessages.count).toBeGreaterThan(0);
+    expect(breakdown.overages.whatsappMessages.charge).toBeGreaterThan(0);
+  });
 });

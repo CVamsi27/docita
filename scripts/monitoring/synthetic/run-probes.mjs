@@ -23,6 +23,11 @@ import {
   runProbe,
   sleep,
 } from "./probe-lib.mjs";
+import {
+  isFlyRecoveryEnabled,
+  restartFlyAppMachines,
+  shouldAttemptFlyRecovery,
+} from "./fly-recovery.mjs";
 
 const API_ORIGIN =
   process.env.SYNTHETIC_API_ORIGIN?.replace(/\/$/, "") ??
@@ -36,6 +41,11 @@ const APP_BASE =
   "https://app.docita.work";
 const SENTRY_DSN = process.env.SENTRY_DSN ?? "";
 const OPS_ALERT_WEBHOOK_URL = process.env.OPS_ALERT_WEBHOOK_URL ?? "";
+const FLY_APP_NAME = process.env.FLY_API_APP_NAME?.trim() || "docita-api";
+const FLY_PROCESS_GROUP = process.env.FLY_API_PROCESS_GROUP?.trim() || "app";
+// Settle window between a recovery restart reporting `started` and the re-probe,
+// so the in-VM cold boot has a head start before the first retry attempt.
+const RECOVERY_SETTLE_MS = 8_000;
 const IS_POST_DEPLOY =
   process.env.SYNTHETIC_POST_DEPLOY === "1" ||
   process.env.SYNTHETIC_POST_DEPLOY === "true";
@@ -183,7 +193,7 @@ async function assertDailyThoughtResponse(response, latencyMs) {
 
 async function probeDailyThought() {
   // The app origin (OpenNext on Cloudflare) and the API behind it can cold
-  // start from a non-warm CI runner, so the first request of a 5-minute cycle
+  // start from a non-warm CI runner, so the first request of a scheduled cycle
   // can time out while the platform wakes. Retry like api-health-live so a
   // cold start warms the path instead of paging.
   return runProbe("daily-thought", () =>
@@ -443,6 +453,68 @@ async function waitForApiWarmAfterDeploy() {
   });
 }
 
+function toProbeFailure(error) {
+  return error instanceof ProbeFailure
+    ? error
+    : new ProbeFailure(
+        "unknown",
+        error instanceof Error ? error.message : String(error),
+      );
+}
+
+/**
+ * Auto-recovery hook for `api-health-live`: when the failure looks like an
+ * unreachable/frozen API (timeout, connection refused, `PR01`, 5xx gateway),
+ * issue a single Fly machine restart and let the caller re-probe. Returns true
+ * only if a restart was actually performed, so the caller knows to retry.
+ * No-op (returns false) outside scheduled runs, when `FLY_API_TOKEN` is unset,
+ * or when the failure isn't restart-recoverable (e.g. latency breach).
+ */
+async function recoverApiViaFlyRestart(failure) {
+  if (IS_POST_DEPLOY || !isFlyRecoveryEnabled()) {
+    return false;
+  }
+  if (!shouldAttemptFlyRecovery(failure.message)) {
+    return false;
+  }
+
+  process.stdout.write(
+    `api-health-live: failure looks like an unreachable/frozen API — restarting ${FLY_APP_NAME} machine(s)...\n`,
+  );
+
+  const outcome = await restartFlyAppMachines({
+    app: FLY_APP_NAME,
+    processGroup: FLY_PROCESS_GROUP,
+  });
+
+  if (!outcome.ok) {
+    process.stderr.write(
+      `api-health-live: auto-recovery restart failed (${outcome.error})\n`,
+    );
+    return false;
+  }
+
+  process.stdout.write(
+    `api-health-live: restarted machine(s) ${outcome.machineIds.join(", ")}; settling ${RECOVERY_SETTLE_MS}ms before re-probe...\n`,
+  );
+  await sleep(RECOVERY_SETTLE_MS);
+
+  // Informational page so the recovery is visible without a red CI run — a
+  // machine that needs restarting every cycle is still worth a human's eyes.
+  await reportOpsAlertToWebhook(
+    OPS_ALERT_WEBHOOK_URL,
+    "Synthetic auto-recovery",
+    `Restarted ${FLY_APP_NAME} machine(s) ${outcome.machineIds.join(", ")} after: ${failure.message}`,
+    {
+      probe: failure.probeName,
+      source: "synthetic-monitoring",
+      action: "fly-machine-restart",
+    },
+  );
+
+  return true;
+}
+
 async function main() {
   if (IS_POST_DEPLOY) {
     await waitForApiWarmAfterDeploy();
@@ -452,42 +524,52 @@ async function main() {
   const failures = [];
   let apiHealthPassed = false;
 
-  async function runProbeStep(probe) {
+  function recordPass(result) {
+    results.push(result);
+    if (!result.skipped) {
+      process.stdout.write(
+        `${result.probeName}: PASS (${result.latencyMs ?? "?"}ms)\n`,
+      );
+    }
+    return result;
+  }
+
+  async function reportFailure(failure) {
+    failures.push(failure);
+    process.stderr.write(`${failure.message}\n`);
+    await reportProbeFailureToSentry(
+      SENTRY_DSN,
+      failure.probeName,
+      failure.message,
+      failure.details,
+    );
+    await reportOpsAlertToWebhook(
+      OPS_ALERT_WEBHOOK_URL,
+      "Synthetic probe failed",
+      failure.message,
+      { probe: failure.probeName, source: "synthetic-monitoring" },
+    );
+    return null;
+  }
+
+  async function runProbeStep(probe, { recover } = {}) {
     try {
-      const result = await probe();
-      results.push(result);
-      if (!result.skipped) {
-        process.stdout.write(
-          `${result.probeName}: PASS (${result.latencyMs ?? "?"}ms)\n`,
-        );
-      }
-      return result;
+      return recordPass(await probe());
     } catch (error) {
-      const failure =
-        error instanceof ProbeFailure
-          ? error
-          : new ProbeFailure(
-              "unknown",
-              error instanceof Error ? error.message : String(error),
-            );
-      failures.push(failure);
-      process.stderr.write(`${failure.message}\n`);
-      await reportProbeFailureToSentry(
-        SENTRY_DSN,
-        failure.probeName,
-        failure.message,
-        failure.details,
-      );
-      await reportOpsAlertToWebhook(
-        OPS_ALERT_WEBHOOK_URL,
-        "Synthetic probe failed",
-        failure.message,
-        { probe: failure.probeName, source: "synthetic-monitoring" },
-      );
-      return null;
+      const failure = toProbeFailure(error);
+      if (recover && (await recover(failure))) {
+        try {
+          return recordPass(await probe());
+        } catch (retryError) {
+          return reportFailure(toProbeFailure(retryError));
+        }
+      }
+      return reportFailure(failure);
     }
   }
-  const healthResult = await runProbeStep(probeApiHealthLive);
+  const healthResult = await runProbeStep(probeApiHealthLive, {
+    recover: recoverApiViaFlyRestart,
+  });
   if (healthResult && !healthResult.skipped) {
     apiHealthPassed = true;
   }

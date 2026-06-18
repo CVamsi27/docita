@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="rgb(229,72,77)" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="rgb(229,72,77)" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1080" height="1080" fill="#0E1419"/>
+  <rect width="1080" height="1080" fill="url(#glow)"/>
+  <rect x="32" y="32" width="1016" height="1016" rx="16" fill="none" stroke="#E5484D" stroke-width="1.5" opacity="0.35"/>
+  <text x="540" y="118" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="22" font-weight="400" fill="#E5484D" letter-spacing="3">DOCTOR BURNOUT</text>
+  <text x="540" y="504" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="70" font-weight="700" fill="#FAF9F5" letter-spacing="-1">Admin work</text>
+    <text x="540" y="596" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="70" font-weight="700" fill="#E5484D" letter-spacing="-1">won't fix itself.</text>
+  <text x="540" y="724" text-anchor="middle" font-family="Inter,sans-serif" font-size="32" font-weight="400" fill="#FAF9F5" opacity="0.65">Docita automates the paperwork.</text>
+  
+  <image href="Docita_Wordmark_HQ.png" x="494.5" y="984" width="91" height="44"/>
+</svg>

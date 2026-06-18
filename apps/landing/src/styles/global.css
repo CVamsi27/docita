@@ -2166,6 +2166,16 @@ canvas {
   border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
   background: color-mix(in oklch, var(--card) 96%, var(--background));
   overflow: hidden;
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    border-color 200ms ease;
+}
+
+.r2-surface-col:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklch, var(--primary) 28%, transparent);
+  box-shadow: 0 20px 48px -22px color-mix(in oklch, var(--foreground) 14%, transparent);
 }
 
 .r2-surface-col::before {
@@ -2206,6 +2216,18 @@ canvas {
   color: var(--foreground);
   font-weight: 500;
   line-height: 1.2;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+
+.r2-surface-col:hover .r2-surface-chip {
+  border-color: color-mix(in oklch, var(--border) 70%, transparent);
+}
+
+.r2-surface-chip:hover {
+  border-color: color-mix(in oklch, var(--primary) 35%, transparent);
+  background: color-mix(in oklch, var(--primary) 7%, var(--background));
 }
 
 .r2-surface-chip-icon {
@@ -2229,10 +2251,24 @@ canvas {
   border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
   background: color-mix(in oklch, var(--card) 94%, var(--background));
   box-shadow: 0 14px 40px -20px color-mix(in oklch, var(--foreground) 12%, transparent);
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    border-color 200ms ease;
+}
+
+.r2-diff-col:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklch, var(--primary) 26%, transparent);
+  box-shadow: 0 24px 56px -22px color-mix(in oklch, var(--foreground) 18%, transparent);
 }
 
 .dark .r2-diff-col {
   box-shadow: 0 18px 48px -20px rgba(0, 0, 0, 0.45);
+}
+
+.dark .r2-diff-col:hover {
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.55);
 }
 
 .r2-diff-surface {
@@ -2280,6 +2316,23 @@ canvas {
 .r2-price-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 20px 48px -20px color-mix(in oklch, var(--foreground) 14%, transparent);
+}
+
+/* Honour reduced-motion: keep the shadow/border feedback, drop the lift. */
+@media (prefers-reduced-motion: reduce) {
+  .r2-surface-col,
+  .r2-diff-col,
+  .r2-price-card {
+    transition:
+      box-shadow 200ms ease,
+      border-color 200ms ease;
+  }
+
+  .r2-surface-col:hover,
+  .r2-diff-col:hover,
+  .r2-price-card:hover {
+    transform: none;
+  }
 }
 
 .r2-price-card--featured {
