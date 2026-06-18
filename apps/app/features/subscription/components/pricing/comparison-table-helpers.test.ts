@@ -9,7 +9,6 @@ import {
 describe("comparisonTiersForMode", () => {
   it("shows all published clinical tiers in Full mode", () => {
     expect(comparisonTiersForMode("FULL")).toEqual([
-      Tier.FREE,
       Tier.STARTER,
       Tier.ESSENTIAL,
       Tier.PROFESSIONAL,

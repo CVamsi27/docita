@@ -17,7 +17,7 @@ export const PRICING_DIALOG_TIERS: TierName[] = [...PUBLISHED_PLAN_LADDER];
 
 /** Paid plans only — excludes Starter for usage-based estimator UX. */
 export const PRICING_ESTIMATOR_TIERS: TierName[] = PUBLISHED_PLAN_LADDER.filter(
-	(tier) => tier !== "FREE" && tier !== "STARTER",
+	(tier) => tier !== "STARTER",
 );
 
 export const PRICING_DIALOG_TIER_ICONS: Record<TierName, LucideIcon> = {

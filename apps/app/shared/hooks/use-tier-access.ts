@@ -28,6 +28,7 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@workspace/data-access";
 
 export const TIER_NAMES: Record<number, string> = {
+  [Tier.FREE]: "Free",
   [Tier.STARTER]: "Starter",
   [Tier.ESSENTIAL]: "Essential",
   [Tier.FRONT_DESK]: "Front desk",
@@ -130,7 +131,7 @@ export function useTierAccess() {
   return {
     currentTier: displayTier,
     currentTierValue,
-    currentTierName: TIER_NAMES[currentTierValue] || "Free",
+    currentTierName: TIER_NAMES[currentTierValue] || "Starter",
     hasIntelligence,
     isSubscriptionActive,
     hasTier,

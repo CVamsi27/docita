@@ -12,7 +12,6 @@ import {
 } from "@workspace/utils";
 
 const STARTER = "STARTER" satisfies TierName;
-const FREE = "FREE" satisfies TierName;
 const INTELLIGENCE = "INTELLIGENCE" satisfies TierName;
 
 const PLAN_LIMITS = TIER_LIMITS;
@@ -50,9 +49,15 @@ function tierRecord<V extends string | boolean | number>(
   };
 }
 
+const FREE = "FREE" satisfies TierName;
+
 function whatsappIncludedQuota(tier: Tier): number | undefined {
   const tierName = getTierName(tier);
-  if (tierName === FREE || tierName === STARTER || tierName === INTELLIGENCE)
+  if (
+    tierName === FREE ||
+    tierName === STARTER ||
+    tierName === INTELLIGENCE
+  )
     return undefined;
   return WHATSAPP_ADDON_PRICING[tierName].includedQuota;
 }

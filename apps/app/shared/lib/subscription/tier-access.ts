@@ -47,7 +47,6 @@ import {
 
 /** Linear plan ladder for onboarding highlights (excludes INTELLIGENCE add-on). */
 const PLAN_TIER_LADDER: Tier[] = [
-  Tier.FREE,
   Tier.STARTER,
   Tier.FRONT_DESK,
   Tier.ESSENTIAL,
