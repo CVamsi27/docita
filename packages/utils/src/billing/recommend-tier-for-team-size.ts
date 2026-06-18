@@ -23,7 +23,6 @@ export function recommendTierForTeamSize(
   const normalized = Math.ceil(totalUsers);
 
   for (const tier of PUBLISHED_PLAN_LADDER) {
-    if (tier === "FREE") continue;
     const includedUsers = TIER_LIMITS[tier]?.users ?? 0;
     if (includedUsers >= normalized) {
       return { tier, includedUsers, totalUsers: normalized };

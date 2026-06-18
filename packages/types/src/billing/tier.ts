@@ -72,7 +72,6 @@ export const BILLED_TIERS = [
  * **and** a `PlanMode` (Full / Front Desk / Core).
  */
 export const PUBLISHED_PLAN_LADDER = [
-  "FREE",
   "STARTER",
   "ESSENTIAL",
   "PROFESSIONAL",
@@ -1506,22 +1505,22 @@ export const TIER_INFO: Record<TierName, TierInfo> = {
   },
   STARTER: {
     name: "Starter",
-    description: "Basic clinical workflow for solo doctors moving off paper",
+    description: "Core clinical workflows for solo practitioners moving off paper",
     tagline: "Go digital from day one",
     color: "gray",
   },
   ESSENTIAL: {
     name: "Essential",
     description:
-      "For solo clinics that want clear limits, WhatsApp messaging, and simple billing.",
+      "For solo clinics and small hospitals: clear limits, WhatsApp messaging, and simple billing.",
     tagline: "For solo clinics",
     color: "blue",
   },
   PROFESSIONAL: {
     name: "Professional",
     description:
-      "For growing clinics with multiple doctors, branding, and advanced workflows.",
-    tagline: "Built for growing clinics",
+      "For growing clinics and small hospitals with multiple doctors and advanced workflows.",
+    tagline: "Built for growing practices",
     color: "purple",
   },
   HOSPITAL: {
@@ -1893,7 +1892,7 @@ export const MODE_BLOCKED_FEATURES: Record<PlanMode, ReadonlySet<Feature>> = {
  * Tiers that only make sense at mode = FULL (i.e. don't show Front Desk/Core
  * toggles for these). Starter is the entry-level tier; Enterprise is bespoke.
  */
-export const FULL_ONLY_TIERS: readonly TierName[] = ["FREE", "STARTER"];
+export const FULL_ONLY_TIERS: readonly TierName[] = ["STARTER"];
 
 export function tierSupportsMode(tier: TierName, mode: PlanMode): boolean {
   if (mode === "FULL") return true;
