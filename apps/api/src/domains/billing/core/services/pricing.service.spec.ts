@@ -90,29 +90,6 @@ describe('PricingService', () => {
     });
   });
 
-  it('estimates free plans without billable WhatsApp add-ons', () => {
-    const estimate = service.calculateEstimate({
-      tier: 'FREE',
-      consultations: 80,
-      users: 1,
-      whatsappMessages: 500,
-    });
-
-    expect(estimate).toMatchObject({
-      tier: 'FREE',
-      billingCycle: 'monthly',
-      totalMonthly: 0,
-      breakdown: {
-        basePrice: 0,
-        overageTotal: 0,
-        overages: {
-          consultations: { count: 20, charge: 0 },
-          users: { count: 0, charge: 0 },
-          whatsappMessages: { count: 0, charge: 0 },
-        },
-      },
-    });
-  });
 
   it('returns the enterprise contact-sales estimate', () => {
     expect(

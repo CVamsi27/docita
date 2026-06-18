@@ -69,11 +69,6 @@ export const PLAN_DESCRIPTIONS: Record<
   Tier,
   { tagline: string; description: string }
 > = {
-  [Tier.FREE]: {
-    tagline: "Start on WhatsApp",
-    description:
-      "Free distribution tier for basic patient records and WhatsApp-first setup",
-  },
   [Tier.STARTER]: {
     tagline: "Go digital from day one",
     description: "Basic clinical workflow for solo doctors moving off paper",

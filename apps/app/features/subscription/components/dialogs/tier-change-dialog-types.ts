@@ -26,7 +26,6 @@ export interface TierChangeDialogProps {
 }
 
 export const TIER_ICONS: Record<TierName, React.ElementType> = {
-  FREE: Zap,
   STARTER: Zap,
   ESSENTIAL: Rocket,
   FRONT_DESK: ClipboardList,
@@ -39,7 +38,6 @@ export const TIER_ICONS: Record<TierName, React.ElementType> = {
 };
 
 export const PLAN_TIER_RANK: Record<TierName, number> = {
-  FREE: 0,
   STARTER: 10,
   FRONT_DESK: 18,
   FRONT_DESK_CLINIC: 19,

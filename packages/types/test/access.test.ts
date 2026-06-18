@@ -78,7 +78,7 @@ describe("@workspace/types access contracts", () => {
     expect(mapClinicTierDbStringToAccessTier("CORE")).toBe(Tier.ESSENTIAL);
     expect(mapClinicTierDbStringToAccessTier("PLUS")).toBe(Tier.ESSENTIAL);
     expect(mapClinicTierDbStringToAccessTier("CAPTURE")).toBe(Tier.STARTER);
-    expect(mapClinicTierDbStringToAccessTier("FREE")).toBe(Tier.FREE);
+    expect(mapClinicTierDbStringToAccessTier("STARTER")).toBe(Tier.STARTER);
     expect(mapClinicTierDbStringToAccessTier("UNKNOWN_TIER")).toBe(
       Tier.STARTER,
     );

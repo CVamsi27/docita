@@ -36,7 +36,6 @@ function tierRecord<V extends string | boolean | number>(
   build: (tier: Tier) => V,
 ): Record<Tier, V> {
   return {
-    [Tier.FREE]: build(Tier.FREE),
     [Tier.STARTER]: build(Tier.STARTER),
     [Tier.FRONT_DESK]: build(Tier.FRONT_DESK),
     [Tier.FRONT_DESK_CLINIC]: build(Tier.FRONT_DESK_CLINIC),
@@ -49,12 +48,9 @@ function tierRecord<V extends string | boolean | number>(
   };
 }
 
-const FREE = "FREE" satisfies TierName;
-
 function whatsappIncludedQuota(tier: Tier): number | undefined {
   const tierName = getTierName(tier);
   if (
-    tierName === FREE ||
     tierName === STARTER ||
     tierName === INTELLIGENCE
   )

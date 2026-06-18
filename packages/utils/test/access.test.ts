@@ -47,10 +47,10 @@ describe("@workspace/utils access helpers", () => {
 
   it("keeps GA essential features usable from the expected tier", () => {
     expect(isFeatureGenerallyAvailable(Feature.QUEUE_MANAGEMENT)).toBe(true);
-    expect(hasFeatureAccess("FREE", Feature.BASIC_PATIENT_MANAGEMENT)).toBe(
+    expect(hasFeatureAccess("STARTER", Feature.BASIC_PATIENT_MANAGEMENT)).toBe(
       true,
     );
-    expect(hasFeatureAccess("FREE", Feature.INVOICING)).toBe(false);
+    expect(hasFeatureAccess("STARTER", Feature.INVOICING)).toBe(false);
     expect(hasFeatureAccess("STARTER", Feature.QUEUE_MANAGEMENT)).toBe(false);
     expect(hasFeatureAccess("ESSENTIAL", Feature.QUEUE_MANAGEMENT)).toBe(true);
     expect(Tier.ESSENTIAL).toBeGreaterThan(Tier.STARTER);

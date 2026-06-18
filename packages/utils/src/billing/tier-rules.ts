@@ -45,8 +45,6 @@ export function getTierValue(tierName: TierName): Tier {
 
 export function getTierName(tier: Tier): TierName {
   switch (tier) {
-    case Tier.FREE:
-      return 'FREE';
     case Tier.STARTER:
       return 'STARTER';
     case Tier.ESSENTIAL:

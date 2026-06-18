@@ -28,7 +28,6 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@workspace/data-access";
 
 export const TIER_NAMES: Record<number, string> = {
-  [Tier.FREE]: "Free",
   [Tier.STARTER]: "Starter",
   [Tier.ESSENTIAL]: "Essential",
   [Tier.FRONT_DESK]: "Front desk",

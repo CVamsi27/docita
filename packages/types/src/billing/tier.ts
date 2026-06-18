@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 export const tierSchema = z.enum([
-  "FREE",
   "STARTER",
   "ESSENTIAL",
   "PROFESSIONAL",
@@ -15,7 +14,6 @@ export const tierSchema = z.enum([
 export type TierName = z.infer<typeof tierSchema>;
 
 export enum Tier {
-  FREE = -1,
   STARTER = 0,
   ESSENTIAL = 1,
   PROFESSIONAL = 2,
@@ -232,14 +230,14 @@ export const FEATURE_TIER_MAP: Record<Feature, Tier> = {
   [Feature.PAPER_SCANNING]: Tier.STARTER,
   [Feature.EXCEL_IMPORT]: Tier.STARTER,
   [Feature.PATIENT_DEDUPLICATION]: Tier.STARTER,
-  [Feature.BASIC_PATIENT_MANAGEMENT]: Tier.FREE,
+  [Feature.BASIC_PATIENT_MANAGEMENT]: Tier.STARTER,
   [Feature.DOCUMENT_ARCHIVAL]: Tier.STARTER,
   [Feature.EXPORT_CSV]: Tier.STARTER,
   [Feature.OCR_BASIC]: Tier.STARTER,
-  [Feature.CALENDAR_SLOTS]: Tier.FREE,
-  [Feature.VISIT_HISTORY]: Tier.FREE,
-  [Feature.MEDICINES_LIST]: Tier.FREE,
-  [Feature.DIGITAL_PRESCRIPTIONS]: Tier.FREE,
+  [Feature.CALENDAR_SLOTS]: Tier.STARTER,
+  [Feature.VISIT_HISTORY]: Tier.STARTER,
+  [Feature.MEDICINES_LIST]: Tier.STARTER,
+  [Feature.DIGITAL_PRESCRIPTIONS]: Tier.STARTER,
 
   [Feature.INVOICING]: Tier.ESSENTIAL,
   [Feature.BASIC_ANALYTICS]: Tier.ESSENTIAL,
@@ -440,7 +438,6 @@ export const TIER_PRICING_BY_CURRENCY: Record<
   Record<TierName, MultiCurrencyTierPricing>
 > = {
   INR: {
-    FREE: buildTierPricing(0),
     STARTER: buildTierPricing(499),
     ESSENTIAL: buildTierPricing(999),
     FRONT_DESK: buildTierPricing(799),
@@ -452,7 +449,6 @@ export const TIER_PRICING_BY_CURRENCY: Record<
     INTELLIGENCE: buildTierPricing(0),
   },
   USD: {
-    FREE: buildTierPricing(0),
     STARTER: buildTierPricing(9),
     ESSENTIAL: buildTierPricing(19),
     FRONT_DESK: buildTierPricing(15),
@@ -464,7 +460,6 @@ export const TIER_PRICING_BY_CURRENCY: Record<
     INTELLIGENCE: buildTierPricing(0),
   },
   EUR: {
-    FREE: buildTierPricing(0),
     STARTER: buildTierPricing(8),
     ESSENTIAL: buildTierPricing(17),
     FRONT_DESK: buildTierPricing(14),
@@ -476,7 +471,6 @@ export const TIER_PRICING_BY_CURRENCY: Record<
     INTELLIGENCE: buildTierPricing(0),
   },
   GBP: {
-    FREE: buildTierPricing(0),
     STARTER: buildTierPricing(7),
     ESSENTIAL: buildTierPricing(15),
     FRONT_DESK: buildTierPricing(12),
@@ -488,7 +482,6 @@ export const TIER_PRICING_BY_CURRENCY: Record<
     INTELLIGENCE: buildTierPricing(0),
   },
   AUD: {
-    FREE: buildTierPricing(0),
     STARTER: buildTierPricing(14),
     ESSENTIAL: buildTierPricing(29),
     FRONT_DESK: buildTierPricing(24),
@@ -500,7 +493,6 @@ export const TIER_PRICING_BY_CURRENCY: Record<
     INTELLIGENCE: buildTierPricing(0),
   },
   CAD: {
-    FREE: buildTierPricing(0),
     STARTER: buildTierPricing(12),
     ESSENTIAL: buildTierPricing(25),
     FRONT_DESK: buildTierPricing(20),
@@ -512,7 +504,6 @@ export const TIER_PRICING_BY_CURRENCY: Record<
     INTELLIGENCE: buildTierPricing(0),
   },
   SGD: {
-    FREE: buildTierPricing(0),
     STARTER: buildTierPricing(12),
     ESSENTIAL: buildTierPricing(25),
     FRONT_DESK: buildTierPricing(20),
@@ -524,7 +515,6 @@ export const TIER_PRICING_BY_CURRENCY: Record<
     INTELLIGENCE: buildTierPricing(0),
   },
   AED: {
-    FREE: buildTierPricing(0),
     STARTER: buildTierPricing(35),
     ESSENTIAL: buildTierPricing(69),
     FRONT_DESK: buildTierPricing(55),
@@ -536,7 +526,6 @@ export const TIER_PRICING_BY_CURRENCY: Record<
     INTELLIGENCE: buildTierPricing(0),
   },
   ZAR: {
-    FREE: buildTierPricing(0),
     STARTER: buildTierPricing(179),
     ESSENTIAL: buildTierPricing(349),
     FRONT_DESK: buildTierPricing(279),
@@ -550,7 +539,6 @@ export const TIER_PRICING_BY_CURRENCY: Record<
 };
 
 export const TIER_PRICING: Record<TierName, TierPricing> = {
-  FREE: { monthly: 0, yearly: 0, currency: "₹" },
   STARTER: { monthly: 499, yearly: deriveAnnualPrice(499), currency: "₹" },
   ESSENTIAL: { monthly: 999, yearly: deriveAnnualPrice(999), currency: "₹" },
   FRONT_DESK: { monthly: 799, yearly: deriveAnnualPrice(799), currency: "₹" },
@@ -599,18 +587,6 @@ export const tierLimitsSchema = z.object({
 export type TierLimits = z.infer<typeof tierLimitsSchema>;
 
 export const TIER_LIMITS: Record<TierName, TierLimits> = {
-  FREE: {
-    patients: 100,
-    doctors: 1,
-    storageGB: 1,
-    branches: 1,
-    appointments: 60,
-    users: 1,
-    prescriptions: 50,
-    invoices: 0,
-    ocrPages: 0,
-    apiCallsPerDay: 0,
-  },
   STARTER: {
     patients: 50,
     doctors: 1,
@@ -955,7 +931,6 @@ export const TIER_OVERAGE_RATES: Record<
     apiCallRate: number;
   }
 > = {
-  FREE: ZERO_OVERAGE,
   STARTER: ZERO_OVERAGE,
   ESSENTIAL: PRO_OVERAGE_RATES_BY_CURRENCY.INR,
   FRONT_DESK: PRO_OVERAGE_RATES_BY_CURRENCY.INR,
@@ -975,7 +950,6 @@ function buildTierOverageRates(
   enterpriseApiCallRate: number,
 ): Record<TierName, OverageRates> {
   return {
-    FREE: { ...ZERO_OVERAGE } as OverageRates,
     STARTER: { ...ZERO_OVERAGE } as OverageRates,
     ESSENTIAL: proRates,
     FRONT_DESK: proRates,
@@ -1057,7 +1031,7 @@ export interface AddOnPricing {
 }
 
 export const WHATSAPP_ADDON_PRICING: Record<
-  Exclude<TierName, "FREE" | "STARTER" | "INTELLIGENCE">,
+  Exclude<TierName, "STARTER" | "INTELLIGENCE">,
   AddOnPricing
 > = {
   ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.75 },
@@ -1071,7 +1045,7 @@ export const WHATSAPP_ADDON_PRICING: Record<
 
 export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
   SupportedCurrency,
-  Record<Exclude<TierName, "FREE" | "STARTER" | "INTELLIGENCE">, AddOnPricing>
+  Record<Exclude<TierName, "STARTER" | "INTELLIGENCE">, AddOnPricing>
 > = {
   INR: WHATSAPP_ADDON_PRICING,
   USD: {
@@ -1185,7 +1159,7 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
 };
 
 const INTELLIGENCE_ZERO_PRICING: Record<
-  Exclude<TierName, "FREE" | "STARTER" | "INTELLIGENCE">,
+  Exclude<TierName, "STARTER" | "INTELLIGENCE">,
   AddOnPricing
 > = {
   ESSENTIAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
@@ -1199,7 +1173,7 @@ const INTELLIGENCE_ZERO_PRICING: Record<
 
 export const INTELLIGENCE_ADDON_PRICING_BY_CURRENCY: Record<
   SupportedCurrency,
-  Record<Exclude<TierName, "FREE" | "STARTER" | "INTELLIGENCE">, AddOnPricing>
+  Record<Exclude<TierName, "STARTER" | "INTELLIGENCE">, AddOnPricing>
 > = {
   INR: INTELLIGENCE_ZERO_PRICING,
   USD: INTELLIGENCE_ZERO_PRICING,
@@ -1234,7 +1208,6 @@ export type AiCreditFeature = keyof typeof AI_CREDIT_COSTS;
  * is set, the pre-call guard begins blocking when period usage reaches it.
  */
 export const AI_CREDIT_ALLOTMENT_BY_TIER: Record<TierName, number | null> = {
-  FREE: 0,
   STARTER: 100,
   ESSENTIAL: 500,
   FRONT_DESK: 500,
@@ -1369,7 +1342,6 @@ export const DISCOUNT_CONFIG: Record<
 };
 
 export const REFERRAL_REWARDS: Record<TierName, number> = {
-  FREE: 0,
   STARTER: 0,
   ESSENTIAL: 500,
   FRONT_DESK: 400,
@@ -1387,7 +1359,6 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
 > = {
   INR: REFERRAL_REWARDS,
   USD: {
-    FREE: 0,
     STARTER: 0,
     ESSENTIAL: 15,
     FRONT_DESK: 12,
@@ -1399,7 +1370,6 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
     INTELLIGENCE: 0,
   },
   EUR: {
-    FREE: 0,
     STARTER: 0,
     ESSENTIAL: 12,
     FRONT_DESK: 10,
@@ -1411,7 +1381,6 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
     INTELLIGENCE: 0,
   },
   GBP: {
-    FREE: 0,
     STARTER: 0,
     ESSENTIAL: 10,
     FRONT_DESK: 8,
@@ -1423,7 +1392,6 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
     INTELLIGENCE: 0,
   },
   AUD: {
-    FREE: 0,
     STARTER: 0,
     ESSENTIAL: 22,
     FRONT_DESK: 18,
@@ -1435,7 +1403,6 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
     INTELLIGENCE: 0,
   },
   CAD: {
-    FREE: 0,
     STARTER: 0,
     ESSENTIAL: 20,
     FRONT_DESK: 16,
@@ -1447,7 +1414,6 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
     INTELLIGENCE: 0,
   },
   SGD: {
-    FREE: 0,
     STARTER: 0,
     ESSENTIAL: 20,
     FRONT_DESK: 16,
@@ -1459,7 +1425,6 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
     INTELLIGENCE: 0,
   },
   AED: {
-    FREE: 0,
     STARTER: 0,
     ESSENTIAL: 60,
     FRONT_DESK: 48,
@@ -1471,7 +1436,6 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
     INTELLIGENCE: 0,
   },
   ZAR: {
-    FREE: 0,
     STARTER: 0,
     ESSENTIAL: 280,
     FRONT_DESK: 220,
@@ -1496,13 +1460,6 @@ export const tierInfoSchema = z.object({
 export type TierInfo = z.infer<typeof tierInfoSchema>;
 
 export const TIER_INFO: Record<TierName, TierInfo> = {
-  FREE: {
-    name: "Free",
-    description:
-      "Distribution tier for WhatsApp-first clinic setup with patient and basic prescription limits.",
-    tagline: "Start on WhatsApp",
-    color: "green",
-  },
   STARTER: {
     name: "Starter",
     description: "Core clinical workflows for solo practitioners moving off paper",
@@ -1601,15 +1558,6 @@ export const INTELLIGENCE_ADDONS: IntelligenceAddon[] = [
 export const INTELLIGENCE_BUNDLE_DISCOUNT = 0.4;
 
 export const TIER_FEATURES: Record<TierName, string[]> = {
-  FREE: [
-    "Up to 100 active patients",
-    "1 doctor login",
-    "50 prescriptions / month",
-    "Today and tomorrow schedule",
-    "Basic patient profiles and visit history",
-    "Basic prescription sharing on WhatsApp",
-    "Community WhatsApp support",
-  ],
   STARTER: [
     "Up to 50 patients",
     "Consultation scheduling",

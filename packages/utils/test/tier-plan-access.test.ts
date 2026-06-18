@@ -14,7 +14,6 @@ import {
 import { Tier } from "@workspace/types";
 
 const PLAN_SKUS = [
-  "FREE",
   "STARTER",
   "FRONT_DESK",
   "ESSENTIAL",

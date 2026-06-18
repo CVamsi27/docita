@@ -5,7 +5,7 @@ import { planModeSchema } from "../billing/tier";
 import { clinicTypeSchema, facilityTypeSchema } from "./users";
 import { jsonObjectSchema } from "./json-schema";
 
-export const ClinicTier = z.enum(["FREE", "CAPTURE", "GROWTH", "ENTERPRISE"]);
+export const ClinicTier = z.enum(["CAPTURE", "GROWTH", "ENTERPRISE"]);
 
 export const IntelligenceAddonStatus = z.enum(["NONE", "ACTIVE"]);
 
