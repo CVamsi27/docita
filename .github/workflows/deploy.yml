@@ -47,7 +47,7 @@ jobs:
       internal: ${{ steps.detect.outputs.internal }}
       landing: ${{ steps.detect.outputs.landing }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Setup Node.js
@@ -68,7 +68,7 @@ jobs:
     env:
       NODE_ENV: production
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Prepare pnpm
         run: |
           corepack enable
@@ -142,7 +142,7 @@ jobs:
       NODE_ENV: production
       STARTUP_TIMEOUT_SECONDS: 120
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Prepare pnpm
         run: |
           corepack enable
@@ -166,7 +166,7 @@ jobs:
     env:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Read Fly app from fly.toml
         id: fly-config
         run: |
@@ -201,7 +201,7 @@ jobs:
     env:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_WORKER }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Read Fly app from apps/worker/fly.toml
         id: fly-config
         run: |
@@ -220,7 +220,7 @@ jobs:
       enabled: ${{ steps.check.outputs.enabled }}
       reason: ${{ steps.check.outputs.reason }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - id: check
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -245,7 +245,7 @@ jobs:
     if: needs.gate.outputs.enabled == 'true' && needs.changes.outputs.app == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Prepare pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -272,7 +272,7 @@ jobs:
     if: needs.gate.outputs.enabled == 'true' && needs.changes.outputs.internal == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Prepare pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -299,7 +299,7 @@ jobs:
     if: needs.gate.outputs.enabled == 'true' && needs.changes.outputs.landing == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Prepare pnpm
         uses: pnpm/action-setup@v4
         with:
