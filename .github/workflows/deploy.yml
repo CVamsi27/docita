@@ -123,7 +123,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           if [ -z "$DATABASE_URL" ]; then echo "DATABASE_URL secret is required."; exit 1; fi
-          pnpm --filter @workspace/db exec psql "$DATABASE_URL" -f scripts/cleanup-partial-migration.sql 2>&1 || true
+          npx tsx packages/db/scripts/cleanup-partial-migration.ts 2>&1 || true
       - name: Run Prisma Migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
