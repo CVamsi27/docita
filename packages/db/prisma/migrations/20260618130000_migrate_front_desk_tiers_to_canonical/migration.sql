@@ -18,10 +18,10 @@ UPDATE "Subscription" SET "plan" = 'ESSENTIAL'  WHERE "plan" = 'FRONT_DESK';
 UPDATE "Subscription" SET "plan" = 'PROFESSIONAL' WHERE "plan" = 'FRONT_DESK_CLINIC';
 UPDATE "Subscription" SET "plan" = 'HOSPITAL'   WHERE "plan" = 'FRONT_DESK_HOSPITAL';
 
--- Step 3: Convert TierPricing.tier (if any exist for these values)
-UPDATE "TierPricing" SET "tier" = 'ESSENTIAL'  WHERE "tier" = 'FRONT_DESK';
-UPDATE "TierPricing" SET "tier" = 'PROFESSIONAL' WHERE "tier" = 'FRONT_DESK_CLINIC';
-UPDATE "TierPricing" SET "tier" = 'HOSPITAL'   WHERE "tier" = 'FRONT_DESK_HOSPITAL';
+-- Step 3: Delete FRONT_DESK TierPricing rows.
+-- Cannot convert to canonical tiers because TierPricing.tier is UNIQUE and
+-- ESSENTIAL/PROFESSIONAL/HOSPITAL rows already exist.
+DELETE FROM "TierPricing" WHERE "tier" IN ('FRONT_DESK', 'FRONT_DESK_CLINIC', 'FRONT_DESK_HOSPITAL');
 
 -- Step 4: Recreate ClinicTier enum without FRONT_DESK_* values
 CREATE TYPE "ClinicTier_new" AS ENUM ('STARTER', 'ESSENTIAL', 'PROFESSIONAL', 'HOSPITAL', 'ENTERPRISE');
