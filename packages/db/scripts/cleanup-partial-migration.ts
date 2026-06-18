@@ -13,7 +13,7 @@ import { Pool } from "pg";
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
-  console.error("DATABASE_URL is required.");
+  process.stderr.write("DATABASE_URL is required.\n");
   process.exit(1);
 }
 
@@ -53,12 +53,12 @@ async function main() {
     const client = await pool.connect();
     try {
       await client.query(CLEANUP_SQL);
-      console.log("Cleanup completed successfully.");
+      process.stdout.write("Cleanup completed successfully.\n");
     } finally {
       client.release();
     }
   } catch (err) {
-    console.error("Cleanup failed:", err);
+    process.stderr.write(`Cleanup failed: ${err}\n`);
     process.exit(1);
   } finally {
     await pool.end();
