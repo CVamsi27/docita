@@ -3,7 +3,6 @@ import { tierSchema, type TierName } from "../src";
 
 const BILLABLE_PLAN_SKUS = [
   "STARTER",
-  "FRONT_DESK",
   "ESSENTIAL",
   "PROFESSIONAL",
   "HOSPITAL",

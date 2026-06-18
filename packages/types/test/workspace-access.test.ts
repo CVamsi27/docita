@@ -1,59 +1,65 @@
 import { describe, expect, it } from "vitest";
 import {
   APP_ACCESS_TARGETS,
-  shouldDenyAccessForFrontDeskTier,
+  shouldDenyAccessForFrontDeskMode,
 } from "../src";
 
-describe("shouldDenyAccessForFrontDeskTier", () => {
-  it("denies consultation for non-internal roles on FRONT_DESK tier", () => {
+describe("shouldDenyAccessForFrontDeskMode", () => {
+  it("denies consultation for non-internal roles on FRONT_DESK mode", () => {
     expect(
-      shouldDenyAccessForFrontDeskTier(
-        APP_ACCESS_TARGETS.PAGE_CONSULTATION,
-        "DOCTOR",
-        "FRONT_DESK",
-      ),
-    ).toBe(true);
-    expect(
-      shouldDenyAccessForFrontDeskTier(
-        APP_ACCESS_TARGETS.PAGE_CONSULTATION,
-        "RECEPTIONIST",
-        "FRONT_DESK",
-      ),
-    ).toBe(true);
-  });
-
-  it("allows INTERNAL on FRONT_DESK tier", () => {
-    expect(
-      shouldDenyAccessForFrontDeskTier(
-        APP_ACCESS_TARGETS.PAGE_CONSULTATION,
-        "INTERNAL",
-        "FRONT_DESK",
-      ),
-    ).toBe(false);
-  });
-
-  it("does not deny on non-front-desk tiers", () => {
-    expect(
-      shouldDenyAccessForFrontDeskTier(
+      shouldDenyAccessForFrontDeskMode(
         APP_ACCESS_TARGETS.PAGE_CONSULTATION,
         "DOCTOR",
         "ESSENTIAL",
+        "FRONT_DESK",
       ),
-    ).toBe(false);
+    ).toBe(true);
     expect(
-      shouldDenyAccessForFrontDeskTier(
+      shouldDenyAccessForFrontDeskMode(
         APP_ACCESS_TARGETS.PAGE_CONSULTATION,
-        "DOCTOR",
+        "RECEPTIONIST",
         "PROFESSIONAL",
+        "FRONT_DESK",
+      ),
+    ).toBe(true);
+  });
+
+  it("allows INTERNAL on FRONT_DESK mode", () => {
+    expect(
+      shouldDenyAccessForFrontDeskMode(
+        APP_ACCESS_TARGETS.PAGE_CONSULTATION,
+        "INTERNAL",
+        "ESSENTIAL",
+        "FRONT_DESK",
       ),
     ).toBe(false);
   });
 
-  it("does not deny non-blocked targets on FRONT_DESK tier", () => {
+  it("does not deny on non-front-desk modes", () => {
     expect(
-      shouldDenyAccessForFrontDeskTier(
+      shouldDenyAccessForFrontDeskMode(
+        APP_ACCESS_TARGETS.PAGE_CONSULTATION,
+        "DOCTOR",
+        "ESSENTIAL",
+        "FULL",
+      ),
+    ).toBe(false);
+    expect(
+      shouldDenyAccessForFrontDeskMode(
+        APP_ACCESS_TARGETS.PAGE_CONSULTATION,
+        "DOCTOR",
+        "PROFESSIONAL",
+        "FULL",
+      ),
+    ).toBe(false);
+  });
+
+  it("does not deny non-blocked targets on FRONT_DESK mode", () => {
+    expect(
+      shouldDenyAccessForFrontDeskMode(
         APP_ACCESS_TARGETS.PAGE_INVOICES,
         "RECEPTIONIST",
+        "ESSENTIAL",
         "FRONT_DESK",
       ),
     ).toBe(false);
