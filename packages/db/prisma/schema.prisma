@@ -1169,8 +1169,7 @@ model Clinic {
   active                       Boolean                   @default(true)
   tier                         ClinicTier                @default(STARTER)
   /// Top-level Full/Front Desk/Core toggle paired with `tier`.
-  /// Legacy FRONT_DESK_* rows on `tier` ignore this column and are surfaced
-  /// as mode = FRONT_DESK by `mapDbClinicTierToTierAndMode`.
+  /// PlanMode.FRONT_DESK = reception/queue/billing; clinical features blocked.
   planMode                     PlanMode                  @default(FULL)
   type                         ClinicType                @default(GENERAL)
   /// @json:jsonObjectSchema
@@ -2832,9 +2831,6 @@ enum ClinicTier {
   PROFESSIONAL
   HOSPITAL
   ENTERPRISE
-  FRONT_DESK
-  FRONT_DESK_CLINIC
-  FRONT_DESK_HOSPITAL
 }
 
 /// Top-level mode toggle that pairs with `ClinicTier` to produce a billed plan.
