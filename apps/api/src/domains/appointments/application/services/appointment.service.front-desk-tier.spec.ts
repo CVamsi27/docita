@@ -96,10 +96,10 @@ describe('AppointmentService front desk tier', () => {
     );
   });
 
-  it('forbids startConsultation when clinic tier is FRONT_DESK', async () => {
+  it('forbids startConsultation when clinic planMode is FRONT_DESK', async () => {
     mockRepository.findClinicTier.mockResolvedValue({
-      tier: 'FRONT_DESK',
-      planMode: null,
+      tier: 'ESSENTIAL',
+      planMode: 'FRONT_DESK',
     });
 
     await expect(

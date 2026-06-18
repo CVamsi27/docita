@@ -22,7 +22,6 @@ import {
   getWhatsAppAddonPricingByCurrency,
 } from '@workspace/utils';
 import {
-  isLegacyDbPricingTier,
   mapDbTierStringToCanonicalTier,
   mapPricingTierInputToTierName,
   readNumber,
@@ -75,13 +74,9 @@ export class PricingService {
     const dbTiers = await this.getActiveTiers();
 
     if (dbTiers.length > 0) {
-      const canonicalTiers = dbTiers.filter(
-        (t) => !isLegacyDbPricingTier(t.tier),
-      );
-
       return this.buildPricingResponse(
         validCurrency,
-        canonicalTiers.map((tier) => {
+        dbTiers.map((tier) => {
           const canonicalTier = mapDbTierStringToCanonicalTier(tier.tier);
           const monthlyPrice =
             canonicalTier === 'ENTERPRISE'

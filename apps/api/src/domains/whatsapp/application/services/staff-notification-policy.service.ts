@@ -5,7 +5,7 @@ import {
   type WhatsappPersistencePort,
 } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import type { ClinicTier, StaffNotificationType } from '@workspace/db';
-import { isFrontDeskTier, type TierName } from '@workspace/types';
+import { isFrontDeskPlanMode, type TierName } from '@workspace/types';
 import { meetsMinimumTier, getTierValue } from '@workspace/utils';
 
 function isJsonObject(value: unknown): value is { enabled?: unknown } {
@@ -50,20 +50,20 @@ export class StaffNotificationPolicyService {
 
     const clinic = await this.persistence.clinic.findUnique({
       where: { id: clinicId },
-      select: { tier: true },
+      select: { tier: true, planMode: true },
     });
     if (!clinic) return false;
 
     if (
       FRONT_DESK_OPERATION_NOTIFICATION_TYPES.has(type) &&
-      isFrontDeskTier(clinic.tier)
+      isFrontDeskPlanMode(clinic.tier, clinic.planMode)
     ) {
       return true;
     }
 
     if (
       SCALED_FRONT_DESK_NOTIFICATION_TYPES.has(type) &&
-      isFrontDeskTier(clinic.tier)
+      isFrontDeskPlanMode(clinic.tier, clinic.planMode)
     ) {
       return true;
     }

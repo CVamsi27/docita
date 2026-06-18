@@ -1,9 +1,4 @@
-import {
-  ClinicTier,
-  EnterpriseContractStatus,
-  Role,
-  UsageType,
-} from '@workspace/db';
+import { ClinicTier, EnterpriseContractStatus, UsageType } from '@workspace/db';
 import {
   TIER_LIMITS,
   type SupportedCurrency,
@@ -24,12 +19,6 @@ function clinicTierToTierName(tier: ClinicTier): TierName {
       return 'HOSPITAL';
     case ClinicTier.ENTERPRISE:
       return 'ENTERPRISE';
-    case ClinicTier.FRONT_DESK:
-      return 'FRONT_DESK';
-    case ClinicTier.FRONT_DESK_CLINIC:
-      return 'FRONT_DESK_CLINIC';
-    case ClinicTier.FRONT_DESK_HOSPITAL:
-      return 'FRONT_DESK_HOSPITAL';
     default: {
       const _exhaustive: never = tier;
       return _exhaustive;
@@ -86,7 +75,6 @@ export function resolveIncludedQuotas({
 
   const whatsappEligibleTier =
     tier === ClinicTier.ESSENTIAL ||
-    tier === ClinicTier.FRONT_DESK ||
     tier === ClinicTier.PROFESSIONAL ||
     tier === ClinicTier.HOSPITAL ||
     tier === ClinicTier.ENTERPRISE
@@ -106,6 +94,7 @@ interface GatherUsageCountsParams {
   persistence: SubscriptionPersistencePort;
   clinicId: string;
   tier: ClinicTier;
+  planMode?: string | null;
   periodStart: Date;
   periodEnd: Date;
 }
@@ -113,7 +102,8 @@ interface GatherUsageCountsParams {
 export async function gatherUsageCounts({
   persistence,
   clinicId,
-  tier,
+  tier: _tier,
+  planMode,
   periodStart,
   periodEnd,
 }: GatherUsageCountsParams) {
@@ -128,10 +118,10 @@ export async function gatherUsageCounts({
     persistence.user.count({
       where: {
         clinicId,
-        ...(tier === ClinicTier.FRONT_DESK
+        ...(planMode === 'FRONT_DESK'
           ? {
               NOT: {
-                AND: [{ role: Role.DOCTOR }, { appLoginDisabled: true }],
+                AND: [{ role: 'DOCTOR' }, { appLoginDisabled: true }],
               },
             }
           : {}),

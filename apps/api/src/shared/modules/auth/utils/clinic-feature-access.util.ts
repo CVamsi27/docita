@@ -48,9 +48,6 @@ function getTierDisplayName(tier: Tier): string {
     [Tier.HOSPITAL]: 'Hospital',
     [Tier.ENTERPRISE]: 'Enterprise',
     [Tier.INTELLIGENCE]: 'Intelligence',
-    [Tier.FRONT_DESK]: 'Front desk',
-    [Tier.FRONT_DESK_CLINIC]: 'Front desk Clinic',
-    [Tier.FRONT_DESK_HOSPITAL]: 'Front desk Hospital',
   };
   // jscpd:ignore-start
   return names[tier] || 'Unknown';

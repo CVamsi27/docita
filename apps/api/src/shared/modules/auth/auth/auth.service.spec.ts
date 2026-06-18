@@ -321,14 +321,15 @@ describe('AuthService', () => {
       ).rejects.toThrow(ForbiddenException);
     });
 
-    it('should reject DOCTOR sign-in for FRONT_DESK clinics', async () => {
+    it('should reject DOCTOR sign-in for FRONT_DESK mode clinics', async () => {
       jest.spyOn(prismaService.user, 'findFirst').mockResolvedValue({
         ...mockUser,
         role: Role.DOCTOR,
       });
-      jest
-        .spyOn(prismaService.clinic, 'findUnique')
-        .mockResolvedValue({ tier: 'FRONT_DESK' } as never);
+      jest.spyOn(prismaService.clinic, 'findUnique').mockResolvedValue({
+        tier: 'ESSENTIAL',
+        planMode: 'FRONT_DESK',
+      } as never);
       jest.mocked(bcrypt.compare).mockImplementation(async () => true);
 
       await expect(
@@ -336,14 +337,15 @@ describe('AuthService', () => {
       ).rejects.toThrow(ForbiddenException);
     });
 
-    it('should reject ADMIN_DOCTOR sign-in for FRONT_DESK clinics', async () => {
+    it('should reject ADMIN_DOCTOR sign-in for FRONT_DESK mode clinics', async () => {
       jest.spyOn(prismaService.user, 'findFirst').mockResolvedValue({
         ...mockUser,
         role: Role.ADMIN_DOCTOR,
       });
-      jest
-        .spyOn(prismaService.clinic, 'findUnique')
-        .mockResolvedValue({ tier: 'FRONT_DESK' } as never);
+      jest.spyOn(prismaService.clinic, 'findUnique').mockResolvedValue({
+        tier: 'ESSENTIAL',
+        planMode: 'FRONT_DESK',
+      } as never);
       jest.mocked(bcrypt.compare).mockImplementation(async () => true);
 
       await expect(
@@ -351,14 +353,15 @@ describe('AuthService', () => {
       ).rejects.toThrow(ForbiddenException);
     });
 
-    it('should allow RECEPTIONIST sign-in for FRONT_DESK clinics', async () => {
+    it('should allow RECEPTIONIST sign-in for FRONT_DESK mode clinics', async () => {
       jest.spyOn(prismaService.user, 'findFirst').mockResolvedValue({
         ...mockUser,
         role: Role.RECEPTIONIST,
       });
-      jest
-        .spyOn(prismaService.clinic, 'findUnique')
-        .mockResolvedValue({ tier: 'FRONT_DESK' } as never);
+      jest.spyOn(prismaService.clinic, 'findUnique').mockResolvedValue({
+        tier: 'ESSENTIAL',
+        planMode: 'FRONT_DESK',
+      } as never);
       jest.mocked(bcrypt.compare).mockImplementation(async () => true);
 
       const result = await service.validateUser('test@example.com', 'password');
@@ -366,14 +369,15 @@ describe('AuthService', () => {
       expect(result?.role).toBe(Role.RECEPTIONIST);
     });
 
-    it('should allow ADMIN sign-in for FRONT_DESK clinics', async () => {
+    it('should allow ADMIN sign-in for FRONT_DESK mode clinics', async () => {
       jest.spyOn(prismaService.user, 'findFirst').mockResolvedValue({
         ...mockUser,
         role: Role.ADMIN,
       });
-      jest
-        .spyOn(prismaService.clinic, 'findUnique')
-        .mockResolvedValue({ tier: 'FRONT_DESK' } as never);
+      jest.spyOn(prismaService.clinic, 'findUnique').mockResolvedValue({
+        tier: 'ESSENTIAL',
+        planMode: 'FRONT_DESK',
+      } as never);
       jest.mocked(bcrypt.compare).mockImplementation(async () => true);
 
       const result = await service.validateUser('test@example.com', 'password');

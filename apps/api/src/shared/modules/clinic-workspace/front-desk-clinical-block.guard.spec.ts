@@ -57,29 +57,9 @@ describe('FrontDeskClinicalBlockGuard', () => {
     ).resolves.toBe(true);
   });
 
-  it('forbids mutating methods on legacy FRONT_DESK tier', async () => {
-    getClinicAuth.mockResolvedValue({
-      tier: ClinicTier.FRONT_DESK,
-      planMode: 'FRONT_DESK',
-      subscriptionStatus: SubscriptionStatus.ACTIVE,
-      subscriptionGraceUntil: null,
-      subscriptionTrialEnd: null,
-      subscriptionCurrentPeriodEnd: null,
-      hasOutstandingPendingPayment: false,
-      hasIntelligence: false,
-      features: {},
-    });
-
-    await expect(
-      guard.canActivate(
-        createContext({ method: 'POST', user: { clinicId: 'c1' } }),
-      ),
-    ).rejects.toBeInstanceOf(ForbiddenException);
-  });
-
   it('forbids mutating methods on clinical tier with Front Desk plan mode', async () => {
     getClinicAuth.mockResolvedValue({
-      tier: ClinicTier.PROFESSIONAL,
+      tier: ClinicTier.ESSENTIAL,
       planMode: 'FRONT_DESK',
       subscriptionStatus: SubscriptionStatus.ACTIVE,
       subscriptionGraceUntil: null,

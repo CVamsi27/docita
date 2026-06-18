@@ -90,7 +90,6 @@ describe('PricingService', () => {
     });
   });
 
-
   it('returns the enterprise contact-sales estimate', () => {
     expect(
       service.calculateEstimate({

@@ -22,25 +22,11 @@ export const SUPPORTED_PRICING_CURRENCIES: SupportedCurrency[] = [
   'ZAR',
 ];
 
-const LEGACY_DB_TIER_TO_CANONICAL: Record<string, keyof typeof TIER_LIMITS> = {
-  CAPTURE: 'STARTER',
-  CORE: 'ESSENTIAL',
-  PLUS: 'ESSENTIAL',
-  PRO: 'PROFESSIONAL',
-  CLINIC: 'PROFESSIONAL',
-};
-
-const LEGACY_DB_TIERS = new Set(['PLUS', 'CLINIC']);
-
 function isTierLimitsKey(value: string): value is keyof typeof TIER_LIMITS {
   return Object.prototype.hasOwnProperty.call(TIER_LIMITS, value);
 }
 
-export function isLegacyDbPricingTier(tier: string): boolean {
-  return LEGACY_DB_TIERS.has(tier);
-}
-
-/** Maps DB / legacy tier strings to canonical pricing tier keys. */
+/** Maps DB tier strings to canonical pricing tier keys. */
 export function mapDbTierStringToCanonicalTier(
   dbTier: string,
 ): keyof typeof TIER_LIMITS {
@@ -48,8 +34,6 @@ export function mapDbTierStringToCanonicalTier(
   if (parsed.success && isTierLimitsKey(parsed.data)) {
     return parsed.data;
   }
-  const legacy = LEGACY_DB_TIER_TO_CANONICAL[dbTier];
-  if (legacy) return legacy;
   const upper = dbTier.toUpperCase();
   if (isTierLimitsKey(upper)) {
     return upper;
@@ -120,7 +104,6 @@ export function getWhatsappBillableConfig(
 ): { includedQuota: number; overageRate: number } {
   if (
     tier === 'ESSENTIAL' ||
-    tier === 'FRONT_DESK' ||
     tier === 'PROFESSIONAL' ||
     tier === 'ENTERPRISE'
   ) {
