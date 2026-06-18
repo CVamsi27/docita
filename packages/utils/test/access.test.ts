@@ -76,11 +76,13 @@ describe("@workspace/utils access helpers", () => {
     }
   });
 
-  it("blocks clinical features for FRONT_DESK tier name", () => {
-    expect(hasFeatureAccess("FRONT_DESK", Feature.DIGITAL_PRESCRIPTIONS)).toBe(
+  it("blocks clinical features for FRONT_DESK mode via MODE_BLOCKED_FEATURES", () => {
+    // FRONT_DESK is now a PlanMode, not a TierName.
+    // hasFeatureAccess delegates mode blocking to MODE_BLOCKED_FEATURES.
+    expect(hasFeatureAccess("ESSENTIAL", Feature.DIGITAL_PRESCRIPTIONS, false, {}, "FRONT_DESK")).toBe(
       false,
     );
-    expect(hasFeatureAccess("FRONT_DESK", Feature.QUEUE_MANAGEMENT)).toBe(
+    expect(hasFeatureAccess("ESSENTIAL", Feature.QUEUE_MANAGEMENT, false, {}, "FRONT_DESK")).toBe(
       true,
     );
   });
