@@ -111,6 +111,13 @@ jobs:
         run: |
           if [ -z "$DATABASE_URL" ]; then echo "DATABASE_URL secret is required."; exit 1; fi
           pnpm --filter @workspace/db run db:generate
+      - name: Resolve failed migrations (if any)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then echo "DATABASE_URL secret is required."; exit 1; fi
+          pnpm --filter @workspace/db exec prisma migrate resolve --rolled-back 20260618120000_migrate_free_clinics_to_starter 2>/dev/null || true
+          pnpm --filter @workspace/db exec prisma migrate resolve --rolled-back 20260618130000_migrate_front_desk_tiers_to_canonical 2>/dev/null || true
       - name: Run Prisma Migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
