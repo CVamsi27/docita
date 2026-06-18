@@ -8,9 +8,6 @@ import {
 export const TIER_ICON_CLASSES: Record<TierName, string> = {
   STARTER: "tier-capture",
   ESSENTIAL: "tier-core",
-  FRONT_DESK: "tier-core",
-  FRONT_DESK_CLINIC: "tier-core",
-  FRONT_DESK_HOSPITAL: "tier-core",
   PROFESSIONAL: "tier-pro",
   HOSPITAL: "tier-hospital",
   ENTERPRISE: "tier-enterprise",

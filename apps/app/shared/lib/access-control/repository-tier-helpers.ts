@@ -12,9 +12,6 @@ const TIER_BY_NAME: Record<string, Tier> = {
   HOSPITAL: Tier.HOSPITAL,
   ENTERPRISE: Tier.ENTERPRISE,
   INTELLIGENCE: Tier.INTELLIGENCE,
-  FRONT_DESK: Tier.FRONT_DESK,
-  FRONT_DESK_CLINIC: Tier.FRONT_DESK_CLINIC,
-  FRONT_DESK_HOSPITAL: Tier.FRONT_DESK_HOSPITAL,
 };
 
 export function parseTier(value?: string): Tier {

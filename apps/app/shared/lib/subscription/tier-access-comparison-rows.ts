@@ -37,9 +37,6 @@ function tierRecord<V extends string | boolean | number>(
 ): Record<Tier, V> {
   return {
     [Tier.STARTER]: build(Tier.STARTER),
-    [Tier.FRONT_DESK]: build(Tier.FRONT_DESK),
-    [Tier.FRONT_DESK_CLINIC]: build(Tier.FRONT_DESK_CLINIC),
-    [Tier.FRONT_DESK_HOSPITAL]: build(Tier.FRONT_DESK_HOSPITAL),
     [Tier.ESSENTIAL]: build(Tier.ESSENTIAL),
     [Tier.PROFESSIONAL]: build(Tier.PROFESSIONAL),
     [Tier.HOSPITAL]: build(Tier.HOSPITAL),

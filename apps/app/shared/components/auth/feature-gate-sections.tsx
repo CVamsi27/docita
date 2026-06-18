@@ -77,9 +77,6 @@ export interface FeatureTierBadgeProps {
 const TIER_COLORS: Record<Tier, string> = {
   [Tier.STARTER]: "tier-capture",
   [Tier.ESSENTIAL]: "tier-core",
-  [Tier.FRONT_DESK]: "tier-core",
-  [Tier.FRONT_DESK_CLINIC]: "tier-core",
-  [Tier.FRONT_DESK_HOSPITAL]: "tier-core",
   [Tier.PROFESSIONAL]: "tier-pro",
   [Tier.HOSPITAL]: "tier-hospital",
   [Tier.ENTERPRISE]: "tier-enterprise",

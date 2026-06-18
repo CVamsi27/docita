@@ -28,7 +28,7 @@ const TOTAL_STEPS = 4;
 const initialData: Partial<OnboardingData> = {
   clinicDetails: undefined,
   planSelection: {
-    tier: "CAPTURE",
+    tier: "STARTER",
     billingCycle: "MONTHLY",
   },
   teamInvites: { members: [] },

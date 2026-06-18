@@ -48,7 +48,6 @@ import {
 /** Linear plan ladder for onboarding highlights (excludes INTELLIGENCE add-on). */
 const PLAN_TIER_LADDER: Tier[] = [
   Tier.STARTER,
-  Tier.FRONT_DESK,
   Tier.ESSENTIAL,
   Tier.PROFESSIONAL,
   Tier.HOSPITAL,
@@ -72,21 +71,6 @@ export const PLAN_DESCRIPTIONS: Record<
   [Tier.STARTER]: {
     tagline: "Go digital from day one",
     description: "Basic clinical workflow for solo doctors moving off paper",
-  },
-  [Tier.FRONT_DESK]: {
-    tagline: "Reception and operations",
-    description:
-      "Scheduling, queue, and billing for front desk teams without full in-app clinical workflows",
-  },
-  [Tier.FRONT_DESK_CLINIC]: {
-    tagline: "Reception for multi-doctor clinics",
-    description:
-      "Front desk operations with 3-10 reception desks for multi-doctor clinics",
-  },
-  [Tier.FRONT_DESK_HOSPITAL]: {
-    tagline: "Reception for multi-location hospitals",
-    description:
-      "Front desk operations across locations with OPD routing and shift handover",
   },
   [Tier.ESSENTIAL]: {
     tagline: "For solo clinics",
