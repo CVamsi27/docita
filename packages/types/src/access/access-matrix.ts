@@ -166,7 +166,6 @@ export const APP_ACCESS_TARGETS = {
   PAGE_LAB_TESTS: "page.lab-tests",
   /** Lab technician workspace: queue of assigned orders, sample receipt, result upload. */
   PAGE_LAB_WORKSPACE: "page.lab-workspace",
-  PAGE_VACCINES: "page.vaccines",
   PAGE_INVOICES: "page.invoices",
   PAGE_INSURANCE_CLAIMS: "page.insurance-claims",
   /** Front-desk cash / POS / UPI recording (not payment links or subscription billing). */
@@ -308,12 +307,6 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
   [APP_ACCESS_TARGETS.PAGE_LAB_WORKSPACE]: {
     read: { roles: ["LAB"] },
     feature: Feature.LAB_TESTS,
-  },
-  [APP_ACCESS_TARGETS.PAGE_VACCINES]: {
-    read: {
-      roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE", "RECEPTIONIST"],
-    },
-    feature: Feature.VACCINE_TRACKING,
   },
   [APP_ACCESS_TARGETS.PAGE_INVOICES]: {
     read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
