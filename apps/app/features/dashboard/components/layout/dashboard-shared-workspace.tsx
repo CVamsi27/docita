@@ -31,7 +31,7 @@ export interface DashboardSharedWorkspaceProps {
   nextPatients: AppointmentListItem[];
   waitingCount: number;
   pendingJoinRequests: number;
-  pendingReports: number;
+  uncodedVisits: number;
   slotDurationMinutes: number;
   children?: ReactNode;
   className?: string;
@@ -47,7 +47,7 @@ export function DashboardSharedWorkspace({
   nextPatients,
   waitingCount,
   pendingJoinRequests,
-  pendingReports,
+  uncodedVisits,
   slotDurationMinutes,
   children,
   className,
@@ -72,7 +72,7 @@ export function DashboardSharedWorkspace({
         density={density}
         todayAppointments={totalToday}
         completedAppointments={completedToday}
-        pendingReports={pendingReports}
+        uncodedVisits={uncodedVisits}
         pendingJoinRequests={pendingJoinRequests}
         patientsWaiting={waitingCount}
         nextPatientName={

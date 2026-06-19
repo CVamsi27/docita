@@ -28,7 +28,7 @@ interface DashboardUIProps {
     totalPatients: number;
     todayAppointments: number;
     activePrescriptions: number;
-    pendingReports: number;
+    uncodedVisits: number;
     newPatientsThisMonth: number;
   };
   recentActivity: DashboardStats["recentActivity"];
@@ -131,7 +131,7 @@ export function DashboardUI({
         nextPatients={nextPatients}
         waitingCount={waitingCount}
         pendingJoinRequests={pendingJoinRequests}
-        pendingReports={stats.pendingReports}
+        uncodedVisits={stats.uncodedVisits}
         slotDurationMinutes={slotDurationMinutes}
       >
         <Section id="dashboard-overview" title="Overview">
@@ -142,7 +142,7 @@ export function DashboardUI({
           />
         </Section>
 
-        <DashboardShortcutsSection pendingReports={stats.pendingReports} />
+        <DashboardShortcutsSection uncodedVisits={stats.uncodedVisits} />
 
         <div
           className={cn(
@@ -170,7 +170,7 @@ export function DashboardUI({
             <DailyProgressUI
               completedToday={completedToday}
               totalAppointments={todayAppointments.length}
-              pendingReports={stats.pendingReports}
+              uncodedVisits={stats.uncodedVisits}
             />
           </div>
         </div>

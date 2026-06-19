@@ -10,7 +10,7 @@ import { Button } from "@workspace/ui/components/form/button";
 
 export type TodayAdvisorCounts = {
   pendingJoinRequests: number;
-  pendingReports: number;
+  uncodedVisits: number;
   waitingCount: number;
 };
 
@@ -18,7 +18,7 @@ interface TodayAdvisorRailProps {
   advisorCounts: TodayAdvisorCounts;
 }
 
-type CardKey = "join-requests" | "pending-reports" | "waiting-queue";
+type CardKey = "join-requests" | "uncoded-visits" | "waiting-queue";
 
 /**
  * Origin-style advisor cards rendered to the right of the today workspace.
@@ -26,7 +26,7 @@ type CardKey = "join-requests" | "pending-reports" | "waiting-queue";
  * only retained while the page is mounted).
  */
 export function TodayAdvisorRail({ advisorCounts }: TodayAdvisorRailProps) {
-  const { pendingJoinRequests, pendingReports, waitingCount } = advisorCounts;
+  const { pendingJoinRequests, uncodedVisits, waitingCount } = advisorCounts;
   const [dismissed, setDismissed] = useState<Set<CardKey>>(new Set());
 
   function dismiss(key: CardKey) {
@@ -62,22 +62,22 @@ export function TodayAdvisorRail({ advisorCounts }: TodayAdvisorRailProps) {
     });
   }
 
-  if (pendingReports > 0 && !dismissed.has("pending-reports")) {
+  if (uncodedVisits > 0 && !dismissed.has("uncoded-visits")) {
     cards.push({
-      key: "pending-reports",
+      key: "uncoded-visits",
       node: (
         <RightRailCard
-          category="Pending"
-          headline={`${pendingReports} report${
-            pendingReports === 1 ? "" : "s"
-          } awaiting sign-off`}
-          description="Review and sign queued lab results and prescriptions."
-          tone="info"
-          onDismiss={() => dismiss("pending-reports")}
-          dismissLabel="Dismiss pending reports recommendation"
+          category="Coding"
+          headline={`${uncodedVisits} visit${
+            uncodedVisits === 1 ? "" : "s"
+          } pending coding`}
+          description="Review completed visits that need ICD-10 or procedure coding."
+          tone="warning"
+          onDismiss={() => dismiss("uncoded-visits")}
+          dismissLabel="Dismiss pending coding recommendation"
           action={
-            <Button asChild size="sm" variant="outline">
-              <Link href="/lab-tests">Open lab tests</Link>
+            <Button asChild size="sm">
+              <Link href="/coding-queue">Open coding queue</Link>
             </Button>
           }
         />

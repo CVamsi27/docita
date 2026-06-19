@@ -16,7 +16,7 @@ describe("TodayAdvisorRail", () => {
       <TodayAdvisorRail
         advisorCounts={{
           pendingJoinRequests: 3,
-          pendingReports: 0,
+          uncodedVisits: 0,
           waitingCount: 0,
         }}
       />,
@@ -33,7 +33,7 @@ describe("TodayAdvisorRail", () => {
       <TodayAdvisorRail
         advisorCounts={{
           pendingJoinRequests: 0,
-          pendingReports: 0,
+          uncodedVisits: 0,
           waitingCount: 1,
         }}
       />,
@@ -51,7 +51,7 @@ describe("TodayAdvisorRail", () => {
       <TodayAdvisorRail
         advisorCounts={{
           pendingJoinRequests: 0,
-          pendingReports: 0,
+          uncodedVisits: 0,
           waitingCount: 0,
         }}
       />,

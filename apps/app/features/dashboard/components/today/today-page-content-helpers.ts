@@ -2,7 +2,7 @@ export interface TodayRailVisibilityInput {
   referralCode?: string | null;
   publicOnlineBookingUrl?: string | null;
   pendingJoinRequests: number;
-  pendingReports: number;
+  uncodedVisits: number;
   waitingCount: number;
 }
 
@@ -22,12 +22,12 @@ export function deriveTodayRailVisibility({
   referralCode,
   publicOnlineBookingUrl,
   pendingJoinRequests,
-  pendingReports,
+  uncodedVisits,
   waitingCount,
 }: TodayRailVisibilityInput): TodayRailVisibility {
   const hasShareRailContent = Boolean(referralCode || publicOnlineBookingUrl);
   const hasAdvisorRailContent =
-    pendingJoinRequests > 0 || pendingReports > 0 || waitingCount > 0;
+    pendingJoinRequests > 0 || uncodedVisits > 0 || waitingCount > 0;
   return {
     hasShareRailContent,
     hasAdvisorRailContent,

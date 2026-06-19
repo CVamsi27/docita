@@ -8,19 +8,19 @@ import type { AppointmentListItem } from "@workspace/data-access";
 
 interface TodayMainWidgetsProps {
   appointments: AppointmentListItem[];
-  pendingReports: number;
+  uncodedVisits: number;
   canAccess: (feature: Feature) => boolean;
 }
 
 export function TodayMainWidgets({
   appointments,
-  pendingReports,
+  uncodedVisits,
   canAccess,
 }: TodayMainWidgetsProps) {
   return (
     <>
       <TodayFollowUpsPanel enabled={canAccess(Feature.CALENDAR_SLOTS)} />
-      <DashboardShortcutsSection pendingReports={pendingReports} />
+      <DashboardShortcutsSection uncodedVisits={uncodedVisits} />
       {canAccess(Feature.CALENDAR_SLOTS) ? (
         <TodayScheduleUI appointments={appointments} />
       ) : null}

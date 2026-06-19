@@ -12,7 +12,6 @@ interface DashboardStatsGridProps {
     totalPatients: number;
     todayAppointments: number;
     activePrescriptions: number;
-    pendingReports: number;
     newPatientsThisMonth?: number;
   };
   completedToday: number;

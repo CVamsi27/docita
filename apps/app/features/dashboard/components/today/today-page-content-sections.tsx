@@ -136,7 +136,7 @@ interface TodayRightRailSectionProps {
   publicOnlineBookingUrl?: string | null;
   canQuickShareClinicCode: boolean;
   pendingJoinRequests: number;
-  pendingReports: number;
+  uncodedVisits: number;
   waitingCount: number;
 }
 
@@ -149,7 +149,7 @@ export function TodayRightRailSection({
   publicOnlineBookingUrl,
   canQuickShareClinicCode,
   pendingJoinRequests,
-  pendingReports,
+  uncodedVisits,
   waitingCount,
 }: TodayRightRailSectionProps) {
   return (
@@ -187,7 +187,7 @@ export function TodayRightRailSection({
       <TodayAdvisorRail
         advisorCounts={{
           pendingJoinRequests,
-          pendingReports,
+          uncodedVisits,
           waitingCount,
         }}
       />
@@ -342,12 +342,12 @@ export function TodayWorkspaceLayout({
           nextPatients={nextPatients}
           waitingCount={waitingCount}
           pendingJoinRequests={pendingJoinRequests}
-          pendingReports={stats.pendingReports}
+          uncodedVisits={stats.uncodedVisits}
           slotDurationMinutes={slotDurationMinutes}
         >
           <TodayMainWidgets
             appointments={todayAppointments}
-            pendingReports={stats.pendingReports}
+            uncodedVisits={stats.uncodedVisits}
             canAccess={canAccess}
           />
         </DashboardSharedWorkspace>
@@ -361,7 +361,7 @@ export function TodayWorkspaceLayout({
           publicOnlineBookingUrl={referralShare.publicOnlineBookingUrl}
           canQuickShareClinicCode={referralShare.canQuickShareClinicCode}
           pendingJoinRequests={pendingJoinRequests}
-          pendingReports={stats.pendingReports}
+          uncodedVisits={stats.uncodedVisits}
           waitingCount={waitingCount}
         />
       ) : null}

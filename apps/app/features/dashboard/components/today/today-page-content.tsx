@@ -96,7 +96,7 @@ export function TodayPageContent() {
     referralCode: referralShare.referralCode,
     publicOnlineBookingUrl: referralShare.publicOnlineBookingUrl,
     pendingJoinRequests,
-    pendingReports: stats.pendingReports,
+    uncodedVisits: stats.uncodedVisits,
     waitingCount,
   });
 

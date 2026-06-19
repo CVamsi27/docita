@@ -13,11 +13,11 @@ import {
 } from "./dashboard-quick-actions-ui";
 
 interface DashboardQuickActionsContainerProps {
-  pendingReports: number;
+  uncodedVisits: number;
 }
 
 export function DashboardQuickActionsContainer({
-  pendingReports,
+  uncodedVisits,
 }: DashboardQuickActionsContainerProps) {
   const { canAccess } = usePermissionStore();
 
@@ -55,7 +55,7 @@ export function DashboardQuickActionsContainer({
       icon: ListChecks,
       label: "Coding queue",
       shortLabel: "Coding",
-      badge: pendingReports > 0 ? pendingReports : undefined,
+      badge: uncodedVisits > 0 ? uncodedVisits : undefined,
       feature: Feature.MEDICAL_CODING,
     },
     {
