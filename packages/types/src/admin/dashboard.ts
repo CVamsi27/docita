@@ -7,7 +7,6 @@ export const dashboardStatsSchema = z.object({
   todayAppointments: z.number().int(),
   totalAppointments: z.number().int(),
   activePrescriptions: z.number().int(),
-  pendingReports: z.number().int(),
   uncodedVisits: z.number().int(),
   monthlyRevenue: z.number(),
   recentActivity: z.array(

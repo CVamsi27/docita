@@ -1,12 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
-import {
-  AppointmentStatus,
-  InvoiceStatus,
-  LabTestOrderStatus,
-  Prisma,
-} from '@workspace/db';
+import { AppointmentStatus, InvoiceStatus, Prisma } from '@workspace/db';
 import {
   DashboardStatsSnapshot,
   IDashboardRepository,
@@ -79,7 +74,6 @@ export class PrismaDashboardRepository implements IDashboardRepository {
       activePrescriptions,
       recentActivity,
       upcomingAppointments,
-      pendingReports,
       uncodedVisits,
       monthlyRevenueResult,
     ] = await Promise.all([
@@ -129,14 +123,6 @@ export class PrismaDashboardRepository implements IDashboardRepository {
         orderBy: [{ startTime: 'asc' }, { id: 'asc' }],
         select: UPCOMING_APPOINTMENT_SELECT,
       }),
-      readClient.labTestOrder.count({
-        where: {
-          clinicId,
-          status: {
-            in: [LabTestOrderStatus.ORDERED, LabTestOrderStatus.PENDING],
-          },
-        },
-      }),
       readClient.appointment.count({
         where: {
           clinicId,
@@ -166,7 +152,6 @@ export class PrismaDashboardRepository implements IDashboardRepository {
       activePrescriptions,
       recentActivity,
       upcomingAppointments,
-      pendingReports,
       uncodedVisits,
       monthlyRevenue: monthlyRevenueResult._sum.total ?? 0,
     };

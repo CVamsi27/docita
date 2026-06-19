@@ -22,7 +22,6 @@ function defaultDashboardStats(): DashboardStats {
     todayAppointments: 0,
     totalAppointments: 0,
     activePrescriptions: 0,
-    pendingReports: 0,
     uncodedVisits: 0,
     monthlyRevenue: 0,
     recentActivity: [],

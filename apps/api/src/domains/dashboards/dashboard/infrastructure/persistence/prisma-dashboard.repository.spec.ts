@@ -12,8 +12,6 @@ describe('PrismaDashboardRepository', () => {
     jest.fn<(...args: unknown[]) => Promise<unknown>>();
   const mockAppointmentFindMany =
     jest.fn<(...args: unknown[]) => Promise<unknown>>();
-  const mockLabTestOrderCount =
-    jest.fn<(...args: unknown[]) => Promise<unknown>>();
   const mockInvoiceAggregate =
     jest.fn<(...args: unknown[]) => Promise<unknown>>();
 
@@ -30,9 +28,6 @@ describe('PrismaDashboardRepository', () => {
     },
     prescription: {
       count: mockPrescriptionCount,
-    },
-    labTestOrder: {
-      count: mockLabTestOrderCount,
     },
     invoice: {
       aggregate: mockInvoiceAggregate,
@@ -70,7 +65,6 @@ describe('PrismaDashboardRepository', () => {
       .mockResolvedValueOnce(3);
     mockPrescriptionCount.mockResolvedValue(42);
     mockAppointmentFindMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
-    mockLabTestOrderCount.mockResolvedValue(6);
     mockInvoiceAggregate.mockResolvedValue({ _sum: { total: 12800 } });
 
     const result = await repository.getStatsSnapshot(clinicId);
@@ -84,7 +78,6 @@ describe('PrismaDashboardRepository', () => {
       activePrescriptions: 42,
       recentActivity: [],
       upcomingAppointments: [],
-      pendingReports: 6,
       uncodedVisits: 3,
       monthlyRevenue: 12800,
     });
