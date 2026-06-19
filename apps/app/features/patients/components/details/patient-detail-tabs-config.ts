@@ -23,6 +23,7 @@ export const PATIENT_RECORDS_SUB_TABS = [
   "prescriptions",
   "labs",
   "documents",
+  "referrals",
 ] as const;
 
 export type PatientRecordsSubTab = (typeof PATIENT_RECORDS_SUB_TABS)[number];
@@ -56,6 +57,7 @@ export const RECORDS_SUB_TAB_LABELS: Record<PatientRecordsSubTab, string> = {
   prescriptions: "Prescriptions",
   labs: "Labs",
   documents: "Documents",
+  referrals: "Referrals",
 };
 
 export function isPatientDetailTabValue(

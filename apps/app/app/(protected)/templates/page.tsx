@@ -1,3 +1,7 @@
 export const dynamic = "force-dynamic";
 
-export { TemplatesPageContent as default } from "@/features/templates/components/TemplatesPageContent";
+import { redirect } from "next/navigation";
+
+export default function TemplatesPage() {
+  redirect("/settings?tab=prescriptions");
+}

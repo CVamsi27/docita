@@ -19,7 +19,7 @@ interface DashboardAlertsContainerProps {
   density?: DashboardAlertDensity;
   todayAppointments: number;
   completedAppointments: number;
-  pendingReports: number;
+  uncodedVisits: number;
   pendingJoinRequests?: number;
   patientsWaiting?: number;
   nextPatientName?: string;
@@ -31,7 +31,7 @@ export function DashboardAlertsContainer({
   density = "full",
   todayAppointments,
   completedAppointments,
-  pendingReports,
+  uncodedVisits,
   pendingJoinRequests = 0,
   patientsWaiting = 0,
   nextPatientName,
@@ -59,7 +59,7 @@ export function DashboardAlertsContainer({
       density,
       todayAppointments,
       completedAppointments,
-      pendingReports,
+      uncodedVisits,
       pendingJoinRequests,
       patientsWaiting,
       progressPercentage,
@@ -73,7 +73,7 @@ export function DashboardAlertsContainer({
     density,
     todayAppointments,
     completedAppointments,
-    pendingReports,
+    uncodedVisits,
     pendingJoinRequests,
     patientsWaiting,
     nextPatientName,

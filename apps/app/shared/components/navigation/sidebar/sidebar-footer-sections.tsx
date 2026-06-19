@@ -25,7 +25,6 @@ import { SidebarRailAction } from "@workspace/ui/components/navigation/sidebar-r
 import { SidebarRailTooltip } from "@workspace/ui/components/navigation/sidebar-rail-tooltip";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { NotificationBellWithBadges } from "@/components/navigation/notification-bell-with-badges";
-import { ThemeToggleWithAppearanceSync } from "@/components/layout/theme-toggle-with-appearance-sync";
 import { AskAiButton } from "@/components/ask-ai/ask-ai-button";
 import { HELP_NAV_ITEM } from "@/components/navigation/nav-config";
 import { useAppearanceStore } from "@/lib/stores/appearance-store";
@@ -53,19 +52,19 @@ function TierDot({ color }: { color?: string }) {
   );
 }
 
-/** Overflow menu shown in the collapsed rail — keeps the secondary actions
- * (theme, customize, settings, help) out of the narrow icon rail. */
-function CollapsedMoreMenu({
-  isAdmin,
-  canAccessSettings,
-  pendingJoinRequestCount,
-  onOpenCustomize,
-}: {
+type MoreMenuProps = {
   isAdmin: boolean;
   canAccessSettings: boolean;
   pendingJoinRequestCount: number;
   onOpenCustomize: () => void;
-}) {
+};
+
+function MoreMenuContent({
+  isAdmin,
+  canAccessSettings,
+  pendingJoinRequestCount,
+  onOpenCustomize,
+}: MoreMenuProps) {
   const pathname = usePathname();
   const { resolvedTheme, setTheme } = useTheme();
   const setAppearanceTheme = useAppearanceStore((s) => s.setTheme);
@@ -74,8 +73,68 @@ function CollapsedMoreMenu({
   const nextTheme = isDark ? "light" : "dark";
 
   return (
+    <>
+      <DropdownMenuItem
+        onClick={() => {
+          setTheme(nextTheme);
+          setAppearanceTheme(nextTheme);
+        }}
+      >
+        <ThemeIcon className="mr-2 h-4 w-4" />
+        {isDark ? "Light mode" : "Dark mode"}
+      </DropdownMenuItem>
+
+      {isAdmin && (
+        <>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={onOpenCustomize}>
+            <SlidersHorizontal className="mr-2 h-4 w-4" />
+            Customize sidebar
+          </DropdownMenuItem>
+        </>
+      )}
+
+      {canAccessSettings && (
+        <DropdownMenuItem asChild>
+          <Link href="/settings" className="flex items-center">
+            <Settings2 className="mr-2 h-4 w-4" />
+            Settings
+            {isAdmin && pendingJoinRequestCount > 0 && (
+              <span className="ml-auto h-2 w-2 rounded-full bg-destructive" />
+            )}
+          </Link>
+        </DropdownMenuItem>
+      )}
+
+      <DropdownMenuSeparator />
+      <DropdownMenuItem asChild>
+        <Link
+          href={HELP_NAV_ITEM.href}
+          className={cn(
+            "flex items-center",
+            pathname.startsWith(HELP_NAV_ITEM.href) && "text-primary",
+          )}
+        >
+          <HelpCircle className="mr-2 h-4 w-4" />
+          Help
+        </Link>
+      </DropdownMenuItem>
+    </>
+  );
+}
+
+function MoreMenuButton({
+  props,
+  tooltipSide,
+  tooltipAlign,
+}: {
+  props: MoreMenuProps;
+  tooltipSide: "top" | "right";
+  tooltipAlign: "start" | "end";
+}) {
+  return (
     <DropdownMenu>
-      <SidebarRailTooltip label="More actions" side="right">
+      <SidebarRailTooltip label="More actions" side={tooltipSide}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
@@ -87,52 +146,8 @@ function CollapsedMoreMenu({
           </Button>
         </DropdownMenuTrigger>
       </SidebarRailTooltip>
-      <DropdownMenuContent side="right" align="end" className="w-48">
-        <DropdownMenuItem
-          onClick={() => {
-            setTheme(nextTheme);
-            setAppearanceTheme(nextTheme);
-          }}
-        >
-          <ThemeIcon className="mr-2 h-4 w-4" />
-          {isDark ? "Light mode" : "Dark mode"}
-        </DropdownMenuItem>
-
-        {isAdmin && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onOpenCustomize}>
-              <SlidersHorizontal className="mr-2 h-4 w-4" />
-              Customize sidebar
-            </DropdownMenuItem>
-          </>
-        )}
-
-        {canAccessSettings && (
-          <DropdownMenuItem asChild>
-            <Link href="/settings" className="flex items-center">
-              <Settings2 className="mr-2 h-4 w-4" />
-              Settings
-              {isAdmin && pendingJoinRequestCount > 0 && (
-                <span className="ml-auto h-2 w-2 rounded-full bg-destructive" />
-              )}
-            </Link>
-          </DropdownMenuItem>
-        )}
-
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link
-            href={HELP_NAV_ITEM.href}
-            className={cn(
-              "flex items-center",
-              pathname.startsWith(HELP_NAV_ITEM.href) && "text-primary",
-            )}
-          >
-            <HelpCircle className="mr-2 h-4 w-4" />
-            Help
-          </Link>
-        </DropdownMenuItem>
+      <DropdownMenuContent side={tooltipSide} align={tooltipAlign} className="w-48">
+        <MoreMenuContent {...props} />
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -181,11 +196,15 @@ export function QuickAccessIcons({
             </Button>
           </SidebarRailAction>
         )}
-        <CollapsedMoreMenu
-          isAdmin={isAdmin}
-          canAccessSettings={canAccessSettings}
-          pendingJoinRequestCount={pendingJoinRequestCount}
-          onOpenCustomize={onOpenCustomize}
+        <MoreMenuButton
+          props={{
+            isAdmin,
+            canAccessSettings,
+            pendingJoinRequestCount,
+            onOpenCustomize,
+          }}
+          tooltipSide="right"
+          tooltipAlign="end"
         />
       </div>
     );
@@ -193,21 +212,16 @@ export function QuickAccessIcons({
 
   return (
     <div className="flex items-center justify-between gap-1.5 px-2 py-2">
-      <ThemeToggleWithAppearanceSync />
-
-      {isAdmin && (
-        <SidebarRailAction label="Customize sidebar">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground"
-            onClick={onOpenCustomize}
-            aria-label="Customize sidebar"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-          </Button>
-        </SidebarRailAction>
-      )}
+      <MoreMenuButton
+        props={{
+          isAdmin,
+          canAccessSettings,
+          pendingJoinRequestCount,
+          onOpenCustomize,
+        }}
+        tooltipSide="top"
+        tooltipAlign="start"
+      />
 
       {canAccessNotifications && (
         <SidebarRailAction label="Notifications">
@@ -247,23 +261,6 @@ export function QuickAccessIcons({
           </Button>
         </SidebarRailAction>
       )}
-
-      <SidebarRailAction label="Help">
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "h-8 w-8 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground",
-            pathname.startsWith(HELP_NAV_ITEM.href) &&
-              "bg-primary/8 text-primary",
-          )}
-          asChild
-        >
-          <Link href={HELP_NAV_ITEM.href} aria-label="Help">
-            <HelpCircle className="h-4 w-4" />
-          </Link>
-        </Button>
-      </SidebarRailAction>
     </div>
   );
 }

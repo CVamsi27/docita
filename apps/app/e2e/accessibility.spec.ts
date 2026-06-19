@@ -342,7 +342,6 @@ test.describe("Accessibility Audit - Main App", () => {
       { path: "/whatsapp", name: "WhatsApp" },
       { path: "/desk/collect-payment", name: "Collect payment" },
       { path: "/daybook", name: "Daybook" },
-      { path: "/vaccines", name: "Vaccines" },
       { path: "/referrals", name: "Referrals" },
       { path: "/follow-ups", name: "Follow-ups" },
       { path: "/analytics", name: "Analytics" },

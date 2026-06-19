@@ -5,13 +5,13 @@ import { Badge } from "@workspace/ui/components/indicators/badge";
 export interface DailyProgressUIProps {
   completedToday: number;
   totalAppointments: number;
-  pendingReports: number;
+  uncodedVisits: number;
 }
 
 export function DailyProgressUI({
   completedToday,
   totalAppointments,
-  pendingReports,
+  uncodedVisits,
 }: DailyProgressUIProps) {
   return (
     <Card className="border border-border shadow-sm bg-card">
@@ -53,10 +53,10 @@ export function DailyProgressUI({
               </span>
             </div>
             <Badge
-              variant={pendingReports > 0 ? "secondary" : "outline"}
+              variant={uncodedVisits > 0 ? "secondary" : "outline"}
               className="text-xs h-5"
             >
-              {pendingReports}
+              {uncodedVisits}
             </Badge>
           </div>
         </div>

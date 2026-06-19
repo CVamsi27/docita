@@ -13,7 +13,7 @@ interface TodayRightRailProps {
   publicOnlineBookingUrl?: string | null;
   canQuickShareClinicCode: boolean;
   pendingJoinRequests: number;
-  pendingReports: number;
+  uncodedVisits: number;
   waitingCount: number;
 }
 

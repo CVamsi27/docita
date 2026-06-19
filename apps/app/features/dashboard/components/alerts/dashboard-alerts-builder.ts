@@ -14,7 +14,7 @@ export interface DashboardAlertsBuildInput {
   density: DashboardAlertDensity;
   todayAppointments: number;
   completedAppointments: number;
-  pendingReports: number;
+  uncodedVisits: number;
   pendingJoinRequests: number;
   patientsWaiting: number;
   nextPatientName?: string;
@@ -32,7 +32,7 @@ export function buildDashboardAlerts(
     ...morningOverviewAlert(input),
     ...patientsWaitingAlert(input),
     ...nextPatientAlert(input),
-    ...pendingReportsAlert(input),
+    ...uncodedVisitsAlert(input),
     ...pendingJoinRequestsAlert(input),
     ...scheduleProgressAlerts(input),
   ].filter((alert) => !input.dismissedAlerts.includes(alert.id));
@@ -92,14 +92,14 @@ function nextPatientAlert(input: DashboardAlertsBuildInput): AlertItem[] {
   ];
 }
 
-function pendingReportsAlert(input: DashboardAlertsBuildInput): AlertItem[] {
-  if (input.pendingReports <= 0 || !input.medicalCodingEnabled) return [];
+function uncodedVisitsAlert(input: DashboardAlertsBuildInput): AlertItem[] {
+  if (input.uncodedVisits <= 0 || !input.medicalCodingEnabled) return [];
   return [
     {
-      id: "pending-reports",
+      id: "uncoded-visits",
       type: "warning",
       icon: FileText,
-      title: `${input.pendingReports} report${pluralSuffix(input.pendingReports)} pending coding`,
+      title: `${input.uncodedVisits} visit${pluralSuffix(input.uncodedVisits)} pending coding`,
       action: { label: "Review", href: "/coding-queue" },
       dismissible: input.density === "full",
     },

@@ -27,6 +27,8 @@ Docita is the healthcare operating system built for Indian clinics and hospitals
 Start your 30-day free trial → docita.work
 
 #Docita #ClinicManagement #HealthTech #IndiaHealthcare #DigitalClinic
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -38,6 +40,8 @@ Appointments, records, billing, prescriptions — all connected.
 Docita is the healthcare operating system built for Indian clinics and hospitals.
 
 Try free for 30 days → docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -49,6 +53,8 @@ Docita brings it all into one screen: appointments, patient records, prescriptio
 Built for Indian clinics and hospitals. Try free for 30 days → docita.work
 
 #ClinicManagement #HealthTech #DigitalHealthcare #IndiaHealthcare
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -70,6 +76,8 @@ There's a better way.
 Docita — docita.work
 
 #ClinicManagement #HealthTech #IndiaHealthcare #DoctorLife #WhatsApp
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -79,6 +87,8 @@ If your appointment book is a WhatsApp thread, you already know the problem.
 Missed messages. Double bookings. No records.
 
 There's a better way → docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -90,6 +100,8 @@ Facilities that switch to a structured booking system report fewer no-shows and 
 Docita replaces the WhatsApp chaos with online booking, confirmations, and automated reminders — all in one place.
 
 #ClinicOperations #PatientExperience #HealthTech #IndiaHealthcare
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -114,6 +126,8 @@ General information only. Consult a healthcare professional.
 Docita — docita.work
 
 #HealthTips #Hydration #MorningRoutine #WellnessTips #IndiaHealth
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -126,6 +140,8 @@ Coffee can wait.
 
 General information only. Consult a healthcare professional.
 Docita — docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -139,6 +155,8 @@ Coffee can wait 20 minutes.
 General information only. Consult a healthcare professional.
 
 #PhysicianWellness #HealthTips #DoctorLife
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -160,6 +178,8 @@ No more switching between apps, notebooks, and WhatsApp groups.
 Docita — docita.work
 
 #ClinicSoftware #HealthTech #DoctorLife #ClinicManagement #IndiaHealthcare
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -169,6 +189,8 @@ Patient records. Prescriptions. Invoices. Follow-ups. Lab orders.
 All in one place. Zero tabs.
 
 Docita — docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -180,6 +202,8 @@ When patient records, prescriptions, invoices, follow-ups, and lab orders live i
 Zero tabs. Zero chaos. Just better care.
 
 #ClinicSoftware #HealthTech #EMR #IndiaHealthcare
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -203,6 +227,8 @@ Set it once. It runs itself.
 Docita — docita.work
 
 #PatientCare #FollowUp #ClinicManagement #HealthTech #DoctorLife
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -214,6 +240,8 @@ Docita sends automated reminders so they actually show up.
 Set it once. It runs itself.
 
 docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -225,6 +253,8 @@ When patients forget to come back, the facility loses revenue and the patient lo
 Docita sends automated WhatsApp reminders so patients actually show up. Set it once. It runs itself.
 
 #PatientRetention #ClinicRevenue #HealthTech #IndiaHealthcare
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -251,6 +281,8 @@ General information only. Consult a healthcare professional.
 Docita — docita.work
 
 #SleepHealth #HealthTips #DoctorWellness #MentalHealth #IndiaHealth
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -263,6 +295,8 @@ You wouldn't run a clinic on a drained phone.
 
 General information only. Consult a healthcare professional.
 Docita — docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -276,6 +310,8 @@ You wouldn't run a clinic on a drained phone. Don't run your body on one either.
 General information only. Consult a healthcare professional.
 
 #PhysicianWellness #SleepHealth #DoctorLife
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -297,6 +333,8 @@ Online booking. WhatsApp confirmations. Automated reminders.
 Try it free → docita.work
 
 #OnlineBooking #ClinicSoftware #PatientExperience #HealthTech #IndiaHealthcare
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -306,6 +344,8 @@ Patients can book their own appointments — no phone call needed.
 Your front desk handles walk-ins. Docita handles everything else.
 
 Online booking + WhatsApp confirmations → docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -317,6 +357,8 @@ Online booking lets patients schedule their own slots — 24/7. Your team focuse
 Docita handles online booking, WhatsApp confirmations, and automated reminders.
 
 #OnlineBooking #ClinicAutomation #PatientExperience #HealthTech
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -340,6 +382,8 @@ Send directly to the patient's WhatsApp.
 Docita — docita.work
 
 #DigitalPrescription #HealthTech #DoctorLife #ClinicSoftware #IndiaHealthcare
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -351,6 +395,8 @@ No more handwriting complaints. No more lost slips.
 Digital prescriptions → patient's WhatsApp, instantly.
 
 docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -362,6 +408,8 @@ Digital prescriptions are legible, searchable, and sent directly to the patient'
 Doctors using Docita's prescription builder report faster consultations and fewer patient callbacks asking "what did you write?"
 
 #DigitalPrescription #ClinicalDocumentation #HealthTech #IndiaHealthcare
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -386,6 +434,8 @@ General information only. Consult a healthcare professional.
 Docita — docita.work
 
 #IndianFood #NutritionTips #HealthyEating #DietTips #IndiaHealth
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -400,6 +450,8 @@ Balance it. Don't fix what isn't broken.
 
 General information only. Consult a healthcare professional.
 Docita — docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -413,6 +465,8 @@ Sometimes the best health advice is the simplest.
 General information only. Consult a healthcare professional.
 
 #Nutrition #HealthyEating #IndianFood #HealthTips
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -434,6 +488,8 @@ Docita generates professional, numbered invoices instantly — with GST breakdow
 Docita — docita.work
 
 #MedicalBilling #GSTInvoice #ClinicSoftware #HealthTech #IndiaHealthcare
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -445,6 +501,8 @@ No Excel formulas. No end-of-month panic.
 Numbered, professional, GST-ready — instantly.
 
 docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -456,6 +514,8 @@ Docita generates numbered, professional GST invoices with one click — complete
 Facilities using Docita report cutting their billing time by 70%.
 
 #GSTInvoice #MedicalBilling #ClinicSoftware #IndiaHealthcare
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -477,6 +537,8 @@ No more flipping through paper files. No more "what did I prescribe last time?"
 Docita — docita.work
 
 #PatientRecords #EMR #HealthTech #ClinicSoftware #IndiaHealthcare
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -488,6 +550,8 @@ Past visits, diagnoses, prescriptions, lab results — all there.
 No more paper files.
 
 docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -499,6 +563,8 @@ When every patient has a complete digital record — past visits, diagnoses, pre
 No more paper files. No more guessing.
 
 #PatientRecords #EMR #HealthTech #ClinicalDocumentation
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -524,6 +590,8 @@ General information only. Consult a healthcare professional.
 Docita — docita.work
 
 #EyeHealth #DigitalEyeStrain #HealthTips #DoctorWellness #IndiaHealth
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -536,6 +604,8 @@ Reduces digital eye strain. Set a timer.
 
 General information only. Consult a healthcare professional.
 Docita — docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -549,6 +619,8 @@ Simple, free, and effective. Set a timer.
 General information only. Consult a healthcare professional.
 
 #EyeHealth #DoctorWellness #HealthTips #WorkplaceHealth
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -575,6 +647,8 @@ No spreadsheets. Just clarity.
 Docita — docita.work
 
 #ClinicAnalytics #HealthTech #DataDriven #ClinicManagement #IndiaHealthcare
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -586,6 +660,8 @@ Revenue trends. Top diagnoses. Appointment fill rates. Patient retention.
 No spreadsheets. Just clarity.
 
 docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -597,6 +673,8 @@ Docita's analytics dashboard surfaces revenue trends, top diagnoses, appointment
 Data-driven decisions start with the right data.
 
 #ClinicAnalytics #DataDriven #HealthTech #ClinicManagement
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -620,6 +698,8 @@ No data loss. No re-entry headaches.
 Docita — docita.work
 
 #ExcelToEMR #ClinicSoftware #DataMigration #HealthTech #IndiaHealthcare
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -631,6 +711,8 @@ Upload your file. Docita maps the columns and moves your patients across — in 
 No data loss. No re-entry.
 
 docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -642,6 +724,8 @@ Switching to a proper EMR doesn't have to mean re-entering every patient manuall
 No data loss. No headaches.
 
 #DataMigration #ClinicSoftware #EMR #HealthTech
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -668,6 +752,8 @@ General information only. Consult a healthcare professional.
 Docita — docita.work
 
 #ProteinIntake #NutritionTips #IndianFood #HealthyEating #IndiaHealth
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -680,6 +766,8 @@ Protein at every meal. No supplement needed if you plan it.
 
 General information only. Consult a healthcare professional.
 Docita — docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -693,6 +781,8 @@ As healthcare professionals, we advise patients on nutrition. It starts with our
 General information only. Consult a healthcare professional.
 
 #Nutrition #ProteinIntake #HealthTips #IndianFood
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -714,6 +804,8 @@ Lab orders, results, and status — in one place, linked to the patient.
 Docita — docita.work
 
 #LabOrders #ClinicSoftware #HealthTech #PatientCare #IndiaHealthcare
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -723,6 +815,8 @@ Order labs. Track results. All in the patient's record.
 No separate register. No sticky notes.
 
 docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -734,6 +828,8 @@ When lab orders, results, and status are linked directly to the patient's file, 
 One place. One record. Complete visibility.
 
 #LabOrders #PatientCare #ClinicSoftware #HealthTech
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -755,6 +851,8 @@ Docita works for single clinics and multi-department hospitals. Same platform, s
 Docita — docita.work
 
 #HospitalManagement #BedManagement #HealthTech #HospitalSoftware #IndiaHealthcare
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -766,6 +864,8 @@ Occupied. Vacant. Due for discharge — at a glance.
 Docita scales from single facility to multi-department hospital.
 
 docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -777,6 +877,8 @@ When you can see which beds are occupied, vacant, or due for discharge — at a 
 Docita works for single clinics and scales to multi-department hospitals.
 
 #HospitalManagement #BedManagement #HealthTech #IndiaHealthcare
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -801,6 +903,8 @@ General information only. Consult a healthcare professional.
 Docita — docita.work
 
 #WalkingHealth #FitnessTips #HealthMyths #DailyWalk #IndiaHealth
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -815,6 +919,8 @@ Start where you are.
 
 General information only. Consult a healthcare professional.
 Docita — docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -828,6 +934,8 @@ Start where you are. Add 500 steps a week.
 General information only. Consult a healthcare professional.
 
 #FitnessMyths #HealthTips #WalkingHealth #PhysicianWellness
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -851,6 +959,8 @@ No IT team. No training week. No setup fee.
 Try it free for 30 days → docita.work
 
 #ClinicSetup #HealthTech #OnBoarding #ClinicSoftware #IndiaHealthcare
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -862,6 +972,8 @@ Facility profile. Team. Patients.
 That's it. You're live.
 
 No IT team. No training week. 30 days free → docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -873,6 +985,8 @@ With Docita, you can go live in minutes: add your facility profile, invite your 
 No IT team. No training week. No setup fee. 30 days free.
 
 #ClinicSetup #HealthTech #SaaS #IndiaHealthcare
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -894,6 +1008,8 @@ Structured, searchable, shareable — not a paragraph typed in a notes app.
 Docita — docita.work
 
 #ConsultationNotes #ClinicalDocumentation #HealthTech #EMR #IndiaHealthcare
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -905,6 +1021,8 @@ Chief complaint. Vitals. Diagnosis. Treatment plan. Follow-up.
 Structured, searchable, shareable.
 
 docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -916,6 +1034,8 @@ When notes are structured — chief complaint, vitals, diagnosis, treatment plan
 Good documentation is good care.
 
 #ClinicalDocumentation #EMR #HealthTech #PatientCare
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -940,6 +1060,8 @@ General information only.
 Docita — docita.work
 
 #DoctorBurnout #PhysicianWellness #HealthTech #MedicalAdmin #IndiaHealthcare
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -951,6 +1073,8 @@ That's burnout on a schedule.
 Reducing admin burden is a patient safety issue. An exhausted doctor is not a safe doctor.
 
 Docita — docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -962,6 +1086,8 @@ That's not just an efficiency problem — it's a patient safety issue. Burned-ou
 Reducing admin burden through better tools isn't a luxury. It's a clinical imperative.
 
 #DoctorBurnout #PhysicianWellness #HealthTech #MedicalAdmin
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -985,6 +1111,8 @@ Most facility owners get it in the first 10 minutes.
 Start here → docita.work
 
 #FreeTrial #ClinicSoftware #HealthTech #TryDocita #IndiaHealthcare
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -996,6 +1124,8 @@ Add one patient. Book one appointment. See the workflow.
 30 days free. No credit card.
 
 docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -1007,6 +1137,8 @@ You don't need to migrate everything. Add one patient. Book one appointment. See
 Most facility owners get it in the first 10 minutes. 30 days free. No credit card.
 
 #FreeTrial #ClinicSoftware #HealthTech #TryDocita
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -1028,6 +1160,8 @@ Same login. Same interface. Complete visibility across every facility.
 Docita — docita.work
 
 #MultiClinic #HealthTech #ClinicSoftware #HospitalManagement #IndiaHealthcare
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -1039,6 +1173,8 @@ Docita scales to multiple branches, doctors, and departments.
 Same login. Complete visibility.
 
 docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -1050,6 +1186,8 @@ Docita scales from a single practice to multiple branches, doctors, and departme
 No re-implementation. No new training. Just growth.
 
 #MultiClinic #HospitalManagement #HealthTech #ClinicSoftware
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -1077,6 +1215,8 @@ General information only. Consult a healthcare professional.
 Docita — docita.work
 
 #BackPain #PostureTips #HealthTips #WorkplaceHealth #IndiaHealth
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -1092,6 +1232,8 @@ Reset every 30 minutes.
 
 General information only. Consult a healthcare professional.
 Docita — docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -1108,6 +1250,8 @@ Set a 30-minute timer. Your back will thank you.
 General information only. Consult a healthcare professional.
 
 #PostureTips #WorkplaceHealth #HealthTips #BackPain
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -1131,6 +1275,8 @@ Your receptionist handles the people. Docita handles the scheduling.
 Docita — docita.work
 
 #OnlineBooking #ClinicAutomation #HealthTech #DoctorLife #IndiaHealthcare
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -1140,6 +1286,8 @@ Patients book at 11pm. Your front desk is asleep. Docita isn't.
 Online booking + WhatsApp confirmation + reminders — 24/7.
 
 docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -1151,6 +1299,8 @@ When someone books at 11pm, they expect a confirmation — not silence until mor
 Docita's online booking runs 24/7: instant WhatsApp confirmation, automated reminders, and zero manual intervention.
 
 #OnlineBooking #ClinicAutomation #PatientExperience #HealthTech
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -1174,6 +1324,8 @@ Complete continuity. For every patient.
 Docita — docita.work
 
 #PatientCare #ClinicalHandoffs #HealthTech #EMR #IndiaHealthcare
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -1185,6 +1337,8 @@ Every doctor sees the same record. No duplicate tests. No missed history.
 Complete continuity.
 
 docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -1196,6 +1350,8 @@ With Docita, every doctor sees the same record. No "what did the previous doctor
 Complete clinical continuity for every patient.
 
 #PatientCare #ClinicalHandoffs #EMR #HealthTech
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -1220,6 +1376,8 @@ General information only. Consult a healthcare professional.
 Docita — docita.work
 
 #MentalHealth #SleepHealth #DoctorWellness #BurnoutPrevention #IndiaHealth
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -1232,6 +1390,8 @@ You cannot pour from an empty cup.
 
 General information only. Consult a healthcare professional.
 Docita — docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -1245,6 +1405,8 @@ You cannot pour from an empty cup.
 General information only. Consult a healthcare professional.
 
 #MentalHealth #PhysicianWellness #SleepHealth #DoctorLife
+
+Follow Docita → linkedin.com/company/114464051
 ```
 
 ---
@@ -1266,6 +1428,8 @@ No more month-end scramble.
 Docita — docita.work
 
 #MedicalBilling #ClinicSoftware #HealthTech #GST #IndiaHealthcare
+
+Follow us → instagram.com/docita.work
 ```
 
 **X**
@@ -1275,6 +1439,8 @@ End-of-month billing panic? That's a solved problem.
 Every consultation tracked. GST invoices auto-generated. Revenue up to date — in real time.
 
 docita.work
+
+Follow → x.com/docita_work
 ```
 
 **LinkedIn**
@@ -1286,4 +1452,6 @@ When every consultation is tracked automatically and GST invoices generate in re
 Facilities using Docita see their revenue summary update live — no Excel汇总 needed.
 
 #MedicalBilling #ClinicSoftware #GST #HealthTech
+
+Follow Docita → linkedin.com/company/114464051
 ```

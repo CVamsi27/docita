@@ -32,6 +32,7 @@ export const AI_ASSISTANT_NAV_ITEM: NavItem = {
   icon: Sparkles,
   label: "AI Assistant",
   feature: Feature.AI_PRESCRIPTION_ASSISTANT,
+  accessTarget: APP_ACCESS_TARGETS.PAGE_AI_ASSISTANT,
 };
 
 export function sidebarNavLinkTestId(href: string): string {

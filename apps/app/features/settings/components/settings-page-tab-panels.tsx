@@ -11,7 +11,6 @@ import {
   ReminderSettings,
   SecuritySettings,
 } from "@/features/settings/components";
-import { HelpSupportSettingsPanel } from "./help-support/HelpSupportSettingsPanel";
 import { LabDirectorySettings, LabTestsCatalogSettings } from "@/features/lab-tests";
 import {
   DangerZoneSettingsLazy,
@@ -81,11 +80,8 @@ export function SettingsPageTabPanels({
           <RoleGuard requiredPermission="createPrescription">
             <PrescriptionDefaultsSettingsContainer />
           </RoleGuard>
-        </TabsContent>
-      )}
-
-      {visibleTabValues.has("opd-slip") && (
-        <TabsContent value="opd-slip" className="mt-0 space-y-6">
+          {/* OPD slip print config merged into this tab (M5): both are Rx
+              output configuration. Keeps its own manageClinic guard. */}
           <RoleGuard requiredPermission="manageClinic">
             <OpdSlipSettingsContainer />
           </RoleGuard>
@@ -136,12 +132,6 @@ export function SettingsPageTabPanels({
       {visibleTabValues.has("appearance") && (
         <TabsContent value="appearance" className="mt-0">
           <AppearanceSettings />
-        </TabsContent>
-      )}
-
-      {visibleTabValues.has("help-support") && (
-        <TabsContent value="help-support" className="mt-0 space-y-6">
-          <HelpSupportSettingsPanel />
         </TabsContent>
       )}
 

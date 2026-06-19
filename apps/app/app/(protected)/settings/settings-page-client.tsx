@@ -11,6 +11,10 @@ import { SettingsPageUI } from "@/features/settings/components/SettingsPageUI";
 const LEGACY_TAB_REDIRECTS: Record<string, string> = {
   "join-requests": "/settings/team/join-requests",
   compliance: "/settings/compliance",
+  // WhatsApp sender config lives on its standalone route (canonical; linked
+  // from Enterprise Branding and the WhatsApp Ops page). The old in-settings
+  // tab redirects here (M6 dedupe).
+  "whatsapp-sender": "/settings/whatsapp-sender",
 };
 
 function SettingsContent() {
