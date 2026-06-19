@@ -1,6 +1,5 @@
 "use client";
 
-// jscpd:ignore-start
 import { useState } from "react";
 import { Button } from "@workspace/ui/components/form/button";
 import {
@@ -12,16 +11,18 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useUpdateProfile } from "@workspace/data-access";
 import { toast } from "sonner";
 import { ChangePasswordSettings } from "@/features/settings/components";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
-export function ProfilePageClient() {
-// jscpd:ignore-end
+/**
+ * Account profile (name + email + password). Lives in Settings → Account (M4):
+ * the standalone `/profile` page was a near-orphaned single screen, so its
+ * content now sits with the other account tabs. `/profile` redirects here.
+ */
+export function ProfileAccountSettings() {
   const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: user?.name ?? "",
@@ -55,15 +56,7 @@ export function ProfilePageClient() {
   };
 
   return (
-    <AppPageScaffold
-      className="max-w-3xl"
-      header={
-        <PageHeader
-          title="Profile"
-          description="Manage your account settings and preferences."
-        />
-      }
-    >
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Personal Information</CardTitle>
@@ -82,11 +75,7 @@ export function ProfilePageClient() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              value={user?.email || ""}
-              disabled
-            />
+            <Input id="email" value={user?.email || ""} disabled />
           </div>
           <div className="flex justify-end">
             <Button
@@ -102,6 +91,6 @@ export function ProfilePageClient() {
       </Card>
 
       <ChangePasswordSettings />
-    </AppPageScaffold>
+    </div>
   );
 }
