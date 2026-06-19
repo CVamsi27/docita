@@ -41,6 +41,7 @@ const ROUTE_ACCESS_RULES: RouteAccessRule[] = [
   { pathPrefix: "/referrals", target: APP_ACCESS_TARGETS.PAGE_PATIENTS },
   { pathPrefix: "/documents", target: APP_ACCESS_TARGETS.PAGE_DOCUMENTS },
   { pathPrefix: "/analytics", target: APP_ACCESS_TARGETS.PAGE_ANALYTICS },
+  { pathPrefix: "/reports", target: APP_ACCESS_TARGETS.PAGE_REPORTS },
   { pathPrefix: "/coding-queue", target: APP_ACCESS_TARGETS.PAGE_CODING_QUEUE },
   { pathPrefix: "/import", target: APP_ACCESS_TARGETS.PAGE_IMPORT },
   { pathPrefix: "/ai-assistant", target: APP_ACCESS_TARGETS.PAGE_AI_ASSISTANT },

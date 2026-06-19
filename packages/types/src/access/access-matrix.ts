@@ -177,6 +177,7 @@ export const APP_ACCESS_TARGETS = {
   PAGE_INVENTORY: "page.inventory",
   PAGE_DOCUMENTS: "page.documents",
   PAGE_ANALYTICS: "page.analytics",
+  PAGE_REPORTS: "page.reports",
   PAGE_CODING_QUEUE: "page.coding-queue",
   PAGE_IMPORT: "page.import",
   PAGE_WHATSAPP: "page.whatsapp",
@@ -344,6 +345,10 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     feature: Feature.DOCUMENT_ARCHIVAL,
   },
   [APP_ACCESS_TARGETS.PAGE_ANALYTICS]: {
+    read: { roles: ANALYTICS_ROLES },
+    feature: Feature.BASIC_ANALYTICS,
+  },
+  [APP_ACCESS_TARGETS.PAGE_REPORTS]: {
     read: { roles: ANALYTICS_ROLES },
     feature: Feature.BASIC_ANALYTICS,
   },

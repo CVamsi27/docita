@@ -1,5 +1,6 @@
 import {
   Banknote,
+  BarChart3,
   BookOpen,
   Boxes,
   CalendarClock,
@@ -169,6 +170,13 @@ const SERVICES_ITEMS: NavItem[] = [
     label: "Analytics",
     feature: Feature.BASIC_ANALYTICS,
     accessTarget: APP_ACCESS_TARGETS.PAGE_ANALYTICS,
+  },
+  {
+    href: "/reports",
+    icon: BarChart3,
+    label: "Reports",
+    feature: Feature.BASIC_ANALYTICS,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_REPORTS,
   },
   {
     href: "/import",
