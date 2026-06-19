@@ -87,3 +87,13 @@ export const AbdmSettingsPanelLazy = lazySettingsPanel(
   () => import("./abdm/AbdmSettingsPanel"),
   (mod) => mod.AbdmSettingsPanel,
 );
+
+export const WhatsappSenderSettingsLazy = lazySettingsPanel(
+  () => import("./whatsapp/WhatsappSenderSettings"),
+  (mod) => mod.WhatsappSenderSettings,
+);
+
+export const WhatsappTemplatesSettingsLazy = lazySettingsPanel(
+  () => import("./whatsapp/WhatsappTemplatesSettings"),
+  (mod) => mod.WhatsappTemplatesSettings,
+);

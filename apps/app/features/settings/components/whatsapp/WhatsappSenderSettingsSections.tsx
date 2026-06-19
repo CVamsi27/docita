@@ -2,7 +2,6 @@
 "use client";
 
 import {
-  CheckCircle2,
   MessageCircle,
   RotateCcw,
   ShieldCheck,
@@ -17,15 +16,34 @@ import {
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import { Badge } from "@workspace/ui/components/indicators/badge";
-import { labelMapKeys } from "@workspace/utils";
 
 type SenderMode = "SHARED" | "BYO" | "MANAGED";
 
-const MODE_LABELS: Record<SenderMode, string> = {
-  SHARED: "Shared Docita sender",
-  BYO: "Clinic WhatsApp number",
-  MANAGED: "Docita-managed onboarding",
+/** UI-level mode: only two choices shown to the user. */
+type UiSenderMode = "DOCITA_MANAGED" | "BYO";
+
+const UI_MODE_LABELS: Record<UiSenderMode, { title: string; description: string }> = {
+  DOCITA_MANAGED: {
+    title: "Docita-managed",
+    description:
+      "Use Docita's shared WhatsApp number. Messages include your clinic name. No setup required.",
+  },
+  BYO: {
+    title: "Your own number",
+    description:
+      "Connect a verified Meta WhatsApp Business number. Full brand ownership, requires Meta API credentials.",
+  },
 };
+
+/** Map a backend mode to the UI mode. */
+function backendToUi(mode: SenderMode): UiSenderMode {
+  return mode === "BYO" ? "BYO" : "DOCITA_MANAGED";
+}
+
+/** Map a UI mode back to the backend mode for saving. */
+function uiToBackend(mode: UiSenderMode): SenderMode {
+  return mode === "BYO" ? "BYO" : "SHARED";
+}
 
 export function ModeSelector({
   mode,
@@ -36,45 +54,46 @@ export function ModeSelector({
   allowedModes: Set<string>;
   onChange: (mode: SenderMode) => void;
 }) {
+  const uiMode = backendToUi(mode);
+  const byoAllowed = allowedModes.has("BYO");
+
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      {labelMapKeys(MODE_LABELS).map((item) => {
-        const disabled = !allowedModes.has(item);
-        const selected = mode === item;
+    <div className="grid gap-3 sm:grid-cols-2">
+      {(Object.keys(UI_MODE_LABELS) as UiSenderMode[]).map((key) => {
+        const selected = uiMode === key;
+        const disabled = key === "BYO" && !byoAllowed;
+        const info = UI_MODE_LABELS[key];
         return (
           <button
-            key={item}
+            key={key}
             type="button"
             disabled={disabled}
-            onClick={() => onChange(item as SenderMode)}
+            onClick={() => onChange(uiToBackend(key))}
             className={[
               "rounded-lg border p-4 text-left transition-colors duration-150",
               selected
-                ? "border-primary bg-primary/5"
+                ? "border-primary bg-primary/5 ring-1 ring-primary/20"
                 : "border-border bg-background hover:bg-muted/40",
               disabled ? "cursor-not-allowed opacity-50" : "",
             ].join(" ")}
           >
-            <div className="mb-3 flex items-center gap-2">
-              {item === "SHARED" ? (
-                <MessageCircle className="size-4" />
-              ) : item === "BYO" ? (
-                <ShieldCheck className="size-4" />
+            <div className="mb-2 flex items-center gap-2">
+              {key === "DOCITA_MANAGED" ? (
+                <MessageCircle className="size-4 text-primary" />
               ) : (
-                <CheckCircle2 className="size-4" />
+                <ShieldCheck className="size-4 text-primary" />
               )}
-              <span className="text-sm font-medium">
-                {MODE_LABELS[item]}
-              </span>
+              <span className="text-sm font-medium">{info.title}</span>
+              {selected && (
+                <Badge variant="default" className="ml-auto text-xs">
+                  Active
+                </Badge>
+              )}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs leading-relaxed text-muted-foreground">
               {disabled
-                ? "Upgrade required for this sender mode."
-                : item === "SHARED"
-                  ? "Messages include the clinic name in content."
-                  : item === "BYO"
-                    ? "Use a verified Meta phone number ID and token."
-                    : "Provisioned with Docita support."}
+                ? "Upgrade required for this option."
+                : info.description}
             </p>
           </button>
         );
@@ -131,15 +150,6 @@ export function ByoFormFields({
         />
       </div>
     </div>
-  );
-}
-
-export function ManagedOnboardingNotice() {
-  return (
-    <p className="text-sm text-muted-foreground">
-      Managed onboarding is prepared for support-assisted
-      provisioning.
-    </p>
   );
 }
 

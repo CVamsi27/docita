@@ -20,7 +20,6 @@ import {
 import {
   ModeSelector,
   ByoFormFields,
-  ManagedOnboardingNotice,
   SenderActionButtons,
   VerifiedSenderInfo,
   DeliverabilityCard,
@@ -101,12 +100,11 @@ export function WhatsappSenderSettings() {
                 onAccessTokenChange={setAccessToken}
               />
             ) : null}
-            {mode === "MANAGED" ? <ManagedOnboardingNotice /> : null}
             <SenderActionButtons
               onSave={save}
               isSavePending={updateSender.isPending}
               onVerify={() => verifySender.mutate()}
-              isVerifyDisabled={mode === "SHARED"}
+              isVerifyDisabled={mode !== "BYO"}
               isVerifyPending={verifySender.isPending}
               onReset={() => revokeSender.mutate()}
               isResetPending={revokeSender.isPending}

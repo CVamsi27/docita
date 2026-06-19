@@ -23,6 +23,8 @@ import {
   LeaveManagementSettingsLazy,
   MemberManagementSettingsLazy,
   SubscriptionSettingsPanel,
+  WhatsappSenderSettingsLazy,
+  WhatsappTemplatesSettingsLazy,
 } from "./settings-page-lazy-panels";
 import { TabsContent } from "@workspace/ui/components/navigation/tabs";
 
@@ -113,6 +115,15 @@ export function SettingsPageTabPanels({
         <TabsContent value="reminders" className="mt-0">
           <RoleGuard requiredPermission="manageClinic">
             <ReminderSettings />
+          </RoleGuard>
+        </TabsContent>
+      )}
+
+      {visibleTabValues.has("whatsapp-sender") && (
+        <TabsContent value="whatsapp-sender" className="mt-0 space-y-6">
+          <RoleGuard requiredPermission="manageClinic">
+            <WhatsappSenderSettingsLazy />
+            <WhatsappTemplatesSettingsLazy />
           </RoleGuard>
         </TabsContent>
       )}
