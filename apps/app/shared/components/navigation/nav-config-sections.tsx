@@ -5,12 +5,12 @@ import {
   CalendarClock,
   CalendarDays,
   CheckSquare,
+  FileCode2,
   FileInput,
   Files,
   FlaskConical,
   Inbox,
   MessageCircle,
-  Network,
   Pill,
   Receipt,
   ShieldPlus,
@@ -98,6 +98,15 @@ const TRACK_ITEMS: NavItem[] = [
     accessTarget: APP_ACCESS_TARGETS.PAGE_INSURANCE_CLAIMS,
   },
   {
+    // Shown only for clinics with medical coding enabled (R2). Filtering is
+    // handled by use-sidebar-sections via feature + accessTarget.
+    href: "/coding-queue",
+    icon: FileCode2,
+    label: "Coding Queue",
+    feature: Feature.MEDICAL_CODING,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_CODING_QUEUE,
+  },
+  {
     href: "/prescriptions",
     icon: Pill,
     label: "Prescriptions",
@@ -147,13 +156,6 @@ const SERVICES_ITEMS: NavItem[] = [
     label: "Vaccines",
     feature: Feature.VACCINE_TRACKING,
     accessTarget: APP_ACCESS_TARGETS.PAGE_VACCINES,
-  },
-  {
-    href: "/referrals",
-    icon: Network,
-    label: "Referrals",
-    feature: Feature.DIGITAL_PRESCRIPTIONS,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_PATIENTS,
   },
   {
     href: "/follow-ups",
