@@ -64,7 +64,10 @@ describe('PrismaDashboardRepository', () => {
 
     mockPatientCount.mockResolvedValueOnce(100).mockResolvedValueOnce(15);
     mockUserCount.mockResolvedValue(8);
-    mockAppointmentCount.mockResolvedValueOnce(12).mockResolvedValueOnce(530);
+    mockAppointmentCount
+      .mockResolvedValueOnce(12)
+      .mockResolvedValueOnce(530)
+      .mockResolvedValueOnce(3);
     mockPrescriptionCount.mockResolvedValue(42);
     mockAppointmentFindMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
     mockLabTestOrderCount.mockResolvedValue(6);
@@ -82,6 +85,7 @@ describe('PrismaDashboardRepository', () => {
       recentActivity: [],
       upcomingAppointments: [],
       pendingReports: 6,
+      uncodedVisits: 3,
       monthlyRevenue: 12800,
     });
 

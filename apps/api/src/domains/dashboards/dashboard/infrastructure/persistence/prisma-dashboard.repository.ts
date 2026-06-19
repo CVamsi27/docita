@@ -80,6 +80,7 @@ export class PrismaDashboardRepository implements IDashboardRepository {
       recentActivity,
       upcomingAppointments,
       pendingReports,
+      uncodedVisits,
       monthlyRevenueResult,
     ] = await Promise.all([
       readClient.patient.count({ where: clinicFilter }),
@@ -136,6 +137,13 @@ export class PrismaDashboardRepository implements IDashboardRepository {
           },
         },
       }),
+      readClient.appointment.count({
+        where: {
+          clinicId,
+          status: 'COMPLETED',
+          diagnoses: { none: {} },
+        },
+      }),
       readClient.invoice.aggregate({
         where: {
           appointment: { clinicId },
@@ -159,6 +167,7 @@ export class PrismaDashboardRepository implements IDashboardRepository {
       recentActivity,
       upcomingAppointments,
       pendingReports,
+      uncodedVisits,
       monthlyRevenue: monthlyRevenueResult._sum.total ?? 0,
     };
   }

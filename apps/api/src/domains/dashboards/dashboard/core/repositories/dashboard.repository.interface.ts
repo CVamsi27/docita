@@ -32,6 +32,7 @@ export interface DashboardStatsSnapshot {
     } | null;
   }>;
   pendingReports: number;
+  uncodedVisits: number;
   monthlyRevenue: number;
 }
 
