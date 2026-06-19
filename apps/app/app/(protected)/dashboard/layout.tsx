@@ -1,16 +1,5 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-// jscpd:ignore-start
-export const metadata: Metadata = {
-  title: "Dashboard | Docita",
-  description: "Your facility dashboard",
-};
-
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <>{children}</>;
+export default function DashboardLayout() {
+  redirect("/today");
 }
-// jscpd:ignore-end

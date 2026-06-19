@@ -45,9 +45,6 @@ export const ROUTE_META: Record<string, RouteMeta> = {
     parentPath: "/insurance-claims/[id]",
   },
   "/inventory": { label: "Inventory" },
-  "/pharmacy": { label: "Pharmacy" },
-  "/vaccines": { label: "Vaccines" },
-  "/referrals": { label: "Referrals" },
   "/documents": { label: "Documents" },
   "/analytics": { label: "Analytics" },
   "/reports": { label: "Reports" },
@@ -83,6 +80,8 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/profile": { label: "Profile" },
   "/help": { label: "Help" },
   "/upgrade": { label: "Upgrade" },
+  "/vaccines": { label: "Vaccines" },
+  "/referrals": { label: "Referrals" },
 };
 
 interface Crumb {

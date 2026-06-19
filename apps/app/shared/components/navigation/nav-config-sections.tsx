@@ -16,7 +16,6 @@ import {
   Receipt,
   ShieldPlus,
   Stethoscope,
-  Syringe,
   TrendingUp,
   Users,
   type LucideIcon,
@@ -150,13 +149,6 @@ const SERVICES_ITEMS: NavItem[] = [
     label: "Inventory",
     feature: Feature.INVENTORY,
     accessTarget: APP_ACCESS_TARGETS.PAGE_INVENTORY,
-  },
-  {
-    href: "/vaccines",
-    icon: Syringe,
-    label: "Vaccines",
-    feature: Feature.VACCINE_TRACKING,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_VACCINES,
   },
   {
     href: "/follow-ups",
