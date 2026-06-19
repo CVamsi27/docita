@@ -21,7 +21,6 @@ const SETTINGS_TAB_ACCESS_TARGETS: Partial<Record<string, AppAccessTarget>> = {
   queue: APP_ACCESS_TARGETS.API_QUEUE,
   prescriptions: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS,
   whatsapp: APP_ACCESS_TARGETS.API_WHATSAPP,
-  "whatsapp-sender": APP_ACCESS_TARGETS.PAGE_WHATSAPP_SENDER,
 };
 
 const SETTINGS_TAB_REQUIRED_PERMISSIONS: Partial<Record<string, Permission>> = {
@@ -32,7 +31,6 @@ const SETTINGS_TAB_REQUIRED_PERMISSIONS: Partial<Record<string, Permission>> = {
   prescriptions: "createPrescription",
   reminders: "manageClinic",
   whatsapp: "manageClinic",
-  "whatsapp-sender": "manageClinic",
   notifications: "manageClinic",
   security: "manageClinic",
 };
