@@ -37,7 +37,6 @@ const ROUTE_ACCESS_RULES: RouteAccessRule[] = [
   { pathPrefix: "/daybook", target: APP_ACCESS_TARGETS.PAGE_INVOICES },
   { pathPrefix: "/inventory", target: APP_ACCESS_TARGETS.PAGE_INVENTORY },
   { pathPrefix: "/pharmacy", target: APP_ACCESS_TARGETS.PAGE_INVENTORY },
-  { pathPrefix: "/vaccines", target: APP_ACCESS_TARGETS.PAGE_VACCINES },
   { pathPrefix: "/referrals", target: APP_ACCESS_TARGETS.PAGE_PATIENTS },
   { pathPrefix: "/documents", target: APP_ACCESS_TARGETS.PAGE_DOCUMENTS },
   { pathPrefix: "/analytics", target: APP_ACCESS_TARGETS.PAGE_ANALYTICS },

@@ -80,7 +80,6 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/profile": { label: "Profile" },
   "/help": { label: "Help" },
   "/upgrade": { label: "Upgrade" },
-  "/vaccines": { label: "Vaccines" },
   "/referrals": { label: "Referrals" },
 };
 
