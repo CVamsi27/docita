@@ -64,6 +64,14 @@ const DocumentsTab = dynamic(
   { loading: () => <PatientDetailTabLoadingShell />, ssr: false },
 );
 
+const ReferralsTab = dynamic(
+  () =>
+    import("@/features/patients/components/details/tabs/ReferralsTab").then(
+      (m) => m.ReferralsTab,
+    ),
+  { loading: () => <PatientDetailTabLoadingShell />, ssr: false },
+);
+
 const BillingTab = dynamic(
   () =>
     import("@/features/patients/components/details/tabs/BillingTab").then(
@@ -124,6 +132,9 @@ export function PatientDetailTabContent({
         {activeRecordsSubTab === "labs" && <LabsTab patientId={patientId} />}
         {activeRecordsSubTab === "documents" && (
           <DocumentsTab patientId={patientId} />
+        )}
+        {activeRecordsSubTab === "referrals" && (
+          <ReferralsTab patientId={patientId} />
         )}
       </>
     );
