@@ -23,7 +23,8 @@
     "**/migrations/**",
     "scripts/checks/**",
     "**/package.json",
-    "**/tsconfig*.json"
+    "**/tsconfig*.json",
+    "**/content-scripts/**"
   ],
   "format": ["typescript", "tsx", "javascript", "jsx", "css", "json"]
 }
