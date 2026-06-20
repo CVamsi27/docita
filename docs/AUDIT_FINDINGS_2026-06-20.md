@@ -4,7 +4,20 @@ Findings from the repo-wide hardening pass that are **high-value but too high-ri
 to auto-apply in one pass** (they change response contracts or access behavior across
 many endpoints). Each needs a verified, per-domain rollout. Safe fixes from the same
 pass were applied directly (see git log: `fix(access): guard /settings/team…`,
-`test(whatsapp)…`, `chore(quality): exclude content-scripts…`).
+`fix(access): guard /settings/team/join-requests…`, `test(whatsapp)…`,
+`test(dashboard)…`, `chore(quality): exclude content-scripts…`).
+
+## Verified secure (no change needed)
+
+- **API auth is deny-by-default** — global `APP_GUARD` stack (`JwtAuthGuard` +
+  `RolesGuard` + tenant/subscription/password/email guards) in `app.module.ts`; 55
+  explicit `@Public` opt-outs.
+- **Patient-portal data isolation (no IDOR)** — portal endpoints derive identity from
+  `@PatientPortalSession()` + `req.user.id`, never a client param. Resource-by-id reads
+  (e.g. `getPrescriptionById`) resolve `patientId` via `getPatientContext(userId)`, scope
+  the query by it, and `throw NotFoundException` on mismatch — a patient cannot read
+  another patient's records by guessing ids.
+- **Tenant isolation** — `TenantGuard` + `TenantContextInterceptor` are global.
 
 ## F1 — `@ZodSerializerDto` does not trim responses (no global serializer) — HIGH
 
