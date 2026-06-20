@@ -38,9 +38,19 @@ for *auth*, allow-by-default for *role*). 73/126 controllers use `@Roles`; the r
 any authenticated clinic user. Most are intentionally shared (dashboard, profile,
 notifications), but the set should be explicit, not implicit.
 
-**Already fixed (representative).** `/settings/team` showed admin-only team management to
-all `SETTINGS_ROLES` on the frontend while the backend mutations require
-`@Roles(ADMIN, ADMIN_DOCTOR)` — guarded the page with `manageStaff`.
+**Already fixed.** Standalone `/settings/*` pages reachable by all `SETTINGS_ROLES`
+(incl. DOCTOR/RECEPTIONIST) that rendered admin-only panels with no guard:
+- `/settings/team` — team management (backend mutations `@Roles(ADMIN, ADMIN_DOCTOR)`)
+  → wrapped in `RoleGuard requiredPermission="manageStaff"`.
+- `/settings/team/join-requests` — approve/reject/list are all
+  `@Roles(ADMIN, ADMIN_DOCTOR)` → wrapped in `RoleGuard requiredPermission="manageStaff"`.
+
+**Still open (narrower).** `/settings/compliance` renders `ComplianceSettingsPanel`
+with no guard and is reachable by RECEPTIONIST via `PAGE_SETTINGS`, but the backend GET
+compliance allows `ADMIN, ADMIN_DOCTOR, DOCTOR` (DSR mutations are admin-only). So a
+RECEPTIONIST sees a panel that 403s. Not auto-fixed because the backend intentionally
+allows DOCTOR read — decide whether compliance config should be `manageClinic`-gated
+(hides DOCTOR too) or split read/write before adding a guard.
 
 **Recommended.** Add explicit `@Roles(...)` (or a documented `@SharedAccess()` marker) to
 every handler so role intent is declared, and add a standards-check asserting no
