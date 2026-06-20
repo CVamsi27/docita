@@ -2,7 +2,7 @@
 
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { RoleGuard } from "@/components";
+import { RoleGuard } from "@/components/auth/role-guard";
 import { JoinRequestsSettingsPanel } from "@/features/settings/components/management/JoinRequestsSettingsPanel";
 
 export function JoinRequestsPageClient() {

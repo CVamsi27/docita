@@ -58,6 +58,28 @@ vi.mock("sonner", () => ({
   },
 }));
 
+// RoleGuard (added to gate the page) calls useRouter; provide a router stub.
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  usePathname: () => "/settings/team/join-requests",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
+// The page guards the panel with <RoleGuard requiredPermission="manageStaff">,
+// so render as an admin who holds that permission (ADMIN_DOCTOR). Preserve the
+// rest of the auth module so the @/components barrel still resolves.
+vi.mock("@/lib/auth/auth-context", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/auth/auth-context")>();
+  return {
+    ...actual,
+    useAuth: () => ({
+      user: { id: "admin_1", role: "ADMIN_DOCTOR" },
+      isLoading: false,
+      token: "test-token",
+    }),
+  };
+});
+
 const request = {
   id: "join_1",
   status: "PENDING",
