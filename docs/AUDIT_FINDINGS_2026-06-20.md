@@ -29,20 +29,33 @@ applied. Today it affects OpenAPI docs only — **responses are shaped by whatev
 service/repository returns, not enforced to the response schema.** So extra fields can
 be sent over the wire (the user's "no single extra field to reduce traffic" concern).
 
-**Why not auto-applied.** Registering the interceptor globally flips every
-`@ZodSerializerDto` endpoint to strict trimming at once. If any response schema is
-narrower than what the frontend actually reads, fields get stripped → frontend breakage
-across up to 58 endpoints.
+**Proven unsafe as a global flip (measured 2026-06-20).** I registered
+`ZodSerializerInterceptor` globally and ran the API e2e suite against the isolated test
+DB, with a no-F1 baseline for comparison:
 
-**Recommended rollout.**
-1. Register `ZodSerializerInterceptor` via `APP_INTERCEPTOR` (one line).
-2. Before/with that, audit each response schema vs its `@workspace/data-access` consumer;
-   widen schemas that are missing fields the UI reads.
-3. Roll out per-domain (dashboard → appointments → patients → billing …), running app+api
-   tests after each. The shared zod schemas already exist, so this is verification +
-   schema-completion, not new contracts.
-4. Pair with WS3: tighten the Prisma `select`/`include` feeding each trimmed response so
-   the DB doesn't fetch columns that get stripped.
+| Run | e2e result |
+|---|---|
+| Baseline (no F1) | 21 failed / 85 passed — all environment artifacts in this sandbox (auth/seed → 403s) |
+| **With F1 (global)** | **28 failed / 78 passed** |
+
+F1 **added +7 failures** and broke **3 suites that passed at baseline**:
+`prescriptions.e2e-spec`, `clinic-members.e2e-spec`, `rbac-403-verification.e2e-spec`.
+Cause: those response schemas don't match what the services return, so the serializer
+either strips fields the test (and frontend) expect or `zod.parse()` throws → 500.
+**Conclusion: not safe to enable globally — it breaks real prod contracts.** The change
+was reverted (not shipped); unit + build stayed green, so the breakage is invisible
+without e2e.
+
+**Recommended rollout (per-domain, verified).** Do NOT register globally in one step.
+1. Enable serialization for ONE domain at a time (per-controller `@UseInterceptors(ZodSerializerInterceptor)`),
+   starting with already-passing domains (dashboard).
+2. For each domain, run its e2e spec; fix the response schema to match the service output
+   (add missing fields / correct types) until green. Start with the proven-broken three:
+   prescriptions, clinic-members, rbac (claims/coding).
+3. Only after every domain is individually green, switch to the global `APP_INTERCEPTOR`
+   registration and delete the per-controller decorators.
+4. Pair with WS3: tighten the Prisma `select`/`include` feeding each trimmed response.
+5. Deploy behind a canary with response-error-rate + payload-size monitoring.
 
 ## F2 — Endpoints without `@Roles` rely on default-allow — MEDIUM
 
