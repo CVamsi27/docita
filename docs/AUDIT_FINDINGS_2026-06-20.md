@@ -79,12 +79,28 @@ effort, and why it can't be landed safely without expanding e2e coverage first.
 4. Pair with WS3: tighten the Prisma `select`/`include` feeding each trimmed response.
 5. Deploy behind a canary with response-error-rate + payload-size monitoring.
 
-## F2 — Endpoints without `@Roles` rely on default-allow — MEDIUM
+## F2 — Endpoints without `@Roles` — ✅ ALREADY ENFORCED (no work needed)
 
-**Finding.** `RolesGuard` returns `true` when a handler has no `@Roles` (deny-by-default
-for *auth*, allow-by-default for *role*). 73/126 controllers use `@Roles`; the rest allow
-any authenticated clinic user. Most are intentionally shared (dashboard, profile,
-notifications), but the set should be explicit, not implicit.
+**Re-verified 2026-06-20 — the original finding was wrong (incomplete grep).** Every one
+of the 127 API controllers already declares access intent, and it's CI-enforced:
+- The team uses composite access decorators that wrap `Roles(...)` — `@InternalApiAccess`
+  (→ `Roles(INTERNAL)`), `@AppointmentsApiAccess`, `@DoctorsApiAccess`,
+  `@StaffSelfServiceAccess`, `@PatientsBasicManagementAccess`, etc. — plus `@Roles`,
+  `@Public`, `@PatientPortalSession`, `@UseGuards`. A scan for *any* of these found
+  **0 controllers without an access declaration**.
+- **`scripts/checks/check-controller-rbac.mjs` already enforces per-handler posture**: it
+  fails if any `@Get/@Post/@Put/@Patch/@Delete/@All` handler lacks a controller- or
+  method-level `@Roles`/`@Public`/`@UseGuards`/`@RequireFeature`/`*Access`. It is wired
+  into the `verify:standard` gate (`package.json` `check:controller-rbac`) and passes
+  ("Controller RBAC posture check passed").
+
+So F2 ("make access explicit + standards-check") is already implemented. The only real
+gaps were the **frontend** parity bugs, which were fixed (below). The legacy text of this
+finding is retained for history.
+
+**Legacy finding (superseded).** `RolesGuard` returns `true` when a handler has no `@Roles`;
+the raw-`@Roles` grep missed the composite `*Access` decorators above, so the "53 unguarded
+controllers" count was an artifact.
 
 **Already fixed.** Standalone `/settings/*` pages reachable by all `SETTINGS_ROLES`
 (incl. DOCTOR/RECEPTIONIST) that rendered admin-only panels with no guard:
@@ -100,25 +116,28 @@ RECEPTIONIST sees a panel that 403s. Not auto-fixed because the backend intentio
 allows DOCTOR read — decide whether compliance config should be `manageClinic`-gated
 (hides DOCTOR too) or split read/write before adding a guard.
 
-**Recommended.** Add explicit `@Roles(...)` (or a documented `@SharedAccess()` marker) to
-every handler so role intent is declared, and add a standards-check asserting no
-controller handler is missing one of `@Public` / `@Roles` / `@SharedAccess`.
+**Already done by the team** (see above): the `@Public`/`@Roles`/`*Access` convention plus
+`check:controller-rbac` is exactly this recommendation, already shipped and gated.
 
-## F3 — Index footprint: 474 `@@index` across 141 models — MEDIUM
+## F3 — Index footprint: 474 `@@index` across 141 models — assessed: NOT required now
 
-**Finding.** Large index count raises write amplification. Likely redundant indexes exist
-(single-column indexes covered by a composite's prefix; duplicate `@@index` vs `@@unique`).
+**Re-verified 2026-06-20.** Scanned all 141 models for genuine redundancy. Only **2** exact
+`@@index`-duplicates-`@@unique` cases exist (Postgres already auto-indexes unique
+constraints, so these two are pure duplication):
+- `PlatformAlert`: `@@index([alertKey, environment])` duplicates `@@unique([alertKey, environment])`
+- `DeviceToken`: `@@index([token])` duplicates `@@unique([token])`
 
-**Why not auto-applied.** Pruning an index that backs a specific hot query regresses that
-query; validation against real query patterns is required, and index changes need a
-migration.
+Everything else in the 474 appears intentional (no other exact redundancy; the repo already
+gates query perf via `check:n-plus-1`). So the footprint is **not** an over-indexing problem
+worth a broad prune — the only safe wins are these 2, a negligible gain.
 
-**Recommended method.**
-1. From `schema.prisma`, list `@@index`; flag single-column indexes whose column is the
-   first field of an existing composite (`@@index([a])` + `@@index([a, b])` → drop `[a]`).
-2. Cross-check `@@index` that duplicate an `@@unique` on the same columns.
-3. For each candidate, grep the matching repository for queries filtering/sorting on that
-   column before dropping. Generate one reviewable migration.
+**Not applied now (would be unsafe/entangled).** Removing them requires a Prisma migration.
+Right now `schema.prisma` carries another contributor's **uncommitted** guided-tour schema
+change plus an uncommitted migration, so generating a migration would entangle the two
+changes; and editing `schema.prisma` without a clean matching migration causes drift that
+fails `check:migration-*`. **Apply in a clean tree:** delete those 2 `@@index` lines and run
+`prisma migrate dev --name drop_redundant_unique_indexes` (the generated `DROP INDEX` is the
+whole change). Low priority.
 
 ## F4 — Test coverage gaps in focus features — LOW (partially addressed)
 
