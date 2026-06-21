@@ -271,9 +271,13 @@ export function TodayErrorState({ header, onRetry }: TodayErrorStateProps) {
 }
 
 /** First-patient empty state shown when `isNewClinicDashboard` is true. */
-export function TodayNewClinicEmptyState({ header }: TodayHeaderSlotProps) {
+export function TodayNewClinicEmptyState({
+  header,
+  slot,
+}: TodayHeaderSlotProps & { slot?: ReactNode }) {
   return (
     <AppPageScaffold header={header}>
+      {slot}
       <DataState
         status="empty"
         className="min-h-[50vh]"

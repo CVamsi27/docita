@@ -4,6 +4,10 @@ import { useMemo } from "react";
 import dynamic from "next/dynamic";
 import { formatDashboardSummary } from "@/features/dashboard/lib/format-dashboard-summary";
 import { isNewClinicDashboard } from "@/features/dashboard/lib/is-new-clinic-dashboard";
+import {
+  GettingStartedChecklist,
+  GuidedTourLauncher,
+} from "@/features/guided-tour";
 import { useDashboardLogic } from "@/features/dashboard/hooks/use-dashboard-logic";
 import { useClinicReferralShare } from "@/features/dashboard/hooks/use-clinic-referral-share";
 import { useClinic } from "@/lib/contexts/clinic-context";
@@ -89,7 +93,17 @@ export function TodayPageContent() {
     return <TodayErrorState header={header} onRetry={refetchAll} />;
   }
   if (isNewClinicDashboard(stats)) {
-    return <TodayNewClinicEmptyState header={header} />;
+    return (
+      <TodayNewClinicEmptyState
+        header={header}
+        slot={
+          <>
+            <GuidedTourLauncher />
+            <GettingStartedChecklist />
+          </>
+        }
+      />
+    );
   }
 
   const railVisibility = deriveTodayRailVisibility({

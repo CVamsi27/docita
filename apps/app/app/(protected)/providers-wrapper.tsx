@@ -8,6 +8,7 @@ import { DoctorVerificationGuard } from "@/components/guards/doctor-verification
 import { SubscriptionGuard } from "@/components/guards/subscription-guard";
 import { PageAccessGuard } from "@/components/guards/page-access-guard";
 import { AskAiProvider } from "@/components/ask-ai/ask-ai-context";
+import { GuidedTourProvider } from "@/features/guided-tour";
 
 export function ProvidersWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -18,7 +19,9 @@ export function ProvidersWrapper({ children }: { children: React.ReactNode }) {
           <DoctorVerificationGuard>
             <SubscriptionGuard>
               <PageAccessGuard>
-                <AskAiProvider>{children}</AskAiProvider>
+                <AskAiProvider>
+                  <GuidedTourProvider>{children}</GuidedTourProvider>
+                </AskAiProvider>
               </PageAccessGuard>
             </SubscriptionGuard>
           </DoctorVerificationGuard>
