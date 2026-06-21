@@ -166,6 +166,10 @@ export { useDashboardStats } from "./hooks/use-dashboard";
 export { useResolvedFeatureFlags } from "./hooks/use-feature-flags";
 export type { ResolvedFeatureFlagsResponse } from "./hooks/use-feature-flags";
 export {
+  useGuidedTourState,
+  useUpdateGuidedTour,
+} from "./hooks/use-guided-tour";
+export {
   useInsuranceClaims,
   useInsuranceClaimsByPatient,
   useInsuranceClaim,
