@@ -35,10 +35,8 @@ import {
 } from "@workspace/ui/components/form/select";
 // jscpd:ignore-end
 import { Eye, Search, Users } from "lucide-react";
-import {
-  formatInternalListDate,
-  formatInternalTimestamp,
-} from "@/lib/formatters/format-display-date";
+import { formatInternalListDate } from "@/lib/formatters/format-internal-list-date";
+import { formatInternalTimestamp } from "@/lib/formatters/format-internal-timestamp";
 import { ROLE_CONFIG, type RoleFilter, type User } from "./types";
 import {
   getRoleBadgeColor,
