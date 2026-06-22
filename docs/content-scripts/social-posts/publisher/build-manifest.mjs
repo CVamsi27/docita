@@ -25,7 +25,7 @@ for (const raw of lines) {
   const hm = line.match(/^###\s+(P\d+|E\d+)\s+[—–-]+\s+(.+)/);
   if (hm) {
     if (cur) posts.push(cur);
-    cur = { id: hm[1], type: hm[1].startsWith("P") ? "product" : "educational", title: hm[2].trim(), date: null, image: { file: null, exists: false, alt: null }, instagram: "", x: "" };
+    cur = { id: hm[1], type: hm[1].startsWith("P") ? "product" : "educational", title: hm[2].trim(), date: null, image: { file: null, exists: false, alt: null }, imageInstagram: null, instagram: "", x: "" };
     mode = null; fence = false;
     continue;
   }
@@ -34,6 +34,8 @@ for (const raw of lines) {
   // Meta lines
   const datM = line.match(/^\*\*Post date:\*\*\s+(.+)/);
   if (datM) { cur.date = datM[1].trim(); continue; }
+  const igImgM = line.match(/^\*\*Image \(Instagram\):\*\*\s+`([^`]+)`/);
+  if (igImgM) { cur.imageInstagram = igImgM[1].trim(); continue; }
   const imgM = line.match(/^\*\*Image:\*\*\s+`([^`]+)`/);
   if (imgM) { cur.image.file = imgM[1].trim(); cur.image.exists = existsSync(resolve(ROOT, imgM[1].trim())); continue; }
   const altM = line.match(/^\*\*Alt text:\*\*\s+(.+)/);

@@ -12,8 +12,9 @@ See `posts.json → status` for per-platform details.
 
 ### P1 — What Is Docita?
 
-**Status:** [ ] done
+**Status:** [V] done
 **Image:** `images/shot-today.png`
+**Image (Instagram):** `images-png/shot-today-ig.png`
 **Alt text:** Docita dashboard showing today's appointment schedule
 
 **Instagram**
@@ -61,8 +62,9 @@ Follow Docita → linkedin.com/company/114464051
 
 ### P2 — WhatsApp Chaos
 
-**Status:** [ ] done
+**Status:** [V] done
 **Image:** `images/card-whatsapp-chaos.svg`
+**Image (Instagram):** `images-png/card-whatsapp-chaos-ig.png`
 **Alt text:** Text card: "Appointments via WhatsApp. Chaos guaranteed."
 
 **Instagram**
@@ -110,6 +112,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/card-water-first.svg`
+**Image (Instagram):** `images-png/card-water-first-ig.png`
 **Alt text:** Text card: "Water first. Coffee second."
 
 **Instagram**
@@ -165,6 +168,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/card-one-place.svg`
+**Image (Instagram):** `images-png/card-one-place-ig.png`
 **Alt text:** Text card: "One place. Zero tabs."
 
 **Instagram**
@@ -212,6 +216,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/card-follow-ups.svg`
+**Image (Instagram):** `images-png/card-follow-ups-ig.png`
 **Alt text:** Text card: "Patients forget. Docita reminds."
 
 **Instagram**
@@ -263,6 +268,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/card-sleep.svg`
+**Image (Instagram):** `images-png/card-sleep-ig.png`
 **Alt text:** Text card: "Sleep is not laziness."
 
 **Instagram**
@@ -320,6 +326,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/shot-appointments.png`
+**Image (Instagram):** `images-png/shot-appointments-ig.png`
 **Alt text:** Docita appointments screen showing online bookings
 
 **Instagram**
@@ -367,6 +374,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/shot-prescription.png`
+**Image (Instagram):** `images-png/shot-prescription-ig.png`
 **Alt text:** Docita prescription builder screen
 
 **Instagram**
@@ -418,6 +426,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/card-thali.svg`
+**Image (Instagram):** `images-png/card-thali-ig.png`
 **Alt text:** Text card: "The Indian thali is nearly perfect."
 
 **Instagram**
@@ -475,6 +484,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/shot-invoices.png`
+**Image (Instagram):** `images-png/shot-invoices-ig.png`
 **Alt text:** Docita invoices list with GST invoice numbers
 
 **Instagram**
@@ -524,6 +534,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/shot-patients.png`
+**Image (Instagram):** `images-png/shot-patients-ig.png`
 **Alt text:** Docita patient list with records
 
 **Instagram**
@@ -573,6 +584,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/card-2020.svg`
+**Image (Instagram):** `images-png/card-2020-ig.png`
 **Alt text:** Text card: "20-20-20 rule."
 
 **Instagram**
@@ -629,6 +641,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/shot-analytics.png`
+**Image (Instagram):** `images-png/shot-analytics-ig.png`
 **Alt text:** Docita analytics dashboard with clinic performance charts
 
 **Instagram**
@@ -683,6 +696,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/card-excel.svg`
+**Image (Instagram):** `images-png/card-excel-ig.png`
 **Alt text:** Text card: "Excel was not built for clinics."
 
 **Instagram**
@@ -734,6 +748,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/card-protein.svg`
+**Image (Instagram):** `images-png/card-protein-ig.png`
 **Alt text:** Text card: "Protein at every meal."
 
 **Instagram**
@@ -791,6 +806,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/shot-lab-tests.png`
+**Image (Instagram):** `images-png/shot-lab-tests-ig.png`
 **Alt text:** Docita lab orders screen
 
 **Instagram**
@@ -837,8 +853,9 @@ Follow Docita → linkedin.com/company/114464051
 ### P12 — Hospital Beds
 
 **Status:** [ ] done
-**Image:** `images/shot-hospital-beds.png`
-**Alt text:** Docita hospital bed management screen
+**Image:** `images/card-hospital-beds.svg`
+**Image (Instagram):** `images-png/card-hospital-beds-ig.png`
+**Alt text:** Text card: "Every bed. One view."
 
 **Instagram**
 ```
@@ -887,6 +904,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/card-walking.svg`
+**Image (Instagram):** `images-png/card-walking-ig.png`
 **Alt text:** Text card: "10,000 steps is a myth."
 
 **Instagram**
@@ -943,8 +961,9 @@ Follow Docita → linkedin.com/company/114464051
 ### P13 — Onboarding in Minutes
 
 **Status:** [ ] done
-**Image:** `images/shot-onboarding.png`
-**Alt text:** Docita onboarding screen — clinic setup
+**Image:** `images/card-onboarding.svg`
+**Image (Instagram):** `images-png/card-onboarding-ig.png`
+**Alt text:** Text card: "Live in minutes. Not days."
 
 **Instagram**
 ```
@@ -995,6 +1014,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/shot-consultation.png`
+**Image (Instagram):** `images-png/shot-consultation-ig.png`
 **Alt text:** Docita consultation screen with clinical notes
 
 **Instagram**
@@ -1044,6 +1064,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/card-burnout.svg`
+**Image (Instagram):** `images-png/card-burnout-ig.png`
 **Alt text:** Text card: "Admin work won't fix itself."
 
 **Instagram**
@@ -1096,6 +1117,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/card-one-patient-test.svg`
+**Image (Instagram):** `images-png/card-one-patient-test-ig.png`
 **Alt text:** Text card: "One patient. One appointment. See the magic."
 
 **Instagram**
@@ -1147,6 +1169,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/card-start-small.svg`
+**Image (Instagram):** `images-png/card-start-small-ig.png`
 **Alt text:** Text card: "Start small. Grow fast."
 
 **Instagram**
@@ -1196,6 +1219,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/card-posture.svg`
+**Image (Instagram):** `images-png/card-posture-ig.png`
 **Alt text:** Text card: "Sit like your back matters."
 
 **Instagram**
@@ -1260,6 +1284,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/card-receptionist.svg`
+**Image (Instagram):** `images-png/card-receptionist-ig.png`
 **Alt text:** Text card: "Your receptionist never sleeps."
 
 **Instagram**
@@ -1309,6 +1334,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/card-handoffs.svg`
+**Image (Instagram):** `images-png/card-handoffs-ig.png`
 **Alt text:** Text card: "Nothing falls through the cracks."
 
 **Instagram**
@@ -1360,6 +1386,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/card-sleep.svg`
+**Image (Instagram):** `images-png/card-sleep-ig.png`
 **Alt text:** Text card: "Sleep is not laziness."
 
 **Instagram**
@@ -1415,6 +1442,7 @@ Follow Docita → linkedin.com/company/114464051
 
 **Status:** [ ] done
 **Image:** `images/card-stress-badge.svg`
+**Image (Instagram):** `images-png/card-stress-badge-ig.png`
 **Alt text:** Text card: "The billing stress stops here."
 
 **Instagram**

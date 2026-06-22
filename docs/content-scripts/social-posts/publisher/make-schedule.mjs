@@ -30,15 +30,17 @@ ORDER.forEach((id, i) => {
   const iso = d.toISOString().slice(0, 10);
   const imgFile = p.image.file ?? "";
   const imgPng = imgFile.replace("images/", "images-png/").replace(/\.svg$/, ".png");
+  // Instagram uses a platform-specific image (mobile phone-frame) when provided.
+  const igPng = (p.imageInstagram ?? imgFile).replace("images/", "images-png/").replace(/\.svg$/, ".png");
 
   schedule.push({ ...p, scheduledDate: iso });
 
-  // X row
+  // X row (desktop / square)
   const xText = p.x.replace(/"/g, '""');
   csvRows.push(`${iso},${X_TIME},"${xText}","${imgPng}",Post,@docita_work (X)`);
-  // IG row
+  // IG row (mobile frame when available)
   const igText = p.instagram.replace(/"/g, '""');
-  csvRows.push(`${iso},${IG_TIME},"${igText}","${imgPng}",Post,@docita_work (Instagram)`);
+  csvRows.push(`${iso},${IG_TIME},"${igText}","${igPng}",Post,@docita_work (Instagram)`);
 });
 
 writeFileSync(resolve(__dirname, "schedule.json"), JSON.stringify(schedule, null, 2));

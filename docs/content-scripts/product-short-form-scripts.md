@@ -20,6 +20,21 @@ These shorts can be **cut from long-form footage** (record once, cut many) or **
 
 ---
 
+## 🔥 Viral edit format (apply to every short)
+
+The rendered cut follows a viral short-form structure — built for sound-off autoplay on Reels / Shorts / TikTok. Hold to this on every edit:
+
+1. **Hook in the first 1.5s.** Open on a bold pattern-interrupt: a problem statement or a question in huge type, *before* any logo. The brand coin + name appears, but the words land first. No slow logo intro on a short.
+2. **One big phone, screens at 80–90%.** Show the real app inside a portrait phone frame that fills ~80% of the vertical frame so the UI is legible on a small screen. Never shrink a screenshot into a small card — go big, and zoom into the part the voiceover is naming. One screen on screen at a time (crossfade), not a grid of tiny ones.
+3. **Kinetic captions, always on.** Bold 900-weight captions, ~58–60px, bottom-center, word/phrase-synced to the VO with the keyword in teal. Sound-off viewers read the whole thing.
+4. **One beat per line, fast.** Each spoken phrase = one screen + one big on-screen label, swapped exactly on the word (sync to the caption onsets). No scene holds dead for >2.5s without motion (Ken-Burns zoom, scan sweep, drift).
+5. **Sticky payoff + CTA.** End on the connected/"that is Docita" beat → brand lockup → `30-day free trial · docita.work`. Leave the last frame on screen ~1s.
+6. **Format:** 1080×1920, 60fps, safe-zone bottom ~210px clear for captions; corner safe-zone reserved for optional face-cam.
+
+> Voiceover is recorded blind to picture, so the **edit** carries the viral structure: re-time screen swaps + labels to the caption word-onsets, not to guesses.
+
+---
+
 # A. Intro and trial
 
 ---
@@ -27,7 +42,7 @@ These shorts can be **cut from long-form footage** (record once, cut many) or **
 > ### 🎙️ How to record voiceover for any script here
 > Every video below has a **Timeline** block — the scene-by-scene clock the rendered cut follows. To record VO **without watching the video**: read each scene's voiceover **inside its `m:ss–m:ss` window**, start each block near its start time, and just pause if your line is shorter (the screen + music hold the gap). Where a scene row shows a `` `m:ss–m:ss` ``, that is exactly when that line lands on screen. Record calm and even, leave ~0.5s between blocks, then hand me the audio — I align it to the picture and duck the music under your voice.
 
-### Short 1: What Is Docita
+### Short 1: What Is Docita [Done]
 
 Hook text:
 
@@ -35,15 +50,17 @@ Hook text:
 Clinics run serious work through scattered tools. Here is the fix.
 ```
 
-Timeline (≈30s):
+Timeline (≈29s) — **viral cut** (one big phone, screens at ~80%, kinetic captions):
 
 ```text
-0:00–0:03  Hook
-0:03–0:10  Shot 1 — scattered tools montage
-0:10–0:18  Shot 2 — dashboard
-0:18–0:27  Shot 3 — connected flash (appt → consult → Rx → invoice)
-0:27–0:30  Shot 4 — CTA card
+0:00–0:05  HOOK — scattered app screens tumble in (mini-phones) → snap straight on "here is the fix"; big type "Serious work / Scattered tools"
+0:05–0:08  Brand sting (coin + docita) over music gap
+0:08–0:18  WORKSPACE — ONE big portrait phone, screens crossfade on each word with a big label:
+           Appointments → Patient records → Consultations → Prescriptions → Invoices → Follow-ups → WhatsApp
+0:18–0:29  CTA — coin + "All connected in one workspace" + docita.work
 ```
+
+> Each screen swap lands on the spoken word (synced to the caption onsets), not on a fixed clock.
 
 Shots:
 
@@ -58,11 +75,12 @@ Shots:
 Appointments, patient records, consultations, prescriptions, invoices, follow-ups, and WhatsApp communication, all connected in one workspace. That is Docita.
 ```
 
-On-screen text:
+On-screen text (viral, big + kinetic):
 
-- "Scattered tools = lost time"
-- "One connected workspace"
-- "Docita — docita.work"
+- HOOK: **"Serious work."** / **"Scattered tools."** (rose) / *"Here is the fix."*
+- WORKSPACE labels (swap on the word): Appointments · Patient records · Consultations · Prescriptions · Invoices · Follow-ups · WhatsApp
+- CTA: **"All connected in one workspace"** · `docita.work`
+- Captions: bold 900-weight, teal keyword, on the whole VO.
 
 **Recording Instructions:**
 
@@ -103,15 +121,16 @@ Hook text:
 Most clinic software connects features. Docita connects the journey.
 ```
 
-Timeline (≈32s):
+Timeline (≈22s) — **viral cut** (one big phone + progress chain, screens at ~80%):
 
 ```text
-0:00–0:03  Hook
-0:03–0:12  Shot 1 — patient timeline (connected history)
-0:12–0:20  Shot 2 — consultation → prescription
-0:20–0:27  Shot 3 — invoice tied to the visit
-0:27–0:32  Shot 4 — follow-up visible + CTA
+0:00–0:05  HOOK — coin + "Most software connects features / Docita connects the journey"
+0:05–0:18  JOURNEY — ONE big portrait phone; a 4-dot chain lights up step by step as the screen swaps on each word:
+           Front desk books (appointments) → Doctor documents (consultation) → Rx → patient (prescription) → Invoice → visit (invoice)
+0:18–0:22  END — "Nothing is disconnected" + 30-day free trial · docita.work
 ```
+
+> The 4-dot chain + line-fill = the "connected journey" visual; each dot lights and screen swaps on the spoken step (synced to caption onsets).
 
 Shots:
 

@@ -5,8 +5,9 @@
   "scripts": {
     "manifest": "node build-manifest.mjs",
     "rasterize": "node rasterize.mjs",
+    "images": "node gen-instagram.mjs",
     "schedule": "node make-schedule.mjs",
-    "build": "node build-manifest.mjs && node rasterize.mjs && node make-schedule.mjs",
+    "build": "node build-manifest.mjs && node gen-instagram.mjs && node make-schedule.mjs",
     "verify": "node post-social.mjs --verify",
     "verify:x": "node post-social.mjs --verify --x",
     "verify:linkedin": "node post-social.mjs --verify --linkedin",

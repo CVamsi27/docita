@@ -9,7 +9,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(__dirname, "images");
 mkdirSync(OUT, { recursive: true });
 
-const W = 1080, H = 1080, PAD = 96;
+const PAD = 96;
 const INK = "#0E1419", PAPER = "#FAF9F5";
 const TEAL = "#4DE3D2", ROSE = "#E5484D";
 const HEAD_SIZE = 70, LINE_H = 92, SUB_SIZE = 32, EYE_SIZE = 22;
@@ -19,12 +19,18 @@ const WM_H = 44;
 const WM_W = Math.round(WM_H * 857 / 413); // ≈91px — preserves 857×413 aspect ratio
 const WM_BOTTOM_PAD = 52; // px from card bottom edge
 
+// Output sizes: square for X/LinkedIn, portrait (4:5) for Instagram feed.
+const SIZES = [
+  { W: 1080, H: 1080, suffix: "" },      // square — universal
+  { W: 1080, H: 1350, suffix: "-ig" },   // 4:5 portrait — Instagram
+];
+
 function hex2rgb(h) {
   const r = parseInt(h.slice(1,3),16), g = parseInt(h.slice(3,5),16), b = parseInt(h.slice(5,7),16);
   return `${r},${g},${b}`;
 }
 
-function card({ slug, eyebrow, lines, sub, accent = "paper", disclaimer = "" }) {
+function card({ slug, eyebrow, lines, sub, accent = "paper", disclaimer = "" }, { W, H, suffix }) {
   const accentColor = accent === "teal" ? TEAL : accent === "rose" ? ROSE : PAPER;
   const rgb = hex2rgb(accentColor);
   const totalTextH = lines.length * LINE_H;
@@ -62,8 +68,8 @@ function card({ slug, eyebrow, lines, sub, accent = "paper", disclaimer = "" }) 
   ${disclaimerSvg}
   <image href="Docita_Wordmark_HQ.png" x="${wmX}" y="${wmY}" width="${WM_W}" height="${WM_H}"/>
 </svg>`;
-  writeFileSync(`${OUT}/${slug}.svg`, svg);
-  console.log(`  wrote ${slug}.svg`);
+  writeFileSync(`${OUT}/${slug}${suffix}.svg`, svg);
+  console.log(`  wrote ${slug}${suffix}.svg (${W}×${H})`);
 }
 
 const cards = [
@@ -170,6 +176,26 @@ const cards = [
     sub: "GST invoices, one click.",
     accent: "teal",
   },
+  {
+    slug: "card-hospital-beds",
+    eyebrow: "Hospitals",
+    lines: [
+      { t: "Every bed.", c: "teal" },
+      { t: "One view." },
+    ],
+    sub: "Occupied, vacant, due for discharge — at a glance.",
+    accent: "teal",
+  },
+  {
+    slug: "card-onboarding",
+    eyebrow: "Get started",
+    lines: [
+      { t: "Live in minutes.", c: "teal" },
+      { t: "Not days." },
+    ],
+    sub: "Profile. Team. Patients. Done.",
+    accent: "teal",
+  },
   // Educational cards
   {
     slug: "card-water-first",
@@ -250,6 +276,6 @@ const cards = [
   },
 ];
 
-console.log(`Generating ${cards.length} cards with real Docita logo…`);
-cards.forEach(card);
+console.log(`Generating ${cards.length} cards × ${SIZES.length} sizes…`);
+for (const c of cards) for (const size of SIZES) card(c, size);
 console.log("Done.");

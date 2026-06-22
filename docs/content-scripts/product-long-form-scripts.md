@@ -44,7 +44,7 @@ Expansion ideas (record after the core sequence):
 > ### 🎙️ How to record voiceover for any script here
 > Every video below has a **Timeline** block — the scene-by-scene clock the rendered cut follows. To record VO **without watching the video**: read each scene's voiceover **inside its `m:ss–m:ss` window**, start each block near its start time, and just pause if your line is shorter (the screen + music hold the gap). Where a scene row shows a `` `m:ss–m:ss` ``, that is exactly when that line lands on screen. Record calm and even, leave ~0.5s between blocks, then hand me the audio — I align it to the picture and duck the music under your voice.
 
-## Video 1: What Is Docita
+## Video 1: What Is Docita [Done]
 
 **Title:** `What is Docita? The complete healthcare operating system`
 

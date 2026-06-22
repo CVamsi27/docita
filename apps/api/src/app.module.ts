@@ -52,6 +52,7 @@ import { CacheInterceptor } from './shared/common/interceptors/cache.interceptor
 import { PatientDataAuditInterceptor } from './shared/common/interceptors/patient-audit.interceptor';
 import { BreakTheGlassInterceptor } from './shared/common/interceptors/emergency-access.interceptor';
 import { PrismaRetryInterceptor } from './shared/common/interceptors/prisma-retry.interceptor';
+import { SafeZodSerializerInterceptor } from './shared/common/interceptors/safe-zod-serializer.interceptor';
 import { RequestIdInterceptor } from './shared/common/interceptors/request-id.interceptor';
 import { RequestContextInterceptor } from './shared/common/interceptors/request-context.interceptor';
 import { JwtAuthGuard } from './shared/modules/auth/auth/jwt-auth.guard';
@@ -267,6 +268,15 @@ import { getClientIp } from '@/shared/common/http/client-ip';
     {
       provide: APP_INTERCEPTOR,
       useClass: PrismaRetryInterceptor,
+    },
+    // Registered last so it serializes the controller's output innermost: every
+    // @ZodSerializerDto response is trimmed to its @workspace/types contract
+    // (the "no extra fields" goal). Non-throwing: on a schema mismatch it logs
+    // and passes the original response through, so a stale schema never 500s a
+    // live endpoint (see AUDIT_FINDINGS F1).
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: SafeZodSerializerInterceptor,
     },
   ],
   exports: [WebsocketsModule],

@@ -20,9 +20,9 @@
 | 14 | 2026-06-28 | Sun | P10 | Product | Import from Excel | card-excel.svg |
 | 15 | 2026-06-29 | Mon | E5 | Educational | Protein at Every Meal | card-protein.svg |
 | 16 | 2026-06-30 | Tue | P11 | Product | Lab Orders | shot-lab-tests.png |
-| 17 | 2026-07-01 | Wed | P12 | Product | Hospital Beds | shot-hospital-beds.png |
+| 17 | 2026-07-01 | Wed | P12 | Product | Hospital Beds | card-hospital-beds.svg |
 | 18 | 2026-07-02 | Thu | E6 | Educational | Walking Myth | card-walking.svg |
-| 19 | 2026-07-03 | Fri | P13 | Product | Onboarding in Minutes | shot-onboarding.png |
+| 19 | 2026-07-03 | Fri | P13 | Product | Onboarding in Minutes | card-onboarding.svg |
 | 20 | 2026-07-04 | Sat | P14 | Product | Consultation Notes | shot-consultation.png |
 | 21 | 2026-07-05 | Sun | E7 | Educational | Doctor Burnout | card-burnout.svg |
 | 22 | 2026-07-06 | Mon | P15 | Product | Free Trial CTA | card-one-patient-test.svg |
@@ -42,5 +42,10 @@
 
 ## Image folder
 
-`social-posts/images/` — SVG cards + PNG screenshots  
-`social-posts/images-png/` — rasterized post-ready PNGs (platforms reject SVG)
+`social-posts/images/` — source SVG cards + desktop PNG screenshots  
+`social-posts/images-png/` — post-ready PNGs (Instagram & X reject SVG). Run `npm run images` in `publisher/` to regenerate.
+
+Per-platform images:
+- **Instagram** — every post has a 1080×1350 (4:5 portrait) `*-ig.png`. Cards render full-bleed portrait; screenshots sit in a mobile phone-frame built from real mobile-viewport captures. Upload these for IG.
+- **X / LinkedIn** — cards use the 1080×1080 square (`card-*.png`); screenshots use the desktop shot (`shot-*.png`, 1920×1080).
+- P12 (Hospital Beds) & P13 (Onboarding) use cards — their app routes need a fresh mobile capture (dev app was down); rerun `capture/mobile-capture.mjs` with `/hospital/beds` and `/onboarding` added to swap in real mobile shots later.
