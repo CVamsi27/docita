@@ -1,9 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { formatDate, formatDateTime } from "@workspace/utils";
-import {
-  formatInternalListDate,
-  formatInternalTimestamp,
-} from "./format-display-date";
+import { formatInternalListDate } from "./format-internal-list-date";
+import { formatInternalTimestamp } from "./format-internal-timestamp";
 
 vi.mock("@workspace/utils", () => ({
   formatDate: vi.fn(),
