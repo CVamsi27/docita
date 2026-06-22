@@ -8,6 +8,12 @@ import {
   type NavItem,
 } from "@/components/navigation/nav-config";
 
+/** Stable anchors the guided welcome tour spotlights (see features/guided-tour). */
+const TOUR_ID_BY_HREF: Record<string, string> = {
+  "/patients": "nav-patients",
+  "/appointments": "nav-appointments",
+};
+
 export function SidebarLink({
   item,
   collapsedRail,
@@ -32,6 +38,7 @@ export function SidebarLink({
         <Link
           href={item.href}
           data-testid={sidebarNavLinkTestId(item.href)}
+          data-tour-id={TOUR_ID_BY_HREF[item.href]}
           aria-label={ariaLabel}
           className={className}
         >

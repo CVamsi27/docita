@@ -5,6 +5,8 @@ import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-co
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { z } from 'zod';
 import {
+  GuidedTourStateRecord,
+  GuidedTourUpdate,
   IUserRepository,
   JwtValidationUserSnapshot,
   UserProfile,
@@ -24,6 +26,13 @@ const USER_PROFILE_SELECT = {
   createdAt: true,
   updatedAt: true,
   verificationData: true,
+} satisfies Prisma.UserSelect;
+
+const GUIDED_TOUR_SELECT = {
+  guidedTourStatus: true,
+  guidedTourLastStep: true,
+  guidedTourCompletedAt: true,
+  checklistDismissedAt: true,
 } satisfies Prisma.UserSelect;
 
 function verificationDataRecord(
@@ -150,6 +159,54 @@ export class PrismaUserRepository implements IUserRepository {
         data: { onboardingStep: onboardingStepSchema.parse(step) },
       }),
     );
+  }
+
+  async getGuidedTour(userId: string): Promise<GuidedTourStateRecord | null> {
+    // RLS-BYPASS: guided-tour state is keyed by user id, not clinic-scoped
+    return this.prisma.runUnrestricted(async () => {
+      const row = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: GUIDED_TOUR_SELECT,
+      });
+      if (!row) return null;
+      return {
+        status: row.guidedTourStatus,
+        lastStep: row.guidedTourLastStep,
+        completedAt: row.guidedTourCompletedAt,
+        checklistDismissedAt: row.checklistDismissedAt,
+      };
+    });
+  }
+
+  async updateGuidedTour(
+    userId: string,
+    patch: GuidedTourUpdate,
+  ): Promise<GuidedTourStateRecord> {
+    // RLS-BYPASS: guided-tour state is keyed by user id, not clinic-scoped
+    return this.prisma.runUnrestricted(async () => {
+      const updated = await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          ...(patch.status !== undefined && { guidedTourStatus: patch.status }),
+          ...(patch.lastStep !== undefined && {
+            guidedTourLastStep: patch.lastStep,
+          }),
+          ...(patch.completedAt !== undefined && {
+            guidedTourCompletedAt: patch.completedAt,
+          }),
+          ...(patch.checklistDismissedAt !== undefined && {
+            checklistDismissedAt: patch.checklistDismissedAt,
+          }),
+        },
+        select: GUIDED_TOUR_SELECT,
+      });
+      return {
+        status: updated.guidedTourStatus,
+        lastStep: updated.guidedTourLastStep,
+        completedAt: updated.guidedTourCompletedAt,
+        checklistDismissedAt: updated.checklistDismissedAt,
+      };
+    });
   }
 
   async findPasswordExpiresAt(userId: string): Promise<Date | null> {

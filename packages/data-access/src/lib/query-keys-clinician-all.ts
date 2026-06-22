@@ -371,6 +371,9 @@ export const queryKeys = {
   featureFlags: {
     me: () => ["feature-flags", "me"] as const,
   },
+  guidedTour: {
+    me: () => ["guided-tour", "me"] as const,
+  },
   billingHistory: {
     all: () => ["billing-history"] as const,
   },

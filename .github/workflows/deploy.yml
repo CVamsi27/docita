@@ -51,7 +51,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 22.12.0
           package-manager-cache: false
@@ -74,7 +74,7 @@ jobs:
           corepack enable
           corepack prepare pnpm@10.30.3 --activate
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 22.12.0
           cache: pnpm
@@ -161,7 +161,7 @@ jobs:
           corepack enable
           corepack prepare pnpm@10.30.3 --activate
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 22.12.0
           cache: pnpm
@@ -260,11 +260,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Prepare pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10.30.3
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 22.12.0
           package-manager-cache: false
@@ -287,11 +287,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Prepare pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10.30.3
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 22.12.0
           package-manager-cache: false
@@ -314,11 +314,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Prepare pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10.30.3
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 22.12.0
           package-manager-cache: false

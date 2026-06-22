@@ -11,6 +11,7 @@ export * from "./documents";
 export * from "./desk";
 export * from "./dpdp";
 export * from "./doctors";
+export * from "./guided-tour";
 export * from "./inventory";
 export * from "./lab-tests";
 export * from "./onboarding";

@@ -57,6 +57,11 @@ const FloatingStartConsultation = dynamic(
   { ssr: false },
 );
 
+const GuidedTourOverlay = dynamic(
+  () => import("@/features/guided-tour").then((mod) => mod.GuidedTourOverlay),
+  { ssr: false },
+);
+
 function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
   const pathname = usePathname();
   const canGoBack = useCanGoBack();
@@ -248,6 +253,7 @@ export default function ProtectedLayout({
       <FloatingStartConsultation />
       <CommandPalette />
       <AskAiOverlay />
+      <GuidedTourOverlay />
     </ProvidersWrapper>
   );
 }
