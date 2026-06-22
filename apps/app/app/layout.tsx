@@ -8,7 +8,7 @@ import { SentryInitializer } from "@/components/monitoring/sentry-initializer";
 import { ClientErrorReporter } from "@/components/monitoring/client-error-reporter";
 import { WebVitalsReporter } from "@/components/layout/web-vitals-reporter";
 import { ApiAvailabilityOverlay } from "@/components/feedback/api-availability-overlay";
-import { esbuildHelperBootstrapScript } from "@workspace/utils";
+import { esbuildHelperBootstrapScript } from "@workspace/utils/runtime/esbuild-helper-bootstrap";
 
 export const metadata = {
   title: "Docita - Healthcare OS",
