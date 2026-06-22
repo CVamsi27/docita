@@ -104,6 +104,7 @@ Platform notes:
 - Music at -24 to -30 LUFS under voice.
 - Calm, modern, positive music.
 - No trending copyrighted songs.
+- Sound effects (click, pop, whoosh/"fhaa", ding, riser) mark every state change and give the edit rhythm — one clear sound per action, low under voice. See the full SFX palette and viral format guide in [`product-common.md`](product-common.md) (Music and sound sources → Sound-effects palette, and Viral short-form formats). The same palette applies to educational scripts.
 
 ### Pacing
 - Hook in the first 3 seconds. No warmup.

@@ -192,6 +192,32 @@ Each script also ends with **Screenshot guidance** (the single "money shot" fram
 
 ---
 
+## Viral short-form formats
+
+A "format" is the *shape* of the edit — the proven structure a Reel/Short hangs on. Pick one format per video and let the script fill it. These are the ones that travel furthest for B2B / product content in the Indian clinic niche. Pair each with the SFX cues from the Music and sound sources section (the SFX column tells the editor which sound carries the beat).
+
+| Format | Structure (the shape) | Why it spreads | Docita example | Signature SFX |
+|---|---|---|---|---|
+| **Before / After (split or swipe)** | Old painful way (3–5s) → hard transition → Docita way (rest). Often a literal split screen or a swipe. | Instant, visceral contrast; the payoff is obvious in 2s. | Paper register + WhatsApp scramble → one Docita queue screen | Error buzz on "before"; **whoosh / "fhaa"** on the swipe; **ding** on the after |
+| **POV** | Shot framed as "POV: you're the front desk at 9am" — viewer *is* the character. | Feels personal, made-for-me; high saves among the exact role you target. | "POV: 12 patients walk in and you haven't opened a single register" | Notification pops stacking; calm after Docita opens |
+| **Speedrun / "in X seconds"** | A timer on screen; do a real task fast, sped-up clacks, land under a bold number. | Curiosity + proof; people watch to see if the claim holds. | "Book → consult → prescribe → bill in 40 seconds" with a running timer | **Keyboard clack** montage; **click** per step; **ding** at the finish |
+| **Myth-bust / "stop doing this"** | Bold wrong belief on screen → "actually…" → correction → soft Docita tie-in. | Pattern-interrupt hook; the disagreement drives comments. | "Stop keeping patient history in a notebook. Here's why." | **Impact** on the myth card; **pop** on each counter-point |
+| **Listicle / "3 things"** | Numbered overlay (1/2/3), one tight shot per item, fast cuts. | Skimmable, promises a finite payoff; strong completion rate. | "3 things every clinic loses when records are on paper" | **Pop** on each number; **whoosh** between items |
+| **The reveal (riser → payoff)** | Build tension on the problem, withhold, then reveal the clean result. | Delayed gratification keeps people to the end. | Hide the dashboard, talk the chaos, then **reveal** the connected record | **Riser** into the reveal; **subtle boom** on the payoff frame |
+| **Day-in-the-life** | Mini montage following one role through a day, Docita woven in naturally. | Relatable, soft-sell; doubles as social proof. | "A morning at Sunrise Clinic, start to last patient" | Light ticks per action; **chime** at end-of-day wrap |
+| **Talking head + B-roll** | Founder/doctor speaks to camera; screen B-roll cut over the claims. | Builds trust and a face for the brand; LinkedIn-friendly. | Founder explains "connection" while Docita screens cut underneath | Subtle **swoosh-in** as each B-roll cut and caption lands |
+| **"Tell me X without telling me X"** | Trend-style; show symptoms of a problem without naming it, reveal at end. | Rides a familiar format; playful, shareable. | "Tell me your clinic is disorganised without telling me — show the register" | **Pop** per clue; **ding** on the reveal |
+
+Format rules:
+
+- **One format per video.** Mixing two (e.g. speedrun *and* myth-bust) muddies the hook. Decide before you record.
+- **The hook must match the format in the first 3 seconds** — a Before/After must *show* the "before" frame immediately; a speedrun must show the timer immediately.
+- **Before/After is the workhorse for product** — most Docita demos can be reshaped into a before/after. Default to it when unsure. The detailed interview prompts for capturing real clinic before/after material are in [`clinic-interview-questions.md`](clinic-interview-questions.md).
+- **SFX is part of the format, not decoration.** Each format above lists its signature sounds — they are what make the structure *land*. See the SFX palette in Music and sound sources.
+- **Stay compliant in every format.** POV and day-in-the-life are the easiest places to accidentally show real PHI — demo data only, always.
+
+---
+
 ## Screen map
 
 Use these screen names in scripts and edit notes. App routes are under `https://app.docita.work`.
@@ -285,6 +311,35 @@ Editor instruction:
 - Keep one consistent music bed per campaign series.
 - No more than one soft click or whoosh per transition.
 - Do not use trending copyrighted film songs or Instagram-only sounds for versions that will also be posted on YouTube, LinkedIn, or X.
+
+### Sound-effects (SFX) palette
+
+SFX are the difference between a flat screen recording and a video that *feels* fast and satisfying. They cue the eye, mark every state change, and give the edit rhythm. Use them deliberately — one clear sound per action, never a wall of noise. Pull free, license-cleared SFX from the same sources above (Pixabay SFX, YouTube Audio Library → "Sound effects", Uppbeat SFX), or Mixkit Free SFX (https://mixkit.co/free-sound-effects/).
+
+Map sounds to actions, not to the beat:
+
+| Cue (how editors say it) | When to fire it | Feel | Where in a Docita demo |
+|---|---|---|---|
+| **Click / tick** | A button is pressed, a tab switches, a toggle flips | Crisp, tactile, "it responded" | Pressing "New Prescription", switching patient tabs, ticking a checklist item |
+| **Pop** | An element appears — a card, a chip, a badge | Light, playful, "here it is" | A new appointment card lands on Today; a status badge appears |
+| **Whoosh / "fhaa"** | A swipe, slide, or hard transition between scenes | Motion, momentum | Sliding from "Before: paper register" to "After: Docita queue"; panel sliding in |
+| **Swoosh-in (soft)** | Text overlay or callout box flies/fades in | Directs the eye without shouting | Keyword highlight, "Demo data" label, callout arrow |
+| **Ding / chime** | A success or completion moment | Reward, "done" | Invoice marked Paid, appointment Booked, follow-up Saved, message Sent |
+| **Riser / build** | 1–2s ramp *before* a reveal or the payoff shot | Tension → release | Just before showing the finished prescription / the clean dashboard |
+| **Impact / boom (subtle)** | The reveal lands; the "after" frame hits | Punctuation, weight | The moment the connected patient record fills the screen |
+| **Keyboard clack** | Fast typing montage (sped up) | Speed, effort compressed | Typing a patient name, dosage, or search query |
+| **Cash-register / coin** | Money moment (use sparingly, never tacky) | "Paid" | Payment collected on the desk screen — one hit, low volume |
+| **Notification pop** | A WhatsApp / reminder is shown being sent | "It went out" | WhatsApp reminder preview, follow-up nudge |
+| **Error/negative buzz** | Only on the "before / the old painful way" beat | Friction, frustration | The paper-chaos / missed-follow-up "before" shot — never on a Docita success |
+
+Rules so SFX help instead of hurt:
+
+- **One sound per action.** If two things happen in the same 200ms, pick the more important one.
+- **Keep SFX low under voice.** Mix SFX around -18 to -12 LUFS — present but never louder than the voiceover, and below your -24 to -30 LUFS music bed only when they overlap; let a click peak above the bed for an instant, then duck back.
+- **Pair sound with motion.** A "fhaa" with no visible movement reads as a mistake. The cut, slide, or element must move on the same frame the SFX fires.
+- **Negative SFX live only in the "before" half.** Every Docita action gets a positive, satisfying sound. The buzz/error tone is reserved for the old painful way you are contrasting against.
+- **Consistency across the series.** Decide your "click", "success ding", and "transition whoosh" once and reuse the same three files in every product video so the channel develops a sonic signature.
+- **Always readable without sound.** SFX enhance; they never carry meaning. The video must still make sense muted (most feeds autoplay silent).
 
 ---
 
