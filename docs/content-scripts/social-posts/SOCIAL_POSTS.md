@@ -62,7 +62,7 @@ Follow Docita → linkedin.com/company/114464051
 
 ### P2 — WhatsApp Chaos
 
-**Status:** [ ] done
+**Status:** [V] done
 **Image:** `images/card-whatsapp-chaos.svg`
 **Image (Instagram):** `images-png/card-whatsapp-chaos-ig.png`
 **Alt text:** Text card: "Appointments via WhatsApp. Chaos guaranteed."
