@@ -2,7 +2,7 @@ import "./globals.css";
 import { headers } from "next/headers";
 import { OptionalSentryInitializer } from "@/components/optional-sentry-initializer";
 import { Providers } from "./providers";
-import { esbuildHelperBootstrapScript } from "@workspace/utils";
+import { esbuildHelperBootstrapScript } from "@workspace/utils/runtime/esbuild-helper-bootstrap";
 
 export const metadata = {
   title: "Docita Internal - Internal Console",
