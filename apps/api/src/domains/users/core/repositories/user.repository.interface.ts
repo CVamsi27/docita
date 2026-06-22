@@ -1,4 +1,4 @@
-import { OnboardingStep, User } from '@workspace/db';
+import { GuidedTourStatus, OnboardingStep, User } from '@workspace/db';
 
 export interface UserProfile {
   id: string;
@@ -18,6 +18,20 @@ export interface JwtValidationUserSnapshot {
   appLoginDisabled: boolean;
 }
 
+export interface GuidedTourStateRecord {
+  status: GuidedTourStatus;
+  lastStep: number;
+  completedAt: Date | null;
+  checklistDismissedAt: Date | null;
+}
+
+export interface GuidedTourUpdate {
+  status?: GuidedTourStatus;
+  lastStep?: number;
+  completedAt?: Date | null;
+  checklistDismissedAt?: Date | null;
+}
+
 export interface IUserRepository {
   findById(id: string): Promise<User | null>;
   findByIdForJwtValidation(
@@ -34,6 +48,11 @@ export interface IUserRepository {
     },
   ): Promise<UserProfile>;
   updateOnboardingStep(userId: string, step: string): Promise<void>;
+  getGuidedTour(userId: string): Promise<GuidedTourStateRecord | null>;
+  updateGuidedTour(
+    userId: string,
+    patch: GuidedTourUpdate,
+  ): Promise<GuidedTourStateRecord>;
   findPasswordExpiresAt(userId: string): Promise<Date | null>;
 }
 

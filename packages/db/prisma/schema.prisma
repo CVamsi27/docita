@@ -73,6 +73,10 @@ model User {
   onboardingStep             OnboardingStep?          @default(NOT_STARTED)
   onboardingStartedAt        DateTime?                @db.Timestamptz(3)
   onboardingCompletedAt      DateTime?                @db.Timestamptz(3)
+  guidedTourStatus           GuidedTourStatus         @default(NOT_STARTED)
+  guidedTourLastStep         Int                      @default(0)
+  guidedTourCompletedAt      DateTime?                @db.Timestamptz(3)
+  checklistDismissedAt       DateTime?                @db.Timestamptz(3)
   deletedAt                  DateTime?                @db.Timestamptz(3)
   labId                      String?
 
@@ -2620,6 +2624,17 @@ enum OnboardingStep {
   CREATING_CLINIC
   JOINING_CLINIC
   COMPLETED
+}
+
+// Lifecycle of the post-onboarding guided experience (welcome tour) shown on
+// /today. NOT_STARTED → IN_PROGRESS once auto-started; COMPLETED/SKIPPED are
+// terminal and permanently suppress the auto-start. The getting-started
+// checklist is suppressed separately via User.checklistDismissedAt.
+enum GuidedTourStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
 }
 
 enum JoinRequestStatus {
