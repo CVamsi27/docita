@@ -11,7 +11,6 @@ import { InvoicePdfRenderer } from '@/shared/modules/document-generation/pdf/inv
 import { PDF_DOCUMENT_RENDERER } from '@/shared/modules/document-generation/pdf/pdf-document-renderer.interface';
 import { BasePdfService } from '@/shared/modules/document-generation/pdf/base-pdf.service';
 import { ClinicalInvoicePdfService } from '@/shared/modules/document-generation/pdf/clinical-invoice-pdf.service';
-import { WhatsAppNotificationService } from './whatsapp-notification.service';
 import { ClinicScopedGuard } from '@/shared/modules/auth/decorators/clinic-scoped.decorator';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
@@ -47,7 +46,6 @@ import { SystemClockService } from '@/shared/modules/time/system-clock.service';
     ClinicalInvoicePdfService,
     PDFGeneratorService,
     { provide: PDF_DOCUMENT_RENDERER, useExisting: PDFGeneratorService },
-    WhatsAppNotificationService,
     ClinicScopedGuard,
     EncryptionService,
     CircuitBreakerRegistry,
@@ -58,7 +56,6 @@ import { SystemClockService } from '@/shared/modules/time/system-clock.service';
   ],
   exports: [
     FeatureFlagService,
-    WhatsAppNotificationService,
     ClinicScopedGuard,
     EncryptionService,
     CircuitBreakerRegistry,

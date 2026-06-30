@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateBMI,
-  calculateQTc,
   getBMICategory,
 } from "./medical/medical-calculations.js";
 
@@ -15,17 +14,6 @@ describe("Medical Calculations", () => {
     it("should throw error for invalid inputs", () => {
       expect(() => calculateBMI(0, 175)).toThrow();
       expect(() => calculateBMI(70, -10)).toThrow();
-    });
-  });
-
-  describe("calculateQTc", () => {
-    it("should calculate QTc using Bazett's formula", () => {
-
-      expect(calculateQTc(400, 75)).toBe(447);
-    });
-
-    it("should throw error for invalid inputs", () => {
-      expect(() => calculateQTc(0, 75)).toThrow();
     });
   });
 

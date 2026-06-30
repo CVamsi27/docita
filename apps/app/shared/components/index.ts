@@ -1,6 +1,5 @@
 export * from "./buttons";
 export * from "./inputs";
-export * from "./dialogs";
 export * from "./loaders";
 
 export * from "./form-field";
