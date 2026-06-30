@@ -107,8 +107,8 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-2">
-          <div className="flex flex-wrap gap-2 items-center justify-end">
+        <div className="flex w-full flex-col items-start gap-2 md:w-auto md:items-end">
+          <div className="flex flex-wrap gap-2 items-center justify-start md:justify-end">
             {codeStatusLabel && (
               <Badge
                 className={`px-2.5 py-0.5 font-medium border ${
@@ -186,7 +186,7 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
               )}
             </div>
           )}
-          {actions && <div className="flex items-center gap-2 mt-2 sm:mt-0">{actions}</div>}
+          {actions && <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0">{actions}</div>}
         </div>
       </div>
 
