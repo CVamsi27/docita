@@ -214,6 +214,7 @@ export function PatientDemographicsCard({
                   dataKey="value"
                   nameKey="name"
                   outerRadius={90}
+                  isAnimationActive={false}
                 >
                   {demographicsChartData.map((entry, index) => (
                     <Cell

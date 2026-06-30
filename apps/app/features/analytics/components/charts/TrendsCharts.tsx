@@ -92,6 +92,9 @@ export const TrendsPieChart = ({ data, loading }: TrendsChartProps) => (
               outerRadius={120}
               fill="var(--color-chart-1)"
               dataKey="count"
+              // Disable the entry animation: a re-render with fresh data mid-grow
+              // freezes the sectors at ~0° (the pie renders as a flat sliver).
+              isAnimationActive={false}
             >
               {data.slice(0, 8).map((_entry, index: number) => (
                 <Cell
