@@ -116,10 +116,11 @@ export async function restartFlyAppMachines({ app, processGroup = "app" }) {
   );
 
   if (targets.length === 0) {
-    return {
-      ok: false,
-      error: `no machines in process group "${processGroup}" for ${app}`,
-    };
+    const detail =
+      machines.length === 0
+        ? `no machines found for ${app} at all — the machine may still be provisioning after a scale-up`
+        : `no machines in process group "${processGroup}" for ${app} (${machines.length} machine(s) found in other groups)`;
+    return { ok: false, error: detail };
   }
 
   const restarted = [];

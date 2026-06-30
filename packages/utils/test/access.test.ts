@@ -17,6 +17,7 @@ const INTENTIONAL_GA_SUBFEATURES = new Set<Feature>([
   Feature.OCR_BASIC,
   Feature.VISIT_HISTORY,
   Feature.MEDICINES_LIST,
+  Feature.VACCINE_TRACKING, // immunization records shown within patient structured history; gated by patient access
   Feature.AUTO_REMINDERS,
   Feature.PRESCRIPTION_TEMPLATES,
   Feature.MULTI_DEVICE,
