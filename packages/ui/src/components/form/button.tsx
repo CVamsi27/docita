@@ -26,11 +26,14 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 sm:h-11 px-5 py-2.5 has-[>svg]:px-4",
+        // 44px min height on mobile (WCAG 2.5.5 touch target), matching the
+        // existing desktop size — previously phones got 40px (h-10), smaller
+        // than desktop, which is backwards for touch ergonomics.
+        default: "h-11 px-5 py-2.5 has-[>svg]:px-4",
         sm: "h-9 sm:h-9 rounded-lg gap-1.5 px-3 has-[>svg]:px-2.5",
         lg: "h-12 sm:h-12 rounded-xl px-8 has-[>svg]:px-6 text-base",
         pill: "h-12 sm:h-12 rounded-full px-10 text-base tracking-wide",
-        icon: "size-10 sm:size-11",
+        icon: "size-11",
         "icon-sm": "size-9 sm:size-9",
         "icon-lg": "size-12 sm:size-12",
       },
