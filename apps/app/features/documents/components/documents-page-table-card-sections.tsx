@@ -11,6 +11,8 @@ import {
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { SortableHeaderButton } from "@workspace/ui/components/data-display/sortable-header-button";
 import type { Document } from "@workspace/types";
+import { DOCUMENT_TYPE_LABELS } from "@workspace/types";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatDate } from "@workspace/utils";
 import type {
   SortConfig,
@@ -56,6 +58,14 @@ export function getDocumentTypeBadgeVariant(type: string) {
     default:
       return "secondary" as const;
   }
+}
+
+/** Human-readable document type label — never surface the raw enum (e.g. LAB_REPORT). */
+export function formatDocumentTypeLabel(type: string): string {
+  return (
+    (DOCUMENT_TYPE_LABELS as Record<string, string>)[type] ??
+    humanizeUiLabel(type)
+  );
 }
 
 export function getDocumentTitle(document: Document) {
@@ -145,7 +155,7 @@ export function DocumentMobileRow({
         title={getDocumentTitle(document)}
         meta={getDocumentPatientName(document)}
         time={formatDate(document.createdAt, "MMM d, yyyy")}
-        statusLabel={document.type}
+        statusLabel={formatDocumentTypeLabel(document.type)}
         showChevron={false}
         onClick={() => onView(document)}
         trailing={
@@ -153,7 +163,7 @@ export function DocumentMobileRow({
             variant={getDocumentTypeBadgeVariant(document.type)}
             className="mt-1"
           >
-            {document.type}
+            {formatDocumentTypeLabel(document.type)}
           </Badge>
         }
       />
@@ -242,7 +252,7 @@ export function buildDocumentsTableColumns(
       hiddenOnMobile: true,
       cell: (document) => (
         <Badge variant={getDocumentTypeBadgeVariant(document.type)}>
-          {document.type}
+          {formatDocumentTypeLabel(document.type)}
         </Badge>
       ),
     },
