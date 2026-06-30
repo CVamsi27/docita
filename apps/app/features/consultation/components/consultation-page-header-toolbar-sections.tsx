@@ -249,9 +249,12 @@ export function ConsultationToolbarMarkDoneAction({
             onClick={onMarkDone}
             disabled={isMarkingDone || !canMarkDone}
             className="gap-1.5 h-8"
+            aria-label={isMarkingDone ? "Marking consultation done" : "Mark consultation done"}
           >
             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>{isMarkingDone ? "Marking…" : "Mark done"}</span>
+            <span className="hidden sm:inline">
+              {isMarkingDone ? "Marking…" : "Mark done"}
+            </span>
           </Button>
         </span>
       </SymbolTooltip>

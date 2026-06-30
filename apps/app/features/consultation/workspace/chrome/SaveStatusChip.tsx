@@ -72,7 +72,7 @@ export function SaveStatusChip({ className }: SaveStatusChipProps) {
       ) : (
         <Check className="h-3 w-3" aria-hidden="true" />
       )}
-      <span>{label}</span>
+      <span className="hidden sm:inline">{label}</span>
     </div>
   );
 }

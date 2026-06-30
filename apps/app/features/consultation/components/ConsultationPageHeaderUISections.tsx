@@ -127,9 +127,9 @@ export function ConsultationHeaderPatientSummary({
             </Badge>
           ) : null}
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 min-w-0">
           <Clock className="h-3 w-3 shrink-0" />
-          <span>
+          <span className="truncate whitespace-nowrap">
             {formatDate(appointmentDate, "EEE, d MMM")} &middot;{" "}
             {formatClockTime(appointmentDate)}
           </span>
