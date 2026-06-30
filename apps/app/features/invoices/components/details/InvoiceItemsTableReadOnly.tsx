@@ -35,29 +35,24 @@ export function InvoiceItemsTableReadOnly({
 
   return (
     <div className="mb-6">
-      <div className="space-y-3 md:hidden">
+      <div className="space-y-2.5 md:hidden">
         {rows.map((item, index) => {
           const unit = item.unitPrice ?? item.price;
           const total = item.lineTotal ?? item.quantity * unit;
+          const taxRate = item.taxRate ?? 0;
+          const hsnSac = item.hsnCode || item.sacCode;
           return (
-            <div key={index} className="ui-card-surface space-y-2 p-4 text-sm">
-              <p className="font-medium">{item.description}</p>
-              <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-muted-foreground">
-                <dt>Qty</dt>
-                <dd className="text-foreground">{item.quantity}</dd>
-                <dt>Unit price</dt>
-                <dd className="text-foreground tabular-nums">
-                  {formatCurrency(unit)}
-                </dd>
-                <dt>GST</dt>
-                <dd className="text-foreground">{item.taxRate ?? 0}%</dd>
-                <dt>HSN/SAC</dt>
-                <dd className="text-foreground">
-                  {item.hsnCode || item.sacCode || "—"}
-                </dd>
-              </dl>
-              <p className="border-t border-border/60 pt-2 font-medium tabular-nums">
-                Total: {formatCurrency(total)}
+            <div key={index} className="ui-card-surface p-3.5 text-sm">
+              <div className="flex items-start justify-between gap-3">
+                <p className="min-w-0 font-medium">{item.description}</p>
+                <p className="shrink-0 font-semibold tabular-nums">
+                  {formatCurrency(total)}
+                </p>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {item.quantity} × {formatCurrency(unit)}
+                {taxRate > 0 ? ` · GST ${taxRate}%` : ""}
+                {hsnSac ? ` · HSN ${hsnSac}` : ""}
               </p>
             </div>
           );
