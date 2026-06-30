@@ -29,6 +29,9 @@ export const RevenuePieChart = ({ data, loading }: RevenueChartProps) => (
           outerRadius={120}
           fill="var(--color-chart-1)"
           dataKey="count"
+          // See TrendsCharts: disable entry animation so a mid-grow re-render
+          // can't freeze the pie as a flat sliver.
+          isAnimationActive={false}
         >
           {data.slice(0, 8).map((_entry, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
