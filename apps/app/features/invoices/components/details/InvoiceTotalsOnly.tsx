@@ -2,7 +2,11 @@
 
 import { Separator } from "@workspace/ui/components/layout/separator";
 import { Invoice, InvoiceItem } from "@workspace/types";
-import { invoiceAmountPaid, invoiceBalanceDue } from "@workspace/types";
+import {
+  formatTaxInvoiceType,
+  invoiceAmountPaid,
+  invoiceBalanceDue,
+} from "@workspace/types";
 
 type InvoiceWithExtras = Invoice & {
   discount?: number;
@@ -81,7 +85,8 @@ export function InvoiceTotalsOnly({
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Document</span>
           <span>
-            {invoice.taxSummary?.documentTitle ?? invoice.invoiceType}
+            {invoice.taxSummary?.documentTitle ??
+              formatTaxInvoiceType(invoice.invoiceType)}
           </span>
         </div>
         <Separator />
