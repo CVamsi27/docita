@@ -85,7 +85,10 @@ export function OnboardingStepHeader({
       <CategoryAvatar icon={icon} tone={tone} size="lg" className="mt-0.5" />
       <div className="min-w-0 space-y-1.5">
         <MicroLabel as="h2" className="text-primary">
-          {`Step ${stepNumber} of ${totalSteps} · ${eyebrow}`}
+          {/* Step count lives in the progress card above; keep it here only for
+              screen readers so the visible eyebrow isn't redundant. */}
+          <span className="sr-only">{`Step ${stepNumber} of ${totalSteps}: `}</span>
+          {eyebrow}
         </MicroLabel>
         <CardTitle className="text-[length:var(--fs-xl)] font-semibold tracking-tight sm:text-[length:var(--fs-2xl)]">
           {title}
