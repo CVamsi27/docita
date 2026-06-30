@@ -5,7 +5,6 @@ import {
   addWeeks as addWeeksFns,
   differenceInDays as differenceInDaysFns,
   differenceInMinutes,
-  differenceInMonths,
   differenceInYears,
   endOfMonth as endOfMonthFns,
   startOfMinute as startOfMinuteFns,
@@ -22,40 +21,6 @@ export function calculateAge(
   if (!dob) return null;
 
   return differenceInYears(new Date(), dob);
-}
-
-export function calculateMedicalAge(
-  dateOfBirth: string | Date | null | undefined,
-): string {
-  const dob = parseDate(dateOfBirth);
-  if (!dob) return "N/A";
-
-  const today = new Date();
-  const years = differenceInYears(today, dob);
-
-  if (years < 2) {
-    const totalMonths = differenceInMonths(today, dob);
-    return `${totalMonths}m`;
-  }
-
-  if (years < 5) {
-    const months = differenceInMonths(today, dob) % 12;
-    return `${years}y ${months}m`;
-  }
-
-  return `${years}y`;
-}
-
-export function calculateAgeInMonths(
-  dateOfBirth: string | Date | null | undefined,
-  atDate: string | Date = new Date(),
-): number {
-  const dob = parseDate(dateOfBirth);
-  const target = parseDate(atDate);
-
-  if (!dob || !target) return 0;
-
-  return differenceInMonths(target, dob);
 }
 
 export function getMinutesDifference(
@@ -81,16 +46,6 @@ export function differenceInDays(
   if (!left || !right) return 0;
 
   return differenceInDaysFns(left, right);
-}
-
-export function addMinutesToDate(
-  date: string | Date,
-  minutes: number,
-): Date | null {
-  const parsedDate = parseDate(date);
-  if (!parsedDate) return null;
-
-  return addMinutesFns(parsedDate, minutes);
 }
 
 /** Add minutes to an existing Date (matches date-fns addMinutes). */
