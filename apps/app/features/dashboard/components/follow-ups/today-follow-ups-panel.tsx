@@ -79,6 +79,7 @@ export function TodayFollowUpsPanel({ enabled }: TodayFollowUpsPanelProps) {
             icon={CalendarCheck}
             title="No follow-ups due today"
             description="You are caught up for today."
+            className="py-5"
           />
         ) : (
           <ul className="space-y-1">
