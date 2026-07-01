@@ -16,7 +16,7 @@ export function ClinicContactSection({
   facilityLabel,
 }: ClinicContactSectionProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 rounded-lg border bg-muted/20 p-4 shadow-sm lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
       <div className="space-y-2">
         <Label htmlFor="phone">
           Phone Number<span className="text-destructive ml-0.5">*</span>

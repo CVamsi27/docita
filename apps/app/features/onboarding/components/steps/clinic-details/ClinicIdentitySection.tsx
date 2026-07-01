@@ -50,7 +50,7 @@ export function ClinicIdentitySection({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 rounded-lg border bg-muted/20 p-4 shadow-sm lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <div className="space-y-2">
         <Label htmlFor="name">
           {facilityLabel} Name<span className="text-destructive ml-0.5">*</span>
