@@ -51,7 +51,7 @@ export function TeamGuidanceSection({
   ownerRole,
 }: TeamGuidanceSectionProps) {
   return (
-    <div className="ui-panel-muted p-4 space-y-2">
+    <div className="space-y-2">
       <p className="text-sm font-medium">Team guidance</p>
       <p className="text-xs text-muted-foreground">
         Your logged-in account is the clinic owner during onboarding. You
