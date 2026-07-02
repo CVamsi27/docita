@@ -50,7 +50,7 @@ export function ClinicAddressHeader({
           ) : (
             <>
               <MapPin className="h-4 w-4" aria-hidden />
-              Pin on Google Maps
+              Pin on map
             </>
           )}
         </Button>
@@ -64,7 +64,7 @@ export function ClinicAddressHeader({
           role={mapsLocationError ? "alert" : undefined}
         >
           {mapsLocationError ??
-            "Required — pin the clinic on Google Maps so patients can navigate to you."}
+            "Required — pin the clinic on the map so patients can navigate to you."}
         </p>
       ) : null}
     </>
