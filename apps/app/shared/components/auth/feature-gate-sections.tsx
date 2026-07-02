@@ -2,7 +2,7 @@
 
 // jscpd:ignore-start
 import Link from "next/link";
-import { Lock, Sparkles } from "lucide-react";
+import { Clock, Lock, Sparkles } from "lucide-react";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
 import {
@@ -24,7 +24,7 @@ import {
   Tier,
   type Feature,
 } from "@workspace/types";
-import { getTierName } from "@workspace/utils";
+import { getTierName, isFeatureGenerallyAvailable } from "@workspace/utils";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
 export interface LockedFeatureCardProps {
@@ -44,6 +44,28 @@ export function LockedFeatureCard({
   const tierName =
     requiredTier !== undefined ? getTierName(requiredTier) : undefined;
   const tierInfo = tierName ? TIER_INFO[tierName] : undefined;
+
+  // A planned feature is locked for *every* tier, so an upgrade prompt is wrong
+  // (a top-tier clinic would be told to "upgrade" to a plan it already exceeds).
+  // Show a roadmap "coming soon" state instead of a paywall.
+  const isComingSoon = feature ? !isFeatureGenerallyAvailable(feature) : false;
+
+  if (isComingSoon) {
+    return (
+      <Card className="border">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-muted-foreground" />
+            {title || "Coming soon"}
+          </CardTitle>
+          <CardDescription>
+            {description ||
+              "This feature isn't available yet — it's on our roadmap and will be enabled for your plan when it ships."}
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   return (
     <Card className="surface-warning border">
