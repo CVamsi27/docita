@@ -86,7 +86,7 @@ export function DayRowCard({ day, dayRow, onUpdateDay }: DayRowCardProps) {
   return (
     <div
       key={day}
-      className="flex flex-col gap-3 rounded-[var(--radius-md)] border border-border/60 bg-surface-1 p-3.5 sm:grid sm:grid-cols-[10rem_1fr] sm:items-start sm:gap-4"
+      className="flex flex-col gap-3 rounded-[var(--radius-md)] border border-border/50 p-3.5 sm:grid sm:grid-cols-[10rem_1fr] sm:items-start sm:gap-4"
     >
       <div className="flex items-center gap-2 pt-0.5">
         <Switch
