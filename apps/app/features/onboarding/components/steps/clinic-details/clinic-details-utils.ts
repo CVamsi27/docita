@@ -105,3 +105,59 @@ export function applyClinicAddressSelection(
     );
   }
 }
+
+/**
+ * Extract `{ lat, lng }` from a pasted Google Maps URL so admins can supply the
+ * required location by pasting a link instead of using the interactive picker.
+ * Handles the common coordinate-bearing formats:
+ *   …/@12.97,77.59,15z   ?q=12.97,77.59   &ll=12.97,77.59   !3d12.97!4d77.59
+ *   q=loc:12.97,77.59
+ * Short links (maps.app.goo.gl / goo.gl/maps) don't carry coordinates and
+ * return null — those still need the map picker.
+ */
+export function parseLatLngFromMapsUrl(
+  raw: string,
+): { lat: number; lng: number } | null {
+  const url = raw?.trim();
+  if (!url) return null;
+  const num = "(-?\\d+(?:\\.\\d+)?)";
+  const patterns = [
+    new RegExp(`@${num},${num}`),
+    new RegExp(`!3d${num}!4d${num}`),
+    new RegExp(`[?&](?:q|ll|sll|daddr|center)=${num},${num}`),
+    new RegExp(`q=loc:${num},${num}`),
+  ];
+  for (const re of patterns) {
+    const m = url.match(re);
+    if (!m) continue;
+    const lat = Number(m[1]);
+    const lng = Number(m[2]);
+    if (
+      Number.isFinite(lat) &&
+      Number.isFinite(lng) &&
+      Math.abs(lat) <= 90 &&
+      Math.abs(lng) <= 180
+    ) {
+      return { lat, lng };
+    }
+  }
+  return null;
+}
+
+/**
+ * Parse a pasted Google Maps link and, if it carries coordinates, set them as
+ * the clinic's map pin (`mapsLocation`). Returns true when a pin was derived.
+ */
+export function applyMapsLinkLocation(
+  clinicForm: UseFormReturn<ClinicDetails>,
+  link: string,
+): boolean {
+  const location = parseLatLngFromMapsUrl(link);
+  if (!location) return false;
+  clinicForm.setValue("mapsLocation", location, {
+    shouldDirty: true,
+    shouldTouch: true,
+    shouldValidate: true,
+  });
+  return true;
+}
