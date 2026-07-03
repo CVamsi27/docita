@@ -251,8 +251,8 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
         status: {
           in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
         },
-        startTime: { gte: slotStartTime },
-        endTime: { lte: slotEndTime },
+        startTime: { lt: slotEndTime },
+        endTime: { gt: slotStartTime },
       },
     });
 

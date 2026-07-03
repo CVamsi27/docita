@@ -17,6 +17,7 @@ export interface OverageChargeBreakdown {
   quantity: number;
   rate: number;
   charge: number;
+  chargeCents: number;
 }
 
 export interface OverageChargeResult {

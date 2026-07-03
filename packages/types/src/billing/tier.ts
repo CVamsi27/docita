@@ -565,7 +565,7 @@ export const TIER_LIMITS: Record<TierName, TierLimits> = {
     prescriptions: 999999,
     invoices: 999999,
     ocrPages: 10000,
-    apiCallsPerDay: 10000,
+    apiCallsPerDay: 999999,
   },
   INTELLIGENCE: {
     patients: 999999,

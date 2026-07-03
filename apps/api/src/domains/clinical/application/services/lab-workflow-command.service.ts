@@ -93,6 +93,11 @@ export class LabWorkflowCommandService {
       },
       this.clock.now(),
     );
+
+    const refreshed = await this.loadOrder(id, clinicId);
+    if (refreshed.canRelease()) {
+      await this.releaseResult(id, clinicId);
+    }
   }
 
   async verifyPayment(
@@ -113,7 +118,8 @@ export class LabWorkflowCommandService {
       this.clock.now(),
     );
 
-    if (order.hasResult()) {
+    const refreshed = await this.loadOrder(id, clinicId);
+    if (refreshed.canRelease()) {
       await this.releaseResult(id, clinicId);
     }
   }

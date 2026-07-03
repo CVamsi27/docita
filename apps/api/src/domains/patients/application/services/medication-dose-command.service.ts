@@ -18,6 +18,11 @@ import {
   parseDosesPerDay,
   parseDurationDays,
 } from '@/domains/patients/core/domain-services/medication-dose.rules';
+import {
+  buildScheduledDoses,
+  chunkDoseDrafts,
+  DOSE_INSERT_BATCH_SIZE,
+} from '@/domains/patients/core/domain-services/medication-dose-schedule.rules';
 import { verifyMedicationDosePatientAccess } from './medication-dose-access.helpers';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
@@ -177,6 +182,7 @@ export class MedicationDoseCommandService {
 
     if (!prescription) throw new NotFoundException('Prescription not found');
     const created: string[] = [];
+    const truncatedMedicationIds: string[] = [];
     for (const med of prescription.medications) {
       if (med.isPRN) continue;
 
@@ -187,41 +193,25 @@ export class MedicationDoseCommandService {
       if (!durationDays) continue;
 
       const startDate = med.startDate ?? prescription.date;
-      const doses: Array<{
-        scheduledAt: Date;
-        medicationId: string;
-        patientId: string;
-        clinicId: string;
-        prescriptionId: string;
-        status: MedicationDoseStatus;
-        source: MedicationDoseSource;
-      }> = [];
-      const intervalHours = 24 / dosesPerDay;
+      const { doses, truncated } = buildScheduledDoses({
+        startDate,
+        durationDays,
+        dosesPerDay,
+        medicationId: med.id,
+        patientId,
+        clinicId,
+        prescriptionId,
+      });
 
-      for (let day = 0; day < durationDays; day++) {
-        for (let dose = 0; dose < dosesPerDay; dose++) {
-          const scheduledAt = new Date(startDate);
-          scheduledAt.setDate(scheduledAt.getDate() + day);
-          scheduledAt.setHours(
-            scheduledAt.getHours() + Math.round(dose * intervalHours),
-          );
-          doses.push({
-            scheduledAt,
-            medicationId: med.id,
-            patientId,
-            clinicId,
-            prescriptionId,
-            status: 'PENDING',
-            source: 'SYSTEM_GENERATED',
-          });
-        }
+      if (doses.length === 0) continue;
+
+      for (const batch of chunkDoseDrafts(doses, DOSE_INSERT_BATCH_SIZE)) {
+        await this.repository.createManyDoses(batch);
       }
 
-      if (doses.length > 0 && doses.length <= 500) {
-        await this.repository.createManyDoses(doses);
-        created.push(med.id);
-      }
+      created.push(med.id);
+      if (truncated) truncatedMedicationIds.push(med.id);
     }
-    return { medicationsProcessed: created.length };
+    return { medicationsProcessed: created.length, truncatedMedicationIds };
   }
 }

@@ -23,6 +23,8 @@ import { CheckoutPaymentOrderService } from './application/services/checkout-pay
 import { SubscriptionActivationPolicyService } from './application/services/subscription-activation-policy.service';
 import { SubscriptionBillingSnapshotService } from './application/services/subscription-billing-snapshot.service';
 import { ActivateSubscriptionPaymentService } from './application/services/activate-subscription-payment.service';
+import { ReferralPayoutService } from './application/services/referral-payout.service';
+import { ReferralAccrualService } from './application/services/referral-accrual.service';
 import { ActivateSubscriptionClinicSyncService } from './application/services/activate-subscription-clinic-sync.service';
 import { razorpayWebhookHandlerProviders } from './application/webhooks/razorpay/razorpay-webhook-handler.registry';
 import {
@@ -50,6 +52,8 @@ export const SUBSCRIPTIONS_COMMON_PROVIDERS = [
   ProratingService,
   SubscriptionValidationService,
   ReferralService,
+  ReferralPayoutService,
+  ReferralAccrualService,
   CreateSubscriptionUseCase,
   UpgradeSubscriptionUseCase,
   CancelSubscriptionUseCase,

@@ -4,6 +4,7 @@ import {
   IQueueRepository,
   QUEUE_REPOSITORY_TOKEN,
 } from '@/domains/appointments/core/repositories/queue.repository.interface';
+import { AppointmentQueryService } from './appointment-query.service';
 import {
   calcAvgConsultationMinutes,
   getTodayRange,
@@ -17,6 +18,7 @@ export class QueueQueryService {
     @Inject(QUEUE_REPOSITORY_TOKEN)
     private readonly queueRepository: IQueueRepository,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
+    private readonly appointmentQueryService: AppointmentQueryService,
   ) {}
 
   async getQueue(clinicId: string, doctorId?: string, search?: string) {
@@ -94,7 +96,9 @@ export class QueueQueryService {
     status?: string[],
     search?: string,
   ) {
-    const { today, tomorrow } = getTodayRange(this.clock);
+    const timezone =
+      await this.appointmentQueryService.getClinicTimezone(clinicId);
+    const { today, tomorrow } = getTodayRange(this.clock, timezone);
     return this.queueRepository.findTodayTokens(
       clinicId,
       today,

@@ -77,7 +77,13 @@ export class MedicationDoseQueryService {
 
     if (prescriptionId) where.prescriptionId = prescriptionId;
 
-    const doses = await this.repository.groupDosesByStatus(where);
+    const now = this.clock.now();
+    const dueWhere: Prisma.MedicationDoseWhereInput = {
+      ...where,
+      scheduledAt: { lte: now },
+    };
+
+    const doses = await this.repository.groupDosesByStatus(dueWhere);
 
     const counts: Record<string, number> = {};
     for (const d of doses) {
@@ -89,11 +95,12 @@ export class MedicationDoseQueryService {
     const skipped = counts['SKIPPED'] ?? 0;
     const pending = counts['PENDING'] ?? 0;
     const administered = counts['ADMINISTERED'] ?? 0;
-    const totalDoses = taken + missed + skipped + pending + administered;
+    const dueDoses = taken + missed + skipped + pending + administered;
     const completed = taken + administered;
-    const adherenceRate = totalDoses > 0 ? (completed / totalDoses) * 100 : 0;
+    const adherenceRate =
+      dueDoses > 0 ? (completed / dueDoses) * 100 : 100;
 
-    return { totalDoses, taken: completed, missed, skipped, adherenceRate };
+    return { totalDoses: dueDoses, taken: completed, missed, skipped, adherenceRate };
   }
 
   async getActiveMedications(clinicId: string, patientId: string) {

@@ -156,6 +156,17 @@ export class PrismaPatientRepository implements IPatientRepository {
   }
 
   async delete(id: string, clinicId: string): Promise<void> {
-    await this.prisma.patient.deleteMany({ where: { id, clinicId } });
+    // Soft delete: set deletedAt so the record leaves normal reads (all finders
+    // filter `deletedAt: null`) while the compliance retention scheduler
+    // anonymizes it after the obligation window. A hard purge only happens
+    // inside the DPDP erasure/obligation path, never on a routine staff delete —
+    // this preserves the medical record for statutory retention (NMC >=3yr).
+    const result = await this.prisma.patient.updateMany({
+      where: { id, clinicId, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+    if (result.count === 0) {
+      throw new NotFoundException(`Patient ${id} not found`);
+    }
   }
 }

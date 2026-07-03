@@ -16,14 +16,12 @@ import { AppointmentService } from '@/domains/appointments/application/services/
 import { parseAppointmentStatus } from '@/domains/appointments/infrastructure/mappers/appointment.mapper';
 import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { Role } from '@workspace/db';
 import {
   listAppointmentsResponseSchema,
   createAppointmentRequestSchema,
   resolveDoctorScopedAppointmentFilter,
 } from '@workspace/types';
 import { coerceAppointmentBoundaryInstant } from '@/domains/appointments/application/mappers/appointment-instant.mapper';
-import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { requireClinicIdFromRequest } from '@/shared/modules/auth/auth/clinic-request-context';
 import {
@@ -215,7 +213,6 @@ export class AppointmentsScheduleController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
   @ApiOperation({ summary: 'Update appointment details' })
   async update(
     @Param('id') id: string,

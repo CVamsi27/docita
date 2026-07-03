@@ -37,6 +37,7 @@ export class DataRetentionScheduler {
       await this.archivalService.archiveWhatsappLogs(180);
       await this.archivalService.archiveAppointments(2);
       await this.processSoftDeletedRecords();
+      await this.processSoftDeletedUsers();
     } catch (error) {
       this.logger.error(
         `Data retention check failed: ${this.formatError(
@@ -94,6 +95,86 @@ export class DataRetentionScheduler {
         }
       }
     }
+  }
+
+  private async processSoftDeletedUsers() {
+    const thirtyDaysAgo = this.clock.now();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // RLS-BYPASS: compliance retention spans tenants; users precede tenant bind.
+    const usersToAnonymize = await this.prisma.runUnrestricted(async () =>
+      this.prisma.user.findMany({
+        where: {
+          deletedAt: { lt: thirtyDaysAgo },
+          NOT: { email: { endsWith: '@anonymized.local' } },
+        },
+        select: { id: true, clinicId: true },
+        take: 100,
+      }),
+    );
+
+    const results = await Promise.allSettled(
+      usersToAnonymize.map((user) =>
+        this.anonymizeUser(user.id, user.clinicId),
+      ),
+    );
+    const successCount = results.filter((r) => r.status === 'fulfilled').length;
+    const failureCount = results.filter((r) => r.status === 'rejected').length;
+    if (successCount > 0) {
+      this.logger.log(
+        `Permanently anonymized ${successCount} soft-deleted user(s)`,
+      );
+    }
+    if (failureCount > 0) {
+      this.logger.warn(
+        `Failed to anonymize ${failureCount} soft-deleted user(s)`,
+      );
+      for (const result of results) {
+        if (result.status === 'rejected') {
+          this.logger.error(
+            `Failed to anonymize user: ${this.formatError(
+              result.reason instanceof Error
+                ? result.reason
+                : String(result.reason),
+            )}`,
+          );
+        }
+      }
+    }
+  }
+
+  private async anonymizeUser(
+    userId: string,
+    clinicId: string | null,
+  ): Promise<void> {
+    // RLS-BYPASS: compliance retention spans tenants; users precede tenant bind.
+    await this.prisma.runUnrestricted(async () => {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          name: 'Deleted User',
+          // cuid userId keeps this deterministic and collision-free (email unique).
+          email: `deleted-${userId}@anonymized.local`,
+          phoneNumber: null,
+          mfaSecret: null,
+          appLoginDisabled: true,
+        },
+      });
+
+      if (clinicId) {
+        await this.auditService.logAction({
+          userId,
+          clinicId,
+          actionType: 'DATA_RETENTION_ANONYMIZATION',
+          resourceType: 'User',
+          resourceId: userId,
+          metadata: {
+            reason:
+              'Retention Policy (Staff Account Deletion / Soft Delete Expiry)',
+          },
+        });
+      }
+    });
   }
 
   private async anonymizePatient(

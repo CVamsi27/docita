@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { jsonObjectSchema } from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
@@ -11,7 +11,9 @@ import {
   JwtValidationUserSnapshot,
   UserProfile,
 } from '@/domains/users/core/repositories/user.repository.interface';
-import { OnboardingStep, Prisma } from '@workspace/db';
+import { DataSubjectRequestType, OnboardingStep, Prisma } from '@workspace/db';
+
+const ACCOUNT_DELETION_SLA_DAYS = 30;
 
 const onboardingStepSchema = z.nativeEnum(OnboardingStep);
 
@@ -79,7 +81,54 @@ export class PrismaUserRepository implements IUserRepository {
     );
   }
 
+  async recordAccountDeletionRequest(
+    userId: string,
+  ): Promise<{ requestId: string | null; requestedAt: Date }> {
+    // RLS-BYPASS: staff account lifecycle precedes clinic tenant binding.
+    return this.prisma.runUnrestricted(async () => {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true, clinicId: true, deletedAt: true },
+      });
+      if (!user) throw new NotFoundException(`User ${userId} not found`);
+
+      const now = new Date();
+      // Soft-delete + disable login so the account is unusable immediately; the
+      // retention sweep anonymizes it after the obligation window. Preserve an
+      // earlier deletedAt if the request is repeated.
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { deletedAt: user.deletedAt ?? now, appLoginDisabled: true },
+      });
+
+      // Track the request in the compliance queue when the user belongs to a
+      // clinic (DataSubjectRequest.clinicId is required). Platform/INTERNAL
+      // users have no clinic; the soft-delete above is still recorded.
+      let requestId: string | null = null;
+      if (user.clinicId) {
+        const dueAt = new Date(
+          now.getTime() + ACCOUNT_DELETION_SLA_DAYS * 24 * 60 * 60 * 1000,
+        );
+        const request = await this.prisma.dataSubjectRequest.create({
+          data: {
+            clinicId: user.clinicId,
+            requestType: DataSubjectRequestType.DELETION,
+            requestChannel: 'STAFF_SELF_SERVICE',
+            requestedByName: user.name,
+            requestDetails: `Staff account deletion request for user ${userId}`,
+            dueAt,
+          },
+          select: { id: true },
+        });
+        requestId = request.id;
+      }
+
+      return { requestId, requestedAt: now };
+    });
+  }
+
   async getProfile(userId: string): Promise<UserProfile | null> {
+    // RLS-BYPASS: user self-profile lookup precedes clinic tenant binding
     return this.prisma.runUnrestricted(async () => {
       const row = await this.prisma.user.findUnique({
         where: { id: userId },

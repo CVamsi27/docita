@@ -62,10 +62,10 @@ export function getDocumentTypeBadgeVariant(type: string) {
 
 /** Human-readable document type label — never surface the raw enum (e.g. LAB_REPORT). */
 export function formatDocumentTypeLabel(type: string): string {
-  return (
-    (DOCUMENT_TYPE_LABELS as Record<string, string>)[type] ??
-    humanizeUiLabel(type)
+  const match = Object.entries(DOCUMENT_TYPE_LABELS).find(
+    ([key]) => key === type,
   );
+  return match ? match[1] : humanizeUiLabel(type);
 }
 
 export function getDocumentTitle(document: Document) {

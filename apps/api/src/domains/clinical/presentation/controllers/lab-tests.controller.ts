@@ -17,6 +17,7 @@ import { ClinicalService } from '@/domains/clinical/application/services/clinica
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
 import { LabTestOrderStatus } from '@workspace/db';
+import type { PaginatedResponse } from '@workspace/types';
 import { parseStringEnumMember } from '@workspace/utils';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { FrontDeskClinicalBlockGuard } from '@/shared/modules/clinic-workspace/front-desk-clinical-block.guard';
@@ -75,7 +76,7 @@ export class LabTestsController {
   async getAllOrders(
     @Request() req: RequestWithUser,
     @Query() query: ListLabTestOrdersQueryDto,
-  ): Promise<LabOrder[]> {
+  ): Promise<PaginatedResponse<LabOrder>> {
     const { clinicId: _clinicId, patientId, ...params } = query;
 
     if (patientId) {

@@ -10,6 +10,7 @@ import { SubscriptionOverageMeterService } from './application/services/subscrip
 import { SubscriptionOveragePaymentService } from './application/services/subscription-overage-payment.service';
 import { UsageThresholdNotifierService } from './application/services/usage-threshold-notifier.service';
 import { OverageBillingScheduler } from './infrastructure/schedulers/overage-billing.scheduler';
+import { ReferralAccrualScheduler } from './infrastructure/schedulers/referral-accrual.scheduler';
 import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SUBSCRIPTION_PERSISTENCE_PORT } from './application/ports/subscription-persistence.port';
@@ -43,6 +44,7 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     BillMonthlyOveragesUseCase,
     NotifyUsageThresholdsUseCase,
     OverageBillingScheduler,
+    ReferralAccrualScheduler,
   ],
 })
 export class SubscriptionsWorkerModule {}
