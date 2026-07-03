@@ -13,8 +13,6 @@ export interface FHIRExtendedPatient {
   updatedAt: Date;
 
   mrn?: string;
-  race?: string;
-  ethnicity?: string;
   preferredLanguage?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;

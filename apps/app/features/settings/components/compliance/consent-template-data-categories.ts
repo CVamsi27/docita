@@ -31,7 +31,7 @@ export const CONSENT_DATA_CATEGORIES: ConsentDataCategory[] = [
       "Date of birth",
       "Gender and pronouns",
       "Medical Record Number (MRN)",
-      "Race, ethnicity, preferred language, marital status (optional)",
+      "Preferred language (optional)",
     ],
   },
   {

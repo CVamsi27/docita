@@ -18,6 +18,7 @@ import { SubscriptionActivationPolicyService } from '@/domains/subscriptions/app
 import { SubscriptionBillingSnapshotService } from '@/domains/subscriptions/application/services/subscription-billing-snapshot.service';
 import { ActivateSubscriptionPaymentService } from '@/domains/subscriptions/application/services/activate-subscription-payment.service';
 import { ActivateSubscriptionClinicSyncService } from '@/domains/subscriptions/application/services/activate-subscription-clinic-sync.service';
+import { ReferralService } from '@/domains/subscriptions/core/services/referral.service';
 
 export interface ActivateSubscriptionRequest {
   clinicId: string;
@@ -51,6 +52,7 @@ export class ActivateSubscriptionUseCase {
     private readonly activationPayment: ActivateSubscriptionPaymentService,
     // jscpd:ignore-end
     private readonly clinicSync: ActivateSubscriptionClinicSyncService,
+    private readonly referralService: ReferralService,
   ) {}
 
   // AuditLogged: subscription activation (billing; not patient PHI)
@@ -162,6 +164,20 @@ export class ActivateSubscriptionUseCase {
       tier,
       request.planMode,
     );
+
+    // Realize any referral on the first successful payment (referrer credit +
+    // referred-clinic discount consumption). Non-fatal: a referral hiccup must
+    // never abort a completed, paid activation. Idempotent + first-payment-guarded.
+    try {
+      await this.referralService.applyReferralCreditsOnFirstPayment(
+        request.clinicId,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Referral realization failed for clinic ${request.clinicId} (activation unaffected)`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
 
     this.logger.log(
       `Subscription activated for clinic ${request.clinicId}: ${tier.value} ${cycle.value}`,

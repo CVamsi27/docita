@@ -28,6 +28,7 @@ import {
   type CheckoutResponse,
 } from '@/domains/subscriptions/application/services/create-checkout.helpers';
 import { CheckoutPaymentOrderService } from '@/domains/subscriptions/application/services/checkout-payment-order.service';
+import { ReferralService } from '@/domains/subscriptions/core/services/referral.service';
 
 @Injectable()
 export class CreateCheckoutUseCase {
@@ -43,6 +44,7 @@ export class CreateCheckoutUseCase {
     private readonly applyPlanChangeWithoutPayment: ApplyPlanChangeWithoutPaymentUseCase,
     private readonly configService: AppConfigService,
     private readonly featureFlagService: FeatureFlagService,
+    private readonly referralService: ReferralService,
   ) {}
 
   async execute(request: CreateCheckoutRequest): Promise<CheckoutResponse> {
@@ -82,10 +84,23 @@ export class CreateCheckoutUseCase {
       cycle,
       offerPercent,
     );
-    const amountCents = finalizePayableAmountPaise(
-      breakdown.finalAmountCents,
-      currencyCode,
-    );
+
+    // R0: a first-time checkout (no existing subscription) may redeem a one-time
+    // referral discount on this first invoice. Consumption is marked on the first
+    // successful payment (ReferralService.applyReferralCreditsOnFirstPayment), so
+    // an abandoned checkout keeps the discount available.
+    let payableCents = breakdown.finalAmountCents;
+    if (!subscription && payableCents > 0) {
+      const referralDiscountCents =
+        await this.referralService.getRedeemableReferralDiscountCents(
+          request.clinicId,
+          razorpayContact.email ?? null,
+          payableCents,
+        );
+      payableCents = Math.max(0, payableCents - referralDiscountCents);
+    }
+
+    const amountCents = finalizePayableAmountPaise(payableCents, currencyCode);
 
     if (amountCents === 0) {
       await this.applyPlanChangeWithoutPayment.execute({

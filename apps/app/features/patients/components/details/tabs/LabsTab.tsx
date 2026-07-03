@@ -43,11 +43,13 @@ const STATUS_VARIANT: Record<
 
 function LabsTabContent({ patientId }: LabsTabProps) {
   const {
-    data: orders,
+    data: ordersResponse,
     isLoading,
     isError,
     refetch,
-  } = useLabTestOrders({ patientId });
+  } = useLabTestOrders({ patientId, limit: 100 });
+
+  const orders = ordersResponse?.items ?? [];
 
   if (isLoading) return <DataState status="loading" loadingMessage="Loading lab tests…" />;
 

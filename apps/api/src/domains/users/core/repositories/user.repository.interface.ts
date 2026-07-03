@@ -54,6 +54,15 @@ export interface IUserRepository {
     patch: GuidedTourUpdate,
   ): Promise<GuidedTourStateRecord>;
   findPasswordExpiresAt(userId: string): Promise<Date | null>;
+  /**
+   * DPDP "right to erasure" for a staff account: soft-deletes the user, disables
+   * app login immediately, and records a tracked DataSubjectRequest (DELETION)
+   * for the clinic so the request is auditable and shows in the compliance queue.
+   * The retention sweep anonymizes the row after the obligation window.
+   */
+  recordAccountDeletionRequest(
+    userId: string,
+  ): Promise<{ requestId: string | null; requestedAt: Date }>;
 }
 
 export const USER_REPOSITORY_TOKEN = Symbol('IUserRepository');

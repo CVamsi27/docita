@@ -12,7 +12,7 @@ describe('AppointmentSchedulingRulesService', () => {
     appointment: {
       findMany: jest.fn<(args: unknown) => Promise<unknown[]>>(),
       findUnique: jest.fn<() => Promise<unknown>>(),
-      count: jest.fn<() => Promise<number>>(),
+      count: jest.fn<(args: unknown) => Promise<number>>(),
     },
     clinic: {
       findUnique: jest.fn<() => Promise<{ timezone: string } | null>>(),
@@ -329,6 +329,28 @@ describe('AppointmentSchedulingRulesService', () => {
 
       expect(result.available).toBe(false);
       expect(result.slots).toBe(0);
+    });
+
+    it('should count overlapping appointments using overlap predicate', async () => {
+      mockPrismaService.appointment.count.mockResolvedValueOnce(2);
+
+      const date = new Date(Date.now() + 86400000);
+
+      await service.validateSlotAvailability(
+        'doctor-1',
+        'clinic-1',
+        date,
+        'morning',
+      );
+
+      expect(mockPrismaService.appointment.count).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            startTime: expect.objectContaining({ lt: expect.any(Date) }),
+            endTime: expect.objectContaining({ gt: expect.any(Date) }),
+          }),
+        }),
+      );
     });
   });
 

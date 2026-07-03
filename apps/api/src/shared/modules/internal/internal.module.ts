@@ -5,6 +5,8 @@ import { InternalLogsController } from './internal-logs.controller';
 import { InternalSupportController } from './internal-support.controller';
 import { InternalClinicTierController } from './internal-clinic-tier.controller';
 import { InternalBillingController } from './internal-billing.controller';
+import { InternalReferralController } from './internal-referral.controller';
+import { InternalReferralService } from './internal-referral.service';
 import { InternalBillingService } from './internal-billing.service';
 import { InternalBillingMetricsService } from './internal-billing-metrics.service';
 import { InternalSubscriptionQueryService } from './internal-subscription-query.service';
@@ -53,9 +55,11 @@ import { PrismaInternalSubscriptionPaymentRepository } from './infrastructure/pr
     InternalSupportController,
     InternalClinicsController,
     InternalBillingController,
+    InternalReferralController,
   ],
   providers: [
     InternalBillingService,
+    InternalReferralService,
     InternalBillingMetricsService,
     {
       provide: INTERNAL_SUBSCRIPTION_PAYMENT_REPOSITORY_TOKEN,

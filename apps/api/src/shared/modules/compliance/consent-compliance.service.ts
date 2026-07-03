@@ -131,6 +131,17 @@ export class ConsentComplianceService {
       },
     });
 
+    // Cascade: withdrawing the overarching DPDP data-processing consent must
+    // actually stop downstream non-essential processing, not just flip a status.
+    // Clear the WhatsApp opt-in so message send paths (which gate on
+    // Patient.whatsappConsent) immediately honor the withdrawal.
+    if (consent.consentType === ConsentType.DPDP_NOTICE && consent.patientId) {
+      await this.prisma.patient.updateMany({
+        where: { id: consent.patientId, clinicId: consent.clinicId },
+        data: { whatsappConsent: false, whatsappConsentAt: null },
+      });
+    }
+
     await this.dpdpAudit.logConsentWithdrawn(
       {
         userId: actorUserId ?? withdrawnBy,

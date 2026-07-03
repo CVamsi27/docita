@@ -124,6 +124,9 @@ describe('ActivateSubscriptionUseCase', () => {
     clinicOps,
     activationPolicy,
   );
+  const referralService = {
+    applyReferralCreditsOnFirstPayment: jest.fn(async () => undefined),
+  } as unknown as import('@/domains/subscriptions/core/services/referral.service').ReferralService;
 
   let useCase: ActivateSubscriptionUseCase;
 
@@ -139,6 +142,7 @@ describe('ActivateSubscriptionUseCase', () => {
       billingSnapshot,
       activationPayment,
       clinicSync,
+      referralService,
     );
   });
 
@@ -229,6 +233,7 @@ describe('ActivateSubscriptionUseCase', () => {
       lapsedBillingSnapshot,
       activationPayment,
       clinicSync,
+      referralService,
     );
 
     await lapsedUseCase.execute(request);

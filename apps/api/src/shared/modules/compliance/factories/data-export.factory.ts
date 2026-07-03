@@ -42,7 +42,13 @@ export class DataExportFactory {
         patientAllergies: true,
         familyHistory: true,
         socialHistory: true,
+        surgicalHistory: true,
         immunizations: true,
+        // DPDP right-to-access must return the whole record, not a subset.
+        medicalDocuments: true,
+        admissions: true,
+        labTestOrders: true,
+        abdmExternalRecords: true,
       },
     });
 

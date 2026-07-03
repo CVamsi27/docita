@@ -118,14 +118,23 @@ describe('PrismaPatientRepository', () => {
     );
   });
 
-  it('scopes delete by both id and clinicId via deleteMany', async () => {
-    mockPrismaService.patient.deleteMany.mockResolvedValueOnce({ count: 0 });
+  it('soft-deletes by scoping id + clinicId and setting deletedAt', async () => {
+    mockPrismaService.patient.updateMany.mockResolvedValueOnce({ count: 1 });
 
     await repository.delete('patient-1', 'other-clinic');
 
-    expect(mockPrismaService.patient.deleteMany).toHaveBeenCalledWith({
-      where: { id: 'patient-1', clinicId: 'other-clinic' },
+    expect(mockPrismaService.patient.updateMany).toHaveBeenCalledWith({
+      where: { id: 'patient-1', clinicId: 'other-clinic', deletedAt: null },
+      data: { deletedAt: expect.any(Date) },
     });
+  });
+
+  it('throws NotFound when soft-deleting a missing/already-deleted patient', async () => {
+    mockPrismaService.patient.updateMany.mockResolvedValueOnce({ count: 0 });
+
+    await expect(repository.delete('patient-1', 'other-clinic')).rejects.toThrow(
+      'Patient patient-1 not found',
+    );
   });
 
   it('builds search filters and computes no further pages when on last page', async () => {

@@ -3,14 +3,11 @@ import type { ParsedMedicalFields } from '@workspace/types';
 import {
   extractAddress,
   extractAge,
-  extractEthnicity,
   extractGender,
   extractLanguage,
-  extractMaritalStatus,
   extractPatientName,
   extractPreferredName,
   extractPronouns,
-  extractRace,
 } from './patient-field-parsers';
 
 function makeFields(): ParsedMedicalFields {
@@ -25,10 +22,7 @@ function makeFields(): ParsedMedicalFields {
     address: '',
     preferredName: '',
     pronouns: '',
-    maritalStatus: '',
     preferredLanguage: '',
-    race: '',
-    ethnicity: '',
     emergencyContact: { name: '', phoneNumber: '', relation: '' },
     clinicName: '',
     doctorName: '',
@@ -102,35 +96,11 @@ describe('extractAddress', () => {
   });
 });
 
-describe('extractMaritalStatus', () => {
-  it('extracts marital status', () => {
-    const f = makeFields();
-    extractMaritalStatus('Marital Status: Single', f);
-    expect(f.maritalStatus).toBe('Single');
-  });
-});
-
 describe('extractLanguage', () => {
   it('extracts preferred language', () => {
     const f = makeFields();
     extractLanguage('Language: English', f);
     expect(f.preferredLanguage).toBe('English');
-  });
-});
-
-describe('extractRace', () => {
-  it('extracts race', () => {
-    const f = makeFields();
-    extractRace('Race: Asian', f);
-    expect(f.race).toBe('Asian');
-  });
-});
-
-describe('extractEthnicity', () => {
-  it('extracts ethnicity', () => {
-    const f = makeFields();
-    extractEthnicity('Ethnicity: Indian', f);
-    expect(f.ethnicity).toBe('Indian');
   });
 });
 

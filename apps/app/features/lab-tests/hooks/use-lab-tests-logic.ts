@@ -36,14 +36,17 @@ export const useLabTestsLogic = () => {
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   const {
-    data: labTests = [],
+    data: labTestsResponse,
     isLoading,
     refetch,
     isFetching,
   } = useLabTestOrders({
     search: debouncedSearch,
     status: statusFilter !== "all" ? statusFilter : undefined,
+    limit: 500,
   });
+
+  const labTests = labTestsResponse?.items ?? [];
 
   const { data: stats, refetch: refetchStats } = useLabTestStats();
 

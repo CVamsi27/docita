@@ -1,6 +1,10 @@
 import type { IClock } from '@/shared/common/ports/clock.port';
 import type { QueueTokenWithRelations } from '@/domains/appointments/core/repositories/queue.repository.interface';
 import { parseStringEnumMember } from '@workspace/utils';
+import {
+  formatUtcInstantAsClinicPickerIso,
+  getClinicLocalDayUtcBounds,
+} from '@workspace/utils';
 
 const QUEUE_TOKEN_TYPES = [
   'scheduled',
@@ -15,8 +19,18 @@ export function parseQueueTokenType(value: string): QueueTokenType {
   return parseStringEnumMember(QUEUE_TOKEN_TYPES, value) ?? 'pending';
 }
 
-export function getTodayRange(clock: IClock) {
-  const today = clock.now();
+export function getTodayRange(clock: IClock, timezone: string) {
+  const now = clock.now();
+  const pickerDateStr = formatUtcInstantAsClinicPickerIso(now, timezone);
+  const bounds = getClinicLocalDayUtcBounds(pickerDateStr, timezone);
+  if (bounds) {
+    return {
+      today: bounds.rangeStart,
+      tomorrow: bounds.rangeEndExclusive,
+    };
+  }
+
+  const today = new Date(now);
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);

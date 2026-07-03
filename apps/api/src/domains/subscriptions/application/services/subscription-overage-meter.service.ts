@@ -128,7 +128,7 @@ export class SubscriptionOverageMeterService {
             quantity: usageEntry?.current ?? 0,
             includedQuota: usageEntry?.included ?? 0,
             overageUnits: breakdown.quantity,
-            overageChargeCents: Math.round(breakdown.charge * 100),
+            overageChargeCents: breakdown.chargeCents,
             metadata: { subscriptionId: sub.id },
           },
           create: {
@@ -139,7 +139,7 @@ export class SubscriptionOverageMeterService {
             quantity: usageEntry?.current ?? 0,
             includedQuota: usageEntry?.included ?? 0,
             overageUnits: breakdown.quantity,
-            overageChargeCents: Math.round(breakdown.charge * 100),
+            overageChargeCents: breakdown.chargeCents,
             metadata: { subscriptionId: sub.id },
           },
         });
