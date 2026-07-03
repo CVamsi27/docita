@@ -122,7 +122,8 @@ export const TeamRecommendationAlert: FC<TeamRecommendationAlertProps> = ({
         <span className="font-medium text-foreground">
           {getTierInfo(getTierValue(teamRecommendation.tier)).name}
         </span>{" "}
-        includes up to {teamRecommendation.includedUsers} users and is the
+        includes up to {teamRecommendation.includedUsers}{" "}
+        {teamRecommendation.includedUsers === 1 ? "user" : "users"} and is the
         smallest plan that covers your team.
       </AlertDescription>
     </Alert>
