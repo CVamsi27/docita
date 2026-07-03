@@ -11,6 +11,30 @@ import {
 } from '@/domains/patient-portal/core/repositories/portal-profile.repository.interface';
 
 /**
+ * Portal auth normalizes the entered phone to E.164 (`+91XXXXXXXXXX`), but
+ * patient records may store the bare 10-digit form (or `91…`). Match on every
+ * equivalent representation so OTP login can find the patient regardless of how
+ * the number was saved — a strict `phoneNumber = "+91…"` match silently found
+ * no patient and blocked portal login entirely.
+ */
+export function portalPhoneMatchCandidates(phone: string): string[] {
+  const digits = phone.replace(/\D/g, '');
+  const bare =
+    digits.length === 12 && digits.startsWith('91')
+      ? digits.slice(2)
+      : digits.length === 10
+        ? digits
+        : '';
+  const candidates = new Set<string>([phone]);
+  if (bare) {
+    candidates.add(bare);
+    candidates.add(`+91${bare}`);
+    candidates.add(`91${bare}`);
+  }
+  return [...candidates];
+}
+
+/**
  * The full patient-profile field selection, shared by `getPatientProfile`
  * (read) and `updatePatient` (write — Prisma's `update` also needs a
  * `select` to shape its return value). Both return `PatientProfile`, so the
@@ -60,7 +84,10 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
   async findPatientByPhone(phone: string) {
     return this.withUnrestricted(() =>
       this.prisma.patient.findFirst({
-        where: { phoneNumber: phone, deletedAt: null },
+        where: {
+          phoneNumber: { in: portalPhoneMatchCandidates(phone) },
+          deletedAt: null,
+        },
       }),
     );
   }
@@ -70,7 +97,10 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
   ): Promise<PatientWithUser | null> {
     return this.withUnrestricted(() =>
       this.prisma.patient.findFirst({
-        where: { phoneNumber: phone, deletedAt: null },
+        where: {
+          phoneNumber: { in: portalPhoneMatchCandidates(phone) },
+          deletedAt: null,
+        },
         include: { user: true },
       }),
     );
