@@ -66,7 +66,11 @@ export class PatientPortalCommandService {
 
   async updateConsent(
     userId: string,
-    data: { whatsappConsent?: boolean; dataStorageConsent?: boolean },
+    data: {
+      whatsappConsent?: boolean;
+      dataStorageConsent?: boolean;
+      marketingConsent?: boolean;
+    },
   ) {
     const { patientId, clinicId } =
       await this.contextService.getPatientContext(userId);
@@ -78,6 +82,25 @@ export class PatientPortalCommandService {
     }
 
     const updated = await this.repository.updatePatient(patientId, updateData);
+
+    // Marketing consent as a first-class, auditable DPDP purpose (Stage 3).
+    let marketingConsent: boolean;
+    if (data.marketingConsent !== undefined) {
+      const result = await this.dpdpService.setMarketingConsent({
+        patientId,
+        clinicId,
+        granted: data.marketingConsent,
+        actorUserId: userId,
+        givenByName: 'Patient (portal)',
+      });
+      marketingConsent = result.active;
+    } else {
+      marketingConsent = await this.dpdpService.hasValidConsent(
+        patientId,
+        clinicId,
+        ConsentType.MARKETING,
+      );
+    }
 
     // Persist the patient's DPDP data-storage decision as a DPDP_NOTICE
     // consent (previously this flag was accepted by the API and dropped).
@@ -105,6 +128,7 @@ export class PatientPortalCommandService {
       whatsappConsentAt: updated.whatsappConsentAt,
       isFirstLogin: false,
       dataStorageConsent,
+      marketingConsent,
     };
   }
 

@@ -166,7 +166,12 @@ export class PatientPortalController {
   @ApiOperation({ summary: 'Update consent settings' })
   async updateConsent(
     @Request() req: RequestWithUser,
-    @Body() body: { whatsappConsent?: boolean; dataStorageConsent?: boolean },
+    @Body()
+    body: {
+      whatsappConsent?: boolean;
+      dataStorageConsent?: boolean;
+      marketingConsent?: boolean;
+    },
   ) {
     return this.portalService.updateConsent(
       requireAuthenticatedUserId(req),

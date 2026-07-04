@@ -71,6 +71,12 @@ export class DPDPComplianceService {
     return this.consentCompliance.setDpdpNoticeConsent(input);
   }
 
+  setMarketingConsent(
+    input: Parameters<ConsentComplianceService['setMarketingConsent']>[0],
+  ): Promise<{ active: boolean }> {
+    return this.consentCompliance.setMarketingConsent(input);
+  }
+
   getConsentHistory(patientId: string, clinicId: string): Promise<unknown[]> {
     return this.consentCompliance.getConsentHistory(patientId, clinicId);
   }
