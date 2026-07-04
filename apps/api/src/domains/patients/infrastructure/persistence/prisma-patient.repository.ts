@@ -43,6 +43,7 @@ const PATIENT_PERSISTENCE_SELECT = {
 
 @Injectable()
 export class PrismaPatientRepository implements IPatientRepository {
+  // jscpd:ignore-start -- standard repository DI + read-client boilerplate
   constructor(
     private readonly prisma: PrismaService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
@@ -51,6 +52,7 @@ export class PrismaPatientRepository implements IPatientRepository {
   private getReadClient() {
     return this.prisma.getReadClient();
   }
+  // jscpd:ignore-end
 
   async findById(id: string, clinicId: string): Promise<Patient | null> {
     const readClient = this.getReadClient();

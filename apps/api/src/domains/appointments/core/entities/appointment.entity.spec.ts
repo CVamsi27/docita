@@ -19,6 +19,7 @@ function makeAppointment(
     endTime: END,
     status,
     createdAt: new Date('2026-07-01T00:00:00Z'),
+    updatedAt: new Date('2026-07-01T00:00:00Z'),
     version: 1,
   });
 }

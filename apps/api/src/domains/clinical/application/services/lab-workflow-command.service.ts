@@ -94,10 +94,7 @@ export class LabWorkflowCommandService {
       this.clock.now(),
     );
 
-    const refreshed = await this.loadOrder(id, clinicId);
-    if (refreshed.canRelease()) {
-      await this.releaseResult(id, clinicId);
-    }
+    await this.releaseIfReady(id, clinicId);
   }
 
   async verifyPayment(
@@ -118,6 +115,14 @@ export class LabWorkflowCommandService {
       this.clock.now(),
     );
 
+    await this.releaseIfReady(id, clinicId);
+  }
+
+  /**
+   * Auto-release the result once both a result and payment are recorded. Re-loads
+   * the order so the decision reflects the just-committed write, not a stale copy.
+   */
+  private async releaseIfReady(id: string, clinicId: string): Promise<void> {
     const refreshed = await this.loadOrder(id, clinicId);
     if (refreshed.canRelease()) {
       await this.releaseResult(id, clinicId);

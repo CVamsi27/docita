@@ -159,7 +159,9 @@ describe('CreateCheckoutUseCase', () => {
   it('applies a redeemable referral discount to the first-checkout amount', async () => {
     findReusablePendingCheckoutMock.mockResolvedValue(null);
     (
-      referralService.getRedeemableReferralDiscountCents as unknown as jest.Mock
+      referralService.getRedeemableReferralDiscountCents as unknown as jest.MockedFunction<
+        () => Promise<number>
+      >
     ).mockResolvedValueOnce(24975); // 25% of 99900
 
     const result = await useCase.execute({

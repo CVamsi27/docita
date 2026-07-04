@@ -72,21 +72,29 @@ export class DataRetentionScheduler {
         this.anonymizePatient(patient.id, patient.clinicId),
       ),
     );
+    this.logSweepOutcome(results, 'patient');
+  }
+
+  /** Shared success/failure logging for a retention anonymization sweep. */
+  private logSweepOutcome(
+    results: PromiseSettledResult<void>[],
+    label: 'patient' | 'user',
+  ): void {
     const successCount = results.filter((r) => r.status === 'fulfilled').length;
     const failureCount = results.filter((r) => r.status === 'rejected').length;
     if (successCount > 0) {
       this.logger.log(
-        `Permanently anonymized ${successCount} soft-deleted patient(s)`,
+        `Permanently anonymized ${successCount} soft-deleted ${label}(s)`,
       );
     }
     if (failureCount > 0) {
       this.logger.warn(
-        `Failed to anonymize ${failureCount} soft-deleted patient(s)`,
+        `Failed to anonymize ${failureCount} soft-deleted ${label}(s)`,
       );
       for (const result of results) {
         if (result.status === 'rejected') {
           this.logger.error(
-            `Failed to anonymize patient: ${this.formatError(
+            `Failed to anonymize ${label}: ${this.formatError(
               result.reason instanceof Error
                 ? result.reason
                 : String(result.reason),
@@ -118,29 +126,7 @@ export class DataRetentionScheduler {
         this.anonymizeUser(user.id, user.clinicId),
       ),
     );
-    const successCount = results.filter((r) => r.status === 'fulfilled').length;
-    const failureCount = results.filter((r) => r.status === 'rejected').length;
-    if (successCount > 0) {
-      this.logger.log(
-        `Permanently anonymized ${successCount} soft-deleted user(s)`,
-      );
-    }
-    if (failureCount > 0) {
-      this.logger.warn(
-        `Failed to anonymize ${failureCount} soft-deleted user(s)`,
-      );
-      for (const result of results) {
-        if (result.status === 'rejected') {
-          this.logger.error(
-            `Failed to anonymize user: ${this.formatError(
-              result.reason instanceof Error
-                ? result.reason
-                : String(result.reason),
-            )}`,
-          );
-        }
-      }
-    }
+    this.logSweepOutcome(results, 'user');
   }
 
   private async anonymizeUser(
