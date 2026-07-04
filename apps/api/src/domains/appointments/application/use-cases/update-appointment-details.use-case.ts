@@ -52,18 +52,23 @@ export class UpdateAppointmentDetailsUseCase {
   async execute(command: UpdateAppointmentDetailsCommand): Promise<void> {
     const { appointmentId, clinicId, data, appointment } = command;
 
+    const nextDoctorId =
+      typeof data.doctorId === 'string' && data.doctorId.trim() !== ''
+        ? data.doctorId
+        : appointment.doctorId;
+    // A doctor reassignment must be conflict-checked too: moving an appointment
+    // onto a doctor already booked for that slot is a double-booking even when
+    // the times are untouched.
     const touchesSchedule =
-      data.startTime !== undefined || data.endTime !== undefined;
+      data.startTime !== undefined ||
+      data.endTime !== undefined ||
+      nextDoctorId !== appointment.doctorId;
     if (touchesSchedule) {
       const nextStart = coerceAppointmentDate(
         data.startTime,
         appointment.startTime,
       );
       const nextEnd = coerceAppointmentDate(data.endTime, appointment.endTime);
-      const nextDoctorId =
-        typeof data.doctorId === 'string' && data.doctorId.trim() !== ''
-          ? data.doctorId
-          : appointment.doctorId;
       const overlap = await this.schedulingRules.validateAppointmentOverlap(
         nextDoctorId,
         clinicId,
