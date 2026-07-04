@@ -131,11 +131,15 @@ export class ConsentComplianceService {
       },
     });
 
-    // Cascade: withdrawing the overarching DPDP data-processing consent must
-    // actually stop downstream non-essential processing, not just flip a status.
-    // Clear the WhatsApp opt-in so message send paths (which gate on
-    // Patient.whatsappConsent) immediately honor the withdrawal.
-    if (consent.consentType === ConsentType.DPDP_NOTICE && consent.patientId) {
+    // Cascade: withdrawing the overarching DPDP data-processing consent OR the
+    // marketing purpose must actually stop downstream non-essential processing,
+    // not just flip a status. Clear the WhatsApp opt-in so message send paths
+    // (which gate on Patient.whatsappConsent) immediately honor the withdrawal.
+    if (
+      (consent.consentType === ConsentType.DPDP_NOTICE ||
+        consent.consentType === ConsentType.MARKETING) &&
+      consent.patientId
+    ) {
       await this.prisma.patient.updateMany({
         where: { id: consent.patientId, clinicId: consent.clinicId },
         data: { whatsappConsent: false, whatsappConsentAt: null },
@@ -178,6 +182,58 @@ export class ConsentComplianceService {
     });
 
     return !!consent;
+  }
+
+  /**
+   * DPDP granular purpose consent for MARKETING — kept as a first-class,
+   * versioned, withdrawable Consent record (not just a boolean). Granting records
+   * one active row; revoking withdraws it (which cascades to clear the WhatsApp
+   * opt-in via withdrawConsent), so "care yes / marketing no" is representable.
+   */
+  async setMarketingConsent(input: {
+    patientId: string;
+    clinicId: string;
+    granted: boolean;
+    givenByName?: string;
+    actorUserId?: string;
+  }): Promise<{ active: boolean }> {
+    const existing = await this.prisma.consent.findFirst({
+      where: {
+        patientId: input.patientId,
+        clinicId: input.clinicId,
+        consentType: ConsentType.MARKETING,
+        status: ConsentStatus.ACTIVE,
+        OR: [{ validUntil: null }, { validUntil: { gte: this.clock.now() } }],
+      },
+      select: { id: true },
+    });
+
+    if (input.granted) {
+      if (!existing) {
+        await this.recordConsent({
+          patientId: input.patientId,
+          clinicId: input.clinicId,
+          consentType: ConsentType.MARKETING,
+          status: ConsentStatus.ACTIVE,
+          purpose: 'MARKETING',
+          givenBy: input.givenByName ?? 'Patient',
+          actorUserId: input.actorUserId,
+        });
+      }
+      return { active: true };
+    }
+
+    if (existing) {
+      await this.withdrawConsent(
+        existing.id,
+        'Marketing consent withdrawn',
+        input.givenByName ?? 'Patient',
+        undefined,
+        input.clinicId,
+        input.actorUserId,
+      );
+    }
+    return { active: false };
   }
 
   /**

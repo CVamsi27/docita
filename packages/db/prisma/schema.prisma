@@ -2758,6 +2758,8 @@ enum ConsentType {
   BLOOD_TRANSFUSION
   VACCINATION
   DPDP_NOTICE
+  MARKETING
+  ANALYTICS
 }
 
 enum ConsentStatus {
