@@ -11,10 +11,13 @@ import {
 } from '@/test-utils';
 import { ConsentGuard, REQUIRE_CONSENT_KEY } from './consent.guard';
 
-function createContext(params: Record<string, string>): ExecutionContext {
+function createContext(
+  params: Record<string, string>,
+  clinicId: string | null = 'clinic-1',
+): ExecutionContext {
   return asType<ExecutionContext>({
     switchToHttp: (() => ({
-      getRequest: () => ({ params }),
+      getRequest: () => ({ params, user: clinicId ? { clinicId } : undefined }),
       getResponse: () => ({}),
       getNext: () => undefined,
     })) as ExecutionContext['switchToHttp'],
@@ -38,6 +41,11 @@ describe('ConsentGuard', () => {
         (...args: unknown[]) => Promise<{ id: string } | null>
       >;
     };
+    clinic: {
+      findUnique: jest.MockedFunction<
+        (...args: unknown[]) => Promise<{ settings: unknown } | null>
+      >;
+    };
   };
   let guard: ConsentGuard;
 
@@ -48,10 +56,13 @@ describe('ConsentGuard', () => {
       ]),
     };
     prisma = {
-      consent: {
-        findFirst: jest.fn(),
-      },
+      consent: { findFirst: jest.fn() },
+      clinic: { findUnique: jest.fn() },
     };
+    // Default: clinic has opted in to treatment-consent enforcement.
+    prisma.clinic.findUnique.mockResolvedValue({
+      settings: { requireTreatmentConsent: true },
+    });
     guard = new ConsentGuard(
       asType<Reflector>(reflector),
       asType<ConstructorParameters<typeof ConsentGuard>[1]>(prisma),
@@ -74,6 +85,32 @@ describe('ConsentGuard', () => {
     ]);
 
     await expect(guard.canActivate(createContext({}))).resolves.toBe(true);
+    expect(prisma.consent.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('skips enforcement (opt-in) when the clinic flag is off', async () => {
+    mockRequiredConsentTypes(reflector.getAllAndOverride, [
+      ConsentType.TREATMENT,
+    ]);
+    prisma.clinic.findUnique.mockResolvedValue({
+      settings: { requireTreatmentConsent: false },
+    });
+
+    await expect(
+      guard.canActivate(createContext({ patientId: 'p1' })),
+    ).resolves.toBe(true);
+    expect(prisma.consent.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('skips enforcement when there is no clinic context', async () => {
+    mockRequiredConsentTypes(reflector.getAllAndOverride, [
+      ConsentType.TREATMENT,
+    ]);
+
+    await expect(
+      guard.canActivate(createContext({ patientId: 'p1' }, null)),
+    ).resolves.toBe(true);
+    expect(prisma.clinic.findUnique).not.toHaveBeenCalled();
     expect(prisma.consent.findFirst).not.toHaveBeenCalled();
   });
 

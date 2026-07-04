@@ -12,6 +12,7 @@ import { Reflector } from '@nestjs/core';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ConsentType } from '@workspace/db';
 import { AuthenticatedRequest } from '@workspace/types';
+import { isRecord } from '@workspace/utils';
 
 export const REQUIRE_CONSENT_KEY = 'requireConsent';
 
@@ -20,6 +21,16 @@ export const RequirePatientConsent = (...types: ConsentType[]) =>
     REQUIRE_CONSENT_KEY,
     types.length > 0 ? types : [ConsentType.TREATMENT],
   );
+
+/**
+ * Opt-in flag on `Clinic.settings`. Treatment-consent gating is OFF by default so
+ * legacy / bulk-imported patients (who have no TREATMENT consent row) are never
+ * blocked; a clinic turns it on deliberately once it captures consent at intake.
+ */
+function requireTreatmentConsentEnabled(settings: unknown): boolean {
+  if (!isRecord(settings)) return false;
+  return settings.requireTreatmentConsent === true;
+}
 
 @Injectable()
 export class ConsentGuard implements CanActivate {
@@ -44,6 +55,16 @@ export class ConsentGuard implements CanActivate {
     const patientId = request.params?.patientId;
 
     if (!patientId) return true;
+
+    // Opt-in: only enforce when the caller's clinic has enabled treatment-consent
+    // gating. Default off keeps existing/bulk patients (no consent row) working.
+    const clinicId = request.user?.clinicId;
+    if (!clinicId) return true;
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { settings: true },
+    });
+    if (!requireTreatmentConsentEnabled(clinic?.settings)) return true;
 
     const now = this.clock.now();
 
