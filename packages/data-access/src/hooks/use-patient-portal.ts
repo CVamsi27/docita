@@ -126,12 +126,17 @@ export const usePatientConsentSettings = () =>
     whatsappConsentAt: string | null;
     isFirstLogin: boolean;
     dataStorageConsent: boolean;
+    marketingConsent?: boolean;
   }>(queryKeys.patientPortal.consent(), "/patient-portal/consent");
 
 export const useUpdatePatientConsent = () =>
   useAPIMutation<
     Record<string, unknown>,
-    { whatsappConsent?: boolean; dataStorageConsent?: boolean }
+    {
+      whatsappConsent?: boolean;
+      dataStorageConsent?: boolean;
+      marketingConsent?: boolean;
+    }
   >("/patient-portal/consent", "PATCH");
 
 export const useRequestDataDeletion = () =>

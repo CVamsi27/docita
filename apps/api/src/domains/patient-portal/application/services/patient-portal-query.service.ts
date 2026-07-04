@@ -192,6 +192,11 @@ export class PatientPortalQueryService {
       clinicId,
       ConsentType.DPDP_NOTICE,
     );
+    const marketingConsent = await this.dpdpService.hasValidConsent(
+      patientId,
+      clinicId,
+      ConsentType.MARKETING,
+    );
 
     return {
       whatsappConsent: patient?.whatsappConsent ?? false,
@@ -200,6 +205,7 @@ export class PatientPortalQueryService {
       // DPDP data-processing consent on record.
       isFirstLogin: !dataStorageConsent,
       dataStorageConsent,
+      marketingConsent,
     };
   }
 }
