@@ -17,6 +17,8 @@ export * from "./hooks/use-internal-billing";
 export * from "./hooks/use-internal-clinics";
 export * from "./hooks/use-internal-doctors";
 export * from "./hooks/use-internal-enterprise-contracts";
+export * from "./referrals.types";
+export * from "./hooks/use-internal-referrals";
 export * from "./hooks/use-internal-dashboard";
 export * from "./hooks/use-internal-logs";
 export * from "./hooks/use-internal-pricing";

@@ -4,6 +4,7 @@ import {
   CreditCard,
   FileText,
   Gauge,
+  Gift,
   Inbox,
   LayoutDashboard,
   type LucideIcon,
@@ -55,6 +56,11 @@ export const INTERNAL_SIDEBAR_ITEMS: InternalNavItem[] = [
     title: "Enterprise Contracts",
     href: "/enterprise-contracts",
     icon: FileText,
+  },
+  {
+    title: "Referrals",
+    href: "/referrals",
+    icon: Gift,
   },
   {
     title: "Analytics",

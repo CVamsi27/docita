@@ -24,6 +24,12 @@ export const internalQueryKeys = {
     billingPricingTiers: () =>
       ["internal", "billing", "pricing", "tiers"] as const,
     enterpriseContracts: () => ["internal", "enterprise-contracts"] as const,
+    referrers: () => ["internal", "referrers"] as const,
+    referralPayoutsRoot: () => ["internal", "referral-payouts"] as const,
+    referralPayouts: (status: string) =>
+      ["internal", "referral-payouts", status] as const,
+    referralPayoutSummary: () =>
+      ["internal", "referral-payouts", "summary"] as const,
     monitoringDashboard: () => ["internal", "monitoring", "dashboard"] as const,
     monitoringHealth: () => ["internal", "monitoring", "health"] as const,
     healthPerformance: () => ["health", "performance"] as const,
