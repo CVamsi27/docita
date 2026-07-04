@@ -1,10 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  REFERRAL_PAYOUT_REPOSITORY_TOKEN,
+  type IReferralPayoutRepository,
+} from '@/domains/subscriptions/application/ports/referral-payout.repository.port';
 import {
   defaultRateBandsForType,
   parseRateBands,
   REFERRAL_FIRST_YEAR_MONTHS,
-  type ReferrerType,
 } from '@/domains/subscriptions/core/services/referral-reward.rules';
 import { ReferralPayoutService } from './referral-payout.service';
 
@@ -30,20 +32,13 @@ export class ReferralAccrualService {
   private readonly logger = new Logger(ReferralAccrualService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(REFERRAL_PAYOUT_REPOSITORY_TOKEN)
+    private readonly repository: IReferralPayoutRepository,
     private readonly payoutService: ReferralPayoutService,
   ) {}
 
   async accrueAllDuePayouts(): Promise<AccrualRunResult> {
-    const referrals = await this.prisma.referral.findMany({
-      where: {
-        status: 'CONVERTED',
-        activationAt: { not: null },
-        referredClinicId: { not: null },
-        referrer: { is: { rewardKind: 'REVENUE_SHARE', active: true } },
-      },
-      include: { referrer: true },
-    });
+    const referrals = await this.repository.findDueRevenueShareReferrals();
 
     let payoutsCreated = 0;
 
@@ -55,7 +50,7 @@ export class ReferralAccrualService {
 
       const bands = parseRateBands(
         referrer.rateBands,
-        defaultRateBandsForType(referrer.type as ReferrerType),
+        defaultRateBandsForType(referrer.type),
       );
       if (bands.length === 0) continue;
 
@@ -64,14 +59,11 @@ export class ReferralAccrualService {
         REFERRAL_FIRST_YEAR_MONTHS,
       );
 
-      const payments = await this.prisma.subscriptionPayment.findMany({
-        where: {
-          clinicId: referral.referredClinicId,
-          status: 'paid',
-          paidAt: { gte: referral.activationAt, lt: windowEnd },
-        },
-        select: { paidAt: true, amountCents: true },
-      });
+      const payments = await this.repository.findPaidPeriodsInWindow(
+        referral.referredClinicId,
+        referral.activationAt,
+        windowEnd,
+      );
 
       for (const payment of payments) {
         if (!payment.paidAt) continue;

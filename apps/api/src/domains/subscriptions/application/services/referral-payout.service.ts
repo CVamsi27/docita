@@ -1,5 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  REFERRAL_PAYOUT_REPOSITORY_TOKEN,
+  type IReferralPayoutRepository,
+} from '@/domains/subscriptions/application/ports/referral-payout.repository.port';
 import {
   computeRevenueShareCents,
   monthIndexForPeriod,
@@ -35,7 +38,10 @@ interface AccruePayoutResult {
 export class ReferralPayoutService {
   private readonly logger = new Logger(ReferralPayoutService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(REFERRAL_PAYOUT_REPOSITORY_TOKEN)
+    private readonly repository: IReferralPayoutRepository,
+  ) {}
 
   async accruePayoutForPeriod(
     input: AccruePayoutInput,
@@ -58,31 +64,24 @@ export class ReferralPayoutService {
 
     const ratePercent = resolveRateForMonth(input.rateBands, monthIndex);
 
-    // Idempotent: create only when this (referral, period) has no row yet.
-    // Empty `update` makes a conflict a no-op, preserving any existing status.
-    const existing = await this.prisma.referralPayout.findUnique({
-      where: {
-        referralId_periodStart: {
-          referralId: input.referralId,
-          periodStart: input.periodStart,
-        },
-      },
-      select: { id: true },
-    });
+    // Idempotent: create only when this (referral, period) has no row yet, so a
+    // scheduler re-run never double-pays and existing APPROVED/PAID rows stand.
+    const existing = await this.repository.findExistingPayout(
+      input.referralId,
+      input.periodStart,
+    );
     if (existing) {
       return { created: false, amountCents };
     }
 
-    await this.prisma.referralPayout.create({
-      data: {
-        referralId: input.referralId,
-        referrerId: input.referrerId,
-        periodStart: input.periodStart,
-        periodEnd: input.periodEnd,
-        baseRevenueCents: input.paidRevenueCents,
-        ratePercent,
-        amountCents,
-      },
+    await this.repository.createPayout({
+      referralId: input.referralId,
+      referrerId: input.referrerId,
+      periodStart: input.periodStart,
+      periodEnd: input.periodEnd,
+      baseRevenueCents: input.paidRevenueCents,
+      ratePercent,
+      amountCents,
     });
     this.logger.log(
       `Accrued referral payout ${amountCents} paise for referral ${input.referralId} (month ${monthIndex})`,
