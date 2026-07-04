@@ -1,7 +1,4 @@
-import type {
-  MedicationDoseSource,
-  MedicationDoseStatus,
-} from '@workspace/db';
+import type { MedicationDoseSource, MedicationDoseStatus } from '@workspace/db';
 
 export const DOSE_INSERT_BATCH_SIZE = 500;
 export const MAX_GENERATED_DOSES = 5000;
