@@ -80,3 +80,17 @@ describe('Appointment.cancel', () => {
     ).toThrow(InvariantViolationError);
   });
 });
+
+describe('Appointment.complete', () => {
+  it('completes an active appointment', () => {
+    const appt = makeAppointment();
+    appt.complete(NOW);
+    expect(appt.getStatus().isCompleted()).toBe(true);
+  });
+
+  it('rejects completing a cancelled appointment (loophole guard)', () => {
+    expect(() =>
+      makeAppointment(AppointmentStatus.cancelled()).complete(NOW),
+    ).toThrow(InvariantViolationError);
+  });
+});
