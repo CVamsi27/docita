@@ -33,6 +33,10 @@ interface AccruePayoutResult {
  * period. Pure decision via referral-reward.rules; persistence is idempotent on
  * `(referralId, periodStart)` so scheduler re-runs never double-pay, and an
  * already-recorded period is never overwritten (protects APPROVED/PAID rows).
+ *
+ * AuditLogged: the immutable ledger row it creates IS the audit record for a
+ * system-accrued (non-user) payout; the human disbursement action (mark-paid)
+ * is audited separately in the internal referral admin path.
  */
 @Injectable()
 export class ReferralPayoutService {

@@ -17,6 +17,15 @@ import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { Badge } from "@workspace/ui/components/indicators/badge";
+// jscpd:ignore-start — shared Select import block matches other consumers
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/form/select";
+// jscpd:ignore-end
 import {
   Table,
   TableBody,
@@ -67,7 +76,11 @@ export default function ReferralsPage() {
       });
     },
     onError: (error) =>
-      showUserFacingErrorToast(error, "Could not create referrer", "generic"),
+      showUserFacingErrorToast(
+        error,
+        "Please review the referrer details and try again",
+        "generic",
+      ),
   });
 
   const markPaid = useMutation({
@@ -80,7 +93,11 @@ export default function ReferralsPage() {
       });
     },
     onError: (error) =>
-      showUserFacingErrorToast(error, "Could not mark payout paid", "generic"),
+      showUserFacingErrorToast(
+        error,
+        "Please try marking this payout as paid again",
+        "generic",
+      ),
   });
 
   return (
@@ -121,7 +138,7 @@ export default function ReferralsPage() {
           onSubmit={(event) => {
             event.preventDefault();
             if (!form.name.trim()) {
-              toast.error("Name is required");
+              toast.warning("Enter the referrer's name to continue");
               return;
             }
             createReferrer.mutate({
@@ -133,22 +150,24 @@ export default function ReferralsPage() {
         >
           <label className="text-sm">
             <span className="mb-1 block text-muted-foreground">Type</span>
-            <select
-              className="h-9 rounded-md border bg-background px-2 text-sm"
+            <Select
               value={form.type}
-              onChange={(event) => {
-                const next = REFERRER_TYPES.find(
-                  (type) => type === event.target.value,
-                );
+              onValueChange={(value) => {
+                const next = REFERRER_TYPES.find((type) => type === value);
                 if (next) setForm((prev) => ({ ...prev, type: next }));
               }}
             >
-              {REFERRER_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-9 w-44">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {REFERRER_TYPES.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </label>
           <label className="text-sm">
             <span className="mb-1 block text-muted-foreground">Name</span>
