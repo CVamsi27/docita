@@ -12,6 +12,7 @@ export const PORTAL_ROUTE_PREFIXES = [
   "/feedback",
   "/support",
   "/broadcasts",
+  "/referrals",
   "/logs",
   "/audits",
   "/performance",
