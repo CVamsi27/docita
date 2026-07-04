@@ -33,6 +33,15 @@ export class RescheduleAppointmentUseCase {
   async execute(command: RescheduleAppointmentCommand): Promise<void> {
     const { appointment, clinicId, startTime, endTime } = command;
 
+    if (startTime >= endTime)
+      throw new BadRequestException('Start time must be before end time');
+
+    // A reschedule is a postpone/move — the new slot must be in the future.
+    // (Back-dating only makes sense when first recording a past visit, not when
+    // moving an existing appointment.)
+    if (startTime <= this.clock.now())
+      throw new BadRequestException('Cannot reschedule to a past time');
+
     const overlap = await this.schedulingRules.validateAppointmentOverlap(
       appointment.doctorId,
       clinicId,
