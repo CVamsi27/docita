@@ -136,12 +136,12 @@ export default function ReferralsPage() {
             <select
               className="h-9 rounded-md border bg-background px-2 text-sm"
               value={form.type}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  type: event.target.value as ReferrerType,
-                }))
-              }
+              onChange={(event) => {
+                const next = REFERRER_TYPES.find(
+                  (type) => type === event.target.value,
+                );
+                if (next) setForm((prev) => ({ ...prev, type: next }));
+              }}
             >
               {REFERRER_TYPES.map((type) => (
                 <option key={type} value={type}>
