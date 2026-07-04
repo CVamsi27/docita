@@ -17,7 +17,7 @@ import {
  * the number was saved — a strict `phoneNumber = "+91…"` match silently found
  * no patient and blocked portal login entirely.
  */
-export function portalPhoneMatchCandidates(phone: string): string[] {
+function portalPhoneMatchCandidates(phone: string): string[] {
   const digits = phone.replace(/\D/g, '');
   const bare =
     digits.length === 12 && digits.startsWith('91')

@@ -18,13 +18,6 @@ import type {
   PrismaWhatsAppTemplateRecord,
 } from './prisma-whatsapp.types';
 
-export type {
-  PrismaWhatsAppDatabase,
-  PrismaWhatsAppMessageRecord,
-  PrismaWhatsAppReadClient,
-  PrismaWhatsAppTemplateRecord,
-};
-
 @Injectable()
 export class PrismaWhatsAppRepository implements IWhatsAppRepository {
   constructor(
