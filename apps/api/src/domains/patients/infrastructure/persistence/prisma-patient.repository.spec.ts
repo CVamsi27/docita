@@ -46,7 +46,9 @@ describe('PrismaPatientRepository', () => {
         writable: true,
       },
     });
-    repository = new PrismaPatientRepository(prismaService);
+    repository = new PrismaPatientRepository(prismaService, {
+      now: () => new Date('2026-07-02T00:00:00Z'),
+    });
   });
 
   it('returns count and hasMore metadata for paginated results', async () => {

@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { jsonObjectSchema } from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { z } from 'zod';
@@ -46,7 +47,10 @@ function verificationDataRecord(
 
 @Injectable()
 export class PrismaUserRepository implements IUserRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   async findById(id: string) {
     // RLS-BYPASS: user lookup by identifier precedes clinic tenant binding
@@ -92,7 +96,7 @@ export class PrismaUserRepository implements IUserRepository {
       });
       if (!user) throw new NotFoundException(`User ${userId} not found`);
 
-      const now = new Date();
+      const now = this.clock.now();
       // Soft-delete + disable login so the account is unusable immediately; the
       // retention sweep anonymizes it after the obligation window. Preserve an
       // earlier deletedAt if the request is repeated.

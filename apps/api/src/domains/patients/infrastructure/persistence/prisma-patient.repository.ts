@@ -1,9 +1,11 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
   IPatientRepository,
   PatientSearchParams,
@@ -41,7 +43,10 @@ const PATIENT_PERSISTENCE_SELECT = {
 
 @Injectable()
 export class PrismaPatientRepository implements IPatientRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   private getReadClient() {
     return this.prisma.getReadClient();
@@ -163,7 +168,7 @@ export class PrismaPatientRepository implements IPatientRepository {
     // this preserves the medical record for statutory retention (NMC >=3yr).
     const result = await this.prisma.patient.updateMany({
       where: { id, clinicId, deletedAt: null },
-      data: { deletedAt: new Date() },
+      data: { deletedAt: this.clock.now() },
     });
     if (result.count === 0) {
       throw new NotFoundException(`Patient ${id} not found`);
