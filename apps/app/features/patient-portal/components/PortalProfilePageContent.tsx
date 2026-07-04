@@ -32,8 +32,8 @@ import { Textarea } from "@workspace/ui/components/form/textarea";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { formatDate } from "@/lib/formatters";
 
-type ConsentSettings = { whatsappConsent?: boolean; dataStorageConsent?: boolean; whatsappConsentAt?: string | null };
-type OnConsentChange = (field: "whatsappConsent" | "dataStorageConsent", value: boolean) => void;
+type ConsentSettings = { whatsappConsent?: boolean; dataStorageConsent?: boolean; marketingConsent?: boolean; whatsappConsentAt?: string | null };
+type OnConsentChange = (field: "whatsappConsent" | "dataStorageConsent" | "marketingConsent", value: boolean) => void;
 
 function ConsentCard({
   consentSettings,
@@ -85,6 +85,17 @@ function ConsentCard({
             <p className="text-sm text-muted-foreground">I consent to storing my health data securely for medical purposes</p>
           </div>
           <Checkbox id="storage-consent" checked={consentSettings?.dataStorageConsent ?? false} disabled />
+        </div>
+        <div className="flex items-start justify-between rounded-lg border p-4">
+          <div className="space-y-1 flex-1">
+            <div className="flex items-center gap-2">
+              <Bell className="h-4 w-4 text-muted-foreground" />
+              <Label htmlFor="marketing-consent" className="font-medium">Marketing Communications</Label>
+            </div>
+            <p className="text-sm text-muted-foreground">Receive offers, health tips, and campaign messages. You can opt out any time.</p>
+          </div>
+          <Checkbox id="marketing-consent" checked={consentSettings?.marketingConsent ?? false}
+            onCheckedChange={(checked) => onConsentChange("marketingConsent", !!checked)} disabled={isPending} />
         </div>
       </CardContent>
     </Card>
