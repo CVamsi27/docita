@@ -2,13 +2,17 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ReferralPayoutService } from './referral-payout.service';
 import { DEFAULT_SPECIAL_MARKETING_RATE_BANDS } from '@/domains/subscriptions/core/services/referral-reward.rules';
 
-function makeService() {
-  const referralPayout = {
-    findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+function makeCtx() {
+  const repo = {
+    findExistingPayout:
+      jest.fn<(...a: unknown[]) => Promise<{ id: string } | null>>(),
+    createPayout: jest.fn<(...a: unknown[]) => Promise<void>>(
+      async () => undefined,
+    ),
+    findDueRevenueShareReferrals: jest.fn(),
+    findPaidPeriodsInWindow: jest.fn(),
   };
-  const prisma = { referralPayout } as never;
-  return { service: new ReferralPayoutService(prisma), referralPayout };
+  return { service: new ReferralPayoutService(repo as never), repo };
 }
 
 const base = {
@@ -21,14 +25,13 @@ const base = {
 };
 
 describe('ReferralPayoutService.accruePayoutForPeriod', () => {
-  let ctx: ReturnType<typeof makeService>;
+  let ctx: ReturnType<typeof makeCtx>;
   beforeEach(() => {
-    ctx = makeService();
+    ctx = makeCtx();
   });
 
   it('creates a payout row for a first-year 15% month', async () => {
-    ctx.referralPayout.findUnique.mockResolvedValue(null);
-    ctx.referralPayout.create.mockResolvedValue({});
+    ctx.repo.findExistingPayout.mockResolvedValue(null);
 
     const result = await ctx.service.accruePayoutForPeriod({
       ...base,
@@ -36,21 +39,19 @@ describe('ReferralPayoutService.accruePayoutForPeriod', () => {
     });
 
     expect(result).toEqual({ created: true, amountCents: 37485 });
-    expect(ctx.referralPayout.create).toHaveBeenCalledTimes(1);
-    const arg = ctx.referralPayout.create.mock.calls[0][0] as {
-      data: {
-        ratePercent: number;
-        amountCents: number;
-        baseRevenueCents: number;
-      };
+    expect(ctx.repo.createPayout).toHaveBeenCalledTimes(1);
+    const arg = ctx.repo.createPayout.mock.calls[0][0] as {
+      ratePercent: number;
+      amountCents: number;
+      baseRevenueCents: number;
     };
-    expect(arg.data.ratePercent).toBe(15);
-    expect(arg.data.amountCents).toBe(37485);
-    expect(arg.data.baseRevenueCents).toBe(249900);
+    expect(arg.ratePercent).toBe(15);
+    expect(arg.amountCents).toBe(37485);
+    expect(arg.baseRevenueCents).toBe(249900);
   });
 
   it('does not create a row after the first year (idempotent no-op)', async () => {
-    ctx.referralPayout.findUnique.mockResolvedValue(null);
+    ctx.repo.findExistingPayout.mockResolvedValue(null);
 
     const result = await ctx.service.accruePayoutForPeriod({
       ...base,
@@ -58,11 +59,11 @@ describe('ReferralPayoutService.accruePayoutForPeriod', () => {
     });
 
     expect(result).toEqual({ created: false, amountCents: 0 });
-    expect(ctx.referralPayout.create).not.toHaveBeenCalled();
+    expect(ctx.repo.createPayout).not.toHaveBeenCalled();
   });
 
   it('is idempotent — never double-pays an already-recorded period', async () => {
-    ctx.referralPayout.findUnique.mockResolvedValue({ id: 'existing' });
+    ctx.repo.findExistingPayout.mockResolvedValue({ id: 'existing' });
 
     const result = await ctx.service.accruePayoutForPeriod({
       ...base,
@@ -70,11 +71,11 @@ describe('ReferralPayoutService.accruePayoutForPeriod', () => {
     });
 
     expect(result).toEqual({ created: false, amountCents: 37485 });
-    expect(ctx.referralPayout.create).not.toHaveBeenCalled();
+    expect(ctx.repo.createPayout).not.toHaveBeenCalled();
   });
 
   it('creates nothing when the period has zero paid revenue', async () => {
-    ctx.referralPayout.findUnique.mockResolvedValue(null);
+    ctx.repo.findExistingPayout.mockResolvedValue(null);
 
     const result = await ctx.service.accruePayoutForPeriod({
       ...base,
@@ -83,6 +84,6 @@ describe('ReferralPayoutService.accruePayoutForPeriod', () => {
     });
 
     expect(result).toEqual({ created: false, amountCents: 0 });
-    expect(ctx.referralPayout.create).not.toHaveBeenCalled();
+    expect(ctx.repo.createPayout).not.toHaveBeenCalled();
   });
 });
