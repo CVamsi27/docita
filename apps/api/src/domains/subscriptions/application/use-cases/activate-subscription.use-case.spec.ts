@@ -125,7 +125,7 @@ describe('ActivateSubscriptionUseCase', () => {
     activationPolicy,
   );
   const referralService = {
-    applyReferralCreditsOnFirstPayment: jest.fn(async () => undefined),
+    realizeReferralOnFirstPayment: jest.fn(async () => undefined),
   } as unknown as import('@/domains/subscriptions/core/services/referral.service').ReferralService;
 
   let useCase: ActivateSubscriptionUseCase;

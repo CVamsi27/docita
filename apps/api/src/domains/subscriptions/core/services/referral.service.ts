@@ -72,6 +72,22 @@ export class ReferralService {
     return { linked: true };
   }
 
+  /**
+   * Realize a referral on the first successful payment. Non-fatal wrapper: a
+   * referral hiccup must never abort a completed, paid activation. Idempotent and
+   * first-payment-guarded via applyReferralCreditsOnFirstPayment.
+   */
+  async realizeReferralOnFirstPayment(clinicId: string): Promise<void> {
+    try {
+      await this.applyReferralCreditsOnFirstPayment(clinicId);
+    } catch (error) {
+      this.logger.error(
+        `Referral realization failed for clinic ${clinicId} (activation unaffected)`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+  }
+
   async applyReferralCreditsOnFirstPayment(clinicId: string): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       const paymentCount = await tx.subscriptionPayment.count({

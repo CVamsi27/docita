@@ -121,16 +121,14 @@ export class ActivateSubscriptionUseCase {
           cycle,
         ),
       surplusCreditCents: breakdown.surplusCreditCents,
+      // jscpd:ignore-end
     });
 
-    const invoiceOrderRef =
-      // jscpd:ignore-end
-      request.razorpayOrderId || payment.razorpayOrderId || payment.id;
     const razorpayInvoice = await this.billingSnapshot.createHostedInvoice({
       clinicId: request.clinicId,
       amountCents: payment.amountCents,
       currency: payment.currency,
-      orderId: invoiceOrderRef,
+      orderId: request.razorpayOrderId || payment.razorpayOrderId || payment.id,
       paymentId: request.razorpayPaymentId,
       tier: tier.value,
       cycle: cycle.value,
@@ -165,19 +163,8 @@ export class ActivateSubscriptionUseCase {
       request.planMode,
     );
 
-    // Realize any referral on the first successful payment (referrer credit +
-    // referred-clinic discount consumption). Non-fatal: a referral hiccup must
-    // never abort a completed, paid activation. Idempotent + first-payment-guarded.
-    try {
-      await this.referralService.applyReferralCreditsOnFirstPayment(
-        request.clinicId,
-      );
-    } catch (error) {
-      this.logger.error(
-        `Referral realization failed for clinic ${request.clinicId} (activation unaffected)`,
-        error instanceof Error ? error.stack : String(error),
-      );
-    }
+    // Realize any referral on the first successful payment (non-fatal, idempotent).
+    await this.referralService.realizeReferralOnFirstPayment(request.clinicId);
 
     this.logger.log(
       `Subscription activated for clinic ${request.clinicId}: ${tier.value} ${cycle.value}`,
