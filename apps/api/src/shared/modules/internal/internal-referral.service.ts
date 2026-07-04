@@ -6,7 +6,6 @@ import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-jso
 import {
   defaultRateBandsForType,
   rateBandsSchema,
-  type ReferrerType,
 } from '@/domains/subscriptions/core/services/referral-reward.rules';
 
 export const createReferrerSchema = z.object({
@@ -33,7 +32,7 @@ export class InternalReferralService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createReferrer(input: CreateReferrerInput) {
-    const type = input.type as ReferrerType;
+    const { type } = input;
     const rewardKind =
       input.rewardKind ??
       (type === 'CLINIC' ? 'CREDIT_MONTHS' : 'REVENUE_SHARE');

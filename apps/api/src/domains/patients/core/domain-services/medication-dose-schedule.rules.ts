@@ -6,7 +6,7 @@ import type {
 export const DOSE_INSERT_BATCH_SIZE = 500;
 export const MAX_GENERATED_DOSES = 5000;
 
-export type ScheduledDoseDraft = {
+type ScheduledDoseDraft = {
   scheduledAt: Date;
   medicationId: string;
   patientId: string;
@@ -16,7 +16,7 @@ export type ScheduledDoseDraft = {
   source: MedicationDoseSource;
 };
 
-export type BuildScheduledDosesResult = {
+type BuildScheduledDosesResult = {
   doses: ScheduledDoseDraft[];
   truncated: boolean;
 };

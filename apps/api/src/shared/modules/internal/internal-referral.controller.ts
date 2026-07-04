@@ -28,10 +28,9 @@ export class InternalReferralController {
     @Query('status') status?: string,
     @Query('referrerId') referrerId?: string,
   ) {
-    const parsedStatus =
-      status && status in ReferralPayoutStatus
-        ? (status as ReferralPayoutStatus)
-        : undefined;
+    const parsedStatus = Object.values(ReferralPayoutStatus).find(
+      (value) => value === status,
+    );
     return this.referralService.listPayouts({
       status: parsedStatus,
       referrerId: referrerId || undefined,
