@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Smile, Save } from "lucide-react";
-import { Feature } from "@workspace/types";
+import { CLINIC_TYPE_LABELS, Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
@@ -108,7 +108,13 @@ export default function DentalChartsPage() {
             description={
               <>
                 Dental charting is only available for dental facilities. Your
-                facility type is <strong>{clinic.type}</strong>.
+                facility type is{" "}
+                <strong>
+                  {(CLINIC_TYPE_LABELS as Record<string, string>)[
+                    clinic.type
+                  ] ?? clinic.type}
+                </strong>
+                .
               </>
             }
           />
