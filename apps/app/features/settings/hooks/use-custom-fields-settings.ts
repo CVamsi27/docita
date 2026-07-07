@@ -99,6 +99,9 @@ export function useCustomFieldsSettings() {
     }
   };
 
+  /* jscpd:ignore-start — delete-confirmation state machine + returned surface
+     mirror the lab-tests catalog settings hook by design (see the panel's
+     note); a shared abstraction would couple two unrelated settings hooks. */
   const confirmDelete = (id: string) => setDeleteTargetId(id);
   const cancelDelete = () => setDeleteTargetId(null);
 
@@ -137,4 +140,5 @@ export function useCustomFieldsSettings() {
     isSaving: createField.isPending || updateField.isPending,
     isDeleting: deleteField.isPending,
   };
+  /* jscpd:ignore-end */
 }

@@ -33,21 +33,3 @@ export function resolveMoneyCents(
   if (typeof cents === "number" && Number.isFinite(cents)) return cents;
   return toCents(legacyFloat);
 }
-
-/**
- * Build the additive `{ float, cents }` write pair for a money field so both
- * columns stay in sync on create/update. Pass the major-unit amount.
- */
-export function moneyWritePair<
-  FloatKey extends string,
-  CentsKey extends string,
->(
-  floatKey: FloatKey,
-  centsKey: CentsKey,
-  amount: number | null | undefined,
-): Record<FloatKey | CentsKey, number | null> {
-  return {
-    [floatKey]: typeof amount === "number" ? amount : null,
-    [centsKey]: toCents(amount),
-  } as Record<FloatKey | CentsKey, number | null>;
-}

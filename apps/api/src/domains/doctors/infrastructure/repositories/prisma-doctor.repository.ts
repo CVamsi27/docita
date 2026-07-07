@@ -81,13 +81,12 @@ export class PrismaDoctorRepository implements IDoctorRepository {
     patch: Record<string, unknown>,
   ): Promise<number> {
     // Keep the canonical cents column in sync when the Float fee is updated (G3).
+    const fee = patch.consultationFee;
     const data =
-      patch.consultationFee !== undefined
+      fee !== undefined
         ? {
             ...patch,
-            consultationFeeCents: toCents(
-              patch.consultationFee as number | null | undefined,
-            ),
+            consultationFeeCents: typeof fee === 'number' ? toCents(fee) : null,
           }
         : patch;
     const result = await this.prisma.user.updateMany({
