@@ -37,7 +37,10 @@ model User {
   signatureUrl               String?
   signatureUploadedAt        DateTime?                @db.Timestamptz(3)
   bio                        String?
+  // Canonical money column — integer paise/cents. Prefer over the legacy
+  // `consultationFee` Float (kept for backward compatibility, additive-only).
   consultationFee            Float?
+  consultationFeeCents       Int?
   hospitalRole               HospitalRole?
   licenseExpiry              DateTime?                @db.Timestamptz(3)
   licenseNumber              String?
@@ -861,11 +864,19 @@ model Invoice {
   invoiceNumber            String?
   invoiceType              String           @default("BILL_OF_SUPPLY")
   currency                 String           @default("INR")
+  // MONEY REPRESENTATION (schema-locked, additive-only):
+  // The `*Cents` integer columns below are the canonical money representation
+  // and MUST be read by new code. The legacy `Float` columns (total, subtotal,
+  // discountTotal, taxTotal, grandTotal) are retained for backward compatibility
+  // and are written as a derived mirror of the cents values
+  // (see invoice-normalization.ts toInvoiceCentCreateFields). Do not add new
+  // Float money columns; do not treat Float as the source of truth.
   total                    Float
   subtotal                 Float            @default(0)
   discountTotal            Float            @default(0)
   taxTotal                 Float            @default(0)
   grandTotal               Float            @default(0)
+  // Canonical money columns — integer paise/cents. Prefer these everywhere.
   totalCents               Int              @default(0)
   subtotalCents            Int              @default(0)
   discountTotalCents       Int              @default(0)
@@ -2359,8 +2370,12 @@ model InventoryItem {
   quantity      Int                 @default(0)
   minQuantity   Int                 @default(10)
   unit          String              @default("units")
+  // Canonical money columns — integer paise/cents. Prefer over the legacy
+  // purchasePrice / sellingPrice Floats (kept for backward compatibility).
   purchasePrice Float?
   sellingPrice  Float?
+  purchasePriceCents Int?
+  sellingPriceCents  Int?
   expiryDate    DateTime?           @db.Timestamptz(3)
   batchNumber   String?
   supplier      String?
@@ -2467,7 +2482,9 @@ model LabTest {
   code                   String?
   loincCode              String?
   category               String
+  // Canonical money column — integer paise/cents. Prefer over `price` Float.
   price                  Float?
+  priceCents             Int?
   description            String?
   referenceRangeLow      Float?
   referenceRangeHigh     Float?
@@ -4081,7 +4098,9 @@ model Room {
   clinicId   String?
   roomNumber String
   type       String?
+  // Canonical money column — integer paise/cents. Prefer over `charges` Float.
   charges    Float    @default(0)
+  chargesCents Int    @default(0)
   createdAt  DateTime @default(now()) @db.Timestamptz(3)
   updatedAt  DateTime @updatedAt @db.Timestamptz(3)
   clinic     Clinic?  @relation(fields: [clinicId], references: [id], onDelete: SetNull)

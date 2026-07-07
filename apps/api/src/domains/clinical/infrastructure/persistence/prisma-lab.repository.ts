@@ -1,7 +1,12 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { labTestOrderResultJsonSchema } from '@workspace/types';
 import type { PaginatedResponse } from '@workspace/types';
-import { parseStringEnumMember } from '@workspace/utils';
+import {
+  parseStringEnumMember,
+  toCents,
+  resolveMoneyCents,
+  fromCents,
+} from '@workspace/utils';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -57,7 +62,9 @@ export class PrismaLabRepository implements ILabRepository {
       clinicId: labTest.clinicId,
       name: labTest.name,
       category: labTest.category,
+      // Write both the legacy Float and the canonical cents column (Phase 4 G3).
       price: labTest.price || null,
+      priceCents: toCents(labTest.price),
       description: labTest.description,
       code: labTest.code,
       active: labTest.active,
@@ -258,7 +265,9 @@ export class PrismaLabRepository implements ILabRepository {
       prismaTest.clinicId,
       prismaTest.active,
       prismaTest.code || undefined,
-      prismaTest.price ? Number(prismaTest.price) : undefined,
+      // Read cents-first, falling back to the legacy Float for un-backfilled rows.
+      fromCents(resolveMoneyCents(prismaTest.priceCents, prismaTest.price)) ??
+        undefined,
       prismaTest.description || undefined,
     );
   }

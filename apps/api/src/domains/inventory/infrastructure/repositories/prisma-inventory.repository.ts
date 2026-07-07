@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { toCents } from '@workspace/utils';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   type CreateInventoryItemData,
@@ -132,8 +133,11 @@ export class PrismaInventoryRepository implements IInventoryRepository {
         minQuantity: data.minQuantity,
         unit: data.unit,
         sku: data.sku,
+        // Write both the legacy Float and the canonical cents columns (G3).
         purchasePrice: data.purchasePrice,
         sellingPrice: data.sellingPrice,
+        purchasePriceCents: toCents(data.purchasePrice),
+        sellingPriceCents: toCents(data.sellingPrice),
         expiryDate: data.expiryDate,
         batchNumber: data.batchNumber,
         supplier: data.supplier,
@@ -155,9 +159,19 @@ export class PrismaInventoryRepository implements IInventoryRepository {
     data: UpdateInventoryItemData,
     clinicId: string,
   ): Promise<InventoryItem> {
+    // Keep the canonical cents columns in sync whenever a Float price is updated.
+    const dataWithCents = {
+      ...data,
+      ...(data.purchasePrice !== undefined
+        ? { purchasePriceCents: toCents(data.purchasePrice) }
+        : {}),
+      ...(data.sellingPrice !== undefined
+        ? { sellingPriceCents: toCents(data.sellingPrice) }
+        : {}),
+    };
     const updateResult = await this.prisma.inventoryItem.updateMany({
       where: { id, clinicId },
-      data,
+      data: dataWithCents,
     });
     if (updateResult.count === 0) {
       throw new Error(`Inventory item ${id} not found`);
