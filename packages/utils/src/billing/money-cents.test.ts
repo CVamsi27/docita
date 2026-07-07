@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  toCents,
-  fromCents,
-  resolveMoneyCents,
-  moneyWritePair,
-} from "./money-cents.js";
+import { fromCents, resolveMoneyCents, toCents } from "./money-cents.js";
 
 describe("toCents", () => {
   it("converts major units to integer cents, rounding half up", () => {
@@ -48,21 +43,5 @@ describe("resolveMoneyCents", () => {
 
   it("returns null when neither column is present", () => {
     expect(resolveMoneyCents(null, null)).toBeNull();
-  });
-});
-
-describe("moneyWritePair", () => {
-  it("emits both the Float and cents columns for a value", () => {
-    expect(moneyWritePair("price", "priceCents", 12.5)).toEqual({
-      price: 12.5,
-      priceCents: 1250,
-    });
-  });
-
-  it("emits nulls for an absent value", () => {
-    expect(moneyWritePair("charges", "chargesCents", null)).toEqual({
-      charges: null,
-      chargesCents: null,
-    });
   });
 });

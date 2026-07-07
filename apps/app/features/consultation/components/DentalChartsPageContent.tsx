@@ -24,6 +24,10 @@ import { PatientSearchSection } from "./PatientSearchSection";
 import { AppointmentListSection } from "./AppointmentListSection";
 import { DentalChartPanel } from "./DentalChartPanel";
 
+// Widen to a string-keyed lookup so an arbitrary clinic.type string can index
+// the labels without a cast (falls back to the raw type below).
+const clinicTypeLabels: Record<string, string> = CLINIC_TYPE_LABELS;
+
 export default function DentalChartsPage() {
   const { clinic } = useClinic();
   const [search, setSearch] = useState("");
@@ -110,9 +114,7 @@ export default function DentalChartsPage() {
                 Dental charting is only available for dental facilities. Your
                 facility type is{" "}
                 <strong>
-                  {(CLINIC_TYPE_LABELS as Record<string, string>)[
-                    clinic.type
-                  ] ?? clinic.type}
+                  {clinicTypeLabels[clinic.type] ?? clinic.type}
                 </strong>
                 .
               </>
