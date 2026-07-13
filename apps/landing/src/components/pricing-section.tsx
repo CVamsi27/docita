@@ -11,6 +11,7 @@ import { landingInViewViewport, landingStaggerContainer } from "@/lib/motion-pre
 import { SETUP_START_PRICE, TIER_ORDER } from "./pricing-data";
 import { PricingTierCard } from "./pricing-tier-card";
 import { PricingModeToggle } from "./pricing-mode-toggle";
+import { PlanPicker } from "./plan-picker";
 
 interface PricingSectionProps {
   appUrl: string;
@@ -44,10 +45,12 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           Annual plans include 2 months free.
         </p>
 
-        <div className="mt-8 flex flex-col gap-4 border-t border-border/60 pt-6 sm:flex-row sm:items-start sm:justify-between">
+        <PlanPicker appUrl={appUrl} />
+
+        <div className="mt-10 flex flex-col gap-4 border-t border-border/60 pt-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-xl space-y-1">
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Pick a <span className="font-medium text-foreground">workspace mode</span>{" "}
+              Or browse the full table below. Pick a <span className="font-medium text-foreground">workspace mode</span>{" "}
               then the tier that matches your scale. Pricing is per-facility.
             </p>
             <p className="text-xs text-muted-foreground/70">
@@ -85,9 +88,10 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
         <div className="mt-8 flex flex-wrap items-center gap-4 rounded-2xl border border-border/60 bg-card px-5 py-4 text-sm text-muted-foreground sm:px-6">
           <Check className="h-4 w-4 shrink-0 text-success" aria-hidden />
           <p className="min-w-0 flex-1">
-            Features marked &ldquo;planned&rdquo; in higher tiers are part of
-            the rollout roadmap, not promised to be live functionality today.
-            Overage usage is billed at a per-unit rate at the start of the next month.
+            Tier feature lists describe what is available on the plan. Limits
+            (consultations, WhatsApp messages, staff users) are tracked live
+            in the workspace; overage is billed at the published per-unit
+            rate at the start of the next billing month.
           </p>
         </div>
       </div>

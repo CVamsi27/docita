@@ -25,6 +25,26 @@ const FAQS: ReadonlyArray<{ q: string; a: string }> = [
     q: "How does pricing work, and what does setup include?",
     a: "Monthly software plans from \u20B9499. Guided setup (patient import, prescription templates, letterhead, signature, WhatsApp templates, billing config, and staff training) is scoped separately and starts from \u20B94,999. Higher tiers add multi-doctor, lab tests, inventory, analytics, and broader rollouts.",
   },
+  {
+    q: "Do my reception staff need training, and is the UI in English?",
+    a: "Reception and clinical workflows are in English today. The interface is built for non-technical staff: large primary actions, consistent left-to-right reading order, and inline help where it matters. We provide a 60-minute live training during setup and recorded walkthroughs you can replay during shifts.",
+  },
+  {
+    q: "Can I keep using my existing WhatsApp Business number?",
+    a: "Yes. We connect to your WhatsApp Business API credentials in Settings; the clinic becomes the sender, not a personal number. Templates, consent posture, and delivery health live in the same workspace. Sender credentials are admin-only.",
+  },
+  {
+    q: "What happens if the internet goes down mid-consultation?",
+    a: "The active consult keeps your last-saved draft and queues writes locally. The console surfaces a soft banner so the doctor knows what is queued, and the queue drains as soon as the connection returns. Critical actions are designed to fail safely, not silently.",
+  },
+  {
+    q: "Can I export my data if I ever want to leave?",
+    a: "Yes. Patients, prescriptions, invoices, and audit logs export to CSV. PDFs and structured FHIR-like bundles are available for prescriptions. There is no lock-in: data export is one of the trust controls we list publicly.",
+  },
+  {
+    q: "Is there a free trial or demo I can show my partners?",
+    a: "There is no time-limited free trial; instead, we offer guided setup so you evaluate with a real workflow, not a sandbox. Book a 30-minute walkthrough and we will show your actual flow on Docita with sample data tailored to your specialty.",
+  },
 ];
 
 export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
@@ -114,8 +134,8 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
               <dl className="mt-8 grid grid-cols-3 gap-x-3 gap-y-4 border-t border-background/15 pt-6 sm:gap-x-4">
                 {[
                   ["48 h", "First workflow"],
-                  ["₹499", "Software plan"],
-                  ["₹4,999", "Setup from"],
+                  ["\u20B9499", "Software plan"],
+                  ["\u20B94,999", "Setup from"],
                 ].map(([value, label]) => (
                   <div key={label}>
                     <dt className="r2-mono text-sm font-semibold">{value}</dt>
