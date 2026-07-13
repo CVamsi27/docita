@@ -1,10 +1,13 @@
 ---
 import MainLayout from "@/layouts/main-layout.astro";
 import { ClinicRhythmSection } from "@/components/sections/clinic-rhythm-section";
+import { ClinicTypesSection } from "@/components/sections/clinic-types-section";
+import { ComparisonStripSection } from "@/components/sections/comparison-strip-section";
 import { DifferentiatorsSection } from "@/components/sections/differentiators-section";
 import { FaqCtaSection } from "@/components/sections/faq-cta-section";
 import { HeroSection } from "@/components/sections/hero-section";
 import { PricingSection } from "@/components/pricing-section";
+import { ProductScreenshotsSection } from "@/components/sections/product-screenshots-section";
 import { ProofStripSection } from "@/components/sections/proof-strip-section";
 import { RolloutSection } from "@/components/sections/rollout-section";
 import { SurfaceMapSection } from "@/components/sections/surface-map-section";
@@ -18,8 +21,10 @@ const platformStats = await fetchPlatformStats(Astro.url.origin);
 
 <!--
   R2 arc: hero (live product) -> proof -> day rhythm (signature) ->
-  surface map (breadth) -> compare -> rollout -> differentiators ->
-  pricing -> FAQ + CTA.
+  surface map (breadth) -> product screenshots (real captures) ->
+  clinic types (audience) -> compare (control) -> rollout -> differentiators ->
+  comparison strip (factual side-by-side) -> pricing (with plan picker) ->
+  FAQ + CTA.
 -->
 <MainLayout
   canonicalPath="/"
@@ -30,9 +35,12 @@ const platformStats = await fetchPlatformStats(Astro.url.origin);
   <ProofStripSection stats={platformStats} />
   <ClinicRhythmSection client:visible />
   <SurfaceMapSection client:visible />
+  <ProductScreenshotsSection client:visible />
+  <ClinicTypesSection client:visible />
   <WorkflowCompareSection client:visible />
   <RolloutSection client:visible />
   <DifferentiatorsSection client:visible />
+  <ComparisonStripSection client:visible />
   <PricingSection appUrl={appUrl} client:idle />
   <FaqCtaSection appUrl={appUrl} client:visible />
 </MainLayout>

@@ -7,12 +7,10 @@ import {
   CalendarCheck,
   CheckCircle2,
   FileText,
-  Mic,
   Receipt,
   ScanText,
   ShieldCheck,
   Smartphone,
-  Smile,
   Sparkles,
 } from "lucide-react";
 
@@ -65,10 +63,10 @@ export function DifferentiatorsSection() {
           viewport={landingInViewViewport}
         >
           <DifferentiatorCard
-            icon={Smile}
+            icon={Sparkles}
             eyebrow="Patient portal"
             title="Your patients log in too."
-            description="A real patient portal&mdash;not a WhatsApp link. They see their upcoming visits, past prescriptions, bills, and consent settings in one place."
+            description="A real patient portal&mdash;not a WhatsApp link. Patients see upcoming visits, past prescriptions, bills, and consent settings in one place."
             variants={item}
           >
             <div className="r2-diff-surface">
@@ -82,7 +80,7 @@ export function DifferentiatorsSection() {
                 {[
                   { icon: CalendarCheck, label: "Next visit &middot; 28 May &middot; 11:30" },
                   { icon: FileText, label: "Prescription &middot; Metformin 500mg" },
-                  { icon: Receipt, label: "Receipt &middot; &₹700 &middot; Paid &middot; UPI" },
+                  { icon: Receipt, label: "Receipt &middot; \u20B9700 &middot; Paid &middot; UPI" },
                   { icon: ShieldCheck, label: "Consent &middot; WhatsApp granted" },
                 ].map((row) => (
                   <li
@@ -90,7 +88,6 @@ export function DifferentiatorsSection() {
                     className="flex items-center gap-2 rounded-md border border-border/40 bg-muted px-2.5 py-1.5"
                   >
                     <row.icon className="h-3.5 w-3.5 shrink-0 text-primary" />
-// jscpd:ignore-start
                     <span className="truncate text-foreground">{row.label}</span>
                   </li>
                 ))}
@@ -102,37 +99,30 @@ export function DifferentiatorsSection() {
             icon={Sparkles}
             eyebrow="AI Assist"
             title="AI that helps&mdash;without diagnosing."
-            description="Narrow, reviewable assistance: OCR for old prescriptions, mobile upload of scans, and a prescription assistant the doctor signs off. No broad diagnosis claims."
+            description="Narrow, reviewable assistance for the things that slow reception and clinicians down: digitising old records, capturing scans from a phone, and an Ask AI overlay scoped to whatever surface you are on."
             variants={item}
           >
             <div className="r2-diff-surface">
               <ul className="space-y-2 text-xs">
                 {[
-                  { icon: ScanText, label: "OCR digitization", badge: "Live", tone: "done" as const },
-                  { icon: Smartphone, label: "Mobile upload (phone camera)", badge: "Live", tone: "done" as const },
-                  { icon: Brain, label: "Prescription drafting & checks", badge: "Planned", tone: "wait" as const },
-                  { icon: Mic, label: "Voice dictation to notes", badge: "Planned", tone: "wait" as const },
+                  { icon: ScanText, label: "OCR for old prescriptions & case sheets" },
+                  { icon: Smartphone, label: "Mobile camera upload to patient record" },
+                  { icon: Brain, label: "Ask AI overlay, scoped to current surface" },
+                  { icon: FileText, label: "Prescription templates with auto dose rules" },
                 ].map((row) => (
-// jscpd:ignore-end
                   <li
                     key={row.label}
                     className="flex items-center gap-2 rounded-md border border-border/40 bg-muted px-2.5 py-1.5"
                   >
                     <row.icon className="h-3.5 w-3.5 shrink-0 text-primary" />
-                    <span className="flex-1 truncate text-foreground">{row.label}</span>
-                    <span
-                      className={
-                        row.tone === "done"
-                          ? "r2-status-pill r2-status-pill--done"
-                          : "r2-status-pill r2-status-pill--waiting"
-                      }
-                    >
-                      {row.badge}
-// jscpd:ignore-start
-                    </span>
+                    <span className="truncate text-foreground">{row.label}</span>
                   </li>
                 ))}
               </ul>
+              <p className="mt-3 text-[var(--fs-2xs)] leading-snug text-muted-foreground">
+                AI suggestions are reviewed and signed off by the doctor.
+                We do not generate diagnoses.
+              </p>
             </div>
           </DifferentiatorCard>
 
