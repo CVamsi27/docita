@@ -1,6 +1,7 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Building2, Mail, Search, X } from "lucide-react";
+import Link from "next/link";
 import { Input } from "@workspace/ui/components/form/input";
 import { Button } from "@workspace/ui/components/form/button";
 import { ClearSearchButton } from "@/components/buttons/clear-search-button";
@@ -38,6 +39,9 @@ export default function JoinClinicPage() {
         description="Taking you to request status"
       />
     );
+
+  const trimmedQuery = searchQuery.trim();
+  const showEmptyState = trimmedQuery.length > 0 && clinics.length === 0 && !isSearching;
 
   return (
     <PreDashboardShell
@@ -87,11 +91,65 @@ export default function JoinClinicPage() {
           </Button>
         </div>
 
-        {clinics.length === 0 && searchQuery && !isSearching ? (
-          <Card className="ui-card-surface p-8 text-center">
-            <p className="ui-helper-text">
-              No facilities found, try a different search term
-            </p>
+        {showEmptyState ? (
+          <Card
+            className="ui-card-surface space-y-4 p-6 text-left"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="flex items-start gap-3">
+              <span
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/60 bg-background/70 text-muted-foreground"
+                aria-hidden
+              >
+                <X className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1 space-y-1">
+                <p className="text-sm font-semibold text-foreground">
+                  No facilities matched &ldquo;{trimmedQuery}&rdquo;
+                </p>
+                <p className="ui-helper-text">
+                  Facility search uses the exact name, registered email, or
+                  referral code your admin shared with you. If you joined
+                  recently, ask your admin to confirm the search term.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div className="flex items-start gap-2.5 rounded-lg border border-border/60 bg-muted/40 p-3">
+                <Building2
+                  className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+                  aria-hidden
+                />
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Facility not on Docita yet? Switch to{" "}
+                  <Link
+                    href="/choose-path"
+                    className="font-semibold text-foreground underline-offset-4 hover:underline"
+                  >
+                    Create new facility
+                  </Link>{" "}
+                  to set one up.
+                </p>
+              </div>
+              <div className="flex items-start gap-2.5 rounded-lg border border-border/60 bg-muted/40 p-3">
+                <Mail
+                  className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+                  aria-hidden
+                />
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Can&rsquo;t reach your admin?{" "}
+                  <Link
+                    href="/contact"
+                    className="font-semibold text-foreground underline-offset-4 hover:underline"
+                  >
+                    Contact Docita
+                  </Link>{" "}
+                  and we&rsquo;ll connect you.
+                </p>
+              </div>
+            </div>
           </Card>
         ) : null}
 
