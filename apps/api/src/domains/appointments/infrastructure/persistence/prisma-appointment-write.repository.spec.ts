@@ -120,4 +120,60 @@ describe('PrismaAppointmentWriteRepository overlap translation', () => {
       ).resolves.toBe(1);
     });
   });
+
+  // The appointment `delete` is a hard deleteMany against the Prisma
+  // appointment table. It deliberately does NOT soft-delete (no cancelledAt /
+  // deletedAt on Appointment) because the lifecycle has its own
+  // status=CANCELLED state for that. The hard delete is gated upstream by
+  // status checks; this block pins the raw Prisma call and documents the
+  // foreign-key risk: VitalSign and FollowUp both have implicit Restrict
+  // relations to Appointment, so calling delete on an appointment that has
+  // any vital signs or follow-ups will surface a P2003 to the caller. The
+  // controller path is responsible for refusing the call in that case; if
+  // a future change ever moves delete to be reachable from a code path
+  // that does not pre-check dependents, this test will fail loudly.
+  describe('delete', () => {
+    const deleteMany = jest.fn<(...args: unknown[]) => Promise<unknown>>();
+
+    beforeEach(() => {
+      deleteMany.mockReset();
+      const prismaWithDelete = Object.create(
+        PrismaService.prototype,
+      ) as PrismaService;
+      Object.defineProperty(prismaWithDelete, 'appointment', {
+        value: { create, updateMany, deleteMany },
+        writable: true,
+      });
+      repository = new PrismaAppointmentWriteRepository(
+        prismaWithDelete,
+        clock,
+      );
+    });
+
+    it('scopes the deleteMany to (id, clinicId) and resolves on success', async () => {
+      deleteMany.mockResolvedValueOnce({ count: 1 });
+
+      await expect(
+        repository.delete('apt-1', 'clinic-1'),
+      ).resolves.toBeUndefined();
+      expect(deleteMany).toHaveBeenCalledWith({
+        where: { id: 'apt-1', clinicId: 'clinic-1' },
+      });
+    });
+
+    it('does not pre-check dependents — surfaces Prisma P2003 from the DB', async () => {
+      // FK risk characterization: VitalSign and FollowUp both have implicit
+      // Restrict on appointmentId. If a caller deletes an appointment that
+      // has either, the DB raises P2003 and this method rethrows it.
+      const fkError = new Prisma.PrismaClientKnownRequestError(
+        'Foreign key constraint failed on the field',
+        { code: 'P2003', clientVersion: 'test' },
+      );
+      deleteMany.mockRejectedValueOnce(fkError);
+
+      await expect(repository.delete('apt-1', 'clinic-1')).rejects.toBe(
+        fkError,
+      );
+    });
+  });
 });
