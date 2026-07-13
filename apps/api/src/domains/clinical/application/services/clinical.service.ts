@@ -113,10 +113,7 @@ export class ClinicalService {
     await this.labTestRepository.deleteTest(id);
   }
 
-  async getAllOrders(
-    clinicId: string,
-    params?: LabOrderQueryParams,
-  ) {
+  async getAllOrders(clinicId: string, params?: LabOrderQueryParams) {
     return await this.labOrderRepository.findAllOrders(clinicId, params);
   }
 

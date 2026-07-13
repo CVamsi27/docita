@@ -53,6 +53,7 @@ export function useClinicRegistrationFlow() {
     step,
     setStep,
     formData,
+    setFormData,
     onboardingId,
     restoreOnboardingId: setOnboardingId,
     ...fieldActions,

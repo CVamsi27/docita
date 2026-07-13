@@ -2,10 +2,15 @@ import { z } from "zod";
 import { DEFAULT_COUNTRY_CODE, getUserFacingErrorMessage, isRecord, type UserFacingErrorContext } from "@workspace/utils";
 import type {
   ClinicDetails,
+  ClinicRegistrationData,
   ComplianceSettings,
 } from "@/features/onboarding/components/types";
-import { complianceSchema } from "@/features/onboarding/components/types";
+import {
+  complianceSchema,
+  defaultClinicRegistrationData,
+} from "@/features/onboarding/components/types";
 import { clinicDetailsSchema } from "@/features/onboarding/schemas/clinic-details-refinement";
+import { clinicRegistrationSessionSchema } from "@/features/onboarding/hooks/onboarding-session-schemas";
 
 export const STEPS = [
   { number: 1, label: "Facility Details", estimatedTime: "2 min" },
@@ -19,10 +24,15 @@ export const STEPS = [
 export const TOTAL_STEPS = STEPS.length;
 export const DRAFT_KEY = "docita_onboarding_draft";
 export const SESSION_ONBOARDING_ID_KEY = "docita_onboarding_id";
+export const SESSION_KEY = "docita_onboarding_step";
 
 export interface OnboardingDraft {
   clinicDetails: Partial<ClinicDetails>;
   compliance: Partial<ComplianceSettings>;
+  /** Full flow snapshot so steps 2–5 keep their data across a fresh session. */
+  formData?: ClinicRegistrationData;
+  /** Wizard step the user left off on (1–5). */
+  step?: number;
   savedAt: string;
   onboardingId?: string | null;
 }
@@ -30,6 +40,8 @@ export interface OnboardingDraft {
 const onboardingDraftEnvelopeSchema = z.object({
   clinicDetails: z.unknown().optional(),
   compliance: z.unknown().optional(),
+  formData: z.unknown().optional(),
+  step: z.number().optional(),
   savedAt: z.string(),
   onboardingId: z.string().nullable().optional(),
 });
@@ -47,15 +59,65 @@ function toPartialComplianceSettings(
   return parsed.success ? parsed.data : {};
 }
 
+function toFullFormData(value: unknown): ClinicRegistrationData | undefined {
+  const parsed = clinicRegistrationSessionSchema.safeParse(value);
+  return parsed.success ? parsed.data : undefined;
+}
+
 export function parseOnboardingDraft(raw: unknown): OnboardingDraft | null {
   const parsed = onboardingDraftEnvelopeSchema.safeParse(raw);
   if (!parsed.success) return null;
   return {
     clinicDetails: toPartialClinicDetails(parsed.data.clinicDetails),
     compliance: toPartialComplianceSettings(parsed.data.compliance),
+    formData: toFullFormData(parsed.data.formData),
+    step: parsed.data.step,
     savedAt: parsed.data.savedAt,
     onboardingId: parsed.data.onboardingId,
   };
+}
+
+/**
+ * Reconstruct the full flow state to restore. Prefers the complete snapshot
+ * saved with the draft; for older/partial drafts that predate snapshot support,
+ * merges the field-level clinic details and compliance onto the defaults so the
+ * flow still receives clinic details (and StepGuard does not wrongly restart).
+ */
+export function buildResumeFormData(
+  draft: OnboardingDraft,
+): ClinicRegistrationData {
+  if (draft.formData) return draft.formData;
+
+  // Merge the partial field-level draft onto defaults directly (rather than
+  // requiring a fully valid parse) so even incomplete clinic details survive.
+  return {
+    ...defaultClinicRegistrationData,
+    clinicDetails: {
+      ...defaultClinicRegistrationData.clinicDetails,
+      ...draft.clinicDetails,
+    },
+    compliance: {
+      ...defaultClinicRegistrationData.compliance,
+      ...draft.compliance,
+    },
+  };
+}
+
+/**
+ * Decide which step to resume on restore. Clamps to 1–5, forces Step 1 when the
+ * clinic details required by later steps are missing, and downgrades the
+ * compliance step (5) to plan (4) when no onboarding session id is available.
+ */
+export function resolveResumeStep(draft: OnboardingDraft): number {
+  const requested = draft.step ?? 1;
+  const clamped = Math.max(1, Math.min(requested, TOTAL_STEPS));
+  if (clamped <= 1) return 1;
+
+  const clinicDetails = draft.formData?.clinicDetails ?? draft.clinicDetails;
+  if (getMissingClinicDetailsForProgress(clinicDetails).length > 0) return 1;
+
+  if (clamped >= 5 && !draft.onboardingId) return 4;
+  return clamped;
 }
 
 export function parseClinicDetailsDraft(value: unknown): ClinicDetails | null {

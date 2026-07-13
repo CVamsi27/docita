@@ -69,7 +69,11 @@ export function useClinicRegistrationForm(_onSuccess: () => void) {
     clinicForm,
     complianceForm,
     onboardingId: flow.onboardingId,
+    formData: flow.formData,
+    step: flow.step,
     restoreOnboardingId: flow.restoreOnboardingId,
+    restoreFormData: flow.setFormData,
+    goToStep: flow.setStep,
     restartOnboarding: flow.restartOnboarding,
     onAfterDiscard: () => setStepError(null),
   });

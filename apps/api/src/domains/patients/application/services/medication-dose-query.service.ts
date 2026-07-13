@@ -97,10 +97,15 @@ export class MedicationDoseQueryService {
     const administered = counts['ADMINISTERED'] ?? 0;
     const dueDoses = taken + missed + skipped + pending + administered;
     const completed = taken + administered;
-    const adherenceRate =
-      dueDoses > 0 ? (completed / dueDoses) * 100 : 100;
+    const adherenceRate = dueDoses > 0 ? (completed / dueDoses) * 100 : 100;
 
-    return { totalDoses: dueDoses, taken: completed, missed, skipped, adherenceRate };
+    return {
+      totalDoses: dueDoses,
+      taken: completed,
+      missed,
+      skipped,
+      adherenceRate,
+    };
   }
 
   async getActiveMedications(clinicId: string, patientId: string) {

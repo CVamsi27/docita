@@ -86,7 +86,9 @@ describe("AddPatientDialog", () => {
     expect(screen.getByLabelText("Last Name *")).toBeInTheDocument();
     expect(screen.getByLabelText("Phone")).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
-    expect(screen.getByLabelText("ABHA Address")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("ABHA Address (coming soon)"),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText("Gender *")).toBeInTheDocument();
     expect(screen.getByLabelText(/Date of Birth/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText("First name")).toBeInTheDocument();
@@ -151,7 +153,7 @@ describe("EditPatientDialog", () => {
     });
   });
 
-  it("opens the OTP verification flow and requests OTP for mobile", async () => {
+  it("shows the ABHA verify action as disabled while the feature is coming soon", () => {
     render(
       <EditPatientDialog
         open
@@ -171,18 +173,9 @@ describe("EditPatientDialog", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Verify via OTP" }));
-
-    // Step 1: the OTP dialog opens with a mobile-number input.
-    const mobileInput = await screen.findByLabelText("Mobile number");
-    fireEvent.change(mobileInput, { target: { value: "9876543210" } });
-    fireEvent.click(screen.getByRole("button", { name: "Send OTP" }));
-
-    await waitFor(() => {
-      expect(requestAbhaOtpMock).toHaveBeenCalledWith({
-        patientId: "patient-1",
-        mobile: "9876543210",
-      });
-    });
+    expect(
+      screen.getByRole("button", { name: "Verify via OTP (coming soon)" }),
+    ).toBeDisabled();
+    expect(requestAbhaOtpMock).not.toHaveBeenCalled();
   });
 });

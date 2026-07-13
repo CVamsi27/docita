@@ -85,7 +85,7 @@ const COLUMNS: SurfaceColumn[] = [
       { label: "Daybook & day-close", icon: BookOpen },
       { label: "Inventory", icon: Boxes },
       { label: "Reports & analytics", icon: TrendingUp },
-      { label: "ABDM / ABHA ready", icon: HeartPulse },
+      { label: "ABDM / ABHA (coming soon)", icon: HeartPulse },
       { label: "IPD bed management", icon: BedDouble },
       { label: "Audit & roles", icon: ShieldCheck },
       { label: "Imports (Excel · OCR)", icon: FileInput },

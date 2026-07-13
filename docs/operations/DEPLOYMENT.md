@@ -122,7 +122,7 @@ DATABASE_URL="postgresql://..." pnpm --filter @workspace/db run db:migrate:safe
 - Build `apps/landing` with `pnpm build:landing:cloudflare`.
 - Preview each Worker locally with the matching `preview:*:cloudflare` script.
 - Deploy each Worker with the matching `deploy:*:cloudflare` script.
-- Frontend production deploys run through the path-scoped [`deploy-cloudflare.yml`](../../.github/workflows/deploy-cloudflare.yml) workflow when repository credentials verify. Cloudflare Git integration or dashboard deploys remain the fallback.
+- Frontend production deploys run through the path-scoped Cloudflare jobs in [`deploy.yml`](../../.github/workflows/deploy.yml) when repository credentials verify. Cloudflare Git integration or dashboard deploys remain the fallback.
 
 ## Release Gates
 
@@ -205,8 +205,8 @@ Notes:
 
 ### Frontend (Cloudflare Workers)
 
-Production frontend deploys can run from GitHub Actions via
-[`.github/workflows/deploy-cloudflare.yml`](../../.github/workflows/deploy-cloudflare.yml)
+Production frontend deploys can run from GitHub Actions via the Cloudflare jobs in
+[`deploy.yml`](../../.github/workflows/deploy.yml)
 when `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets are
 set and pass [`scripts/deploy/verify-cloudflare-deploy-credentials.mjs`](../../scripts/deploy/verify-cloudflare-deploy-credentials.mjs)
 (token verify, account scope, and `Zone > Workers Routes` read access on

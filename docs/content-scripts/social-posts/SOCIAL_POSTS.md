@@ -372,7 +372,7 @@ Follow Docita → linkedin.com/company/114464051
 
 ### P6 — Digital Prescriptions
 
-**Status:** [ ] done
+**Status:** [V] done
 **Image:** `images/shot-prescription.png`
 **Image (Instagram):** `images-png/shot-prescription-ig.png`
 **Alt text:** Docita prescription builder screen
