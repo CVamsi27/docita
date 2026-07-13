@@ -212,10 +212,40 @@ audit. Each one would land in a Phase 3 PR.
 
 ## Files touched by this audit
 
-None. This commit is a findings document only. Phase 3 PRs will touch
-the corresponding feature files.
+The original audit commit was read-only. Subsequent stacked commits
+on `fix/clean-code` then implemented the actual work:
 
-## Verification
+| Commit | Phase | Surface | Type |
+| --- | --- | --- | --- |
+| `e9e1f3c55` | 1 | `apps/landing` | 4 new sections + plan picker + rewritten AI card + 9-question FAQ + comparison strip + product screenshots + clinic types |
+| `8f98dcd2f` | 2 | `docs/audits/` | This audit document |
+| `50e75b417` | 3 #2 | `apps/app/features/dashboard` | Persistent next-patient preview in `BottomActionBar` + 5 new tests |
+| `7c48d1e72` | 3 #1 | `docs/audits/` | Implementation spec for patients list last-visit / next-visit column (deferred to a focused future PR) |
+| `ce9774093` | 4 | `apps/landing` | FAQPage JSON-LD on homepage; FAQ list extracted to `lib/faqs.ts` as the single source of truth |
+| `06389bebf` | pre-2 | (multi-area) | WIP commit consolidating the local working tree |
 
-This audit was a read-only pass. No code was modified. No build
-artifacts were generated. The audit doc is the only deliverable.
+## Phase 3 candidates &mdash; final status
+
+| # | Candidate | Status |
+| --- | --- | --- |
+| 1 | Patients list last-visit / next-visit column | Spec at `UI_UX_PATIENTS_VISIT_COLUMN_SPEC_2026-07-13.md` &mdash; implementation deferred to a focused future PR (multi-layer: schema + API + contract + UI + backfill) |
+| 2 | Today page: persistent next-patient pill | **Shipped** in `feat(today): persistent next-patient preview while in consult` (`50e75b417`) |
+| 3 | Appointments slot-click contextual action menu | Already addressed: `TimeSlotRow` shows `Check-in` + `Start/Resume/View` inline + 5-item `AppointmentRowActionsMenu` overflow. Real remaining gap: no inline Reschedule (cancel + rebook today) |
+| 4 | WhatsApp send-template pre-scoped to patient | Already addressed: `PatientWhatsappComposer` lives on the patient detail Communication tab, pre-fills the patient's phone, loads the clinic's active templates |
+| 5 | Onboarding "here's your day" overlay | Already addressed: `GuidedTourLauncher` auto-starts inside `TodayNewClinicEmptyState`; `GettingStartedChecklist` runs alongside |
+| 6 | Consultation floating Quick Actions cluster | Already addressed: `ConsultationPageHeaderToolbar` has live timer + Vitals + Invoice + Ask AI + &cudot;K command palette + Mark done CTA. Mobile collapses to `DropdownMenu`. A floating cluster on top would be a regression |
+
+## Final mechanical re-check
+
+Ran the same 13 mechanical checks after all phases. Still 0 hits on
+every one &mdash; no regressions introduced.
+
+## Branch state
+
+All work stacked on `fix/clean-code`. The duplicate Phase 4 commit
+`57a0b5a24` was created on a parallel branch
+(`fix/phase1-remaining-findmany-bounds`) when a checkout to that
+branch happened mid-session; the commit was cherry-picked back to
+`fix/clean-code` as `ce9774093`. The original duplicate on the
+parallel branch was left intact because that branch is owned by a
+parallel work stream and may carry unrelated in-progress changes.
