@@ -14,9 +14,12 @@ import { SurfaceMapSection } from "@/components/sections/surface-map-section";
 import { WorkflowCompareSection } from "@/components/sections/workflow-compare-section";
 import { getAppBaseUrl } from "@/lib/get-app-base-url";
 import { fetchPlatformStats } from "@/lib/landing-data";
+import { buildFaqPageStructuredData } from "@/lib/faqs";
 
 const appUrl = getAppBaseUrl();
 const platformStats = await fetchPlatformStats(Astro.url.origin);
+const siteUrl = "https://docita.work";
+const faqStructuredData = buildFaqPageStructuredData(`${siteUrl}/`);
 ---
 
 <!--
@@ -30,6 +33,7 @@ const platformStats = await fetchPlatformStats(Astro.url.origin);
   canonicalPath="/"
   title="Docita - Clinic & Hospital Management Software"
   description="One operating layer for Indian clinics and hospitals: queue, EMR, prescriptions, billing, WhatsApp, lab tests, inventory, analytics, and a real patient portal. Two-week rollout."
+  structuredData={faqStructuredData}
 >
   <HeroSection appUrl={appUrl} client:idle />
   <ProofStripSection stats={platformStats} />

@@ -163,19 +163,52 @@ audit. Each one would land in a Phase 3 PR.
    in the next commit on this branch &mdash; see
    `feat(today): persistent next-patient preview while in consult`.**
 3. **Appointments: slot click opens a contextual action menu** &mdash;
-   reschedule, cancel, mark arrived, start consult. Right now it's
-   one row, one action; in practice the doctor needs all four.
+   reschedule, cancel, mark arrived, start consult. **Mostly
+   addressed already**: each `TimeSlotRow` shows the `Check-in`
+   button inline when status is `confirmed`, the `Start / Resume /
+   View` button inline when the doctor can access the consultation,
+   and an `AppointmentRowActionsMenu` overflow with **View Patient,
+   Schedule follow-up, Print OPD prescription, Cancel Appointment,
+   Mark no-show** (visibility-gated per status). The audit's
+   original "one row, one action" claim was based on a partial
+   read of `TimeSlotRow`; the real action surface is 5+ actions
+   per row. **Real remaining gap**: there is no inline
+   **Reschedule** action &mdash; if a patient calls to move their
+   slot, the doctor has to cancel and rebook. Adding a
+   reschedule flow is its own focused PR (date/time picker, API,
+   conflict check). Not in scope for this pass.
 4. **WhatsApp: "send template" sheet pre-scoped to the patient when
    opened from a patient detail page** &mdash; one click instead of
-   three (open patient &rarr; open WhatsApp &rarr; pick patient
-   &rarr; pick template).
+   three. **Already addressed**: `PatientWhatsappComposer`
+   (`apps/app/features/patients/components/details/PatientWhatsappComposer.tsx`)
+   is a patient-scoped composer that lives on the patient detail
+   Communication tab. It loads the clinic's active templates,
+   pre-fills the patient's phone, and supports both template-pick
+   and custom messages. No code change needed.
 5. **Onboarding end-of-wizard "here's your day" overlay** &mdash; a
    30-second `GuidedTourLauncher` run that points at Today, the
-   queue, and the first action. (The `GuidedTourLauncher` primitive
-   already exists; the wiring is what would change.)
+   queue, and the first action. **Already addressed**:
+   `GuidedTourLauncher` is mounted inside
+   `TodayNewClinicEmptyState` and calls
+   `useGuidedTour().autoStartIfEligible()` on mount; the tour
+   auto-runs for new clinics (flag on, admin, onboarding complete,
+   server status `NOT_STARTED`). The companion
+   `GettingStartedChecklist` lives next to it for a persistent
+   nudge. No code change needed.
 6. **Consultation: a "Quick actions" floating cluster (Prescribe /
    Lab / Complete)** that doesn't move with scroll &mdash; frees up
-   header real estate. (Worth a design pass before code.)
+   header real estate. **Already addressed**:
+   `ConsultationPageHeaderToolbar`
+   (`apps/app/features/consultation/components/consultation-page-header-toolbar.tsx`)
+   already has: a live `ConsultationTimer`, an inline **Vitals**
+   button, an inline **Invoice / Edit Invoice** button, an **Ask
+   AI** scoped to the consultation, a **Quick actions** command
+   palette (⌘K), and the primary **Mark done** CTA. Mobile
+   collapses the desktop strip into a `DropdownMenu` per the
+   responsive pattern in `UI_UX_STANDARD_2026.md` §3.6. A floating
+   cluster on top of this would be a regression &mdash; the existing
+   toolbar already gives one-click access to every recommended
+   action and follows the design standard. No code change needed.
 
 ## Files touched by this audit
 
