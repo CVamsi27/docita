@@ -170,6 +170,10 @@ export class ReferralService {
         },
       },
       orderBy: { createdAt: 'desc' },
+      // Capped: a single clinic's referral history is a small set; 500 is
+      // a guardrail well above realistic scale (a clinic rarely refers
+      // hundreds of other clinics).
+      take: 500,
     });
   }
 

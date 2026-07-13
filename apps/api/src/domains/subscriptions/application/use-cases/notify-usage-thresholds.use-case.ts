@@ -29,6 +29,11 @@ export class NotifyUsageThresholdsUseCase {
         select: {
           clinicId: true,
         },
+        // Capped: this cron iterates all active/trialing subscriptions across
+        // every clinic. The current Docita footprint is well under this
+        // guardrail; 10000 is a safety net that pages loudly via the
+        // Promise.allSettled error loop before anything is dropped.
+        take: 10000,
       });
 
       const results = await Promise.allSettled(

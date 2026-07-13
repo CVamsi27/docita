@@ -34,6 +34,8 @@ export class PrismaPatientTagsRepository implements IPatientTagsRepository {
       where: { patientId: params.patientId },
       orderBy: { tag: 'asc' },
       select: { id: true, tag: true, color: true },
+      // No `take`: bounded by patientId. Tags are a hand-curated, small
+      // per-patient set; the UI renders the whole list.
     });
   }
 

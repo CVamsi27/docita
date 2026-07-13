@@ -71,11 +71,19 @@ export class MedicalHistoryService {
     const [conditions, allergies, meds] = await Promise.all([
       this.persistence.patientMedicalCondition.findMany({
         where: { patientId },
+        // No `take`: bounded by patientId. The AI summary is built from the
+        // full per-patient history; truncating would lose clinical context.
       }),
-      this.persistence.patientAllergy.findMany({ where: { patientId } }),
+      this.persistence.patientAllergy.findMany({
+        where: { patientId },
+        // No `take`: bounded by patientId. Allergies feed the AI summary;
+        // truncation could miss safety-critical entries.
+      }),
       this.persistence.prescription.findMany({
         where: { patientId, approvalStatus: 'APPROVED' },
         include: { medications: true },
+        // No `take`: bounded by (patientId, approvalStatus: APPROVED). The
+        // full approved-prescription history is summarized for the clinician.
       }),
     ]);
 
@@ -109,6 +117,8 @@ export class MedicalHistoryService {
     return this.persistence.patientFamilyHistory.findMany({
       where: { patientId },
       orderBy: { createdAt: 'desc' },
+      // No `take`: bounded by patientId. Family history is a small curated
+      // per-patient list surfaced in the patient chart.
     });
   }
 
@@ -234,6 +244,8 @@ export class MedicalHistoryService {
     return this.persistence.patientSurgicalHistory.findMany({
       where: { patientId },
       orderBy: { procedureDate: 'desc' },
+      // No `take`: bounded by patientId. Surgical history is a small curated
+      // per-patient list surfaced in the patient chart.
     });
   }
 

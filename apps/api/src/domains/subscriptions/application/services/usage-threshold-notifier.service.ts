@@ -112,6 +112,10 @@ export class UsageThresholdNotifierService {
           type: true,
           channel: true,
         },
+        // No `take`: bounded by (clinicId, type ∈ small fixed set,
+        // channel ∈ small fixed set, current billing period). The dedup
+        // set must see every reminder; truncation would let duplicates
+        // slip through.
       });
 
     const dedupeSet = new Set(
@@ -207,6 +211,9 @@ export class UsageThresholdNotifierService {
         email: { not: '' },
       },
       select: { email: true, name: true },
+      // No `take`: bounded by (clinicId, role: ADMIN, email ≠ ''). The
+      // email goes to every admin; truncating would silently drop a
+      // recipient.
     });
 
     if (admins.length === 0) return false;

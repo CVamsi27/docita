@@ -52,6 +52,9 @@ export class PrismaDoctorDelayRepository implements IDoctorDelayRepository {
           originalStartTime: true,
         },
         orderBy: { startTime: 'asc' },
+        // No `take`: bounded by (clinicId, doctorId, today, active status).
+        // We are explicitly shifting every remaining appointment in the day,
+        // so the full set must be read; capping would silently drop shifts.
       });
 
       const shiftMs = command.delayMinutes * 60 * 1000;
@@ -103,6 +106,9 @@ export class PrismaDoctorDelayRepository implements IDoctorDelayRepository {
     return this.prisma.doctorDelay.findMany({
       where: { clinicId, isActive: true },
       orderBy: { markedAt: 'desc' },
+      // No `take`: bounded by (clinicId, isActive: true). Active delays per
+      // clinic are a small control-plane set, and the caller (UI banner) needs
+      // the full set to render the in-clinic delay board.
     });
   }
 }

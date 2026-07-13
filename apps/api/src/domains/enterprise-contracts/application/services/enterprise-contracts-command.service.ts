@@ -162,6 +162,9 @@ export class EnterpriseContractsCommandService {
         const memberClinicIds = (
           await tx.enterpriseContractMember.findMany({
             where: { contractId: contract.id, removedAt: null },
+            // No `take`: bounded by (contractId, removedAt: null). The
+            // member set is then passed to subscription.updateMany, so
+            // every active member must be present.
           })
         ).map((m) => m.clinicId);
 
