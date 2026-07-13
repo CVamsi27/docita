@@ -134,9 +134,9 @@ describe('PrismaPatientRepository', () => {
   it('throws NotFound when soft-deleting a missing/already-deleted patient', async () => {
     mockPrismaService.patient.updateMany.mockResolvedValueOnce({ count: 0 });
 
-    await expect(repository.delete('patient-1', 'other-clinic')).rejects.toThrow(
-      'Patient patient-1 not found',
-    );
+    await expect(
+      repository.delete('patient-1', 'other-clinic'),
+    ).rejects.toThrow('Patient patient-1 not found');
   });
 
   it('builds search filters and computes no further pages when on last page', async () => {

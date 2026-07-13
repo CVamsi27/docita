@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { dayOfWeekSchema } from "@workspace/types";
+import { dayOfWeekSchema, onboardingClinicDetailsBaseSchema } from "@workspace/types";
 import { complianceSchema } from "@/features/onboarding/components/types";
 
 const sessionTeamMemberSchema = z.object({
@@ -40,7 +40,7 @@ const sessionPaymentDetailsSchema = z.object({
 });
 
 export const clinicRegistrationSessionSchema = z.object({
-  clinicDetails: z.record(z.string(), z.unknown()),
+  clinicDetails: onboardingClinicDetailsBaseSchema.partial(),
   compliance: complianceSchema.partial(),
   planSelection: sessionPlanSelectionSchema,
   paymentDetails: sessionPaymentDetailsSchema,

@@ -18,6 +18,7 @@ import {
 } from "@workspace/ui/components/form/form";
 import { Input } from "@workspace/ui/components/form/input";
 import { Badge } from "@workspace/ui/components/indicators/badge";
+import { ComingSoonBadge } from "@/components/feedback/coming-soon-badge";
 
 export type AbhaVerificationUiState =
   | { kind: "idle"; message?: string }
@@ -94,18 +95,9 @@ export function AbhaVerificationField<
   name,
   currentValue,
   isPending,
-  patientId,
   status,
-  onVerify,
   verifyLabel = "Verify",
-  requireValueToVerify = true,
 }: AbhaVerificationFieldProps<T>) {
-  const canVerify = Boolean(
-    patientId &&
-      onVerify &&
-      (currentValue?.trim() || !requireValueToVerify),
-  );
-
   return (
     <div className="md:col-span-2">
       <FormField
@@ -113,21 +105,26 @@ export function AbhaVerificationField<
         name={name}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>ABHA Address</FormLabel>
+            <FormLabel className="flex items-center gap-2">
+              ABHA Address
+              <ComingSoonBadge />
+            </FormLabel>
             <div className="flex flex-col gap-2 sm:flex-row">
               <FormControl>
                 <Input
                   {...field}
-                  value={field.value ?? ""}
+                  value={field.value ?? currentValue ?? ""}
                   placeholder="name@abdm"
+                  disabled
+                  aria-label="ABHA Address (coming soon)"
                 />
               </FormControl>
               <Button
                 type="button"
                 variant="outline"
-                onClick={onVerify}
-                disabled={!canVerify || isPending}
+                disabled
                 className="sm:w-32"
+                aria-label={`${verifyLabel} (coming soon)`}
               >
                 {isPending ? (
                   <DocitaLoadingIndicator variant="inline" decorative />

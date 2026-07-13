@@ -10,7 +10,7 @@ export function PrescriptionMedicationList({ medications, instructions }: Prescr
     <>
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-4xl font-serif font-bold text-primary italic">\u211E</span>
+          <span className="text-5xl font-serif font-bold text-primary leading-none">℞</span>
           <span className="text-lg font-semibold text-muted-foreground">Medications</span>
         </div>
         <div className="space-y-3 pl-4 border-l-2 border-primary/20">

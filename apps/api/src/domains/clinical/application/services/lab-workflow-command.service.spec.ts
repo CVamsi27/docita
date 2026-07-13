@@ -11,10 +11,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 describe('LabWorkflowCommandService', () => {
   let service: LabWorkflowCommandService;
 
-  const buildOrder = (overrides: {
-    resultUrl?: string;
-    paidAt?: Date;
-  }) =>
+  const buildOrder = (overrides: { resultUrl?: string; paidAt?: Date }) =>
     new LabOrder(
       'order-1',
       'patient-1',

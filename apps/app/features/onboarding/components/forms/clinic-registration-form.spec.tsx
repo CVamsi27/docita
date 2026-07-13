@@ -46,6 +46,8 @@ vi.mock("@/features/onboarding/hooks/use-clinic-registration-flow", () => ({
       compliance: {},
     },
     onboardingId: null,
+    setStep: vi.fn(),
+    setFormData: vi.fn(),
     restoreOnboardingId: mocks.restoreOnboardingId,
     ensureOnboardingId: vi.fn(),
     restartOnboarding: mocks.restartOnboarding,

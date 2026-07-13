@@ -25,10 +25,7 @@ export function SummaryTab({ patient, patientId }: SummaryTabProps) {
         <MedicalHistorySection patient={patient} patientId={patientId} />
         <RecentConsultationsSection patientId={patientId} />
       </div>
-      <AbdmExternalRecordsSection
-        patientId={patientId}
-        abhaVerified={Boolean(patient.abhaVerifiedAt)}
-      />
+      <AbdmExternalRecordsSection />
     </div>
   );
 }

@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { DEFAULT_COUNTRY_CODE } from "@workspace/utils";
 import {
   type ClinicDetails,
+  type ClinicRegistrationData,
   type ComplianceSettings,
   defaultClinicRegistrationData,
   defaultComplianceValues,
@@ -12,10 +13,13 @@ import {
 import {
   DRAFT_KEY,
   SESSION_ONBOARDING_ID_KEY,
+  SESSION_KEY,
+  buildResumeFormData,
   hasMeaningfulComplianceDraftData,
   hasMeaningfulClinicDraftData,
   parseClinicDetailsDraft,
   parseOnboardingDraft,
+  resolveResumeStep,
   type OnboardingDraft,
 } from "./clinic-registration-form-helpers";
 
@@ -23,7 +27,11 @@ interface UseOnboardingDraftOptions {
   clinicForm: UseFormReturn<ClinicDetails>;
   complianceForm: UseFormReturn<ComplianceSettings>;
   onboardingId: string | null;
+  formData: ClinicRegistrationData;
+  step: number;
   restoreOnboardingId: (id: string) => void;
+  restoreFormData: (data: ClinicRegistrationData) => void;
+  goToStep: (step: number) => void;
   restartOnboarding: () => void;
   onAfterDiscard?: () => void;
 }
@@ -32,7 +40,11 @@ export function useOnboardingDraft({
   clinicForm,
   complianceForm,
   onboardingId,
+  formData,
+  step,
   restoreOnboardingId,
+  restoreFormData,
+  goToStep,
   restartOnboarding,
   onAfterDiscard,
 }: UseOnboardingDraftOptions) {
@@ -52,7 +64,7 @@ export function useOnboardingDraft({
           : null;
       const persistedStep =
         typeof sessionStorage !== "undefined"
-          ? Number(sessionStorage.getItem("docita_onboarding_step") || "1")
+          ? Number(sessionStorage.getItem(SESSION_KEY) || "1")
           : 1;
       const ageMs = Date.now() - new Date(draft.savedAt).getTime();
       const hasMeaningfulDraft =
@@ -93,19 +105,27 @@ export function useOnboardingDraft({
   }, [clinicForm, complianceForm]);
 
   const handleRestoreDraft = () => {
-    if (savedDraft?.clinicDetails) {
-      const clinicDetails = parseClinicDetailsDraft(savedDraft.clinicDetails);
-      if (clinicDetails) clinicForm.reset(clinicDetails);
-    }
-    if (savedDraft?.onboardingId) {
+    if (!savedDraft) return;
+
+    // Rehydrate the full flow snapshot first so steps 2–5 have the data they
+    // need (weekly hours, team, plan) and StepGuard does not restart us. Older
+    // drafts without a snapshot fall back to a reconstruction from their fields.
+    restoreFormData(buildResumeFormData(savedDraft));
+    if (savedDraft.onboardingId) {
       restoreOnboardingId(savedDraft.onboardingId);
     }
-    if (savedDraft?.compliance) {
-      complianceForm.reset({
-        ...defaultComplianceValues,
-        ...savedDraft.compliance,
-      });
-    }
+
+    // Rehydrate the live RHF forms from the freshest field-level draft.
+    const clinicDetails = parseClinicDetailsDraft(savedDraft.clinicDetails);
+    if (clinicDetails) clinicForm.reset(clinicDetails);
+    complianceForm.reset({
+      ...defaultComplianceValues,
+      ...savedDraft.compliance,
+    });
+
+    // Finally, land the user on the step they left off at.
+    goToStep(resolveResumeStep(savedDraft));
+
     setShowDraftDialog(false);
     setSavedDraft(null);
   };
@@ -124,21 +144,31 @@ export function useOnboardingDraft({
     onAfterDiscard?.();
   };
 
+  // Keep the latest flow snapshot in a ref so the draft writer stays stable
+  // and does not re-subscribe the form watchers on every step/field change.
+  const flowSnapshotRef = useRef({ formData, step });
+  flowSnapshotRef.current = { formData, step };
+
   const persistDraft = useCallback(
     (
       clinicDetails: Partial<ClinicDetails>,
       compliance: Partial<ComplianceSettings>,
     ) => {
       try {
+        const { formData: snapshotFormData, step: snapshotStep } =
+          flowSnapshotRef.current;
         const draft: OnboardingDraft = {
           clinicDetails,
           compliance,
+          formData: snapshotFormData,
+          step: snapshotStep,
           savedAt: new Date().toISOString(),
           onboardingId,
         };
         const hasMeaningfulDraft =
           hasMeaningfulClinicDraftData(clinicDetails) ||
           hasMeaningfulComplianceDraftData(compliance) ||
+          snapshotStep > 1 ||
           Boolean(onboardingId);
         if (!hasMeaningfulDraft) {
           localStorage.removeItem(DRAFT_KEY);
@@ -166,9 +196,11 @@ export function useOnboardingDraft({
     return () => subscription.unsubscribe();
   }, [clinicForm, complianceForm, persistDraft]);
 
+  // Persist whenever the flow snapshot (step / hours / team / plan) advances so
+  // a returning user resumes on the right step with all prior data intact.
   useEffect(() => {
     persistDraft(clinicForm.getValues(), complianceForm.getValues());
-  }, [clinicForm, complianceForm, onboardingId, persistDraft]);
+  }, [clinicForm, complianceForm, onboardingId, formData, step, persistDraft]);
 
   return {
     showDraftDialog,

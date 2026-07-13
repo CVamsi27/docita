@@ -103,22 +103,6 @@ vi.mock("@workspace/data-access", () => ({
     isError: false,
     refetch: vi.fn(),
   }),
-  useAbdmExternalRecords: () => ({
-    data: [
-      {
-        id: "external-1",
-        patientId: "patient-1",
-        consentRequestId: "consent-1",
-        sourceHipId: "REMOTE_HIP",
-        careContextReference: "REMOTE-CTX-1",
-        hiType: "DiagnosticReport",
-        receivedAt: "2026-06-01T08:00:00.000Z",
-      },
-    ],
-    isLoading: false,
-    isError: false,
-    refetch: vi.fn(),
-  }),
 }));
 
 describe("SummaryTab", () => {
@@ -163,9 +147,7 @@ describe("SummaryTab", () => {
     expect(screen.getByText("Latest vitals")).toBeInTheDocument();
     expect(screen.getByText("Recent consultations")).toBeInTheDocument();
     expect(screen.getByText("External ABDM records")).toBeInTheDocument();
-    expect(
-      screen.getByText("REMOTE_HIP", { exact: false }),
-    ).toBeInTheDocument();
+    expect(screen.getAllByText("Coming soon").length).toBeGreaterThan(0);
     expect(screen.getByText("Surgeries")).toBeInTheDocument();
     expect(screen.getAllByText("Type 2 diabetes").length).toBeGreaterThan(0);
     expect(
