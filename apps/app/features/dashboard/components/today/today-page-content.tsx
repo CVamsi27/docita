@@ -133,7 +133,7 @@ export function TodayPageContent() {
       />
       <TodayBottomBarSection
         canStartConsultation={canStartConsultation}
-        hasNextPatient={!!nextPatients[0]}
+        nextPatient={nextPatients[0] ?? null}
         hasCurrentPatient={!!currentPatient}
         isStarting={startingNext}
         isMutationPending={isMutationPending}

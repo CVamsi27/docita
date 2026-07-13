@@ -155,7 +155,9 @@ audit. Each one would land in a Phase 3 PR.
 2. **Today page: "next patient" stays visible while a consultation
    is in progress** &mdash; the current `BottomActionBar` disappears
    when `hasCurrentPatient`. A persistent "Next: <name>" pill would
-   let the doctor see who's next without opening the queue.
+   let the doctor see who's next without opening the queue. **Done
+   in the next commit on this branch &mdash; see
+   `feat(today): persistent next-patient preview while in consult`.**
 3. **Appointments: slot click opens a contextual action menu** &mdash;
    reschedule, cancel, mark arrived, start consult. Right now it's
    one row, one action; in practice the doctor needs all four.
