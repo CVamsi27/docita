@@ -41,6 +41,11 @@ export class EnterpriseContractTrueUpScheduler {
         const activeContracts = await this.prisma.enterpriseContract.findMany({
           where: { status: EnterpriseContractStatus.ACTIVE },
           select: { id: true, contractNumber: true },
+          // Capped: this is a daily cron that iterates all active contracts.
+          // Active enterprise contracts are a small internal-portal set;
+          // 1000 is a guardrail well above realistic scale and below
+          // table-size.
+          take: 1000,
         });
         this.logger.log(
           `True-up scan: ${activeContracts.length} active contracts`,

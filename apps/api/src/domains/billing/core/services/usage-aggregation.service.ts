@@ -28,6 +28,11 @@ export class UsageAggregationService {
           },
         },
         select: { id: true },
+        // Capped: daily cron iterates every active/trialing clinic to roll
+        // up usage metrics. The cap is a guardrail well above current
+        // scale; if it fires the per-clinic failure loop surfaces it
+        // loudly in the daily log.
+        take: 10000,
       });
 
       const results = await Promise.allSettled(

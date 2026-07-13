@@ -108,6 +108,10 @@ export class PrismaDoctorClinicsRepository implements IDoctorClinicsRepository {
           },
         },
       },
+      // Capped: bounded by (doctorId, active: true). A doctor is actively
+      // assigned to a small number of clinics in practice; 100 is a safety
+      // net well above realistic scale and well below table-size.
+      take: 100,
     });
   }
 
@@ -122,6 +126,10 @@ export class PrismaDoctorClinicsRepository implements IDoctorClinicsRepository {
           select: DOCTOR_ASSIGNMENT_SUMMARY_SELECT,
         },
       },
+      // Capped: bounded by (clinicId, active: true). Even a large hospital
+      // group rarely exceeds a few hundred active doctor assignments; 500 is
+      // a guardrail against runaway growth.
+      take: 500,
     });
   }
 

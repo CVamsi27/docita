@@ -319,6 +319,9 @@ export class EnterpriseContractInvoiceCommandService {
 
       const members = await this.persistence.enterpriseContractMember.findMany({
         where: { contractId, removedAt: null },
+        // No `take`: bounded by (contractId, removedAt: null). The
+        // member set feeds the YTD overage aggregation by clinicId, so
+        // every active member must be present.
       });
       const ytdOverageAgg = await this.persistence.usageRecord.aggregate({
         where: {

@@ -34,6 +34,12 @@ export class BillMonthlyOveragesUseCase {
           includedAppointments: true,
           includedUsers: true,
         },
+        // Capped: monthly cron iterates every active/trialing subscription.
+        // Dropping a subscription here means silently not billing its
+        // overages for the period — unacceptable. The cap is a guardrail
+        // well above current scale; if it ever fires the per-clinic
+        // failure loop surfaces it loudly.
+        take: 10000,
       });
 
       this.logger.log(

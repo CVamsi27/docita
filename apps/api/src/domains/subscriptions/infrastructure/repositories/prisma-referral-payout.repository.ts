@@ -48,6 +48,11 @@ export class PrismaReferralPayoutRepository implements IReferralPayoutRepository
           },
         },
       },
+      // Capped: revenue-share accrual iterates every CONVERTED referral
+      // across all clinics. Dropping a row here means a clinic's referrer
+      // is silently underpaid; the cap is a guardrail and the surrounding
+      // accrual log surfaces anything truncated.
+      take: 10000,
     });
   }
 
