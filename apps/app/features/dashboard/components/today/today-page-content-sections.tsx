@@ -19,8 +19,11 @@ import {
   BottomActionBar,
   BottomActionBarSlot,
 } from "@workspace/ui/components/layout/bottom-action-bar";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
 import { cn } from "@workspace/ui/lib/utils";
 import { LayoutDashboard, Play, Sparkles } from "lucide-react";
+import { formatDate, getPatientFullName } from "@workspace/utils";
+import { getInitials } from "@/lib/formatters";
 import type { TodayRailVisibility } from "./today-page-content-helpers";
 
 const TodayMainWidgets = dynamic(
@@ -197,22 +200,51 @@ export function TodayRightRailSection({
 
 interface TodayBottomBarSectionProps {
   canStartConsultation: boolean;
-  hasNextPatient: boolean;
+  nextPatient: TodayDashboardState["nextPatients"][number] | null;
   hasCurrentPatient: boolean;
   isStarting: boolean;
   isMutationPending: boolean;
   onStartNextPatient: () => void;
 }
 
+/**
+ * Persistent docked action bar. The "Next patient" CTA stays visible whether
+ * or not a consultation is currently in progress so the doctor can see who
+ * is up next and start the consult in one click without opening the queue.
+ * When no consult is active we also surface the secondary "View queue" link.
+ */
 export function TodayBottomBarSection({
   canStartConsultation,
-  hasNextPatient,
+  nextPatient,
   hasCurrentPatient,
   isStarting,
   isMutationPending,
   onStartNextPatient,
 }: TodayBottomBarSectionProps) {
-  if (!canStartConsultation || !hasNextPatient || hasCurrentPatient) return null;
+  if (!canStartConsultation || !nextPatient) return null;
+
+  if (hasCurrentPatient) {
+    return (
+      <BottomActionBar aria-label="Next patient in queue">
+        <BottomActionBarSlot variant="secondary">
+          <NextPatientPreview nextPatient={nextPatient} />
+        </BottomActionBarSlot>
+        <BottomActionBarSlot variant="primary">
+          <Button
+            className="w-full touch-manipulation"
+            disabled={isStarting || isMutationPending}
+            onClick={onStartNextPatient}
+            aria-label={`Start next consultation: ${getPatientFullName(
+              nextPatient.patient,
+            )}`}
+          >
+            <Play className="mr-2 size-4" aria-hidden />
+            {isStarting ? "Starting…" : "Start next"}
+          </Button>
+        </BottomActionBarSlot>
+      </BottomActionBar>
+    );
+  }
 
   return (
     <BottomActionBar>
@@ -230,12 +262,52 @@ export function TodayBottomBarSection({
           className="w-full touch-manipulation"
           disabled={isStarting || isMutationPending}
           onClick={onStartNextPatient}
+          aria-label={`Start next consultation: ${getPatientFullName(
+            nextPatient.patient,
+          )}`}
         >
           <Play className="mr-2 size-4" aria-hidden />
           {isStarting ? "Starting…" : "Next patient"}
         </Button>
       </BottomActionBarSlot>
     </BottomActionBar>
+  );
+}
+
+interface NextPatientPreviewProps {
+  nextPatient: TodayDashboardState["nextPatients"][number];
+}
+
+function NextPatientPreview({ nextPatient }: NextPatientPreviewProps) {
+  const fullName = getPatientFullName(nextPatient.patient);
+  const formattedTime = nextPatient.startTime
+    ? formatDate(nextPatient.startTime, "hh:mm a")
+    : null;
+
+  return (
+    <div className="flex w-full items-center gap-2.5 rounded-[var(--radius)] border border-border/60 bg-card/80 px-3 py-2 text-left shadow-sm">
+      <Avatar className="h-8 w-8 shrink-0">
+        <AvatarFallback className="border border-border/60 bg-background/70 text-foreground text-[11px] font-semibold">
+          {getInitials(
+            nextPatient.patient?.firstName ?? "",
+            nextPatient.patient?.lastName,
+          )}
+        </AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          Next up
+        </p>
+        <p className="truncate text-sm font-semibold text-foreground">
+          {fullName}
+          {formattedTime ? (
+            <span className="ml-1.5 font-normal text-muted-foreground">
+              &middot; {formattedTime}
+            </span>
+          ) : null}
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -328,7 +400,7 @@ export function TodayWorkspaceLayout({
   referralShare,
 }: TodayWorkspaceLayoutProps) {
   const showBottomBarPadding =
-    canStartConsultation && nextPatients[0] && !currentPatient;
+    canStartConsultation && nextPatients[0];
   return (
     <div
       className={cn(
