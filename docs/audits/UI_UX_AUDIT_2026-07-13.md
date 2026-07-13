@@ -151,7 +151,11 @@ audit. Each one would land in a Phase 3 PR.
 1. **Patients list: last-visit / next-visit column** &mdash; one
    glance shows who the doctor is about to see and who they last
    saw. Requires API change to expose the dates. (Highest impact for
-   the daily list-scan workflow.)
+   the daily list-scan workflow.) **Spec-only for now &mdash; see
+   `docs/audits/UI_UX_PATIENTS_VISIT_COLUMN_SPEC_2026-07-13.md` for
+   the full multi-layer plan (schema migration + API + contract +
+   UI + backfill). Not landed in this pass because the change is
+   too large for a session-end commit.**
 2. **Today page: "next patient" stays visible while a consultation
    is in progress** &mdash; the current `BottomActionBar` disappears
    when `hasCurrentPatient`. A persistent "Next: <name>" pill would
