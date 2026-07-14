@@ -30,38 +30,34 @@ export function PrescriptionsTab({ patientId }: PrescriptionsTabProps) {
   } = usePatientPrescriptions(patientId);
   const { repeatPrescription } = useRepeatPrescription();
 
-  if (isLoading) return (
-      <DataState status="loading" loadingMessage="Loading prescriptions…" />
-    );
+  const status: "loading" | "error" | "empty" | "success" = isLoading
+    ? "loading"
+    : isError
+      ? "error"
+      : !prescriptions || prescriptions.length === 0
+        ? "empty"
+        : "success";
 
-  if (isError) {
-    return (
-      <DataState
-        status="error"
-        errorMessage="We could not load these prescriptions. Please try again."
-        onRetry={() => refetch()}
-      />
-    );
-  }
-
-  if (!prescriptions || prescriptions.length === 0) {
-    return (
-      <DataState
-        status="empty"
-        emptyIcon={Pill}
-        emptyTitle="No prescriptions yet"
-        emptyDescription="Prescriptions issued to this patient will appear here."
-      />
-    );
-  }
-
-  const sorted = [...prescriptions].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  );
+  const sorted =
+    prescriptions && prescriptions.length > 0
+      ? [...prescriptions].sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        )
+      : [];
 
   return (
-    <div className="space-y-3">
-      {sorted.map((prescription) => {
+    <DataState
+      status={status}
+      loadingMessage="Loading prescriptions…"
+      errorMessage="We could not load these prescriptions. Please try again."
+      onRetry={() => refetch()}
+      emptyIcon={Pill}
+      emptyTitle="No prescriptions yet"
+      emptyDescription="Prescriptions issued to this patient will appear here."
+    >
+      <div className="space-y-3">
+        {sorted.map((prescription) => {
         const date = prescription.createdAt
           ? formatDate(prescription.createdAt, "EEE, d MMM yyyy")
           : "";
@@ -164,6 +160,7 @@ export function PrescriptionsTab({ patientId }: PrescriptionsTabProps) {
           </Card>
         );
       })}
-    </div>
+      </div>
+    </DataState>
   );
 }
