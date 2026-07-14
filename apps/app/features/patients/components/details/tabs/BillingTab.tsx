@@ -10,7 +10,10 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+import {
+  DataState,
+  type DataStateStatus,
+} from "@workspace/ui/components/data-display/data-state";
 import { ExternalLink, Receipt } from "lucide-react";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatCurrency, formatDate } from "@workspace/utils";
@@ -50,24 +53,28 @@ export function BillingTab({ patientId }: BillingTabProps) {
     return bDate - aDate;
   });
 
-  const invoicesSection = isLoading ? (
-    <DataState status="loading" loadingMessage="Loading invoices…" />
-  ) : isError ? (
-    <DataState
-      status="error"
-      errorMessage="We could not load these invoices. Please try again."
-      onRetry={() => refetch()}
-    />
-  ) : list.length === 0 ? (
-    <DataState
-      status="empty"
-      emptyIcon={Receipt}
-      emptyTitle="No invoices"
-      emptyDescription="Invoices billed to this patient will appear here."
-    />
-  ) : (
-    <div className="space-y-3">
-      {sorted.map((invoice) => {
+  const status: DataStateStatus = isLoading
+    ? "loading"
+    : isError
+      ? "error"
+      : list.length === 0
+        ? "empty"
+        : "success";
+
+  return (
+    <div className="space-y-6">
+      <PatientClaimsPanel patientId={patientId} />
+      <DataState
+        status={status}
+        loadingMessage="Loading invoices…"
+        errorMessage="We could not load these invoices. Please try again."
+        onRetry={() => refetch()}
+        emptyIcon={Receipt}
+        emptyTitle="No invoices"
+        emptyDescription="Invoices billed to this patient will appear here."
+      >
+        <div className="space-y-3">
+          {sorted.map((invoice) => {
         const issuedDate = invoice.issuedAt ?? invoice.createdAt;
         const dateLabel = issuedDate
           ? formatDate(issuedDate, "EEE, d MMM yyyy")
@@ -124,13 +131,8 @@ export function BillingTab({ patientId }: BillingTabProps) {
           </Card>
         );
       })}
-    </div>
-  );
-
-  return (
-    <div className="space-y-6">
-      <PatientClaimsPanel patientId={patientId} />
-      {invoicesSection}
+        </div>
+      </DataState>
     </div>
   );
 }
