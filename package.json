@@ -92,6 +92,7 @@
     "check:json-column-zod": "node scripts/checks/check-json-column-zod.mjs",
     "check:webhook-replay-protection": "node scripts/checks/check-webhook-replay-protection.mjs",
     "check:as-cast-density": "node scripts/checks/check-as-cast-density.mjs",
+    "check:jsx-literal-density": "node scripts/checks/check-jsx-literal-density.mjs --enforce",
     "check:migration-reversibility": "node scripts/checks/check-migration-reversibility.mjs",
     "check:suspense-error-boundary-pair": "node scripts/checks/check-suspense-error-boundary-pair.mjs",
     "check:dynamic-import-budget": "node scripts/checks/check-dynamic-import-budget.mjs",
