@@ -32,9 +32,8 @@ import {
   TodayErrorState,
   TodayLoadingState,
   TodayNewClinicEmptyState,
-  TodayPageHeader,
-  TodayWorkspaceLayout,
-} from "./today-page-content-sections";
+} from "./today-page-state-shells";
+import { TodayPageHeader, TodayWorkspaceLayout } from "./today-page-content-sections";
 
 export function TodayPageContent() {
   const { clinic } = useClinic();

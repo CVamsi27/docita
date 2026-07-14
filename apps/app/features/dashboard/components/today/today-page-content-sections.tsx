@@ -1,17 +1,13 @@
 "use client";
 
-import type { ReactNode } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { DashboardSharedWorkspace } from "@/features/dashboard/components/layout/dashboard-shared-workspace";
-import { DashboardSkeletonUI } from "@/features/dashboard/components/layout/dashboard-skeleton-ui";
 import { DashboardRefreshControl } from "@/features/dashboard/components/layout/dashboard-refresh-control";
 import { ClinicReferralShareToolbar } from "@/features/dashboard/components/layout/clinic-referral-share-toolbar";
 import { TodayAdvisorRail } from "@/features/dashboard/components/advisor/today-advisor-rail";
 import type { useClinicReferralShare } from "@/features/dashboard/hooks/use-clinic-referral-share";
 import type { useDashboardLogic } from "@/features/dashboard/hooks/use-dashboard-logic";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { Button } from "@workspace/ui/components/form/button";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
@@ -21,7 +17,7 @@ import {
 } from "@workspace/ui/components/layout/bottom-action-bar";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
 import { cn } from "@workspace/ui/lib/utils";
-import { LayoutDashboard, Play, Sparkles } from "lucide-react";
+import { Play, Sparkles } from "lucide-react";
 import { formatDate, getPatientFullName } from "@workspace/utils";
 import { getInitials } from "@/lib/formatters";
 import type { TodayRailVisibility } from "./today-page-content-helpers";
@@ -308,57 +304,6 @@ function NextPatientPreview({ nextPatient }: NextPatientPreviewProps) {
         </p>
       </div>
     </div>
-  );
-}
-
-interface TodayHeaderSlotProps {
-  header: ReactNode;
-}
-
-/** Loading shell — reuses the page header so the layout doesn't shift once data arrives. */
-export function TodayLoadingState({ header }: TodayHeaderSlotProps) {
-  return (
-    <AppPageScaffold header={header}>
-      <DashboardSkeletonUI variant="today" />
-    </AppPageScaffold>
-  );
-}
-
-interface TodayErrorStateProps extends TodayHeaderSlotProps {
-  onRetry: () => void;
-}
-
-/** Error shell — split out of `TodayPageContent` so the loaded/error/empty branches are each easy to scan. */
-export function TodayErrorState({ header, onRetry }: TodayErrorStateProps) {
-  return (
-    <AppPageScaffold header={header}>
-      <DataState
-        status="error"
-        className="min-h-[50vh]"
-        errorMessage="We could not load today's workspace. Please try again."
-        onRetry={onRetry}
-      />
-    </AppPageScaffold>
-  );
-}
-
-/** First-patient empty state shown when `isNewClinicDashboard` is true. */
-export function TodayNewClinicEmptyState({
-  header,
-  slot,
-}: TodayHeaderSlotProps & { slot?: ReactNode }) {
-  return (
-    <AppPageScaffold header={header}>
-      {slot}
-      <DataState
-        status="empty"
-        className="min-h-[50vh]"
-        emptyIcon={LayoutDashboard}
-        emptyTitle="Start with your first patient"
-        emptyDescription="Add a patient or schedule a visit to see your queue and today's appointments here."
-        emptyAction={{ label: "Go to patients", href: "/patients" }}
-      />
-    </AppPageScaffold>
   );
 }
 
