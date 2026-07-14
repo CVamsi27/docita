@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { usePatientTimeline } from "@workspace/data-access";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+import {
+  DataState,
+  type DataStateStatus,
+} from "@workspace/ui/components/data-display/data-state";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Section } from "@workspace/ui/components/layout/section";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
@@ -41,6 +44,15 @@ export function RecentConsultationsSection({
     [data?.events, timelineCutoff],
   );
 
+  const status: DataStateStatus =
+    isLoading && !data
+      ? "loading"
+      : isError
+        ? "error"
+        : consultations.length === 0
+          ? "empty"
+          : "success";
+
   return (
     <Section
       title="Recent consultations"
@@ -52,25 +64,15 @@ export function RecentConsultationsSection({
         />
       }
     >
-      {isLoading && !data ? (
-        <DataState
-          status="loading"
-          loadingMessage="Loading recent consultations…"
-        />
-      ) : isError ? (
-        <DataState
-          status="error"
-          errorMessage="We could not load recent consultations. Please try again."
-          onRetry={() => refetch()}
-        />
-      ) : consultations.length === 0 ? (
-        <DataState
-          status="empty"
-          emptyIcon={CalendarDays}
-          emptyTitle="No consultations yet"
-          emptyDescription="Completed and active consultations will appear here."
-        />
-      ) : (
+      <DataState
+        status={status}
+        loadingMessage="Loading recent consultations…"
+        errorMessage="We could not load recent consultations. Please try again."
+        onRetry={() => refetch()}
+        emptyIcon={CalendarDays}
+        emptyTitle="No consultations yet"
+        emptyDescription="Completed and active consultations will appear here."
+      >
         <ul className="divide-y divide-border/60">
           {consultations.map(({ event, metadata }) => {
             const primaryDiagnosis =
@@ -137,7 +139,7 @@ export function RecentConsultationsSection({
             );
           })}
         </ul>
-      )}
+      </DataState>
     </Section>
   );
 }
