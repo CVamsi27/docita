@@ -2,7 +2,10 @@
 
 // jscpd:ignore-start
 import { useState } from "react";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+import {
+  DataState,
+  type DataStateStatus,
+} from "@workspace/ui/components/data-display/data-state";
 import { Clock3 } from "lucide-react";
 import type { TimelineEventType } from "@workspace/types";
 import { usePatientTimeline } from "@workspace/data-access";
@@ -41,38 +44,37 @@ export function VisitsTab({ patientId }: VisitsTabProps) {
         : [...prev, type],
     );
   };
-  if (isLoading && !data) return <DataState status="loading" loadingMessage="Loading visits…" />;
-  if (isError) {
-    return (
-      <DataState
-        status="error"
-        errorMessage="We could not load these visits. Please try again."
-        onRetry={() => refetch()}
-      />
-    );
-  }
-  if (!data) {
-    return (
-      <DataState
-        status="empty"
-        emptyIcon={Clock3}
-        emptyTitle="No visits yet"
-        emptyDescription="Past and upcoming appointments for this patient will appear here."
-      />
-    );
-  }
-  const hasMore = offset + limit < data.total;
+  const status: DataStateStatus = isLoading && !data
+    ? "loading"
+    : isError
+      ? "error"
+      : !data
+        ? "empty"
+        : "success";
+  const hasMore = !!data && offset + limit < data.total;
   return (
-    <PatientTimeline
-      mode="full"
-      events={data.events}
-      summary={data.summary}
-      total={data.total}
-      selectedTypes={selectedTypes}
-      onTypeToggle={handleTypeToggle}
-      onLoadMore={() => setOffset((prev) => prev + limit)}
-      hasMore={hasMore}
-      isLoading={isLoading}
-    />
+    <DataState
+      status={status}
+      loadingMessage="Loading visits…"
+      errorMessage="We could not load these visits. Please try again."
+      onRetry={() => refetch()}
+      emptyIcon={Clock3}
+      emptyTitle="No visits yet"
+      emptyDescription="Past and upcoming appointments for this patient will appear here."
+    >
+      {data ? (
+        <PatientTimeline
+          mode="full"
+          events={data.events}
+          summary={data.summary}
+          total={data.total}
+          selectedTypes={selectedTypes}
+          onTypeToggle={handleTypeToggle}
+          onLoadMore={() => setOffset((prev) => prev + limit)}
+          hasMore={hasMore}
+          isLoading={isLoading}
+        />
+      ) : null}
+    </DataState>
   );
 }
