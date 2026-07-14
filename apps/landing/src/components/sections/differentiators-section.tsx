@@ -7,6 +7,7 @@ import {
   CalendarCheck,
   CheckCircle2,
   FileText,
+  type LucideIcon,
   Receipt,
   ScanText,
   ShieldCheck,
@@ -31,6 +32,17 @@ const TRUST_BADGES = [
   "Encryption in transit + at rest",
   "Data export · CSV",
 ];
+
+type PortalRow = { icon: LucideIcon; label: string };
+
+function PortalListRow({ row }: { row: PortalRow }) {
+  return (
+    <li className="flex items-center gap-2 rounded-md border border-border/40 bg-muted px-2.5 py-1.5">
+      <row.icon className="h-3.5 w-3.5 shrink-0 text-primary" />
+      <span className="truncate text-foreground">{row.label}</span>
+    </li>
+  );
+}
 
 export function DifferentiatorsSection() {
   const reduce = useReducedMotion();
@@ -83,13 +95,7 @@ export function DifferentiatorsSection() {
                   { icon: Receipt, label: "Receipt &middot; \u20B9700 &middot; Paid &middot; UPI" },
                   { icon: ShieldCheck, label: "Consent &middot; WhatsApp granted" },
                 ].map((row) => (
-                  <li
-                    key={row.label}
-                    className="flex items-center gap-2 rounded-md border border-border/40 bg-muted px-2.5 py-1.5"
-                  >
-                    <row.icon className="h-3.5 w-3.5 shrink-0 text-primary" />
-                    <span className="truncate text-foreground">{row.label}</span>
-                  </li>
+                  <PortalListRow key={row.label} row={row} />
                 ))}
               </ul>
             </div>
@@ -110,13 +116,7 @@ export function DifferentiatorsSection() {
                   { icon: Brain, label: "Ask AI overlay, scoped to current surface" },
                   { icon: FileText, label: "Prescription templates with auto dose rules" },
                 ].map((row) => (
-                  <li
-                    key={row.label}
-                    className="flex items-center gap-2 rounded-md border border-border/40 bg-muted px-2.5 py-1.5"
-                  >
-                    <row.icon className="h-3.5 w-3.5 shrink-0 text-primary" />
-                    <span className="truncate text-foreground">{row.label}</span>
-                  </li>
+                  <PortalListRow key={row.label} row={row} />
                 ))}
               </ul>
               <p className="mt-3 text-[var(--fs-2xs)] leading-snug text-muted-foreground">

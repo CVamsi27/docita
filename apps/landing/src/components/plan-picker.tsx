@@ -168,6 +168,45 @@ interface PlanPickerProps {
   appUrl: string;
 }
 
+interface OptionFieldsetProps<V extends string> {
+  legend: string;
+  options: QuestionOption<V>[];
+  value: V | null;
+  onChange: (value: V) => void;
+}
+
+function OptionFieldset<V extends string>({
+  legend,
+  options,
+  value,
+  onChange,
+}: OptionFieldsetProps<V>) {
+  return (
+    <fieldset className="r2-plan-picker-fieldset">
+      <legend className="r2-plan-picker-legend">{legend}</legend>
+      <div className="r2-plan-picker-options">
+        {options.map((opt) => {
+          const Icon = opt.icon;
+          const active = value === opt.id;
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => onChange(opt.id)}
+              className={cn("r2-plan-picker-option", active && "is-active")}
+              aria-pressed={active}
+            >
+              <Icon className="h-4 w-4" aria-hidden />
+              <span className="font-medium">{opt.label}</span>
+              <span className="r2-plan-picker-hint">{opt.hint}</span>
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
 export function PlanPicker({ appUrl }: PlanPickerProps) {
   const reduce = useReducedMotion();
   const item = landingFadeUpVariants(reduce ?? false);
@@ -204,51 +243,18 @@ export function PlanPicker({ appUrl }: PlanPickerProps) {
       </div>
 
       <div className="r2-plan-picker-grid">
-        <fieldset className="r2-plan-picker-fieldset">
-          <legend className="r2-plan-picker-legend">Practice size</legend>
-          <div className="r2-plan-picker-options">
-            {PRACTICE_OPTIONS.map((opt) => {
-              const Icon = opt.icon;
-              const active = practice === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setPractice(opt.id)}
-                  className={cn("r2-plan-picker-option", active && "is-active")}
-                  aria-pressed={active}
-                >
-                  <Icon className="h-4 w-4" aria-hidden />
-                  <span className="font-medium">{opt.label}</span>
-                  <span className="r2-plan-picker-hint">{opt.hint}</span>
-                </button>
-              );
-            })}
-          </div>
-        </fieldset>
-
-        <fieldset className="r2-plan-picker-fieldset">
-          <legend className="r2-plan-picker-legend">Type of work</legend>
-          <div className="r2-plan-picker-options">
-            {WORK_OPTIONS.map((opt) => {
-              const Icon = opt.icon;
-              const active = work === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setWork(opt.id)}
-                  className={cn("r2-plan-picker-option", active && "is-active")}
-                  aria-pressed={active}
-                >
-                  <Icon className="h-4 w-4" aria-hidden />
-                  <span className="font-medium">{opt.label}</span>
-                  <span className="r2-plan-picker-hint">{opt.hint}</span>
-                </button>
-              );
-            })}
-          </div>
-        </fieldset>
+        <OptionFieldset<PracticeShape>
+          legend="Practice size"
+          options={PRACTICE_OPTIONS}
+          value={practice}
+          onChange={setPractice}
+        />
+        <OptionFieldset<WorkType>
+          legend="Type of work"
+          options={WORK_OPTIONS}
+          value={work}
+          onChange={setWork}
+        />
       </div>
 
       {recommendation ? (
