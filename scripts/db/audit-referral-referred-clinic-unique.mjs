@@ -1,3 +1,8 @@
+// fallow-ignore-file unused-file
+//
+// Operator-run audit script (not imported by any code path). Run via
+// `pnpm tsx scripts/db/audit-referral-referred-clinic-unique.mjs` after
+// staging/prod data is ready for the one-per-clinic unique constraint.
 #!/usr/bin/env node
 /**
  * Audit `Referral.referredClinicId` to confirm the data is suitable for
