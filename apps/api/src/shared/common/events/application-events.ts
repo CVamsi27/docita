@@ -20,4 +20,9 @@ export enum ApplicationEvents {
   OCR_PAGE_PROCESSED = 'ocr.page.processed',
   AI_CREDITS_CONSUMED = 'ai.credits.consumed',
   WHATSAPP_DELIVERY_STALE = 'whatsapp.delivery.stale',
+  // Emitted by clinics.onboarding after the onboarding transaction commits.
+  // Subscriptions subscribes to capture any referrer code from
+  // planSelection.referralCode (cross-domain integration without a direct
+  // clinics.application → subscriptions.core.services import).
+  CLINIC_ONBOARDED = 'clinic.onboarded',
 }

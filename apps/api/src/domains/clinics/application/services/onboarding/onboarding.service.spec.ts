@@ -13,7 +13,7 @@ import { OnboardingWorkflowService } from './onboarding-workflow.service';
 import { OnboardingComplianceService } from './onboarding-compliance.service';
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
 import { PAYMENT_GATEWAY_TOKEN } from '@/domains/subscriptions/application/ports';
-import { ReferralService } from '@/domains/subscriptions/core/services/referral.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BadRequestException, Logger, NotFoundException } from '@nestjs/common';
 import {
   beforeEach,
@@ -235,17 +235,8 @@ describe('OnboardingService', () => {
         ) => Promise<{ verified: boolean; amountCents: number }>
       >(),
   };
-  const mockReferralService = {
-    captureReferralAtSignup: jest
-      .fn<
-        (
-          ...args: unknown[]
-        ) => Promise<{ linked: boolean }>
-      >()
-      .mockResolvedValue({ linked: false }),
-    realizeReferralOnFirstPayment: jest
-      .fn<(...args: unknown[]) => Promise<void>>()
-      .mockResolvedValue(undefined),
+  const mockEventEmitter = {
+    emit: jest.fn<(...args: unknown[]) => boolean>().mockReturnValue(true),
   };
 
   beforeEach(async () => {
@@ -271,7 +262,7 @@ describe('OnboardingService', () => {
         },
         { provide: UploadsService, useValue: mockUploadsService },
         { provide: OnboardingPaymentService, useValue: mockPaymentService },
-        { provide: ReferralService, useValue: mockReferralService },
+        { provide: EventEmitter2, useValue: mockEventEmitter },
         { provide: PAYMENT_GATEWAY_TOKEN, useValue: mockPaymentGateway },
         { provide: CLOCK_PORT, useValue: { now: () => new Date() } },
       ],
@@ -558,11 +549,8 @@ describe('OnboardingService', () => {
       );
     });
 
-    it('captures the referral when planSelection.referralCode is present', async () => {
+    it('emits CLINIC_ONBOARDED with the referral payload when planSelection.referralCode is present', async () => {
       const { onboardingId } = await service.initializeOnboarding();
-      mockReferralService.captureReferralAtSignup.mockResolvedValueOnce({
-        linked: true,
-      });
       const dataWithCode = {
         ...completeData,
         planSelection: {
@@ -588,18 +576,15 @@ describe('OnboardingService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(mockReferralService.captureReferralAtSignup).toHaveBeenCalledWith({
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith('clinic.onboarded', {
         clinicId: 'clinic_123',
         clinicEmail: 'test@clinic.com',
         referralCode: 'WELCOME10',
       });
     });
 
-    it('trims whitespace from the referral code before capture', async () => {
+    it('trims whitespace from the referral code before emitting', async () => {
       const { onboardingId } = await service.initializeOnboarding();
-      mockReferralService.captureReferralAtSignup.mockResolvedValueOnce({
-        linked: true,
-      });
       const dataWithCode = {
         ...completeData,
         planSelection: {
@@ -619,12 +604,13 @@ describe('OnboardingService', () => {
 
       await service.completeOnboarding(onboardingId, dataWithCode, '127.0.0.1');
 
-      expect(mockReferralService.captureReferralAtSignup).toHaveBeenCalledWith(
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith(
+        'clinic.onboarded',
         expect.objectContaining({ referralCode: 'WELCOME10' }),
       );
     });
 
-    it('skips referral capture when planSelection.referralCode is missing', async () => {
+    it('skips the CLINIC_ONBOARDED emit when planSelection.referralCode is missing', async () => {
       const { onboardingId } = await service.initializeOnboarding();
       mockAuthService.login.mockImplementation(async () => ({
         access_token: 'token',
@@ -643,16 +629,16 @@ describe('OnboardingService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(
-        mockReferralService.captureReferralAtSignup,
-      ).not.toHaveBeenCalled();
+      expect(mockEventEmitter.emit).not.toHaveBeenCalled();
     });
 
-    it('treats referral capture failures as non-fatal — onboarding still succeeds', async () => {
+    it('emits even if no listener is registered (in-process bus, no throw)', async () => {
+      // The emit is fire-and-forget from onboarding's POV — if subscriptions
+      // isn't loaded (or its listener throws), onboarding must still succeed.
+      // The non-fatal guarantee is in the listener (ReferralService wraps
+      // captureReferralAtSignup in a try/catch); here we just verify the emit
+      // itself doesn't throw.
       const { onboardingId } = await service.initializeOnboarding();
-      mockReferralService.captureReferralAtSignup.mockRejectedValueOnce(
-        new Error('referral service down'),
-      );
       const dataWithCode = {
         ...completeData,
         planSelection: {
@@ -678,14 +664,11 @@ describe('OnboardingService', () => {
 
       expect(result.success).toBe(true);
       expect(result.clinicId).toBe('clinic_123');
-      expect(mockReferralService.captureReferralAtSignup).toHaveBeenCalled();
+      expect(mockEventEmitter.emit).toHaveBeenCalled();
     });
 
-    it('passes a null clinicEmail when clinic details omit one', async () => {
+    it('passes a null clinicEmail in the payload when clinic details omit one', async () => {
       const { onboardingId } = await service.initializeOnboarding();
-      mockReferralService.captureReferralAtSignup.mockResolvedValueOnce({
-        linked: true,
-      });
       const dataNoEmail = {
         ...completeData,
         clinicDetails: {
@@ -709,7 +692,8 @@ describe('OnboardingService', () => {
 
       await service.completeOnboarding(onboardingId, dataNoEmail, '127.0.0.1');
 
-      expect(mockReferralService.captureReferralAtSignup).toHaveBeenCalledWith(
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith(
+        'clinic.onboarded',
         expect.objectContaining({ clinicEmail: null }),
       );
     });
