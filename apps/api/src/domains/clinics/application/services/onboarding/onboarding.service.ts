@@ -46,6 +46,7 @@ import type {
   OnboardingCreationMarkers,
 } from './onboarding.types';
 import { isFrontDeskPlanMode } from '@workspace/types';
+import { ReferralService } from '@/domains/subscriptions/core/services/referral.service';
 
 /**
  * Facade — delegates checkout, progress, and compliance to onboarding specialists;
@@ -66,6 +67,7 @@ export class OnboardingService {
     private complianceService: OnboardingComplianceService,
     private uploadsService: UploadsService,
     private paymentService: OnboardingPaymentService,
+    private referralService: ReferralService,
     @Inject(PAYMENT_GATEWAY_TOKEN)
     private paymentGateway: IPaymentGateway,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
@@ -182,6 +184,8 @@ export class OnboardingService {
         completeData,
         onboardingId,
       );
+
+      await this.captureReferralIfProvided(completeData, result.clinic.id);
 
       this.logger.log(
         `Onboarding completed successfully for clinic: ${result.clinic.id}`,
@@ -344,5 +348,34 @@ export class OnboardingService {
       clinicId,
       weeklyRows,
     );
+  }
+
+  /**
+   * Link a signing-up clinic to its referrer from the plan-selection referral
+   * code, when one was supplied. Non-fatal: a missing, invalid, or already-used
+   * code must never block a successful onboarding (the service returns
+   * `{linked:false}` for those cases; anything that escapes is caught here).
+   * Runs AFTER the onboarding transaction commits so a referral-write hiccup
+   * can't roll back the clinic creation.
+   */
+  private async captureReferralIfProvided(
+    completeData: CompleteOnboardingDto,
+    clinicId: string,
+  ): Promise<void> {
+    const referralCode = completeData.planSelection.referralCode?.trim();
+    if (!referralCode) return;
+
+    try {
+      await this.referralService.captureReferralAtSignup({
+        clinicId,
+        clinicEmail: completeData.clinicDetails.email?.trim() || null,
+        referralCode,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Referral capture failed for clinic ${clinicId} (onboarding unaffected)`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
   }
 }

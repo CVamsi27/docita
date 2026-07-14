@@ -13,6 +13,7 @@ import { OnboardingWorkflowService } from './onboarding-workflow.service';
 import { OnboardingComplianceService } from './onboarding-compliance.service';
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
 import { PAYMENT_GATEWAY_TOKEN } from '@/domains/subscriptions/application/ports';
+import { ReferralService } from '@/domains/subscriptions/core/services/referral.service';
 import { BadRequestException, Logger, NotFoundException } from '@nestjs/common';
 import {
   beforeEach,
@@ -234,6 +235,18 @@ describe('OnboardingService', () => {
         ) => Promise<{ verified: boolean; amountCents: number }>
       >(),
   };
+  const mockReferralService = {
+    captureReferralAtSignup: jest
+      .fn<
+        (
+          ...args: unknown[]
+        ) => Promise<{ linked: boolean }>
+      >()
+      .mockResolvedValue({ linked: false }),
+    realizeReferralOnFirstPayment: jest
+      .fn<(...args: unknown[]) => Promise<void>>()
+      .mockResolvedValue(undefined),
+  };
 
   beforeEach(async () => {
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
@@ -258,6 +271,7 @@ describe('OnboardingService', () => {
         },
         { provide: UploadsService, useValue: mockUploadsService },
         { provide: OnboardingPaymentService, useValue: mockPaymentService },
+        { provide: ReferralService, useValue: mockReferralService },
         { provide: PAYMENT_GATEWAY_TOKEN, useValue: mockPaymentGateway },
         { provide: CLOCK_PORT, useValue: { now: () => new Date() } },
       ],
@@ -541,6 +555,162 @@ describe('OnboardingService', () => {
           billingCycle: BillingCycle.MONTHLY,
         }),
         starterData.paymentDetails,
+      );
+    });
+
+    it('captures the referral when planSelection.referralCode is present', async () => {
+      const { onboardingId } = await service.initializeOnboarding();
+      mockReferralService.captureReferralAtSignup.mockResolvedValueOnce({
+        linked: true,
+      });
+      const dataWithCode = {
+        ...completeData,
+        planSelection: {
+          ...completeData.planSelection,
+          referralCode: 'WELCOME10',
+        },
+      };
+
+      mockAuthService.login.mockImplementation(async () => ({
+        access_token: 'token',
+        user: {
+          id: 'user_123',
+          email: 'admin@clinic.com',
+          role: 'ADMIN',
+          name: 'Admin User',
+        },
+      }));
+
+      const result = await service.completeOnboarding(
+        onboardingId,
+        dataWithCode,
+        '127.0.0.1',
+      );
+
+      expect(result.success).toBe(true);
+      expect(mockReferralService.captureReferralAtSignup).toHaveBeenCalledWith({
+        clinicId: 'clinic_123',
+        clinicEmail: 'test@clinic.com',
+        referralCode: 'WELCOME10',
+      });
+    });
+
+    it('trims whitespace from the referral code before capture', async () => {
+      const { onboardingId } = await service.initializeOnboarding();
+      mockReferralService.captureReferralAtSignup.mockResolvedValueOnce({
+        linked: true,
+      });
+      const dataWithCode = {
+        ...completeData,
+        planSelection: {
+          ...completeData.planSelection,
+          referralCode: '  WELCOME10  ',
+        },
+      };
+      mockAuthService.login.mockImplementation(async () => ({
+        access_token: 'token',
+        user: {
+          id: 'user_123',
+          email: 'admin@clinic.com',
+          role: 'ADMIN',
+          name: 'Admin User',
+        },
+      }));
+
+      await service.completeOnboarding(onboardingId, dataWithCode, '127.0.0.1');
+
+      expect(mockReferralService.captureReferralAtSignup).toHaveBeenCalledWith(
+        expect.objectContaining({ referralCode: 'WELCOME10' }),
+      );
+    });
+
+    it('skips referral capture when planSelection.referralCode is missing', async () => {
+      const { onboardingId } = await service.initializeOnboarding();
+      mockAuthService.login.mockImplementation(async () => ({
+        access_token: 'token',
+        user: {
+          id: 'user_123',
+          email: 'admin@clinic.com',
+          role: 'ADMIN',
+          name: 'Admin User',
+        },
+      }));
+
+      const result = await service.completeOnboarding(
+        onboardingId,
+        completeData,
+        '127.0.0.1',
+      );
+
+      expect(result.success).toBe(true);
+      expect(
+        mockReferralService.captureReferralAtSignup,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('treats referral capture failures as non-fatal — onboarding still succeeds', async () => {
+      const { onboardingId } = await service.initializeOnboarding();
+      mockReferralService.captureReferralAtSignup.mockRejectedValueOnce(
+        new Error('referral service down'),
+      );
+      const dataWithCode = {
+        ...completeData,
+        planSelection: {
+          ...completeData.planSelection,
+          referralCode: 'WELCOME10',
+        },
+      };
+      mockAuthService.login.mockImplementation(async () => ({
+        access_token: 'token',
+        user: {
+          id: 'user_123',
+          email: 'admin@clinic.com',
+          role: 'ADMIN',
+          name: 'Admin User',
+        },
+      }));
+
+      const result = await service.completeOnboarding(
+        onboardingId,
+        dataWithCode,
+        '127.0.0.1',
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.clinicId).toBe('clinic_123');
+      expect(mockReferralService.captureReferralAtSignup).toHaveBeenCalled();
+    });
+
+    it('passes a null clinicEmail when clinic details omit one', async () => {
+      const { onboardingId } = await service.initializeOnboarding();
+      mockReferralService.captureReferralAtSignup.mockResolvedValueOnce({
+        linked: true,
+      });
+      const dataNoEmail = {
+        ...completeData,
+        clinicDetails: {
+          ...completeData.clinicDetails,
+          email: '',
+        },
+        planSelection: {
+          ...completeData.planSelection,
+          referralCode: 'WELCOME10',
+        },
+      };
+      mockAuthService.login.mockImplementation(async () => ({
+        access_token: 'token',
+        user: {
+          id: 'user_123',
+          email: 'admin@clinic.com',
+          role: 'ADMIN',
+          name: 'Admin User',
+        },
+      }));
+
+      await service.completeOnboarding(onboardingId, dataNoEmail, '127.0.0.1');
+
+      expect(mockReferralService.captureReferralAtSignup).toHaveBeenCalledWith(
+        expect.objectContaining({ clinicEmail: null }),
       );
     });
   });
