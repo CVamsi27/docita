@@ -4,6 +4,7 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   CLINIC_PERSISTENCE_PORT,
   type ClinicPersistencePort,
@@ -46,7 +47,7 @@ import type {
   OnboardingCreationMarkers,
 } from './onboarding.types';
 import { isFrontDeskPlanMode } from '@workspace/types';
-import { ReferralService } from '@/domains/subscriptions/core/services/referral.service';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 
 /**
  * Facade — delegates checkout, progress, and compliance to onboarding specialists;
@@ -67,7 +68,7 @@ export class OnboardingService {
     private complianceService: OnboardingComplianceService,
     private uploadsService: UploadsService,
     private paymentService: OnboardingPaymentService,
-    private referralService: ReferralService,
+    private eventEmitter: EventEmitter2,
     @Inject(PAYMENT_GATEWAY_TOKEN)
     private paymentGateway: IPaymentGateway,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
@@ -185,7 +186,7 @@ export class OnboardingService {
         onboardingId,
       );
 
-      await this.captureReferralIfProvided(completeData, result.clinic.id);
+      this.emitClinicOnboarded(result.clinic.id, completeData);
 
       this.logger.log(
         `Onboarding completed successfully for clinic: ${result.clinic.id}`,
@@ -351,31 +352,30 @@ export class OnboardingService {
   }
 
   /**
-   * Link a signing-up clinic to its referrer from the plan-selection referral
-   * code, when one was supplied. Non-fatal: a missing, invalid, or already-used
-   * code must never block a successful onboarding (the service returns
-   * `{linked:false}` for those cases; anything that escapes is caught here).
-   * Runs AFTER the onboarding transaction commits so a referral-write hiccup
-   * can't roll back the clinic creation.
+   * Announce the just-completed onboarding to other modules. The subscriptions
+   * module subscribes (via ReferralService.handleClinicOnboarded) to capture
+   * any referrer code from planSelection.referralCode.
+   *
+   * The event is emitted AFTER the onboarding transaction commits and AFTER the
+   * compliance log, so listeners run against a stable clinic record. The
+   * `referralCode` payload is the only one we need for the current consumer;
+   * extend this interface if a future listener needs more.
    */
-  private async captureReferralIfProvided(
-    completeData: CompleteOnboardingDto,
+  private emitClinicOnboarded(
     clinicId: string,
-  ): Promise<void> {
+    completeData: CompleteOnboardingDto,
+  ): void {
     const referralCode = completeData.planSelection.referralCode?.trim();
     if (!referralCode) return;
 
-    try {
-      await this.referralService.captureReferralAtSignup({
-        clinicId,
-        clinicEmail: completeData.clinicDetails.email?.trim() || null,
-        referralCode,
-      });
-    } catch (error) {
-      this.logger.error(
-        `Referral capture failed for clinic ${clinicId} (onboarding unaffected)`,
-        error instanceof Error ? error.stack : String(error),
-      );
-    }
+    // allow-direct-emit: post-commit in-process fan-out to the subscriptions
+    // referral listener. Migration to outbox requires the onboarding tx to
+    // participate in the surrounding transaction, which is deferred (same
+    // pattern as appointment.created / invoice.generated).
+    this.eventEmitter.emit(ApplicationEvents.CLINIC_ONBOARDED, {
+      clinicId,
+      clinicEmail: completeData.clinicDetails.email?.trim() || null,
+      referralCode,
+    });
   }
 }

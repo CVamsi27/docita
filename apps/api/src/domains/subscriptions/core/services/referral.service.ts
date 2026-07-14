@@ -1,6 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 import {
   MAX_REFERRAL_CREDITS_PER_YEAR,
   REFERRAL_DISCOUNT_PERCENT,
@@ -28,6 +30,30 @@ export class ReferralService {
     });
 
     return !!referral && !referral.discountApplied;
+  }
+
+  /**
+   * Listen for the post-onboarding event emitted by clinics.onboarding and
+   * run captureReferralAtSignup. Non-fatal — a referral hiccup must never
+   * bubble back into the onboarding flow that already succeeded. This is the
+   * only correct cross-domain seam: clinics.application cannot import
+   * subscriptions.core.services (the cross-domain-import check forbids it),
+   * so we go through ApplicationEvents.
+   */
+  @OnEvent(ApplicationEvents.CLINIC_ONBOARDED)
+  async handleClinicOnboarded(payload: {
+    clinicId: string;
+    clinicEmail: string | null;
+    referralCode: string;
+  }): Promise<void> {
+    try {
+      await this.captureReferralAtSignup(payload);
+    } catch (error) {
+      this.logger.error(
+        `Referral capture failed for clinic ${payload.clinicId} (onboarding unaffected)`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
   }
 
   /**
