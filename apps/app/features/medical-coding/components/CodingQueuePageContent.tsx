@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { Input } from "@workspace/ui/components/form/input";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { useDebounce } from "@workspace/hooks/use-debounce";
@@ -115,28 +115,31 @@ export function CodingQueuePageContent() {
             </CardContent>
           </Card>
 
-          {isError ? (
-            <EmptyState
-              icon={FileText}
-              title="Coding queue could not load"
-              description="Try again. If this keeps happening, check whether medical coding access is enabled for this clinic."
-              action={{
-                label: "Retry",
-                onClick: () => void refetch(),
-              }}
-              className="min-h-[40vh]"
-            />
-          ) : isLoading ? (
-            <Card>
-              <CardContent className="py-10 text-center text-sm text-muted-foreground">
-                Loading uncoded visits…
-              </CardContent>
-            </Card>
-          ) : (
-            <div className={isFetching ? "opacity-80" : undefined}>
-              <CodingQueue items={queueItems} />
-            </div>
-          )}
+          {(() => {
+            const status: "loading" | "error" | "empty" | "success" = isLoading
+              ? "loading"
+              : isError
+                ? "error"
+                : queueItems.length === 0
+                  ? "empty"
+                  : "success";
+            return (
+              <DataState
+                status={status}
+                loadingMessage="Loading uncoded visits…"
+                errorMessage="We could not load the coding queue. Try again. If this keeps happening, check whether medical coding access is enabled for this clinic."
+                onRetry={() => void refetch()}
+                emptyTitle="No uncoded visits"
+                emptyDescription="Completed visits that need ICD-10 or procedure coding will appear here."
+                emptyIcon={FileText}
+                className="min-h-[40vh]"
+              >
+                <div className={isFetching ? "opacity-80" : undefined}>
+                  <CodingQueue items={queueItems} />
+                </div>
+              </DataState>
+            );
+          })()}
         </div>
       </AppPageScaffold>
     </FeatureGate>
