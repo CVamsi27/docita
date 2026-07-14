@@ -368,14 +368,17 @@ export class OnboardingService {
     const referralCode = completeData.planSelection.referralCode?.trim();
     if (!referralCode) return;
 
-    // allow-direct-emit: post-commit in-process fan-out to the subscriptions
-    // referral listener. Migration to outbox requires the onboarding tx to
-    // participate in the surrounding transaction, which is deferred (same
-    // pattern as appointment.created / invoice.generated).
-    this.eventEmitter.emit(ApplicationEvents.CLINIC_ONBOARDED, {
-      clinicId,
-      clinicEmail: completeData.clinicDetails.email?.trim() || null,
-      referralCode,
-    });
+    this.eventEmitter.emit(
+      // allow-direct-emit: post-commit in-process fan-out to the subscriptions
+      // referral listener. Migration to outbox requires the onboarding tx to
+      // participate in the surrounding transaction, which is deferred (same
+      // pattern as appointment.created / invoice.generated).
+      ApplicationEvents.CLINIC_ONBOARDED,
+      {
+        clinicId,
+        clinicEmail: completeData.clinicDetails.email?.trim() || null,
+        referralCode,
+      },
+    );
   }
 }
