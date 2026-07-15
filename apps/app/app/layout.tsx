@@ -1,7 +1,5 @@
 import "./globals.css";
 import { headers } from "next/headers";
-import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { Providers, ToasterWrapper } from "@/components";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
@@ -35,11 +33,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const nonce = (await headers()).get("x-nonce") ?? undefined;
-  // Phase 6.1 scaffold: load the default-locale message bundle and feed it
-  // into the client provider. With localePrefix: "never" and a single
-  // locale, this is effectively a no-op today — but every t() call site
-  // can now resolve against a real provider instead of throwing.
-  const messages = await getMessages();
 
   return (
     <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
@@ -55,19 +48,17 @@ export default async function RootLayout({
         <SentryInitializer />
         <ClientErrorReporter />
         <WebVitalsReporter />
-        <NextIntlClientProvider locale="en" messages={messages}>
-          <ReactQueryProvider>
-            <AuthProvider>
-              <DataAccessBridge>
-                <Providers nonce={nonce}>
-                  {children}
-                  <ApiAvailabilityOverlay />
-                  <ToasterWrapper />
-                </Providers>
-              </DataAccessBridge>
-            </AuthProvider>
-          </ReactQueryProvider>
-        </NextIntlClientProvider>
+        <ReactQueryProvider>
+          <AuthProvider>
+            <DataAccessBridge>
+              <Providers nonce={nonce}>
+                {children}
+                <ApiAvailabilityOverlay />
+                <ToasterWrapper />
+              </Providers>
+            </DataAccessBridge>
+          </AuthProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );
