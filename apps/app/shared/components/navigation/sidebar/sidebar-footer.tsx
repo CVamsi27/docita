@@ -10,6 +10,7 @@ import {
   QuickAccessIcons,
   PlanRowSection,
   AskAiSection,
+  LanguageSection,
 } from "./sidebar-footer-sections";
 
 export interface SidebarFooterProps {
@@ -70,6 +71,7 @@ export function SidebarFooter({
         canOpenBillingSettings={canOpenBillingSettings}
         tierInfo={tierInfo}
       />
+      <LanguageSection />
       <AskAiSection collapsedRail={collapsedRail} />
       {canAccessNotifications && (
         <NotificationPanel
