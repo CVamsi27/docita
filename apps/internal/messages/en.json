@@ -1,1 +1,36 @@
-{}
+{
+  "InternalNav": {
+    "overview": "Overview",
+    "team": "Team",
+    "admins": "Admins",
+    "paymentProcessing": "Payment Processing",
+    "billing": "Billing",
+    "pricing": "Pricing",
+    "enterpriseContracts": "Enterprise Contracts",
+    "referrals": "Referrals",
+    "analytics": "Analytics",
+    "systemMonitoring": "System Monitoring",
+    "feedback": "Feedback",
+    "support": "Support WhatsApp",
+    "broadcasts": "WhatsApp Broadcasts",
+    "systemLogs": "System Logs",
+    "auditLogs": "Audit Logs",
+    "performance": "Performance",
+    "doctors": "Doctors"
+  },
+  "Feedback": {
+    "status": {
+      "statusNew": "New",
+      "statusReviewed": "Reviewed",
+      "statusInProgress": "In Progress",
+      "statusResolved": "Resolved",
+      "statusArchived": "Archived"
+    }
+  },
+  "InternalAnalytics": {
+    "totalRevenue": "Total Revenue",
+    "appointments": "Appointments",
+    "newPatients": "New Patients",
+    "avgInvoiceValue": "Avg Invoice Value"
+  }
+}

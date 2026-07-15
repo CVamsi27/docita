@@ -15,6 +15,7 @@ import {
 } from "@workspace/ui/components/form/select";
 import { Label } from "@workspace/ui/components/form/label";
 import { DatePicker } from "@workspace/ui/components/form/date-picker";
+import { useTranslations } from "next-intl";
 import { CATEGORY_OPTIONS, STATUS_OPTIONS } from "./feedback-helpers";
 import type { InternalFeedbackFilters } from "@workspace/data-access/internal";
 
@@ -30,6 +31,7 @@ export function FeedbackFiltersCard({
   show,
   onFiltersChange,
 }: FeedbackFiltersCardProps) {
+  const t = useTranslations("Feedback.status");
   if (!show) return null;
 
   const setFilter = (key: keyof InternalFeedbackFilters, value: unknown) => {
@@ -53,11 +55,19 @@ export function FeedbackFiltersCard({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All statuses</SelectItem>
-                {STATUS_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
+                {STATUS_OPTIONS.map((opt) => {
+                  // Phase 6.6: prefer t(labelKey) over the literal label.
+                  // The local cast on t() narrows the return type to string
+                  // so the `as const` tuple narrowing on STATUS_OPTIONS
+                  // doesn't collapse `opt.label` to `never` inside JSX.
+                  const itemLabel: string =
+                    (t(opt.labelKey) as string) || opt.label;
+                  return (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {itemLabel}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
