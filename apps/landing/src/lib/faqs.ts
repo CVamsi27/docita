@@ -1,4 +1,4 @@
-export interface FaqEntry {
+interface FaqEntry {
   q: string;
   a: string;
 }
