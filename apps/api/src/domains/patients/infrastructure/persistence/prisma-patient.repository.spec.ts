@@ -163,4 +163,33 @@ describe('PrismaPatientRepository', () => {
       }),
     );
   });
+
+  it('looks up a patient by phone across every equivalent E.164 form', async () => {
+    // Returning-patient OTP flows normalize the entered phone to +91… before
+    // the call. The row may be stored as bare-10-digit, 91…, or +91… — the
+    // repository must match whichever form is on disk, otherwise the lookup
+    // silently returns null and the user is locked out.
+    const findFirstSpy = mockReadClient.patient.findFirst as jest.Mock<
+      (...args: unknown[]) => Promise<unknown>
+    >;
+    findFirstSpy.mockResolvedValueOnce(null);
+
+    await repository.findByClinicIdAndPhoneNumber('clinic-1', '+919812345678');
+
+    expect(findFirstSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          clinicId: 'clinic-1',
+          phoneNumber: {
+            in: expect.arrayContaining([
+              '+919812345678',
+              '919812345678',
+              '9812345678',
+            ]),
+          },
+          deletedAt: null,
+        }),
+      }),
+    );
+  });
 });

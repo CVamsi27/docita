@@ -6,19 +6,18 @@ import {
 } from '@workspace/types';
 import { type PublicBookingPersistencePort } from '@/domains/public-booking/application/ports/public-booking-persistence.port';
 import { runWithTenant } from '@/shared/common/middleware/tenant.middleware';
-import { isRecord } from '@workspace/utils';
+import { isRecord, normalizePhoneE164 } from '@workspace/utils';
 
 export type ResolvedPublicBookingClinic = PublicBookingClinicResponse;
 
+// Re-exported for backwards compatibility with public-booking call sites that
+// already import `normalizePhone` from this module. The implementation lives
+// in @workspace/utils so patient-portal, public-booking, and any future phone
+// lookup share one India-first normalization rule. Declared as a function so
+// the ESM-compiled call site can invoke it directly (const re-exports come
+// through as namespace getters that don't bind when called as `(0, ns.x)()`).
 export function normalizePhone(phone: string): string {
-  const digits = phone.replace(/\D/g, '');
-  if (digits.length === 10) {
-    return `+91${digits}`;
-  }
-  if (digits.length === 12 && digits.startsWith('91')) {
-    return `+${digits}`;
-  }
-  return phone.startsWith('+') ? phone : `+${digits}`;
+  return normalizePhoneE164(phone);
 }
 
 function readFacilityLabelFromSettings(
