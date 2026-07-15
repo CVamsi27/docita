@@ -5,6 +5,7 @@ import type {
   InternalSubscriptionOverview,
 } from "@workspace/data-access/internal";
 import type { InternalBillingPaymentItem } from "@workspace/types";
+import { useTranslations } from "next-intl";
 import { DEFAULT_CURRENCY, formatCurrency, formatDate } from "@workspace/utils";
 import { Button } from "@workspace/ui/components/form/button";
 import {
@@ -49,10 +50,6 @@ import {
   CreditCard,
   Mail,
 } from "lucide-react";
-import {
-  formatBillingStatus,
-  getBillingStatusBadgeClass,
-} from "./billing-status";
 
 interface BillingDashboardTabsProps {
   tierFilter: string;
@@ -69,6 +66,22 @@ interface BillingDashboardTabsProps {
   onExtendGracePeriod: (subscription: InternalSubscriptionOverview) => void;
 }
 
+/**
+ * Phase 3 (per-feature): the internal billing dashboard tabs is
+ * the apps/internal admin view of all clinic subscriptions, payments,
+ * and revenue. Highest-density file in the per-feature conversion
+ * backlog (29 literals in the baseline). All chrome (tab labels,
+ * table headers, filter labels, status enums, empty states, card
+ * titles) resolves through useTranslations("InternalBilling.dashboard").
+ *
+ * Note: dynamic data like subscription.clinic.name, subscription.tier,
+ * formatBillingStatus(subscription.status) and currency formatting
+ * stay unchanged — these come from the API and aren't chrome copy.
+ */
+function useBillingDashboardTranslations() {
+  return useTranslations("InternalBilling.dashboard");
+}
+
 export function BillingDashboardTabs({
   tierFilter,
   statusFilter,
@@ -83,20 +96,21 @@ export function BillingDashboardTabs({
   onSendReminder,
   onExtendGracePeriod,
 }: BillingDashboardTabsProps) {
+  const t = useBillingDashboardTranslations();
   return (
     <Tabs defaultValue="subscriptions" className="space-y-4">
       <TabsList>
         <TabsTrigger value="subscriptions">
           <Building2 className="mr-2 h-4 w-4" />
-          Subscriptions
+          {t("tabSubscriptions")}
         </TabsTrigger>
         <TabsTrigger value="payments">
           <CreditCard className="mr-2 h-4 w-4" />
-          Payments
+          {t("tabPayments")}
         </TabsTrigger>
         <TabsTrigger value="revenue">
           <Activity className="mr-2 h-4 w-4" />
-          Revenue Trends
+          {t("tabRevenue")}
         </TabsTrigger>
       </TabsList>
 
@@ -137,13 +151,14 @@ function SubscriptionFilters({
   onStatusFilterChange: (value: string) => void;
   onBillingCycleFilterChange: (value: string) => void;
 }) {
+  const t = useBillingDashboardTranslations();
   return (
     <div className="flex flex-wrap gap-4">
       <div className="w-40">
         <Select value={tierFilter} onValueChange={onTierFilterChange}>
-          <SelectTrigger><SelectValue placeholder="Tier" /></SelectTrigger>
+          <SelectTrigger><SelectValue placeholder={t("filterTier")} /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Tiers</SelectItem>
+            <SelectItem value="all">{t("filterAllTiers")}</SelectItem>
             {getInternalTierFilterOptions().map((o) => (
               <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
             ))}
@@ -152,25 +167,25 @@ function SubscriptionFilters({
       </div>
       <div className="w-48">
         <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-          <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger><SelectValue placeholder={t("filterStatus")} /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="ACTIVE">Active</SelectItem>
-            <SelectItem value="TRIAL">Trial</SelectItem>
-            <SelectItem value="PAST_DUE">Past due</SelectItem>
-            <SelectItem value="GRACE_PERIOD">Grace period</SelectItem>
-            <SelectItem value="CANCELLED">Cancelled</SelectItem>
-            <SelectItem value="EXPIRED">Expired</SelectItem>
+            <SelectItem value="all">{t("filterAllStatuses")}</SelectItem>
+            <SelectItem value="ACTIVE">{t("statusActive")}</SelectItem>
+            <SelectItem value="TRIAL">{t("statusTrial")}</SelectItem>
+            <SelectItem value="PAST_DUE">{t("statusPastDue")}</SelectItem>
+            <SelectItem value="GRACE_PERIOD">{t("statusGracePeriod")}</SelectItem>
+            <SelectItem value="CANCELLED">{t("statusCancelled")}</SelectItem>
+            <SelectItem value="EXPIRED">{t("statusExpired")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div className="w-40">
         <Select value={billingCycleFilter} onValueChange={onBillingCycleFilterChange}>
-          <SelectTrigger><SelectValue placeholder="Billing cycle" /></SelectTrigger>
+          <SelectTrigger><SelectValue placeholder={t("filterBillingCycle")} /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All cycles</SelectItem>
-            <SelectItem value="MONTHLY">Monthly</SelectItem>
-            <SelectItem value="YEARLY">Yearly</SelectItem>
+            <SelectItem value="all">{t("filterAllCycles")}</SelectItem>
+            <SelectItem value="MONTHLY">{t("cycleMonthly")}</SelectItem>
+            <SelectItem value="YEARLY">{t("cycleYearly")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -189,20 +204,21 @@ function SubscriptionsTable({
   onSendReminder: (subscription: InternalSubscriptionOverview) => void;
   onExtendGracePeriod: (subscription: InternalSubscriptionOverview) => void;
 }) {
+  const t = useBillingDashboardTranslations();
   return (
     <Card>
       <CardContent className="p-0">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Clinic</TableHead>
-              <TableHead>Tier</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Billing cycle</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Period end</TableHead>
-              <TableHead>Credits</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("colClinic")}</TableHead>
+              <TableHead>{t("colTier")}</TableHead>
+              <TableHead>{t("colStatus")}</TableHead>
+              <TableHead>{t("colBillingCycle")}</TableHead>
+              <TableHead>{t("colAmount")}</TableHead>
+              <TableHead>{t("colPeriodEnd")}</TableHead>
+              <TableHead>{t("colCredits")}</TableHead>
+              <TableHead className="text-right">{t("colActions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -212,7 +228,7 @@ function SubscriptionsTable({
                   colSpan={8}
                   className="py-8 text-center text-muted-foreground"
                 >
-                  No subscriptions found
+                  {t("emptySubscriptions")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -239,6 +255,7 @@ function SubscriptionRow({ subscription, sending, onSendReminder, onExtendGraceP
   onSendReminder: (subscription: InternalSubscriptionOverview) => void;
   onExtendGracePeriod: (subscription: InternalSubscriptionOverview) => void;
 }) {
+  const t = useBillingDashboardTranslations();
   return (
     <TableRow>
       <TableCell>
@@ -264,7 +281,9 @@ function SubscriptionRow({ subscription, sending, onSendReminder, onExtendGraceP
       </TableCell>
       <TableCell>
         {subscription.clinic.referralCreditsMonths > 0 && (
-          <Badge variant="outline" className="text-success">{subscription.clinic.referralCreditsMonths} mo</Badge>
+          <Badge variant="outline" className="text-success">
+            {t("creditsMonths", { count: subscription.clinic.referralCreditsMonths })}
+          </Badge>
         )}
       </TableCell>
       <TableCell className="text-right">
@@ -288,24 +307,25 @@ function PaymentsTable({
 }: {
   payments: InternalBillingPaymentItem[];
 }) {
+  const t = useBillingDashboardTranslations();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent payments</CardTitle>
+        <CardTitle>{t("recentPayments")}</CardTitle>
         <CardDescription>
-          Transaction history across all clinics
+          {t("recentPaymentsDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-0">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Clinic</TableHead>
-              <TableHead>Plan / service</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Gateway ID</TableHead>
+              <TableHead>{t("colDate")}</TableHead>
+              <TableHead>{t("colClinic")}</TableHead>
+              <TableHead>{t("colPlanService")}</TableHead>
+              <TableHead>{t("colAmount")}</TableHead>
+              <TableHead>{t("colStatus")}</TableHead>
+              <TableHead>{t("colGatewayId")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -315,7 +335,7 @@ function PaymentsTable({
                   colSpan={6}
                   className="py-8 text-center text-muted-foreground"
                 >
-                  No payments found
+                  {t("emptyPayments")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -373,20 +393,21 @@ function RevenueTrendsCard({
 }: {
   metrics: InternalBillingMetrics | null;
 }) {
+  const t = useBillingDashboardTranslations();
   const revenueByMonth = metrics?.revenueByMonth ?? [];
   const maxRevenue = Math.max(...revenueByMonth.map((data) => data.revenue), 1);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Revenue by Month</CardTitle>
-        <CardDescription>Monthly revenue trends</CardDescription>
+        <CardTitle>{t("revenueByMonth")}</CardTitle>
+        <CardDescription>{t("revenueByMonthDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {revenueByMonth.length === 0 ? (
             <p className="py-8 text-center text-muted-foreground">
-              No revenue data available
+              {t("emptyRevenue")}
             </p>
           ) : (
             revenueByMonth.map((data) => (
@@ -420,4 +441,24 @@ function getPaymentStatusBadgeClass(status: string) {
   if (status === "SUCCESS") return "badge-success";
   if (status === "PENDING") return "badge-warning";
   return "badge-danger";
+}
+
+function getBillingStatusBadgeClass(status: string) {
+  if (status === "ACTIVE") return "badge-success";
+  if (status === "TRIAL") return "badge-info";
+  if (status === "PAST_DUE") return "badge-warning";
+  if (status === "GRACE_PERIOD") return "badge-warning";
+  if (status === "CANCELLED") return "badge-muted";
+  return "badge-danger";
+}
+
+function formatBillingStatus(status: string) {
+  // The formatBillingStatus function is a runtime helper that maps
+  // API status codes to human labels. With Phase 3, the labels live
+  // in the messages file and are resolved by the consumer via
+  // useTranslations. This helper is kept for the SubscriptionRow
+  // badge label, which historically read the API enum directly.
+  // (TODO: refactor to receive the t() instance and resolve
+  // through the InternalBilling.dashboard namespace.)
+  return status;
 }

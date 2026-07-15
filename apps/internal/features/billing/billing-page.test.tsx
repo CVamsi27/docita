@@ -8,6 +8,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { NextIntlClientProvider } from "next-intl";
 import { DataAccessProvider, type RequestConfig } from "@workspace/data-access";
 import BillingDashboard from "./billing-page";
 
@@ -58,6 +59,68 @@ const metrics = {
   revenueByMonth: [{ month: "Apr 2026", revenue: 499900 }],
 };
 
+/**
+ * Minimal next-intl message bundle for the billing dashboard tests.
+ * The keys here mirror the InternalBilling.dashboard namespace in
+ * apps/internal/messages/en.json. Any new t() key added to
+ * BillingDashboardTabs that the tests depend on must be added here
+ * too, otherwise the test renders the ICU fallback (the key path)
+ * instead of the human string and `findByText` will fail.
+ */
+const messages = {
+  InternalBilling: {
+    dashboard: {
+      tabSubscriptions: "Subscriptions",
+      tabPayments: "Payments",
+      tabRevenue: "Revenue Trends",
+      filterTier: "Tier",
+      filterStatus: "Status",
+      filterBillingCycle: "Billing cycle",
+      filterAllTiers: "All Tiers",
+      filterAllStatuses: "All statuses",
+      filterAllCycles: "All cycles",
+      statusActive: "Active",
+      statusTrial: "Trial",
+      statusPastDue: "Past due",
+      statusGracePeriod: "Grace period",
+      statusCancelled: "Cancelled",
+      statusExpired: "Expired",
+      cycleMonthly: "Monthly",
+      cycleYearly: "Yearly",
+      colClinic: "Clinic",
+      colTier: "Tier",
+      colStatus: "Status",
+      colBillingCycle: "Billing cycle",
+      colAmount: "Amount",
+      colPeriodEnd: "Period end",
+      colCredits: "Credits",
+      colActions: "Actions",
+      colDate: "Date",
+      colPlanService: "Plan / service",
+      colGatewayId: "Gateway ID",
+      emptySubscriptions: "No subscriptions found",
+      emptyPayments: "No payments found",
+      emptyRevenue: "No revenue data available",
+      recentPayments: "Recent payments",
+      recentPaymentsDescription: "Transaction history across all clinics",
+      revenueByMonth: "Revenue by Month",
+      revenueByMonthDescription: "Monthly revenue trends",
+      creditsMonths: "{count} mo",
+    },
+  },
+  // Some surfaces the dashboard dialogs read from use other namespaces.
+  // Keep them here so the test renders the existing test copy
+  // (e.g. "Extend Grace Period", "In Grace Period") without ICU
+  // fallbacks leaking into the DOM.
+  InternalBillingActions: {
+    extendGracePeriod: "Extend",
+    gracePeriodBadge: "In Grace Period",
+    extendDialogTitle: "Extend Grace Period",
+    extendDialogBody: "Extend the grace period for {clinicName}",
+    daysLabel: "Days",
+  },
+};
+
 function renderWithDataAccess(ui: ReactElement) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -93,7 +156,9 @@ function renderWithDataAccess(ui: ReactElement) {
           isTierFeatureEnabled: () => true,
         }}
       >
-        {ui}
+        <NextIntlClientProvider locale="en" messages={messages}>
+          {ui}
+        </NextIntlClientProvider>
       </DataAccessProvider>
     </QueryClientProvider>,
   );
