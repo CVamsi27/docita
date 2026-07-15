@@ -2,6 +2,7 @@
 "use client";
 
 import { Award, Building2, FileText, GraduationCap, ShieldCheck, ShieldX } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   DEFAULT_CURRENCY,
   formatCurrency,
@@ -18,62 +19,75 @@ import { HOSPITAL_ROLE_LABELS, SPECIALIZATION_LABELS } from "@workspace/types";
 import { formatInternalListDate } from "@/lib/formatters/format-internal-list-date";
 import { type Doctor, getVerificationLabel } from "./doctor-helpers";
 
+/**
+ * Phase 3 (per-feature): the doctor view dialog is the second
+ * non-chrome surface converted to next-intl. The dialog has
+ * five section components (Info, Evidence, Verification,
+ * Education, Specializations); every visible string resolves
+ * through useTranslations("InternalDoctors.view"). Mirrors the
+ * AllergyEditDialog conversion pattern (commit 279cf9e53).
+ */
+function useDoctorsViewTranslations() {
+  return useTranslations("InternalDoctors.view");
+}
+
 export function DoctorInfoGrid({ doctor }: { doctor: Doctor }) {
+  const t = useDoctorsViewTranslations();
   return (
     <>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label className="text-muted-foreground">Email</Label>
+          <Label className="text-muted-foreground">{t("email")}</Label>
           <p className="font-medium">{doctor.email}</p>
         </div>
         <div>
-          <Label className="text-muted-foreground">Phone</Label>
+          <Label className="text-muted-foreground">{t("phone")}</Label>
           <p className="font-medium">{doctor.phoneNumber || "-"}</p>
         </div>
         <div>
-          <Label className="text-muted-foreground">Specialization</Label>
+          <Label className="text-muted-foreground">{t("specialization")}</Label>
           <p className="font-medium">
             {doctor.specialization ? SPECIALIZATION_LABELS[doctor.specialization] : "-"}
           </p>
         </div>
         <div>
-          <Label className="text-muted-foreground">Hospital role</Label>
+          <Label className="text-muted-foreground">{t("hospitalRole")}</Label>
           <p className="font-medium">
             {doctor.hospitalRole ? HOSPITAL_ROLE_LABELS[doctor.hospitalRole] : "-"}
           </p>
         </div>
         <div>
-          <Label className="text-muted-foreground">Qualification</Label>
+          <Label className="text-muted-foreground">{t("qualification")}</Label>
           <p className="font-medium">{doctor.qualification || "-"}</p>
         </div>
         <div>
-          <Label className="text-muted-foreground">Registration Number</Label>
+          <Label className="text-muted-foreground">{t("registrationNumber")}</Label>
           <p className="font-medium">{doctor.registrationNumber || "-"}</p>
         </div>
         <div>
-          <Label className="text-muted-foreground">License Number</Label>
+          <Label className="text-muted-foreground">{t("licenseNumber")}</Label>
           <p className="font-medium">{doctor.licenseNumber || "-"}</p>
         </div>
         <div>
-          <Label className="text-muted-foreground">Verification</Label>
+          <Label className="text-muted-foreground">{t("verification")}</Label>
           <p className="font-medium">{getVerificationLabel(doctor.verificationStatus)}</p>
         </div>
         <div>
-          <Label className="text-muted-foreground">Last Verification</Label>
+          <Label className="text-muted-foreground">{t("lastVerification")}</Label>
           <p className="font-medium">{formatInternalListDate(doctor.verificationCheckedAt)}</p>
         </div>
         <div>
-          <Label className="text-muted-foreground">Signature Uploaded</Label>
+          <Label className="text-muted-foreground">{t("signatureUploaded")}</Label>
           <p className="font-medium">{formatInternalListDate(doctor.signatureUploadedAt)}</p>
         </div>
         <div>
-          <Label className="text-muted-foreground">Years of Experience</Label>
+          <Label className="text-muted-foreground">{t("yearsOfExperience")}</Label>
           <p className="font-medium">
-            {doctor.yearsOfExperience ? `${doctor.yearsOfExperience} years` : "-"}
+            {doctor.yearsOfExperience ? `${doctor.yearsOfExperience} ${t("years")}` : "-"}
           </p>
         </div>
         <div>
-          <Label className="text-muted-foreground">Consultation Fee</Label>
+          <Label className="text-muted-foreground">{t("consultationFee")}</Label>
           <p className="font-medium">
             {doctor.consultationFee
               ? formatCurrency(doctor.consultationFee, {
@@ -87,7 +101,7 @@ export function DoctorInfoGrid({ doctor }: { doctor: Doctor }) {
 
       {doctor.bio && (
         <div>
-          <Label className="text-muted-foreground">Biography</Label>
+          <Label className="text-muted-foreground">{t("biography")}</Label>
           <p className="mt-1">{doctor.bio}</p>
         </div>
       )}
@@ -100,7 +114,7 @@ export function DoctorInfoGrid({ doctor }: { doctor: Doctor }) {
         if (!verificationPublicNote) return null;
         return (
           <div>
-            <Label className="text-muted-foreground">Verification note</Label>
+            <Label className="text-muted-foreground">{t("verificationNote")}</Label>
             <p className="mt-1">{verificationPublicNote}</p>
           </div>
         );
@@ -110,6 +124,7 @@ export function DoctorInfoGrid({ doctor }: { doctor: Doctor }) {
 }
 
 export function DoctorEvidenceSection({ doctor }: { doctor: Doctor }) {
+  const t = useDoctorsViewTranslations();
   if (
     !doctor.registrationCouncil &&
     !doctor.registrationStateCode &&
@@ -119,25 +134,26 @@ export function DoctorEvidenceSection({ doctor }: { doctor: Doctor }) {
   return (
     <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
       <Label className="text-muted-foreground text-xs uppercase tracking-wide">
-        Registration evidence
+        {t("registrationEvidence")}
       </Label>
       {(doctor.registrationCouncil || doctor.registrationStateCode) && (
         <p className="text-sm">
           {doctor.registrationCouncil && (
             <>
-              Issuing council:{" "}
+              {t("issuingCouncil")}{" "}
               <span className="font-medium">{doctor.registrationCouncil}</span>
             </>
           )}
           {doctor.registrationStateCode && (
             <>
               {doctor.registrationCouncil ? " · " : null}
-              Region:{" "}
+              {t("region")}{" "}
               <span className="font-medium">{doctor.registrationStateCode}</span>
             </>
           )}
         </p>
       )}
+
       {doctor.registrationCertificateUrl ? (
         <a
           href={doctor.registrationCertificateUrl}
@@ -146,11 +162,11 @@ export function DoctorEvidenceSection({ doctor }: { doctor: Doctor }) {
           className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
         >
           <FileText className="h-4 w-4" />
-          View uploaded registration certificate
+          {t("viewCertificate")}
         </a>
       ) : (
         <p className="text-xs text-muted-foreground">
-          No registration certificate uploaded.
+          {t("noCertificateUploaded")}
         </p>
       )}
     </div>
@@ -180,6 +196,7 @@ export function DoctorVerificationSection({
   onAdminVerify,
   onAdminReject,
 }: DoctorVerificationSectionProps) {
+  const t = useDoctorsViewTranslations();
   if (
     !doctor.registrationNumber ||
     !(
@@ -194,10 +211,9 @@ export function DoctorVerificationSection({
   return (
     <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
       <div>
-        <Label className="text-sm font-semibold">Admin review</Label>
+        <Label className="text-sm font-semibold">{t("adminReview")}</Label>
         <p className="text-xs text-muted-foreground mt-1">
-          Confirm this doctor&apos;s registration against the council portal or the
-          uploaded certificate, then verify or reject with a reason.
+          {t("adminReviewDescription")}
         </p>
       </div>
 
@@ -209,7 +225,7 @@ export function DoctorVerificationSection({
             disabled={adminActionBusy !== null}
           >
             <ShieldCheck className="mr-2 h-4 w-4" />
-            {adminActionBusy === "verify" ? "Verifying…" : "Verify Doctor"}
+            {adminActionBusy === "verify" ? t("verifying") : t("verifyDoctor")}
           </Button>
           <Button
             size="sm"
@@ -218,19 +234,19 @@ export function DoctorVerificationSection({
             disabled={adminActionBusy !== null}
           >
             <ShieldX className="mr-2 h-4 w-4" />
-            Reject
+            {t("reject")}
           </Button>
         </div>
       ) : (
         <div className="space-y-2">
           <Label htmlFor="reject-reason" className="text-xs text-muted-foreground">
-            Rejection reason (visible to the doctor)
+            {t("rejectionReasonLabel")}
           </Label>
           <Textarea
             id="reject-reason"
             value={rejectionReasonDraft}
             onChange={(e) => onRejectionReasonChange(e.target.value)}
-            placeholder="e.g. Registration number not found on the Maharashtra Medical Council portal. Please re-check the number and resubmit."
+            placeholder={t("rejectionReasonPlaceholder")}
             rows={3}
             maxLength={500}
           />
@@ -244,7 +260,7 @@ export function DoctorVerificationSection({
               }}
               disabled={adminActionBusy !== null}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               size="sm"
@@ -252,7 +268,7 @@ export function DoctorVerificationSection({
               onClick={onAdminReject}
               disabled={adminActionBusy !== null}
             >
-              {adminActionBusy === "reject" ? "Rejecting…" : "Submit Rejection"}
+              {adminActionBusy === "reject" ? t("rejecting") : t("submitRejection")}
             </Button>
           </div>
         </div>
@@ -262,6 +278,7 @@ export function DoctorVerificationSection({
 }
 
 export function DoctorEducationSection({ doctor }: { doctor: Doctor }) {
+  const t = useDoctorsViewTranslations();
   const hasEducation =
     Array.isArray(doctor.educationHistory) && doctor.educationHistory.length > 0;
   const hasCertifications =
@@ -272,7 +289,7 @@ export function DoctorEducationSection({ doctor }: { doctor: Doctor }) {
       <div>
         <div className="flex items-center gap-2 mb-3">
           <GraduationCap className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold">Education history</h3>
+          <h3 className="font-semibold">{t("educationHistory")}</h3>
         </div>
         {hasEducation ? (
           <div className="space-y-3">
@@ -292,7 +309,7 @@ export function DoctorEducationSection({ doctor }: { doctor: Doctor }) {
                     </div>
                     <Badge variant="outline">
                       {edu.startYear && `${edu.startYear} - `}
-                      {edu.isOngoing ? "Present" : edu.endYear}
+                      {edu.isOngoing ? t("present") : edu.endYear}
                     </Badge>
                   </div>
                 </CardContent>
@@ -300,14 +317,14 @@ export function DoctorEducationSection({ doctor }: { doctor: Doctor }) {
             ))}
           </div>
         ) : (
-          <p className="text-muted-foreground">No education history added</p>
+          <p className="text-muted-foreground">{t("noEducationHistory")}</p>
         )}
       </div>
 
       <div>
         <div className="flex items-center gap-2 mb-3">
           <Award className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold">Certifications</h3>
+          <h3 className="font-semibold">{t("certifications")}</h3>
         </div>
         {hasCertifications ? (
           <div className="space-y-3">
@@ -319,7 +336,7 @@ export function DoctorEducationSection({ doctor }: { doctor: Doctor }) {
                       <p className="font-medium">{cert.name}</p>
                       <p className="text-sm text-muted-foreground">{cert.issuingBody}</p>
                       {cert.credentialId && (
-                        <p className="text-xs text-muted-foreground">ID: {cert.credentialId}</p>
+                        <p className="text-xs text-muted-foreground">{t("credentialId", { id: cert.credentialId })}</p>
                       )}
                     </div>
                     <div className="text-right">
@@ -328,7 +345,7 @@ export function DoctorEducationSection({ doctor }: { doctor: Doctor }) {
                       </Badge>
                       {cert.expiryDate && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          Expires: {formatInternalListDate(cert.expiryDate)}
+                          {t("expires")} {formatInternalListDate(cert.expiryDate)}
                         </p>
                       )}
                     </div>
@@ -338,7 +355,7 @@ export function DoctorEducationSection({ doctor }: { doctor: Doctor }) {
             ))}
           </div>
         ) : (
-          <p className="text-muted-foreground">No certifications added</p>
+          <p className="text-muted-foreground">{t("noCertifications")}</p>
         )}
       </div>
     </>
@@ -346,6 +363,7 @@ export function DoctorEducationSection({ doctor }: { doctor: Doctor }) {
 }
 
 export function DoctorSpecializationsSection({ doctor }: { doctor: Doctor }) {
+  const t = useDoctorsViewTranslations();
   if (
     !Array.isArray(doctor.additionalSpecializations) ||
     doctor.additionalSpecializations.length === 0
@@ -357,7 +375,7 @@ export function DoctorSpecializationsSection({ doctor }: { doctor: Doctor }) {
     <div>
       <div className="flex items-center gap-2 mb-3">
         <Building2 className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold">Additional Specializations</h3>
+        <h3 className="font-semibold">{t("additionalSpecializations")}</h3>
       </div>
       <div className="flex flex-wrap gap-2">
         {doctor.additionalSpecializations.map((spec) => (
@@ -366,7 +384,7 @@ export function DoctorSpecializationsSection({ doctor }: { doctor: Doctor }) {
             variant={spec.isPrimary ? "default" : "outline"}
           >
             {SPECIALIZATION_LABELS[spec.specialization]}
-            {spec.yearsOfPractice && ` (${spec.yearsOfPractice}y)`}
+            {spec.yearsOfPractice && ` (${spec.yearsOfPractice}${t("yearsShort")})`}
           </Badge>
         ))}
       </div>
