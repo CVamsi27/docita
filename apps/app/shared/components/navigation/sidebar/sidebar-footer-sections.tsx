@@ -30,6 +30,7 @@ import { AskAiButton } from "@/components/ask-ai/ask-ai-button";
 import { HELP_NAV_ITEM } from "@/components/navigation/nav-config";
 import { useAppearanceStore } from "@/lib/stores/appearance-store";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
+import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
 
 function TierDot({ color }: { color?: string }) {
   return (
@@ -345,6 +346,22 @@ export function AskAiSection({ collapsedRail }: { collapsedRail: boolean }) {
       )}
     >
       <AskAiButton collapsed={collapsedRail} />
+    </div>
+  );
+}
+
+/**
+ * Phase 6.4: language toggle in the sidebar footer. Pairs with the
+ * theme toggle (which lives inside the MoreMenu overflow) so users
+ * get both controls in the same scrollable footer.
+ */
+export function LanguageSection() {
+  return (
+    <div className="flex items-center justify-between gap-2 px-3 py-2">
+      <span className="text-sm font-medium text-muted-foreground">
+        Language
+      </span>
+      <LocaleSwitcher />
     </div>
   );
 }

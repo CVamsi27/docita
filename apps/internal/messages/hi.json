@@ -1,0 +1,36 @@
+{
+  "InternalNav": {
+    "overview": "सारांश",
+    "team": "टीम",
+    "admins": "व्यवस्थापक",
+    "paymentProcessing": "भुगतान प्रसंस्करण",
+    "billing": "बिलिंग",
+    "pricing": "मूल्य निर्धारण",
+    "enterpriseContracts": "एंटरप्राइज़ अनुबंध",
+    "referrals": "रेफरल",
+    "analytics": "विश्लेषण",
+    "systemMonitoring": "सिस्टम मॉनिटरिंग",
+    "feedback": "फ़ीडबैक",
+    "support": "सहायता व्हाट्सएप",
+    "broadcasts": "व्हाट्सएप प्रसारण",
+    "systemLogs": "सिस्टम लॉग",
+    "auditLogs": "ऑडिट लॉग",
+    "performance": "प्रदर्शन",
+    "doctors": "डॉक्टर"
+  },
+  "Feedback": {
+    "status": {
+      "statusNew": "नया",
+      "statusReviewed": "समीक्षित",
+      "statusInProgress": "प्रगति में",
+      "statusResolved": "हल किया गया",
+      "statusArchived": "संग्रहीत"
+    }
+  },
+  "InternalAnalytics": {
+    "totalRevenue": "कुल राजस्व",
+    "appointments": "अपॉइंटमेंट",
+    "newPatients": "नए मरीज़",
+    "avgInvoiceValue": "औसत बिल मूल्य"
+  }
+}
