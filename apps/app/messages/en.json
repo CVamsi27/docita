@@ -117,5 +117,36 @@
     "reactionPlaceholder": "Reaction",
     "cancel": "Cancel",
     "save": "Save changes"
+  },
+  "PatientPortal": {
+    "profile": {
+      "pageTitle": "Profile Settings",
+      "pageDescription": "Manage your personal information and privacy preferences",
+      "consentTitle": "Privacy & Consent",
+      "printConsentForm": "Print Consent Form",
+      "consentDescription": "Manage how we communicate with you and use your data",
+      "whatsappConsentLabel": "WhatsApp Notifications",
+      "whatsappConsentBody": "Receive appointment reminders and health updates via WhatsApp",
+      "consentGivenOn": "Consent given on",
+      "dataStorageConsentLabel": "Data Storage Consent",
+      "dataStorageConsentBody": "I consent to storing my health data securely for medical purposes",
+      "marketingConsentLabel": "Marketing Communications",
+      "marketingConsentBody": "Receive offers, health tips, and campaign messages. You can opt out any time.",
+      "deletionTitle": "Delete Account & Data",
+      "deletionDescription": "Permanently delete your account and all associated health data (GDPR/DPDP compliant)",
+      "warningTitle": "Warning",
+      "warningBody": "This action cannot be undone. All your appointments, prescriptions, invoices, and medical records will be permanently deleted after 30 days.",
+      "deletionReasonLabel": "Reason for deletion (required)",
+      "deletionReasonPlaceholder": "Enter deletion reason",
+      "deletionConfirmLabel": "I understand this action cannot be undone and all my data will be permanently deleted",
+      "processing": "Processing…",
+      "deletionButton": "Delete My Account & Data",
+      "consentSavedToast": "Your consent preferences have been saved",
+      "consentSaveError": "We could not save your preferences. Please try again.",
+      "deletionReasonRequired": "Tell us why you want to delete your account before continuing",
+      "deletionConfirmRequired": "Please confirm that you want to delete your account before submitting",
+      "deletionRequestedToast": "Account deletion requested. Your account will be deleted within 30 days.",
+      "deletionRequestError": "We could not submit this deletion request. Please try again."
+    }
   }
 }
