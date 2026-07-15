@@ -2,89 +2,149 @@
 // and similar nav surfaces. When you add a new page under app/(protected)/,
 // add a matching entry below. `scripts/checks/check-route-meta-coverage.mjs`
 // is a blocking check that flags missing entries.
+//
+// Phase 6.3: `labelKey` replaces the previous hardcoded `label` so the
+// consumer can resolve the human label through next-intl's t() against
+// messages/en.json (namespace: Routes). The English label is kept as
+// `label` for fallback when the key is missing — this preserves
+// behavior for any code path that still reads the static label and
+// also gives the JSX literal density ratchet a known-safe fallback to
+// scan.
 export interface RouteMeta {
+  labelKey: string;
   label: string;
   parentPath?: string;
 }
 
 export const ROUTE_META: Record<string, RouteMeta> = {
-  "/today": { label: "Today" },
-  "/dashboard": { label: "Today" },
-  "/billing-locked": { label: "Billing locked" },
-  "/patients": { label: "Patients" },
-  "/patients/[id]": { label: "Patient", parentPath: "/patients" },
-  "/appointments": { label: "Appointments" },
-  "/follow-ups": { label: "Follow-ups" },
-  "/coding-queue": { label: "Coding queue" },
-  "/consultation": { label: "Consultation" },
-  "/consultation/[id]": { label: "Consultation", parentPath: "/appointments" },
-  "/prescriptions": { label: "Prescriptions" },
+  "/today": { labelKey: "today", label: "Today" },
+  "/dashboard": { labelKey: "today", label: "Today" },
+  "/billing-locked": { labelKey: "billingLocked", label: "Billing locked" },
+  "/patients": { labelKey: "patients", label: "Patients" },
+  "/patients/[id]": {
+    labelKey: "patient",
+    label: "Patient",
+    parentPath: "/patients",
+  },
+  "/appointments": { labelKey: "appointments", label: "Appointments" },
+  "/follow-ups": { labelKey: "followUps", label: "Follow-ups" },
+  "/coding-queue": { labelKey: "codingQueue", label: "Coding queue" },
+  "/consultation": { labelKey: "consultation", label: "Consultation" },
+  "/consultation/[id]": {
+    labelKey: "consultation",
+    label: "Consultation",
+    parentPath: "/appointments",
+  },
+  "/prescriptions": { labelKey: "prescriptions", label: "Prescriptions" },
   "/prescriptions/[id]": {
+    labelKey: "prescription",
     label: "Prescription",
     parentPath: "/prescriptions",
   },
-  "/lab-tests": { label: "Lab tests" },
-  "/invoices": { label: "Invoices" },
-  "/invoices/new": { label: "New invoice", parentPath: "/invoices" },
-  "/invoices/[id]": { label: "Invoice", parentPath: "/invoices" },
-  "/invoices/[id]/edit": { label: "Edit", parentPath: "/invoices/[id]" },
-  "/daybook": { label: "Daybook" },
-  "/desk/collect-payment": { label: "Collect payment" },
-  "/desk/floor": { label: "Desk floor" },
-  "/insurance-claims": { label: "Insurance claims" },
+  "/lab-tests": { labelKey: "labTests", label: "Lab tests" },
+  "/invoices": { labelKey: "invoices", label: "Invoices" },
+  "/invoices/new": {
+    labelKey: "newInvoice",
+    label: "New invoice",
+    parentPath: "/invoices",
+  },
+  "/invoices/[id]": {
+    labelKey: "invoice",
+    label: "Invoice",
+    parentPath: "/invoices",
+  },
+  "/invoices/[id]/edit": {
+    labelKey: "edit",
+    label: "Edit",
+    parentPath: "/invoices/[id]",
+  },
+  "/daybook": { labelKey: "daybook", label: "Daybook" },
+  "/desk/collect-payment": {
+    labelKey: "collectPayment",
+    label: "Collect payment",
+  },
+  "/desk/floor": { labelKey: "deskFloor", label: "Desk floor" },
+  "/insurance-claims": {
+    labelKey: "insuranceClaims",
+    label: "Insurance claims",
+  },
   "/insurance-claims/new": {
+    labelKey: "newClaim",
     label: "New claim",
     parentPath: "/insurance-claims",
   },
   "/insurance-claims/[id]": {
+    labelKey: "claim",
     label: "Claim",
     parentPath: "/insurance-claims",
   },
   "/insurance-claims/[id]/edit": {
+    labelKey: "edit",
     label: "Edit",
     parentPath: "/insurance-claims/[id]",
   },
-  "/inventory": { label: "Inventory" },
-  "/documents": { label: "Documents" },
-  "/analytics": { label: "Analytics" },
-  "/reports": { label: "Reports" },
-  "/import": { label: "Import" },
-  "/import/ocr": { label: "OCR", parentPath: "/import" },
-  "/import/excel": { label: "Excel", parentPath: "/import" },
-  "/ai-assistant": { label: "AI assistant" },
-  "/whatsapp": { label: "WhatsApp" },
-  "/inbox": { label: "Inbox" },
-  "/templates": { label: "Templates" },
-  "/hospital/beds": { label: "Hospital beds", parentPath: "/hospital" },
-  "/hospital": { label: "Hospital" },
+  "/inventory": { labelKey: "inventory", label: "Inventory" },
+  "/documents": { labelKey: "documents", label: "Documents" },
+  "/analytics": { labelKey: "analytics", label: "Analytics" },
+  "/reports": { labelKey: "reports", label: "Reports" },
+  "/import": { labelKey: "import", label: "Import" },
+  "/import/ocr": { labelKey: "ocr", label: "OCR", parentPath: "/import" },
+  "/import/excel": {
+    labelKey: "excel",
+    label: "Excel",
+    parentPath: "/import",
+  },
+  "/ai-assistant": { labelKey: "aiAssistant", label: "AI assistant" },
+  "/whatsapp": { labelKey: "whatsapp", label: "WhatsApp" },
+  "/inbox": { labelKey: "inbox", label: "Inbox" },
+  "/templates": { labelKey: "templates", label: "Templates" },
+  "/hospital/beds": {
+    labelKey: "hospitalBeds",
+    label: "Hospital beds",
+    parentPath: "/hospital",
+  },
+  "/hospital": { labelKey: "hospital", label: "Hospital" },
   "/specialty/dental-charts": {
+    labelKey: "dentalCharts",
     label: "Dental charts",
     parentPath: "/specialty",
   },
-  "/specialty": { label: "Specialty" },
-  "/settings": { label: "Settings" },
-  "/settings/team": { label: "Team Management", parentPath: "/settings" },
+  "/specialty": { labelKey: "specialty", label: "Specialty" },
+  "/settings": { labelKey: "settings", label: "Settings" },
+  "/settings/team": {
+    labelKey: "teamManagement",
+    label: "Team Management",
+    parentPath: "/settings",
+  },
   "/settings/team/join-requests": {
+    labelKey: "joinRequests",
     label: "Join requests",
     parentPath: "/settings",
   },
   "/settings/whatsapp-sender": {
+    labelKey: "whatsappSender",
     label: "WhatsApp sender",
     parentPath: "/settings",
   },
-  "/settings/compliance": { label: "Compliance", parentPath: "/settings" },
+  "/settings/compliance": {
+    labelKey: "compliance",
+    label: "Compliance",
+    parentPath: "/settings",
+  },
   "/settings/compliance/consent-template": {
+    labelKey: "consentTemplate",
     label: "Consent template",
     parentPath: "/settings/compliance",
   },
-  "/profile": { label: "Profile" },
-  "/help": { label: "Help" },
-  "/upgrade": { label: "Upgrade" },
-  "/referrals": { label: "Referrals" },
+  "/profile": { labelKey: "profile", label: "Profile" },
+  "/help": { labelKey: "help", label: "Help" },
+  "/upgrade": { labelKey: "upgrade", label: "Upgrade" },
+  "/referrals": { labelKey: "referrals", label: "Referrals" },
 };
 
 interface Crumb {
   label: string;
+  labelKey?: string;
   href?: string;
 }
 
@@ -135,6 +195,7 @@ export function breadcrumbsFor(pathname: string): Crumb[] {
     }
     crumbs.unshift({
       label: meta.label,
+      labelKey: meta.labelKey,
       href: currentKey === normalized ? undefined : currentKey,
     });
     currentKey = meta.parentPath;
@@ -142,7 +203,10 @@ export function breadcrumbsFor(pathname: string): Crumb[] {
 
   const firstCrumb = crumbs[0];
   if (crumbs.length && firstCrumb && firstCrumb.label !== "Today") {
-    crumbs.unshift({ label: "Today", href: "/today" });
+    // The "Today" root crumb has a stable i18n key but we also keep the
+    // literal here as the static fallback for any code path that
+    // renders without the IntlProvider.
+    crumbs.unshift({ label: "Today", labelKey: "today", href: "/today" });
   }
 
   return crumbs;
