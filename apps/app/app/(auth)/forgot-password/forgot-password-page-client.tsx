@@ -4,7 +4,6 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
@@ -24,7 +23,6 @@ import { requestPasswordReset } from "@/features/auth/api/auth.api";
 
 function ForgotPasswordPageInner() {
   const searchParams = useSearchParams();
-  const tAuth = useTranslations("Auth.forgotPassword");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
@@ -56,8 +54,10 @@ function ForgotPasswordPageInner() {
   return (
     <PreDashboardShell currentStep="forgot-password" showProgress={false}>
       <div className="ui-copy-stack">
-        <h1 className="ui-page-title">{tAuth("title")}</h1>
-        <p className="ui-page-subtitle">{tAuth("subtitle")}</p>
+        <h1 className="ui-page-title">Reset Password</h1>
+        <p className="ui-page-subtitle">
+          Enter your email address to receive a password reset link
+        </p>
       </div>
 
       <div className="ui-card-surface p-6 sm:p-8">
@@ -69,12 +69,15 @@ function ForgotPasswordPageInner() {
               </div>
             </div>
             <div className="ui-copy-stack">
-              <h2 className="ui-section-title">{tAuth("submittedTitle")}</h2>
-              <p className="ui-helper-text">{tAuth("submittedBody")}</p>
+              <h2 className="ui-section-title">Check your email</h2>
+              <p className="ui-helper-text">
+                If an account with that email exists, a password reset link has
+                been sent
+              </p>
             </div>
             <BackButton
               fallback="/login"
-              label={tAuth("backToSignIn")}
+              label="Back to sign in"
               variant="outline"
               size="default"
               className="w-full h-11"
@@ -87,13 +90,13 @@ function ForgotPasswordPageInner() {
             className="space-y-5"
           >
             <div className="space-y-2">
-              <Label htmlFor="email">{tAuth("emailLabel")}</Label>
+              <Label htmlFor="email">Email address</Label>
               <Input
                 id="email"
                 type="email"
                 autoComplete="email"
                 autoFocus
-                placeholder={tAuth("emailPlaceholder")}
+                placeholder="Enter email address"
                 className="h-12 min-h-12 bg-background/50"
                 aria-invalid={Boolean(form.formState.errors.email)}
                 aria-describedby={
@@ -123,18 +126,18 @@ function ForgotPasswordPageInner() {
                     decorative
                     className="mr-2"
                   />
-                  {tAuth("submitPending")}
+                  Sending…
 {/* jscpd:ignore-end */}
                 </>
               ) : (
 // jscpd:ignore-start
-                tAuth("submitIdle")
+                "Send reset link"
               )}
             </Button>
 
             <BackButton
               fallback="/login"
-              label={tAuth("backToSignIn")}
+              label="Back to sign in"
               variant="ghost"
               size="default"
               className="w-full h-11"
