@@ -86,6 +86,14 @@
       "submitPending": "Sending\u2026",
       "submitError": "We could not send the password reset email. Please try again.",
       "loading": "Loading password reset\u2026"
+    },
+    "signIn": {
+      "welcomeTitle": "Welcome to Docita",
+      "welcomeBackTitle": "Welcome back",
+      "createAccountTitle": "Create your account",
+      "emailStepDescription": "Use your work email to sign in or create an account",
+      "loginStepDescription": "Sign in to your workspace",
+      "signupStepDescription": "Get started with Docita"
     }
   }
 }
