@@ -13,7 +13,7 @@ import {
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
 import { PatientMapper } from '@/domains/patients/infrastructure/mappers/patient.mapper';
 import { Prisma, Gender } from '@workspace/db';
-import { parseStringEnumMember } from '@workspace/utils';
+import { parseStringEnumMember, phoneMatchCandidates } from '@workspace/utils';
 
 const GENDER_VALUES = Object.values(Gender);
 
@@ -81,8 +81,17 @@ export class PrismaPatientRepository implements IPatientRepository {
     phoneNumber: string,
   ): Promise<Patient | null> {
     const readClient = this.getReadClient();
+    // Lookup is tolerant: a row stored as `9812345678`, `91…`, or `+91…` all
+    // match an incoming `+91…` lookup. Without this, returning-patient OTP
+    // flows (public-booking, patient portal) silently find nothing and the
+    // user is locked out. Companion fix: write-side normalization in the
+    // mapper so new rows are stored in E.164 going forward.
     const item = await readClient.patient.findFirst({
-      where: { clinicId, phoneNumber, deletedAt: null },
+      where: {
+        clinicId,
+        phoneNumber: { in: phoneMatchCandidates(phoneNumber) },
+        deletedAt: null,
+      },
       select: PATIENT_PERSISTENCE_SELECT,
     });
     if (!item) return null;

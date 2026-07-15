@@ -1,4 +1,3 @@
-import { getPatientFullName } from '@workspace/utils';
 import {
   Injectable,
   UnauthorizedException,
@@ -18,6 +17,7 @@ import {
 } from '@/domains/patient-portal/core/repositories/patient-portal.repository.interface';
 import * as crypto from 'crypto';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { getPatientFullName, normalizePhoneE164 } from '@workspace/utils';
 
 @Injectable()
 export class PatientPortalAuthCommandService {
@@ -124,14 +124,9 @@ export class PatientPortalAuthCommandService {
     return this.authService.login(userWithoutPassword);
   }
 
+  // Delegated to the shared @workspace/utils helper so this command service
+  // and public-booking stay byte-identical on what "normalized" means.
   private normalizePhone(phone: string): string {
-    const digits = phone.replace(/\D/g, '');
-    if (digits.length === 10) {
-      return `+91${digits}`;
-    }
-    if (digits.length === 12 && digits.startsWith('91')) {
-      return `+${digits}`;
-    }
-    return phone.startsWith('+') ? phone : `+${digits}`;
+    return normalizePhoneE164(phone);
   }
 }
