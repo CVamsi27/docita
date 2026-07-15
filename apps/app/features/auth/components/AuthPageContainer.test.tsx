@@ -1,7 +1,29 @@
 import type { ReactElement } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { NextIntlClientProvider } from "next-intl";
 import { AuthPageContainer } from "./AuthPageContainer";
+
+const messages = {
+  Auth: {
+    signIn: {
+      welcomeTitle: "Welcome to Docita",
+      welcomeBackTitle: "Welcome back",
+      createAccountTitle: "Create your account",
+      emailStepDescription: "Use your work email to sign in or create an account",
+      loginStepDescription: "Sign in to your workspace",
+      signupStepDescription: "Get started with Docita",
+    },
+  },
+};
+
+function renderWithIntl(ui: ReactElement) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      {ui}
+    </NextIntlClientProvider>,
+  );
+}
 
 vi.mock("@workspace/ui/components/overlay/tooltip", () => ({
   SymbolTooltip: ({ children }: { children: ReactElement }) => children,
@@ -75,7 +97,7 @@ describe("AuthPageContainer", () => {
   });
 
   it("shows a field error for an invalid email before checking the account", async () => {
-    render(<AuthPageContainer />);
+    renderWithIntl(<AuthPageContainer />);
 
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: "not-an-email" },
@@ -91,7 +113,7 @@ describe("AuthPageContainer", () => {
   it("keeps the branding panel visible on the email step and after continue", async () => {
     mocks.checkEmail.mockResolvedValue(false);
 
-    render(<AuthPageContainer />);
+    renderWithIntl(<AuthPageContainer />);
 
     expect(screen.getByTestId("auth-branding-panel")).toBeInTheDocument();
 
@@ -109,7 +131,7 @@ describe("AuthPageContainer", () => {
   it("shows a clear message when the email lookup fails", async () => {
     mocks.checkEmail.mockRejectedValue(new Error("network"));
 
-    render(<AuthPageContainer />);
+    renderWithIntl(<AuthPageContainer />);
 
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: "doctor@example.com" },
@@ -128,7 +150,7 @@ describe("AuthPageContainer", () => {
   it("blocks signup when the confirmation password does not match", async () => {
     mocks.checkEmail.mockResolvedValue(false);
 
-    render(<AuthPageContainer />);
+    renderWithIntl(<AuthPageContainer />);
 
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: "owner@example.com" },
@@ -161,7 +183,7 @@ describe("AuthPageContainer", () => {
   it("shows required signup password messages when both password fields are blank", async () => {
     mocks.checkEmail.mockResolvedValue(false);
 
-    render(<AuthPageContainer />);
+    renderWithIntl(<AuthPageContainer />);
 
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: "owner@example.com" },
@@ -197,7 +219,7 @@ describe("AuthPageContainer", () => {
     };
     mocks.isAuthenticated = true;
 
-    render(<AuthPageContainer />);
+    renderWithIntl(<AuthPageContainer />);
 
     await waitFor(() => {
       expect(mocks.router.replace).toHaveBeenCalledWith("/verify-email-sent");
