@@ -115,6 +115,45 @@ Manual migration:
 DATABASE_URL="postgresql://..." pnpm --filter @workspace/db run db:migrate:safe
 ```
 
+## Data Migrations (Backfill-Only)
+
+Schema migrations (DDL) are applied automatically. **Data migrations** that rewrite existing rows are a separate concern — they ship as the same `prisma migrate deploy` artifact but are *safe to defer* and *idempotent on re-run*.
+
+### `20260715100000_normalize_patient_phone_to_e164` — Patient phone to E.164
+
+Backfill that rewrites legacy bare-10-digit Indian mobile numbers on `Patient.phoneNumber` to E.164 (`+91XXXXXXXXXX`). Shipped with the read-side tolerant-lookup fix in [`prisma-patient.repository.ts`](../../apps/api/src/domains/patients/infrastructure/persistence/prisma-patient.repository.ts) and the write-side normalization in [`patient.mapper.ts`](../../apps/api/src/domains/patients/infrastructure/mappers/patient.mapper.ts) so new and old data resolve identically.
+
+**Properties:**
+- Idempotent: the `WHERE "phoneNumber" ~ '^\d{10}$'` predicate matches only bare-10-digit rows, so re-running is a no-op once normalized.
+- Scope: only live rows (`"deletedAt" IS NULL`) — soft-deleted rows stay on the retention/anonymization path untouched.
+- Concurrency: bumps `"version"` and `"updatedAt"` on every rewritten row, so any in-flight optimistic-concurrency update built from the pre-migration row will be rejected with a version mismatch. This is the desired behavior — the next write from the client re-reads and re-normalizes.
+- India-only: the regex `^\d{10}$` only matches Indian mobile numbers. International numbers (US `+1…`, etc.) are not affected.
+
+**Run order:** the read-side tolerant lookup (`{ in: phoneMatchCandidates(phone) }`) makes the API code-level fix land without the data migration. Deploy the code first, then run the data migration whenever convenient — there is no tight coupling.
+
+**Dry-run first (recommended):**
+```sql
+SELECT COUNT(*) FROM "Patient"
+  WHERE "phoneNumber" ~ '^\d{10}$' AND "deletedAt" IS NULL;
+```
+
+If the count is unexpectedly large (e.g. > 100k), pause and confirm scope before running.
+
+**Post-migration verify:**
+```sql
+-- Should be 0 once the migration lands
+SELECT COUNT(*) FROM "Patient"
+  WHERE "phoneNumber" ~ '^\d{10}$' AND "deletedAt" IS NULL;
+
+-- Spot-check: 1-2% of clinics with patients should show a mix of
+-- +91…, 91…, and bare 10-digit; after the migration all should be +91…
+SELECT "clinicId", "phoneNumber"
+  FROM "Patient"
+  WHERE "deletedAt" IS NULL
+  ORDER BY "updatedAt" DESC
+  LIMIT 20;
+```
+
 ## Frontend Quick Guide
 
 - Build `apps/app` with `pnpm build:app:cloudflare`.
