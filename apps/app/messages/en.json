@@ -83,6 +83,14 @@
       "emailPlaceholder": "Enter email address",
       "submitIdle": "Send reset link",
       "submitPending": "Sending…"
+    },
+    "signIn": {
+      "welcomeTitle": "Welcome to Docita",
+      "welcomeBackTitle": "Welcome back",
+      "createAccountTitle": "Create your account",
+      "emailStepDescription": "Use your work email to sign in or create an account",
+      "loginStepDescription": "Sign in to your workspace",
+      "signupStepDescription": "Get started with Docita"
     }
   }
 }
