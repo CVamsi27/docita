@@ -18,7 +18,6 @@ export const SETTINGS_NAV_ITEM: NavItem = {
   href: "/settings",
   icon: Settings2,
   label: "Settings",
-  labelKey: "settings",
   accessTarget: APP_ACCESS_TARGETS.PAGE_SETTINGS,
 };
 
@@ -26,14 +25,12 @@ export const HELP_NAV_ITEM: NavItem = {
   href: "/help",
   icon: HelpCircle,
   label: "Help",
-  labelKey: "help",
 };
 
 export const AI_ASSISTANT_NAV_ITEM: NavItem = {
   href: "/ai-assistant",
   icon: Sparkles,
   label: "AI Assistant",
-  labelKey: "aiAssistant",
   feature: Feature.AI_PRESCRIPTION_ASSISTANT,
   accessTarget: APP_ACCESS_TARGETS.PAGE_AI_ASSISTANT,
 };
@@ -56,7 +53,6 @@ export const mobileOnlyNavItems: NavItem[] = [
     href: "/settings?tab=notifications",
     icon: Bell,
     label: "Notifications",
-    labelKey: "notifications",
   },
 ];
 

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
 import {
   HelpCircle,
   Moon,
@@ -67,7 +66,6 @@ function MoreMenuContent({
   onOpenCustomize,
 }: MoreMenuProps) {
   const pathname = usePathname();
-  const tNav = useTranslations("Nav");
   const { resolvedTheme, setTheme } = useTheme();
   const setAppearanceTheme = useAppearanceStore((s) => s.setTheme);
   const isDark = resolvedTheme === "dark";
@@ -100,7 +98,7 @@ function MoreMenuContent({
         <DropdownMenuItem asChild>
           <Link href="/settings" className="flex items-center">
             <Settings2 className="mr-2 h-4 w-4" />
-            {tNav("settings")}
+            Settings
             {isAdmin && pendingJoinRequestCount > 0 && (
               <span className="ml-auto h-2 w-2 rounded-full bg-destructive" />
             )}
@@ -118,7 +116,7 @@ function MoreMenuContent({
           )}
         >
           <HelpCircle className="mr-2 h-4 w-4" />
-          {tNav("help")}
+          Help
         </Link>
       </DropdownMenuItem>
     </>
