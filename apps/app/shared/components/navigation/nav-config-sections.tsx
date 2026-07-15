@@ -30,6 +30,13 @@ export interface NavItem {
   href: string;
   icon: LucideIcon;
   label: string;
+  /**
+   * Phase 6.3: optional i18n key (Nav namespace). When set, sidebar
+   * consumers should resolve the visible label through t(Nav.key) at
+   * render time. The `label` field remains as the English fallback
+   * for any code path that renders without the IntlProvider.
+   */
+  labelKey?: string;
   feature?: Feature;
   accessTarget?: AppAccessTarget;
 }
@@ -47,18 +54,21 @@ const TRACK_ITEMS: NavItem[] = [
     href: "/today",
     icon: CalendarClock,
     label: "Today",
+    labelKey: "today",
     accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
   },
   {
     href: "/consultation",
     icon: Stethoscope,
     label: "Consultation",
+    labelKey: "consultation",
     accessTarget: APP_ACCESS_TARGETS.PAGE_CONSULTATION,
   },
   {
     href: "/appointments",
     icon: CalendarDays,
     label: "Appointments",
+    labelKey: "appointments",
     feature: Feature.CALENDAR_SLOTS,
     accessTarget: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS,
   },
@@ -66,6 +76,7 @@ const TRACK_ITEMS: NavItem[] = [
     href: "/patients",
     icon: Users,
     label: "Patients",
+    labelKey: "patients",
     feature: Feature.BASIC_PATIENT_MANAGEMENT,
     accessTarget: APP_ACCESS_TARGETS.PAGE_PATIENTS,
   },
@@ -73,6 +84,7 @@ const TRACK_ITEMS: NavItem[] = [
     href: "/desk/collect-payment",
     icon: Banknote,
     label: "Payment desk",
+    labelKey: "paymentDesk",
     feature: Feature.INVOICING,
     accessTarget: APP_ACCESS_TARGETS.PAGE_DESK_PAYMENT,
   },
@@ -80,6 +92,7 @@ const TRACK_ITEMS: NavItem[] = [
     href: "/invoices",
     icon: Receipt,
     label: "Invoices",
+    labelKey: "invoices",
     feature: Feature.INVOICING,
     accessTarget: APP_ACCESS_TARGETS.PAGE_INVOICES,
   },
@@ -87,6 +100,7 @@ const TRACK_ITEMS: NavItem[] = [
     href: "/daybook",
     icon: BookOpen,
     label: "Daybook",
+    labelKey: "daybook",
     feature: Feature.INVOICING,
     accessTarget: APP_ACCESS_TARGETS.PAGE_INVOICES,
   },
@@ -94,6 +108,7 @@ const TRACK_ITEMS: NavItem[] = [
     href: "/insurance-claims",
     icon: ShieldPlus,
     label: "Insurance Claims",
+    labelKey: "insuranceClaims",
     feature: Feature.INSURANCE_BILLING,
     accessTarget: APP_ACCESS_TARGETS.PAGE_INSURANCE_CLAIMS,
   },
@@ -103,6 +118,7 @@ const TRACK_ITEMS: NavItem[] = [
     href: "/coding-queue",
     icon: FileCode2,
     label: "Coding Queue",
+    labelKey: "codingQueue",
     feature: Feature.MEDICAL_CODING,
     accessTarget: APP_ACCESS_TARGETS.PAGE_CODING_QUEUE,
   },
@@ -110,6 +126,7 @@ const TRACK_ITEMS: NavItem[] = [
     href: "/prescriptions",
     icon: Pill,
     label: "Prescriptions",
+    labelKey: "prescriptions",
     feature: Feature.DIGITAL_PRESCRIPTIONS,
     accessTarget: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS,
   },
@@ -117,6 +134,7 @@ const TRACK_ITEMS: NavItem[] = [
     href: "/lab-tests",
     icon: FlaskConical,
     label: "Lab Tests",
+    labelKey: "labTests",
     feature: Feature.LAB_TESTS,
     accessTarget: APP_ACCESS_TARGETS.PAGE_LAB_TESTS,
   },
@@ -124,6 +142,7 @@ const TRACK_ITEMS: NavItem[] = [
     href: "/documents",
     icon: Files,
     label: "Documents",
+    labelKey: "documents",
     feature: Feature.DOCUMENT_ARCHIVAL,
     accessTarget: APP_ACCESS_TARGETS.PAGE_DOCUMENTS,
   },
@@ -134,6 +153,7 @@ const SERVICES_ITEMS: NavItem[] = [
     href: "/whatsapp",
     icon: MessageCircle,
     label: "WhatsApp",
+    labelKey: "whatsapp",
     feature: Feature.WHATSAPP_MESSAGING,
     accessTarget: APP_ACCESS_TARGETS.PAGE_WHATSAPP,
   },
@@ -141,12 +161,14 @@ const SERVICES_ITEMS: NavItem[] = [
     href: "/inbox",
     icon: Inbox,
     label: "Inbox",
+    labelKey: "inbox",
     accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
   },
   {
     href: "/inventory",
     icon: Boxes,
     label: "Inventory",
+    labelKey: "inventory",
     feature: Feature.INVENTORY,
     accessTarget: APP_ACCESS_TARGETS.PAGE_INVENTORY,
   },
@@ -154,12 +176,14 @@ const SERVICES_ITEMS: NavItem[] = [
     href: "/follow-ups",
     icon: CheckSquare,
     label: "Follow-ups",
+    labelKey: "followUps",
     accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
   },
   {
     href: "/analytics",
     icon: TrendingUp,
     label: "Analytics",
+    labelKey: "analytics",
     feature: Feature.BASIC_ANALYTICS,
     accessTarget: APP_ACCESS_TARGETS.PAGE_ANALYTICS,
   },
@@ -167,6 +191,7 @@ const SERVICES_ITEMS: NavItem[] = [
     href: "/reports",
     icon: BarChart3,
     label: "Reports",
+    labelKey: "reports",
     feature: Feature.BASIC_ANALYTICS,
     accessTarget: APP_ACCESS_TARGETS.PAGE_REPORTS,
   },
@@ -174,6 +199,7 @@ const SERVICES_ITEMS: NavItem[] = [
     href: "/import",
     icon: FileInput,
     label: "Import Data",
+    labelKey: "importData",
     accessTarget: APP_ACCESS_TARGETS.PAGE_IMPORT,
   },
 ];

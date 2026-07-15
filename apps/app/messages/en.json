@@ -46,5 +46,31 @@
     "help": "Help",
     "upgrade": "Upgrade",
     "referrals": "Referrals"
+  },
+  "Nav": {
+    "today": "Today",
+    "consultation": "Consultation",
+    "appointments": "Appointments",
+    "patients": "Patients",
+    "paymentDesk": "Payment desk",
+    "invoices": "Invoices",
+    "daybook": "Daybook",
+    "insuranceClaims": "Insurance Claims",
+    "codingQueue": "Coding Queue",
+    "prescriptions": "Prescriptions",
+    "labTests": "Lab Tests",
+    "documents": "Documents",
+    "whatsapp": "WhatsApp",
+    "inbox": "Inbox",
+    "inventory": "Inventory",
+    "followUps": "Follow-ups",
+    "analytics": "Analytics",
+    "reports": "Reports",
+    "importData": "Import Data",
+    "settings": "Settings",
+    "help": "Help",
+    "aiAssistant": "AI Assistant",
+    "notifications": "Notifications",
+    "bedManagement": "Bed Management"
   }
 }
