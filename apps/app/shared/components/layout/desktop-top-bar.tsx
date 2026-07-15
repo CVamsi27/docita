@@ -2,7 +2,6 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import {
   Breadcrumbs,
   type BreadcrumbItem,
@@ -13,15 +12,7 @@ import { TopBarActions } from "@/components/layout/top-bar-actions";
 
 export function DesktopTopBar() {
   const pathname = usePathname() ?? "";
-  const t = useTranslations("Routes");
-  // Resolve the static fallback label from route-meta through t() so the
-  // JSX literal density ratchet sees the breadcrumb labels as already-
-  // translated. If a key is missing, fall back to the literal label —
-  // the ratchet is the safety net for that path.
-  const crumbs: BreadcrumbItem[] = breadcrumbsFor(pathname).map((c) => ({
-    ...c,
-    label: c.labelKey ? (t(c.labelKey) || c.label) : c.label,
-  }));
+  const crumbs: BreadcrumbItem[] = breadcrumbsFor(pathname);
 
   return (
     <div className="hidden md:block">
