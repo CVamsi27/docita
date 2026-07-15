@@ -146,19 +146,22 @@ export function SentMessageHistory({
         <h2 className="text-sm font-semibold">Sent messages</h2>
       </div>
 
-      {isLoading ? (
-        <DataState status="loading" loadingMessage="Loading sent messages…" />
-      ) : isError ? (
-        <DataState
-          status="error"
-          errorMessage="We could not load sent messages."
-          onRetry={onRetry}
-        />
-      ) : messages.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No messages have been sent to this patient yet.
-        </p>
-      ) : (
+      <DataState
+        status={
+          isLoading
+            ? "loading"
+            : isError
+              ? "error"
+              : messages.length === 0
+                ? "empty"
+                : "success"
+        }
+        loadingMessage="Loading sent messages…"
+        errorMessage="We could not load sent messages."
+        onRetry={onRetry}
+        emptyTitle="No messages yet"
+        emptyDescription="No messages have been sent to this patient yet."
+      >
         <ul className="space-y-2">
           {messages.map((entry) => (
             <li
@@ -186,7 +189,7 @@ export function SentMessageHistory({
             </li>
           ))}
         </ul>
-      )}
+      </DataState>
     </div>
   );
 }
