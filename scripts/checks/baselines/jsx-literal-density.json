@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-15T22:08:17.884Z",
-  "totalLiterals": 1582,
+  "generatedAt": "2026-07-15T22:12:09.979Z",
+  "totalLiterals": 1554,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -354,7 +354,7 @@
     "apps/internal/features/analytics/analytics-metric-cards.tsx": 1,
     "apps/internal/features/analytics/use-analytics-dashboard.tsx": 1,
     "apps/internal/features/audit/audit-logs-page.tsx": 6,
-    "apps/internal/features/billing/BillingDashboardTabs.tsx": 29,
+    "apps/internal/features/billing/BillingDashboardTabs.tsx": 1,
     "apps/internal/features/billing/BillingGracePeriodDialog.tsx": 1,
     "apps/internal/features/billing/BillingMetricsGrid.tsx": 2,
     "apps/internal/features/billing/BillingRiskSummary.tsx": 4,

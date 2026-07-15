@@ -75,5 +75,45 @@
       "noCertifications": "कोई प्रमाणपत्र नहीं जोड़ा गया",
       "additionalSpecializations": "अतिरिक्त विशेषज्ञता"
     }
+  },
+  "InternalBilling": {
+    "dashboard": {
+      "tabSubscriptions": "सदस्यताएँ",
+      "tabPayments": "भुगतान",
+      "tabRevenue": "राजस्व रुझान",
+      "filterTier": "स्तर",
+      "filterStatus": "स्थिति",
+      "filterBillingCycle": "बिलिंग चक्र",
+      "filterAllTiers": "सभी स्तर",
+      "filterAllStatuses": "सभी स्थितियाँ",
+      "filterAllCycles": "सभी चक्र",
+      "statusActive": "सक्रिय",
+      "statusTrial": "परीक्षण",
+      "statusPastDue": "बकाया",
+      "statusGracePeriod": "अनुग्रह अवधि",
+      "statusCancelled": "रद्द",
+      "statusExpired": "समाप्त",
+      "cycleMonthly": "मासिक",
+      "cycleYearly": "वार्षिक",
+      "colClinic": "क्लिनिक",
+      "colTier": "स्तर",
+      "colStatus": "स्थिति",
+      "colBillingCycle": "बिलिंग चक्र",
+      "colAmount": "राशि",
+      "colPeriodEnd": "अवधि समाप्ति",
+      "colCredits": "क्रेडिट",
+      "colActions": "क्रियाएँ",
+      "colDate": "तारीख",
+      "colPlanService": "योजना / सेवा",
+      "colGatewayId": "गेटवे आईडी",
+      "emptySubscriptions": "कोई सदस्यता नहीं मिली",
+      "emptyPayments": "कोई भुगतान नहीं मिला",
+      "emptyRevenue": "कोई राजस्व डेटा उपलब्ध नहीं",
+      "recentPayments": "हाल के भुगतान",
+      "recentPaymentsDescription": "सभी क्लिनिकों का लेनदेन इतिहास",
+      "revenueByMonth": "मासिक राजस्व",
+      "revenueByMonthDescription": "मासिक राजस्व रुझान",
+      "creditsMonths": "{count} माह"
+    }
   }
 }

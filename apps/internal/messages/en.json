@@ -75,5 +75,45 @@
       "noCertifications": "No certifications added",
       "additionalSpecializations": "Additional Specializations"
     }
+  },
+  "InternalBilling": {
+    "dashboard": {
+      "tabSubscriptions": "Subscriptions",
+      "tabPayments": "Payments",
+      "tabRevenue": "Revenue Trends",
+      "filterTier": "Tier",
+      "filterStatus": "Status",
+      "filterBillingCycle": "Billing cycle",
+      "filterAllTiers": "All Tiers",
+      "filterAllStatuses": "All statuses",
+      "filterAllCycles": "All cycles",
+      "statusActive": "Active",
+      "statusTrial": "Trial",
+      "statusPastDue": "Past due",
+      "statusGracePeriod": "Grace period",
+      "statusCancelled": "Cancelled",
+      "statusExpired": "Expired",
+      "cycleMonthly": "Monthly",
+      "cycleYearly": "Yearly",
+      "colClinic": "Clinic",
+      "colTier": "Tier",
+      "colStatus": "Status",
+      "colBillingCycle": "Billing cycle",
+      "colAmount": "Amount",
+      "colPeriodEnd": "Period end",
+      "colCredits": "Credits",
+      "colActions": "Actions",
+      "colDate": "Date",
+      "colPlanService": "Plan / service",
+      "colGatewayId": "Gateway ID",
+      "emptySubscriptions": "No subscriptions found",
+      "emptyPayments": "No payments found",
+      "emptyRevenue": "No revenue data available",
+      "recentPayments": "Recent payments",
+      "recentPaymentsDescription": "Transaction history across all clinics",
+      "revenueByMonth": "Revenue by Month",
+      "revenueByMonthDescription": "Monthly revenue trends",
+      "creditsMonths": "{count} mo"
+    }
   }
 }
