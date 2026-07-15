@@ -167,6 +167,14 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: pnpm --filter @docita/app run build:cloudflare
 
+      - name: Enforce apps/app worker bundle cap
+        if: github.event_name == 'workflow_dispatch'
+        # The build:cloudflare:base script already runs the check
+        # internally and fails the build on overage. This step is
+        # an explicit re-run so the gate is visible in the CI
+        # workflow summary.
+        run: pnpm check:worker-size:app
+
   internal-quality:
     name: Internal Unit Checks
     needs: changes
@@ -212,6 +220,11 @@ jobs:
       - name: Build internal for Cloudflare
         if: github.event_name == 'workflow_dispatch'
         run: pnpm --filter @docita/internal run build:cloudflare
+
+      - name: Enforce apps/internal worker bundle cap
+        if: github.event_name == 'workflow_dispatch'
+        # Mirrors the apps/app gate above.
+        run: pnpm check:worker-size:internal
 
   landing-quality:
     name: Landing Checks
