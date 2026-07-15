@@ -1,12 +1,43 @@
 // check-as-cast-density: allow-file — narrowing casts required by generic signatures or external types
 import { getUserFacingErrorMessage } from "@workspace/utils";
 
+/**
+ * Phase 6.6: each STATUS_OPTIONS entry carries an optional
+ * `labelKey` (Feedback.status.*) alongside the hardcoded English
+ * label. The hardcoded label stays as the fallback when the
+ * IntlProvider is missing.
+ */
 export const STATUS_OPTIONS = [
-  { value: "NEW", label: "New", color: "badge-info" },
-  { value: "REVIEWED", label: "Reviewed", color: "badge-warning" },
-  { value: "IN_PROGRESS", label: "In Progress", color: "tier-pro" },
-  { value: "RESOLVED", label: "Resolved", color: "badge-success" },
-  { value: "ARCHIVED", label: "Archived", color: "badge-muted" },
+  {
+    value: "NEW",
+    label: "New",
+    labelKey: "statusNew",
+    color: "badge-info",
+  },
+  {
+    value: "REVIEWED",
+    label: "Reviewed",
+    labelKey: "statusReviewed",
+    color: "badge-warning",
+  },
+  {
+    value: "IN_PROGRESS",
+    label: "In Progress",
+    labelKey: "statusInProgress",
+    color: "tier-pro",
+  },
+  {
+    value: "RESOLVED",
+    label: "Resolved",
+    labelKey: "statusResolved",
+    color: "badge-success",
+  },
+  {
+    value: "ARCHIVED",
+    label: "Archived",
+    labelKey: "statusArchived",
+    color: "badge-muted",
+  },
 ] as const;
 
 export const CATEGORY_OPTIONS = [
