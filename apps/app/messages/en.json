@@ -72,5 +72,20 @@
     "aiAssistant": "AI Assistant",
     "notifications": "Notifications",
     "bedManagement": "Bed Management"
+  },
+  "Auth": {
+    "forgotPassword": {
+      "title": "Reset Password",
+      "subtitle": "Enter your email address to receive a password reset link",
+      "submittedTitle": "Check your email",
+      "submittedBody": "If an account with that email exists, a password reset link has been sent",
+      "backToSignIn": "Back to sign in",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "Enter email address",
+      "submitIdle": "Send reset link",
+      "submitPending": "Sending\u2026",
+      "submitError": "We could not send the password reset email. Please try again.",
+      "loading": "Loading password reset\u2026"
+    }
   }
 }
