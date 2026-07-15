@@ -1,7 +1,5 @@
 import "./globals.css";
 import { headers } from "next/headers";
-import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
 import { OptionalSentryInitializer } from "@/components/optional-sentry-initializer";
 import { Providers } from "./providers";
 import { esbuildHelperBootstrapScript } from "@workspace/utils/runtime/esbuild-helper-bootstrap";
@@ -35,8 +33,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const nonce = (await headers()).get("x-nonce") ?? undefined;
-  // Phase 6.1 scaffold: see apps/app/app/layout.tsx for the same pattern.
-  const messages = await getMessages();
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -60,9 +56,7 @@ export default async function RootLayout({
         <OptionalSentryInitializer
           enabled={process.env.DOCITA_CLOUDFLARE !== "1"}
         />
-        <NextIntlClientProvider locale="en" messages={messages}>
-          <Providers nonce={nonce}>{children}</Providers>
-        </NextIntlClientProvider>
+        <Providers nonce={nonce}>{children}</Providers>
       </body>
     </html>
   );
