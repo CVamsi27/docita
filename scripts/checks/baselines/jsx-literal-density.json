@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-15T22:04:03.715Z",
-  "totalLiterals": 1598,
+  "generatedAt": "2026-07-15T22:08:17.884Z",
+  "totalLiterals": 1582,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -213,7 +213,6 @@
     "apps/app/features/onboarding/components/verify-doctor/signature-step.tsx": 1,
     "apps/app/features/patient-portal/components/PortalAppointmentsPageContent.tsx": 1,
     "apps/app/features/patient-portal/components/PortalMetricsCards.tsx": 6,
-    "apps/app/features/patient-portal/components/PortalProfilePageContent.tsx": 16,
     "apps/app/features/patient-portal/components/PortalQuickActions.tsx": 2,
     "apps/app/features/patient-portal/components/auth/portal-otp-login-ui.tsx": 2,
     "apps/app/features/patient-portal/components/layout/portal-layout-shell.tsx": 2,
