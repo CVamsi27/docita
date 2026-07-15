@@ -83,9 +83,9 @@
       "emailLabel": "Email address",
       "emailPlaceholder": "Enter email address",
       "submitIdle": "Send reset link",
-      "submitPending": "Sending\u2026",
+      "submitPending": "Sending…",
       "submitError": "We could not send the password reset email. Please try again.",
-      "loading": "Loading password reset\u2026"
+      "loading": "Loading password reset…"
     },
     "signIn": {
       "welcomeTitle": "Welcome to Docita",
@@ -95,5 +95,27 @@
       "loginStepDescription": "Sign in to your workspace",
       "signupStepDescription": "Get started with Docita"
     }
+  },
+  "Allergy": {
+    "editTitle": "Edit allergy",
+    "editDescription": "Update the allergen, severity, type, and reaction.",
+    "allergenLabel": "Allergen",
+    "severityLabel": "Severity",
+    "severityMild": "Mild",
+    "severityModerate": "Moderate",
+    "severitySevere": "Severe",
+    "severityLifeThreatening": "Life-Threatening (Anaphylaxis Risk)",
+    "typeLabel": "Type",
+    "typeDrug": "Drug/medication",
+    "typeFood": "Food",
+    "typeEnvironmental": "Environmental (pollen, dust)",
+    "typeLatex": "Latex",
+    "typeInsect": "Insect stings/bites",
+    "typeContrast": "Contrast dye",
+    "typeOther": "Other",
+    "reactionLabel": "Reaction",
+    "reactionPlaceholder": "Reaction",
+    "cancel": "Cancel",
+    "save": "Save changes"
   }
 }

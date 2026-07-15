@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -38,7 +41,16 @@ function isAllergyType(value: string): value is (typeof allergyTypeValues)[numbe
   return allergyTypeValues.some((option) => option === value);
 }
 
+/**
+ * Phase 3 (per-feature): the allergy edit dialog is one of the first
+ * non-chrome surfaces converted to next-intl. Every visible string
+ * (title, description, labels, placeholder, select options, buttons)
+ * resolves through useTranslations(\"Allergy\"). Hindi translation
+ * lives alongside English in messages/<locale>.json — no separate
+ * per-locale component copy.
+ */
 export function AllergyEditDialog({ editingAllergy, onCancel, onSave, onChange }: AllergyEditDialogProps) {
+  const t = useTranslations("Allergy");
   return (
     <Dialog
       open={!!editingAllergy}
@@ -46,15 +58,15 @@ export function AllergyEditDialog({ editingAllergy, onCancel, onSave, onChange }
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit allergy</DialogTitle>
+          <DialogTitle>{t("editTitle")}</DialogTitle>
           <DialogDescription>
-            Update the allergen, severity, type, and reaction.
+            {t("editDescription")}
           </DialogDescription>
         </DialogHeader>
         {editingAllergy ? (
         <div className="flex flex-col gap-4 min-w-0">
           <div className="space-y-2">
-            <Label>Allergen</Label>
+            <Label>{t("allergenLabel")}</Label>
             <Input
               value={editingAllergy.allergen || ""}
               onChange={(e) =>
@@ -63,7 +75,7 @@ export function AllergyEditDialog({ editingAllergy, onCancel, onSave, onChange }
             />
           </div>
           <div className="space-y-2">
-            <Label>Severity</Label>
+            <Label>{t("severityLabel")}</Label>
             <Select
               value={editingAllergy.severity || "MODERATE"}
               onValueChange={(v: string) =>
@@ -74,15 +86,15 @@ export function AllergyEditDialog({ editingAllergy, onCancel, onSave, onChange }
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="MILD">Mild</SelectItem>
-                <SelectItem value="MODERATE">Moderate</SelectItem>
-                <SelectItem value="SEVERE">Severe</SelectItem>
-                <SelectItem value="LIFE_THREATENING">Life-Threatening (Anaphylaxis Risk)</SelectItem>
+                <SelectItem value="MILD">{t("severityMild")}</SelectItem>
+                <SelectItem value="MODERATE">{t("severityModerate")}</SelectItem>
+                <SelectItem value="SEVERE">{t("severitySevere")}</SelectItem>
+                <SelectItem value="LIFE_THREATENING">{t("severityLifeThreatening")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Type</Label>
+            <Label>{t("typeLabel")}</Label>
             <Select
               value={editingAllergy.allergyType || "DRUG"}
               onValueChange={(v: string) =>
@@ -93,20 +105,20 @@ export function AllergyEditDialog({ editingAllergy, onCancel, onSave, onChange }
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="DRUG">Drug/medication</SelectItem>
-                <SelectItem value="FOOD">Food</SelectItem>
-                <SelectItem value="ENVIRONMENTAL">Environmental (pollen, dust)</SelectItem>
-                <SelectItem value="LATEX">Latex</SelectItem>
-                <SelectItem value="INSECT">Insect stings/bites</SelectItem>
-                <SelectItem value="CONTRAST">Contrast dye</SelectItem>
-                <SelectItem value="OTHER">Other</SelectItem>
+                <SelectItem value="DRUG">{t("typeDrug")}</SelectItem>
+                <SelectItem value="FOOD">{t("typeFood")}</SelectItem>
+                <SelectItem value="ENVIRONMENTAL">{t("typeEnvironmental")}</SelectItem>
+                <SelectItem value="LATEX">{t("typeLatex")}</SelectItem>
+                <SelectItem value="INSECT">{t("typeInsect")}</SelectItem>
+                <SelectItem value="CONTRAST">{t("typeContrast")}</SelectItem>
+                <SelectItem value="OTHER">{t("typeOther")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Reaction</Label>
+            <Label>{t("reactionLabel")}</Label>
             <Input
-              placeholder="Reaction"
+              placeholder={t("reactionPlaceholder")}
               value={editingAllergy.reaction || ""}
               onChange={(e) =>
                 onChange({ ...editingAllergy, reaction: e.target.value })
@@ -116,8 +128,8 @@ export function AllergyEditDialog({ editingAllergy, onCancel, onSave, onChange }
         </div>
         ) : null}
         <DialogFooter>
-          <Button variant="outline" onClick={onCancel}>Cancel</Button>
-          <Button onClick={onSave}>Save changes</Button>
+          <Button variant="outline" onClick={onCancel}>{t("cancel")}</Button>
+          <Button onClick={onSave}>{t("save")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

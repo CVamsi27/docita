@@ -95,5 +95,27 @@
       "loginStepDescription": "अपने वर्कस्पेस में साइन इन करें",
       "signupStepDescription": "Docita के साथ शुरुआत करें"
     }
+  },
+  "Allergy": {
+    "editTitle": "एलर्जी संपादित करें",
+    "editDescription": "एलर्जी कारक, गंभीरता, प्रकार और प्रतिक्रिया अपडेट करें।",
+    "allergenLabel": "एलर्जी कारक",
+    "severityLabel": "गंभीरता",
+    "severityMild": "हल्की",
+    "severityModerate": "मध्यम",
+    "severitySevere": "गंभीर",
+    "severityLifeThreatening": "जीवन-घातक (एनाफिलेक्सिस जोखिम)",
+    "typeLabel": "प्रकार",
+    "typeDrug": "दवा",
+    "typeFood": "खाद्य पदार्थ",
+    "typeEnvironmental": "पर्यावरणीय (पराग, धूल)",
+    "typeLatex": "लेटेक्स",
+    "typeInsect": "कीट के डंक/काटने",
+    "typeContrast": "कॉन्ट्रास्ट डाई",
+    "typeOther": "अन्य",
+    "reactionLabel": "प्रतिक्रिया",
+    "reactionPlaceholder": "प्रतिक्रिया",
+    "cancel": "रद्द करें",
+    "save": "परिवर्तन सहेजें"
   }
 }

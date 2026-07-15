@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-14T11:29:49.485Z",
-  "totalLiterals": 1637,
+  "generatedAt": "2026-07-15T22:02:29.122Z",
+  "totalLiterals": 1619,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -232,7 +232,6 @@
     "apps/app/features/patients/components/details/PatientPageHeaderUI.tsx": 1,
     "apps/app/features/patients/components/details/PatientTagManagerUI.tsx": 3,
     "apps/app/features/patients/components/details/PatientWhatsappComposerSections.tsx": 7,
-    "apps/app/features/patients/components/details/history/AllergyEditDialog.tsx": 18,
     "apps/app/features/patients/components/details/metrics/MetricsConfigurationCard.tsx": 6,
     "apps/app/features/patients/components/details/metrics/MetricsHistoryCard.tsx": 1,
     "apps/app/features/patients/components/details/metrics/MetricsRecordCard.tsx": 2,
