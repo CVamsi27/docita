@@ -209,5 +209,37 @@
       "moreOptionsAriaLabel": "अधिक विकल्प",
       "patientRecordsLabel": "मरीज़ रिकॉर्ड"
     }
+  },
+  "Settings": {
+    "subscription": {
+      "loadingAriaLabel": "सदस्यता लोड हो रही है",
+      "cardTitle": "सदस्यता",
+      "cardDescription": "आपकी वर्तमान योजना का विवरण।",
+      "nonAdminHint": "सदस्यता प्रबंधित करने के लिए अपने सुविधा प्रशासक से संपर्क करें।",
+      "trialTitle": "मुफ्त परीक्षण सक्रिय",
+      "trialDaysLeft": "{count, plural, one {आपके {tier} परीक्षण में 1 दिन शेष।} other {आपके {tier} परीक्षण में {count} दिन शेष।}}",
+      "trialEndsToday": "आपका {tier} परीक्षण आज समाप्त हो रहा है",
+      "trialHint": "परीक्षण समाप्त होने से पहले भुगतान जोड़ें ताकि आपकी सदस्यता बिना रुकावट के नवीनीकृत हो सके।",
+      "addPaymentButton": "भुगतान जोड़ें",
+      "freeStarterTitle": "स्टार्टर मुफ्त योजना पर",
+      "freeStarterHint": "आपका क्लिनिक स्टार्टर योजना पर निःशुल्क सक्रिय है।",
+      "viewPaidPlansButton": "सशुल्क योजनाएँ देखें",
+      "gstinTitle": "GST चालान के लिए अपना GSTIN जोड़ें",
+      "gstinHint": "अपने सुविधा GSTIN को जोड़ें ताकि आपके भुगतान पर GST चालान प्राप्त हो सकें। यह वैकल्पिक है, लेकिन इनपुट टैक्स क्रेडिट के लिए चालान पर आवश्यक है।",
+      "addGstinButton": "GSTIN जोड़ें",
+      "paymentDueTitle": "भुगतान बकाया",
+      "paymentDueHint": "आपका भुगतान अतिदेय है। सेवा में रुकावट से बचने के लिए अपनी भुगतान विधि अपडेट करें।",
+      "opening": "खोल रहे हैं…",
+      "updatePaymentButton": "भुगतान अपडेट करें",
+      "gracePeriodTitle": "भुगतान अनुग्रह अवधि",
+      "gracePeriodHint": "भुगतान अभी भी अनसुलझा है। भुगतान पूरा होने तक कुछ पहुँच प्रतिबंधित हो सकती है।",
+      "resolvePaymentButton": "भुगतान हल करें",
+      "expiredTitle": "सदस्यता समाप्त",
+      "expiredHint": "आपका सुविधा कार्यस्थल बंद है। पहुँच बहाल करने के लिए एक योजना चुनें और भुगतान पूरा करें।",
+      "choosePlanButton": "योजना चुनें",
+      "supportHint": "बिलिंग या ऑनबोर्डिंग में सहायता चाहिए?",
+      "supportWhatsappMessage": "नमस्ते Docita टीम, मुझे बिलिंग और ऑनबोर्डिंग में सहायता चाहिए",
+      "supportButtonLabel": "सहायता को संदेश भेजें"
+    }
   }
 }
