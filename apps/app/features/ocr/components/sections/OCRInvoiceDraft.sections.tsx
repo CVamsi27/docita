@@ -1,7 +1,19 @@
+import { useTranslations } from "next-intl";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import type { OCRFormData, OCRInvoiceLineForm } from "@/features/ocr/types";
+
+/**
+ * Phase 3 (per-feature): apps/app OCR > Invoice Draft
+ * sub-form — the subtotal/tax/grand-total fields plus the
+ * editable line-items list the user fills in after OCR
+ * recognition. 11 literals converted to
+ * useTranslations("Ocr.invoiceDraft").
+ */
+function useOcrInvoiceDraftTranslations() {
+  return useTranslations("Ocr.invoiceDraft");
+}
 
 /** Subtotal / tax / grand-total fields for the OCR invoice draft. */
 export function OCRInvoiceTotalsFields({
@@ -11,32 +23,33 @@ export function OCRInvoiceTotalsFields({
   invoice: OCRFormData["invoice"];
   onChange: (patch: Partial<OCRFormData["invoice"]>) => void;
 }) {
+  const t = useOcrInvoiceDraftTranslations();
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
       <div className="space-y-2">
-        <Label className="text-xs">Subtotal</Label>
+        <Label className="text-xs">{t("subtotalLabel")}</Label>
         <Input
           value={invoice.subtotal}
           onChange={(e) => onChange({ subtotal: e.target.value })}
-          placeholder="Enter subtotal"
+          placeholder={t("subtotalPlaceholder")}
           disabled={!invoice.saveAsPending}
         />
       </div>
       <div className="space-y-2">
-        <Label className="text-xs">Tax</Label>
+        <Label className="text-xs">{t("taxLabel")}</Label>
         <Input
           value={invoice.taxTotal}
           onChange={(e) => onChange({ taxTotal: e.target.value })}
-          placeholder="Enter tax"
+          placeholder={t("taxPlaceholder")}
           disabled={!invoice.saveAsPending}
         />
       </div>
       <div className="space-y-2">
-        <Label className="text-xs">Grand total</Label>
+        <Label className="text-xs">{t("grandTotalLabel")}</Label>
         <Input
           value={invoice.grandTotal}
           onChange={(e) => onChange({ grandTotal: e.target.value })}
-          placeholder="Enter grand total"
+          placeholder={t("grandTotalPlaceholder")}
           disabled={!invoice.saveAsPending}
         />
       </div>
@@ -60,13 +73,14 @@ function OCRInvoiceLineRow({
   onPatch: (index: number, patch: Partial<OCRInvoiceLineForm>) => void;
   onRemove: (index: number) => void;
 }) {
+  const t = useOcrInvoiceDraftTranslations();
   return (
     <div className="grid gap-2 rounded-md border border-border bg-background p-2 sm:grid-cols-12">
       <div className="sm:col-span-5">
         <Input
           value={row.description}
           onChange={(e) => onPatch(index, { description: e.target.value })}
-          placeholder="Enter description"
+          placeholder={t("lineDescriptionPlaceholder")}
           disabled={disabled}
         />
       </div>
@@ -74,7 +88,7 @@ function OCRInvoiceLineRow({
         <Input
           value={row.quantity}
           onChange={(e) => onPatch(index, { quantity: e.target.value })}
-          placeholder="Enter quantity"
+          placeholder={t("lineQuantityPlaceholder")}
           disabled={disabled}
         />
       </div>
@@ -82,7 +96,7 @@ function OCRInvoiceLineRow({
         <Input
           value={row.unitPrice}
           onChange={(e) => onPatch(index, { unitPrice: e.target.value })}
-          placeholder="Enter unit price"
+          placeholder={t("lineUnitPricePlaceholder")}
           disabled={disabled}
         />
       </div>
@@ -90,7 +104,7 @@ function OCRInvoiceLineRow({
         <Input
           value={row.total}
           onChange={(e) => onPatch(index, { total: e.target.value })}
-          placeholder="Enter line total"
+          placeholder={t("lineTotalPlaceholder")}
           disabled={disabled}
         />
       </div>
@@ -104,7 +118,7 @@ function OCRInvoiceLineRow({
             onClick={() => onRemove(index)}
             disabled={disabled}
           >
-            Remove
+            {t("removeButton")}
           </Button>
         ) : null}
       </div>
@@ -128,9 +142,10 @@ export function OCRInvoiceLineItemsEditor({
   onRemoveRow: (index: number) => void;
   onAddRow: () => void;
 }) {
+  const t = useOcrInvoiceDraftTranslations();
   return (
     <div className="space-y-2">
-      <Label className="text-xs">Line items</Label>
+      <Label className="text-xs">{t("lineItemsLabel")}</Label>
       <div className="space-y-3">
         {rows.map((row, idx) => (
           <OCRInvoiceLineRow
@@ -152,7 +167,7 @@ export function OCRInvoiceLineItemsEditor({
         onClick={onAddRow}
         disabled={disabled}
       >
-        Add line item
+        {t("addLineItemButton")}
       </Button>
     </div>
   );
