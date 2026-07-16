@@ -209,5 +209,37 @@
       "moreOptionsAriaLabel": "More options",
       "patientRecordsLabel": "Patient records"
     }
+  },
+  "Settings": {
+    "subscription": {
+      "loadingAriaLabel": "Loading subscription",
+      "cardTitle": "Subscription",
+      "cardDescription": "Your current plan details.",
+      "nonAdminHint": "Contact your facility administrator to manage subscription.",
+      "trialTitle": "Free Trial Active",
+      "trialDaysLeft": "{count, plural, one {1 day left in your {tier} trial.} other {{count} days left in your {tier} trial.}}",
+      "trialEndsToday": "Your {tier} trial ends today",
+      "trialHint": "Add payment before the trial ends so your subscription can renew without interruption.",
+      "addPaymentButton": "Add payment",
+      "freeStarterTitle": "Starter without a paid subscription",
+      "freeStarterHint": "Your clinic is active on Starter at no charge.",
+      "viewPaidPlansButton": "View paid plans",
+      "gstinTitle": "Add your GSTIN for GST invoices",
+      "gstinHint": "Add your facility GSTIN so your payments receive GST invoices. It is optional, but required on the invoice for input tax credit.",
+      "addGstinButton": "Add GSTIN",
+      "paymentDueTitle": "Payment due",
+      "paymentDueHint": "Your payment is overdue. Update your payment method to avoid service interruption.",
+      "opening": "Opening…",
+      "updatePaymentButton": "Update Payment",
+      "gracePeriodTitle": "Payment grace period",
+      "gracePeriodHint": "Payment is still unresolved. Some access may be restricted until payment is completed.",
+      "resolvePaymentButton": "Resolve Payment",
+      "expiredTitle": "Subscription expired",
+      "expiredHint": "Your facility workspace is locked. Choose a plan and complete payment to restore access.",
+      "choosePlanButton": "Choose a plan",
+      "supportHint": "Need help with billing or onboarding?",
+      "supportWhatsappMessage": "Hi Docita team, I need help with billing and onboarding",
+      "supportButtonLabel": "Message support"
+    }
   }
 }
