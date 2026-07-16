@@ -364,6 +364,20 @@
       "taxNonGst": "गैर-GST",
       "hsnCodePlaceholder": "HSN कोड",
       "removeLineItemTooltip": "{name, select, undefined {पंक्ति आइटम हटाएँ} other {{name} हटाएँ}}"
+    },
+    "formSections": {
+      "invoiceDetailsTitle": "चालान विवरण",
+      "lineItemsTitle": "लाइन आइटम",
+      "addItemButton": "आइटम जोड़ें",
+      "statusLabel": "स्थिति",
+      "statusPlaceholder": "स्थिति",
+      "statusPending": "लंबित",
+      "statusPaid": "भुगतान किया गया",
+      "statusOverdue": "अतिदेय",
+      "statusCancelled": "रद्द किया गया",
+      "notesTitle": "टिप्पणियाँ",
+      "notesDescription": "कोई अतिरिक्त टिप्पणी या भुगतान निर्देश जोड़ें",
+      "notesPlaceholder": "टिप्पणियाँ"
     }
   },
   "Ocr": {
