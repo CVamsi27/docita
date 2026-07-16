@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T05:46:50.341Z",
-  "totalLiterals": 1180,
+  "generatedAt": "2026-07-16T05:49:48.106Z",
+  "totalLiterals": 1172,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -139,7 +139,6 @@
     "apps/app/features/lab-tests/components/dialogs/order-lab-test-combobox-fields.tsx": 2,
     "apps/app/features/lab-tests/components/dialogs/order-lab-test-combobox-options.tsx": 1,
     "apps/app/features/lab-tests/components/layout/lab-tests-page-ui.tsx": 2,
-    "apps/app/features/lab-tests/components/settings/lab-directory-settings.tsx": 8,
     "apps/app/features/lab-tests/components/settings/lab-tests-catalog-settings.tsx": 2,
     "apps/app/features/lab-tests/components/settings/suggested-tests-combobox.tsx": 1,
     "apps/app/features/lab-tests/components/tabs/LabTestsCatalog.tsx": 2,

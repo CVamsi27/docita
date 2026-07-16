@@ -577,5 +577,43 @@
       "errorDoctor": "उपस्थित चिकित्सक चुनें",
       "errorDiagnosis": "भर्ती निदान दर्ज करें"
     }
+  },
+  "LabTests": {
+    "directory": {
+      "typeLabel": "प्रकार",
+      "typeInHouse": "इन-हाउस",
+      "typeExternalPartner": "बाहरी भागीदार",
+      "editTitle": "लैब संपादित करें",
+      "addTitle": "लैब जोड़ें",
+      "editDescription": "इस लैब का विवरण अपडेट करें।",
+      "addDescription": "टेस्ट ऑर्डर रूट करने के लिए एक लैब पंजीकृत करें।",
+      "nameLabel": "नाम",
+      "namePlaceholder": "लैब का नाम",
+      "phoneLabel": "फ़ोन (वैकल्पिक)",
+      "phonePlaceholder": "फ़ोन",
+      "emailLabel": "ईमेल (वैकल्पिक)",
+      "emailPlaceholder": "ईमेल",
+      "addressLabel": "पता (वैकल्पिक)",
+      "addressPlaceholder": "पता",
+      "cancelButton": "रद्द करें",
+      "saveButton": "सहेजें",
+      "addLabSubmit": "लैब जोड़ें",
+      "deactivateAriaLabel": "लैब निष्क्रिय करें",
+      "activateAriaLabel": "लैब सक्रिय करें",
+      "activeLabel": "सक्रिय",
+      "editButton": "संपादित करें",
+      "typeExternal": "बाहरी",
+      "typeInHouseBadge": "इन-हाउस",
+      "colLab": "लैब",
+      "colContact": "संपर्क",
+      "colStatus": "स्थिति",
+      "colActions": "क्रियाएँ",
+      "pageTitle": "लैब्स",
+      "pageDescription": "टेस्ट ऑर्डर पूरा करने वाले इन-हाउस और बाहरी लैब्स का प्रबंधन करें।",
+      "addLabButton": "लैब जोड़ें",
+      "loadingLabel": "लैब लोड हो रही हैं…",
+      "emptyTitle": "अभी तक कोई लैब नहीं",
+      "emptyDescription": "टेस्ट ऑर्डर रूट करने के लिए इन-हाउस या बाहरी लैब जोड़ें।"
+    }
   }
 }
