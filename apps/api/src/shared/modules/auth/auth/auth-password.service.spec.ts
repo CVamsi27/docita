@@ -24,21 +24,21 @@ function makePrisma(initialUser: UserRecord | null) {
   return {
     runUnrestricted: async <T>(fn: () => Promise<T>) => fn(),
     user: {
-      findUnique: jest.fn(async () => user),
-      findFirst: jest.fn(async () => user),
-      update: jest.fn(async () => user),
+      findUnique: jest.fn(async () => user) as jest.Mock,
+      findFirst: jest.fn(async () => user) as jest.Mock,
+      update: jest.fn(async () => user) as jest.Mock,
     },
     passwordHistory: {
-      findMany: jest.fn(async () => []),
-      deleteMany: jest.fn(async () => ({ count: 0 })),
-      create: jest.fn(async () => ({})),
+      findMany: jest.fn(async () => []) as jest.Mock,
+      deleteMany: jest.fn(async () => ({ count: 0 })) as jest.Mock,
+      create: jest.fn(async () => ({})) as jest.Mock,
     },
     $transaction: jest.fn(async (ops: unknown) => {
       if (Array.isArray(ops)) {
         return Promise.all(ops as Promise<unknown>[]);
       }
       return (ops as (tx: unknown) => Promise<unknown>)(null);
-    }),
+    }) as jest.Mock,
     _setUser: (u: UserRecord | null) => {
       user = u;
     },
@@ -70,9 +70,8 @@ describe('AuthPasswordService.requestPasswordReset', () => {
 
   beforeEach(() => {
     policy.validate.mockReset();
-    emailSend = jest
-      .fn<EmailService['sendPasswordResetEmail']>()
-      .mockResolvedValue({ success: true });
+    emailSend = jest.fn();
+    (emailSend as jest.Mock).mockResolvedValue({ success: true } as never);
     prisma = makePrisma({
       id: 'u-1',
       email: 'doc@example.com',
@@ -91,7 +90,7 @@ describe('AuthPasswordService.requestPasswordReset', () => {
         'If an account with that email exists, a reset link has been sent.',
     });
     expect(emailSend).toHaveBeenCalledTimes(1);
-    const [emailArg, tokenArg] = emailSend.mock.calls[0]!;
+    const [emailArg, tokenArg] = (emailSend.mock.calls[0] ?? []) as [string, string];
     expect(emailArg).toBe('doc@example.com');
     expect(typeof tokenArg).toBe('string');
     expect((tokenArg as string).length).toBeGreaterThanOrEqual(32);
@@ -108,7 +107,7 @@ describe('AuthPasswordService.requestPasswordReset', () => {
 
   it('returns the same generic message when the email is unknown (no enumeration)', async () => {
     prisma._setUser(null);
-    prisma.user.findUnique.mockResolvedValueOnce(null);
+    (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(null as never);
     const service = makeService(prisma, emailSend);
 
     const result = await service.requestPasswordReset('unknown@example.com');
@@ -134,10 +133,10 @@ describe('AuthPasswordService.requestPasswordReset', () => {
   });
 
   it('still returns the generic success message when the provider rejects (do not leak provider state)', async () => {
-    emailSend.mockResolvedValueOnce({
+    (emailSend as jest.Mock).mockResolvedValueOnce({
       success: false,
       error: 'provider_unavailable',
-    });
+    } as never);
     const service = makeService(prisma, emailSend);
 
     const result = await service.requestPasswordReset('doc@example.com');
@@ -165,12 +164,12 @@ describe('AuthPasswordService.resetPassword', () => {
 
   it('hashes the new password, updates the user, and records history', async () => {
     policy.validate.mockImplementation(() => undefined);
-    prisma.user.findFirst.mockResolvedValueOnce({
+    (prisma.user.findFirst as jest.Mock).mockResolvedValueOnce({
       id: 'u-1',
       email: 'doc@example.com',
       password: 'hashed-old',
       passwordHistory: [],
-    });
+    } as never);
     const service = makeService(prisma, jest.fn());
 
     const result = await service.resetPassword('good-token', 'NewPass123!');
@@ -184,7 +183,7 @@ describe('AuthPasswordService.resetPassword', () => {
   });
 
   it('rejects an unknown or expired token with BadRequest', async () => {
-    prisma.user.findFirst.mockResolvedValueOnce(null);
+    (prisma.user.findFirst as jest.Mock).mockResolvedValueOnce(null as never);
     const service = makeService(prisma, jest.fn());
 
     await expect(
@@ -197,12 +196,12 @@ describe('AuthPasswordService.resetPassword', () => {
     policy.validate.mockImplementationOnce(() => {
       throw new BadRequestException('too weak');
     });
-    prisma.user.findFirst.mockResolvedValueOnce({
+    (prisma.user.findFirst as jest.Mock).mockResolvedValueOnce({
       id: 'u-1',
       email: 'doc@example.com',
       password: 'hashed-old',
       passwordHistory: [],
-    });
+    } as never);
     const service = makeService(prisma, jest.fn());
 
     await expect(

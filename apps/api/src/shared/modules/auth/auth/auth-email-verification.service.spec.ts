@@ -22,16 +22,15 @@ type UserRecord = {
   emailVerified: boolean;
 };
 
-function makePrisma(initialUser: UserRecord) {
-  const user = { ...initialUser };
+function makePrisma(initialUser: UserRecord | null) {
+  let user: UserRecord | null = initialUser ? { ...initialUser } : null;
   return {
     runUnrestricted: async <T>(fn: () => Promise<T>) => fn(),
     user: {
-      findUnique: jest.fn(async () => user),
-      findFirst: jest.fn(async () => ({ id: user.id })),
-      update: jest.fn(async () => user),
+      findUnique: jest.fn(async () => user) as jest.Mock,
+      findFirst: jest.fn(async () => ({ id: user?.id ?? null })) as jest.Mock,
+      update: jest.fn(async () => user) as jest.Mock,
     },
-    _user: user,
   };
 }
 
@@ -54,9 +53,8 @@ describe('AuthEmailVerificationService', () => {
   let emailSend: jest.Mock;
 
   beforeEach(() => {
-    emailSend = jest
-      .fn<EmailService['sendVerificationEmail']>()
-      .mockResolvedValue({ success: true, messageId: 'msg-1' });
+    emailSend = jest.fn();
+    (emailSend as jest.Mock).mockResolvedValue({ success: true, messageId: 'msg-1' } as never);
   });
 
   describe('sendVerificationEmail', () => {
@@ -73,7 +71,8 @@ describe('AuthEmailVerificationService', () => {
 
       expect(result).toEqual({ message: 'Verification email sent' });
       expect(emailSend).toHaveBeenCalledTimes(1);
-      const [, , tokenArg] = emailSend.mock.calls[0]!;
+      const calls = emailSend.mock.calls as Array<[string, string, string]>;
+      const tokenArg = calls[0]?.[2];
       expect(typeof tokenArg).toBe('string');
       expect((tokenArg as string).length).toBeGreaterThanOrEqual(32);
       // Token is persisted on the user with a 24h expiry.
@@ -113,7 +112,7 @@ describe('AuthEmailVerificationService', () => {
         name: 'Doc',
         emailVerified: false,
       });
-      prisma.user.findUnique.mockResolvedValueOnce(null);
+      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(null as never);
       const service = makeService(prisma, emailSend);
 
       await expect(
@@ -129,10 +128,10 @@ describe('AuthEmailVerificationService', () => {
         name: 'Doc',
         emailVerified: false,
       });
-      emailSend.mockResolvedValueOnce({
+      (emailSend as jest.Mock).mockResolvedValueOnce({
         success: false,
         error: 'provider_unavailable',
-      });
+      } as never);
       const service = makeService(prisma, emailSend);
 
       await expect(
@@ -171,7 +170,7 @@ describe('AuthEmailVerificationService', () => {
         name: 'Doc',
         emailVerified: false,
       });
-      prisma.user.findFirst.mockResolvedValueOnce(null);
+      (prisma.user.findFirst as jest.Mock).mockResolvedValueOnce(null as never);
       const service = makeService(prisma, emailSend);
 
       await expect(service.verifyEmail('bogus')).rejects.toBeInstanceOf(
