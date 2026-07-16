@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T02:40:43.536Z",
-  "totalLiterals": 1353,
+  "generatedAt": "2026-07-16T02:49:15.569Z",
+  "totalLiterals": 1343,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -378,7 +378,6 @@
     "apps/internal/features/feedback/FeedbackViewDialog.tsx": 7,
     "apps/internal/features/payment-processing/additional-charge-form-fields.tsx": 8,
     "apps/internal/features/payment-processing/charge-summary.tsx": 7,
-    "apps/internal/features/payment-processing/payment-payment-form-fields.tsx": 10,
     "apps/internal/features/payment-processing/payment-payment-summary-section.tsx": 2,
     "apps/internal/features/payment-processing/payment-processing-clinics-section.tsx": 7,
     "apps/internal/features/payment-processing/payment-processing-pricing-offers-section-sections.tsx": 9,

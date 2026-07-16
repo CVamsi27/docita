@@ -1,4 +1,5 @@
 // jscpd:ignore-start
+import { useTranslations } from "next-intl";
 import {
   FormControl,
   FormDescription,
@@ -20,7 +21,18 @@ import type { PaymentProcessingPageViewModel } from "@/features/payment-processi
 
 type PaymentFormFieldsProps = Pick<PaymentProcessingPageViewModel, 'selectedClinic' | 'selectedTierPricing' | 'tierPricing' | 'form'>;
 
+/**
+ * Phase 3 (per-feature): apps/internal Payment Processing
+ * form fields — the per-clinic payment / upgrade tier form
+ * used by the internal sales team. 10 literals converted
+ * to useTranslations("InternalPaymentProcessing.formFields").
+ */
+function usePaymentFormFieldsTranslations() {
+  return useTranslations("InternalPaymentProcessing.formFields");
+}
+
 export function PaymentFormFields({ selectedClinic, selectedTierPricing, tierPricing, form }: PaymentFormFieldsProps) {
+  const t = usePaymentFormFieldsTranslations();
   return (
     <>
       <FormField
@@ -28,7 +40,7 @@ export function PaymentFormFields({ selectedClinic, selectedTierPricing, tierPri
         name="newTier"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Upgrade to Tier</FormLabel>
+            <FormLabel>{t("tierLabel")}</FormLabel>
             <Select
               value={field.value ?? ""}
               onValueChange={(value) => {
@@ -58,7 +70,7 @@ export function PaymentFormFields({ selectedClinic, selectedTierPricing, tierPri
                 ))}
               </SelectContent>
             </Select>
-            <FormDescription>Select the new tier for this facility</FormDescription>
+            <FormDescription>{t("tierDescription")}</FormDescription>
             <FormMessage />
           </FormItem>
         )}
@@ -69,11 +81,11 @@ export function PaymentFormFields({ selectedClinic, selectedTierPricing, tierPri
         name="amount"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Amount ({selectedClinic?.currency || DEFAULT_CURRENCY})</FormLabel>
+            <FormLabel>{t("amountLabel", { currency: selectedClinic?.currency || DEFAULT_CURRENCY })}</FormLabel>
             <FormControl>
-              <Input type="number" placeholder="Amount" {...field} disabled />
+              <Input type="number" placeholder={t("amountPlaceholder")} {...field} disabled />
             </FormControl>
-            <FormDescription>Amount will be auto-calculated based on selected tier</FormDescription>
+            <FormDescription>{t("amountDescription")}</FormDescription>
             <FormMessage />
           </FormItem>
         )}
@@ -84,7 +96,7 @@ export function PaymentFormFields({ selectedClinic, selectedTierPricing, tierPri
         name="paymentMethod"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Payment Method</FormLabel>
+            <FormLabel>{t("paymentMethodLabel")}</FormLabel>
             <Select value={field.value ?? "razorpay"} onValueChange={field.onChange}>
               <FormControl>
                 <SelectTrigger>
@@ -92,10 +104,10 @@ export function PaymentFormFields({ selectedClinic, selectedTierPricing, tierPri
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="razorpay">Razorpay</SelectItem>
-                <SelectItem value="stripe">Stripe</SelectItem>
-                <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                <SelectItem value="manual">Manual</SelectItem>
+                <SelectItem value="razorpay">{t("paymentMethodRazorpay")}</SelectItem>
+                <SelectItem value="stripe">{t("paymentMethodStripe")}</SelectItem>
+                <SelectItem value="bank_transfer">{t("paymentMethodBankTransfer")}</SelectItem>
+                <SelectItem value="manual">{t("paymentMethodManual")}</SelectItem>
               </SelectContent>
             </Select>
             <FormMessage />
@@ -108,9 +120,9 @@ export function PaymentFormFields({ selectedClinic, selectedTierPricing, tierPri
         name="paymentNotes"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Payment Notes (Optional)</FormLabel>
+            <FormLabel>{t("paymentNotesLabel")}</FormLabel>
             <FormControl>
-              <Input placeholder="Payment notes" {...field} />
+              <Input placeholder={t("paymentNotesPlaceholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
