@@ -25,6 +25,23 @@
       "statusInProgress": "प्रगति में",
       "statusResolved": "हल किया गया",
       "statusArchived": "संग्रहीत"
+    },
+    "filters": {
+      "statusLabel": "स्थिति",
+      "statusPlaceholder": "स्थिति",
+      "allStatuses": "सभी स्थितियाँ",
+      "categoryLabel": "श्रेणी",
+      "categoryPlaceholder": "श्रेणी",
+      "allCategories": "सभी श्रेणियाँ",
+      "minRatingLabel": "न्यूनतम रेटिंग",
+      "ratingPlaceholder": "रेटिंग",
+      "anyRating": "कोई भी रेटिंग",
+      "ratingPlus": "{count}+ स्टार",
+      "startDateLabel": "प्रारंभ तिथि",
+      "startDatePlaceholder": "प्रारंभ तिथि",
+      "endDateLabel": "समाप्ति तिथि",
+      "endDatePlaceholder": "समाप्ति तिथि",
+      "clearFiltersButton": "फ़िल्टर साफ़ करें"
     }
   },
   "InternalAnalytics": {

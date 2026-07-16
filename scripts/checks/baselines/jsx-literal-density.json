@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T03:55:14.641Z",
-  "totalLiterals": 1288,
+  "generatedAt": "2026-07-16T05:09:44.236Z",
+  "totalLiterals": 1280,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -368,7 +368,7 @@
     "apps/internal/features/enterprise-contracts/enterprise-contracts-revisions-dialog.tsx": 5,
     "apps/internal/features/enterprise-contracts/enterprise-contracts-summary-section.tsx": 4,
     "apps/internal/features/enterprise-contracts/enterprise-contracts-table-section.tsx": 8,
-    "apps/internal/features/feedback/FeedbackFiltersCard.tsx": 9,
+    "apps/internal/features/feedback/FeedbackFiltersCard.tsx": 1,
     "apps/internal/features/feedback/FeedbackListSection.tsx": 1,
     "apps/internal/features/feedback/FeedbackStatsCards.tsx": 9,
     "apps/internal/features/feedback/FeedbackViewDialog.tsx": 7,

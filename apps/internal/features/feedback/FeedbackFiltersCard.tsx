@@ -26,12 +26,20 @@ interface FeedbackFiltersCardProps {
   onFiltersChange: (filters: InternalFeedbackFilters) => void;
 }
 
+/**
+ * Phase 3 (per-feature): apps/internal Feedback > Filters
+ * card. 9 literals converted to useTranslations
+ * (\"Feedback.filters\") — filter labels, placeholders,
+ * clear button. The status options still resolve through
+ * Feedback.status (set in 6.6).
+ */
 export function FeedbackFiltersCard({
   filters,
   show,
   onFiltersChange,
 }: FeedbackFiltersCardProps) {
-  const t = useTranslations("Feedback.status");
+  const t = useTranslations("Feedback.filters");
+  const tStatus = useTranslations("Feedback.status");
   if (!show) return null;
 
   const setFilter = (key: keyof InternalFeedbackFilters, value: unknown) => {
@@ -43,7 +51,7 @@ export function FeedbackFiltersCard({
       <CardContent className="pt-6">
         <div className="grid gap-4 md:grid-cols-5">
           <div>
-            <Label>Status</Label>
+            <Label>{t("statusLabel")}</Label>
             <Select
               value={filters.status || "all"}
               onValueChange={(v) =>
@@ -51,17 +59,13 @@ export function FeedbackFiltersCard({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={t("statusPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="all">{t("allStatuses")}</SelectItem>
                 {STATUS_OPTIONS.map((opt) => {
-                  // Phase 6.6: prefer t(labelKey) over the literal label.
-                  // The local cast on t() narrows the return type to string
-                  // so the `as const` tuple narrowing on STATUS_OPTIONS
-                  // doesn't collapse `opt.label` to `never` inside JSX.
                   const itemLabel: string =
-                    (t(opt.labelKey) as string) || opt.label;
+                    (tStatus(opt.labelKey) as string) || opt.label;
                   return (
                     <SelectItem key={opt.value} value={opt.value}>
                       {itemLabel}
@@ -72,7 +76,7 @@ export function FeedbackFiltersCard({
             </Select>
           </div>
           <div>
-            <Label>Category</Label>
+            <Label>{t("categoryLabel")}</Label>
             <Select
               value={filters.category || "all"}
               onValueChange={(v) =>
@@ -80,10 +84,10 @@ export function FeedbackFiltersCard({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder={t("categoryPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
+                <SelectItem value="all">{t("allCategories")}</SelectItem>
                 {CATEGORY_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
                     {opt.label}
@@ -93,7 +97,7 @@ export function FeedbackFiltersCard({
             </Select>
           </div>
           <div>
-            <Label>Min Rating</Label>
+            <Label>{t("minRatingLabel")}</Label>
             <Select
               value={String(filters.minRating || "all")}
               onValueChange={(v) =>
@@ -104,20 +108,20 @@ export function FeedbackFiltersCard({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Rating" />
+                <SelectValue placeholder={t("ratingPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Any rating</SelectItem>
+                <SelectItem value="all">{t("anyRating")}</SelectItem>
                 {[1, 2, 3, 4, 5].map((r) => (
                   <SelectItem key={r} value={String(r)}>
-                    {r}+ stars
+                    {t("ratingPlus", { count: r })}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label>Start Date</Label>
+            <Label>{t("startDateLabel")}</Label>
             <DatePicker
               value={filters.startDate || undefined}
               onChange={(date) =>
@@ -126,11 +130,11 @@ export function FeedbackFiltersCard({
                   date?.toISOString().slice(0, 10) ?? undefined,
                 )
               }
-              placeholder="Start date"
+              placeholder={t("startDatePlaceholder")}
             />
           </div>
           <div>
-            <Label>End Date</Label>
+            <Label>{t("endDateLabel")}</Label>
             <DatePicker
               value={filters.endDate || undefined}
               onChange={(date) =>
@@ -139,7 +143,7 @@ export function FeedbackFiltersCard({
                   date?.toISOString().slice(0, 10) ?? undefined,
                 )
               }
-              placeholder="End date"
+              placeholder={t("endDatePlaceholder")}
             />
           </div>
         </div>
@@ -149,7 +153,7 @@ export function FeedbackFiltersCard({
             onClick={() => onFiltersChange({})}
             className="mr-2"
           >
-            Clear Filters
+            {t("clearFiltersButton")}
           </Button>
         </div>
       </CardContent>

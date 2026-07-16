@@ -25,6 +25,23 @@
       "statusInProgress": "In Progress",
       "statusResolved": "Resolved",
       "statusArchived": "Archived"
+    },
+    "filters": {
+      "statusLabel": "Status",
+      "statusPlaceholder": "Status",
+      "allStatuses": "All statuses",
+      "categoryLabel": "Category",
+      "categoryPlaceholder": "Category",
+      "allCategories": "All categories",
+      "minRatingLabel": "Min Rating",
+      "ratingPlaceholder": "Rating",
+      "anyRating": "Any rating",
+      "ratingPlus": "{count}+ stars",
+      "startDateLabel": "Start Date",
+      "startDatePlaceholder": "Start date",
+      "endDateLabel": "End Date",
+      "endDatePlaceholder": "End date",
+      "clearFiltersButton": "Clear Filters"
     }
   },
   "InternalAnalytics": {
