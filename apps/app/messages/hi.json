@@ -310,5 +310,36 @@
       "lineItemsLabel": "पंक्ति आइटम",
       "addLineItemButton": "पंक्ति आइटम जोड़ें"
     }
+  },
+  "Analytics": {
+    "advancedMetrics": {
+      "revenueTrendsTitle": "राजस्व रुझान",
+      "revenueTrendsDescription": "दैनिक/साप्ताहिक बिल संग्रहण रुझान",
+      "revenueEmptyTitle": "कोई राजस्व रुझान डेटा नहीं",
+      "revenueEmptySubtitle": "बिल जनरेट होने पर राजस्व रुझान बिंदु दिखाई देंगे",
+      "appointmentPerformanceTitle": "अपॉइंटमेंट प्रदर्शन",
+      "appointmentPerformanceDescription": "परिचालन अपॉइंटमेंट परिणाम स्नैपशॉट",
+      "appointmentBooked": "बुक किया गया",
+      "appointmentCompleted": "पूर्ण",
+      "appointmentCancelled": "रद्द",
+      "appointmentNoShow": "उपस्थित नहीं",
+      "fillRateLabel": "भरण दर: {rate}%",
+      "completionRateLabel": "पूर्णता: {rate}%",
+      "appointmentEmptyTitle": "कोई अपॉइंटमेंट मेट्रिक्स उपलब्ध नहीं",
+      "demographicsTitle": "मरीज़ जनसांख्यिकी",
+      "demographicsDescription": "लिंग और वृद्धि के अनुसार जनसंख्या मिश्रण",
+      "demographicsTotalLabel": "कुल: {count}",
+      "demographicsNewLabel": "नए: {count}",
+      "demographicsEmptyTitle": "कोई मरीज़ जनसांख्यिकी उपलब्ध नहीं",
+      "doctorPerformanceTitle": "डॉक्टर प्रदर्शन",
+      "doctorPerformanceDescription": "प्रदाता-स्तरीय पूर्णता और राजस्व मेट्रिक्स।",
+      "doctorColName": "डॉक्टर",
+      "doctorColAppointments": "अपॉइंटमेंट",
+      "doctorColCompletion": "पूर्णता",
+      "doctorColRevenue": "राजस्व",
+      "doctorColAvgPerAppt": "औसत / अपॉइंटमेंट",
+      "doctorEmptyTitle": "कोई डॉक्टर प्रदर्शन डेटा नहीं",
+      "doctorEmptySubtitle": "अपॉइंटमेंट दर्ज और बिल होने पर डॉक्टर मेट्रिक्स दिखाई देंगे"
+    }
   }
 }

@@ -1,4 +1,5 @@
 // jscpd:ignore-start
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -60,6 +61,15 @@ interface DoctorPerformanceEntry {
   avgRevenuePerAppointment: number;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Analytics > Advanced Metrics
+ * charts. 10 literals converted to
+ * useTranslations("Analytics.advancedMetrics").
+ */
+function useAdvancedMetricsTranslations() {
+  return useTranslations("Analytics.advancedMetrics");
+}
+
 interface RevenueTrendsCardProps {
   revenueMetrics: RevenueMetricsPoint[];
   revenueLoading: boolean;
@@ -69,12 +79,13 @@ export function RevenueTrendsCard({
   revenueMetrics,
   revenueLoading,
 }: RevenueTrendsCardProps) {
+  const t = useAdvancedMetricsTranslations();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Revenue trends</CardTitle>
+        <CardTitle>{t("revenueTrendsTitle")}</CardTitle>
         <CardDescription>
-          Daily/weekly trend in billed collections
+          {t("revenueTrendsDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent className="h-80">
@@ -98,8 +109,8 @@ export function RevenueTrendsCard({
         ) : (
           <EmptyState
             icon={TrendingUp}
-            label="No revenue trend data"
-            sublabel="Revenue trend points will appear once invoices are generated"
+            label={t("revenueEmptyTitle")}
+            sublabel={t("revenueEmptySubtitle")}
           />
         )}
       </CardContent>
@@ -116,21 +127,22 @@ export function AppointmentPerformanceCard({
   appointmentMetrics,
   appointmentLoading,
 }: AppointmentPerformanceCardProps) {
+  const t = useAdvancedMetricsTranslations();
   const appointmentChartData = appointmentMetrics
     ? [
-        { name: "Booked", value: appointmentMetrics.booked },
-        { name: "Completed", value: appointmentMetrics.completed },
-        { name: "Cancelled", value: appointmentMetrics.cancelled },
-        { name: "No Show", value: appointmentMetrics.noShow },
+        { name: t("appointmentBooked"), value: appointmentMetrics.booked },
+        { name: t("appointmentCompleted"), value: appointmentMetrics.completed },
+        { name: t("appointmentCancelled"), value: appointmentMetrics.cancelled },
+        { name: t("appointmentNoShow"), value: appointmentMetrics.noShow },
       ]
     : [];
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Appointment performance</CardTitle>
+        <CardTitle>{t("appointmentPerformanceTitle")}</CardTitle>
         <CardDescription>
-          Operational appointment outcomes snapshot
+          {t("appointmentPerformanceDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent className="h-80 space-y-4">
@@ -140,10 +152,10 @@ export function AppointmentPerformanceCard({
           <>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="rounded-md border p-2">
-                Fill rate: {appointmentMetrics.fillRate}%
+                {t("fillRateLabel", { rate: appointmentMetrics.fillRate })}
               </div>
               <div className="rounded-md border p-2">
-                Completion: {appointmentMetrics.completionRate}%
+                {t("completionRateLabel", { rate: appointmentMetrics.completionRate })}
               </div>
             </div>
             <ResponsiveContainer width="100%" height="75%">
@@ -165,7 +177,7 @@ export function AppointmentPerformanceCard({
         ) : (
           <EmptyState
             icon={CalendarDays}
-            label="No appointment metrics available"
+            label={t("appointmentEmptyTitle")}
           />
         )}
       </CardContent>
@@ -182,6 +194,7 @@ export function PatientDemographicsCard({
   patientDemographics,
   demographicsLoading,
 }: PatientDemographicsCardProps) {
+  const t = useAdvancedMetricsTranslations();
   const demographicsChartData = patientDemographics
     ? Object.entries(patientDemographics.genderDistribution).map(
         ([name, value]) => ({ name, value }),
@@ -191,8 +204,8 @@ export function PatientDemographicsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Patient demographics</CardTitle>
-        <CardDescription>Population mix by gender and growth</CardDescription>
+        <CardTitle>{t("demographicsTitle")}</CardTitle>
+        <CardDescription>{t("demographicsDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="h-80 space-y-4">
         {demographicsLoading ? (
@@ -201,10 +214,10 @@ export function PatientDemographicsCard({
           <>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="rounded-md border p-2">
-                Total: {patientDemographics.totalPatients}
+                {t("demographicsTotalLabel", { count: patientDemographics.totalPatients })}
               </div>
               <div className="rounded-md border p-2">
-                New: {patientDemographics.newPatients}
+                {t("demographicsNewLabel", { count: patientDemographics.newPatients })}
               </div>
             </div>
             <ResponsiveContainer width="100%" height="75%">
@@ -230,7 +243,7 @@ export function PatientDemographicsCard({
         ) : (
           <EmptyState
             icon={Users}
-            label="No patient demographics available"
+            label={t("demographicsEmptyTitle")}
           />
         )}
       </CardContent>
@@ -248,12 +261,13 @@ export function DoctorPerformanceCard({
   doctorPerformanceLoading,
   formatCurrency,
 }: DoctorPerformanceCardProps) {
+  const t = useAdvancedMetricsTranslations();
   return (
     <Card className="md:col-span-2 xl:col-span-3">
       <CardHeader>
-        <CardTitle>Doctor performance</CardTitle>
+        <CardTitle>{t("doctorPerformanceTitle")}</CardTitle>
         <CardDescription>
-          Provider-level completion and revenue metrics.
+          {t("doctorPerformanceDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -264,11 +278,11 @@ export function DoctorPerformanceCard({
             <Table className="min-w-[42rem]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Doctor</TableHead>
-                  <TableHead className="text-right">Appointments</TableHead>
-                  <TableHead className="text-right">Completion</TableHead>
-                  <TableHead className="text-right">Revenue</TableHead>
-                  <TableHead className="text-right">Avg / Appt</TableHead>
+                  <TableHead>{t("doctorColName")}</TableHead>
+                  <TableHead className="text-right">{t("doctorColAppointments")}</TableHead>
+                  <TableHead className="text-right">{t("doctorColCompletion")}</TableHead>
+                  <TableHead className="text-right">{t("doctorColRevenue")}</TableHead>
+                  <TableHead className="text-right">{t("doctorColAvgPerAppt")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -299,8 +313,8 @@ export function DoctorPerformanceCard({
         ) : (
           <EmptyState
             icon={Users}
-            label="No doctor performance data"
-            sublabel="Doctor metrics will appear once appointments are recorded and billed"
+            label={t("doctorEmptyTitle")}
+            sublabel={t("doctorEmptySubtitle")}
           />
         )}
       </CardContent>
