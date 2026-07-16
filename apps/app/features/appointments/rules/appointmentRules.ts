@@ -55,6 +55,33 @@ export const canReschedule = (appointment: Appointment): boolean => {
   );
 };
 
+/**
+ * A consultation cannot be started for a future appointment.
+ * Visits open at their scheduled start time. Until then the row exposes
+ * no Start/Resume action — only Reschedule / Cancel.
+ *
+ * Terminal statuses (completed, no-show, cancelled) are not startable.
+ * in-progress is always startable (resume).
+ * scheduled/checked-in is startable only once the start time is in the past.
+ */
+export const canStartConsultationAtTime = (
+  appointment: Pick<Appointment, "status" | "startTime">,
+  now: Date = new Date(),
+): boolean => {
+  switch (appointment.status) {
+    case "completed":
+    case "no-show":
+    case "cancelled":
+      return false;
+    case "in-progress":
+      return true;
+    case "scheduled":
+    case "checked-in":
+    default:
+      return new Date(appointment.startTime).getTime() <= now.getTime();
+  }
+};
+
 export const getAppointmentDuration = (appointment: Appointment): number => {
   if (!appointment.endTime) return 30;
 
