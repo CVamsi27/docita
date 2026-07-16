@@ -1,4 +1,5 @@
 // jscpd:ignore-start
+import { useTranslations } from "next-intl";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import { Activity } from "lucide-react";
@@ -14,6 +15,16 @@ interface OCRVitalsProps {
   onToggle: () => void;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app OCR > Vitals section — the
+ * patient vitals fields (BP, temp, pulse, respiratory rate,
+ * SpO2, glucose) the user confirms after OCR recognition.
+ * 9 literals converted to useTranslations("Ocr.vitals").
+ */
+function useOcrVitalsTranslations() {
+  return useTranslations("Ocr.vitals");
+}
+
 export const OCRVitals = ({
   formData,
   setFormData,
@@ -21,10 +32,11 @@ export const OCRVitals = ({
   isOpen,
   onToggle,
 }: OCRVitalsProps) => {
+  const t = useOcrVitalsTranslations();
   return (
     <div className="space-y-3">
       <SectionToggle
-        title="Vitals"
+        title={t("sectionTitle")}
         icon={Activity}
         isOpen={isOpen}
         onToggle={onToggle}
@@ -34,7 +46,7 @@ export const OCRVitals = ({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs">BP</Label>
+                <Label className="text-xs">{t("bpLabel")}</Label>
 {/* jscpd:ignore-end */}
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
@@ -53,12 +65,12 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="BP"
+                placeholder={t("bpPlaceholder")}
               />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs">Temp (°F)</Label>
+                <Label className="text-xs">{t("tempLabel")}</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
                     getScore("vitals_temp"),
@@ -76,12 +88,12 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="Temperature"
+                placeholder={t("tempPlaceholder")}
               />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs">Pulse</Label>
+                <Label className="text-xs">{t("pulseLabel")}</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
                     getScore("vitals_pulse"),
@@ -99,14 +111,14 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="Pulse"
+                placeholder={t("pulsePlaceholder")}
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="space-y-2">
-              <Label className="text-xs">Respiratory rate</Label>
+              <Label className="text-xs">{t("respiratoryRateLabel")}</Label>
               <Input
                 value={formData.vitals.respiratoryRate}
                 onChange={(e) =>
@@ -118,11 +130,11 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="Respiratory rate"
+                placeholder={t("respiratoryRatePlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs">SpO2 (%)</Label>
+              <Label className="text-xs">{t("spO2Label")}</Label>
               <Input
                 value={formData.vitals.spO2}
                 onChange={(e) =>
@@ -134,11 +146,11 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="SpO2"
+                placeholder={t("spO2Placeholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs">Glucose</Label>
+              <Label className="text-xs">{t("glucoseLabel")}</Label>
               <Input
                 value={formData.vitals.glucose}
                 onChange={(e) =>
@@ -150,7 +162,7 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="Glucose"
+                placeholder={t("glucosePlaceholder")}
               />
             </div>
           </div>

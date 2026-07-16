@@ -338,6 +338,21 @@
       "emailLabel": "ईमेल",
       "bloodTypeLabel": "रक्त प्रकार",
       "bloodTypePlaceholder": "रक्त प्रकार"
+    },
+    "vitals": {
+      "sectionTitle": "जीवन-चिह्न",
+      "bpLabel": "रक्तचाप",
+      "bpPlaceholder": "रक्तचाप",
+      "tempLabel": "तापमान (°F)",
+      "tempPlaceholder": "तापमान",
+      "pulseLabel": "नाड़ी",
+      "pulsePlaceholder": "नाड़ी",
+      "respiratoryRateLabel": "श्वसन दर",
+      "respiratoryRatePlaceholder": "श्वसन दर",
+      "spO2Label": "SpO2 (%)",
+      "spO2Placeholder": "SpO2",
+      "glucoseLabel": "ग्लूकोज़",
+      "glucosePlaceholder": "ग्लूकोज़"
     }
   },
   "Analytics": {
