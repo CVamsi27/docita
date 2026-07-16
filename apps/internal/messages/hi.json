@@ -460,6 +460,20 @@
       "saveButton": "छूट सहेजें"
     }
   },
+  "InternalPaymentProcessing": {
+    "additionalCharge": {
+      "categoryLabel": "शुल्क श्रेणी",
+      "categoryGuidedSetup": "निर्देशित सेटअप",
+      "categoryDataMigration": "डेटा माइग्रेशन",
+      "categoryCustomTraining": "कस्टम प्रशिक्षण",
+      "categoryIntegration": "एकीकरण",
+      "categoryCommercialDiscount": "व्यावसायिक छूट / समायोजन",
+      "categoryOther": "अन्य सेवा",
+      "categoryDescription": "निर्देशित सेटअप सॉफ़्टवेयर सदस्यता से अलग है। डिफ़ॉल्ट राशि क्लिनिक की मुद्रा के लिए सूची मूल्य का पालन करती है; अपने चालान से मेल खाने के लिए समायोजित करें।",
+      "amountLabel": "राशि ({currency})",
+      "amountPlaceholder": "राशि दर्ज करें"
+    }
+  },
   "InternalDashboard": {
     "clinicList": {
       "loadingLabel": "सुविधाएँ लोड हो रही हैं…",
