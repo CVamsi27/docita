@@ -69,7 +69,7 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
 
   const allergiesLabel = hasAllergies
     ? `Allergies: ${allergies ?? ""}`.trim()
-    : "No known allergies";
+    : "NKA";
 
   return (
     <div className="sticky top-0 z-20 border-b bg-background/95 px-4 py-4 shadow-sm md:-mx-6 md:px-6">

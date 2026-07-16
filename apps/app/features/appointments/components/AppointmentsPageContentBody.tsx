@@ -62,6 +62,7 @@ export function AppointmentsPageContentBody({
           onCheckIn={handleCheckIn} onStartConsultation={handleStartConsultation}
           onCancelClick={onCancelClick} onNoShowClick={onNoShowClick}
           onScheduleFollowUp={handleScheduleFollowUp} currentUserId={user?.id}
+          monthRangeAppointments={monthRangeAppointments}
         />
       )}
       <div ref={appointmentRequestsRef} id="appointment-requests-panel" className="scroll-mt-6">

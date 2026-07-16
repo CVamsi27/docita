@@ -1,6 +1,7 @@
 "use client";
 
 import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { cn } from "@workspace/ui/lib/utils";
 import {
   AppointmentsCalendarUI,
   AppointmentsListUI,
@@ -72,6 +73,9 @@ interface AppointmentsDayViewSectionProps {
   loading: boolean;
   isError: boolean;
   onRetry: () => void;
+  /** All appointments in the visible month. Used to decide whether to render
+   *  the calendar column (it carries no information when zero appointments). */
+  monthRangeAppointments: AppointmentListItem[];
   filteredAppointments: AppointmentListItem[];
   hasMoreAppointments: boolean;
   isToday: boolean;
@@ -102,6 +106,7 @@ export function AppointmentsDayViewSection({
   loading,
   isError,
   onRetry,
+  monthRangeAppointments,
   filteredAppointments,
   hasMoreAppointments,
   isToday,
@@ -117,23 +122,43 @@ export function AppointmentsDayViewSection({
   currentUserId,
 }: AppointmentsDayViewSectionProps) {
   return (
-    <div className="grid gap-4 md:gap-6 lg:grid-cols-[minmax(320px,360px)_minmax(0,1fr)]">
-      <div className="order-2 lg:order-1">
-        <AppointmentsCalendarUI
-          selectedPickerIso={selectedPickerIso}
-          date={date}
-          onDateSelect={onDateSelect}
-          calendarMonth={calendarMonth}
-          onCalendarMonthChange={onCalendarMonthChange}
-          appointmentCountsByDay={appointmentCountsByDay}
-          canViewAllDoctors={canViewAllDoctors}
-          doctorsList={doctorsList}
-          selectedDoctorId={selectedDoctorId}
-          onDoctorSelect={onDoctorSelect}
-        />
-      </div>
+    <div
+      className={cn(
+        "grid gap-4 md:gap-6",
+        // When the entire month has zero appointments, the calendar's day
+        // counts are all empty and the list itself communicates "no
+        // appointments" — drop the calendar column to give the empty state
+        // room to breathe.
+        monthRangeAppointments.length === 0
+          ? "grid-cols-1"
+          : "lg:grid-cols-[minmax(320px,360px)_minmax(0,1fr)]",
+      )}
+    >
+      {monthRangeAppointments.length > 0 ? (
+        <div className="order-2 lg:order-1">
+          <AppointmentsCalendarUI
+            selectedPickerIso={selectedPickerIso}
+            date={date}
+            onDateSelect={onDateSelect}
+            calendarMonth={calendarMonth}
+            onCalendarMonthChange={onCalendarMonthChange}
+            appointmentCountsByDay={appointmentCountsByDay}
+            canViewAllDoctors={canViewAllDoctors}
+            doctorsList={doctorsList}
+            selectedDoctorId={selectedDoctorId}
+            onDoctorSelect={onDoctorSelect}
+          />
+        </div>
+      ) : null}
 
-      <div className="order-1 min-w-0 lg:order-2">
+      <div
+        className={cn(
+          "min-w-0",
+          monthRangeAppointments.length === 0
+            ? "order-1"
+            : "order-1 lg:order-2",
+        )}
+      >
         <AppointmentsListUI
           selectedPickerIso={selectedPickerIso}
           clinicTz={clinicTz}

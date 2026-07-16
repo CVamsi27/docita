@@ -92,7 +92,7 @@ export const AllergiesSection: FC<AllergiesSectionProps> = ({ allergies = [] }) 
           </div>
         ) : (
           <div className="flex items-center gap-2 text-sm text-success">
-            <span className="font-medium">No known allergies</span>
+            <span className="font-medium">NKA</span>
           </div>
         )}
       </CardContent>

@@ -100,8 +100,9 @@ export function AppointmentsListUI({
             </p>
           </div>
           <div className="shrink-0 text-xs font-medium text-muted-foreground">
-            {appointmentsByTime.length} appointment
-            {appointmentsByTime.length !== 1 ? "s" : ""}
+            {appointmentsByTime.length === 0
+              ? null
+              : `${appointmentsByTime.length} appointment${appointmentsByTime.length !== 1 ? "s" : ""}`}
           </div>
         </div>
       </CardHeader>
