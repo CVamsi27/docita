@@ -357,6 +357,33 @@
       "rejectionReasonHelper": "This reason will be sent to the applicant",
       "rejectingLabel": "Rejecting…",
       "rejectRequestButton": "Reject Request"
+    },
+    "enterpriseBranding": {
+      "brandNameTitle": "Brand name",
+      "enterpriseBadge": "Enterprise",
+      "brandNameDescription": "Replace \"Docita\" with your clinic's name throughout the app.",
+      "displayNameLabel": "Display name",
+      "displayNamePlaceholder": "e.g. City Clinic",
+      "displayNameHelper": "Shown in the sidebar header and browser tab title. Leave blank to use \"Docita\".",
+      "saveBrandNameButton": "Save brand name",
+      "lockedThemeTitle": "Locked theme",
+      "lockedThemeDescription": "Set a colour scheme and layout that applies to every user in your workspace. When enforced, individual appearance preferences are overridden.",
+      "colourAccentLabel": "Colour accent",
+      "modeLabel": "Mode",
+      "modeLight": "Light",
+      "modeDark": "Dark",
+      "modeSystem": "System",
+      "compactModeLabel": "Compact mode",
+      "compactModeHelper": "Reduce spacing for a denser layout",
+      "enforceForAllLabel": "Enforce for all users",
+      "enforceForAllHelper": "Override individual appearance preferences across the workspace",
+      "saveThemeButton": "Save theme",
+      "whatsAppTitle": "WhatsApp custom number",
+      "professionalPlusBadge": "Professional+",
+      "whatsAppDescription": "Send messages from your clinic's own WhatsApp number instead of the shared Docita sender.",
+      "whatsAppActiveHelper": "Configure your WhatsApp sender number in",
+      "whatsAppSettingsLink": "WhatsApp settings",
+      "whatsAppUpgradeHelper": "Available on Professional and above. Upgrade your plan to connect your own number."
     }
   },
   "Invoices": {

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T05:52:53.008Z",
-  "totalLiterals": 1157,
+  "generatedAt": "2026-07-16T05:54:34.368Z",
+  "totalLiterals": 1149,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -254,7 +254,6 @@
     "apps/app/features/settings/components/account/ProfileAccountSettings.tsx": 4,
     "apps/app/features/settings/components/billing/SubscriptionSettingsSections.tsx": 2,
     "apps/app/features/settings/components/billing/subscription-settings-alerts.tsx": 1,
-    "apps/app/features/settings/components/branding/EnterpriseBrandingSettingsSections.tsx": 8,
     "apps/app/features/settings/components/clinic/ClinicReferralLinks.tsx": 2,
     "apps/app/features/settings/components/clinic/clinic-general-settings-form-sections.tsx": 5,
     "apps/app/features/settings/components/clinic/queue/QueueHoursFields.tsx": 6,
