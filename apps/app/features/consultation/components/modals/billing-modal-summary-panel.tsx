@@ -1,6 +1,7 @@
 "use client";
 
 // jscpd:ignore-start
+import { useTranslations } from "next-intl";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import {
@@ -32,6 +33,16 @@ interface BillingModalSummaryPanelProps {
   formatAmount: (amount: number) => string;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Billing modal's right-side
+ * summary panel — tax / discount / payment-mode controls on
+ * the left, computed breakdown on the right. 10 literals
+ * converted to useTranslations("Consultation.billingSummary").
+ */
+function useBillingSummaryTranslations() {
+  return useTranslations("Consultation.billingSummary");
+}
+
 export function BillingModalSummaryPanel({
   taxRate,
   setTaxRate,
@@ -45,12 +56,13 @@ export function BillingModalSummaryPanel({
   calculations,
   formatAmount,
 }: BillingModalSummaryPanelProps) {
+  const t = useBillingSummaryTranslations();
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       <div className="space-y-4">
         <div className="space-y-2">
           <Label className="text-xs font-semibold uppercase text-muted-foreground">
-            Tax / VAT
+            {t("taxVatLabel")}
           </Label>
           <div className="flex items-center gap-2">
             <Input
@@ -61,13 +73,13 @@ export function BillingModalSummaryPanel({
               onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
               className="w-24"
             />
-            <span className="text-sm font-medium">%</span>
+            <span className="text-sm font-medium">{t("percentSymbol")}</span>
           </div>
         </div>
 
         <div className="space-y-2">
           <Label className="text-xs font-semibold uppercase text-muted-foreground">
-            Discount
+            {t("discountLabel")}
           </Label>
           <div className="flex items-center gap-2">
             <Select
@@ -81,8 +93,8 @@ export function BillingModalSummaryPanel({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="AMOUNT">Flat</SelectItem>
-                <SelectItem value="PERCENTAGE">%</SelectItem>
+                <SelectItem value="AMOUNT">{t("discountFlat")}</SelectItem>
+                <SelectItem value="PERCENTAGE">{t("percentSymbol")}</SelectItem>
               </SelectContent>
             </Select>
             <Input
@@ -99,18 +111,18 @@ export function BillingModalSummaryPanel({
 
         <div className="space-y-2">
           <Label className="text-xs font-semibold uppercase text-muted-foreground">
-            Payment Mode
+            {t("paymentModeLabel")}
           </Label>
           <Select value={paymentMode} onValueChange={setPaymentMode}>
             <SelectTrigger>
-              <SelectValue placeholder="Payment mode" />
+              <SelectValue placeholder={t("paymentModePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="CASH">Cash</SelectItem>
-              <SelectItem value="CARD">Card</SelectItem>
-              <SelectItem value="UPI">UPI / GPay</SelectItem>
-              <SelectItem value="INSURANCE">Insurance</SelectItem>
-              <SelectItem value="ONLINE">Online Link</SelectItem>
+              <SelectItem value="CASH">{t("paymentCash")}</SelectItem>
+              <SelectItem value="CARD">{t("paymentCard")}</SelectItem>
+              <SelectItem value="UPI">{t("paymentUpi")}</SelectItem>
+              <SelectItem value="INSURANCE">{t("paymentInsurance")}</SelectItem>
+              <SelectItem value="ONLINE">{t("paymentOnline")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -118,23 +130,23 @@ export function BillingModalSummaryPanel({
 
       <div className="bg-muted/50 rounded-lg p-5 space-y-3">
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Subtotal</span>
+          <span className="text-muted-foreground">{t("summarySubtotal")}</span>
           <span>{formatAmount(calculations.subtotal)}</span>
         </div>
         {calculations.taxAmount > 0 ? (
           <div className="flex justify-between text-sm text-warning">
-            <span>Tax ({taxRate}%)</span>
+            <span>{t("summaryTax", { rate: taxRate })}</span>
             <span>+{formatAmount(calculations.taxAmount)}</span>
           </div>
         ) : null}
         {calculations.discountAmount > 0 ? (
           <div className="flex justify-between text-sm text-success">
-            <span>Discount</span>
+            <span>{t("summaryDiscount")}</span>
             <span>-{formatAmount(calculations.discountAmount)}</span>
           </div>
         ) : null}
         <div className="border-t pt-3 mt-2 flex justify-between items-center">
-          <span className="font-semibold">Grand Total</span>
+          <span className="font-semibold">{t("summaryGrandTotal")}</span>
           <span className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
             {formatAmount(calculations.total)}
           </span>
