@@ -231,6 +231,21 @@
       "notes": "Notes",
       "changeSummary": "Change summary (revision log)",
       "changeSummaryPlaceholder": "Why this change?"
+    },
+    "estimate": {
+      "title": "Current period estimate",
+      "description": "Live meter readings + projected month-end invoice (aggregated across all member clinics).",
+      "loadingLabel": "Loading…",
+      "periodLabel": "Period: {start} → {end}",
+      "memberClinicCount": "{count, plural, one {1 member clinic} other {{count} member clinics}}",
+      "colMeter": "Meter",
+      "colUsed": "Used",
+      "colIncluded": "Included",
+      "colOverage": "Overage",
+      "colCharge": "Charge",
+      "platformFeeLabel": "Platform fee",
+      "overageTotalLabel": "Overage total",
+      "projectedTotalLabel": "Projected month total"
     }
   },
   "InternalPricing": {

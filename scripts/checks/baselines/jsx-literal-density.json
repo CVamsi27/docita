@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T05:29:46.138Z",
-  "totalLiterals": 1227,
+  "generatedAt": "2026-07-16T05:31:18.627Z",
+  "totalLiterals": 1218,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -358,7 +358,6 @@
     "apps/internal/features/enterprise-contracts/enterprise-contracts-custom-bill-dialog.tsx": 4,
     "apps/internal/features/enterprise-contracts/enterprise-contracts-editor-dialog.tsx": 1,
     "apps/internal/features/enterprise-contracts/enterprise-contracts-editor-form.tsx": 2,
-    "apps/internal/features/enterprise-contracts/enterprise-contracts-estimate-dialog.tsx": 9,
     "apps/internal/features/enterprise-contracts/enterprise-contracts-invoices-dialog.tsx": 6,
     "apps/internal/features/enterprise-contracts/enterprise-contracts-members-dialog.tsx": 4,
     "apps/internal/features/enterprise-contracts/enterprise-contracts-revisions-dialog.tsx": 5,
