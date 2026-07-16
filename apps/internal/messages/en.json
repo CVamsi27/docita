@@ -377,6 +377,28 @@
       "paymentMethodManual": "Manual",
       "paymentNotesLabel": "Payment Notes (Optional)",
       "paymentNotesPlaceholder": "Payment notes"
+    },
+    "pricingOffers": {
+      "noActiveDiscounts": "No active checkout discounts.",
+      "colFacility": "Facility",
+      "colTitle": "Title",
+      "colPercentOff": "Percent off",
+      "colValidUntil": "Valid until",
+      "colActions": "Actions",
+      "removeButton": "Remove",
+      "facilityLabel": "Facility",
+      "facilityPlaceholder": "Select facility",
+      "percentOffLabel": "Percent off checkout",
+      "percentOffPlaceholder": "Enter percent",
+      "percentOffDescription": "Applied to list price at subscription checkout (max 95).",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Commercial discount",
+      "validUntilLabel": "Valid until (optional)",
+      "validUntilPlaceholder": "Select date",
+      "notesLabel": "Internal notes (optional)",
+      "notesPlaceholder": "Reason for discount, approval ref, etc.",
+      "savingLabel": "Saving…",
+      "saveButton": "Save discount"
     }
   },
   "InternalDashboard": {

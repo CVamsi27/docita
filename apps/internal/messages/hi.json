@@ -377,6 +377,28 @@
       "paymentMethodManual": "मैन्युअल",
       "paymentNotesLabel": "भुगतान नोट्स (वैकल्पिक)",
       "paymentNotesPlaceholder": "भुगतान नोट्स"
+    },
+    "pricingOffers": {
+      "noActiveDiscounts": "कोई सक्रिय चेकआउट छूट नहीं।",
+      "colFacility": "सुविधा",
+      "colTitle": "शीर्षक",
+      "colPercentOff": "छूट प्रतिशत",
+      "colValidUntil": "तक वैध",
+      "colActions": "क्रियाएँ",
+      "removeButton": "हटाएँ",
+      "facilityLabel": "सुविधा",
+      "facilityPlaceholder": "सुविधा चुनें",
+      "percentOffLabel": "चेकआउट पर छूट प्रतिशत",
+      "percentOffPlaceholder": "प्रतिशत दर्ज करें",
+      "percentOffDescription": "सदस्यता चेकआउट पर सूची मूल्य पर लागू (अधिकतम 95)।",
+      "titleLabel": "शीर्षक",
+      "titlePlaceholder": "व्यावसायिक छूट",
+      "validUntilLabel": "तक वैध (वैकल्पिक)",
+      "validUntilPlaceholder": "तारीख चुनें",
+      "notesLabel": "आंतरिक नोट्स (वैकल्पिक)",
+      "notesPlaceholder": "छूट का कारण, अनुमोदन संदर्भ, आदि।",
+      "savingLabel": "सहेजा जा रहा है…",
+      "saveButton": "छूट सहेजें"
     }
   },
   "InternalDashboard": {
