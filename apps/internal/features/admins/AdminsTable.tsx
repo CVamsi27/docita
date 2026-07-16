@@ -8,6 +8,7 @@ import {
   UserCheck,
   UserX,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
@@ -40,6 +41,16 @@ interface AdminsTableProps {
   getRoleBadgeVariant: (role: string) => "default" | "outline";
 }
 
+/**
+ * Phase 3 (per-feature): apps/internal Admins > Admins table.
+ * 11 literals converted to useTranslations
+ * (\"InternalAdmins.table\") — card title, empty state, table
+ * headers, status badges, action screen-reader labels.
+ */
+function useAdminsTableTranslations() {
+  return useTranslations("InternalAdmins.table");
+}
+
 export function AdminsTable({
   admins,
   selectedClinic,
@@ -50,12 +61,13 @@ export function AdminsTable({
   getRoleLabel,
   getRoleBadgeVariant,
 }: AdminsTableProps) {
+  const t = useAdminsTableTranslations();
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Shield className="h-5 w-5" />
-          Admins ({admins.length})
+          {t("cardTitle", { count: admins.length })}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -64,26 +76,26 @@ export function AdminsTable({
             icon={Shield}
             title={
               selectedClinic
-                ? "No admins found"
-                : "Select a clinic to view admins"
+                ? t("emptyTitleNoAdmins")
+                : t("emptyTitleSelectClinic")
             }
             description={
               selectedClinic
-                ? "Create one by clicking 'Add Admin'."
-                : "Choose a facility to load the administrator list."
+                ? t("emptyDescriptionNoAdmins")
+                : t("emptyDescriptionSelectClinic")
             }
           />
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Access</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t("colName")}</TableHead>
+                <TableHead>{t("colEmail")}</TableHead>
+                <TableHead>{t("colPhone")}</TableHead>
+                <TableHead>{t("colType")}</TableHead>
+                <TableHead>{t("colAccess")}</TableHead>
+                <TableHead>{t("colCreated")}</TableHead>
+                <TableHead>{t("colActions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -103,9 +115,9 @@ export function AdminsTable({
                   </TableCell>
                   <TableCell>
                     {admin.appLoginDisabled ? (
-                      <Badge variant="destructive">Disabled</Badge>
+                      <Badge variant="destructive">{t("accessDisabled")}</Badge>
                     ) : (
-                      <Badge variant="secondary">Active</Badge>
+                      <Badge variant="secondary">{t("accessActive")}</Badge>
                     )}
                   </TableCell>
                   <TableCell>
@@ -135,7 +147,7 @@ export function AdminsTable({
                           onClick={() => onActivate(admin.id)}
                         >
                           <UserCheck className="h-4 w-4" />
-                          <span className="sr-only">Re-enable admin</span>
+                          <span className="sr-only">{t("reenableAdminSrLabel")}</span>
                         </Button>
                       ) : (
                         <Button
@@ -145,7 +157,7 @@ export function AdminsTable({
                           onClick={() => onDeactivate(admin.id)}
                         >
                           <UserX className="h-4 w-4" />
-                          <span className="sr-only">Deactivate admin</span>
+                          <span className="sr-only">{t("deactivateAdminSrLabel")}</span>
                         </Button>
                       )}
                     </div>
