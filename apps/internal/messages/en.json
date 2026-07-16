@@ -198,5 +198,25 @@
       "changeSummary": "Change summary (revision log)",
       "changeSummaryPlaceholder": "Why this change?"
     }
+  },
+  "InternalPricing": {
+    "tierTable": {
+      "emptyTitle": "No tier pricing rows",
+      "emptyDescription": "Run the billing seed script to populate tier pricing before editing.",
+      "colTier": "Tier",
+      "colMonthlyCents": "Monthly (cents)",
+      "colPatients": "Patients",
+      "colAppointments": "Appointments",
+      "colStorageGB": "Storage GB",
+      "colUsers": "Users",
+      "colPatientOverage": "Patient overage",
+      "colApptOverage": "Appt overage",
+      "colRxOverage": "Rx overage",
+      "colInvoiceOverage": "Invoice overage",
+      "colOcrOverage": "OCR Overage",
+      "colApiOverage": "API Overage",
+      "unsavedBadge": "unsaved",
+      "saveButton": "Save"
+    }
   }
 }
