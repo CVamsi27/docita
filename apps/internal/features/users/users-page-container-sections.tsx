@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@workspace/ui/components/form/button";
+import { useTranslations } from "next-intl";
 // jscpd:ignore-start
 import {
   Card,
@@ -43,6 +44,15 @@ import {
   getSpecializationLabel,
   isRoleConfigKey,
 } from "./utils";
+
+/**
+ * Phase 3 (per-feature): apps/internal Users > Page sections
+ * (stats cards, search filter, table, details dialog). 9 literals
+ * converted to useTranslations("InternalUsers").
+ */
+function useUsersPageTranslations() {
+  return useTranslations("InternalUsers");
+}
 
 interface UserStatsCardsProps {
   roleStats: Record<string, number>;
@@ -105,6 +115,7 @@ export function SearchFilterBar({
   onClinicChange,
   clinics,
 }: SearchFilterBarProps) {
+  const t = useUsersPageTranslations();
   return (
     <Card>
       <CardContent className="pt-6">
@@ -113,7 +124,7 @@ export function SearchFilterBar({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Enter name, email, or specialization"
+                placeholder={t("searchPlaceholder")}
                 value={searchTerm}
                 onChange={(event) => onSearchChange(event.target.value)}
                 className="pl-9"
@@ -123,12 +134,12 @@ export function SearchFilterBar({
           <Select value={selectedClinic} onValueChange={onClinicChange}>
             <SelectTrigger
               className="w-full md:w-[250px]"
-              aria-label="Filter by facility"
+              aria-label={t("filterByFacilityAriaLabel")}
             >
-              <SelectValue placeholder="Facility" />
+              <SelectValue placeholder={t("facilityPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Facilities</SelectItem>
+              <SelectItem value="all">{t("allFacilities")}</SelectItem>
               {clinics.map((clinic) => (
                 <SelectItem key={clinic.id} value={clinic.id}>
                   {clinic.name}
@@ -153,12 +164,13 @@ export function UsersTableSection({
   users,
   onViewUser,
 }: UsersTableSectionProps) {
+  const t = useUsersPageTranslations();
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Users className="h-5 w-5" />
-          Team Members ({filteredUsers.length})
+          {t("teamMembersTitle", { count: filteredUsers.length })}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -167,23 +179,23 @@ export function UsersTableSection({
             icon={Users}
             title={
               users.length === 0
-                ? "No team members found"
-                : "No users match your search criteria"
+                ? t("noTeamMembersTitle")
+                : t("noMatchingUsersTitle")
             }
-            description="Try adjusting the facility filter or search query."
+            description={t("emptyDescription")}
           />
         ) : (
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Specialization</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("colName")}</TableHead>
+                  <TableHead>{t("colEmail")}</TableHead>
+                  <TableHead>{t("colRole")}</TableHead>
+                  <TableHead>{t("colSpecialization")}</TableHead>
+                  <TableHead>{t("colPhone")}</TableHead>
+                  <TableHead>{t("colJoined")}</TableHead>
+                  <TableHead className="text-right">{t("colActions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -214,7 +226,7 @@ export function UsersTableSection({
                         onClick={() => onViewUser(user)}
                       >
                         <Eye className="h-4 w-4 mr-2" />
-                        View
+                        {t("viewButton")}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -239,13 +251,14 @@ export function UserDetailsDialog({
   onOpenChange,
   user,
 }: UserDetailsDialogProps) {
+  const t = useUsersPageTranslations();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>User Details</DialogTitle>
+          <DialogTitle>{t("userDetailsTitle")}</DialogTitle>
           <DialogDescription>
-            Review team member contact details and professional credentials.
+            {t("userDetailsDescription")}
           </DialogDescription>
         </DialogHeader>
         {user && (
@@ -253,19 +266,19 @@ export function UserDetailsDialog({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Name
+                  {t("fieldName")}
                 </p>
                 <p className="text-sm font-semibold mt-1">{user.name}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Email
+                  {t("fieldEmail")}
                 </p>
                 <p className="text-sm font-semibold mt-1">{user.email}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Role
+                  {t("fieldRole")}
                 </p>
                 <div className="mt-1">
                   <Badge className={getRoleBadgeColor(user.role)}>
@@ -275,10 +288,10 @@ export function UserDetailsDialog({
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Phone Number
+                  {t("fieldPhoneNumber")}
                 </p>
                 <p className="text-sm font-semibold mt-1">
-                  {user.phoneNumber || "N/A"}
+                  {user.phoneNumber || t("notAvailable")}
                 </p>
               </div>
             </div>
@@ -288,13 +301,13 @@ export function UserDetailsDialog({
               <>
                 <div className="border-t pt-4">
                   <h3 className="font-semibold mb-3">
-                    Professional Information
+                    {t("professionalInfoTitle")}
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     {user.specialization && (
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">
-                          Specialization
+                          {t("fieldSpecialization")}
                         </p>
                         <p className="text-sm font-semibold mt-1">
                           {getSpecializationLabel(user.specialization)}
@@ -304,7 +317,7 @@ export function UserDetailsDialog({
                     {user.qualification && (
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">
-                          Qualification
+                          {t("fieldQualification")}
                         </p>
                         <p className="text-sm font-semibold mt-1">
                           {user.qualification}
@@ -314,7 +327,7 @@ export function UserDetailsDialog({
                     {user.registrationNumber && (
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">
-                          Registration Number
+                          {t("fieldRegistrationNumber")}
                         </p>
                         <p className="text-sm font-semibold mt-1">
                           {user.registrationNumber}
@@ -324,10 +337,10 @@ export function UserDetailsDialog({
                     {user.yearsOfExperience !== undefined && (
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">
-                          Experience
+                          {t("fieldExperience")}
                         </p>
                         <p className="text-sm font-semibold mt-1">
-                          {user.yearsOfExperience} years
+                          {t("yearsValue", { count: user.yearsOfExperience })}
                         </p>
                       </div>
                     )}
@@ -336,7 +349,7 @@ export function UserDetailsDialog({
                 {user.bio && (
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
-                      Bio
+                      {t("fieldBio")}
                     </p>
                     <p className="text-sm mt-1">{user.bio}</p>
                   </div>
@@ -346,7 +359,7 @@ export function UserDetailsDialog({
 
             <div className="border-t pt-4">
               <p className="text-sm font-medium text-muted-foreground">
-                Joined
+                {t("fieldJoined")}
               </p>
               <p className="text-sm font-semibold mt-1">
                 {formatInternalTimestamp(user.createdAt)}

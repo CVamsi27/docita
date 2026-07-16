@@ -417,5 +417,38 @@
       "statusActive": "सक्रिय",
       "statusInactive": "निष्क्रिय"
     }
+  },
+  "InternalUsers": {
+    "searchPlaceholder": "नाम, ईमेल या विशेषज्ञता दर्ज करें",
+    "filterByFacilityAriaLabel": "सुविधा के अनुसार फ़िल्टर करें",
+    "facilityPlaceholder": "सुविधा",
+    "allFacilities": "सभी सुविधाएँ",
+    "teamMembersTitle": "टीम के सदस्य ({count})",
+    "noTeamMembersTitle": "कोई टीम सदस्य नहीं मिला",
+    "noMatchingUsersTitle": "कोई उपयोगकर्ता आपकी खोज मानदंड से मेल नहीं खाता",
+    "emptyDescription": "सुविधा फ़िल्टर या खोज क्वेरी को समायोजित करने का प्रयास करें।",
+    "colName": "नाम",
+    "colEmail": "ईमेल",
+    "colRole": "भूमिका",
+    "colSpecialization": "विशेषज्ञता",
+    "colPhone": "फ़ोन",
+    "colJoined": "शामिल हुए",
+    "colActions": "क्रियाएँ",
+    "viewButton": "देखें",
+    "userDetailsTitle": "उपयोगकर्ता विवरण",
+    "userDetailsDescription": "टीम सदस्य के संपर्क विवरण और पेशेवर प्रमाणपत्रों की समीक्षा करें।",
+    "fieldName": "नाम",
+    "fieldEmail": "ईमेल",
+    "fieldRole": "भूमिका",
+    "fieldPhoneNumber": "फ़ोन नंबर",
+    "notAvailable": "उपलब्ध नहीं",
+    "professionalInfoTitle": "पेशेवर जानकारी",
+    "fieldSpecialization": "विशेषज्ञता",
+    "fieldQualification": "योग्यता",
+    "fieldRegistrationNumber": "पंजीकरण संख्या",
+    "fieldExperience": "अनुभव",
+    "yearsValue": "{count, plural, one {1 वर्ष} other {{count} वर्ष}}",
+    "fieldBio": "परिचय",
+    "fieldJoined": "शामिल हुए"
   }
 }
