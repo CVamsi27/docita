@@ -422,6 +422,14 @@
       "accessActive": "सक्रिय",
       "reenableAdminSrLabel": "व्यवस्थापक को पुनः सक्षम करें",
       "deactivateAdminSrLabel": "व्यवस्थापक को निष्क्रिय करें"
+    },
+    "viewDialog": {
+      "description": "व्यवस्थापक विवरण और जानकारी",
+      "nameLabel": "नाम",
+      "emailLabel": "ईमेल",
+      "phoneLabel": "फ़ोन",
+      "typeLabel": "प्रकार",
+      "createdLabel": "बनाया गया"
     }
   },
   "InternalSystemLogs": {

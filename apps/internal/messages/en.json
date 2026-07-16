@@ -422,6 +422,14 @@
       "accessActive": "Active",
       "reenableAdminSrLabel": "Re-enable admin",
       "deactivateAdminSrLabel": "Deactivate admin"
+    },
+    "viewDialog": {
+      "description": "Admin details and information",
+      "nameLabel": "Name",
+      "emailLabel": "Email",
+      "phoneLabel": "Phone",
+      "typeLabel": "Type",
+      "createdLabel": "Created"
     }
   },
   "InternalSystemLogs": {
