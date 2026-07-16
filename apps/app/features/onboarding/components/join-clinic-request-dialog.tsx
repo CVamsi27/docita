@@ -16,8 +16,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
+import { useTranslations } from "next-intl";
 // jscpd:ignore-end
 import type { JoinClinicSearchResult } from "@/features/onboarding/components/join-clinic-search-results";
+
+/**
+ * Phase 3 (per-feature): apps/app Onboarding > Join clinic request
+ * dialog. 7 literals converted to
+ * useTranslations("Onboarding.joinClinicRequest").
+ */
+function useJoinClinicRequestTranslations() {
+  return useTranslations("Onboarding.joinClinicRequest");
+}
 
 export function JoinClinicRequestDialog({
   clinic,
@@ -38,6 +48,7 @@ export function JoinClinicRequestDialog({
   onMessageChange: (message: string) => void;
   onSubmit: () => void;
 }) {
+  const t = useJoinClinicRequestTranslations();
   return (
     <Dialog
       open={!!clinic}
@@ -45,41 +56,41 @@ export function JoinClinicRequestDialog({
     >
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Request to Join {clinic?.name}</DialogTitle>
+          <DialogTitle>{t("title", { name: clinic?.name ?? "" })}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Your Role</label>
+            <label className="text-sm font-medium">{t("roleLabel")}</label>
             <Select value={requestedRole} onValueChange={onRoleChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="DOCTOR">Doctor</SelectItem>
-                <SelectItem value="NURSE">Nurse</SelectItem>
-                <SelectItem value="RECEPTIONIST">Receptionist</SelectItem>
-                <SelectItem value="ADMIN_DOCTOR">Admin Doctor</SelectItem>
+                <SelectItem value="DOCTOR">{t("roleDoctor")}</SelectItem>
+                <SelectItem value="NURSE">{t("roleNurse")}</SelectItem>
+                <SelectItem value="RECEPTIONIST">{t("roleReceptionist")}</SelectItem>
+                <SelectItem value="ADMIN_DOCTOR">{t("roleAdminDoctor")}</SelectItem>
               </SelectContent>
             </Select>
             <p className="ui-helper-text">
-              Select the role you will have in this facility
+              {t("roleHelper")}
             </p>
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              Message to Admin{" "}
-              <span className="text-muted-foreground">(optional)</span>
+              {t("messageLabel")}{" "}
+              <span className="text-muted-foreground">{t("optionalSuffix")}</span>
             </label>
             <Textarea
-              placeholder="Enter message to admin"
+              placeholder={t("messagePlaceholder")}
               value={message}
               onChange={(e) => onMessageChange(e.target.value)}
               maxLength={500}
               rows={4}
             />
-            <p className="ui-helper-text text-right">{message.length}/500</p>
+            <p className="ui-helper-text text-right">{t("charCount", { count: message.length })}</p>
           </div>
         </div>
 
@@ -89,10 +100,10 @@ export function JoinClinicRequestDialog({
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
           >
-            Cancel
+            {t("cancelButton")}
           </Button>
           <Button onClick={onSubmit} disabled={isSubmitting}>
-            {isSubmitting ? "Submitting…" : "Submit Request"}
+            {isSubmitting ? t("submittingLabel") : t("submitButton")}
           </Button>
         </div>
       </DialogContent>

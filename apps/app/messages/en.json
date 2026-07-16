@@ -149,6 +149,24 @@
       "deletionRequestError": "We could not submit this deletion request. Please try again."
     }
   },
+  "Onboarding": {
+    "joinClinicRequest": {
+      "title": "Request to Join {name}",
+      "roleLabel": "Your Role",
+      "roleDoctor": "Doctor",
+      "roleNurse": "Nurse",
+      "roleReceptionist": "Receptionist",
+      "roleAdminDoctor": "Admin Doctor",
+      "roleHelper": "Select the role you will have in this facility",
+      "messageLabel": "Message to Admin",
+      "optionalSuffix": "(optional)",
+      "messagePlaceholder": "Enter message to admin",
+      "charCount": "{count}/500",
+      "cancelButton": "Cancel",
+      "submittingLabel": "Submitting…",
+      "submitButton": "Submit Request"
+    }
+  },
   "Consultation": {
     "complaint": {
       "symptomLabel": "Symptom or concern",
