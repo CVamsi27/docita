@@ -54,6 +54,7 @@ export function PatientProfileHeaderContainer({
       email={patient.email ?? undefined}
       phoneNumber={patient.phoneNumber ?? undefined}
       address={patient.address || undefined}
+      mrn={patient.mrn ?? undefined}
       onEdit={onEdit}
     />
   );
