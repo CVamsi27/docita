@@ -2,6 +2,7 @@
 
 // jscpd:ignore-start
 import type { UseFormReturn } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Button } from "@workspace/ui/components/form/button";
 import {
@@ -48,12 +49,22 @@ interface PricingOffersTableSectionProps {
   isRemoving: boolean;
 }
 
+/**
+ * Phase 3 (per-feature): apps/internal Payment processing > Pricing
+ * offers section. 9 literals converted to
+ * useTranslations("InternalPaymentProcessing.pricingOffers").
+ */
+function usePricingOffersTranslations() {
+  return useTranslations("InternalPaymentProcessing.pricingOffers");
+}
+
 export function PricingOffersTableSection({
   isLoading,
   offers,
   onRemove,
   isRemoving,
 }: PricingOffersTableSectionProps) {
+  const t = usePricingOffersTranslations();
   if (isLoading) {
     return (
       <div className="flex justify-center py-6" role="status">
@@ -68,7 +79,7 @@ export function PricingOffersTableSection({
 
   if (offers.length === 0) return (
       <p className="text-sm text-muted-foreground">
-        No active checkout discounts.
+        {t("noActiveDiscounts")}
       </p>
     );
 
@@ -76,11 +87,11 @@ export function PricingOffersTableSection({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Facility</TableHead>
-          <TableHead>Title</TableHead>
-          <TableHead>Percent off</TableHead>
-          <TableHead>Valid until</TableHead>
-          <TableHead className="w-[100px]">Actions</TableHead>
+          <TableHead>{t("colFacility")}</TableHead>
+          <TableHead>{t("colTitle")}</TableHead>
+          <TableHead>{t("colPercentOff")}</TableHead>
+          <TableHead>{t("colValidUntil")}</TableHead>
+          <TableHead className="w-[100px]">{t("colActions")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -104,7 +115,7 @@ export function PricingOffersTableSection({
                 disabled={isRemoving}
                 onClick={() => onRemove(row.clinicId)}
               >
-                Remove
+                {t("removeButton")}
               </Button>
             </TableCell>
           </TableRow>
@@ -125,6 +136,7 @@ export function PricingOfferFormSection({
   clinics,
   isSaving,
 }: PricingOfferFormSectionProps) {
+  const t = usePricingOffersTranslations();
   return (
     <>
       <FormField
@@ -132,11 +144,11 @@ export function PricingOfferFormSection({
         name="clinicId"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Facility</FormLabel>
+            <FormLabel>{t("facilityLabel")}</FormLabel>
             <Select value={field.value} onValueChange={field.onChange}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select facility" />
+                  <SelectValue placeholder={t("facilityPlaceholder")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -156,7 +168,7 @@ export function PricingOfferFormSection({
         name="percentOff"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Percent off checkout</FormLabel>
+            <FormLabel>{t("percentOffLabel")}</FormLabel>
             <FormControl>
               <Input
                 type="number"
@@ -164,12 +176,12 @@ export function PricingOfferFormSection({
                 min={0}
                 max={95}
                 step={1}
-                placeholder="Enter percent"
+                placeholder={t("percentOffPlaceholder")}
                 {...field}
               />
             </FormControl>
             <FormDescription>
-              Applied to list price at subscription checkout (max 95).
+              {t("percentOffDescription")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -180,9 +192,9 @@ export function PricingOfferFormSection({
         name="title"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Title</FormLabel>
+            <FormLabel>{t("titleLabel")}</FormLabel>
             <FormControl>
-              <Input placeholder="Commercial discount" {...field} />
+              <Input placeholder={t("titlePlaceholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -194,7 +206,7 @@ export function PricingOfferFormSection({
         render={({ field }) => (
           <FormItem>
             <FormLabel htmlFor="pricing-offer-valid-until">
-              Valid until (optional)
+              {t("validUntilLabel")}
             </FormLabel>
             <FormControl>
               <IsoDatePickerField
@@ -203,7 +215,7 @@ export function PricingOfferFormSection({
                 showLabel={false}
                 value={typeof field.value === "string" ? field.value : ""}
                 onChange={field.onChange}
-                placeholder="Select date"
+                placeholder={t("validUntilPlaceholder")}
               />
             </FormControl>
             <FormMessage />
@@ -215,10 +227,10 @@ export function PricingOfferFormSection({
         name="notes"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Internal notes (optional)</FormLabel>
+            <FormLabel>{t("notesLabel")}</FormLabel>
             <FormControl>
               <Textarea
-                placeholder="Reason for discount, approval ref, etc."
+                placeholder={t("notesPlaceholder")}
                 className="min-h-[80px]"
                 {...field}
               />
@@ -236,7 +248,7 @@ export function PricingOfferFormSection({
               className="mr-2"
             />
           )}
-          {isSaving ? "Saving…" : "Save discount"}
+          {isSaving ? t("savingLabel") : t("saveButton")}
         </Button>
       </div>
     </>
