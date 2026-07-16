@@ -1,6 +1,7 @@
 "use client";
 
 import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { useTranslations } from "next-intl";
 // jscpd:ignore-start
 import {
   Card,
@@ -30,6 +31,15 @@ type EnterpriseContractsTableSectionProps = Pick<
 > &
   Omit<EnterpriseContractRowActionsProps, "row">;
 
+/**
+ * Phase 3 (per-feature): apps/internal Enterprise contracts > Table
+ * section (admin contracts table with 7 columns). 8 literals converted
+ * to useTranslations("InternalEnterpriseContracts.tableSection").
+ */
+function useTableSectionTranslations() {
+  return useTranslations("InternalEnterpriseContracts.tableSection");
+}
+
 export function EnterpriseContractsTableSection({
   rows,
   contractsTableStatus,
@@ -37,34 +47,34 @@ export function EnterpriseContractsTableSection({
   contractsQuery,
   ...rowActionProps
 }: EnterpriseContractsTableSectionProps) {
+  const t = useTableSectionTranslations();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>All enterprise contracts</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <CardDescription>
-          Edit terms, manage member clinics for groups, generate prepay
-          invoices, run true-up evaluations.
+          {t("description")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <DataState
           status={contractsTableStatus}
-          loadingMessage="Loading enterprise contracts…"
+          loadingMessage={t("loadingLabel")}
           errorMessage={contractsLoadError ?? undefined}
           onRetry={() => void contractsQuery.refetch()}
-          emptyTitle="No contracts yet"
-          emptyDescription="Create a contract to manage enterprise billing terms."
+          emptyTitle={t("emptyTitle")}
+          emptyDescription={t("emptyDescription")}
         >
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Contract # / group</TableHead>
-                <TableHead>Primary clinic</TableHead>
-                <TableHead>Members</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Period</TableHead>
-                <TableHead>Platform fee</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("colContractGroup")}</TableHead>
+                <TableHead>{t("colPrimaryClinic")}</TableHead>
+                <TableHead>{t("colMembers")}</TableHead>
+                <TableHead>{t("colStatus")}</TableHead>
+                <TableHead>{t("colPeriod")}</TableHead>
+                <TableHead>{t("colPlatformFee")}</TableHead>
+                <TableHead className="text-right">{t("colActions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
