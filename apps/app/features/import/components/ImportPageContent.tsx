@@ -9,6 +9,7 @@ import {
   ScanLine,
   Upload,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { Button } from "@workspace/ui/components/form/button";
 import {
@@ -28,16 +29,26 @@ import {
 import { BulkImportDialog } from "@/features/import/components/BulkImportDialogContainer";
 import { Feature, Tier } from "@/lib/stores/permission-store";
 
+/**
+ * Phase 3 (per-feature): apps/app Import > Page content
+ * (3 import method cards + tips card). 7 literals converted to
+ * useTranslations("Import.page").
+ */
+function useImportPageTranslations() {
+  return useTranslations("Import.page");
+}
+
 export function ImportPageContent() {
   const [showBulkImport, setShowBulkImport] = useState(false);
+  const t = useImportPageTranslations();
 
   return (
     <AppPageScaffold
       className="max-w-5xl"
       header={
         <PageHeader
-          title="Import data"
-          description="Digitize your facility records by importing from Excel or scanning documents."
+          title={t("pageTitle")}
+          description={t("pageDescription")}
         />
       }
     >
@@ -50,26 +61,25 @@ export function ImportPageContent() {
               </div>
               <TierBadge tier={Tier.STARTER} />
             </div>
-            <CardTitle className="mt-4">Excel import</CardTitle>
+            <CardTitle className="mt-4">{t("excelTitle")}</CardTitle>
             <CardDescription>
-              Import patient data from Excel or CSV files with smart column
-              mapping and duplicate detection.
+              {t("excelDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <BulletStepList
               bulletClassName="bg-success"
               items={[
-                "Auto-detect column mappings",
-                "Clean phone numbers & names",
-                "Duplicate detection by phone & name",
-                "Preview before importing",
+                t("excelStep1"),
+                t("excelStep2"),
+                t("excelStep3"),
+                t("excelStep4"),
               ]}
             />
             <Link href="/import/excel">
               <Button className="w-full">
                 <Upload className="mr-2 h-4 w-4" />
-                Import Excel File
+                {t("excelButton")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -84,20 +94,19 @@ export function ImportPageContent() {
               </div>
               <FeatureTierBadge feature={Feature.OCR_BASIC} />
             </div>
-            <CardTitle className="mt-4">OCR Scanner</CardTitle>
+            <CardTitle className="mt-4">{t("ocrTitle")}</CardTitle>
             <CardDescription>
-              Scan handwritten prescriptions and documents to extract patient
-              data using AI-powered OCR.
+              {t("ocrDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <BulletStepList
               bulletClassName="bg-primary"
               items={[
-                "AI handwriting recognition",
-                "Extract medications & dosages",
-                "Auto-enhance scanned images",
-                "Review & correct extracted data",
+                t("ocrStep1"),
+                t("ocrStep2"),
+                t("ocrStep3"),
+                t("ocrStep4"),
               ]}
             />
             <FeatureGate
@@ -105,14 +114,14 @@ export function ImportPageContent() {
               fallback={
                 <Button className="w-full" variant="secondary" disabled>
                   <ScanLine className="mr-2 h-4 w-4" />
-                  Upgrade to Plus for OCR
+                  {t("ocrUpgradeButton")}
                 </Button>
               }
             >
               <Link href="/import/ocr">
                 <Button className="w-full" variant="secondary">
                   <ScanLine className="mr-2 h-4 w-4" />
-                  Scan Documents
+                  {t("ocrScanButton")}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
@@ -129,25 +138,24 @@ export function ImportPageContent() {
             </div>
             <TierBadge tier={Tier.PROFESSIONAL} />
           </div>
-          <CardTitle className="mt-4">Bulk Entity Import</CardTitle>
+          <CardTitle className="mt-4">{t("bulkTitle")}</CardTitle>
           <CardDescription>
-            Import multiple entities (patients, prescriptions, doctors, lab
-            tests, inventory) with AI-powered validation and batch processing.
+            {t("bulkDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <BulletStepList
             bulletClassName="bg-info"
             items={[
-              "Import 5 entity types (patient, prescription, doctor, lab-test, inventory)",
-              "Batch processing with error collection",
-              "Download CSV templates per entity type",
-              "Real-time progress tracking",
+              t("bulkStep1"),
+              t("bulkStep2"),
+              t("bulkStep3"),
+              t("bulkStep4"),
             ]}
           />
           <Button onClick={() => setShowBulkImport(true)} className="w-full">
             <Upload className="mr-2 h-4 w-4" />
-            Start Bulk Import
+            {t("bulkButton")}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </CardContent>
@@ -155,21 +163,17 @@ export function ImportPageContent() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Import tips</CardTitle>
+          <CardTitle className="text-lg">{t("tipsTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <p>
-            <strong>Excel Import: </strong> Make sure your file has headers in
-            the first row. Common column names like &quot;First Name&quot;,
-            &quot;Phone Number&quot;, etc. will be automatically detected.
+            <strong>{t("tipsExcelLabel")}</strong> {t("tipsExcelBody")}
           </p>
           <p>
-            <strong>Phone Numbers:</strong> We automatically clean and normalize
-            phone numbers, removing country codes and formatting.
+            <strong>{t("tipsPhoneLabel")}</strong> {t("tipsPhoneBody")}
           </p>
           <p>
-            <strong>Duplicates:</strong> Patients with matching phone numbers or
-            matching name + date of birth will be flagged duplicate and skipped.
+            <strong>{t("tipsDuplicatesLabel")}</strong> {t("tipsDuplicatesBody")}
           </p>
         </CardContent>
       </Card>
