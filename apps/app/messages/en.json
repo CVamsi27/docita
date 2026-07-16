@@ -208,6 +208,23 @@
       "moreButton": "More",
       "moreOptionsAriaLabel": "More options",
       "patientRecordsLabel": "Patient records"
+    },
+    "billingSummary": {
+      "taxVatLabel": "Tax / VAT",
+      "percentSymbol": "%",
+      "discountLabel": "Discount",
+      "discountFlat": "Flat",
+      "paymentModeLabel": "Payment Mode",
+      "paymentModePlaceholder": "Payment mode",
+      "paymentCash": "Cash",
+      "paymentCard": "Card",
+      "paymentUpi": "UPI / GPay",
+      "paymentInsurance": "Insurance",
+      "paymentOnline": "Online Link",
+      "summarySubtotal": "Subtotal",
+      "summaryTax": "Tax ({rate}%)",
+      "summaryDiscount": "Discount",
+      "summaryGrandTotal": "Grand Total"
     }
   },
   "Settings": {

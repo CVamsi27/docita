@@ -208,6 +208,23 @@
       "moreButton": "अधिक",
       "moreOptionsAriaLabel": "अधिक विकल्प",
       "patientRecordsLabel": "मरीज़ रिकॉर्ड"
+    },
+    "billingSummary": {
+      "taxVatLabel": "कर / VAT",
+      "percentSymbol": "%",
+      "discountLabel": "छूट",
+      "discountFlat": "सपाट",
+      "paymentModeLabel": "भुगतान विधि",
+      "paymentModePlaceholder": "भुगतान विधि",
+      "paymentCash": "नकद",
+      "paymentCard": "कार्ड",
+      "paymentUpi": "UPI / GPay",
+      "paymentInsurance": "बीमा",
+      "paymentOnline": "ऑनलाइन लिंक",
+      "summarySubtotal": "उप-योग",
+      "summaryTax": "कर ({rate}%)",
+      "summaryDiscount": "छूट",
+      "summaryGrandTotal": "कुल योग"
     }
   },
   "Settings": {
