@@ -1,6 +1,7 @@
 // check-non-null-assertion: allow-file — non-null guaranteed by prior guard or Prisma include
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   CardDescription,
   CardHeader,
@@ -25,6 +26,16 @@ import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picke
 import { formatDate } from "@workspace/utils";
 import type { DoctorTimeOff } from "@workspace/data-access";
 
+/**
+ * Phase 3 (per-feature): apps/app Settings > Doctor time away
+ * (doctor selector + form fields + scheduled list + card header + submit
+ * button). 8 literals converted to
+ * useTranslations("Settings.timeAway").
+ */
+function useTimeAwayTranslations() {
+  return useTranslations("Settings.timeAway");
+}
+
 // ---------------------------------------------------------------------------
 // DoctorSelectorSection
 // ---------------------------------------------------------------------------
@@ -40,12 +51,13 @@ export function DoctorSelectorSection({
   selectedDoctorId,
   onDoctorChange,
 }: DoctorSelectorSectionProps) {
+  const t = useTimeAwayTranslations();
   return (
     <div className="space-y-2">
-      <Label htmlFor="time-away-doctor">Doctor</Label>
+      <Label htmlFor="time-away-doctor">{t("doctorLabel")}</Label>
       <Select value={selectedDoctorId} onValueChange={onDoctorChange}>
         <SelectTrigger id="time-away-doctor" className="w-full sm:w-72">
-          <SelectValue placeholder="Doctor" />
+          <SelectValue placeholder={t("doctorPlaceholder")} />
         </SelectTrigger>
         <SelectContent>
           {doctors.map((d) => (
@@ -92,6 +104,7 @@ function TimeAwayAvailabilityControls({
   partialEnd,
   onPartialEndChange,
 }: TimeAwayAvailabilityControlsProps) {
+  const t = useTimeAwayTranslations();
   return (
     <>
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-muted/20 px-3 py-2">
@@ -101,13 +114,13 @@ function TimeAwayAvailabilityControls({
           onCheckedChange={onIsFullDayChange}
         />
         <Label htmlFor="time-away-full-day" className="cursor-pointer">
-          Full day each day
+          {t("fullDayLabel")}
         </Label>
       </div>
       {!isFullDay ? (
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="time-away-partial-start">Away from</Label>
+            <Label htmlFor="time-away-partial-start">{t("awayFromLabel")}</Label>
             <Input
               id="time-away-partial-start"
               type="time"
@@ -116,7 +129,7 @@ function TimeAwayAvailabilityControls({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="time-away-partial-end">Away until</Label>
+            <Label htmlFor="time-away-partial-end">{t("awayUntilLabel")}</Label>
             <Input
               id="time-away-partial-end"
               type="time"
@@ -144,28 +157,29 @@ export function TimeAwayFormFields({
   partialEnd,
   onPartialEndChange,
 }: TimeAwayFormFieldsProps) {
+  const t = useTimeAwayTranslations();
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <IsoDatePickerField
           id="time-away-start"
-          label="Start date"
+          label={t("startDateLabel")}
           value={startDate}
           onChange={onStartDateChange}
         />
         <IsoDatePickerField
           id="time-away-end"
-          label="End date"
+          label={t("endDateLabel")}
           value={endDate}
           onChange={onEndDateChange}
         />
         <div className="space-y-2 sm:col-span-2 lg:col-span-1">
-          <Label htmlFor="time-away-reason">Reason (optional)</Label>
+          <Label htmlFor="time-away-reason">{t("reasonLabel")}</Label>
           <Input
             id="time-away-reason"
             value={reason}
             onChange={(e) => onReasonChange(e.target.value)}
-            placeholder="Reason"
+            placeholder={t("reasonPlaceholder")}
             maxLength={200}
           />
         </div>
@@ -209,6 +223,7 @@ function TimeAwayListItem({
   onDelete,
   isDeleting,
 }: TimeAwayListItemProps) {
+  const t = useTimeAwayTranslations();
   const start = new Date(off.startDate);
   const end = new Date(off.endDate);
   return (
@@ -227,13 +242,13 @@ function TimeAwayListItem({
         ) : null}
       </div>
       {off.id && (isAdminCheck(userRole) || off.doctorId === currentUserId) ? (
-        <SymbolTooltip label="Remove time away">
+        <SymbolTooltip label={t("removeTooltip")}>
           <Button
             type="button"
             variant="ghost"
             size="icon"
             className="shrink-0 text-destructive hover:text-destructive"
-            aria-label="Remove time away"
+            aria-label={t("removeTooltip")}
             disabled={isDeleting}
             onClick={() => void onDelete(off.id!)}
           >
@@ -254,14 +269,15 @@ export function ScheduledTimeAwayList({
   onDelete,
   isDeleting,
 }: ScheduledTimeAwayListProps) {
+  const t = useTimeAwayTranslations();
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold">Scheduled time away</h3>
+      <h3 className="text-sm font-semibold">{t("scheduledTitle")}</h3>
       {isLoading ? (
         <Skeleton className="h-24 w-full" />
       ) : timeOffs.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          No time away recorded yet.
+          {t("emptyMessage")}
         </p>
       ) : (
         <ul className="divide-y divide-border rounded-md border">
@@ -286,12 +302,12 @@ export function ScheduledTimeAwayList({
 // ---------------------------------------------------------------------------
 
 export function TimeAwayHeader() {
+  const t = useTimeAwayTranslations();
   return (
     <CardHeader className="border-b border-border/60 pb-5">
-      <CardTitle>Time away</CardTitle>
+      <CardTitle>{t("cardTitle")}</CardTitle>
       <CardDescription>
-        Block your calendar for holidays or other full-day absences. Separate
-        from leave requests under the Leave tab.
+        {t("cardDescription")}
       </CardDescription>
     </CardHeader>
   );
@@ -311,6 +327,7 @@ export function AddTimeAwayButton({
   isCreating,
   onClick,
 }: AddTimeAwayButtonProps) {
+  const t = useTimeAwayTranslations();
   return (
     <Button type="button" onClick={onClick} disabled={isCreating}>
       {isCreating ? (
@@ -320,10 +337,10 @@ export function AddTimeAwayButton({
             decorative
             className="mr-2"
           />
-          Saving
+          {t("savingLabel")}
         </>
       ) : (
-        "Add time away"
+        t("addTimeAwayButton")
       )}
     </Button>
   );

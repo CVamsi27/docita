@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T05:54:34.368Z",
-  "totalLiterals": 1149,
+  "generatedAt": "2026-07-16T05:55:57.207Z",
+  "totalLiterals": 1143,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -277,7 +277,7 @@
     "apps/app/features/settings/components/leave/LeaveSettingsForm.tsx": 2,
     "apps/app/features/settings/components/leave/RejectLeaveDialog.tsx": 2,
     "apps/app/features/settings/components/management/DoctorAvailabilitySettings.tsx": 2,
-    "apps/app/features/settings/components/management/DoctorTimeAwaySettingsSections.tsx": 8,
+    "apps/app/features/settings/components/management/DoctorTimeAwaySettingsSections.tsx": 2,
     "apps/app/features/settings/components/management/JoinRequestsSettingsPanel.tsx": 1,
     "apps/app/features/settings/components/management/doctor-availability-day-row.tsx": 4,
     "apps/app/features/settings/components/management/invite-team-member-dialog.tsx": 1,

@@ -384,6 +384,24 @@
       "whatsAppActiveHelper": "Configure your WhatsApp sender number in",
       "whatsAppSettingsLink": "WhatsApp settings",
       "whatsAppUpgradeHelper": "Available on Professional and above. Upgrade your plan to connect your own number."
+    },
+    "timeAway": {
+      "doctorLabel": "Doctor",
+      "doctorPlaceholder": "Doctor",
+      "fullDayLabel": "Full day each day",
+      "awayFromLabel": "Away from",
+      "awayUntilLabel": "Away until",
+      "startDateLabel": "Start date",
+      "endDateLabel": "End date",
+      "reasonLabel": "Reason (optional)",
+      "reasonPlaceholder": "Reason",
+      "scheduledTitle": "Scheduled time away",
+      "emptyMessage": "No time away recorded yet.",
+      "removeTooltip": "Remove time away",
+      "cardTitle": "Time away",
+      "cardDescription": "Block your calendar for holidays or other full-day absences. Separate from leave requests under the Leave tab.",
+      "savingLabel": "Saving",
+      "addTimeAwayButton": "Add time away"
     }
   },
   "Invoices": {
