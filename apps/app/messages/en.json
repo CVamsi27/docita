@@ -326,6 +326,18 @@
       "removeButton": "Remove",
       "lineItemsLabel": "Line items",
       "addLineItemButton": "Add line item"
+    },
+    "patientInfo": {
+      "sectionTitle": "Patient information",
+      "lowConfidenceBadge": "Check",
+      "firstNameLabel": "First name",
+      "lastNameLabel": "Last name",
+      "suggestionLabel": "Suggestion:",
+      "ageLabel": "Age",
+      "phoneLabel": "Phone",
+      "emailLabel": "Email",
+      "bloodTypeLabel": "Blood type",
+      "bloodTypePlaceholder": "Blood type"
     }
   },
   "Analytics": {
