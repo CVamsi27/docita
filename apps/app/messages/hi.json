@@ -535,6 +535,21 @@
       "ageLabel": "आयु: {age} वर्ष",
       "genderLabel": "लिंग: {gender}",
       "dateLabel": "तारीख"
+    },
+    "table": {
+      "medsCount": "{count, plural, one {1 दवा} other {{count} दवाएँ}}",
+      "viewAriaLabel": "नुस्खा देखें",
+      "viewButton": "देखें",
+      "downloadPdfTooltip": "PDF डाउनलोड करें",
+      "pdfButton": "PDF",
+      "printTooltip": "नुस्खा प्रिंट करें",
+      "printButton": "प्रिंट",
+      "prescriptionIdHeader": "नुस्खा ID",
+      "patientHeader": "रोगी",
+      "diagnosisHeader": "निदान",
+      "medicationsHeader": "दवाएँ",
+      "dateHeader": "तारीख",
+      "actionsHeader": "क्रियाएँ"
     }
   }
 }
