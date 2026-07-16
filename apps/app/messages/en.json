@@ -440,5 +440,33 @@
       "doctorEmptyTitle": "No doctor performance data",
       "doctorEmptySubtitle": "Doctor metrics will appear once appointments are recorded and billed"
     }
+  },
+  "Patients": {
+    "vitalsTab": {
+      "latestVitalsTitle": "Latest vitals",
+      "recordedLabel": "Recorded {date}",
+      "bpLabel": "BP",
+      "pulseLabel": "Pulse",
+      "spo2Label": "SpO2",
+      "tempLabel": "Temp",
+      "weightLabel": "Weight",
+      "bmiLabel": "BMI",
+      "unitMmHg": "mmHg",
+      "unitBpm": "bpm",
+      "unitPercent": "%",
+      "unitCelsius": "°C",
+      "unitKg": "kg",
+      "emptyVitalsTitle": "No vitals recorded",
+      "emptyVitalsDescription": "Vitals captured during a visit will appear here.",
+      "historyTitle": "Vitals history",
+      "emptyHistoryTitle": "No vitals history",
+      "emptyHistoryDescription": "Vitals captured during a visit will be listed here.",
+      "colDate": "Date",
+      "historyFooter": "Showing latest {shown} of {total} entries.",
+      "advancedMetricTrackingLabel": "Advanced metric tracking",
+      "customVitalsTitle": "Custom vitals tracking",
+      "emptyCustomVitalsHistory": "No custom vitals records yet.",
+      "emptyCustomVitalsDefinitions": "Custom vitals fields will appear here once configured."
+    }
   }
 }

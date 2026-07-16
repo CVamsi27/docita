@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T03:52:59.448Z",
-  "totalLiterals": 1297,
+  "generatedAt": "2026-07-16T03:55:14.641Z",
+  "totalLiterals": 1288,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -234,7 +234,6 @@
     "apps/app/features/patients/components/details/summary/ClinicalOverviewSection.tsx": 2,
     "apps/app/features/patients/components/details/summary/OngoingMedicationsSection.tsx": 2,
     "apps/app/features/patients/components/details/tabs/PrescriptionsTab.tsx": 1,
-    "apps/app/features/patients/components/details/tabs/VitalsTabSections.tsx": 9,
     "apps/app/features/patients/components/forms/dialogs/abha-otp-verification-dialog.tsx": 1,
     "apps/app/features/patients/components/list/PatientsPageUI.tsx": 2,
     "apps/app/features/patients/components/list/patients-page-header.tsx": 2,

@@ -440,5 +440,33 @@
       "doctorEmptyTitle": "कोई डॉक्टर प्रदर्शन डेटा नहीं",
       "doctorEmptySubtitle": "अपॉइंटमेंट दर्ज और बिल होने पर डॉक्टर मेट्रिक्स दिखाई देंगे"
     }
+  },
+  "Patients": {
+    "vitalsTab": {
+      "latestVitalsTitle": "नवीनतम जीवन-चिह्न",
+      "recordedLabel": "{date} को दर्ज",
+      "bpLabel": "रक्तचाप",
+      "pulseLabel": "नाड़ी",
+      "spo2Label": "SpO2",
+      "tempLabel": "तापमान",
+      "weightLabel": "वज़न",
+      "bmiLabel": "BMI",
+      "unitMmHg": "mmHg",
+      "unitBpm": "bpm",
+      "unitPercent": "%",
+      "unitCelsius": "°C",
+      "unitKg": "kg",
+      "emptyVitalsTitle": "कोई जीवन-चिह्न दर्ज नहीं",
+      "emptyVitalsDescription": "यात्रा के दौरान कैप्चर किए गए जीवन-चिह्न यहाँ दिखाई देंगे।",
+      "historyTitle": "जीवन-चिह्न इतिहास",
+      "emptyHistoryTitle": "कोई जीवन-चिह्न इतिहास नहीं",
+      "emptyHistoryDescription": "यात्रा के दौरान कैप्चर किए गए जीवन-चिह्न यहाँ सूचीबद्ध होंगे।",
+      "colDate": "तारीख",
+      "historyFooter": "नवीनतम {total} में से {shown} दिखा रहे हैं।",
+      "advancedMetricTrackingLabel": "उन्नत मेट्रिक ट्रैकिंग",
+      "customVitalsTitle": "कस्टम जीवन-चिह्न ट्रैकिंग",
+      "emptyCustomVitalsHistory": "अभी तक कोई कस्टम जीवन-चिह्न रिकॉर्ड नहीं।",
+      "emptyCustomVitalsDefinitions": "कॉन्फ़िगर होने पर कस्टम जीवन-चिह्न फ़ील्ड यहाँ दिखाई देंगे।"
+    }
   }
 }
