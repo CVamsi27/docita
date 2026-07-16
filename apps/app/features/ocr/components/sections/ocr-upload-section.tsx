@@ -1,5 +1,6 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -22,6 +23,15 @@ interface OCRUploadSectionProps {
   onScan: () => void;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app OCR > Upload section
+ * (step 1 of OCR flow: file picker + scan button + tips). 8 literals
+ * converted to useTranslations("Ocr.uploadSection").
+ */
+function useOcrUploadTranslations() {
+  return useTranslations("Ocr.uploadSection");
+}
+
 export const OCRUploadSection = ({
   previewUrl,
   file,
@@ -31,12 +41,13 @@ export const OCRUploadSection = ({
   onStartMobileUpload,
   onScan,
 }: OCRUploadSectionProps) => {
+  const t = useOcrUploadTranslations();
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>1. Upload Document</CardTitle>
-          <CardDescription>Take a photo or upload an image</CardDescription>
+          <CardTitle>{t("stepTitle")}</CardTitle>
+          <CardDescription>{t("stepDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/40 p-10 transition-colors duration-150 hover:bg-muted/50 relative overflow-hidden">
@@ -44,7 +55,7 @@ export const OCRUploadSection = ({
               <div className="relative h-[300px] w-full overflow-hidden rounded-md bg-muted">
                 <Image
                   src={previewUrl}
-                  alt="Preview"
+                  alt={t("previewAlt")}
                   fill
                   className="object-contain"
                   sizes="(min-width: 1024px) 40vw, 100vw"
@@ -54,7 +65,7 @@ export const OCRUploadSection = ({
               <>
                 <Upload className="h-10 w-10 text-muted-foreground mb-4" />
                 <p className="text-sm text-muted-foreground mb-2 text-center">
-                  Click to upload or drag and drop
+                  {t("dropzonePrompt")}
                 </p>
               </>
             )}
@@ -74,7 +85,7 @@ export const OCRUploadSection = ({
               className="w-full min-w-0"
             >
               <Smartphone className="h-4 w-4 mr-2 shrink-0" />
-              <span className="min-w-0 truncate">Upload from Mobile</span>
+              <span className="min-w-0 truncate">{t("uploadFromMobileButton")}</span>
             </Button>
 
             {file ? (
@@ -91,19 +102,19 @@ export const OCRUploadSection = ({
                       decorative
                       className="mr-2"
                     />
-                    Scanning…
+                    {t("scanningLabel")}
                   </>
                 ) : (
                   <>
                     <Scan className="h-4 w-4 mr-2 shrink-0" />
                     <span className="min-w-0 truncate">
-                      {scanned ? "Re-scan" : "Scan Document"}
+                      {scanned ? t("rescanButton") : t("scanDocumentButton")}
                     </span>
                   </>
                 )}
               </Button>
             ) : (
-              <SymbolTooltip label="Choose a file in the upload area first">
+              <SymbolTooltip label={t("chooseFileFirstTooltip")}>
                 <div
                   className={cn(
                     "inline-flex h-10 w-full min-w-0 items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 text-sm font-medium text-muted-foreground shadow-xs sm:h-11",
@@ -113,7 +124,7 @@ export const OCRUploadSection = ({
                   tabIndex={0}
                 >
                   <Scan className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
-                  <span className="min-w-0 truncate">Scan document</span>
+                  <span className="min-w-0 truncate">{t("scanDocumentButton")}</span>
                 </div>
               </SymbolTooltip>
             )}
@@ -121,7 +132,7 @@ export const OCRUploadSection = ({
 
           {file && (
             <p className="text-xs text-muted-foreground truncate">
-              Selected file: {file.name}
+              {t("selectedFileLabel", { name: file.name })}
             </p>
           )}
         </CardContent>
@@ -131,11 +142,11 @@ export const OCRUploadSection = ({
         <CardContent className="p-4 flex gap-3">
           <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
           <div className="text-sm">
-            <p className="font-medium mb-1">Tips for best results:</p>
+            <p className="font-medium mb-1">{t("tipsTitle")}</p>
             <ul className="list-disc pl-4 space-y-1">
-              <li>Ensure good lighting and clear handwriting</li>
-              <li>Capture the entire page including headers</li>
-              <li>Avoid shadows and blur</li>
+              <li>{t("tipsTip1")}</li>
+              <li>{t("tipsTip2")}</li>
+              <li>{t("tipsTip3")}</li>
             </ul>
           </div>
         </CardContent>

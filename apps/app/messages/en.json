@@ -446,6 +446,22 @@
       "spO2Placeholder": "SpO2",
       "glucoseLabel": "Glucose",
       "glucosePlaceholder": "Glucose"
+    },
+    "uploadSection": {
+      "stepTitle": "1. Upload Document",
+      "stepDescription": "Take a photo or upload an image",
+      "previewAlt": "Preview",
+      "dropzonePrompt": "Click to upload or drag and drop",
+      "uploadFromMobileButton": "Upload from Mobile",
+      "scanningLabel": "Scanning…",
+      "rescanButton": "Re-scan",
+      "scanDocumentButton": "Scan Document",
+      "chooseFileFirstTooltip": "Choose a file in the upload area first",
+      "selectedFileLabel": "Selected file: {name}",
+      "tipsTitle": "Tips for best results:",
+      "tipsTip1": "Ensure good lighting and clear handwriting",
+      "tipsTip2": "Capture the entire page including headers",
+      "tipsTip3": "Avoid shadows and blur"
     }
   },
   "Analytics": {

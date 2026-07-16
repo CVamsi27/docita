@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T05:50:37.283Z",
-  "totalLiterals": 1165,
+  "generatedAt": "2026-07-16T05:52:53.008Z",
+  "totalLiterals": 1157,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -166,7 +166,6 @@
     "apps/app/features/ocr/components/sections/OCRLabValues.tsx": 6,
     "apps/app/features/ocr/components/sections/OCRPatientInfo.tsx": 4,
     "apps/app/features/ocr/components/sections/OCRVitals.tsx": 3,
-    "apps/app/features/ocr/components/sections/ocr-upload-section.tsx": 8,
     "apps/app/features/onboarding/components/ChoosePathPageContent.tsx": 1,
     "apps/app/features/onboarding/components/JoinClinicPageContent.tsx": 2,
     "apps/app/features/onboarding/components/JoinRequestStatusPageContent.tsx": 2,
