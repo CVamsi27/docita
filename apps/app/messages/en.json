@@ -468,6 +468,22 @@
       "regionLabel": "Region:",
       "notProvidedLabel": "Not provided",
       "addRegistrationButton": "Add registration number"
+    },
+    "manageTeamMemberDoctorPanel": {
+      "specializationLabel": "Specialization",
+      "specializationPlaceholder": "Cardiology",
+      "qualificationLabel": "Qualification",
+      "qualificationPlaceholder": "Qualification",
+      "registrationNumberLabel": "Registration #",
+      "registrationNumberPlaceholder": "Registration number",
+      "signatureLabel": "Signature",
+      "signatureReady": "Ready",
+      "signatureMissing": "Missing",
+      "lastVerificationLabel": "Last verification: {date}",
+      "signatureUploadedLabel": "Signature uploaded: {date}",
+      "statusDetailsLabel": "Status details: {note}",
+      "completeVerificationButton": "Complete Doctor Verification",
+      "reverifyButton": "Reverify Registration"
     }
   },
   "Subscription": {
