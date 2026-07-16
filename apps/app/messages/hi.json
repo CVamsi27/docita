@@ -498,5 +498,19 @@
       "tableDateHeader": "तारीख",
       "tableNotesHeader": "टिप्पणियाँ"
     }
+  },
+  "Prescriptions": {
+    "documentHeader": {
+      "facilityLogoAlt": "सुविधा लोगो",
+      "phoneLabel": "फ़ोन:",
+      "emailLabel": "ईमेल:",
+      "supportLabel": "सहायता:",
+      "doctorPrefix": "डॉ. {name}",
+      "regLabel": "पंजी.: {reg}",
+      "patientNameLabel": "रोगी का नाम",
+      "ageLabel": "आयु: {age} वर्ष",
+      "genderLabel": "लिंग: {gender}",
+      "dateLabel": "तारीख"
+    }
   }
 }

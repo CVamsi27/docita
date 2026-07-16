@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T05:22:12.729Z",
-  "totalLiterals": 1254,
+  "generatedAt": "2026-07-16T05:25:11.144Z",
+  "totalLiterals": 1245,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -245,7 +245,6 @@
     "apps/app/features/prescriptions/components/list/PrescriptionsTable.tsx": 1,
     "apps/app/features/prescriptions/components/list/PrescriptionsTableSections.tsx": 8,
     "apps/app/features/prescriptions/components/view/PrescriptionDocumentFooter.tsx": 6,
-    "apps/app/features/prescriptions/components/view/PrescriptionDocumentHeader.tsx": 9,
     "apps/app/features/prescriptions/components/view/PrescriptionHeader.tsx": 1,
     "apps/app/features/prescriptions/components/view/PrescriptionMedicationList.tsx": 5,
     "apps/app/features/public-booking/atoms/public-booking-footer.tsx": 1,
