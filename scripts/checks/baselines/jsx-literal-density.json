@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T05:39:32.299Z",
-  "totalLiterals": 1197,
+  "generatedAt": "2026-07-16T05:40:46.613Z",
+  "totalLiterals": 1189,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -353,7 +353,6 @@
     "apps/internal/features/dashboard/components/whatsapp-sender-dialog-sections.tsx": 6,
     "apps/internal/features/dashboard/components/whatsapp-sender-dialog.tsx": 1,
     "apps/internal/features/dashboard/dashboard-page-container.tsx": 3,
-    "apps/internal/features/doctors/DoctorsTableSection.tsx": 8,
     "apps/internal/features/enterprise-contracts/enterprise-contracts-alerts-dialog.tsx": 6,
     "apps/internal/features/enterprise-contracts/enterprise-contracts-custom-bill-dialog.tsx": 4,
     "apps/internal/features/enterprise-contracts/enterprise-contracts-editor-dialog.tsx": 1,

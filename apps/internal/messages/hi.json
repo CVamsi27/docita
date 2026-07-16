@@ -108,6 +108,26 @@
       "expires": "समाप्ति:",
       "noCertifications": "कोई प्रमाणपत्र नहीं जोड़ा गया",
       "additionalSpecializations": "अतिरिक्त विशेषज्ञता"
+    },
+    "table": {
+      "searchPlaceholder": "नाम, ईमेल या विशेषज्ञता दर्ज करें",
+      "filterPlaceholder": "सुविधा",
+      "filterAllLabel": "सभी सुविधाएँ",
+      "tableTitle": "चिकित्सक ({count})",
+      "emptySelectFacilityTitle": "चिकित्सक देखने के लिए सुविधा चुनें",
+      "emptyTitle": "कोई चिकित्सक नहीं मिला",
+      "emptyDescription": "चयनित सुविधा और खोज क्वेरी से मेल खाने वाले चिकित्सक यहाँ दिखाई देंगे।",
+      "colDoctor": "चिकित्सक",
+      "colSpecialization": "विशेषज्ञता",
+      "colCompliance": "अनुपालन",
+      "colHospitalRole": "अस्पताल भूमिका",
+      "colQualification": "योग्यता",
+      "colRegistration": "पंजीकरण",
+      "colActions": "क्रियाएँ",
+      "doctorPrefix": "डॉ. {name}",
+      "signatureLabel": "हस्ताक्षर",
+      "signatureReady": "तैयार",
+      "signatureMissing": "गायब"
     }
   },
   "InternalBilling": {

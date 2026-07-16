@@ -1,6 +1,7 @@
 "use client";
 
 import { Eye, ShieldCheck, ShieldX, Stethoscope } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
@@ -38,6 +39,15 @@ interface DoctorsTableSectionProps {
   onViewDoctor: (doctor: InternalDoctorListItem) => void;
 }
 
+/**
+ * Phase 3 (per-feature): apps/internal Doctors > Table section
+ * (search + facility filter + doctors table). 8 literals converted
+ * to useTranslations("InternalDoctors.table").
+ */
+function useDoctorsTableTranslations() {
+  return useTranslations("InternalDoctors.table");
+}
+
 export function DoctorsTableSection({
   doctors,
   clinics,
@@ -47,27 +57,28 @@ export function DoctorsTableSection({
   onSelectedClinicChange,
   onViewDoctor,
 }: DoctorsTableSectionProps) {
+  const t = useDoctorsTableTranslations();
   return (
     <>
       <InternalTableToolbar
         searchValue={doctorSearch}
         onSearchChange={onDoctorSearchChange}
-        searchPlaceholder="Enter name, email, or specialization"
+        searchPlaceholder={t("searchPlaceholder")}
         filterValue={selectedClinic}
         onFilterChange={onSelectedClinicChange}
         filterOptions={clinics.map((c) => ({
           value: c.id,
           label: c.name,
         }))}
-        filterPlaceholder="Facility"
-        filterAllLabel="All facilities"
+        filterPlaceholder={t("filterPlaceholder")}
+        filterAllLabel={t("filterAllLabel")}
       />
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Stethoscope className="h-5 w-5" />
-            Doctors ({doctors.length})
+            {t("tableTitle", { count: doctors.length })}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -76,22 +87,22 @@ export function DoctorsTableSection({
               icon={Stethoscope}
               title={
                 selectedClinic === "all"
-                  ? "Select a facility to view doctors"
-                  : "No doctors found"
+                  ? t("emptySelectFacilityTitle")
+                  : t("emptyTitle")
               }
-              description="Doctors matching the selected facility and search query will appear here."
+              description={t("emptyDescription")}
             />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Doctor</TableHead>
-                  <TableHead>Specialization</TableHead>
-                  <TableHead>Compliance</TableHead>
-                  <TableHead>Hospital role</TableHead>
-                  <TableHead>Qualification</TableHead>
-                  <TableHead>Registration</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t("colDoctor")}</TableHead>
+                  <TableHead>{t("colSpecialization")}</TableHead>
+                  <TableHead>{t("colCompliance")}</TableHead>
+                  <TableHead>{t("colHospitalRole")}</TableHead>
+                  <TableHead>{t("colQualification")}</TableHead>
+                  <TableHead>{t("colRegistration")}</TableHead>
+                  <TableHead>{t("colActions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -99,7 +110,7 @@ export function DoctorsTableSection({
                   <TableRow key={doctor.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium">Dr. {doctor.name}</p>
+                        <p className="font-medium">{t("doctorPrefix", { name: doctor.name })}</p>
                         <p className="text-sm text-muted-foreground">
                           {doctor.email}
                         </p>
@@ -140,8 +151,8 @@ export function DoctorsTableSection({
                             doctor.signatureUploadedAt ? "default" : "outline"
                           }
                         >
-                          Signature{" "}
-                          {doctor.signatureUploadedAt ? "Ready" : "Missing"}
+                          {t("signatureLabel")}{" "}
+                          {doctor.signatureUploadedAt ? t("signatureReady") : t("signatureMissing")}
                         </Badge>
                       </div>
                     </TableCell>

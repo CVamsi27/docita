@@ -108,6 +108,26 @@
       "expires": "Expires:",
       "noCertifications": "No certifications added",
       "additionalSpecializations": "Additional Specializations"
+    },
+    "table": {
+      "searchPlaceholder": "Enter name, email, or specialization",
+      "filterPlaceholder": "Facility",
+      "filterAllLabel": "All facilities",
+      "tableTitle": "Doctors ({count})",
+      "emptySelectFacilityTitle": "Select a facility to view doctors",
+      "emptyTitle": "No doctors found",
+      "emptyDescription": "Doctors matching the selected facility and search query will appear here.",
+      "colDoctor": "Doctor",
+      "colSpecialization": "Specialization",
+      "colCompliance": "Compliance",
+      "colHospitalRole": "Hospital role",
+      "colQualification": "Qualification",
+      "colRegistration": "Registration",
+      "colActions": "Actions",
+      "doctorPrefix": "Dr. {name}",
+      "signatureLabel": "Signature",
+      "signatureReady": "Ready",
+      "signatureMissing": "Missing"
     }
   },
   "InternalBilling": {
