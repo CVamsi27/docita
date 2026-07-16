@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import { User } from "lucide-react";
@@ -15,6 +16,17 @@ interface OCRPatientInfoProps {
   hasLowConfidence: boolean;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app OCR > Patient Info
+ * section — the patient identity fields (name, age, phone,
+ * email, blood type) the user confirms after OCR
+ * recognition. 10 literals converted to
+ * useTranslations("Ocr.patientInfo").
+ */
+function useOcrPatientInfoTranslations() {
+  return useTranslations("Ocr.patientInfo");
+}
+
 export const OCRPatientInfo = ({
   formData,
   setFormData,
@@ -24,21 +36,22 @@ export const OCRPatientInfo = ({
   onToggle,
   hasLowConfidence,
 }: OCRPatientInfoProps) => {
+  const t = useOcrPatientInfoTranslations();
   return (
     <div className="space-y-3">
       <SectionToggle
-        title="Patient information"
+        title={t("sectionTitle")}
         icon={User}
         isOpen={isOpen}
         onToggle={onToggle}
-        {...(hasLowConfidence ? { badge: "Check" } : {})}
+        {...(hasLowConfidence ? { badge: t("lowConfidenceBadge") } : {})}
       />
       {isOpen && (
         <div className="space-y-3 bg-muted/30 rounded-lg p-3">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs">First name</Label>
+                <Label className="text-xs">{t("firstNameLabel")}</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
                     getScore("firstName"),
@@ -48,7 +61,7 @@ export const OCRPatientInfo = ({
               {getCorrection("firstName") && (
                 <div className="text-xs surface-warning p-2 rounded">
                   <p className="font-medium">
-                    Suggestion:
+                    {t("suggestionLabel")}
                   </p>
                   <p>
                     {getCorrection("firstName")}
@@ -67,7 +80,7 @@ export const OCRPatientInfo = ({
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs">Last name</Label>
+                <Label className="text-xs">{t("lastNameLabel")}</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
                     getScore("lastName"),
@@ -77,7 +90,7 @@ export const OCRPatientInfo = ({
               {getCorrection("lastName") && (
                 <div className="text-xs surface-warning p-2 rounded">
                   <p className="font-medium">
-                    Suggestion:
+                    {t("suggestionLabel")}
                   </p>
                   <p>
                     {getCorrection("lastName")}
@@ -99,7 +112,7 @@ export const OCRPatientInfo = ({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs">Age</Label>
+                <Label className="text-xs">{t("ageLabel")}</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(getScore("age"))}
                 />
@@ -113,7 +126,7 @@ export const OCRPatientInfo = ({
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs">Phone</Label>
+                <Label className="text-xs">{t("phoneLabel")}</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
                     getScore("phoneNumber"),
@@ -134,7 +147,7 @@ export const OCRPatientInfo = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-xs">Email</Label>
+              <Label className="text-xs">{t("emailLabel")}</Label>
               <Input
                 type="email"
                 value={formData.email}
@@ -144,7 +157,7 @@ export const OCRPatientInfo = ({
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs">Blood type</Label>
+              <Label className="text-xs">{t("bloodTypeLabel")}</Label>
               <Input
                 value={formData.bloodType}
                 onChange={(e) =>
@@ -153,7 +166,7 @@ export const OCRPatientInfo = ({
                     bloodType: e.target.value,
                   })
                 }
-                placeholder="Blood type"
+                placeholder={t("bloodTypePlaceholder")}
               />
             </div>
           </div>

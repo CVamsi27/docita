@@ -326,6 +326,18 @@
       "removeButton": "हटाएँ",
       "lineItemsLabel": "पंक्ति आइटम",
       "addLineItemButton": "पंक्ति आइटम जोड़ें"
+    },
+    "patientInfo": {
+      "sectionTitle": "मरीज़ जानकारी",
+      "lowConfidenceBadge": "जाँचें",
+      "firstNameLabel": "पहला नाम",
+      "lastNameLabel": "अंतिम नाम",
+      "suggestionLabel": "सुझाव:",
+      "ageLabel": "आयु",
+      "phoneLabel": "फ़ोन",
+      "emailLabel": "ईमेल",
+      "bloodTypeLabel": "रक्त प्रकार",
+      "bloodTypePlaceholder": "रक्त प्रकार"
     }
   },
   "Analytics": {
