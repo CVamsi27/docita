@@ -384,6 +384,24 @@
       "ops": "संचालन",
       "tenantScope": "टेनेंट स्कोप",
       "healthChecks": "स्वास्थ्य जाँच"
+    },
+    "securityTab": {
+      "loadingLabel": "API सुरक्षा संकेत लोड हो रहे हैं…",
+      "errorFallback": "सुरक्षा सारांश लोड नहीं हो सका।",
+      "status401Title": "401 अनधिकृत",
+      "status403Title": "403 निषिद्ध",
+      "status429Title": "429 दर सीमित",
+      "status5xxTitle": "5xx त्रुटियाँ",
+      "rolling24hHelper": "अनुरोध लॉग से 24 घंटे का रोलिंग डेटा",
+      "serverErrorsHelper": "विंडो में सर्वर त्रुटियाँ",
+      "topRoutesTitle": "शीर्ष प्रमाणीकरण और दर-सीमा मार्ग",
+      "topRoutesDescription": "चयनित विंडो में 401, 403, या 429 वाले पथ (केवल गणना, कोई अनुरोध निकाय नहीं)।",
+      "openAuditLogButton": "ऑडिट लॉग खोलें",
+      "emptyMessage": "इस विंडो में कोई मेल खाने वाला प्रतिक्रिया नहीं।",
+      "colPath": "पथ",
+      "colMethod": "विधि",
+      "colStatus": "स्थिति",
+      "colCount": "गणना"
     }
   },
   "InternalAdmins": {

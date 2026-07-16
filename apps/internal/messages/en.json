@@ -384,6 +384,24 @@
       "ops": "Ops",
       "tenantScope": "Tenant Scope",
       "healthChecks": "Health Checks"
+    },
+    "securityTab": {
+      "loadingLabel": "Loading API security signals…",
+      "errorFallback": "Could not load security summary.",
+      "status401Title": "401 Unauthorized",
+      "status403Title": "403 Forbidden",
+      "status429Title": "429 Rate limited",
+      "status5xxTitle": "5xx errors",
+      "rolling24hHelper": "Rolling 24h from request logs",
+      "serverErrorsHelper": "Server errors in window",
+      "topRoutesTitle": "Top auth and rate-limit routes",
+      "topRoutesDescription": "Paths with 401, 403, or 429 in the selected window (counts only, no request bodies).",
+      "openAuditLogButton": "Open audit log",
+      "emptyMessage": "No matching responses in this window.",
+      "colPath": "Path",
+      "colMethod": "Method",
+      "colStatus": "Status",
+      "colCount": "Count"
     }
   },
   "InternalAdmins": {
