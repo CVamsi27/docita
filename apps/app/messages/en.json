@@ -310,5 +310,36 @@
       "lineItemsLabel": "Line items",
       "addLineItemButton": "Add line item"
     }
+  },
+  "Analytics": {
+    "advancedMetrics": {
+      "revenueTrendsTitle": "Revenue trends",
+      "revenueTrendsDescription": "Daily/weekly trend in billed collections",
+      "revenueEmptyTitle": "No revenue trend data",
+      "revenueEmptySubtitle": "Revenue trend points will appear once invoices are generated",
+      "appointmentPerformanceTitle": "Appointment performance",
+      "appointmentPerformanceDescription": "Operational appointment outcomes snapshot",
+      "appointmentBooked": "Booked",
+      "appointmentCompleted": "Completed",
+      "appointmentCancelled": "Cancelled",
+      "appointmentNoShow": "No Show",
+      "fillRateLabel": "Fill rate: {rate}%",
+      "completionRateLabel": "Completion: {rate}%",
+      "appointmentEmptyTitle": "No appointment metrics available",
+      "demographicsTitle": "Patient demographics",
+      "demographicsDescription": "Population mix by gender and growth",
+      "demographicsTotalLabel": "Total: {count}",
+      "demographicsNewLabel": "New: {count}",
+      "demographicsEmptyTitle": "No patient demographics available",
+      "doctorPerformanceTitle": "Doctor performance",
+      "doctorPerformanceDescription": "Provider-level completion and revenue metrics.",
+      "doctorColName": "Doctor",
+      "doctorColAppointments": "Appointments",
+      "doctorColCompletion": "Completion",
+      "doctorColRevenue": "Revenue",
+      "doctorColAvgPerAppt": "Avg / Appt",
+      "doctorEmptyTitle": "No doctor performance data",
+      "doctorEmptySubtitle": "Doctor metrics will appear once appointments are recorded and billed"
+    }
   }
 }

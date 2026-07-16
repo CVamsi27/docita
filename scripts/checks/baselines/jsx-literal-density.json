@@ -1,14 +1,13 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T03:40:43.720Z",
-  "totalLiterals": 1339,
+  "generatedAt": "2026-07-16T03:44:30.286Z",
+  "totalLiterals": 1329,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
     "apps/app/features/ai-assistant/components/tabs/PrescriptionAssistantTab.tsx": 6,
     "apps/app/features/ai-assistant/components/tabs/SmartTasksTab.tsx": 7,
     "apps/app/features/analytics/components/AnalyticsPageUI.tsx": 3,
-    "apps/app/features/analytics/components/charts/AdvancedMetricsChartsSections.tsx": 10,
     "apps/app/features/analytics/components/charts/AnalyticsUpgradeState.tsx": 1,
     "apps/app/features/analytics/components/charts/ComplianceDashboard.tsx": 2,
     "apps/app/features/analytics/components/charts/OverviewCard.tsx": 1,
