@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T05:55:57.207Z",
-  "totalLiterals": 1143,
+  "generatedAt": "2026-07-16T05:57:17.701Z",
+  "totalLiterals": 1135,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -318,7 +318,6 @@
     "apps/app/features/subscription/components/pricing/comparison-table-desktop.tsx": 1,
     "apps/app/features/subscription/components/pricing/comparison-table-mobile.tsx": 1,
     "apps/app/features/subscription/components/pricing/dynamic-pricing-estimator-breakdown.tsx": 3,
-    "apps/app/features/subscription/components/pricing/dynamic-pricing-estimator-inputs.tsx": 8,
     "apps/app/features/subscription/components/pricing/dynamic-pricing-estimator.tsx": 1,
     "apps/app/features/subscription/components/usage-dashboard-sections.tsx": 1,
     "apps/app/features/subscription/components/usage-pricing-calculator-sections.tsx": 3,

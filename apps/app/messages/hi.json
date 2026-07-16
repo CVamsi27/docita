@@ -404,6 +404,19 @@
       "addTimeAwayButton": "अनुपस्थिति जोड़ें"
     }
   },
+  "Subscription": {
+    "estimatorInputs": {
+      "planLabel": "प्लान",
+      "billingCycleLabel": "बिलिंग चक्र",
+      "cycleMonthly": "मासिक",
+      "cycleYearly": "वार्षिक (2 महीने मुफ़्त)",
+      "currencyLabel": "मुद्रा",
+      "consultationsLabel": "परामर्श / माह",
+      "teamMembersLabel": "टीम के सदस्य",
+      "whatsAppLabel": "WhatsApp संदेश / माह",
+      "billableMetersNote": "यह अनुमानक केवल लाइव अनुबंध के बिल करने योग्य मीटर का उपयोग करता है: परामर्श, टीम उपयोगकर्ता और WhatsApp संदेश।"
+    }
+  },
   "Invoices": {
     "totals": {
       "amountInWordsLabel": "शब्दों में राशि:",

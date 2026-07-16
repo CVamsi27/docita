@@ -404,6 +404,19 @@
       "addTimeAwayButton": "Add time away"
     }
   },
+  "Subscription": {
+    "estimatorInputs": {
+      "planLabel": "Plan",
+      "billingCycleLabel": "Billing cycle",
+      "cycleMonthly": "Monthly",
+      "cycleYearly": "Yearly (2 months free)",
+      "currencyLabel": "Currency",
+      "consultationsLabel": "Consultations / Month",
+      "teamMembersLabel": "Team Members",
+      "whatsAppLabel": "WhatsApp Messages / Month",
+      "billableMetersNote": "This estimator uses only billable meters from the live contract: consultations, team users, and WhatsApp messages."
+    }
+  },
   "Invoices": {
     "totals": {
       "amountInWordsLabel": "Amount in Words:",
