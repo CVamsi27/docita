@@ -42,6 +42,23 @@
       "endDateLabel": "End Date",
       "endDatePlaceholder": "End date",
       "clearFiltersButton": "Clear Filters"
+    },
+    "stats": {
+      "totalFeedbackTitle": "Total Feedback",
+      "recentFeedbackLabel": "{count} in last 7 days",
+      "averageRatingTitle": "Average Rating",
+      "newTitle": "New",
+      "awaitingReviewLabel": "Awaiting review",
+      "inProgressTitle": "In Progress",
+      "beingAddressedLabel": "Being addressed",
+      "resolvedTitle": "Resolved",
+      "completedLabel": "Completed",
+      "topLikedTitle": "Top Liked Features",
+      "topBadTitle": "Features Needing Work",
+      "improvementRequestsTitle": "Improvement Requests",
+      "noDataYet": "No data yet",
+      "noIssuesReported": "No issues reported",
+      "noSuggestionsYet": "No suggestions yet"
     }
   },
   "InternalAnalytics": {

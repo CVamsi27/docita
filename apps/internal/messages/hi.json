@@ -42,6 +42,23 @@
       "endDateLabel": "समाप्ति तिथि",
       "endDatePlaceholder": "समाप्ति तिथि",
       "clearFiltersButton": "फ़िल्टर साफ़ करें"
+    },
+    "stats": {
+      "totalFeedbackTitle": "कुल फ़ीडबैक",
+      "recentFeedbackLabel": "पिछले 7 दिनों में {count}",
+      "averageRatingTitle": "औसत रेटिंग",
+      "newTitle": "नया",
+      "awaitingReviewLabel": "समीक्षा लंबित",
+      "inProgressTitle": "प्रगति में",
+      "beingAddressedLabel": "संबोधित किया जा रहा",
+      "resolvedTitle": "हल किया गया",
+      "completedLabel": "पूर्ण",
+      "topLikedTitle": "सबसे पसंदीदा सुविधाएँ",
+      "topBadTitle": "सुधार की आवश्यकता वाली सुविधाएँ",
+      "improvementRequestsTitle": "सुधार अनुरोध",
+      "noDataYet": "अभी तक कोई डेटा नहीं",
+      "noIssuesReported": "कोई समस्या रिपोर्ट नहीं",
+      "noSuggestionsYet": "अभी तक कोई सुझाव नहीं"
     }
   },
   "InternalAnalytics": {
