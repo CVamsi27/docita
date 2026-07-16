@@ -30,6 +30,20 @@ const messages = {
       hsnCodePlaceholder: "HSN code",
       removeLineItemTooltip: "Remove {name, select, undefined {line item} other {{name}}}",
     },
+    formSections: {
+      invoiceDetailsTitle: "Invoice details",
+      lineItemsTitle: "Line items",
+      addItemButton: "Add Item",
+      statusLabel: "Status",
+      statusPlaceholder: "Status",
+      statusPending: "Pending",
+      statusPaid: "Paid",
+      statusOverdue: "Overdue",
+      statusCancelled: "Cancelled",
+      notesTitle: "Notes",
+      notesDescription: "Add any additional notes or payment instructions",
+      notesPlaceholder: "Notes",
+    },
   },
 };
 
