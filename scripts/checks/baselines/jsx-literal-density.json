@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T06:01:11.330Z",
-  "totalLiterals": 1112,
+  "generatedAt": "2026-07-16T06:02:07.789Z",
+  "totalLiterals": 1104,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -375,7 +375,6 @@
     "apps/internal/features/system-monitoring/overview-tab-sections.tsx": 2,
     "apps/internal/features/system-monitoring/queues-tab.tsx": 4,
     "apps/internal/features/system-monitoring/security-tab.tsx": 7,
-    "apps/internal/features/system-monitoring/system-monitoring-tabs.tsx": 8,
     "apps/internal/features/system-monitoring/tenant-scope-coverage.tsx": 5,
     "apps/internal/features/system-monitoring/tenant-scope-metrics-cards.tsx": 6,
     "apps/internal/features/system-monitoring/tenant-scope-rules-table.tsx": 4
