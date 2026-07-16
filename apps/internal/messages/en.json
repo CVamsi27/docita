@@ -287,5 +287,31 @@
       "reenableAdminSrLabel": "Re-enable admin",
       "deactivateAdminSrLabel": "Deactivate admin"
     }
+  },
+  "InternalSystemLogs": {
+    "table": {
+      "levelDebug": "DEBUG",
+      "levelInfo": "INFO",
+      "levelWarning": "WARNING",
+      "levelError": "ERROR",
+      "severityLabel": "Severity",
+      "allSeverities": "All severities",
+      "moduleLabel": "Module / Source",
+      "allModules": "All modules",
+      "searchLabel": "Search",
+      "searchPlaceholder": "Message",
+      "pageSizeLabel": "Page size",
+      "activeFilterBadge": "{count, plural, one {1 filter active} other {{count} filters active}}",
+      "resetFiltersButton": "Reset filters",
+      "colTimestamp": "Timestamp",
+      "colLevel": "Level",
+      "colModule": "Module",
+      "colMessage": "Message",
+      "loadingLogs": "Loading logs…",
+      "noMatchingLogs": "No matching logs found.",
+      "paginationSummary": "Showing {start}-{end} of {total}",
+      "previousButton": "Previous",
+      "nextButton": "Next"
+    }
   }
 }

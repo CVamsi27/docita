@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T02:30:59.963Z",
-  "totalLiterals": 1383,
+  "generatedAt": "2026-07-16T02:38:42.396Z",
+  "totalLiterals": 1373,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -378,7 +378,6 @@
     "apps/internal/features/feedback/FeedbackListSection.tsx": 1,
     "apps/internal/features/feedback/FeedbackStatsCards.tsx": 9,
     "apps/internal/features/feedback/FeedbackViewDialog.tsx": 7,
-    "apps/internal/features/logs/system-logs-table-sections.tsx": 10,
     "apps/internal/features/payment-processing/additional-charge-form-fields.tsx": 8,
     "apps/internal/features/payment-processing/charge-summary.tsx": 7,
     "apps/internal/features/payment-processing/payment-payment-form-fields.tsx": 10,
