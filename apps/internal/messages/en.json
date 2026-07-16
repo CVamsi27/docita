@@ -374,6 +374,16 @@
       "throughputDescription": "Requests observed per minute",
       "responseDistributionTitle": "Response Time Distribution",
       "responseDistributionDescription": "Request latency buckets from live API request logs"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "performance": "Performance",
+      "experience": "Experience",
+      "security": "Security",
+      "queues": "Queues",
+      "ops": "Ops",
+      "tenantScope": "Tenant Scope",
+      "healthChecks": "Health Checks"
     }
   },
   "InternalAdmins": {

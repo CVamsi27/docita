@@ -374,6 +374,16 @@
       "throughputDescription": "प्रति मिनट देखे गए अनुरोध",
       "responseDistributionTitle": "प्रतिक्रिया समय वितरण",
       "responseDistributionDescription": "लाइव API अनुरोध लॉग से अनुरोध विलंबता बकेट"
+    },
+    "tabs": {
+      "overview": "अवलोकन",
+      "performance": "प्रदर्शन",
+      "experience": "अनुभव",
+      "security": "सुरक्षा",
+      "queues": "कतारें",
+      "ops": "संचालन",
+      "tenantScope": "टेनेंट स्कोप",
+      "healthChecks": "स्वास्थ्य जाँच"
     }
   },
   "InternalAdmins": {
