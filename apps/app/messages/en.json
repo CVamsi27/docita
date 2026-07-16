@@ -712,6 +712,26 @@
       "tipsTip3": "Avoid shadows and blur"
     }
   },
+  "Dashboard": {
+    "todayAdvisorRail": {
+      "joinRequestsCategory": "Join requests",
+      "joinRequestsHeadline": "{count, plural, one {1 pending request} other {{count} pending requests}}",
+      "joinRequestsDescription": "Approve or decline staff requesting access to your clinic.",
+      "dismissJoinRequestsLabel": "Dismiss join requests recommendation",
+      "joinRequestsAction": "Review requests",
+      "codingCategory": "Coding",
+      "codingHeadline": "{count, plural, one {1 visit pending coding} other {{count} visits pending coding}}",
+      "codingDescription": "Review completed visits that need ICD-10 or procedure coding.",
+      "dismissCodingLabel": "Dismiss pending coding recommendation",
+      "codingAction": "Open coding queue",
+      "queueCategory": "Queue",
+      "queueHeadline": "{count, plural, one {1 patient waiting} other {{count} patients waiting}}",
+      "queueDescription": "Open the consultation queue to start the next patient.",
+      "dismissQueueLabel": "Dismiss queue recommendation",
+      "queueAction": "Open queue",
+      "stackAriaLabel": "Today recommendations"
+    }
+  },
   "AiAssistant": {
     "smartTasksTab": {
       "comingSoonNotice": "The Smart Task Engine is in active development. The quick actions and automation history below are sample data and are not yet wired to live workflows.",
