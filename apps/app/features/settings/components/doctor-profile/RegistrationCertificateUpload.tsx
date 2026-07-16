@@ -18,15 +18,8 @@ import { appQueryKeys } from "@workspace/data-access";
 import { fetchAPI } from "@/lib/api/api-core";
 import { toAbsoluteApiUrl } from "@/lib/utils/api-url";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-
-const ALLOWED_MIMES = [
+import { validateRegistrationCertificate } from "./registration-certificate-upload.helpers";
 // jscpd:ignore-end
-  "application/pdf",
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-];
-const MAX_BYTES = 5 * 1024 * 1024;
 
 interface Props {
   doctorId: string;
@@ -49,20 +42,9 @@ export function RegistrationCertificateUpload({
     certificateUrl.toLowerCase().split("?")[0]?.endsWith(".pdf");
 
   const handleFile = async (file: File) => {
-    if (!ALLOWED_MIMES.includes(file.type)) {
-      showUserFacingErrorToast(
-        null,
-        "Choose a PDF, JPEG, or PNG certificate",
-        "upload",
-      );
-      return;
-    }
-    if (file.size > MAX_BYTES) {
-      showUserFacingErrorToast(
-        null,
-        "Choose a certificate smaller than 5 MB",
-        "upload",
-      );
+    const validationError = validateRegistrationCertificate(file);
+    if (validationError) {
+      showUserFacingErrorToast(null, validationError.message, "upload");
       return;
     }
 
