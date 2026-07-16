@@ -446,6 +446,22 @@
       "spO2Placeholder": "SpO2",
       "glucoseLabel": "ग्लूकोज़",
       "glucosePlaceholder": "ग्लूकोज़"
+    },
+    "uploadSection": {
+      "stepTitle": "1. दस्तावेज़ अपलोड करें",
+      "stepDescription": "फोटो लें या छवि अपलोड करें",
+      "previewAlt": "पूर्वावलोकन",
+      "dropzonePrompt": "अपलोड करने के लिए क्लिक करें या ड्रैग और ड्रॉप करें",
+      "uploadFromMobileButton": "मोबाइल से अपलोड करें",
+      "scanningLabel": "स्कैन हो रहा है…",
+      "rescanButton": "पुनः स्कैन करें",
+      "scanDocumentButton": "दस्तावेज़ स्कैन करें",
+      "chooseFileFirstTooltip": "पहले अपलोड क्षेत्र में एक फ़ाइल चुनें",
+      "selectedFileLabel": "चयनित फ़ाइल: {name}",
+      "tipsTitle": "सर्वोत्तम परिणामों के लिए सुझाव:",
+      "tipsTip1": "अच्छी रोशनी और स्पष्ट हस्तलिपि सुनिश्चित करें",
+      "tipsTip2": "हेडर सहित पूरा पृष्ठ कैप्चर करें",
+      "tipsTip3": "छाया और धुंध से बचें"
     }
   },
   "Analytics": {
