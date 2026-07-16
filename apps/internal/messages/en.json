@@ -432,6 +432,21 @@
       "nextButton": "Next"
     }
   },
+  "InternalSupport": {
+    "inquiriesSection": {
+      "title": "Contact form inquiries",
+      "loadErrorFallback": "We could not load contact form inquiries right now. Please try again.",
+      "loadingLabel": "Loading contact inquiries…",
+      "emptyTitle": "No inquiries yet",
+      "emptyDescription": "Messages submitted through the public contact form will appear here.",
+      "colReceived": "Received",
+      "colName": "Name",
+      "colEmail": "Email",
+      "colClinic": "Clinic",
+      "colStatus": "Status",
+      "colMessage": "Message"
+    }
+  },
   "InternalPaymentProcessing": {
     "formFields": {
       "tierLabel": "Upgrade to Tier",

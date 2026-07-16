@@ -23,6 +23,7 @@ import {
 import { useInternalSupportInquiries } from "@workspace/data-access/internal";
 import type { SupportInquiry } from "@workspace/types";
 import { Mail } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 const INQUIRIES_LIMIT = 100;
 
@@ -36,7 +37,17 @@ const STATUS_VARIANTS: Record<
   ARCHIVED: "secondary",
 };
 
+/**
+ * Phase 3 (per-feature): apps/internal Support > Inquiries section
+ * (the public contact form messages table). 7 literals converted to
+ * useTranslations("InternalSupport.inquiriesSection").
+ */
+function useInquiriesTranslations() {
+  return useTranslations("InternalSupport.inquiriesSection");
+}
+
 export function SupportInquiriesSection() {
+  const t = useInquiriesTranslations();
   const inquiriesQuery = useInternalSupportInquiries(INQUIRIES_LIMIT);
   const inquiries = useMemo(
     () => inquiriesQuery.data ?? [],
@@ -46,8 +57,7 @@ export function SupportInquiriesSection() {
   const errorMessage = inquiriesQuery.isError
     ? getUserFacingErrorMessage(inquiriesQuery.error, {
         context: "load",
-        fallback:
-          "We could not load contact form inquiries right now. Please try again.",
+        fallback: t("loadErrorFallback"),
       })
     : null;
 
@@ -62,28 +72,28 @@ export function SupportInquiriesSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Contact form inquiries</CardTitle>
+        <CardTitle className="text-lg">{t("title")}</CardTitle>
       </CardHeader>
       <CardContent>
         <DataState
           status={status}
-          loadingMessage="Loading contact inquiries…"
+          loadingMessage={t("loadingLabel")}
           errorMessage={errorMessage ?? undefined}
           onRetry={() => void inquiriesQuery.refetch()}
-          emptyTitle="No inquiries yet"
-          emptyDescription="Messages submitted through the public contact form will appear here."
+          emptyTitle={t("emptyTitle")}
+          emptyDescription={t("emptyDescription")}
           emptyIcon={Mail}
         >
           <div className="overflow-x-auto rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Received</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Clinic</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Message</TableHead>
+                  <TableHead>{t("colReceived")}</TableHead>
+                  <TableHead>{t("colName")}</TableHead>
+                  <TableHead>{t("colEmail")}</TableHead>
+                  <TableHead>{t("colClinic")}</TableHead>
+                  <TableHead>{t("colStatus")}</TableHead>
+                  <TableHead>{t("colMessage")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
