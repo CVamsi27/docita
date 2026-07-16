@@ -262,5 +262,19 @@
       "cancel": "Cancel",
       "inviteButton": "Invite Member"
     }
+  },
+  "Invoices": {
+    "totals": {
+      "amountInWordsLabel": "Amount in Words:",
+      "notesLabel": "Notes:",
+      "subtotalLabel": "Subtotal",
+      "discountLabel": "Discount",
+      "taxableValueLabel": "Taxable value",
+      "taxLabel": "Tax",
+      "documentLabel": "Document",
+      "totalLabel": "Total",
+      "amountPaidLabel": "Amount paid",
+      "balanceDueLabel": "Balance due"
+    }
   }
 }

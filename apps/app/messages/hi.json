@@ -262,5 +262,19 @@
       "cancel": "रद्द करें",
       "inviteButton": "सदस्य आमंत्रित करें"
     }
+  },
+  "Invoices": {
+    "totals": {
+      "amountInWordsLabel": "शब्दों में राशि:",
+      "notesLabel": "नोट्स:",
+      "subtotalLabel": "उप-योग",
+      "discountLabel": "छूट",
+      "taxableValueLabel": "कर योग्य मूल्य",
+      "taxLabel": "कर",
+      "documentLabel": "दस्तावेज़",
+      "totalLabel": "कुल",
+      "amountPaidLabel": "भुगतान की गई राशि",
+      "balanceDueLabel": "देय शेष"
+    }
   }
 }

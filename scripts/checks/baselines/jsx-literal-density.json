@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T02:29:26.117Z",
-  "totalLiterals": 1393,
+  "generatedAt": "2026-07-16T02:30:59.963Z",
+  "totalLiterals": 1383,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -118,7 +118,6 @@
     "apps/app/features/invoices/components/details/InvoiceHeader.tsx": 4,
     "apps/app/features/invoices/components/details/InvoiceItemsTableReadOnly.tsx": 6,
     "apps/app/features/invoices/components/details/InvoicePaymentActivitySection.tsx": 7,
-    "apps/app/features/invoices/components/details/InvoiceTotalsOnly.tsx": 10,
     "apps/app/features/invoices/components/details/InvoiceTotalsSection.tsx": 3,
     "apps/app/features/invoices/components/dialogs/InvoiceItemsSection.tsx": 1,
     "apps/app/features/invoices/components/dialogs/InvoiceStatusSection.tsx": 1,

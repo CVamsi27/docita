@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import { NextIntlClientProvider } from "next-intl";
 import type { ImgHTMLAttributes, ReactElement } from "react";
 import { InvoiceDetailsUI } from "./InvoiceDetailsUI";
 
@@ -65,9 +66,37 @@ function renderWithQueryClient(ui: ReactElement) {
   });
 
   return render(
-    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+    <QueryClientProvider client={queryClient}>
+      <NextIntlClientProvider locale="en" messages={messages}>
+        {ui}
+      </NextIntlClientProvider>
+    </QueryClientProvider>,
   );
 }
+
+/**
+ * Minimal next-intl message bundle for the invoice details tests.
+ * The Invoices.totals namespace is the only one this test reads
+ * (via InvoiceTotalsOnly). New t() keys added to InvoiceTotalsOnly
+ * must be added here too, otherwise the test renders the ICU
+ * fallback (the key path) instead of the human string.
+ */
+const messages = {
+  Invoices: {
+    totals: {
+      amountInWordsLabel: "Amount in Words:",
+      notesLabel: "Notes:",
+      subtotalLabel: "Subtotal",
+      discountLabel: "Discount",
+      taxableValueLabel: "Taxable value",
+      taxLabel: "Tax",
+      documentLabel: "Document",
+      totalLabel: "Total",
+      amountPaidLabel: "Amount paid",
+      balanceDueLabel: "Balance due",
+    },
+  },
+};
 
 const baseHookState = {
   invoice: {
