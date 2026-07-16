@@ -10,6 +10,7 @@ import type { AppointmentListItem } from "@workspace/data-access";
 import { queryKeys, useResendAppointmentReminder } from "@workspace/data-access";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useDownloadOpdSlip } from "@/features/appointments/hooks/use-download-opd-slip";
+import { canStartConsultationAtTime } from "@/features/appointments/rules/appointmentRules";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   TimeSlotStatus,
@@ -65,8 +66,14 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
         ? "Resume consultation"
         : "Start consultation";
 
+    // A future scheduled appointment must not expose Start/Resume; the doctor
+    // can only begin a consultation once the visit's start time has arrived.
+    // Terminal visits (completed/no-show) are always viewable — the time gate
+    // is irrelevant because the consultation record already exists.
+    const isStartableByTime = isTerminalVisit || canStartConsultationAtTime(apt);
     const canAccessConsultation =
       canStartConsultation &&
+      isStartableByTime &&
       (isAdmin || (!!currentUserId && apt.doctorId === currentUserId));
 
     const patientName = apt.patient
