@@ -747,6 +747,26 @@
       "tableNotesHeader": "टिप्पणियाँ"
     }
   },
+  "Patients": {
+    "whatsappComposer": {
+      "composerTitle": "WhatsApp संदेश भेजें",
+      "templateLabel": "टेम्पलेट से शुरू करें",
+      "noTemplatesPlaceholder": "अभी तक कोई सहेजा गया टेम्पलेट नहीं",
+      "templatePlaceholder": "टेम्पलेट चुनें (वैकल्पिक)",
+      "noTemplateOption": "कोई टेम्पलेट नहीं",
+      "messageLabel": "संदेश",
+      "messagePlaceholder": "संदेश दर्ज करें",
+      "charCount": "{count}/{max}",
+      "freeTextWarning": "मुफ्त टेक्स्ट संदेश केवल रोगी के अंतिम उत्तर के 24 घंटों के भीतर ही वितरित होते हैं। उस विंडो के बाहर, WhatsApp को पूर्व-अनुमोदित टेम्पलेट की आवश्यकता होती है।",
+      "sendingLabel": "भेज रहे हैं…",
+      "sendButton": "संदेश भेजें",
+      "historyTitle": "भेजे गए संदेश",
+      "historyLoadingLabel": "भेजे गए संदेश लोड हो रहे हैं…",
+      "historyErrorFallback": "हम भेजे गए संदेश लोड नहीं कर सके।",
+      "historyEmptyTitle": "अभी तक कोई संदेश नहीं",
+      "historyEmptyDescription": "अभी तक इस रोगी को कोई संदेश नहीं भेजा गया है।"
+    }
+  },
   "Prescriptions": {
     "documentHeader": {
       "facilityLogoAlt": "सुविधा लोगो",
