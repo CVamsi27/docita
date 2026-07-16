@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T06:07:06.984Z",
-  "totalLiterals": 1082,
+  "generatedAt": "2026-07-16T06:08:26.424Z",
+  "totalLiterals": 1075,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -354,7 +354,6 @@
     "apps/internal/features/enterprise-contracts/enterprise-contracts-summary-section.tsx": 4,
     "apps/internal/features/feedback/FeedbackFiltersCard.tsx": 1,
     "apps/internal/features/feedback/FeedbackListSection.tsx": 1,
-    "apps/internal/features/feedback/FeedbackViewDialog.tsx": 7,
     "apps/internal/features/payment-processing/charge-summary.tsx": 7,
     "apps/internal/features/payment-processing/payment-payment-summary-section.tsx": 2,
     "apps/internal/features/payment-processing/payment-processing-clinics-section.tsx": 7,

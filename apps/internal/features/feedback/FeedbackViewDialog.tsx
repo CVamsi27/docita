@@ -14,6 +14,7 @@ import { Label } from "@workspace/ui/components/form/label";
 import { Textarea } from "@workspace/ui/components/form/textarea";
 import { Lightbulb, ThumbsDown, ThumbsUp } from "lucide-react";
 import { formatDate } from "@workspace/utils";
+import { useTranslations } from "next-intl";
 import type { InternalFeedback } from "@workspace/data-access/internal";
 import {
   FeedbackRatingStars,
@@ -31,6 +32,15 @@ interface FeedbackViewDialogProps {
   onUpdateStatus: (id: string, status: string) => void;
 }
 
+/**
+ * Phase 3 (per-feature): apps/internal Feedback > View dialog
+ * (full feedback read view with admin actions). 7 literals converted
+ * to useTranslations("InternalFeedback.viewDialog").
+ */
+function useFeedbackViewTranslations() {
+  return useTranslations("InternalFeedback.viewDialog");
+}
+
 export function FeedbackViewDialog({
   feedback,
   open,
@@ -40,6 +50,7 @@ export function FeedbackViewDialog({
   onAdminNotesChange,
   onUpdateStatus,
 }: FeedbackViewDialogProps) {
+  const t = useFeedbackViewTranslations();
   if (!feedback) return null;
 
   return (
@@ -47,30 +58,33 @@ export function FeedbackViewDialog({
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            Feedback Details
+            {t("title")}
             <FeedbackStatusBadge status={feedback.status} />
           </DialogTitle>
           <DialogDescription>
-            From {feedback.user.name} ({feedback.user.email}) at{" "}
-            {feedback.clinic.name}
+            {t("description", {
+              name: feedback.user.name,
+              email: feedback.user.email,
+              clinic: feedback.clinic.name,
+            })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
           <div className="flex items-center gap-4">
             <div>
-              <Label className="text-muted-foreground">Overall Rating</Label>
+              <Label className="text-muted-foreground">{t("overallRatingLabel")}</Label>
               <div className="flex items-center gap-2">
                 <FeedbackRatingStars rating={feedback.overallRating} />
-                <span className="font-bold">{feedback.overallRating}/5</span>
+                <span className="font-bold">{t("ratingValue", { rating: feedback.overallRating })}</span>
               </div>
             </div>
             <div>
-              <Label className="text-muted-foreground">Category</Label>
+              <Label className="text-muted-foreground">{t("categoryLabel")}</Label>
               <Badge variant="outline">{feedback.category}</Badge>
             </div>
             <div>
-              <Label className="text-muted-foreground">Submitted</Label>
+              <Label className="text-muted-foreground">{t("submittedLabel")}</Label>
               <p className="text-sm">
                 {formatDate(feedback.createdAt, "dd MMM yyyy, hh:mm a")}
               </p>
@@ -81,7 +95,7 @@ export function FeedbackViewDialog({
             <div className="space-y-2">
               <Label className="flex items-center gap-2 text-success">
                 <ThumbsUp className="h-4 w-4" />
-                Liked Features
+                {t("likedFeaturesTitle")}
               </Label>
               <div className="flex flex-wrap gap-2">
                 {feedback.goodFeatures.map((f) => (
@@ -102,7 +116,7 @@ export function FeedbackViewDialog({
             <div className="space-y-2">
               <Label className="flex items-center gap-2 text-destructive">
                 <ThumbsDown className="h-4 w-4" />
-                Disliked Features
+                {t("dislikedFeaturesTitle")}
               </Label>
               <div className="flex flex-wrap gap-2">
                 {feedback.badFeatures.map((f) => (
@@ -123,7 +137,7 @@ export function FeedbackViewDialog({
             <div className="space-y-2">
               <Label className="flex items-center gap-2 text-warning">
                 <Lightbulb className="h-4 w-4" />
-                Areas to Improve
+                {t("improvementTitle")}
               </Label>
               <div className="flex flex-wrap gap-2">
                 {feedback.improvementAreas.map((f) => (
@@ -142,7 +156,7 @@ export function FeedbackViewDialog({
 
           {feedback.featureRequests && (
             <div className="space-y-2">
-              <Label>Feature Requests</Label>
+              <Label>{t("featureRequestsLabel")}</Label>
               <p className="text-sm bg-muted p-3 rounded-[var(--radius)]">
                 {feedback.featureRequests}
               </p>
@@ -151,7 +165,7 @@ export function FeedbackViewDialog({
 
           {feedback.generalComments && (
             <div className="space-y-2">
-              <Label>General Comments</Label>
+              <Label>{t("generalCommentsLabel")}</Label>
               <p className="text-sm bg-muted p-3 rounded-[var(--radius)]">
                 {feedback.generalComments}
               </p>
@@ -160,17 +174,17 @@ export function FeedbackViewDialog({
 
           <div className="border-t pt-4 space-y-4">
             <div className="space-y-2">
-              <Label>Admin Notes</Label>
+              <Label>{t("adminNotesLabel")}</Label>
               <Textarea
                 value={adminNotes}
                 onChange={(e) => onAdminNotesChange(e.target.value)}
-                placeholder="Feedback notes"
+                placeholder={t("adminNotesPlaceholder")}
                 className="min-h-20"
               />
             </div>
 
             <div className="flex items-center gap-2">
-              <Label>Update Status:</Label>
+              <Label>{t("updateStatusLabel")}</Label>
               {STATUS_OPTIONS.map((opt) => (
                 <Button
                   key={opt.value}

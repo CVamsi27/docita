@@ -484,6 +484,24 @@
       "amountPlaceholder": "Enter amount"
     }
   },
+  "InternalFeedback": {
+    "viewDialog": {
+      "title": "Feedback Details",
+      "description": "From {name} ({email}) at {clinic}",
+      "overallRatingLabel": "Overall Rating",
+      "ratingValue": "{rating}/5",
+      "categoryLabel": "Category",
+      "submittedLabel": "Submitted",
+      "likedFeaturesTitle": "Liked Features",
+      "dislikedFeaturesTitle": "Disliked Features",
+      "improvementTitle": "Areas to Improve",
+      "featureRequestsLabel": "Feature Requests",
+      "generalCommentsLabel": "General Comments",
+      "adminNotesLabel": "Admin Notes",
+      "adminNotesPlaceholder": "Feedback notes",
+      "updateStatusLabel": "Update Status:"
+    }
+  },
   "InternalDashboard": {
     "clinicList": {
       "loadingLabel": "Loading facilities…",
