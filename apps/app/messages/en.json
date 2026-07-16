@@ -118,6 +118,24 @@
     "cancel": "Cancel",
     "save": "Save changes"
   },
+  "Feedback": {
+    "form": {
+      "formTitle": "Send feedback",
+      "formDescription": "We&apos;d love to hear from you",
+      "ratingLabel": "How would you rate your experience?",
+      "helperParagraph": "We&apos;re always looking to improve Docita. Share your thoughts, report bugs, or suggest new features.",
+      "feedbackTypeLabel": "Feedback type",
+      "typeBugReport": "Bug Report",
+      "typeFeatureRequest": "Feature Request",
+      "typeGeneral": "General",
+      "messageLabel": "Your message",
+      "messagePlaceholder": "Enter feedback",
+      "submitButton": "Submit feedback",
+      "quickPrompt": "Was this helpful?",
+      "yesButton": "Yes",
+      "noButton": "No"
+    }
+  },
   "PatientPortal": {
     "profile": {
       "pageTitle": "Profile Settings",

@@ -118,6 +118,24 @@
     "cancel": "रद्द करें",
     "save": "परिवर्तन सहेजें"
   },
+  "Feedback": {
+    "form": {
+      "formTitle": "फ़ीडबैक भेजें",
+      "formDescription": "हम आपसे सुनना चाहेंगे",
+      "ratingLabel": "आप अपने अनुभव को कैसे रेट करेंगे?",
+      "helperParagraph": "हम हमेशा Docita को बेहतर बनाने की तलाश में रहते हैं। अपने विचार साझा करें, बग रिपोर्ट करें, या नई सुविधाएँ सुझाएँ।",
+      "feedbackTypeLabel": "फ़ीडबैक प्रकार",
+      "typeBugReport": "बग रिपोर्ट",
+      "typeFeatureRequest": "सुविधा अनुरोध",
+      "typeGeneral": "सामान्य",
+      "messageLabel": "आपका संदेश",
+      "messagePlaceholder": "फ़ीडबैक दर्ज करें",
+      "submitButton": "फ़ीडबैक सबमिट करें",
+      "quickPrompt": "क्या यह सहायक था?",
+      "yesButton": "हाँ",
+      "noButton": "नहीं"
+    }
+  },
   "PatientPortal": {
     "profile": {
       "pageTitle": "प्रोफ़ाइल सेटिंग्स",
