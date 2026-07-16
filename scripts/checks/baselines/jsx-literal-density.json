@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T01:50:08.098Z",
-  "totalLiterals": 1534,
+  "generatedAt": "2026-07-16T01:52:17.659Z",
+  "totalLiterals": 1520,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -69,7 +69,6 @@
     "apps/app/features/consultation/components/specialty/VisionExamUI.tsx": 1,
     "apps/app/features/consultation/components/specialty/VisionExamUISections.tsx": 3,
     "apps/app/features/consultation/components/specialty/investigation-row.tsx": 13,
-    "apps/app/features/consultation/components/structured/ComplaintDetails.tsx": 14,
     "apps/app/features/consultation/components/structured/DiagnosisInput.tsx": 1,
     "apps/app/features/consultation/components/structured/PrescriptionInput.tsx": 1,
     "apps/app/features/consultation/components/structured/diagnosis-item-row.tsx": 7,

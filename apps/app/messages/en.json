@@ -148,5 +148,30 @@
       "deletionRequestedToast": "Account deletion requested. Your account will be deleted within 30 days.",
       "deletionRequestError": "We could not submit this deletion request. Please try again."
     }
+  },
+  "Consultation": {
+    "complaint": {
+      "symptomLabel": "Symptom or concern",
+      "symptomPlaceholder": "Symptom or concern",
+      "symptomRequired": "Enter the main symptom or reason for visit.",
+      "durationLabel": "Duration",
+      "durationPlaceholder": "Duration",
+      "durationInvalid": "Duration must be greater than 0.",
+      "unitLabel": "Unit",
+      "unitPlaceholder": "Unit",
+      "unitHours": "Hours",
+      "unitDays": "Days",
+      "unitWeeks": "Weeks",
+      "unitMonths": "Months",
+      "unitYears": "Years",
+      "severityLabel": "Severity",
+      "severityPlaceholder": "Severity",
+      "severityMild": "Mild",
+      "severityModerate": "Moderate",
+      "severitySevere": "Severe",
+      "severityCritical": "Critical",
+      "notesLabel": "Clinical notes",
+      "notesPlaceholder": "Clinical notes"
+    }
   }
 }
