@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T12:56:45.035Z",
-  "totalLiterals": 976,
+  "generatedAt": "2026-07-16T12:57:59.131Z",
+  "totalLiterals": 971,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -59,7 +59,7 @@
     "apps/app/features/consultation/components/specialty/GrowthChartUI.tsx": 4,
     "apps/app/features/consultation/components/specialty/GynecologyExamSection.tsx": 1,
     "apps/app/features/consultation/components/specialty/InvestigationsSection.tsx": 2,
-    "apps/app/features/consultation/components/specialty/PsychiatryExamSection.tsx": 6,
+    "apps/app/features/consultation/components/specialty/PsychiatryExamSection.tsx": 1,
     "apps/app/features/consultation/components/specialty/VisionExamUI.tsx": 1,
     "apps/app/features/consultation/components/specialty/VisionExamUISections.tsx": 3,
     "apps/app/features/consultation/components/specialty/investigation-row.tsx": 3,
