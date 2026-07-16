@@ -121,4 +121,27 @@ describe("TimeSlotRow", () => {
       screen.getByRole("button", { name: /more appointment actions/i }),
     ).toBeInTheDocument();
   });
+
+  it("hides Start for future scheduled appointments (time gate)", () => {
+    const future = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const futureApt = {
+      ...createAppointment("scheduled"),
+      startTime: future,
+      endTime: future,
+    };
+    render(
+      <TimeSlotRow
+        appointment={futureApt}
+        checkingIn={null}
+        startingConsultationId={null}
+        onCheckIn={vi.fn()}
+        onStartConsultation={vi.fn()}
+        onCancelClick={vi.fn()}
+        onNoShowClick={vi.fn()}
+        currentUserId="doctor-1"
+      />,
+    );
+
+    expect(screen.queryByRole("button", { name: "Start" })).not.toBeInTheDocument();
+  });
 });
