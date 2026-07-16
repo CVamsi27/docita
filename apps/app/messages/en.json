@@ -535,6 +535,21 @@
       "ageLabel": "Age: {age} yrs",
       "genderLabel": "Gender: {gender}",
       "dateLabel": "Date"
+    },
+    "table": {
+      "medsCount": "{count, plural, one {1 med} other {{count} meds}}",
+      "viewAriaLabel": "View prescription",
+      "viewButton": "View",
+      "downloadPdfTooltip": "Download PDF",
+      "pdfButton": "PDF",
+      "printTooltip": "Print prescription",
+      "printButton": "Print",
+      "prescriptionIdHeader": "Prescription ID",
+      "patientHeader": "Patient",
+      "diagnosisHeader": "Diagnosis",
+      "medicationsHeader": "Medications",
+      "dateHeader": "Date",
+      "actionsHeader": "Actions"
     }
   }
 }
