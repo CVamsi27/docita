@@ -508,6 +508,21 @@
       "razorpayIdPlaceholder": "Razorpay भुगतान id दर्ज करें",
       "notesLabel": "टिप्पणियाँ (वैकल्पिक)",
       "notesPlaceholder": "स्कोप, चालान संदर्भ, या आंतरिक नोट"
+    },
+    "clinicsSection": {
+      "title": "सुविधा भुगतान प्रबंधन",
+      "description": "प्लान बदलने और सदस्यता भुगतान रिकॉर्ड करने के लिए एक सुविधा चुनें, या ऐड-ऑन शुल्क रिकॉर्ड करें (उदाहरण के लिए निर्देशित सेटअप)",
+      "emptyTitle": "कोई सुविधा नहीं मिली",
+      "emptyDescription": "बिलिंग के लिए प्रावधान होने पर सुविधाएँ यहाँ दिखाई देंगी।",
+      "colFacilityName": "सुविधा का नाम",
+      "colCurrentTier": "वर्तमान स्तर",
+      "colMaxDoctors": "अधिकतम चिकित्सक",
+      "colMaxPatients": "अधिकतम रोगी",
+      "colEmail": "ईमेल",
+      "colCurrency": "मुद्रा",
+      "colActions": "क्रियाएँ",
+      "managePlanButton": "प्लान भुगतान प्रबंधित करें",
+      "addOnChargeButton": "ऐड-ऑन शुल्क"
     }
   },
   "InternalFeedback": {
