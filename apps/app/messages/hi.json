@@ -149,6 +149,24 @@
       "deletionRequestError": "हम यह हटाने का अनुरोध सबमिट नहीं कर सके। कृपया पुनः प्रयास करें।"
     }
   },
+  "Onboarding": {
+    "joinClinicRequest": {
+      "title": "{name} में शामिल होने का अनुरोध",
+      "roleLabel": "आपकी भूमिका",
+      "roleDoctor": "चिकित्सक",
+      "roleNurse": "नर्स",
+      "roleReceptionist": "रिसेप्शनिस्ट",
+      "roleAdminDoctor": "व्यवस्थापक चिकित्सक",
+      "roleHelper": "इस सुविधा में आपकी भूमिका चुनें",
+      "messageLabel": "व्यवस्थापक को संदेश",
+      "optionalSuffix": "(वैकल्पिक)",
+      "messagePlaceholder": "व्यवस्थापक को संदेश दर्ज करें",
+      "charCount": "{count}/500",
+      "cancelButton": "रद्द करें",
+      "submittingLabel": "सबमिट हो रहा है…",
+      "submitButton": "अनुरोध सबमिट करें"
+    }
+  },
   "Consultation": {
     "complaint": {
       "symptomLabel": "लक्षण या चिंता",
