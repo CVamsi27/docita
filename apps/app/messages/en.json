@@ -747,6 +747,26 @@
       "tableNotesHeader": "Notes"
     }
   },
+  "Patients": {
+    "whatsappComposer": {
+      "composerTitle": "Send a WhatsApp message",
+      "templateLabel": "Start from a template",
+      "noTemplatesPlaceholder": "No saved templates yet",
+      "templatePlaceholder": "Choose a template (optional)",
+      "noTemplateOption": "No template",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Enter message",
+      "charCount": "{count}/{max}",
+      "freeTextWarning": "Free-text messages only deliver within 24 hours of the patient's last reply. Outside that window, WhatsApp requires a pre-approved template.",
+      "sendingLabel": "Sending…",
+      "sendButton": "Send message",
+      "historyTitle": "Sent messages",
+      "historyLoadingLabel": "Loading sent messages…",
+      "historyErrorFallback": "We could not load sent messages.",
+      "historyEmptyTitle": "No messages yet",
+      "historyEmptyDescription": "No messages have been sent to this patient yet."
+    }
+  },
   "Prescriptions": {
     "documentHeader": {
       "facilityLogoAlt": "Facility logo",
