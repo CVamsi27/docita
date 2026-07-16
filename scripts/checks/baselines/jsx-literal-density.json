@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T05:25:11.144Z",
-  "totalLiterals": 1245,
+  "generatedAt": "2026-07-16T05:27:58.653Z",
+  "totalLiterals": 1236,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -286,7 +286,6 @@
     "apps/app/features/settings/components/management/JoinRequestsSettingsPanel.tsx": 1,
     "apps/app/features/settings/components/management/doctor-availability-day-row.tsx": 4,
     "apps/app/features/settings/components/management/invite-team-member-dialog.tsx": 1,
-    "apps/app/features/settings/components/management/join-request-review-dialogs.tsx": 9,
     "apps/app/features/settings/components/management/manage-team-member-dialog-sections.tsx": 4,
     "apps/app/features/settings/components/management/manage-team-member-dialog.tsx": 1,
     "apps/app/features/settings/components/management/manage-team-member-doctor-panel.tsx": 7,

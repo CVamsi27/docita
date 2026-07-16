@@ -333,6 +333,30 @@
       "signatureFacilityRef": "Facility reference / consent ID",
       "footerHeading": "This form should be retained with the patient's medical record. A digital audit trail of the recorded consent is maintained by the facility.",
       "footerBody": "For questions about how your data is handled, contact the facility named above."
+    },
+    "joinRequestReview": {
+      "approveTitle": "Approve Join Request",
+      "approveDescription": "Approve {name} to join your facility",
+      "assignedRoleLabel": "Assigned Role",
+      "roleDoctor": "Doctor",
+      "roleNurse": "Nurse",
+      "roleReceptionist": "Receptionist",
+      "roleAdminDoctor": "Admin Doctor",
+      "roleDiffersHelper": "This differs from the requested role ({requested})",
+      "welcomeMessageLabel": "Welcome Message",
+      "optionalSuffix": "(optional)",
+      "welcomeMessagePlaceholder": "Enter welcome message",
+      "charCount": "{count}/500",
+      "cancelButton": "Cancel",
+      "approvingLabel": "Approving…",
+      "approveRequestButton": "Approve Request",
+      "rejectTitle": "Reject Join Request",
+      "rejectDescription": "Provide a reason for rejecting {name}'s request",
+      "rejectionReasonLabel": "Reason for Rejection",
+      "rejectionReasonPlaceholder": "Enter rejection reason",
+      "rejectionReasonHelper": "This reason will be sent to the applicant",
+      "rejectingLabel": "Rejecting…",
+      "rejectRequestButton": "Reject Request"
     }
   },
   "Invoices": {

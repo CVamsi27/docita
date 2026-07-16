@@ -333,6 +333,30 @@
       "signatureFacilityRef": "सुविधा संदर्भ / सहमति आईडी",
       "footerHeading": "इस फ़ॉर्म को मरीज़ के मेडिकल रिकॉर्ड के साथ रखा जाना चाहिए। दर्ज सहमति का एक डिजिटल ऑडिट ट्रेल सुविधा द्वारा बनाए रखा जाता है।",
       "footerBody": "आपके डेटा को कैसे संभाला जाता है, इसके बारे में प्रश्नों के लिए, ऊपर नामित सुविधा से संपर्क करें।"
+    },
+    "joinRequestReview": {
+      "approveTitle": "शामिल होने का अनुरोध स्वीकार करें",
+      "approveDescription": "{name} को आपकी सुविधा में शामिल होने के लिए स्वीकार करें",
+      "assignedRoleLabel": "असाइन की गई भूमिका",
+      "roleDoctor": "चिकित्सक",
+      "roleNurse": "नर्स",
+      "roleReceptionist": "रिसेप्शनिस्ट",
+      "roleAdminDoctor": "व्यवस्थापक चिकित्सक",
+      "roleDiffersHelper": "यह अनुरोधित भूमिका से अलग है ({requested})",
+      "welcomeMessageLabel": "स्वागत संदेश",
+      "optionalSuffix": "(वैकल्पिक)",
+      "welcomeMessagePlaceholder": "स्वागत संदेश दर्ज करें",
+      "charCount": "{count}/500",
+      "cancelButton": "रद्द करें",
+      "approvingLabel": "स्वीकार किया जा रहा…",
+      "approveRequestButton": "अनुरोध स्वीकार करें",
+      "rejectTitle": "शामिल होने का अनुरोध अस्वीकार करें",
+      "rejectDescription": "{name} के अनुरोध को अस्वीकार करने का कारण बताएँ",
+      "rejectionReasonLabel": "अस्वीकृति का कारण",
+      "rejectionReasonPlaceholder": "अस्वीकृति का कारण दर्ज करें",
+      "rejectionReasonHelper": "यह कारण आवेदक को भेजा जाएगा",
+      "rejectingLabel": "अस्वीकार किया जा रहा…",
+      "rejectRequestButton": "अनुरोध अस्वीकार करें"
     }
   },
   "Invoices": {
