@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T05:40:46.613Z",
-  "totalLiterals": 1189,
+  "generatedAt": "2026-07-16T05:42:56.217Z",
+  "totalLiterals": 1181,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -92,7 +92,6 @@
     "apps/app/features/dialogs/components/ContactSalesModalUI.sections.tsx": 1,
     "apps/app/features/documents/components/documents-page-table-card-sections.tsx": 2,
     "apps/app/features/excel/components/ExcelMappingStep.tsx": 3,
-    "apps/app/features/excel/components/ExcelResultsStep.tsx": 8,
     "apps/app/features/excel/components/ExcelUploadStep.tsx": 1,
     "apps/app/features/feedback/components/index.tsx": 6,
     "apps/app/features/follow-ups/components/FollowUpsPageContent.tsx": 4,

@@ -551,5 +551,21 @@
       "dateHeader": "तारीख",
       "actionsHeader": "क्रियाएँ"
     }
+  },
+  "Excel": {
+    "resultsStep": {
+      "totalRowsLabel": "कुल पंक्तियाँ",
+      "importedLabel": "आयातित",
+      "duplicatesLabel": "डुप्लिकेट",
+      "failedLabel": "विफल",
+      "importDetailsTitle": "आयात विवरण",
+      "duplicatesSkippedTitle": "डुप्लिकेट छोड़े गए",
+      "colRow": "पंक्ति",
+      "colReason": "कारण",
+      "colExistingPatient": "मौजूदा रोगी",
+      "errorsTitle": "त्रुटियाँ",
+      "viewPatientsButton": "रोगी देखें",
+      "importMoreButton": "और आयात करें"
+    }
   }
 }
