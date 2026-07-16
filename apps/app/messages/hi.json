@@ -712,6 +712,26 @@
       "tipsTip3": "छाया और धुंध से बचें"
     }
   },
+  "Dashboard": {
+    "todayAdvisorRail": {
+      "joinRequestsCategory": "शामिल होने के अनुरोध",
+      "joinRequestsHeadline": "{count, plural, one {1 लंबित अनुरोध} other {{count} लंबित अनुरोध}}",
+      "joinRequestsDescription": "आपकी क्लिनिक में पहुँच का अनुरोध करने वाले कर्मचारियों को स्वीकार या अस्वीकार करें।",
+      "dismissJoinRequestsLabel": "शामिल होने के अनुरोध सिफारिश को खारिज करें",
+      "joinRequestsAction": "अनुरोधों की समीक्षा करें",
+      "codingCategory": "कोडिंग",
+      "codingHeadline": "{count, plural, one {1 यात्रा कोडिंग लंबित} other {{count} यात्राएँ कोडिंग लंबित}}",
+      "codingDescription": "ICD-10 या प्रक्रिया कोडिंग की आवश्यकता वाली पूर्ण यात्राओं की समीक्षा करें।",
+      "dismissCodingLabel": "लंबित कोडिंग सिफारिश को खारिज करें",
+      "codingAction": "कोडिंग कतार खोलें",
+      "queueCategory": "कतार",
+      "queueHeadline": "{count, plural, one {1 रोगी प्रतीक्षारत} other {{count} रोगी प्रतीक्षारत}}",
+      "queueDescription": "अगले रोगी को शुरू करने के लिए परामर्श कतार खोलें।",
+      "dismissQueueLabel": "कतार सिफारिश को खारिज करें",
+      "queueAction": "कतार खोलें",
+      "stackAriaLabel": "आज की सिफारिशें"
+    }
+  },
   "AiAssistant": {
     "smartTasksTab": {
       "comingSoonNotice": "स्मार्ट टास्क इंजन सक्रिय विकास में है। नीचे दिए गए क्विक एक्शन और ऑटोमेशन इतिहास नमूना डेटा हैं और अभी तक लाइव वर्कफ़्लो से जुड़े नहीं हैं।",
