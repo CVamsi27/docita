@@ -15,6 +15,7 @@ import { CreditCard } from "lucide-react";
 import { useInvoicePaymentActivity } from "@workspace/data-access";
 import type { InvoicePaymentActivityItem } from "@workspace/types";
 import { formatPaymentChannelLabel } from "@workspace/types";
+import { useTranslations } from "next-intl";
 
 function formatProviderLabel(provider: string): string {
   return provider
@@ -30,11 +31,21 @@ interface InvoicePaymentActivitySectionProps {
   formatDate: (dateString?: string | Date) => string;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Invoices > Payment activity section
+ * (mobile cards + desktop table). 7 literals converted to
+ * useTranslations("Invoices.paymentActivity").
+ */
+function usePaymentActivityTranslations() {
+  return useTranslations("Invoices.paymentActivity");
+}
+
 export const InvoicePaymentActivitySection: FC<
   InvoicePaymentActivitySectionProps
 > = ({ invoiceId, formatCurrency, formatDate }) => {
   const { data, isLoading, isError, error, refetch } =
     useInvoicePaymentActivity(invoiceId);
+  const t = usePaymentActivityTranslations();
 
   const items = data?.items ?? [];
 
@@ -49,11 +60,11 @@ export const InvoicePaymentActivitySection: FC<
   return (
     <DataState
       status={status}
-      loadingMessage="Loading payment activity…"
+      loadingMessage={t("loadingLabel")}
       errorMessage={error?.message}
       onRetry={() => void refetch()}
-      emptyTitle="No payment activity yet"
-      emptyDescription="Desk settlements and online payment sessions will appear here once recorded."
+      emptyTitle={t("emptyTitle")}
+      emptyDescription={t("emptyDescription")}
       emptyIcon={CreditCard}
     >
       {status === "success" ? (
@@ -80,12 +91,12 @@ export const InvoicePaymentActivitySection: FC<
                   </div>
                   {row.channel ? (
                     <p className="ui-helper-text">
-                      Paid by {formatPaymentChannelLabel(row.channel)}
+                      {t("paidByLabel", { channel: formatPaymentChannelLabel(row.channel) })}
                     </p>
                   ) : null}
                   {row.reference ? (
                     <p className="break-all text-muted-foreground">
-                      Ref: {row.reference}
+                      {t("refLabel", { reference: row.reference })}
                     </p>
                   ) : null}
                   {row.notes ? (
@@ -100,7 +111,7 @@ export const InvoicePaymentActivitySection: FC<
                       rel="noopener noreferrer"
                       className="text-primary underline-offset-2 hover:underline transition-colors duration-150"
                     >
-                      Open payment link
+                      {t("openPaymentLink")}
                     </a>
                   ) : null}
                 </div>
@@ -112,13 +123,13 @@ export const InvoicePaymentActivitySection: FC<
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead>Source</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Reference</TableHead>
-                  <TableHead>Notes</TableHead>
-                  <TableHead>Link</TableHead>
+                  <TableHead>{t("colDate")}</TableHead>
+                  <TableHead className="text-right">{t("colAmount")}</TableHead>
+                  <TableHead>{t("colSource")}</TableHead>
+                  <TableHead>{t("colStatus")}</TableHead>
+                  <TableHead>{t("colReference")}</TableHead>
+                  <TableHead>{t("colNotes")}</TableHead>
+                  <TableHead>{t("colLink")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -159,7 +170,7 @@ export const InvoicePaymentActivitySection: FC<
                             rel="noopener noreferrer"
                             className="text-primary underline-offset-2 hover:underline transition-colors duration-150"
                           >
-                            Open
+                            {t("openLinkButton")}
                           </a>
                         ) : (
                           "—"
