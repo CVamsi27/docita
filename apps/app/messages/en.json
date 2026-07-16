@@ -338,6 +338,21 @@
       "emailLabel": "Email",
       "bloodTypeLabel": "Blood type",
       "bloodTypePlaceholder": "Blood type"
+    },
+    "vitals": {
+      "sectionTitle": "Vitals",
+      "bpLabel": "BP",
+      "bpPlaceholder": "BP",
+      "tempLabel": "Temp (°F)",
+      "tempPlaceholder": "Temperature",
+      "pulseLabel": "Pulse",
+      "pulsePlaceholder": "Pulse",
+      "respiratoryRateLabel": "Respiratory rate",
+      "respiratoryRatePlaceholder": "Respiratory rate",
+      "spO2Label": "SpO2 (%)",
+      "spO2Placeholder": "SpO2",
+      "glucoseLabel": "Glucose",
+      "glucosePlaceholder": "Glucose"
     }
   },
   "Analytics": {
