@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -28,15 +29,25 @@ interface InvoiceItemsTableProps {
   formatCurrency: (amount: number) => string;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app invoice items table — the
+ * line-item editor on the invoice create/edit page. 10
+ * literals converted to useTranslations("Invoices.itemsTable").
+ */
+function useInvoiceItemsTableTranslations() {
+  return useTranslations("Invoices.itemsTable");
+}
+
 export function InvoiceItemsTable({
   items,
   onUpdateItem,
   onRemoveItem,
   formatCurrency,
 }: InvoiceItemsTableProps) {
+  const t = useInvoiceItemsTableTranslations();
   if (items.length === 0) return (
       <div className="rounded-md border px-4 py-8 text-center text-muted-foreground">
-        No items added yet.
+        {t("emptyMessage")}
       </div>
     );
 
@@ -59,13 +70,13 @@ export function InvoiceItemsTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-[220px]">Description</TableHead>
-              <TableHead className="w-24">Qty</TableHead>
-              <TableHead className="w-32">Unit price</TableHead>
-              <TableHead className="min-w-[170px]">Tax</TableHead>
-              <TableHead className="w-28">GST %</TableHead>
-              <TableHead className="w-32">HSN/SAC</TableHead>
-              <TableHead className="w-32">Total</TableHead>
+              <TableHead className="min-w-[220px]">{t("colDescription")}</TableHead>
+              <TableHead className="w-24">{t("colQty")}</TableHead>
+              <TableHead className="w-32">{t("colUnitPrice")}</TableHead>
+              <TableHead className="min-w-[170px]">{t("colTax")}</TableHead>
+              <TableHead className="w-28">{t("colGstPercent")}</TableHead>
+              <TableHead className="w-32">{t("colHsnSac")}</TableHead>
+              <TableHead className="w-32">{t("colTotal")}</TableHead>
               <TableHead className="w-[5%]" />
             </TableRow>
           </TableHeader>
@@ -78,7 +89,7 @@ export function InvoiceItemsTable({
                     onChange={(e) =>
                       onUpdateItem(index, "description", e.target.value)
                     }
-                    placeholder="Item description"
+                    placeholder={t("itemDescriptionPlaceholder")}
                   />
                 </TableCell>
                 <TableCell>
@@ -122,11 +133,11 @@ export function InvoiceItemsTable({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="EXEMPT_HEALTHCARE">
-                        Healthcare exempt
+                        {t("taxHealthcareExempt")}
                       </SelectItem>
-                      <SelectItem value="TAXABLE">Taxable</SelectItem>
-                      <SelectItem value="EXEMPT">Exempt</SelectItem>
-                      <SelectItem value="NON_GST">Non-GST</SelectItem>
+                      <SelectItem value="TAXABLE">{t("taxTaxable")}</SelectItem>
+                      <SelectItem value="EXEMPT">{t("taxExempt")}</SelectItem>
+                      <SelectItem value="NON_GST">{t("taxNonGst")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </TableCell>
@@ -149,7 +160,7 @@ export function InvoiceItemsTable({
                     onChange={(e) =>
                       onUpdateItem(index, "hsnCode", e.target.value)
                     }
-                    placeholder="HSN code"
+                    placeholder={t("hsnCodePlaceholder")}
                   />
                 </TableCell>
                 <TableCell className="font-medium">
@@ -157,12 +168,12 @@ export function InvoiceItemsTable({
                 </TableCell>
                 <TableCell>
                   <SymbolTooltip
-                    label={`Remove ${item.description || "line item"}`}
+                    label={t("removeLineItemTooltip", { name: item.description || "" })}
                   >
                     <Button
                       variant="ghost"
                       size="icon"
-                      aria-label={`Remove ${item.description || "line item"}`}
+                      aria-label={t("removeLineItemTooltip", { name: item.description || "" })}
                       className="text-destructive hover:text-destructive/90"
                       onClick={() => onRemoveItem(index)}
                     >

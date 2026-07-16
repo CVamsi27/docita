@@ -275,6 +275,23 @@
       "totalLabel": "कुल",
       "amountPaidLabel": "भुगतान की गई राशि",
       "balanceDueLabel": "देय शेष"
+    },
+    "itemsTable": {
+      "emptyMessage": "अभी तक कोई आइटम नहीं जोड़ा गया।",
+      "colDescription": "विवरण",
+      "colQty": "मात्रा",
+      "colUnitPrice": "इकाई मूल्य",
+      "colTax": "कर",
+      "colGstPercent": "GST %",
+      "colHsnSac": "HSN/SAC",
+      "colTotal": "कुल",
+      "itemDescriptionPlaceholder": "आइटम विवरण",
+      "taxHealthcareExempt": "स्वास्थ्य सेवा छूट",
+      "taxTaxable": "कर योग्य",
+      "taxExempt": "छूट",
+      "taxNonGst": "गैर-GST",
+      "hsnCodePlaceholder": "HSN कोड",
+      "removeLineItemTooltip": "{name, select, undefined {पंक्ति आइटम हटाएँ} other {{name} हटाएँ}}"
     }
   }
 }

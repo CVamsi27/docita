@@ -1,8 +1,45 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { render } from "@/test-utils/render-with-tooltip";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { ReactElement } from "react";
 import { InvoiceCreateUI } from "./InvoiceCreateUI";
+
+/**
+ * Local messages mirror covering all namespaces read by
+ * InvoiceCreateUI + its child components. The test renders
+ * InvoiceCreateUI via NextIntlClientProvider so useTranslations
+ * resolves against these English strings.
+ */
+const messages = {
+  Invoices: {
+    itemsTable: {
+      emptyMessage: "No items added yet.",
+      colDescription: "Description",
+      colQty: "Qty",
+      colUnitPrice: "Unit price",
+      colTax: "Tax",
+      colGstPercent: "GST %",
+      colHsnSac: "HSN/SAC",
+      colTotal: "Total",
+      itemDescriptionPlaceholder: "Item description",
+      taxHealthcareExempt: "Healthcare exempt",
+      taxTaxable: "Taxable",
+      taxExempt: "Exempt",
+      taxNonGst: "Non-GST",
+      hsnCodePlaceholder: "HSN code",
+      removeLineItemTooltip: "Remove {name, select, undefined {line item} other {{name}}}",
+    },
+  },
+};
+
+function renderWithIntl(node: React.ReactNode) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      {node}
+    </NextIntlClientProvider>,
+  );
+}
 
 vi.mock("@/components/auth/feature-gate", () => ({
   FeatureGate: ({ children }: { children: ReactElement }) => children,
@@ -92,7 +129,7 @@ describe("InvoiceCreateUI", () => {
   });
 
   it("edits invoice line items and submits the form", async () => {
-    render(<InvoiceCreateUI />);
+    renderWithIntl(<InvoiceCreateUI />);
 
     expect(screen.getByRole("heading", { name: "New invoice" })).toBeInTheDocument();
     expect(within(desktopTable()).getByDisplayValue("Consultation")).toBeInTheDocument();
@@ -127,7 +164,7 @@ describe("InvoiceCreateUI", () => {
   });
 
   it("adds a blank item and returns to the invoice list on cancel", () => {
-    render(<InvoiceCreateUI />);
+    renderWithIntl(<InvoiceCreateUI />);
 
     fireEvent.click(screen.getByRole("button", { name: "Add Item" }));
     expect(within(desktopTable()).getAllByPlaceholderText("Item description")).toHaveLength(2);

@@ -275,6 +275,23 @@
       "totalLabel": "Total",
       "amountPaidLabel": "Amount paid",
       "balanceDueLabel": "Balance due"
+    },
+    "itemsTable": {
+      "emptyMessage": "No items added yet.",
+      "colDescription": "Description",
+      "colQty": "Qty",
+      "colUnitPrice": "Unit price",
+      "colTax": "Tax",
+      "colGstPercent": "GST %",
+      "colHsnSac": "HSN/SAC",
+      "colTotal": "Total",
+      "itemDescriptionPlaceholder": "Item description",
+      "taxHealthcareExempt": "Healthcare exempt",
+      "taxTaxable": "Taxable",
+      "taxExempt": "Exempt",
+      "taxNonGst": "Non-GST",
+      "hsnCodePlaceholder": "HSN code",
+      "removeLineItemTooltip": "Remove {name, select, undefined {line item} other {{name}}}"
     }
   }
 }
