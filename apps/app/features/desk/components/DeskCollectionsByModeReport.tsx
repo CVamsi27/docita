@@ -22,6 +22,7 @@ import {
 } from "@workspace/ui/components/data-display/table";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { Wallet } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -31,9 +32,18 @@ interface DeskCollectionsByModeReportProps {
   formatMoney: (amount: number | undefined) => string;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Desk > Collections by mode report.
+ * 6 literals converted to useTranslations("Desk.collectionsByModeReport").
+ */
+function useCollectionsByModeTranslations() {
+  return useTranslations("Desk.collectionsByModeReport");
+}
+
 export function DeskCollectionsByModeReport({
   formatMoney,
 }: DeskCollectionsByModeReportProps) {
+  const t = useCollectionsByModeTranslations();
   const [from, setFrom] = useState(todayIso);
   const [to, setTo] = useState(todayIso);
 
@@ -57,13 +67,13 @@ export function DeskCollectionsByModeReport({
       <CardHeader className="gap-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <MicroLabel className="text-muted-foreground">Report</MicroLabel>
-            <CardTitle>Collections by mode</CardTitle>
+            <MicroLabel className="text-muted-foreground">{t("reportMicroLabel")}</MicroLabel>
+            <CardTitle>{t("title")}</CardTitle>
           </div>
           <div className="flex flex-wrap items-end gap-3">
             <div className="space-y-1">
               <Label htmlFor="collections-from" className="text-[var(--fs-xs)]">
-                From
+                {t("fromLabel")}
               </Label>
               <Input
                 id="collections-from"
@@ -76,7 +86,7 @@ export function DeskCollectionsByModeReport({
             </div>
             <div className="space-y-1">
               <Label htmlFor="collections-to" className="text-[var(--fs-xs)]">
-                To
+                {t("toLabel")}
               </Label>
               <Input
                 id="collections-to"
@@ -93,20 +103,20 @@ export function DeskCollectionsByModeReport({
       <CardContent>
         <DataState
           status={status}
-          loadingMessage="Loading collections…"
+          loadingMessage={t("loadingLabel")}
           errorMessage={
             validRange
               ? error?.message
-              : "Select a valid date range to view collections."
+              : t("invalidRangeErrorFallback")
           }
           onRetry={() => void refetch()}
           emptyTitle={
-            validRange ? "No collections in this range" : "Invalid date range"
+            validRange ? t("emptyRangeTitle") : t("invalidRangeTitle")
           }
           emptyDescription={
             validRange
-              ? "Settled desk and online payments will appear here grouped by payment mode."
-              : "The start date must be on or before the end date."
+              ? t("emptyRangeDescription")
+              : t("invalidRangeDescription")
           }
           emptyIcon={Wallet}
         >
@@ -115,9 +125,9 @@ export function DeskCollectionsByModeReport({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Paid by</TableHead>
-                    <TableHead className="text-right">Payments</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>{t("colPaidBy")}</TableHead>
+                    <TableHead className="text-right">{t("colPayments")}</TableHead>
+                    <TableHead className="text-right">{t("colAmount")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -135,7 +145,7 @@ export function DeskCollectionsByModeReport({
                     </TableRow>
                   ))}
                   <TableRow className="border-t-2">
-                    <TableCell className="font-semibold">Total</TableCell>
+                    <TableCell className="font-semibold">{t("totalLabel")}</TableCell>
                     <TableCell className="text-right font-semibold tabular-nums">
                       {data?.count ?? 0}
                     </TableCell>
