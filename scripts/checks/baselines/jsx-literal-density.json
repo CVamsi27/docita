@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T11:27:46.209Z",
-  "totalLiterals": 1014,
+  "generatedAt": "2026-07-16T11:29:09.765Z",
+  "totalLiterals": 1007,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -276,7 +276,6 @@
     "apps/app/features/settings/components/management/invite-team-member-dialog.tsx": 1,
     "apps/app/features/settings/components/management/manage-team-member-dialog-sections.tsx": 4,
     "apps/app/features/settings/components/management/manage-team-member-dialog.tsx": 1,
-    "apps/app/features/settings/components/management/manage-team-member-doctor-panel.tsx": 7,
     "apps/app/features/settings/components/management/member-management-helpers.tsx": 2,
     "apps/app/features/settings/components/management/team-member-form-fields.tsx": 3,
     "apps/app/features/settings/components/notifications/NotificationSettings.sections.tsx": 2,

@@ -468,6 +468,22 @@
       "regionLabel": "क्षेत्र:",
       "notProvidedLabel": "प्रदान नहीं किया गया",
       "addRegistrationButton": "पंजीकरण नंबर जोड़ें"
+    },
+    "manageTeamMemberDoctorPanel": {
+      "specializationLabel": "विशेषज्ञता",
+      "specializationPlaceholder": "हृदय रोग",
+      "qualificationLabel": "योग्यता",
+      "qualificationPlaceholder": "योग्यता",
+      "registrationNumberLabel": "पंजी. #",
+      "registrationNumberPlaceholder": "पंजीकरण नंबर",
+      "signatureLabel": "हस्ताक्षर",
+      "signatureReady": "तैयार",
+      "signatureMissing": "गायब",
+      "lastVerificationLabel": "अंतिम सत्यापन: {date}",
+      "signatureUploadedLabel": "हस्ताक्षर अपलोड: {date}",
+      "statusDetailsLabel": "स्थिति विवरण: {note}",
+      "completeVerificationButton": "चिकित्सक सत्यापन पूरा करें",
+      "reverifyButton": "पंजीकरण पुनः सत्यापित करें"
     }
   },
   "Subscription": {
