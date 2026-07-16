@@ -206,6 +206,29 @@
     "payoutMarkedPaidToast": "Payout marked paid",
     "payoutMarkPaidError": "Please try marking this payout as paid again"
   },
+  "InternalBroadcasts": {
+    "form": {
+      "audiencePresetLabel": "Audience preset",
+      "audiencePlaceholder": "Select audience",
+      "broadcastNameLabel": "Broadcast name (optional)",
+      "broadcastNamePlaceholder": "Auto-generated from audience + timestamp",
+      "sendModeTitle": "Send mode",
+      "sendModeDescription": "Templates are required when the recipient has never messaged us. Free text works only inside the 24-hour session window.",
+      "metaTemplateButton": "Meta template",
+      "freeTextButton": "Free text",
+      "templateHelper": "Will send the approved Meta template {name} using the recipient name template variable.",
+      "csvLabel": "Recipients CSV (phone column required)",
+      "uploadCsvButton": "Upload CSV",
+      "csvHelper": "CSV must include a header row with a column named phone (also accepts mobile / number). Optional name column is interpolated into {{name}}. 10-digit numbers are auto-prefixed with country code 91.",
+      "validRecipientsBadge": "{count, plural, one {1 valid recipient} other {{count} valid recipients}}",
+      "skippedBadge": "{count, plural, one {1 skipped} other {{count} skipped}}",
+      "showSkippedButton": "Show skipped rows",
+      "skippedRowEntry": "Row {row}: {reason}",
+      "moreSkippedHint": "{count, plural, one {… and 1 more skipped row} other {… and {count} more skipped rows}}",
+      "throttleNote": "Sending is throttled (~4 messages/sec) and runs in the background. You can close this page.",
+      "startBroadcastButton": "Start broadcast"
+    }
+  },
   "InternalEnterpriseContracts": {
     "editor": {
       "primaryClinicIdLabel": "Primary clinic ID",

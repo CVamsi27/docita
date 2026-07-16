@@ -206,6 +206,29 @@
     "payoutMarkedPaidToast": "भुगतान भुगतान के रूप में चिह्नित किया गया",
     "payoutMarkPaidError": "कृपया इस भुगतान को भुगतान के रूप में चिह्नित करने का पुनः प्रयास करें"
   },
+  "InternalBroadcasts": {
+    "form": {
+      "audiencePresetLabel": "दर्शक प्रीसेट",
+      "audiencePlaceholder": "दर्शक चुनें",
+      "broadcastNameLabel": "प्रसारण नाम (वैकल्पिक)",
+      "broadcastNamePlaceholder": "दर्शक + टाइमस्टैम्प से स्वतः जनरेट",
+      "sendModeTitle": "भेजने का मोड",
+      "sendModeDescription": "जब प्राप्तकर्ता ने पहले कभी हमें संदेश नहीं भेजा हो तो टेम्पलेट आवश्यक हैं। मुफ्त टेक्स्ट केवल 24-घंटे के सत्र विंडो के भीतर काम करता है।",
+      "metaTemplateButton": "मेटा टेम्पलेट",
+      "freeTextButton": "मुफ्त टेक्स्ट",
+      "templateHelper": "अनुमोदित मेटा टेम्पलेट {name} को प्राप्तकर्ता नाम टेम्पलेट वेरिएबल का उपयोग करके भेजा जाएगा।",
+      "csvLabel": "प्राप्तकर्ता CSV (फ़ोन कॉलम आवश्यक)",
+      "uploadCsvButton": "CSV अपलोड करें",
+      "csvHelper": "CSV में phone नाम के कॉलम वाला हेडर पंक्ति होनी चाहिए (mobile / number भी स्वीकार्य)। वैकल्पिक name कॉलम को {{name}} में इंटरपोलेट किया जाता है। 10-अंकीय नंबरों में स्वतः देश कोड 91 जोड़ा जाता है।",
+      "validRecipientsBadge": "{count, plural, one {1 वैध प्राप्तकर्ता} other {{count} वैध प्राप्तकर्ता}}",
+      "skippedBadge": "{count, plural, one {1 छोड़ा गया} other {{count} छोड़े गए}}",
+      "showSkippedButton": "छोड़ी गई पंक्तियाँ दिखाएँ",
+      "skippedRowEntry": "पंक्ति {row}: {reason}",
+      "moreSkippedHint": "{count, plural, one {… और 1 छोड़ी गई पंक्ति} other {… और {count} छोड़ी गई पंक्तियाँ}}",
+      "throttleNote": "भेजना थ्रॉटल किया गया है (~4 संदेश/सेकंड) और पृष्ठभूमि में चलता है। आप इस पृष्ठ को बंद कर सकते हैं।",
+      "startBroadcastButton": "प्रसारण शुरू करें"
+    }
+  },
   "InternalEnterpriseContracts": {
     "editor": {
       "primaryClinicIdLabel": "प्राथमिक क्लिनिक आईडी",
