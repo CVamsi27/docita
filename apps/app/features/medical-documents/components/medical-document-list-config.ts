@@ -24,7 +24,7 @@ export const MEDICAL_DOCUMENT_TYPE_LABELS: Record<
   DISCHARGE_SUMMARY: "Discharge Summary",
   REFERRAL_LETTER: "Referral Letter",
   SICK_NOTE: "Sick Note",
-  OTHER: "Other",
+  OTHER: "Others / custom",
 };
 
 export function medicalDocumentTypeLabel(type: string): string {
