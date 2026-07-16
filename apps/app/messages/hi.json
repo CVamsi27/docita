@@ -172,6 +172,42 @@
       "severityCritical": "गंभीर/जीवन-घातक",
       "notesLabel": "नैदानिक नोट्स",
       "notesPlaceholder": "नैदानिक नोट्स"
+    },
+    "investigation": {
+      "emptyState": "कोई जाँच दर्ज नहीं। ज़रूरत पड़ने पर इमेजिंग या लैब जोड़ें।",
+      "nameLabel": "नाम",
+      "namePlaceholder": "अध्ययन या जाँच का नाम",
+      "categoryLabel": "श्रेणी",
+      "categoryLaboratory": "प्रयोगशाला",
+      "categoryImaging": "इमेजिंग",
+      "categorySpecial": "विशेष",
+      "categoryOther": "अन्य",
+      "statusLabel": "स्थिति",
+      "statusOrdered": "आदेशित",
+      "statusPending": "लंबित",
+      "statusCompleted": "पूर्ण",
+      "statusCancelled": "रद्द",
+      "notesLabel": "नोट्स / परिणाम",
+      "notesPlaceholder": "निष्कर्ष",
+      "removeInvestigationTooltip": "जाँच हटाएँ",
+      "removeAttachmentTooltip": "अनुलग्नक हटाएँ",
+      "viewAttachment": "अनुलग्नक देखें",
+      "attachReportAriaLabel": "रिपोर्ट या स्कैन संलग्न करें",
+      "attachReport": "रिपोर्ट संलग्न करें",
+      "uploading": "अपलोड हो रहा है…"
+    },
+    "workspaceActions": {
+      "planAndRx": "योजना और नुस्खा",
+      "collectPayment": "भुगतान लें",
+      "scheduleFollowUp": "फ़ॉलो-अप निर्धारित करें",
+      "viewPrescriptions": "नुस्खे देखें",
+      "viewInvoices": "बिल देखें",
+      "viewLabTests": "लैब टेस्ट देखें",
+      "viewMessages": "संदेश देखें",
+      "codingQueue": "कोडिंग कतार",
+      "moreButton": "अधिक",
+      "moreOptionsAriaLabel": "अधिक विकल्प",
+      "patientRecordsLabel": "मरीज़ रिकॉर्ड"
     }
   }
 }

@@ -172,6 +172,42 @@
       "severityCritical": "Critical",
       "notesLabel": "Clinical notes",
       "notesPlaceholder": "Clinical notes"
+    },
+    "investigation": {
+      "emptyState": "No investigations recorded. Add imaging or labs when needed.",
+      "nameLabel": "Name",
+      "namePlaceholder": "Study or test name",
+      "categoryLabel": "Category",
+      "categoryLaboratory": "Laboratory",
+      "categoryImaging": "Imaging",
+      "categorySpecial": "Special",
+      "categoryOther": "Other",
+      "statusLabel": "Status",
+      "statusOrdered": "Ordered",
+      "statusPending": "Pending",
+      "statusCompleted": "Completed",
+      "statusCancelled": "Cancelled",
+      "notesLabel": "Notes / results",
+      "notesPlaceholder": "Findings",
+      "removeInvestigationTooltip": "Remove investigation",
+      "removeAttachmentTooltip": "Remove attachment",
+      "viewAttachment": "View attachment",
+      "attachReportAriaLabel": "Attach a report or scan",
+      "attachReport": "Attach report",
+      "uploading": "Uploading…"
+    },
+    "workspaceActions": {
+      "planAndRx": "Plan & Rx",
+      "collectPayment": "Collect payment",
+      "scheduleFollowUp": "Schedule follow-up",
+      "viewPrescriptions": "View prescriptions",
+      "viewInvoices": "View invoices",
+      "viewLabTests": "View lab tests",
+      "viewMessages": "View messages",
+      "codingQueue": "Coding queue",
+      "moreButton": "More",
+      "moreOptionsAriaLabel": "More options",
+      "patientRecordsLabel": "Patient records"
     }
   }
 }
