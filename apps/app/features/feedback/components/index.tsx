@@ -24,11 +24,21 @@ import {
   ThumbsUp,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
+import { useTranslations } from "next-intl";
 
 import {
   FeedbackType,
   useFeedbackLogic,
 } from "@/features/feedback/hooks/use-feedback-logic";
+
+/**
+ * Phase 3 (per-feature): apps/app Feedback > Form components
+ * (FeedbackForm + QuickFeedback). 6 literals converted to
+ * useTranslations("Feedback.form").
+ */
+function useFeedbackFormTranslations() {
+  return useTranslations("Feedback.form");
+}
 
 export const FeedbackForm: FC<{
   onSubmit?: (feedback: {
@@ -37,6 +47,7 @@ export const FeedbackForm: FC<{
     type: string;
   }) => void;
 }> = ({ onSubmit }) => {
+  const t = useFeedbackFormTranslations();
   const {
     rating,
     setRating,
@@ -53,14 +64,14 @@ export const FeedbackForm: FC<{
         <div className="flex items-center gap-3">
           <MessageSquare className="h-5 w-5 text-primary" />
           <div>
-            <CardTitle>Send feedback</CardTitle>
-            <CardDescription>We&apos;d love to hear from you</CardDescription>
+            <CardTitle>{t("formTitle")}</CardTitle>
+            <CardDescription>{t("formDescription")}</CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
-          <Label>How would you rate your experience?</Label>
+          <Label>{t("ratingLabel")}</Label>
           <div className="flex gap-2">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
@@ -83,42 +94,41 @@ export const FeedbackForm: FC<{
         </div>
 
         <p className="text-muted-foreground mb-4">
-          We&apos;re always looking to improve Docita. Share your thoughts,
-          report bugs, or suggest new features.
+          {t("helperParagraph")}
         </p>
 
         <div className="space-y-2">
-          <Label>Feedback type</Label>
+          <Label>{t("feedbackTypeLabel")}</Label>
           <div className="flex gap-2">
             {(
               [
-                { id: "bug", label: "Bug Report", icon: Frown },
-                { id: "feature", label: "Feature Request", icon: Smile },
-                { id: "general", label: "General", icon: Meh },
+                { id: "bug", label: t("typeBugReport"), icon: Frown },
+                { id: "feature", label: t("typeFeatureRequest"), icon: Smile },
+                { id: "general", label: t("typeGeneral"), icon: Meh },
               ] as const satisfies ReadonlyArray<{
                 id: FeedbackType;
                 label: string;
                 icon: typeof Frown;
               }>
-            ).map((t) => (
+            ).map((ft) => (
               <Button
-                key={t.id}
-                variant={type === t.id ? "default" : "outline"}
+                key={ft.id}
+                variant={type === ft.id ? "default" : "outline"}
                 size="sm"
-                onClick={() => setType(t.id)}
+                onClick={() => setType(ft.id)}
                 className="gap-2"
               >
-                <t.icon className="h-4 w-4" />
-                {t.label}
+                <ft.icon className="h-4 w-4" />
+                {ft.label}
               </Button>
             ))}
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label>Your message</Label>
+          <Label>{t("messageLabel")}</Label>
           <Textarea
-            placeholder="Enter feedback"
+            placeholder={t("messagePlaceholder")}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={4}
@@ -127,7 +137,7 @@ export const FeedbackForm: FC<{
 
         <Button onClick={handleSubmit} className="w-full gap-2">
           <Send className="h-4 w-4" />
-          Submit feedback
+          {t("submitButton")}
         </Button>
       </CardContent>
     </Card>
@@ -137,9 +147,10 @@ export const FeedbackForm: FC<{
 export const QuickFeedback: FC<{
   onFeedback?: (positive: boolean) => void;
 }> = ({ onFeedback }) => {
+  const t = useFeedbackFormTranslations();
   return (
     <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/50">
-      <span className="text-sm text-muted-foreground">Was this helpful?</span>
+      <span className="text-sm text-muted-foreground">{t("quickPrompt")}</span>
       <div className="flex gap-2">
         <Button
           variant="ghost"
@@ -148,7 +159,7 @@ export const QuickFeedback: FC<{
           className="gap-1 hover:text-success hover:bg-success"
         >
           <ThumbsUp className="h-4 w-4" />
-          Yes
+          {t("yesButton")}
         </Button>
         <Button
           variant="ghost"
@@ -157,7 +168,7 @@ export const QuickFeedback: FC<{
           className="gap-1 hover:text-destructive hover:bg-destructive"
         >
           <ThumbsDown className="h-4 w-4" />
-          No
+          {t("noButton")}
         </Button>
       </div>
     </div>
