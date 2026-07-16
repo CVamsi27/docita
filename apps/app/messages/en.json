@@ -620,6 +620,29 @@
       "tipsTip3": "Avoid shadows and blur"
     }
   },
+  "AiAssistant": {
+    "smartTasksTab": {
+      "comingSoonNotice": "The Smart Task Engine is in active development. The quick actions and automation history below are sample data and are not yet wired to live workflows.",
+      "engineTitle": "Smart Task Engine",
+      "engineDescription": "AI-powered workflow automation",
+      "taskTypeLabel": "Task type",
+      "taskTypePlaceholder": "Task type",
+      "taskFollowUps": "Schedule Follow-ups",
+      "taskRecalls": "Patient recalls",
+      "taskReminders": "Custom reminders",
+      "taskReports": "Generate reports",
+      "quickActionsTitle": "Quick actions",
+      "actionAutoFollowUps": "Auto-schedule all pending follow-ups",
+      "actionSendReminders": "Send reminders to no-show risks",
+      "actionGenerateReport": "Generate weekly summary report",
+      "recentAutomationsTitle": "Recent Automations",
+      "automationReminders": "Sent 15 appointment reminders",
+      "automationMonthlyReport": "Generated monthly analytics report",
+      "automationFollowUps": "Scheduled 8 follow-up appointments",
+      "time2HoursAgo": "2 hours ago",
+      "time1DayAgo": "1 day ago"
+    }
+  },
   "Analytics": {
     "advancedMetrics": {
       "revenueTrendsTitle": "Revenue trends",

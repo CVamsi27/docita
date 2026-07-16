@@ -620,6 +620,29 @@
       "tipsTip3": "छाया और धुंध से बचें"
     }
   },
+  "AiAssistant": {
+    "smartTasksTab": {
+      "comingSoonNotice": "स्मार्ट टास्क इंजन सक्रिय विकास में है। नीचे दिए गए क्विक एक्शन और ऑटोमेशन इतिहास नमूना डेटा हैं और अभी तक लाइव वर्कफ़्लो से जुड़े नहीं हैं।",
+      "engineTitle": "स्मार्ट टास्क इंजन",
+      "engineDescription": "AI-संचालित वर्कफ़्लो स्वचालन",
+      "taskTypeLabel": "टास्क प्रकार",
+      "taskTypePlaceholder": "टास्क प्रकार",
+      "taskFollowUps": "फ़ॉलो-अप शेड्यूल करें",
+      "taskRecalls": "रोगी रिकॉल",
+      "taskReminders": "कस्टम रिमाइंडर",
+      "taskReports": "रिपोर्ट बनाएँ",
+      "quickActionsTitle": "क्विक एक्शन",
+      "actionAutoFollowUps": "सभी लंबित फ़ॉलो-अप स्वतः शेड्यूल करें",
+      "actionSendReminders": "नो-शो जोखिम वालों को रिमाइंडर भेजें",
+      "actionGenerateReport": "साप्ताहिक सारांश रिपोर्ट बनाएँ",
+      "recentAutomationsTitle": "हालिया स्वचालन",
+      "automationReminders": "15 अपॉइंटमेंट रिमाइंडर भेजे गए",
+      "automationMonthlyReport": "मासिक एनालिटिक्स रिपोर्ट बनाई गई",
+      "automationFollowUps": "8 फ़ॉलो-अप अपॉइंटमेंट शेड्यूल किए गए",
+      "time2HoursAgo": "2 घंटे पहले",
+      "time1DayAgo": "1 दिन पहले"
+    }
+  },
   "Analytics": {
     "advancedMetrics": {
       "revenueTrendsTitle": "राजस्व रुझान",
