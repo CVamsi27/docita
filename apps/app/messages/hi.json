@@ -384,6 +384,24 @@
       "whatsAppActiveHelper": "अपने WhatsApp प्रेषक नंबर को यहाँ कॉन्फ़िगर करें",
       "whatsAppSettingsLink": "WhatsApp सेटिंग्स",
       "whatsAppUpgradeHelper": "प्रोफेशनल और ऊपर के प्लान पर उपलब्ध। अपना नंबर जोड़ने के लिए प्लान अपग्रेड करें।"
+    },
+    "timeAway": {
+      "doctorLabel": "चिकित्सक",
+      "doctorPlaceholder": "चिकित्सक",
+      "fullDayLabel": "हर दिन पूरे दिन",
+      "awayFromLabel": "यहाँ से",
+      "awayUntilLabel": "यहाँ तक",
+      "startDateLabel": "प्रारंभ तिथि",
+      "endDateLabel": "समाप्ति तिथि",
+      "reasonLabel": "कारण (वैकल्पिक)",
+      "reasonPlaceholder": "कारण",
+      "scheduledTitle": "निर्धारित अनुपस्थिति",
+      "emptyMessage": "अभी तक कोई अनुपस्थिति दर्ज नहीं।",
+      "removeTooltip": "अनुपस्थिति हटाएँ",
+      "cardTitle": "अनुपस्थिति",
+      "cardDescription": "छुट्टियों या अन्य पूरे-दिन अनुपस्थितियों के लिए अपना कैलेंडर ब्लॉक करें। Leave टैब के तहत अवकाश अनुरोधों से अलग।",
+      "savingLabel": "सहेज रहे हैं",
+      "addTimeAwayButton": "अनुपस्थिति जोड़ें"
     }
   },
   "Invoices": {
