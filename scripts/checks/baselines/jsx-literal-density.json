@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T06:50:01.380Z",
-  "totalLiterals": 1054,
+  "generatedAt": "2026-07-16T06:51:34.253Z",
+  "totalLiterals": 1047,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -122,7 +122,6 @@
     "apps/app/features/invoices/components/list/InvoicesFilters.tsx": 5,
     "apps/app/features/invoices/components/list/InvoicesTableSections.tsx": 4,
     "apps/app/features/ipd/components/beds/bed-management-ui.tsx": 2,
-    "apps/app/features/ipd/components/dashboard/dashboard-view.tsx": 7,
     "apps/app/features/ipd/components/forms/admission-form.tsx": 5,
     "apps/app/features/ipd/components/modals/AdmissionActions.tsx": 1,
     "apps/app/features/ipd/components/modals/AdmissionFormFields.tsx": 6,

@@ -806,6 +806,18 @@
       "errorBed": "एक उपलब्ध बिस्तर चुनें",
       "errorDoctor": "उपस्थित चिकित्सक चुनें",
       "errorDiagnosis": "भर्ती निदान दर्ज करें"
+    },
+    "dashboard": {
+      "totalBedsLabel": "कुल बिस्तर",
+      "admittedLabel": "भर्ती",
+      "dischargesLabel": "आज की छुट्टियाँ",
+      "wardsLabel": "वार्ड",
+      "wardOverviewTitle": "वार्ड अवलोकन",
+      "wardOverviewDescription": "वार्ड के अनुसार वर्तमान बिस्तर अधिभोग",
+      "emptyTitle": "अभी तक कोई वार्ड कॉन्फ़िगर नहीं किया गया",
+      "floorLabel": "मंजिल {floor}",
+      "occupancyValue": "{occupied}/{total}",
+      "occupiedLabel": "अधिभृत"
     }
   },
   "LabTests": {
