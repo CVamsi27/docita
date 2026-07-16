@@ -567,5 +567,15 @@
       "viewPatientsButton": "रोगी देखें",
       "importMoreButton": "और आयात करें"
     }
+  },
+  "Ipd": {
+    "admission": {
+      "modalTitle": "रोगी को भर्ती करें",
+      "modalDescription": "इनपेशेंट भर्ती शुरू करने के लिए बिस्तर और उपस्थित चिकित्सक असाइन करें।",
+      "errorPatientId": "रोगी ID या MRN दर्ज करें",
+      "errorBed": "एक उपलब्ध बिस्तर चुनें",
+      "errorDoctor": "उपस्थित चिकित्सक चुनें",
+      "errorDiagnosis": "भर्ती निदान दर्ज करें"
+    }
   }
 }

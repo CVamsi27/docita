@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T05:42:56.217Z",
-  "totalLiterals": 1181,
+  "generatedAt": "2026-07-16T05:46:50.341Z",
+  "totalLiterals": 1180,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -131,7 +131,7 @@
     "apps/app/features/ipd/components/modals/AdmissionActions.tsx": 1,
     "apps/app/features/ipd/components/modals/AdmissionFormFields.tsx": 6,
     "apps/app/features/ipd/components/modals/AdmissionPatientInfo.tsx": 1,
-    "apps/app/features/ipd/components/modals/admission-modal.tsx": 8,
+    "apps/app/features/ipd/components/modals/admission-modal.tsx": 7,
     "apps/app/features/lab-portal/components/auth/lab-portal-login-ui.tsx": 3,
     "apps/app/features/lab-tests/components/details/lab-results-summary.tsx": 2,
     "apps/app/features/lab-tests/components/dialogs/OrderLabTestDialog.tsx": 2,

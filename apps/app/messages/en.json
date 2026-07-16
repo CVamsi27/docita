@@ -567,5 +567,15 @@
       "viewPatientsButton": "View Patients",
       "importMoreButton": "Import More"
     }
+  },
+  "Ipd": {
+    "admission": {
+      "modalTitle": "Admit patient",
+      "modalDescription": "Assign a bed and attending doctor to start an inpatient admission.",
+      "errorPatientId": "Enter the patient ID or MRN",
+      "errorBed": "Select an available bed",
+      "errorDoctor": "Select the attending doctor",
+      "errorDiagnosis": "Enter the admission diagnosis"
+    }
   }
 }
