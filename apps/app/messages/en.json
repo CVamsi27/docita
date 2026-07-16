@@ -262,6 +262,18 @@
       "summaryDiscount": "Discount",
       "summaryGrandTotal": "Grand Total"
     },
+    "patientSummaryCard": {
+      "ageYears": "{age}y",
+      "alertLabel": "ALERT",
+      "allergiesTooltip": "Allergies",
+      "allergiesTitle": "Allergies",
+      "contactTitle": "Contact information",
+      "phoneLabel": "Phone: {phone}",
+      "emailLabel": "Email: {email}",
+      "emergencyLabel": "Emergency: {contact}",
+      "lastVisitTitle": "Last visit",
+      "noPreviousVisitsLabel": "No previous visits"
+    },
     "diagnosisItemRow": {
       "diagnosisAriaLabel": "Diagnosis",
       "rowTitle": "Diagnosis #{index}",

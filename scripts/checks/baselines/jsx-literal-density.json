@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T12:33:36.971Z",
-  "totalLiterals": 983,
+  "generatedAt": "2026-07-16T12:56:45.035Z",
+  "totalLiterals": 976,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -48,7 +48,6 @@
     "apps/app/features/consultation/components/ConsultationWorkspaceExtras.tsx": 3,
     "apps/app/features/consultation/components/PatientContextCardUISections.tsx": 4,
     "apps/app/features/consultation/components/PatientSearchSection.tsx": 1,
-    "apps/app/features/consultation/components/PatientSummaryCardUI.tsx": 7,
     "apps/app/features/consultation/components/consultation-page-header-toolbar-sections.tsx": 1,
     "apps/app/features/consultation/components/consultation-sidebar-sections.tsx": 5,
     "apps/app/features/consultation/components/modals/BillingLineItemsEditor.tsx": 3,

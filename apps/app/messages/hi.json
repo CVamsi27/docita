@@ -262,6 +262,18 @@
       "summaryDiscount": "छूट",
       "summaryGrandTotal": "कुल योग"
     },
+    "patientSummaryCard": {
+      "ageYears": "{age} वर्ष",
+      "alertLabel": "चेतावनी",
+      "allergiesTooltip": "एलर्जी",
+      "allergiesTitle": "एलर्जी",
+      "contactTitle": "संपर्क जानकारी",
+      "phoneLabel": "फ़ोन: {phone}",
+      "emailLabel": "ईमेल: {email}",
+      "emergencyLabel": "आपातकालीन: {contact}",
+      "lastVisitTitle": "अंतिम यात्रा",
+      "noPreviousVisitsLabel": "कोई पिछली यात्रा नहीं"
+    },
     "diagnosisItemRow": {
       "diagnosisAriaLabel": "निदान",
       "rowTitle": "निदान #{index}",
