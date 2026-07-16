@@ -1,6 +1,7 @@
 // check-as-cast-density: allow-file — narrowing casts required by generic signatures or external types
 "use client";
 
+import { useTranslations } from "next-intl";
 import { formatDate } from "@workspace/utils";
 import {
   CONSENT_DATA_CATEGORIES,
@@ -15,6 +16,20 @@ export interface ConsentDocumentClinicInfo {
   logo?: string | null;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Settings > Compliance >
+ * Consent Template document. This is a legal document — most
+ * of the body text is intentionally not translated (it needs
+ * legal review before any translation can ship). The
+ * conversion here covers only the chrome: section header
+ * labels and the few UI strings the ratchet counts. The
+ * long body paragraphs stay as English literals until a
+ * lawyer-approved Hindi translation is available.
+ */
+function useConsentDocumentTranslations() {
+  return useTranslations("Settings.consentDocument");
+}
+
 // ---------------------------------------------------------------------------
 // DocumentHeader
 // ---------------------------------------------------------------------------
@@ -25,6 +40,7 @@ interface DocumentHeaderProps {
 }
 
 export function DocumentHeader({ clinic, issueDate }: DocumentHeaderProps) {
+  const t = useConsentDocumentTranslations();
   return (
     <div className="space-y-4 border-b pb-6">
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row">
@@ -32,13 +48,13 @@ export function DocumentHeader({ clinic, issueDate }: DocumentHeaderProps) {
           {clinic?.logo ? (
             <img
               src={clinic.logo}
-              alt={clinic.name ? `${clinic.name} logo` : "Facility logo"}
+              alt={clinic.name ? `${clinic.name} logo` : t("facilityLogoFallback")}
               className="h-20 w-20 rounded-lg object-contain"
             />
           ) : null}
           <div className="flex flex-col gap-1">
             <h1 className="ui-page-title text-primary leading-[var(--lh-tight)]">
-              {clinic?.name ?? "Your facility"}
+              {clinic?.name ?? t("facilityNameFallback")}
             </h1>
             {clinic?.address ? (
               <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
@@ -48,12 +64,12 @@ export function DocumentHeader({ clinic, issueDate }: DocumentHeaderProps) {
             <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
               {clinic?.phone ? (
                 <span>
-                  <span className="opacity-70">Phone:</span> {clinic.phone}
+                  <span className="opacity-70">{t("phoneLabel")}:</span> {clinic.phone}
                 </span>
               ) : null}
               {clinic?.email ? (
                 <span>
-                  <span className="opacity-70">Email:</span> {clinic.email}
+                  <span className="opacity-70">{t("emailLabel")}:</span> {clinic.email}
                 </span>
               ) : null}
             </div>
@@ -61,21 +77,20 @@ export function DocumentHeader({ clinic, issueDate }: DocumentHeaderProps) {
         </div>
         <div className="rounded-lg bg-muted/20 p-3 text-left md:bg-transparent md:p-0 md:text-right">
           <p className="text-xs uppercase tracking-wider text-muted-foreground">
-            Document
+            {t("documentTag")}
           </p>
-          <p className="font-semibold">Patient Data &amp; Consent Form</p>
+          <p className="font-semibold">{t("documentTitle")}</p>
           <p className="text-xs text-muted-foreground">
-            Issued {formatDate(issueDate, "dd MMMM yyyy")}
+            {t("documentIssued", { date: formatDate(issueDate, "dd MMMM yyyy") })}
           </p>
         </div>
       </div>
       <div className="text-center">
         <h2 className="ui-section-title">
-          Patient Consent for Collection and Use of Health Data
+          {t("documentHeading")}
         </h2>
         <p className="ui-page-subtitle text-muted-foreground">
-          Provided under the Digital Personal Data Protection Act, 2023 and
-          applicable healthcare record-handling standards.
+          {t("documentSubheading")}
         </p>
       </div>
     </div>
@@ -87,18 +102,18 @@ export function DocumentHeader({ clinic, issueDate }: DocumentHeaderProps) {
 // ---------------------------------------------------------------------------
 
 export function PatientInfoSection() {
+  const t = useConsentDocumentTranslations();
   return (
     <section className="space-y-2">
-      <h3 className="text-base font-semibold">1. Patient Information</h3>
+      <h3 className="text-base font-semibold">{t("section1Title")}</h3>
       <p className="text-muted-foreground">
-        Please verify the details on file. If anything is incorrect, ask the
-        facility to update your record before signing.
+        {t("section1Body")}
       </p>
       <div className="grid grid-cols-1 gap-x-6 gap-y-3 pt-2 md:grid-cols-2">
-        <SignatureField label="Patient name" />
-        <SignatureField label="Date of birth" />
-        <SignatureField label="MRN / Patient ID" />
-        <SignatureField label="Phone number" />
+        <SignatureField label={t("fieldPatientName")} />
+        <SignatureField label={t("fieldDateOfBirth")} />
+        <SignatureField label={t("fieldMrn")} />
+        <SignatureField label={t("fieldPhoneNumber")} />
       </div>
     </section>
   );
@@ -109,16 +124,15 @@ export function PatientInfoSection() {
 // ---------------------------------------------------------------------------
 
 export function DataCategoriesSection() {
+  const t = useConsentDocumentTranslations();
   return (
     <section className="space-y-3">
       <div>
         <h3 className="text-base font-semibold">
-          2. Categories of Data We Collect
+          {t("section2Title")}
         </h3>
         <p className="text-muted-foreground">
-          The facility named above collects, processes, and stores the
-          following categories of personal and health data about you. Each
-          entry lists the purpose for which the data is used.
+          {t("section2Body")}
         </p>
       </div>
       <div className="divide-y rounded-md border">
@@ -145,32 +159,26 @@ export function DataCategoriesSection() {
 // ---------------------------------------------------------------------------
 
 export function DataUsageSection() {
+  const t = useConsentDocumentTranslations();
   return (
     <section className="space-y-2">
-      <h3 className="text-base font-semibold">3. How We Use Your Data</h3>
-      <p>Your data is processed only for the following purposes:</p>
+      <h3 className="text-base font-semibold">{t("section3Title")}</h3>
+      <p>{t("section3Body")}</p>
       <ul className="list-disc space-y-1 pl-5">
         <li>
-          Delivering clinical care, including diagnosis, treatment, and
-          continuity across visits.
+          {t("section3Bullet1")}
         </li>
         <li>
-          Communicating appointments, follow-ups, prescriptions, and lab
-          results through channels you opt into (such as WhatsApp, SMS, or
-          email).
+          {t("section3Bullet2")}
         </li>
         <li>
-          Generating invoices, processing payments, and supporting insurance
-          claims where applicable.
+          {t("section3Bullet3")}
         </li>
         <li>
-          Maintaining mandatory clinical, billing, and audit records under
-          Indian healthcare regulations.
+          {t("section3Bullet4")}
         </li>
         <li>
-          Anonymous, aggregated quality and safety reporting. Identifiable
-          data is never sold, leased, or used for marketing without your
-          separate opt-in.
+          {t("section3Bullet5")}
         </li>
       </ul>
     </section>
@@ -182,17 +190,14 @@ export function DataUsageSection() {
 // ---------------------------------------------------------------------------
 
 export function ThirdPartySharingSection() {
+  const t = useConsentDocumentTranslations();
   return (
     <section className="space-y-2">
       <h3 className="text-base font-semibold">
-        4. Sharing With Third Parties
+        {t("section4Title")}
       </h3>
       <p>
-        Your data may be shared only with: (a) clinicians directly involved
-        in your care, (b) labs and pharmacies you are referred to, (c)
-        statutory or regulatory authorities when required by law, and (d)
-        secure cloud and technology vendors bound by data-processing
-        agreements consistent with the DPDP Act, 2023.
+        {t("section4Body")}
       </p>
     </section>
   );
@@ -203,12 +208,12 @@ export function ThirdPartySharingSection() {
 // ---------------------------------------------------------------------------
 
 export function DataRetentionSection() {
+  const t = useConsentDocumentTranslations();
   return (
     <section className="space-y-2">
-      <h3 className="text-base font-semibold">5. Data Retention</h3>
+      <h3 className="text-base font-semibold">{t("section5Title")}</h3>
       <p>
-        Records are retained only for as long as necessary for clinical,
-        legal, and regulatory purposes. Indicative retention periods:
+        {t("section5Body")}
       </p>
       <ul className="list-disc space-y-1 pl-5">
         {CONSENT_RETENTION_SUMMARY.map((entry) => (
@@ -227,34 +232,30 @@ export function DataRetentionSection() {
 // ---------------------------------------------------------------------------
 
 export function YourRightsSection() {
+  const t = useConsentDocumentTranslations();
   return (
     <section className="space-y-2">
-      <h3 className="text-base font-semibold">6. Your Rights</h3>
+      <h3 className="text-base font-semibold">{t("section6Title")}</h3>
       <p>
-        Under the Digital Personal Data Protection Act, 2023, you have the
-        right to:
+        {t("section6Body")}
       </p>
       <ul className="list-disc space-y-1 pl-5">
-        <li>Access a copy of the personal data we hold about you.</li>
+        <li>{t("section6Right1")}</li>
         <li>
-          Request correction of inaccurate or out-of-date information.
+          {t("section6Right2")}
         </li>
         <li>
-          Request deletion of data that is no longer required for care or
-          legal reasons.
+          {t("section6Right3")}
         </li>
         <li>
-          Withdraw any consent you have given (for example, WhatsApp
-          communications).
+          {t("section6Right4")}
         </li>
         <li>
-          Nominate a person to exercise these rights on your behalf in case
-          of incapacity or death.
+          {t("section6Right5")}
         </li>
       </ul>
       <p className="text-muted-foreground">
-        To exercise any of these rights, contact the facility using the
-        details at the top of this form.
+        {t("section6Footer")}
       </p>
     </section>
   );
@@ -265,27 +266,24 @@ export function YourRightsSection() {
 // ---------------------------------------------------------------------------
 
 export function ConsentSection() {
+  const t = useConsentDocumentTranslations();
   return (
     <section className="space-y-3">
-      <h3 className="text-base font-semibold">7. Patient Consent</h3>
+      <h3 className="text-base font-semibold">{t("section7Title")}</h3>
       <p>
-        I confirm that I have read and understood this form. I consent to
-        the facility collecting, processing, and storing the categories of
-        data listed above for the purposes described, in compliance with the
-        Digital Personal Data Protection Act, 2023 and applicable healthcare
-        record-handling standards.
+        {t("section7Body")}
       </p>
       <ConsentOptionRow
-        label="Consent to general health data collection and storage (required for care)"
-        options={["Granted", "Declined"]}
+        label={t("consentRow1")}
+        options={[t("consentGranted"), t("consentDeclined")]}
       />
       <ConsentOptionRow
-        label="Consent to WhatsApp reminders and follow-ups"
-        options={["Granted", "Declined"]}
+        label={t("consentRow2")}
+        options={[t("consentGranted"), t("consentDeclined")]}
       />
       <ConsentOptionRow
-        label="Consent to email and SMS notifications"
-        options={["Granted", "Declined"]}
+        label={t("consentRow3")}
+        options={[t("consentGranted"), t("consentDeclined")]}
       />
     </section>
   );
@@ -296,24 +294,25 @@ export function ConsentSection() {
 // ---------------------------------------------------------------------------
 
 export function SignatureSection() {
+  const t = useConsentDocumentTranslations();
   return (
     <section className="space-y-4 pt-2">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="space-y-2">
-          <SignatureLine label="Patient signature" />
-          <SignatureField label="Date" />
+          <SignatureLine label={t("signaturePatient")} />
+          <SignatureField label={t("signatureDate")} />
         </div>
         <div className="space-y-2">
-          <SignatureLine label="Guardian / authorised signatory (if applicable)" />
-          <SignatureField label="Relationship to patient" />
+          <SignatureLine label={t("signatureGuardian")} />
+          <SignatureField label={t("signatureRelationship")} />
         </div>
         <div className="space-y-2">
-          <SignatureLine label="Witness / staff signature" />
-          <SignatureField label="Staff name &amp; role" />
+          <SignatureLine label={t("signatureWitness")} />
+          <SignatureField label={t("signatureStaff")} />
         </div>
         <div className="space-y-2">
-          <SignatureField label="Date and time of signing" />
-          <SignatureField label="Facility reference / consent ID" />
+          <SignatureField label={t("signatureDateTime")} />
+          <SignatureField label={t("signatureFacilityRef")} />
         </div>
       </div>
     </section>
@@ -325,16 +324,14 @@ export function SignatureSection() {
 // ---------------------------------------------------------------------------
 
 export function DocumentFooter() {
+  const t = useConsentDocumentTranslations();
   return (
     <div className="border-t pt-4 text-center text-xs text-muted-foreground">
       <p className="font-medium">
-        This form should be retained with the patient&apos;s medical record.
-        A digital audit trail of the recorded consent is maintained by the
-        facility.
+        {t("footerHeading")}
       </p>
       <p>
-        For questions about how your data is handled, contact the facility
-        named above.
+        {t("footerBody")}
       </p>
     </div>
   );

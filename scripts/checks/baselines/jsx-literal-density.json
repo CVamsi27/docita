@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T03:50:27.170Z",
-  "totalLiterals": 1307,
+  "generatedAt": "2026-07-16T03:52:59.448Z",
+  "totalLiterals": 1297,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -273,7 +273,6 @@
     "apps/app/features/settings/components/compliance/compliance-data-cards.tsx": 3,
     "apps/app/features/settings/components/compliance/compliance-log-request-dialog.tsx": 1,
     "apps/app/features/settings/components/compliance/compliance-patient-rights-card.tsx": 4,
-    "apps/app/features/settings/components/compliance/consent-template-document-sections.tsx": 10,
     "apps/app/features/settings/components/custom-fields/CustomFieldsSettings.tsx": 5,
     "apps/app/features/settings/components/danger-zone/DangerZoneSettings.tsx": 3,
     "apps/app/features/settings/components/doctor-profile/DoctorProfileSettingsSections.tsx": 7,
