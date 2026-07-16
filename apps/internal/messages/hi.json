@@ -432,6 +432,21 @@
       "nextButton": "अगला"
     }
   },
+  "InternalSupport": {
+    "inquiriesSection": {
+      "title": "संपर्क फ़ॉर्म पूछताछ",
+      "loadErrorFallback": "हम अभी संपर्क फ़ॉर्म पूछताछ लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+      "loadingLabel": "संपर्क पूछताछ लोड हो रही हैं…",
+      "emptyTitle": "अभी तक कोई पूछताछ नहीं",
+      "emptyDescription": "सार्वजनिक संपर्क फ़ॉर्म के माध्यम से सबमिट किए गए संदेश यहाँ दिखाई देंगे।",
+      "colReceived": "प्राप्त",
+      "colName": "नाम",
+      "colEmail": "ईमेल",
+      "colClinic": "क्लिनिक",
+      "colStatus": "स्थिति",
+      "colMessage": "संदेश"
+    }
+  },
   "InternalPaymentProcessing": {
     "formFields": {
       "tierLabel": "स्तर में अपग्रेड करें",

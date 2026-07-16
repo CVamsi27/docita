@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T06:51:34.253Z",
-  "totalLiterals": 1047,
+  "generatedAt": "2026-07-16T06:53:11.104Z",
+  "totalLiterals": 1040,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -360,7 +360,6 @@
     "apps/internal/features/pricing/pricing-page.tsx": 4,
     "apps/internal/features/support/support-inbox-thread-list.tsx": 1,
     "apps/internal/features/support/support-inbox-thread-sections.tsx": 1,
-    "apps/internal/features/support/support-inquiries-section.tsx": 7,
     "apps/internal/features/system-monitoring/experience-tab.tsx": 6,
     "apps/internal/features/system-monitoring/health-tab.tsx": 2,
     "apps/internal/features/system-monitoring/ops-tab.tsx": 5,
