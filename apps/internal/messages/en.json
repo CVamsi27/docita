@@ -482,6 +482,17 @@
       "categoryDescription": "Guided setup is separate from the software subscription. Default amount follows the list price for the clinic's currency; adjust to match your invoice.",
       "amountLabel": "Amount ({currency})",
       "amountPlaceholder": "Enter amount"
+    },
+    "chargeSummary": {
+      "paymentMethodLabel": "Payment method",
+      "paymentMethodRazorpay": "Razorpay",
+      "paymentMethodStripe": "Stripe",
+      "paymentMethodBank": "Bank transfer",
+      "paymentMethodManual": "Manual",
+      "razorpayIdLabel": "Razorpay payment ID (optional)",
+      "razorpayIdPlaceholder": "Enter Razorpay payment id",
+      "notesLabel": "Notes (optional)",
+      "notesPlaceholder": "Scope, invoice reference, or internal note"
     }
   },
   "InternalFeedback": {

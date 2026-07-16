@@ -15,11 +15,22 @@ import {
 } from "@workspace/ui/components/form/select";
 import { Input } from "@workspace/ui/components/form/input";
 import { Textarea } from "@workspace/ui/components/form/textarea";
+import { useTranslations } from "next-intl";
 import type { PaymentProcessingPageViewModel } from "@/features/payment-processing/use-payment-processing-page";
 
 type ChargeSummaryProps = Pick<PaymentProcessingPageViewModel, 'additionalChargeForm'>;
 
+/**
+ * Phase 3 (per-feature): apps/internal Payment processing > Charge
+ * summary. 7 literals converted to
+ * useTranslations("InternalPaymentProcessing.chargeSummary").
+ */
+function useChargeSummaryTranslations() {
+  return useTranslations("InternalPaymentProcessing.chargeSummary");
+}
+
 export function ChargeSummary({ additionalChargeForm }: ChargeSummaryProps) {
+  const t = useChargeSummaryTranslations();
   return (
     <>
       <FormField
@@ -27,7 +38,7 @@ export function ChargeSummary({ additionalChargeForm }: ChargeSummaryProps) {
         name="paymentMethod"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Payment method</FormLabel>
+            <FormLabel>{t("paymentMethodLabel")}</FormLabel>
             <Select value={field.value} onValueChange={field.onChange}>
               <FormControl>
                 <SelectTrigger>
@@ -35,10 +46,10 @@ export function ChargeSummary({ additionalChargeForm }: ChargeSummaryProps) {
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="razorpay">Razorpay</SelectItem>
-                <SelectItem value="stripe">Stripe</SelectItem>
-                <SelectItem value="bank_transfer">Bank transfer</SelectItem>
-                <SelectItem value="manual">Manual</SelectItem>
+                <SelectItem value="razorpay">{t("paymentMethodRazorpay")}</SelectItem>
+                <SelectItem value="stripe">{t("paymentMethodStripe")}</SelectItem>
+                <SelectItem value="bank_transfer">{t("paymentMethodBank")}</SelectItem>
+                <SelectItem value="manual">{t("paymentMethodManual")}</SelectItem>
               </SelectContent>
             </Select>
             <FormMessage />
@@ -51,9 +62,9 @@ export function ChargeSummary({ additionalChargeForm }: ChargeSummaryProps) {
         name="razorpayPaymentId"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Razorpay payment ID (optional)</FormLabel>
+            <FormLabel>{t("razorpayIdLabel")}</FormLabel>
             <FormControl>
-              <Input placeholder="Enter Razorpay payment id" {...field} />
+              <Input placeholder={t("razorpayIdPlaceholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -65,9 +76,9 @@ export function ChargeSummary({ additionalChargeForm }: ChargeSummaryProps) {
         name="notes"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Notes (optional)</FormLabel>
+            <FormLabel>{t("notesLabel")}</FormLabel>
             <FormControl>
-              <Textarea placeholder="Scope, invoice reference, or internal note" rows={3} {...field} />
+              <Textarea placeholder={t("notesPlaceholder")} rows={3} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
