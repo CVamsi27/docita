@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T12:30:45.483Z",
-  "totalLiterals": 995,
+  "generatedAt": "2026-07-16T12:32:06.561Z",
+  "totalLiterals": 989,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -316,7 +316,6 @@
     "apps/app/features/whatsapp/components/WhatsappOperationsPageContent.tsx": 1,
     "apps/internal/features/admins/AdminCreateDialog.tsx": 1,
     "apps/internal/features/admins/AdminEditDialog.tsx": 1,
-    "apps/internal/features/admins/AdminViewDialog.tsx": 6,
     "apps/internal/features/admins/admin-dialog-shell.tsx": 1,
     "apps/internal/features/analytics/analytics-billing-cards.tsx": 3,
     "apps/internal/features/analytics/analytics-dashboard-sections.tsx": 4,
