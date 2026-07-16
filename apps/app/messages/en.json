@@ -577,5 +577,43 @@
       "errorDoctor": "Select the attending doctor",
       "errorDiagnosis": "Enter the admission diagnosis"
     }
+  },
+  "LabTests": {
+    "directory": {
+      "typeLabel": "Type",
+      "typeInHouse": "In-house",
+      "typeExternalPartner": "External partner",
+      "editTitle": "Edit lab",
+      "addTitle": "Add lab",
+      "editDescription": "Update this lab's details.",
+      "addDescription": "Register a lab to route test orders to it.",
+      "nameLabel": "Name",
+      "namePlaceholder": "Lab name",
+      "phoneLabel": "Phone (optional)",
+      "phonePlaceholder": "Phone",
+      "emailLabel": "Email (optional)",
+      "emailPlaceholder": "Email",
+      "addressLabel": "Address (optional)",
+      "addressPlaceholder": "Address",
+      "cancelButton": "Cancel",
+      "saveButton": "Save",
+      "addLabSubmit": "Add Lab",
+      "deactivateAriaLabel": "Deactivate lab",
+      "activateAriaLabel": "Activate lab",
+      "activeLabel": "Active",
+      "editButton": "Edit",
+      "typeExternal": "External",
+      "typeInHouseBadge": "In-house",
+      "colLab": "Lab",
+      "colContact": "Contact",
+      "colStatus": "Status",
+      "colActions": "Actions",
+      "pageTitle": "Labs",
+      "pageDescription": "Manage in-house and external labs that fulfil test orders.",
+      "addLabButton": "Add Lab",
+      "loadingLabel": "Loading labs…",
+      "emptyTitle": "No labs yet",
+      "emptyDescription": "Add an in-house or external lab to route test orders to it."
+    }
   }
 }
