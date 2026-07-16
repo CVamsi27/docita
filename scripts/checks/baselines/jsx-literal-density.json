@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T02:27:38.444Z",
-  "totalLiterals": 1404,
+  "generatedAt": "2026-07-16T02:29:26.117Z",
+  "totalLiterals": 1393,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -343,7 +343,6 @@
     "apps/internal/features/admins/AdminCreateDialog.tsx": 1,
     "apps/internal/features/admins/AdminEditDialog.tsx": 1,
     "apps/internal/features/admins/AdminViewDialog.tsx": 6,
-    "apps/internal/features/admins/AdminsTable.tsx": 11,
     "apps/internal/features/admins/admin-dialog-shell.tsx": 1,
     "apps/internal/features/analytics/analytics-billing-cards.tsx": 3,
     "apps/internal/features/analytics/analytics-dashboard-sections.tsx": 4,

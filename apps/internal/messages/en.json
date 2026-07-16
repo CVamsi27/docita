@@ -267,5 +267,25 @@
       "responseDistributionTitle": "Response Time Distribution",
       "responseDistributionDescription": "Request latency buckets from live API request logs"
     }
+  },
+  "InternalAdmins": {
+    "table": {
+      "cardTitle": "Admins ({count})",
+      "emptyTitleNoAdmins": "No admins found",
+      "emptyTitleSelectClinic": "Select a clinic to view admins",
+      "emptyDescriptionNoAdmins": "Create one by clicking 'Add Admin'.",
+      "emptyDescriptionSelectClinic": "Choose a facility to load the administrator list.",
+      "colName": "Name",
+      "colEmail": "Email",
+      "colPhone": "Phone",
+      "colType": "Type",
+      "colAccess": "Access",
+      "colCreated": "Created",
+      "colActions": "Actions",
+      "accessDisabled": "Disabled",
+      "accessActive": "Active",
+      "reenableAdminSrLabel": "Re-enable admin",
+      "deactivateAdminSrLabel": "Deactivate admin"
+    }
   }
 }

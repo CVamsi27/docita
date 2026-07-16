@@ -267,5 +267,25 @@
       "responseDistributionTitle": "प्रतिक्रिया समय वितरण",
       "responseDistributionDescription": "लाइव API अनुरोध लॉग से अनुरोध विलंबता बकेट"
     }
+  },
+  "InternalAdmins": {
+    "table": {
+      "cardTitle": "व्यवस्थापक ({count})",
+      "emptyTitleNoAdmins": "कोई व्यवस्थापक नहीं मिला",
+      "emptyTitleSelectClinic": "व्यवस्थापक देखने के लिए क्लिनिक चुनें",
+      "emptyDescriptionNoAdmins": "'व्यवस्थापक जोड़ें' पर क्लिक करके एक बनाएँ।",
+      "emptyDescriptionSelectClinic": "व्यवस्थापक सूची लोड करने के लिए एक सुविधा चुनें।",
+      "colName": "नाम",
+      "colEmail": "ईमेल",
+      "colPhone": "फ़ोन",
+      "colType": "प्रकार",
+      "colAccess": "पहुँच",
+      "colCreated": "बनाया गया",
+      "colActions": "क्रियाएँ",
+      "accessDisabled": "बंद",
+      "accessActive": "सक्रिय",
+      "reenableAdminSrLabel": "व्यवस्थापक को पुनः सक्षम करें",
+      "deactivateAdminSrLabel": "व्यवस्थापक को निष्क्रिय करें"
+    }
   }
 }
