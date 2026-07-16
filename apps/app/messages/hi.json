@@ -274,6 +274,23 @@
       "lastVisitTitle": "अंतिम यात्रा",
       "noPreviousVisitsLabel": "कोई पिछली यात्रा नहीं"
     },
+    "psychiatryExamSection": {
+      "sectionTitle": "मानसिक स्थिति परीक्षा",
+      "sectionDescription": "MSE, जोखिम मूल्यांकन, और मनोरोग योजना।",
+      "mseLabel": "मानसिक स्थिति परीक्षा",
+      "msePlaceholder": "मानसिक स्थिति परीक्षा",
+      "suicideRiskLabel": "आत्महत्या जोखिम",
+      "suicideRiskPlaceholder": "आत्महत्या जोखिम",
+      "homicideRiskLabel": "हत्या जोखिम",
+      "homicideRiskPlaceholder": "हत्या जोखिम",
+      "riskManagementLabel": "जोखिम प्रबंधन / सुरक्षा योजना",
+      "riskManagementPlaceholder": "सुरक्षा योजना",
+      "riskNotAssessed": "मूल्यांकित नहीं",
+      "riskLow": "कम",
+      "riskModerate": "मध्यम",
+      "riskHigh": "उच्च",
+      "riskImminent": "तात्कालिक"
+    },
     "diagnosisItemRow": {
       "diagnosisAriaLabel": "निदान",
       "rowTitle": "निदान #{index}",

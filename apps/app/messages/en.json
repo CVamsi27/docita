@@ -274,6 +274,23 @@
       "lastVisitTitle": "Last visit",
       "noPreviousVisitsLabel": "No previous visits"
     },
+    "psychiatryExamSection": {
+      "sectionTitle": "Mental Status Examination",
+      "sectionDescription": "MSE, risk assessment, and psychiatric plan.",
+      "mseLabel": "Mental status examination",
+      "msePlaceholder": "Mental status examination",
+      "suicideRiskLabel": "Suicide risk",
+      "suicideRiskPlaceholder": "Suicide risk",
+      "homicideRiskLabel": "Homicide risk",
+      "homicideRiskPlaceholder": "Homicide risk",
+      "riskManagementLabel": "Risk management / safety plan",
+      "riskManagementPlaceholder": "Safety plan",
+      "riskNotAssessed": "Not assessed",
+      "riskLow": "Low",
+      "riskModerate": "Moderate",
+      "riskHigh": "High",
+      "riskImminent": "Imminent"
+    },
     "diagnosisItemRow": {
       "diagnosisAriaLabel": "Diagnosis",
       "rowTitle": "Diagnosis #{index}",
