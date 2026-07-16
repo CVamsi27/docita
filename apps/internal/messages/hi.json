@@ -287,5 +287,31 @@
       "reenableAdminSrLabel": "व्यवस्थापक को पुनः सक्षम करें",
       "deactivateAdminSrLabel": "व्यवस्थापक को निष्क्रिय करें"
     }
+  },
+  "InternalSystemLogs": {
+    "table": {
+      "levelDebug": "DEBUG",
+      "levelInfo": "INFO",
+      "levelWarning": "WARNING",
+      "levelError": "ERROR",
+      "severityLabel": "गंभीरता",
+      "allSeverities": "सभी गंभीरताएँ",
+      "moduleLabel": "मॉड्यूल / स्रोत",
+      "allModules": "सभी मॉड्यूल",
+      "searchLabel": "खोज",
+      "searchPlaceholder": "संदेश",
+      "pageSizeLabel": "पृष्ठ आकार",
+      "activeFilterBadge": "{count, plural, one {1 फ़िल्टर सक्रिय} other {{count} फ़िल्टर सक्रिय}}",
+      "resetFiltersButton": "फ़िल्टर रीसेट करें",
+      "colTimestamp": "समय-चिह्न",
+      "colLevel": "स्तर",
+      "colModule": "मॉड्यूल",
+      "colMessage": "संदेश",
+      "loadingLogs": "लॉग लोड हो रहे हैं…",
+      "noMatchingLogs": "कोई मेल खाने वाले लॉग नहीं मिले।",
+      "paginationSummary": "{start}-{end} / {total} दिखा रहे हैं",
+      "previousButton": "पिछला",
+      "nextButton": "अगला"
+    }
   }
 }
