@@ -484,6 +484,24 @@
       "amountPlaceholder": "राशि दर्ज करें"
     }
   },
+  "InternalFeedback": {
+    "viewDialog": {
+      "title": "फ़ीडबैक विवरण",
+      "description": "{name} ({email}) से {clinic} पर",
+      "overallRatingLabel": "समग्र रेटिंग",
+      "ratingValue": "{rating}/5",
+      "categoryLabel": "श्रेणी",
+      "submittedLabel": "सबमिट किया गया",
+      "likedFeaturesTitle": "पसंदीदा सुविधाएँ",
+      "dislikedFeaturesTitle": "नापसंद सुविधाएँ",
+      "improvementTitle": "सुधार के क्षेत्र",
+      "featureRequestsLabel": "सुविधा अनुरोध",
+      "generalCommentsLabel": "सामान्य टिप्पणियाँ",
+      "adminNotesLabel": "व्यवस्थापक नोट्स",
+      "adminNotesPlaceholder": "फ़ीडबैक नोट्स",
+      "updateStatusLabel": "स्थिति अपडेट करें:"
+    }
+  },
   "InternalDashboard": {
     "clinicList": {
       "loadingLabel": "सुविधाएँ लोड हो रही हैं…",
