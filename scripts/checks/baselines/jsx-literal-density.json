@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T06:02:07.789Z",
-  "totalLiterals": 1104,
+  "generatedAt": "2026-07-16T06:03:47.527Z",
+  "totalLiterals": 1097,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -99,7 +99,6 @@
     "apps/app/features/guided-tour/components/guided-tour-provider.tsx": 3,
     "apps/app/features/help/components/index.tsx": 4,
     "apps/app/features/import/components/BulkImportDialogUI.tsx": 1,
-    "apps/app/features/import/components/ImportPageContent.tsx": 7,
     "apps/app/features/import/components/bulk-import/BulkImportStepDownload.tsx": 2,
     "apps/app/features/import/components/bulk-import/BulkImportStepProgress.tsx": 2,
     "apps/app/features/import/components/bulk-import/BulkImportStepUpload.tsx": 3,
