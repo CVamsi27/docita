@@ -417,5 +417,38 @@
       "statusActive": "Active",
       "statusInactive": "Inactive"
     }
+  },
+  "InternalUsers": {
+    "searchPlaceholder": "Enter name, email, or specialization",
+    "filterByFacilityAriaLabel": "Filter by facility",
+    "facilityPlaceholder": "Facility",
+    "allFacilities": "All Facilities",
+    "teamMembersTitle": "Team Members ({count})",
+    "noTeamMembersTitle": "No team members found",
+    "noMatchingUsersTitle": "No users match your search criteria",
+    "emptyDescription": "Try adjusting the facility filter or search query.",
+    "colName": "Name",
+    "colEmail": "Email",
+    "colRole": "Role",
+    "colSpecialization": "Specialization",
+    "colPhone": "Phone",
+    "colJoined": "Joined",
+    "colActions": "Actions",
+    "viewButton": "View",
+    "userDetailsTitle": "User Details",
+    "userDetailsDescription": "Review team member contact details and professional credentials.",
+    "fieldName": "Name",
+    "fieldEmail": "Email",
+    "fieldRole": "Role",
+    "fieldPhoneNumber": "Phone Number",
+    "notAvailable": "N/A",
+    "professionalInfoTitle": "Professional Information",
+    "fieldSpecialization": "Specialization",
+    "fieldQualification": "Qualification",
+    "fieldRegistrationNumber": "Registration Number",
+    "fieldExperience": "Experience",
+    "yearsValue": "{count, plural, one {1 year} other {{count} years}}",
+    "fieldBio": "Bio",
+    "fieldJoined": "Joined"
   }
 }

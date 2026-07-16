@@ -1,6 +1,59 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UsersPageContainer } from "./users-page-container";
+
+const messages = {
+  InternalUsers: {
+    searchPlaceholder: "Enter name, email, or specialization",
+    filterByFacilityAriaLabel: "Filter by facility",
+    facilityPlaceholder: "Facility",
+    allFacilities: "All Facilities",
+    teamMembersTitle: "Team Members ({count})",
+    noTeamMembersTitle: "No team members found",
+    noMatchingUsersTitle: "No users match your search criteria",
+    emptyDescription: "Try adjusting the facility filter or search query.",
+    colName: "Name",
+    colEmail: "Email",
+    colRole: "Role",
+    colSpecialization: "Specialization",
+    colPhone: "Phone",
+    colJoined: "Joined",
+    colActions: "Actions",
+    viewButton: "View",
+    userDetailsTitle: "User Details",
+    userDetailsDescription: "Review team member contact details and professional credentials.",
+    fieldName: "Name",
+    fieldEmail: "Email",
+    fieldRole: "Role",
+    fieldPhoneNumber: "Phone Number",
+    notAvailable: "N/A",
+    professionalInfoTitle: "Professional Information",
+    fieldSpecialization: "Specialization",
+    fieldQualification: "Qualification",
+    fieldRegistrationNumber: "Registration Number",
+    fieldExperience: "Experience",
+    yearsValue: "{count, plural, one {1 year} other {{count} years}}",
+    fieldBio: "Bio",
+    fieldJoined: "Joined",
+  },
+};
+
+function renderWithIntl(node: React.ReactNode) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      {node}
+    </NextIntlClientProvider>,
+  );
+}
+
+function withIntl(node: React.ReactNode) {
+  return (
+    <NextIntlClientProvider locale="en" messages={messages}>
+      {node}
+    </NextIntlClientProvider>
+  );
+}
 
 const usersDataMocks = vi.hoisted(() => ({
   setSearchTerm: vi.fn(),
@@ -88,7 +141,7 @@ describe("UsersPageContainer", () => {
   });
 
   it("filters users and opens the user details action", () => {
-    render(<UsersPageContainer />);
+    renderWithIntl(<UsersPageContainer />);
 
     expect(screen.getByText("Team Members (1)")).toBeInTheDocument();
     expect(screen.getByText("Dr. Asha Rao")).toBeInTheDocument();
@@ -111,7 +164,7 @@ describe("UsersPageContainer", () => {
     usersDataMocks.state.selectedUser = doctor;
     usersDataMocks.state.isViewOpen = true;
 
-    render(<UsersPageContainer />);
+    renderWithIntl(<UsersPageContainer />);
 
     expect(screen.getByText("User Details")).toBeInTheDocument();
     expect(screen.getAllByText("Dr. Asha Rao")).toHaveLength(2);
@@ -124,18 +177,18 @@ describe("UsersPageContainer", () => {
   it("shows loading, empty, and error states", () => {
     usersDataMocks.state.loading = true;
     usersDataMocks.state.filteredUsers = [];
-    const { rerender } = render(<UsersPageContainer />);
+    const { rerender } = renderWithIntl(<UsersPageContainer />);
     expect(screen.getByText("Loading team members…")).toBeInTheDocument();
 
     usersDataMocks.state.loading = false;
     usersDataMocks.state.users = [];
     usersDataMocks.state.filteredUsers = [];
-    rerender(<UsersPageContainer />);
+    rerender(withIntl(<UsersPageContainer />));
     expect(screen.getByText("No team members found")).toBeInTheDocument();
 
     usersDataMocks.state.hasError = true;
     usersDataMocks.state.errorMessage = "Network unavailable";
-    rerender(<UsersPageContainer />);
+    rerender(withIntl(<UsersPageContainer />));
     expect(screen.getByText("Network unavailable")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(usersDataMocks.retry).toHaveBeenCalled();
