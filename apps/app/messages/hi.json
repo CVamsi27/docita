@@ -686,6 +686,30 @@
       "automationFollowUps": "8 फ़ॉलो-अप अपॉइंटमेंट शेड्यूल किए गए",
       "time2HoursAgo": "2 घंटे पहले",
       "time1DayAgo": "1 दिन पहले"
+    },
+    "prescriptionAssistantTab": {
+      "title": "नुस्खा सहायक",
+      "description": "AI-संचालित दवा सुझाव और दवा परस्पर क्रिया जाँच प्राप्त करें",
+      "symptomsLabel": "लक्षण / मुख्य शिकायत",
+      "symptomsPlaceholder": "लक्षण या मुख्य शिकायत दर्ज करें",
+      "diagnosisLabel": "कार्यशील निदान",
+      "diagnosisPlaceholder": "कार्यशील निदान",
+      "currentMedicationsLabel": "वर्तमान दवाएँ (परस्पर क्रिया जाँच के लिए)",
+      "currentMedicationsPlaceholder": "वर्तमान दवाएँ दर्ज करें",
+      "allergiesLabel": "ज्ञात एलर्जी",
+      "allergiesPlaceholder": "ज्ञात एलर्जी",
+      "analyzingLabel": "विश्लेषण हो रहा है…",
+      "getSuggestionsButton": "सुझाव प्राप्त करें",
+      "emptyHelper": "AI-संचालित दवा सुझाव प्राप्त करने के लिए लक्षण और निदान दर्ज करें",
+      "interactionsTitle": "दवा परस्पर क्रिया का पता चला",
+      "interactionPair": "{drug1} ↔ {drug2}",
+      "suggestionsTitle": "सुझाई गई दवाएँ",
+      "addToPrescriptionButton": "नुस्खे में जोड़ें",
+      "dosageLabel": "खुराक:",
+      "routeLabel": "मार्ग:",
+      "frequencyLabel": "आवृत्ति:",
+      "durationLabel": "अवधि:",
+      "noteLabel": "नोट: {note}"
     }
   },
   "Analytics": {

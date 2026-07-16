@@ -1,11 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T11:29:09.765Z",
-  "totalLiterals": 1007,
+  "generatedAt": "2026-07-16T12:29:08.046Z",
+  "totalLiterals": 1001,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
-    "apps/app/features/ai-assistant/components/tabs/PrescriptionAssistantTab.tsx": 6,
     "apps/app/features/analytics/components/AnalyticsPageUI.tsx": 3,
     "apps/app/features/analytics/components/charts/AnalyticsUpgradeState.tsx": 1,
     "apps/app/features/analytics/components/charts/ComplianceDashboard.tsx": 2,
