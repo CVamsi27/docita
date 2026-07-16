@@ -498,5 +498,19 @@
       "tableDateHeader": "Date",
       "tableNotesHeader": "Notes"
     }
+  },
+  "Prescriptions": {
+    "documentHeader": {
+      "facilityLogoAlt": "Facility logo",
+      "phoneLabel": "Phone:",
+      "emailLabel": "Email:",
+      "supportLabel": "Support:",
+      "doctorPrefix": "Dr. {name}",
+      "regLabel": "Reg: {reg}",
+      "patientNameLabel": "Patient Name",
+      "ageLabel": "Age: {age} yrs",
+      "genderLabel": "Gender: {gender}",
+      "dateLabel": "Date"
+    }
   }
 }
