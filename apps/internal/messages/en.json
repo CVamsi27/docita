@@ -508,6 +508,21 @@
       "razorpayIdPlaceholder": "Enter Razorpay payment id",
       "notesLabel": "Notes (optional)",
       "notesPlaceholder": "Scope, invoice reference, or internal note"
+    },
+    "clinicsSection": {
+      "title": "Facilities Payment Management",
+      "description": "Select a facility to change plan and record subscription payment, or record an add-on charge (for example guided setup)",
+      "emptyTitle": "No facilities found",
+      "emptyDescription": "Facilities will appear here once they are provisioned for billing.",
+      "colFacilityName": "Facility Name",
+      "colCurrentTier": "Current Tier",
+      "colMaxDoctors": "Max Doctors",
+      "colMaxPatients": "Max Patients",
+      "colEmail": "Email",
+      "colCurrency": "Currency",
+      "colActions": "Actions",
+      "managePlanButton": "Manage plan payment",
+      "addOnChargeButton": "Add-on charge"
     }
   },
   "InternalFeedback": {
