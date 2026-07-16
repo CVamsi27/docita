@@ -905,6 +905,31 @@
       "tipsDuplicatesBody": "Patients with matching phone numbers or matching name + date of birth will be flagged duplicate and skipped."
     }
   },
+  "InsuranceClaims": {
+    "createFormSections": {
+      "presetPatientLabel": "Creating a claim for {name}.",
+      "readinessTitle": "Invoice claim readiness",
+      "readinessLoadingLabel": "Checking clinical coding…",
+      "readinessReadyLabel": "This invoice is ready for insurance submission.",
+      "readinessIssuesHeader": "Complete these items before submitting the claim:",
+      "patientLabel": "Patient",
+      "patientSearchPlaceholder": "Search patients…",
+      "patientLoadingPlaceholder": "Loading…",
+      "patientSelectPlaceholder": "Select a patient",
+      "claimTypeLabel": "Claim type",
+      "claimedAmountLabel": "Claimed amount",
+      "insurerLabel": "Insurer",
+      "insurerPlaceholder": "e.g. Star Health",
+      "tpaLabel": "TPA (optional)",
+      "tpaPlaceholder": "Third-party administrator",
+      "policyNumberLabel": "Policy number",
+      "groupNumberLabel": "Group number (optional)",
+      "notesLabel": "Notes (optional)",
+      "cancelButton": "Cancel",
+      "creatingLabel": "Creating…",
+      "createClaimButton": "Create claim"
+    }
+  },
   "Ipd": {
     "admission": {
       "modalTitle": "Admit patient",
