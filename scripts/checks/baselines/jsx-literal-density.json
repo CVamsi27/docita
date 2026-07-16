@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T06:03:47.527Z",
-  "totalLiterals": 1097,
+  "generatedAt": "2026-07-16T06:05:10.595Z",
+  "totalLiterals": 1089,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -112,7 +112,6 @@
     "apps/app/features/invoices/components/details/InvoiceBillTo.tsx": 3,
     "apps/app/features/invoices/components/details/InvoiceHeader.tsx": 4,
     "apps/app/features/invoices/components/details/InvoiceItemsTableReadOnly.tsx": 6,
-    "apps/app/features/invoices/components/details/InvoicePaymentActivitySection.tsx": 7,
     "apps/app/features/invoices/components/details/InvoiceTotalsSection.tsx": 3,
     "apps/app/features/invoices/components/dialogs/InvoiceItemsSection.tsx": 1,
     "apps/app/features/invoices/components/dialogs/InvoiceStatusSection.tsx": 1,
@@ -267,7 +266,7 @@
     "apps/app/features/settings/components/custom-fields/CustomFieldsSettings.tsx": 5,
     "apps/app/features/settings/components/danger-zone/DangerZoneSettings.tsx": 3,
     "apps/app/features/settings/components/doctor-profile/DoctorProfileSettingsSections.tsx": 7,
-    "apps/app/features/settings/components/doctor-profile/RegistrationCertificateUpload.tsx": 2,
+    "apps/app/features/settings/components/doctor-profile/RegistrationCertificateUpload.tsx": 1,
     "apps/app/features/settings/components/leave/ApplyLeaveDialog.tsx": 1,
     "apps/app/features/settings/components/leave/ApplyLeaveDialogSections.tsx": 6,
     "apps/app/features/settings/components/leave/LeaveBalanceCard.tsx": 1,

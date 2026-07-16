@@ -462,6 +462,67 @@
       "notesPlaceholder": "Notes"
     }
   },
+  "Invoices": {
+    "totals": {
+      "amountInWordsLabel": "Amount in Words:",
+      "notesLabel": "Notes:",
+      "subtotalLabel": "Subtotal",
+      "discountLabel": "Discount",
+      "taxableValueLabel": "Taxable value",
+      "taxLabel": "Tax",
+      "documentLabel": "Document",
+      "totalLabel": "Total",
+      "amountPaidLabel": "Amount paid",
+      "balanceDueLabel": "Balance due"
+    },
+    "itemsTable": {
+      "emptyMessage": "No items added yet.",
+      "colDescription": "Description",
+      "colQty": "Qty",
+      "colUnitPrice": "Unit price",
+      "colTax": "Tax",
+      "colGstPercent": "GST %",
+      "colHsnSac": "HSN/SAC",
+      "colTotal": "Total",
+      "itemDescriptionPlaceholder": "Item description",
+      "taxHealthcareExempt": "Healthcare exempt",
+      "taxTaxable": "Taxable",
+      "taxExempt": "Exempt",
+      "taxNonGst": "Non-GST",
+      "hsnCodePlaceholder": "HSN code",
+      "removeLineItemTooltip": "Remove {name, select, undefined {line item} other {{name}}}"
+    },
+    "formSections": {
+      "invoiceDetailsTitle": "Invoice details",
+      "lineItemsTitle": "Line items",
+      "addItemButton": "Add Item",
+      "statusLabel": "Status",
+      "statusPlaceholder": "Status",
+      "statusPending": "Pending",
+      "statusPaid": "Paid",
+      "statusOverdue": "Overdue",
+      "statusCancelled": "Cancelled",
+      "notesTitle": "Notes",
+      "notesDescription": "Add any additional notes or payment instructions",
+      "notesPlaceholder": "Notes"
+    },
+    "paymentActivity": {
+      "loadingLabel": "Loading payment activity…",
+      "emptyTitle": "No payment activity yet",
+      "emptyDescription": "Desk settlements and online payment sessions will appear here once recorded.",
+      "paidByLabel": "Paid by {channel}",
+      "refLabel": "Ref: {reference}",
+      "openPaymentLink": "Open payment link",
+      "openLinkButton": "Open",
+      "colDate": "Date",
+      "colAmount": "Amount",
+      "colSource": "Source",
+      "colStatus": "Status",
+      "colReference": "Reference",
+      "colNotes": "Notes",
+      "colLink": "Link"
+    }
+  },
   "Ocr": {
     "invoiceDraft": {
       "subtotalLabel": "Subtotal",

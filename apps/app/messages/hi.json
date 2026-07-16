@@ -462,6 +462,67 @@
       "notesPlaceholder": "टिप्पणियाँ"
     }
   },
+  "Invoices": {
+    "totals": {
+      "amountInWordsLabel": "शब्दों में राशि:",
+      "notesLabel": "टिप्पणियाँ:",
+      "subtotalLabel": "उप-योग",
+      "discountLabel": "छूट",
+      "taxableValueLabel": "कर योग्य मूल्य",
+      "taxLabel": "कर",
+      "documentLabel": "दस्तावेज़",
+      "totalLabel": "कुल",
+      "amountPaidLabel": "भुगतान की गई राशि",
+      "balanceDueLabel": "देय शेष"
+    },
+    "itemsTable": {
+      "emptyMessage": "अभी तक कोई आइटम नहीं जोड़ा गया।",
+      "colDescription": "विवरण",
+      "colQty": "मात्रा",
+      "colUnitPrice": "इकाई मूल्य",
+      "colTax": "कर",
+      "colGstPercent": "GST %",
+      "colHsnSac": "HSN/SAC",
+      "colTotal": "कुल",
+      "itemDescriptionPlaceholder": "आइटम विवरण",
+      "taxHealthcareExempt": "स्वास्थ्य छूट",
+      "taxTaxable": "कर योग्य",
+      "taxExempt": "छूट",
+      "taxNonGst": "गैर-GST",
+      "hsnCodePlaceholder": "HSN कोड",
+      "removeLineItemTooltip": "{name, select, undefined {पंक्ति आइटम हटाएँ} other {{name} हटाएँ}}"
+    },
+    "formSections": {
+      "invoiceDetailsTitle": "चालान विवरण",
+      "lineItemsTitle": "लाइन आइटम",
+      "addItemButton": "आइटम जोड़ें",
+      "statusLabel": "स्थिति",
+      "statusPlaceholder": "स्थिति",
+      "statusPending": "लंबित",
+      "statusPaid": "भुगतान किया गया",
+      "statusOverdue": "अतिदेय",
+      "statusCancelled": "रद्द किया गया",
+      "notesTitle": "टिप्पणियाँ",
+      "notesDescription": "कोई अतिरिक्त टिप्पणी या भुगतान निर्देश जोड़ें",
+      "notesPlaceholder": "टिप्पणियाँ"
+    },
+    "paymentActivity": {
+      "loadingLabel": "भुगतान गतिविधि लोड हो रही है…",
+      "emptyTitle": "अभी तक कोई भुगतान गतिविधि नहीं",
+      "emptyDescription": "डेस्क निपटान और ऑनलाइन भुगतान सत्र दर्ज होने पर यहाँ दिखाई देंगे।",
+      "paidByLabel": "{channel} द्वारा भुगतान",
+      "refLabel": "संदर्भ: {reference}",
+      "openPaymentLink": "भुगतान लिंक खोलें",
+      "openLinkButton": "खोलें",
+      "colDate": "तारीख",
+      "colAmount": "राशि",
+      "colSource": "स्रोत",
+      "colStatus": "स्थिति",
+      "colReference": "संदर्भ",
+      "colNotes": "टिप्पणियाँ",
+      "colLink": "लिंक"
+    }
+  },
   "Ocr": {
     "invoiceDraft": {
       "subtotalLabel": "उप-योग",
