@@ -579,6 +579,16 @@
     }
   },
   "LabTests": {
+    "overview": {
+      "pendingTitle": "लंबित",
+      "pendingHelper": "प्रसंस्करण की प्रतीक्षा",
+      "inProgressTitle": "प्रगति में",
+      "inProgressHelper": "वर्तमान में प्रसंस्करण",
+      "completedTitle": "पूर्ण",
+      "completedHelper": "परिणाम उपलब्ध",
+      "urgentTitle": "अत्यावश्यक",
+      "urgentHelper": "उच्च प्राथमिकता वाले टेस्ट"
+    },
     "directory": {
       "typeLabel": "प्रकार",
       "typeInHouse": "इन-हाउस",
