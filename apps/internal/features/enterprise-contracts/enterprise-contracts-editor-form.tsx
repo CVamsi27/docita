@@ -1,6 +1,7 @@
 "use client";
 
 import { parseStringEnumMember } from "@workspace/utils";
+import { useTranslations } from "next-intl";
 import {
   ENTERPRISE_BILLING_CYCLES,
   ENTERPRISE_CONTRACT_STATUSES,
@@ -26,17 +27,29 @@ type EnterpriseContractsEditorFormProps = Pick<
   "form" | "setForm" | "editorMode" | "applyPreset"
 >;
 
+/**
+ * Phase 3 (per-feature): the enterprise contracts editor form
+ * is the apps/internal admin view for creating/editing group
+ * contracts (clinic group, contract number, status, billing
+ * cycle, dates, currency, platform fee, quote presets). 20
+ * literals converted to useTranslations.
+ */
+function useEnterpriseContractsTranslations() {
+  return useTranslations("InternalEnterpriseContracts.editor");
+}
+
 export function EnterpriseContractsEditorForm({
   form,
   setForm,
   editorMode,
   applyPreset,
 }: EnterpriseContractsEditorFormProps) {
+  const t = useEnterpriseContractsTranslations();
   return (
     <>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <div>
-          <Label>Primary clinic ID</Label>
+          <Label>{t("primaryClinicIdLabel")}</Label>
           <Input
             value={form.primaryClinicId}
             onChange={(e) =>
@@ -46,17 +59,17 @@ export function EnterpriseContractsEditorForm({
           />
         </div>
         <div>
-          <Label>Group name (optional)</Label>
+          <Label>{t("groupNameLabel")}</Label>
           <Input
             value={form.groupName}
-            placeholder="e.g. Apollo Group"
+            placeholder={t("groupNamePlaceholder")}
             onChange={(e) =>
               setForm((f) => ({ ...f, groupName: e.target.value }))
             }
           />
         </div>
         <div>
-          <Label>Contract number</Label>
+          <Label>{t("contractNumberLabel")}</Label>
           <Input
             value={form.contractNumber}
             onChange={(e) =>
@@ -65,7 +78,7 @@ export function EnterpriseContractsEditorForm({
           />
         </div>
         <div>
-          <Label>Status</Label>
+          <Label>{t("statusLabel")}</Label>
           <Select
             value={form.status}
             onValueChange={(v) => {
@@ -82,15 +95,15 @@ export function EnterpriseContractsEditorForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="DRAFT">Draft</SelectItem>
-              <SelectItem value="ACTIVE">Active</SelectItem>
-              <SelectItem value="EXPIRED">Expired</SelectItem>
-              <SelectItem value="TERMINATED">Terminated</SelectItem>
+              <SelectItem value="DRAFT">{t("statusDraft")}</SelectItem>
+              <SelectItem value="ACTIVE">{t("statusActive")}</SelectItem>
+              <SelectItem value="EXPIRED">{t("statusExpired")}</SelectItem>
+              <SelectItem value="TERMINATED">{t("statusTerminated")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div>
-          <Label>Billing cycle</Label>
+          <Label>{t("billingCycleLabel")}</Label>
           <Select
             value={form.billingCycle}
             onValueChange={(v) => {
@@ -106,15 +119,15 @@ export function EnterpriseContractsEditorForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="MONTHLY">Monthly</SelectItem>
-              <SelectItem value="QUARTERLY">Quarterly</SelectItem>
-              <SelectItem value="SEMI_ANNUAL">Semi-annual</SelectItem>
-              <SelectItem value="YEARLY">Yearly</SelectItem>
+              <SelectItem value="MONTHLY">{t("cycleMonthly")}</SelectItem>
+              <SelectItem value="QUARTERLY">{t("cycleQuarterly")}</SelectItem>
+              <SelectItem value="SEMI_ANNUAL">{t("cycleSemiAnnual")}</SelectItem>
+              <SelectItem value="YEARLY">{t("cycleYearly")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div>
-          <Label htmlFor="enterprise-contract-start-date">Start date</Label>
+          <Label htmlFor="enterprise-contract-start-date">{t("startDateLabel")}</Label>
           <IsoDatePickerField
             id="enterprise-contract-start-date"
             label=""
@@ -125,7 +138,7 @@ export function EnterpriseContractsEditorForm({
           />
         </div>
         <div>
-          <Label htmlFor="enterprise-contract-end-date">End date</Label>
+          <Label htmlFor="enterprise-contract-end-date">{t("endDateLabel")}</Label>
           <IsoDatePickerField
             id="enterprise-contract-end-date"
             label=""
@@ -136,7 +149,7 @@ export function EnterpriseContractsEditorForm({
           />
         </div>
         <div>
-          <Label>Currency</Label>
+          <Label>{t("currencyLabel")}</Label>
           <Input
             value={form.currency}
             onChange={(e) =>
@@ -148,7 +161,7 @@ export function EnterpriseContractsEditorForm({
           />
         </div>
         <div>
-          <Label>Platform fee ({form.currency})</Label>
+          <Label>{t("platformFeeLabel", { currency: form.currency })}</Label>
           <Input
             value={form.platformFeeINR}
             onChange={(e) =>
@@ -159,7 +172,7 @@ export function EnterpriseContractsEditorForm({
       </div>
 
       <div className="rounded-md border p-3">
-        <p className="mb-2 text-sm font-medium">Quote presets</p>
+        <p className="mb-2 text-sm font-medium">{t("quotePresetsLabel")}</p>
         <div className="flex flex-wrap gap-2">
           {ENTERPRISE_QUOTE_PRESET_KEYS.map((k) => (
             <Button

@@ -151,5 +151,52 @@
     "referrerCreateError": "कृपया रेफरर विवरण की समीक्षा करें और पुनः प्रयास करें",
     "payoutMarkedPaidToast": "भुगतान भुगतान के रूप में चिह्नित किया गया",
     "payoutMarkPaidError": "कृपया इस भुगतान को भुगतान के रूप में चिह्नित करने का पुनः प्रयास करें"
+  },
+  "InternalEnterpriseContracts": {
+    "editor": {
+      "primaryClinicIdLabel": "प्राथमिक क्लिनिक आईडी",
+      "groupNameLabel": "समूह नाम (वैकल्पिक)",
+      "groupNamePlaceholder": "उदा. अपोलो समूह",
+      "contractNumberLabel": "अनुबंध संख्या",
+      "statusLabel": "स्थिति",
+      "statusDraft": "मसौदा",
+      "statusActive": "सक्रिय",
+      "statusExpired": "समाप्त",
+      "statusTerminated": "समाप्त किया गया",
+      "billingCycleLabel": "बिलिंग चक्र",
+      "cycleMonthly": "मासिक",
+      "cycleQuarterly": "तिमाही",
+      "cycleSemiAnnual": "अर्ध-वार्षिक",
+      "cycleYearly": "वार्षिक",
+      "startDateLabel": "प्रारंभ तिथि",
+      "endDateLabel": "समाप्ति तिथि",
+      "currencyLabel": "मुद्रा",
+      "platformFeeLabel": "प्लेटफ़ॉर्म शुल्क ({currency})",
+      "quotePresetsLabel": "कोट प्रीसेट"
+    },
+    "limits": {
+      "incUsers": "शामिल उपयोगकर्ता",
+      "incConsultations": "शामिल परामर्श",
+      "incWhatsappMsgs": "शामिल व्हाट्सएप संदेश",
+      "incStorageGB": "शामिल स्टोरेज GB",
+      "incBranches": "शामिल शाखाएँ",
+      "incDoctors": "शामिल डॉक्टर",
+      "incPrescriptions": "शामिल नुस्खे",
+      "incInvoices": "शामिल बिल",
+      "overageUser": "अधिकता / उपयोगकर्ता",
+      "overageConsult": "अधिकता / परामर्श",
+      "overageWhatsapp": "अधिकता / व्हाट्सएप संदेश",
+      "overageDoctor": "अधिकता / डॉक्टर",
+      "overagePrescription": "अधिकता / नुस्खा",
+      "overageInvoice": "अधिकता / बिल",
+      "setupFee": "सेटअप शुल्क",
+      "supportRetainer": "सहायता रिटेनर",
+      "annualPrepayDiscount": "वार्षिक प्रीपे छूट %",
+      "trueUpThreshold": "ट्रू-अप सीमा %",
+      "signedDocumentUrl": "हस्ताक्षरित दस्तावेज़ URL",
+      "notes": "नोट्स",
+      "changeSummary": "परिवर्तन सारांश (संशोधन लॉग)",
+      "changeSummaryPlaceholder": "यह परिवर्तन क्यों?"
+    }
   }
 }
