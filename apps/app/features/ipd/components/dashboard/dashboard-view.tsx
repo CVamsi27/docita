@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { Activity, BedDouble, Calendar, Users } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Ward {
   id: string;
@@ -28,10 +29,20 @@ export interface IpdDashboardProps {
   beds?: Bed[];
 }
 
+/**
+ * Phase 3 (per-feature): apps/app IPD > Dashboard view
+ * (4 stat cards + ward overview). 7 literals converted to
+ * useTranslations("Ipd.dashboard").
+ */
+function useIpdDashboardTranslations() {
+  return useTranslations("Ipd.dashboard");
+}
+
 export const IpdDashboard: FC<IpdDashboardProps> = ({
   wards = [],
   beds = [],
 }) => {
+  const t = useIpdDashboardTranslations();
   const occupiedCount = beds.filter((b) => b.status === "occupied").length;
   const dischargesCount = 0;
 
@@ -47,7 +58,7 @@ export const IpdDashboard: FC<IpdDashboardProps> = ({
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                 {beds.length}
               </p>
-              <p className="text-xs text-muted-foreground">Total beds</p>
+              <p className="text-xs text-muted-foreground">{t("totalBedsLabel")}</p>
             </div>
           </CardContent>
         </Card>
@@ -60,7 +71,7 @@ export const IpdDashboard: FC<IpdDashboardProps> = ({
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                 {occupiedCount}
               </p>
-              <p className="text-xs text-muted-foreground">Admitted</p>
+              <p className="text-xs text-muted-foreground">{t("admittedLabel")}</p>
             </div>
           </CardContent>
         </Card>
@@ -73,7 +84,7 @@ export const IpdDashboard: FC<IpdDashboardProps> = ({
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                 {dischargesCount}
               </p>
-              <p className="text-xs text-muted-foreground">Discharges today</p>
+              <p className="text-xs text-muted-foreground">{t("dischargesLabel")}</p>
             </div>
           </CardContent>
         </Card>
@@ -86,7 +97,7 @@ export const IpdDashboard: FC<IpdDashboardProps> = ({
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                 {wards.length}
               </p>
-              <p className="text-xs text-muted-foreground">Wards</p>
+              <p className="text-xs text-muted-foreground">{t("wardsLabel")}</p>
             </div>
           </CardContent>
         </Card>
@@ -94,13 +105,13 @@ export const IpdDashboard: FC<IpdDashboardProps> = ({
 
       <Card className="border-none shadow-md">
         <CardHeader>
-          <CardTitle>Ward overview</CardTitle>
-          <CardDescription>Current bed occupancy by ward</CardDescription>
+          <CardTitle>{t("wardOverviewTitle")}</CardTitle>
+          <CardDescription>{t("wardOverviewDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           {wards.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
-              No wards configured yet
+              {t("emptyTitle")}
             </p>
           ) : (
             <div className="space-y-4">
@@ -117,14 +128,14 @@ export const IpdDashboard: FC<IpdDashboardProps> = ({
                     <div>
                       <p className="font-medium">{ward.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        Floor {ward.floor}
+                        {t("floorLabel", { floor: ward.floor })}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="font-medium">
-                        {occupancy}/{wardBeds.length}
+                        {t("occupancyValue", { occupied: occupancy, total: wardBeds.length })}
                       </p>
-                      <p className="text-sm text-muted-foreground">occupied</p>
+                      <p className="text-sm text-muted-foreground">{t("occupiedLabel")}</p>
                     </div>
                   </div>
                 );

@@ -806,6 +806,18 @@
       "errorBed": "Select an available bed",
       "errorDoctor": "Select the attending doctor",
       "errorDiagnosis": "Enter the admission diagnosis"
+    },
+    "dashboard": {
+      "totalBedsLabel": "Total beds",
+      "admittedLabel": "Admitted",
+      "dischargesLabel": "Discharges today",
+      "wardsLabel": "Wards",
+      "wardOverviewTitle": "Ward overview",
+      "wardOverviewDescription": "Current bed occupancy by ward",
+      "emptyTitle": "No wards configured yet",
+      "floorLabel": "Floor {floor}",
+      "occupancyValue": "{occupied}/{total}",
+      "occupiedLabel": "occupied"
     }
   },
   "LabTests": {
