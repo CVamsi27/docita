@@ -231,6 +231,21 @@
       "notes": "नोट्स",
       "changeSummary": "परिवर्तन सारांश (संशोधन लॉग)",
       "changeSummaryPlaceholder": "यह परिवर्तन क्यों?"
+    },
+    "estimate": {
+      "title": "वर्तमान अवधि अनुमान",
+      "description": "लाइव मीटर रीडिंग + अनुमानित माह-अंत चालान (सभी सदस्य क्लिनिकों में समेकित)।",
+      "loadingLabel": "लोड हो रहा है…",
+      "periodLabel": "अवधि: {start} → {end}",
+      "memberClinicCount": "{count, plural, one {1 सदस्य क्लिनिक} other {{count} सदस्य क्लिनिक}}",
+      "colMeter": "मीटर",
+      "colUsed": "उपयोग",
+      "colIncluded": "शामिल",
+      "colOverage": "अतिरिक्त",
+      "colCharge": "शुल्क",
+      "platformFeeLabel": "प्लेटफ़ॉर्म शुल्क",
+      "overageTotalLabel": "अतिरिक्त कुल",
+      "projectedTotalLabel": "अनुमानित माह कुल"
     }
   },
   "InternalPricing": {
