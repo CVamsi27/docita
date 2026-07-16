@@ -12,6 +12,7 @@ describe("medicalDocumentTypeLabel", () => {
     expect(medicalDocumentTypeLabel("DISCHARGE_SUMMARY")).toBe(
       "Discharge Summary",
     );
+    expect(medicalDocumentTypeLabel("OTHER")).toBe("Others / custom");
   });
 
   it("covers all options without falling through", () => {

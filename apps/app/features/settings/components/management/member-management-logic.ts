@@ -30,6 +30,11 @@ export function computeCanChangeSelectedMemberRole(params: {
   currentUserId: string | undefined;
 }): boolean {
   const { selectedMember, userCanChangeRoles, currentUserId } = params;
+  // parseStringEnumMember returns null (not undefined) for a non-member;
+  // both falsy values should fail the role-switch guard. Without this
+  // check, an admin could "switch" a NURSE / RECEPTIONIST to the same
+  // role and the request would be silently no-op'd server-side while
+  // the UI offered a save. Keep both null and undefined in the guard.
   return (
     !!selectedMember &&
     userCanChangeRoles &&
@@ -37,7 +42,7 @@ export function computeCanChangeSelectedMemberRole(params: {
     parseStringEnumMember(
       Array.from(ADMIN_SWITCH_ROLES),
       selectedMember.role,
-    ) !== undefined
+    ) != null
   );
 }
 
