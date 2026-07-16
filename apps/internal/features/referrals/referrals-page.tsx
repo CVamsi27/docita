@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
   type CreateInternalReferrerInput,
@@ -49,7 +50,19 @@ function rupees(cents: number): string {
   })}`;
 }
 
+/**
+ * Phase 3 (per-feature): referrals page is the apps/internal admin
+ * view of referral partners and their payout ledger. 20 literals
+ * converted to useTranslations("InternalReferrals"). Dynamic data
+ * (referrer.name, payout.status, currency formatting) stays
+ * unchanged.
+ */
+function useReferralsTranslations() {
+  return useTranslations("InternalReferrals");
+}
+
 export default function ReferralsPage() {
+  const t = useReferralsTranslations();
   const { token, isInternal } = useAuth();
   const enabled = Boolean(isInternal && token);
   const queryClient = useQueryClient();
@@ -69,7 +82,7 @@ export default function ReferralsPage() {
     mutationFn: (input: CreateInternalReferrerInput) =>
       client.post("/internal/referrers", input),
     onSuccess: () => {
-      toast.success("Referrer created");
+      toast.success(t("referrerCreatedToast"));
       setForm({ type: "MARKETING_PERSON", name: "", email: "", phone: "" });
       void queryClient.invalidateQueries({
         queryKey: internalQueryKeys.internal.referrers(),
@@ -78,7 +91,7 @@ export default function ReferralsPage() {
     onError: (error) =>
       showUserFacingErrorToast(
         error,
-        "Please review the referrer details and try again",
+        t("referrerCreateError"),
         "generic",
       ),
   });
@@ -87,7 +100,7 @@ export default function ReferralsPage() {
     mutationFn: (payoutId: string) =>
       client.post(`/internal/referral-payouts/${payoutId}/mark-paid`, {}),
     onSuccess: () => {
-      toast.success("Payout marked paid");
+      toast.success(t("payoutMarkedPaidToast"));
       void queryClient.invalidateQueries({
         queryKey: internalQueryKeys.internal.referralPayoutsRoot(),
       });
@@ -95,7 +108,7 @@ export default function ReferralsPage() {
     onError: (error) =>
       showUserFacingErrorToast(
         error,
-        "Please try marking this payout as paid again",
+        t("payoutMarkPaidError"),
         "generic",
       ),
   });
@@ -103,15 +116,12 @@ export default function ReferralsPage() {
   return (
     <div className="space-y-8 p-6">
       <div>
-        <h1 className="text-2xl font-semibold">Referrals</h1>
-        <p className="text-sm text-muted-foreground">
-          Referral partners and the revenue-share payout ledger. Payouts are
-          disbursed manually — mark a row paid once you have sent the money.
-        </p>
+        <h1 className="text-2xl font-semibold">{t("pageTitle")}</h1>
+        <p className="text-sm text-muted-foreground">{t("pageDescription")}</p>
       </div>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-medium">Payout summary</h2>
+        <h2 className="text-lg font-medium">{t("payoutSummary")}</h2>
         <div className="flex flex-wrap gap-3">
           {(summary.data ?? []).map((row) => (
             <div
@@ -121,24 +131,24 @@ export default function ReferralsPage() {
               <div className="text-muted-foreground">{row.status}</div>
               <div className="text-lg font-semibold">{rupees(row.totalCents)}</div>
               <div className="text-xs text-muted-foreground">
-                {row.count} payout(s)
+                {t("payoutsCount", { count: row.count })}
               </div>
             </div>
           ))}
           {summary.data && summary.data.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No payouts yet.</p>
+            <p className="text-sm text-muted-foreground">{t("noPayoutsYet")}</p>
           ) : null}
         </div>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-medium">Add referrer</h2>
+        <h2 className="text-lg font-medium">{t("addReferrer")}</h2>
         <form
           className="flex flex-wrap items-end gap-3"
           onSubmit={(event) => {
             event.preventDefault();
             if (!form.name.trim()) {
-              toast.warning("Enter the referrer's name to continue");
+              toast.warning(t("nameRequiredWarning"));
               return;
             }
             createReferrer.mutate({
@@ -149,7 +159,7 @@ export default function ReferralsPage() {
           }}
         >
           <label className="text-sm">
-            <span className="mb-1 block text-muted-foreground">Type</span>
+            <span className="mb-1 block text-muted-foreground">{t("typeLabel")}</span>
             <Select
               value={form.type}
               onValueChange={(value) => {
@@ -170,51 +180,51 @@ export default function ReferralsPage() {
             </Select>
           </label>
           <label className="text-sm">
-            <span className="mb-1 block text-muted-foreground">Name</span>
+            <span className="mb-1 block text-muted-foreground">{t("nameLabel")}</span>
             <Input
               value={form.name}
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, name: event.target.value }))
               }
-              placeholder="Partner name"
+              placeholder={t("namePlaceholder")}
             />
           </label>
           <label className="text-sm">
-            <span className="mb-1 block text-muted-foreground">Email</span>
+            <span className="mb-1 block text-muted-foreground">{t("emailLabel")}</span>
             <Input
               value={form.email ?? ""}
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, email: event.target.value }))
               }
-              placeholder="optional"
+              placeholder={t("optionalPlaceholder")}
             />
           </label>
           <label className="text-sm">
-            <span className="mb-1 block text-muted-foreground">Phone</span>
+            <span className="mb-1 block text-muted-foreground">{t("phoneLabel")}</span>
             <Input
               value={form.phone ?? ""}
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, phone: event.target.value }))
               }
-              placeholder="optional"
+              placeholder={t("optionalPlaceholder")}
             />
           </label>
           <Button type="submit" disabled={createReferrer.isPending}>
-            {createReferrer.isPending ? "Saving…" : "Add"}
+            {createReferrer.isPending ? t("saving") : t("addButton")}
           </Button>
         </form>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-medium">Referrers</h2>
+        <h2 className="text-lg font-medium">{t("referrers")}</h2>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Reward</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Active</TableHead>
+              <TableHead>{t("colName")}</TableHead>
+              <TableHead>{t("colType")}</TableHead>
+              <TableHead>{t("colReward")}</TableHead>
+              <TableHead>{t("colContact")}</TableHead>
+              <TableHead>{t("colActive")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -228,7 +238,7 @@ export default function ReferralsPage() {
                 </TableCell>
                 <TableCell>
                   <Badge variant={referrer.active ? "default" : "secondary"}>
-                    {referrer.active ? "Active" : "Inactive"}
+                    {referrer.active ? t("active") : t("inactive")}
                   </Badge>
                 </TableCell>
               </TableRow>
@@ -238,15 +248,15 @@ export default function ReferralsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-medium">Payout ledger</h2>
+        <h2 className="text-lg font-medium">{t("payoutLedger")}</h2>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Period start</TableHead>
-              <TableHead>Base revenue</TableHead>
-              <TableHead>Rate</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>{t("colPeriodStart")}</TableHead>
+              <TableHead>{t("colBaseRevenue")}</TableHead>
+              <TableHead>{t("colRate")}</TableHead>
+              <TableHead>{t("colAmount")}</TableHead>
+              <TableHead>{t("colStatus")}</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -277,7 +287,7 @@ export default function ReferralsPage() {
                       disabled={markPaid.isPending}
                       onClick={() => markPaid.mutate(payout.id)}
                     >
-                      Mark paid
+                      {t("markPaidButton")}
                     </Button>
                   ) : null}
                 </TableCell>

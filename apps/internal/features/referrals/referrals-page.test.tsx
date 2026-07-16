@@ -7,6 +7,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { NextIntlClientProvider } from "next-intl";
 import { DataAccessProvider, type RequestConfig } from "@workspace/data-access";
 import ReferralsPage from "./referrals-page";
 
@@ -91,6 +92,50 @@ const summaryRows = [
   { status: "PAID", count: 1, totalCents: 50000 },
 ];
 
+/**
+ * Local messages mirror for the InternalReferrals namespace — the test
+ * renders ReferralsPage via NextIntlClientProvider so useTranslations
+ * resolves against these English strings.
+ */
+const messages = {
+  InternalReferrals: {
+    pageTitle: "Referrals",
+    pageDescription: "Referral partners and the revenue-share payout ledger. Payouts are disbursed manually — mark a row paid once you have sent the money.",
+    payoutSummary: "Payout summary",
+    payoutsCount: "{count} payout(s)",
+    noPayoutsYet: "No payouts yet.",
+    addReferrer: "Add referrer",
+    nameRequiredWarning: "Enter the referrer's name to continue",
+    typeLabel: "Type",
+    nameLabel: "Name",
+    namePlaceholder: "Partner name",
+    emailLabel: "Email",
+    phoneLabel: "Phone",
+    optionalPlaceholder: "optional",
+    saving: "Saving…",
+    addButton: "Add",
+    referrers: "Referrers",
+    colName: "Name",
+    colType: "Type",
+    colReward: "Reward",
+    colContact: "Contact",
+    colActive: "Active",
+    colPeriodStart: "Period start",
+    colBaseRevenue: "Base revenue",
+    colRate: "Rate",
+    colAmount: "Amount",
+    colStatus: "Status",
+    payoutLedger: "Payout ledger",
+    active: "Active",
+    inactive: "Inactive",
+    markPaidButton: "Mark paid",
+    referrerCreatedToast: "Referrer created",
+    referrerCreateError: "Please review the referrer details and try again",
+    payoutMarkedPaidToast: "Payout marked paid",
+    payoutMarkPaidError: "Please try marking this payout as paid again",
+  },
+};
+
 function renderWithDataAccess(ui: ReactElement) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -126,7 +171,9 @@ function renderWithDataAccess(ui: ReactElement) {
           isTierFeatureEnabled: () => true,
         }}
       >
-        {ui}
+        <NextIntlClientProvider locale="en" messages={messages}>
+          {ui}
+        </NextIntlClientProvider>
       </DataAccessProvider>
     </QueryClientProvider>,
   );
