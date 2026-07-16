@@ -142,34 +142,37 @@ describe("Appointment Business Rules", () => {
     const past = new Date("2026-07-16T09:00:00Z").toISOString();
     const future = new Date("2026-07-16T11:00:00Z").toISOString();
 
-    it("blocks terminal statuses regardless of time", () => {
+    it("always shows for completed and no-show (button reads 'View')", () => {
       expect(
         canStartConsultationAtTime(
           { status: "completed", startTime: past },
           now,
         ),
-      ).toBe(false);
+      ).toBe(true);
       expect(
         canStartConsultationAtTime(
           { status: "no-show", startTime: past },
           now,
         ),
-      ).toBe(false);
-      expect(
-        canStartConsultationAtTime(
-          { status: "cancelled", startTime: past },
-          now,
-        ),
-      ).toBe(false);
+      ).toBe(true);
     });
 
-    it("allows in-progress regardless of startTime (resume)", () => {
+    it("always shows for in-progress (button reads 'Resume')", () => {
       expect(
         canStartConsultationAtTime(
           { status: "in-progress", startTime: future },
           now,
         ),
       ).toBe(true);
+    });
+
+    it("never shows for cancelled", () => {
+      expect(
+        canStartConsultationAtTime(
+          { status: "cancelled", startTime: past },
+          now,
+        ),
+      ).toBe(false);
     });
 
     it("blocks scheduled/checked-in for future startTime", () => {

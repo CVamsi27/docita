@@ -62,10 +62,7 @@ export function AllergyListSection(props: AllergyListSectionProps) {
             ))}
           </div>
         ) : (
-          <HistoryEmptyState
-            message="No known allergies"
-            tone="success"
-          />
+          <HistoryEmptyState message="NKA" tone="success" />
         )}
       </HistoryBlock>
 

@@ -56,13 +56,15 @@ export const canReschedule = (appointment: Appointment): boolean => {
 };
 
 /**
- * A consultation cannot be started for a future appointment.
- * Visits open at their scheduled start time. Until then the row exposes
- * no Start/Resume action — only Reschedule / Cancel.
+ * True when the row should expose its primary "Start / Resume / View" action.
  *
- * Terminal statuses (completed, no-show, cancelled) are not startable.
- * in-progress is always startable (resume).
- * scheduled/checked-in is startable only once the start time is in the past.
+ * - completed / no-show: always show (button reads "View"; lets the doctor
+ *   reopen the past consultation record).
+ * - in-progress: always show (button reads "Resume").
+ * - scheduled / checked-in: only show once the start time has arrived;
+ *   before that the appointment is in the future and there is no visit
+ *   to start. Reschedule / Cancel remain available.
+ * - cancelled: never startable; the row still renders but with no primary CTA.
  */
 export const canStartConsultationAtTime = (
   appointment: Pick<Appointment, "status" | "startTime">,
@@ -71,10 +73,10 @@ export const canStartConsultationAtTime = (
   switch (appointment.status) {
     case "completed":
     case "no-show":
-    case "cancelled":
-      return false;
     case "in-progress":
       return true;
+    case "cancelled":
+      return false;
     case "scheduled":
     case "checked-in":
     default:

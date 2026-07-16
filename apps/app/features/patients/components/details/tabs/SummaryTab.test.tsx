@@ -157,6 +157,9 @@ describe("SummaryTab", () => {
       screen.queryByText("Cancelled appointment should not render."),
     ).not.toBeInTheDocument();
     expect(screen.queryByText("No known allergies")).not.toBeInTheDocument();
+    // Penicillin allergy is seeded, so neither "NKA" nor the legacy
+    // "No known allergies" copy should appear.
+    expect(screen.queryByText("NKA")).not.toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Open prescriptions" }),
     ).toHaveAttribute(

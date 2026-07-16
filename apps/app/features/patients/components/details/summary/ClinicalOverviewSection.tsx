@@ -65,9 +65,7 @@ export function ClinicalOverviewSection({
           <div className="space-y-2">
             <h3 className="text-sm font-semibold">Allergies</h3>
             {allergies.length === 0 ? (
-              <p className="text-sm font-medium text-success">
-                No known allergies.
-              </p>
+              <p className="text-sm font-medium text-success">NKA</p>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {allergies.map((allergy, index) => (

@@ -149,7 +149,7 @@ export function HorizontalSnapshotContent({
           label="Allergies"
           value={
             activeAllergies.length === 0
-              ? "No known allergies"
+              ? "NKA"
               : activeAllergies
                   .slice(0, 3)
                   .map((a) => a.allergen)
