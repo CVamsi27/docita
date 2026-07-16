@@ -12,7 +12,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@workspace/ui/components/overlay/tooltip";
-import { AlertTriangle, Droplet, User } from "lucide-react";
+import { AlertTriangle, User } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatDate } from "@workspace/utils";
 import { formatGenderLabel } from "@/lib/formatters";
@@ -47,7 +47,6 @@ export interface PatientSummaryData {
   email?: string;
   dateOfBirth?: string | Date;
   gender?: string;
-  bloodGroup?: string;
   emergencyContact?: string;
 }
 
@@ -107,15 +106,6 @@ export function PatientSummaryCardUI({
                   <>
                     <span>•</span>
                     <span>{formatGenderLabel(patient.gender)}</span>
-                  </>
-                )}
-                {patient.bloodGroup && (
-                  <>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <Droplet className="h-3 w-3" />
-                      {patient.bloodGroup}
-                    </span>
                   </>
                 )}
               </div>

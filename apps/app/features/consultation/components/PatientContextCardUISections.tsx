@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   ChevronDown,
   ChevronUp,
-  Droplets,
   FileText,
   History,
   Pill,
@@ -43,7 +42,6 @@ export interface PatientContextData {
   lastName: string;
   age?: number;
   gender?: "male" | "female" | "other";
-  bloodGroup?: string;
   allergies?: string[];
   conditions?: PatientCondition[];
   currentMedications?: PatientMedication[];
@@ -90,12 +88,6 @@ export function PatientCardHeader({
             )}
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            {patient.bloodGroup && (
-              <span className="flex items-center gap-1">
-                <Droplets className="h-3 w-3" />
-                {patient.bloodGroup}
-              </span>
-            )}
             {hasAllergies && (
               <Badge
                 variant="destructive"
