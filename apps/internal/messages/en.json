@@ -363,5 +363,22 @@
       "paymentNotesLabel": "Payment Notes (Optional)",
       "paymentNotesPlaceholder": "Payment notes"
     }
+  },
+  "InternalDashboard": {
+    "clinicList": {
+      "loadingLabel": "Loading facilities…",
+      "emptyTitle": "No clinics found",
+      "emptyHint": "Get started by creating a new clinic.",
+      "colName": "Name",
+      "colContact": "Contact",
+      "colTier": "Tier",
+      "colType": "Type",
+      "colUsers": "Users",
+      "colPatients": "Patients",
+      "colStatus": "Status",
+      "colActions": "Actions",
+      "statusActive": "Active",
+      "statusInactive": "Inactive"
+    }
   }
 }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T05:27:58.653Z",
-  "totalLiterals": 1236,
+  "generatedAt": "2026-07-16T05:29:46.138Z",
+  "totalLiterals": 1227,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -349,7 +349,6 @@
     "apps/internal/features/broadcasts/BroadcastsFormSectionSections.tsx": 8,
     "apps/internal/features/broadcasts/BroadcastsListSection.tsx": 1,
     "apps/internal/features/dashboard/components/admin-account-section.tsx": 4,
-    "apps/internal/features/dashboard/components/clinic-list.tsx": 9,
     "apps/internal/features/dashboard/components/edit-clinic-dialog-sections.tsx": 3,
     "apps/internal/features/dashboard/components/whatsapp-sender-dialog-sections.tsx": 6,
     "apps/internal/features/dashboard/components/whatsapp-sender-dialog.tsx": 1,
