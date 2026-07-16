@@ -293,5 +293,22 @@
       "hsnCodePlaceholder": "HSN code",
       "removeLineItemTooltip": "Remove {name, select, undefined {line item} other {{name}}}"
     }
+  },
+  "Ocr": {
+    "invoiceDraft": {
+      "subtotalLabel": "Subtotal",
+      "subtotalPlaceholder": "Enter subtotal",
+      "taxLabel": "Tax",
+      "taxPlaceholder": "Enter tax",
+      "grandTotalLabel": "Grand total",
+      "grandTotalPlaceholder": "Enter grand total",
+      "lineDescriptionPlaceholder": "Enter description",
+      "lineQuantityPlaceholder": "Enter quantity",
+      "lineUnitPricePlaceholder": "Enter unit price",
+      "lineTotalPlaceholder": "Enter line total",
+      "removeButton": "Remove",
+      "lineItemsLabel": "Line items",
+      "addLineItemButton": "Add line item"
+    }
   }
 }

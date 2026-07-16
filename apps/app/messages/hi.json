@@ -293,5 +293,22 @@
       "hsnCodePlaceholder": "HSN कोड",
       "removeLineItemTooltip": "{name, select, undefined {पंक्ति आइटम हटाएँ} other {{name} हटाएँ}}"
     }
+  },
+  "Ocr": {
+    "invoiceDraft": {
+      "subtotalLabel": "उप-योग",
+      "subtotalPlaceholder": "उप-योग दर्ज करें",
+      "taxLabel": "कर",
+      "taxPlaceholder": "कर दर्ज करें",
+      "grandTotalLabel": "कुल योग",
+      "grandTotalPlaceholder": "कुल योग दर्ज करें",
+      "lineDescriptionPlaceholder": "विवरण दर्ज करें",
+      "lineQuantityPlaceholder": "मात्रा दर्ज करें",
+      "lineUnitPricePlaceholder": "इकाई मूल्य दर्ज करें",
+      "lineTotalPlaceholder": "पंक्ति योग दर्ज करें",
+      "removeButton": "हटाएँ",
+      "lineItemsLabel": "पंक्ति आइटम",
+      "addLineItemButton": "पंक्ति आइटम जोड़ें"
+    }
   }
 }
