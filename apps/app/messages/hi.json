@@ -468,5 +468,21 @@
       "emptyCustomVitalsHistory": "अभी तक कोई कस्टम जीवन-चिह्न रिकॉर्ड नहीं।",
       "emptyCustomVitalsDefinitions": "कॉन्फ़िगर होने पर कस्टम जीवन-चिह्न फ़ील्ड यहाँ दिखाई देंगे।"
     }
+  },
+  "Inventory": {
+    "itemDetails": {
+      "skuLabel": "SKU: {sku}",
+      "notAvailable": "उपलब्ध नहीं",
+      "purchasePriceLabel": "क्रय मूल्य",
+      "sellingPriceLabel": "विक्रय मूल्य",
+      "minQuantityLabel": "न्यूनतम मात्रा",
+      "expiryDateLabel": "समाप्ति तिथि",
+      "recentMovementsTitle": "हालिया गतिविधियाँ",
+      "noMovementsRecorded": "अभी तक कोई गतिविधि दर्ज नहीं",
+      "tableTypeHeader": "प्रकार",
+      "tableQtyHeader": "मात्रा",
+      "tableDateHeader": "तारीख",
+      "tableNotesHeader": "टिप्पणियाँ"
+    }
   }
 }
