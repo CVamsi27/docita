@@ -243,6 +243,25 @@
       "summaryTax": "Tax ({rate}%)",
       "summaryDiscount": "Discount",
       "summaryGrandTotal": "Grand Total"
+    },
+    "diagnosisItemRow": {
+      "diagnosisAriaLabel": "Diagnosis",
+      "rowTitle": "Diagnosis #{index}",
+      "typeFinal": "Final",
+      "typeDifferential": "Differential",
+      "removeTooltip": "Remove diagnosis",
+      "conditionPlaceholder": "Condition name",
+      "typePlaceholder": "Type",
+      "typeProvisional": "Provisional",
+      "typeDifferentialOption": "Differential",
+      "typeFinalOption": "Final",
+      "statusPlaceholder": "Status",
+      "statusActive": "Active",
+      "statusChronic": "Chronic",
+      "statusResolved": "Resolved",
+      "icdLabel": "ICD-10 code",
+      "notesLabel": "Notes",
+      "notesPlaceholder": "Notes"
     }
   },
   "Settings": {
