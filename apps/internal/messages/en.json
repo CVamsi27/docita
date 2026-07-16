@@ -460,6 +460,20 @@
       "saveButton": "Save discount"
     }
   },
+  "InternalPaymentProcessing": {
+    "additionalCharge": {
+      "categoryLabel": "Charge category",
+      "categoryGuidedSetup": "Guided setup",
+      "categoryDataMigration": "Data migration",
+      "categoryCustomTraining": "Custom training",
+      "categoryIntegration": "Integration",
+      "categoryCommercialDiscount": "Commercial discount / adjustment",
+      "categoryOther": "Other service",
+      "categoryDescription": "Guided setup is separate from the software subscription. Default amount follows the list price for the clinic's currency; adjust to match your invoice.",
+      "amountLabel": "Amount ({currency})",
+      "amountPlaceholder": "Enter amount"
+    }
+  },
   "InternalDashboard": {
     "clinicList": {
       "loadingLabel": "Loading facilities…",

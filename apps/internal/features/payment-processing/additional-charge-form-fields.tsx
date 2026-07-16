@@ -16,12 +16,23 @@ import {
 } from "@workspace/ui/components/form/select";
 import { Input } from "@workspace/ui/components/form/input";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { useTranslations } from "next-intl";
 import { guidedSetupPresetAmount } from "@/features/payment-processing/payment-processing-helpers";
 import type { PaymentProcessingPageViewModel } from "@/features/payment-processing/use-payment-processing-page";
 
 type AdditionalChargeFormFieldsProps = Pick<PaymentProcessingPageViewModel, 'additionalChargeClinic' | 'additionalChargeForm'>;
 
+/**
+ * Phase 3 (per-feature): apps/internal Payment processing > Additional
+ * charge form fields. 8 literals converted to
+ * useTranslations("InternalPaymentProcessing.additionalCharge").
+ */
+function useAdditionalChargeTranslations() {
+  return useTranslations("InternalPaymentProcessing.additionalCharge");
+}
+
 export function AdditionalChargeFormFields({ additionalChargeClinic, additionalChargeForm }: AdditionalChargeFormFieldsProps) {
+  const t = useAdditionalChargeTranslations();
   return (
     <>
       <FormField
@@ -29,7 +40,7 @@ export function AdditionalChargeFormFields({ additionalChargeClinic, additionalC
         name="category"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Charge category</FormLabel>
+            <FormLabel>{t("categoryLabel")}</FormLabel>
             <Select
               value={field.value}
               onValueChange={(value) => {
@@ -45,16 +56,16 @@ export function AdditionalChargeFormFields({ additionalChargeClinic, additionalC
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="GUIDED_SETUP">Guided setup</SelectItem>
-                <SelectItem value="DATA_MIGRATION">Data migration</SelectItem>
-                <SelectItem value="CUSTOM_TRAINING">Custom training</SelectItem>
-                <SelectItem value="INTEGRATION">Integration</SelectItem>
-                <SelectItem value="COMMERCIAL_DISCOUNT">Commercial discount / adjustment</SelectItem>
-                <SelectItem value="OTHER">Other service</SelectItem>
+                <SelectItem value="GUIDED_SETUP">{t("categoryGuidedSetup")}</SelectItem>
+                <SelectItem value="DATA_MIGRATION">{t("categoryDataMigration")}</SelectItem>
+                <SelectItem value="CUSTOM_TRAINING">{t("categoryCustomTraining")}</SelectItem>
+                <SelectItem value="INTEGRATION">{t("categoryIntegration")}</SelectItem>
+                <SelectItem value="COMMERCIAL_DISCOUNT">{t("categoryCommercialDiscount")}</SelectItem>
+                <SelectItem value="OTHER">{t("categoryOther")}</SelectItem>
               </SelectContent>
             </Select>
             <FormDescription>
-              Guided setup is separate from the software subscription. Default amount follows the list price for the clinic&apos;s currency; adjust to match your invoice.
+              {t("categoryDescription")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -66,9 +77,9 @@ export function AdditionalChargeFormFields({ additionalChargeClinic, additionalC
         name="amount"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Amount ({additionalChargeClinic?.currency || DEFAULT_CURRENCY})</FormLabel>
+            <FormLabel>{t("amountLabel", { currency: additionalChargeClinic?.currency || DEFAULT_CURRENCY })}</FormLabel>
             <FormControl>
-              <Input type="number" inputMode="decimal" min={0} step="1" placeholder="Enter amount" {...field} />
+              <Input type="number" inputMode="decimal" min={0} step="1" placeholder={t("amountPlaceholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
