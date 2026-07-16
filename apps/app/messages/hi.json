@@ -240,6 +240,27 @@
       "supportHint": "बिलिंग या ऑनबोर्डिंग में सहायता चाहिए?",
       "supportWhatsappMessage": "नमस्ते Docita टीम, मुझे बिलिंग और ऑनबोर्डिंग में सहायता चाहिए",
       "supportButtonLabel": "सहायता को संदेश भेजें"
+    },
+    "invite": {
+      "nameLabel": "नाम",
+      "namePlaceholder": "पूरा नाम",
+      "roleLabel": "भूमिका",
+      "roleNurse": "नर्स",
+      "roleReceptionist": "रिसेप्शनिस्ट",
+      "roleDoctor": "डॉक्टर",
+      "roleLab": "लैब तकनीशियन",
+      "roleAdmin": "व्यवस्थापक",
+      "roleAdminDoctor": "व्यवस्थापक डॉक्टर",
+      "passwordLabel": "अस्थायी पासवर्ड",
+      "passwordPlaceholder": "अस्थायी पासवर्ड दर्ज करें",
+      "specializationLabel": "विशेषज्ञता",
+      "specializationPlaceholder": "हृदय रोग",
+      "qualificationLabel": "योग्यता",
+      "qualificationPlaceholder": "योग्यता",
+      "registrationNumberLabel": "पंजीकरण #",
+      "registrationNumberPlaceholder": "पंजीकरण संख्या",
+      "cancel": "रद्द करें",
+      "inviteButton": "सदस्य आमंत्रित करें"
     }
   }
 }
