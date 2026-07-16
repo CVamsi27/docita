@@ -482,6 +482,17 @@
       "categoryDescription": "निर्देशित सेटअप सॉफ़्टवेयर सदस्यता से अलग है। डिफ़ॉल्ट राशि क्लिनिक की मुद्रा के लिए सूची मूल्य का पालन करती है; अपने चालान से मेल खाने के लिए समायोजित करें।",
       "amountLabel": "राशि ({currency})",
       "amountPlaceholder": "राशि दर्ज करें"
+    },
+    "chargeSummary": {
+      "paymentMethodLabel": "भुगतान विधि",
+      "paymentMethodRazorpay": "Razorpay",
+      "paymentMethodStripe": "Stripe",
+      "paymentMethodBank": "बैंक हस्तांतरण",
+      "paymentMethodManual": "मैन्युअल",
+      "razorpayIdLabel": "Razorpay भुगतान ID (वैकल्पिक)",
+      "razorpayIdPlaceholder": "Razorpay भुगतान id दर्ज करें",
+      "notesLabel": "टिप्पणियाँ (वैकल्पिक)",
+      "notesPlaceholder": "स्कोप, चालान संदर्भ, या आंतरिक नोट"
     }
   },
   "InternalFeedback": {
