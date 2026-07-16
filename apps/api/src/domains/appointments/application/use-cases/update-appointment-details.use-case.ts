@@ -52,6 +52,15 @@ export class UpdateAppointmentDetailsUseCase {
   async execute(command: UpdateAppointmentDetailsCommand): Promise<void> {
     const { appointmentId, clinicId, data, appointment } = command;
 
+    const prismaPatch = toPrismaAppointmentUpdate(data);
+
+    // Nothing to write (autosave from an empty draft, or a no-op PATCH).
+    // Bailing here avoids the "0 rows updated" → 404 noise that otherwise
+    // surfaces when a consultation opens without any draft content yet.
+    if (Object.keys(prismaPatch).length === 0) {
+      return;
+    }
+
     const nextDoctorId =
       typeof data.doctorId === 'string' && data.doctorId.trim() !== ''
         ? data.doctorId
@@ -79,8 +88,6 @@ export class UpdateAppointmentDetailsUseCase {
       if (overlap.hasConflict)
         throw new BadRequestException('Doctor has conflicting appointment');
     }
-
-    const prismaPatch = toPrismaAppointmentUpdate(data);
 
     const count = await this.writeRepository.applyPatch(
       appointmentId,

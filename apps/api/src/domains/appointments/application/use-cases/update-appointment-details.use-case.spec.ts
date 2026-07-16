@@ -142,6 +142,26 @@ describe('UpdateAppointmentDetailsUseCase', () => {
     ).rejects.toThrow(NotFoundException);
   });
 
+  it('returns gracefully on an empty patch (autosave from an untouched draft) and does not write', async () => {
+    // Regression: an empty `data` object used to fall through to
+    // applyPatch, which incremented only the version column; the
+    // Prisma updateMany count was 0 (no field changes), which the
+    // use case turned into NotFoundException. The autosave loop on
+    // /consultation hit this on first open and showed a 404 toast.
+    await ctx.useCase.execute({
+      appointmentId: 'appt-1',
+      clinicId: 'clinic-1',
+      data: {},
+      appointment: ctx.appointment,
+    });
+
+    expect(ctx.writeRepository.applyPatch).not.toHaveBeenCalled();
+    expect(
+      ctx.schedulingRules.validateAppointmentOverlap,
+    ).not.toHaveBeenCalled();
+    expect(ctx.metricsService.recordObservationMetrics).not.toHaveBeenCalled();
+  });
+
   it('emits APPOINTMENT_COMPLETED when the status becomes completed', async () => {
     await ctx.useCase.execute({
       appointmentId: 'appt-1',
