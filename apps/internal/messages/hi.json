@@ -198,5 +198,25 @@
       "changeSummary": "परिवर्तन सारांश (संशोधन लॉग)",
       "changeSummaryPlaceholder": "यह परिवर्तन क्यों?"
     }
+  },
+  "InternalPricing": {
+    "tierTable": {
+      "emptyTitle": "कोई स्तर मूल्य पंक्तियाँ नहीं",
+      "emptyDescription": "संपादन से पहले स्तर मूल्य निर्धारण को पॉप्युलेट करने के लिए बिलिंग सीड स्क्रिप्ट चलाएँ।",
+      "colTier": "स्तर",
+      "colMonthlyCents": "मासिक (पैसे)",
+      "colPatients": "मरीज़",
+      "colAppointments": "अपॉइंटमेंट",
+      "colStorageGB": "स्टोरेज GB",
+      "colUsers": "उपयोगकर्ता",
+      "colPatientOverage": "मरीज़ अधिकता",
+      "colApptOverage": "अपॉइंटमेंट अधिकता",
+      "colRxOverage": "नुस्खा अधिकता",
+      "colInvoiceOverage": "बिल अधिकता",
+      "colOcrOverage": "OCR अधिकता",
+      "colApiOverage": "API अधिकता",
+      "unsavedBadge": "असहेजा",
+      "saveButton": "सहेजें"
+    }
   }
 }

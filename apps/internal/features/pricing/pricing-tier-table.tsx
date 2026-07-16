@@ -1,6 +1,7 @@
 "use client";
 
 // jscpd:ignore-start
+import { useTranslations } from "next-intl";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
   type InternalTierPricingRow,
@@ -55,13 +56,24 @@ function NumericCell({
   );
 }
 
+/**
+ * Phase 3 (per-feature): apps/internal Pricing > Tier Pricing
+ * editor. 12 literals converted to useTranslations
+ * (\"InternalPricing.tierTable\") — the column headers, the
+ * empty state, the unsaved badge, and the Save button label.
+ */
+function usePricingTierTableTranslations() {
+  return useTranslations("InternalPricing.tierTable");
+}
+
 export function PricingTierTable({ tiers, savingId, onFieldChange, onSave }: Props) {
+  const t = usePricingTierTableTranslations();
   if (tiers.length === 0) {
     return (
       <EmptyState
         icon={Sparkles}
-        title="No tier pricing rows"
-        description="Run the billing seed script to populate tier pricing before editing."
+        title={t("emptyTitle")}
+        description={t("emptyDescription")}
       />
     );
   }
@@ -71,18 +83,18 @@ export function PricingTierTable({ tiers, savingId, onFieldChange, onSave }: Pro
       <Table className="min-w-[96rem]">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-28">Tier</TableHead>
-            <TableHead>Monthly (cents)</TableHead>
-            <TableHead>Patients</TableHead>
-            <TableHead>Appointments</TableHead>
-            <TableHead>Storage GB</TableHead>
-            <TableHead>Users</TableHead>
-            <TableHead>Patient overage</TableHead>
-            <TableHead>Appt overage</TableHead>
-            <TableHead>Rx overage</TableHead>
-            <TableHead>Invoice overage</TableHead>
-            <TableHead>OCR Overage</TableHead>
-            <TableHead>API Overage</TableHead>
+            <TableHead className="w-28">{t("colTier")}</TableHead>
+            <TableHead>{t("colMonthlyCents")}</TableHead>
+            <TableHead>{t("colPatients")}</TableHead>
+            <TableHead>{t("colAppointments")}</TableHead>
+            <TableHead>{t("colStorageGB")}</TableHead>
+            <TableHead>{t("colUsers")}</TableHead>
+            <TableHead>{t("colPatientOverage")}</TableHead>
+            <TableHead>{t("colApptOverage")}</TableHead>
+            <TableHead>{t("colRxOverage")}</TableHead>
+            <TableHead>{t("colInvoiceOverage")}</TableHead>
+            <TableHead>{t("colOcrOverage")}</TableHead>
+            <TableHead>{t("colApiOverage")}</TableHead>
             <TableHead />
           </TableRow>
         </TableHeader>
@@ -97,7 +109,7 @@ export function PricingTierTable({ tiers, savingId, onFieldChange, onSave }: Pro
                       variant="outline"
                       className="text-xs px-1 py-0 h-4"
                     >
-                      unsaved
+                      {t("unsavedBadge")}
                     </Badge>
                   )}
                 </div>
@@ -207,7 +219,7 @@ export function PricingTierTable({ tiers, savingId, onFieldChange, onSave }: Pro
                   ) : (
                     <Save className="h-3 w-3" />
                   )}
-                  Save
+                  {t("saveButton")}
                 </Button>
               </TableCell>
             </TableRow>
