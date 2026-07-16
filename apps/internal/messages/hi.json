@@ -363,5 +363,22 @@
       "paymentNotesLabel": "भुगतान नोट्स (वैकल्पिक)",
       "paymentNotesPlaceholder": "भुगतान नोट्स"
     }
+  },
+  "InternalDashboard": {
+    "clinicList": {
+      "loadingLabel": "सुविधाएँ लोड हो रही हैं…",
+      "emptyTitle": "कोई क्लिनिक नहीं मिला",
+      "emptyHint": "नई क्लिनिक बनाकर शुरुआत करें।",
+      "colName": "नाम",
+      "colContact": "संपर्क",
+      "colTier": "स्तर",
+      "colType": "प्रकार",
+      "colUsers": "उपयोगकर्ता",
+      "colPatients": "रोगी",
+      "colStatus": "स्थिति",
+      "colActions": "क्रियाएँ",
+      "statusActive": "सक्रिय",
+      "statusInactive": "निष्क्रिय"
+    }
   }
 }
