@@ -4,6 +4,7 @@ import { getPatientFullName } from "@workspace/utils";
 import { Input } from "@workspace/ui/components/form/input";
 import { Textarea } from "@workspace/ui/components/form/textarea";
 import { Card, CardContent } from "@workspace/ui/components/indicators/card";
+import { useTranslations } from "next-intl";
 // The shadcn/ui form-field + select import blocks below are identical to the
 // ones every other `react-hook-form` + `Select` field module pulls in (see
 // order-lab-select-field.tsx) — that's the framework's own re-export surface,
@@ -31,21 +32,29 @@ import type { CreateInsuranceClaimFormValues, Patient } from "@workspace/types";
 import type { Control } from "react-hook-form";
 import type { PatientNameParts } from "@workspace/utils";
 
+/**
+ * Phase 3 (per-feature): apps/app Insurance claims > Create form
+ * sections. 6 literals converted to
+ * useTranslations("InsuranceClaims.createFormSections").
+ */
+function useClaimFormTranslations() {
+  return useTranslations("InsuranceClaims.createFormSections");
+}
+
 interface PresetPatientCardProps {
   presetPatient: PatientNameParts | null | undefined;
 }
 
 export function PresetPatientCard({ presetPatient }: PresetPatientCardProps) {
+  const t = useClaimFormTranslations();
   if (!presetPatient) return null;
 
   return (
     <Card>
       <CardContent className="py-4 text-sm">
-        Creating a claim for{" "}
-        <span className="font-medium">
-          {getPatientFullName(presetPatient, "Patient")}
-        </span>
-        .
+        {t("presetPatientLabel", {
+          name: getPatientFullName(presetPatient, "Patient"),
+        })}
       </CardContent>
     </Card>
   );
@@ -62,22 +71,23 @@ export function ClaimReadinessCard({
   claimReadinessLoading,
   claimReadiness,
 }: ClaimReadinessCardProps) {
+  const t = useClaimFormTranslations();
   if (!invoiceId) return null;
 
   return (
     <Card>
       <CardContent className="space-y-2 py-4 text-sm">
-        <p className="font-medium">Invoice claim readiness</p>
+        <p className="font-medium">{t("readinessTitle")}</p>
         {claimReadinessLoading ? (
-          <p className="text-muted-foreground">Checking clinical coding…</p>
+          <p className="text-muted-foreground">{t("readinessLoadingLabel")}</p>
         ) : claimReadiness?.claimReady ? (
           <p className="text-muted-foreground">
-            This invoice is ready for insurance submission.
+            {t("readinessReadyLabel")}
           </p>
         ) : (
           <>
             <p className="text-destructive">
-              Complete these items before submitting the claim:
+              {t("readinessIssuesHeader")}
             </p>
             <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
               {(claimReadiness?.issues ?? []).map((issue) => (
@@ -107,15 +117,16 @@ function ClaimPatientSelectField({
   patients,
   patientsLoading,
 }: ClaimPatientSelectFieldProps) {
+  const t = useClaimFormTranslations();
   return (
     <FormField
       control={control}
       name="patientId"
       render={({ field }) => (
         <FormItem className="sm:col-span-2">
-          <FormLabel>Patient</FormLabel>
+          <FormLabel>{t("patientLabel")}</FormLabel>
           <Input
-            placeholder="Search patients…"
+            placeholder={t("patientSearchPlaceholder")}
             value={patientSearch}
             onChange={(e) => setPatientSearch(e.target.value)}
             className="mb-2"
@@ -125,7 +136,7 @@ function ClaimPatientSelectField({
               <SelectTrigger>
                 <SelectValue
                   placeholder={
-                    patientsLoading ? "Loading…" : "Select a patient"
+                    patientsLoading ? t("patientLoadingPlaceholder") : t("patientSelectPlaceholder")
                   }
                 />
               </SelectTrigger>
@@ -152,6 +163,7 @@ interface ClaimTypeFieldProps {
 
 /** The claim-type select — split out as its own self-contained field; it's the only one that derives option-level state (REIMBURSEMENT disabled without a linked invoice) from `presets`. */
 function ClaimTypeField({ control, presets }: ClaimTypeFieldProps) {
+  const t = useClaimFormTranslations();
   // The `<Select>` + `FormControl`/`SelectTrigger`/`SelectContent`/`FormMessage`
   // shell below mirrors `ClaimPatientSelectField`'s shell — that's the shadcn/ui
   // `Select` + `react-hook-form` `FormField` convention, not copy-paste; each
@@ -165,7 +177,7 @@ function ClaimTypeField({ control, presets }: ClaimTypeFieldProps) {
       name="claimType"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Claim type</FormLabel>
+          <FormLabel>{t("claimTypeLabel")}</FormLabel>
           <Select value={field.value} onValueChange={field.onChange}>
             <FormControl>
               <SelectTrigger>
@@ -173,13 +185,13 @@ function ClaimTypeField({ control, presets }: ClaimTypeFieldProps) {
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {(["PRE_AUTH", "REIMBURSEMENT"] as const).map((t) => (
+              {(["PRE_AUTH", "REIMBURSEMENT"] as const).map((ct) => (
                 <SelectItem
-                  key={t}
-                  value={t}
-                  disabled={t === "REIMBURSEMENT" && !presets?.invoiceId}
+                  key={ct}
+                  value={ct}
+                  disabled={ct === "REIMBURSEMENT" && !presets?.invoiceId}
                 >
-                  {CLAIM_TYPE_LABELS[t]}
+                  {CLAIM_TYPE_LABELS[ct]}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -198,13 +210,14 @@ interface ClaimAmountFieldProps {
 
 /** The claimed-amount numeric input — split out as its own self-contained field; it's the only one with numeric coercion (`valueAsNumber`) instead of passthrough `{...field}`. */
 function ClaimAmountField({ control }: ClaimAmountFieldProps) {
+  const t = useClaimFormTranslations();
   return (
     <FormField
       control={control}
       name="claimedAmount"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Claimed amount</FormLabel>
+          <FormLabel>{t("claimedAmountLabel")}</FormLabel>
           <FormControl>
             <Input
               type="number"
@@ -258,13 +271,14 @@ interface ClaimNotesFieldProps {
 
 /** The free-text notes field — the only `Textarea`-backed field in the grid (and the only one spanning both columns), so it's split out as its own self-contained piece rather than folded into `ClaimTextField`'s `Input`-only shape. */
 function ClaimNotesField({ control }: ClaimNotesFieldProps) {
+  const t = useClaimFormTranslations();
   return (
     <FormField
       control={control}
       name="notes"
       render={({ field }) => (
         <FormItem className="sm:col-span-2">
-          <FormLabel>Notes (optional)</FormLabel>
+          <FormLabel>{t("notesLabel")}</FormLabel>
           <FormControl>
             <Textarea {...field} rows={3} />
           </FormControl>
@@ -292,6 +306,7 @@ export function ClaimFormFieldGrid({
   patients,
   patientsLoading,
 }: ClaimFormFieldGridProps) {
+  const t = useClaimFormTranslations();
   return (
     <Card>
       <CardContent className="grid gap-4 py-6 sm:grid-cols-2">
@@ -310,24 +325,24 @@ export function ClaimFormFieldGrid({
         <ClaimTextField
           control={control}
           name="insurerName"
-          label="Insurer"
-          placeholder="e.g. Star Health"
+          label={t("insurerLabel")}
+          placeholder={t("insurerPlaceholder")}
         />
         <ClaimTextField
           control={control}
           name="tpaName"
-          label="TPA (optional)"
-          placeholder="Third-party administrator"
+          label={t("tpaLabel")}
+          placeholder={t("tpaPlaceholder")}
         />
         <ClaimTextField
           control={control}
           name="policyNumber"
-          label="Policy number"
+          label={t("policyNumberLabel")}
         />
         <ClaimTextField
           control={control}
           name="groupNumber"
-          label="Group number (optional)"
+          label={t("groupNumberLabel")}
         />
 
         <ClaimNotesField control={control} />
@@ -347,13 +362,14 @@ export function ClaimFormActions({
   claimReadinessLoading,
   onCancel,
 }: ClaimFormActionsProps) {
+  const t = useClaimFormTranslations();
   return (
     <div className="flex justify-end gap-2">
       <Button type="button" variant="outline" onClick={onCancel}>
-        Cancel
+        {t("cancelButton")}
       </Button>
       <Button type="submit" disabled={isSaving || claimReadinessLoading}>
-        {isSaving ? "Creating…" : "Create claim"}
+        {isSaving ? t("creatingLabel") : t("createClaimButton")}
       </Button>
     </div>
   );

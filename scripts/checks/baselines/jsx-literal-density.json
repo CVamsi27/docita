@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T12:32:06.561Z",
-  "totalLiterals": 989,
+  "generatedAt": "2026-07-16T12:33:36.971Z",
+  "totalLiterals": 983,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -100,7 +100,6 @@
     "apps/app/features/import/components/bulk-import/BulkImportStepUpload.tsx": 3,
     "apps/app/features/insurance-claims/components/PatientClaimsPanel.tsx": 1,
     "apps/app/features/insurance-claims/components/details/InsuranceClaimDetailsUISections.tsx": 2,
-    "apps/app/features/insurance-claims/components/forms/InsuranceClaimCreateUISections.tsx": 6,
     "apps/app/features/insurance-claims/components/forms/InsuranceClaimEditUI.tsx": 2,
     "apps/app/features/insurance-claims/components/list/InsuranceClaimsPageUI.tsx": 1,
     "apps/app/features/inventory/components/sections/list/InventoryFilters.tsx": 4,
