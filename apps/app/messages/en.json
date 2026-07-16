@@ -579,6 +579,16 @@
     }
   },
   "LabTests": {
+    "overview": {
+      "pendingTitle": "Pending",
+      "pendingHelper": "Awaiting processing",
+      "inProgressTitle": "In progress",
+      "inProgressHelper": "Currently processing",
+      "completedTitle": "Completed",
+      "completedHelper": "Results available",
+      "urgentTitle": "Urgent",
+      "urgentHelper": "High priority tests"
+    },
     "directory": {
       "typeLabel": "Type",
       "typeInHouse": "In-house",
