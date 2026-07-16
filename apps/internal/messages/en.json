@@ -151,5 +151,52 @@
     "referrerCreateError": "Please review the referrer details and try again",
     "payoutMarkedPaidToast": "Payout marked paid",
     "payoutMarkPaidError": "Please try marking this payout as paid again"
+  },
+  "InternalEnterpriseContracts": {
+    "editor": {
+      "primaryClinicIdLabel": "Primary clinic ID",
+      "groupNameLabel": "Group name (optional)",
+      "groupNamePlaceholder": "e.g. Apollo Group",
+      "contractNumberLabel": "Contract number",
+      "statusLabel": "Status",
+      "statusDraft": "Draft",
+      "statusActive": "Active",
+      "statusExpired": "Expired",
+      "statusTerminated": "Terminated",
+      "billingCycleLabel": "Billing cycle",
+      "cycleMonthly": "Monthly",
+      "cycleQuarterly": "Quarterly",
+      "cycleSemiAnnual": "Semi-annual",
+      "cycleYearly": "Yearly",
+      "startDateLabel": "Start date",
+      "endDateLabel": "End date",
+      "currencyLabel": "Currency",
+      "platformFeeLabel": "Platform fee ({currency})",
+      "quotePresetsLabel": "Quote presets"
+    },
+    "limits": {
+      "incUsers": "Inc. users",
+      "incConsultations": "Inc. consultations",
+      "incWhatsappMsgs": "Inc. WhatsApp msgs",
+      "incStorageGB": "Inc. storage GB",
+      "incBranches": "Inc. branches",
+      "incDoctors": "Inc. doctors",
+      "incPrescriptions": "Inc. prescriptions",
+      "incInvoices": "Inc. invoices",
+      "overageUser": "Overage / user",
+      "overageConsult": "Overage / consult",
+      "overageWhatsapp": "Overage / WA msg",
+      "overageDoctor": "Overage / doctor",
+      "overagePrescription": "Overage / prescription",
+      "overageInvoice": "Overage / invoice",
+      "setupFee": "Setup fee",
+      "supportRetainer": "Support retainer",
+      "annualPrepayDiscount": "Annual prepay discount %",
+      "trueUpThreshold": "True-up threshold %",
+      "signedDocumentUrl": "Signed document URL",
+      "notes": "Notes",
+      "changeSummary": "Change summary (revision log)",
+      "changeSummaryPlaceholder": "Why this change?"
+    }
   }
 }

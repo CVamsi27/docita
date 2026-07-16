@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import { Textarea } from "@workspace/ui/components/form/textarea";
@@ -7,6 +8,16 @@ import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-pa
 
 type FormFields = EnterpriseContractsPageState["form"];
 type SetForm = EnterpriseContractsPageState["setForm"];
+
+/**
+ * Phase 3 (per-feature): the enterprise contracts limits form is
+ * the apps/internal admin sub-form for tier inclusions, overage
+ * pricing, billing config, and document/notes. 21 literals
+ * converted to useTranslations.
+ */
+function useEnterpriseContractsLimitsTranslations() {
+  return useTranslations("InternalEnterpriseContracts.limits");
+}
 
 // jscpd:ignore-start
 function IncludedLimitsFields({
@@ -16,10 +27,11 @@ function IncludedLimitsFields({
   form: FormFields;
   setForm: SetForm;
 }) {
+  const t = useEnterpriseContractsLimitsTranslations();
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       <div>
-        <Label>Inc. users</Label>
+        <Label>{t("incUsers")}</Label>
         <Input
           value={form.includedUsers}
           onChange={(e) =>
@@ -28,7 +40,7 @@ function IncludedLimitsFields({
         />
       </div>
       <div>
-        <Label>Inc. consultations</Label>
+        <Label>{t("incConsultations")}</Label>
         <Input
           value={form.includedConsultations}
           onChange={(e) =>
@@ -40,7 +52,7 @@ function IncludedLimitsFields({
         />
       </div>
       <div>
-        <Label>Inc. WhatsApp msgs</Label>
+        <Label>{t("incWhatsappMsgs")}</Label>
         <Input
           value={form.includedWhatsappMessages}
           onChange={(e) =>
@@ -52,7 +64,7 @@ function IncludedLimitsFields({
         />
       </div>
       <div>
-        <Label>Inc. storage GB</Label>
+        <Label>{t("incStorageGB")}</Label>
         <Input
           value={form.includedStorageGB}
           onChange={(e) =>
@@ -64,7 +76,7 @@ function IncludedLimitsFields({
         />
       </div>
       <div>
-        <Label>Inc. branches</Label>
+        <Label>{t("incBranches")}</Label>
         <Input
           value={form.includedBranches}
           onChange={(e) =>
@@ -73,7 +85,7 @@ function IncludedLimitsFields({
         />
       </div>
       <div>
-        <Label>Inc. doctors</Label>
+        <Label>{t("incDoctors")}</Label>
         <Input
           value={form.includedDoctors}
           onChange={(e) =>
@@ -82,7 +94,7 @@ function IncludedLimitsFields({
         />
       </div>
       <div>
-        <Label>Inc. prescriptions</Label>
+        <Label>{t("incPrescriptions")}</Label>
         <Input
           value={form.includedPrescriptions}
           onChange={(e) =>
@@ -94,7 +106,7 @@ function IncludedLimitsFields({
         />
       </div>
       <div>
-        <Label>Inc. invoices</Label>
+        <Label>{t("incInvoices")}</Label>
         <Input
           value={form.includedInvoices}
           onChange={(e) =>
@@ -114,10 +126,11 @@ function OverageAndPricingFields({
   form: FormFields;
   setForm: SetForm;
 }) {
+  const t = useEnterpriseContractsLimitsTranslations();
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       <div>
-        <Label>Overage / user</Label>
+        <Label>{t("overageUser")}</Label>
         <Input
           value={form.overageUserINR}
           onChange={(e) =>
@@ -126,7 +139,7 @@ function OverageAndPricingFields({
         />
       </div>
       <div>
-        <Label>Overage / consult</Label>
+        <Label>{t("overageConsult")}</Label>
         <Input
           value={form.overageConsultationINR}
           onChange={(e) =>
@@ -138,7 +151,7 @@ function OverageAndPricingFields({
         />
       </div>
       <div>
-        <Label>Overage / WA msg</Label>
+        <Label>{t("overageWhatsapp")}</Label>
         <Input
           value={form.overageWhatsappINR}
           onChange={(e) =>
@@ -150,7 +163,7 @@ function OverageAndPricingFields({
         />
       </div>
       <div>
-        <Label>Overage / doctor</Label>
+        <Label>{t("overageDoctor")}</Label>
         <Input
           value={form.overageDoctorINR}
           onChange={(e) =>
@@ -159,7 +172,7 @@ function OverageAndPricingFields({
         />
       </div>
       <div>
-        <Label>Overage / prescription</Label>
+        <Label>{t("overagePrescription")}</Label>
         <Input
           value={form.overagePrescriptionINR}
           onChange={(e) =>
@@ -171,7 +184,7 @@ function OverageAndPricingFields({
         />
       </div>
       <div>
-        <Label>Overage / invoice</Label>
+        <Label>{t("overageInvoice")}</Label>
         <Input
           value={form.overageInvoiceINR}
           onChange={(e) =>
@@ -180,7 +193,7 @@ function OverageAndPricingFields({
         />
       </div>
       <div>
-        <Label>Setup fee</Label>
+        <Label>{t("setupFee")}</Label>
         <Input
           value={form.setupFeeINR}
           onChange={(e) =>
@@ -189,7 +202,7 @@ function OverageAndPricingFields({
         />
       </div>
       <div>
-        <Label>Support retainer</Label>
+        <Label>{t("supportRetainer")}</Label>
         <Input
           value={form.dedicatedSupportINR}
           onChange={(e) =>
@@ -211,10 +224,11 @@ function BillingConfigFields({
   form: FormFields;
   setForm: SetForm;
 }) {
+  const t = useEnterpriseContractsLimitsTranslations();
   return (
     <div className="grid grid-cols-2 gap-3">
       <div>
-        <Label>Annual prepay discount %</Label>
+        <Label>{t("annualPrepayDiscount")}</Label>
         <Input
           value={form.annualPrepayDiscountPercent}
           onChange={(e) =>
@@ -226,7 +240,7 @@ function BillingConfigFields({
         />
       </div>
       <div>
-        <Label>True-up threshold %</Label>
+        <Label>{t("trueUpThreshold")}</Label>
         <Input
           value={form.trueUpThresholdPercent}
           onChange={(e) =>
@@ -248,10 +262,11 @@ function DocumentAndNotesFields({
   form: FormFields;
   setForm: SetForm;
 }) {
+  const t = useEnterpriseContractsLimitsTranslations();
   return (
     <>
       <div>
-        <Label>Signed document URL</Label>
+        <Label>{t("signedDocumentUrl")}</Label>
         <Input
           value={form.signedDocumentUrl}
           onChange={(e) =>
@@ -263,7 +278,7 @@ function DocumentAndNotesFields({
         />
       </div>
       <div>
-        <Label>Notes</Label>
+        <Label>{t("notes")}</Label>
         <Textarea
           value={form.notes}
           onChange={(e) =>
@@ -272,10 +287,10 @@ function DocumentAndNotesFields({
         />
       </div>
       <div>
-        <Label>Change summary (revision log)</Label>
+        <Label>{t("changeSummary")}</Label>
         <Input
           value={form.changeSummary}
-          placeholder="Why this change?"
+          placeholder={t("changeSummaryPlaceholder")}
           onChange={(e) =>
             setForm((f) => ({ ...f, changeSummary: e.target.value }))
           }
