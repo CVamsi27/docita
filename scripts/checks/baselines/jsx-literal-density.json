@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T01:59:45.231Z",
-  "totalLiterals": 1458,
+  "generatedAt": "2026-07-16T02:21:29.854Z",
+  "totalLiterals": 1436,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -264,7 +264,7 @@
     "apps/app/features/settings/components/SettingsPageUI.tsx": 2,
     "apps/app/features/settings/components/abdm/AbdmSettingsPanel.tsx": 5,
     "apps/app/features/settings/components/account/ProfileAccountSettings.tsx": 4,
-    "apps/app/features/settings/components/billing/SubscriptionSettingsSections.tsx": 12,
+    "apps/app/features/settings/components/billing/SubscriptionSettingsSections.tsx": 2,
     "apps/app/features/settings/components/billing/subscription-settings-alerts.tsx": 1,
     "apps/app/features/settings/components/branding/EnterpriseBrandingSettingsSections.tsx": 8,
     "apps/app/features/settings/components/clinic/ClinicReferralLinks.tsx": 2,
@@ -294,7 +294,6 @@
     "apps/app/features/settings/components/management/DoctorTimeAwaySettingsSections.tsx": 8,
     "apps/app/features/settings/components/management/JoinRequestsSettingsPanel.tsx": 1,
     "apps/app/features/settings/components/management/doctor-availability-day-row.tsx": 4,
-    "apps/app/features/settings/components/management/invite-team-member-dialog-sections.tsx": 12,
     "apps/app/features/settings/components/management/invite-team-member-dialog.tsx": 1,
     "apps/app/features/settings/components/management/join-request-review-dialogs.tsx": 9,
     "apps/app/features/settings/components/management/manage-team-member-dialog-sections.tsx": 4,

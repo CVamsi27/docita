@@ -240,6 +240,27 @@
       "supportHint": "Need help with billing or onboarding?",
       "supportWhatsappMessage": "Hi Docita team, I need help with billing and onboarding",
       "supportButtonLabel": "Message support"
+    },
+    "invite": {
+      "nameLabel": "Name",
+      "namePlaceholder": "Full name",
+      "roleLabel": "Role",
+      "roleNurse": "Nurse",
+      "roleReceptionist": "Receptionist",
+      "roleDoctor": "Doctor",
+      "roleLab": "Lab Technician",
+      "roleAdmin": "Admin",
+      "roleAdminDoctor": "Admin Doctor",
+      "passwordLabel": "Temporary password",
+      "passwordPlaceholder": "Enter temporary password",
+      "specializationLabel": "Specialization",
+      "specializationPlaceholder": "Cardiology",
+      "qualificationLabel": "Qualification",
+      "qualificationPlaceholder": "Qualification",
+      "registrationNumberLabel": "Registration #",
+      "registrationNumberPlaceholder": "Registration number",
+      "cancel": "Cancel",
+      "inviteButton": "Invite Member"
     }
   }
 }

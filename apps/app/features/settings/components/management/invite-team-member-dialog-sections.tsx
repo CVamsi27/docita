@@ -2,6 +2,7 @@
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import {
   FormControl,
   FormField,
@@ -29,6 +30,16 @@ import {
   TeamMemberLabField,
 } from "@/features/settings/components/management/team-member-form-fields";
 
+/**
+ * Phase 3 (per-feature): the Invite Member dialog in Settings
+ * > Team Management. 12 literals converted to useTranslations
+ * (\"Settings.invite\") — labels, placeholders, role select
+ * options, the dialog footer buttons.
+ */
+function useInviteTranslations() {
+  return useTranslations("Settings.invite");
+}
+
 interface InviteNameRoleFieldsProps {
   form: UseFormReturn<InviteFormValues>;
   userCanChangeRoles: boolean;
@@ -38,6 +49,7 @@ export function InviteNameRoleFields({
   form,
   userCanChangeRoles,
 }: InviteNameRoleFieldsProps) {
+  const t = useInviteTranslations();
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <FormField
@@ -46,9 +58,9 @@ export function InviteNameRoleFields({
         name="name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Name</FormLabel>
+            <FormLabel>{t("nameLabel")}</FormLabel>
             <FormControl>
-              <Input placeholder="Full name" {...field} />
+              <Input placeholder={t("namePlaceholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -60,7 +72,7 @@ export function InviteNameRoleFields({
         name="role"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Role</FormLabel>
+            <FormLabel>{t("roleLabel")}</FormLabel>
             <Select
               value={field.value ?? "NURSE"}
               onValueChange={field.onChange}
@@ -71,14 +83,14 @@ export function InviteNameRoleFields({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="NURSE">Nurse</SelectItem>
-                <SelectItem value="RECEPTIONIST">Receptionist</SelectItem>
-                <SelectItem value="DOCTOR">Doctor</SelectItem>
-                <SelectItem value="LAB">Lab Technician</SelectItem>
+                <SelectItem value="NURSE">{t("roleNurse")}</SelectItem>
+                <SelectItem value="RECEPTIONIST">{t("roleReceptionist")}</SelectItem>
+                <SelectItem value="DOCTOR">{t("roleDoctor")}</SelectItem>
+                <SelectItem value="LAB">{t("roleLab")}</SelectItem>
                 {userCanChangeRoles && (
                   <>
-                    <SelectItem value="ADMIN">Admin</SelectItem>
-                    <SelectItem value="ADMIN_DOCTOR">Admin Doctor</SelectItem>
+                    <SelectItem value="ADMIN">{t("roleAdmin")}</SelectItem>
+                    <SelectItem value="ADMIN_DOCTOR">{t("roleAdminDoctor")}</SelectItem>
                   </>
                 )}
               </SelectContent>
@@ -104,17 +116,18 @@ interface InvitePasswordFieldProps {
 }
 
 export function InvitePasswordField({ form }: InvitePasswordFieldProps) {
+  const t = useInviteTranslations();
   return (
     <FormField
       control={form.control}
       name="password"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Temporary password</FormLabel>
+          <FormLabel>{t("passwordLabel")}</FormLabel>
           <FormControl>
             <Input
               type="password"
-              placeholder="Enter temporary password"
+              placeholder={t("passwordPlaceholder")}
               {...field}
             />
           </FormControl>
@@ -130,6 +143,7 @@ interface InviteDoctorFieldsProps {
 }
 
 export function InviteDoctorFields({ form }: InviteDoctorFieldsProps) {
+  const t = useInviteTranslations();
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
       <FormField
@@ -137,9 +151,9 @@ export function InviteDoctorFields({ form }: InviteDoctorFieldsProps) {
         name="specialization"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Specialization</FormLabel>
+            <FormLabel>{t("specializationLabel")}</FormLabel>
             <FormControl>
-              <Input placeholder="Cardiology" {...field} />
+              <Input placeholder={t("specializationPlaceholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -150,9 +164,9 @@ export function InviteDoctorFields({ form }: InviteDoctorFieldsProps) {
         name="qualification"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Qualification</FormLabel>
+            <FormLabel>{t("qualificationLabel")}</FormLabel>
             <FormControl>
-              <Input placeholder="Qualification" {...field} />
+              <Input placeholder={t("qualificationPlaceholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -163,9 +177,9 @@ export function InviteDoctorFields({ form }: InviteDoctorFieldsProps) {
         name="registrationNumber"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Registration #</FormLabel>
+            <FormLabel>{t("registrationNumberLabel")}</FormLabel>
             <FormControl>
-              <Input placeholder="Registration number" {...field} />
+              <Input placeholder={t("registrationNumberPlaceholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -194,6 +208,7 @@ export function InviteDialogFooter({
   canInvite,
   isSaving,
 }: InviteDialogFooterProps) {
+  const t = useInviteTranslations();
   return (
     <DialogFooter className="flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
       <Button
@@ -202,7 +217,7 @@ export function InviteDialogFooter({
         onClick={() => onOpenChange(false)}
         className="w-full sm:w-auto"
       >
-        Cancel
+        {t("cancel")}
       </Button>
       <Button
         type="submit"
@@ -216,7 +231,7 @@ export function InviteDialogFooter({
             className="mr-2"
           />
         )}
-        Invite Member
+        {t("inviteButton")}
       </Button>
     </DialogFooter>
   );
