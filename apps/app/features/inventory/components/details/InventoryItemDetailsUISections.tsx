@@ -1,5 +1,6 @@
 // jscpd:ignore-start
 import { formatDate } from "@workspace/utils";
+import { useTranslations } from "next-intl";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Table,
@@ -11,6 +12,15 @@ import {
 } from "@workspace/ui/components/data-display/table";
 import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
 import { ArrowDownLeft, ArrowUpRight, History } from "lucide-react";
+
+/**
+ * Phase 3 (per-feature): apps/app Inventory > Item details
+ * (item info card + recent movements table). 9 literals
+ * converted to useTranslations("Inventory.itemDetails").
+ */
+function useInventoryItemDetailsTranslations() {
+  return useTranslations("Inventory.itemDetails");
+}
 
 export interface ItemMovement {
 // jscpd:ignore-end
@@ -43,13 +53,14 @@ export function ItemInfoCard({
     opts?: { fractionDigits?: number },
   ) => string;
 }) {
+  const t = useInventoryItemDetailsTranslations();
   return (
     <div className="grid gap-4 p-4 border rounded-lg bg-muted/20">
       <div className="flex justify-between items-start">
         <div>
           <h3 className="font-semibold text-lg">{item.name}</h3>
           <div className="text-sm text-muted-foreground capitalize">
-            {item.category} • SKU: {item.sku || "N/A"}
+            {item.category} • {t("skuLabel", { sku: item.sku || t("notAvailable") })}
           </div>
         </div>
         <Badge
@@ -65,29 +76,29 @@ export function ItemInfoCard({
       </div>
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div>
-          <span className="text-muted-foreground block">Purchase Price</span>
+          <span className="text-muted-foreground block">{t("purchasePriceLabel")}</span>
           <span className="font-medium">
             {formatCurrency(item.purchasePrice || 0, { fractionDigits: 0 })}
           </span>
         </div>
         <div>
-          <span className="text-muted-foreground block">Selling Price</span>
+          <span className="text-muted-foreground block">{t("sellingPriceLabel")}</span>
           <span className="font-medium">
             {formatCurrency(item.sellingPrice || 0, { fractionDigits: 0 })}
           </span>
         </div>
         <div>
-          <span className="text-muted-foreground block">Min. Quantity</span>
+          <span className="text-muted-foreground block">{t("minQuantityLabel")}</span>
           <span className="font-medium">
             {item.minQuantity || 0} {item.unit}
           </span>
         </div>
         <div>
-          <span className="text-muted-foreground block">Expiry Date</span>
+          <span className="text-muted-foreground block">{t("expiryDateLabel")}</span>
           <span className="font-medium">
             {item.expiryDate
               ? formatDate(item.expiryDate, "dd MMMM yyyy")
-              : "N/A"}
+              : t("notAvailable")}
           </span>
         </div>
       </div>
@@ -99,11 +110,12 @@ export function ItemMovementsSection({
 }: {
   movements?: ItemMovement[];
 }) {
+  const t = useInventoryItemDetailsTranslations();
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex items-center gap-2 mb-3">
         <History className="h-4 w-4 text-muted-foreground" />
-        <h4 className="font-semibold text-sm">Recent movements</h4>
+        <h4 className="font-semibold text-sm">{t("recentMovementsTitle")}</h4>
       </div>
 
       <div className="border rounded-md flex-1 overflow-hidden">
@@ -150,7 +162,7 @@ export function ItemMovementsSection({
             })
           ) : (
             <p className="text-center py-8 text-muted-foreground text-sm">
-              No movements recorded yet
+              {t("noMovementsRecorded")}
             </p>
           )}
         </div>
@@ -158,10 +170,10 @@ export function ItemMovementsSection({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Type</TableHead>
-                <TableHead>Qty</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Notes</TableHead>
+                <TableHead className="w-[100px]">{t("tableTypeHeader")}</TableHead>
+                <TableHead>{t("tableQtyHeader")}</TableHead>
+                <TableHead>{t("tableDateHeader")}</TableHead>
+                <TableHead className="text-right">{t("tableNotesHeader")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -206,7 +218,7 @@ export function ItemMovementsSection({
                     colSpan={4}
                     className="text-center py-8 text-muted-foreground text-sm"
                   >
-                    No movements recorded yet
+                    {t("noMovementsRecorded")}
                   </TableCell>
                 </TableRow>
               )}
