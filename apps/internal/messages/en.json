@@ -291,6 +291,22 @@
       "projectedTotalLabel": "Projected month total"
     }
   },
+  "InternalEnterpriseContracts": {
+    "tableSection": {
+      "title": "All enterprise contracts",
+      "description": "Edit terms, manage member clinics for groups, generate prepay invoices, run true-up evaluations.",
+      "loadingLabel": "Loading enterprise contracts…",
+      "emptyTitle": "No contracts yet",
+      "emptyDescription": "Create a contract to manage enterprise billing terms.",
+      "colContractGroup": "Contract # / group",
+      "colPrimaryClinic": "Primary clinic",
+      "colMembers": "Members",
+      "colStatus": "Status",
+      "colPeriod": "Period",
+      "colPlatformFee": "Platform fee",
+      "colActions": "Actions"
+    }
+  },
   "InternalPricing": {
     "tierTable": {
       "emptyTitle": "No tier pricing rows",

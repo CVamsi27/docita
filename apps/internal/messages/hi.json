@@ -291,6 +291,22 @@
       "projectedTotalLabel": "अनुमानित माह कुल"
     }
   },
+  "InternalEnterpriseContracts": {
+    "tableSection": {
+      "title": "सभी एंटरप्राइज़ अनुबंध",
+      "description": "शर्तें संपादित करें, समूहों के लिए सदस्य क्लिनिक प्रबंधित करें, प्रीपे चालान बनाएँ, ट्रू-अप मूल्यांकन चलाएँ।",
+      "loadingLabel": "एंटरप्राइज़ अनुबंध लोड हो रहे हैं…",
+      "emptyTitle": "अभी तक कोई अनुबंध नहीं",
+      "emptyDescription": "एंटरप्राइज़ बिलिंग शर्तों को प्रबंधित करने के लिए एक अनुबंध बनाएँ।",
+      "colContractGroup": "अनुबंध # / समूह",
+      "colPrimaryClinic": "प्राथमिक क्लिनिक",
+      "colMembers": "सदस्य",
+      "colStatus": "स्थिति",
+      "colPeriod": "अवधि",
+      "colPlatformFee": "प्लेटफ़ॉर्म शुल्क",
+      "colActions": "क्रियाएँ"
+    }
+  },
   "InternalPricing": {
     "tierTable": {
       "emptyTitle": "कोई स्तर मूल्य पंक्तियाँ नहीं",
