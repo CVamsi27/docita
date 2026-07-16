@@ -1001,6 +1001,24 @@
       "occupiedLabel": "occupied"
     }
   },
+  "Desk": {
+    "collectionsByModeReport": {
+      "reportMicroLabel": "Report",
+      "title": "Collections by mode",
+      "fromLabel": "From",
+      "toLabel": "To",
+      "loadingLabel": "Loading collections…",
+      "invalidRangeErrorFallback": "Select a valid date range to view collections.",
+      "emptyRangeTitle": "No collections in this range",
+      "emptyRangeDescription": "Settled desk and online payments will appear here grouped by payment mode.",
+      "invalidRangeTitle": "Invalid date range",
+      "invalidRangeDescription": "The start date must be on or before the end date.",
+      "colPaidBy": "Paid by",
+      "colPayments": "Payments",
+      "colAmount": "Amount",
+      "totalLabel": "Total"
+    }
+  },
   "LabTests": {
     "overview": {
       "pendingTitle": "Pending",

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T12:59:03.607Z",
-  "totalLiterals": 968,
+  "generatedAt": "2026-07-16T13:01:30.793Z",
+  "totalLiterals": 962,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -76,7 +76,6 @@
     "apps/app/features/dashboard/components/today/today-page-content-sections.tsx": 3,
     "apps/app/features/daybook/components/DaybookPageContentSections.tsx": 5,
     "apps/app/features/desk/components/DeskCollectPaymentPageUI.tsx": 1,
-    "apps/app/features/desk/components/DeskCollectionsByModeReport.tsx": 6,
     "apps/app/features/desk/components/DeskFloorPanelUISections.tsx": 3,
     "apps/app/features/desk/components/DeskOpenInvoices.tsx": 1,
     "apps/app/features/desk/components/desk-record-payment-dialog.tsx": 2,

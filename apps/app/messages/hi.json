@@ -1001,6 +1001,24 @@
       "occupiedLabel": "अधिभृत"
     }
   },
+  "Desk": {
+    "collectionsByModeReport": {
+      "reportMicroLabel": "रिपोर्ट",
+      "title": "मोड के अनुसार संग्रह",
+      "fromLabel": "से",
+      "toLabel": "तक",
+      "loadingLabel": "संग्रह लोड हो रहे हैं…",
+      "invalidRangeErrorFallback": "संग्रह देखने के लिए एक मान्य तिथि सीमा चुनें।",
+      "emptyRangeTitle": "इस सीमा में कोई संग्रह नहीं",
+      "emptyRangeDescription": "निपटाए गए डेस्क और ऑनलाइन भुगतान यहाँ भुगतान मोड के अनुसार समूहित दिखाई देंगे।",
+      "invalidRangeTitle": "अमान्य तिथि सीमा",
+      "invalidRangeDescription": "प्रारंभ तिथि समाप्ति तिथि पर या उससे पहले होनी चाहिए।",
+      "colPaidBy": "भुगतानकर्ता",
+      "colPayments": "भुगतान",
+      "colAmount": "राशि",
+      "totalLabel": "कुल"
+    }
+  },
   "LabTests": {
     "overview": {
       "pendingTitle": "लंबित",
