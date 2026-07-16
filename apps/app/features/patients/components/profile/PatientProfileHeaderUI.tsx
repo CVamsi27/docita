@@ -4,7 +4,7 @@ import {
 } from "@workspace/ui/components/indicators/avatar";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
-import { Calendar, Edit, Mail, MapPin, Phone, Shield } from "lucide-react";
+import { Calendar, Edit, Mail, MapPin, Phone, Shield, Hash } from "lucide-react";
 import { formatDate, getPatientFullName } from "@workspace/utils";
 import { formatGenderLabel } from "@/lib/formatters";
 
@@ -19,6 +19,7 @@ interface PatientProfileHeaderUIProps {
   email?: string;
   phoneNumber?: string;
   address?: string;
+  mrn?: string;
   onEdit?: () => void;
 }
 
@@ -33,6 +34,7 @@ export function PatientProfileHeaderUI({
   email,
   phoneNumber,
   address,
+  mrn,
   onEdit,
 }: PatientProfileHeaderUIProps) {
   return (
@@ -86,6 +88,17 @@ export function PatientProfileHeaderUI({
             </div>
 
             <div className="flex flex-wrap justify-center md:justify-start gap-2">
+              {mrn && (
+                <Badge
+                  variant="secondary"
+                  className="gap-1 py-1 pl-1.5 pr-2 text-xs font-normal"
+                  data-testid="patient-mrn-badge"
+                >
+                  <Hash className="h-3 w-3 opacity-70 shrink-0" />
+                  <span className="font-medium">MRN:</span>
+                  <span className="font-mono">{mrn}</span>
+                </Badge>
+              )}
               {email && (
                 <Badge
                   variant="secondary"

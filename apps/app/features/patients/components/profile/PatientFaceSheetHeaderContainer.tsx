@@ -41,6 +41,7 @@ export function PatientFaceSheetHeaderContainer({
       gender={patient.gender || "UNKNOWN"}
       dateOfBirth={patient.dateOfBirth!}
       initials={initials}
+      mrn={patient.mrn ?? undefined}
       codeStatus={patient.codeStatus}
       codeStatusLabel={codeStatusLabel}
       isFullCode={isFullCode}

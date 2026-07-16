@@ -22,6 +22,7 @@ interface PatientFaceSheetHeaderUIProps {
   gender: string;
   dateOfBirth: Date | string;
   initials: string;
+  mrn?: string;
 
   codeStatus?: string;
   codeStatusLabel?: string;
@@ -51,6 +52,7 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
     gender,
     dateOfBirth,
     initials,
+    mrn,
     codeStatusLabel,
     isFullCode,
     isolationStatusLabel,
@@ -103,6 +105,17 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
               <span>{formatGenderLabel(gender)}</span>
               <span className="text-muted-foreground/40">•</span>
               <span>DOB: {formatDate(dateOfBirth)}</span>
+              {mrn ? (
+                <>
+                  <span className="text-muted-foreground/40">•</span>
+                  <span
+                    className="font-mono"
+                    data-testid="patient-facesheet-mrn"
+                  >
+                    MRN: {mrn}
+                  </span>
+                </>
+              ) : null}
             </div>
           </div>
         </div>

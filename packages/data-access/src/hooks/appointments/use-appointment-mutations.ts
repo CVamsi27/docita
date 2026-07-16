@@ -19,6 +19,10 @@ export const useCreateAppointment = () => {
       invalidateKeys: [
         queryKeys.appointments.all(),
         queryKeys.doctorAvailabilitySlots.all(),
+        // Patient portal reads from a separate key tree; without this,
+        // a newly created appointment won't show up on /patient-portal/appointments
+        // until the user navigates away and back.
+        queryKeys.patientPortal.appointments.all(),
       ],
       onSuccess: async () => {
         await queryClient.refetchQueries({
@@ -40,6 +44,7 @@ export const useUpdateAppointment = (id: string) =>
         queryKeys.appointments.all(),
         queryKeys.appointments.detail(id),
         queryKeys.doctorAvailabilitySlots.all(),
+        queryKeys.patientPortal.appointments.all(),
       ],
       suppressGlobalErrorToast: true,
     },
@@ -65,6 +70,7 @@ export const useCancelAppointment = (id: string) =>
         queryKeys.appointments.all(),
         queryKeys.appointments.detail(id),
         queryKeys.doctorAvailabilitySlots.all(),
+        queryKeys.patientPortal.appointments.all(),
       ],
     },
   );
