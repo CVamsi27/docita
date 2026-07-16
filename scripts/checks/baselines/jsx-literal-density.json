@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-16T06:08:26.424Z",
-  "totalLiterals": 1075,
+  "generatedAt": "2026-07-16T06:46:45.359Z",
+  "totalLiterals": 1068,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -68,7 +68,6 @@
     "apps/app/features/consultation/components/specialty/investigation-row.tsx": 3,
     "apps/app/features/consultation/components/structured/DiagnosisInput.tsx": 1,
     "apps/app/features/consultation/components/structured/PrescriptionInput.tsx": 1,
-    "apps/app/features/consultation/components/structured/diagnosis-item-row.tsx": 7,
     "apps/app/features/consultation/components/summary/CodeStatusAlertUI.tsx": 1,
     "apps/app/features/consultation/workspace/chrome/CommandPalette.tsx": 2,
     "apps/app/features/consultation/workspace/chrome/SectionRail.tsx": 1,

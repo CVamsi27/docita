@@ -243,6 +243,25 @@
       "summaryTax": "कर ({rate}%)",
       "summaryDiscount": "छूट",
       "summaryGrandTotal": "कुल योग"
+    },
+    "diagnosisItemRow": {
+      "diagnosisAriaLabel": "निदान",
+      "rowTitle": "निदान #{index}",
+      "typeFinal": "अंतिम",
+      "typeDifferential": "विभेदक",
+      "removeTooltip": "निदान हटाएँ",
+      "conditionPlaceholder": "स्थिति का नाम",
+      "typePlaceholder": "प्रकार",
+      "typeProvisional": "अनंतिम",
+      "typeDifferentialOption": "विभेदक",
+      "typeFinalOption": "अंतिम",
+      "statusPlaceholder": "स्थिति",
+      "statusActive": "सक्रिय",
+      "statusChronic": "दीर्घकालिक",
+      "statusResolved": "हल",
+      "icdLabel": "ICD-10 कोड",
+      "notesLabel": "टिप्पणियाँ",
+      "notesPlaceholder": "टिप्पणियाँ"
     }
   },
   "Settings": {
