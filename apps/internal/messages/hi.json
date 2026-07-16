@@ -313,5 +313,21 @@
       "previousButton": "पिछला",
       "nextButton": "अगला"
     }
+  },
+  "InternalPaymentProcessing": {
+    "formFields": {
+      "tierLabel": "स्तर में अपग्रेड करें",
+      "tierDescription": "इस सुविधा के लिए नया स्तर चुनें",
+      "amountLabel": "राशि ({currency})",
+      "amountPlaceholder": "राशि",
+      "amountDescription": "चुने गए स्तर के आधार पर राशि स्वचालित रूप से गणना की जाएगी",
+      "paymentMethodLabel": "भुगतान विधि",
+      "paymentMethodRazorpay": "Razorpay",
+      "paymentMethodStripe": "Stripe",
+      "paymentMethodBankTransfer": "बैंक हस्तांतरण",
+      "paymentMethodManual": "मैन्युअल",
+      "paymentNotesLabel": "भुगतान नोट्स (वैकल्पिक)",
+      "paymentNotesPlaceholder": "भुगतान नोट्स"
+    }
   }
 }

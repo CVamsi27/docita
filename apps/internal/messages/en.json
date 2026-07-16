@@ -313,5 +313,21 @@
       "previousButton": "Previous",
       "nextButton": "Next"
     }
+  },
+  "InternalPaymentProcessing": {
+    "formFields": {
+      "tierLabel": "Upgrade to Tier",
+      "tierDescription": "Select the new tier for this facility",
+      "amountLabel": "Amount ({currency})",
+      "amountPlaceholder": "Amount",
+      "amountDescription": "Amount will be auto-calculated based on selected tier",
+      "paymentMethodLabel": "Payment Method",
+      "paymentMethodRazorpay": "Razorpay",
+      "paymentMethodStripe": "Stripe",
+      "paymentMethodBankTransfer": "Bank Transfer",
+      "paymentMethodManual": "Manual",
+      "paymentNotesLabel": "Payment Notes (Optional)",
+      "paymentNotesPlaceholder": "Payment notes"
+    }
   }
 }

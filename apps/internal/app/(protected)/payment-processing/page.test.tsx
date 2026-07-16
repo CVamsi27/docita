@@ -6,6 +6,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import type { ReactElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DataAccessProvider, type RequestConfig } from "@workspace/data-access";
@@ -111,11 +112,43 @@ function renderWithQueryClient(ui: ReactElement) {
           isTierFeatureEnabled: () => true,
         }}
       >
-        {ui}
+        <NextIntlClientProvider locale="en" messages={messages}>
+          {ui}
+        </NextIntlClientProvider>
       </DataAccessProvider>
     </QueryClientProvider>,
   );
 }
+
+/**
+ * Local messages mirror covering all namespaces read by
+ * PaymentProcessingPage + PaymentFormFields + the payment
+ * dialog. The test renders via NextIntlClientProvider so
+ * useTranslations resolves against these English strings.
+ */
+const messages = {
+  InternalPaymentProcessing: {
+    formFields: {
+      tierLabel: "Upgrade to Tier",
+      tierDescription: "Select the new tier for this facility",
+      amountLabel: "Amount ({currency})",
+      amountPlaceholder: "Amount",
+      amountDescription: "Amount will be auto-calculated based on selected tier",
+      paymentMethodLabel: "Payment Method",
+      paymentMethodRazorpay: "Razorpay",
+      paymentMethodStripe: "Stripe",
+      paymentMethodBankTransfer: "Bank Transfer",
+      paymentMethodManual: "Manual",
+      paymentNotesLabel: "Payment Notes (Optional)",
+      paymentNotesPlaceholder: "Payment notes",
+    },
+    // Stub the dialog namespace so the test renders the existing
+    // human strings (e.g. "Payment Processing - {clinic}").
+    dialog: {
+      title: "Payment Processing - {clinic}",
+    },
+  },
+};
 
 describe("PaymentProcessingPage", () => {
   beforeEach(() => {
