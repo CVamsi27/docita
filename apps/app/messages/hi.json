@@ -357,6 +357,33 @@
       "rejectionReasonHelper": "यह कारण आवेदक को भेजा जाएगा",
       "rejectingLabel": "अस्वीकार किया जा रहा…",
       "rejectRequestButton": "अनुरोध अस्वीकार करें"
+    },
+    "enterpriseBranding": {
+      "brandNameTitle": "ब्रांड नाम",
+      "enterpriseBadge": "एंटरप्राइज़",
+      "brandNameDescription": "पूरे ऐप में \"Docita\" को अपनी क्लिनिक के नाम से बदलें।",
+      "displayNameLabel": "प्रदर्शन नाम",
+      "displayNamePlaceholder": "जैसे सिटी क्लिनिक",
+      "displayNameHelper": "साइडबार हेडर और ब्राउज़र टैब शीर्षक में दिखाया गया। \"Docita\" का उपयोग करने के लिए खाली छोड़ें।",
+      "saveBrandNameButton": "ब्रांड नाम सहेजें",
+      "lockedThemeTitle": "लॉक किया गया थीम",
+      "lockedThemeDescription": "एक रंग योजना और लेआउट सेट करें जो आपके कार्यस्थल के हर उपयोगकर्ता पर लागू हो। लागू करने पर, व्यक्तिगत रूप वरीयताएँ ओवरराइड हो जाती हैं।",
+      "colourAccentLabel": "रंग एक्सेंट",
+      "modeLabel": "मोड",
+      "modeLight": "लाइट",
+      "modeDark": "डार्क",
+      "modeSystem": "सिस्टम",
+      "compactModeLabel": "कॉम्पैक्ट मोड",
+      "compactModeHelper": "घने लेआउट के लिए स्पेसिंग कम करें",
+      "enforceForAllLabel": "सभी उपयोगकर्ताओं के लिए लागू करें",
+      "enforceForAllHelper": "कार्यस्थल में व्यक्तिगत रूप वरीयताओं को ओवरराइड करें",
+      "saveThemeButton": "थीम सहेजें",
+      "whatsAppTitle": "WhatsApp कस्टम नंबर",
+      "professionalPlusBadge": "प्रोफेशनल+",
+      "whatsAppDescription": "साझा Docita प्रेषक के बजाय अपनी क्लिनिक के अपने WhatsApp नंबर से संदेश भेजें।",
+      "whatsAppActiveHelper": "अपने WhatsApp प्रेषक नंबर को यहाँ कॉन्फ़िगर करें",
+      "whatsAppSettingsLink": "WhatsApp सेटिंग्स",
+      "whatsAppUpgradeHelper": "प्रोफेशनल और ऊपर के प्लान पर उपलब्ध। अपना नंबर जोड़ने के लिए प्लान अपग्रेड करें।"
     }
   },
   "Invoices": {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -29,6 +30,15 @@ const ACCENT_OPTIONS = [
   { value: "slate", label: "Slate" },
 ];
 
+/**
+ * Phase 3 (per-feature): apps/app Settings > Enterprise branding
+ * (3 enterprise-feature cards). 8 literals converted to
+ * useTranslations("Settings.enterpriseBranding").
+ */
+function useEnterpriseBrandingTranslations() {
+  return useTranslations("Settings.enterpriseBranding");
+}
+
 interface BrandNameCardProps {
   hasWhiteLabel: boolean;
   brandName: string;
@@ -44,44 +54,43 @@ export function BrandNameCard({
   isSaving,
   onSave,
 }: BrandNameCardProps) {
+  const t = useEnterpriseBrandingTranslations();
   return (
     <Card>
       <CardHeader className="border-b border-border/60 pb-5">
         <div className="flex items-center gap-2">
-          <CardTitle>Brand name</CardTitle>
+          <CardTitle>{t("brandNameTitle")}</CardTitle>
           {!hasWhiteLabel && (
             <Badge
               variant="outline"
               className="ui-eyebrow border-border/60 text-muted-foreground"
             >
-              Enterprise
+              {t("enterpriseBadge")}
             </Badge>
           )}
         </div>
         <CardDescription>
-          Replace &ldquo;Docita&rdquo; with your clinic&apos;s name throughout
-          the app.
+          {t("brandNameDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-5 pt-5">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="brand-name">Display name</Label>
+          <Label htmlFor="brand-name">{t("displayNameLabel")}</Label>
           <Input
             id="brand-name"
-            placeholder="e.g. City Clinic"
+            placeholder={t("displayNamePlaceholder")}
             value={brandName}
             onChange={(e) => onBrandNameChange(e.target.value)}
             maxLength={80}
             disabled={!hasWhiteLabel}
           />
           <p className="text-xs text-muted-foreground">
-            Shown in the sidebar header and browser tab title. Leave blank to
-            use &ldquo;Docita&rdquo;.
+            {t("displayNameHelper")}
           </p>
         </div>
         <div className="flex justify-end border-t border-border/60 pt-4">
           <Button onClick={onSave} disabled={!hasWhiteLabel || isSaving}>
-            Save brand name
+            {t("saveBrandNameButton")}
           </Button>
         </div>
       </CardContent>
@@ -116,29 +125,28 @@ export function LockedThemeCard({
   isSaving,
   onSave,
 }: LockedThemeCardProps) {
+  const t = useEnterpriseBrandingTranslations();
   return (
     <Card>
       <CardHeader className="border-b border-border/60 pb-5">
         <div className="flex items-center gap-2">
-          <CardTitle>Locked theme</CardTitle>
+          <CardTitle>{t("lockedThemeTitle")}</CardTitle>
           {!hasLockedTheme && (
             <Badge
               variant="outline"
               className="ui-eyebrow border-border/60 text-muted-foreground"
             >
-              Enterprise
+              {t("enterpriseBadge")}
             </Badge>
           )}
         </div>
         <CardDescription>
-          Set a colour scheme and layout that applies to every user in your
-          workspace. When enforced, individual appearance preferences are
-          overridden.
+          {t("lockedThemeDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6 pt-5">
         <div className="space-y-3">
-          <Label>Colour accent</Label>
+          <Label>{t("colourAccentLabel")}</Label>
           <ToggleGroup
             type="single"
             value={primaryColor}
@@ -163,7 +171,7 @@ export function LockedThemeCard({
         </div>
 
         <div className="space-y-3">
-          <Label>Mode</Label>
+          <Label>{t("modeLabel")}</Label>
           <ToggleGroup
             type="single"
             value={mode}
@@ -179,28 +187,28 @@ export function LockedThemeCard({
               value="light"
               className="h-8 px-3 text-xs data-[state=on]:bg-[color-mix(in_oklch,var(--primary)_12%,transparent)] data-[state=on]:text-primary data-[state=on]:font-semibold"
             >
-              Light
+              {t("modeLight")}
             </ToggleGroupItem>
             <ToggleGroupItem
               value="dark"
               className="h-8 px-3 text-xs data-[state=on]:bg-[color-mix(in_oklch,var(--primary)_12%,transparent)] data-[state=on]:text-primary data-[state=on]:font-semibold"
             >
-              Dark
+              {t("modeDark")}
             </ToggleGroupItem>
             <ToggleGroupItem
               value="system"
               className="h-8 px-3 text-xs data-[state=on]:bg-[color-mix(in_oklch,var(--primary)_12%,transparent)] data-[state=on]:text-primary data-[state=on]:font-semibold"
             >
-              System
+              {t("modeSystem")}
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
 
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label htmlFor="compact-mode">Compact mode</Label>
+            <Label htmlFor="compact-mode">{t("compactModeLabel")}</Label>
             <p className="text-xs text-muted-foreground">
-              Reduce spacing for a denser layout
+              {t("compactModeHelper")}
             </p>
           </div>
           <Switch
@@ -215,9 +223,9 @@ export function LockedThemeCard({
 
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label htmlFor="enforced-theme">Enforce for all users</Label>
+            <Label htmlFor="enforced-theme">{t("enforceForAllLabel")}</Label>
             <p className="text-xs text-muted-foreground">
-              Override individual appearance preferences across the workspace
+              {t("enforceForAllHelper")}
             </p>
           </div>
           <Switch
@@ -230,7 +238,7 @@ export function LockedThemeCard({
 
         <div className="flex justify-end border-t border-border/60 pt-4">
           <Button onClick={onSave} disabled={!hasLockedTheme || isSaving}>
-            Save theme
+            {t("saveThemeButton")}
           </Button>
         </div>
       </CardContent>
@@ -245,41 +253,40 @@ interface WhatsAppNumberCardProps {
 export function WhatsAppNumberCard({
   hasWhatsAppOwn,
 }: WhatsAppNumberCardProps) {
+  const t = useEnterpriseBrandingTranslations();
   return (
     <Card>
       <CardHeader className="border-b border-border/60 pb-5">
         <div className="flex items-center gap-2">
-          <CardTitle>WhatsApp custom number</CardTitle>
+          <CardTitle>{t("whatsAppTitle")}</CardTitle>
           {!hasWhatsAppOwn && (
             <Badge
               variant="outline"
               className="ui-eyebrow border-border/60 text-muted-foreground"
             >
-              Professional+
+              {t("professionalPlusBadge")}
             </Badge>
           )}
         </div>
         <CardDescription>
-          Send messages from your clinic&apos;s own WhatsApp number instead of
-          the shared Docita sender.
+          {t("whatsAppDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-5">
         {hasWhatsAppOwn ? (
           <p className="text-sm text-muted-foreground">
-            Configure your WhatsApp sender number in{" "}
+            {t("whatsAppActiveHelper")}{" "}
             <a
               href="/settings/whatsapp-sender"
               className="underline underline-offset-4 hover:text-foreground"
             >
-              WhatsApp settings
+              {t("whatsAppSettingsLink")}
             </a>
             .
           </p>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Available on Professional and above. Upgrade your plan to connect
-            your own number.
+            {t("whatsAppUpgradeHelper")}
           </p>
         )}
       </CardContent>
