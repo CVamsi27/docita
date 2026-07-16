@@ -217,6 +217,55 @@
       "colApiOverage": "API अधिकता",
       "unsavedBadge": "असहेजा",
       "saveButton": "सहेजें"
+    },
+    "offerBuilder": {
+      "cardTitle": "क्लिनिक ऑफर बिल्डर",
+      "cardDescription": "अनुरोधित अस्पतालों को विशेष मूल्य निर्धारण प्रदान करें। ऑफर प्रति क्लिनिक संग्रहीत किया जाता है और चेकआउट और बिलिंग पूर्वावलोकन में स्वचालित रूप से लागू होता है।",
+      "templatesLabel": "त्वरित ऑफर टेम्पलेट",
+      "clinicLabel": "क्लिनिक",
+      "clinicAriaLabel": "क्लिनिक",
+      "clinicLoading": "लोड हो रहा है",
+      "clinicPlaceholder": "सुविधा",
+      "titleLabel": "ऑफर शीर्षक",
+      "titlePlaceholder": "ऑफर शीर्षक",
+      "percentOffLabel": "छूट %",
+      "durationLabel": "अवधि (महीने)",
+      "validUntilLabel": "तक वैध",
+      "datePlaceholder": "तारीख",
+      "descriptionLabel": "विवरण",
+      "descriptionPlaceholder": "विवरण",
+      "notesLabel": "आंतरिक नोट्स",
+      "notesPlaceholder": "आंतरिक नोट्स",
+      "resetButton": "रीसेट",
+      "saveButton": "ऑफर सहेजें"
+    }
+  },
+  "InternalSystemMonitoring": {
+    "performance": {
+      "uptimeTitle": "अपटाइम",
+      "uptimeDescription": "रनटाइम API से प्रक्रिया अपटाइम",
+      "nodeRuntimeTitle": "Node रनटाइम",
+      "nodeRuntimeDetail": "{platform} / {arch}",
+      "waitingForRuntime": "रनटाइम मेट्रिक्स की प्रतीक्षा",
+      "requestsPerMinuteTitle": "प्रति मिनट अनुरोध",
+      "requestsPerMinuteDescription": "लाइव अनुरोध वॉल्यूम से निकाला गया",
+      "databaseStatusTitle": "डेटाबेस स्थिति",
+      "databaseStatusQueryTime": "{ms}ms क्वेरी समय",
+      "waitingForDatabase": "डेटाबेस आँकड़ों की प्रतीक्षा",
+      "memoryTitle": "मेमोरी विवरण",
+      "memoryDescription": "लाइव Node प्रक्रिया मेमोरी",
+      "memoryRss": "RSS",
+      "memoryHeapUsed": "हीप उपयोग",
+      "memoryHeapTotal": "कुल हीप",
+      "memoryExternal": "बाहरी",
+      "slowestEndpointsTitle": "सबसे धीमे एंडपॉइंट",
+      "slowestEndpointsDescription": "पिछले 7 दिनों में सबसे अधिक औसत अवधि",
+      "endpointAvgMs": "{ms}ms",
+      "endpointRequestStats": "{count} अनुरोध, अधिकतम {maxMs}ms",
+      "throughputTitle": "थ्रूपुट",
+      "throughputDescription": "प्रति मिनट देखे गए अनुरोध",
+      "responseDistributionTitle": "प्रतिक्रिया समय वितरण",
+      "responseDistributionDescription": "लाइव API अनुरोध लॉग से अनुरोध विलंबता बकेट"
     }
   }
 }

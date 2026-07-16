@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
@@ -35,6 +36,16 @@ interface Props {
   onApplyTemplate: (template: OfferTemplate) => void;
 }
 
+/**
+ * Phase 3 (per-feature): apps/internal Pricing > Clinic Offer
+ * Builder. 12 literals converted to useTranslations
+ * (\"InternalPricing.offerBuilder\") — labels, placeholders,
+ * the aria-label, and the Save/Reset buttons.
+ */
+function usePricingOfferBuilderTranslations() {
+  return useTranslations("InternalPricing.offerBuilder");
+}
+
 export function PricingOfferBuilder({
   offerForm,
   clinicOptions,
@@ -45,6 +56,7 @@ export function PricingOfferBuilder({
   onReset,
   onApplyTemplate,
 }: Props) {
+  const t = usePricingOfferBuilderTranslations();
   const set = (patch: Partial<PricingOfferFormState>) =>
     onFormChange({ ...offerForm, ...patch });
 
@@ -53,16 +65,13 @@ export function PricingOfferBuilder({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-primary" />
-          Clinic Offer Builder
+          {t("cardTitle")}
         </CardTitle>
-        <CardDescription>
-          Grant special pricing to requested hospitals. The offer is stored per
-          clinic and applied automatically in checkout and billing previews.
-        </CardDescription>
+        <CardDescription>{t("cardDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <p className="text-sm font-medium">Quick offer templates</p>
+          <p className="text-sm font-medium">{t("templatesLabel")}</p>
           <div className="flex flex-wrap gap-2">
             {OFFER_TEMPLATES.map((template) => (
               <Button
@@ -81,15 +90,15 @@ export function PricingOfferBuilder({
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Clinic</label>
+            <label className="text-sm font-medium">{t("clinicLabel")}</label>
             <Select
               value={offerForm.clinicId}
               onValueChange={(clinicId) => set({ clinicId })}
               disabled={isLoadingClinics}
             >
-              <SelectTrigger aria-label="Clinic">
+              <SelectTrigger aria-label={t("clinicAriaLabel")}>
                 <SelectValue
-                  placeholder={isLoadingClinics ? "Loading" : "Facility"}
+                  placeholder={isLoadingClinics ? t("clinicLoading") : t("clinicPlaceholder")}
                 />
               </SelectTrigger>
               <SelectContent>
@@ -102,15 +111,15 @@ export function PricingOfferBuilder({
             </Select>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Offer title</label>
+            <label className="text-sm font-medium">{t("titleLabel")}</label>
             <Input
               value={offerForm.title}
               onChange={(e) => set({ title: e.target.value })}
-              placeholder="Offer title"
+              placeholder={t("titlePlaceholder")}
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Discount %</label>
+            <label className="text-sm font-medium">{t("percentOffLabel")}</label>
             <Input
               type="number"
               min={0}
@@ -122,7 +131,7 @@ export function PricingOfferBuilder({
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Duration (months)</label>
+            <label className="text-sm font-medium">{t("durationLabel")}</label>
             <Input
               type="number"
               min={1}
@@ -133,36 +142,36 @@ export function PricingOfferBuilder({
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Valid until</label>
+            <label className="text-sm font-medium">{t("validUntilLabel")}</label>
             <DatePicker
               value={offerForm.validUntil || undefined}
               onChange={(date) =>
                 set({ validUntil: date?.toISOString().slice(0, 10) ?? "" })
               }
-              placeholder="Date"
+              placeholder={t("datePlaceholder")}
             />
           </div>
           <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium">Description</label>
+            <label className="text-sm font-medium">{t("descriptionLabel")}</label>
             <Input
               value={offerForm.description}
               onChange={(e) => set({ description: e.target.value })}
-              placeholder="Description"
+              placeholder={t("descriptionPlaceholder")}
             />
           </div>
           <div className="space-y-2 md:col-span-3">
-            <label className="text-sm font-medium">Internal notes</label>
+            <label className="text-sm font-medium">{t("notesLabel")}</label>
             <Input
               value={offerForm.notes}
               onChange={(e) => set({ notes: e.target.value })}
-              placeholder="Internal notes"
+              placeholder={t("notesPlaceholder")}
             />
           </div>
         </div>
 
         <div className="flex items-center justify-end gap-2">
           <Button variant="outline" onClick={onReset}>
-            Reset
+            {t("resetButton")}
           </Button>
           <Button onClick={onSave} disabled={savingId !== null}>
             {savingId === offerForm.clinicId ? (
@@ -170,7 +179,7 @@ export function PricingOfferBuilder({
             ) : (
               <Plus className="h-4 w-4" />
             )}
-            Save Offer
+            {t("saveButton")}
           </Button>
         </div>
       </CardContent>

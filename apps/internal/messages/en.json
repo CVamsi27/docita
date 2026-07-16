@@ -217,6 +217,55 @@
       "colApiOverage": "API Overage",
       "unsavedBadge": "unsaved",
       "saveButton": "Save"
+    },
+    "offerBuilder": {
+      "cardTitle": "Clinic Offer Builder",
+      "cardDescription": "Grant special pricing to requested hospitals. The offer is stored per clinic and applied automatically in checkout and billing previews.",
+      "templatesLabel": "Quick offer templates",
+      "clinicLabel": "Clinic",
+      "clinicAriaLabel": "Clinic",
+      "clinicLoading": "Loading",
+      "clinicPlaceholder": "Facility",
+      "titleLabel": "Offer title",
+      "titlePlaceholder": "Offer title",
+      "percentOffLabel": "Discount %",
+      "durationLabel": "Duration (months)",
+      "validUntilLabel": "Valid until",
+      "datePlaceholder": "Date",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Description",
+      "notesLabel": "Internal notes",
+      "notesPlaceholder": "Internal notes",
+      "resetButton": "Reset",
+      "saveButton": "Save Offer"
+    }
+  },
+  "InternalSystemMonitoring": {
+    "performance": {
+      "uptimeTitle": "Uptime",
+      "uptimeDescription": "Process uptime from the runtime API",
+      "nodeRuntimeTitle": "Node Runtime",
+      "nodeRuntimeDetail": "{platform} / {arch}",
+      "waitingForRuntime": "Waiting for runtime metrics",
+      "requestsPerMinuteTitle": "Requests per minute",
+      "requestsPerMinuteDescription": "Derived from live request volume",
+      "databaseStatusTitle": "Database Status",
+      "databaseStatusQueryTime": "{ms}ms query time",
+      "waitingForDatabase": "Waiting for database stats",
+      "memoryTitle": "Memory Breakdown",
+      "memoryDescription": "Live Node process memory",
+      "memoryRss": "RSS",
+      "memoryHeapUsed": "Heap used",
+      "memoryHeapTotal": "Heap total",
+      "memoryExternal": "External",
+      "slowestEndpointsTitle": "Slowest Endpoints",
+      "slowestEndpointsDescription": "Highest average duration over the last 7 days",
+      "endpointAvgMs": "{ms}ms",
+      "endpointRequestStats": "{count} requests, max {maxMs}ms",
+      "throughputTitle": "Throughput",
+      "throughputDescription": "Requests observed per minute",
+      "responseDistributionTitle": "Response Time Distribution",
+      "responseDistributionDescription": "Request latency buckets from live API request logs"
     }
   }
 }
