@@ -1,6 +1,7 @@
 "use client";
 
 // jscpd:ignore-start
+import { useTranslations } from "next-intl";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import {
@@ -27,6 +28,17 @@ export interface InvoiceItem {
   total: number;
 }
 
+/**
+ * Phase 3 (per-feature): mobile-card variant of the invoice
+ * items table — same data, different layout for narrow
+ * viewports. Reuses the Invoices.itemsTable namespace from
+ * InvoiceItemsTable so the two variants stay in sync. 10
+ * literals converted.
+ */
+function useInvoiceItemsCardTranslations() {
+  return useTranslations("Invoices.itemsTable");
+}
+
 export function InvoiceItemCard({
   item,
   index,
@@ -40,20 +52,21 @@ export function InvoiceItemCard({
   onRemoveItem: (index: number) => void;
   formatCurrency: (amount: number) => string;
 }) {
+  const t = useInvoiceItemsCardTranslations();
   return (
     <div className="ui-card-surface space-y-3 p-4">
       <div className="space-y-1.5">
-        <Label htmlFor={`item-desc-${item.id}`}>Description</Label>
+        <Label htmlFor={`item-desc-${item.id}`}>{t("colDescription")}</Label>
         <Input
           id={`item-desc-${item.id}`}
           value={item.description}
           onChange={(e) => onUpdateItem(index, "description", e.target.value)}
-          placeholder="Item description"
+          placeholder={t("itemDescriptionPlaceholder")}
         />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label htmlFor={`item-qty-${item.id}`}>Qty</Label>
+          <Label htmlFor={`item-qty-${item.id}`}>{t("colQty")}</Label>
           <Input
             id={`item-qty-${item.id}`}
             type="number"
@@ -65,7 +78,7 @@ export function InvoiceItemCard({
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor={`item-price-${item.id}`}>Unit price</Label>
+          <Label htmlFor={`item-price-${item.id}`}>{t("colUnitPrice")}</Label>
           <Input
             id={`item-price-${item.id}`}
             type="number"
@@ -79,7 +92,7 @@ export function InvoiceItemCard({
         </div>
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor={`item-tax-${item.id}`}>Tax</Label>
+        <Label htmlFor={`item-tax-${item.id}`}>{t("colTax")}</Label>
         <Select
           value={item.taxTreatment}
           onValueChange={(value) => onUpdateItem(index, "taxTreatment", value)}
@@ -88,16 +101,16 @@ export function InvoiceItemCard({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="EXEMPT_HEALTHCARE">Healthcare exempt</SelectItem>
-            <SelectItem value="TAXABLE">Taxable</SelectItem>
-            <SelectItem value="EXEMPT">Exempt</SelectItem>
-            <SelectItem value="NON_GST">Non-GST</SelectItem>
+            <SelectItem value="EXEMPT_HEALTHCARE">{t("taxHealthcareExempt")}</SelectItem>
+            <SelectItem value="TAXABLE">{t("taxTaxable")}</SelectItem>
+            <SelectItem value="EXEMPT">{t("taxExempt")}</SelectItem>
+            <SelectItem value="NON_GST">{t("taxNonGst")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label htmlFor={`item-gst-${item.id}`}>GST %</Label>
+          <Label htmlFor={`item-gst-${item.id}`}>{t("colGstPercent")}</Label>
           <Input
             id={`item-gst-${item.id}`}
             type="number"
@@ -112,24 +125,26 @@ export function InvoiceItemCard({
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor={`item-hsn-${item.id}`}>HSN/SAC</Label>
+          <Label htmlFor={`item-hsn-${item.id}`}>{t("colHsnSac")}</Label>
           <Input
             id={`item-hsn-${item.id}`}
             value={item.hsnCode || item.sacCode || ""}
             onChange={(e) => onUpdateItem(index, "hsnCode", e.target.value)}
-            placeholder="HSN code"
+            placeholder={t("hsnCodePlaceholder")}
           />
         </div>
       </div>
       <div className="flex items-center justify-between gap-2 border-t border-border/60 pt-3">
         <span className="text-sm font-medium">
-          Total: {formatCurrency(item.total)}
+          {t("colTotal")}: {formatCurrency(item.total)}
         </span>
-        <SymbolTooltip label={`Remove ${item.description || "line item"}`}>
+        <SymbolTooltip
+          label={t("removeLineItemTooltip", { name: item.description || "" })}
+        >
           <Button
             variant="ghost"
             size="icon"
-            aria-label={`Remove ${item.description || "line item"}`}
+            aria-label={t("removeLineItemTooltip", { name: item.description || "" })}
             className="text-destructive hover:text-destructive/90 touch-manipulation"
             onClick={() => onRemoveItem(index)}
           >
