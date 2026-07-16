@@ -179,9 +179,8 @@ export function LocationSection({
             <FormFieldGroup
               label="Google Maps link"
               htmlFor="clinic-maps-link"
-              required
               error={form.formState.errors.mapsLink?.message}
-              hint="Patients see this in appointment messages. Paste a Google Maps share URL or Plus code link."
+              hint="Patients see this in appointment messages. Paste a Google Maps share URL or Plus code link. Leave blank to skip."
             >
               <FormControl id="clinic-maps-link">
                 <Input
