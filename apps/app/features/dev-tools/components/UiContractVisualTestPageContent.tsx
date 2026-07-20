@@ -2,6 +2,7 @@
 
 // jscpd:ignore-start
 import { AlertCircle, Calendar, LayoutGrid, Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { Button } from "@workspace/ui/components/form/button";
 import {
@@ -13,20 +14,28 @@ import {
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 
+/**
+ * Phase 3 (per-feature): apps/app Dev Tools > UI contract visual test page.
+ * 5 literals converted to useTranslations("DevTools.UiContractVisualTest").
+ */
+function useUiContractVisualTestTranslations() {
+  return useTranslations("DevTools.UiContractVisualTest");
+}
+
 export default function UiContractVisualTestPage() {
-// jscpd:ignore-end
+  const t = useUiContractVisualTestTranslations();
   return (
     <div className="space-y-10 p-6 md:p-8">
       <section data-testid="scaffold-and-header">
         <AppPageScaffold
           header={
             <PageHeader
-              title="Patient Workspace"
-              description="A consistent page scaffold and heading treatment"
+              title={t("pageTitle")}
+              description={t("pageSubtitle")}
               actions={
                 <Button size="sm">
                   <Plus className="h-4 w-4" />
-                  New Entry
+                  {t("newEntryButton")}
                 </Button>
               }
             />
@@ -35,18 +44,18 @@ export default function UiContractVisualTestPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Today</CardTitle>
+                <CardTitle>{t("todayTitle")}</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">
-                8 appointments scheduled
+                {t("todayBody", { count: 8 })}
               </CardContent>
             </Card>
             <Card interaction="interactive">
               <CardHeader>
-                <CardTitle>Queue</CardTitle>
+                <CardTitle>{t("queueTitle")}</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">
-                3 patients waiting
+                {t("queueBody", { count: 3 })}
               </CardContent>
             </Card>
           </div>
@@ -56,12 +65,12 @@ export default function UiContractVisualTestPage() {
       <section data-testid="data-state-loading">
         <Card>
           <CardHeader>
-            <CardTitle>Loading State</CardTitle>
+            <CardTitle>{t("loadingTitle")}</CardTitle>
           </CardHeader>
           <CardContent>
             <DataState
               status="loading"
-              loadingMessage="Loading appointment data…"
+              loadingMessage={t("loadingMessage")}
             />
           </CardContent>
         </Card>
@@ -70,15 +79,15 @@ export default function UiContractVisualTestPage() {
       <section data-testid="data-state-empty">
         <Card>
           <CardHeader>
-            <CardTitle>Empty State</CardTitle>
+            <CardTitle>{t("emptyTitle")}</CardTitle>
           </CardHeader>
           <CardContent>
             <DataState
               status="empty"
               emptyIcon={Calendar}
-              emptyTitle="No appointments found"
-              emptyDescription="New appointments will appear here"
-              emptyAction={{ label: "Schedule", href: "#" }}
+              emptyTitle={t("emptyStateTitle")}
+              emptyDescription={t("emptyStateDescription")}
+              emptyAction={{ label: t("emptyAction"), href: "#" }}
             />
           </CardContent>
         </Card>
@@ -87,12 +96,12 @@ export default function UiContractVisualTestPage() {
       <section data-testid="data-state-error">
         <Card>
           <CardHeader>
-            <CardTitle>Error State</CardTitle>
+            <CardTitle>{t("errorTitle")}</CardTitle>
           </CardHeader>
           <CardContent>
             <DataState
               status="error"
-              errorMessage="We could not load this dashboard view. Please try again."
+              errorMessage={t("errorMessage")}
             />
           </CardContent>
         </Card>
@@ -103,11 +112,11 @@ export default function UiContractVisualTestPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <LayoutGrid className="h-4 w-4" />
-              Interactive Card Variant
+              {t("interactiveCardTitle")}
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            This card uses opt-in interactivity.
+            {t("interactiveCardBody")}
           </CardContent>
         </Card>
       </section>
@@ -116,10 +125,11 @@ export default function UiContractVisualTestPage() {
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
           <p className="flex items-center gap-2 text-sm text-destructive">
             <AlertCircle className="h-4 w-4" />
-            Inline alert style reference
+            {t("inlineAlertLabel")}
           </p>
         </div>
       </section>
     </div>
   );
 }
+// jscpd:ignore-end
