@@ -65,7 +65,16 @@
     "totalRevenue": "Total Revenue",
     "appointments": "Appointments",
     "newPatients": "New Patients",
-    "avgInvoiceValue": "Avg Invoice Value"
+    "avgInvoiceValue": "Avg Invoice Value",
+    "detailedMetricsTable": {
+      "colPeriod": "Period",
+      "colRevenue": "Revenue",
+      "colInvoices": "Invoices",
+      "colAvgAmount": "Avg amount",
+      "colAppointments": "Appointments",
+      "colFillRate": "Fill rate",
+      "fillRateValue": "{rate}%"
+    }
   },
   "InternalDoctors": {
     "view": {
@@ -230,68 +239,6 @@
     }
   },
   "InternalEnterpriseContracts": {
-    "editor": {
-      "primaryClinicIdLabel": "Primary clinic ID",
-      "groupNameLabel": "Group name (optional)",
-      "groupNamePlaceholder": "e.g. Apollo Group",
-      "contractNumberLabel": "Contract number",
-      "statusLabel": "Status",
-      "statusDraft": "Draft",
-      "statusActive": "Active",
-      "statusExpired": "Expired",
-      "statusTerminated": "Terminated",
-      "billingCycleLabel": "Billing cycle",
-      "cycleMonthly": "Monthly",
-      "cycleQuarterly": "Quarterly",
-      "cycleSemiAnnual": "Semi-annual",
-      "cycleYearly": "Yearly",
-      "startDateLabel": "Start date",
-      "endDateLabel": "End date",
-      "currencyLabel": "Currency",
-      "platformFeeLabel": "Platform fee ({currency})",
-      "quotePresetsLabel": "Quote presets"
-    },
-    "limits": {
-      "incUsers": "Inc. users",
-      "incConsultations": "Inc. consultations",
-      "incWhatsappMsgs": "Inc. WhatsApp msgs",
-      "incStorageGB": "Inc. storage GB",
-      "incBranches": "Inc. branches",
-      "incDoctors": "Inc. doctors",
-      "incPrescriptions": "Inc. prescriptions",
-      "incInvoices": "Inc. invoices",
-      "overageUser": "Overage / user",
-      "overageConsult": "Overage / consult",
-      "overageWhatsapp": "Overage / WA msg",
-      "overageDoctor": "Overage / doctor",
-      "overagePrescription": "Overage / prescription",
-      "overageInvoice": "Overage / invoice",
-      "setupFee": "Setup fee",
-      "supportRetainer": "Support retainer",
-      "annualPrepayDiscount": "Annual prepay discount %",
-      "trueUpThreshold": "True-up threshold %",
-      "signedDocumentUrl": "Signed document URL",
-      "notes": "Notes",
-      "changeSummary": "Change summary (revision log)",
-      "changeSummaryPlaceholder": "Why this change?"
-    },
-    "estimate": {
-      "title": "Current period estimate",
-      "description": "Live meter readings + projected month-end invoice (aggregated across all member clinics).",
-      "loadingLabel": "Loading…",
-      "periodLabel": "Period: {start} → {end}",
-      "memberClinicCount": "{count, plural, one {1 member clinic} other {{count} member clinics}}",
-      "colMeter": "Meter",
-      "colUsed": "Used",
-      "colIncluded": "Included",
-      "colOverage": "Overage",
-      "colCharge": "Charge",
-      "platformFeeLabel": "Platform fee",
-      "overageTotalLabel": "Overage total",
-      "projectedTotalLabel": "Projected month total"
-    }
-  },
-  "InternalEnterpriseContracts": {
     "tableSection": {
       "title": "All enterprise contracts",
       "description": "Edit terms, manage member clinics for groups, generate prepay invoices, run true-up evaluations.",
@@ -305,6 +252,29 @@
       "colPeriod": "Period",
       "colPlatformFee": "Platform fee",
       "colActions": "Actions"
+    },
+    "alertsDialog": {
+      "title": "True-up alerts",
+      "description": "Daily cron (03:15 UTC) raises one alert per contract per calendar month when YTD spend ≥ threshold% of YTD platform commit.",
+      "emptyMessage": "No alerts yet.",
+      "colDate": "Date",
+      "colObserved": "Observed %",
+      "colThreshold": "Threshold %",
+      "colYtdOverage": "YTD overage",
+      "colRecipients": "Recipients",
+      "percentValue": "{percent}%"
+    },
+    "invoicesDialog": {
+      "title": "Enterprise invoices",
+      "description": "Annual prepay, setup fee, and ad-hoc adjustments tracked separately from monthly overage invoices.",
+      "emptyMessage": "No invoices yet.",
+      "colKind": "Kind",
+      "colPeriod": "Period",
+      "colAmount": "Amount",
+      "colDiscount": "Discount",
+      "colStatus": "Status",
+      "periodValue": "{start} → {end}",
+      "discountValue": "{percent}%"
     }
   },
   "InternalPricing": {
@@ -402,6 +372,28 @@
       "colMethod": "Method",
       "colStatus": "Status",
       "colCount": "Count"
+    },
+    "experienceTab": {
+      "loadingLabel": "Loading Core Web Vitals aggregates…",
+      "errorFallback": "Could not load web vitals.",
+      "vitalsCardTitle": "Core Web Vitals (24h)",
+      "vitalsCardDescription": "Browser RUM aggregated from production beacons (LCP, INP, CLS, FCP, TTFB). Values follow the API rating helper thresholds.",
+      "emptyMessage": "No vitals recorded in this window yet.",
+      "colMetric": "Metric",
+      "colCount": "Count",
+      "colAvg": "Avg",
+      "colP95": "p95",
+      "colRating": "Rating"
+    },
+    "tenantScopeMetricsCards": {
+      "scopedTitle": "Scoped",
+      "directTitle": "Direct",
+      "relationTitle": "Relation",
+      "issuesTitle": "Issues",
+      "clinicIdHelper": "{count} models carry clinicId",
+      "directHelper": "Scalar clinicId filters",
+      "relationHelper": "Nested tenant filters",
+      "issuesHelper": "Uncovered models or stale rules"
     }
   },
   "InternalAdmins": {
@@ -471,44 +463,6 @@
       "colClinic": "Clinic",
       "colStatus": "Status",
       "colMessage": "Message"
-    }
-  },
-  "InternalPaymentProcessing": {
-    "formFields": {
-      "tierLabel": "Upgrade to Tier",
-      "tierDescription": "Select the new tier for this facility",
-      "amountLabel": "Amount ({currency})",
-      "amountPlaceholder": "Amount",
-      "amountDescription": "Amount will be auto-calculated based on selected tier",
-      "paymentMethodLabel": "Payment Method",
-      "paymentMethodRazorpay": "Razorpay",
-      "paymentMethodStripe": "Stripe",
-      "paymentMethodBankTransfer": "Bank Transfer",
-      "paymentMethodManual": "Manual",
-      "paymentNotesLabel": "Payment Notes (Optional)",
-      "paymentNotesPlaceholder": "Payment notes"
-    },
-    "pricingOffers": {
-      "noActiveDiscounts": "No active checkout discounts.",
-      "colFacility": "Facility",
-      "colTitle": "Title",
-      "colPercentOff": "Percent off",
-      "colValidUntil": "Valid until",
-      "colActions": "Actions",
-      "removeButton": "Remove",
-      "facilityLabel": "Facility",
-      "facilityPlaceholder": "Select facility",
-      "percentOffLabel": "Percent off checkout",
-      "percentOffPlaceholder": "Enter percent",
-      "percentOffDescription": "Applied to list price at subscription checkout (max 95).",
-      "titleLabel": "Title",
-      "titlePlaceholder": "Commercial discount",
-      "validUntilLabel": "Valid until (optional)",
-      "validUntilPlaceholder": "Select date",
-      "notesLabel": "Internal notes (optional)",
-      "notesPlaceholder": "Reason for discount, approval ref, etc.",
-      "savingLabel": "Saving…",
-      "saveButton": "Save discount"
     }
   },
   "InternalPaymentProcessing": {
@@ -584,6 +538,27 @@
       "colActions": "Actions",
       "statusActive": "Active",
       "statusInactive": "Inactive"
+    },
+    "whatsappSenderDialog": {
+      "triggerTooltip": "WhatsApp sender",
+      "triggerAriaLabel": "WhatsApp sender",
+      "currentStatusLabel": "Current status:",
+      "fallbackBadge": "Falling back to shared",
+      "modeLabel": "Mode",
+      "modeOption_SHARED": "Shared Docita number",
+      "modeOption_BYO": "Clinic's own number",
+      "modeOption_MANAGED": "Docita-managed dedicated",
+      "phoneIdLabel": "Phone number ID",
+      "phoneIdPlaceholder": "From Meta business → WhatsApp manager",
+      "wabaIdLabel": "WABA ID (optional)",
+      "tokenLabel": "Access token",
+      "tokenKeepPlaceholder": "Leave blank to keep existing token",
+      "tokenNewPlaceholder": "Paste Meta system-user token",
+      "tokenHelper": "Stored encrypted in ClinicSecret. Existing token stays in place unless you replace it here.",
+      "resetButton": "Reset to shared",
+      "verifyButton": "Verify with Meta",
+      "saveButton": "Save",
+      "errorLabel": "Last verify error: {error}"
     }
   },
   "InternalUsers": {
@@ -618,5 +593,23 @@
     "yearsValue": "{count, plural, one {1 year} other {{count} years}}",
     "fieldBio": "Bio",
     "fieldJoined": "Joined"
+  },
+  "InternalAudit": {
+    "logsPage": {
+      "title": "Audit Logs",
+      "description": "Tenant-scoped activity records from the platform audit trail.",
+      "refreshButton": "Refresh",
+      "loadErrorFallback": "We could not load audit logs. Please try again.",
+      "loadingLabel": "Loading audit logs…",
+      "emptyTitle": "No audit entries",
+      "emptyDescription": "Activity will appear here when users perform audited actions.",
+      "colTime": "Time",
+      "colAction": "Action",
+      "colResource": "Resource",
+      "colClinic": "Clinic",
+      "colUser": "User",
+      "colStatus": "Status",
+      "recentEntriesFooter": "Showing {count} recent entries. Refreshes every 30 seconds."
+    }
   }
 }

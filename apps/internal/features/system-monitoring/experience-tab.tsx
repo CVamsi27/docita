@@ -2,6 +2,7 @@
 
 import { formatCountLocale } from "@workspace/utils";
 import { Badge } from "@workspace/ui/components/indicators/badge";
+import { useTranslations } from "next-intl";
 // jscpd:ignore-start
 import {
   Card,
@@ -28,7 +29,17 @@ export type ExperienceTabProps = Pick<
   "webVitalsQuery"
 >;
 
+/**
+ * Phase 3 (per-feature): apps/internal System monitoring > Experience
+ * tab. 6 literals converted to
+ * useTranslations("InternalSystemMonitoring.experienceTab").
+ */
+function useExperienceTabTranslations() {
+  return useTranslations("InternalSystemMonitoring.experienceTab");
+}
+
 export function ExperienceTab({ webVitalsQuery }: ExperienceTabProps) {
+  const t = useExperienceTabTranslations();
   return (
     <TabsContent value="experience" className="space-y-6">
       <DataState
@@ -39,37 +50,36 @@ export function ExperienceTab({ webVitalsQuery }: ExperienceTabProps) {
               ? "error"
               : "success"
         }
-        loadingMessage="Loading Core Web Vitals aggregates…"
+        loadingMessage={t("loadingLabel")}
         errorMessage={
           webVitalsQuery.error instanceof Error
             ? webVitalsQuery.error.message
-            : "Could not load web vitals."
+            : t("errorFallback")
         }
         onRetry={() => void webVitalsQuery.refetch()}
       >
         <Card>
           <CardHeader>
-            <CardTitle>Core Web Vitals (24h)</CardTitle>
+            <CardTitle>{t("vitalsCardTitle")}</CardTitle>
             <CardDescription>
-              Browser RUM aggregated from production beacons (LCP, INP, CLS,
-              FCP, TTFB). Values follow the API rating helper thresholds.
+              {t("vitalsCardDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {(webVitalsQuery.data?.length ?? 0) === 0 ? (
               <p className="text-sm text-muted-foreground">
-                No vitals recorded in this window yet.
+                {t("emptyMessage")}
               </p>
             ) : (
               <div className="overflow-x-auto rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Metric</TableHead>
-                      <TableHead className="text-right">Count</TableHead>
-                      <TableHead className="text-right">Avg</TableHead>
-                      <TableHead className="text-right">p95</TableHead>
-                      <TableHead className="text-right">Rating</TableHead>
+                      <TableHead>{t("colMetric")}</TableHead>
+                      <TableHead className="text-right">{t("colCount")}</TableHead>
+                      <TableHead className="text-right">{t("colAvg")}</TableHead>
+                      <TableHead className="text-right">{t("colP95")}</TableHead>
+                      <TableHead className="text-right">{t("colRating")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

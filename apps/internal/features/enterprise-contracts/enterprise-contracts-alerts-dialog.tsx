@@ -1,6 +1,7 @@
 "use client";
 
 import { formatDate } from "@workspace/utils";
+import { useTranslations } from "next-intl";
 // jscpd:ignore-start
 import {
   BaseContractDialogShell,
@@ -16,26 +17,36 @@ import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-pa
 
 type EnterpriseContractsAlertsDialogProps = Pick<EnterpriseContractsPageState, 'alertsOpen' | 'setAlertsOpen' | 'alerts'>;
 
+/**
+ * Phase 3 (per-feature): apps/internal Enterprise contracts > Alerts
+ * dialog. 6 literals converted to
+ * useTranslations("InternalEnterpriseContracts.alertsDialog").
+ */
+function useAlertsDialogTranslations() {
+  return useTranslations("InternalEnterpriseContracts.alertsDialog");
+}
+
 export function EnterpriseContractsAlertsDialog(props: EnterpriseContractsAlertsDialogProps) {
   const { alertsOpen, setAlertsOpen, alerts } = props;
+  const t = useAlertsDialogTranslations();
   return (
     <BaseContractDialogShell
       open={alertsOpen}
       onOpenChange={setAlertsOpen}
-      title="True-up alerts"
-      description="Daily cron (03:15 UTC) raises one alert per contract per calendar month when YTD spend ≥ threshold% of YTD platform commit."
+      title={t("title")}
+      description={t("description")}
     >
       {alerts.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No alerts yet.</p>
+        <p className="text-sm text-muted-foreground">{t("emptyMessage")}</p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Observed %</TableHead>
-              <TableHead>Threshold %</TableHead>
-              <TableHead>YTD overage</TableHead>
-              <TableHead>Recipients</TableHead>
+              <TableHead>{t("colDate")}</TableHead>
+              <TableHead>{t("colObserved")}</TableHead>
+              <TableHead>{t("colThreshold")}</TableHead>
+              <TableHead>{t("colYtdOverage")}</TableHead>
+              <TableHead>{t("colRecipients")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -45,9 +56,9 @@ export function EnterpriseContractsAlertsDialog(props: EnterpriseContractsAlerts
                   {formatDate(a.alertedAt)}
                 </TableCell>
                 <TableCell>
-                  <strong>{a.observedPercent}%</strong>
+                  <strong>{t("percentValue", { percent: a.observedPercent })}</strong>
                 </TableCell>
-                <TableCell>{a.thresholdPercent}%</TableCell>
+                <TableCell>{t("percentValue", { percent: a.thresholdPercent })}</TableCell>
                 <TableCell>
                   ₹{(a.ytdOverageCents / 100).toFixed(2)}
                 </TableCell>

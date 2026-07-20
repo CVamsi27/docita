@@ -65,7 +65,16 @@
     "totalRevenue": "कुल राजस्व",
     "appointments": "अपॉइंटमेंट",
     "newPatients": "नए मरीज़",
-    "avgInvoiceValue": "औसत बिल मूल्य"
+    "avgInvoiceValue": "औसत बिल मूल्य",
+    "detailedMetricsTable": {
+      "colPeriod": "अवधि",
+      "colRevenue": "राजस्व",
+      "colInvoices": "चालान",
+      "colAvgAmount": "औसत राशि",
+      "colAppointments": "अपॉइंटमेंट",
+      "colFillRate": "भराव दर",
+      "fillRateValue": "{rate}%"
+    }
   },
   "InternalDoctors": {
     "view": {
@@ -230,68 +239,6 @@
     }
   },
   "InternalEnterpriseContracts": {
-    "editor": {
-      "primaryClinicIdLabel": "प्राथमिक क्लिनिक आईडी",
-      "groupNameLabel": "समूह नाम (वैकल्पिक)",
-      "groupNamePlaceholder": "उदा. अपोलो समूह",
-      "contractNumberLabel": "अनुबंध संख्या",
-      "statusLabel": "स्थिति",
-      "statusDraft": "मसौदा",
-      "statusActive": "सक्रिय",
-      "statusExpired": "समाप्त",
-      "statusTerminated": "समाप्त किया गया",
-      "billingCycleLabel": "बिलिंग चक्र",
-      "cycleMonthly": "मासिक",
-      "cycleQuarterly": "तिमाही",
-      "cycleSemiAnnual": "अर्ध-वार्षिक",
-      "cycleYearly": "वार्षिक",
-      "startDateLabel": "प्रारंभ तिथि",
-      "endDateLabel": "समाप्ति तिथि",
-      "currencyLabel": "मुद्रा",
-      "platformFeeLabel": "प्लेटफ़ॉर्म शुल्क ({currency})",
-      "quotePresetsLabel": "कोट प्रीसेट"
-    },
-    "limits": {
-      "incUsers": "शामिल उपयोगकर्ता",
-      "incConsultations": "शामिल परामर्श",
-      "incWhatsappMsgs": "शामिल व्हाट्सएप संदेश",
-      "incStorageGB": "शामिल स्टोरेज GB",
-      "incBranches": "शामिल शाखाएँ",
-      "incDoctors": "शामिल डॉक्टर",
-      "incPrescriptions": "शामिल नुस्खे",
-      "incInvoices": "शामिल बिल",
-      "overageUser": "अधिकता / उपयोगकर्ता",
-      "overageConsult": "अधिकता / परामर्श",
-      "overageWhatsapp": "अधिकता / व्हाट्सएप संदेश",
-      "overageDoctor": "अधिकता / डॉक्टर",
-      "overagePrescription": "अधिकता / नुस्खा",
-      "overageInvoice": "अधिकता / बिल",
-      "setupFee": "सेटअप शुल्क",
-      "supportRetainer": "सहायता रिटेनर",
-      "annualPrepayDiscount": "वार्षिक प्रीपे छूट %",
-      "trueUpThreshold": "ट्रू-अप सीमा %",
-      "signedDocumentUrl": "हस्ताक्षरित दस्तावेज़ URL",
-      "notes": "नोट्स",
-      "changeSummary": "परिवर्तन सारांश (संशोधन लॉग)",
-      "changeSummaryPlaceholder": "यह परिवर्तन क्यों?"
-    },
-    "estimate": {
-      "title": "वर्तमान अवधि अनुमान",
-      "description": "लाइव मीटर रीडिंग + अनुमानित माह-अंत चालान (सभी सदस्य क्लिनिकों में समेकित)।",
-      "loadingLabel": "लोड हो रहा है…",
-      "periodLabel": "अवधि: {start} → {end}",
-      "memberClinicCount": "{count, plural, one {1 सदस्य क्लिनिक} other {{count} सदस्य क्लिनिक}}",
-      "colMeter": "मीटर",
-      "colUsed": "उपयोग",
-      "colIncluded": "शामिल",
-      "colOverage": "अतिरिक्त",
-      "colCharge": "शुल्क",
-      "platformFeeLabel": "प्लेटफ़ॉर्म शुल्क",
-      "overageTotalLabel": "अतिरिक्त कुल",
-      "projectedTotalLabel": "अनुमानित माह कुल"
-    }
-  },
-  "InternalEnterpriseContracts": {
     "tableSection": {
       "title": "सभी एंटरप्राइज़ अनुबंध",
       "description": "शर्तें संपादित करें, समूहों के लिए सदस्य क्लिनिक प्रबंधित करें, प्रीपे चालान बनाएँ, ट्रू-अप मूल्यांकन चलाएँ।",
@@ -305,6 +252,29 @@
       "colPeriod": "अवधि",
       "colPlatformFee": "प्लेटफ़ॉर्म शुल्क",
       "colActions": "क्रियाएँ"
+    },
+    "alertsDialog": {
+      "title": "ट्रू-अप अलर्ट",
+      "description": "दैनिक क्रॉन (03:15 UTC) प्रति अनुबंध प्रति कैलेंडर माह एक अलर्ट उत्पन्न करता है जब YTD खर्च YTD प्लेटफ़ॉर्म प्रतिबद्धता के threshold% से अधिक या बराबर हो।",
+      "emptyMessage": "अभी तक कोई अलर्ट नहीं।",
+      "colDate": "तारीख",
+      "colObserved": "अवलोकित %",
+      "colThreshold": "थ्रेशोल्ड %",
+      "colYtdOverage": "YTD अतिरिक्त",
+      "colRecipients": "प्राप्तकर्ता",
+      "percentValue": "{percent}%"
+    },
+    "invoicesDialog": {
+      "title": "एंटरप्राइज़ चालान",
+      "description": "वार्षिक प्रीपे, सेटअप शुल्क, और एड-हॉक समायोजन मासिक ओवरएज चालान से अलग ट्रैक किए जाते हैं।",
+      "emptyMessage": "अभी तक कोई चालान नहीं।",
+      "colKind": "प्रकार",
+      "colPeriod": "अवधि",
+      "colAmount": "राशि",
+      "colDiscount": "छूट",
+      "colStatus": "स्थिति",
+      "periodValue": "{start} → {end}",
+      "discountValue": "{percent}%"
     }
   },
   "InternalPricing": {
@@ -402,6 +372,28 @@
       "colMethod": "विधि",
       "colStatus": "स्थिति",
       "colCount": "गणना"
+    },
+    "experienceTab": {
+      "loadingLabel": "Core Web Vitals एग्रीगेट लोड हो रहे हैं…",
+      "errorFallback": "Web vitals लोड नहीं हो सका।",
+      "vitalsCardTitle": "Core Web Vitals (24h)",
+      "vitalsCardDescription": "प्रोडक्शन बीकन्स (LCP, INP, CLS, FCP, TTFB) से एग्रीगेटेड ब्राउज़र RUM। मान API रेटिंग हेल्पर थ्रेशोल्ड का पालन करते हैं।",
+      "emptyMessage": "इस विंडो में अभी तक कोई vitals दर्ज नहीं।",
+      "colMetric": "मेट्रिक",
+      "colCount": "गणना",
+      "colAvg": "औसत",
+      "colP95": "p95",
+      "colRating": "रेटिंग"
+    },
+    "tenantScopeMetricsCards": {
+      "scopedTitle": "स्कोप्ड",
+      "directTitle": "प्रत्यक्ष",
+      "relationTitle": "रिलेशन",
+      "issuesTitle": "समस्याएँ",
+      "clinicIdHelper": "{count} मॉडल clinicId रखते हैं",
+      "directHelper": "स्केलर clinicId फ़िल्टर",
+      "relationHelper": "नेस्टेड टेनेंट फ़िल्टर",
+      "issuesHelper": "अनकवर्ड मॉडल या पुराने नियम"
     }
   },
   "InternalAdmins": {
@@ -471,44 +463,6 @@
       "colClinic": "क्लिनिक",
       "colStatus": "स्थिति",
       "colMessage": "संदेश"
-    }
-  },
-  "InternalPaymentProcessing": {
-    "formFields": {
-      "tierLabel": "स्तर में अपग्रेड करें",
-      "tierDescription": "इस सुविधा के लिए नया स्तर चुनें",
-      "amountLabel": "राशि ({currency})",
-      "amountPlaceholder": "राशि",
-      "amountDescription": "चुने गए स्तर के आधार पर राशि स्वचालित रूप से गणना की जाएगी",
-      "paymentMethodLabel": "भुगतान विधि",
-      "paymentMethodRazorpay": "Razorpay",
-      "paymentMethodStripe": "Stripe",
-      "paymentMethodBankTransfer": "बैंक हस्तांतरण",
-      "paymentMethodManual": "मैन्युअल",
-      "paymentNotesLabel": "भुगतान नोट्स (वैकल्पिक)",
-      "paymentNotesPlaceholder": "भुगतान नोट्स"
-    },
-    "pricingOffers": {
-      "noActiveDiscounts": "कोई सक्रिय चेकआउट छूट नहीं।",
-      "colFacility": "सुविधा",
-      "colTitle": "शीर्षक",
-      "colPercentOff": "छूट प्रतिशत",
-      "colValidUntil": "तक वैध",
-      "colActions": "क्रियाएँ",
-      "removeButton": "हटाएँ",
-      "facilityLabel": "सुविधा",
-      "facilityPlaceholder": "सुविधा चुनें",
-      "percentOffLabel": "चेकआउट पर छूट प्रतिशत",
-      "percentOffPlaceholder": "प्रतिशत दर्ज करें",
-      "percentOffDescription": "सदस्यता चेकआउट पर सूची मूल्य पर लागू (अधिकतम 95)।",
-      "titleLabel": "शीर्षक",
-      "titlePlaceholder": "व्यावसायिक छूट",
-      "validUntilLabel": "तक वैध (वैकल्पिक)",
-      "validUntilPlaceholder": "तारीख चुनें",
-      "notesLabel": "आंतरिक नोट्स (वैकल्पिक)",
-      "notesPlaceholder": "छूट का कारण, अनुमोदन संदर्भ, आदि।",
-      "savingLabel": "सहेजा जा रहा है…",
-      "saveButton": "छूट सहेजें"
     }
   },
   "InternalPaymentProcessing": {
@@ -584,6 +538,27 @@
       "colActions": "क्रियाएँ",
       "statusActive": "सक्रिय",
       "statusInactive": "निष्क्रिय"
+    },
+    "whatsappSenderDialog": {
+      "triggerTooltip": "WhatsApp प्रेषक",
+      "triggerAriaLabel": "WhatsApp प्रेषक",
+      "currentStatusLabel": "वर्तमान स्थिति:",
+      "fallbackBadge": "साझा पर वापस जा रहा है",
+      "modeLabel": "मोड",
+      "modeOption_SHARED": "साझा Docita नंबर",
+      "modeOption_BYO": "क्लिनिक का अपना नंबर",
+      "modeOption_MANAGED": "Docita-प्रबंधित समर्पित",
+      "phoneIdLabel": "फ़ोन नंबर ID",
+      "phoneIdPlaceholder": "Meta व्यवसाय से → WhatsApp प्रबंधक",
+      "wabaIdLabel": "WABA ID (वैकल्पिक)",
+      "tokenLabel": "एक्सेस टोकन",
+      "tokenKeepPlaceholder": "मौजूदा टोकन रखने के लिए खाली छोड़ें",
+      "tokenNewPlaceholder": "Meta सिस्टम-यूज़र टोकन पेस्ट करें",
+      "tokenHelper": "ClinicSecret में एन्क्रिप्टेड संग्रहीत। जब तक आप इसे यहाँ बदलते नहीं, मौजूदा टोकन वहीं रहता है।",
+      "resetButton": "साझा पर रीसेट करें",
+      "verifyButton": "Meta के साथ सत्यापित करें",
+      "saveButton": "सहेजें",
+      "errorLabel": "अंतिम सत्यापन त्रुटि: {error}"
     }
   },
   "InternalUsers": {
@@ -618,5 +593,23 @@
     "yearsValue": "{count, plural, one {1 वर्ष} other {{count} वर्ष}}",
     "fieldBio": "परिचय",
     "fieldJoined": "शामिल हुए"
+  },
+  "InternalAudit": {
+    "logsPage": {
+      "title": "ऑडिट लॉग",
+      "description": "प्लेटफ़ॉर्म ऑडिट ट्रेल से टेनेंट-स्कोप्ड गतिविधि रिकॉर्ड।",
+      "refreshButton": "ताज़ा करें",
+      "loadErrorFallback": "हम ऑडिट लॉग लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+      "loadingLabel": "ऑडिट लॉग लोड हो रहे हैं…",
+      "emptyTitle": "कोई ऑडिट प्रविष्टि नहीं",
+      "emptyDescription": "जब उपयोगकर्ता ऑडिट की गई क्रियाएँ करेंगे तो गतिविधि यहाँ दिखाई देगी।",
+      "colTime": "समय",
+      "colAction": "क्रिया",
+      "colResource": "संसाधन",
+      "colClinic": "क्लिनिक",
+      "colUser": "उपयोगकर्ता",
+      "colStatus": "स्थिति",
+      "recentEntriesFooter": "{count} हाल की प्रविष्टियाँ दिखा रहे हैं। हर 30 सेकंड में ताज़ा होता है।"
+    }
   }
 }
