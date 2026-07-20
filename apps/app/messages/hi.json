@@ -566,6 +566,14 @@
       "statusDetailsLabel": "स्थिति विवरण: {note}",
       "completeVerificationButton": "चिकित्सक सत्यापन पूरा करें",
       "reverifyButton": "पंजीकरण पुनः सत्यापित करें"
+    },
+    "queueHoursFields": {
+      "avgConsultationLabel": "औसत परामर्श (मिनट)",
+      "avgConsultationHelper": "प्रतीक्षा समय का अनुमान लगाने के लिए उपयोग किया जाता है",
+      "lateArrivalLabel": "देर से आने की छूट (मिनट)",
+      "lateArrivalHelper": "इस छूट अवधि के बाद रोगियों को कतार में शामिल होने दें",
+      "queueBufferLabel": "कतार बफ़र (मिनट)",
+      "queueBufferHelper": "अपॉइंटमेंट के बीच जोड़ा गया अतिरिक्त समय"
     }
   },
   "Subscription": {
