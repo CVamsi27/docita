@@ -251,6 +251,26 @@
       "nextStepsBody2": "You will receive notifications via WhatsApp and email when your request is reviewed",
       "withdrawingLabel": "Withdrawing…",
       "withdrawButton": "Withdraw Request"
+    },
+    "verifyEmailSent": {
+      "verifiedTitle": "Email verified",
+      "verifiedSubtitle": "You can continue setup when you are ready.",
+      "continueButton": "Continue",
+      "backToLoginButton": "Back to login",
+      "checkEmailTitle": "Check your email",
+      "checkEmailSubtitle": "We sent a verification link to",
+      "checkEmailHint": "Use the verification link in the email before continuing with your clinic setup.",
+      "deliveryFailedTitle": "We created your account, but the verification email could not be sent.",
+      "deliveryFailedBody": "Try sending it again now. If it still does not arrive, contact support so we can help you complete setup.",
+      "deliveryPendingBody": "Check your inbox and spam folder for a message from Docita.",
+      "deliveryPendingHint": "The link stays active for 24 hours and you can request a fresh one anytime.",
+      "sendingButton": "Sending…",
+      "resendCooldownButton": "Verification email sent",
+      "resendAfterFailureButton": "Send verification email again",
+      "resendButton": "Resend verification email",
+      "cooldownRemainingLabel": "You can resend again in {time}.",
+      "wrongEmailLabel": "Wrong email?",
+      "signOutAndRetryButton": "Sign out and try again"
     }
   },
   "Consultation": {
@@ -1197,6 +1217,27 @@
       "floorLabel": "Floor {floor}",
       "occupancyValue": "{occupied}/{total}",
       "occupiedLabel": "occupied"
+    },
+    "admissionForm": {
+      "title": "New admission",
+      "description": "Admit a patient to the hospital",
+      "patientLabel": "Patient",
+      "patientPlaceholder": "Enter patient name or phone",
+      "wardLabel": "Ward",
+      "wardAriaLabel": "Select Ward",
+      "wardPlaceholder": "Ward",
+      "bedLabel": "Bed",
+      "bedAriaLabel": "Select Bed",
+      "bedPlaceholder": "Bed",
+      "doctorLabel": "Attending doctor",
+      "doctorAriaLabel": "Select Doctor",
+      "doctorPlaceholder": "Doctor",
+      "diagnosisLabel": "Admission diagnosis",
+      "diagnosisPlaceholder": "Admission diagnosis",
+      "notesLabel": "Notes",
+      "notesPlaceholder": "Admission notes",
+      "submittingButton": "Admitting…",
+      "submitButton": "Admit Patient"
     }
   },
   "Desk": {

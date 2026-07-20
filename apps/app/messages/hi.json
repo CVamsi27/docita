@@ -251,6 +251,26 @@
       "nextStepsBody2": "आपके अनुरोध की समीक्षा होने पर आपको WhatsApp और ईमेल के माध्यम से सूचनाएँ प्राप्त होंगी",
       "withdrawingLabel": "वापस लिया जा रहा है…",
       "withdrawButton": "अनुरोध वापस लें"
+    },
+    "verifyEmailSent": {
+      "verifiedTitle": "ईमेल सत्यापित",
+      "verifiedSubtitle": "जब आप तैयार हों तो सेटअप जारी रख सकते हैं।",
+      "continueButton": "जारी रखें",
+      "backToLoginButton": "लॉगिन पर वापस",
+      "checkEmailTitle": "अपना ईमेल जाँचें",
+      "checkEmailSubtitle": "हमने एक सत्यापन लिंक भेजा है",
+      "checkEmailHint": "अपने क्लिनिक सेटअप के साथ आगे बढ़ने से पहले ईमेल में सत्यापन लिंक का उपयोग करें।",
+      "deliveryFailedTitle": "हमने आपका खाता बना दिया, लेकिन सत्यापन ईमेल की पुष्टि नहीं हो सकी।",
+      "deliveryFailedBody": "अभी फिर से भेजने का प्रयास करें। यदि यह अभी भी नहीं पहुँचता है, तो समर्थन से संपर्क करें।",
+      "deliveryPendingBody": "Docita से अपना इनबॉक्स और स्पैम फ़ोल्डर देखें।",
+      "deliveryPendingHint": "लिंक 24 घंटे तक सक्रिय रहता है और आप कभी भी नया अनुरोध कर सकते हैं।",
+      "sendingButton": "भेज रहे हैं…",
+      "resendCooldownButton": "सत्यापन ईमेल भेजा गया",
+      "resendAfterFailureButton": "सत्यापन ईमेल फिर से भेजें",
+      "resendButton": "सत्यापन ईमेल पुनः भेजें",
+      "cooldownRemainingLabel": "आप {time} में फिर से भेज सकते हैं।",
+      "wrongEmailLabel": "गलत ईमेल?",
+      "signOutAndRetryButton": "साइन आउट करें और पुनः प्रयास करें"
     }
   },
   "Consultation": {
@@ -1197,6 +1217,27 @@
       "floorLabel": "मंजिल {floor}",
       "occupancyValue": "{occupied}/{total}",
       "occupiedLabel": "अधिभृत"
+    },
+    "admissionForm": {
+      "title": "नया भर्ती",
+      "description": "रोगी को अस्पताल में भर्ती करें",
+      "patientLabel": "रोगी",
+      "patientPlaceholder": "रोगी का नाम या फ़ोन दर्ज करें",
+      "wardLabel": "वार्ड",
+      "wardAriaLabel": "वार्ड चुनें",
+      "wardPlaceholder": "वार्ड",
+      "bedLabel": "बिस्तर",
+      "bedAriaLabel": "बिस्तर चुनें",
+      "bedPlaceholder": "बिस्तर",
+      "doctorLabel": "उपस्थित डॉक्टर",
+      "doctorAriaLabel": "डॉक्टर चुनें",
+      "doctorPlaceholder": "डॉक्टर",
+      "diagnosisLabel": "भर्ती निदान",
+      "diagnosisPlaceholder": "भर्ती निदान",
+      "notesLabel": "नोट्स",
+      "notesPlaceholder": "भर्ती नोट्स",
+      "submittingButton": "भर्ती हो रहे हैं…",
+      "submitButton": "रोगी भर्ती करें"
     }
   },
   "Desk": {
