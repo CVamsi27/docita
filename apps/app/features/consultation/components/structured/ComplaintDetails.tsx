@@ -3,15 +3,9 @@
 import { useTranslations } from "next-intl";
 import { Label } from "@workspace/ui/components/form/label";
 import { Input } from "@workspace/ui/components/form/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
 import { Textarea } from "@workspace/ui/components/form/textarea";
 import { MicButton } from "@workspace/ui/components/form/mic-button";
+import { SelectField } from "./_shared/SelectField";
 import type { ChiefComplaintItem } from "./chief-complaint.types";
 
 interface ComplaintDetailsProps {
@@ -36,6 +30,21 @@ interface ComplaintDetailsProps {
 function useComplaintTranslations() {
   return useTranslations("Consultation.complaint");
 }
+
+const COMPLAINT_UNIT_OPTIONS: ReadonlyArray<{ value: string; labelKey: string }> = [
+  { value: "hours", labelKey: "unitHours" },
+  { value: "days", labelKey: "unitDays" },
+  { value: "weeks", labelKey: "unitWeeks" },
+  { value: "months", labelKey: "unitMonths" },
+  { value: "years", labelKey: "unitYears" },
+];
+
+const COMPLAINT_SEVERITY_OPTIONS: ReadonlyArray<{ value: string; labelKey: string }> = [
+  { value: "mild", labelKey: "severityMild" },
+  { value: "moderate", labelKey: "severityModerate" },
+  { value: "severe", labelKey: "severitySevere" },
+  { value: "critical", labelKey: "severityCritical" },
+];
 
 export function ComplaintDetails({
   item,
@@ -98,41 +107,26 @@ export function ComplaintDetails({
 
         <div className="space-y-2">
           <Label>{t("unitLabel")}</Label>
-          <Select
+          <SelectField
             value={item.durationUnit}
-            onValueChange={(val) => onUpdate("durationUnit", val)}
-            disabled={readOnly}
-          >
-            <SelectTrigger className="h-11 bg-background">
-              <SelectValue placeholder={t("unitPlaceholder")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="hours">{t("unitHours")}</SelectItem>
-              <SelectItem value="days">{t("unitDays")}</SelectItem>
-              <SelectItem value="weeks">{t("unitWeeks")}</SelectItem>
-              <SelectItem value="months">{t("unitMonths")}</SelectItem>
-              <SelectItem value="years">{t("unitYears")}</SelectItem>
-            </SelectContent>
-          </Select>
+            placeholderKey="unitPlaceholder"
+            options={COMPLAINT_UNIT_OPTIONS}
+            readOnly={readOnly}
+            onChange={(val) => onUpdate("durationUnit", val)}
+            t={t}
+          />
         </div>
 
         <div className="space-y-2">
           <Label>{t("severityLabel")}</Label>
-          <Select
+          <SelectField
             value={item.severity}
-            onValueChange={(val) => onUpdate("severity", val)}
-            disabled={readOnly}
-          >
-            <SelectTrigger className="h-11 bg-background">
-              <SelectValue placeholder={t("severityPlaceholder")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="mild">{t("severityMild")}</SelectItem>
-              <SelectItem value="moderate">{t("severityModerate")}</SelectItem>
-              <SelectItem value="severe">{t("severitySevere")}</SelectItem>
-              <SelectItem value="critical">{t("severityCritical")}</SelectItem>
-            </SelectContent>
-          </Select>
+            placeholderKey="severityPlaceholder"
+            options={COMPLAINT_SEVERITY_OPTIONS}
+            readOnly={readOnly}
+            onChange={(val) => onUpdate("severity", val)}
+            t={t}
+          />
         </div>
       </div>
 

@@ -4,18 +4,12 @@ import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Input } from "@workspace/ui/components/form/input";
 import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
 import { Stethoscope, Trash2 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { useTranslations } from "next-intl";
 import { IcdSearchField } from "./icd-search-field";
+import { SelectField } from "./_shared/SelectField";
 import type { DiagnosisItem } from "./diagnosis-input-types";
 
 /**
@@ -26,6 +20,18 @@ import type { DiagnosisItem } from "./diagnosis-input-types";
 function useDiagnosisRowTranslations() {
   return useTranslations("Consultation.diagnosisItemRow");
 }
+
+const DIAGNOSIS_TYPE_OPTIONS: ReadonlyArray<{ value: string; labelKey: string }> = [
+  { value: "provisional", labelKey: "typeProvisional" },
+  { value: "differential", labelKey: "typeDifferentialOption" },
+  { value: "final", labelKey: "typeFinalOption" },
+];
+
+const DIAGNOSIS_STATUS_OPTIONS: ReadonlyArray<{ value: string; labelKey: string }> = [
+  { value: "active", labelKey: "statusActive" },
+  { value: "chronic", labelKey: "statusChronic" },
+  { value: "resolved", labelKey: "statusResolved" },
+];
 
 export function DiagnosisItemRow({
   item,
@@ -98,36 +104,26 @@ export function DiagnosisItemRow({
           />
         </div>
         <div className="col-span-1 md:col-span-3">
-          <Select
+          <SelectField
             value={item.type}
-            onValueChange={(val) => onUpdate("type", val)}
-            disabled={readOnly}
-          >
-            <SelectTrigger className="bg-background min-h-11 rounded-xl px-4">
-              <SelectValue placeholder={t("typePlaceholder")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="provisional">{t("typeProvisional")}</SelectItem>
-              <SelectItem value="differential">{t("typeDifferentialOption")}</SelectItem>
-              <SelectItem value="final">{t("typeFinalOption")}</SelectItem>
-            </SelectContent>
-          </Select>
+            placeholderKey="typePlaceholder"
+            options={DIAGNOSIS_TYPE_OPTIONS}
+            readOnly={readOnly}
+            onChange={(val) => onUpdate("type", val)}
+            t={t}
+            triggerClassName="bg-background min-h-11 rounded-xl px-4"
+          />
         </div>
         <div className="col-span-1 md:col-span-3">
-          <Select
+          <SelectField
             value={item.status}
-            onValueChange={(val) => onUpdate("status", val)}
-            disabled={readOnly}
-          >
-            <SelectTrigger className="bg-background min-h-11 rounded-xl px-4">
-              <SelectValue placeholder={t("statusPlaceholder")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="active">{t("statusActive")}</SelectItem>
-              <SelectItem value="chronic">{t("statusChronic")}</SelectItem>
-              <SelectItem value="resolved">{t("statusResolved")}</SelectItem>
-            </SelectContent>
-          </Select>
+            placeholderKey="statusPlaceholder"
+            options={DIAGNOSIS_STATUS_OPTIONS}
+            readOnly={readOnly}
+            onChange={(val) => onUpdate("status", val)}
+            t={t}
+            triggerClassName="bg-background min-h-11 rounded-xl px-4"
+          />
         </div>
 
         {medicalCodingEnabled ? (

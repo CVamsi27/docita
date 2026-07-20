@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
-  MESSAGES_LOAD_ERROR_FALLBACK,
-  THREADS_LOAD_ERROR_FALLBACK,
-  THREAD_LIMIT,
-  THREAD_MESSAGES_LIMIT,
   filterThreads,
   formatMessageType,
   formatStatusBadgeVariant,
   getMessageAuthor,
   getThreadLabel,
   getWhatsAppLink,
+  MESSAGES_LOAD_ERROR_FALLBACK,
+  THREAD_LIMIT,
+  THREAD_MESSAGES_LIMIT,
+  THREADS_LOAD_ERROR_FALLBACK,
 } from "./support-helpers";
 
 describe("constants", () => {

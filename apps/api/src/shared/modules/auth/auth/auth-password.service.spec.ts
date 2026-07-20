@@ -1,10 +1,4 @@
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-  jest,
-} from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { BadRequestException } from '@nestjs/common';
 import { AuthPasswordService } from './auth-password.service';
 import type { EmailService } from '@/shared/modules/messaging/email/email.service';
@@ -52,10 +46,7 @@ function makeClock(): IClock {
 
 const policy = { validate: jest.fn() } as unknown as { validate: jest.Mock };
 
-function makeService(
-  prisma: ReturnType<typeof makePrisma>,
-  email: jest.Mock,
-) {
+function makeService(prisma: ReturnType<typeof makePrisma>, email: jest.Mock) {
   return new AuthPasswordService(
     prisma as never,
     policy as never,
@@ -90,7 +81,10 @@ describe('AuthPasswordService.requestPasswordReset', () => {
         'If an account with that email exists, a reset link has been sent.',
     });
     expect(emailSend).toHaveBeenCalledTimes(1);
-    const [emailArg, tokenArg] = (emailSend.mock.calls[0] ?? []) as [string, string];
+    const [emailArg, tokenArg] = (emailSend.mock.calls[0] ?? []) as [
+      string,
+      string,
+    ];
     expect(emailArg).toBe('doc@example.com');
     expect(typeof tokenArg).toBe('string');
     expect((tokenArg as string).length).toBeGreaterThanOrEqual(32);

@@ -1,9 +1,9 @@
 "use client";
 
-// jscpd:ignore-start
 import { useTranslations } from "next-intl";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
+import { InvoiceItemRemoveButton } from "./invoice-item-remove-button";
 import {
   Select,
   SelectContent,
@@ -11,12 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Trash2 } from "lucide-react";
 
 export interface InvoiceItem {
-// jscpd:ignore-end
   id: string;
   description: string;
   quantity: number;
@@ -138,19 +134,10 @@ export function InvoiceItemCard({
         <span className="text-sm font-medium">
           {t("colTotal")}: {formatCurrency(item.total)}
         </span>
-        <SymbolTooltip
-          label={t("removeLineItemTooltip", { name: item.description || "" })}
-        >
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={t("removeLineItemTooltip", { name: item.description || "" })}
-            className="text-destructive hover:text-destructive/90 touch-manipulation"
-            onClick={() => onRemoveItem(index)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </SymbolTooltip>
+        <InvoiceItemRemoveButton
+          description={item.description}
+          onClick={() => onRemoveItem(index)}
+        />
       </div>
     </div>
   );

@@ -295,25 +295,26 @@ export function ConsentSection() {
 
 export function SignatureSection() {
   const t = useConsentDocumentTranslations();
+  const signatureBlocks: ReadonlyArray<{
+    line?: string;
+    fields: ReadonlyArray<string>;
+  }> = [
+    { line: "signaturePatient", fields: ["signatureDate"] },
+    { line: "signatureGuardian", fields: ["signatureRelationship"] },
+    { line: "signatureWitness", fields: ["signatureStaff"] },
+    { fields: ["signatureDateTime", "signatureFacilityRef"] },
+  ];
   return (
     <section className="space-y-4 pt-2">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="space-y-2">
-          <SignatureLine label={t("signaturePatient")} />
-          <SignatureField label={t("signatureDate")} />
-        </div>
-        <div className="space-y-2">
-          <SignatureLine label={t("signatureGuardian")} />
-          <SignatureField label={t("signatureRelationship")} />
-        </div>
-        <div className="space-y-2">
-          <SignatureLine label={t("signatureWitness")} />
-          <SignatureField label={t("signatureStaff")} />
-        </div>
-        <div className="space-y-2">
-          <SignatureField label={t("signatureDateTime")} />
-          <SignatureField label={t("signatureFacilityRef")} />
-        </div>
+        {signatureBlocks.map((block, idx) => (
+          <div key={idx} className="space-y-2">
+            {block.line ? <SignatureLine label={t(block.line)} /> : null}
+            {block.fields.map((fieldKey) => (
+              <SignatureField key={fieldKey} label={t(fieldKey)} />
+            ))}
+          </div>
+        ))}
       </div>
     </section>
   );

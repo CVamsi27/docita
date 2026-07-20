@@ -10,13 +10,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import {
-  Table,
-  TableBody,
   TableCell,
   TableHead,
-  TableHeader,
   TableRow,
 } from "@workspace/ui/components/data-display/table";
 import type { InternalDoctorListItem } from "@workspace/data-access/internal";
@@ -28,6 +24,7 @@ import {
   parseDoctorVerificationStatus,
 } from "./doctor-helpers";
 import { InternalTableToolbar } from "@/components/common/internal-table-toolbar";
+import { TableOrEmpty } from "@/components/common/table-or-empty";
 
 interface DoctorsTableSectionProps {
   doctors: InternalDoctorListItem[];
@@ -82,116 +79,110 @@ export function DoctorsTableSection({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {doctors.length === 0 ? (
-            <EmptyState
-              icon={Stethoscope}
-              title={
-                selectedClinic === "all"
-                  ? t("emptySelectFacilityTitle")
-                  : t("emptyTitle")
-              }
-              description={t("emptyDescription")}
-            />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("colDoctor")}</TableHead>
-                  <TableHead>{t("colSpecialization")}</TableHead>
-                  <TableHead>{t("colCompliance")}</TableHead>
-                  <TableHead>{t("colHospitalRole")}</TableHead>
-                  <TableHead>{t("colQualification")}</TableHead>
-                  <TableHead>{t("colRegistration")}</TableHead>
-                  <TableHead>{t("colActions")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {doctors.map((doctor) => (
-                  <TableRow key={doctor.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{t("doctorPrefix", { name: doctor.name })}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {doctor.email}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {doctor.specialization ? (
-                        <Badge variant="outline">
-                          {labelForSpecialization(doctor.specialization) ??
-                            doctor.specialization}
-                        </Badge>
+          <TableOrEmpty
+            items={doctors}
+            emptyIcon={Stethoscope}
+            emptyTitle={
+              selectedClinic === "all"
+                ? t("emptySelectFacilityTitle")
+                : t("emptyTitle")
+            }
+            emptyDescription={t("emptyDescription")}
+            renderHeader={() => (
+              <>
+                <TableHead>{t("colDoctor")}</TableHead>
+                <TableHead>{t("colSpecialization")}</TableHead>
+                <TableHead>{t("colCompliance")}</TableHead>
+                <TableHead>{t("colHospitalRole")}</TableHead>
+                <TableHead>{t("colQualification")}</TableHead>
+                <TableHead>{t("colRegistration")}</TableHead>
+                <TableHead>{t("colActions")}</TableHead>
+              </>
+            )}
+            renderRow={(doctor) => (
+              <TableRow key={doctor.id}>
+                <TableCell>
+                  <div>
+                    <p className="font-medium">{t("doctorPrefix", { name: doctor.name })}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {doctor.email}
+                    </p>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {doctor.specialization ? (
+                    <Badge variant="outline">
+                      {labelForSpecialization(doctor.specialization) ??
+                        doctor.specialization}
+                    </Badge>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge
+                      variant={getVerificationBadgeVariant(
+                        parseDoctorVerificationStatus(
+                          doctor.verificationStatus,
+                        ),
+                      )}
+                    >
+                      {doctor.verificationStatus === "VERIFIED" ? (
+                        <ShieldCheck className="mr-1 h-3.5 w-3.5" />
                       ) : (
-                        <span className="text-muted-foreground">-</span>
+                        <ShieldX className="mr-1 h-3.5 w-3.5" />
                       )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-2">
-                        <Badge
-                          variant={getVerificationBadgeVariant(
-                            parseDoctorVerificationStatus(
-                              doctor.verificationStatus,
-                            ),
-                          )}
-                        >
-                          {doctor.verificationStatus === "VERIFIED" ? (
-                            <ShieldCheck className="mr-1 h-3.5 w-3.5" />
-                          ) : (
-                            <ShieldX className="mr-1 h-3.5 w-3.5" />
-                          )}
-                          {getVerificationLabel(
-                            parseDoctorVerificationStatus(
-                              doctor.verificationStatus,
-                            ),
-                          )}
-                        </Badge>
-                        <Badge
-                          variant={
-                            doctor.signatureUploadedAt ? "default" : "outline"
-                          }
-                        >
-                          {t("signatureLabel")}{" "}
-                          {doctor.signatureUploadedAt ? t("signatureReady") : t("signatureMissing")}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {doctor.hospitalRole ? (
-                        <Badge variant="secondary">
-                          {labelForHospitalRole(doctor.hospitalRole) ??
-                            doctor.hospitalRole}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
+                      {getVerificationLabel(
+                        parseDoctorVerificationStatus(
+                          doctor.verificationStatus,
+                        ),
                       )}
-                    </TableCell>
-                    <TableCell>
-                      {doctor.qualification || (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {doctor.registrationNumber || (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onViewDoctor(doctor)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+                    </Badge>
+                    <Badge
+                      variant={
+                        doctor.signatureUploadedAt ? "default" : "outline"
+                      }
+                    >
+                      {t("signatureLabel")}{" "}
+                      {doctor.signatureUploadedAt ? t("signatureReady") : t("signatureMissing")}
+                    </Badge>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {doctor.hospitalRole ? (
+                    <Badge variant="secondary">
+                      {labelForHospitalRole(doctor.hospitalRole) ??
+                        doctor.hospitalRole}
+                    </Badge>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {doctor.qualification || (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {doctor.registrationNumber || (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onViewDoctor(doctor)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+          />
         </CardContent>
       </Card>
     </>

@@ -1,6 +1,5 @@
 "use client";
 
-// jscpd:ignore-start
 import { Button } from "@workspace/ui/components/form/button";
 import {
   Card,
@@ -20,10 +19,66 @@ import { CATEGORY_OPTIONS, STATUS_OPTIONS } from "./feedback-helpers";
 import type { InternalFeedbackFilters } from "@workspace/data-access/internal";
 
 interface FeedbackFiltersCardProps {
-// jscpd:ignore-end
   filters: InternalFeedbackFilters;
   show: boolean;
   onFiltersChange: (filters: InternalFeedbackFilters) => void;
+}
+
+interface SelectFilterOption {
+  value: string;
+  label: string;
+}
+
+interface SelectFilterFieldProps {
+  label: string;
+  /** The current selected value, or undefined for the "all" sentinel. */
+  value: string | undefined;
+  placeholder: string;
+  allOptionLabel: string;
+  options: ReadonlyArray<SelectFilterOption>;
+  /**
+   * Called with `undefined` when the user picks the "all" option,
+   * otherwise the picked option's value.
+   */
+  onChange: (value: string | undefined) => void;
+}
+
+/**
+ * One of the three "all + options" filter selects in the
+ * feedback filters card (status, category, minRating). Pulled
+ * out of the inline JSX so the three columns stop jscpd-
+ * matching each other.
+ */
+function SelectFilterField({
+  label,
+  value,
+  placeholder,
+  allOptionLabel,
+  options,
+  onChange,
+}: SelectFilterFieldProps) {
+  const current = value ?? "all";
+  return (
+    <div>
+      <Label>{label}</Label>
+      <Select
+        value={current}
+        onValueChange={(v) => onChange(v === "all" ? undefined : v)}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{allOptionLabel}</SelectItem>
+          {options.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
 }
 
 /**
@@ -46,80 +101,48 @@ export function FeedbackFiltersCard({
     onFiltersChange({ ...filters, [key]: value });
   };
 
+  const statusOptions: SelectFilterOption[] = STATUS_OPTIONS.map((opt) => ({
+    value: opt.value,
+    label: (tStatus(opt.labelKey) as string) || opt.label,
+  }));
+
   return (
     <Card>
       <CardContent className="pt-6">
         <div className="grid gap-4 md:grid-cols-5">
-          <div>
-            <Label>{t("statusLabel")}</Label>
-            <Select
-              value={filters.status || "all"}
-              onValueChange={(v) =>
-                setFilter("status", v === "all" ? undefined : v)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t("statusPlaceholder")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("allStatuses")}</SelectItem>
-                {STATUS_OPTIONS.map((opt) => {
-                  const itemLabel: string =
-                    (tStatus(opt.labelKey) as string) || opt.label;
-                  return (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {itemLabel}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>{t("categoryLabel")}</Label>
-            <Select
-              value={filters.category || "all"}
-              onValueChange={(v) =>
-                setFilter("category", v === "all" ? undefined : v)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t("categoryPlaceholder")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("allCategories")}</SelectItem>
-                {CATEGORY_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>{t("minRatingLabel")}</Label>
-            <Select
-              value={String(filters.minRating || "all")}
-              onValueChange={(v) =>
-                setFilter(
-                  "minRating",
-                  v === "all" ? undefined : parseInt(v),
-                )
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t("ratingPlaceholder")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("anyRating")}</SelectItem>
-                {[1, 2, 3, 4, 5].map((r) => (
-                  <SelectItem key={r} value={String(r)}>
-                    {t("ratingPlus", { count: r })}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <SelectFilterField
+            label={t("statusLabel")}
+            value={filters.status}
+            placeholder={t("statusPlaceholder")}
+            allOptionLabel={t("allStatuses")}
+            options={statusOptions}
+            onChange={(v) => setFilter("status", v)}
+          />
+          <SelectFilterField
+            label={t("categoryLabel")}
+            value={filters.category}
+            placeholder={t("categoryPlaceholder")}
+            allOptionLabel={t("allCategories")}
+            options={CATEGORY_OPTIONS}
+            onChange={(v) => setFilter("category", v)}
+          />
+          <SelectFilterField
+            label={t("minRatingLabel")}
+            value={
+              filters.minRating !== undefined && filters.minRating !== null
+                ? String(filters.minRating)
+                : undefined
+            }
+            placeholder={t("ratingPlaceholder")}
+            allOptionLabel={t("anyRating")}
+            options={[1, 2, 3, 4, 5].map((r) => ({
+              value: String(r),
+              label: t("ratingPlus", { count: r }),
+            }))}
+            onChange={(v) =>
+              setFilter("minRating", v === undefined ? undefined : parseInt(v))
+            }
+          />
           <div>
             <Label>{t("startDateLabel")}</Label>
             <DatePicker

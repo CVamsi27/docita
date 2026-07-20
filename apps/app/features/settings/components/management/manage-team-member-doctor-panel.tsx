@@ -2,14 +2,6 @@
 
 import Link from "next/link";
 import type { UseFormReturn } from "react-hook-form";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
-import { Input } from "@workspace/ui/components/form/input";
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
@@ -17,6 +9,7 @@ import { ShieldCheck, ShieldX } from "lucide-react";
 import { User } from "@workspace/types";
 import { useTranslations } from "next-intl";
 import { getDoctorVerificationPublicNote } from "@/lib/formatters/doctor-verification-display";
+import { DoctorRegistrationFields } from "@/features/settings/components/management/team-member-form-fields";
 import type { MemberFormValues } from "@/features/settings/components/management/member-management-schemas";
 
 /**
@@ -57,47 +50,7 @@ export function ManageTeamMemberDoctorPanel({
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <FormField
-          control={memberForm.control}
-          name="specialization"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("specializationLabel")}</FormLabel>
-              <FormControl>
-                <Input placeholder={t("specializationPlaceholder")} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={memberForm.control}
-          name="qualification"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("qualificationLabel")}</FormLabel>
-              <FormControl>
-                <Input placeholder={t("qualificationPlaceholder")} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={memberForm.control}
-          name="registrationNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("registrationNumberLabel")}</FormLabel>
-              <FormControl>
-                <Input placeholder={t("registrationNumberPlaceholder")} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
+      <DoctorRegistrationFields form={memberForm} t={t} />
 
       <div className="rounded-lg border bg-surface-2 p-3">
         <div className="flex flex-col gap-3">

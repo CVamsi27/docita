@@ -61,38 +61,75 @@ interface ViewActionsProps {
   canCodingQueue: boolean;
 }
 
-export function ViewActionsInline({
-  patientId,
-  canViewPrescriptions,
-  canViewInvoices,
-  canLab,
-  canWhatsapp,
-  completed,
-  canCodingQueue,
-}: ViewActionsProps) {
+interface ViewActionDescriptor {
+  key: string;
+  labelKey: string;
+  href: (patientId: string) => string;
+  show: (props: ViewActionsProps) => boolean;
+  /** Tailwind breakpoint class for the inline variant. Ignored by overflow. */
+  breakpointClass: "md" | "lg";
+}
+
+const VIEW_ACTIONS: ReadonlyArray<ViewActionDescriptor> = [
+  {
+    key: "viewPrescriptions",
+    labelKey: "viewPrescriptions",
+    href: (pid) => `/prescriptions?patientId=${encodeURIComponent(pid)}`,
+    show: (p) => p.canViewPrescriptions,
+    breakpointClass: "md",
+  },
+  {
+    key: "viewInvoices",
+    labelKey: "viewInvoices",
+    href: (pid) => `/patients/${pid}?tab=billing`,
+    show: (p) => p.canViewInvoices,
+    breakpointClass: "md",
+  },
+  {
+    key: "viewLabTests",
+    labelKey: "viewLabTests",
+    href: (pid) => `/patients/${pid}?tab=records&subtab=labs`,
+    show: (p) => p.canLab,
+    breakpointClass: "lg",
+  },
+  {
+    key: "viewMessages",
+    labelKey: "viewMessages",
+    href: (pid) => `/patients/${pid}?tab=communication`,
+    show: (p) => p.canWhatsapp,
+    breakpointClass: "lg",
+  },
+  {
+    key: "codingQueue",
+    labelKey: "codingQueue",
+    href: () => "/coding-queue",
+    show: (p) => p.completed && p.canCodingQueue,
+    breakpointClass: "lg",
+  },
+];
+
+export function ViewActionsInline(props: ViewActionsProps) {
   const t = useTranslations("Consultation.workspaceActions");
   return (
     <>
-      {canViewPrescriptions ? <Button variant="outline" size="sm" className="hidden md:inline-flex" asChild><Link href={`/prescriptions?patientId=${encodeURIComponent(patientId)}`}>{t("viewPrescriptions")}</Link></Button> : null}
-      {canViewInvoices ? <Button variant="outline" size="sm" className="hidden md:inline-flex" asChild><Link href={`/patients/${patientId}?tab=billing`}>{t("viewInvoices")}</Link></Button> : null}
-      {canLab ? <Button variant="outline" size="sm" className="hidden lg:inline-flex" asChild><Link href={`/patients/${patientId}?tab=records&subtab=labs`}>{t("viewLabTests")}</Link></Button> : null}
-      {canWhatsapp ? <Button variant="outline" size="sm" className="hidden lg:inline-flex" asChild><Link href={`/patients/${patientId}?tab=communication`}>{t("viewMessages")}</Link></Button> : null}
-      {completed && canCodingQueue ? <Button variant="outline" size="sm" className="hidden lg:inline-flex" asChild><Link href="/coding-queue">{t("codingQueue")}</Link></Button> : null}
+      {VIEW_ACTIONS.filter((a) => a.show(props)).map((a) => (
+        <Button
+          key={a.key}
+          variant="outline"
+          size="sm"
+          className={`hidden ${a.breakpointClass}:inline-flex`}
+          asChild
+        >
+          <Link href={a.href(props.patientId)}>{t(a.labelKey)}</Link>
+        </Button>
+      ))}
     </>
   );
 }
 
-export function ViewActionsOverflow({
-  patientId,
-  canViewPrescriptions,
-  canViewInvoices,
-  canLab,
-  canWhatsapp,
-  completed,
-  canCodingQueue,
-}: ViewActionsProps) {
+export function ViewActionsOverflow(props: ViewActionsProps) {
   const t = useTranslations("Consultation.workspaceActions");
-  const hasAny = canViewPrescriptions || canViewInvoices || canLab || canWhatsapp || (completed && canCodingQueue);
+  const hasAny = VIEW_ACTIONS.some((a) => a.show(props));
   if (!hasAny) return null;
   return (
     <DropdownMenu>
@@ -106,11 +143,11 @@ export function ViewActionsOverflow({
       <DropdownMenuContent align="start">
         <DropdownMenuLabel>{t("patientRecordsLabel")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {canViewPrescriptions ? <DropdownMenuItem asChild><Link href={`/prescriptions?patientId=${encodeURIComponent(patientId)}`}>{t("viewPrescriptions")}</Link></DropdownMenuItem> : null}
-        {canViewInvoices ? <DropdownMenuItem asChild><Link href={`/patients/${patientId}?tab=billing`}>{t("viewInvoices")}</Link></DropdownMenuItem> : null}
-        {canLab ? <DropdownMenuItem asChild><Link href={`/patients/${patientId}?tab=records&subtab=labs`}>{t("viewLabTests")}</Link></DropdownMenuItem> : null}
-        {canWhatsapp ? <DropdownMenuItem asChild><Link href={`/patients/${patientId}?tab=communication`}>{t("viewMessages")}</Link></DropdownMenuItem> : null}
-        {completed && canCodingQueue ? <DropdownMenuItem asChild><Link href="/coding-queue">{t("codingQueue")}</Link></DropdownMenuItem> : null}
+        {VIEW_ACTIONS.filter((a) => a.show(props)).map((a) => (
+          <DropdownMenuItem key={a.key} asChild>
+            <Link href={a.href(props.patientId)}>{t(a.labelKey)}</Link>
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );

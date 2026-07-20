@@ -1,19 +1,17 @@
 "use client";
 
-import { formatCurrency, formatDate } from "@workspace/utils";
 import { useTranslations } from "next-intl";
-// jscpd:ignore-start
+import { BaseContractDialogShell } from "./base-dialog-shell";
+import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
+import { formatCurrency, formatDate } from "@workspace/utils";
 import {
-  BaseContractDialogShell,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "./base-dialog-shell";
-// jscpd:ignore-end
-import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
+} from "@workspace/ui/components/data-display/table";
 
 type EnterpriseContractsEstimateDialogProps = Pick<EnterpriseContractsPageState, 'estimateOpen' | 'setEstimateOpen' | 'estimate' | 'estimateLoading'>;
 

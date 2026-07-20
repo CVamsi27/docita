@@ -18,32 +18,14 @@ import { Textarea } from "@workspace/ui/components/form/textarea";
 import { type ClinicalInvestigation } from "@workspace/types";
 import { parseStringEnumMember } from "@workspace/utils";
 import { resolveAttachmentUrl } from "@/features/consultation/hooks/use-investigation-attachment";
-
-const INVESTIGATION_CATEGORIES = [
+import {
+  INVESTIGATION_CATEGORIES,
+  INVESTIGATION_STATUSES,
+  type InvestigationRowProps,
+} from "./investigation-row.helpers";
 // jscpd:ignore-end
-  "LABORATORY",
-  "IMAGING",
-  "SPECIAL",
-  "OTHER",
-] as const;
-const INVESTIGATION_STATUSES = [
-  "ORDERED",
-  "PENDING",
-  "COMPLETED",
-  "CANCELLED",
-] as const;
 
-export interface InvestigationRowProps {
-  row: ClinicalInvestigation;
-  index: number;
-  readOnly?: boolean;
-  canAttach: boolean;
-  hasUploadContext: boolean;
-  uploadingId: string | null;
-  onUpdate: (index: number, patch: Partial<ClinicalInvestigation>) => void;
-  onRemove: (index: number) => void;
-  onAttach: (index: number, row: ClinicalInvestigation, file: File) => Promise<void>;
-}
+export type { InvestigationRowProps };
 
 /**
  * Phase 3 (per-feature): the investigations list on the

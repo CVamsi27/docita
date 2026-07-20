@@ -32,7 +32,10 @@ function useSystemLogsTranslations() {
   return useTranslations("InternalSystemLogs.table");
 }
 
-export function getLevelBadge(level: string) {
+// Component (not a helper function) because we call useTranslations — a
+// React hook. Helpers that invoke hooks violate react-hooks/rules-of-hooks
+// and risk the hook state desyncing across rows.
+export function LevelBadge({ level }: { level: string }) {
   const t = useSystemLogsTranslations();
   switch (level) {
     case "DEBUG":
@@ -221,7 +224,7 @@ export function SystemLogsResultsTable({
                 <TableCell className="font-mono text-xs">
                   {formatDate(log.timestamp, "dd MMM yyyy, HH:mm:ss.SSS")}
                 </TableCell>
-                <TableCell>{getLevelBadge(log.level)}</TableCell>
+                <TableCell><LevelBadge level={log.level} /></TableCell>
                 <TableCell className="font-medium">{log.module}</TableCell>
                 <TableCell>
                   <div className="flex flex-col gap-1">

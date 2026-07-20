@@ -16,6 +16,51 @@ interface OCRPatientInfoProps {
   hasLowConfidence: boolean;
 }
 
+interface OcrCorrectionFieldProps {
+  label: string;
+  fieldKey: string;
+  value: string;
+  suggestionLabel: string;
+  getScore: (key: string) => number | undefined;
+  getCorrection: (key: string) => string | undefined;
+  onChange: (value: string) => void;
+}
+
+/**
+ * One OCR patient-info field: label + confidence indicator, an
+ * optional correction-suggestion block, and a controlled input.
+ * Used for firstName/lastName/age/phoneNumber etc. so the OCR
+ * section can render any number of fields without duplicating
+ * the same JSX shape.
+ */
+function OcrCorrectionField({
+  label,
+  fieldKey,
+  value,
+  suggestionLabel,
+  getScore,
+  getCorrection,
+  onChange,
+}: OcrCorrectionFieldProps) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label className="text-xs">{label}</Label>
+        <ConfidenceIndicator
+          {...((s) => (s != null ? { score: s } : {}))(getScore(fieldKey))}
+        />
+      </div>
+      {getCorrection(fieldKey) && (
+        <div className="text-xs surface-warning p-2 rounded">
+          <p className="font-medium">{suggestionLabel}</p>
+          <p>{getCorrection(fieldKey)}</p>
+        </div>
+      )}
+      <Input value={value} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  );
+}
+
 /**
  * Phase 3 (per-feature): apps/app OCR > Patient Info
  * section — the patient identity fields (name, age, phone,
@@ -49,64 +94,28 @@ export const OCRPatientInfo = ({
       {isOpen && (
         <div className="space-y-3 bg-muted/30 rounded-lg p-3">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs">{t("firstNameLabel")}</Label>
-                <ConfidenceIndicator
-                  {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("firstName"),
-                  )}
-                />
-              </div>
-              {getCorrection("firstName") && (
-                <div className="text-xs surface-warning p-2 rounded">
-                  <p className="font-medium">
-                    {t("suggestionLabel")}
-                  </p>
-                  <p>
-                    {getCorrection("firstName")}
-                  </p>
-                </div>
-              )}
-              <Input
-                value={formData.firstName}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    firstName: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs">{t("lastNameLabel")}</Label>
-                <ConfidenceIndicator
-                  {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("lastName"),
-                  )}
-                />
-              </div>
-              {getCorrection("lastName") && (
-                <div className="text-xs surface-warning p-2 rounded">
-                  <p className="font-medium">
-                    {t("suggestionLabel")}
-                  </p>
-                  <p>
-                    {getCorrection("lastName")}
-                  </p>
-                </div>
-              )}
-              <Input
-                value={formData.lastName}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    lastName: e.target.value,
-                  })
-                }
-              />
-            </div>
+            <OcrCorrectionField
+              label={t("firstNameLabel")}
+              fieldKey="firstName"
+              value={formData.firstName}
+              suggestionLabel={t("suggestionLabel")}
+              getScore={getScore}
+              getCorrection={getCorrection}
+              onChange={(value) =>
+                setFormData({ ...formData, firstName: value })
+              }
+            />
+            <OcrCorrectionField
+              label={t("lastNameLabel")}
+              fieldKey="lastName"
+              value={formData.lastName}
+              suggestionLabel={t("suggestionLabel")}
+              getScore={getScore}
+              getCorrection={getCorrection}
+              onChange={(value) =>
+                setFormData({ ...formData, lastName: value })
+              }
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

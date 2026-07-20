@@ -1,13 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card } from "@/components/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/card";
 import { Label } from "@workspace/ui/components/form/label";
 import { Input } from "@workspace/ui/components/form/input";
 import { Switch } from "@workspace/ui/components/form/switch";
@@ -39,6 +34,41 @@ function useEnterpriseBrandingTranslations() {
   return useTranslations("Settings.enterpriseBranding");
 }
 
+interface BrandingCardHeaderProps {
+  title: string;
+  showEnterpriseBadge: boolean;
+  description: string;
+}
+
+/**
+ * Shared header for the enterprise-branding cards. Renders a CardHeader
+ * with a title, an optional "Enterprise" badge (shown when the
+ * flag is false), and a description line.
+ */
+export function BrandingCardHeader({
+  title,
+  showEnterpriseBadge,
+  description,
+}: BrandingCardHeaderProps) {
+  const t = useEnterpriseBrandingTranslations();
+  return (
+    <CardHeader className="border-b border-border/60 pb-5">
+      <div className="flex items-center gap-2">
+        <CardTitle>{title}</CardTitle>
+        {showEnterpriseBadge && (
+          <Badge
+            variant="outline"
+            className="ui-eyebrow border-border/60 text-muted-foreground"
+          >
+            {t("enterpriseBadge")}
+          </Badge>
+        )}
+      </div>
+      <CardDescription>{description}</CardDescription>
+    </CardHeader>
+  );
+}
+
 interface BrandNameCardProps {
   hasWhiteLabel: boolean;
   brandName: string;
@@ -57,22 +87,11 @@ export function BrandNameCard({
   const t = useEnterpriseBrandingTranslations();
   return (
     <Card>
-      <CardHeader className="border-b border-border/60 pb-5">
-        <div className="flex items-center gap-2">
-          <CardTitle>{t("brandNameTitle")}</CardTitle>
-          {!hasWhiteLabel && (
-            <Badge
-              variant="outline"
-              className="ui-eyebrow border-border/60 text-muted-foreground"
-            >
-              {t("enterpriseBadge")}
-            </Badge>
-          )}
-        </div>
-        <CardDescription>
-          {t("brandNameDescription")}
-        </CardDescription>
-      </CardHeader>
+      <BrandingCardHeader
+        title={t("brandNameTitle")}
+        showEnterpriseBadge={!hasWhiteLabel}
+        description={t("brandNameDescription")}
+      />
       <CardContent className="flex flex-col gap-5 pt-5">
         <div className="flex flex-col gap-2">
           <Label htmlFor="brand-name">{t("displayNameLabel")}</Label>
@@ -128,22 +147,11 @@ export function LockedThemeCard({
   const t = useEnterpriseBrandingTranslations();
   return (
     <Card>
-      <CardHeader className="border-b border-border/60 pb-5">
-        <div className="flex items-center gap-2">
-          <CardTitle>{t("lockedThemeTitle")}</CardTitle>
-          {!hasLockedTheme && (
-            <Badge
-              variant="outline"
-              className="ui-eyebrow border-border/60 text-muted-foreground"
-            >
-              {t("enterpriseBadge")}
-            </Badge>
-          )}
-        </div>
-        <CardDescription>
-          {t("lockedThemeDescription")}
-        </CardDescription>
-      </CardHeader>
+      <BrandingCardHeader
+        title={t("lockedThemeTitle")}
+        showEnterpriseBadge={!hasLockedTheme}
+        description={t("lockedThemeDescription")}
+      />
       <CardContent className="flex flex-col gap-6 pt-5">
         <div className="space-y-3">
           <Label>{t("colourAccentLabel")}</Label>

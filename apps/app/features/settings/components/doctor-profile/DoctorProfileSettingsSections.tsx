@@ -18,7 +18,6 @@ import {
   CheckCircle2,
   Clock,
   PenLine,
-  type LucideIcon,
 } from "lucide-react";
 import { toAbsoluteApiUrl } from "@/lib/utils/api-url";
 import { getDoctorVerificationPublicNote } from "@/lib/formatters/doctor-verification-display";
@@ -32,50 +31,53 @@ function useDoctorProfileTranslations() {
   return useTranslations("Settings.doctorProfile");
 }
 
-type RegistrationStatusBadge = {
-  label: string;
-  variant: "outline" | "secondary" | "destructive";
-  className: string;
-  Icon: LucideIcon;
-};
 type DoctorProfile = User | AppAuthUser;
 
-export function resolveRegistrationStatusBadge(
-  hasRegistration: boolean,
-  verificationStatus: DoctorProfile["verificationStatus"] | undefined,
-): RegistrationStatusBadge | null {
+// Component (not a helper) because it calls useTranslations — a React
+// hook. Helpers that invoke hooks violate react-hooks/rules-of-hooks and
+// risk the hook state desyncing across calls.
+export function RegistrationStatusBadge({
+  hasRegistration,
+  verificationStatus,
+}: {
+  hasRegistration: boolean;
+  verificationStatus: DoctorProfile["verificationStatus"] | undefined;
+}) {
   const t = useDoctorProfileTranslations();
   if (!hasRegistration) return null;
   if (verificationStatus === "VERIFIED") {
-    return {
-      label: t("statusVerified"),
-      variant: "outline",
-      className: "gap-1.5 border-primary/30 text-primary",
-      Icon: CheckCircle2,
-    };
+    return (
+      <Badge
+        variant="outline"
+        className="gap-1.5 border-primary/30 text-primary"
+      >
+        <CheckCircle2 className="h-3.5 w-3.5" />
+        {t("statusVerified")}
+      </Badge>
+    );
   }
   if (verificationStatus === "PENDING") {
-    return {
-      label: t("statusPending"),
-      variant: "secondary",
-      className: "gap-1.5",
-      Icon: Clock,
-    };
+    return (
+      <Badge variant="secondary" className="gap-1.5">
+        <Clock className="h-3.5 w-3.5" />
+        {t("statusPending")}
+      </Badge>
+    );
   }
   if (verificationStatus === "FAILED" || verificationStatus === "REJECTED") {
-    return {
-      label: t("statusFailed"),
-      variant: "destructive",
-      className: "gap-1.5",
-      Icon: AlertTriangle,
-    };
+    return (
+      <Badge variant="destructive" className="gap-1.5">
+        <AlertTriangle className="h-3.5 w-3.5" />
+        {t("statusFailed")}
+      </Badge>
+    );
   }
-  return {
-    label: t("statusNotVerified"),
-    variant: "outline",
-    className: "gap-1.5 text-muted-foreground",
-    Icon: PenLine,
-  };
+  return (
+    <Badge variant="outline" className="gap-1.5 text-muted-foreground">
+      <PenLine className="h-3.5 w-3.5" />
+      {t("statusNotVerified")}
+    </Badge>
+  );
 }
 
 export function DigitalSignatureCard({
@@ -149,11 +151,12 @@ export function MedicalRegistrationCard({
     verificationStatus,
     profile?.verificationReason,
   );
-  const registrationStatusBadge = resolveRegistrationStatusBadge(
-    hasRegistration,
-    verificationStatus,
+  const registrationStatusBadge = (
+    <RegistrationStatusBadge
+      hasRegistration={hasRegistration}
+      verificationStatus={verificationStatus}
+    />
   );
-  const RegistrationBadgeIcon = registrationStatusBadge?.Icon;
   return (
     <Card>
       <CardHeader className="border-b border-border/60 pb-5">
@@ -164,15 +167,7 @@ export function MedicalRegistrationCard({
               {t("medicalRegistrationDescription")}
             </CardDescription>
           </div>
-          {registrationStatusBadge && RegistrationBadgeIcon ? (
-            <Badge
-              variant={registrationStatusBadge.variant}
-              className={registrationStatusBadge.className}
-            >
-              <RegistrationBadgeIcon className="h-3.5 w-3.5" />
-              {registrationStatusBadge.label}
-            </Badge>
-          ) : null}
+          {registrationStatusBadge}
         </div>
       </CardHeader>
       <CardContent className="pt-5">

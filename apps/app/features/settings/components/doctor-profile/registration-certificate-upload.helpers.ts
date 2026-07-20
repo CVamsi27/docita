@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — File.type is a browser-controlled string; we cast to the readonly MIME tuple so the includes() check narrows correctly. The list itself is the canonical allow-list for the upload policy.
 /**
  * Pure validation for the doctor registration certificate upload. Lives outside
  * the React component so it's directly testable without jsdom and so the
