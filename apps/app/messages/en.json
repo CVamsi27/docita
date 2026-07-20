@@ -1452,5 +1452,27 @@
     "faq2Answer": "Go to Appointments and click 'Schedule'",
     "faq3Question": "How do I generate an invoice?",
     "faq3Answer": "After a consultation, click 'Generate Invoice'"
+  },
+  "DevTools": {
+    "UiContractVisualTest": {
+      "pageTitle": "Patient Workspace",
+      "pageSubtitle": "A consistent page scaffold and heading treatment",
+      "newEntryButton": "New Entry",
+      "todayTitle": "Today",
+      "todayBody": "{count} appointments scheduled",
+      "queueTitle": "Queue",
+      "queueBody": "{count, plural, one {1 patient waiting} other {{count} patients waiting}}",
+      "loadingTitle": "Loading State",
+      "loadingMessage": "Loading appointment data…",
+      "emptyTitle": "Empty State",
+      "emptyStateTitle": "No appointments found",
+      "emptyStateDescription": "New appointments will appear here",
+      "emptyAction": "Schedule",
+      "errorTitle": "Error State",
+      "errorMessage": "We could not load this dashboard view. Please try again.",
+      "interactiveCardTitle": "Interactive Card Variant",
+      "interactiveCardBody": "This card uses opt-in interactivity.",
+      "inlineAlertLabel": "Inline alert style reference"
+    }
   }
 }
