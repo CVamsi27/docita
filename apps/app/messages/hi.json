@@ -403,6 +403,22 @@
       "surgicalHistoryLabel": "शल्य चिकित्सा इतिहास",
       "familyHistoryLabel": "पारिवारिक इतिहास",
       "fullStructuredHistoryLabel": "पूर्ण संरचित इतिहास"
+    },
+    "cardiologyExam": {
+      "title": "हृदय रोग परीक्षा",
+      "description": "हृदय मूल्यांकन, ECG या इमेजिंग सारांश, और फॉलो-अप योजना।",
+      "clinicalAssessmentLabel": "क्लिनिकल मूल्यांकन",
+      "clinicalAssessmentPlaceholder": "क्लिनिकल मूल्यांकन",
+      "riskFactorsLabel": "जोखिम कारक",
+      "riskFactorsPlaceholder": "जोखिम कारक",
+      "cardiacMedicationsLabel": "हृदय दवाइयाँ",
+      "cardiacMedicationsPlaceholder": "हृदय दवाइयाँ",
+      "ecgLabel": "ECG / मॉनिटरिंग नोट्स",
+      "ecgPlaceholder": "ECG मॉनिटरिंग नोट्स",
+      "planLabel": "योजना",
+      "planPlaceholder": "योजना",
+      "generalNotesLabel": "सामान्य नोट्स",
+      "generalNotesPlaceholder": "सामान्य नोट्स"
     }
   },
   "Settings": {
@@ -1255,6 +1271,40 @@
       "cancelButton": "रद्द करें",
       "savingButton": "सहेज रहे हैं…",
       "saveButton": "परिवर्तन सहेजें"
+    }
+  },
+  "Daybook": {
+    "collectedEyebrow": "संग्रहीत",
+    "pendingEyebrow": "लंबित",
+    "cashOnHandEyebrow": "हाथ में नकद",
+    "paidInvoiceCount": "{count, plural, one {1 भुगतान किया गया चालान} other {{count} भुगतान किए गए चालान}}",
+    "pendingHelper": "इस दिन बकाया",
+    "cashOnHandHelper": "केवल नकद संग्रह",
+    "byMethodTitle": "विधि द्वारा संग्रहीत",
+    "ledgerTitle": "खाता बही",
+    "emptyLedgerTitle": "इस दिन के लिए कोई चालान नहीं",
+    "emptyLedgerDescription": "चयनित दिन पर बनाए गए चालान यहाँ मिलान के लिए दिखाई देंगे।",
+    "viewInvoicesAction": "चालान देखें",
+    "closeDayTitle": "दिन बंद करें",
+    "closeDayDescription": "दिन के संग्रह को लॉक करने से एक settled-ledger प्रविष्टि लिखी जाती है। अभी के लिए, ऊपर के कुल के विरुद्ध मिलान करें।",
+    "closeDayButton": "दिन बंद करें"
+  },
+  "MedicalDocuments": {
+    "createDialog": {
+      "title": "नया चिकित्सा दस्तावेज़",
+      "typeLabel": "दस्तावेज़ प्रकार",
+      "titleLabel": "शीर्षक",
+      "titlePlaceholder": "शीर्षक",
+      "uploadLabel": "दस्तावेज़ अपलोड करें",
+      "uploadHelper": "वैकल्पिक, लेकिन अनुशंसित",
+      "mobileUploadButton": "फ़ोन से अपलोड करें",
+      "fileTypesHint": "PDF, PNG, JPG, या WebP",
+      "qrScanHint": "अपलोड करने के लिए अपने फ़ोन पर इस QR कोड को स्कैन करें।",
+      "hideButton": "छिपाएँ",
+      "fileSelectedLabel": "फ़ाइल चुनी गई।",
+      "cancelButton": "रद्द करें",
+      "creatingButton": "बना रहे हैं…",
+      "createButton": "बनाएँ"
     }
   }
 }

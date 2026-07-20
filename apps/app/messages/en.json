@@ -403,6 +403,22 @@
       "surgicalHistoryLabel": "Surgical history",
       "familyHistoryLabel": "Family history",
       "fullStructuredHistoryLabel": "Full structured history"
+    },
+    "cardiologyExam": {
+      "title": "Cardiology Exam",
+      "description": "Cardiac assessment, ECG or imaging summaries, and follow-up plan.",
+      "clinicalAssessmentLabel": "Clinical assessment",
+      "clinicalAssessmentPlaceholder": "Clinical assessment",
+      "riskFactorsLabel": "Risk factors",
+      "riskFactorsPlaceholder": "Risk factors",
+      "cardiacMedicationsLabel": "Cardiac medications",
+      "cardiacMedicationsPlaceholder": "Cardiac medications",
+      "ecgLabel": "ECG / monitoring notes",
+      "ecgPlaceholder": "ECG monitoring notes",
+      "planLabel": "Plan",
+      "planPlaceholder": "Plan",
+      "generalNotesLabel": "General notes",
+      "generalNotesPlaceholder": "General notes"
     }
   },
   "Settings": {
@@ -1255,6 +1271,40 @@
       "cancelButton": "Cancel",
       "savingButton": "Saving…",
       "saveButton": "Save changes"
+    }
+  },
+  "Daybook": {
+    "collectedEyebrow": "Collected",
+    "pendingEyebrow": "Pending",
+    "cashOnHandEyebrow": "Cash on hand",
+    "paidInvoiceCount": "{count, plural, one {1 paid invoice} other {{count} paid invoices}}",
+    "pendingHelper": "Outstanding this day",
+    "cashOnHandHelper": "Cash collections only",
+    "byMethodTitle": "Collected by method",
+    "ledgerTitle": "Ledger",
+    "emptyLedgerTitle": "No invoices for this day",
+    "emptyLedgerDescription": "Invoices raised on the selected day will appear here for reconciliation.",
+    "viewInvoicesAction": "View invoices",
+    "closeDayTitle": "Close the day",
+    "closeDayDescription": "Locking the day's collections writes a settled-ledger entry. For now, reconcile against the totals above.",
+    "closeDayButton": "Close day"
+  },
+  "MedicalDocuments": {
+    "createDialog": {
+      "title": "New Medical Document",
+      "typeLabel": "Document Type",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Title",
+      "uploadLabel": "Upload document",
+      "uploadHelper": "Optional, but recommended",
+      "mobileUploadButton": "Upload from phone",
+      "fileTypesHint": "PDF, PNG, JPG, or WebP",
+      "qrScanHint": "Scan this QR code on your phone to upload.",
+      "hideButton": "Hide",
+      "fileSelectedLabel": "File selected.",
+      "cancelButton": "Cancel",
+      "creatingButton": "Creating…",
+      "createButton": "Create"
     }
   }
 }
