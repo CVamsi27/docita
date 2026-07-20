@@ -187,6 +187,23 @@
       "receiptLine": "Receipt · {amount}{status}",
       "billsCount": "Bills · {count} open",
       "billsNone": "Bills · Nothing outstanding"
+    },
+    "addMetricDefinition": {
+      "errorNameRequired": "Enter a metric name",
+      "errorCategoryRequired": "Choose a category",
+      "errorSaveFailed": "We could not create this metric. Please try again.",
+      "title": "Add Custom Metric",
+      "description": "Define a patient portal metric that can be tracked over time.",
+      "nameLabel": "Metric name",
+      "namePlaceholder": "Metric name",
+      "categoryLabel": "Category",
+      "categoryPlaceholder": "Category",
+      "valueTypeLabel": "Value type",
+      "unitLabel": "Unit (optional)",
+      "unitPlaceholder": "Unit",
+      "cancelButton": "Cancel",
+      "creatingButton": "Creating…",
+      "createButton": "Create Metric"
     }
   },
   "Onboarding": {
@@ -673,6 +690,18 @@
       "gstPercentSuffix": "GST {percent}%",
       "hsnSuffix": "HSN {code}",
       "mobileLineMeta": "{quantity} × {unit}{tax}{hsn}"
+    },
+    "filters": {
+      "searchPlaceholder": "Enter patient name",
+      "searchAriaLabel": "Search invoices",
+      "statusLabel": "Status",
+      "allStatuses": "All Statuses",
+      "statuses": {
+        "paid": "Paid",
+        "pending": "Pending",
+        "overdue": "Overdue",
+        "partiallyPaid": "Partially Paid"
+      }
     }
   },
   "Ocr": {
@@ -742,6 +771,16 @@
       "tipsTip1": "Ensure good lighting and clear handwriting",
       "tipsTip2": "Capture the entire page including headers",
       "tipsTip3": "Avoid shadows and blur"
+    },
+    "header": {
+      "staffPanelTitle": "2. Staff Correction Panel",
+      "staffPanelSubtitle": "Verify and correct the extracted information",
+      "manualEntryTitle": "Manual Data Entry Required",
+      "manualEntryBody": "This basic OCR mode accepts the image file. For automatic text extraction and field population, enable the AI-powered extraction feature.",
+      "lowConfidenceTitle": "Low confidence fields detected",
+      "lowConfidenceBody": "Please review and correct highlighted fields",
+      "aiSuggestionsTitle": "AI Suggestions Available",
+      "aiSuggestionsBody": "Review suggested corrections above each field"
     }
   },
   "Dashboard": {
@@ -934,6 +973,13 @@
       "medicationsHeader": "Medications",
       "dateHeader": "Date",
       "actionsHeader": "Actions"
+    },
+    "medicationList": {
+      "medicationsTitle": "Medications",
+      "dosageLabel": "Dosage",
+      "frequencyLabel": "Frequency",
+      "durationLabel": "Duration",
+      "instructionsTitle": "Instructions"
     }
   },
   "Excel": {
@@ -1133,6 +1179,40 @@
       "legendSelected": "Selected",
       "legendAvailable": "Available",
       "legendUnavailable": "Unavailable"
+    }
+  },
+  "ClinicSettings": {
+    "general": {
+      "identityEyebrow": "Identity",
+      "nameLabel": "{facilityLabel} name",
+      "namePlaceholder": "Enter {facilityLabel} name",
+      "facilityTypeLabel": "Facility type",
+      "facilityTypeHint": "Used in navigation, headings, and join flows.",
+      "facilityTypePlaceholder": "Clinic or Hospital",
+      "facilityTypeClinic": "Clinic",
+      "facilityTypeHospital": "Hospital",
+      "locationEyebrow": "Location",
+      "addressLabel": "Address",
+      "addressPlaceholder": "Enter address",
+      "mapsLinkLabel": "Google Maps link",
+      "mapsLinkHint": "Patients see this in appointment messages. Paste a Google Maps share URL or Plus code link. Leave blank to skip.",
+      "mapsLinkPlaceholder": "https://maps.google.com/...",
+      "previewLinkLabel": "Preview link",
+      "contactComplianceEyebrow": "Contact & compliance",
+      "phoneLabel": "Phone number",
+      "phonePlaceholder": "Enter phone number",
+      "gstinLabel": "GSTIN",
+      "gstinHint": "Needed for GST invoices on paid Indian plans.",
+      "gstinPlaceholder": "GST number",
+      "hfrFacilityIdLabel": "HFR Facility ID",
+      "hfrFacilityIdHint": "Required before production ABDM M1/M2 use for this facility.",
+      "hfrFacilityIdPlaceholder": "Enter HFR Facility ID",
+      "legalNameLabel": "Legal name (for tax invoice)",
+      "legalNameHint": "Registered legal name on your GST certificate. Leave blank to use the facility name.",
+      "legalNamePlaceholder": "e.g. Apollo Multispecialty Pvt. Ltd.",
+      "cancelButton": "Cancel",
+      "savingButton": "Saving…",
+      "saveButton": "Save changes"
     }
   }
 }

@@ -187,6 +187,23 @@
       "receiptLine": "रसीद · {amount}{status}",
       "billsCount": "बिल · {count} खुले",
       "billsNone": "बिल · कोई बकाया नहीं"
+    },
+    "addMetricDefinition": {
+      "errorNameRequired": "मेट्रिक का नाम दर्ज करें",
+      "errorCategoryRequired": "श्रेणी चुनें",
+      "errorSaveFailed": "हम यह मेट्रिक नहीं बना सके। कृपया पुनः प्रयास करें।",
+      "title": "कस्टम मेट्रिक जोड़ें",
+      "description": "एक रोगी पोर्टल मेट्रिक परिभाषित करें जिसे समय के साथ ट्रैक किया जा सके।",
+      "nameLabel": "मेट्रिक का नाम",
+      "namePlaceholder": "मेट्रिक का नाम",
+      "categoryLabel": "श्रेणी",
+      "categoryPlaceholder": "श्रेणी",
+      "valueTypeLabel": "मान प्रकार",
+      "unitLabel": "इकाई (वैकल्पिक)",
+      "unitPlaceholder": "इकाई",
+      "cancelButton": "रद्द करें",
+      "creatingButton": "बना रहे हैं…",
+      "createButton": "मेट्रिक बनाएँ"
     }
   },
   "Onboarding": {
@@ -673,6 +690,18 @@
       "gstPercentSuffix": "GST {percent}%",
       "hsnSuffix": "HSN {code}",
       "mobileLineMeta": "{quantity} × {unit}{tax}{hsn}"
+    },
+    "filters": {
+      "searchPlaceholder": "रोगी का नाम दर्ज करें",
+      "searchAriaLabel": "चालान खोजें",
+      "statusLabel": "स्थिति",
+      "allStatuses": "सभी स्थितियाँ",
+      "statuses": {
+        "paid": "भुगतान हो चुका",
+        "pending": "लंबित",
+        "overdue": "अतिदेय",
+        "partiallyPaid": "आंशिक भुगतान"
+      }
     }
   },
   "Ocr": {
@@ -742,6 +771,16 @@
       "tipsTip1": "अच्छी रोशनी और स्पष्ट हस्तलिपि सुनिश्चित करें",
       "tipsTip2": "हेडर सहित पूरा पृष्ठ कैप्चर करें",
       "tipsTip3": "छाया और धुंध से बचें"
+    },
+    "header": {
+      "staffPanelTitle": "2. स्टाफ सुधार पैनल",
+      "staffPanelSubtitle": "निकाली गई जानकारी की पुष्टि करें और सुधारें",
+      "manualEntryTitle": "मैन्युअल डेटा एंट्री आवश्यक",
+      "manualEntryBody": "यह बेसिक OCR मोड छवि फ़ाइल स्वीकार करता है। स्वचालित टेक्स्ट निष्कर्षण और फ़ील्ड पॉपुलेशन के लिए, AI-संचालित निष्कर्षण सुविधा सक्षम करें।",
+      "lowConfidenceTitle": "कम विश्वास वाले फ़ील्ड पाए गए",
+      "lowConfidenceBody": "कृपया हाइलाइट किए गए फ़ील्ड की समीक्षा करें और सुधारें",
+      "aiSuggestionsTitle": "AI सुझाव उपलब्ध",
+      "aiSuggestionsBody": "प्रत्येक फ़ील्ड के ऊपर सुझाए गए सुधार देखें"
     }
   },
   "Dashboard": {
@@ -934,6 +973,13 @@
       "medicationsHeader": "दवाएँ",
       "dateHeader": "तारीख",
       "actionsHeader": "क्रियाएँ"
+    },
+    "medicationList": {
+      "medicationsTitle": "दवाइयाँ",
+      "dosageLabel": "खुराक",
+      "frequencyLabel": "आवृत्ति",
+      "durationLabel": "अवधि",
+      "instructionsTitle": "निर्देश"
     }
   },
   "Excel": {
@@ -1133,6 +1179,40 @@
       "legendSelected": "चयनित",
       "legendAvailable": "उपलब्ध",
       "legendUnavailable": "अनुपलब्ध"
+    }
+  },
+  "ClinicSettings": {
+    "general": {
+      "identityEyebrow": "पहचान",
+      "nameLabel": "{facilityLabel} का नाम",
+      "namePlaceholder": "{facilityLabel} का नाम दर्ज करें",
+      "facilityTypeLabel": "सुविधा प्रकार",
+      "facilityTypeHint": "नेविगेशन, शीर्षक और जॉइन फ़्लो में उपयोग किया जाता है।",
+      "facilityTypePlaceholder": "क्लिनिक या अस्पताल",
+      "facilityTypeClinic": "क्लिनिक",
+      "facilityTypeHospital": "अस्पताल",
+      "locationEyebrow": "स्थान",
+      "addressLabel": "पता",
+      "addressPlaceholder": "पता दर्ज करें",
+      "mapsLinkLabel": "Google Maps लिंक",
+      "mapsLinkHint": "रोगी इसे अपॉइंटमेंट संदेशों में देखते हैं। Google Maps शेयर URL या Plus code लिंक पेस्ट करें। छोड़ने के लिए खाली रखें।",
+      "mapsLinkPlaceholder": "https://maps.google.com/...",
+      "previewLinkLabel": "लिंक पूर्वावलोकन",
+      "contactComplianceEyebrow": "संपर्क और अनुपालन",
+      "phoneLabel": "फ़ोन नंबर",
+      "phonePlaceholder": "फ़ोन नंबर दर्ज करें",
+      "gstinLabel": "GSTIN",
+      "gstinHint": "भुगतान किए गए भारतीय प्लान पर GST चालान के लिए आवश्यक।",
+      "gstinPlaceholder": "GST नंबर",
+      "hfrFacilityIdLabel": "HFR सुविधा ID",
+      "hfrFacilityIdHint": "इस सुविधा के लिए प्रोडक्शन ABDM M1/M2 उपयोग से पहले आवश्यक।",
+      "hfrFacilityIdPlaceholder": "HFR सुविधा ID दर्ज करें",
+      "legalNameLabel": "कानूनी नाम (कर चालान के लिए)",
+      "legalNameHint": "आपके GST प्रमाणपत्र पर पंजीकृत कानूनी नाम। सुविधा नाम का उपयोग करने के लिए खाली छोड़ें।",
+      "legalNamePlaceholder": "जैसे कि Apollo मल्टीस्पेशलिटी प्रा. लि.",
+      "cancelButton": "रद्द करें",
+      "savingButton": "सहेज रहे हैं…",
+      "saveButton": "परिवर्तन सहेजें"
     }
   }
 }
