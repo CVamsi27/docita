@@ -2,6 +2,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { Clock } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { formatDate } from "@workspace/utils";
 
 interface TimeSlot {
@@ -17,6 +18,14 @@ interface TimeSlotPickerUIProps {
   loading?: boolean;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Appointments > Time slot picker UI.
+ * 5 literals converted to useTranslations("Appointments.timeSlotPicker").
+ */
+function useTimeSlotPickerTranslations() {
+  return useTranslations("Appointments.timeSlotPicker");
+}
+
 export function TimeSlotPickerUI({
   date,
   timeSlots,
@@ -24,13 +33,14 @@ export function TimeSlotPickerUI({
   onSlotSelect,
   loading = false,
 }: TimeSlotPickerUIProps) {
+  const t = useTimeSlotPickerTranslations();
   if (loading) {
     return (
       <div
         className="grid grid-cols-2 gap-2 sm:grid-cols-4"
         role="status"
         aria-live="polite"
-        aria-label="Loading time slots"
+        aria-label={t("loadingAriaLabel")}
       >
         {Array.from({ length: 12 }).map((_, i) => (
           <Skeleton key={i} className="h-12 rounded-md" />
@@ -43,7 +53,7 @@ export function TimeSlotPickerUI({
     return (
       <div className="text-center py-8 text-muted-foreground">
         <Clock className="h-12 w-12 mx-auto mb-2 opacity-50" />
-        <p>No available time slots for {formatDate(date, "MMM d, yyyy")}</p>
+        <p>{t("emptyMessage", { date: formatDate(date, "MMM d, yyyy") })}</p>
       </div>
     );
   }
@@ -51,7 +61,7 @@ export function TimeSlotPickerUI({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-medium">Select time</h3>
+        <h3 className="font-medium">{t("selectTimeTitle")}</h3>
         <Badge variant="outline">{formatDate(date, "EEEE, MMM d")}</Badge>
       </div>
 
@@ -72,15 +82,15 @@ export function TimeSlotPickerUI({
       <div className="flex gap-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 rounded bg-primary" />
-          <span>Selected</span>
+          <span>{t("legendSelected")}</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 rounded border" />
-          <span>Available</span>
+          <span>{t("legendAvailable")}</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 rounded bg-muted" />
-          <span>Unavailable</span>
+          <span>{t("legendUnavailable")}</span>
         </div>
       </div>
     </div>

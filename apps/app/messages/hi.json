@@ -1124,5 +1124,15 @@
       "emptyDescription": "डिस्पेंस कतार इन-हाउस पूर्ति की प्रतीक्षा कर रहे नुस्खों से प्राप्त होती है। एक बार फार्मेसी डोमेन useDispenseQueue हुक के साथ वायर्ड हो जाने पर, यह दृश्य लंबित नुस्खे, WhatsApp हैंडऑफ़, और स्टॉक पार-स्तर अलर्ट दिखाएगा।",
       "emptyAction": "इन्वेंटरी खोलें"
     }
+  },
+  "Appointments": {
+    "timeSlotPicker": {
+      "loadingAriaLabel": "समय स्लॉट लोड हो रहे हैं",
+      "emptyMessage": "{date} के लिए कोई उपलब्ध समय स्लॉट नहीं",
+      "selectTimeTitle": "समय चुनें",
+      "legendSelected": "चयनित",
+      "legendAvailable": "उपलब्ध",
+      "legendUnavailable": "अनुपलब्ध"
+    }
   }
 }
