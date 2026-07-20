@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/componen
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { Button } from "@workspace/ui/components/form/button";
 import { ShieldCheck, CalendarCheck, FileText, Receipt } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { formatDateTime } from "@/lib/formatters";
 import { formatCurrency, isRecord } from "@workspace/utils";
 
@@ -28,6 +29,14 @@ interface PortalMetricsCardsProps {
   consentSettings?: { whatsappConsent: boolean; dataStorageConsent: boolean } | null;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Patient portal > Metrics cards.
+ * 6 literals converted to useTranslations("PatientPortal.metricsCards").
+ */
+function usePortalMetricsTranslations() {
+  return useTranslations("PatientPortal.metricsCards");
+}
+
 function pickString(v: unknown): string | undefined {
   return typeof v === "string" && v.trim() ? v : undefined;
 }
@@ -37,6 +46,7 @@ export function PortalMetricsCards({
   whatsappConsentStatus,
   consentSettings,
 }: PortalMetricsCardsProps) {
+  const t = usePortalMetricsTranslations();
   const summaryRows = useMemo(() => {
     if (!dashboard) return [];
     const nextRaw = dashboard.upcomingAppointments?.[0];
@@ -46,10 +56,13 @@ export function PortalMetricsCards({
     const doctor = doctorRecord?.name;
     const nextVisit =
       typeof start === "string"
-        ? `Next visit · ${formatDateTime(start, "EEE, d MMM, HH:mm")}${doctor ? ` · ${String(doctor)}` : ""}`
+        ? t("nextVisitLine", {
+            time: formatDateTime(start, "EEE, d MMM, HH:mm"),
+            doctor: doctor ? ` · ${String(doctor)}` : "",
+          })
         : dashboard.summary.upcomingAppointmentsCount > 0
-          ? `Next visit · ${dashboard.summary.upcomingAppointmentsCount} scheduled`
-          : "Next visit · None scheduled";
+          ? t("nextVisitCount", { count: dashboard.summary.upcomingAppointmentsCount })
+          : t("nextVisitNone");
 
     const rxRaw = dashboard.activePrescriptions?.[0];
     const rx = isRecord(rxRaw) ? rxRaw : undefined;
@@ -61,10 +74,10 @@ export function PortalMetricsCards({
         : undefined;
     const rxLine =
       typeof firstMed === "string"
-        ? `Prescription · ${firstMed}`
+        ? t("prescriptionWithMed", { med: firstMed })
         : dashboard.summary.activePrescriptionsCount > 0
-          ? `Prescriptions · ${dashboard.summary.activePrescriptionsCount} active`
-          : "Prescriptions · None on file";
+          ? t("prescriptionCount", { count: dashboard.summary.activePrescriptionsCount })
+          : t("prescriptionNone");
 
     const invRaw = dashboard.outstandingInvoices?.[0];
     const inv = isRecord(invRaw) ? invRaw : undefined;
@@ -77,28 +90,31 @@ export function PortalMetricsCards({
           : null;
     const billLine =
       total != null
-        ? `Receipt · ${formatCurrency(total, { currency: "INR" })}${invStatus ? ` · ${invStatus}` : ""}`
+        ? t("receiptLine", {
+            amount: formatCurrency(total, { currency: "INR" }),
+            status: invStatus ? ` · ${invStatus}` : "",
+          })
         : dashboard.summary.outstandingInvoicesCount > 0
-          ? `Bills · ${dashboard.summary.outstandingInvoicesCount} open`
-          : "Bills · Nothing outstanding";
+          ? t("billsCount", { count: dashboard.summary.outstandingInvoicesCount })
+          : t("billsNone");
 
     return [
       { icon: CalendarCheck, label: nextVisit, href: "/portal/appointments" },
       { icon: FileText, label: rxLine, href: "/portal/prescriptions" },
       { icon: Receipt, label: billLine, href: "/portal/billing" },
     ];
-  }, [dashboard]);
+  }, [dashboard, t]);
 
   const portalRows = useMemo(
     () => [
       ...summaryRows,
       {
         icon: ShieldCheck,
-        label: `Consent · ${whatsappConsentStatus}`,
+        label: t("consentLine", { status: whatsappConsentStatus }),
         href: "/portal/profile",
       },
     ],
-    [summaryRows, whatsappConsentStatus],
+    [summaryRows, whatsappConsentStatus, t],
   );
 
   return (
@@ -106,14 +122,14 @@ export function PortalMetricsCards({
       <Card className="border-primary/25 bg-primary/[0.04]">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between gap-3">
-            <MicroLabel as="p">Portal overview</MicroLabel>
+            <MicroLabel as="p">{t("overviewMicroLabel")}</MicroLabel>
             <span
               className="inline-flex h-1.5 w-1.5 shrink-0 rounded-full bg-success"
               aria-hidden
             />
           </div>
           <CardTitle className="text-base font-semibold text-foreground">
-            At a glance
+            {t("atAGlanceTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -138,34 +154,34 @@ export function PortalMetricsCards({
 
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle className="text-base">Consent &amp; privacy</CardTitle>
+          <CardTitle className="text-base">{t("consentTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="ui-helper-text">
-            Review consent and messaging preferences any time.
+            {t("consentHelper")}
           </p>
           <div className="grid gap-2 text-sm md:grid-cols-2">
             <p>
-              <span className="font-medium">WhatsApp:</span>
+              <span className="font-medium">{t("whatsAppLabel")}</span>
               <span className="ml-1 text-muted-foreground">
                 {whatsappConsentStatus}
               </span>
             </p>
             <p>
-              <span className="font-medium">Data storage:</span>
+              <span className="font-medium">{t("dataStorageLabel")}</span>
               <span className="ml-1 text-muted-foreground">
                 {consentSettings?.dataStorageConsent
-                  ? "Granted"
-                  : "Not granted"}
+                  ? t("grantedValue")
+                  : t("notGrantedValue")}
               </span>
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link href="/portal/profile/consent-form">Consent form</Link>
+              <Link href="/portal/profile/consent-form">{t("consentFormButton")}</Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/portal/profile">Privacy settings</Link>
+              <Link href="/portal/profile">{t("privacySettingsButton")}</Link>
             </Button>
           </div>
         </CardContent>
