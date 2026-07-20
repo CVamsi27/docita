@@ -574,6 +574,19 @@
       "lateArrivalHelper": "इस छूट अवधि के बाद रोगियों को कतार में शामिल होने दें",
       "queueBufferLabel": "कतार बफ़र (मिनट)",
       "queueBufferHelper": "अपॉइंटमेंट के बीच जोड़ा गया अतिरिक्त समय"
+    },
+    "applyLeaveDialog": {
+      "onBehalfOfLabel": "की ओर से (वैकल्पिक)",
+      "staffMemberPlaceholder": "कर्मचारी सदस्य",
+      "myselfOption": "स्वयं",
+      "leaveTypeLabel": "अवकाश प्रकार",
+      "leaveTypePlaceholder": "अवकाश प्रकार",
+      "startDateLabel": "प्रारंभ तिथि",
+      "endDateLabel": "समाप्ति तिथि",
+      "reasonLabel": "कारण (वैकल्पिक)",
+      "reasonPlaceholder": "अवकाश का कारण",
+      "cancelButton": "रद्द करें",
+      "submitButton": "अनुरोध सबमिट करें"
     }
   },
   "Subscription": {

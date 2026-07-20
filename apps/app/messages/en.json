@@ -574,6 +574,19 @@
       "lateArrivalHelper": "Allow patients to join queue after this grace period",
       "queueBufferLabel": "Queue Buffer (min)",
       "queueBufferHelper": "Extra time added between appointments"
+    },
+    "applyLeaveDialog": {
+      "onBehalfOfLabel": "On behalf of (optional)",
+      "staffMemberPlaceholder": "Staff member",
+      "myselfOption": "Myself",
+      "leaveTypeLabel": "Leave Type",
+      "leaveTypePlaceholder": "Leave type",
+      "startDateLabel": "Start Date",
+      "endDateLabel": "End Date",
+      "reasonLabel": "Reason (optional)",
+      "reasonPlaceholder": "Reason for leave",
+      "cancelButton": "Cancel",
+      "submitButton": "Submit Request"
     }
   },
   "Subscription": {
