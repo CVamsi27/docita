@@ -862,51 +862,14 @@
     }
   },
   "AiAssistant": {
-    "smartTasksTab": {
-      "comingSoonNotice": "स्मार्ट टास्क इंजन सक्रिय विकास में है। नीचे दिए गए क्विक एक्शन और ऑटोमेशन इतिहास नमूना डेटा हैं और अभी तक लाइव वर्कफ़्लो से जुड़े नहीं हैं।",
-      "engineTitle": "स्मार्ट टास्क इंजन",
-      "engineDescription": "AI-संचालित वर्कफ़्लो स्वचालन",
-      "taskTypeLabel": "टास्क प्रकार",
-      "taskTypePlaceholder": "टास्क प्रकार",
-      "taskFollowUps": "फ़ॉलो-अप शेड्यूल करें",
-      "taskRecalls": "रोगी रिकॉल",
-      "taskReminders": "कस्टम रिमाइंडर",
-      "taskReports": "रिपोर्ट बनाएँ",
-      "quickActionsTitle": "क्विक एक्शन",
-      "actionAutoFollowUps": "सभी लंबित फ़ॉलो-अप स्वतः शेड्यूल करें",
-      "actionSendReminders": "नो-शो जोखिम वालों को रिमाइंडर भेजें",
-      "actionGenerateReport": "साप्ताहिक सारांश रिपोर्ट बनाएँ",
-      "recentAutomationsTitle": "हालिया स्वचालन",
-      "automationReminders": "15 अपॉइंटमेंट रिमाइंडर भेजे गए",
-      "automationMonthlyReport": "मासिक एनालिटिक्स रिपोर्ट बनाई गई",
-      "automationFollowUps": "8 फ़ॉलो-अप अपॉइंटमेंट शेड्यूल किए गए",
-      "time2HoursAgo": "2 घंटे पहले",
-      "time1DayAgo": "1 दिन पहले"
-    },
-    "prescriptionAssistantTab": {
-      "title": "नुस्खा सहायक",
-      "description": "AI-संचालित दवा सुझाव और दवा परस्पर क्रिया जाँच प्राप्त करें",
-      "symptomsLabel": "लक्षण / मुख्य शिकायत",
-      "symptomsPlaceholder": "लक्षण या मुख्य शिकायत दर्ज करें",
-      "diagnosisLabel": "कार्यशील निदान",
-      "diagnosisPlaceholder": "कार्यशील निदान",
-      "currentMedicationsLabel": "वर्तमान दवाएँ (परस्पर क्रिया जाँच के लिए)",
-      "currentMedicationsPlaceholder": "वर्तमान दवाएँ दर्ज करें",
-      "allergiesLabel": "ज्ञात एलर्जी",
-      "allergiesPlaceholder": "ज्ञात एलर्जी",
-      "analyzingLabel": "विश्लेषण हो रहा है…",
-      "getSuggestionsButton": "सुझाव प्राप्त करें",
-      "emptyHelper": "AI-संचालित दवा सुझाव प्राप्त करने के लिए लक्षण और निदान दर्ज करें",
-      "interactionsTitle": "दवा परस्पर क्रिया का पता चला",
-      "interactionPair": "{drug1} ↔ {drug2}",
-      "suggestionsTitle": "सुझाई गई दवाएँ",
-      "addToPrescriptionButton": "नुस्खे में जोड़ें",
-      "dosageLabel": "खुराक:",
-      "routeLabel": "मार्ग:",
-      "frequencyLabel": "आवृत्ति:",
-      "durationLabel": "अवधि:",
-      "noteLabel": "नोट: {note}"
-    }
+    "title": "AI सहायक",
+    "description": "नुस्खे, निदान और वर्कफ़्लो स्वचालन के लिए AI-संचालित क्लिनिकल निर्णय समर्थन।",
+    "intelligenceBadge": "Docita Intelligence",
+    "prescriptionTab": "नुस्खा",
+    "diagnosisTab": "निदान",
+    "insightsTab": "अंतर्दृष्टि",
+    "smartTasksTab": "स्मार्ट कार्य",
+    "soonBadge": "जल्द"
   },
   "Analytics": {
     "advancedMetrics": {
@@ -1237,6 +1200,17 @@
       "legendSelected": "चयनित",
       "legendAvailable": "उपलब्ध",
       "legendUnavailable": "अनुपलब्ध"
+    },
+    "followUpForm": {
+      "typeLabel": "प्रकार",
+      "typePlaceholder": "फॉलो-अप प्रकार",
+      "timeLabel": "समय",
+      "timePlaceholder": "समय",
+      "sendReminderLabel": "रिमाइंडर भेजें",
+      "whenLabel": "कब",
+      "whatsappNotificationLabel": "WhatsApp सूचना",
+      "notesLabel": "नोट्स",
+      "notesPlaceholder": "फॉलो-अप नोट्स"
     }
   },
   "ClinicSettings": {

@@ -1,6 +1,7 @@
 "use client";
 
 import { formatDate } from "@workspace/utils";
+import { useTranslations } from "next-intl";
 // jscpd:ignore-start
 import {
   Dialog,
@@ -21,23 +22,32 @@ import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-pa
 
 type EnterpriseContractsRevisionsDialogProps = Pick<EnterpriseContractsPageState, 'revisionsOpen' | 'setRevisionsOpen' | 'revisions'>;
 
+/**
+ * Phase 3 (per-feature): apps/internal Enterprise Contracts > revisions dialog.
+ * 5 literals converted to useTranslations("EnterpriseContracts.revisionsDialog").
+ */
+function useEnterpriseContractsRevisionsDialogTranslations() {
+  return useTranslations("EnterpriseContracts.revisionsDialog");
+}
+
 export function EnterpriseContractsRevisionsDialog(props: EnterpriseContractsRevisionsDialogProps) {
+  const t = useEnterpriseContractsRevisionsDialogTranslations();
   const { revisionsOpen, setRevisionsOpen, revisions } = props;
   return (
     <Dialog open={revisionsOpen} onOpenChange={setRevisionsOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Revision history</DialogTitle>
+            <DialogTitle>{t("title")}</DialogTitle>
           </DialogHeader>
           {revisions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No revisions yet.</p>
+            <p className="text-sm text-muted-foreground">{t("emptyState")}</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Effective</TableHead>
-                  <TableHead>Summary</TableHead>
-                  <TableHead>By</TableHead>
+                  <TableHead>{t("effectiveHead")}</TableHead>
+                  <TableHead>{t("summaryHead")}</TableHead>
+                  <TableHead>{t("byHead")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

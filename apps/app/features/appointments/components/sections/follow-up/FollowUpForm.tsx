@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslations } from "next-intl";
 import { Label } from "@workspace/ui/components/form/label";
 import { Switch } from "@workspace/ui/components/form/switch";
 import {
@@ -33,6 +34,14 @@ interface FollowUpFormProps {
   reminderOptions: { value: number; label: string }[];
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Appointments > follow-up form.
+ * 5 literals converted to useTranslations("Appointments.followUpForm").
+ */
+function useFollowUpFormTranslations() {
+  return useTranslations("Appointments.followUpForm");
+}
+
 export function FollowUpForm({
   followUpType,
   onTypeChange,
@@ -49,14 +58,15 @@ export function FollowUpForm({
   followUpTypes,
   reminderOptions,
 }: FollowUpFormProps) {
+  const t = useFollowUpFormTranslations();
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-xs">Type</Label>
+          <Label className="text-xs">{t("typeLabel")}</Label>
           <Select value={followUpType} onValueChange={onTypeChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Follow-up type" />
+              <SelectValue placeholder={t("typePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {followUpTypes.map((type) => (
@@ -68,12 +78,12 @@ export function FollowUpForm({
           </Select>
         </div>
         <div className="space-y-2">
-          <Label className="text-xs">Time</Label>
+          <Label className="text-xs">{t("timeLabel")}</Label>
           <div className="relative">
             <Clock className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Select value={selectedTime} onValueChange={onTimeChange}>
               <SelectTrigger className="pl-8">
-                <SelectValue placeholder="Time" />
+                <SelectValue placeholder={t("timePlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {Array.from({ length: 24 }).map((_, i) => {
@@ -95,7 +105,7 @@ export function FollowUpForm({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Bell className="h-4 w-4 text-muted-foreground" />
-            <Label htmlFor="reminder-mode">Send reminder</Label>
+            <Label htmlFor="reminder-mode">{t("sendReminderLabel")}</Label>
           </div>
           <Switch
             id="reminder-mode"
@@ -108,7 +118,7 @@ export function FollowUpForm({
           <div className="pl-6 space-y-3">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs">When</Label>
+                <Label className="text-xs">{t("whenLabel")}</Label>
                 <Select
                   value={reminderDays.toString()}
                   onValueChange={(v) => onReminderDaysChange(parseInt(v))}
@@ -131,7 +141,7 @@ export function FollowUpForm({
               <div className="flex items-center space-x-2">
                 <MessageSquare className="h-4 w-4 text-success" />
                 <Label htmlFor="whatsapp-mode" className="text-xs">
-                  WhatsApp Notification
+                  {t("whatsappNotificationLabel")}
                 </Label>
               </div>
               <Switch
@@ -145,9 +155,9 @@ export function FollowUpForm({
       </div>
 
       <div className="space-y-2">
-        <Label>Notes</Label>
+        <Label>{t("notesLabel")}</Label>
         <Textarea
-          placeholder="Follow-up notes"
+          placeholder={t("notesPlaceholder")}
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
           className="h-20 resize-none"

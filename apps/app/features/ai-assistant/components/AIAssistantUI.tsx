@@ -1,4 +1,5 @@
 import React, { FC } from "react";
+import { useTranslations } from "next-intl";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
@@ -25,7 +26,16 @@ interface AIAssistantUIProps {
   handlers: AIAssistantHandlers;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app AI Assistant > main page UI.
+ * 5 literals converted to useTranslations("AiAssistant").
+ */
+function useAiAssistantTranslations() {
+  return useTranslations("AiAssistant");
+}
+
 export const AIAssistantUI: FC<AIAssistantUIProps> = ({ state, handlers }) => {
+  const t = useAiAssistantTranslations();
   return (
     <FeatureGuard feature={Feature.AI_PRESCRIPTION_ASSISTANT}>
       <AppPageScaffold
@@ -34,14 +44,14 @@ export const AIAssistantUI: FC<AIAssistantUIProps> = ({ state, handlers }) => {
             title={
               <span className="flex items-center gap-2">
                 <Sparkles className="h-7 w-7 text-primary" aria-hidden />
-                AI Assistant
+                {t("title")}
               </span>
             }
-            description="AI-powered clinical decision support for prescriptions, diagnoses, and workflow automation."
+            description={t("description")}
             actions={
               <Badge variant="secondary" className="tier-intelligence border">
                 <Sparkles className="h-3 w-3 mr-1" />
-                Docita Intelligence
+                {t("intelligenceBadge")}
               </Badge>
             }
           />
@@ -58,24 +68,24 @@ export const AIAssistantUI: FC<AIAssistantUIProps> = ({ state, handlers }) => {
               className="flex items-center gap-2"
             >
               <Pill className="h-4 w-4" />
-              <span className="hidden sm:inline">Prescription</span>
+              <span className="hidden sm:inline">{t("prescriptionTab")}</span>
             </TabsTrigger>
             <TabsTrigger value="diagnosis" className="flex items-center gap-2">
               <Brain className="h-4 w-4" />
-              <span className="hidden sm:inline">Diagnosis</span>
+              <span className="hidden sm:inline">{t("diagnosisTab")}</span>
             </TabsTrigger>
             <TabsTrigger value="insights" className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
-              <span className="hidden sm:inline">Insights</span>
+              <span className="hidden sm:inline">{t("insightsTab")}</span>
               <Badge variant="outline" className="ml-1 hidden sm:inline-flex">
-                Soon
+                {t("soonBadge")}
               </Badge>
             </TabsTrigger>
             <TabsTrigger value="tasks" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Smart tasks</span>
+              <span className="hidden sm:inline">{t("smartTasksTab")}</span>
               <Badge variant="outline" className="ml-1 hidden sm:inline-flex">
-                Soon
+                {t("soonBadge")}
               </Badge>
             </TabsTrigger>
           </TabsList>

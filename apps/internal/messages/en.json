@@ -647,5 +647,14 @@
       "colStatus": "Status",
       "recentEntriesFooter": "Showing {count} recent entries. Refreshes every 30 seconds."
     }
+  },
+  "EnterpriseContracts": {
+    "revisionsDialog": {
+      "title": "Revision history",
+      "emptyState": "No revisions yet.",
+      "effectiveHead": "Effective",
+      "summaryHead": "Summary",
+      "byHead": "By"
+    }
   }
 }
