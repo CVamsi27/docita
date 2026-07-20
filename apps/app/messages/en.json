@@ -707,6 +707,15 @@
       "glucoseLabel": "Glucose",
       "glucosePlaceholder": "Glucose"
     },
+    "labValues": {
+      "sectionTitle": "Lab values",
+      "glucoseLabel": "Glucose (mg/dL)",
+      "glucosePlaceholder": "Glucose",
+      "hemoglobinLabel": "Hemoglobin (g/dL)",
+      "hemoglobinPlaceholder": "Hemoglobin",
+      "creatinineLabel": "Creatinine (mg/dL)",
+      "creatininePlaceholder": "Creatinine"
+    },
     "uploadSection": {
       "stepTitle": "1. Upload Document",
       "stepDescription": "Take a photo or upload an image",
