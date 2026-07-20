@@ -566,6 +566,14 @@
       "statusDetailsLabel": "Status details: {note}",
       "completeVerificationButton": "Complete Doctor Verification",
       "reverifyButton": "Reverify Registration"
+    },
+    "queueHoursFields": {
+      "avgConsultationLabel": "Avg. Consultation (min)",
+      "avgConsultationHelper": "Used to estimate wait times",
+      "lateArrivalLabel": "Late Arrival Grace (min)",
+      "lateArrivalHelper": "Allow patients to join queue after this grace period",
+      "queueBufferLabel": "Queue Buffer (min)",
+      "queueBufferHelper": "Extra time added between appointments"
     }
   },
   "Subscription": {
