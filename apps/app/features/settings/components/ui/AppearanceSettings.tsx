@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -19,7 +20,16 @@ import { useAppearanceStore } from "@/lib/stores/appearance-store";
 import { toast } from "sonner";
 import { cn } from "@workspace/ui/lib/utils";
 
+/**
+ * Phase 3 (per-feature): apps/app Settings > appearance.
+ * 5 literals converted to useTranslations("Settings.Appearance").
+ */
+function useAppearanceSettingsTranslations() {
+  return useTranslations("Settings.Appearance");
+}
+
 export function AppearanceSettings() {
+  const t = useAppearanceSettingsTranslations();
   const { resolvedTheme } = useTheme();
   const {
     theme,
@@ -31,35 +41,35 @@ export function AppearanceSettings() {
   } = useAppearanceStore();
 
   const handleSave = () => {
-    toast.success("Appearance preferences saved");
+    toast.success(t("savedToast"));
   };
 
   const systemHint =
     theme === "system" && resolvedTheme
-      ? `Active appearance: ${resolvedTheme}`
+      ? t("systemHint", { theme: resolvedTheme })
       : null;
 
   return (
     <Card>
       <CardHeader className="border-b border-border/60 pb-5">
-        <CardTitle>Appearance</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <CardDescription>
-          Theme, accent, and density for this account.
+          {t("description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6 pt-5">
         <div className="space-y-3">
-          <Label>Theme</Label>
+          <Label>{t("themeLabel")}</Label>
           <div className="flex flex-wrap gap-2">
-            {(["light", "dark", "system"] as const).map((t) => (
+            {(["light", "dark", "system"] as const).map((opt) => (
               <Button
-                key={t}
-                variant={theme === t ? "default" : "outline"}
+                key={opt}
+                variant={theme === opt ? "default" : "outline"}
                 size="sm"
-                onClick={() => setTheme(t)}
+                onClick={() => setTheme(opt)}
                 className="capitalize"
               >
-                {t}
+                {opt}
               </Button>
             ))}
           </div>
@@ -68,9 +78,9 @@ export function AppearanceSettings() {
           ) : null}
         </div>
         <div className="space-y-3">
-          <Label>Accent color</Label>
+          <Label>{t("accentColorLabel")}</Label>
           <ToggleGroup
-            aria-label="Accent color"
+            aria-label={t("accentColorLabel")}
             type="single"
             value={primaryColor || "blue"}
             onValueChange={(value) => {
@@ -99,7 +109,7 @@ export function AppearanceSettings() {
               <ToggleGroupItem
                 key={color.value}
                 value={color.value}
-                aria-label={`Select ${color.value} accent color`}
+                aria-label={t("accentAria", { color: color.value })}
                 className={cn(
                   "h-10 w-10 rounded-full border-border/70 bg-background/70 p-0 shadow-sm",
                   "hover:bg-background/80 focus-visible:ring-[3px] focus-visible:ring-ring/30",
@@ -117,9 +127,9 @@ export function AppearanceSettings() {
         </div>
         <div className="flex items-center justify-between gap-4 rounded-[calc(var(--radius)-4px)] border border-border/60 bg-muted/20 px-4 py-3">
           <div>
-            <Label htmlFor="compact-mode">Compact mode</Label>
+            <Label htmlFor="compact-mode">{t("compactModeLabel")}</Label>
             <p className="text-sm text-muted-foreground">
-              Reduce spacing for more content.
+              {t("compactModeDescription")}
             </p>
           </div>
           <Switch
@@ -130,23 +140,23 @@ export function AppearanceSettings() {
         </div>
 
         <div className="flex flex-col gap-3 rounded-[calc(var(--radius)-4px)] border border-border/60 bg-card p-4">
-          <span className="ui-eyebrow">Live preview</span>
+          <span className="ui-eyebrow">{t("livePreviewLabel")}</span>
           <div className="flex flex-wrap items-center gap-2">
             <Button size="sm" type="button">
-              Primary
+              {t("previewPrimaryButton")}
             </Button>
             <Button size="sm" variant="outline" type="button">
-              Outline
+              {t("previewOutlineButton")}
             </Button>
             <span className="text-xs text-muted-foreground">
-              Uses current theme, accent, and density.
+              {t("livePreviewHint")}
             </span>
           </div>
         </div>
 
         <div className="flex justify-end border-t border-border/60 pt-4">
           <Button type="button" onClick={handleSave}>
-            Save appearance
+            {t("saveButton")}
           </Button>
         </div>
       </CardContent>

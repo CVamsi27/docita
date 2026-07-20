@@ -1,10 +1,37 @@
 import { render, screen } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { describe, expect, it } from "vitest";
 import { AbdmSettingsPanel } from "./AbdmSettingsPanel";
 
+const messages = {
+  Settings: {
+    Abdm: {
+      title: "ABDM Integration",
+      description:
+        "ABHA verification, M2 linking, M3 consent, and DHIS reporting are coming soon. Gateway certification is in progress.",
+      capabilitiesIntro: "The ABDM settings panel will include:",
+      capabilities: {
+        facilityToggle: "Facility ABDM enable/disable toggle",
+        readinessChecklist: "M1/M2/M3 readiness checklist",
+        abhaVerification: "ABHA verification status per patient",
+        recordsInbox: "External health records inbox",
+        dhisEstimates: "DHIS incentive estimates",
+      },
+    },
+  },
+};
+
+function renderWithIntl(node: React.ReactNode) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      {node}
+    </NextIntlClientProvider>,
+  );
+}
+
 describe("AbdmSettingsPanel", () => {
   it("renders coming soon placeholder", () => {
-    render(<AbdmSettingsPanel />);
+    renderWithIntl(<AbdmSettingsPanel />);
 
     expect(screen.getByText("ABDM Integration")).toBeInTheDocument();
     expect(screen.getByText("Coming soon")).toBeInTheDocument();
@@ -14,7 +41,7 @@ describe("AbdmSettingsPanel", () => {
   });
 
   it("lists planned ABDM capabilities", () => {
-    render(<AbdmSettingsPanel />);
+    renderWithIntl(<AbdmSettingsPanel />);
 
     expect(
       screen.getByText("Facility ABDM enable/disable toggle"),

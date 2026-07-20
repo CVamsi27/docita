@@ -662,6 +662,34 @@
       "reasonPlaceholder": "अवकाश का कारण",
       "cancelButton": "रद्द करें",
       "submitButton": "अनुरोध सबमिट करें"
+    },
+    "Abdm": {
+      "title": "ABDM एकीकरण",
+      "description": "ABHA सत्यापन, M2 लिंकिंग, M3 सहमति, और DHIS रिपोर्टिंग जल्द आ रही है। गेटवे प्रमाणन प्रगति में है।",
+      "capabilitiesIntro": "ABDM सेटिंग्स पैनल में शामिल होगा:",
+      "capabilities": {
+        "facilityToggle": "सुविधा ABDM सक्षम/अक्षम टॉगल",
+        "readinessChecklist": "M1/M2/M3 तत्परता चेकलिस्ट",
+        "abhaVerification": "प्रति रोगी ABHA सत्यापन स्थिति",
+        "recordsInbox": "बाहरी स्वास्थ्य रिकॉर्ड इनबॉक्स",
+        "dhisEstimates": "DHIS प्रोत्साहन अनुमान"
+      }
+    },
+    "Appearance": {
+      "savedToast": "दिखावट प्राथमिकताएँ सहेजी गईं",
+      "systemHint": "सक्रिय दिखावट: {theme}",
+      "title": "दिखावट",
+      "description": "इस खाते के लिए थीम, रंग, और घनत्व।",
+      "themeLabel": "थीम",
+      "accentColorLabel": "एक्सेंट रंग",
+      "accentAria": "{color} एक्सेंट रंग चुनें",
+      "compactModeLabel": "कॉम्पैक्ट मोड",
+      "compactModeDescription": "अधिक सामग्री के लिए स्पेसिंग कम करें।",
+      "livePreviewLabel": "लाइव पूर्वावलोकन",
+      "previewPrimaryButton": "प्राथमिक",
+      "previewOutlineButton": "रूपरेखा",
+      "livePreviewHint": "वर्तमान थीम, रंग और घनत्व का उपयोग करता है।",
+      "saveButton": "दिखावट सहेजें"
     }
   },
   "Subscription": {
@@ -760,6 +788,20 @@
         "overdue": "अतिदेय",
         "partiallyPaid": "आंशिक भुगतान"
       }
+    },
+    "table": {
+      "notAvailable": "उपलब्ध नहीं",
+      "viewDetailsTooltip": "विवरण देखें",
+      "downloadPdfTooltip": "PDF डाउनलोड करें",
+      "printTooltip": "प्रिंट करें",
+      "invoiceNumberHeader": "चालान #",
+      "patientHeader": "रोगी",
+      "dateHeader": "दिनांक",
+      "amountHeader": "राशि",
+      "statusHeader": "भुगतान स्थिति",
+      "actionsHeader": "क्रियाएँ",
+      "emptyTitle": "कोई चालान नहीं मिला",
+      "emptyDescription": "आपके द्वारा बनाए गए चालान यहाँ दिखाई देंगे।"
     }
   },
   "Ocr": {

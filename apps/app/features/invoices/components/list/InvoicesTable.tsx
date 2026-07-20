@@ -1,7 +1,9 @@
 import { DataTable } from "@workspace/ui/components/data-display/data-table";
+import { useTranslations } from "next-intl";
 import {
   getInvoiceColumns,
   MobileCard,
+  useInvoiceColumnLabels,
 } from "./InvoicesTableSections";
 import type { InvoiceListRow } from "@workspace/types";
 import type { SortConfig, SortKey } from "@/features/invoices/hooks/use-invoices-logic";
@@ -15,6 +17,10 @@ export interface InvoicesTableProps {
   onDownloadPdf: (id: string) => void;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Invoices > list table.
+ * 5 literals converted to useTranslations("Invoices.table").
+ */
 export function InvoicesTable({
   invoices,
   loading,
@@ -23,7 +29,9 @@ export function InvoicesTable({
   onSort,
   onDownloadPdf,
 }: InvoicesTableProps) {
-  const columns = getInvoiceColumns({ formatCurrency, onDownloadPdf, sortConfig, onSort });
+  const t = useTranslations("Invoices.table");
+  const labels = useInvoiceColumnLabels();
+  const columns = getInvoiceColumns({ formatCurrency, onDownloadPdf, sortConfig, onSort, labels });
 
   return (
     <DataTable<InvoiceListRow>
@@ -33,8 +41,8 @@ export function InvoicesTable({
         invoice.id ?? `invoice-${invoice.createdAt ?? index}`
       }
       isLoading={loading}
-      emptyTitle="No invoices found"
-      emptyDescription="Invoices you create will appear here."
+      emptyTitle={t("emptyTitle")}
+      emptyDescription={t("emptyDescription")}
       stackOnMobile
       mobileRenderer={(invoice) => (
         <MobileCard
