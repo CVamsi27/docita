@@ -662,6 +662,34 @@
       "reasonPlaceholder": "Reason for leave",
       "cancelButton": "Cancel",
       "submitButton": "Submit Request"
+    },
+    "Abdm": {
+      "title": "ABDM Integration",
+      "description": "ABHA verification, M2 linking, M3 consent, and DHIS reporting are coming soon. Gateway certification is in progress.",
+      "capabilitiesIntro": "The ABDM settings panel will include:",
+      "capabilities": {
+        "facilityToggle": "Facility ABDM enable/disable toggle",
+        "readinessChecklist": "M1/M2/M3 readiness checklist",
+        "abhaVerification": "ABHA verification status per patient",
+        "recordsInbox": "External health records inbox",
+        "dhisEstimates": "DHIS incentive estimates"
+      }
+    },
+    "Appearance": {
+      "savedToast": "Appearance preferences saved",
+      "systemHint": "Active appearance: {theme}",
+      "title": "Appearance",
+      "description": "Theme, accent, and density for this account.",
+      "themeLabel": "Theme",
+      "accentColorLabel": "Accent color",
+      "accentAria": "Select {color} accent color",
+      "compactModeLabel": "Compact mode",
+      "compactModeDescription": "Reduce spacing for more content.",
+      "livePreviewLabel": "Live preview",
+      "previewPrimaryButton": "Primary",
+      "previewOutlineButton": "Outline",
+      "livePreviewHint": "Uses current theme, accent, and density.",
+      "saveButton": "Save appearance"
     }
   },
   "Subscription": {
@@ -760,6 +788,20 @@
         "overdue": "Overdue",
         "partiallyPaid": "Partially Paid"
       }
+    },
+    "table": {
+      "notAvailable": "N/A",
+      "viewDetailsTooltip": "View details",
+      "downloadPdfTooltip": "Download PDF",
+      "printTooltip": "Print",
+      "invoiceNumberHeader": "Invoice #",
+      "patientHeader": "Patient",
+      "dateHeader": "Date",
+      "amountHeader": "Amount",
+      "statusHeader": "Payment status",
+      "actionsHeader": "Actions",
+      "emptyTitle": "No invoices found",
+      "emptyDescription": "Invoices you create will appear here."
     }
   },
   "Ocr": {
