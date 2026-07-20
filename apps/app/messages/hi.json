@@ -183,6 +183,19 @@
       "cancelButton": "रद्द करें",
       "submittingLabel": "सबमिट हो रहा है…",
       "submitButton": "अनुरोध सबमिट करें"
+    },
+    "joinRequestPending": {
+      "title": "अनुरोध समीक्षाधीन",
+      "subtitlePrefix": "आपने शामिल होने का अनुरोध किया",
+      "subtitleMid": "इस भूमिका के साथ",
+      "submittedLabel": "सबमिट किया गया",
+      "expiresLabel": "समाप्ति",
+      "messageLabel": "आपका संदेश",
+      "nextStepsTitle": "आगे क्या होगा?",
+      "nextStepsBody1": "सुविधा व्यवस्थापक आपके अनुरोध की समीक्षा करेगा और 7 दिनों के भीतर जवाब देगा",
+      "nextStepsBody2": "आपके अनुरोध की समीक्षा होने पर आपको WhatsApp और ईमेल के माध्यम से सूचनाएँ प्राप्त होंगी",
+      "withdrawingLabel": "वापस लिया जा रहा है…",
+      "withdrawButton": "अनुरोध वापस लें"
     }
   },
   "Consultation": {

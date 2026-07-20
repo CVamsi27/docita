@@ -183,6 +183,19 @@
       "cancelButton": "Cancel",
       "submittingLabel": "Submitting…",
       "submitButton": "Submit Request"
+    },
+    "joinRequestPending": {
+      "title": "Request Under Review",
+      "subtitlePrefix": "You requested to join",
+      "subtitleMid": "with role",
+      "submittedLabel": "Submitted",
+      "expiresLabel": "Expires",
+      "messageLabel": "Your Message",
+      "nextStepsTitle": "What happens next?",
+      "nextStepsBody1": "The facility administrator will review your request and respond within 7 days",
+      "nextStepsBody2": "You will receive notifications via WhatsApp and email when your request is reviewed",
+      "withdrawingLabel": "Withdrawing…",
+      "withdrawButton": "Withdraw Request"
     }
   },
   "Consultation": {
