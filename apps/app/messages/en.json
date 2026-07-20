@@ -165,6 +165,28 @@
       "deletionConfirmRequired": "Please confirm that you want to delete your account before submitting",
       "deletionRequestedToast": "Account deletion requested. Your account will be deleted within 30 days.",
       "deletionRequestError": "We could not submit this deletion request. Please try again."
+    },
+    "metricsCards": {
+      "overviewMicroLabel": "Portal overview",
+      "atAGlanceTitle": "At a glance",
+      "consentTitle": "Consent & privacy",
+      "consentHelper": "Review consent and messaging preferences any time.",
+      "whatsAppLabel": "WhatsApp:",
+      "dataStorageLabel": "Data storage:",
+      "grantedValue": "Granted",
+      "notGrantedValue": "Not granted",
+      "consentFormButton": "Consent form",
+      "privacySettingsButton": "Privacy settings",
+      "consentLine": "Consent · {status}",
+      "nextVisitLine": "Next visit · {time}{doctor}",
+      "nextVisitCount": "Next visit · {count} scheduled",
+      "nextVisitNone": "Next visit · None scheduled",
+      "prescriptionWithMed": "Prescription · {med}",
+      "prescriptionCount": "Prescriptions · {count} active",
+      "prescriptionNone": "Prescriptions · None on file",
+      "receiptLine": "Receipt · {amount}{status}",
+      "billsCount": "Bills · {count} open",
+      "billsNone": "Bills · Nothing outstanding"
     }
   },
   "Onboarding": {

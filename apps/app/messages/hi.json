@@ -165,6 +165,28 @@
       "deletionConfirmRequired": "सबमिट करने से पहले पुष्टि करें कि आप अपना खाता हटाना चाहते हैं",
       "deletionRequestedToast": "खाता हटाने का अनुरोध किया गया। आपका खाता 30 दिनों के भीतर हटा दिया जाएगा।",
       "deletionRequestError": "हम यह हटाने का अनुरोध सबमिट नहीं कर सके। कृपया पुनः प्रयास करें।"
+    },
+    "metricsCards": {
+      "overviewMicroLabel": "पोर्टल अवलोकन",
+      "atAGlanceTitle": "एक नज़र में",
+      "consentTitle": "सहमति और गोपनीयता",
+      "consentHelper": "कभी भी सहमति और मैसेजिंग वरीयताओं की समीक्षा करें।",
+      "whatsAppLabel": "WhatsApp:",
+      "dataStorageLabel": "डेटा भंडारण:",
+      "grantedValue": "प्रदत्त",
+      "notGrantedValue": "अप्रदत्त",
+      "consentFormButton": "सहमति फ़ॉर्म",
+      "privacySettingsButton": "गोपनीयता सेटिंग्स",
+      "consentLine": "सहमति · {status}",
+      "nextVisitLine": "अगली यात्रा · {time}{doctor}",
+      "nextVisitCount": "अगली यात्रा · {count} निर्धारित",
+      "nextVisitNone": "अगली यात्रा · कोई निर्धारित नहीं",
+      "prescriptionWithMed": "नुस्खा · {med}",
+      "prescriptionCount": "नुस्खे · {count} सक्रिय",
+      "prescriptionNone": "नुस्खे · कोई फ़ाइल पर नहीं",
+      "receiptLine": "रसीद · {amount}{status}",
+      "billsCount": "बिल · {count} खुले",
+      "billsNone": "बिल · कोई बकाया नहीं"
     }
   },
   "Onboarding": {
