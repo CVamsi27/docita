@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AddMetricDefinitionModal } from "./add-metric-definition-modal";
 
@@ -15,13 +16,43 @@ vi.mock("@workspace/data-access", () => ({
 
 const categories = [{ id: "cat_vitals", name: "Vitals" }];
 
+const messages = {
+  PatientPortal: {
+    addMetricDefinition: {
+      errorNameRequired: "Enter a metric name",
+      errorCategoryRequired: "Choose a category",
+      errorSaveFailed: "We could not create this metric. Please try again.",
+      title: "Add Custom Metric",
+      description: "Define a patient portal metric that can be tracked over time.",
+      nameLabel: "Metric name",
+      namePlaceholder: "Metric name",
+      categoryLabel: "Category",
+      categoryPlaceholder: "Category",
+      valueTypeLabel: "Value type",
+      unitLabel: "Unit (optional)",
+      unitPlaceholder: "Unit",
+      cancelButton: "Cancel",
+      creatingButton: "Creating…",
+      createButton: "Create Metric",
+    },
+  },
+};
+
+function renderWithIntl(node: React.ReactNode) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      {node}
+    </NextIntlClientProvider>,
+  );
+}
+
 describe("AddMetricDefinitionModal", () => {
   beforeEach(() => {
     portalMetricMocks.mutateAsync.mockReset();
   });
 
   it("requires a metric name and category before creating", async () => {
-    render(
+    renderWithIntl(
       <AddMetricDefinitionModal
         open
         categories={categories}
@@ -46,7 +77,7 @@ describe("AddMetricDefinitionModal", () => {
     const onClose = vi.fn();
     const onSuccess = vi.fn();
 
-    render(
+    renderWithIntl(
       <AddMetricDefinitionModal
         open
         categories={categories}

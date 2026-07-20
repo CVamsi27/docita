@@ -1,8 +1,39 @@
 import { fireEvent, screen } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { render } from "@/test-utils/render-with-tooltip";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ResetPasswordPage from "./page";
+
+const messages = {
+  Auth: {
+    resetPassword: {
+      linkExpiredTitle: "Reset Link Expired",
+      linkExpiredBody:
+        "This reset link is invalid or has expired. Please request a new one.",
+      requestResetButton: "Request Password Reset",
+      successTitle: "Password reset successful",
+      successBody: "You can now sign in with your new password.",
+      signInButton: "Sign in",
+      submittingButton: "Resetting...",
+      submitButton: "Reset Password",
+      newPasswordLabel: "New password",
+      confirmPasswordLabel: "Confirm new password",
+      backToSignInButton: "Back to sign in",
+      setNewPasswordTitle: "Set New Password",
+      setNewPasswordSubtitle: "Choose a new password below",
+      loadingFallback: "Loading password reset...",
+    },
+  },
+};
+
+function renderWithIntl(node: ReactNode) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      {node}
+    </NextIntlClientProvider>,
+  );
+}
 
 const mocks = vi.hoisted(() => ({
   searchParams: {
@@ -54,7 +85,7 @@ describe("ResetPasswordPage", () => {
   });
 
   it("shows required messages for blank password fields", async () => {
-    render(<ResetPasswordPage />);
+    renderWithIntl(<ResetPasswordPage />);
 
     fireEvent.click(screen.getByRole("button", { name: "Reset Password" }));
 
