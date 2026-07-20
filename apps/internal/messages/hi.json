@@ -656,5 +656,31 @@
       "summaryHead": "सारांश",
       "byHead": "द्वारा"
     }
+  },
+  "SystemMonitoring": {
+    "OpsTab": {
+      "title": "ऑपरेशंस लिंक",
+      "description": "केवल गैर-गुप्त URL। {envVar} पर्यावरण चर के माध्यम से कॉन्फ़िगर करें।",
+      "prometheusLabel": "API Prometheus स्क्रैप",
+      "prometheusDescription": "Nest API {path} पर API मूल पर असंस्करण मेट्रिक्स उजागर करता है (उत्पादन में एज पर सुरक्षित करें)।",
+      "openMetricsLink": "मेट्रिक्स एंडपॉइंट खोलें",
+      "setApiUrlHint": "मेट्रिक्स URL प्राप्त करने के लिए {envVar} सेट करें।",
+      "notConfiguredHint": "इस डिप्लॉयमेंट के लिए कॉन्फ़िगर नहीं किया गया।",
+      "links": {
+        "prometheus": "Prometheus",
+        "grafana": "Grafana",
+        "flyDashboard": "Fly.io डैशबोर्ड",
+        "sentry": "Sentry (संगठन या प्रोजेक्ट)"
+      }
+    },
+    "TenantScopeCoverage": {
+      "coverageTitle": "कवरेज स्थिति",
+      "coverageSubtitle": "जेनरेट किए गए डेटामॉडल से खुले टेनेंट-स्कोप निष्कर्ष",
+      "uncoveredLabel": "अनकवर्ड",
+      "staleRulesLabel": "पुराने नियम",
+      "excludedLabel": "बहिष्कृत",
+      "exceptionsTitle": "अपवाद",
+      "exceptionsSubtitle": "ClinicId मॉडल जानबूझकर ऑटो-स्कोपिंग से बाहर"
+    }
   }
 }
