@@ -260,7 +260,7 @@
       "checkEmailTitle": "Check your email",
       "checkEmailSubtitle": "We sent a verification link to",
       "checkEmailHint": "Use the verification link in the email before continuing with your clinic setup.",
-      "deliveryFailedTitle": "We created your account, but the verification email could not be sent.",
+      "deliveryFailedTitle": "We created your account, but the verification email could not be confirmed as sent.",
       "deliveryFailedBody": "Try sending it again now. If it still does not arrive, contact support so we can help you complete setup.",
       "deliveryPendingBody": "Check your inbox and spam folder for a message from Docita.",
       "deliveryPendingHint": "The link stays active for 24 hours and you can request a fresh one anytime.",

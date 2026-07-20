@@ -1,6 +1,48 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import VerifyEmailSentPage from "./page";
+
+const messages = {
+  Onboarding: {
+    verifyEmailSent: {
+      verifiedTitle: "Email verified",
+      verifiedSubtitle: "You can continue setup when you are ready.",
+      continueButton: "Continue",
+      backToLoginButton: "Back to login",
+      checkEmailTitle: "Check your email",
+      checkEmailSubtitle: "We sent a verification link to",
+      checkEmailHint:
+        "Use the verification link in the email before continuing with your clinic setup.",
+      deliveryFailedTitle:
+        "We created your account, but the verification email could not be confirmed as sent.",
+      deliveryFailedBody:
+        "Try sending it again now. If it still does not arrive, contact support so we can help you complete setup.",
+      deliveryPendingBody: "Check your inbox and spam folder for a message from Docita.",
+      deliveryPendingHint:
+        "The link stays active for 24 hours and you can request a fresh one anytime.",
+      sendingButton: "Sending…",
+      resendCooldownButton: "Verification email sent",
+      resendAfterFailureButton: "Send verification email again",
+      resendButton: "Resend verification email",
+      cooldownRemainingLabel: "You can resend again in {time}.",
+      wrongEmailLabel: "Wrong email?",
+      signOutAndRetryButton: "Sign out and try again",
+    },
+  },
+  Common: {
+    cancel: "Cancel",
+    save: "Save",
+  },
+};
+
+function renderWithIntl(node: React.ReactNode) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      {node}
+    </NextIntlClientProvider>,
+  );
+}
 
 const VERIFICATION_EMAIL_COOLDOWN_MS = 120 * 1000;
 
@@ -85,7 +127,7 @@ describe("VerifyEmailSentPage", () => {
     vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
     mocks.apiFetch.mockResolvedValue({ message: "Verification email sent" });
 
-    render(<VerifyEmailSentPage />);
+    renderWithIntl(<VerifyEmailSentPage />);
 
     await act(async () => {
       fireEvent.click(
@@ -117,7 +159,7 @@ describe("VerifyEmailSentPage", () => {
   it("shows the failed-delivery state from session storage", async () => {
     sessionStorage.setItem("docita_verification_email_status", "failed");
 
-    render(<VerifyEmailSentPage />);
+    renderWithIntl(<VerifyEmailSentPage />);
 
     expect(
       await screen.findByText(
@@ -132,7 +174,7 @@ describe("VerifyEmailSentPage", () => {
   it("resends the verification email and stores a pending status on success", async () => {
     mocks.apiFetch.mockResolvedValue({ message: "Verification email sent" });
 
-    render(<VerifyEmailSentPage />);
+    renderWithIntl(<VerifyEmailSentPage />);
 
     fireEvent.click(
       screen.getByRole("button", { name: /resend verification email/i }),
@@ -159,7 +201,7 @@ describe("VerifyEmailSentPage", () => {
   it("stores a failed status and shows an error toast when resend fails", async () => {
     mocks.apiFetch.mockRejectedValue(new Error("provider unavailable"));
 
-    render(<VerifyEmailSentPage />);
+    renderWithIntl(<VerifyEmailSentPage />);
 
     fireEvent.click(
       screen.getByRole("button", { name: /resend verification email/i }),
@@ -185,7 +227,7 @@ describe("VerifyEmailSentPage", () => {
       onboardingStep: "CHOOSE_PATH",
     };
 
-    render(<VerifyEmailSentPage />);
+    renderWithIntl(<VerifyEmailSentPage />);
 
     expect(
       await screen.findByRole("heading", { name: /email verified/i }),
