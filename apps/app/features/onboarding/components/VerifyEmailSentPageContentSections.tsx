@@ -1,9 +1,18 @@
 "use client";
 
 import { AlertTriangle, CheckCircle2, Mail, RefreshCw } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@workspace/ui/components/form/button";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { BackButton } from "@/components/navigation/back-button";
+
+/**
+ * Phase 3 (per-feature): apps/app Onboarding > verify email sent sections.
+ * 5 literals converted to useTranslations("Onboarding.verifyEmailSent").
+ */
+function useVerifyEmailSentTranslations() {
+  return useTranslations("Onboarding.verifyEmailSent");
+}
 
 function formatCooldown(remainingMs: number): string {
   const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
@@ -18,6 +27,7 @@ export function EmailVerifiedContent({
 }: {
   onContinue: () => void;
 }) {
+  const t = useVerifyEmailSentTranslations();
   return (
     <>
       <div className="relative mx-auto w-fit">
@@ -31,19 +41,19 @@ export function EmailVerifiedContent({
       </div>
 
       <div className="text-center ui-copy-stack">
-        <h1 className="ui-page-title">Email verified</h1>
+        <h1 className="ui-page-title">{t("verifiedTitle")}</h1>
         <p className="ui-page-subtitle">
-          You can continue setup when you are ready.
+          {t("verifiedSubtitle")}
         </p>
       </div>
 
       <div className="space-y-3">
         <Button className="w-full h-11" onClick={onContinue}>
-          Continue
+          {t("continueButton")}
         </Button>
         <BackButton
           fallback="/login"
-          label="Back to login"
+          label={t("backToLoginButton")}
           variant="ghost"
           size="default"
           className="w-full h-11"
@@ -68,16 +78,16 @@ export function CheckEmailHero({ email: _email }: { email: string }) {
 }
 
 export function CheckEmailMessage({ email }: { email: string }) {
+  const t = useVerifyEmailSentTranslations();
   return (
     <div className="space-y-2 text-center">
-      <h1 className="ui-page-title">Check your email</h1>
-      <p className="ui-page-subtitle">We sent a verification link to</p>
+      <h1 className="ui-page-title">{t("checkEmailTitle")}</h1>
+      <p className="ui-page-subtitle">{t("checkEmailSubtitle")}</p>
       <p className="inline-flex rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-sm font-medium text-foreground">
         {email}
       </p>
       <p className="ui-page-subtitle pt-1">
-        Use the verification link in the email before continuing with your
-        clinic setup.
+        {t("checkEmailHint")}
       </p>
     </div>
   );
@@ -88,6 +98,7 @@ export function DeliveryStatusBanner({
 }: {
   deliveryStatus: "pending" | "failed";
 }) {
+  const t = useVerifyEmailSentTranslations();
   if (deliveryStatus === "failed") {
     return (
       <div className="surface-danger rounded-lg p-4">
@@ -95,12 +106,10 @@ export function DeliveryStatusBanner({
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
           <div className="space-y-1">
             <p className="font-medium text-foreground">
-              We created your account, but the verification email could not be
-              confirmed a{"s "}sent.
+              {t("deliveryFailedTitle")}
             </p>
             <p className="ui-helper-text">
-              Try sending it again now. If it still does not arrive, contact
-              support so we can help you complete setup.
+              {t("deliveryFailedBody")}
             </p>
           </div>
         </div>
@@ -113,11 +122,8 @@ export function DeliveryStatusBanner({
       <div className="flex items-start gap-3">
         <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
         <div className="space-y-1 ui-helper-text">
-          <p>Check your inbox and spam folder for a message from Docita.</p>
-          <p>
-            The link stays active for 24 hours and you can request a fresh one
-            anytime.
-          </p>
+          <p>{t("deliveryPendingBody")}</p>
+          <p>{t("deliveryPendingHint")}</p>
         </div>
       </div>
     </div>
@@ -137,6 +143,7 @@ export function ResendButtonSection({
   deliveryStatus: "pending" | "failed";
   onResend: () => void;
 }) {
+  const t = useVerifyEmailSentTranslations();
   return (
     <div className="space-y-3">
       <Button
@@ -152,22 +159,22 @@ export function ResendButtonSection({
               decorative
               className="mr-2"
             />
-            Sending…
+            {t("sendingButton")}
           </>
         ) : (
           <>
             <RefreshCw className="mr-2 h-4 w-4" />
             {isResendCoolingDown
-              ? "Verification email sent"
+              ? t("resendCooldownButton")
               : deliveryStatus === "failed"
-                ? "Send verification email again"
-                : "Resend verification email"}
+                ? t("resendAfterFailureButton")
+                : t("resendButton")}
           </>
         )}
       </Button>
       {isResendCoolingDown && (
         <p className="text-center ui-helper-text">
-          You can resend again in {formatCooldown(resendCooldownRemainingMs)}.
+          {t("cooldownRemainingLabel", { time: formatCooldown(resendCooldownRemainingMs) })}
         </p>
       )}
     </div>
@@ -175,9 +182,10 @@ export function ResendButtonSection({
 }
 
 export function WrongEmailFooter({ onSignOut }: { onSignOut: () => void }) {
+  const t = useVerifyEmailSentTranslations();
   return (
     <p className="text-center ui-helper-text">
-      Wrong email?
+      {t("wrongEmailLabel")}
       <Button
         type="button"
         variant="link"
@@ -185,7 +193,7 @@ export function WrongEmailFooter({ onSignOut }: { onSignOut: () => void }) {
         onClick={onSignOut}
         className="ml-1 h-auto px-0 text-xs text-muted-foreground hover:text-foreground"
       >
-        Sign out and try again
+        {t("signOutAndRetryButton")}
       </Button>
     </p>
   );
