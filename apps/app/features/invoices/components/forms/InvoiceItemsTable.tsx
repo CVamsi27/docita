@@ -9,8 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/data-display/table";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Input } from "@workspace/ui/components/form/input";
 import {
   Select,
@@ -19,8 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
-import { Trash2 } from "lucide-react";
 import { InvoiceItemCard, type InvoiceItem } from "./InvoiceItemsTableSections";
+import { InvoiceItemRemoveButton } from "./invoice-item-remove-button";
 
 interface InvoiceItemsTableProps {
   items: InvoiceItem[];
@@ -167,19 +165,10 @@ export function InvoiceItemsTable({
                   {formatCurrency(item.total)}
                 </TableCell>
                 <TableCell>
-                  <SymbolTooltip
-                    label={t("removeLineItemTooltip", { name: item.description || "" })}
-                  >
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label={t("removeLineItemTooltip", { name: item.description || "" })}
-                      className="text-destructive hover:text-destructive/90"
-                      onClick={() => onRemoveItem(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </SymbolTooltip>
+                  <InvoiceItemRemoveButton
+                    description={item.description}
+                    onClick={() => onRemoveItem(index)}
+                  />
                 </TableCell>
               </TableRow>
             ))}

@@ -106,3 +106,65 @@ export function TeamMemberLabField<TFormValues extends FieldValues>({
   );
 }
 // jscpd:ignore-end
+
+type DoctorRegistrationField = "specialization" | "qualification" | "registrationNumber";
+
+interface DoctorRegistrationFieldsProps<TFormValues extends FieldValues> {
+  form: UseFormReturn<TFormValues>;
+  /**
+   * Translation function scoped to the calling component's namespace.
+   * The caller must ensure the following keys exist:
+   *   - `specializationLabel`, `specializationPlaceholder`
+   *   - `qualificationLabel`, `qualificationPlaceholder`
+   *   - `registrationNumberLabel`, `registrationNumberPlaceholder`
+   */
+  t: (key: string) => string;
+}
+
+const DOCTOR_REGISTRATION_FIELDS: ReadonlyArray<{
+  name: DoctorRegistrationField;
+  labelKey: string;
+  placeholderKey: string;
+}> = [
+  {
+    name: "specialization",
+    labelKey: "specializationLabel",
+    placeholderKey: "specializationPlaceholder",
+  },
+  {
+    name: "qualification",
+    labelKey: "qualificationLabel",
+    placeholderKey: "qualificationPlaceholder",
+  },
+  {
+    name: "registrationNumber",
+    labelKey: "registrationNumberLabel",
+    placeholderKey: "registrationNumberPlaceholder",
+  },
+];
+
+export function DoctorRegistrationFields<TFormValues extends FieldValues>({
+  form,
+  t,
+}: DoctorRegistrationFieldsProps<TFormValues>) {
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      {DOCTOR_REGISTRATION_FIELDS.map(({ name, labelKey, placeholderKey }) => (
+        <FormField
+          key={name}
+          control={form.control}
+          name={name as Path<TFormValues>}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t(labelKey)}</FormLabel>
+              <FormControl>
+                <Input placeholder={t(placeholderKey)} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      ))}
+    </div>
+  );
+}

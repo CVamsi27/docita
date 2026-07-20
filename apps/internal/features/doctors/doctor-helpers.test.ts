@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  DOCTOR_REQUIRES_CLINIC_ERROR,
-  LOAD_DOCTOR_DETAILS_ERROR,
-  REJECT_DOCTOR_ERROR,
-  REJECT_DOCTOR_REASON_ERROR,
-  VERIFY_DOCTOR_ERROR,
   buildPageMeta,
+  DOCTOR_REQUIRES_CLINIC_ERROR,
   doctorDetailsUrl,
   doctorRejectUrl,
   doctorVerifyUrl,
@@ -14,7 +10,11 @@ import {
   getVerificationLabel,
   labelForHospitalRole,
   labelForSpecialization,
+  LOAD_DOCTOR_DETAILS_ERROR,
   parseDoctorVerificationStatus,
+  REJECT_DOCTOR_ERROR,
+  REJECT_DOCTOR_REASON_ERROR,
+  VERIFY_DOCTOR_ERROR,
 } from "./doctor-helpers";
 
 describe("parseDoctorVerificationStatus", () => {

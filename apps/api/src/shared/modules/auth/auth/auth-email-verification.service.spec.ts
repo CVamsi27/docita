@@ -1,10 +1,4 @@
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-  jest,
-} from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import {
   BadRequestException,
   ServiceUnavailableException,
@@ -23,7 +17,7 @@ type UserRecord = {
 };
 
 function makePrisma(initialUser: UserRecord | null) {
-  let user: UserRecord | null = initialUser ? { ...initialUser } : null;
+  const user: UserRecord | null = initialUser ? { ...initialUser } : null;
   return {
     runUnrestricted: async <T>(fn: () => Promise<T>) => fn(),
     user: {
@@ -38,10 +32,7 @@ function makeClock(): IClock {
   return { now: () => NOW };
 }
 
-function makeService(
-  prisma: ReturnType<typeof makePrisma>,
-  email: jest.Mock,
-) {
+function makeService(prisma: ReturnType<typeof makePrisma>, email: jest.Mock) {
   return new AuthEmailVerificationService(
     prisma as never,
     { sendVerificationEmail: email } as unknown as EmailService,
@@ -54,7 +45,10 @@ describe('AuthEmailVerificationService', () => {
 
   beforeEach(() => {
     emailSend = jest.fn();
-    (emailSend as jest.Mock).mockResolvedValue({ success: true, messageId: 'msg-1' } as never);
+    (emailSend as jest.Mock).mockResolvedValue({
+      success: true,
+      messageId: 'msg-1',
+    } as never);
   });
 
   describe('sendVerificationEmail', () => {
@@ -98,9 +92,9 @@ describe('AuthEmailVerificationService', () => {
       });
       const service = makeService(prisma, emailSend);
 
-      await expect(
-        service.sendVerificationEmail('u-1'),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.sendVerificationEmail('u-1')).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
       expect(emailSend).not.toHaveBeenCalled();
       expect(prisma.user.update).not.toHaveBeenCalled();
     });
@@ -112,7 +106,9 @@ describe('AuthEmailVerificationService', () => {
         name: 'Doc',
         emailVerified: false,
       });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(null as never);
+      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(
+        null as never,
+      );
       const service = makeService(prisma, emailSend);
 
       await expect(
@@ -134,9 +130,9 @@ describe('AuthEmailVerificationService', () => {
       } as never);
       const service = makeService(prisma, emailSend);
 
-      await expect(
-        service.sendVerificationEmail('u-1'),
-      ).rejects.toBeInstanceOf(ServiceUnavailableException);
+      await expect(service.sendVerificationEmail('u-1')).rejects.toBeInstanceOf(
+        ServiceUnavailableException,
+      );
     });
   });
 

@@ -7,7 +7,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
+} from "@/components/card";
 import { TabsContent } from "@workspace/ui/components/navigation/tabs";
 import { ExternalLink } from "lucide-react";
 import { buildPrometheusMetricsUrl } from "./system-monitoring-helpers";
@@ -79,7 +79,9 @@ export function OpsTab() {
                 key={item.labelKey}
                 className="rounded-[var(--radius)] border border-border/70 p-4"
               >
-                <p className="text-sm font-medium">{t(`links.${item.labelKey}`)}</p>
+                <p className="text-sm font-medium">
+                  {t(`links.${item.labelKey}`)}
+                </p>
                 {item.url ? (
                   <a
                     href={item.url}

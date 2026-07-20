@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — routing.locales is a Locales tuple; cast to readonly string[] for the includes() guard. Mirrors apps/app/i18n/request.ts; the cast is canonicalised there.
 import { getLocale, getRequestConfig } from "next-intl/server";
 import { routing } from "./routing";
 

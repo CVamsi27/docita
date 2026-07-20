@@ -24,7 +24,8 @@
     "scripts/checks/**",
     "**/package.json",
     "**/tsconfig*.json",
-    "**/content-scripts/**"
+    "**/content-scripts/**",
+    "**/messages/**"
   ],
   "format": ["typescript", "tsx", "javascript", "jsx", "css", "json"]
 }

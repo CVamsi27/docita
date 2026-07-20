@@ -2,14 +2,13 @@
 
 import { Button } from "@workspace/ui/components/form/button";
 import { useTranslations } from "next-intl";
-// jscpd:ignore-start
+import { InternalTableToolbar } from "@/components/common/internal-table-toolbar";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
-import { Input } from "@workspace/ui/components/form/input";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import {
@@ -27,15 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-// jscpd:ignore-end
-import { Eye, Search, Users } from "lucide-react";
+import { Eye, Users } from "lucide-react";
 import { formatInternalListDate } from "@/lib/formatters/format-internal-list-date";
 import { formatInternalTimestamp } from "@/lib/formatters/format-internal-timestamp";
 import { ROLE_CONFIG, type RoleFilter, type User } from "./types";
@@ -117,39 +108,20 @@ export function SearchFilterBar({
 }: SearchFilterBarProps) {
   const t = useUsersPageTranslations();
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder={t("searchPlaceholder")}
-                value={searchTerm}
-                onChange={(event) => onSearchChange(event.target.value)}
-                className="pl-9"
-              />
-            </div>
-          </div>
-          <Select value={selectedClinic} onValueChange={onClinicChange}>
-            <SelectTrigger
-              className="w-full md:w-[250px]"
-              aria-label={t("filterByFacilityAriaLabel")}
-            >
-              <SelectValue placeholder={t("facilityPlaceholder")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("allFacilities")}</SelectItem>
-              {clinics.map((clinic) => (
-                <SelectItem key={clinic.id} value={clinic.id}>
-                  {clinic.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </CardContent>
-    </Card>
+    <InternalTableToolbar
+      searchValue={searchTerm}
+      onSearchChange={onSearchChange}
+      searchPlaceholder={t("searchPlaceholder")}
+      filterValue={selectedClinic}
+      onFilterChange={onClinicChange}
+      filterOptions={clinics.map((clinic) => ({
+        value: clinic.id,
+        label: clinic.name,
+      }))}
+      filterPlaceholder={t("facilityPlaceholder")}
+      filterAllLabel={t("allFacilities")}
+      filterAriaLabel={t("filterByFacilityAriaLabel")}
+    />
   );
 }
 

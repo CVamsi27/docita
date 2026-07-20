@@ -2,13 +2,8 @@
 
 import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card } from "@/components/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/card";
 import { Label } from "@workspace/ui/components/form/label";
 import { Switch } from "@workspace/ui/components/form/switch";
 import { Button } from "@workspace/ui/components/form/button";

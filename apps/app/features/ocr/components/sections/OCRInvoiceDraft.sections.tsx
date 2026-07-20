@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — partial-patch spread over a runtime key requires a single widening cast
 import { useTranslations } from "next-intl";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
@@ -74,40 +75,38 @@ function OCRInvoiceLineRow({
   onRemove: (index: number) => void;
 }) {
   const t = useOcrInvoiceDraftTranslations();
+  const lineFields: ReadonlyArray<{
+    key: keyof OCRInvoiceLineForm;
+    colSpan: number;
+    placeholderKey: string;
+  }> = [
+    {
+      key: "description",
+      colSpan: 5,
+      placeholderKey: "lineDescriptionPlaceholder",
+    },
+    { key: "quantity", colSpan: 2, placeholderKey: "lineQuantityPlaceholder" },
+    {
+      key: "unitPrice",
+      colSpan: 2,
+      placeholderKey: "lineUnitPricePlaceholder",
+    },
+    { key: "total", colSpan: 2, placeholderKey: "lineTotalPlaceholder" },
+  ];
   return (
     <div className="grid gap-2 rounded-md border border-border bg-background p-2 sm:grid-cols-12">
-      <div className="sm:col-span-5">
-        <Input
-          value={row.description}
-          onChange={(e) => onPatch(index, { description: e.target.value })}
-          placeholder={t("lineDescriptionPlaceholder")}
-          disabled={disabled}
-        />
-      </div>
-      <div className="sm:col-span-2">
-        <Input
-          value={row.quantity}
-          onChange={(e) => onPatch(index, { quantity: e.target.value })}
-          placeholder={t("lineQuantityPlaceholder")}
-          disabled={disabled}
-        />
-      </div>
-      <div className="sm:col-span-2">
-        <Input
-          value={row.unitPrice}
-          onChange={(e) => onPatch(index, { unitPrice: e.target.value })}
-          placeholder={t("lineUnitPricePlaceholder")}
-          disabled={disabled}
-        />
-      </div>
-      <div className="sm:col-span-2">
-        <Input
-          value={row.total}
-          onChange={(e) => onPatch(index, { total: e.target.value })}
-          placeholder={t("lineTotalPlaceholder")}
-          disabled={disabled}
-        />
-      </div>
+      {lineFields.map(({ key, colSpan, placeholderKey }) => (
+        <div key={key} className={`sm:col-span-${colSpan}`}>
+          <Input
+            value={row[key]}
+            onChange={(e) =>
+              onPatch(index, { [key]: e.target.value } as Partial<OCRInvoiceLineForm>)
+            }
+            placeholder={t(placeholderKey)}
+            disabled={disabled}
+          />
+        </div>
+      ))}
       <div className="flex items-center justify-end sm:col-span-1">
         {canRemove ? (
           <Button

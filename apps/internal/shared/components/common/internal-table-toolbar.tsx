@@ -30,6 +30,8 @@ interface InternalTableToolbarProps {
   filterOptions: InternalTableToolbarFilterOption[];
   filterPlaceholder: string;
   filterAllLabel?: string;
+  /** Accessible name for the filter Select trigger. */
+  filterAriaLabel?: string;
   actionSlot?: React.ReactNode;
 }
 
@@ -42,6 +44,7 @@ export function InternalTableToolbar({
   filterOptions,
   filterPlaceholder,
   filterAllLabel,
+  filterAriaLabel,
   actionSlot,
 }: InternalTableToolbarProps) {
   return (
@@ -60,7 +63,10 @@ export function InternalTableToolbar({
             </div>
           </div>
           <Select value={filterValue} onValueChange={onFilterChange}>
-            <SelectTrigger className="w-full md:w-[250px]">
+            <SelectTrigger
+              className="w-full md:w-[250px]"
+              {...(filterAriaLabel ? { "aria-label": filterAriaLabel } : {})}
+            >
               <SelectValue placeholder={filterPlaceholder} />
             </SelectTrigger>
             <SelectContent>

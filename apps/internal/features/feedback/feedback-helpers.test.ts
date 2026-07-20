@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   CATEGORY_OPTIONS,
-  STATUS_OPTIONS,
   deriveFeedbackPageStatus,
+  STATUS_OPTIONS,
 } from "./feedback-helpers";
 
 describe("STATUS_OPTIONS", () => {

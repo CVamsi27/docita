@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
-  DEFAULT_OFFER_FORM,
-  OFFER_TEMPLATES,
-  PRICING_LOAD_ERROR_FALLBACK,
   buildPageStatus,
   clinicToOption,
+  DEFAULT_OFFER_FORM,
   findClinicName,
+  OFFER_TEMPLATES,
+  PRICING_LOAD_ERROR_FALLBACK,
 } from "./pricing-helpers";
 
 describe("DEFAULT_OFFER_FORM", () => {

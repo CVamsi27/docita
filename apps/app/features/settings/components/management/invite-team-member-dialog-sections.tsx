@@ -26,6 +26,7 @@ import {
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import type { InviteFormValues } from "@/features/settings/components/management/member-management-schemas";
 import {
+  DoctorRegistrationFields,
   TeamMemberContactFields,
   TeamMemberLabField,
 } from "@/features/settings/components/management/team-member-form-fields";
@@ -144,49 +145,7 @@ interface InviteDoctorFieldsProps {
 
 export function InviteDoctorFields({ form }: InviteDoctorFieldsProps) {
   const t = useInviteTranslations();
-  return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-      <FormField
-        control={form.control}
-        name="specialization"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t("specializationLabel")}</FormLabel>
-            <FormControl>
-              <Input placeholder={t("specializationPlaceholder")} {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name="qualification"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t("qualificationLabel")}</FormLabel>
-            <FormControl>
-              <Input placeholder={t("qualificationPlaceholder")} {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name="registrationNumber"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t("registrationNumberLabel")}</FormLabel>
-            <FormControl>
-              <Input placeholder={t("registrationNumberPlaceholder")} {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
-  );
+  return <DoctorRegistrationFields form={form} t={t} />;
 }
 
 interface InviteLabFieldProps {
