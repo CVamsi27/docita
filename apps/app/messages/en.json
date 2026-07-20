@@ -743,6 +743,24 @@
       "description": "Capture extra information on patient records specific to your clinic.",
       "emptyTitle": "No custom fields yet",
       "emptyDescription": "Add fields to capture information beyond the standard patient record."
+    },
+    "TeamManagement": {
+      "unverifiedLabel": "Unverified",
+      "loadingAriaLabel": "Loading team members",
+      "title": "Team Members",
+      "subtitle": "Manage your {facilityLabel} staff",
+      "unknownLabel": "Unknown",
+      "signatureLabel": "Signature {status}",
+      "signatureReady": "Ready",
+      "signatureMissing": "Missing",
+      "manageButton": "Manage",
+      "cardTitle": "Team members",
+      "cardSubtitle": "Manage {facilityLabel} staff and permissions.",
+      "codeLabel": "{facilityLabel} code",
+      "codeUnavailable": "Not available",
+      "copyButton": "Copy",
+      "shareCodeHint": "Share this code so staff can join from the {facilityLabel} selection page.",
+      "inviteButton": "Invite member"
     }
   },
   "Subscription": {

@@ -743,6 +743,24 @@
       "description": "अपने क्लिनिक के लिए विशिष्ट रोगी रिकॉर्ड पर अतिरिक्त जानकारी कैप्चर करें।",
       "emptyTitle": "अभी तक कोई कस्टम फ़ील्ड नहीं",
       "emptyDescription": "मानक रोगी रिकॉर्ड से परे जानकारी कैप्चर करने के लिए फ़ील्ड जोड़ें।"
+    },
+    "TeamManagement": {
+      "unverifiedLabel": "असत्यापित",
+      "loadingAriaLabel": "टीम के सदस्य लोड हो रहे हैं",
+      "title": "टीम के सदस्य",
+      "subtitle": "अपने {facilityLabel} कर्मचारियों को प्रबंधित करें",
+      "unknownLabel": "अज्ञात",
+      "signatureLabel": "हस्ताक्षर {status}",
+      "signatureReady": "तैयार",
+      "signatureMissing": "गायब",
+      "manageButton": "प्रबंधित करें",
+      "cardTitle": "टीम के सदस्य",
+      "cardSubtitle": "{facilityLabel} कर्मचारियों और अनुमतियों को प्रबंधित करें।",
+      "codeLabel": "{facilityLabel} कोड",
+      "codeUnavailable": "उपलब्ध नहीं",
+      "copyButton": "कॉपी करें",
+      "shareCodeHint": "कर्मचारी {facilityLabel} चयन पृष्ठ से शामिल हो सकें इसलिए यह कोड साझा करें।",
+      "inviteButton": "सदस्य आमंत्रित करें"
     }
   },
   "Subscription": {
