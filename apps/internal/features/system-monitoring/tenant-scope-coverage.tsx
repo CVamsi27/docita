@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
   Card,
@@ -16,19 +17,28 @@ interface TenantScopeCoverageProps {
   excludedModels: string[];
 }
 
+/**
+ * Phase 3 (per-feature): apps/internal System Monitoring > tenant scope coverage.
+ * 5 literals converted to useTranslations("SystemMonitoring.TenantScopeCoverage").
+ */
+function useTenantScopeCoverageTranslations() {
+  return useTranslations("SystemMonitoring.TenantScopeCoverage");
+}
+
 export function TenantScopeCoverage({ uncoveredCount, staleCount, excludedCount, excludedModels }: TenantScopeCoverageProps) {
+  const t = useTenantScopeCoverageTranslations();
   return (
     <div className="flex flex-col gap-4">
       <Card>
         <CardHeader>
-          <CardTitle>Coverage Status</CardTitle>
+          <CardTitle>{t("coverageTitle")}</CardTitle>
           <CardDescription>
-            Open tenant-scope findings from the generated datamodel
+            {t("coverageSubtitle")}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex items-center justify-between gap-4 rounded-md border p-3">
-            <span className="text-sm font-medium">Uncovered</span>
+            <span className="text-sm font-medium">{t("uncoveredLabel")}</span>
             <Badge
               variant={uncoveredCount ? "destructive" : "secondary"}
             >
@@ -36,7 +46,7 @@ export function TenantScopeCoverage({ uncoveredCount, staleCount, excludedCount,
             </Badge>
           </div>
           <div className="flex items-center justify-between gap-4 rounded-md border p-3">
-            <span className="text-sm font-medium">Stale rules</span>
+            <span className="text-sm font-medium">{t("staleRulesLabel")}</span>
             <Badge
               variant={staleCount ? "destructive" : "secondary"}
             >
@@ -44,7 +54,7 @@ export function TenantScopeCoverage({ uncoveredCount, staleCount, excludedCount,
             </Badge>
           </div>
           <div className="flex items-center justify-between gap-4 rounded-md border p-3">
-            <span className="text-sm font-medium">Excluded</span>
+            <span className="text-sm font-medium">{t("excludedLabel")}</span>
             <Badge variant="outline">{excludedCount}</Badge>
           </div>
         </CardContent>
@@ -52,9 +62,9 @@ export function TenantScopeCoverage({ uncoveredCount, staleCount, excludedCount,
 
       <Card>
         <CardHeader>
-          <CardTitle>Exceptions</CardTitle>
+          <CardTitle>{t("exceptionsTitle")}</CardTitle>
           <CardDescription>
-            ClinicId models intentionally outside auto-scoping
+            {t("exceptionsSubtitle")}
           </CardDescription>
         </CardHeader>
         <CardContent>

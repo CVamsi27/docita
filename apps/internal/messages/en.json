@@ -656,5 +656,31 @@
       "summaryHead": "Summary",
       "byHead": "By"
     }
+  },
+  "SystemMonitoring": {
+    "OpsTab": {
+      "title": "Operations links",
+      "description": "Non-secret URLs only. Configure via {envVar} environment variables.",
+      "prometheusLabel": "API Prometheus scrape",
+      "prometheusDescription": "The Nest API exposes unversioned metrics at {path} on the API origin (protect at the edge in production).",
+      "openMetricsLink": "Open metrics endpoint",
+      "setApiUrlHint": "Set {envVar} to derive the metrics URL.",
+      "notConfiguredHint": "Not configured for this deployment.",
+      "links": {
+        "prometheus": "Prometheus",
+        "grafana": "Grafana",
+        "flyDashboard": "Fly.io dashboard",
+        "sentry": "Sentry (org or project)"
+      }
+    },
+    "TenantScopeCoverage": {
+      "coverageTitle": "Coverage Status",
+      "coverageSubtitle": "Open tenant-scope findings from the generated datamodel",
+      "uncoveredLabel": "Uncovered",
+      "staleRulesLabel": "Stale rules",
+      "excludedLabel": "Excluded",
+      "exceptionsTitle": "Exceptions",
+      "exceptionsSubtitle": "ClinicId models intentionally outside auto-scoping"
+    }
   }
 }
