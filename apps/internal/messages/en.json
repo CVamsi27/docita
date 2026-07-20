@@ -503,6 +503,42 @@
       "colActions": "Actions",
       "managePlanButton": "Manage plan payment",
       "addOnChargeButton": "Add-on charge"
+    },
+    "formFields": {
+      "tierLabel": "Tier",
+      "tierDescription": "Switching tier updates the facility's subscription and any tier-gated features immediately.",
+      "amountLabel": "Amount ({currency})",
+      "amountPlaceholder": "Enter amount",
+      "amountDescription": "Defaults to the list price for the selected tier and currency; adjust to match a discount or custom quote.",
+      "paymentMethodLabel": "Payment method",
+      "paymentMethodRazorpay": "Razorpay",
+      "paymentMethodStripe": "Stripe",
+      "paymentMethodBankTransfer": "Bank transfer",
+      "paymentMethodManual": "Manual",
+      "paymentNotesLabel": "Payment notes",
+      "paymentNotesPlaceholder": "Optional context (invoice number, contact, follow-up)"
+    },
+    "pricingOffers": {
+      "noActiveDiscounts": "No active discounts",
+      "colFacility": "Facility",
+      "colTitle": "Title",
+      "colPercentOff": "% off",
+      "colValidUntil": "Valid until",
+      "colActions": "Actions",
+      "removeButton": "Remove",
+      "facilityLabel": "Facility",
+      "facilityPlaceholder": "Select facility",
+      "percentOffLabel": "Percent off",
+      "percentOffPlaceholder": "e.g. 15",
+      "percentOffDescription": "Whole-number percent (0-95). Applied to the facility's tier price.",
+      "titleLabel": "Offer title",
+      "titlePlaceholder": "Spring onboarding discount",
+      "validUntilLabel": "Valid until",
+      "validUntilPlaceholder": "Pick a date",
+      "notesLabel": "Notes (optional)",
+      "notesPlaceholder": "Internal note for the sales / support team",
+      "saveButton": "Save offer",
+      "savingLabel": "Saving…"
     }
   },
   "InternalFeedback": {

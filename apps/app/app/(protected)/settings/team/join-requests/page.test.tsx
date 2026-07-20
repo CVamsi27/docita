@@ -1,7 +1,55 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { queryKeys } from "@workspace/data-access";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import JoinRequestsPage from "./page";
+
+// Minimal message namespace the components under test actually read.
+const messages = {
+  Settings: {
+    joinRequestReview: {
+      approveTitle: "Approve Join Request",
+      approveDescription: "Approve {name} to join your facility",
+      assignedRoleLabel: "Assigned Role",
+      roleDoctor: "Doctor",
+      roleNurse: "Nurse",
+      roleAdmin: "Admin",
+      roleReceptionist: "Receptionist",
+      roleAdminDoctor: "Admin Doctor",
+      roleDiffersHelper: "This differs from the requested role ({requested})",
+      welcomeMessageLabel: "Welcome Message",
+      optionalSuffix: "(optional)",
+      welcomeMessagePlaceholder: "Enter welcome message",
+      charCount: "{count}/500",
+      cancelButton: "Cancel",
+      approvingLabel: "Approving…",
+      approveRequestButton: "Approve Request",
+      rejectTitle: "Reject Join Request",
+      rejectDescription: "Provide a reason for rejecting {name}'s request",
+      rejectionReasonLabel: "Reason for Rejection",
+      rejectionReasonPlaceholder: "Enter rejection reason",
+      rejectionReasonHelper: "This reason will be sent to the applicant",
+      rejectingLabel: "Rejecting…",
+      rejectRequestButton: "Reject Request",
+    },
+  },
+  Common: {
+    cancel: "Cancel",
+    save: "Save",
+  },
+};
+
+function renderWithIntl(node: React.ReactNode) {
+  return render(withIntl(node));
+}
+
+function withIntl(node: React.ReactNode) {
+  return (
+    <NextIntlClientProvider locale="en" messages={messages}>
+      {node}
+    </NextIntlClientProvider>
+  );
+}
 
 const joinRequestMocks = vi.hoisted(() => ({
   query: {
@@ -109,7 +157,7 @@ describe("JoinRequestsPage", () => {
   });
 
   it("approves a pending team join request with an optional welcome message", async () => {
-    render(<JoinRequestsPage />);
+    renderWithIntl(<JoinRequestsPage />);
 
     expect(screen.getByText("Team Join Requests")).toBeInTheDocument();
     expect(screen.getByText("Dr. Asha Rao")).toBeInTheDocument();
@@ -136,7 +184,7 @@ describe("JoinRequestsPage", () => {
   });
 
   it("rejects a team join request with a trimmed reason", async () => {
-    render(<JoinRequestsPage />);
+    renderWithIntl(<JoinRequestsPage />);
 
     fireEvent.click(screen.getAllByRole("button", { name: /Reject/i })[0]!);
     fireEvent.change(screen.getByPlaceholderText("Enter rejection reason"), {
@@ -159,14 +207,14 @@ describe("JoinRequestsPage", () => {
       data: [],
       isLoading: true,
     };
-    const { rerender } = render(<JoinRequestsPage />);
+    const { rerender } = renderWithIntl(<JoinRequestsPage />);
     expect(screen.getByText("Loading join requests…")).toBeInTheDocument();
 
     joinRequestMocks.query = {
       data: [],
       isLoading: false,
     };
-    rerender(<JoinRequestsPage />);
+    rerender(withIntl(<JoinRequestsPage />));
     expect(screen.getByText("No Pending Requests")).toBeInTheDocument();
   });
 });

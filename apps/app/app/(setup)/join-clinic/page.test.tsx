@@ -1,6 +1,51 @@
 import { render, waitFor } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import JoinClinicPage from "./page";
+
+// Minimal message namespace covering the components that render under
+// JoinClinicPage (the page itself, the join-clinic-request-dialog, and the
+// pre-dashboard shell). Keys not exercised by these tests are omitted on
+// purpose — empty objects are enough for next-intl to resolve lookups.
+const messages = {
+  Onboarding: {
+    joinClinicRequest: {
+      title: "Request to Join {name}",
+      roleLabel: "Your Role",
+      roleDoctor: "Doctor",
+      roleNurse: "Nurse",
+      roleReceptionist: "Receptionist",
+      roleAdminDoctor: "Admin Doctor",
+      roleHelper: "Select the role you will have in this facility",
+      messageLabel: "Message to Admin",
+      optionalSuffix: "(optional)",
+      messagePlaceholder: "Enter message to admin",
+      submitButton: "Send Request",
+      cancelButton: "Cancel",
+    },
+  },
+  PreDashboard: {
+    shell: {
+      step: "Step {current} of {total}",
+      tag: "Onboarding",
+    },
+  },
+  Common: {
+    cancel: "Cancel",
+    save: "Save",
+    back: "Back",
+    signOut: "Sign out",
+    next: "Next",
+  },
+};
+
+function renderWithIntl(node: React.ReactNode) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      {node}
+    </NextIntlClientProvider>,
+  );
+}
 
 const mocks = vi.hoisted(() => ({
   router: {
@@ -121,7 +166,7 @@ describe("JoinClinicPage", () => {
   });
 
   it("redirects users with a pending join request to the request status page", async () => {
-    render(<JoinClinicPage />);
+    renderWithIntl(<JoinClinicPage />);
 
     await waitFor(() => {
       expect(mocks.router.replace).toHaveBeenCalledWith("/join-request-status");
@@ -129,7 +174,7 @@ describe("JoinClinicPage", () => {
   });
 
   it("requests top-aligned content in the pre-dashboard shell", () => {
-    render(<JoinClinicPage />);
+    renderWithIntl(<JoinClinicPage />);
 
     expect(mocks.shellProps.contentAlignment).toBe("start");
     expect(mocks.shellProps.contentMaxWidth).toBe("max-w-2xl");

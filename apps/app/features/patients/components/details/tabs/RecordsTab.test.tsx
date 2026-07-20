@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { fireEvent, screen } from "@testing-library/react";
 import { render } from "@/test-utils/render-with-tooltip";
 import { RecordsTab } from "./RecordsTab";
 
@@ -39,11 +38,10 @@ describe("RecordsTab growth-edit gate", () => {
     expect(container).toHaveAttribute("data-allow-growth-edit", "false");
   });
 
-  it("unlocks every field including growth when the user clicks Edit", async () => {
-    const user = userEvent.setup();
+  it("unlocks every field including growth when the user clicks Edit", () => {
     render(<RecordsTab patient={PATIENT} canEditPatient={true} />);
 
-    await user.click(screen.getByRole("button", { name: /edit records/i }));
+    fireEvent.click(screen.getByRole("button", { name: /edit records/i }));
 
     const container = screen.getByTestId("history-container");
     expect(container).toHaveAttribute("data-readonly", "false");
@@ -52,12 +50,11 @@ describe("RecordsTab growth-edit gate", () => {
     expect(container).toHaveAttribute("data-allow-growth-edit", "true");
   });
 
-  it("re-locks every field including growth when the user clicks Done", async () => {
-    const user = userEvent.setup();
+  it("re-locks every field including growth when the user clicks Done", () => {
     render(<RecordsTab patient={PATIENT} canEditPatient={true} />);
 
-    await user.click(screen.getByRole("button", { name: /edit records/i }));
-    await user.click(screen.getByRole("button", { name: /done/i }));
+    fireEvent.click(screen.getByRole("button", { name: /edit records/i }));
+    fireEvent.click(screen.getByRole("button", { name: /done/i }));
 
     const container = screen.getByTestId("history-container");
     expect(container).toHaveAttribute("data-readonly", "true");

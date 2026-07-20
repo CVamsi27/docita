@@ -503,6 +503,42 @@
       "colActions": "क्रियाएँ",
       "managePlanButton": "प्लान भुगतान प्रबंधित करें",
       "addOnChargeButton": "ऐड-ऑन शुल्क"
+    },
+    "formFields": {
+      "tierLabel": "स्तर",
+      "tierDescription": "स्तर बदलने से सुविधा की सदस्यता और स्तर-आधारित सुविधाएँ तुरंत अपडेट हो जाती हैं।",
+      "amountLabel": "राशि ({currency})",
+      "amountPlaceholder": "राशि दर्ज करें",
+      "amountDescription": "चयनित स्तर और मुद्रा के लिए सूची मूल्य के अनुसार डिफ़ॉल्ट; छूट या कस्टम कोटेशन के अनुसार समायोजित करें।",
+      "paymentMethodLabel": "भुगतान विधि",
+      "paymentMethodRazorpay": "Razorpay",
+      "paymentMethodStripe": "Stripe",
+      "paymentMethodBankTransfer": "बैंक हस्तांतरण",
+      "paymentMethodManual": "मैन्युअल",
+      "paymentNotesLabel": "भुगतान नोट्स",
+      "paymentNotesPlaceholder": "वैकल्पिक संदर्भ (चालान संख्या, संपर्क, अनुवर्ती)"
+    },
+    "pricingOffers": {
+      "noActiveDiscounts": "कोई सक्रिय छूट नहीं",
+      "colFacility": "सुविधा",
+      "colTitle": "शीर्षक",
+      "colPercentOff": "% छूट",
+      "colValidUntil": "तक मान्य",
+      "colActions": "क्रियाएँ",
+      "removeButton": "हटाएँ",
+      "facilityLabel": "सुविधा",
+      "facilityPlaceholder": "सुविधा चुनें",
+      "percentOffLabel": "छूट प्रतिशत",
+      "percentOffPlaceholder": "जैसे 15",
+      "percentOffDescription": "पूर्णांक प्रतिशत (0-95)। सुविधा के स्तर मूल्य पर लागू।",
+      "titleLabel": "ऑफ़र शीर्षक",
+      "titlePlaceholder": "वसंत ऑनबोर्डिंग छूट",
+      "validUntilLabel": "तक मान्य",
+      "validUntilPlaceholder": "तारीख चुनें",
+      "notesLabel": "नोट्स (वैकल्पिक)",
+      "notesPlaceholder": "सेल्स / सपोर्ट टीम के लिए आंतरिक नोट",
+      "saveButton": "ऑफ़र सहेजें",
+      "savingLabel": "सहेज रहे हैं…"
     }
   },
   "InternalFeedback": {
