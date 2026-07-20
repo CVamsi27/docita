@@ -9,3 +9,11 @@ reason = "Windows dev-server path traversal — low severity, dev-only, not appl
 [[IgnoredVulns]]
 id = "GHSA-4g3v-8h47-v7g6"
 reason = "Astro 6.4.6 reflected XSS via View Transition animation properties (CVSS 5.3, requires user interaction on a transition-triggering URL) — fix is in astro 7.1.0+, which is a major-version migration breaking the SSR build (Vite 6 + Astro 7 SSR entry regression) and requires changes to apps/landing's astro.config.mjs and a new src/entry.ssr.ts. The landing app serves a public marketing site and is scheduled for an astro 7 migration tracked separately. The vulnerability is in a transition-feature that we do not opt into, and the impact is mitigated by not enabling the `<ViewTransitions />` component (which apps/landing does not use). Re-evaluate when the astro 7 migration lands."
+
+[[IgnoredVulns]]
+id = "GHSA-7pw4-f3q4-r2p2"
+reason = "Astro 6.4.8 XSS via unescaped transition:* directive values on hydrated islands (CVSS 2.1) — fix is in astro 7.0.4+. Same astro 7 migration blocker (Vite 6 SSR entry regression) as GHSA-4g3v-8h47-v7g6. Not reachable in apps/landing (no <ViewTransitions />, no user-supplied island content). Re-evaluate when the astro 7 migration lands."
+
+[[IgnoredVulns]]
+id = "GHSA-f48w-9m4c-m7f5"
+reason = "Astro 6.4.8 XSS via unescaped spread attribute names in renderHTMLElement (CVSS 5.1, incomplete fix for CVE-2026-54298) — fix is in astro 7.0.6+. Same astro 7 migration blocker (Vite 6 SSR entry regression) as GHSA-4g3v-8h47-v7g6. apps/landing does not use spread attributes on dynamic elements. Re-evaluate when the astro 7 migration lands."
