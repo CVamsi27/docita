@@ -1000,6 +1000,17 @@
       "errorDoctor": "उपस्थित चिकित्सक चुनें",
       "errorDiagnosis": "भर्ती निदान दर्ज करें"
     },
+    "admissionFormFields": {
+      "wardLabel": "वार्ड",
+      "wardPlaceholder": "वार्ड चुनें",
+      "bedLabel": "बिस्तर",
+      "bedPlaceholder": "बिस्तर चुनें",
+      "bedOptionLabel": "{ward} / कमरा {room} / बिस्तर {bed}",
+      "doctorLabel": "उपस्थित चिकित्सक",
+      "doctorPlaceholder": "चिकित्सक चुनें",
+      "diagnosisLabel": "भर्ती निदान",
+      "notesLabel": "टिप्पणियाँ"
+    },
     "dashboard": {
       "totalBedsLabel": "कुल बिस्तर",
       "admittedLabel": "भर्ती",
