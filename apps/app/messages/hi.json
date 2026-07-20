@@ -890,6 +890,15 @@
       "genderLabel": "लिंग: {gender}",
       "dateLabel": "तारीख"
     },
+    "documentFooter": {
+      "signatureAlt": "चिकित्सक का हस्ताक्षर",
+      "doctorPrefix": "डॉ. {name}",
+      "regNumberLabel": "पंजी. नंबर: {reg}",
+      "digitalGeneratedLabel": "यह एक डिजिटल रूप से जनरेट किया गया नुस्खा है",
+      "poweredByLabel": "Docita द्वारा संचालित",
+      "supportLabel": "नुस्खा सहायता: {email}",
+      "validityLabel": "जारी होने की तारीख से 30 दिनों के भीतर डिस्पेंसिंग के लिए मान्य, जब तक अन्यथा निर्दिष्ट न हो"
+    },
     "table": {
       "medsCount": "{count, plural, one {1 दवा} other {{count} दवाएँ}}",
       "viewAriaLabel": "नुस्खा देखें",
