@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-20T11:12:08.623Z",
-  "totalLiterals": 748,
+  "generatedAt": "2026-07-20T11:13:11.951Z",
+  "totalLiterals": 743,
   "perFile": {
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
     "apps/app/features/analytics/components/AnalyticsPageUI.tsx": 3,
@@ -76,7 +76,6 @@
     "apps/app/features/dev-tools/components/DoctorWorkflowVisualTestPageContent.sections.tsx": 16,
     "apps/app/features/dev-tools/components/OriginPrimitivesVisualTestPageContent.tsx": 10,
     "apps/app/features/dev-tools/components/StatusBadgeVisualTestPageContent.tsx": 9,
-    "apps/app/features/dev-tools/components/UiContractVisualTestPageContent.tsx": 5,
     "apps/app/features/dev-tools/components/VisualTestFixturePageContent.tsx": 3,
     "apps/app/features/dialogs/components/ContactSalesModalUI.sections.tsx": 1,
     "apps/app/features/documents/components/documents-page-table-card-sections.tsx": 2,
