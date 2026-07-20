@@ -5,3 +5,7 @@ reason = "Deno module RCE — project does not use Deno; esbuild is consumed via
 [[IgnoredVulns]]
 id = "GHSA-g7r4-m6w7-qqqr"
 reason = "Windows dev-server path traversal — low severity, dev-only, not applicable to production; fixed in esbuild 0.28.1+ which is not yet compatible with vite 6.x"
+
+[[IgnoredVulns]]
+id = "GHSA-4g3v-8h47-v7g6"
+reason = "Astro 6.4.6 reflected XSS via View Transition animation properties (CVSS 5.3, requires user interaction on a transition-triggering URL) — fix is in astro 7.1.0+, which is a major-version migration breaking the SSR build (Vite 6 + Astro 7 SSR entry regression) and requires changes to apps/landing's astro.config.mjs and a new src/entry.ssr.ts. The landing app serves a public marketing site and is scheduled for an astro 7 migration tracked separately. The vulnerability is in a transition-feature that we do not opt into, and the impact is mitigated by not enabling the `<ViewTransitions />` component (which apps/landing does not use). Re-evaluate when the astro 7 migration lands."
