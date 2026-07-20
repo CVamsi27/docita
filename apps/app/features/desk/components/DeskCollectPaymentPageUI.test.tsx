@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { InvoiceListRow } from "@workspace/types";
 import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
+import { NextIntlClientProvider } from "next-intl";
 import { DeskCollectPaymentPageUI } from "./DeskCollectPaymentPageUI";
 
 const deskMocks = vi.hoisted(() => ({
@@ -57,6 +58,35 @@ vi.mock("@/lib/auth/auth-context", () => ({
   useAuth: () => ({ user: { role: "RECEPTIONIST" } }),
 }));
 
+const messages = {
+  Desk: {
+    collectionsByModeReport: {
+      reportMicroLabel: "Report",
+      title: "Collections by mode",
+      fromLabel: "From",
+      toLabel: "To",
+      loadingLabel: "Loading collections…",
+      invalidRangeErrorFallback: "Select a valid date range to view collections.",
+      emptyRangeTitle: "No collections in this range",
+      emptyRangeDescription: "Settled desk and online payments will appear here grouped by payment mode.",
+      invalidRangeTitle: "Invalid date range",
+      invalidRangeDescription: "The start date must be on or before the end date.",
+      colPaidBy: "Paid by",
+      colPayments: "Payments",
+      colAmount: "Amount",
+      totalLabel: "Total",
+    },
+  },
+};
+
+function renderWithIntl(node: React.ReactNode) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      {node}
+    </NextIntlClientProvider>,
+  );
+}
+
 function buildInvoice(overrides: Partial<InvoiceListRow>): InvoiceListRow {
   return {
     id: "invoice-1",
@@ -101,7 +131,7 @@ describe("DeskCollectPaymentPageUI", () => {
       }),
     ];
 
-    render(
+    renderWithIntl(
       <TooltipProvider>
         <DeskCollectPaymentPageUI />
       </TooltipProvider>,
@@ -132,7 +162,7 @@ describe("DeskCollectPaymentPageUI", () => {
       }),
     ];
 
-    render(
+    renderWithIntl(
       <TooltipProvider>
         <DeskCollectPaymentPageUI />
       </TooltipProvider>,
