@@ -1124,5 +1124,15 @@
       "emptyDescription": "The dispense queue derives from prescriptions awaiting in-house fulfillment. Once the pharmacy domain (or inventory extension) is wired with useDispenseQueue hooks, this view will show pending prescriptions, hand-off to WhatsApp, and stock par-level alerts.",
       "emptyAction": "Open inventory"
     }
+  },
+  "Appointments": {
+    "timeSlotPicker": {
+      "loadingAriaLabel": "Loading time slots",
+      "emptyMessage": "No available time slots for {date}",
+      "selectTimeTitle": "Select a time",
+      "legendSelected": "Selected",
+      "legendAvailable": "Available",
+      "legendUnavailable": "Unavailable"
+    }
   }
 }
