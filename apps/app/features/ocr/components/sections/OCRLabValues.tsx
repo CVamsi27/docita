@@ -2,9 +2,18 @@
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import { FileText } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { ConfidenceIndicator } from "@/features/ocr/components/common/confidence-indicator";
 import { SectionToggle } from "@/features/ocr/components/common/section-toggle";
 import { OCRFormData } from "@/features/ocr/types";
+
+/**
+ * Phase 3 (per-feature): apps/app OCR > Lab values section.
+ * 6 literals converted to useTranslations("Ocr.labValues").
+ */
+function useOcrLabValuesTranslations() {
+  return useTranslations("Ocr.labValues");
+}
 
 interface OCRLabValuesProps {
   formData: OCRFormData;
@@ -21,10 +30,11 @@ export const OCRLabValues = ({
   isOpen,
   onToggle,
 }: OCRLabValuesProps) => {
+  const t = useOcrLabValuesTranslations();
   return (
     <div className="space-y-3">
       <SectionToggle
-        title="Lab values"
+        title={t("sectionTitle")}
         icon={FileText}
         isOpen={isOpen}
         onToggle={onToggle}
@@ -34,7 +44,7 @@ export const OCRLabValues = ({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs">Glucose (mg/dL)</Label>
+                <Label className="text-xs">{t("glucoseLabel")}</Label>
 {/* jscpd:ignore-end */}
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
@@ -53,12 +63,12 @@ export const OCRLabValues = ({
                     },
                   })
                 }
-                placeholder="Glucose"
+                placeholder={t("glucosePlaceholder")}
               />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs">Hemoglobin (g/dL)</Label>
+                <Label className="text-xs">{t("hemoglobinLabel")}</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
                     getScore("labValues_hemoglobin"),
@@ -76,12 +86,12 @@ export const OCRLabValues = ({
                     },
                   })
                 }
-                placeholder="Hemoglobin"
+                placeholder={t("hemoglobinPlaceholder")}
               />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs">Creatinine (mg/dL)</Label>
+                <Label className="text-xs">{t("creatinineLabel")}</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
                     getScore("labValues_creatinine"),
@@ -99,7 +109,7 @@ export const OCRLabValues = ({
                     },
                   })
                 }
-                placeholder="Creatinine"
+                placeholder={t("creatininePlaceholder")}
               />
             </div>
           </div>

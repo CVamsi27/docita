@@ -707,6 +707,15 @@
       "glucoseLabel": "ग्लूकोज़",
       "glucosePlaceholder": "ग्लूकोज़"
     },
+    "labValues": {
+      "sectionTitle": "लैब मान",
+      "glucoseLabel": "ग्लूकोज़ (mg/dL)",
+      "glucosePlaceholder": "ग्लूकोज़",
+      "hemoglobinLabel": "हीमोग्लोबिन (g/dL)",
+      "hemoglobinPlaceholder": "हीमोग्लोबिन",
+      "creatinineLabel": "क्रिएटिनिन (mg/dL)",
+      "creatininePlaceholder": "क्रिएटिनिन"
+    },
     "uploadSection": {
       "stepTitle": "1. दस्तावेज़ अपलोड करें",
       "stepDescription": "फोटो लें या छवि अपलोड करें",
