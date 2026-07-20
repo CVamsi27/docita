@@ -94,6 +94,22 @@
       "emailStepDescription": "साइन इन करने या खाता बनाने के लिए अपना कार्य ईमेल उपयोग करें",
       "loginStepDescription": "अपने वर्कस्पेस में साइन इन करें",
       "signupStepDescription": "Docita के साथ शुरुआत करें"
+    },
+    "resetPassword": {
+      "linkExpiredTitle": "रीसेट लिंक समाप्त हो गया",
+      "linkExpiredBody": "यह रीसेट लिंक अमान्य है या समाप्त हो गया है। कृपया नया लिंक अनुरोध करें।",
+      "requestResetButton": "पासवर्ड रीसेट अनुरोध करें",
+      "successTitle": "पासवर्ड रीसेट सफल",
+      "successBody": "अब आप अपने नए पासवर्ड से साइन इन कर सकते हैं।",
+      "signInButton": "साइन इन",
+      "submittingButton": "रीसेट हो रहा है...",
+      "submitButton": "पासवर्ड रीसेट करें",
+      "newPasswordLabel": "नया पासवर्ड",
+      "confirmPasswordLabel": "नए पासवर्ड की पुष्टि करें",
+      "backToSignInButton": "साइन इन पर वापस",
+      "setNewPasswordTitle": "नया पासवर्ड सेट करें",
+      "setNewPasswordSubtitle": "नीचे नया पासवर्ड चुनें",
+      "loadingFallback": "पासवर्ड रीसेट लोड हो रहा है..."
     }
   },
   "Allergy": {
@@ -361,6 +377,32 @@
       "icdLabel": "ICD-10 कोड",
       "notesLabel": "टिप्पणियाँ",
       "notesPlaceholder": "टिप्पणियाँ"
+    },
+    "timer": {
+      "tooltipTitle": "परामर्श टाइमर",
+      "popoverTitle": "परामर्श समय",
+      "statusRunning": "चालू",
+      "statusPaused": "रुका हुआ",
+      "pauseButton": "रोकें",
+      "resumeButton": "पुनः शुरू",
+      "resetButton": "रीसेट",
+      "resetTooltip": "टाइमर रीसेट करें",
+      "avgConsultationLabel": "औसत परामर्श",
+      "avgConsultationValue": "12-15 मिनट",
+      "billableTimeLabel": "बिल योग्य समय"
+    },
+    "sidebar": {
+      "emptyState": "कोई रोगी डेटा नहीं",
+      "mrnLabel": "MRN: {mrn}",
+      "closeSidebarTooltip": "साइडबार बंद करें",
+      "closeSidebarAria": "साइडबार बंद करें",
+      "historyHideAria": "मुलाकात इतिहास छिपाएँ",
+      "historyShowAria": "मुलाकात इतिहास दिखाएँ",
+      "historyLabel": "इतिहास ({count, plural, =0 {0} other {{count}}})",
+      "noPreviousVisits": "कोई पिछली मुलाकात नहीं",
+      "surgicalHistoryLabel": "शल्य चिकित्सा इतिहास",
+      "familyHistoryLabel": "पारिवारिक इतिहास",
+      "fullStructuredHistoryLabel": "पूर्ण संरचित इतिहास"
     }
   },
   "Settings": {
