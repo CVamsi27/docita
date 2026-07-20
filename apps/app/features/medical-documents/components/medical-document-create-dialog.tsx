@@ -1,6 +1,7 @@
 "use client";
 
 // jscpd:ignore-start
+import { useTranslations } from "next-intl";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
@@ -23,6 +24,14 @@ import {
   MEDICAL_DOCUMENT_TYPE_LABELS,
   MEDICAL_DOCUMENT_TYPE_OPTIONS,
 } from "./medical-document-list-config";
+
+/**
+ * Phase 3 (per-feature): apps/app Medical Documents > create dialog.
+ * 5 literals converted to useTranslations("MedicalDocuments.createDialog").
+ */
+function useMedicalDocumentCreateDialogTranslations() {
+  return useTranslations("MedicalDocuments.createDialog");
+}
 
 export function MedicalDocumentCreateDialog({
   open,
@@ -57,15 +66,16 @@ export function MedicalDocumentCreateDialog({
   onFileChange: (file: File | null) => void;
   onMobileUpload: () => void;
 }) {
+  const t = useMedicalDocumentCreateDialogTranslations();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>New Medical Document</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label>Document Type</Label>
+            <Label>{t("typeLabel")}</Label>
             <Select value={newType} onValueChange={setNewType}>
               <SelectTrigger>
                 <SelectValue />
@@ -80,18 +90,18 @@ export function MedicalDocumentCreateDialog({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Title</Label>
+            <Label>{t("titleLabel")}</Label>
             <Input
-              placeholder="Title"
+              placeholder={t("titlePlaceholder")}
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
             />
           </div>
           <div className="space-y-2 rounded-lg border bg-muted/20 p-3">
             <div className="flex items-center justify-between gap-2">
-              <Label className="text-sm font-medium">Upload document</Label>
+              <Label className="text-sm font-medium">{t("uploadLabel")}</Label>
               <span className="text-xs text-muted-foreground">
-                Optional, but recommended
+                {t("uploadHelper")}
               </span>
             </div>
             <Input
@@ -107,7 +117,7 @@ export function MedicalDocumentCreateDialog({
                 className="h-8 text-xs"
                 onClick={onMobileUpload}
               >
-                Upload from phone
+                {t("mobileUploadButton")}
               </Button>
               {newFile ? (
                 <p className="text-xs text-muted-foreground truncate">
@@ -115,14 +125,14 @@ export function MedicalDocumentCreateDialog({
                 </p>
               ) : (
                 <p className="text-xs text-muted-foreground">
-                  PDF, PNG, JPG, or WebP
+                  {t("fileTypesHint")}
                 </p>
               )}
             </div>
             {showQr && qrUrl ? (
               <div className="rounded-md border bg-muted/20 p-2">
                 <p className="text-xs text-muted-foreground">
-                  Scan this QR code on your phone to upload.
+                  {t("qrScanHint")}
                 </p>
                 <p className="text-xs font-mono break-all mt-1">{qrUrl}</p>
                 <Button
@@ -132,21 +142,21 @@ export function MedicalDocumentCreateDialog({
                   className="h-7 text-xs mt-1"
                   onClick={() => setShowQr(false)}
                 >
-                  Hide
+                  {t("hideButton")}
                 </Button>
               </div>
             ) : null}
             {newFileUrl ? (
-              <p className="text-xs text-muted-foreground">File selected.</p>
+              <p className="text-xs text-muted-foreground">{t("fileSelectedLabel")}</p>
             ) : null}
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("cancelButton")}
           </Button>
           <Button onClick={onCreate} disabled={creating}>
-            {creating ? "Creating…" : "Create"}
+            {creating ? t("creatingButton") : t("createButton")}
           </Button>
         </DialogFooter>
       </DialogContent>

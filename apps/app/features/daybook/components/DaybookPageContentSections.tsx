@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -21,41 +22,49 @@ interface DaybookSectionProps {
   isLoading: boolean;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Daybook > page content sections.
+ * 5 literals converted to useTranslations("Daybook").
+ */
+function useDaybookTranslations() {
+  return useTranslations("Daybook");
+}
+
 export function DaybookSummaryCardsSection({
   summary,
   formatCurrency,
 }: DaybookSectionProps) {
+  const t = useDaybookTranslations();
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <Card className="ui-card-surface">
         <CardHeader className="pb-2">
-          <p className="ui-eyebrow">Collected</p>
+          <p className="ui-eyebrow">{t("collectedEyebrow")}</p>
         </CardHeader>
         <CardContent>
           <p className="ui-money text-[var(--fs-3xl)]">
             {formatCurrency(summary.collected)}
           </p>
           <p className="ui-helper-text mt-1">
-            {summary.paidCount} paid invoice
-            {summary.paidCount === 1 ? "" : "s"}
+            {t("paidInvoiceCount", { count: summary.paidCount })}
           </p>
         </CardContent>
       </Card>
       <Card className="ui-card-surface">
         <CardHeader className="pb-2">
-          <p className="ui-eyebrow">Pending</p>
+          <p className="ui-eyebrow">{t("pendingEyebrow")}</p>
         </CardHeader>
         <CardContent>
           <p className="ui-money text-[var(--fs-3xl)]">
             {formatCurrency(summary.pending)}
           </p>
-          <p className="ui-helper-text mt-1">Outstanding this day</p>
+          <p className="ui-helper-text mt-1">{t("pendingHelper")}</p>
         </CardContent>
       </Card>
       <Card className="ui-card-surface">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <p className="ui-eyebrow">Cash on hand</p>
+            <p className="ui-eyebrow">{t("cashOnHandEyebrow")}</p>
             <Wallet className="size-4 text-muted-foreground" aria-hidden />
           </div>
         </CardHeader>
@@ -63,7 +72,7 @@ export function DaybookSummaryCardsSection({
           <p className="ui-money text-[var(--fs-3xl)]">
             {formatCurrency(summary.cashOnHand)}
           </p>
-          <p className="ui-helper-text mt-1">Cash collections only</p>
+          <p className="ui-helper-text mt-1">{t("cashOnHandHelper")}</p>
         </CardContent>
       </Card>
     </div>
@@ -74,6 +83,7 @@ export function DaybookByMethodSection({
   summary,
   formatCurrency,
 }: DaybookSectionProps) {
+  const t = useDaybookTranslations();
   if (summary.byMethod.length === 0) return null;
 
   return (
@@ -81,7 +91,7 @@ export function DaybookByMethodSection({
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-[length:var(--fs-lg)]">
           <Banknote className="size-4 text-muted-foreground" aria-hidden />
-          Collected by method
+          {t("byMethodTitle")}
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-wrap gap-2">
@@ -111,12 +121,13 @@ export function DaybookLedgerSection({
   formatCurrency,
   isLoading,
 }: DaybookSectionProps) {
+  const t = useDaybookTranslations();
   return (
     <Card className="ui-card-surface">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-[length:var(--fs-lg)]">
           <BookOpen className="size-4 text-muted-foreground" aria-hidden />
-          Ledger
+          {t("ledgerTitle")}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -125,9 +136,9 @@ export function DaybookLedgerSection({
         ) : summary.ledger.length === 0 ? (
           <EmptyState
             icon={Banknote}
-            title="No invoices for this day"
-            description="Invoices raised on the selected day will appear here for reconciliation."
-            action={{ label: "View invoices", href: "/invoices" }}
+            title={t("emptyLedgerTitle")}
+            description={t("emptyLedgerDescription")}
+            action={{ label: t("viewInvoicesAction"), href: "/invoices" }}
           />
         ) : (
           <ul className="divide-y divide-border/50">
@@ -162,22 +173,22 @@ export function DaybookLedgerSection({
 }
 
 export function DaybookCloseDaySection() {
+  const t = useDaybookTranslations();
   return (
     <Card className="ui-card-surface">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-[length:var(--fs-lg)]">
           <CalendarCheck className="size-4 text-muted-foreground" aria-hidden />
-          Close the day
+          {t("closeDayTitle")}
           <ComingSoonBadge className="ml-1" />
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="ui-helper-text">
-          Locking the day&apos;s collections writes a settled-ledger entry. For
-          now, reconcile against the totals above.
+          {t("closeDayDescription")}
         </p>
         <Button disabled className="shrink-0">
-          Close day
+          {t("closeDayButton")}
         </Button>
       </CardContent>
     </Card>
