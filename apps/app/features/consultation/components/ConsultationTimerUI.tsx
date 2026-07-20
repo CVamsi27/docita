@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
@@ -24,6 +25,14 @@ export interface ConsultationTimerUIProps {
   className?: string;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Consultation > timer UI.
+ * 5 literals converted to useTranslations("Consultation.timer").
+ */
+function useConsultationTimerTranslations() {
+  return useTranslations("Consultation.timer");
+}
+
 export function ConsultationTimerUI({
   seconds,
   isRunning,
@@ -33,6 +42,7 @@ export function ConsultationTimerUI({
   onReset,
   className,
 }: ConsultationTimerUIProps) {
+  const t = useConsultationTimerTranslations();
   const formatTime = (totalSeconds: number) => {
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -71,7 +81,7 @@ export function ConsultationTimerUI({
             </PopoverTrigger>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Consultation timer</p>
+            <p>{t("tooltipTitle")}</p>
           </TooltipContent>
         </Tooltip>
 
@@ -79,7 +89,7 @@ export function ConsultationTimerUI({
           <div className="space-y-4">
             <div className="text-center">
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                Consultation Time
+                {t("popoverTitle")}
               </p>
               <p
                 className={cn(
@@ -93,7 +103,7 @@ export function ConsultationTimerUI({
                 variant={isRunning ? "default" : "secondary"}
                 className="mt-2"
               >
-                {isRunning ? "Running" : "Paused"}
+                {isRunning ? t("statusRunning") : t("statusPaused")}
               </Badge>
             </div>
 
@@ -108,17 +118,17 @@ export function ConsultationTimerUI({
                   >
                     {isRunning ? (
                       <>
-                        <Pause className="h-3 w-3" /> Pause
+                        <Pause className="h-3 w-3" /> {t("pauseButton")}
                       </>
                     ) : (
                       <>
-                        <Play className="h-3 w-3" /> Resume
+                        <Play className="h-3 w-3" /> {t("resumeButton")}
                       </>
                     )}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  {isRunning ? "Pause" : "Resume"}
+                  {isRunning ? t("pauseButton") : t("resumeButton")}
                 </TooltipContent>
               </Tooltip>
 
@@ -130,22 +140,22 @@ export function ConsultationTimerUI({
                     onClick={onReset}
                     className="gap-1"
                   >
-                    <RotateCcw className="h-3 w-3" /> Reset
+                    <RotateCcw className="h-3 w-3" /> {t("resetButton")}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Reset timer</TooltipContent>
+                <TooltipContent>{t("resetTooltip")}</TooltipContent>
               </Tooltip>
             </div>
 
             <div className="border-t pt-3 space-y-2 text-xs text-muted-foreground">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" /> Avg. consultation
+                  <Clock className="h-3 w-3" /> {t("avgConsultationLabel")}
                 </span>
-                <span className="font-medium">12-15 min</span>
+                <span className="font-medium">{t("avgConsultationValue")}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span>Billable time</span>
+                <span>{t("billableTimeLabel")}</span>
                 <span className="font-medium text-foreground">
                   {Math.ceil(seconds / 60)} min
                 </span>

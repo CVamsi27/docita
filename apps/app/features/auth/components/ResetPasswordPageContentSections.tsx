@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { CheckCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Controller, type Control, type UseFormReturn } from "react-hook-form";
 import { Button } from "@workspace/ui/components/form/button";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
@@ -11,8 +12,15 @@ import { AuthPasswordFloatingField } from "./auth-password-floating-field";
 import { PreDashboardShell } from "./PreDashboardShell";
 import { AuthErrorDisplay } from "./AuthErrorDisplay";
 
-const PASSWORD_RULES_HELPER =
-  "Must be 8+ characters with uppercase, lowercase, number, and special character";
+/**
+ * Phase 3 (per-feature): apps/app Auth > reset password sections.
+ * 5 literals converted to useTranslations("Auth.resetPassword").
+ */
+function useResetPasswordTranslations() {
+  return useTranslations("Auth.resetPassword");
+}
+
+const PASSWORD_RULES_HELPER = "Must be 8+ characters with uppercase, lowercase, number, and special character";
 
 interface ResetPasswordShellProps {
   children: React.ReactNode;
@@ -33,16 +41,17 @@ export function ResetPasswordShell({ children }: ResetPasswordShellProps) {
 
 /** The "this link is no longer valid" terminal state — split out as a self-contained, prop-free card. */
 export function ResetLinkExpiredCard() {
+  const t = useResetPasswordTranslations();
   return (
     <div className="ui-card-surface space-y-6 p-6 sm:p-8">
       <div className="text-center ui-copy-stack">
-        <h1 className="ui-page-title">Reset Link Expired</h1>
+        <h1 className="ui-page-title">{t("linkExpiredTitle")}</h1>
         <p className="text-sm text-destructive">
-          This reset link is invalid or has expired. Please request a new one.
+          {t("linkExpiredBody")}
         </p>
       </div>
       <Button variant="outline" asChild className="w-full h-11">
-        <Link href="/forgot-password">Request Password Reset</Link>
+        <Link href="/forgot-password">{t("requestResetButton")}</Link>
       </Button>
     </div>
   );
@@ -50,6 +59,7 @@ export function ResetLinkExpiredCard() {
 
 /** The "password reset successful" terminal state — split out as a self-contained, prop-free card. */
 export function ResetPasswordSuccessCard() {
+  const t = useResetPasswordTranslations();
   return (
     <div className="space-y-6 text-center">
       <div className="flex justify-center">
@@ -58,13 +68,13 @@ export function ResetPasswordSuccessCard() {
         </div>
       </div>
       <div className="ui-copy-stack">
-        <h2 className="ui-section-title">Password reset successful</h2>
+        <h2 className="ui-section-title">{t("successTitle")}</h2>
         <p className="ui-helper-text">
-          You can now sign in with your new password.
+          {t("successBody")}
         </p>
       </div>
       <Button asChild className="w-full h-11">
-        <Link href="/login">Sign in</Link>
+        <Link href="/login">{t("signInButton")}</Link>
       </Button>
     </div>
   );
@@ -124,6 +134,7 @@ interface ResetPasswordSubmitButtonProps {
 function ResetPasswordSubmitButton({
   isSubmitting,
 }: ResetPasswordSubmitButtonProps) {
+  const t = useResetPasswordTranslations();
   return (
     <Button
       type="submit"
@@ -137,10 +148,10 @@ function ResetPasswordSubmitButton({
             decorative
             className="mr-2"
           />
-          Resetting...
+          {t("submittingButton")}
         </>
       ) : (
-        "Reset Password"
+        t("submitButton")
       )}
     </Button>
   );
@@ -162,6 +173,7 @@ export function ResetPasswordFormCard({
   onTogglePassword,
   error,
 }: ResetPasswordFormCardProps) {
+  const t = useResetPasswordTranslations();
   return (
     <form
       onSubmit={form.handleSubmit(onSubmit)}
@@ -171,7 +183,7 @@ export function ResetPasswordFormCard({
       <ResetPasswordField
         control={form.control}
         name="newPassword"
-        label="New password"
+        label={t("newPasswordLabel")}
         showPassword={showPassword}
         onTogglePassword={onTogglePassword}
         autoFocus
@@ -181,7 +193,7 @@ export function ResetPasswordFormCard({
       <ResetPasswordField
         control={form.control}
         name="confirmPassword"
-        label="Confirm new password"
+        label={t("confirmPasswordLabel")}
         showPassword={showPassword}
         onTogglePassword={onTogglePassword}
       />
@@ -192,7 +204,7 @@ export function ResetPasswordFormCard({
 
       <BackButton
         fallback="/login"
-        label="Back to sign in"
+        label={t("backToSignInButton")}
         variant="ghost"
         size="default"
         className="w-full h-11"

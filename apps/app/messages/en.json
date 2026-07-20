@@ -94,6 +94,22 @@
       "emailStepDescription": "Use your work email to sign in or create an account",
       "loginStepDescription": "Sign in to your workspace",
       "signupStepDescription": "Get started with Docita"
+    },
+    "resetPassword": {
+      "linkExpiredTitle": "Reset Link Expired",
+      "linkExpiredBody": "This reset link is invalid or has expired. Please request a new one.",
+      "requestResetButton": "Request Password Reset",
+      "successTitle": "Password reset successful",
+      "successBody": "You can now sign in with your new password.",
+      "signInButton": "Sign in",
+      "submittingButton": "Resetting...",
+      "submitButton": "Reset Password",
+      "newPasswordLabel": "New password",
+      "confirmPasswordLabel": "Confirm new password",
+      "backToSignInButton": "Back to sign in",
+      "setNewPasswordTitle": "Set New Password",
+      "setNewPasswordSubtitle": "Choose a new password below",
+      "loadingFallback": "Loading password reset..."
     }
   },
   "Allergy": {
@@ -361,6 +377,32 @@
       "icdLabel": "ICD-10 code",
       "notesLabel": "Notes",
       "notesPlaceholder": "Notes"
+    },
+    "timer": {
+      "tooltipTitle": "Consultation timer",
+      "popoverTitle": "Consultation Time",
+      "statusRunning": "Running",
+      "statusPaused": "Paused",
+      "pauseButton": "Pause",
+      "resumeButton": "Resume",
+      "resetButton": "Reset",
+      "resetTooltip": "Reset timer",
+      "avgConsultationLabel": "Avg. consultation",
+      "avgConsultationValue": "12-15 min",
+      "billableTimeLabel": "Billable time"
+    },
+    "sidebar": {
+      "emptyState": "No patient data",
+      "mrnLabel": "MRN: {mrn}",
+      "closeSidebarTooltip": "Close sidebar",
+      "closeSidebarAria": "Close sidebar",
+      "historyHideAria": "Hide visit history",
+      "historyShowAria": "Show visit history",
+      "historyLabel": "History ({count, plural, =0 {0} other {{count}}})",
+      "noPreviousVisits": "No previous visits",
+      "surgicalHistoryLabel": "Surgical history",
+      "familyHistoryLabel": "Family history",
+      "fullStructuredHistoryLabel": "Full structured history"
     }
   },
   "Settings": {
