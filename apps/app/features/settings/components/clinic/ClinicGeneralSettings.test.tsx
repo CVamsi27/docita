@@ -77,45 +77,6 @@ const settingsMocks = vi.hoisted(() => ({
   },
 }));
 
-const messages = {
-  ClinicSettings: {
-    general: {
-      identityEyebrow: "Identity",
-      nameLabel: "Clinic name",
-      namePlaceholder: "Enter clinic name",
-      facilityTypeLabel: "Facility type",
-      facilityTypeHint: "Used in navigation, headings, and join flows.",
-      facilityTypePlaceholder: "Clinic or Hospital",
-      facilityTypeClinic: "Clinic",
-      facilityTypeHospital: "Hospital",
-      locationEyebrow: "Location",
-      addressLabel: "Address",
-      addressPlaceholder: "Enter address",
-      mapsLinkLabel: "Google Maps link",
-      mapsLinkHint:
-        "Patients see this in appointment messages. Paste a Google Maps share URL or Plus code link. Leave blank to skip.",
-      mapsLinkPlaceholder: "https://maps.google.com/...",
-      previewLinkLabel: "Preview link",
-      contactComplianceEyebrow: "Contact & compliance",
-      phoneLabel: "Phone number",
-      phonePlaceholder: "Enter phone number",
-      gstinLabel: "GSTIN",
-      gstinHint: "Needed for GST invoices on paid Indian plans.",
-      gstinPlaceholder: "GST number",
-      hfrFacilityIdLabel: "HFR Facility ID",
-      hfrFacilityIdHint:
-        "Required before production ABDM M1/M2 use for this facility.",
-      hfrFacilityIdPlaceholder: "Enter HFR Facility ID",
-      legalNameLabel: "Legal name (for tax invoice)",
-      legalNameHint:
-        "Registered legal name on your GST certificate. Leave blank to use the facility name.",
-      legalNamePlaceholder: "e.g. Apollo Multispecialty Pvt. Ltd.",
-      cancelButton: "Cancel",
-      savingButton: "Saving…",
-      saveButton: "Save changes",
-    },
-  },
-};
 
 vi.mock("@workspace/data-access", async () => {
   const actual = await vi.importActual<typeof import("@workspace/data-access")>(
