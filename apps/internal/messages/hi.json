@@ -647,5 +647,14 @@
       "colStatus": "स्थिति",
       "recentEntriesFooter": "{count} हाल की प्रविष्टियाँ दिखा रहे हैं। हर 30 सेकंड में ताज़ा होता है।"
     }
+  },
+  "EnterpriseContracts": {
+    "revisionsDialog": {
+      "title": "संशोधन इतिहास",
+      "emptyState": "अभी तक कोई संशोधन नहीं।",
+      "effectiveHead": "प्रभावी",
+      "summaryHead": "सारांश",
+      "byHead": "द्वारा"
+    }
   }
 }
