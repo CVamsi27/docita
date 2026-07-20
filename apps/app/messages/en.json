@@ -1000,6 +1000,17 @@
       "errorDoctor": "Select the attending doctor",
       "errorDiagnosis": "Enter the admission diagnosis"
     },
+    "admissionFormFields": {
+      "wardLabel": "Ward",
+      "wardPlaceholder": "Select ward",
+      "bedLabel": "Bed",
+      "bedPlaceholder": "Select bed",
+      "bedOptionLabel": "{ward} / Room {room} / Bed {bed}",
+      "doctorLabel": "Attending doctor",
+      "doctorPlaceholder": "Select doctor",
+      "diagnosisLabel": "Admission diagnosis",
+      "notesLabel": "Notes"
+    },
     "dashboard": {
       "totalBedsLabel": "Total beds",
       "admittedLabel": "Admitted",
