@@ -14,6 +14,16 @@ import {
   formatDate,
   formatDistanceToNow,
 } from "@workspace/utils";
+import { useTranslations } from "next-intl";
+
+/**
+ * Phase 3 (per-feature): apps/app Onboarding > Join request status
+ * pending card. 6 literals converted to
+ * useTranslations("Onboarding.joinRequestPending").
+ */
+function useJoinRequestPendingTranslations() {
+  return useTranslations("Onboarding.joinRequestPending");
+}
 
 export interface JoinRequestStatusItem {
   id: string;
@@ -38,6 +48,7 @@ export function JoinRequestStatusPendingCard({
   onWithdraw: () => void;
   isWithdrawing: boolean;
 }) {
+  const t = useJoinRequestPendingTranslations();
   return (
     <Card className="ui-card-surface p-5 sm:p-6">
       <div className="flex items-start gap-3 sm:gap-4 mb-6">
@@ -45,13 +56,13 @@ export function JoinRequestStatusPendingCard({
           <Clock className="h-6 w-6 text-warning" />
         </div>
         <div className="flex-1 min-w-0">
-          <h2 className="ui-section-title mb-1">Request Under Review</h2>
+          <h2 className="ui-section-title mb-1">{t("title")}</h2>
           <p className="ui-page-subtitle">
-            You requested to join
+            {t("subtitlePrefix")}
             <span className="ml-1 font-semibold text-foreground">
               {request.clinic.name}
             </span>
-            <span className="ml-1">with role</span>
+            <span className="ml-1">{t("subtitleMid")}</span>
             <span className="ml-1 font-semibold text-foreground">
               {request.requestedRole}
             </span>
@@ -65,7 +76,7 @@ export function JoinRequestStatusPendingCard({
       <div className="border-t pt-5 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <p className="text-xs text-muted-foreground mb-1">Submitted</p>
+            <p className="text-xs text-muted-foreground mb-1">{t("submittedLabel")}</p>
             <p className="text-sm font-medium">
               {formatDistanceToNow(request.requestedAt)}
             </p>
@@ -76,7 +87,7 @@ export function JoinRequestStatusPendingCard({
 
           {request.expiresAt ? (
             <div>
-              <p className="text-xs text-muted-foreground mb-1">Expires</p>
+              <p className="text-xs text-muted-foreground mb-1">{t("expiresLabel")}</p>
               <p className="text-sm font-medium">
                 {formatDistanceToNow(request.expiresAt)}
               </p>
@@ -89,7 +100,7 @@ export function JoinRequestStatusPendingCard({
 
         {request.message ? (
           <div>
-            <p className="text-xs text-muted-foreground mb-2">Your Message</p>
+            <p className="text-xs text-muted-foreground mb-2">{t("messageLabel")}</p>
             <Card className="p-3 bg-muted/50">
               <p className="text-sm">{request.message}</p>
             </Card>
@@ -99,16 +110,10 @@ export function JoinRequestStatusPendingCard({
 
       <Alert className="mt-5">
         <Building2 className="h-4 w-4" />
-        <AlertTitle>What happens next?</AlertTitle>
+        <AlertTitle>{t("nextStepsTitle")}</AlertTitle>
         <AlertDescription className="space-y-1.5 mt-1.5 text-sm">
-          <p>
-            The facility administrator will review your request and respond
-            within 7 days
-          </p>
-          <p>
-            You will receive notifications via WhatsApp and email when your
-            request is reviewed
-          </p>
+          <p>{t("nextStepsBody1")}</p>
+          <p>{t("nextStepsBody2")}</p>
         </AlertDescription>
       </Alert>
 
@@ -119,7 +124,7 @@ export function JoinRequestStatusPendingCard({
           onClick={onWithdraw}
           disabled={isWithdrawing}
         >
-          {isWithdrawing ? "Withdrawing…" : "Withdraw Request"}
+          {isWithdrawing ? t("withdrawingLabel") : t("withdrawButton")}
         </Button>
       </div>
     </Card>

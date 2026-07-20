@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-20T06:21:11.260Z",
-  "totalLiterals": 948,
+  "generatedAt": "2026-07-20T06:25:01.838Z",
+  "totalLiterals": 942,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -170,7 +170,6 @@
     "apps/app/features/onboarding/components/clinic-address-picker-dialog.tsx": 1,
     "apps/app/features/onboarding/components/forms/clinic-registration-form-sections.tsx": 3,
     "apps/app/features/onboarding/components/forms/clinic-registration-form.tsx": 2,
-    "apps/app/features/onboarding/components/join-request-status-pending-card.tsx": 6,
     "apps/app/features/onboarding/components/join-request-status-terminal.tsx": 2,
     "apps/app/features/onboarding/components/steps/ClinicWeeklyHoursStep.tsx": 2,
     "apps/app/features/onboarding/components/steps/ClinicWeeklyHoursStepSections.tsx": 4,
