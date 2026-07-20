@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/data-display/table";
+import { useTranslations } from "next-intl";
 
 interface InvoiceItem {
   description: string;
@@ -25,10 +26,19 @@ interface InvoiceItemsTableReadOnlyProps {
   formatCurrency: (amount: number) => string;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Invoices > Items table read-only.
+ * 6 literals converted to useTranslations("Invoices.itemsTableReadOnly").
+ */
+function useItemsTableReadOnlyTranslations() {
+  return useTranslations("Invoices.itemsTableReadOnly");
+}
+
 export function InvoiceItemsTableReadOnly({
   items,
   formatCurrency,
 }: InvoiceItemsTableReadOnlyProps) {
+  const t = useItemsTableReadOnlyTranslations();
   const rows = items ?? [];
 
   if (rows.length === 0) return null;
@@ -50,9 +60,12 @@ export function InvoiceItemsTableReadOnly({
                 </p>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                {item.quantity} × {formatCurrency(unit)}
-                {taxRate > 0 ? ` · GST ${taxRate}%` : ""}
-                {hsnSac ? ` · HSN ${hsnSac}` : ""}
+                {t("mobileLineMeta", {
+                  quantity: item.quantity,
+                  unit: formatCurrency(unit),
+                  tax: taxRate > 0 ? ` · ${t("gstPercentSuffix", { percent: taxRate })}` : "",
+                  hsn: hsnSac ? ` · ${t("hsnSuffix", { code: hsnSac })}` : "",
+                })}
               </p>
             </div>
           );
@@ -63,14 +76,14 @@ export function InvoiceItemsTableReadOnly({
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
-              <TableHead className="px-4 py-3">Description</TableHead>
-              <TableHead className="w-24 px-4 py-3 text-center">Qty</TableHead>
-              <TableHead className="w-32 px-4 py-3 text-right">Price</TableHead>
-              <TableHead className="w-24 px-4 py-3 text-right">GST</TableHead>
+              <TableHead className="px-4 py-3">{t("colDescription")}</TableHead>
+              <TableHead className="w-24 px-4 py-3 text-center">{t("colQty")}</TableHead>
+              <TableHead className="w-32 px-4 py-3 text-right">{t("colPrice")}</TableHead>
+              <TableHead className="w-24 px-4 py-3 text-right">{t("colGst")}</TableHead>
               <TableHead className="w-28 px-4 py-3 text-right">
-                HSN/SAC
+                {t("colHsnSac")}
               </TableHead>
-              <TableHead className="w-32 px-4 py-3 text-right">Total</TableHead>
+              <TableHead className="w-32 px-4 py-3 text-right">{t("colTotal")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="divide-y">
@@ -84,7 +97,7 @@ export function InvoiceItemsTableReadOnly({
                   {formatCurrency(item.unitPrice ?? item.price)}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-right">
-                  {item.taxRate ?? 0}%
+                  {t("gstValue", { percent: item.taxRate ?? 0 })}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-right">
                   {item.hsnCode || item.sacCode || "—"}

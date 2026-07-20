@@ -650,6 +650,18 @@
       "colReference": "संदर्भ",
       "colNotes": "टिप्पणियाँ",
       "colLink": "लिंक"
+    },
+    "itemsTableReadOnly": {
+      "colDescription": "विवरण",
+      "colQty": "मात्रा",
+      "colPrice": "मूल्य",
+      "colGst": "GST",
+      "colHsnSac": "HSN/SAC",
+      "colTotal": "कुल",
+      "gstValue": "{percent}%",
+      "gstPercentSuffix": "GST {percent}%",
+      "hsnSuffix": "HSN {code}",
+      "mobileLineMeta": "{quantity} × {unit}{tax}{hsn}"
     }
   },
   "Ocr": {

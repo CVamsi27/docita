@@ -650,6 +650,18 @@
       "colReference": "Reference",
       "colNotes": "Notes",
       "colLink": "Link"
+    },
+    "itemsTableReadOnly": {
+      "colDescription": "Description",
+      "colQty": "Qty",
+      "colPrice": "Price",
+      "colGst": "GST",
+      "colHsnSac": "HSN/SAC",
+      "colTotal": "Total",
+      "gstValue": "{percent}%",
+      "gstPercentSuffix": "GST {percent}%",
+      "hsnSuffix": "HSN {code}",
+      "mobileLineMeta": "{quantity} × {unit}{tax}{hsn}"
     }
   },
   "Ocr": {

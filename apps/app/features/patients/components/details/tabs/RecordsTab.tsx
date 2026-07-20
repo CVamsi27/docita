@@ -43,7 +43,7 @@ export function RecordsTab({ patient, canEditPatient }: RecordsTabProps) {
         patient={patient}
         readOnly={!isEditing}
         variant="consultation"
-        allowGrowthEdit={false}
+        allowGrowthEdit={isEditing}
       />
     </div>
   );
