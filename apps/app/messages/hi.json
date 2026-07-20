@@ -928,6 +928,26 @@
       "historyErrorFallback": "हम भेजे गए संदेश लोड नहीं कर सके।",
       "historyEmptyTitle": "अभी तक कोई संदेश नहीं",
       "historyEmptyDescription": "अभी तक इस रोगी को कोई संदेश नहीं भेजा गया है।"
+    },
+    "metricsConfiguration": {
+      "cardTitle": "श्रेणी / कस्टम मीट्रिक फ़ील्ड जोड़ें",
+      "newCategoryLabel": "नई श्रेणी",
+      "categoryKeyPlaceholder": "श्रेणी कुंजी",
+      "categoryNamePlaceholder": "श्रेणी नाम",
+      "addCategoryButton": "श्रेणी जोड़ें",
+      "newFieldLabel": "नया कस्टम मीट्रिक फ़ील्ड",
+      "categoryPlaceholder": "श्रेणी",
+      "unnamedCategoryFallback": "अनाम श्रेणी",
+      "fieldKeyPlaceholder": "फ़ील्ड कुंजी",
+      "fieldLabelPlaceholder": "फ़ील्ड लेबल",
+      "valueTypePlaceholder": "मान प्रकार",
+      "valueTypeText": "टेक्स्ट",
+      "valueTypeNumber": "संख्या",
+      "valueTypeBoolean": "बूलियन",
+      "valueTypeDate": "तारीख",
+      "unitPlaceholder": "इकाई",
+      "trackByDefaultLabel": "डिफ़ॉल्ट रूप से ट्रैक करें",
+      "addCustomFieldButton": "कस्टम फ़ील्ड जोड़ें"
     }
   },
   "Prescriptions": {
