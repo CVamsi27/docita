@@ -928,6 +928,26 @@
       "historyErrorFallback": "We could not load sent messages.",
       "historyEmptyTitle": "No messages yet",
       "historyEmptyDescription": "No messages have been sent to this patient yet."
+    },
+    "metricsConfiguration": {
+      "cardTitle": "Add Category / Custom Metric Field",
+      "newCategoryLabel": "New Category",
+      "categoryKeyPlaceholder": "Category key",
+      "categoryNamePlaceholder": "Category name",
+      "addCategoryButton": "Add Category",
+      "newFieldLabel": "New Custom Metric Field",
+      "categoryPlaceholder": "Category",
+      "unnamedCategoryFallback": "Unnamed Category",
+      "fieldKeyPlaceholder": "Field key",
+      "fieldLabelPlaceholder": "Field label",
+      "valueTypePlaceholder": "Value type",
+      "valueTypeText": "Text",
+      "valueTypeNumber": "Number",
+      "valueTypeBoolean": "Boolean",
+      "valueTypeDate": "Date",
+      "unitPlaceholder": "Unit",
+      "trackByDefaultLabel": "Track by default",
+      "addCustomFieldButton": "Add Custom Field"
     }
   },
   "Prescriptions": {
