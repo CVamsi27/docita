@@ -37,10 +37,10 @@ interface SmartTasksTabProps {
 /**
  * Phase 3 (per-feature): apps/app AI assistant > Smart Tasks tab
  * (task type selector + quick actions + recent automations). 7 literals
- * converted to useTranslations("AiAssistant.smartTasksTab").
+ * converted to useTranslations("AiAssistant.smartTasksPane").
  */
 function useSmartTasksTranslations() {
-  return useTranslations("AiAssistant.smartTasksTab");
+  return useTranslations("AiAssistant.smartTasksPane");
 }
 
 export const SmartTasksTab = ({ state, handlers }: SmartTasksTabProps) => {

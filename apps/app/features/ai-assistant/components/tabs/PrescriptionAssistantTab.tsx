@@ -23,10 +23,10 @@ import type { PrescriptionAssistantTabProps } from "@workspace/types";
 /**
  * Phase 3 (per-feature): apps/app AI assistant > Prescription assistant
  * tab. 6 literals converted to
- * useTranslations("AiAssistant.prescriptionAssistantTab").
+ * useTranslations("AiAssistant.prescriptionAssistantPane").
  */
 function usePrescriptionAssistantTranslations() {
-  return useTranslations("AiAssistant.prescriptionAssistantTab");
+  return useTranslations("AiAssistant.prescriptionAssistantPane");
 }
 
 export const PrescriptionAssistantTab = ({

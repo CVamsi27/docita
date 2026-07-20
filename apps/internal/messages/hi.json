@@ -275,6 +275,21 @@
       "colStatus": "स्थिति",
       "periodValue": "{start} → {end}",
       "discountValue": "{percent}%"
+    },
+    "editor": {
+      "title": "Edit contract",
+      "saveButton": "Save",
+      "cancelButton": "Cancel"
+    },
+    "limits": {
+      "title": "Edit limits",
+      "saveButton": "Save",
+      "cancelButton": "Cancel"
+    },
+    "estimate": {
+      "title": "Estimate",
+      "saveButton": "Save",
+      "cancelButton": "Cancel"
     }
   },
   "InternalPricing": {
@@ -681,6 +696,62 @@
       "excludedLabel": "बहिष्कृत",
       "exceptionsTitle": "अपवाद",
       "exceptionsSubtitle": "ClinicId मॉडल जानबूझकर ऑटो-स्कोपिंग से बाहर"
+    }
+  },
+  "AiAssistant": {
+    "smartTasksPane": {
+      "comingSoonNotice": "The Smart Task Engine is in active development. The quick actions and automation history below are sample data and are not yet wired to live workflows.",
+      "engineTitle": "Smart Task Engine",
+      "engineDescription": "AI-powered workflow automation",
+      "taskTypeLabel": "Task type",
+      "taskTypePlaceholder": "Task type",
+      "taskFollowUps": "Schedule Follow-ups",
+      "taskRecalls": "Patient recalls",
+      "taskReminders": "Custom reminders",
+      "taskReports": "Generate reports",
+      "quickActionsTitle": "Quick actions",
+      "actionAutoFollowUps": "Auto-schedule all pending follow-ups",
+      "actionSendReminders": "Send reminders to no-show risks",
+      "actionGenerateReport": "Generate weekly summary report",
+      "recentAutomationsTitle": "Recent Automations",
+      "automationReminders": "Sent 15 appointment reminders",
+      "automationMonthlyReport": "Generated monthly analytics report",
+      "automationFollowUps": "Scheduled 8 follow-up appointments",
+      "time2HoursAgo": "2 hours ago",
+      "time1DayAgo": "1 day ago"
+    },
+    "prescriptionAssistantPane": {
+      "title": "Prescription Assistant",
+      "description": "Get AI-powered medication suggestions and drug interaction checks",
+      "symptomsLabel": "Symptoms / Chief Complaint",
+      "symptomsPlaceholder": "Enter symptoms or chief complaint",
+      "diagnosisLabel": "Working diagnosis",
+      "diagnosisPlaceholder": "Working diagnosis",
+      "currentMedicationsLabel": "Current Medications (for interaction check)",
+      "currentMedicationsPlaceholder": "Enter current medications",
+      "allergiesLabel": "Known allergies",
+      "allergiesPlaceholder": "Known allergies",
+      "analyzingLabel": "Analyzing…",
+      "getSuggestionsButton": "Get Suggestions",
+      "emptyHelper": "Enter symptoms and diagnosis to get AI-powered medication suggestions",
+      "interactionsTitle": "Drug Interactions Detected",
+      "interactionPair": "{drug1} ↔ {drug2}",
+      "suggestionsTitle": "Suggested Medications",
+      "addToPrescriptionButton": "Add to Prescription",
+      "dosageLabel": "Dosage:",
+      "routeLabel": "Route:",
+      "frequencyLabel": "Frequency:",
+      "durationLabel": "Duration:",
+      "noteLabel": "Note: {note}"
+    }
+  },
+  "Patients": {
+    "vitalsTab": {
+      "title": "Vitals",
+      "addVitalsButton": "Add vitals",
+      "noVitalsTitle": "No vitals recorded",
+      "noVitalsDescription": "Record the patient's vitals to see trends over time.",
+      "loadingMessage": "Loading vitals…"
     }
   }
 }

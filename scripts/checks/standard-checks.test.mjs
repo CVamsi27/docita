@@ -292,3 +292,39 @@ test("jsx literal density ratchet: baseline write, growth fails --enforce, refre
     runCheck(root, "check-jsx-literal-density.mjs", ["--enforce"]),
   );
 });
+
+test("i18n translation-key check fails on missing namespace and passes on present", () => {
+  const files = {
+    "apps/app/messages/en.json": JSON.stringify({ X: { present: "yes" } }),
+    "apps/app/messages/hi.json": JSON.stringify({ X: { present: "yes" } }),
+    "apps/internal/messages/en.json": JSON.stringify({}),
+    "apps/internal/messages/hi.json": JSON.stringify({}),
+    "apps/app/features/x/Comp.tsx":
+      `import { useTranslations } from "next-intl";\nexport function Comp() { return useTranslations("X.missing"); }\n`,
+  };
+
+  // UseTranslations references "X.missing" but the JSON only has "X".
+  expectFail(
+    runCheck(
+      makeGitFixture(files),
+      "check-i18n-translation-keys.mjs",
+      ["--enforce"],
+    ),
+  );
+
+  // UseTranslations references "X.present.leaf" — the namespace resolves
+  // to an object so the check passes (we don't validate leaf keys).
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        ...files,
+        "apps/app/messages/en.json": JSON.stringify({ X: { present: { leaf: "yes" } } }),
+        "apps/app/messages/hi.json": JSON.stringify({ X: { present: { leaf: "yes" } } }),
+        "apps/app/features/x/Comp.tsx":
+          `import { useTranslations } from "next-intl";\nexport function Comp() { const t = useTranslations("X.present"); return t("leaf"); }\n`,
+      }),
+      "check-i18n-translation-keys.mjs",
+      ["--enforce"],
+    ),
+  );
+});
