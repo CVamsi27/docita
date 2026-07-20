@@ -624,51 +624,6 @@
       "notesTitle": "Notes",
       "notesDescription": "Add any additional notes or payment instructions",
       "notesPlaceholder": "Notes"
-    }
-  },
-  "Invoices": {
-    "totals": {
-      "amountInWordsLabel": "Amount in Words:",
-      "notesLabel": "Notes:",
-      "subtotalLabel": "Subtotal",
-      "discountLabel": "Discount",
-      "taxableValueLabel": "Taxable value",
-      "taxLabel": "Tax",
-      "documentLabel": "Document",
-      "totalLabel": "Total",
-      "amountPaidLabel": "Amount paid",
-      "balanceDueLabel": "Balance due"
-    },
-    "itemsTable": {
-      "emptyMessage": "No items added yet.",
-      "colDescription": "Description",
-      "colQty": "Qty",
-      "colUnitPrice": "Unit price",
-      "colTax": "Tax",
-      "colGstPercent": "GST %",
-      "colHsnSac": "HSN/SAC",
-      "colTotal": "Total",
-      "itemDescriptionPlaceholder": "Item description",
-      "taxHealthcareExempt": "Healthcare exempt",
-      "taxTaxable": "Taxable",
-      "taxExempt": "Exempt",
-      "taxNonGst": "Non-GST",
-      "hsnCodePlaceholder": "HSN code",
-      "removeLineItemTooltip": "Remove {name, select, undefined {line item} other {{name}}}"
-    },
-    "formSections": {
-      "invoiceDetailsTitle": "Invoice details",
-      "lineItemsTitle": "Line items",
-      "addItemButton": "Add Item",
-      "statusLabel": "Status",
-      "statusPlaceholder": "Status",
-      "statusPending": "Pending",
-      "statusPaid": "Paid",
-      "statusOverdue": "Overdue",
-      "statusCancelled": "Cancelled",
-      "notesTitle": "Notes",
-      "notesDescription": "Add any additional notes or payment instructions",
-      "notesPlaceholder": "Notes"
     },
     "paymentActivity": {
       "loadingLabel": "Loading payment activity…",
@@ -867,50 +822,6 @@
     }
   },
   "Patients": {
-    "vitalsTab": {
-      "latestVitalsTitle": "Latest vitals",
-      "recordedLabel": "Recorded {date}",
-      "bpLabel": "BP",
-      "pulseLabel": "Pulse",
-      "spo2Label": "SpO2",
-      "tempLabel": "Temp",
-      "weightLabel": "Weight",
-      "bmiLabel": "BMI",
-      "unitMmHg": "mmHg",
-      "unitBpm": "bpm",
-      "unitPercent": "%",
-      "unitCelsius": "°C",
-      "unitKg": "kg",
-      "emptyVitalsTitle": "No vitals recorded",
-      "emptyVitalsDescription": "Vitals captured during a visit will appear here.",
-      "historyTitle": "Vitals history",
-      "emptyHistoryTitle": "No vitals history",
-      "emptyHistoryDescription": "Vitals captured during a visit will be listed here.",
-      "colDate": "Date",
-      "historyFooter": "Showing latest {shown} of {total} entries.",
-      "advancedMetricTrackingLabel": "Advanced metric tracking",
-      "customVitalsTitle": "Custom vitals tracking",
-      "emptyCustomVitalsHistory": "No custom vitals records yet.",
-      "emptyCustomVitalsDefinitions": "Custom vitals fields will appear here once configured."
-    }
-  },
-  "Inventory": {
-    "itemDetails": {
-      "skuLabel": "SKU: {sku}",
-      "notAvailable": "N/A",
-      "purchasePriceLabel": "Purchase Price",
-      "sellingPriceLabel": "Selling Price",
-      "minQuantityLabel": "Min. Quantity",
-      "expiryDateLabel": "Expiry Date",
-      "recentMovementsTitle": "Recent movements",
-      "noMovementsRecorded": "No movements recorded yet",
-      "tableTypeHeader": "Type",
-      "tableQtyHeader": "Qty",
-      "tableDateHeader": "Date",
-      "tableNotesHeader": "Notes"
-    }
-  },
-  "Patients": {
     "whatsappComposer": {
       "composerTitle": "Send a WhatsApp message",
       "templateLabel": "Start from a template",
@@ -948,6 +859,22 @@
       "unitPlaceholder": "Unit",
       "trackByDefaultLabel": "Track by default",
       "addCustomFieldButton": "Add Custom Field"
+    }
+  },
+  "Inventory": {
+    "itemDetails": {
+      "skuLabel": "SKU: {sku}",
+      "notAvailable": "N/A",
+      "purchasePriceLabel": "Purchase Price",
+      "sellingPriceLabel": "Selling Price",
+      "minQuantityLabel": "Min. Quantity",
+      "expiryDateLabel": "Expiry Date",
+      "recentMovementsTitle": "Recent movements",
+      "noMovementsRecorded": "No movements recorded yet",
+      "tableTypeHeader": "Type",
+      "tableQtyHeader": "Qty",
+      "tableDateHeader": "Date",
+      "tableNotesHeader": "Notes"
     }
   },
   "Prescriptions": {
@@ -1152,6 +1079,20 @@
       "loadingLabel": "Loading labs…",
       "emptyTitle": "No labs yet",
       "emptyDescription": "Add an in-house or external lab to route test orders to it."
+    }
+  },
+  "Pharmacy": {
+    "page": {
+      "pageTitle": "Pharmacy",
+      "pageDescription": "Dispense queue, stock visibility, and reorder list — keep the pharmacy moving.",
+      "waitingLabel": "Waiting to dispense",
+      "awaitingBackendLabel": "Awaiting backend",
+      "belowParLabel": "Below par",
+      "outOfStockLabel": "Out of stock",
+      "dispenseQueueTitle": "Dispense queue",
+      "emptyTitle": "Pharmacy workflow pending backend",
+      "emptyDescription": "The dispense queue derives from prescriptions awaiting in-house fulfillment. Once the pharmacy domain (or inventory extension) is wired with useDispenseQueue hooks, this view will show pending prescriptions, hand-off to WhatsApp, and stock par-level alerts.",
+      "emptyAction": "Open inventory"
     }
   }
 }

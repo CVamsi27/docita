@@ -584,51 +584,6 @@
   "Invoices": {
     "totals": {
       "amountInWordsLabel": "शब्दों में राशि:",
-      "notesLabel": "नोट्स:",
-      "subtotalLabel": "उप-योग",
-      "discountLabel": "छूट",
-      "taxableValueLabel": "कर योग्य मूल्य",
-      "taxLabel": "कर",
-      "documentLabel": "दस्तावेज़",
-      "totalLabel": "कुल",
-      "amountPaidLabel": "भुगतान की गई राशि",
-      "balanceDueLabel": "देय शेष"
-    },
-    "itemsTable": {
-      "emptyMessage": "अभी तक कोई आइटम नहीं जोड़ा गया।",
-      "colDescription": "विवरण",
-      "colQty": "मात्रा",
-      "colUnitPrice": "इकाई मूल्य",
-      "colTax": "कर",
-      "colGstPercent": "GST %",
-      "colHsnSac": "HSN/SAC",
-      "colTotal": "कुल",
-      "itemDescriptionPlaceholder": "आइटम विवरण",
-      "taxHealthcareExempt": "स्वास्थ्य सेवा छूट",
-      "taxTaxable": "कर योग्य",
-      "taxExempt": "छूट",
-      "taxNonGst": "गैर-GST",
-      "hsnCodePlaceholder": "HSN कोड",
-      "removeLineItemTooltip": "{name, select, undefined {पंक्ति आइटम हटाएँ} other {{name} हटाएँ}}"
-    },
-    "formSections": {
-      "invoiceDetailsTitle": "चालान विवरण",
-      "lineItemsTitle": "लाइन आइटम",
-      "addItemButton": "आइटम जोड़ें",
-      "statusLabel": "स्थिति",
-      "statusPlaceholder": "स्थिति",
-      "statusPending": "लंबित",
-      "statusPaid": "भुगतान किया गया",
-      "statusOverdue": "अतिदेय",
-      "statusCancelled": "रद्द किया गया",
-      "notesTitle": "टिप्पणियाँ",
-      "notesDescription": "कोई अतिरिक्त टिप्पणी या भुगतान निर्देश जोड़ें",
-      "notesPlaceholder": "टिप्पणियाँ"
-    }
-  },
-  "Invoices": {
-    "totals": {
-      "amountInWordsLabel": "शब्दों में राशि:",
       "notesLabel": "टिप्पणियाँ:",
       "subtotalLabel": "उप-योग",
       "discountLabel": "छूट",
@@ -867,50 +822,6 @@
     }
   },
   "Patients": {
-    "vitalsTab": {
-      "latestVitalsTitle": "नवीनतम जीवन-चिह्न",
-      "recordedLabel": "{date} को दर्ज",
-      "bpLabel": "रक्तचाप",
-      "pulseLabel": "नाड़ी",
-      "spo2Label": "SpO2",
-      "tempLabel": "तापमान",
-      "weightLabel": "वज़न",
-      "bmiLabel": "BMI",
-      "unitMmHg": "mmHg",
-      "unitBpm": "bpm",
-      "unitPercent": "%",
-      "unitCelsius": "°C",
-      "unitKg": "kg",
-      "emptyVitalsTitle": "कोई जीवन-चिह्न दर्ज नहीं",
-      "emptyVitalsDescription": "यात्रा के दौरान कैप्चर किए गए जीवन-चिह्न यहाँ दिखाई देंगे।",
-      "historyTitle": "जीवन-चिह्न इतिहास",
-      "emptyHistoryTitle": "कोई जीवन-चिह्न इतिहास नहीं",
-      "emptyHistoryDescription": "यात्रा के दौरान कैप्चर किए गए जीवन-चिह्न यहाँ सूचीबद्ध होंगे।",
-      "colDate": "तारीख",
-      "historyFooter": "नवीनतम {total} में से {shown} दिखा रहे हैं।",
-      "advancedMetricTrackingLabel": "उन्नत मेट्रिक ट्रैकिंग",
-      "customVitalsTitle": "कस्टम जीवन-चिह्न ट्रैकिंग",
-      "emptyCustomVitalsHistory": "अभी तक कोई कस्टम जीवन-चिह्न रिकॉर्ड नहीं।",
-      "emptyCustomVitalsDefinitions": "कॉन्फ़िगर होने पर कस्टम जीवन-चिह्न फ़ील्ड यहाँ दिखाई देंगे।"
-    }
-  },
-  "Inventory": {
-    "itemDetails": {
-      "skuLabel": "SKU: {sku}",
-      "notAvailable": "उपलब्ध नहीं",
-      "purchasePriceLabel": "क्रय मूल्य",
-      "sellingPriceLabel": "विक्रय मूल्य",
-      "minQuantityLabel": "न्यूनतम मात्रा",
-      "expiryDateLabel": "समाप्ति तिथि",
-      "recentMovementsTitle": "हालिया गतिविधियाँ",
-      "noMovementsRecorded": "अभी तक कोई गतिविधि दर्ज नहीं",
-      "tableTypeHeader": "प्रकार",
-      "tableQtyHeader": "मात्रा",
-      "tableDateHeader": "तारीख",
-      "tableNotesHeader": "टिप्पणियाँ"
-    }
-  },
-  "Patients": {
     "whatsappComposer": {
       "composerTitle": "WhatsApp संदेश भेजें",
       "templateLabel": "टेम्पलेट से शुरू करें",
@@ -948,6 +859,22 @@
       "unitPlaceholder": "इकाई",
       "trackByDefaultLabel": "डिफ़ॉल्ट रूप से ट्रैक करें",
       "addCustomFieldButton": "कस्टम फ़ील्ड जोड़ें"
+    }
+  },
+  "Inventory": {
+    "itemDetails": {
+      "skuLabel": "SKU: {sku}",
+      "notAvailable": "उपलब्ध नहीं",
+      "purchasePriceLabel": "क्रय मूल्य",
+      "sellingPriceLabel": "विक्रय मूल्य",
+      "minQuantityLabel": "न्यूनतम मात्रा",
+      "expiryDateLabel": "समाप्ति तिथि",
+      "recentMovementsTitle": "हालिया गतिविधियाँ",
+      "noMovementsRecorded": "अभी तक कोई गतिविधि दर्ज नहीं",
+      "tableTypeHeader": "प्रकार",
+      "tableQtyHeader": "मात्रा",
+      "tableDateHeader": "तारीख",
+      "tableNotesHeader": "टिप्पणियाँ"
     }
   },
   "Prescriptions": {
@@ -1152,6 +1079,20 @@
       "loadingLabel": "लैब लोड हो रही हैं…",
       "emptyTitle": "अभी तक कोई लैब नहीं",
       "emptyDescription": "टेस्ट ऑर्डर रूट करने के लिए इन-हाउस या बाहरी लैब जोड़ें।"
+    }
+  },
+  "Pharmacy": {
+    "page": {
+      "pageTitle": "फार्मेसी",
+      "pageDescription": "डिस्पेंस कतार, स्टॉक दृश्यता, और रीऑर्डर सूची — फार्मेसी को चालू रखें।",
+      "waitingLabel": "डिस्पेंस के लिए प्रतीक्षारत",
+      "awaitingBackendLabel": "बैकएंड की प्रतीक्षा",
+      "belowParLabel": "न्यूनतम स्तर से नीचे",
+      "outOfStockLabel": "स्टॉक में नहीं",
+      "dispenseQueueTitle": "डिस्पेंस कतार",
+      "emptyTitle": "फार्मेसी वर्कफ़्लो बैकएंड लंबित",
+      "emptyDescription": "डिस्पेंस कतार इन-हाउस पूर्ति की प्रतीक्षा कर रहे नुस्खों से प्राप्त होती है। एक बार फार्मेसी डोमेन useDispenseQueue हुक के साथ वायर्ड हो जाने पर, यह दृश्य लंबित नुस्खे, WhatsApp हैंडऑफ़, और स्टॉक पार-स्तर अलर्ट दिखाएगा।",
+      "emptyAction": "इन्वेंटरी खोलें"
     }
   }
 }
