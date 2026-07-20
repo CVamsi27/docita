@@ -2,6 +2,7 @@
 
 // jscpd:ignore-start
 import { FC } from "react";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -21,6 +22,14 @@ import { memberRoleDisplayLabel } from "@/features/settings/components/managemen
 // Pure badge helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Phase 3 (per-feature): apps/app Settings > team member management helpers.
+ * 5 literals converted to useTranslations("Settings.TeamManagement").
+ */
+function useTeamManagementTranslations() {
+  return useTranslations("Settings.TeamManagement");
+}
+
 export function getVerificationBadgeVariant(
 // jscpd:ignore-end
   status?: User["verificationStatus"],
@@ -33,8 +42,9 @@ export function getVerificationBadgeVariant(
 
 export function getVerificationBadgeLabel(
   status?: User["verificationStatus"],
+  t?: (key: string) => string,
 ): string {
-  if (!status) return "Unverified";
+  if (!status) return t ? t("unverifiedLabel") : "Unverified";
   return status.charAt(0) + status.slice(1).toLowerCase();
 }
 
@@ -48,31 +58,34 @@ interface MemberManagementLoadingSkeletonProps {
 
 export const MemberManagementLoadingSkeleton: FC<
   MemberManagementLoadingSkeletonProps
-> = ({ facilityLabel }) => (
-  <Card role="status" aria-live="polite" aria-label="Loading team members">
-    <CardHeader className="flex flex-row items-center justify-between">
-      <div>
-        <CardTitle>Team Members</CardTitle>
-        <CardDescription>
-          Manage your {facilityLabel.toLowerCase()} staff
-        </CardDescription>
-      </div>
-    </CardHeader>
-    <CardContent>
-      <div className="space-y-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="flex items-center gap-3 p-3">
-            <Skeleton variant="circular" className="h-10 w-10 rounded-full" />
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3 w-48" />
+> = ({ facilityLabel }) => {
+  const t = useTeamManagementTranslations();
+  return (
+    <Card role="status" aria-live="polite" aria-label={t("loadingAriaLabel")}>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>
+            {t("subtitle", { facilityLabel: facilityLabel.toLowerCase() })}
+          </CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center gap-3 p-3">
+              <Skeleton variant="circular" className="h-10 w-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-48" />
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
-    </CardContent>
-  </Card>
-);
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Member list row
@@ -84,6 +97,7 @@ interface MemberListRowProps {
 }
 
 export const MemberListRow: FC<MemberListRowProps> = ({ member, onManage }) => {
+  const t = useTeamManagementTranslations();
   const isDoctorUser = isDoctor(member.role);
 
   return (
@@ -97,7 +111,7 @@ export const MemberListRow: FC<MemberListRowProps> = ({ member, onManage }) => {
             .toUpperCase() || "?"}
         </div>
         <div>
-          <p className="font-medium">{member.name || "Unknown"}</p>
+          <p className="font-medium">{member.name || t("unknownLabel")}</p>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>{member.email}</span>
             <Badge variant="outline">
@@ -110,12 +124,16 @@ export const MemberListRow: FC<MemberListRowProps> = ({ member, onManage }) => {
                     member.verificationStatus,
                   )}
                 >
-                  {getVerificationBadgeLabel(member.verificationStatus)}
+                  {getVerificationBadgeLabel(member.verificationStatus, t)}
                 </Badge>
                 <Badge
                   variant={member.signatureUploadedAt ? "default" : "outline"}
                 >
-                  Signature {member.signatureUploadedAt ? "Ready" : "Missing"}
+                  {t("signatureLabel", {
+                    status: member.signatureUploadedAt
+                      ? t("signatureReady")
+                      : t("signatureMissing"),
+                  })}
                 </Badge>
               </>
             )}
@@ -123,7 +141,7 @@ export const MemberListRow: FC<MemberListRowProps> = ({ member, onManage }) => {
         </div>
       </div>
       <Button variant="ghost" size="sm" onClick={() => onManage(member)}>
-        Manage
+        {t("manageButton")}
       </Button>
     </div>
   );
@@ -147,44 +165,46 @@ export const MemberCardHeader: FC<MemberCardHeaderProps> = ({
   canInvite,
   onCopyCode,
   onInvite,
-}) => (
-  <CardHeader className="flex flex-col gap-4 border-b border-border/60 pb-5 md:flex-row md:items-start md:justify-between">
-    <div className="min-w-0">
-      <CardTitle>Team members</CardTitle>
-      <CardDescription>
-        Manage {facilityLabel.toLowerCase()} staff and permissions.
-      </CardDescription>
-    </div>
-    <div className="flex w-full flex-col gap-2 md:w-auto md:items-end">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="ui-eyebrow">{facilityLabel} code</span>
-        <code className="ui-mono rounded-[calc(var(--radius)-6px)] border border-border/60 bg-muted/40 px-2 py-1 text-xs font-semibold tracking-wide text-foreground">
-          {clinicReferralCode || "Not available"}
-        </code>
+}) => {
+  const t = useTeamManagementTranslations();
+  return (
+    <CardHeader className="flex flex-col gap-4 border-b border-border/60 pb-5 md:flex-row md:items-start md:justify-between">
+      <div className="min-w-0">
+        <CardTitle>{t("cardTitle")}</CardTitle>
+        <CardDescription>
+          {t("cardSubtitle", { facilityLabel: facilityLabel.toLowerCase() })}
+        </CardDescription>
+      </div>
+      <div className="flex w-full flex-col gap-2 md:w-auto md:items-end">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="ui-eyebrow">{t("codeLabel", { facilityLabel })}</span>
+          <code className="ui-mono rounded-[calc(var(--radius)-6px)] border border-border/60 bg-muted/40 px-2 py-1 text-xs font-semibold tracking-wide text-foreground">
+            {clinicReferralCode || t("codeUnavailable")}
+          </code>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onCopyCode}
+            disabled={!clinicReferralCode}
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            {t("copyButton")}
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground md:text-right">
+          {t("shareCodeHint", { facilityLabel: facilityLabel.toLowerCase() })}
+        </p>
         <Button
-          type="button"
-          variant="outline"
           size="sm"
-          onClick={onCopyCode}
-          disabled={!clinicReferralCode}
+          onClick={onInvite}
+          disabled={!canInvite}
+          className="w-full md:w-auto"
         >
-          <Copy className="mr-2 h-4 w-4" />
-          Copy
+          <UserPlus className="mr-2 h-4 w-4" />
+          {t("inviteButton")}
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground md:text-right">
-        Share this code so staff can join from the {facilityLabel.toLowerCase()}{" "}
-        selection page.
-      </p>
-      <Button
-        size="sm"
-        onClick={onInvite}
-        disabled={!canInvite}
-        className="w-full md:w-auto"
-      >
-        <UserPlus className="mr-2 h-4 w-4" />
-        Invite member
-      </Button>
-    </div>
-  </CardHeader>
-);
+    </CardHeader>
+  );
+};
