@@ -14,14 +14,17 @@ import {
 } from "@workspace/ui/components/form/select";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { MessageCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { WhatsappSenderConfigResponse, WhatsappSenderMode } from "@workspace/types";
 
-export const MODE_LABELS: Record<WhatsappSenderMode, string> = {
-// jscpd:ignore-end
-  SHARED: "Shared Docita number",
-  BYO: "Clinic's own number",
-  MANAGED: "Docita-managed dedicated",
-};
+/**
+ * Phase 3 (per-feature): apps/internal Dashboard > WhatsApp sender
+ * dialog sections. 6 literals converted to
+ * useTranslations("InternalDashboard.whatsappSenderDialog").
+ */
+function useWhatsappSenderTranslations() {
+  return useTranslations("InternalDashboard.whatsappSenderDialog");
+}
 
 export const MODE_OPTIONS: readonly WhatsappSenderMode[] = ["SHARED", "BYO", "MANAGED"];
 
@@ -34,13 +37,14 @@ type TriggerProps = {
 };
 
 export function WhatsappSenderTrigger({ onOpen }: TriggerProps) {
+  const t = useWhatsappSenderTranslations();
   return (
-    <SymbolTooltip label="WhatsApp sender">
+    <SymbolTooltip label={t("triggerTooltip")}>
       <Button
         variant="ghost"
         size="icon"
         onClick={onOpen}
-        aria-label="WhatsApp sender"
+        aria-label={t("triggerAriaLabel")}
       >
         <MessageCircle className="h-4 w-4" />
       </Button>
@@ -53,11 +57,12 @@ type StatusProps = {
 };
 
 export function WhatsappSenderStatus({ config }: StatusProps) {
+  const t = useWhatsappSenderTranslations();
   if (!config) return null;
 
   return (
     <div className="flex flex-wrap items-center gap-2 text-sm">
-      <span className="text-muted-foreground">Current status:</span>
+      <span className="text-muted-foreground">{t("currentStatusLabel")}</span>
       <Badge variant={config.status === "VERIFIED" ? "default" : "secondary"}>
         {config.status.replace(/_/g, " ")}
       </Badge>
@@ -65,7 +70,7 @@ export function WhatsappSenderStatus({ config }: StatusProps) {
         <span className="text-muted-foreground">· {config.displayName}</span>
       ) : null}
       {config.fallbackActive ? (
-        <Badge variant="destructive">Falling back to shared</Badge>
+        <Badge variant="destructive">{t("fallbackBadge")}</Badge>
       ) : null}
     </div>
   );
@@ -77,9 +82,10 @@ type ModeSelectorProps = {
 };
 
 export function WhatsappSenderModeSelector({ mode, onModeChange }: ModeSelectorProps) {
+  const t = useWhatsappSenderTranslations();
   return (
     <div className="space-y-2">
-      <Label htmlFor="ws-mode">Mode</Label>
+      <Label htmlFor="ws-mode">{t("modeLabel")}</Label>
       <Select
         value={mode}
         onValueChange={(val) => {
@@ -92,7 +98,7 @@ export function WhatsappSenderModeSelector({ mode, onModeChange }: ModeSelectorP
         <SelectContent>
           {MODE_OPTIONS.map((m) => (
             <SelectItem key={m} value={m}>
-              {MODE_LABELS[m]}
+              {t("modeOption", { mode: m })}
             </SelectItem>
           ))}
         </SelectContent>
@@ -120,19 +126,20 @@ export function WhatsappSenderByoFields({
   onAccessTokenChange,
   hasExistingPhoneNumber,
 }: ByoFieldsProps) {
+  const t = useWhatsappSenderTranslations();
   return (
     <div className="space-y-3">
       <div className="space-y-2">
-        <Label htmlFor="ws-phone-id">Phone number ID</Label>
+        <Label htmlFor="ws-phone-id">{t("phoneIdLabel")}</Label>
         <Input
           id="ws-phone-id"
           value={phoneNumberId}
           onChange={(e) => onPhoneNumberIdChange(e.target.value)}
-          placeholder="From Meta business → WhatsApp manager"
+          placeholder={t("phoneIdPlaceholder")}
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="ws-waba-id">WABA ID (optional)</Label>
+        <Label htmlFor="ws-waba-id">{t("wabaIdLabel")}</Label>
         <Input
           id="ws-waba-id"
           value={wabaId}
@@ -140,7 +147,7 @@ export function WhatsappSenderByoFields({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="ws-token">Access token</Label>
+        <Label htmlFor="ws-token">{t("tokenLabel")}</Label>
         <Input
           id="ws-token"
           type="password"
@@ -148,13 +155,12 @@ export function WhatsappSenderByoFields({
           onChange={(e) => onAccessTokenChange(e.target.value)}
           placeholder={
             hasExistingPhoneNumber
-              ? "Leave blank to keep existing token"
-              : "Paste Meta system-user token"
+              ? t("tokenKeepPlaceholder")
+              : t("tokenNewPlaceholder")
           }
         />
         <p className="text-xs text-muted-foreground">
-          Stored encrypted in ClinicSecret. Existing token stays in
-          place unless you replace it here.
+          {t("tokenHelper")}
         </p>
       </div>
     </div>
@@ -176,6 +182,7 @@ export function WhatsappSenderActions({
   onVerify,
   onRevoke,
 }: ActionsProps) {
+  const t = useWhatsappSenderTranslations();
   return (
     <div className="flex flex-wrap justify-end gap-2 pt-2">
       <Button
@@ -184,7 +191,7 @@ export function WhatsappSenderActions({
         onClick={onRevoke}
         disabled={loading || !canVerifyOrRevoke}
       >
-        Reset to shared
+        {t("resetButton")}
       </Button>
       <Button
         type="button"
@@ -192,10 +199,10 @@ export function WhatsappSenderActions({
         onClick={onVerify}
         disabled={loading || !canVerifyOrRevoke}
       >
-        Verify with Meta
+        {t("verifyButton")}
       </Button>
       <Button type="button" onClick={onSave} disabled={loading}>
-        Save
+        {t("saveButton")}
       </Button>
     </div>
   );
@@ -206,11 +213,12 @@ type ErrorProps = {
 };
 
 export function WhatsappSenderError({ lastVerifyError }: ErrorProps) {
+  const t = useWhatsappSenderTranslations();
   if (!lastVerifyError) return null;
 
   return (
     <p className="text-sm text-destructive">
-      Last verify error: {lastVerifyError}
+      {t("errorLabel", { error: lastVerifyError })}
     </p>
   );
 }

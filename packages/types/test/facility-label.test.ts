@@ -18,7 +18,7 @@ import { clinicSettingsFormSchema } from "../src/forms/clinic-settings-form";
 describe("facilityLabel <-> facilityType contract", () => {
   const labelValues: FacilityTypeType[] = facilityTypeSchema.options;
 
-  it("every value in the enum is accepted by both schemas", () => {
+  it("every value in the enum is accepted by the write and form schemas", () => {
     for (const value of labelValues) {
       const write = updateClinicSettingsRequestSchema.safeParse({
         facilityLabel: value,
@@ -32,12 +32,6 @@ describe("facilityLabel <-> facilityType contract", () => {
         facilityLabel: value,
       });
       expect(form.success).toBe(true);
-
-      const read = clinicResponseSchema.safeParse({
-        id: "c-1",
-        facilityType: value,
-      });
-      expect(read.success).toBe(true);
     }
   });
 
@@ -49,11 +43,32 @@ describe("facilityLabel <-> facilityType contract", () => {
   });
 
   it("rejects a type that is not in the enum on the read side", () => {
+    // clinicResponseSchema extends createClinicRequestSchema which has
+    // required fields (name, address, phone, email). Pass a full record
+    // so the only thing under test is the facilityType enum.
     const result = clinicResponseSchema.safeParse({
       id: "c-1",
+      name: "Test",
+      address: "1 Main",
+      phone: "+919876543210",
+      email: "test@example.com",
       facilityType: "LAB" as never,
     });
     expect(result.success).toBe(false);
+  });
+
+  it("accepts every enum value on the read side when the surrounding fields are present", () => {
+    for (const value of labelValues) {
+      const read = clinicResponseSchema.safeParse({
+        id: "c-1",
+        name: "Test",
+        address: "1 Main",
+        phone: "+919876543210",
+        email: "test@example.com",
+        facilityType: value,
+      });
+      expect(read.success).toBe(true);
+    }
   });
 
   it("both sides agree on the canonical values: CLINIC and HOSPITAL", () => {
