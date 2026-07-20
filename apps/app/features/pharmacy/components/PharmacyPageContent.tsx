@@ -11,46 +11,57 @@ import {
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { Feature } from "@workspace/types";
+import { useTranslations } from "next-intl";
 import { ClipboardList, Pill } from "lucide-react";
 import { FeatureGate } from "@/components/auth/feature-gate";
+
+/**
+ * Phase 3 (per-feature): apps/app Pharmacy > Page content. 6 literals
+ * converted to useTranslations("Pharmacy.page").
+ */
+function usePharmacyPageTranslations() {
+  return useTranslations("Pharmacy.page");
+}
+
 export function PharmacyPageContent() {
 // jscpd:ignore-end
+  const t = usePharmacyPageTranslations();
   return (
     <FeatureGate feature={Feature.INVENTORY} showLockedCard>
       <AppPageScaffold
         header={
           <PageHeader
-            title="Pharmacy"
-            description="Dispense queue, stock visibility, and reorder list — keep the pharmacy moving."
+            title={t("pageTitle")}
+            description={t("pageDescription")}
           />
         }
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Card className="ui-card-surface">
             <CardHeader className="pb-2">
-              <p className="ui-eyebrow">Waiting to dispense</p>
+              <p className="ui-eyebrow">{t("waitingLabel")}</p>
             </CardHeader>
             <CardContent>
               <p className="ui-money text-[var(--fs-3xl)]">—</p>
-              <p className="ui-helper-text mt-1">Awaiting backend</p>
+              <p className="ui-helper-text mt-1">{t("awaitingBackendLabel")}</p>
             </CardContent>
           </Card>
           <Card className="ui-card-surface">
             <CardHeader className="pb-2">
-              <p className="ui-eyebrow">Below par</p>
+              <p className="ui-eyebrow">{t("belowParLabel")}</p>
             </CardHeader>
             <CardContent>
               <p className="ui-money text-[var(--fs-3xl)]">—</p>
-              <p className="ui-helper-text mt-1">Awaiting backend</p>
+              <p className="ui-helper-text mt-1">{t("awaitingBackendLabel")}</p>
             </CardContent>
           </Card>
           <Card className="ui-card-surface">
             <CardHeader className="pb-2">
-              <p className="ui-eyebrow">Out of stock</p>
+              <p className="ui-eyebrow">{t("outOfStockLabel")}</p>
             </CardHeader>
             <CardContent>
               <p className="ui-money text-[var(--fs-3xl)]">—</p>
-              <p className="ui-helper-text mt-1">Awaiting backend</p>
+              <p className="ui-helper-text mt-1">{t("awaitingBackendLabel")}</p>
             </CardContent>
           </Card>
         </div>
@@ -61,15 +72,15 @@ export function PharmacyPageContent() {
                 className="size-4 text-muted-foreground"
                 aria-hidden
               />
-              Dispense queue
+              {t("dispenseQueueTitle")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <EmptyState
               icon={Pill}
-              title="Pharmacy workflow pending backend"
-              description="The dispense queue derives from prescriptions awaiting in-house fulfillment. Once the pharmacy domain (or inventory extension) is wired with useDispenseQueue hooks, this view will show pending prescriptions, hand-off to WhatsApp, and stock par-level alerts."
-              action={{ label: "Open inventory", href: "/inventory" }}
+              title={t("emptyTitle")}
+              description={t("emptyDescription")}
+              action={{ label: t("emptyAction"), href: "/inventory" }}
             />
           </CardContent>
         </Card>

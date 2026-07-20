@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-20T06:42:24.170Z",
-  "totalLiterals": 930,
+  "generatedAt": "2026-07-20T06:44:05.961Z",
+  "totalLiterals": 924,
   "perFile": {
     "apps/app/features/ai-assistant/components/AIAssistantUI.tsx": 4,
     "apps/app/features/ai-assistant/components/tabs/DiagnosisAssistantTab.tsx": 3,
@@ -222,7 +222,6 @@
     "apps/app/features/patients/components/profile/PatientBadgeUI.tsx": 1,
     "apps/app/features/patients/components/profile/PatientFaceSheetHeaderUI.tsx": 1,
     "apps/app/features/patients/components/profile/PatientProfileHeaderUI.tsx": 2,
-    "apps/app/features/pharmacy/components/PharmacyPageContent.tsx": 6,
     "apps/app/features/prescriptions/components/list/PrescriptionsTable.tsx": 1,
     "apps/app/features/prescriptions/components/list/PrescriptionsTableSections.tsx": 4,
     "apps/app/features/prescriptions/components/view/PrescriptionDocumentFooter.tsx": 6,
