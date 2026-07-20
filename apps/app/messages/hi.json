@@ -690,6 +690,39 @@
       "previewOutlineButton": "रूपरेखा",
       "livePreviewHint": "वर्तमान थीम, रंग और घनत्व का उपयोग करता है।",
       "saveButton": "दिखावट सहेजें"
+    },
+    "CustomFields": {
+      "editDialogTitle": "कस्टम फ़ील्ड संपादित करें",
+      "addDialogTitle": "कस्टम फ़ील्ड जोड़ें",
+      "editDialogDescription": "इस कस्टम फ़ील्ड परिभाषा को अपडेट करें।",
+      "addDialogDescription": "रोगी रिकॉर्ड पर कैप्चर करने के लिए एक अतिरिक्त फ़ील्ड परिभाषित करें।",
+      "fieldNameLabel": "फ़ील्ड का नाम",
+      "fieldNamePlaceholder": "जैसे, रेफ़र करने वाला डॉक्टर",
+      "fieldTypeLabel": "फ़ील्ड प्रकार",
+      "fieldTypePlaceholder": "प्रकार चुनें",
+      "optionsLabel": "ड्रॉपडाउन विकल्प",
+      "optionsPlaceholder": "अल्पविराम से अलग, जैसे कम, मध्यम, उच्च",
+      "optionsDescription": "प्रत्येक विकल्प को अल्पविराम से अलग करें।",
+      "requiredLabel": "आवश्यक",
+      "requiredDescription": "सहेजने से पहले स्टाफ़ को यह भरना होगा।",
+      "cancelButton": "रद्द करें",
+      "savingButton": "सहेज रहे हैं…",
+      "saveChangesButton": "परिवर्तन सहेजें",
+      "addFieldButton": "फ़ील्ड जोड़ें",
+      "deleteConfirmTitle": "कस्टम फ़ील्ड हटाएँ?",
+      "deleteConfirmDescription": "यह फ़ील्ड अब नए रोगी रिकॉर्ड पर कैप्चर नहीं की जाएगी। मौजूदा मान हटाए नहीं जाते।",
+      "deleteConfirmButton": "हटाएँ",
+      "nameColumn": "नाम",
+      "typeColumn": "प्रकार",
+      "requiredColumn": "आवश्यक",
+      "requiredCell": "आवश्यक",
+      "optionalCell": "वैकल्पिक",
+      "editAriaLabel": "{name} संपादित करें",
+      "removeAriaLabel": "{name} हटाएँ",
+      "title": "कस्टम फ़ील्ड",
+      "description": "अपने क्लिनिक के लिए विशिष्ट रोगी रिकॉर्ड पर अतिरिक्त जानकारी कैप्चर करें।",
+      "emptyTitle": "अभी तक कोई कस्टम फ़ील्ड नहीं",
+      "emptyDescription": "मानक रोगी रिकॉर्ड से परे जानकारी कैप्चर करने के लिए फ़ील्ड जोड़ें।"
     }
   },
   "Subscription": {
@@ -703,6 +736,18 @@
       "teamMembersLabel": "टीम के सदस्य",
       "whatsAppLabel": "WhatsApp संदेश / माह",
       "billableMetersNote": "यह अनुमानक केवल लाइव अनुबंध के बिल करने योग्य मीटर का उपयोग करता है: परामर्श, टीम उपयोगकर्ता और WhatsApp संदेश।"
+    },
+    "billingFilters": {
+      "statusLabel": "स्थिति",
+      "statusAll": "सभी",
+      "statusPaid": "भुगतान हो चुका",
+      "statusPending": "लंबित / अभुगतान",
+      "statusFailed": "विफल / अस्वीकृत",
+      "statusRefunded": "रिफंड / रद्द",
+      "fromLabel": "से",
+      "toLabel": "तक",
+      "anyDatePlaceholder": "कोई भी",
+      "clearFiltersButton": "फ़िल्टर साफ़ करें"
     }
   },
   "Invoices": {
