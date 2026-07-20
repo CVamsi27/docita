@@ -890,6 +890,15 @@
       "genderLabel": "Gender: {gender}",
       "dateLabel": "Date"
     },
+    "documentFooter": {
+      "signatureAlt": "Doctor's Signature",
+      "doctorPrefix": "Dr. {name}",
+      "regNumberLabel": "Reg. No: {reg}",
+      "digitalGeneratedLabel": "This is a digitally generated prescription",
+      "poweredByLabel": "Powered by Docita",
+      "supportLabel": "Prescription support: {email}",
+      "validityLabel": "Valid for dispensing within 30 days from the date of issue unless otherwise specified"
+    },
     "table": {
       "medsCount": "{count, plural, one {1 med} other {{count} meds}}",
       "viewAriaLabel": "View prescription",
