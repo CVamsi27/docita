@@ -1,67 +1,8 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
-import { NextIntlClientProvider } from "next-intl";
 import { render } from "@/test-utils/render-with-tooltip";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ClinicGeneralSettings } from "./ClinicGeneralSettings";
-
-// Minimal message namespace the clinic-settings form sections need.
-// Keys are placeholders — the tests only assert on form labels / buttons
-// that already exist in the production en.json.
-const messages = {
-  ClinicSettings: {
-    general: {
-      identityEyebrow: "Identity",
-      nameLabel: "{facilityLabel} name",
-      namePlaceholder: "Enter {facilityLabel} name",
-      facilityTypeLabel: "Facility type",
-      facilityTypeHint: "Used in navigation, headings, and join flows.",
-      facilityTypePlaceholder: "Clinic or Hospital",
-      facilityTypeClinic: "Clinic",
-      facilityTypeHospital: "Hospital",
-      locationEyebrow: "Location",
-      addressLabel: "Address",
-      addressPlaceholder: "Enter address",
-      mapsLinkLabel: "Google Maps link",
-      mapsLinkHint: "Paste a Google Maps URL or Plus code.",
-      mapsLinkPlaceholder: "https://maps.google.com/...",
-      previewLinkLabel: "Preview link",
-      contactComplianceEyebrow: "Contact & compliance",
-      phoneLabel: "Phone number",
-      phonePlaceholder: "Enter phone number",
-      gstinLabel: "GSTIN",
-      gstinHint: "Needed for GST invoices.",
-      gstinPlaceholder: "GST number",
-      hfrFacilityIdLabel: "HFR Facility ID",
-      hfrFacilityIdHint: "Required before ABDM production use.",
-      hfrFacilityIdPlaceholder: "Enter HFR Facility ID",
-      legalNameLabel: "Legal name",
-      legalNameHint: "Registered legal name.",
-      legalNamePlaceholder: "Legal name",
-      cancelButton: "Cancel",
-      savingButton: "Saving…",
-      saveButton: "Save changes",
-      abdmSectionEyebrow: "ABDM",
-      abdmEnabledLabel: "Enable ABDM",
-      abdmEnabledHint: "Allow ABHA linkage.",
-      referralCodeLabel: "Staff join code",
-      copyJoinCodeLabel: "Copy staff join code",
-      copiedJoinCodeLabel: "Copied!",
-    },
-  },
-  Common: {
-    cancel: "Cancel",
-    save: "Save",
-  },
-};
-
-function renderWithIntl(node: ReactNode) {
-  return render(
-    <NextIntlClientProvider locale="en" messages={messages}>
-      {node}
-    </NextIntlClientProvider>,
-  );
-}
 
 const settingsMocks = vi.hoisted(() => ({
   updateClinic: vi.fn(),
@@ -76,7 +17,6 @@ const settingsMocks = vi.hoisted(() => ({
     settings: { facilityLabel: "CLINIC" },
   },
 }));
-
 
 vi.mock("@workspace/data-access", async () => {
   const actual = await vi.importActual<typeof import("@workspace/data-access")>(
@@ -130,6 +70,53 @@ vi.mock("@workspace/ui/components/form/select", () => ({
     <span>{placeholder}</span>
   ),
 }));
+
+const messages = {
+  ClinicSettings: {
+    general: {
+      identityEyebrow: "Identity",
+      nameLabel: "{facilityLabel} name",
+      namePlaceholder: "Enter {facilityLabel} name",
+      facilityTypeLabel: "Facility type",
+      facilityTypeHint: "Used in navigation, headings, and join flows.",
+      facilityTypePlaceholder: "Clinic or Hospital",
+      facilityTypeClinic: "Clinic",
+      facilityTypeHospital: "Hospital",
+      locationEyebrow: "Location",
+      addressLabel: "Address",
+      addressPlaceholder: "Enter address",
+      mapsLinkLabel: "Google Maps link",
+      mapsLinkHint: "Paste a Google Maps URL or Plus code.",
+      mapsLinkPlaceholder: "https://maps.google.com/...",
+      previewLinkLabel: "Preview link",
+      contactComplianceEyebrow: "Contact & compliance",
+      phoneLabel: "Phone number",
+      phonePlaceholder: "Enter phone number",
+      gstinLabel: "GSTIN",
+      gstinHint: "Needed for GST invoices.",
+      gstinPlaceholder: "GST number",
+      hfrFacilityIdLabel: "HFR Facility ID",
+      hfrFacilityIdHint: "Required before ABDM production use.",
+      hfrFacilityIdPlaceholder: "Enter HFR Facility ID",
+      legalNameLabel: "Legal name",
+      legalNameHint: "Registered legal name.",
+      legalNamePlaceholder: "Legal name",
+      cancelButton: "Cancel",
+      savingButton: "Saving…",
+      saveButton: "Save changes",
+      abdmSectionEyebrow: "ABDM",
+      abdmEnabledLabel: "Enable ABDM",
+      abdmEnabledHint: "Allow ABHA linkage.",
+      referralCodeLabel: "Staff join code",
+      copyJoinCodeLabel: "Copy staff join code",
+      copiedJoinCodeLabel: "Copied!",
+    },
+  },
+  Common: {
+    cancel: "Cancel",
+    save: "Save",
+  },
+};
 
 describe("ClinicGeneralSettings", () => {
   beforeEach(() => {

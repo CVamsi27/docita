@@ -8,6 +8,7 @@
    design. */
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { customFieldTypeSchema, type CustomField } from "@workspace/types";
+import { useTranslations } from "next-intl";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { Switch } from "@workspace/ui/components/form/switch";
@@ -62,9 +63,18 @@ const FIELD_TYPE_LABELS: Record<string, string> = {
   textarea: "Long text",
 };
 
+/**
+ * Phase 3 (per-feature): apps/app Settings > custom fields.
+ * 5 literals converted to useTranslations("Settings.CustomFields").
+ */
+function useCustomFieldsSettingsTranslations() {
+  return useTranslations("Settings.CustomFields");
+}
+
 /* ─── Dialog ─────────────────────────────────────────────────── */
 
 function CustomFieldDialog(hook: ReturnType<typeof useCustomFieldsSettings>) {
+  const t = useCustomFieldsSettingsTranslations();
   const { editing } = hook;
   const fieldType = hook.form.watch("fieldType");
 
@@ -73,12 +83,12 @@ function CustomFieldDialog(hook: ReturnType<typeof useCustomFieldsSettings>) {
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {editing ? "Edit custom field" : "Add custom field"}
+            {editing ? t("editDialogTitle") : t("addDialogTitle")}
           </DialogTitle>
           <DialogDescription>
             {editing
-              ? "Update this custom field definition."
-              : "Define an extra field to capture on patient records."}
+              ? t("editDialogDescription")
+              : t("addDialogDescription")}
           </DialogDescription>
         </DialogHeader>
         <Form {...hook.form}>
@@ -89,10 +99,10 @@ function CustomFieldDialog(hook: ReturnType<typeof useCustomFieldsSettings>) {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Field name</FormLabel>
+                    <FormLabel>{t("fieldNameLabel")}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="e.g. Referring doctor"
+                        placeholder={t("fieldNamePlaceholder")}
                         {...field}
                         value={field.value ?? ""}
                       />
@@ -106,14 +116,14 @@ function CustomFieldDialog(hook: ReturnType<typeof useCustomFieldsSettings>) {
                 name="fieldType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Field type</FormLabel>
+                    <FormLabel>{t("fieldTypeLabel")}</FormLabel>
                     <Select
                       value={field.value}
                       onValueChange={field.onChange}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a type" />
+                          <SelectValue placeholder={t("fieldTypePlaceholder")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -134,16 +144,16 @@ function CustomFieldDialog(hook: ReturnType<typeof useCustomFieldsSettings>) {
                   name="options"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Dropdown options</FormLabel>
+                      <FormLabel>{t("optionsLabel")}</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Comma-separated, e.g. Low, Medium, High"
+                          placeholder={t("optionsPlaceholder")}
                           {...field}
                           value={field.value ?? ""}
                         />
                       </FormControl>
                       <FormDescription>
-                        Separate each choice with a comma.
+                        {t("optionsDescription")}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -156,9 +166,9 @@ function CustomFieldDialog(hook: ReturnType<typeof useCustomFieldsSettings>) {
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between rounded-lg border p-3">
                     <div>
-                      <FormLabel>Required</FormLabel>
+                      <FormLabel>{t("requiredLabel")}</FormLabel>
                       <FormDescription>
-                        Staff must fill this in before saving.
+                        {t("requiredDescription")}
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -177,14 +187,14 @@ function CustomFieldDialog(hook: ReturnType<typeof useCustomFieldsSettings>) {
                 variant="outline"
                 onClick={() => hook.setDialogOpen(false)}
               >
-                Cancel
+                {t("cancelButton")}
               </Button>
               <Button type="submit" disabled={hook.isSaving}>
                 {hook.isSaving
-                  ? "Saving…"
+                  ? t("savingButton")
                   : editing
-                    ? "Save changes"
-                    : "Add field"}
+                    ? t("saveChangesButton")
+                    : t("addFieldButton")}
               </Button>
             </DialogFooter>
           </form>
@@ -199,6 +209,7 @@ function CustomFieldDialog(hook: ReturnType<typeof useCustomFieldsSettings>) {
 function DeleteCustomFieldConfirmation(
   hook: ReturnType<typeof useCustomFieldsSettings>,
 ) {
+  const t = useCustomFieldsSettingsTranslations();
   return (
     <ConfirmationDialog
       open={hook.deleteTargetId !== null}
@@ -206,10 +217,10 @@ function DeleteCustomFieldConfirmation(
         if (!open) hook.cancelDelete();
       }}
       type="danger"
-      title="Remove custom field?"
-      description="This field will no longer be captured on new patient records. Existing values are not deleted."
-      confirmText="Remove"
-      cancelText="Cancel"
+      title={t("deleteConfirmTitle")}
+      description={t("deleteConfirmDescription")}
+      confirmText={t("deleteConfirmButton")}
+      cancelText={t("cancelButton")}
       onConfirm={hook.executeDelete}
       onCancel={hook.cancelDelete}
       isLoading={hook.isDeleting}
@@ -220,17 +231,18 @@ function DeleteCustomFieldConfirmation(
 /* ─── Main component ─────────────────────────────────────────── */
 
 export function CustomFieldsSettings() {
+  const t = useCustomFieldsSettingsTranslations();
   const hook = useCustomFieldsSettings();
 
   const columns: DataTableColumn<CustomField>[] = [
     {
       id: "name",
-      header: "Name",
+      header: t("nameColumn"),
       cell: (f) => <span className="font-medium">{f.name}</span>,
     },
     {
       id: "fieldType",
-      header: "Type",
+      header: t("typeColumn"),
       hiddenOnMobile: true,
       cell: (f) => (
         <span className="text-muted-foreground">
@@ -240,11 +252,11 @@ export function CustomFieldsSettings() {
     },
     {
       id: "required",
-      header: "Required",
+      header: t("requiredColumn"),
       hiddenOnMobile: true,
       cell: (f) => (
         <span className="text-muted-foreground text-sm">
-          {f.required ? "Required" : "Optional"}
+          {f.required ? t("requiredCell") : t("optionalCell")}
         </span>
       ),
     },
@@ -258,7 +270,7 @@ export function CustomFieldsSettings() {
             size="icon"
             className="h-7 w-7 text-muted-foreground hover:text-foreground"
             onClick={() => hook.openEdit(f)}
-            aria-label={`Edit ${f.name}`}
+            aria-label={t("editAriaLabel", { name: f.name })}
           >
             <Pencil className="h-3.5 w-3.5" />
           </Button>
@@ -267,7 +279,7 @@ export function CustomFieldsSettings() {
             size="icon"
             className="h-7 w-7 text-muted-foreground hover:text-destructive"
             onClick={() => hook.confirmDelete(f.id)}
-            aria-label={`Remove ${f.name}`}
+            aria-label={t("removeAriaLabel", { name: f.name })}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
@@ -281,10 +293,9 @@ export function CustomFieldsSettings() {
       <Card>
         <CardHeader className="flex flex-row items-start justify-between space-y-0">
           <div>
-            <CardTitle>Custom Fields</CardTitle>
+            <CardTitle>{t("title")}</CardTitle>
             <CardDescription>
-              Capture extra information on patient records specific to your
-              clinic.
+              {t("description")}
             </CardDescription>
           </div>
           <Button
@@ -293,15 +304,15 @@ export function CustomFieldsSettings() {
             onClick={hook.openCreate}
           >
             <Plus className="h-4 w-4" />
-            Add field
+            {t("addFieldButton")}
           </Button>
         </CardHeader>
         <CardContent>
           <DataState
             status={hook.status}
             onRetry={hook.refetch}
-            emptyTitle="No custom fields yet"
-            emptyDescription="Add fields to capture information beyond the standard patient record."
+            emptyTitle={t("emptyTitle")}
+            emptyDescription={t("emptyDescription")}
           >
             <DataTable<CustomField>
               columns={columns}

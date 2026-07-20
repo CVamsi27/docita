@@ -690,6 +690,39 @@
       "previewOutlineButton": "Outline",
       "livePreviewHint": "Uses current theme, accent, and density.",
       "saveButton": "Save appearance"
+    },
+    "CustomFields": {
+      "editDialogTitle": "Edit custom field",
+      "addDialogTitle": "Add custom field",
+      "editDialogDescription": "Update this custom field definition.",
+      "addDialogDescription": "Define an extra field to capture on patient records.",
+      "fieldNameLabel": "Field name",
+      "fieldNamePlaceholder": "e.g. Referring doctor",
+      "fieldTypeLabel": "Field type",
+      "fieldTypePlaceholder": "Select a type",
+      "optionsLabel": "Dropdown options",
+      "optionsPlaceholder": "Comma-separated, e.g. Low, Medium, High",
+      "optionsDescription": "Separate each choice with a comma.",
+      "requiredLabel": "Required",
+      "requiredDescription": "Staff must fill this in before saving.",
+      "cancelButton": "Cancel",
+      "savingButton": "Saving…",
+      "saveChangesButton": "Save changes",
+      "addFieldButton": "Add field",
+      "deleteConfirmTitle": "Remove custom field?",
+      "deleteConfirmDescription": "This field will no longer be captured on new patient records. Existing values are not deleted.",
+      "deleteConfirmButton": "Remove",
+      "nameColumn": "Name",
+      "typeColumn": "Type",
+      "requiredColumn": "Required",
+      "requiredCell": "Required",
+      "optionalCell": "Optional",
+      "editAriaLabel": "Edit {name}",
+      "removeAriaLabel": "Remove {name}",
+      "title": "Custom Fields",
+      "description": "Capture extra information on patient records specific to your clinic.",
+      "emptyTitle": "No custom fields yet",
+      "emptyDescription": "Add fields to capture information beyond the standard patient record."
     }
   },
   "Subscription": {
@@ -703,6 +736,18 @@
       "teamMembersLabel": "Team Members",
       "whatsAppLabel": "WhatsApp Messages / Month",
       "billableMetersNote": "This estimator uses only billable meters from the live contract: consultations, team users, and WhatsApp messages."
+    },
+    "billingFilters": {
+      "statusLabel": "Status",
+      "statusAll": "All",
+      "statusPaid": "Paid",
+      "statusPending": "Pending / unpaid",
+      "statusFailed": "Failed / declined",
+      "statusRefunded": "Refunded / void",
+      "fromLabel": "From",
+      "toLabel": "To",
+      "anyDatePlaceholder": "Any",
+      "clearFiltersButton": "Clear filters"
     }
   },
   "Invoices": {

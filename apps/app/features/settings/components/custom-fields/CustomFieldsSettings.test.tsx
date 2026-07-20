@@ -13,6 +13,48 @@ const mocks = vi.hoisted(() => ({
   isError: false,
 }));
 
+const messages = {
+  Settings: {
+    CustomFields: {
+      editDialogTitle: "Edit custom field",
+      addDialogTitle: "Add custom field",
+      editDialogDescription: "Update this custom field definition.",
+      addDialogDescription:
+        "Define an extra field to capture on patient records.",
+      fieldNameLabel: "Field name",
+      fieldNamePlaceholder: "e.g. Referring doctor",
+      fieldTypeLabel: "Field type",
+      fieldTypePlaceholder: "Select a type",
+      optionsLabel: "Dropdown options",
+      optionsPlaceholder: "Comma-separated, e.g. Low, Medium, High",
+      optionsDescription: "Separate each choice with a comma.",
+      requiredLabel: "Required",
+      requiredDescription: "Staff must fill this in before saving.",
+      cancelButton: "Cancel",
+      savingButton: "Saving…",
+      saveChangesButton: "Save changes",
+      addFieldButton: "Add field",
+      deleteConfirmTitle: "Remove custom field?",
+      deleteConfirmDescription:
+        "This field will no longer be captured on new patient records. Existing values are not deleted.",
+      deleteConfirmButton: "Remove",
+      nameColumn: "Name",
+      typeColumn: "Type",
+      requiredColumn: "Required",
+      requiredCell: "Required",
+      optionalCell: "Optional",
+      editAriaLabel: "Edit {name}",
+      removeAriaLabel: "Remove {name}",
+      title: "Custom Fields",
+      description:
+        "Capture extra information on patient records specific to your clinic.",
+      emptyTitle: "No custom fields yet",
+      emptyDescription:
+        "Add fields to capture information beyond the standard patient record.",
+    },
+  },
+};
+
 vi.mock("@workspace/data-access", async () => {
   const actual = await vi.importActual<typeof import("@workspace/data-access")>(
     "@workspace/data-access",
@@ -57,7 +99,7 @@ describe("CustomFieldsSettings", () => {
   });
 
   it("shows the empty state when there are no custom fields", () => {
-    render(<CustomFieldsSettings />);
+    render(<CustomFieldsSettings />, { messages });
     expect(screen.getByText("No custom fields yet")).toBeInTheDocument();
   });
 
@@ -66,7 +108,7 @@ describe("CustomFieldsSettings", () => {
       makeField({ id: "cf_1", name: "Referring doctor", fieldType: "text" }),
       makeField({ id: "cf_2", name: "Risk level", fieldType: "select", required: true }),
     ];
-    render(<CustomFieldsSettings />);
+    render(<CustomFieldsSettings />, { messages });
 
     expect(screen.getByText("Referring doctor")).toBeInTheDocument();
     expect(screen.getByText("Risk level")).toBeInTheDocument();
@@ -77,7 +119,7 @@ describe("CustomFieldsSettings", () => {
   });
 
   it("opens the create dialog from the Add field action", async () => {
-    render(<CustomFieldsSettings />);
+    render(<CustomFieldsSettings />, { messages });
     fireEvent.click(screen.getByRole("button", { name: /add field/i }));
 
     await waitFor(() => {
@@ -87,7 +129,7 @@ describe("CustomFieldsSettings", () => {
 
   it("prompts for confirmation before deleting a field", async () => {
     mocks.fields = [makeField({ id: "cf_9", name: "Allergy note" })];
-    render(<CustomFieldsSettings />);
+    render(<CustomFieldsSettings />, { messages });
 
     fireEvent.click(screen.getByRole("button", { name: /remove allergy note/i }));
 
