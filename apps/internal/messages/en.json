@@ -243,6 +243,13 @@
       "startBroadcastButton": "Start broadcast"
     },
     "listSection": {
+      "cardTitle": "Recent broadcasts",
+      "loadingMessage": "Loading broadcast history…",
+      "emptyTitle": "No broadcasts yet",
+      "emptyDescription": "Send your first campaign to see it here.",
+      "sentLine": "Sent {sent}/{total}",
+      "failedCount": "{count} failed",
+      "noAudienceLabel": "—",
       "statusPending": "Pending",
       "statusRunning": "Running",
       "statusCompleted": "Completed",
@@ -810,6 +817,24 @@
       "vsLastPeriodUp": "↑ {change}% vs last period",
       "vsLastPeriodDown": "↓ {change}% vs last period"
     }
+  },
+  "SupportInbox": {
+    "threadsLabel": "Threads",
+    "unreadLabel": "Unread",
+    "loadingMessage": "Loading WhatsApp conversations…",
+    "emptyTitle": "No conversations yet",
+    "emptyDescription": "New WhatsApp messages will appear here when customers contact support."
+  },
+  "SupportHub": {
+    "pageTitle": "Support",
+    "pageDescription": "WhatsApp conversations and contact form inquiries from the public site.",
+    "tabWhatsapp": "WhatsApp",
+    "tabInquiries": "Contact form",
+    "tabAria": "Support channels"
+  },
+  "Broadcasts": {
+    "pageTitle": "Broadcast Messages",
+    "pageDescription": "Upload a CSV of phone numbers and send a WhatsApp campaign through the Docita support number. Replies land in the Support WhatsApp inbox."
   },
   "Performance": {
     "pageTitle": "Performance",

@@ -243,6 +243,13 @@
       "startBroadcastButton": "प्रसारण शुरू करें"
     },
     "listSection": {
+      "cardTitle": "हाल के ब्रॉडकास्ट",
+      "loadingMessage": "ब्रॉडकास्ट इतिहास लोड हो रहा है…",
+      "emptyTitle": "अभी तक कोई ब्रॉडकास्ट नहीं",
+      "emptyDescription": "अपना पहला अभियान भेजें और यहाँ देखें।",
+      "sentLine": "{sent}/{total} भेजे गए",
+      "failedCount": "{count} विफल",
+      "noAudienceLabel": "—",
       "statusPending": "लंबित",
       "statusRunning": "चालू",
       "statusCompleted": "पूर्ण",
@@ -810,6 +817,24 @@
       "vsLastPeriodUp": "↑ पिछली अवधि से {change}%",
       "vsLastPeriodDown": "↓ पिछली अवधि से {change}%"
     }
+  },
+  "SupportInbox": {
+    "threadsLabel": "थ्रेड्स",
+    "unreadLabel": "अपठित",
+    "loadingMessage": "WhatsApp वार्तालाप लोड हो रहे हैं…",
+    "emptyTitle": "अभी तक कोई वार्तालाप नहीं",
+    "emptyDescription": "जब ग्राहक सपोर्ट से संपर्क करेंगे तो नए WhatsApp संदेश यहाँ दिखाई देंगे।"
+  },
+  "SupportHub": {
+    "pageTitle": "सपोर्ट",
+    "pageDescription": "पब्लिक साइट से WhatsApp वार्तालाप और संपर्क फ़ॉर्म पूछताछ।",
+    "tabWhatsapp": "WhatsApp",
+    "tabInquiries": "संपर्क फ़ॉर्म",
+    "tabAria": "सपोर्ट चैनल"
+  },
+  "Broadcasts": {
+    "pageTitle": "ब्रॉडकास्ट संदेश",
+    "pageDescription": "फ़ोन नंबरों का CSV अपलोड करें और Docita सपोर्ट नंबर से WhatsApp अभियान भेजें। उत्तर सपोर्ट WhatsApp इनबॉक्स में आते हैं।"
   },
   "Performance": {
     "pageTitle": "प्रदर्शन",

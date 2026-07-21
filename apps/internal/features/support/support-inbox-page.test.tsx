@@ -25,6 +25,27 @@ vi.mock("@/lib/api/api", () => ({
   supportAPI: supportApiMocks,
 }));
 
+// English literal map mirroring the SupportInbox JSON keys the
+// components use, so test assertions on hardcoded English still match
+// after the i18n refactor.
+const supportInboxCopy: Record<string, string> = {
+  threadsLabel: "Threads",
+  unreadLabel: "Unread",
+  loadingMessage: "Loading WhatsApp conversations…",
+  emptyTitle: "No conversations yet",
+  emptyDescription:
+    "New WhatsApp messages will appear here when customers contact support.",
+  // Sub-component copy that test assertions still rely on:
+  replyPlaceholder: "Enter reply",
+  replyButton: "Send reply",
+  threadReplyPlaceholder: "Enter reply",
+  threadReplyButton: "Send reply",
+};
+
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => supportInboxCopy[key] ?? key,
+}));
+
 import { SupportInboxPage } from "./support-inbox-page";
 
 function renderWithQueryClient(ui: ReactElement) {

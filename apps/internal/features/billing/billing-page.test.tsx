@@ -114,6 +114,13 @@ const messages = {
     daysLabel: "Days",
   },
   BillingDashboard: {
+    graceDialog: {
+      title: "Extend Grace Period",
+      description: "Extend the grace period for",
+      daysLabel: "Days",
+      cancelButton: "Cancel",
+      confirmButton: "Extend",
+    },
     riskSummary: {
       reminderTitle: "Internal billing reminder",
       reminderBody: "Keep requested hospital offers in WhatsApp, and do not charge a paid Indian plan until GSTIN is captured.",

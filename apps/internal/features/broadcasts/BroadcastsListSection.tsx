@@ -51,18 +51,18 @@ export function BroadcastsListSection({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Recent broadcasts</CardTitle>
+        <CardTitle className="text-lg">{t("cardTitle")}</CardTitle>
       </CardHeader>
       <CardContent>
         <DataState
           status={
             status === "success" && jobs.length === 0 ? "empty" : status
           }
-          loadingMessage="Loading broadcast history…"
+          loadingMessage={t("loadingMessage")}
           errorMessage={errorMessage}
           onRetry={onRetry}
-          emptyTitle="No broadcasts yet"
-          emptyDescription="Send your first campaign to see it here."
+          emptyTitle={t("emptyTitle")}
+          emptyDescription={t("emptyDescription")}
           emptyIcon={Megaphone}
         >
           <ul className="space-y-3">
@@ -75,7 +75,7 @@ export function BroadcastsListSection({
                   <div className="min-w-0 space-y-1">
                     <p className="truncate text-sm font-medium">{job.title}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {job.audienceLabel ?? "—"}
+                      {job.audienceLabel ?? t("noAudienceLabel")}
                     </p>
                   </div>
                   <Badge variant={STATUS_VARIANTS[job.status]}>
@@ -84,11 +84,11 @@ export function BroadcastsListSection({
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                   <span>
-                    Sent {job.sentCount}/{job.totalCount}
+                    {t("sentLine", { sent: job.sentCount, total: job.totalCount })}
                   </span>
                   {job.failedCount > 0 && (
                     <span className="text-destructive">
-                      {job.failedCount} failed
+                      {t("failedCount", { count: job.failedCount })}
                     </span>
                   )}
                   <span>{formatDistanceToNow(job.createdAt)}</span>
