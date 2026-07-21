@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Smartphone,
   Sparkles,
+  UserRound,
 } from "lucide-react";
 
 import { Button } from "@workspace/ui/components/form/button";
@@ -75,7 +76,7 @@ export function DifferentiatorsSection() {
           viewport={landingInViewViewport}
         >
           <DifferentiatorCard
-            icon={Sparkles}
+            icon={UserRound}
             eyebrow="Patient portal"
             title="Your patients log in too."
             description="A real patient portal&mdash;not a WhatsApp link. Patients see upcoming visits, past prescriptions, bills, and consent settings in one place."

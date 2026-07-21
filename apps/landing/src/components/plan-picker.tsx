@@ -17,6 +17,8 @@ import {
   landingFadeUpVariants,
   landingInViewViewport,
 } from "@/lib/motion-prefs";
+import { FALLBACK_PRICING_CONFIG } from "@/lib/landing-data";
+import { PLAN_MODE_INFO, type PlanMode, type TierName, tierSchema } from "@workspace/types";
 
 type PracticeShape = "solo" | "small" | "multi" | "hospital";
 type WorkType = "front_desk" | "opd" | "full_clinical";
@@ -93,14 +95,14 @@ const RECOMMENDATIONS: Record<string, {
       "Front desk mode covers scheduling and billing without the full clinical surface.",
   },
   "small:front_desk": {
-    tier: "FRONT_DESK_CLINIC",
+    tier: "PROFESSIONAL",
     mode: "FRONT_DESK",
     billing: "monthly",
     rationale:
-      "Multi-desk reception without the full clinical workspace. Upgrade later in one click.",
+      "Multi-desk reception on a small-clinic tier. Switch to full clinical any time from Settings.",
   },
   "multi:front_desk": {
-    tier: "FRONT_DESK_HOSPITAL",
+    tier: "HOSPITAL",
     mode: "FRONT_DESK",
     billing: "yearly",
     rationale:
@@ -207,6 +209,17 @@ function OptionFieldset<V extends string>({
   );
 }
 
+function formatPlanPickerHeadline(tier: string, mode: string, billing: string): string {
+  const parsedTier = tierSchema.safeParse(tier);
+  const tierName: TierName | null = parsedTier.success ? parsedTier.data : null;
+  const tierLabel = tierName
+    ? FALLBACK_PRICING_CONFIG.tiers.find((t) => t.id === tierName)?.name ?? tier
+    : tier;
+  const modeLabel = (PLAN_MODE_INFO[mode as PlanMode]?.name ?? mode);
+  const billingLabel = billing === "yearly" ? "Yearly" : "Monthly";
+  return `${tierLabel} · ${modeLabel} · ${billingLabel}`;
+}
+
 export function PlanPicker({ appUrl }: PlanPickerProps) {
   const reduce = useReducedMotion();
   const item = landingFadeUpVariants(reduce ?? false);
@@ -261,8 +274,7 @@ export function PlanPicker({ appUrl }: PlanPickerProps) {
         <div className="r2-plan-picker-result" role="status" aria-live="polite">
           <p className="r2-eyebrow">Suggested plan</p>
           <p className="mt-1 text-lg font-semibold tracking-tight text-foreground">
-            {recommendation.tier} &middot; {recommendation.mode} &middot;{" "}
-            {recommendation.billing}
+            {formatPlanPickerHeadline(recommendation.tier, recommendation.mode, recommendation.billing)}
           </p>
           <p className="mt-1.5 text-sm text-muted-foreground">
             {recommendation.rationale}
