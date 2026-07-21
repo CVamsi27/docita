@@ -50,7 +50,6 @@ export * from "./form/form-dialog";
 export * from "./form/form-field-group";
 export * from "./form/form-grid";
 export * from "./form/form";
-export * from "./form/form-primitives";
 export * from "./form/input";
 export * from "./form/label";
 export * from "./overlay/multi-step-dialog";
