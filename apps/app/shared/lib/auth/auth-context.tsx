@@ -1,10 +1,7 @@
 "use client";
 
 import { createContext, type ReactNode, useContext } from "react";
-import {
-  VERIFICATION_EMAIL_STATUS_STORAGE_KEY,
-  type User,
-} from "./auth-context-helpers";
+import { VERIFICATION_EMAIL_STATUS_STORAGE_KEY, type User } from "./auth-context-helpers";
 import type { AuthContextType } from "./auth-context.types";
 import { useAuthProviderValue } from "./use-auth-provider-value";
 

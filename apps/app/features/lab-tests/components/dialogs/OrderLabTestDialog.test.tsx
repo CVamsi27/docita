@@ -2,10 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 import type { LabTest, Patient } from "@workspace/types";
-import {
-  createLabTestOrderFormSchema,
-  type CreateLabTestOrderFormValues,
-} from "@workspace/types";
+import { createLabTestOrderFormSchema, type CreateLabTestOrderFormValues } from "@workspace/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { OrderLabTestDialog } from "./OrderLabTestDialog";
 

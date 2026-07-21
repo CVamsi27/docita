@@ -3,10 +3,7 @@
 import { useState } from "react";
 import { Lightbulb } from "lucide-react";
 import type { LabTest } from "@workspace/types";
-import {
-  MicroLabel,
-  SearchableSelect
-} from "@workspace/ui/components";
+import { MicroLabel, SearchableSelect } from "@workspace/ui/components";
 
 interface SuggestedTestsComboboxProps {
   catalog: LabTest[];

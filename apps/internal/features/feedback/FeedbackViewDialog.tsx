@@ -1,25 +1,12 @@
 "use client";
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  Badge,
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  Label,
-  Textarea
-} from "@workspace/ui/components";
+import { Badge, Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Label, Textarea } from "@workspace/ui/components";
 import { Lightbulb, ThumbsDown, ThumbsUp } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import { useTranslations } from "next-intl";
 import type { InternalFeedback } from "@workspace/data-access/internal";
-import {
-  FeedbackRatingStars,
-  FeedbackStatusBadge,
-} from "./feedback-display";
+import { FeedbackRatingStars, FeedbackStatusBadge } from "./feedback-display";
 import { STATUS_OPTIONS } from "./feedback-helpers";
 
 interface FeedbackViewDialogProps {

@@ -4,14 +4,8 @@ import { useRouter } from "next/navigation";
 import { cn } from "@workspace/ui/lib/utils";
 import { isToday, isYesterday } from "@workspace/utils";
 import type { StaffNotification } from "@workspace/data-access";
-import {
-  mapStaffNotificationPriority,
-  notificationHref,
-} from "@/components/navigation/notification-href";
-import {
-  NotificationItemActions,
-  NotificationItemContent,
-} from "@/components/navigation/notification-item-content";
+import { mapStaffNotificationPriority, notificationHref } from "@/components/navigation/notification-href";
+import { NotificationItemActions, NotificationItemContent } from "@/components/navigation/notification-item-content";
 
 interface RowProps {
   notification: StaffNotification;

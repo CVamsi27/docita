@@ -3,24 +3,12 @@
 import { useState } from "react";
 import { Activity } from "lucide-react";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
-import {
-  queryKeys,
-  usePortalMetricCategories,
-  usePortalMetricHistory,
-} from "@workspace/data-access";
+import { queryKeys, usePortalMetricCategories, usePortalMetricHistory } from "@workspace/data-access";
 import { MetricCategorySection } from "@/features/patient-portal/components/metrics/metric-category-section";
 import { AddMetricDefinitionModal } from "@/features/patient-portal/components/metrics/add-metric-definition-modal";
 import { useQueryClient } from "@tanstack/react-query";
 import { metricHistoryResponseSchema } from "@workspace/types";
-import {
-  PortalMetricsHeader,
-  PortalMetricsToolbar,
-  toPortalMetricRecord,
-  readPortalMetricCategory,
-  getDateRange,
-  type PortalMetricRecord,
-  type PortalMetricCategory,
-} from "./portal-metrics-ui-sections";
+import { PortalMetricsHeader, PortalMetricsToolbar, toPortalMetricRecord, readPortalMetricCategory, getDateRange, type PortalMetricRecord, type PortalMetricCategory } from "./portal-metrics-ui-sections";
 
 interface PortalMetricsUIProps {
   showHeader?: boolean;

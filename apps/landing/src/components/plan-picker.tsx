@@ -2,21 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import {
-  ArrowRight,
-  Building2,
-  type LucideIcon,
-  Sparkles,
-  Stethoscope,
-  Users,
-} from "lucide-react";
+import { ArrowRight, Building2, type LucideIcon, Sparkles, Stethoscope, Users } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
 
-import {
-  landingFadeUpVariants,
-  landingInViewViewport,
-} from "@/lib/motion-prefs";
+import { landingFadeUpVariants, landingInViewViewport } from "@/lib/motion-prefs";
 import { FALLBACK_PRICING_CONFIG } from "@/lib/landing-data";
 import { PLAN_MODE_INFO, planModeSchema, type TierName, tierSchema } from "@workspace/types";
 

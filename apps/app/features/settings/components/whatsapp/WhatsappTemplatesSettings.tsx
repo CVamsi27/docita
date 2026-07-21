@@ -7,21 +7,10 @@ import type {
   ClinicWhatsappTemplate,
   WhatsappTemplateCategory,
 } from "@workspace/types";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  useClinicWhatsappTemplates,
-  useCreateWhatsappTemplate,
-  useDeleteWhatsappTemplate,
-  useUpdateWhatsappTemplate,
-} from "@workspace/data-access";
+import { useClinicWhatsappTemplates, useCreateWhatsappTemplate, useDeleteWhatsappTemplate, useUpdateWhatsappTemplate } from "@workspace/data-access";
 import { TemplateListContent } from "./TemplateListContent";
 import { TemplateEditorDialog } from "./TemplateEditorDialog";
 import { TemplateDeleteDialog } from "./TemplateDeleteDialog";

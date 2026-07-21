@@ -1,11 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import {
-  MicroLabel,
-  ScrollArea,
-  Skeleton
-} from "@workspace/ui/components";
+import { MicroLabel, ScrollArea, Skeleton } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 
 export function SlotTimesSkeletonGrid({ className }: { className?: string }) {

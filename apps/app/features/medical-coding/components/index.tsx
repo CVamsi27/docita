@@ -3,17 +3,7 @@
 // jscpd:ignore-start
 import { FC } from "react";
 import Link from "next/link";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Input,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, SymbolTooltip } from "@workspace/ui/components";
 import { BookOpen, CheckCircle2, FileText, Search, X } from "lucide-react";
 
 export const MedicalCodingSearch: FC<{

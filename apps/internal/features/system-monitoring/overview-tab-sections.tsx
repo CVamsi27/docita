@@ -3,24 +3,8 @@
 import { formatCountLocale } from "@workspace/utils";
 // Idiomatic shadcn/Origin import boilerplate — shared verbatim with sibling
 // monitoring/performance dashboards that render the same primitive families.
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Progress
-} from "@workspace/ui/components";
-import {
-  Activity,
-  AlertTriangle,
-  Clock,
-  Cpu,
-  Database,
-  Server,
-  ShieldCheck,
-  Wifi,
-} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Progress } from "@workspace/ui/components";
+import { Activity, AlertTriangle, Clock, Cpu, Database, Server, ShieldCheck, Wifi } from "lucide-react";
 import { MetricStatCard } from "@/components/common/metric-stat-card";
 import { formatBytesToMb } from "./system-monitoring-helpers";
 import type { SystemMonitoringPageViewModel } from "./use-system-monitoring-page";

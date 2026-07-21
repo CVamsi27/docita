@@ -1,17 +1,9 @@
 "use client";
 
 import { HeartPulse } from "lucide-react";
-import {
-  AllergyBanner,
-  Button,
-  Textarea,
-  type AllergyEntry
-} from "@workspace/ui/components";
+import { AllergyBanner, Button, Textarea, type AllergyEntry } from "@workspace/ui/components";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
-import {
-  useConsultationSectionSubtitle,
-  useConsultationWorkspace,
-} from "@/features/consultation/workspace/consultation-workspace-context";
+import { useConsultationSectionSubtitle, useConsultationWorkspace } from "@/features/consultation/workspace/consultation-workspace-context";
 import { useConsultationVitals } from "@/features/consultation/workspace/consultation-vitals-context";
 import { useSectionCompletion } from "@/features/consultation/workspace/chrome/SectionRail-sections";
 import { ChiefComplaintInput } from "@/features/consultation/components/structured/ChiefComplaintInput";

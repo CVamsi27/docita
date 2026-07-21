@@ -1,7 +1,7 @@
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 // jscpd:ignore-start
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 // jscpd:ignore-end
 import { DateTimePicker } from "@workspace/ui/components/form/date-time-picker";
 import { createAppointmentSchema } from "@workspace/types";

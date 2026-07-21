@@ -2,10 +2,7 @@
 
 import { useEffect, type CSSProperties } from "react";
 import { useGuidedTour } from "./guided-tour-provider";
-import {
-  useElementRect,
-  type ElementRect,
-} from "@/features/guided-tour/hooks/use-element-rect";
+import { useElementRect, type ElementRect } from "@/features/guided-tour/hooks/use-element-rect";
 import { SpotlightMask } from "./spotlight-mask";
 import { TourStepCard } from "./tour-step-card";
 

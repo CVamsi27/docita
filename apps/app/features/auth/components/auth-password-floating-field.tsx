@@ -1,17 +1,9 @@
 "use client";
 
 import { Eye, EyeOff } from "lucide-react";
-import {
-  Button,
-  Input,
-  Label,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, Input, Label, SymbolTooltip } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  InlineFieldError,
-  PasswordStrengthIndicator,
-} from "./AuthSharedFields";
+import { InlineFieldError, PasswordStrengthIndicator } from "./AuthSharedFields";
 
 interface AuthPasswordFloatingFieldProps {
   id: string;

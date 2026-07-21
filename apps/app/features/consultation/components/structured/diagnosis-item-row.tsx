@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Badge,
-  Button,
-  Input,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Badge, Button, Input, SymbolTooltip } from "@workspace/ui/components";
 import { Stethoscope, Trash2 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";

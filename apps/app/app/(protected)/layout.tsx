@@ -8,30 +8,17 @@ import { MobileBottomNav } from "@/components/navigation/mobile-bottom-nav";
 import { Sidebar, SidebarMobileTrigger } from "@/components/navigation/sidebar";
 import { useCanGoBack } from "@/hooks/use-can-go-back";
 import { DesktopTopBar } from "@/components/layout/desktop-top-bar";
-import {
-  openCommandPaletteFromUi,
-  TopBarActions,
-} from "@/components/layout/top-bar-actions";
+import { openCommandPaletteFromUi, TopBarActions } from "@/components/layout/top-bar-actions";
 import { SubscriptionLockNotice } from "@/components/layout/subscription-lock-notice";
 import { ProvidersWrapper } from "./providers-wrapper";
-import {
-  Button,
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, ResizableHandle, ResizablePanel, ResizablePanelGroup, SymbolTooltip } from "@workspace/ui/components";
 import type { ImperativePanelHandle } from "@workspace/ui/components/layout/resizable";
 import { ErrorBoundaryWrapper } from "@/components/errors/error-boundary";
 import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
 import { ChevronLeft, ChevronRight, Command } from "lucide-react";
 import { useFeatureFlag } from "@/hooks/use-feature-flag";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
-import {
-  useProtectedWorkspaceAccess,
-  useSidebarAutoCollapse,
-  WorkspaceLoadingSkeleton,
-} from "./layout-sections";
+import { useProtectedWorkspaceAccess, useSidebarAutoCollapse, WorkspaceLoadingSkeleton } from "./layout-sections";
 
 const CommandPalette = dynamic(
   () =>

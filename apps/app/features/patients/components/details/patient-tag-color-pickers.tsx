@@ -1,9 +1,5 @@
 import { resolveTagColor } from "./tag-colors";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@workspace/ui/components/overlay/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components/overlay/tooltip";
 import { COLOR_PALETTE } from "./patient-tag-manager-logic";
 
 export interface ColorPickerGridProps {

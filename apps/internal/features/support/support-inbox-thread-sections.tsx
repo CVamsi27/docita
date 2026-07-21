@@ -2,25 +2,11 @@
 
 import { DATE_FORMATS, formatDate, formatDistanceToNow } from "@workspace/utils";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Textarea
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Textarea } from "@workspace/ui/components";
 import { MessageSquare, Phone, Send } from "lucide-react";
 import type { FormEvent } from "react";
 import type { SupportWhatsAppMessage, SupportWhatsAppThreadSummary } from "@workspace/types";
-import {
-  formatMessageType,
-  formatStatusBadgeVariant,
-  getMessageAuthor,
-  getThreadLabel,
-  getWhatsAppLink,
-} from "./support-helpers";
+import { formatMessageType, formatStatusBadgeVariant, getMessageAuthor, getThreadLabel, getWhatsAppLink } from "./support-helpers";
 
 interface SupportInboxThreadHeaderProps {
   selectedThread: SupportWhatsAppThreadSummary;

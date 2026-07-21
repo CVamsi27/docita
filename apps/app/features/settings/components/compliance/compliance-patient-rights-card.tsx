@@ -1,15 +1,7 @@
 "use client";
 
 // jscpd:ignore-start
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
 import { Inbox } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import type {
@@ -18,12 +10,7 @@ import type {
   AppDataSubjectRequest,
   DataSubjectRequestStatus,
 } from "@workspace/types";
-import {
-  toDisplayText,
-  isOpenRequest,
-  isDsrOverdue,
-  sortDsrOverdueFirst,
-} from "./compliance-settings-constants";
+import { toDisplayText, isOpenRequest, isDsrOverdue, sortDsrOverdueFirst } from "./compliance-settings-constants";
 
 export function PatientRightsCard({
   compliance,

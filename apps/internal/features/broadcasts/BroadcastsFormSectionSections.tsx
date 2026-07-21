@@ -2,21 +2,7 @@
 "use client";
 
 import type { ChangeEvent } from "react";
-import {
-  Badge,
-  Button,
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-  Input,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Textarea
-} from "@workspace/ui/components";
+import { Badge, Button, Collapsible, CollapsibleContent, CollapsibleTrigger, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { AlertCircle, FileText, Send, Upload } from "lucide-react";
 import { useTranslations } from "next-intl";

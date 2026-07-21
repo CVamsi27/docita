@@ -2,21 +2,10 @@
 
 import { useId, useRef } from "react";
 import { PublicBookingProgressChrome } from "@/features/public-booking/public-booking-components";
-import {
-  PUBLIC_BOOKING_MOBILE_CONTENT_TAIL_PAD_CLASS,
-  type PublicBookingMobileStep,
-} from "@/features/public-booking/public-booking-constants";
+import { PUBLIC_BOOKING_MOBILE_CONTENT_TAIL_PAD_CLASS, type PublicBookingMobileStep } from "@/features/public-booking/public-booking-constants";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  visitContinueHint,
-  contactContinueHint,
-  PublicBookingMobileStepHeading,
-  PublicBookingMobileVisitStep,
-  PublicBookingMobileContactStep,
-  PublicBookingMobileReviewStep,
-  PublicBookingMobileBottomBar,
-} from "./public-booking-mobile-layout-sections";
+import { visitContinueHint, contactContinueHint, PublicBookingMobileStepHeading, PublicBookingMobileVisitStep, PublicBookingMobileContactStep, PublicBookingMobileReviewStep, PublicBookingMobileBottomBar } from "./public-booking-mobile-layout-sections";
 
 const STEP_ORDER: PublicBookingMobileStep[] = ["visit", "contact", "review"];
 

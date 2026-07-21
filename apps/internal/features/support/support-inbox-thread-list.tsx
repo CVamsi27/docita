@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Input
-} from "@workspace/ui/components";
+import { Badge, Card, CardContent, CardHeader, CardTitle, Input } from "@workspace/ui/components";
 import { Search } from "lucide-react";
 import { formatDistanceToNow } from "@workspace/utils";
 import { formatMessageType, getThreadLabel } from "./support-helpers";

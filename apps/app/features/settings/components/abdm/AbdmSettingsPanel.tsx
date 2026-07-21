@@ -2,13 +2,7 @@
 
 import { Activity } from "lucide-react";
 import { useTranslations } from "next-intl";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import { ComingSoonBadge } from "@/components/feedback/coming-soon-badge";
 
 /**

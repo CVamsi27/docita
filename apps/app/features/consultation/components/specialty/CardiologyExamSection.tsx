@@ -5,10 +5,7 @@ import { useConsultationDraft } from "@/features/consultation/state/useConsultat
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
 import { useConsultationSectionSubtitle } from "@/features/consultation/workspace/consultation-workspace-context";
 import type { CardiologyExamData } from "@workspace/types";
-import {
-  ExamFieldGrid,
-  ExamTextareaField,
-} from "./exam-section-fields";
+import { ExamFieldGrid, ExamTextareaField } from "./exam-section-fields";
 
 interface CardiologyExamSectionProps {
   readOnly?: boolean;

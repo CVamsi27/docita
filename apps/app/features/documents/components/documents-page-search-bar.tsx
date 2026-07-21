@@ -1,9 +1,5 @@
 import { Search, X } from "lucide-react";
-import {
-  Button,
-  Input,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, Input, SymbolTooltip } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 
 export function DocumentsPageSearchBar({

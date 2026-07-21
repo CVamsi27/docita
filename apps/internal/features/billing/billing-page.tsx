@@ -6,12 +6,7 @@ import { BillingGracePeriodDialog } from "./BillingGracePeriodDialog";
 import { BillingRiskSummary } from "./BillingRiskSummary";
 import { BillingDistributionCards } from "./BillingDistributionCards";
 import { BillingDashboardTabs } from "./BillingDashboardTabs";
-import {
-  AppPageScaffold,
-  Button,
-  DataState,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, Button, DataState, PageHeader } from "@workspace/ui/components";
 import { RefreshCw } from "lucide-react";
 
 export default function BillingDashboard() {

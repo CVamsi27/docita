@@ -1,10 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { PortalMetricsUI } from "@/features/patient-portal/components/views/portal-metrics-ui";
-import {
-  AppPageScaffold,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, PageHeader } from "@workspace/ui/components";
 
 export default function PortalMetricsPage() {
   return (

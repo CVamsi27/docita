@@ -1,22 +1,12 @@
 "use client";
 
 import { useCurrentUsage } from "@/features/subscription/hooks/use-pricing";
-import {
-  Feature,
-  PRICING_CURRENCY_CONFIG,
-  PRICING_CURRENCY_SYMBOLS,
-} from "@workspace/types";
+import { Feature, PRICING_CURRENCY_CONFIG, PRICING_CURRENCY_SYMBOLS } from "@workspace/types";
 import { parseSupportedCurrency } from "@workspace/utils";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import {
-  formatLocaleDateShortMonth,
-  formatLocaleDateShortMonthYear,
-} from "@/lib/formatters";
-import {
-  UsageDashboardLoading,
-  UsageDashboardMetersPanel,
-} from "./usage-dashboard-sections";
+import { formatLocaleDateShortMonth, formatLocaleDateShortMonthYear } from "@/lib/formatters";
+import { UsageDashboardLoading, UsageDashboardMetersPanel } from "./usage-dashboard-sections";
 
 export function UsageDashboard() {
   const { usage, isLoading } = useCurrentUsage();

@@ -2,7 +2,7 @@
 
 // jscpd:ignore-start
 import { Info, Trash2 } from "lucide-react";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { Button, Label } from "@workspace/ui/components";
 import {
   SymbolTooltip,
@@ -14,11 +14,7 @@ import {
 } from "@workspace/ui/components/overlay/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
 import type { TeamMember } from "@/features/onboarding/components/types";
-import {
-  ROLE_OPTIONS,
-  isDoctorRole,
-  parseTeamMemberRole,
-} from "./team-invite-step-constants";
+import { ROLE_OPTIONS, isDoctorRole, parseTeamMemberRole } from "./team-invite-step-constants";
 
 export interface TeamMemberRowHeaderProps {
   member: TeamMember;

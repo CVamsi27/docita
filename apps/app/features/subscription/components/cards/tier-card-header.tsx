@@ -1,21 +1,9 @@
-import {
-  CardDescription,
-  CardHeader,
-} from "@workspace/ui/components/indicators/card";
+import { CardDescription, CardHeader } from "@workspace/ui/components/indicators/card";
 import { cn } from "@workspace/ui/lib/utils";
 import { Tier } from "@/lib/subscription/tier-access";
 import { Zap } from "lucide-react";
-import {
-  TIER_GRADIENTS,
-  TIER_ICONS,
-  type TierCardProps,
-} from "./tier-card-types";
-import {
-  TierCardFullPricing,
-  TierCardKeyHighlights,
-  TierCardSummaryOverage,
-  TierCardSummaryPricing,
-} from "./tier-card-pricing";
+import { TIER_GRADIENTS, TIER_ICONS, type TierCardProps } from "./tier-card-types";
+import { TierCardFullPricing, TierCardKeyHighlights, TierCardSummaryOverage, TierCardSummaryPricing } from "./tier-card-pricing";
 
 export function TierCardHeader({
   tier,

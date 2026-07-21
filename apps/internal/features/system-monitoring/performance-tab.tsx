@@ -2,13 +2,7 @@
 
 import { TabsContent } from "@workspace/ui/components/navigation/tabs";
 import type { SystemMonitoringPageViewModel } from "./use-system-monitoring-page";
-import {
-  MemoryBreakdownCard,
-  ResponseTimeDistributionCard,
-  SlowestEndpointsCard,
-  StatCardGrid,
-  ThroughputCard,
-} from "./performance-tab-sections";
+import { MemoryBreakdownCard, ResponseTimeDistributionCard, SlowestEndpointsCard, StatCardGrid, ThroughputCard } from "./performance-tab-sections";
 
 export type PerformanceTabProps = Pick<
   SystemMonitoringPageViewModel,

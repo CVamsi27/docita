@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  AlertTriangle,
-  FileText,
-  Receipt,
-  Users as UsersIcon,
-} from "lucide-react";
+import { AlertTriangle, FileText, Receipt, Users as UsersIcon } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import type { InternalEnterpriseContractRow as EnterpriseContractRow } from "@workspace/data-access/internal";
 import { MINIMUM_SETUP_FEE_INR } from "./enterprise-contracts-helpers";

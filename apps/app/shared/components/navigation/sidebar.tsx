@@ -3,14 +3,7 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
-import {
-  Button,
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, Sheet, SheetContent, SheetHeader, SheetTitle, SymbolTooltip } from "@workspace/ui/components";
 import { SidebarContent } from "./sidebar-sections";
 
 // ─── Public API ───────────────────────────────────────────────────────────────

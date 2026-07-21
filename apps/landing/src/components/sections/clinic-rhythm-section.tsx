@@ -2,15 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import {
-  CheckCircle2,
-  ClipboardList,
-  FileText,
-  type LucideIcon,
-  MessageSquare,
-  Receipt,
-  Stethoscope,
-} from "lucide-react";
+import { CheckCircle2, ClipboardList, FileText, type LucideIcon, MessageSquare, Receipt, Stethoscope } from "lucide-react";
 
 import { cn } from "@workspace/ui/lib/utils";
 

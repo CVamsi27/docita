@@ -2,20 +2,8 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  MicroLabel,
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  Switch,
-  SymbolTooltip
-} from "@workspace/ui/components";
-import {
-  FIXED_NAV_HREFS,
-  type NavSection,
-  type NavSectionId,
-} from "@/components/navigation/nav-config";
+import { MicroLabel, Sheet, SheetContent, SheetHeader, SheetTitle, Switch, SymbolTooltip } from "@workspace/ui/components";
+import { FIXED_NAV_HREFS, type NavSection, type NavSectionId } from "@/components/navigation/nav-config";
 import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
 
 function getIconClasses(isActive: boolean) {

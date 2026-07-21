@@ -5,34 +5,17 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  notificationSettingsFormSchema,
-  type NotificationSettingsFormValues,
-} from "@workspace/types";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Form
-} from "@workspace/ui/components";
+import { notificationSettingsFormSchema, type NotificationSettingsFormValues } from "@workspace/types";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Form } from "@workspace/ui/components";
 import { Bell } from "lucide-react";
-import {
-  useClinicSettings,
-  useUpdateClinicSettings,
-} from "@workspace/data-access";
+import { useClinicSettings, useUpdateClinicSettings } from "@workspace/data-access";
 import { parseClinicAppSettings } from "@/lib/clinic/parse-clinic-app-settings";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { Feature } from "@workspace/types";
 import { NotificationSettingsLoadingCard } from "./notification-settings-loading-card";
-import {
-  WhatsAppNotificationSection,
-  InAppNotificationSection,
-} from "./NotificationSettings.sections";
+import { WhatsAppNotificationSection, InAppNotificationSection } from "./NotificationSettings.sections";
 
 export function NotificationSettings() {
   const { data: clinic, isLoading } = useClinicSettings();

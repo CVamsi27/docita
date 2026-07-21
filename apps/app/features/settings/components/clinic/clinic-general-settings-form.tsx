@@ -6,12 +6,7 @@ import type {
   ClinicSettingsFormValues,
   FacilityTypeType,
 } from "@workspace/types";
-import {
-  IdentitySection,
-  LocationSection,
-  ContactComplianceSection,
-  FormFooter,
-} from "./clinic-general-settings-form-sections";
+import { IdentitySection, LocationSection, ContactComplianceSection, FormFooter } from "./clinic-general-settings-form-sections";
 
 export function ClinicGeneralSettingsForm({
   form,

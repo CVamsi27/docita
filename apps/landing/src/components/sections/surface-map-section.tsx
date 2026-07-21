@@ -1,37 +1,9 @@
 "use client";
 
-import {
-  Activity,
-  BedDouble,
-  BookOpen,
-  Boxes,
-  CalendarClock,
-  CalendarDays,
-  ClipboardList,
-  FileInput,
-  Files,
-  FlaskConical,
-  HeartPulse,
-  type LucideIcon,
-  MessageCircle,
-  Pill,
-  Receipt,
-  ScanText,
-  ShieldCheck,
-  ShieldPlus,
-  SmilePlus,
-  Sparkles,
-  Stethoscope,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { Activity, BedDouble, BookOpen, Boxes, CalendarClock, CalendarDays, ClipboardList, FileInput, Files, FlaskConical, HeartPulse, type LucideIcon, MessageCircle, Pill, Receipt, ScanText, ShieldCheck, ShieldPlus, SmilePlus, Sparkles, Stethoscope, TrendingUp, Users } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
-import {
-  landingFadeUpVariants,
-  landingInViewViewport,
-  landingStaggerContainer,
-} from "@/lib/motion-prefs";
+import { landingFadeUpVariants, landingInViewViewport, landingStaggerContainer } from "@/lib/motion-prefs";
 
 interface SurfaceItem {
   label: string;

@@ -4,29 +4,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-  AppPageScaffold,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Checkbox,
-  Label,
-  PageHeader,
-  Textarea
-} from "@workspace/ui/components";
+import { Alert, AlertDescription, AlertTitle, AppPageScaffold, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Checkbox, Label, PageHeader, Textarea } from "@workspace/ui/components";
 // jscpd:ignore-end
 import { AlertCircle, Bell, Printer, Shield, Trash2 } from "lucide-react";
-import {
-  usePatientConsentSettings,
-  useRequestDataDeletion,
-  useUpdatePatientConsent,
-} from "@workspace/data-access";
+import { usePatientConsentSettings, useRequestDataDeletion, useUpdatePatientConsent } from "@workspace/data-access";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { formatDate } from "@/lib/formatters";

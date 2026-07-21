@@ -1,16 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  DataState,
-  EmptyState,
-  StatusBadge
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardHeader, CardTitle, DataState, EmptyState, StatusBadge } from "@workspace/ui/components";
 import { Banknote, BookOpen, CalendarCheck, Wallet } from "lucide-react";
 import { ComingSoonBadge } from "@/components/feedback/coming-soon-badge";
 import { formatTime } from "@/lib/formatters";

@@ -1,15 +1,7 @@
 "use client";
 
 import { formatCountLocale } from "@workspace/utils";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  DataState,
-  TabsContent
-} from "@workspace/ui/components";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, TabsContent } from "@workspace/ui/components";
 import type { SystemMonitoringPageViewModel } from "./use-system-monitoring-page";
 
 export type QueuesTabProps = Pick<

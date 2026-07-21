@@ -3,28 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import {
-  HelpCircle,
-  Moon,
-  MoreHorizontal,
-  Settings2,
-  SlidersHorizontal,
-  Sun,
-} from "lucide-react";
+import { HelpCircle, Moon, MoreHorizontal, Settings2, SlidersHorizontal, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  Badge,
-  Button,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  MicroLabel,
-  SidebarRailAction,
-  SidebarRailTooltip
-} from "@workspace/ui/components";
+import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, MicroLabel, SidebarRailAction, SidebarRailTooltip } from "@workspace/ui/components";
 import { NotificationBellWithBadges } from "@/components/navigation/notification-bell-with-badges";
 import { AskAiButton } from "@/components/ask-ai/ask-ai-button";
 import { HELP_NAV_ITEM } from "@/components/navigation/nav-config";

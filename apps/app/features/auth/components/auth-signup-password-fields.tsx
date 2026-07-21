@@ -1,19 +1,8 @@
 "use client";
 
 import { Eye, EyeOff } from "lucide-react";
-import {
-  Button,
-  Input,
-  Label,
-  SymbolTooltip
-} from "@workspace/ui/components";
-import {
-  fieldClass,
-  getFieldError,
-  hasFieldError,
-  InlineFieldError,
-  PasswordStrengthIndicator,
-} from "./AuthSharedFields";
+import { Button, Input, Label, SymbolTooltip } from "@workspace/ui/components";
+import { fieldClass, getFieldError, hasFieldError, InlineFieldError, PasswordStrengthIndicator } from "./AuthSharedFields";
 import type { FieldErrors } from "@/features/auth/types/auth";
 
 function renderPasswordInput({

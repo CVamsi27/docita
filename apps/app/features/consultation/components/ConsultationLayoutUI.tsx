@@ -1,8 +1,5 @@
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  Button,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, SymbolTooltip } from "@workspace/ui/components";
 import { PanelLeft } from "lucide-react";
 
 interface ConsultationLayoutUIProps {

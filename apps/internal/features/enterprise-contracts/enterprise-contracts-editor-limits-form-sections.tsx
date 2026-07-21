@@ -1,11 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import {
-  Input,
-  Label,
-  Textarea
-} from "@workspace/ui/components";
+import { Input, Label, Textarea } from "@workspace/ui/components";
 import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
 
 type FormFields = EnterpriseContractsPageState["form"];
@@ -21,13 +17,12 @@ function useEnterpriseContractsLimitsTranslations() {
   return useTranslations("InternalEnterpriseContracts.limits");
 }
 
-function IncludedLimitsFields({
-  form,
-  setForm,
-}: {
+interface FormSectionProps {
   form: FormFields;
   setForm: SetForm;
-}) {
+}
+
+function IncludedLimitsFields({ form, setForm }: FormSectionProps) {
   const t = useEnterpriseContractsLimitsTranslations();
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -119,13 +114,7 @@ function IncludedLimitsFields({
   );
 }
 
-function OverageAndPricingFields({
-  form,
-  setForm,
-}: {
-  form: FormFields;
-  setForm: SetForm;
-}) {
+function OverageAndPricingFields({ form, setForm }: FormSectionProps) {
   const t = useEnterpriseContractsLimitsTranslations();
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -217,13 +206,7 @@ function OverageAndPricingFields({
   );
 }
 
-function BillingConfigFields({
-  form,
-  setForm,
-}: {
-  form: FormFields;
-  setForm: SetForm;
-}) {
+function BillingConfigFields({ form, setForm }: FormSectionProps) {
   const t = useEnterpriseContractsLimitsTranslations();
   return (
     <div className="grid grid-cols-2 gap-3">

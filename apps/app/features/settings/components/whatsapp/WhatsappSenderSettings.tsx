@@ -2,28 +2,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  DataState
-} from "@workspace/ui/components";
-import {
-  useRevokeWhatsappSender,
-  useUpdateWhatsappSender,
-  useVerifyWhatsappSender,
-  useWhatsappSender,
-  useWhatsappStats,
-} from "@workspace/data-access";
-import {
-  ModeSelector,
-  ByoFormFields,
-  SenderActionButtons,
-  VerifiedSenderInfo,
-  DeliverabilityCard,
-} from "./WhatsappSenderSettingsSections";
+import { Badge, Card, CardContent, CardHeader, CardTitle, DataState } from "@workspace/ui/components";
+import { useRevokeWhatsappSender, useUpdateWhatsappSender, useVerifyWhatsappSender, useWhatsappSender, useWhatsappStats } from "@workspace/data-access";
+import { ModeSelector, ByoFormFields, SenderActionButtons, VerifiedSenderInfo, DeliverabilityCard } from "./WhatsappSenderSettingsSections";
 
 export function WhatsappSenderSettings() {
   const sender = useWhatsappSender();

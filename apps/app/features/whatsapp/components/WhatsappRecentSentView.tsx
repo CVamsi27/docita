@@ -2,12 +2,7 @@
 
 import { Send } from "lucide-react";
 import { useClinicRecentSentMessages } from "@workspace/data-access";
-import {
-  Badge,
-  Card,
-  CardContent,
-  DataState
-} from "@workspace/ui/components";
+import { Badge, Card, CardContent, DataState } from "@workspace/ui/components";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 const STATUS_BADGE_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {

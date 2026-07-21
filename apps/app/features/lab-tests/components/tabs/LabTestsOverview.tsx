@@ -1,11 +1,6 @@
 import { FC } from "react";
 import { useTranslations } from "next-intl";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import { AlertCircle, CheckCircle, Clock, FlaskConical } from "lucide-react";
 
 interface LabTestsOverviewProps {

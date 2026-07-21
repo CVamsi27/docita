@@ -1,22 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/navigation/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/navigation/tabs";
 import { Pencil, Upload } from "lucide-react";
-import {
-  DrawSignatureTab,
-  UploadSignatureTab,
-  SignatureErrorAlert,
-} from "./signature-upload-workflow-sections";
-import {
-  dataUrlToFile,
-  validateSignatureImageFile,
-} from "@/lib/utils/signature-upload";
+import { DrawSignatureTab, UploadSignatureTab, SignatureErrorAlert } from "./signature-upload-workflow-sections";
+import { dataUrlToFile, validateSignatureImageFile } from "@/lib/utils/signature-upload";
 
 interface SignatureUploadWorkflowProps {
   uploading: boolean;

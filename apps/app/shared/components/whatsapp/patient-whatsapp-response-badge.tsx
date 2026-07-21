@@ -1,14 +1,7 @@
 "use client";
 
-import {
-  Badge,
-  SymbolTooltip
-} from "@workspace/ui/components";
-import {
-  formatDate,
-  DATE_FORMATS,
-  formatDistanceToNow,
-} from "@workspace/utils";
+import { Badge, SymbolTooltip } from "@workspace/ui/components";
+import { formatDate, DATE_FORMATS, formatDistanceToNow } from "@workspace/utils";
 import { MessageCircle } from "lucide-react";
 
 type PatientResponseType =

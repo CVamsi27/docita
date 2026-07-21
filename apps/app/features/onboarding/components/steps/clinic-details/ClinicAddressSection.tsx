@@ -1,14 +1,6 @@
 import type { UseFormReturn } from "react-hook-form";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
-import {
-  ClinicAddressHeader,
-  AddressLine1Field,
-  AddressLine2Field,
-  CityStateFields,
-  CountryPostalFields,
-  AddressPreview,
-  GoogleMapsLinkField,
-} from "./ClinicAddressSectionSections";
+import { ClinicAddressHeader, AddressLine1Field, AddressLine2Field, CityStateFields, CountryPostalFields, AddressPreview, GoogleMapsLinkField } from "./ClinicAddressSectionSections";
 
 interface ClinicAddressSectionProps {
   clinicForm: UseFormReturn<ClinicDetails>;

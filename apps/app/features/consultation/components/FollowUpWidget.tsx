@@ -3,15 +3,7 @@
 import { getPatientFullName } from "@workspace/utils";
 
 // jscpd:ignore-start
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, SymbolTooltip } from "@workspace/ui/components";
 import { Calendar, Check, X } from "lucide-react";
 // jscpd:ignore-end
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";

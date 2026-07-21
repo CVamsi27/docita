@@ -1,10 +1,6 @@
 import { AlertCircle, AlertOctagon, Lightbulb } from "lucide-react";
 import { useTranslations } from "next-intl";
-import {
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 
 interface OCRHeaderProps {
   documentType: string;

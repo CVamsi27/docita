@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  AppPageScaffold,
-  DataState,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, DataState, PageHeader } from "@workspace/ui/components";
 import { FeatureGate } from "@/components/auth/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 import { PrescriptionsListContent } from "./list/PrescriptionsListContent";

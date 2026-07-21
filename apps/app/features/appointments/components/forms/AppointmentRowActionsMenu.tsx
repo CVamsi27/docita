@@ -2,16 +2,7 @@
 
 import Link from "next/link";
 import { CalendarPlus, ExternalLink, MoreVertical, Printer } from "lucide-react";
-import {
-  Button,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from "@workspace/ui/components";
+import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components";
 
 export interface AppointmentRowActionsMenuProps {
   /** Underlying appointment id (when present, enables Cancel and Mark no-show). */

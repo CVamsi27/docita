@@ -3,21 +3,10 @@
 import { getPatientFullName } from "@workspace/utils";
 import Link from "next/link";
 import { formatDate } from "@/lib/formatters";
-import {
-  FOLLOW_UP_STATUS_LABELS as STATUS_LABELS,
-  getFollowUpListQuery,
-} from "@/features/follow-ups";
+import { FOLLOW_UP_STATUS_LABELS as STATUS_LABELS, getFollowUpListQuery } from "@/features/follow-ups";
 import { useFollowUps } from "@workspace/data-access";
 import type { FollowUpResponse } from "@workspace/types";
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  EmptyState
-} from "@workspace/ui/components";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState } from "@workspace/ui/components";
 import { CalendarCheck } from "lucide-react";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 

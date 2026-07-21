@@ -1,33 +1,14 @@
 "use client";
 
 import { Stethoscope } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/overlay/dialog";
 import { type Doctor } from "./doctor-helpers";
-import {
-  DoctorEducationSection,
-  DoctorEvidenceSection,
-  DoctorInfoGrid,
-  DoctorSpecializationsSection,
-  DoctorVerificationSection,
-} from "./DoctorsViewDialogSections";
+import { DoctorEducationSection, DoctorEvidenceSection, DoctorInfoGrid, DoctorSpecializationsSection, DoctorVerificationActionProps, DoctorVerificationSection } from "./DoctorsViewDialogSections";
 
-interface DoctorsViewDialogProps {
+interface DoctorsViewDialogProps extends DoctorVerificationActionProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   doctor: Doctor | null;
-  adminActionBusy: "verify" | "reject" | null;
-  rejectionReasonDraft: string;
-  showRejectForm: boolean;
-  onRejectionReasonChange: (value: string) => void;
-  onShowRejectFormChange: (show: boolean) => void;
-  onAdminVerify: () => void;
-  onAdminReject: () => void;
 }
 
 export function DoctorsViewDialog({

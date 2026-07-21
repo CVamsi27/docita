@@ -1,19 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import {
-  BookingActionPanel,
-  ClinicContactCard,
-  PublicBookingHeroCompact,
-  RequestSummaryCard,
-} from "@/features/public-booking/public-booking-components";
-import {
-  PublicBookingAppointmentSection,
-  PublicBookingContactSection,
-  PublicBookingPatientContextSection,
-  PublicBookingSubmitAlerts,
-  PublicBookingTurnstileSection,
-} from "@/features/public-booking/public-booking-form-sections";
+import { BookingActionPanel, ClinicContactCard, PublicBookingHeroCompact, RequestSummaryCard } from "@/features/public-booking/public-booking-components";
+import { PublicBookingAppointmentSection, PublicBookingContactSection, PublicBookingPatientContextSection, PublicBookingSubmitAlerts, PublicBookingTurnstileSection } from "@/features/public-booking/public-booking-form-sections";
 import { PUBLIC_BOOKING_DESKTOP_RAIL_TOP_OFFSET_CLASS } from "@/features/public-booking/public-booking-constants";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { cn } from "@workspace/ui/lib/utils";

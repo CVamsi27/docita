@@ -2,10 +2,7 @@
 
 import type { Prescription } from "@workspace/types";
 import { PrescriptionsFilters } from "./PrescriptionsFilters";
-import {
-  PrescriptionsTable,
-  type PrescriptionsTableProps,
-} from "./PrescriptionsTable";
+import { PrescriptionsTable, type PrescriptionsTableProps } from "./PrescriptionsTable";
 
 // SSOT: `loading` / `sortConfig` / `onSort` / `onDownloadPDF` are defined once
 // on `PrescriptionsTableProps` and reused here via `Omit<…, "prescriptions">`

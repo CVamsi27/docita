@@ -2,7 +2,7 @@
 
 // jscpd:ignore-start
 import type { InvoiceListRow } from "@workspace/types";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives"
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
 import { Button, Label, MicroLabel } from "@workspace/ui/components";
 import {
   Dialog,
@@ -14,10 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
-import {
-  type DeskPaymentMethod,
-  PAYMENT_CHANNEL_OPTIONS,
-} from "./desk-collect-payment-helpers";
+import { type DeskPaymentMethod, PAYMENT_CHANNEL_OPTIONS } from "./desk-collect-payment-helpers";
 
 export interface RecordPaymentDialogProps {
   dialogInvoice: InvoiceListRow | null;

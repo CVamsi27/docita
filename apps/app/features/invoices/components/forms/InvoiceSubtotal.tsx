@@ -2,13 +2,7 @@
 
 import { Control, FieldValues } from "react-hook-form";
 import { invoiceDiscountFieldPath } from "@/features/invoices/lib/invoice-form-paths.boundary";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  Input
-} from "@workspace/ui/components";
+import { FormControl, FormField, FormItem, FormLabel, Input } from "@workspace/ui/components";
 
 interface InvoiceSubtotalProps<T extends FieldValues & { discount: number }> {
   control: Control<T>;

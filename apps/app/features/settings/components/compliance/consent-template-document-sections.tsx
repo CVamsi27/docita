@@ -3,10 +3,7 @@
 
 import { useTranslations } from "next-intl";
 import { formatDate } from "@workspace/utils";
-import {
-  CONSENT_DATA_CATEGORIES,
-  CONSENT_RETENTION_SUMMARY,
-} from "./consent-template-data-categories";
+import { CONSENT_DATA_CATEGORIES, CONSENT_RETENTION_SUMMARY } from "./consent-template-data-categories";
 
 export interface ConsentDocumentClinicInfo {
   name?: string | null;

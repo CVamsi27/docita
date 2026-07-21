@@ -3,24 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import {
-  useAuth,
-  VERIFICATION_EMAIL_STATUS_STORAGE_KEY,
-  type User,
-} from "@/lib/auth/auth-context";
+import { useAuth, VERIFICATION_EMAIL_STATUS_STORAGE_KEY, type User } from "@/lib/auth/auth-context";
 import { logger } from "@/lib/monitoring/logger";
 import { resendVerificationEmail } from "@/features/auth";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
 import { PreDashboardShell } from "@/features/auth";
-import {
-  EmailVerifiedContent,
-  CheckEmailHero,
-  CheckEmailMessage,
-  DeliveryStatusBanner,
-  ResendButtonSection,
-  WrongEmailFooter,
-} from "./VerifyEmailSentPageContentSections";
+import { EmailVerifiedContent, CheckEmailHero, CheckEmailMessage, DeliveryStatusBanner, ResendButtonSection, WrongEmailFooter } from "./VerifyEmailSentPageContentSections";
 
 const VERIFICATION_EMAIL_COOLDOWN_MS = 120 * 1000;
 const VERIFICATION_EMAIL_COOLDOWN_STORAGE_KEY =

@@ -1,26 +1,7 @@
 "use client";
 
-import {
-  AppPageScaffold,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  DataState,
-  Input,
-  PageHeader
-} from "@workspace/ui/components";
-import {
-  Building2,
-  FileText,
-  Pill,
-  Search,
-  TrendingDown,
-  TrendingUp,
-  User,
-  Users,
-} from "lucide-react";
+import { AppPageScaffold, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, Input, PageHeader } from "@workspace/ui/components";
+import { Building2, FileText, Pill, Search, TrendingDown, TrendingUp, User, Users } from "lucide-react";
 import { ClinicList, CreateClinicDialog } from "@/features/dashboard/components";
 import { useDashboardData } from "./use-dashboard-data";
 

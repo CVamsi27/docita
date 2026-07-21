@@ -1,12 +1,6 @@
 import * as React from "react";
 import { calculateAge } from "@workspace/utils";
-import {
-  Allergy,
-  ChronicCondition,
-  PatientSummaryCardUI,
-  PatientSummaryData,
-  VitalSign,
-} from "./PatientSummaryCardUI";
+import { Allergy, ChronicCondition, PatientSummaryCardUI, PatientSummaryData, VitalSign } from "./PatientSummaryCardUI";
 
 interface PatientSummaryCardContainerProps {
   patient: PatientSummaryData;

@@ -12,12 +12,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useDownloadOpdSlip } from "@/features/appointments/hooks/use-download-opd-slip";
 import { canStartConsultationAtTime } from "@/features/appointments/rules/appointmentRules";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  TimeSlotStatus,
-  TimeSlotLabel,
-  TimeSlotPatientInfo,
-  TimeSlotActions,
-} from "./TimeSlotRowSections";
+import { TimeSlotStatus, TimeSlotLabel, TimeSlotPatientInfo, TimeSlotActions } from "./TimeSlotRowSections";
 
 interface TimeSlotRowProps {
   appointment: AppointmentListItem;

@@ -13,13 +13,7 @@ import { UsageDashboard } from "@/features/subscription/components/usage-dashboa
 import { InvoiceHistoryDialog } from "@/features/subscription/components/dialogs/invoice-history-dialog";
 import { PaymentSuccessModal } from "@/features/subscription/components/modals/payment-success-modal";
 import { TierChangeDialog } from "@/features/subscription/components/dialogs/tier-change-dialog";
-import {
-  PlansSection,
-  PlanTabsSection,
-  ContactSalesCard,
-  LegalFooter,
-  LegalDialog,
-} from "@/features/subscription/components/billing-subscription-sections";
+import { PlansSection, PlanTabsSection, ContactSalesCard, LegalFooter, LegalDialog } from "@/features/subscription/components/billing-subscription-sections";
 
 export function BillingSubscriptionWorkspaceView({
   workspace: ws,

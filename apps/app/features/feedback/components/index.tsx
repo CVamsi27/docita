@@ -2,16 +2,7 @@
 
 // jscpd:ignore-start
 import { FC } from "react";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Label,
-  Textarea
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Label, Textarea } from "@workspace/ui/components";
 import {
   Frown,
 // jscpd:ignore-end
@@ -26,10 +17,7 @@ import {
 import { cn } from "@workspace/ui/lib/utils";
 import { useTranslations } from "next-intl";
 
-import {
-  FeedbackType,
-  useFeedbackLogic,
-} from "@/features/feedback/hooks/use-feedback-logic";
+import { FeedbackType, useFeedbackLogic } from "@/features/feedback/hooks/use-feedback-logic";
 
 /**
  * Phase 3 (per-feature): apps/app Feedback > Form components

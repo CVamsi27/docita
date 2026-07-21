@@ -7,10 +7,7 @@ import { PatientFaceSheetHeaderContainer as PatientFaceSheetHeader } from "@/fea
 import { PatientDetailTabs } from "@/features/patients/components/details/PatientDetailTabs";
 import { PatientHeaderActions } from "@/features/patients/components/details/PatientHeaderActions";
 import { PatientAdvisorRail } from "@/features/patients/components/details/patient-advisor-rail";
-import {
-  AppPageScaffold,
-  DataState
-} from "@workspace/ui/components";
+import { AppPageScaffold, DataState } from "@workspace/ui/components";
 import { User } from "lucide-react";
 import { PatientDetailTabLoadingShell } from "@/features/patients/components/details/patient-detail-tab-loading-shell";
 import { AddAppointmentDialogContainer } from "@/features/appointments";

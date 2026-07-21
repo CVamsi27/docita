@@ -1,4 +1,4 @@
-import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { useTranslations } from "next-intl";
 import { guidedSetupPresetAmount } from "@/features/payment-processing/payment-processing-helpers";

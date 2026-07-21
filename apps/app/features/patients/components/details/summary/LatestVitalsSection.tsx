@@ -1,12 +1,7 @@
 "use client";
 
 import { usePatientSnapshot } from "@workspace/data-access";
-import {
-  DataState,
-  Section,
-  StatTile,
-  type DataStateStatus
-} from "@workspace/ui/components";
+import { DataState, Section, StatTile, type DataStateStatus } from "@workspace/ui/components";
 import { formatDate } from "@workspace/utils";
 import { Activity, HeartPulse, Thermometer, Weight } from "lucide-react";
 import { SummarySectionAction } from "./SummarySectionAction";

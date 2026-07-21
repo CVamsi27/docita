@@ -2,22 +2,10 @@
 
 import { Suspense, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  AppPageScaffold,
-  DataState,
-  PageHeader,
-  PageTabs,
-  type PageTabItem
-} from "@workspace/ui/components";
+import { AppPageScaffold, DataState, PageHeader, PageTabs, type PageTabItem } from "@workspace/ui/components";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
-import {
-  ClipboardList,
-  FileText,
-  MessageCircle,
-  Pill,
-  type LucideIcon,
-} from "lucide-react";
+import { ClipboardList, FileText, MessageCircle, Pill, type LucideIcon } from "lucide-react";
 
 const TABS: Array<{
   value: string;

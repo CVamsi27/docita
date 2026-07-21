@@ -1,17 +1,6 @@
 "use client";
 
-import {
-  Badge,
-  Button,
-  Input,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Badge, Button, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SymbolTooltip } from "@workspace/ui/components";
 import { MessageCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { WhatsappSenderConfigResponse, WhatsappSenderMode } from "@workspace/types";

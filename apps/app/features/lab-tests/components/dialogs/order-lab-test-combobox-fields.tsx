@@ -6,27 +6,10 @@ import type { UseFormReturn } from "react-hook-form";
 import { ChevronsUpDown } from "lucide-react";
 import type { LabTest, Patient } from "@workspace/types";
 import { getPatientFullName } from "@workspace/utils";
-import {
-  Button,
-  Command,
-  CommandInput,
-  CommandList,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from "@workspace/ui/components";
+import { Button, Command, CommandInput, CommandList, FormControl, FormField, FormItem, FormLabel, FormMessage, Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import type { CreateLabTestOrderInput } from "@/features/lab-tests/hooks/use-lab-tests-logic";
-import {
-  PatientCommandList,
-  TestCommandList,
-  type LabTestFormatCurrency,
-} from "./order-lab-test-combobox-options";
+import { PatientCommandList, TestCommandList, type LabTestFormatCurrency } from "./order-lab-test-combobox-options";
 
 interface OrderLabTestComboboxFieldsProps {
   form: UseFormReturn<CreateLabTestOrderInput>;

@@ -3,10 +3,7 @@
 import { motion, useReducedMotion } from "motion/react";
 import { CheckCircle2, X } from "lucide-react";
 
-import {
-  landingFadeUpVariants,
-  landingInViewViewport,
-} from "@/lib/motion-prefs";
+import { landingFadeUpVariants, landingInViewViewport } from "@/lib/motion-prefs";
 
 interface CompareRow {
   label: string;

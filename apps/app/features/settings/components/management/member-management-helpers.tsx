@@ -3,16 +3,7 @@
 // jscpd:ignore-start
 import { FC } from "react";
 import { useTranslations } from "next-intl";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Skeleton
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from "@workspace/ui/components";
 import { Copy, UserPlus } from "lucide-react";
 import { User } from "@workspace/types";
 import { isDoctor } from "@/lib/auth/permissions";

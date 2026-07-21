@@ -8,15 +8,7 @@ import { ClinicReferralShareToolbar } from "@/features/dashboard/components/layo
 import { TodayAdvisorRail } from "@/features/dashboard/components/advisor/today-advisor-rail";
 import type { useClinicReferralShare } from "@/features/dashboard/hooks/use-clinic-referral-share";
 import type { useDashboardLogic } from "@/features/dashboard/hooks/use-dashboard-logic";
-import {
-  Avatar,
-  AvatarFallback,
-  BottomActionBar,
-  BottomActionBarSlot,
-  Button,
-  MicroLabel,
-  PageHeader
-} from "@workspace/ui/components";
+import { Avatar, AvatarFallback, BottomActionBar, BottomActionBarSlot, Button, MicroLabel, PageHeader } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { Play, Sparkles } from "lucide-react";
 import { formatDate, getPatientFullName } from "@workspace/utils";

@@ -1,24 +1,8 @@
 "use client";
 
 // jscpd:ignore-start
-import {
-  useRef,
-  useState,
-  useEffect,
-  useCallback,
-  type ReactNode,
-} from "react";
-import {
-  Badge,
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Progress
-} from "@workspace/ui/components";
+import { useRef, useState, useEffect, useCallback, type ReactNode } from "react";
+import { Badge, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Progress } from "@workspace/ui/components";
 
 export function ComplianceLegalDocumentDialog({
 // jscpd:ignore-end

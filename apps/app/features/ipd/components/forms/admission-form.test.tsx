@@ -2,10 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { describe, expect, it, vi } from "vitest";
 
-import {
-  AdmissionForm,
-  ipdAdmissionFormSchema,
-} from "./admission-form";
+import { AdmissionForm, ipdAdmissionFormSchema } from "./admission-form";
 
 const messages = {
   Ipd: {

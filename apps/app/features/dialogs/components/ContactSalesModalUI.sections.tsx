@@ -1,13 +1,6 @@
 import type { useForm } from "react-hook-form";
 import type { ContactSalesFormValues } from "@workspace/types";
-import {
-  Button,
-  FormControl,
-  FormField,
-  FormFieldGroup,
-  Input,
-  Textarea
-} from "@workspace/ui/components";
+import { Button, FormControl, FormField, FormFieldGroup, Input, Textarea } from "@workspace/ui/components";
 import { CheckCircle } from "lucide-react";
 
 type ContactSalesForm = ReturnType<typeof useForm<ContactSalesFormValues>>;

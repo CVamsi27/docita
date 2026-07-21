@@ -2,11 +2,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { Search, X } from "lucide-react";
-import {
-  Button,
-  Input,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, Input, SymbolTooltip } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 
 const SETTINGS_SEARCH_INPUT_ID = "settings-search-filter-input";

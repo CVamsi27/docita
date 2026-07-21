@@ -2,16 +2,7 @@
 
 // jscpd:ignore-start
 import { useState } from "react";
-import {
-  Badge,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  Label,
-  Switch
-} from "@workspace/ui/components";
+import { Badge, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Label, Switch } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   PRICING_CURRENCY_CONFIG,
@@ -20,20 +11,10 @@ import {
   Tier,
   type TierName,
 } from "@workspace/types";
-import {
-  type TierPricing,
-  usePricingConfig,
-  useTierEstimates,
-} from "@/features/subscription/hooks/use-pricing";
+import { type TierPricing, usePricingConfig, useTierEstimates } from "@/features/subscription/hooks/use-pricing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import {
-  DEFAULT_PRICING_USAGE_INPUTS,
-  PRICING_DIALOG_TIERS,
-} from "@/features/subscription/config/pricing-config";
-import {
-  PricingDialogTierCard,
-  resolvePricingDialogEstimate,
-} from "./pricing-dialog-tier-card";
+import { DEFAULT_PRICING_USAGE_INPUTS, PRICING_DIALOG_TIERS } from "@/features/subscription/config/pricing-config";
+import { PricingDialogTierCard, resolvePricingDialogEstimate } from "./pricing-dialog-tier-card";
 
 interface PricingDialogProps {
   open: boolean;

@@ -1,8 +1,4 @@
-import {
-  DatePicker,
-  Input,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { DatePicker, Input, SymbolTooltip } from "@workspace/ui/components";
 import { Scissors, X } from "lucide-react";
 import { PatientWithMedicalHistory } from "@workspace/types";
 import { formatDate } from "@/lib/formatters";

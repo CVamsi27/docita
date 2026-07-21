@@ -2,28 +2,11 @@
 
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useState } from "react";
-import {
-  Alert,
-  AlertDescription,
-  Calendar,
-  Card,
-  CardContent,
-  CardHeader,
-  MicroLabel,
-  Separator
-} from "@workspace/ui/components";
+import { Alert, AlertDescription, Calendar, Card, CardContent, CardHeader, MicroLabel, Separator } from "@workspace/ui/components";
 import { formatDate, formatPickerIsoDate } from "@workspace/utils";
 import { PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS } from "@/features/public-booking/public-booking-constants";
-import {
-  BookingSectionHeader,
-  bookingCardClass,
-  bookingSectionHeaderBar,
-  bookingSectionShell,
-} from "@/features/public-booking/public-booking-components";
-import {
-  DoctorChips,
-  DoctorTogglePicker,
-} from "@/features/public-booking/atoms/doctor-picker";
+import { BookingSectionHeader, bookingCardClass, bookingSectionHeaderBar, bookingSectionShell } from "@/features/public-booking/public-booking-components";
+import { DoctorChips, DoctorTogglePicker } from "@/features/public-booking/atoms/doctor-picker";
 import { SlotGrid } from "@/features/public-booking/atoms/slot-grid";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { cn } from "@workspace/ui/lib/utils";

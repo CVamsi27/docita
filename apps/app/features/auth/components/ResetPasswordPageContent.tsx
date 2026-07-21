@@ -4,12 +4,7 @@ import { Suspense } from "react";
 import { useTranslations } from "next-intl";
 import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import { useResetPasswordFlow } from "@/features/auth/hooks/use-reset-password-flow";
-import {
-  ResetLinkExpiredCard,
-  ResetPasswordFormCard,
-  ResetPasswordShell,
-  ResetPasswordSuccessCard,
-} from "./ResetPasswordPageContentSections";
+import { ResetLinkExpiredCard, ResetPasswordFormCard, ResetPasswordShell, ResetPasswordSuccessCard } from "./ResetPasswordPageContentSections";
 
 /**
  * Phase 3 (per-feature): apps/app Auth > reset password content (parent).

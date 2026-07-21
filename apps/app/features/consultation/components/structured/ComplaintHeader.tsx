@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  Button,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, SymbolTooltip } from "@workspace/ui/components";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { Activity, Trash2 } from "lucide-react";
 

@@ -2,12 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import type { MetricCard } from "./analytics-helpers";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@workspace/ui/components/indicators/card";
 import { cn } from "@workspace/ui/lib/utils";
 
 const trendToneClassNames: Record<NonNullable<MetricCard["trend"]>, string> = {

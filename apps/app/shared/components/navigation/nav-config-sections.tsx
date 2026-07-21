@@ -1,30 +1,5 @@
-import {
-  Banknote,
-  BarChart3,
-  BookOpen,
-  Boxes,
-  CalendarClock,
-  CalendarDays,
-  CheckSquare,
-  FileCode2,
-  FileInput,
-  Files,
-  FlaskConical,
-  Inbox,
-  MessageCircle,
-  Pill,
-  Receipt,
-  ShieldPlus,
-  Stethoscope,
-  TrendingUp,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
-import {
-  APP_ACCESS_TARGETS,
-  type AppAccessTarget,
-  Feature,
-} from "@workspace/types";
+import { Banknote, BarChart3, BookOpen, Boxes, CalendarClock, CalendarDays, CheckSquare, FileCode2, FileInput, Files, FlaskConical, Inbox, MessageCircle, Pill, Receipt, ShieldPlus, Stethoscope, TrendingUp, Users, type LucideIcon } from "lucide-react";
+import { APP_ACCESS_TARGETS, type AppAccessTarget, Feature } from "@workspace/types";
 
 export interface NavItem {
   href: string;

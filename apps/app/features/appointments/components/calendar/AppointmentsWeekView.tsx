@@ -4,13 +4,7 @@ import { useMemo } from "react";
 import { cn } from "@workspace/ui/lib/utils";
 import { getStatusColor } from "@workspace/ui/components/indicators/status-badge";
 import type { AppointmentListItem } from "@workspace/data-access";
-import {
-  addDays,
-  formatClinicPickerDayIsoFromSelection,
-  formatClinicTodayPickerIso,
-  formatUtcInstantAsClinicPickerIso,
-  pickerIsoToLocalDate,
-} from "@workspace/utils";
+import { addDays, formatClinicPickerDayIsoFromSelection, formatClinicTodayPickerIso, formatUtcInstantAsClinicPickerIso, pickerIsoToLocalDate } from "@workspace/utils";
 import { formatTime } from "@/lib/formatters";
 
 interface AppointmentsWeekViewProps {

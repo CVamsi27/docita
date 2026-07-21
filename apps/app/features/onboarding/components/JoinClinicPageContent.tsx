@@ -2,11 +2,7 @@
 
 import { Building2, Mail, Search, X } from "lucide-react";
 import Link from "next/link";
-import {
-  Button,
-  Card,
-  Input
-} from "@workspace/ui/components";
+import { Button, Card, Input } from "@workspace/ui/components";
 import { ClearSearchButton } from "@/components/buttons/clear-search-button";
 import { cn } from "@workspace/ui/lib/utils";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";

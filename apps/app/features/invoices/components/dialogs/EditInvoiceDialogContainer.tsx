@@ -9,14 +9,7 @@ import { useFormOptions } from "@/lib/contexts/app-config-context";
 import { EditInvoiceDialogUI } from "./EditInvoiceDialogUI";
 import type { Invoice, InvoiceItem, Patient } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  calculateInvoiceTotal,
-  createBlankInvoiceItem,
-  parseInvoiceStatus,
-  removeInvoiceItem,
-  updateInvoiceItems,
-  type EditableInvoiceItemField,
-} from "./edit-invoice-dialog-state";
+import { calculateInvoiceTotal, createBlankInvoiceItem, parseInvoiceStatus, removeInvoiceItem, updateInvoiceItems, type EditableInvoiceItemField } from "./edit-invoice-dialog-state";
 
 type InvoiceWithPatient = Invoice & { patient: Patient };
 

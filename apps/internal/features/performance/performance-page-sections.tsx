@@ -2,28 +2,10 @@
 
 // Idiomatic shadcn/Origin import boilerplate — shared verbatim with sibling
 // monitoring/performance dashboards that render the same primitive families.
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Progress
-} from "@workspace/ui/components";
-import {
-  SystemHealthBadge,
-  SystemHealthIcon,
-} from "@workspace/ui/components/feedback/system-health-indicator";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Progress } from "@workspace/ui/components";
+import { SystemHealthBadge, SystemHealthIcon } from "@workspace/ui/components/feedback/system-health-indicator";
 import { formatCountLocale } from "@workspace/utils";
-import {
-  Activity,
-  AlertTriangle,
-  Clock,
-  Cpu,
-  Database,
-  Server,
-  Wifi,
-} from "lucide-react";
+import { Activity, AlertTriangle, Clock, Cpu, Database, Server, Wifi } from "lucide-react";
 import { MetricStatCard } from "@/components/common/metric-stat-card";
 
 interface TopMetricsCardsProps {

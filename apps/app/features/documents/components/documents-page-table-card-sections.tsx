@@ -1,17 +1,5 @@
-import {
-  Badge,
-  Button,
-  ListRow,
-  SortableHeaderButton,
-  SymbolTooltip,
-  type DataTableColumn
-} from "@workspace/ui/components";
-import {
-  Download,
-  ExternalLink,
-  Eye,
-  FileText,
-} from "lucide-react";
+import { Badge, Button, ListRow, SortableHeaderButton, SymbolTooltip, type DataTableColumn } from "@workspace/ui/components";
+import { Download, ExternalLink, Eye, FileText } from "lucide-react";
 import type { Document } from "@workspace/types";
 import { DOCUMENT_TYPE_LABELS } from "@workspace/types";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";

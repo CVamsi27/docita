@@ -1,16 +1,7 @@
 "use client";
 
 import { Search } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@workspace/ui/components";
+import { Card, CardContent, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
 
 interface InternalTableToolbarFilterOption {
   value: string;

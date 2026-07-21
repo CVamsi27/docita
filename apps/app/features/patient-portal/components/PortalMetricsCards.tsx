@@ -2,14 +2,7 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  MicroLabel
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardHeader, CardTitle, MicroLabel } from "@workspace/ui/components";
 import { ShieldCheck, CalendarCheck, FileText, Receipt } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { formatDateTime } from "@/lib/formatters";

@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  AppPageScaffold,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, PageHeader } from "@workspace/ui/components";
 import { useBroadcastsPage } from "./use-broadcasts-page";
 import { BroadcastsFormSection } from "./BroadcastsFormSection";
 import { BroadcastsListSection } from "./BroadcastsListSection";

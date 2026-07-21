@@ -2,25 +2,10 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  changePasswordFormSchema,
-  type ChangePasswordFormValues,
-} from "@workspace/types";
+import { changePasswordFormSchema, type ChangePasswordFormValues } from "@workspace/types";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Form,
-  FormControl,
-  FormField,
-  FormFieldGroup,
-  Input
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Form, FormControl, FormField, FormFieldGroup, Input } from "@workspace/ui/components";
 import { settingsApi } from "@/features/settings/api/settings.api";
 import { PasswordStrengthIndicator } from "@/features/auth";
 

@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Edit2,
-  Eye,
-  Shield,
-  UserCheck,
-  UserX,
-} from "lucide-react";
+import { Edit2, Eye, Shield, UserCheck, UserX } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, EmptyState } from "@workspace/ui/components";

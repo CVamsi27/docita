@@ -1,32 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@workspace/ui/components/indicators/card";
-import {
-  PRICING_CURRENCY_CONFIG,
-  PRICING_CURRENCY_SYMBOLS,
-  type SupportedCurrency,
-} from "@workspace/types";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/indicators/card";
+import { PRICING_CURRENCY_CONFIG, PRICING_CURRENCY_SYMBOLS, type SupportedCurrency } from "@workspace/types";
 import { formatAmountLocale } from "@workspace/utils";
 import { Calculator } from "lucide-react";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import {
-  UsageSliders,
-  BillBreakdownCard,
-  UpgradeSuggestion,
-} from "./usage-pricing-calculator-sections";
-import {
-  type UsageInput,
-  DEFAULT_USAGE,
-  calculateBill,
-  exceedsProLimits,
-} from "./usage-pricing-calculator-helpers";
+import { UsageSliders, BillBreakdownCard, UpgradeSuggestion } from "./usage-pricing-calculator-sections";
+import { type UsageInput, DEFAULT_USAGE, calculateBill, exceedsProLimits } from "./usage-pricing-calculator-helpers";
 
 interface UsagePricingCalculatorProps {
   currency?: SupportedCurrency;

@@ -1,16 +1,7 @@
 import { useMemo } from "react";
-import {
-  formatClinicHalfHourSlotKey,
-  formatClinicPickerIsoLabel,
-} from "@workspace/utils";
+import { formatClinicHalfHourSlotKey, formatClinicPickerIsoLabel } from "@workspace/utils";
 import { CalendarDays } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  DataState
-} from "@workspace/ui/components";
+import { Card, CardContent, CardHeader, CardTitle, DataState } from "@workspace/ui/components";
 import type { AppointmentListItem } from "@workspace/data-access";
 import { TimeSlotRow } from "@/features/appointments/components/forms/TimeSlotRow";
 

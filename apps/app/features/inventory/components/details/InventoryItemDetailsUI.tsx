@@ -1,18 +1,7 @@
-import {
-  LoadingState,
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle
-} from "@workspace/ui/components";
+import { LoadingState, Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@workspace/ui/components";
 import { Package } from "lucide-react";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
-import {
-  ItemInfoCard,
-  ItemMovementsSection,
-  type ItemDetail,
-} from "./InventoryItemDetailsUISections";
+import { ItemInfoCard, ItemMovementsSection, type ItemDetail } from "./InventoryItemDetailsUISections";
 
 export type { ItemMovement, ItemDetail } from "./InventoryItemDetailsUISections";
 

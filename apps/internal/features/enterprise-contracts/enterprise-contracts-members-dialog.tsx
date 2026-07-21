@@ -1,20 +1,7 @@
 "use client";
 
-import {
-  Badge,
-  Button,
-  Input,
-  Label
-} from "@workspace/ui/components";
-import {
-  BaseContractDialogShell,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "./base-dialog-shell";
+import { Badge, Button, Input, Label } from "@workspace/ui/components";
+import { BaseContractDialogShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./base-dialog-shell";
 import { X } from "lucide-react";
 import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
 

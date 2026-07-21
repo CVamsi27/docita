@@ -1,13 +1,7 @@
 "use client";
 
 import { CreditCard, Info, ShieldCheck } from "lucide-react";
-import {
-  Alert,
-  AlertDescription,
-  Button,
-  Checkbox,
-  Label
-} from "@workspace/ui/components";
+import { Alert, AlertDescription, Button, Checkbox, Label } from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { formatAmountLocale } from "@workspace/utils";
 

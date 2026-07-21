@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Button,
-  Input,
-  Label
-} from "@workspace/ui/components";
+import { Button, Input, Label } from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { MapPin } from "lucide-react";
 import type { ClinicAddressDetails, LatLng } from "./address/address-utils";

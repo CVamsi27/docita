@@ -1,8 +1,4 @@
-import {
-  Badge,
-  DataState,
-  Section
-} from "@workspace/ui/components";
+import { Badge, DataState, Section } from "@workspace/ui/components";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { usePatientSnapshot } from "@workspace/data-access";
 import { HeartPulse } from "lucide-react";

@@ -1,10 +1,7 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
-import {
-  Button,
-  MicroLabel
-} from "@workspace/ui/components";
+import { Button, MicroLabel } from "@workspace/ui/components";
 import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 import { useFeatureFlag } from "@/hooks/use-feature-flag";
 import { AI_FEATURES_ENABLED } from "@/lib/config/ai-features";

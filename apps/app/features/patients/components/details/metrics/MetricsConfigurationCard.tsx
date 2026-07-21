@@ -1,5 +1,5 @@
 // jscpd:ignore-start
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { Button, Card, CardContent, CardHeader, CardTitle, Checkbox, Label } from "@workspace/ui/components";
 import type { MetricCategoryResponse } from "@workspace/types";
 import { useTranslations } from "next-intl";

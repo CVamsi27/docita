@@ -1,17 +1,4 @@
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Label,
-  Switch,
-  Textarea
-} from "@workspace/ui/components";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Badge, Card, CardContent, CardHeader, CardTitle, Label, Switch, Textarea } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { Activity, FileText, Heart, Stethoscope, Wind } from "lucide-react";
 

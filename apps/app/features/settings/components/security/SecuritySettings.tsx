@@ -6,24 +6,10 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  securitySettingsFormSchema,
-  type SecuritySettingsFormValues,
-} from "@workspace/types";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Form
-} from "@workspace/ui/components";
+import { securitySettingsFormSchema, type SecuritySettingsFormValues } from "@workspace/types";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Form } from "@workspace/ui/components";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import {
-  useClinicSettings,
-  useUpdateClinicSettings,
-} from "@workspace/data-access";
+import { useClinicSettings, useUpdateClinicSettings } from "@workspace/data-access";
 import { parseClinicAppSettings } from "@/lib/clinic/parse-clinic-app-settings";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";

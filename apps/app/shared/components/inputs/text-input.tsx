@@ -1,9 +1,6 @@
 import * as React from "react";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  Input as BaseInput,
-  Label
-} from "@workspace/ui/components";
+import { Input as BaseInput, Label } from "@workspace/ui/components";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string;

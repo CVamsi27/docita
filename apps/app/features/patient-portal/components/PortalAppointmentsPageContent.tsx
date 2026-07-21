@@ -3,20 +3,8 @@
 // jscpd:ignore-start
 import { useState, type FormEvent } from "react";
 import { PatientPortalAppointmentsUI } from "@/features/patient-portal/components";
-import {
-  usePatientPortalAppointments,
-  useRequestAppointment,
-} from "@workspace/data-access";
-import {
-  AppPageScaffold,
-  Button,
-  DataState,
-  Input,
-  IsoDatePickerField,
-  Label,
-  PageHeader,
-  Textarea
-} from "@workspace/ui/components";
+import { usePatientPortalAppointments, useRequestAppointment } from "@workspace/data-access";
+import { AppPageScaffold, Button, DataState, Input, IsoDatePickerField, Label, PageHeader, Textarea } from "@workspace/ui/components";
 import {
   Card,
   CardContent,

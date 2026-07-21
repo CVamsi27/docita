@@ -1,14 +1,6 @@
 import React, { FC } from "react";
 import { useTranslations } from "next-intl";
-import {
-  AppPageScaffold,
-  Badge,
-  PageHeader,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from "@workspace/ui/components";
+import { AppPageScaffold, Badge, PageHeader, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
 import { Brain, FileText, Pill, Sparkles, TrendingUp } from "lucide-react";
 import { FeatureGuard } from "@/components/auth/feature-guard";
 import { Feature } from "@/lib/stores/permission-store";

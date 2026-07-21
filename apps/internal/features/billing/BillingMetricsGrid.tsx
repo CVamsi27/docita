@@ -1,19 +1,7 @@
 "use client";
 
-import {
-  ArrowDownRight,
-  ArrowUpRight,
-  DollarSign,
-  TrendingDown,
-  TrendingUp,
-  Users,
-} from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { ArrowDownRight, ArrowUpRight, DollarSign, TrendingDown, TrendingUp, Users } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
 import type { InternalBillingMetrics } from "@workspace/data-access/internal";
 

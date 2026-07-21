@@ -4,17 +4,7 @@ import { useDeferredValue, useMemo, useState } from "react";
 import { FileText } from "lucide-react";
 import type { Appointment } from "@workspace/types";
 import { Feature } from "@workspace/types";
-import {
-  AppPageScaffold,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  DataState,
-  Input,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, Input, PageHeader } from "@workspace/ui/components";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { getPatientFullName } from "@workspace/utils";
 import { FeatureGate } from "@/components/auth/feature-gate";

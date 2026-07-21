@@ -2,17 +2,7 @@
 
 // jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  Alert,
-  AlertDescription,
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from "@workspace/ui/components";
+import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   AlertTriangle,
@@ -24,11 +14,7 @@ import {
 } from "lucide-react";
 import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
 import { type TierChangeDialogProps } from "./tier-change-dialog-types";
-import {
-  FeatureDeltaGrid,
-  DowngradeTimingChooser,
-  ProrationPreview,
-} from "./tier-change-dialog-sections";
+import { FeatureDeltaGrid, DowngradeTimingChooser, ProrationPreview } from "./tier-change-dialog-sections";
 import { TierChangeDialogPlanCompare } from "./tier-change-dialog-plan-compare";
 import { useTierChangeDialog } from "./use-tier-change-dialog";
 

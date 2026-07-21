@@ -1,18 +1,7 @@
 "use client";
 
 // jscpd:ignore-start
-import {
-  Button,
-  DatePicker,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Label,
-  Switch
-} from "@workspace/ui/components";
+import { Button, DatePicker, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Label, Switch } from "@workspace/ui/components";
 import { formatCurrency } from "@workspace/utils";
 import { BadgeCheck, CreditCard, FileText, PencilLine } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";

@@ -5,11 +5,7 @@ import { Check, Play, UserCheck } from "lucide-react";
 import { formatClockTime } from "@/lib/formatters";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import type { AppointmentListItem } from "@workspace/data-access";
-import {
-  Badge,
-  Button,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Badge, Button, SymbolTooltip } from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { WhatsAppDeliveryBadge } from "@/components/whatsapp/whatsapp-delivery-badge";
 import { PatientWhatsAppResponseBadge } from "@/components/whatsapp/patient-whatsapp-response-badge";

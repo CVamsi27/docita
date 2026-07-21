@@ -2,16 +2,7 @@
 
 import { Clock, Users } from "lucide-react";
 
-import {
-  Avatar,
-  AvatarFallback,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  EmptyState,
-  Section
-} from "@workspace/ui/components";
+import { Avatar, AvatarFallback, Card, CardContent, CardHeader, CardTitle, EmptyState, Section } from "@workspace/ui/components";
 import { LiveDot } from "@workspace/ui/components/indicators/live-dot";
 import { cn } from "@workspace/ui/lib/utils";
 

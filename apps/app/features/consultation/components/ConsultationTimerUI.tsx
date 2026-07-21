@@ -1,15 +1,6 @@
 import * as React from "react";
 import { useTranslations } from "next-intl";
-import {
-  Badge,
-  Button,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from "@workspace/ui/components";
+import { Badge, Button, Popover, PopoverContent, PopoverTrigger, Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components";
 import { Clock, Pause, Play, RotateCcw, Timer } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 

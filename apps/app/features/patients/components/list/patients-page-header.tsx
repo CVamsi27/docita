@@ -1,7 +1,4 @@
-import {
-  Button,
-  PageHeader
-} from "@workspace/ui/components";
+import { Button, PageHeader } from "@workspace/ui/components";
 import { Stethoscope, UserPlus } from "lucide-react";
 
 export function PatientsPageHeader({

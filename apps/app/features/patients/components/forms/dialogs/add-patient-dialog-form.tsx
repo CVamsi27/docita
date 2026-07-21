@@ -3,31 +3,10 @@
 import type { BaseSyntheticEvent } from "react";
 import type { Control, UseFormReturn } from "react-hook-form";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  Button,
-  Checkbox,
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from "@workspace/ui/components";
-import {
-  DPDP_NOTICE_TEXT_STAFF,
-  DPDP_NOTICE_TITLE,
-  DPDP_NOTICE_VERSION,
-  type PatientCreateFormValues,
-} from "@workspace/types";
-import {
-  SharedPatientContactFields,
-  SharedPatientIdentityFields,
-  SharedPatientNameFields,
-} from "./shared-patient-info-fields";
-import {
-  AbhaVerificationField,
-  type AbhaVerificationUiState,
-} from "./abha-verification-field";
+import { Button, Checkbox, Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@workspace/ui/components";
+import { DPDP_NOTICE_TEXT_STAFF, DPDP_NOTICE_TITLE, DPDP_NOTICE_VERSION, type PatientCreateFormValues } from "@workspace/types";
+import { SharedPatientContactFields, SharedPatientIdentityFields, SharedPatientNameFields } from "./shared-patient-info-fields";
+import { AbhaVerificationField, type AbhaVerificationUiState } from "./abha-verification-field";
 
 function DpdpConsentSection({
   control,

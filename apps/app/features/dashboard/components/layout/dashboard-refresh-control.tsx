@@ -2,10 +2,7 @@
 
 import { formatDistanceToNow } from "@workspace/utils";
 import { RefreshCw } from "lucide-react";
-import {
-  Button,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, SymbolTooltip } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 
 interface DashboardRefreshControlProps {

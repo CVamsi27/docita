@@ -3,12 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { usePatientTimeline } from "@workspace/data-access";
-import {
-  Badge,
-  DataState,
-  Section,
-  type DataStateStatus
-} from "@workspace/ui/components";
+import { Badge, DataState, Section, type DataStateStatus } from "@workspace/ui/components";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatDate } from "@workspace/utils";
 import { CalendarDays, ChevronRight, Pill, Stethoscope } from "lucide-react";

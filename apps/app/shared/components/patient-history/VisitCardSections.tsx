@@ -2,11 +2,7 @@
 
 import type { ElementType } from "react";
 import Link from "next/link";
-import {
-  Badge,
-  Button,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Badge, Button, SymbolTooltip } from "@workspace/ui/components";
 import { ChevronDown, ChevronUp, Pill } from "lucide-react";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { cn } from "@workspace/ui/lib/utils";

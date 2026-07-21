@@ -2,17 +2,7 @@
 
 import { useState } from "react";
 import { LogOut, Menu } from "lucide-react";
-import {
-  Button,
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from "@workspace/ui/components";
+import { Button, Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components";
 import { DocitaIcon } from "@workspace/ui/components/indicators/docita-logo";
 import { INTERNAL_SIDEBAR_ITEMS } from "@/lib/internal-nav";
 import { InternalNavLinks } from "@/components/internal-nav-links";

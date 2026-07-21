@@ -1,28 +1,11 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
-import {
-  ArrowRight,
-  Brain,
-  CalendarCheck,
-  CheckCircle2,
-  FileText,
-  type LucideIcon,
-  Receipt,
-  ScanText,
-  ShieldCheck,
-  Smartphone,
-  Sparkles,
-  UserRound,
-} from "lucide-react";
+import { ArrowRight, Brain, CalendarCheck, CheckCircle2, FileText, type LucideIcon, Receipt, ScanText, ShieldCheck, Smartphone, Sparkles, UserRound } from "lucide-react";
 
 import { Button } from "@workspace/ui/components/form/button";
 
-import {
-  landingFadeUpVariants,
-  landingInViewViewport,
-  landingStaggerContainer,
-} from "@/lib/motion-prefs";
+import { landingFadeUpVariants, landingInViewViewport, landingStaggerContainer } from "@/lib/motion-prefs";
 import { DifferentiatorCard } from "./differentiator-card";
 
 const TRUST_BADGES = [

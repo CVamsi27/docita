@@ -1,21 +1,9 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
-import {
-  BedDouble,
-  Hospital,
-  type LucideIcon,
-  Sparkles,
-  Stethoscope,
-  Users,
-  UsersRound,
-} from "lucide-react";
+import { BedDouble, Hospital, type LucideIcon, Sparkles, Stethoscope, Users, UsersRound } from "lucide-react";
 
-import {
-  landingFadeUpVariants,
-  landingInViewViewport,
-  landingStaggerContainer,
-} from "@/lib/motion-prefs";
+import { landingFadeUpVariants, landingInViewViewport, landingStaggerContainer } from "@/lib/motion-prefs";
 
 interface ClinicType {
   id: string;

@@ -2,11 +2,7 @@
 
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import {
-  CardDescription,
-  CardTitle,
-  MicroLabel
-} from "@workspace/ui/components";
+import { CardDescription, CardTitle, MicroLabel } from "@workspace/ui/components";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { cn } from "@workspace/ui/lib/utils";
 

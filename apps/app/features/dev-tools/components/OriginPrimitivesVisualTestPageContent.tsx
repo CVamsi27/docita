@@ -2,22 +2,7 @@
 
 import { useState } from "react";
 import { CalendarClock, FlaskConical, Pill, Stethoscope } from "lucide-react";
-import {
-  AppPageScaffold,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  MicroLabel,
-  PageHeader,
-  PageTabs,
-  ProgressGauge,
-  PromptInput,
-  RightRailCard,
-  RightRailCardStack,
-  type PageTabItem
-} from "@workspace/ui/components";
+import { AppPageScaffold, Button, Card, CardContent, CardHeader, CardTitle, MicroLabel, PageHeader, PageTabs, ProgressGauge, PromptInput, RightRailCard, RightRailCardStack, type PageTabItem } from "@workspace/ui/components";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { WizardDialog } from "@workspace/ui/components/overlay/wizard-dialog";
 

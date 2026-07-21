@@ -5,11 +5,7 @@ import { ArrowRight } from "lucide-react";
 
 import { Button } from "@workspace/ui/components/form/button";
 
-import {
-  landingFadeUpVariants,
-  landingInViewViewport,
-  landingStaggerContainer,
-} from "@/lib/motion-prefs";
+import { landingFadeUpVariants, landingInViewViewport, landingStaggerContainer } from "@/lib/motion-prefs";
 
 interface Milestone {
   marker: string;

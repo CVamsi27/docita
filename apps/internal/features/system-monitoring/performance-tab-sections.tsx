@@ -2,21 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { DATE_FORMATS, formatDate } from "@workspace/utils";
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Progress
-} from "@workspace/ui/components";
-import {
-  Activity,
-  Database,
-  Server,
-  Wifi,
-} from "lucide-react";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Progress } from "@workspace/ui/components";
+import { Activity, Database, Server, Wifi } from "lucide-react";
 import { formatBytesToMb } from "./system-monitoring-helpers";
 
 /**

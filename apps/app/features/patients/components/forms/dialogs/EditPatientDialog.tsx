@@ -15,16 +15,9 @@ import { Form } from "@workspace/ui/components/form/form";
 import { updatePatientRequestSchema } from "@workspace/types";
 import { parseStringEnumMember } from "@workspace/utils";
 import { validatePatientPhoneNumberForCountry } from "@/features/patients/rules/patient-rules";
-import {
-  PatientBasicInfoFields,
-  PatientDemographicFields,
-  DialogActionButtons,
-} from "./EditPatientDialogSections";
+import { PatientBasicInfoFields, PatientDemographicFields, DialogActionButtons } from "./EditPatientDialogSections";
 import { GENDER_VALUES } from "./EditPatientDialogHelpers";
-import {
-  AbhaVerificationField,
-  type AbhaVerificationUiState,
-} from "./abha-verification-field";
+import { AbhaVerificationField, type AbhaVerificationUiState } from "./abha-verification-field";
 import { getAbhaVerificationResultState } from "./abha-verification-errors";
 import { AbhaOtpVerificationDialog } from "./abha-otp-verification-dialog";
 

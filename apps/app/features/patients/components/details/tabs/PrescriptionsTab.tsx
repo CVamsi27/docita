@@ -3,15 +3,7 @@
 // jscpd:ignore-start
 import Link from "next/link";
 import { formatDate } from "@workspace/utils";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  DataState
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState } from "@workspace/ui/components";
 import { ExternalLink, Pill, RotateCcw } from "lucide-react";
 import { usePatientPrescriptions } from "@workspace/data-access";
 import { useRepeatPrescription } from "@/features/patients/hooks/use-repeat-prescription";

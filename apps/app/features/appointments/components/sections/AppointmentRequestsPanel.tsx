@@ -1,15 +1,7 @@
 "use client";
 
 import { Inbox } from "lucide-react";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  DataState
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState } from "@workspace/ui/components";
 import { AppointmentRequestRow } from "./requests/AppointmentRequestRow";
 import { AppointmentRequestPastRow } from "./appointment-request-past-row";
 import { useAppointmentRequestsPanel } from "./use-appointment-requests-panel";

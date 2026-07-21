@@ -4,15 +4,7 @@
 import { useState, type ComponentType } from "react";
 import { useTranslations } from "next-intl";
 import { formatDate } from "@workspace/utils";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  DataState
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState } from "@workspace/ui/components";
 import {
   Activity,
 // jscpd:ignore-end

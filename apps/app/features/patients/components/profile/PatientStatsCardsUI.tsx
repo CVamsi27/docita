@@ -1,12 +1,6 @@
 import type { ReactNode } from "react";
 import { Card, CardContent } from "@workspace/ui/components/indicators/card";
-import {
-  Activity,
-  Calendar,
-  Clock,
-  TrendingUp,
-  type LucideIcon,
-} from "lucide-react";
+import { Activity, Calendar, Clock, TrendingUp, type LucideIcon } from "lucide-react";
 import { formatDistanceToNow } from "@workspace/utils";
 
 const STAT_VALUE_NUMERIC =

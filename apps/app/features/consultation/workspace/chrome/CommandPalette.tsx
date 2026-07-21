@@ -1,26 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Command,
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-  CommandShortcut,
-} from "@workspace/ui/components/overlay/command";
-import {
-  ClipboardList,
-  Eye,
-  HeartPulse,
-  Pill,
-  Save,
-  Stethoscope,
-  Target,
-} from "lucide-react";
+import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut } from "@workspace/ui/components/overlay/command";
+import { ClipboardList, Eye, HeartPulse, Pill, Save, Stethoscope, Target } from "lucide-react";
 
 export interface CommandPaletteAction {
   id: string;

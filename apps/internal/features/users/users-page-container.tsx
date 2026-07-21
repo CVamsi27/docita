@@ -1,18 +1,9 @@
 "use client";
 
-import {
-  AppPageScaffold,
-  DataState,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, DataState, PageHeader } from "@workspace/ui/components";
 import { Users } from "lucide-react";
 import { useUsersData } from "./use-users-data";
-import {
-  SearchFilterBar,
-  UserDetailsDialog,
-  UsersTableSection,
-  UserStatsCards,
-} from "./users-page-container-sections";
+import { SearchFilterBar, UserDetailsDialog, UsersTableSection, UserStatsCards } from "./users-page-container-sections";
 
 export function UsersPageContainer() {
   const {

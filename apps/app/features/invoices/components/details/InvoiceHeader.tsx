@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import { Clinic, Invoice } from "@workspace/types";
 import Image from "next/image";
 import { useFacilityLabel } from "@/lib/formatters/facility-label";

@@ -3,11 +3,7 @@
 import { Sparkles } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  Button,
-  Kbd,
-  SidebarRailTooltip
-} from "@workspace/ui/components";
+import { Button, Kbd, SidebarRailTooltip } from "@workspace/ui/components";
 import { useAskAi } from "./ask-ai-context";
 import { resolveAskAiScopeFromPathname } from "./resolve-ask-ai-scope-from-pathname";
 

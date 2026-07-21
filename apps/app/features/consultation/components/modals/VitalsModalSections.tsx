@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  Input,
-  Label
-} from "@workspace/ui/components";
+import { Input, Label } from "@workspace/ui/components";
 import type { VitalsFormData } from "./use-vitals-form";
 
 interface VitalsFieldMeta {

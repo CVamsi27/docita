@@ -1,14 +1,10 @@
 "use client";
 
 // jscpd:ignore-start
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { Label } from "@workspace/ui/components";
 import { useTranslations } from "next-intl";
-import {
-  CURRENCY_OPTIONS,
-  DEFAULT_CURRENCY,
-  parseSupportedCurrency,
-} from "@workspace/utils";
+import { CURRENCY_OPTIONS, DEFAULT_CURRENCY, parseSupportedCurrency } from "@workspace/utils";
 import {
   tierSchema,
 // jscpd:ignore-end

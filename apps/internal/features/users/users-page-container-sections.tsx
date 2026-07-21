@@ -8,11 +8,7 @@ import { Eye, Users } from "lucide-react";
 import { formatInternalListDate } from "@/lib/formatters/format-internal-list-date";
 import { formatInternalTimestamp } from "@/lib/formatters/format-internal-timestamp";
 import { ROLE_CONFIG, type RoleFilter, type User } from "./types";
-import {
-  getRoleBadgeColor,
-  getSpecializationLabel,
-  isRoleConfigKey,
-} from "./utils";
+import { getRoleBadgeColor, getSpecializationLabel, isRoleConfigKey } from "./utils";
 
 /**
  * Phase 3 (per-feature): apps/internal Users > Page sections

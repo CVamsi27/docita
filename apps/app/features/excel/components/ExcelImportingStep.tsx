@@ -1,12 +1,5 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Progress
-} from "@workspace/ui/components";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Progress } from "@workspace/ui/components";
 
 
 interface ExcelImportingStepProps {

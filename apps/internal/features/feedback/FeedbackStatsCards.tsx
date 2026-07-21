@@ -1,23 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from "@workspace/ui/components";
-import {
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Lightbulb,
-  MessageSquare,
-  Star,
-  ThumbsDown,
-  ThumbsUp,
-} from "lucide-react";
+import { Badge, Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components";
+import { AlertCircle, CheckCircle, Clock, Lightbulb, MessageSquare, Star, ThumbsDown, ThumbsUp } from "lucide-react";
 import type { InternalFeedbackStats } from "@workspace/data-access/internal";
 import { FeedbackRatingStars } from "./feedback-display";
 

@@ -1,23 +1,9 @@
 "use client";
 
-import {
-  AppPageScaffold,
-  Button,
-  DataState,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, Button, DataState, PageHeader } from "@workspace/ui/components";
 import Link from "next/link";
-import {
-  useInternalHealthCheck,
-  useInternalMonitoringHealth,
-  useInternalPerformanceDatabaseStats,
-  useInternalPerformanceMetrics,
-} from "@workspace/data-access/internal";
-import {
-  MiddleMetricsCards,
-  ServiceHealthSection,
-  TopMetricsCards,
-} from "./performance-page-sections";
+import { useInternalHealthCheck, useInternalMonitoringHealth, useInternalPerformanceDatabaseStats, useInternalPerformanceMetrics } from "@workspace/data-access/internal";
+import { MiddleMetricsCards, ServiceHealthSection, TopMetricsCards } from "./performance-page-sections";
 
 export default function PerformancePage() {
   const refetchInterval = 30_000;

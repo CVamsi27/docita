@@ -3,10 +3,7 @@
 import type { TeamMember } from "@/features/onboarding/components/types";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { OnboardingStepFooter } from "@/features/onboarding/components/shared";
-import {
-  ROLE_OPTIONS,
-  isDoctorRole,
-} from "./team-invite-step-constants";
+import { ROLE_OPTIONS, isDoctorRole } from "./team-invite-step-constants";
 
 export function hasRowContent(member: TeamMember): boolean {
   return (

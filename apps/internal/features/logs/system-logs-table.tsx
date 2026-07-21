@@ -1,12 +1,7 @@
 "use client";
 
 import type { InternalSystemLog as SystemLog } from "@workspace/data-access/internal";
-import {
-  SystemLogsFilterBar,
-  SystemLogsFilterSummary,
-  SystemLogsPagination,
-  SystemLogsResultsTable,
-} from "./system-logs-table-sections";
+import { SystemLogsFilterBar, SystemLogsFilterSummary, SystemLogsPagination, SystemLogsResultsTable } from "./system-logs-table-sections";
 
 interface SystemLogsTableProps {
   logs: SystemLog[];

@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  MicroLabel,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { MicroLabel, SymbolTooltip } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import type { AskAiStoredMessage, AskAiStoredThread } from "./ask-ai-threads";
 

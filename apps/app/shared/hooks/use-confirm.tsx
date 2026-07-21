@@ -1,12 +1,7 @@
 "use client";
 
 import { createContext, ReactNode, useCallback, useContext, useState } from "react";
-import {
-  ConfirmContextValue,
-  ConfirmDialogSection,
-  PromptDialogSection,
-  AlertDialogSection,
-} from "./use-confirm-sections";
+import { ConfirmContextValue, ConfirmDialogSection, PromptDialogSection, AlertDialogSection } from "./use-confirm-sections";
 import { useConfirmDialogState } from "./use-confirm-dialog-state";
 import { usePromptDialogState } from "./use-prompt-dialog-state";
 import { useAlertDialogState } from "./use-alert-dialog-state";

@@ -1,35 +1,9 @@
 "use client";
 
 import { FC } from "react";
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger
-} from "@workspace/ui/components";
-import {
-  AlertTriangle,
-  ChevronDown,
-  Coffee,
-  Heart,
-  Stethoscope,
-  Users,
-} from "lucide-react";
-import {
-  ALCOHOL_USE_STATUS_LABELS,
-  alcoholUseStatusSchema,
-  smokingStatusSchema,
-  PatientAllergy,
-  PatientFamilyHistory,
-  PatientMedicalCondition,
-  PatientSocialHistory,
-  PatientSurgicalHistory,
-  SMOKING_STATUS_LABELS,
-} from "@workspace/types";
+import { Badge, Card, CardContent, CardHeader, CardTitle, Collapsible, CollapsibleContent, CollapsibleTrigger } from "@workspace/ui/components";
+import { AlertTriangle, ChevronDown, Coffee, Heart, Stethoscope, Users } from "lucide-react";
+import { ALCOHOL_USE_STATUS_LABELS, alcoholUseStatusSchema, smokingStatusSchema, PatientAllergy, PatientFamilyHistory, PatientMedicalCondition, PatientSocialHistory, PatientSurgicalHistory, SMOKING_STATUS_LABELS } from "@workspace/types";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 // ── Shared ─────────────────────────────────────────────────────────────────

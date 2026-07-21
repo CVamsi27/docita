@@ -1,20 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Card,
-  CardContent,
-  DataState
-} from "@workspace/ui/components";
+import { Card, CardContent, DataState } from "@workspace/ui/components";
 import { ClipboardList } from "lucide-react";
 import { useAppointments } from "@workspace/data-access";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useAuth } from "@/lib/auth/auth-context";
-import {
-  ConsultationListHeader,
-  ConsultationListItem,
-  ConsultationListPagination,
-} from "./ConsultationHistoryListSections";
+import { ConsultationListHeader, ConsultationListItem, ConsultationListPagination } from "./ConsultationHistoryListSections";
 
 const PAGE_SIZE = 25;
 

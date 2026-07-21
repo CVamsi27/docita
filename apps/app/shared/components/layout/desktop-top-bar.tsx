@@ -3,11 +3,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import {
-  Breadcrumbs,
-  TopBar,
-  type BreadcrumbItem
-} from "@workspace/ui/components";
+import { Breadcrumbs, TopBar, type BreadcrumbItem } from "@workspace/ui/components";
 import { breadcrumbsFor } from "@/app/(protected)/route-meta";
 import { TopBarActions } from "@/components/layout/top-bar-actions";
 

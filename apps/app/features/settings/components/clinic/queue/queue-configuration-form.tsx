@@ -4,21 +4,11 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import {
-  useClinicSettings,
-  useUpdateClinicSettings,
-} from "@workspace/data-access";
+import { useClinicSettings, useUpdateClinicSettings } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  Button,
-  Form,
-  Skeleton
-} from "@workspace/ui/components";
+import { Button, Form, Skeleton } from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  queueSettingsFormSchema,
-  type QueueSettingsFormValues,
-} from "@workspace/types";
+import { queueSettingsFormSchema, type QueueSettingsFormValues } from "@workspace/types";
 import { DEFAULT_SLOT_DURATION } from "@workspace/utils";
 import { QueueConfigSection } from "./QueueConfigSection";
 import { QueueHoursFields } from "./QueueHoursFields";

@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  useGenerateSignatureToken,
-  useActiveSignatureTokens,
-  useRevokeSignatureToken,
-} from "@workspace/data-access";
+import { useGenerateSignatureToken, useActiveSignatureTokens, useRevokeSignatureToken } from "@workspace/data-access";
 import { QrSignatureUpload } from "@/features/settings/components/shared/qr-signature-upload";
 import { logger } from "@/lib/monitoring/logger";
 

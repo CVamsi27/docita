@@ -1,15 +1,7 @@
 "use client";
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  Form
-} from "@workspace/ui/components";
+import { Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Form } from "@workspace/ui/components";
 import type { PaymentProcessingPageViewModel } from "@/features/payment-processing/use-payment-processing-page";
 import { AdditionalChargeFormFields } from "./additional-charge-form-fields";
 import { ChargeSummary } from "./charge-summary";

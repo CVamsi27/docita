@@ -1,16 +1,6 @@
 import { Send } from "lucide-react";
 
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label,
-  Textarea,
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Textarea } from "@workspace/ui/components";
 
 export function ContactInquiryForm() {
   return (

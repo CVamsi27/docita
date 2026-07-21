@@ -1,10 +1,5 @@
 import { resolveTagColor } from "./tag-colors";
-import {
-  Button,
-  Input,
-  ScrollArea,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, Input, ScrollArea, SymbolTooltip } from "@workspace/ui/components";
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import type { PatientTag } from "./patient-tag.types";
 import { ColorSwatchButton, ColorPickerGrid } from "./patient-tag-color-pickers";

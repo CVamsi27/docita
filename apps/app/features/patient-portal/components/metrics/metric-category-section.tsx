@@ -1,15 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, SymbolTooltip } from "@workspace/ui/components";
 import { Plus } from "lucide-react";
 import { MetricSparkline } from "./metric-sparkline";
 import { RecordMetricModal } from "./record-metric-modal";

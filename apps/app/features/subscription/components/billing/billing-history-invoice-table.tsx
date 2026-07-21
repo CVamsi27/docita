@@ -9,10 +9,7 @@ import {
 import {
   formatMoney,
 } from "./billing-history-table-helpers";
-import {
-  BillingInvoiceMobileRow,
-  BillingInvoiceDesktopRow,
-} from "./billing-history-invoice-table-sections";
+import { BillingInvoiceMobileRow, BillingInvoiceDesktopRow } from "./billing-history-invoice-table-sections";
 
 export function BillingHistoryInvoiceTable({
   invoices,

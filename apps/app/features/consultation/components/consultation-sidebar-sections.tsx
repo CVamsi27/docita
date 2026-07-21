@@ -1,23 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import {
-  Button,
-  Card,
-  CardContent,
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-  MicroLabel,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, Collapsible, CollapsibleContent, CollapsibleTrigger, MicroLabel, SymbolTooltip } from "@workspace/ui/components";
 import { ChevronDown, Clock, User, X } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  PatientFamilyHistory,
-  PatientSurgicalHistory,
-  PatientTimelineResponse,
-} from "@workspace/types";
+import { PatientFamilyHistory, PatientSurgicalHistory, PatientTimelineResponse } from "@workspace/types";
 import { PatientTimeline } from "@/components/patient-history/PatientTimeline";
 import { formatGenderLabel } from "@/lib/formatters";
 

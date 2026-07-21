@@ -1,12 +1,6 @@
-import {
-  Card,
-  CardContent,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { Smile } from "lucide-react";
-import {
-  DentalChartUI,
-  type DentalChartValue,
-} from "@/features/consultation/components/specialty/DentalChartUI";
+import { DentalChartUI, type DentalChartValue } from "@/features/consultation/components/specialty/DentalChartUI";
 
 interface DentalChartPanelProps {
   selectedAppointmentId: string | null;

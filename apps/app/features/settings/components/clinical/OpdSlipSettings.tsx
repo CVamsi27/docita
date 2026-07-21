@@ -3,17 +3,13 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  useOpdSlipSettings, useUpdateOpdSlipSettings, } from "@workspace/data-access";
+import { useOpdSlipSettings, useUpdateOpdSlipSettings } from "@workspace/data-access";
 import { toast } from "sonner";
-import { FormControl, FormField, FormItem, FormMessage, Input, Textarea } from "@workspace/ui/components/form/form-primitives"
+import { FormControl, FormField, FormItem, FormMessage, Input, Textarea } from "@workspace/ui/components/form/form-primitives";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Form, Label, Skeleton } from "@workspace/ui/components";
 import { FileText, Save } from "lucide-react";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  opdSlipSettingsFormSchema,
-  type OpdSlipSettingsFormValues,
-} from "@workspace/types";
+import { opdSlipSettingsFormSchema, type OpdSlipSettingsFormValues } from "@workspace/types";
 
 function OpdSlipSettings() {
   const {

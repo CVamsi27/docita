@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@workspace/ui/components";
+import { Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
 import { type Country } from "react-phone-number-input";
 import type { ClinicType, TierName } from "@workspace/types";
 import { ClinicCoreDetailsFields } from "@/components/forms/clinic-details-form-fields";

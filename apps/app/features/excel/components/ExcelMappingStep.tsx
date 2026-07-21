@@ -1,19 +1,5 @@
 // jscpd:ignore-start
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
 import {
   Table,
 // jscpd:ignore-end

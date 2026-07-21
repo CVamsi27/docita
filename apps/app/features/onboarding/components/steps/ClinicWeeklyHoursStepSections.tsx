@@ -1,7 +1,7 @@
 "use client";
 
 // jscpd:ignore-start
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { Label, Switch } from "@workspace/ui/components";
 import { DAY_OF_WEEK_LABELS, type DayOfWeek } from "@workspace/types";
 import type { ClinicWeeklyHourRow } from "@/features/onboarding/components/types";

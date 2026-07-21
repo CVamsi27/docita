@@ -1,10 +1,4 @@
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from "@workspace/ui/components";
+import { Badge, Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components";
 import type { MetricRecordResponse } from "@workspace/types";
 import { History } from "lucide-react";
 import { formatDateTime } from "@/lib/formatters";

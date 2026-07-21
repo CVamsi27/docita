@@ -2,17 +2,9 @@ import { UseFormReturn } from "react-hook-form";
 import { Building2 } from "lucide-react";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
 import { ClinicAddressPickerDialog } from "@/features/onboarding/components/clinic-address-picker-dialog";
-import {
-  OnboardingStepBody,
-  OnboardingStepCard,
-  OnboardingStepFooter,
-  OnboardingStepHeader,
-} from "@/features/onboarding/components/shared";
+import { OnboardingStepBody, OnboardingStepCard, OnboardingStepFooter, OnboardingStepHeader } from "@/features/onboarding/components/shared";
 import { useClinicDetailsStep } from "./clinic-details/use-clinic-details-step";
-import {
-  composeClinicAddress,
-  applyClinicAddressSelection,
-} from "./clinic-details/clinic-details-utils";
+import { composeClinicAddress, applyClinicAddressSelection } from "./clinic-details/clinic-details-utils";
 import { ClinicIdentitySection } from "./clinic-details/ClinicIdentitySection";
 import { ClinicContactSection } from "./clinic-details/ClinicContactSection";
 import { ClinicAddressSection } from "./clinic-details/ClinicAddressSection";

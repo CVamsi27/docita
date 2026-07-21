@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Avatar,
-  AvatarFallback,
-  Badge
-} from "@workspace/ui/components";
+import { Avatar, AvatarFallback, Badge } from "@workspace/ui/components";
 import { useAuth } from "@/lib/auth/auth-context";
 import { SettingsAiChips } from "@/features/settings/components/settings-ai-chips";
 

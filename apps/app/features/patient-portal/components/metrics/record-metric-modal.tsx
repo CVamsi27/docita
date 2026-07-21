@@ -4,18 +4,7 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { FormEvent, useState } from "react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Input,
-  Label,
-  Textarea
-} from "@workspace/ui/components";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Textarea } from "@workspace/ui/components";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 
 import { useRecordPortalMetricValue } from "@workspace/data-access";

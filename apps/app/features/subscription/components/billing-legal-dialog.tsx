@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  ScrollArea
-} from "@workspace/ui/components";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, ScrollArea } from "@workspace/ui/components";
 import { PrivacyPolicyContent, SLAContent } from "@/features/legal";
 
 export function LegalDialog({

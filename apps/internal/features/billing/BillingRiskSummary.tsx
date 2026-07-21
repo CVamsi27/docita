@@ -5,15 +5,7 @@ import type {
   InternalSubscriptionOverview,
 } from "@workspace/data-access/internal";
 import { differenceInDays, formatDistanceToNow } from "@workspace/utils";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
 import { AlertTriangle, CalendarPlus, Clock, Mail } from "lucide-react";
 
 interface BillingRiskSummaryProps {

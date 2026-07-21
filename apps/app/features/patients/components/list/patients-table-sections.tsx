@@ -1,19 +1,9 @@
 import type { Patient } from "@workspace/types";
-import {
-  Avatar,
-  AvatarFallback,
-  Button
-} from "@workspace/ui/components";
+import { Avatar, AvatarFallback, Button } from "@workspace/ui/components";
 import { formatGenderLabel } from "@/lib/formatters";
 import { getInitials } from "@/lib/formatters";
 import { getPatientFullName } from "@workspace/utils";
-import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  Calendar,
-  Pencil,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, Pencil } from "lucide-react";
 import type { PatientsSortConfig } from "./patients-page-types";
 
 export function getAriaSort(

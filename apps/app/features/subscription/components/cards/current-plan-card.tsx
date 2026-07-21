@@ -2,15 +2,7 @@
 
 // jscpd:ignore-start
 import { Crown, CreditCard, Receipt, Sparkles, TrendingUp } from "lucide-react";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   type CurrentPlanCardProps,

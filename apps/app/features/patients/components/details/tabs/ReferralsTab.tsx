@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  EmptyState
-} from "@workspace/ui/components";
+import { Card, CardContent, CardHeader, CardTitle, EmptyState } from "@workspace/ui/components";
 import { Feature } from "@workspace/types";
 import { Network, Send } from "lucide-react";
 import { TierGate } from "@/components/auth/access-gates";

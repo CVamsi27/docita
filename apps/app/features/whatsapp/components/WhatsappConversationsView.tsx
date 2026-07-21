@@ -3,20 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { MessageCircle, Send } from "lucide-react";
-import {
-  useClinicWhatsappConversationMessages,
-  useClinicWhatsappConversations,
-  useMarkClinicWhatsappConversationRead,
-  useReplyToClinicWhatsappConversation,
-} from "@workspace/data-access";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  DataState,
-  Textarea
-} from "@workspace/ui/components";
+import { useClinicWhatsappConversationMessages, useClinicWhatsappConversations, useMarkClinicWhatsappConversationRead, useReplyToClinicWhatsappConversation } from "@workspace/data-access";
+import { Badge, Button, Card, CardContent, DataState, Textarea } from "@workspace/ui/components";
 
 export function WhatsappConversationsView() {
   const conversations = useClinicWhatsappConversations();

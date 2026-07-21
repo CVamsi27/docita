@@ -1,26 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components";
 import { Check, Clock, X } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate } from "@workspace/utils";
-import {
-  usePortalDoseHistory,
-  useRecordPortalDose,
-} from "@workspace/data-access";
+import { usePortalDoseHistory, useRecordPortalDose } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  mapPortalDoseRow,
-  type PortalDoseStatus,
-} from "@/features/patient-portal/lib/map-portal-records";
+import { mapPortalDoseRow, type PortalDoseStatus } from "@/features/patient-portal/lib/map-portal-records";
 import { isRecord } from "@workspace/utils";
 
 interface DoseTrackerProps {

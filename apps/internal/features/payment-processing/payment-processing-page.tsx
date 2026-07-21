@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  AppPageScaffold,
-  DataState,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, DataState, PageHeader } from "@workspace/ui/components";
 import { PaymentProcessingDialogs } from "@/features/payment-processing/payment-processing-dialogs";
 import { PaymentProcessingSections } from "@/features/payment-processing/payment-processing-sections";
 import { usePaymentProcessingPage } from "@/features/payment-processing/use-payment-processing-page";

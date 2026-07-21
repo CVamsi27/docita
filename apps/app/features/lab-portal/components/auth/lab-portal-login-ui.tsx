@@ -2,17 +2,7 @@
 
 // jscpd:ignore-start
 import { useState } from "react";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label,
-  MicroLabel
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, MicroLabel } from "@workspace/ui/components";
 import { FlaskConical } from "lucide-react";
 import { appSession } from "@/lib/auth/session";
 import { getAppApiUrl } from "@/lib/api/api-config";

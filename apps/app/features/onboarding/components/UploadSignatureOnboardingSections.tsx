@@ -1,15 +1,7 @@
 "use client";
 
 // jscpd:ignore-start
-import {
-  Alert,
-  AlertDescription,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@workspace/ui/components";
+import { Alert, AlertDescription, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { SignatureUploadWorkflow } from "@/components/signature/signature-upload-workflow";

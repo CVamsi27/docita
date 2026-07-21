@@ -1,8 +1,4 @@
-import {
-  Badge,
-  Button,
-  Skeleton
-} from "@workspace/ui/components";
+import { Badge, Button, Skeleton } from "@workspace/ui/components";
 import { Clock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { formatDate } from "@workspace/utils";

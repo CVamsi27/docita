@@ -1,26 +1,4 @@
-import {
-  BarChart3,
-  Brain,
-  Building2,
-  Calendar,
-  CalendarOff,
-  FileText,
-  FlaskConical,
-  Lock,
-  LucideIcon,
-  MessageSquare,
-  Package,
-  Paintbrush,
-  Receipt,
-  ScanLine,
-  Shield,
-  Sparkles,
-  Syringe,
-  Ticket,
-  Upload,
-  Users,
-  Zap,
-} from "lucide-react";
+import { BarChart3, Brain, Building2, Calendar, CalendarOff, FileText, FlaskConical, Lock, LucideIcon, MessageSquare, Package, Paintbrush, Receipt, ScanLine, Shield, Sparkles, Syringe, Ticket, Upload, Users, Zap } from "lucide-react";
 import { Feature, FEATURE_DISPLAY } from "@/lib/subscription/tier-access";
 
 export const FEATURE_ICONS: Record<Feature, LucideIcon> = {

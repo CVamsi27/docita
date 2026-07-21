@@ -1,9 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Skeleton
-} from "@workspace/ui/components";
+import { Card, CardContent, CardHeader, Skeleton } from "@workspace/ui/components";
 
 export function NotificationSettingsLoadingCard() {
   return (

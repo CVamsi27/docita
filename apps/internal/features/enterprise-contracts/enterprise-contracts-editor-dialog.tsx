@@ -1,29 +1,10 @@
 "use client";
 
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from "@workspace/ui/components";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components";
 import { EnterpriseContractsEditorForm } from "./enterprise-contracts-editor-form";
-import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
+import type { EnterpriseContractsEditorState } from "./enterprise-contracts-shared-types";
 
-type EnterpriseContractsEditorDialogProps = Pick<
-  EnterpriseContractsPageState,
-  | "editorOpen"
-  | "setEditorOpen"
-  | "editorMode"
-  | "form"
-  | "setForm"
-  | "editingContractId"
-  | "applyPreset"
-  | "submit"
-  | "busy"
->;
+type EnterpriseContractsEditorDialogProps = EnterpriseContractsEditorState;
 
 export function EnterpriseContractsEditorDialog({
   editorOpen,

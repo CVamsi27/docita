@@ -2,13 +2,7 @@
 
 import { useMemo } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components";
 import { Printer } from "lucide-react";
 import { usePatientConsentSettings } from "@workspace/data-access";
 import { BackButton } from "@/components/navigation/back-button";

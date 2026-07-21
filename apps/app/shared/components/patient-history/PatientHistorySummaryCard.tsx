@@ -1,20 +1,8 @@
 "use client";
 
 import { FC } from "react";
-import {
-  PatientAllergy,
-  PatientFamilyHistory,
-  PatientMedicalCondition,
-  PatientSocialHistory,
-  PatientSurgicalHistory,
-} from "@workspace/types";
-import {
-  AllergiesSection,
-  ConditionsSection,
-  SurgeriesSection,
-  FamilyHistorySection,
-  SocialHistorySection,
-} from "./PatientHistorySummaryCardSections";
+import { PatientAllergy, PatientFamilyHistory, PatientMedicalCondition, PatientSocialHistory, PatientSurgicalHistory } from "@workspace/types";
+import { AllergiesSection, ConditionsSection, SurgeriesSection, FamilyHistorySection, SocialHistorySection } from "./PatientHistorySummaryCardSections";
 
 interface PatientHistorySummaryCardProps {
   conditions?: PatientMedicalCondition[];

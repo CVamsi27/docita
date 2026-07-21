@@ -2,27 +2,9 @@
 
 import { useTranslations } from "next-intl";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  DatePicker,
-  Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DatePicker, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
 import { Plus, Sparkles } from "lucide-react";
-import {
-  OFFER_TEMPLATES,
-  type OfferTemplate,
-  type PricingOfferFormState,
-} from "./pricing-helpers";
+import { OFFER_TEMPLATES, type OfferTemplate, type PricingOfferFormState } from "./pricing-helpers";
 
 interface ClinicOption {
   id: string;

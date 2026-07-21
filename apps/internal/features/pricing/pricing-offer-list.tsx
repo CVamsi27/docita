@@ -1,16 +1,7 @@
 "use client";
 
 import type { InternalPricingOfferRow } from "@workspace/data-access/internal";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  EmptyState
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState } from "@workspace/ui/components";
 import { Sparkles, Trash2 } from "lucide-react";
 
 interface Props {

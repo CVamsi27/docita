@@ -1,9 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import {
-  AppPageScaffold,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, PageHeader } from "@workspace/ui/components";
 import { ProfileAccountSettings } from "@/features/settings/components/account/ProfileAccountSettings";
 
 /**

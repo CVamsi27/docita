@@ -1,10 +1,6 @@
 import React from "react";
 import { CheckCircle2, FileText, Smartphone } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  SectionHeading
-} from "@workspace/ui/components";
+import { Card, CardContent, SectionHeading } from "@workspace/ui/components";
 
 export function MobileSuccessScreen() {
   return (

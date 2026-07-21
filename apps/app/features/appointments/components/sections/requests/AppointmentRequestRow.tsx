@@ -6,10 +6,7 @@ import { patientName, type SchedulableDoctor } from "./request-row-helpers";
 import { RequestAdjustPopover } from "./RequestAdjustPopover";
 import { RequestRejectPopover } from "./RequestRejectPopover";
 import { AppointmentRequestRowInfo } from "./AppointmentRequestRowSections";
-import {
-  useAppointmentRequestRow,
-  type UseAppointmentRequestRowInput,
-} from "./use-appointment-request-row";
+import { useAppointmentRequestRow, type UseAppointmentRequestRowInput } from "./use-appointment-request-row";
 
 export type { SchedulableDoctor };
 

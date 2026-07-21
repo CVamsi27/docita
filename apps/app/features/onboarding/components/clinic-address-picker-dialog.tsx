@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, SymbolTooltip } from "@workspace/ui/components";
 import { MapPin, X } from "lucide-react";
 import type { ClinicAddressSelection } from "./address/address-utils";
 import { AddressMapPreview } from "./address/AddressMapPreview";

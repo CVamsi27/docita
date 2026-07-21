@@ -2,16 +2,7 @@
 
 // jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Label,
-  Skeleton
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Label, Skeleton } from "@workspace/ui/components";
 import {
   Select,
 // jscpd:ignore-end

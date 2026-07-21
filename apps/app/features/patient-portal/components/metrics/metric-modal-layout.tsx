@@ -1,13 +1,7 @@
 "use client";
 
 import type { FormEvent, ReactNode } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/overlay/dialog";
 
 interface MetricModalLayoutProps {
   open: boolean;

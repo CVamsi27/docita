@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  AppPageScaffold,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, PageHeader } from "@workspace/ui/components";
 import { JoinRequestsSettingsPanel } from "@/features/settings/components/management/JoinRequestsSettingsPanel";
 
 export function JoinRequestsSettingsPageContent() {

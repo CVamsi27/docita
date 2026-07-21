@@ -1,12 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi, type Mock } from "vitest";
 import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
-import {
-  LabOrderActionsCell,
-  LabTestsOrders,
-  PatientNameCell,
-  SortableHeader,
-} from "./LabTestsOrders";
+import { LabOrderActionsCell, LabTestsOrders, PatientNameCell, SortableHeader } from "./LabTestsOrders";
 import type { LabTestOrder } from "@workspace/types";
 
 const mockHandleSort = vi.fn();

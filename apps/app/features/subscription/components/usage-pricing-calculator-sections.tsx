@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Badge,
-  Button,
-  Label,
-  Separator,
-  Slider
-} from "@workspace/ui/components";
+import { Badge, Button, Label, Separator, Slider } from "@workspace/ui/components";
 import { formatCountLocale } from "@workspace/utils";
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";

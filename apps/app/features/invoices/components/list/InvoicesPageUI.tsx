@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { Receipt } from "lucide-react";
-import {
-  AppPageScaffold,
-  Button,
-  DataState,
-  EmptyState,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, Button, DataState, EmptyState, PageHeader } from "@workspace/ui/components";
 import { Plus, RefreshCw } from "lucide-react";
 import { FeatureGate } from "@/components/auth/feature-gate";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";

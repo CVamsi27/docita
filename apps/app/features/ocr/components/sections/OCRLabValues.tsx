@@ -1,8 +1,5 @@
 // jscpd:ignore-start
-import {
-  Input,
-  Label
-} from "@workspace/ui/components";
+import { Input, Label } from "@workspace/ui/components";
 import { FileText } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ConfidenceIndicator } from "@/features/ocr/components/common/confidence-indicator";

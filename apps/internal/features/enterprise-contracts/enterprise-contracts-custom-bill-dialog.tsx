@@ -1,16 +1,6 @@
 "use client";
 
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Input,
-  Label
-} from "@workspace/ui/components";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label } from "@workspace/ui/components";
 import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
 
 type EnterpriseContractsCustomBillDialogProps = Pick<

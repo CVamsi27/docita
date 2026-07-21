@@ -3,16 +3,12 @@
 
 import type { UseFormReturn } from "react-hook-form";
 import { useTranslations } from "next-intl";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { Button, DialogFooter } from "@workspace/ui/components";
 // jscpd:ignore-end
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import type { InviteFormValues } from "@/features/settings/components/management/member-management-schemas";
-import {
-  DoctorRegistrationFields,
-  TeamMemberContactFields,
-  TeamMemberLabField,
-} from "@/features/settings/components/management/team-member-form-fields";
+import { DoctorRegistrationFields, TeamMemberContactFields, TeamMemberLabField } from "@/features/settings/components/management/team-member-form-fields";
 
 /**
  * Phase 3 (per-feature): the Invite Member dialog in Settings

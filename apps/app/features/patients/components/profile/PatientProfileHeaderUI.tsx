@@ -1,9 +1,4 @@
-import {
-  Avatar,
-  AvatarFallback,
-  Badge,
-  Button
-} from "@workspace/ui/components";
+import { Avatar, AvatarFallback, Badge, Button } from "@workspace/ui/components";
 import { Calendar, Edit, Mail, MapPin, Phone, Shield, Hash } from "lucide-react";
 import { formatDate, getPatientFullName } from "@workspace/utils";
 import { formatGenderLabel } from "@/lib/formatters";

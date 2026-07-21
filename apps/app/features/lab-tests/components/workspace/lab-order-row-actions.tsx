@@ -4,7 +4,7 @@ import { FC, useRef, useState } from "react";
 import { FlaskConical, Send, Upload, Wallet } from "lucide-react";
 import type { LabQueueItem } from "@workspace/data-access";
 import type { VerifyLabOrderPaymentRequest } from "@workspace/types";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { Button, Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Label } from "@workspace/ui/components";
 
 const PAYMENT_METHODS: {

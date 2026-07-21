@@ -2,16 +2,9 @@
 
 import { type RefObject } from "react";
 import Image from "next/image";
-import {
-  Alert,
-  AlertDescription,
-  Button
-} from "@workspace/ui/components";
+import { Alert, AlertDescription, Button } from "@workspace/ui/components";
 import { AlertCircle, Image as ImageIcon, Pencil, Upload } from "lucide-react";
-import {
-  SignaturePad,
-  SignaturePreview,
-} from "@/components/inputs/signature-canvas";
+import { SignaturePad, SignaturePreview } from "@/components/inputs/signature-canvas";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 interface DrawSignatureTabProps {

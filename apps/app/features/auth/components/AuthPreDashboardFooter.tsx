@@ -1,18 +1,9 @@
 "use client";
 
 import { Mail, Phone } from "lucide-react";
-import {
-  Button,
-  MicroLabel
-} from "@workspace/ui/components";
+import { Button, MicroLabel } from "@workspace/ui/components";
 import { WhatsAppButton } from "@/components/whatsapp/whatsapp-button";
-import {
-  getPhoneDigits,
-  getSupportPhoneDisplay,
-  getSupportPhoneNumber,
-  SUPPORT_EMAIL,
-  SUPPORT_WHATSAPP_MESSAGE_DEFAULT,
-} from "@/lib/constants/support-contact";
+import { getPhoneDigits, getSupportPhoneDisplay, getSupportPhoneNumber, SUPPORT_EMAIL, SUPPORT_WHATSAPP_MESSAGE_DEFAULT } from "@/lib/constants/support-contact";
 import { cn } from "@workspace/ui/lib/utils";
 import { AUTH_ASSURANCE_ITEMS } from "@/features/auth/lib/auth-assurance-items";
 

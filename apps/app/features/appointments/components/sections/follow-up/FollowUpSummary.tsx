@@ -1,10 +1,5 @@
 import { formatDate } from "@workspace/utils";
-import {
-  Bell,
-  Calendar as CalendarIcon,
-  Clock,
-  MessageSquare,
-} from "lucide-react";
+import { Bell, Calendar as CalendarIcon, Clock, MessageSquare } from "lucide-react";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 
 interface FollowUpType {

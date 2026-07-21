@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  DataState
-} from "@workspace/ui/components";
+import { Card, CardContent, DataState } from "@workspace/ui/components";
 import { Inbox } from "lucide-react";
 import { THREAD_LIMIT } from "./support-helpers";
 import { useSupportInbox } from "./use-support-inbox";

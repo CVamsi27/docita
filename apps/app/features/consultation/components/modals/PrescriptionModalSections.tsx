@@ -1,11 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Button,
-  Input,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, Input, SymbolTooltip } from "@workspace/ui/components";
 import { Plus, RotateCcw, X } from "lucide-react";
 
 export interface Medication {

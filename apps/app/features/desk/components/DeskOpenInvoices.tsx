@@ -2,18 +2,7 @@
 
 import { getPatientFullName } from "@workspace/utils";
 import type { InvoiceListRow } from "@workspace/types";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  DataState,
-  DataTable,
-  ListRow,
-  StatusBadge,
-  type DataTableColumn
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardHeader, CardTitle, DataState, DataTable, ListRow, StatusBadge, type DataTableColumn } from "@workspace/ui/components";
 import { DATE_FORMAT_OPTIONS_US_LONG, formatDate } from "@/lib/formatters";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";

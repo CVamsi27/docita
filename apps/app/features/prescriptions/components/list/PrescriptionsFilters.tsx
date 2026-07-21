@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Button,
-  IsoDatePickerField,
-  Label,
-  SearchInput,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, IsoDatePickerField, Label, SearchInput, SymbolTooltip } from "@workspace/ui/components";
 
 interface PrescriptionsFiltersProps {
   searchQuery: string;

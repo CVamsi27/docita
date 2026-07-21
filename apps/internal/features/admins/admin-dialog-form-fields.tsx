@@ -2,15 +2,7 @@
 
 import type { ReactNode } from "react";
 import type { CreateForm, EditForm } from "./admin-helpers";
-import {
-  AdminDialogActions,
-  AdminDialogHeader,
-  AdminEmailField,
-  AdminNameField,
-  AdminPasswordField,
-  AdminPhoneNumberField,
-  AdminTypeSelect,
-} from "./admin-dialog-shell";
+import { AdminDialogActions, AdminDialogHeader, AdminEmailField, AdminNameField, AdminPasswordField, AdminPhoneNumberField, AdminTypeSelect } from "./admin-dialog-shell";
 
 interface AdminDialogFormFieldsProps {
   headerIcon: ReactNode;

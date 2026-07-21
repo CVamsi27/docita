@@ -1,10 +1,7 @@
 "use client";
 
 import { Pill } from "lucide-react";
-import {
-  AppPageScaffold,
-  EmptyState
-} from "@workspace/ui/components";
+import { AppPageScaffold, EmptyState } from "@workspace/ui/components";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
 /**

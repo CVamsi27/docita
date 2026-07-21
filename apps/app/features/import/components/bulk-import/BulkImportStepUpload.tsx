@@ -1,9 +1,6 @@
 import React from "react";
 import { Upload } from "lucide-react";
-import {
-  DPDP_NOTICE_TEXT_BULK_OPERATOR,
-  DPDP_NOTICE_TITLE,
-} from "@workspace/types";
+import { DPDP_NOTICE_TEXT_BULK_OPERATOR, DPDP_NOTICE_TITLE } from "@workspace/types";
 import { Checkbox } from "@workspace/ui/components/form/checkbox";
 
 interface BulkImportStepUploadProps {

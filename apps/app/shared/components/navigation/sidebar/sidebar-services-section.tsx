@@ -1,10 +1,7 @@
 "use client";
 
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
-import {
-  AI_ASSISTANT_NAV_ITEM,
-  type NavSection,
-} from "@/components/navigation/nav-config";
+import { AI_ASSISTANT_NAV_ITEM, type NavSection } from "@/components/navigation/nav-config";
 import { SidebarLink } from "@/components/navigation/sidebar/sidebar-nav-link";
 
 interface SidebarServicesSectionProps {

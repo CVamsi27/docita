@@ -1,26 +1,12 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 import { useGuidedTourState, useUpdateGuidedTour } from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useFeatureFlag } from "@/hooks/use-feature-flag";
 import { GUIDED_TOUR_FLAG } from "@/features/guided-tour/config/feature-flag";
-import {
-  TOUR_STEPS,
-  type TourStep,
-} from "@/features/guided-tour/config/tour-steps";
-import {
-  shouldAutoStartTour,
-  shouldShowChecklist,
-} from "@/features/guided-tour/lib/guided-tour-eligibility";
+import { TOUR_STEPS, type TourStep } from "@/features/guided-tour/config/tour-steps";
+import { shouldAutoStartTour, shouldShowChecklist } from "@/features/guided-tour/lib/guided-tour-eligibility";
 
 interface GuidedTourContextValue {
   isTourActive: boolean;

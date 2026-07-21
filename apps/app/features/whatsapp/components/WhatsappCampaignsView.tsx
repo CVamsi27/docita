@@ -2,17 +2,8 @@
 
 import { useState } from "react";
 import { Megaphone, Plus } from "lucide-react";
-import {
-  useCancelClinicWhatsappCampaign,
-  useClinicWhatsappCampaigns,
-} from "@workspace/data-access";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  DataState
-} from "@workspace/ui/components";
+import { useCancelClinicWhatsappCampaign, useClinicWhatsappCampaigns } from "@workspace/data-access";
+import { Badge, Button, Card, CardContent, DataState } from "@workspace/ui/components";
 import { useAuth } from "@/lib/auth/auth-context";
 import { isAdmin } from "@/lib/auth/permissions";
 import { WhatsappCampaignCreateDialog } from "./WhatsappCampaignCreateDialog";

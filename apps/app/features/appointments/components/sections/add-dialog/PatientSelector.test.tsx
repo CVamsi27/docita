@@ -2,13 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
+import { Form, FormField, FormItem, FormLabel, FormMessage } from "@workspace/ui/components/form/form";
 import type { CreateAppointmentInput, Patient } from "@workspace/types";
 import { PatientSelector } from "./PatientSelector";
 

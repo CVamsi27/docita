@@ -4,21 +4,8 @@
 import React from "react";
 import Link from "next/link";
 import { Lock, Sparkles } from "lucide-react";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@workspace/ui/components";
-import {
-  Feature,
-  FEATURE_TIER_MAP,
-  Tier,
-  TIER_INFO,
-  coerceFeature,
-} from "@workspace/types";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
+import { Feature, FEATURE_TIER_MAP, Tier, TIER_INFO, coerceFeature } from "@workspace/types";
 import { getTierName } from "@workspace/utils";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";

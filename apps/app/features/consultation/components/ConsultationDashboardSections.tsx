@@ -3,37 +3,14 @@
 import Link from "next/link";
 import { getPatientFullName } from "@workspace/utils";
 // jscpd:ignore-end
-import {
-  AppPageScaffold,
-  Button,
-  DataState,
-  PageHeader,
-  Section,
-  StatGrid,
-  type StatItem
-} from "@workspace/ui/components";
-import {
-  Activity,
-  BadgeCheck,
-  Calendar,
-  CreditCard,
-  HeartPulse,
-  Play,
-  Stethoscope,
-  Users,
-} from "lucide-react";
+import { AppPageScaffold, Button, DataState, PageHeader, Section, StatGrid, type StatItem } from "@workspace/ui/components";
+import { Activity, BadgeCheck, Calendar, CreditCard, HeartPulse, Play, Stethoscope, Users } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatClockTime } from "@/lib/formatters";
 import { isQueueTokenInProgress } from "@/lib/utils/queue-token-status";
-import {
-  AppointmentRowActionsMenu,
-  useAppointmentRowActions,
-} from "@/features/appointments";
+import { AppointmentRowActionsMenu, useAppointmentRowActions } from "@/features/appointments";
 import type { useConsultationDashboard } from "@/features/consultation/hooks/use-consultation-dashboard";
-import {
-  CONSULTATION_DASHBOARD_DESCRIPTION,
-  CONSULTATION_DASHBOARD_TITLE,
-} from "./consultation-dashboard-ui-helpers";
+import { CONSULTATION_DASHBOARD_DESCRIPTION, CONSULTATION_DASHBOARD_TITLE } from "./consultation-dashboard-ui-helpers";
 
 type ConsultationDashboardState = ReturnType<typeof useConsultationDashboard>;
 type AppointmentRowActions = ReturnType<typeof useAppointmentRowActions>;

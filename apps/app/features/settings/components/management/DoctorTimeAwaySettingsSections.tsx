@@ -2,7 +2,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { Button, CardDescription, CardHeader, CardTitle, IsoDatePickerField, Label, Skeleton, Switch, SymbolTooltip } from "@workspace/ui/components";
 import { Trash2 } from "lucide-react";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";

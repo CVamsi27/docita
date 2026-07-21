@@ -1,16 +1,7 @@
 "use client";
 
 // jscpd:ignore-start
-import {
-  Button,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Skeleton
-} from "@workspace/ui/components";
+import { Button, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Skeleton } from "@workspace/ui/components";
 import { ANY_DOCTOR_ID } from "@/features/public-booking/public-booking-constants";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { cn } from "@workspace/ui/lib/utils";

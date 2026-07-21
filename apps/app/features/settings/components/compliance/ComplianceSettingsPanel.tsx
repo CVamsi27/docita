@@ -4,15 +4,7 @@
 import { FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/auth-context";
-import {
-  Alert,
-  AlertDescription,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@workspace/ui/components";
+import { Alert, AlertDescription, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
 import { FileText, CheckCircle2 } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import { ClinicSlaSignatureQR } from "@/features/settings/components/clinic-sla-signature-qr";
@@ -30,18 +22,8 @@ import type {
   AppComplianceSummary,
   AppDataSubjectRequest,
 } from "@workspace/types";
-import {
-  INITIAL_REQUEST_FORM,
-  type UpdateRequestPayload,
-} from "./compliance-settings-constants";
-import {
-  PatientRightsCard,
-  LogRequestDialog,
-  ConsentTemplateCard,
-  DpdpConsentCard,
-  DataRetentionCard,
-  AuditLogCard,
-} from "./compliance-settings-sections";
+import { INITIAL_REQUEST_FORM, type UpdateRequestPayload } from "./compliance-settings-constants";
+import { PatientRightsCard, LogRequestDialog, ConsentTemplateCard, DpdpConsentCard, DataRetentionCard, AuditLogCard } from "./compliance-settings-sections";
 
 export function ComplianceSettingsPanel() {
   const { user } = useAuth();

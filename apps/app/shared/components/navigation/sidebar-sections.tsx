@@ -3,10 +3,7 @@
 import { SidebarFooter } from "./sidebar/sidebar-footer";
 import { useSidebarSections } from "./sidebar/use-sidebar-sections";
 import { useSidebarBranding } from "./sidebar/use-sidebar-branding";
-import {
-  SidebarBrandHeader,
-  SidebarScrollableNav,
-} from "./sidebar/sidebar-content-sections";
+import { SidebarBrandHeader, SidebarScrollableNav } from "./sidebar/sidebar-content-sections";
 
 // ─── SidebarContent ───────────────────────────────────────────────────────────
 

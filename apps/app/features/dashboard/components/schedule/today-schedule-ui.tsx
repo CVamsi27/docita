@@ -4,17 +4,7 @@
 import Link from "next/link";
 import { Calendar, ChevronRight, Clock, Play } from "lucide-react";
 import { formatDate, getPatientFullName } from "@workspace/utils";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  EmptyState,
-  StatusBadge,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, StatusBadge, SymbolTooltip } from "@workspace/ui/components";
 import {
   Avatar,
 // jscpd:ignore-end

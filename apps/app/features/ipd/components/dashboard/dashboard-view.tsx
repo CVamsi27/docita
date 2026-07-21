@@ -1,13 +1,7 @@
 "use client";
 
 import React, { FC } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import { Activity, BedDouble, Calendar, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 

@@ -4,10 +4,7 @@ import { Check } from "lucide-react";
 import type { LabTest, Patient } from "@workspace/types";
 import { getPatientFullName } from "@workspace/utils";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  CommandEmpty,
-  CommandGroup,
-} from "@workspace/ui/components/overlay/command";
+import { CommandEmpty, CommandGroup } from "@workspace/ui/components/overlay/command";
 import { cn } from "@workspace/ui/lib/utils";
 
 export type LabTestFormatCurrency = (

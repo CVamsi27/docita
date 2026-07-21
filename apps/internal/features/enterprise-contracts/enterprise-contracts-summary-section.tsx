@@ -1,13 +1,7 @@
 "use client";
 
 import { formatCurrency } from "@workspace/utils";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
 
 type EnterpriseContractsSummarySectionProps = Pick<

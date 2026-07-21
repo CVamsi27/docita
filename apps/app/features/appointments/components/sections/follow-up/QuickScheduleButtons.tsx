@@ -1,12 +1,6 @@
-import {
-  DEFAULT_TIMEZONE,
-  formatClinicPickerDayIsoFromSelection,
-} from "@workspace/utils";
+import { DEFAULT_TIMEZONE, formatClinicPickerDayIsoFromSelection } from "@workspace/utils";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  Button,
-  Label
-} from "@workspace/ui/components";
+import { Button, Label } from "@workspace/ui/components";
 import { useClinic } from "@/lib/contexts/clinic-context";
 
 interface QuickScheduleButtonsProps {

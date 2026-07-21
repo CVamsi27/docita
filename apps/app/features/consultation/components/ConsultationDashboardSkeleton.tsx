@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  AppPageScaffold,
-  Card,
-  CardContent,
-  CardHeader,
-  PageHeader,
-  Skeleton,
-  StatGrid
-} from "@workspace/ui/components";
+import { AppPageScaffold, Card, CardContent, CardHeader, PageHeader, Skeleton, StatGrid } from "@workspace/ui/components";
 
 export function ConsultationDashboardSkeleton() {
   return (

@@ -2,10 +2,7 @@
 
 // jscpd:ignore-start
 import { useState } from "react";
-import {
-  DataState,
-  type DataStateStatus,
-} from "@workspace/ui/components/data-display/data-state";
+import { DataState, type DataStateStatus } from "@workspace/ui/components/data-display/data-state";
 import { Clock3 } from "lucide-react";
 import type { TimelineEventType } from "@workspace/types";
 import { usePatientTimeline } from "@workspace/data-access";

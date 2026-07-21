@@ -3,10 +3,7 @@
 import dynamic from "next/dynamic";
 import { History } from "lucide-react";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  Collapsible,
-  CollapsibleContent,
-} from "@workspace/ui/components/overlay/collapsible";
+import { Collapsible, CollapsibleContent } from "@workspace/ui/components/overlay/collapsible";
 import type { PatientWithMedicalHistory } from "@workspace/types";
 
 const PatientMedicalHistoryContainerLazy = dynamic(

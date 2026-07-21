@@ -5,14 +5,7 @@ import Link from "next/link";
 import { CalendarRange } from "lucide-react";
 import { formatDate, getPatientFullName } from "@workspace/utils";
 import type { DashboardStats } from "@workspace/types";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  EmptyState
-} from "@workspace/ui/components";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState } from "@workspace/ui/components";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 import { filterUpcomingBeyondToday } from "@/features/dashboard/lib/upcoming-beyond-today";

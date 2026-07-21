@@ -4,18 +4,13 @@ import { FC, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, RefreshCw } from "lucide-react";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { AppPageScaffold, Badge, Button, Card, CardContent, DataState, DataTable, ListRow, PageHeader, type DataTableColumn } from "@workspace/ui/components";
 import type { InsuranceClaim } from "@workspace/types";
 import { getPatientFullName } from "@workspace/utils";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import { useInsuranceClaimsLogic } from "@/features/insurance-claims/hooks/use-insurance-claims-logic";
-import {
-  CLAIM_STATUS_LABELS,
-  CLAIM_STATUS_TONE,
-  CLAIM_TYPE_LABELS,
-  centsToMajor,
-} from "@/features/insurance-claims/lib/claim-display";
+import { CLAIM_STATUS_LABELS, CLAIM_STATUS_TONE, CLAIM_TYPE_LABELS, centsToMajor } from "@/features/insurance-claims/lib/claim-display";
 
 const STATUS_OPTIONS = [
   "all",

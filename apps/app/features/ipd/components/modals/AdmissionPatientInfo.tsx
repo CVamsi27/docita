@@ -1,7 +1,4 @@
-import {
-  Input,
-  Label
-} from "@workspace/ui/components";
+import { Input, Label } from "@workspace/ui/components";
 
 interface AdmissionPatientInfoProps {
   patientId: string;

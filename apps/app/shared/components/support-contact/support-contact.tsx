@@ -2,13 +2,7 @@
 
 import { cn } from "@workspace/ui/lib/utils";
 import { WhatsAppButton } from "@/components/whatsapp/whatsapp-button";
-import {
-  getPhoneDigits,
-  getSupportPhoneDisplay,
-  getSupportPhoneNumber,
-  SUPPORT_EMAIL,
-  SUPPORT_WHATSAPP_MESSAGE_DEFAULT,
-} from "@/lib/constants/support-contact";
+import { getPhoneDigits, getSupportPhoneDisplay, getSupportPhoneNumber, SUPPORT_EMAIL, SUPPORT_WHATSAPP_MESSAGE_DEFAULT } from "@/lib/constants/support-contact";
 
 export type SupportContactLayout = "inline" | "stack";
 export type SupportContactVariant = "compact" | "footer";

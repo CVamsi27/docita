@@ -3,22 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, LockKeyhole, X } from "lucide-react";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-  Button
-} from "@workspace/ui/components";
+import { Alert, AlertDescription, AlertTitle, Button } from "@workspace/ui/components";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { useSubscription } from "@workspace/data-access";
-import {
-  SUBSCRIPTION_BILLING_RESOLVE_PATH,
-  SUBSCRIPTION_SETTINGS_PATH,
-} from "@/lib/subscription/subscription-settings-path";
-import {
-  resolveSubscriptionLockNotice,
-  TRIAL_NOTICE_REMINDER_DAYS,
-} from "./subscription-lock-notice-helpers";
+import { SUBSCRIPTION_BILLING_RESOLVE_PATH, SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
+import { resolveSubscriptionLockNotice, TRIAL_NOTICE_REMINDER_DAYS } from "./subscription-lock-notice-helpers";
 
 const DISMISS_STORAGE_PREFIX = "subscription-notice-dismissed";
 

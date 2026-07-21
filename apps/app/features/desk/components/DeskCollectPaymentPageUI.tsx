@@ -5,16 +5,8 @@ import type { InvoiceListRow } from "@workspace/types";
 import { invoiceBalanceDue } from "@workspace/types";
 import Link from "next/link";
 import { useDebounce } from "@workspace/hooks/use-debounce";
-import {
-  isOpenDeskInvoice,
-  type DeskPaymentMethod,
-  ROLES_CAN_RECORD_PAYMENT,
-} from "./desk-collect-payment-helpers";
-import {
-  AppPageScaffold,
-  Button,
-  PageHeader
-} from "@workspace/ui/components";
+import { isOpenDeskInvoice, type DeskPaymentMethod, ROLES_CAN_RECORD_PAYMENT } from "./desk-collect-payment-helpers";
+import { AppPageScaffold, Button, PageHeader } from "@workspace/ui/components";
 import { usePatients } from "@workspace/data-access";
 import { useDeskOpenInvoices } from "@/features/desk/hooks/use-desk-open-invoices";
 import { useDeskRecordInvoiceSettlement } from "@/features/desk/hooks/use-desk-record-invoice-settlement";

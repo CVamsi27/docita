@@ -3,11 +3,7 @@
 import {
   TabsContent,
 } from "@workspace/ui/components/navigation/tabs";
-import {
-  OverviewLiveSystemSummary,
-  OverviewResourceStats,
-  OverviewTrafficStats,
-} from "./overview-tab-sections";
+import { OverviewLiveSystemSummary, OverviewResourceStats, OverviewTrafficStats } from "./overview-tab-sections";
 import type { SystemMonitoringPageViewModel } from "./use-system-monitoring-page";
 
 export type OverviewTabProps = Pick<

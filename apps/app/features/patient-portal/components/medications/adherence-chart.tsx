@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import { TrendingUp } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { MedicationAdherenceSummary } from "@workspace/types";

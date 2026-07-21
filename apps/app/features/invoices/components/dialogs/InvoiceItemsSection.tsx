@@ -1,7 +1,4 @@
-import {
-  Button,
-  Label
-} from "@workspace/ui/components";
+import { Button, Label } from "@workspace/ui/components";
 import { Plus } from "lucide-react";
 import type { InvoiceItem } from "@workspace/types";
 import type { EditableInvoiceItemField } from "./edit-invoice-dialog-state";

@@ -1,12 +1,7 @@
 "use client";
 
 import { AlertCircle, RefreshCw } from "lucide-react";
-import {
-  AppPageScaffold,
-  Button,
-  Card,
-  CardContent
-} from "@workspace/ui/components";
+import { AppPageScaffold, Button, Card, CardContent } from "@workspace/ui/components";
 
 export default function GlobalError({
   error: _error,

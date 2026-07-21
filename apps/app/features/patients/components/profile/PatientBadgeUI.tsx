@@ -1,20 +1,6 @@
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  Badge,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from "@workspace/ui/components";
-import {
-  AlertTriangle,
-  Calendar,
-  Mail,
-  Phone,
-  User,
-} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage, Badge, Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components";
+import { AlertTriangle, Calendar, Mail, Phone, User } from "lucide-react";
 import { formatGenderLabel } from "@/lib/formatters";
 
 interface PatientBadgeUIProps {

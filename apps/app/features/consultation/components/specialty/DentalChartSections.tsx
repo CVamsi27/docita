@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Label,
-  SymbolTooltip,
-  Textarea
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardHeader, CardTitle, Label, SymbolTooltip, Textarea } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { getConditionColor } from "./dental-chart-helpers";
 

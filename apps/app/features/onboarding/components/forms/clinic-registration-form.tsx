@@ -2,15 +2,9 @@
 
 import { useAuth } from "@/lib/auth/auth-context";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import {
-  ClinicDetailsStep, ClinicWeeklyHoursStep, ComplianceStep,
-  PlanSelectionStep, TeamInviteStep,
-} from "@/features/onboarding/components/steps";
+import { ClinicDetailsStep, ClinicWeeklyHoursStep, ComplianceStep, PlanSelectionStep, TeamInviteStep } from "@/features/onboarding/components/steps";
 import { getFacilityLabel, recommendTierForTeamSize } from "@workspace/utils";
-import {
-  ComplianceDraftWatcher, DraftRestoreDialog, OnboardingProgressCard,
-  StepErrorAlert, StepGuard,
-} from "./clinic-registration-form-sections";
+import { ComplianceDraftWatcher, DraftRestoreDialog, OnboardingProgressCard, StepErrorAlert, StepGuard } from "./clinic-registration-form-sections";
 import { useClinicRegistrationForm } from "./use-clinic-registration-form";
 
 export function ClinicRegistrationForm({ onSuccess }: { onSuccess: () => void }) {

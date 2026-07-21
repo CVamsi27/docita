@@ -4,16 +4,7 @@
 import { useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { AlertCircle } from "lucide-react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  MicroLabel
-} from "@workspace/ui/components";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, MicroLabel } from "@workspace/ui/components";
 import {
   Alert,
 // jscpd:ignore-end
@@ -25,12 +16,7 @@ import type {
   ClinicDetails,
   ComplianceSettings,
 } from "@/features/onboarding/components/types";
-import {
-  getMissingClinicDetailsForProgress,
-  DRAFT_KEY,
-  STEPS,
-  TOTAL_STEPS,
-} from "./clinic-registration-form-helpers";
+import { getMissingClinicDetailsForProgress, DRAFT_KEY, STEPS, TOTAL_STEPS } from "./clinic-registration-form-helpers";
 
 // ---------------------------------------------------------------------------
 // ComplianceDraftWatcher

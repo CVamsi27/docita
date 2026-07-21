@@ -4,26 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { BellIcon } from "lucide-react";
-import {
-  queryKeys,
-  useAllNotifications,
-  useMarkNotificationRead,
-  useDeleteNotification,
-  useDeleteAllNotifications,
-  type StaffNotification,
-} from "@workspace/data-access";
+import { queryKeys, useAllNotifications, useMarkNotificationRead, useDeleteNotification, useDeleteAllNotifications, type StaffNotification } from "@workspace/data-access";
 import { useSocket } from "@/lib/contexts/socket-context";
 import { buildNotificationCategoryRecord } from "@/components/navigation/notification-category-record";
-import {
-  isNotificationCategoryId,
-  NOTIFICATION_CATEGORIES,
-  type NotificationCategoryId,
-} from "@/components/navigation/notification-href";
+import { isNotificationCategoryId, NOTIFICATION_CATEGORIES, type NotificationCategoryId } from "@/components/navigation/notification-href";
 import { filterByCategory } from "./notification-inbox-row";
-import {
-  NotificationsInboxHeader,
-  NotificationsInboxTabs,
-} from "./NotificationsInboxViewSections";
+import { NotificationsInboxHeader, NotificationsInboxTabs } from "./NotificationsInboxViewSections";
 
 export function NotificationsInboxView() {
   const {

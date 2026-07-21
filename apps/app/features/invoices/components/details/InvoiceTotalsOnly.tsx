@@ -3,11 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Separator } from "@workspace/ui/components/layout/separator";
 import { Invoice, InvoiceItem } from "@workspace/types";
-import {
-  formatTaxInvoiceType,
-  invoiceAmountPaid,
-  invoiceBalanceDue,
-} from "@workspace/types";
+import { formatTaxInvoiceType, invoiceAmountPaid, invoiceBalanceDue } from "@workspace/types";
 
 type InvoiceWithExtras = Invoice & {
   discount?: number;

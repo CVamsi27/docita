@@ -1,14 +1,7 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import {
-  Button,
-  Input,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, Input, Popover, PopoverContent, PopoverTrigger, SymbolTooltip } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import type { SearchResult } from "@/features/search/api/search-api";
 import { GLOBAL_SEARCH_INPUT_ID } from "./global-search-constants";

@@ -1,28 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import {
-  Button,
-  MicroLabel
-} from "@workspace/ui/components";
+import { Button, MicroLabel } from "@workspace/ui/components";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatChiefComplaintSummary } from "@workspace/utils";
 import { formatDate, DATE_FORMAT_OPTIONS_US_LONG } from "@/lib/formatters";
-import {
-  APP_ACCESS_TARGETS,
-  Feature,
-  type Appointment,
-} from "@workspace/types";
+import { APP_ACCESS_TARGETS, Feature, type Appointment } from "@workspace/types";
 import { usePermissions } from "@/hooks/use-permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { isConsultationReadOnlyStatus } from "@/features/appointments";
-import {
-  PrimaryActionButtons,
-  ViewActionsInline,
-  ViewActionsOverflow,
-} from "./ConsultationWorkspaceExtrasSections";
+import { PrimaryActionButtons, ViewActionsInline, ViewActionsOverflow } from "./ConsultationWorkspaceExtrasSections";
 
 interface ConsultationVisitOverviewStripProps {
   appointment: Appointment;

@@ -2,19 +2,13 @@
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { Badge, Button } from "@workspace/ui/components";
 // jscpd:ignore-end
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { User } from "@workspace/types";
-import {
-  type MemberFormValues,
-  type MemberRole,
-} from "@/features/settings/components/management/member-management-schemas";
-import {
-  TeamMemberContactFields,
-  TeamMemberLabField,
-} from "@/features/settings/components/management/team-member-form-fields";
+import { type MemberFormValues, type MemberRole } from "@/features/settings/components/management/member-management-schemas";
+import { TeamMemberContactFields, TeamMemberLabField } from "@/features/settings/components/management/team-member-form-fields";
 
 export function ManageMemberLabField({
   memberForm,

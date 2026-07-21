@@ -4,15 +4,7 @@
 import { FC, useMemo } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  DataState
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState } from "@workspace/ui/components";
 import { useInsuranceClaimsByPatient } from "@workspace/data-access";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import {

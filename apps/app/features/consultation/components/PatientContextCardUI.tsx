@@ -1,20 +1,8 @@
 "use client";
 
-import {
-  Collapsible,
-  CollapsibleContent,
-} from "@workspace/ui/components/overlay/collapsible";
+import { Collapsible, CollapsibleContent } from "@workspace/ui/components/overlay/collapsible";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  PatientCardHeader,
-  PatientAllergiesBanner,
-  PatientConditionsSection,
-  PatientMedicationsSection,
-  PatientVitalsSection,
-  PatientLastVisitSection,
-  PatientCardActions,
-  type PatientContextData,
-} from "./PatientContextCardUISections";
+import { PatientCardHeader, PatientAllergiesBanner, PatientConditionsSection, PatientMedicationsSection, PatientVitalsSection, PatientLastVisitSection, PatientCardActions, type PatientContextData } from "./PatientContextCardUISections";
 
 export type { PatientContextData } from "./PatientContextCardUISections";
 

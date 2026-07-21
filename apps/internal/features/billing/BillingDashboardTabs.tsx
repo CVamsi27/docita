@@ -9,18 +9,8 @@ import { useTranslations } from "next-intl";
 import { DEFAULT_CURRENCY, formatCurrency, formatDate } from "@workspace/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
-import {
-  getInternalTierBadgeClass,
-  getInternalTierFilterOptions,
-  getInternalTierLabel,
-} from "@/lib/tier-display";
-import {
-  Activity,
-  Building2,
-  CalendarPlus,
-  CreditCard,
-  Mail,
-} from "lucide-react";
+import { getInternalTierBadgeClass, getInternalTierFilterOptions, getInternalTierLabel } from "@/lib/tier-display";
+import { Activity, Building2, CalendarPlus, CreditCard, Mail } from "lucide-react";
 
 interface BillingDashboardTabsProps {
   tierFilter: string;

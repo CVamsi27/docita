@@ -1,20 +1,10 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Form
-} from "@workspace/ui/components";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Form } from "@workspace/ui/components";
 import { Percent } from "lucide-react";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { PaymentProcessingPageViewModel } from "@/features/payment-processing/use-payment-processing-page";
-import {
-  PricingOfferFormSection,
-  PricingOffersTableSection,
-} from "./payment-processing-pricing-offers-section-sections";
+import { PricingOfferFormSection, PricingOffersTableSection } from "./payment-processing-pricing-offers-section-sections";
 
 type PaymentProcessingPricingOffersSectionProps = Pick<
   PaymentProcessingPageViewModel,

@@ -1,11 +1,4 @@
-import {
-  SearchInput,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@workspace/ui/components";
+import { SearchInput, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
 
 interface InventoryFiltersProps {
   searchQuery: string;

@@ -4,12 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input, Label } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { OphthalmologyExamData } from "@workspace/types";
-import {
-  getVisionExamFieldValue,
-  VISION_EXAM_FIELDS,
-  type VisionExamFieldKey,
-  type VisionEyeKey,
-} from "./vision-exam-fields";
+import { getVisionExamFieldValue, VISION_EXAM_FIELDS, type VisionExamFieldKey, type VisionEyeKey } from "./vision-exam-fields";
 
 export interface VisionEyeMeta {
   key: VisionEyeKey;

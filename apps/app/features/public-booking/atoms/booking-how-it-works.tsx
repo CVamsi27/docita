@@ -1,18 +1,7 @@
 "use client";
 
 import { ShieldCheck } from "lucide-react";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-  Button,
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger
-} from "@workspace/ui/components";
+import { Alert, AlertDescription, AlertTitle, Button, Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@workspace/ui/components";
 import { bookingSteps } from "./booking-constants";
 import { cn } from "@workspace/ui/lib/utils";
 

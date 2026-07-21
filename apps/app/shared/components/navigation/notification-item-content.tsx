@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Button,
-  PriorityBadge,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, PriorityBadge, SymbolTooltip } from "@workspace/ui/components";
 import { CheckIcon, XIcon } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatTime } from "@workspace/utils";

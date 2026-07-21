@@ -4,13 +4,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import {
-  type CreateInternalReferrerInput,
-  type ReferrerType,
-  useInternalReferralPayouts,
-  useInternalReferralPayoutSummary,
-  useInternalReferrers,
-} from "@workspace/data-access/internal";
+import { type CreateInternalReferrerInput, type ReferrerType, useInternalReferralPayouts, useInternalReferralPayoutSummary, useInternalReferrers } from "@workspace/data-access/internal";
 import { internalQueryKeys } from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth";
 import { client } from "@/lib/api/api-client";

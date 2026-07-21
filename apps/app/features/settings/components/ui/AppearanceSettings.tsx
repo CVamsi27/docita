@@ -4,13 +4,7 @@ import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 import { Card } from "@/components/card";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/card";
-import {
-  Button,
-  Label,
-  Switch,
-  ToggleGroup,
-  ToggleGroupItem
-} from "@workspace/ui/components";
+import { Button, Label, Switch, ToggleGroup, ToggleGroupItem } from "@workspace/ui/components";
 import { useAppearanceStore } from "@/lib/stores/appearance-store";
 import { toast } from "sonner";
 import { cn } from "@workspace/ui/lib/utils";

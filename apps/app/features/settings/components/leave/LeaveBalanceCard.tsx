@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import type { LeaveType } from "@workspace/types";
 
 const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {

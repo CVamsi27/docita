@@ -1,18 +1,8 @@
 "use client";
 
-import {
-  AppPageScaffold,
-  DataState,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, DataState, PageHeader } from "@workspace/ui/components";
 import { useAdminsPage } from "./use-admins-page";
-import {
-  AdminCreateDialog,
-  AdminEditDialog,
-  AdminsFiltersBar,
-  AdminsTable,
-  AdminViewDialog,
-} from "./admins-page-sections";
+import { AdminCreateDialog, AdminEditDialog, AdminsFiltersBar, AdminsTable, AdminViewDialog } from "./admins-page-sections";
 
 export default function AdminsPage() {
   const {

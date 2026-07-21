@@ -1,18 +1,5 @@
 import { Bed, CheckCircle2, Users } from "lucide-react";
-import {
-  AppPageScaffold,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  DataState,
-  Input,
-  LoadingState,
-  PageHeader,
-  StatGrid,
-  type StatItem
-} from "@workspace/ui/components";
+import { AppPageScaffold, Button, Card, CardContent, CardHeader, CardTitle, DataState, Input, LoadingState, PageHeader, StatGrid, type StatItem } from "@workspace/ui/components";
 import { AdmissionModal } from "@/features/ipd/components/modals/admission-modal";
 import type { AdmitPatientRequest, Admission } from "@workspace/types";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";

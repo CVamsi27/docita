@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  Button,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, SymbolTooltip } from "@workspace/ui/components";
 import { X } from "lucide-react";
 
 interface ClearSearchButtonProps {

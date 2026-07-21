@@ -1,18 +1,7 @@
 "use client";
 
-import {
-  UserPlus,
-  Mail,
-  Phone,
-  Clock,
-  CheckCircle2,
-  XCircle,
-} from "lucide-react";
-import {
-  Badge,
-  Button,
-  Card
-} from "@workspace/ui/components";
+import { UserPlus, Mail, Phone, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { Badge, Button, Card } from "@workspace/ui/components";
 import { formatDistanceToNow } from "@workspace/utils";
 import type { JoinRequest } from "@/features/settings/components/management/join-requests-list.boundary";
 

@@ -1,13 +1,7 @@
 "use client";
 
 import { useActiveMedications } from "@workspace/data-access";
-import {
-  Badge,
-  DataState,
-  Progress,
-  Section,
-  type DataStateStatus
-} from "@workspace/ui/components";
+import { Badge, DataState, Progress, Section, type DataStateStatus } from "@workspace/ui/components";
 import { Pill } from "lucide-react";
 import { SummarySectionAction } from "./SummarySectionAction";
 

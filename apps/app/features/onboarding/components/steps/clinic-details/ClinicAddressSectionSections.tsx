@@ -2,11 +2,7 @@
 
 import type { UseFormReturn } from "react-hook-form";
 import { Check, MapPin } from "lucide-react";
-import {
-  Button,
-  Input,
-  Label
-} from "@workspace/ui/components";
+import { Button, Input, Label } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
 import { applyMapsLinkLocation } from "./clinic-details-utils";

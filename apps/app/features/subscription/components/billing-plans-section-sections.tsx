@@ -1,29 +1,9 @@
 "use client";
 
-import {
-  ANNUAL_DISCOUNT_PERCENT,
-  applyModeToPricing,
-  getAvailableModesForTier,
-  MODE_TIER_HIGHLIGHTS,
-  PLAN_MODE_INFO,
-  PLAN_MODES,
-  type PlanMode,
-  PRICING_CURRENCY_SYMBOLS,
-  TIER_INFO,
-  TIER_OVERAGE_RATES_BY_CURRENCY,
-  type TierName,
-} from "@workspace/types";
-import {
-  formatRateWithCurrency,
-  getTierName,
-  getWhatsAppAddonPricingByCurrency,
-  parseSupportedCurrency,
-} from "@workspace/utils";
+import { ANNUAL_DISCOUNT_PERCENT, applyModeToPricing, getAvailableModesForTier, MODE_TIER_HIGHLIGHTS, PLAN_MODE_INFO, PLAN_MODES, type PlanMode, PRICING_CURRENCY_SYMBOLS, TIER_INFO, TIER_OVERAGE_RATES_BY_CURRENCY, type TierName } from "@workspace/types";
+import { formatRateWithCurrency, getTierName, getWhatsAppAddonPricingByCurrency, parseSupportedCurrency } from "@workspace/utils";
 import { Tier, getTierInfo, getTierPricing } from "@/lib/subscription/tier-access";
-import {
-  Button,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, SymbolTooltip } from "@workspace/ui/components";
 import { TierCard } from "@/features/subscription/components/cards/tier-card";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";

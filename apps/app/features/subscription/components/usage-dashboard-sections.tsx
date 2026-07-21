@@ -3,21 +3,9 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { formatCountLocale, formatAmountLocale } from "@workspace/utils";
 import { AlertTriangle, TrendingUp } from "lucide-react";
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Progress
-} from "@workspace/ui/components";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Progress } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  formatUsageMeterCaption,
-  usageMeterHasNoIncludedQuota,
-  usageProgressPercentForBar,
-} from "@/features/subscription/lib/usage-meter-display";
+import { formatUsageMeterCaption, usageMeterHasNoIncludedQuota, usageProgressPercentForBar } from "@/features/subscription/lib/usage-meter-display";
 
 interface UsageMeterProps {
   label: string;

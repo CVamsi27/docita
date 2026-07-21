@@ -2,10 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useMarkDoctorDelay } from "@workspace/data-access";
-import {
-  AppPageScaffold,
-  DataState
-} from "@workspace/ui/components";
+import { AppPageScaffold, DataState } from "@workspace/ui/components";
 import { FeatureGate } from "@/components/auth/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 import { useAppointmentsLogic } from "@/features/appointments/hooks/use-appointments-logic";

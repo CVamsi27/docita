@@ -3,11 +3,7 @@
 import { useMemo } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  Button,
-  MicroLabel,
-  StepProgress
-} from "@workspace/ui/components";
+import { Button, MicroLabel, StepProgress } from "@workspace/ui/components";
 import type { ConsultationSection } from "@/features/consultation/workspace/consultation-section-registry";
 import { findNextStep, useSectionCompletion } from "./SectionRail-sections";
 

@@ -1,10 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Checkbox
-} from "@workspace/ui/components";
+import { Card, CardContent, CardHeader, CardTitle, Checkbox } from "@workspace/ui/components";
 import type { MetricCategoryResponse } from "@workspace/types";
 import { Layers } from "lucide-react";
 

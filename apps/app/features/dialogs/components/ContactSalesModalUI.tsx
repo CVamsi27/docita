@@ -1,26 +1,10 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  contactSalesFormSchema,
-  type ContactSalesFormValues,
-} from "@workspace/types";
-import {
-  Alert,
-  AlertDescription,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  Form
-} from "@workspace/ui/components";
+import { contactSalesFormSchema, type ContactSalesFormValues } from "@workspace/types";
+import { Alert, AlertDescription, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Form } from "@workspace/ui/components";
 import { AlertCircle, Mail } from "lucide-react";
-import {
-  ContactSalesSuccessPanel,
-  ContactSalesFormFields,
-  ContactSalesFormFooter,
-} from "./ContactSalesModalUI.sections";
+import { ContactSalesSuccessPanel, ContactSalesFormFields, ContactSalesFormFooter } from "./ContactSalesModalUI.sections";
 
 export type ContactSalesFormData = ContactSalesFormValues;
 

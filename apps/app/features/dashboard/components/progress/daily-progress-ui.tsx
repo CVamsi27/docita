@@ -1,9 +1,5 @@
 import { Sparkles, Zap } from "lucide-react";
-import {
-  Badge,
-  Card,
-  CardContent
-} from "@workspace/ui/components";
+import { Badge, Card, CardContent } from "@workspace/ui/components";
 
 export interface DailyProgressUIProps {
   completedToday: number;

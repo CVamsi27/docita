@@ -1,23 +1,11 @@
 "use client";
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  EmptyState
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState } from "@workspace/ui/components";
 import { Eye, MessageSquare, ThumbsUp, Trash2 } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import type { InternalFeedback } from "@workspace/data-access/internal";
-import {
-  FeedbackRatingStars,
-  FeedbackStatusBadge,
-} from "./feedback-display";
+import { FeedbackRatingStars, FeedbackStatusBadge } from "./feedback-display";
 
 interface FeedbackListSectionProps {
   feedbacks: InternalFeedback[];

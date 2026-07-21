@@ -2,11 +2,7 @@
 
 // jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  Button,
-  Input,
-  Label
-} from "@workspace/ui/components";
+import { Button, Input, Label } from "@workspace/ui/components";
 import { ClearSearchButton } from "@/components/buttons/clear-search-button";
 import { LocateFixed, Search } from "lucide-react";
 import { Autocomplete } from "@react-google-maps/api";

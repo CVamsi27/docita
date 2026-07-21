@@ -3,11 +3,7 @@
 import { PatientPortalBillingUI } from "@/features/patient-portal/components";
 import type { PatientInvoiceStatus } from "@/features/patient-portal/types/patient-portal-types";
 import { usePatientPortalInvoices } from "@workspace/data-access";
-import {
-  AppPageScaffold,
-  DataState,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, DataState, PageHeader } from "@workspace/ui/components";
 import { Receipt } from "lucide-react";
 import { isRecord } from "@workspace/utils";
 

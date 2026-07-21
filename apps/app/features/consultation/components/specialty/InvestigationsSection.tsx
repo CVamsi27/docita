@@ -9,14 +9,8 @@ import { useConsultationSectionSubtitle } from "@/features/consultation/workspac
 import { Feature, type ClinicalInvestigation } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  useInvestigationAttachment,
-  validateAttachmentFile,
-} from "@/features/consultation/hooks/use-investigation-attachment";
-import {
-  InvestigationList,
-  type InvestigationRowProps,
-} from "./investigation-row";
+import { useInvestigationAttachment, validateAttachmentFile } from "@/features/consultation/hooks/use-investigation-attachment";
+import { InvestigationList, type InvestigationRowProps } from "./investigation-row";
 
 interface InvestigationsSectionProps {
   readOnly?: boolean;

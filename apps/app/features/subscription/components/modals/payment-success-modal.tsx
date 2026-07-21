@@ -1,17 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, SymbolTooltip } from "@workspace/ui/components";
 import { CheckCircle2, ExternalLink, X } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";

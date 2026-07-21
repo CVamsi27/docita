@@ -1,14 +1,5 @@
 import * as React from "react";
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from "@workspace/ui/components";
+import { Badge, Card, CardContent, CardHeader, CardTitle, Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components";
 
 import { AlertTriangle, User } from "lucide-react";
 import { useTranslations } from "next-intl";

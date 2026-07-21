@@ -7,11 +7,7 @@ import { Feature } from "@workspace/types";
 import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { toast } from "sonner";
-import {
-  BrandNameCard,
-  LockedThemeCard,
-  WhatsAppNumberCard,
-} from "./EnterpriseBrandingSettingsSections";
+import { BrandNameCard, LockedThemeCard, WhatsAppNumberCard } from "./EnterpriseBrandingSettingsSections";
 
 export function EnterpriseBrandingSettings() {
   const { clinic, refreshClinic } = useClinic();

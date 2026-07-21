@@ -1,10 +1,7 @@
 "use client";
 
 import { UserPlus } from "lucide-react";
-import {
-  Card,
-  LoadingState
-} from "@workspace/ui/components";
+import { Card, LoadingState } from "@workspace/ui/components";
 import { JoinRequestCard } from "./join-request-card";
 import { JoinRequestReviewDialogs } from "./join-request-review-dialogs";
 import { useJoinRequestsSettings } from "./use-join-requests-settings";

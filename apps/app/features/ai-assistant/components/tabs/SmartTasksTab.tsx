@@ -1,25 +1,5 @@
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  ScrollArea,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@workspace/ui/components";
-import {
-  Calendar,
-  CheckCircle2,
-  FileText,
-  History,
-  LucideIcon,
-  Send,
-} from "lucide-react";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, ScrollArea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
+import { Calendar, CheckCircle2, FileText, History, LucideIcon, Send } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ComingSoonPreview } from "./ComingSoonPreview";
 

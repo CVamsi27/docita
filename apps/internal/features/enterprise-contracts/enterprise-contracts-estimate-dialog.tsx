@@ -4,14 +4,7 @@ import { useTranslations } from "next-intl";
 import { BaseContractDialogShell } from "./base-dialog-shell";
 import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
 import { formatCurrency, formatDate } from "@workspace/utils";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table";
 
 type EnterpriseContractsEstimateDialogProps = Pick<EnterpriseContractsPageState, 'estimateOpen' | 'setEstimateOpen' | 'estimate' | 'estimateLoading'>;
 

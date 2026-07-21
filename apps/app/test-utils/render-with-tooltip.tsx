@@ -1,8 +1,4 @@
-import {
-  render as rtlRender,
-  type RenderOptions,
-  type RenderResult,
-} from "@testing-library/react";
+import { render as rtlRender, type RenderOptions, type RenderResult } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

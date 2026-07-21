@@ -4,10 +4,7 @@ import { getPatientFullName } from "@workspace/utils";
 
 import Link from "next/link";
 import { ChevronLeft, Sparkles } from "lucide-react";
-import {
-  Badge,
-  Button
-} from "@workspace/ui/components";
+import { Badge, Button } from "@workspace/ui/components";
 import type { Patient } from "@workspace/types";
 import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 import { formatGenderLabel } from "@/lib/formatters";

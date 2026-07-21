@@ -1,19 +1,8 @@
 "use client";
 
 import { Clock, Building2 } from "lucide-react";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-  Badge,
-  Button,
-  Card
-} from "@workspace/ui/components";
-import {
-  DATE_FORMATS,
-  formatDate,
-  formatDistanceToNow,
-} from "@workspace/utils";
+import { Alert, AlertDescription, AlertTitle, Badge, Button, Card } from "@workspace/ui/components";
+import { DATE_FORMATS, formatDate, formatDistanceToNow } from "@workspace/utils";
 import { useTranslations } from "next-intl";
 
 /**

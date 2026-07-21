@@ -2,7 +2,7 @@
 
 // jscpd:ignore-start
 import { X } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
 import { Button, Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components";
 import type { AppointmentRequestResponse } from "@workspace/types";
 import {

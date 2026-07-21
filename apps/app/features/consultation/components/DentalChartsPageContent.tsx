@@ -4,21 +4,13 @@ import { useState } from "react";
 import { Smile, Save } from "lucide-react";
 import { CLINIC_TYPE_LABELS, Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
-import {
-  AppPageScaffold,
-  Button,
-  Card,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, Button, Card, PageHeader } from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { toast } from "sonner";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { getPatientFullName } from "@workspace/utils";
 import { usePatients } from "@workspace/data-access";
-import {
-  usePatientAppointments,
-  useUpdateAppointment,
-} from "@workspace/data-access";
+import { usePatientAppointments, useUpdateAppointment } from "@workspace/data-access";
 import type { DentalChartValue } from "@/features/consultation/components/specialty/DentalChartUI";
 import type { Patient, UpdateAppointmentRequest } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";

@@ -1,20 +1,8 @@
 // jscpd:ignore-start
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Input
-} from "@workspace/ui/components";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { PromptOptions } from "@/features/dialogs/types";
-import {
-  getConfirmButtonVariant,
-  getVariantStyles,
-} from "@/features/dialogs/utils";
+import { getConfirmButtonVariant, getVariantStyles } from "@/features/dialogs/utils";
 
 interface PromptDialogProps {
   open: boolean;

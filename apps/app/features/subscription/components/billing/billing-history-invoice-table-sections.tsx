@@ -1,31 +1,13 @@
 "use client";
 
 import { Download } from "lucide-react";
-import {
-  Badge,
-  Button,
-  ListRow,
-  TableCell,
-  TableRow,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from "@workspace/ui/components";
+import { Badge, Button, ListRow, TableCell, TableRow, Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { cn } from "@workspace/ui/lib/utils";
 import type { BillingHistoryItem } from "@workspace/data-access";
 import { formatDate, formatDateTime } from "@/lib/formatters";
 import { formatInvoiceDescriptionForDisplay } from "@/features/subscription/lib/billing-display-messages";
-import {
-  badgeClassForStatus,
-  formatMoney,
-  isBillingRowPaid,
-  isFailedLike,
-  isTerminalClosed,
-  normalizeStatus,
-  readBillingHistoryActions,
-  resolveBillingAmountCents,
-} from "./billing-history-table-helpers";
+import { badgeClassForStatus, formatMoney, isBillingRowPaid, isFailedLike, isTerminalClosed, normalizeStatus, readBillingHistoryActions, resolveBillingAmountCents } from "./billing-history-table-helpers";
 
 function getInvoiceRowData(invoice: BillingHistoryItem) {
   const withActions = readBillingHistoryActions(invoice);

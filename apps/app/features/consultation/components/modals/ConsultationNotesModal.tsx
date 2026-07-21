@@ -1,16 +1,6 @@
 // jscpd:ignore-start
 import React, { useState } from "react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Label,
-  Textarea
-} from "@workspace/ui/components";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Label, Textarea } from "@workspace/ui/components";
 import { toast } from "sonner";
 import { useUpdateAppointment } from "@workspace/data-access";
 import { StickyNote } from "lucide-react";

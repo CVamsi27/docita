@@ -1,8 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/indicators/card";
 import { getPatientFullName } from "@workspace/utils";
 import type { Medication, Patient } from "@workspace/types";
 import { PrescriptionDocumentHeader } from "./PrescriptionDocumentHeader";

@@ -2,10 +2,7 @@
 
 import type { RefObject } from "react";
 import SignatureCanvas from "react-signature-canvas";
-import {
-  Button,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, SymbolTooltip } from "@workspace/ui/components";
 import { Check, Eraser, Redo2, Trash2, Undo2 } from "lucide-react";
 import { SIGNATURE_CANVAS_HEIGHT } from "./use-signature-pad";
 

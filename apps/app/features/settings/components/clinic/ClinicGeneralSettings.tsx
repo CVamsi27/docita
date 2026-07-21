@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import { SettingsAiChips } from "@/features/settings/components/settings-ai-chips";
 import { ClinicGeneralSettingsSkeleton } from "./ClinicGeneralSettingsSkeleton";
 import { ClinicReferralLinks } from "./ClinicReferralLinks";

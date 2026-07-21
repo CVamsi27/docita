@@ -1,12 +1,7 @@
 "use client";
 
 import { Tier } from "@/lib/subscription/tier-access";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/navigation/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/navigation/tabs";
 import { ComparisonTable } from "@/features/subscription/components/pricing/comparison-table";
 import { FaqSection } from "@/features/subscription/components/sections/faq-section";
 

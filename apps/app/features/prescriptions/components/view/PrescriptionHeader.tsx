@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  Button,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, SymbolTooltip } from "@workspace/ui/components";
 import { ArrowLeft, Edit, Printer } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import { WhatsAppDeliveryBadge } from "@/components/whatsapp/whatsapp-delivery-badge";

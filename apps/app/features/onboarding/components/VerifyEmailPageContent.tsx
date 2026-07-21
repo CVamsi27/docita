@@ -7,10 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle, XCircle } from "lucide-react";
 import { sanitizeUserFacingMessage } from "@workspace/utils";
 import { Button } from "@workspace/ui/components/form/button";
-import {
-  useAuth,
-  VERIFICATION_EMAIL_STATUS_STORAGE_KEY,
-} from "@/lib/auth/auth-context";
+import { useAuth, VERIFICATION_EMAIL_STATUS_STORAGE_KEY } from "@/lib/auth/auth-context";
 import { logger } from "@/lib/monitoring/logger";
 import { getAppApiUrl } from "@/lib/api/api-config";
 import { browserRequest } from "@/lib/auth/browser-request";

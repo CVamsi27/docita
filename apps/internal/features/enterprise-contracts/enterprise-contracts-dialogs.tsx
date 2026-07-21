@@ -7,20 +7,13 @@ import { EnterpriseContractsEstimateDialog } from "@/features/enterprise-contrac
 import { EnterpriseContractsInvoicesDialog } from "@/features/enterprise-contracts/enterprise-contracts-invoices-dialog";
 import { EnterpriseContractsMembersDialog } from "@/features/enterprise-contracts/enterprise-contracts-members-dialog";
 import { EnterpriseContractsRevisionsDialog } from "@/features/enterprise-contracts/enterprise-contracts-revisions-dialog";
+import type { EnterpriseContractsEditorState } from "@/features/enterprise-contracts/enterprise-contracts-shared-types";
 import type { EnterpriseContractsPageState } from "@/features/enterprise-contracts/use-enterprise-contracts-page";
 
-export type EnterpriseContractsDialogsProps = Pick<
-  EnterpriseContractsPageState,
-  | "editorOpen"
-  | "setEditorOpen"
-  | "editorMode"
-  | "form"
-  | "setForm"
-  | "editingContractId"
-  | "applyPreset"
-  | "submit"
-  | "busy"
-  | "membersOpen"
+export type EnterpriseContractsDialogsProps = EnterpriseContractsEditorState &
+  Pick<
+    EnterpriseContractsPageState,
+    | "membersOpen"
   | "setMembersOpen"
   | "activeContract"
   | "newMemberClinicId"

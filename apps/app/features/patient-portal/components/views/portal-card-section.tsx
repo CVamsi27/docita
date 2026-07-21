@@ -2,15 +2,7 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  EmptyState,
-  ListRowGroup
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardHeader, CardTitle, EmptyState, ListRowGroup } from "@workspace/ui/components";
 
 interface PortalCardSectionProps {
   pageTitle: string;

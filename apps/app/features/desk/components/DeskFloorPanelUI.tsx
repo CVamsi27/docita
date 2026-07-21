@@ -1,19 +1,7 @@
 "use client";
 
-import {
-  AppPageScaffold,
-  DataState,
-  LoadingState,
-  NowServingBoard,
-  PageHeader
-} from "@workspace/ui/components";
-import {
-  FloorStatsSection,
-  WaitingListSection,
-  RecentlyCompletedSection,
-  formatToken,
-  type DeskFloorRow,
-} from "./DeskFloorPanelUISections";
+import { AppPageScaffold, DataState, LoadingState, NowServingBoard, PageHeader } from "@workspace/ui/components";
+import { FloorStatsSection, WaitingListSection, RecentlyCompletedSection, formatToken, type DeskFloorRow } from "./DeskFloorPanelUISections";
 
 export type { DeskFloorRow } from "./DeskFloorPanelUISections";
 

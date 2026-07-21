@@ -1,19 +1,10 @@
 "use client";
 
 import { BackButton } from "@/components/navigation/back-button";
-import {
-  AppPageScaffold,
-  Tabs
-} from "@workspace/ui/components";
-import {
-  SettingsPageHeaderUserMeta,
-  SettingsProfileHeader,
-} from "./profile/SettingsProfileHeader";
+import { AppPageScaffold, Tabs } from "@workspace/ui/components";
+import { SettingsPageHeaderUserMeta, SettingsProfileHeader } from "./profile/SettingsProfileHeader";
 import { SettingsExpandedSearch } from "./settings-expanded-search";
-import {
-  SettingsPageTabNav,
-  type SettingsCategory,
-} from "./settings-page-tab-nav";
+import { SettingsPageTabNav, type SettingsCategory } from "./settings-page-tab-nav";
 import { SettingsPageTabPanels } from "./settings-page-tab-panels";
 
 export type {

@@ -1,10 +1,6 @@
 // check-as-cast-density: allow-file — partial-patch spread over a runtime key requires a single widening cast
 import { useTranslations } from "next-intl";
-import {
-  Button,
-  Input,
-  Label
-} from "@workspace/ui/components";
+import { Button, Input, Label } from "@workspace/ui/components";
 import type { OCRFormData, OCRInvoiceLineForm } from "@/features/ocr/types";
 
 /**

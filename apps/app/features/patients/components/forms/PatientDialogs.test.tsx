@@ -1,11 +1,4 @@
-import {
-  act,
-  fireEvent,
-  render,
-  renderHook,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { act, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DPDP_NOTICE_VERSION } from "@workspace/types";
 import { AddPatientDialog, EditPatientDialog } from "./PatientDialogs";

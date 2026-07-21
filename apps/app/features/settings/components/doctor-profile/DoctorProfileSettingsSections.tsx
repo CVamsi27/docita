@@ -1,24 +1,9 @@
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  FormFieldGroup,
-  Input
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, FormFieldGroup, Input } from "@workspace/ui/components";
 import type { AppAuthUser, User } from "@workspace/types";
 import { useTranslations } from "next-intl";
 import { SignatureUploadQR } from "@/features/settings/components/signature-upload-qr";
 import Link from "next/link";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Clock,
-  PenLine,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, PenLine } from "lucide-react";
 import { toAbsoluteApiUrl } from "@/lib/utils/api-url";
 import { getDoctorVerificationPublicNote } from "@/lib/formatters/doctor-verification-display";
 

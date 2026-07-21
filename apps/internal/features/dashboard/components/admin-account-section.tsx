@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  Button,
-  Input,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@workspace/ui/components";
+import { Button, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
 import { Eye, EyeOff, Shield, Users } from "lucide-react";
 import { internalClinicAdminTypeSchema } from "@workspace/types";
 import type {

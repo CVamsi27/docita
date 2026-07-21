@@ -1,15 +1,7 @@
 "use client";
 
 // jscpd:ignore-start
-import {
-  AppPageScaffold,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  EmptyState,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, Card, CardContent, CardHeader, CardTitle, EmptyState, PageHeader } from "@workspace/ui/components";
 import { Feature } from "@workspace/types";
 import { Network, Send } from "lucide-react";
 import { FeatureGate } from "@/components/auth/feature-gate";

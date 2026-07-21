@@ -1,22 +1,8 @@
 import { FC } from "react";
-import {
-  AppPageScaffold,
-  Button,
-  DataState,
-  PageHeader,
-  StatGrid,
-  type StatItem
-} from "@workspace/ui/components";
+import { AppPageScaffold, Button, DataState, PageHeader, StatGrid, type StatItem } from "@workspace/ui/components";
 import { InventoryAddItemDialog } from "@/features/dialogs";
 import { InventoryItemDetailsContainer as InventoryItemDetails } from "@/features/inventory/components/details/InventoryItemDetailsContainer";
-import {
-  AlertTriangle,
-  BarChart3,
-  Package,
-  Plus,
-  RefreshCw,
-  TrendingDown,
-} from "lucide-react";
+import { AlertTriangle, BarChart3, Package, Plus, RefreshCw, TrendingDown } from "lucide-react";
 import { useInventoryLogic } from "@/features/inventory/hooks/use-inventory-logic";
 import { InventoryTable } from "./sections/list/InventoryTable";
 import { InventoryFilters } from "./sections/list/InventoryFilters";

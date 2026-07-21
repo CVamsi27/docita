@@ -3,18 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatTime } from "@/lib/formatters";
-import {
-  Avatar,
-  AvatarFallback,
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  ListRow,
-  ListRowGroup
-} from "@workspace/ui/components";
+import { Avatar, AvatarFallback, Badge, Button, Card, CardContent, CardHeader, CardTitle, ListRow, ListRowGroup } from "@workspace/ui/components";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Play, Stethoscope } from "lucide-react";
 

@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  AppPageScaffold,
-  Button,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, Button, PageHeader } from "@workspace/ui/components";
 import { Plus, RefreshCw } from "lucide-react";
 import { EnterpriseContractsDialogs } from "./enterprise-contracts-dialogs";
 import { getEnterpriseContractsDialogProps } from "./enterprise-contracts-dialog-props";

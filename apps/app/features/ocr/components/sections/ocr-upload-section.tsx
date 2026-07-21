@@ -1,15 +1,7 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, SymbolTooltip } from "@workspace/ui/components";
 import { AlertCircle, Scan, Smartphone, Upload } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 

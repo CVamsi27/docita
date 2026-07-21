@@ -1,16 +1,5 @@
 import { FC } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  DataTable,
-  EmptyState,
-  ListRow,
-  LoadingState,
-  type DataTableColumn
-} from "@workspace/ui/components";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, DataTable, EmptyState, ListRow, LoadingState, type DataTableColumn } from "@workspace/ui/components";
 import { FlaskConical } from "lucide-react";
 
 import { LabTest } from "@workspace/types";

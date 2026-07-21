@@ -1,15 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-  Button,
-  Input,
-  Label,
-  MicroLabel
-} from "@workspace/ui/components";
+import { Alert, AlertDescription, AlertTitle, Button, Input, Label, MicroLabel } from "@workspace/ui/components";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 
 export function ContactSectionVerification({

@@ -3,14 +3,7 @@
 import type { useForm } from "react-hook-form";
 import Link from "next/link";
 import type { NotificationSettingsFormValues } from "@workspace/types";
-import {
-  CardDescription,
-  FormControl,
-  FormField,
-  FormItem,
-  Label,
-  Switch
-} from "@workspace/ui/components";
+import { CardDescription, FormControl, FormField, FormItem, Label, Switch } from "@workspace/ui/components";
 import { Bell, Smartphone } from "lucide-react";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 

@@ -1,11 +1,7 @@
 "use client";
 
 import { FC } from "react";
-import {
-  Badge,
-  Card,
-  CardContent
-} from "@workspace/ui/components";
+import { Badge, Card, CardContent } from "@workspace/ui/components";
 import { TestTube } from "lucide-react";
 
 export const LabOrderCard: FC<{

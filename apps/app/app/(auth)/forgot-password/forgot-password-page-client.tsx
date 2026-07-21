@@ -7,17 +7,9 @@ import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import {
-  forgotPasswordFormSchema,
-  type ForgotPasswordFormValues,
-} from "@workspace/types";
+import { forgotPasswordFormSchema, type ForgotPasswordFormValues } from "@workspace/types";
 import { CheckCircle } from "lucide-react";
-import {
-  Button,
-  Input,
-  Label,
-  LoadingState
-} from "@workspace/ui/components";
+import { Button, Input, Label, LoadingState } from "@workspace/ui/components";
 import { logger } from "@/lib/monitoring/logger";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 import { BackButton } from "@/components/navigation/back-button";

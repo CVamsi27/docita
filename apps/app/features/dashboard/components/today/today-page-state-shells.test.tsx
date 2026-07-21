@@ -3,10 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { render } from "@/test-utils/render-with-tooltip";
 
-import {
-  TodayErrorState,
-  TodayNewClinicEmptyState,
-} from "./today-page-state-shells";
+import { TodayErrorState, TodayNewClinicEmptyState } from "./today-page-state-shells";
 
 describe("TodayErrorState", () => {
   it("renders the error message and a retry control", () => {

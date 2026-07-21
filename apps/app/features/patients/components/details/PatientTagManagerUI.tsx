@@ -1,27 +1,10 @@
 "use client";
 
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from "@workspace/ui/components";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
 import { Tag } from "lucide-react";
 import { getTagColorName } from "./tag-colors";
 import type { PatientTag, PresetTag } from "./patient-tag.types";
-import {
-  CurrentTagsTab,
-  CustomTagTab,
-  PresetsTab,
-} from "./patient-tag-manager-helpers";
+import { CurrentTagsTab, CustomTagTab, PresetsTab } from "./patient-tag-manager-helpers";
 import { TagSearchField } from "./patient-tag-search-field";
 import { useTagInlineEditing } from "./use-tag-inline-editing";
 import { useTagSearchAndCreate } from "./use-tag-search-and-create";

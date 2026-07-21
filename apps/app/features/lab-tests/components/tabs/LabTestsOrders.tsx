@@ -2,22 +2,11 @@
 import { ArrowUp, ArrowDown, ArrowUpDown, FileText, ShieldCheck } from "lucide-react";
 import { FC } from "react";
 import { getPatientFullName } from "@workspace/utils";
-import {
-  Button,
-  DataTable,
-  ListRow,
-  LoadingState,
-  SearchInput,
-  StatusBadge,
-  SymbolTooltip,
-  type DataTableColumn
-} from "@workspace/ui/components";
+import { Button, DataTable, ListRow, LoadingState, SearchInput, StatusBadge, SymbolTooltip, type DataTableColumn } from "@workspace/ui/components";
 import type { LabTestOrder } from "@workspace/types";
 import { useAuth } from "@/lib/auth/auth-context";
 import { DATE_FORMAT_OPTIONS_US_SHORT, formatDate } from "@/lib/formatters";
-import {
-  useLabTestsOrders, type OrderSortKey, type OrderSortConfig,
-} from "./use-lab-tests-orders";
+import { useLabTestsOrders, type OrderSortKey, type OrderSortConfig } from "./use-lab-tests-orders";
 
 const PAYMENT_ROLES = new Set(["ADMIN", "ADMIN_DOCTOR", "RECEPTIONIST"]);
 

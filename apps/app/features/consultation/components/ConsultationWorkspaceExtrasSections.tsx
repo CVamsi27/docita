@@ -3,15 +3,7 @@
 import Link from "next/link";
 import { MoreHorizontal } from "lucide-react";
 import { useTranslations } from "next-intl";
-import {
-  Button,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@workspace/ui/components";
+import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@workspace/ui/components";
 
 interface PrimaryActionButtonsProps {
   canCreatePrescription: boolean;

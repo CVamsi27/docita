@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  Form
-} from "@workspace/ui/components";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Form } from "@workspace/ui/components";
 import type { PaymentProcessingPageViewModel } from "@/features/payment-processing/use-payment-processing-page";
 import { PaymentSummarySection } from "./payment-payment-summary-section";
 import { PaymentFormFields } from "./payment-payment-form-fields";

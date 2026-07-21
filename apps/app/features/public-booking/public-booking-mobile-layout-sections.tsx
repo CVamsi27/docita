@@ -1,26 +1,10 @@
 "use client";
 
 import { type RefObject } from "react";
-import {
-  Button,
-  MicroLabel
-} from "@workspace/ui/components";
-import {
-  PublicBookingHowItWorksSheet,
-  PublicBookingReviewBlock,
-  PublicBookingSummaryPeek,
-} from "@/features/public-booking/public-booking-components";
-import {
-  PUBLIC_BOOKING_STEP_HEADING_SCROLL_MARGIN_CLASS,
-  type PublicBookingMobileStep,
-} from "@/features/public-booking/public-booking-constants";
-import {
-  PublicBookingAppointmentSection,
-  PublicBookingContactSection,
-  PublicBookingPatientContextSection,
-  PublicBookingSubmitAlerts,
-  PublicBookingTurnstileSection,
-} from "@/features/public-booking/public-booking-form-sections";
+import { Button, MicroLabel } from "@workspace/ui/components";
+import { PublicBookingHowItWorksSheet, PublicBookingReviewBlock, PublicBookingSummaryPeek } from "@/features/public-booking/public-booking-components";
+import { PUBLIC_BOOKING_STEP_HEADING_SCROLL_MARGIN_CLASS, type PublicBookingMobileStep } from "@/features/public-booking/public-booking-constants";
+import { PublicBookingAppointmentSection, PublicBookingContactSection, PublicBookingPatientContextSection, PublicBookingSubmitAlerts, PublicBookingTurnstileSection } from "@/features/public-booking/public-booking-form-sections";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { cn } from "@workspace/ui/lib/utils";
 

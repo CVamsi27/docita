@@ -1,17 +1,9 @@
 "use client";
 
-import {
-  Badge,
-  Button,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Badge, Button, SymbolTooltip } from "@workspace/ui/components";
 import { Check, CheckCheck, Clock, RefreshCw, Send, X } from "lucide-react";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  formatDate,
-  DATE_FORMATS,
-  formatDistanceToNow,
-} from "@workspace/utils";
+import { formatDate, DATE_FORMATS, formatDistanceToNow } from "@workspace/utils";
 
 type DeliveryState =
   | "sent"

@@ -3,19 +3,7 @@
 // jscpd:ignore-start
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Skeleton
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Skeleton } from "@workspace/ui/components";
 import { useLeaves } from "@workspace/data-access";
 import type { StaffLeave, User } from "@workspace/types";
 import { ApplyLeaveDialog } from "./ApplyLeaveDialog";

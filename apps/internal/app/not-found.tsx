@@ -1,10 +1,6 @@
 "use client";
 import Link from "next/link";
-import {
-  NotFoundContent,
-  notFoundPrimaryStyle,
-  notFoundSecondaryStyle,
-} from "@workspace/ui/components/feedback/not-found-content";
+import { NotFoundContent, notFoundPrimaryStyle, notFoundSecondaryStyle } from "@workspace/ui/components/feedback/not-found-content";
 
 export default function NotFound() {
   return (

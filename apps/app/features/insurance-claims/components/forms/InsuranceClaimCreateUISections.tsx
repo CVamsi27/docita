@@ -1,7 +1,7 @@
 "use client";
 
 import { getPatientFullName } from "@workspace/utils";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives"
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
 import { Button, Card, CardContent } from "@workspace/ui/components";
 import { useTranslations } from "next-intl";
 // The shadcn/ui form-field + select import blocks below are identical to the

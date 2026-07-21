@@ -1,12 +1,5 @@
 import type { ReactNode } from "react";
-import {
-  Banknote,
-  CalendarClock,
-  CheckSquare,
-  ClipboardList,
-  PlusCircle,
-  Stethoscope,
-} from "lucide-react";
+import { Banknote, CalendarClock, CheckSquare, ClipboardList, PlusCircle, Stethoscope } from "lucide-react";
 import { APP_ACCESS_TARGETS } from "@workspace/types/access";
 import type {
   Feature,

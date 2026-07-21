@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  AppPageScaffold,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, PageHeader } from "@workspace/ui/components";
 import { ComplianceSettingsPanel } from "@/features/settings/components/compliance/ComplianceSettingsPanel";
 
 export function ComplianceSettingsPageClient() {

@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  AppPageScaffold,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, PageHeader } from "@workspace/ui/components";
 import { ConsentTemplatePageContent } from "@/features/settings/components/compliance/consent-template-page-content";
 
 export function ConsentTemplatePageClient() {

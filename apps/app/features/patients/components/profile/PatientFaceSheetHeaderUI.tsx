@@ -1,18 +1,5 @@
-import {
-  Badge,
-  Button,
-  SymbolTooltip,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from "@workspace/ui/components";
-import {
-  AlertTriangle,
-  Building2,
-  ChevronLeft,
-  Phone,
-  ShieldAlert,
-} from "lucide-react";
+import { Badge, Button, SymbolTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components";
+import { AlertTriangle, Building2, ChevronLeft, Phone, ShieldAlert } from "lucide-react";
 import { formatDate, formatGenderLabel } from "@/lib/formatters";
 
 interface PatientFaceSheetHeaderUIProps {

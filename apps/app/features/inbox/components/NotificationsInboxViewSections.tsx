@@ -1,19 +1,8 @@
 "use client";
 
-import {
-  Badge,
-  Button,
-  DataState,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from "@workspace/ui/components";
+import { Badge, Button, DataState, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
 import { BellIcon, TrashIcon } from "lucide-react";
-import {
-  NotificationRow,
-  categorize,
-} from "./notification-inbox-row";
+import { NotificationRow, categorize } from "./notification-inbox-row";
 import type { StaffNotification } from "@workspace/data-access";
 import type { NotificationCategoryDef } from "@/components/navigation/notification-href";
 

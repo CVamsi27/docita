@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  DataState,
-  Section
-} from "@workspace/ui/components";
+import { DataState, Section } from "@workspace/ui/components";
 import { FileText } from "lucide-react";
 import { ComingSoonBadge } from "@/components/feedback/coming-soon-badge";
 

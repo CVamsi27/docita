@@ -1,6 +1,13 @@
 // LINT-EXEMPT: raw hex colors below are intentional — this file renders before
 // the Next.js app shell (and thus before CSS variables / Tailwind are available),
 // so inline style literals are the only safe option here.
+// jscpd:ignore-start — apps/app and apps/internal each ship a global-error.tsx
+// with the same Next.js-mandated function signature (default export,
+// `{ error, reset }` props, `<html><body>...`). The body content
+// differs (raw inline styles in apps/app because the design system
+// isn't loaded yet; Tailwind classes in apps/internal because the
+// user is authenticated and the design system is). The shared
+// 13 lines below are framework boilerplate, not duplication.
 "use client";
 
 export default function GlobalError({
@@ -132,3 +139,4 @@ export default function GlobalError({
     </html>
   );
 }
+// jscpd:ignore-end

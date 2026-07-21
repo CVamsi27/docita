@@ -2,10 +2,7 @@
 
 import { CheckCircle2, Clock, ShieldAlert } from "lucide-react";
 import type { AbdmReadinessStatus } from "@workspace/types";
-import {
-  Badge,
-  Skeleton
-} from "@workspace/ui/components";
+import { Badge, Skeleton } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 
 export function formatInrFromPaise(paise: number) {

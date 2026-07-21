@@ -3,29 +3,12 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  usePrescriptionDefaults,
-  useUpdatePrescriptionDefaults,
-} from "@workspace/data-access";
+import { usePrescriptionDefaults, useUpdatePrescriptionDefaults } from "@workspace/data-access";
 import { toast } from "sonner";
-import {
-  Card,
-  CardContent,
-  Form
-} from "@workspace/ui/components";
-import {
-  prescriptionDefaultsFormSchema,
-  type PrescriptionDefaultsFormValues,
-} from "@workspace/types";
+import { Card, CardContent, Form } from "@workspace/ui/components";
+import { prescriptionDefaultsFormSchema, type PrescriptionDefaultsFormValues } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  PrescriptionDefaultsSkeleton,
-  PrescriptionDefaultsCardHeader,
-  PrescriptionDefaultsInstructionsField,
-  PrescriptionDefaultsFooterField,
-  PrescriptionDefaultsCheckboxGroup,
-  PrescriptionDefaultsFormActions,
-} from "./PrescriptionDefaultsSettingsSections";
+import { PrescriptionDefaultsSkeleton, PrescriptionDefaultsCardHeader, PrescriptionDefaultsInstructionsField, PrescriptionDefaultsFooterField, PrescriptionDefaultsCheckboxGroup, PrescriptionDefaultsFormActions } from "./PrescriptionDefaultsSettingsSections";
 function PrescriptionDefaultsSettings() {
   const {
     data: initialSettings,

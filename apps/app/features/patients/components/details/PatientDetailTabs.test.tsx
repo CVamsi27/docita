@@ -1,12 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  LEGACY_PATIENT_TAB_REDIRECTS,
-  PATIENT_DETAIL_TAB_VALUES,
-  PATIENT_RECORDS_SUB_TABS,
-  PatientDetailTabs,
-} from "./PatientDetailTabs";
+import { LEGACY_PATIENT_TAB_REDIRECTS, PATIENT_DETAIL_TAB_VALUES, PATIENT_RECORDS_SUB_TABS, PatientDetailTabs } from "./PatientDetailTabs";
 
 const mocks = vi.hoisted(() => ({
   router: { replace: vi.fn(), push: vi.fn() },

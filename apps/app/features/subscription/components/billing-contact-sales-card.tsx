@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Button,
-  Card,
-  CardContent
-} from "@workspace/ui/components";
+import { Button, Card, CardContent } from "@workspace/ui/components";
 
 export function ContactSalesCard({
   onContactSales,

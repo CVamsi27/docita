@@ -1,14 +1,7 @@
 import { getPatientFullName } from "@workspace/utils";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import React from "react";
-import {
-  Button,
-  FormControl,
-  Input,
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from "@workspace/ui/components";
+import { Button, FormControl, Input, Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { Patient } from "@workspace/types";

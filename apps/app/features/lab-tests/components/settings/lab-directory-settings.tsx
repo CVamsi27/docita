@@ -5,7 +5,7 @@ import type { LabContractResponse } from "@workspace/types";
 import type { Control, FieldPath } from "react-hook-form";
 import type { CreateLabRequest } from "@workspace/types";
 import { useTranslations } from "next-intl";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { Badge, Button, DataState, DataTable, Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Form, StatusBadge, Switch, type DataTableColumn } from "@workspace/ui/components";
 import { useLabDirectory } from "@/features/lab-tests/hooks/use-lab-directory";
 

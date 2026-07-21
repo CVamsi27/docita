@@ -1,11 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import {
-  Button,
-  Input,
-  Label
-} from "@workspace/ui/components";
+import { Button, Input, Label } from "@workspace/ui/components";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 export function ContactSectionPhone({
   c,

@@ -5,20 +5,7 @@ import { PricingTierTable } from "./pricing-tier-table";
 import { PricingOfferBuilder } from "./pricing-offer-builder";
 import { PricingOfferList } from "./pricing-offer-list";
 
-import {
-  AppPageScaffold,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  DataState,
-  PageHeader,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from "@workspace/ui/components";
+import { AppPageScaffold, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, PageHeader, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
 
 export default function PricingPage() {
   const {

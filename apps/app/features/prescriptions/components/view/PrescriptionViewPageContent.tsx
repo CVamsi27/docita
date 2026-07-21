@@ -6,14 +6,8 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { FileX } from "lucide-react";
 import { toast } from "sonner";
-import {
-  queryKeys,
-  useResendPrescriptionWhatsApp,
-} from "@workspace/data-access";
-import {
-  LoadingState,
-  EmptyState,
-} from "@workspace/ui/components/feedback/empty-state";
+import { queryKeys, useResendPrescriptionWhatsApp } from "@workspace/data-access";
+import { LoadingState, EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { PrintSheet } from "@workspace/ui/components/print-sheet";
 import { Feature } from "@workspace/types";
 import { isRecord } from "@workspace/utils";

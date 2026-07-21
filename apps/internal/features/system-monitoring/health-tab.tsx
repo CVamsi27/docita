@@ -1,14 +1,7 @@
 "use client";
 
 import { DATE_FORMATS, formatDate, sanitizeUserFacingMessage } from "@workspace/utils";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  TabsContent
-} from "@workspace/ui/components";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, TabsContent } from "@workspace/ui/components";
 import { ShieldAlert } from "lucide-react";
 import type { SystemMonitoringPageViewModel } from "./use-system-monitoring-page";
 

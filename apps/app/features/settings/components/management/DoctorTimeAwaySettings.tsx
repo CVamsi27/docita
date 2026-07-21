@@ -3,13 +3,7 @@
 import { isAdmin } from "@/lib/auth/permissions";
 import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { useDoctorTimeAwaySettings } from "./use-doctor-time-away-settings";
-import {
-  AddTimeAwayButton,
-  DoctorSelectorSection,
-  TimeAwayFormFields,
-  ScheduledTimeAwayList,
-  TimeAwayHeader,
-} from "./DoctorTimeAwaySettingsSections";
+import { AddTimeAwayButton, DoctorSelectorSection, TimeAwayFormFields, ScheduledTimeAwayList, TimeAwayHeader } from "./DoctorTimeAwaySettingsSections";
 
 export function DoctorTimeAwaySettings() {
   const { selection, form, list } = useDoctorTimeAwaySettings();

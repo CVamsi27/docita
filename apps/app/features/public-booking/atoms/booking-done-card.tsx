@@ -1,12 +1,7 @@
 "use client";
 
 import { CheckCircle2, MapPin, Phone } from "lucide-react";
-import {
-  Button,
-  Card,
-  CardContent,
-  MicroLabel
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, MicroLabel } from "@workspace/ui/components";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { bookingCardClass, bookingSectionShell } from "./booking-constants";
 import { cn } from "@workspace/ui/lib/utils";

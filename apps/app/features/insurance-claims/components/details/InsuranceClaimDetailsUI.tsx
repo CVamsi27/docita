@@ -3,22 +3,13 @@
 import { FC, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Pencil } from "lucide-react";
-import {
-  AppPageScaffold,
-  Button,
-  DataState,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, Button, DataState, PageHeader } from "@workspace/ui/components";
 import type { ClaimStatus } from "@workspace/types";
 import { useRouter } from "next/navigation";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import { useInsuranceClaimDetailLogic } from "@/features/insurance-claims/hooks/use-insurance-claim-detail-logic";
 import { CLAIM_STATUS_TRANSITIONS } from "@/features/insurance-claims/lib/claim-display";
-import {
-  ClaimDetailsCard,
-  UpdateStatusCard,
-  ClaimDocumentsCard,
-} from "./InsuranceClaimDetailsUISections";
+import { ClaimDetailsCard, UpdateStatusCard, ClaimDocumentsCard } from "./InsuranceClaimDetailsUISections";
 
 export const InsuranceClaimDetailsUI: FC<{ id: string }> = ({ id }) => {
   const router = useRouter();

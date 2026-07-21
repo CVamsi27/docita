@@ -4,23 +4,10 @@ import { FC, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Card } from "@/components/card";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/card";
-import {
-  Button,
-  SearchInput
-} from "@workspace/ui/components";
+import { Button, SearchInput } from "@workspace/ui/components";
 import { WhatsAppButton } from "@/components/whatsapp/whatsapp-button";
-import {
-  getSupportPhoneNumber,
-  SUPPORT_EMAIL,
-  SUPPORT_WHATSAPP_MESSAGE_DEFAULT,
-} from "@/lib/constants/support-contact";
-import {
-  BookOpen,
-  ChevronRight,
-  HelpCircle,
-  Mail,
-  MessageCircle,
-} from "lucide-react";
+import { getSupportPhoneNumber, SUPPORT_EMAIL, SUPPORT_WHATSAPP_MESSAGE_DEFAULT } from "@/lib/constants/support-contact";
+import { BookOpen, ChevronRight, HelpCircle, Mail, MessageCircle } from "lucide-react";
 
 const SUPPORT_MAILTO = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Docita support")}`;
 

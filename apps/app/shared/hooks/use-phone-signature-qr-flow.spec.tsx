@@ -1,9 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  type PhoneSignatureQrSession,
-  usePhoneSignatureQrFlow,
-} from "./use-phone-signature-qr-flow";
+import { type PhoneSignatureQrSession, usePhoneSignatureQrFlow } from "./use-phone-signature-qr-flow";
 
 const session: PhoneSignatureQrSession = {
   sessionId: "sess_1",

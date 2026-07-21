@@ -1,10 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import {
-  Input,
-  Label
-} from "@workspace/ui/components";
+import { Input, Label } from "@workspace/ui/components";
 
 export interface ContactTextFieldProps {
   id: string;

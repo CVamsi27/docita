@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  Input,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Input, SymbolTooltip } from "@workspace/ui/components";
 import { Search, X } from "lucide-react";
 
 export interface TagSearchFieldProps {

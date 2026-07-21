@@ -2,15 +2,7 @@
 
 // jscpd:ignore-start
 import { formatDate } from "@workspace/utils";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  DataState
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState } from "@workspace/ui/components";
 import { ExternalLink, FlaskConical } from "lucide-react";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Feature } from "@workspace/types";

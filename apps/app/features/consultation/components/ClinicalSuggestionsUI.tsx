@@ -1,12 +1,4 @@
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, SymbolTooltip } from "@workspace/ui/components";
 import { AlertCircle, Lightbulb, TrendingUp, X } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 

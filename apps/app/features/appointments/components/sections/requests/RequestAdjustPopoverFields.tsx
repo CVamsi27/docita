@@ -1,27 +1,10 @@
 "use client";
 
-import {
-  Button,
-  Calendar,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@workspace/ui/components";
-import {
-  formatClinicPickerDayIsoFromSelection,
-  formatScheduleTime,
-} from "@workspace/utils";
+import { Button, Calendar, Popover, PopoverContent, PopoverTrigger, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
+import { formatClinicPickerDayIsoFromSelection, formatScheduleTime } from "@workspace/utils";
 import type { ApproveScheduleFieldKey } from "@/lib/utils/appointment-request-approve-errors";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  type SchedulableDoctor,
-  parsePickerIsoToLocalDate,
-} from "./request-row-helpers";
+import { type SchedulableDoctor, parsePickerIsoToLocalDate } from "./request-row-helpers";
 
 export type AvailableTime = { time: string; endTime: string };
 

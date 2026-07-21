@@ -1,10 +1,6 @@
 import { type ReactNode } from "react";
 import { Sparkles } from "lucide-react";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@workspace/ui/components/feedback/alert";
+import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/feedback/alert";
 import { ComingSoonBadge } from "@/components/feedback/coming-soon-badge";
 
 interface ComingSoonPreviewProps {

@@ -1,26 +1,7 @@
 "use client";
 
-import {
-  CheckCircle2,
-  Command as CommandIcon,
-  CreditCard,
-  HeartPulse,
-  MoreVertical,
-  PanelLeft,
-  PencilLine,
-  Sparkles,
-} from "lucide-react";
-import {
-  Button,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  SymbolTooltip,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from "@workspace/ui/components";
+import { CheckCircle2, Command as CommandIcon, CreditCard, HeartPulse, MoreVertical, PanelLeft, PencilLine, Sparkles } from "lucide-react";
+import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, SymbolTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components";
 import { ConsultationTimerContainer } from "./ConsultationTimerContainer";
 
 interface ConsultationToolbarPrimaryActionsProps {

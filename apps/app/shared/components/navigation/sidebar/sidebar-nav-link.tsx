@@ -3,10 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SidebarNavItem } from "@workspace/ui/components/navigation/sidebar-nav-item";
-import {
-  sidebarNavLinkTestId,
-  type NavItem,
-} from "@/components/navigation/nav-config";
+import { sidebarNavLinkTestId, type NavItem } from "@/components/navigation/nav-config";
 
 /** Stable anchors the guided welcome tour spotlights (see features/guided-tour). */
 const TOUR_ID_BY_HREF: Record<string, string> = {

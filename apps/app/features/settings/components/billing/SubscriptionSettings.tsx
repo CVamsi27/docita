@@ -2,25 +2,11 @@
 
 import { useAuth } from "@/lib/auth/auth-context";
 import { useClinic } from "@/lib/contexts/clinic-context";
-import {
-  PaymentRecoveryCard,
-  BillingSubscriptionWorkspaceView,
-  useBillingSubscriptionWorkspace,
-  useAutoResolveSubscriptionPayment,
-} from "@/features/subscription";
+import { PaymentRecoveryCard, BillingSubscriptionWorkspaceView, useBillingSubscriptionWorkspace, useAutoResolveSubscriptionPayment } from "@/features/subscription";
 import { Section } from "@workspace/ui/components/layout/section";
-import {
-  billingHistoryEmptyDescription,
-  billingHistorySectionActions,
-  billingHistorySectionDescription,
-  deriveSubscriptionSettingsState,
-} from "./subscription-settings-helpers";
+import { billingHistoryEmptyDescription, billingHistorySectionActions, billingHistorySectionDescription, deriveSubscriptionSettingsState } from "./subscription-settings-helpers";
 import { BillingHistory } from "./subscription-billing-history";
-import {
-  SubscriptionLoadingState,
-  NonAdminSubscriptionView,
-  BillingSupportBlock,
-} from "./SubscriptionSettingsSections";
+import { SubscriptionLoadingState, NonAdminSubscriptionView, BillingSupportBlock } from "./SubscriptionSettingsSections";
 import { SubscriptionAlertSection } from "./subscription-settings-alerts";
 
 export function SubscriptionSettings() {

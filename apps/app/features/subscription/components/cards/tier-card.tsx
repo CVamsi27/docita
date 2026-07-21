@@ -1,16 +1,9 @@
-import {
-  Badge,
-  Card,
-  CardContent
-} from "@workspace/ui/components";
+import { Badge, Card, CardContent } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { Tier } from "@/lib/subscription/tier-access";
 import { PlanFeatures } from "@/features/subscription/components/sections/plan-features";
 import { Sparkles } from "lucide-react";
-import {
-  type TierCardProps,
-  TIER_GRADIENTS,
-} from "./tier-card-types";
+import { type TierCardProps, TIER_GRADIENTS } from "./tier-card-types";
 import { TierCardHeader } from "./tier-card-header";
 import { TierCardSelectButton } from "./tier-card-cta";
 

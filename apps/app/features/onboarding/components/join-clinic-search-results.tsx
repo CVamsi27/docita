@@ -1,11 +1,7 @@
 "use client";
 
 import { Building2, Mail, MapPin, Phone } from "lucide-react";
-import {
-  Badge,
-  Button,
-  Card
-} from "@workspace/ui/components";
+import { Badge, Button, Card } from "@workspace/ui/components";
 
 export interface JoinClinicSearchResult {
   id: string;

@@ -1,10 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import {
-  AppPageScaffold,
-  DataState
-} from "@workspace/ui/components";
+import { AppPageScaffold, DataState } from "@workspace/ui/components";
 
 const DynamicPatientDetailPageRoute = dynamic(
   () =>

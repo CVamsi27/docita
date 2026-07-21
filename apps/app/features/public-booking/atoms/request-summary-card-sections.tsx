@@ -1,10 +1,7 @@
 "use client";
 
 import { Calendar as CalendarIcon, CheckCircle2 } from "lucide-react";
-import {
-  CardTitle,
-  MicroLabel
-} from "@workspace/ui/components";
+import { CardTitle, MicroLabel } from "@workspace/ui/components";
 import { formatDate } from "@workspace/utils";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatTime } from "@/lib/formatters";

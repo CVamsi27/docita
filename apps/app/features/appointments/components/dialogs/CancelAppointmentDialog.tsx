@@ -6,17 +6,7 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 import { useMemo, useState } from "react";
 import { z } from "zod";
 import { AlertCircle } from "lucide-react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Label,
-  Textarea
-} from "@workspace/ui/components";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Label, Textarea } from "@workspace/ui/components";
 import {
   Select,
 // jscpd:ignore-end

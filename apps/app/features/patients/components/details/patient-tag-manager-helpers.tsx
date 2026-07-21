@@ -1,22 +1,9 @@
 import { resolveTagColor } from "./tag-colors";
-import {
-  Badge,
-  Button,
-  Input,
-  Label,
-  ScrollArea
-} from "@workspace/ui/components";
+import { Badge, Button, Input, Label, ScrollArea } from "@workspace/ui/components";
 import { Check, Palette, Plus } from "lucide-react";
 import type { PresetTag } from "./patient-tag.types";
-import {
-  COLOR_PALETTE,
-  type PresetTagLike,
-  groupPresetTags,
-} from "./patient-tag-manager-logic";
-import {
-  ColorPickerGrid,
-  ColorSwatchButton,
-} from "./patient-tag-color-pickers";
+import { COLOR_PALETTE, type PresetTagLike, groupPresetTags } from "./patient-tag-manager-logic";
+import { ColorPickerGrid, ColorSwatchButton } from "./patient-tag-color-pickers";
 export type { ColorPickerGridProps, ColorSwatchButtonProps } from "./patient-tag-color-pickers";
 
 // Re-export logic helpers so existing callers that import from this file still work

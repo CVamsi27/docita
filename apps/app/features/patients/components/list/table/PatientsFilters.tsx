@@ -1,14 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Input,
-  Tabs,
-  TabsList,
-  TabsTrigger
-} from "@workspace/ui/components";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Tabs, TabsList, TabsTrigger } from "@workspace/ui/components";
 import { ClearSearchButton } from "@/components/buttons/clear-search-button";
 import { Search } from "lucide-react";
 

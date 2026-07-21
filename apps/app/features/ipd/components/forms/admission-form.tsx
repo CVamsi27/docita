@@ -5,9 +5,8 @@ import { FC } from "react";
 import { useForm, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import {
-  ipdAdmissionFormSchema, type IpdAdmissionFormValues, } from "@workspace/types";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives"
+import { ipdAdmissionFormSchema, type IpdAdmissionFormValues } from "@workspace/types";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Form } from "@workspace/ui/components";
 
 export type AdmissionFormData = IpdAdmissionFormValues;

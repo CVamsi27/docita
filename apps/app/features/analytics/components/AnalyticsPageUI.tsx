@@ -2,17 +2,7 @@
 
 import React, { FC } from "react";
 import dynamic from "next/dynamic";
-import {
-  AppPageScaffold,
-  DataState,
-  LoadingState,
-  PageHeader,
-  Skeleton,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from "@workspace/ui/components";
+import { AppPageScaffold, DataState, LoadingState, PageHeader, Skeleton, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
 import { Calendar, DollarSign, Users } from "lucide-react";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Feature, FeatureGate } from "@/components/auth/feature-gate";

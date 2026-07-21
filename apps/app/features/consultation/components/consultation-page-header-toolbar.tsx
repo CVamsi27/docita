@@ -1,12 +1,7 @@
 "use client";
 
 import { SaveStatusChip } from "@/features/consultation/workspace/chrome/SaveStatusChip";
-import {
-  ConsultationToolbarMarkDoneAction,
-  ConsultationToolbarMobileMenu,
-  ConsultationToolbarPrimaryActions,
-  ConsultationToolbarUtilityActions,
-} from "./consultation-page-header-toolbar-sections";
+import { ConsultationToolbarMarkDoneAction, ConsultationToolbarMobileMenu, ConsultationToolbarPrimaryActions, ConsultationToolbarUtilityActions } from "./consultation-page-header-toolbar-sections";
 
 interface ConsultationPageHeaderToolbarProps {
   readOnly: boolean;

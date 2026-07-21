@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Skeleton
-} from "@workspace/ui/components";
+import { Card, CardContent, CardHeader, Skeleton } from "@workspace/ui/components";
 
 export function ClinicGeneralSettingsSkeleton() {
   return (

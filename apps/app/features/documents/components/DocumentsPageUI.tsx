@@ -1,8 +1,4 @@
-import {
-  AppPageScaffold,
-  DataState,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, DataState, PageHeader } from "@workspace/ui/components";
 import type { Document } from "@workspace/types";
 import { FileText } from "lucide-react";
 import type {

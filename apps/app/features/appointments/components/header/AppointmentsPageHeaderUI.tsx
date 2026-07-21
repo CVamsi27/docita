@@ -1,9 +1,5 @@
 import { AddAppointmentDialogContainer as AddAppointmentDialog } from "@/features/appointments/components/dialogs/AddAppointmentDialogContainer";
-import {
-  Button,
-  PageHeader,
-  SearchInput
-} from "@workspace/ui/components";
+import { Button, PageHeader, SearchInput } from "@workspace/ui/components";
 import { Plus, Sparkles } from "lucide-react";
 import type { Appointment } from "@workspace/types";
 import { useAskAi } from "@/components/ask-ai/ask-ai-context";

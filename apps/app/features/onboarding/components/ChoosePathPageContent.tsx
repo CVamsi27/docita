@@ -6,10 +6,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Building2, Check, Users } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
-import {
-  CategoryAvatar,
-  type CategoryAvatarTone,
-} from "@workspace/ui/components/indicators/category-avatar";
+import { CategoryAvatar, type CategoryAvatarTone } from "@workspace/ui/components/indicators/category-avatar";
 import { cn } from "@workspace/ui/lib/utils";
 import { typedApi } from "@/lib/api/api-client";
 import { logger } from "@/lib/monitoring/logger";

@@ -1,11 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import {
-  AppPageScaffold,
-  PageHeader,
-  Section
-} from "@workspace/ui/components";
+import { AppPageScaffold, PageHeader, Section } from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 const AnalyticsDashboardLazy = dynamic(

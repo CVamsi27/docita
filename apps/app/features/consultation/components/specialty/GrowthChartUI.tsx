@@ -1,13 +1,5 @@
 // jscpd:ignore-start
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label
-} from "@workspace/ui/components";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from "@workspace/ui/components";
 
 import { GrowthChartData, GrowthMeasurement } from "@workspace/types";
 

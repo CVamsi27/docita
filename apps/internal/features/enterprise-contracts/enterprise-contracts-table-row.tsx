@@ -2,17 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { formatCurrency, formatDate } from "@workspace/utils";
-import {
-  Badge,
-  TableCell,
-  TableRow
-} from "@workspace/ui/components";
+import { Badge, TableCell, TableRow } from "@workspace/ui/components";
 import type { InternalEnterpriseContractRow as EnterpriseContractRow } from "@workspace/data-access/internal";
 import { enterpriseContractStatusBadgeClass } from "./enterprise-contracts-helpers";
-import {
-  EnterpriseContractRowActions,
-  type EnterpriseContractRowActionsProps,
-} from "./enterprise-contracts-row-actions";
+import { EnterpriseContractRowActions, type EnterpriseContractRowActionsProps } from "./enterprise-contracts-row-actions";
 
 export type EnterpriseContractTableRowProps = Omit<
   EnterpriseContractRowActionsProps,

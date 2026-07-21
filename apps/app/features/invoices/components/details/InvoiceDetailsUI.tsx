@@ -1,12 +1,7 @@
 "use client";
 
 import { FC } from "react";
-import {
-  Card,
-  CardContent,
-  EmptyState,
-  LoadingState
-} from "@workspace/ui/components";
+import { Card, CardContent, EmptyState, LoadingState } from "@workspace/ui/components";
 import { FileText } from "lucide-react";
 import { useInvoiceDetailsLogic } from "@/features/invoices/hooks/use-invoice-details-logic";
 import { useSearchParams } from "next/navigation";

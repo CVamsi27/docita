@@ -3,22 +3,14 @@
 import { FC, type ReactNode } from "react";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
-import {
-  Button,
-  EmptyState,
-  Form,
-  LoadingState
-} from "@workspace/ui/components";
+import { Button, EmptyState, Form, LoadingState } from "@workspace/ui/components";
 import { FileText, Save } from "lucide-react";
 import { useInvoiceEditLogic } from "@/features/invoices/hooks/use-invoice-edit-logic";
 import { BackButton } from "@/components/navigation/back-button";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { editInvoiceItemFieldPath } from "@/features/invoices/lib/invoice-form-paths";
 import { InvoiceEditDetailsSection } from "./InvoiceEditUISections";
-import {
-  InvoiceLineItemsSectionContainer,
-  InvoiceNotesSection,
-} from "./invoice-form-sections-shared";
+import { InvoiceLineItemsSectionContainer, InvoiceNotesSection } from "./invoice-form-sections-shared";
 
 interface InvoiceEditUIProps {
   invoiceId: string;

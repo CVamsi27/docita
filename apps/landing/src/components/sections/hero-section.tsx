@@ -2,23 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import {
-  ArrowRight,
-  CalendarCheck,
-  CheckCircle2,
-  ClipboardList,
-  FileText,
-  MessageSquare,
-  Receipt,
-  Stethoscope,
-} from "lucide-react";
+import { ArrowRight, CalendarCheck, CheckCircle2, ClipboardList, FileText, MessageSquare, Receipt, Stethoscope } from "lucide-react";
 
 import { Button } from "@workspace/ui/components/form/button";
 
-import {
-  landingFadeUpVariants,
-  landingStaggerContainer,
-} from "@/lib/motion-prefs";
+import { landingFadeUpVariants, landingStaggerContainer } from "@/lib/motion-prefs";
 
 interface HeroSectionProps {
   appUrl: string;

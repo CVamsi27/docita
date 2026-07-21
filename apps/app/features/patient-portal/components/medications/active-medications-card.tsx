@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from "@workspace/ui/components";
+import { Badge, Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components";
 import { Pill } from "lucide-react";
 import type { ActiveMedication } from "@workspace/types";
 import { formatDate } from "@/lib/formatters";

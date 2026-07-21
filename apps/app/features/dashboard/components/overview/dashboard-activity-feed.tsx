@@ -5,14 +5,7 @@ import Link from "next/link";
 import { Activity } from "lucide-react";
 import type { DashboardStats } from "@workspace/types";
 import { formatDistanceToNow, getPatientFullName } from "@workspace/utils";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  EmptyState
-} from "@workspace/ui/components";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState } from "@workspace/ui/components";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 

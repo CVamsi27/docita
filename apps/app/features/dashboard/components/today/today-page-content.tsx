@@ -4,10 +4,7 @@ import { useMemo } from "react";
 import dynamic from "next/dynamic";
 import { formatDashboardSummary } from "@/features/dashboard/lib/format-dashboard-summary";
 import { isNewClinicDashboard } from "@/features/dashboard/lib/is-new-clinic-dashboard";
-import {
-  GettingStartedChecklist,
-  GuidedTourLauncher,
-} from "@/features/guided-tour";
+import { GettingStartedChecklist, GuidedTourLauncher } from "@/features/guided-tour";
 import { useDashboardLogic } from "@/features/dashboard/hooks/use-dashboard-logic";
 import { useClinicReferralShare } from "@/features/dashboard/hooks/use-clinic-referral-share";
 import { useClinic } from "@/lib/contexts/clinic-context";
@@ -28,11 +25,7 @@ const TodayBottomBarSection = dynamic(
   { ssr: false },
 );
 
-import {
-  TodayErrorState,
-  TodayLoadingState,
-  TodayNewClinicEmptyState,
-} from "./today-page-state-shells";
+import { TodayErrorState, TodayLoadingState, TodayNewClinicEmptyState } from "./today-page-state-shells";
 import { TodayPageHeader, TodayWorkspaceLayout } from "./today-page-content-sections";
 
 export function TodayPageContent() {

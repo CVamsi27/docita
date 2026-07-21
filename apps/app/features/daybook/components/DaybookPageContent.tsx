@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  AppPageScaffold,
-  Button,
-  DataState,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, Button, DataState, PageHeader } from "@workspace/ui/components";
 import { Feature } from "@workspace/types";
 import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import { addDaysToPickerIsoDate } from "@workspace/utils";
@@ -13,12 +8,7 @@ import { FeatureGate } from "@/components/auth/feature-gate";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import { formatDate } from "@/lib/formatters";
 import { useDaybook } from "@/features/daybook/hooks/use-daybook";
-import {
-  DaybookSummaryCardsSection,
-  DaybookByMethodSection,
-  DaybookLedgerSection,
-  DaybookCloseDaySection,
-} from "./DaybookPageContentSections";
+import { DaybookSummaryCardsSection, DaybookByMethodSection, DaybookLedgerSection, DaybookCloseDaySection } from "./DaybookPageContentSections";
 
 export function DaybookPageContent() {
   const {

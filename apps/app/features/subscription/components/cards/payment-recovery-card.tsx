@@ -1,11 +1,7 @@
 "use client";
 
 import { AlertTriangle, CreditCard, RotateCw } from "lucide-react";
-import {
-  Button,
-  Card,
-  CardContent
-} from "@workspace/ui/components";
+import { Button, Card, CardContent } from "@workspace/ui/components";
 import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
 import type { BillingHistoryItem } from "@workspace/data-access";
 import { formatDate } from "@/lib/formatters";

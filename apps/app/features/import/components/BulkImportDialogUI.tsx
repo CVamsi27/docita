@@ -2,15 +2,7 @@
 
 import React from "react";
 import { Upload } from "lucide-react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from "@workspace/ui/components";
+import { Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { BulkImportStepSelect } from "./bulk-import/BulkImportStepSelect";
 import { BulkImportStepDownload } from "./bulk-import/BulkImportStepDownload";

@@ -2,10 +2,7 @@
 
 import { Pencil, Trash2 } from "lucide-react";
 import type { ClinicWhatsappTemplate } from "@workspace/types";
-import {
-  Badge,
-  Button
-} from "@workspace/ui/components";
+import { Badge, Button } from "@workspace/ui/components";
 
 interface TemplateListItemProps {
   template: ClinicWhatsappTemplate;

@@ -3,7 +3,7 @@
 // jscpd:ignore-start
 import { type FC } from "react";
 import { Paperclip } from "lucide-react";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives"
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components";
 import { getPatientFullName } from "@workspace/utils";
 import type { ClaimStatus, ClaimType } from "@workspace/types";

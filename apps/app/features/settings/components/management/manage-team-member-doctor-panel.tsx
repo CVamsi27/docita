@@ -2,10 +2,7 @@
 
 import Link from "next/link";
 import type { UseFormReturn } from "react-hook-form";
-import {
-  Badge,
-  Button
-} from "@workspace/ui/components";
+import { Badge, Button } from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { ShieldCheck, ShieldX } from "lucide-react";
 import { User } from "@workspace/types";

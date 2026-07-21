@@ -1,12 +1,4 @@
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Skeleton
-} from "@workspace/ui/components";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from "@workspace/ui/components";
 import { formatDate } from "@/lib/formatters";
 
 interface AppointmentItem {

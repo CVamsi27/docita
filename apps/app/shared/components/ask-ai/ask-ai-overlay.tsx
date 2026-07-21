@@ -2,11 +2,7 @@
 
 import { Plus } from "lucide-react";
 import { computeAiCreditBalance } from "@workspace/types";
-import {
-  Button,
-  Dialog,
-  DialogContent
-} from "@workspace/ui/components";
+import { Button, Dialog, DialogContent } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { useCurrentUsage } from "@/features/subscription/hooks/use-pricing";
 import { ThreadGroup } from "./ask-ai-messages";

@@ -1,14 +1,5 @@
 import { getPatientFullName } from "@workspace/utils";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Input,
-  Skeleton,
-  SymbolTooltip
-} from "@workspace/ui/components";
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Skeleton, SymbolTooltip } from "@workspace/ui/components";
 import { Search, X } from "lucide-react";
 import type { Patient } from "@workspace/types";
 

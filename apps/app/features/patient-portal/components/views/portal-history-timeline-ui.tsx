@@ -2,10 +2,7 @@
 
 import { PatientSnapshotStrip } from "@/components/patient-history/PatientSnapshotStrip";
 import { usePortalHistoryTimeline } from "@/features/patient-portal/hooks/use-portal-history-timeline";
-import {
-  PortalMedicalHistoryPanel,
-  PortalTimelineSection,
-} from "./portal-history-timeline-ui-sections";
+import { PortalMedicalHistoryPanel, PortalTimelineSection } from "./portal-history-timeline-ui-sections";
 
 interface PortalHistoryTimelineUIProps {
   showHeader?: boolean;

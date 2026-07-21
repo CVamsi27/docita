@@ -1,21 +1,11 @@
 import type { Patient } from "@workspace/types";
-import {
-  Avatar,
-  AvatarFallback,
-  Button,
-  DataTable,
-  SymbolTooltip,
-  type DataTableColumn
-} from "@workspace/ui/components";
+import { Avatar, AvatarFallback, Button, DataTable, SymbolTooltip, type DataTableColumn } from "@workspace/ui/components";
 import { formatGenderLabel } from "@/lib/formatters";
 import { getInitials } from "@/lib/formatters";
 import { getPatientFullName } from "@workspace/utils";
 import { Calendar, Pencil } from "lucide-react";
 import type { PatientsSortConfig } from "./patients-page-types";
-import {
-  SortableHeader,
-  PatientMobileCard,
-} from "./patients-table-sections";
+import { SortableHeader, PatientMobileCard } from "./patients-table-sections";
 
 export function PatientsTable({
   isLoading,

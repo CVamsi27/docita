@@ -1,12 +1,4 @@
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { ComingSoonPreview } from "./ComingSoonPreview";
 

@@ -1,14 +1,5 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Textarea
-} from "@workspace/ui/components";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Textarea } from "@workspace/ui/components";
 import { Brain, Shield, Sparkles, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { DiagnosisSuggestion } from "@/features/ai-assistant/hooks/use-ai-assistant-logic";

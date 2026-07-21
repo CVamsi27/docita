@@ -3,13 +3,7 @@
 import { BarChart3, DollarSign } from "lucide-react";
 import { getInternalTierChartColorClass } from "@/lib/tier-display";
 import type { InternalBillingMetrics } from "@workspace/data-access/internal";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 
 interface BillingOverviewCardsProps {
   billing: InternalBillingMetrics;

@@ -1,21 +1,8 @@
 // check-as-cast-density: allow-file — narrowing casts required by generic signatures or external types
 "use client";
 
-import {
-  MessageCircle,
-  RotateCcw,
-  ShieldCheck,
-} from "lucide-react";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label
-} from "@workspace/ui/components";
+import { MessageCircle, RotateCcw, ShieldCheck } from "lucide-react";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from "@workspace/ui/components";
 
 type SenderMode = "SHARED" | "BYO" | "MANAGED";
 

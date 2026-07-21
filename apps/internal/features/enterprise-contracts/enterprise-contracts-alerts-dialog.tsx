@@ -2,15 +2,7 @@
 
 import { formatDate } from "@workspace/utils";
 import { useTranslations } from "next-intl";
-import {
-  BaseContractDialogShell,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "./base-dialog-shell";
+import { BaseContractDialogShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./base-dialog-shell";
 import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
 
 type EnterpriseContractsAlertsDialogProps = Pick<EnterpriseContractsPageState, 'alertsOpen' | 'setAlertsOpen' | 'alerts'>;

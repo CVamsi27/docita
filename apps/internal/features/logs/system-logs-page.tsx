@@ -1,12 +1,7 @@
 "use client";
 
 import { RefreshCw } from "lucide-react";
-import {
-  AppPageScaffold,
-  Button,
-  DataState,
-  PageHeader
-} from "@workspace/ui/components";
+import { AppPageScaffold, Button, DataState, PageHeader } from "@workspace/ui/components";
 import { useSystemLogs } from "./use-system-logs";
 import { SystemLogsTable } from "./system-logs-table";
 

@@ -1,6 +1,6 @@
 // jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Textarea } from "@workspace/ui/components/form/form-primitives"
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Textarea } from "@workspace/ui/components/form/form-primitives";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 

@@ -1,10 +1,4 @@
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-  Switch
-} from "@workspace/ui/components";
+import { FormControl, FormField, FormItem, FormMessage, Switch } from "@workspace/ui/components";
 import type { UseFormReturn } from "react-hook-form";
 import type { QueueSettingsFormValues } from "@workspace/types";
 

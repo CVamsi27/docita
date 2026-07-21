@@ -5,10 +5,7 @@ import { useState } from "react";
 import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
 import { useFacilityLabel } from "@/lib/formatters/facility-label";
 import { logger } from "@/lib/monitoring/logger";
-import {
-  StaffWorkspaceSection,
-  PatientBookingSection,
-} from "./clinic-referral-share-toolbar-sections";
+import { StaffWorkspaceSection, PatientBookingSection } from "./clinic-referral-share-toolbar-sections";
 
 export interface ClinicReferralShareToolbarProps {
   clinicCode?: string | null;

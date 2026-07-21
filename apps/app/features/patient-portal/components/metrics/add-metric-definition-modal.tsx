@@ -5,7 +5,7 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 
 import { FormEvent, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Label } from "@workspace/ui/components";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 

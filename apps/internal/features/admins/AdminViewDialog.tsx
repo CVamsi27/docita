@@ -1,15 +1,7 @@
 "use client";
 
 import { Shield } from "lucide-react";
-import {
-  Badge,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  Label
-} from "@workspace/ui/components";
+import { Badge, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Label } from "@workspace/ui/components";
 import { useTranslations } from "next-intl";
 import { formatInternalTimestamp } from "@/lib/formatters/format-internal-timestamp";
 import type { Admin } from "./use-admins-page";

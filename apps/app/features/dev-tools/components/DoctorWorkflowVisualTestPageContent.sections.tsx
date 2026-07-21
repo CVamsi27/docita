@@ -1,24 +1,8 @@
 "use client";
 
 // jscpd:ignore-start
-import {
-  CalendarDays,
-  Clock3,
-  FileText,
-  Stethoscope,
-  UserRound,
-} from "lucide-react";
-import {
-  AppPageScaffold,
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  PageHeader,
-  Progress
-} from "@workspace/ui/components";
+import { CalendarDays, Clock3, FileText, Stethoscope, UserRound } from "lucide-react";
+import { AppPageScaffold, Badge, Button, Card, CardContent, CardHeader, CardTitle, PageHeader, Progress } from "@workspace/ui/components";
 // jscpd:ignore-end
 
 /** Dashboard zone — current patient context and queue status mock. */

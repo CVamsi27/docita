@@ -3,16 +3,7 @@
 import type { Control } from "react-hook-form";
 import type { SecuritySettingsFormValues } from "@workspace/types";
 import { Feature } from "@workspace/types";
-import {
-  Button,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-  Input,
-  Label,
-  Switch
-} from "@workspace/ui/components";
+import { Button, FormControl, FormField, FormItem, FormMessage, Input, Label, Switch } from "@workspace/ui/components";
 import { Lock } from "lucide-react";
 import Link from "next/link";
 import { FeatureTierBadge } from "@/components/auth/feature-gate";
