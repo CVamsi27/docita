@@ -609,6 +609,21 @@
     }
   },
   "Settings": {
+    "security": {
+      "cardTitle": "सुरक्षा और पहुँच",
+      "cardDescription": "साइन-इन, सत्र अवधि और ऑडिट ट्रेल के लिए सुरक्षा।",
+      "saveButton": "सुरक्षा सेटिंग्स सहेजें",
+      "saveSuccess": "सुरक्षा सेटिंग्स सफलतापूर्वक सहेजी गईं",
+      "saveError": "हम आपकी सुरक्षा सेटिंग्स सहेज नहीं सके। कृपया पुनः प्रयास करें।",
+      "loadingAria": "सुरक्षा सेटिंग्स लोड हो रही हैं",
+      "twoFactorTitle": "दो-कारक प्रमाणीकरण",
+      "twoFactorDescription": "सुरक्षा की एक अतिरिक्त परत जोड़ें",
+      "sessionTimeoutTitle": "सत्र समय समाप्ति (मिनट)",
+      "sessionTimeoutDescription": "निष्क्रियता के बाद स्वचालित लॉगआउट",
+      "auditLogsTitle": "ऑडिट लॉग सक्षम करें",
+      "auditLogsDescription": "सभी उपयोगकर्ता क्रियाएँ ट्रैक करें",
+      "upgradeButton": "अपग्रेड करें"
+    },
     "teamMemberForm": {
       "emailLabel": "ईमेल",
       "emailPlaceholder": "ईमेल",

@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { securitySettingsFormSchema, type SecuritySettingsFormValues } from "@workspace/types";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Form } from "@workspace/ui/components";
+import { useTranslations } from "next-intl";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useClinicSettings, useUpdateClinicSettings } from "@workspace/data-access";
 import { parseClinicAppSettings } from "@/lib/clinic/parse-clinic-app-settings";
@@ -19,6 +20,7 @@ import { SessionTimeoutSection } from "./SecuritySettingsSections";
 import { AuditLogsSection } from "./SecuritySettingsSections";
 
 export function SecuritySettings() {
+  const t = useTranslations("Settings.security");
   const { data: clinic, isLoading } = useClinicSettings();
   const { mutate: updateSettings, isPending: isSaving } =
     useUpdateClinicSettings();
@@ -53,14 +55,10 @@ export function SecuritySettings() {
       },
       {
         onSuccess: () => {
-          toast.success("Security settings saved successfully");
+          toast.success(t("saveSuccess"));
         },
         onError: (error) => {
-          showUserFacingErrorToast(
-            error,
-            "We could not save your security settings. Please try again.",
-            "save",
-          );
+          showUserFacingErrorToast(error, t("saveError"), "save");
         },
       },
     );
@@ -72,7 +70,7 @@ export function SecuritySettings() {
         className="flex justify-center p-8"
         role="status"
         aria-live="polite"
-        aria-label="Loading security settings"
+        aria-label={t("loadingAria")}
       >
         <DocitaLoadingIndicator
           variant="section"
@@ -86,10 +84,8 @@ export function SecuritySettings() {
   return (
     <Card>
       <CardHeader className="border-b border-border/60 pb-5">
-        <CardTitle>Security &amp; access</CardTitle>
-        <CardDescription>
-          Hardening for sign-in, session lifetime, and audit trail.
-        </CardDescription>
+        <CardTitle>{t("cardTitle")}</CardTitle>
+        <CardDescription>{t("cardDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="pt-5">
         <Form {...form}>
@@ -111,7 +107,7 @@ export function SecuritySettings() {
                     className="mr-2"
                   />
                 ) : null}
-                Save security settings
+                {t("saveButton")}
               </Button>
             </div>
           </form>

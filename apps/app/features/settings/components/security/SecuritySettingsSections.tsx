@@ -3,6 +3,7 @@
 import type { Control } from "react-hook-form";
 import type { SecuritySettingsFormValues } from "@workspace/types";
 import { Feature } from "@workspace/types";
+import { useTranslations } from "next-intl";
 import { Button, FormControl, FormField, FormItem, FormMessage, Input, Label, Switch } from "@workspace/ui/components";
 import { Lock } from "lucide-react";
 import Link from "next/link";
@@ -14,6 +15,7 @@ export function TwoFactorAuthSection({
 }: {
   control: Control<SecuritySettingsFormValues>;
 }) {
+  const t = useTranslations("Settings.security");
   return (
     <FormField
       control={control}
@@ -22,10 +24,10 @@ export function TwoFactorAuthSection({
         <FormItem className="flex items-center justify-between space-y-0 rounded-[calc(var(--radius)-4px)] border border-border/60 bg-muted/20 px-4 py-3">
           <div className="space-y-1">
             <Label htmlFor="two-factor-auth">
-              Two-Factor Authentication
+              {t("twoFactorTitle")}
             </Label>
             <p className="text-sm text-muted-foreground">
-              Add an extra layer of security
+              {t("twoFactorDescription")}
             </p>
           </div>
           <FormControl>
@@ -46,6 +48,7 @@ export function SessionTimeoutSection({
 }: {
   control: Control<SecuritySettingsFormValues>;
 }) {
+  const t = useTranslations("Settings.security");
   return (
     <FormField
       control={control}
@@ -55,10 +58,10 @@ export function SessionTimeoutSection({
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
               <Label htmlFor="session-timeout">
-                Session Timeout (minutes)
+                {t("sessionTimeoutTitle")}
               </Label>
               <p className="text-sm text-muted-foreground">
-                Auto logout after inactivity
+                {t("sessionTimeoutDescription")}
               </p>
             </div>
             <div className="flex flex-col items-end">
@@ -91,6 +94,7 @@ export function AuditLogsSection({
   control: Control<SecuritySettingsFormValues>;
   canAccess: (feature: Feature) => boolean;
 }) {
+  const t = useTranslations("Settings.security");
   return (
     <FormField
       control={control}
@@ -99,7 +103,7 @@ export function AuditLogsSection({
         <FormItem className="flex items-center justify-between space-y-0 rounded-[calc(var(--radius)-4px)] border border-border/60 bg-muted/20 px-4 py-3">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Label htmlFor="audit-logs">Enable Audit Logs</Label>
+              <Label htmlFor="audit-logs">{t("auditLogsTitle")}</Label>
               {!canAccess(Feature.AUDIT_LOGS) ? (
                 <FeatureTierBadge
                   feature={Feature.AUDIT_LOGS}
@@ -108,7 +112,7 @@ export function AuditLogsSection({
               ) : null}
             </div>
             <p className="text-sm text-muted-foreground">
-              Track all user actions
+              {t("auditLogsDescription")}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -121,7 +125,7 @@ export function AuditLogsSection({
               >
                 <Link href={SUBSCRIPTION_SETTINGS_PATH}>
                   <Lock className="mr-2 h-3 w-3" />
-                  Upgrade
+                  {t("upgradeButton")}
                 </Link>
               </Button>
             ) : (

@@ -609,6 +609,21 @@
     }
   },
   "Settings": {
+    "security": {
+      "cardTitle": "Security & access",
+      "cardDescription": "Hardening for sign-in, session lifetime, and audit trail.",
+      "saveButton": "Save security settings",
+      "saveSuccess": "Security settings saved successfully",
+      "saveError": "We could not save your security settings. Please try again.",
+      "loadingAria": "Loading security settings",
+      "twoFactorTitle": "Two-Factor Authentication",
+      "twoFactorDescription": "Add an extra layer of security",
+      "sessionTimeoutTitle": "Session Timeout (minutes)",
+      "sessionTimeoutDescription": "Auto logout after inactivity",
+      "auditLogsTitle": "Enable Audit Logs",
+      "auditLogsDescription": "Track all user actions",
+      "upgradeButton": "Upgrade"
+    },
     "teamMemberForm": {
       "emailLabel": "Email",
       "emailPlaceholder": "Email",
