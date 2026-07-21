@@ -267,7 +267,9 @@
       "contractStatusDRAFT": "Draft",
       "contractStatusACTIVE": "Active",
       "contractStatusEXPIRED": "Expired",
-      "contractStatusTERMINATED": "Terminated"
+      "contractStatusTERMINATED": "Terminated",
+      "cycleMonthly": "Monthly",
+      "cycleYearly": "Yearly"
     },
     "alertsDialog": {
       "title": "True-up alerts",

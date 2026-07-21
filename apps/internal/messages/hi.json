@@ -267,7 +267,9 @@
       "contractStatusDRAFT": "मसौदा",
       "contractStatusACTIVE": "सक्रिय",
       "contractStatusEXPIRED": "समाप्त",
-      "contractStatusTERMINATED": "समाप्त किया गया"
+      "contractStatusTERMINATED": "समाप्त किया गया",
+      "cycleMonthly": "मासिक",
+      "cycleYearly": "वार्षिक"
     },
     "alertsDialog": {
       "title": "ट्रू-अप अलर्ट",

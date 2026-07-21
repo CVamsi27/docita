@@ -36,6 +36,17 @@ function contractStatusKey(status: string): string {
   }
 }
 
+function billingCycleKey(cycle: string): string {
+  switch (cycle) {
+    case "MONTHLY":
+      return "cycleMonthly";
+    case "YEARLY":
+      return "cycleYearly";
+    default:
+      return cycle;
+  }
+}
+
 export function EnterpriseContractTableRow({
   row,
   ...actionProps
@@ -65,7 +76,7 @@ export function EnterpriseContractTableRow({
         {formatCurrency(row.platformFeeCents / 100, { currency: row.currency })}
         <span className="text-xs text-muted-foreground">
           {" "}
-          / {row.billingCycle.toLowerCase()}
+          / {t(billingCycleKey(row.billingCycle), { defaultValue: row.billingCycle.toLowerCase() })}
         </span>
       </TableCell>
       <TableCell className="text-right">
