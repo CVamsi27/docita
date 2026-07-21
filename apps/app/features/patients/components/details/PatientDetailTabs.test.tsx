@@ -42,6 +42,31 @@ vi.mock("@/hooks/use-permissions", () => ({
   usePermissions: () => ({ canViewInvoices: true }),
 }));
 
+// English literal map mirroring the Patients.tabs JSON keys the
+// component uses, so test assertions on hardcoded English still match
+// after the i18n refactor.
+const patientTabsCopy: Record<string, string> = {
+  sections: "Sections",
+  patientDetailAria: "Patient detail",
+  patientSectionsAria: "Patient sections",
+  recordsSubSectionsAria: "Records sub-sections",
+  summary: "Summary",
+  visits: "Visits",
+  records: "Records",
+  billing: "Billing",
+  messages: "Messages",
+  history: "History & allergies",
+  vitals: "Vitals",
+  prescriptions: "Prescriptions",
+  labs: "Labs",
+  documents: "Documents",
+  referrals: "Referrals",
+};
+
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => patientTabsCopy[key] ?? key,
+}));
+
 const baseProps = {
   patient: {
     id: "p-1",

@@ -1,6 +1,7 @@
 import { Badge, DataState, Section } from "@workspace/ui/components";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { usePatientSnapshot } from "@workspace/data-access";
+import { useTranslations } from "next-intl";
 import { HeartPulse } from "lucide-react";
 import { SummarySectionAction } from "./SummarySectionAction";
 
@@ -11,6 +12,7 @@ interface ClinicalOverviewSectionProps {
 export function ClinicalOverviewSection({
   patientId,
 }: ClinicalOverviewSectionProps) {
+  const t = useTranslations("Patients.summary.clinicalOverview");
   // Read the active problem list from the patient snapshot (same source as the
   // clinical snapshot strip) rather than the base patient record, which does
   // not carry the structured conditions/allergies relations.
@@ -21,26 +23,26 @@ export function ClinicalOverviewSection({
 
   return (
     <Section
-      title="Conditions & allergies"
-      description="Critical problem-list items for quick review."
+      title={t("title")}
+      description={t("description")}
       actions={
-        <SummarySectionAction href={recordsHref} label="Edit problem list" />
+        <SummarySectionAction href={recordsHref} label={t("editAction")} />
       }
     >
       {conditions.length === 0 && allergies.length === 0 ? (
         <DataState
           status="empty"
           emptyIcon={HeartPulse}
-          emptyTitle="No conditions or allergies recorded"
-          emptyDescription="Add history details when they become available."
+          emptyTitle={t("emptyTitle")}
+          emptyDescription={t("emptyDescription")}
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold">Health conditions</h3>
+            <h3 className="text-sm font-semibold">{t("conditionsHeading")}</h3>
             {conditions.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                No conditions recorded.
+                {t("conditionsEmpty")}
               </p>
             ) : (
               <div className="flex flex-wrap gap-2">
@@ -61,9 +63,9 @@ export function ClinicalOverviewSection({
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold">Allergies</h3>
+            <h3 className="text-sm font-semibold">{t("allergiesHeading")}</h3>
             {allergies.length === 0 ? (
-              <p className="text-sm font-medium text-success">NKA</p>
+              <p className="text-sm font-medium text-success">{t("allergiesEmpty")}</p>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {allergies.map((allergy, index) => (

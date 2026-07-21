@@ -580,6 +580,16 @@
     }
   },
   "Settings": {
+    "teamMemberForm": {
+      "emailLabel": "Email",
+      "emailPlaceholder": "Email",
+      "phoneLabel": "Phone (optional)",
+      "phonePlaceholder": "Phone number",
+      "labLabel": "Lab",
+      "labAssignPlaceholder": "Assign to a lab",
+      "labUnassigned": "Unassigned (all clinic orders)",
+      "labExternalSuffix": " (External)"
+    },
     "subscription": {
       "loadingAriaLabel": "Loading subscription",
       "cardTitle": "Subscription",
@@ -1211,6 +1221,98 @@
     }
   },
   "Patients": {
+    "tabs": {
+      "sections": "Sections",
+      "patientDetailAria": "Patient detail",
+      "patientSectionsAria": "Patient sections",
+      "recordsSubSectionsAria": "Records sub-sections",
+      "summary": "Summary",
+      "visits": "Visits",
+      "records": "Records",
+      "billing": "Billing",
+      "messages": "Messages",
+      "history": "History & allergies",
+      "vitals": "Vitals",
+      "prescriptions": "Prescriptions",
+      "labs": "Labs",
+      "documents": "Documents",
+      "referrals": "Referrals"
+    },
+
+    "summary": {
+      "ongoingMedications": {
+        "title": "Ongoing medicines",
+        "description": "Current prescriptions and adherence at a glance.",
+        "openAction": "Open prescriptions",
+        "loadingMessage": "Loading ongoing medicines…",
+        "errorMessage": "We could not load ongoing medicines. Please try again.",
+        "emptyTitle": "No ongoing medicines",
+        "emptyDescription": "Active prescriptions will appear here.",
+        "asNeededBadge": "As needed",
+        "takeWhenLabel": "Take when: {instructions}",
+        "adherenceLabel": "Adherence",
+        "adherenceAria": "{name} adherence",
+        "adherenceSummary": "{taken} of {total} doses taken",
+        "adherencePending": "Adherence data is not available yet."
+      },
+      "clinicalOverview": {
+        "title": "Conditions & allergies",
+        "description": "Critical problem-list items for quick review.",
+        "editAction": "Edit problem list",
+        "emptyTitle": "No conditions or allergies recorded",
+        "emptyDescription": "Add history details when they become available.",
+        "conditionsHeading": "Health conditions",
+        "conditionsEmpty": "No conditions recorded.",
+        "allergiesHeading": "Allergies",
+        "allergiesEmpty": "NKA"
+      }
+    },
+    "pageHeader": {
+      "backToList": "Patients",
+      "askAiButton": "Ask AI",
+      "askAiAria": "Ask AI about {name}",
+      "askAiDefaultName": "this patient",
+      "askAiOverlayLabel": "on {name}",
+      "editButton": "Edit Patient",
+      "idPrefix": "ID: {id}"
+    },
+    "medicalHistory": {
+      "conditions": {
+        "title": "Problem List",
+        "addPlaceholder": "Add condition",
+        "removeAria": "Remove {name}",
+        "empty": "No medical conditions known"
+      },
+      "allergies": {
+        "title": "Allergies",
+        "addPlaceholder": "Add allergy",
+        "empty": "NKA"
+      },
+      "familyHistory": {
+        "title": "Family History",
+        "conditionPlaceholder": "Condition",
+        "relationshipPlaceholder": "Relationship",
+        "removeAria": "Remove family history",
+        "empty": "No family history recorded"
+      },
+      "socialHistory": {
+        "title": "Social History",
+        "titleLower": "Social history",
+        "smokingStatusLabel": "Smoking status",
+        "alcoholUseLabel": "Alcohol use",
+        "occupationLabel": "Occupation",
+        "occupationPlaceholder": "Occupation",
+        "dietaryLabel": "Dietary restrictions",
+        "dietaryPlaceholder": "Dietary restrictions"
+      },
+      "surgeries": {
+        "title": "Surgical History",
+        "procedureNamePlaceholder": "Procedure name",
+        "procedureDatePlaceholder": "Procedure date",
+        "removeAria": "Remove surgery",
+        "empty": "No surgical history recorded"
+      }
+    },
     "whatsappComposer": {
       "composerTitle": "Send a WhatsApp message",
       "templateLabel": "Start from a template",

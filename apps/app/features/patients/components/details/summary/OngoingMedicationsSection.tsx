@@ -2,6 +2,7 @@
 
 import { useActiveMedications } from "@workspace/data-access";
 import { Badge, DataState, Progress, Section, type DataStateStatus } from "@workspace/ui/components";
+import { useTranslations } from "next-intl";
 import { Pill } from "lucide-react";
 import { SummarySectionAction } from "./SummarySectionAction";
 
@@ -15,6 +16,7 @@ const clampPercentage = (value: number): number =>
 export function OngoingMedicationsSection({
   patientId,
 }: OngoingMedicationsSectionProps) {
+  const t = useTranslations("Patients.summary.ongoingMedications");
   const {
     data: medications,
     isLoading,
@@ -33,23 +35,23 @@ export function OngoingMedicationsSection({
 
   return (
     <Section
-      title="Ongoing medicines"
-      description="Current prescriptions and adherence at a glance."
+      title={t("title")}
+      description={t("description")}
       actions={
         <SummarySectionAction
           href={`/patients/${patientId}?tab=records&subtab=prescriptions`}
-          label="Open prescriptions"
+          label={t("openAction")}
         />
       }
     >
       <DataState
         status={status}
-        loadingMessage="Loading ongoing medicines…"
-        errorMessage="We could not load ongoing medicines. Please try again."
+        loadingMessage={t("loadingMessage")}
+        errorMessage={t("errorMessage")}
         onRetry={() => refetch()}
         emptyIcon={Pill}
-        emptyTitle="No ongoing medicines"
-        emptyDescription="Active prescriptions will appear here."
+        emptyTitle={t("emptyTitle")}
+        emptyDescription={t("emptyDescription")}
       >
         <div className="divide-y divide-border/60">
           {medications?.map((medication) => {
@@ -75,36 +77,44 @@ export function OngoingMedicationsSection({
                     </p>
                   </div>
                   {medication.isPRN ? (
-                    <Badge variant="outline">As needed</Badge>
+                    <Badge variant="outline">{t("asNeededBadge")}</Badge>
                   ) : (
                     <Badge variant="secondary">{medication.duration}</Badge>
                   )}
                 </div>
                 {medication.prnInstructions ? (
                   <p className="text-xs text-muted-foreground">
-                    Take when: {medication.prnInstructions}
+                    {t("takeWhenLabel", {
+                      instructions: medication.prnInstructions,
+                    })}
                   </p>
                 ) : null}
                 {!medication.isPRN ? (
                   adherenceRate === null ? (
                     <p className="text-xs text-muted-foreground">
-                      Adherence data is not available yet.
+                      {t("adherencePending")}
                     </p>
                   ) : (
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between gap-2 text-xs">
-                        <span className="text-muted-foreground">Adherence</span>
+                        <span className="text-muted-foreground">
+                          {t("adherenceLabel")}
+                        </span>
                         <span className="font-semibold tabular-nums">
                           {Math.round(adherenceRate)}%
                         </span>
                       </div>
                       <Progress
                         value={adherenceRate}
-                        aria-label={`${medication.name} adherence`}
+                        aria-label={t("adherenceAria", {
+                          name: medication.name ?? "",
+                        })}
                       />
                       <p className="text-[length:var(--fs-2xs)] text-muted-foreground">
-                        {medication.adherence?.taken ?? 0} of{" "}
-                        {medication.adherence?.totalDoses ?? 0} doses taken
+                        {t("adherenceSummary", {
+                          taken: medication.adherence?.taken ?? 0,
+                          total: medication.adherence?.totalDoses ?? 0,
+                        })}
                       </p>
                     </div>
                   )

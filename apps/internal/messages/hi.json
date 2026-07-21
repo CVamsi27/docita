@@ -777,5 +777,51 @@
       "noVitalsDescription": "Record the patient's vitals to see trends over time.",
       "loadingMessage": "Loading vitals…"
     }
+  },
+  "AnalyticsDashboard": {
+    "reportingWindow": {
+      "title": "रिपोर्टिंग विंडो",
+      "description": "समय सीमा के अनुसार डैशबोर्ड को फ़िल्टर करें।",
+      "periodDaily": "दैनिक",
+      "periodWeekly": "साप्ताहिक",
+      "periodMonthly": "मासिक",
+      "startDatePlaceholder": "प्रारंभ तिथि",
+      "endDatePlaceholder": "अंतिम तिथि",
+      "toLabel": "से"
+    },
+    "mrrTrend": {
+      "title": "MRR ट्रेंड (6 महीने)",
+      "description": "हालिया आवर्ती राजस्व प्रदर्शन"
+    },
+    "subscriptionBreakdown": {
+      "title": "सब्सक्रिप्शन विभाजन",
+      "description": "Docita प्लान्स में ग्राहक मिश्रण"
+    },
+    "detailedMetrics": {
+      "title": "विस्तृत मेट्रिक्स",
+      "description": "चयनित समय सीमा के लिए विस्तारित परिचालन मेट्रिक्स।",
+      "loadingAria": "विस्तृत मेट्रिक्स लोड हो रहे हैं",
+      "loadingMessage": "विस्तृत मेट्रिक्स लोड हो रहे हैं…",
+      "empty": "इस अवधि के लिए कोई विस्तृत मेट्रिक उपलब्ध नहीं"
+    },
+    "growthMetric": {
+      "thisPeriod": "इस अवधि में {label}",
+      "description": "वर्तमान अवधि में {label}",
+      "vsLastPeriodUp": "↑ पिछली अवधि से {change}%",
+      "vsLastPeriodDown": "↓ पिछली अवधि से {change}%"
+    }
+  },
+  "BillingDashboard": {
+    "metrics": {
+      "mrrTitle": "मासिक आवर्ती राजस्व",
+      "mrrHelper": "सक्रिय सब्सक्रिप्शन से",
+      "arrTitle": "वार्षिक आवर्ती राजस्व",
+      "arrHelper": "अनुमानित वार्षिक राजस्व",
+      "activeTitle": "सक्रिय सब्सक्रिप्शन",
+      "trialInTrial": "{count} ट्रायल में",
+      "churnTitle": "चर्न दर",
+      "churnAbove": "लक्ष्य से ऊपर",
+      "churnOn": "लक्ष्य पर"
+    }
   }
 }

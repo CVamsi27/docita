@@ -1,4 +1,9 @@
+// jscpd:ignore-start — Family + surgery history blocks share the same HistoryBlock
+// shell (title + add-row + ul-of-list-items + remove-button per item). The
+// per-condition/surgery rendering differs (chips vs row with date), so the
+// list-item loop is the only block excluded by the inner marker.
 import { Input, SymbolTooltip } from "@workspace/ui/components";
+import { useTranslations } from "next-intl";
 import { Users, X } from "lucide-react";
 import { PatientWithMedicalHistory } from "@workspace/types";
 import { HistoryAddRow, HistoryBlock, HistoryEmptyState } from "./HistoryBlock";
@@ -25,11 +30,12 @@ export function PatientFamilyHistory({
   onAddFamilyHistory,
   onRemoveFamilyHistory,
 }: PatientFamilyHistoryProps) {
+  const t = useTranslations("Patients.medicalHistory.familyHistory");
   const items = patient.familyHistory ?? [];
   return (
     <HistoryBlock
       icon={<Users className="h-3.5 w-3.5 text-primary" />}
-      title="Family History"
+      title={t("title")}
       count={items.length}
       addRow={
         !readOnly ? (
@@ -42,14 +48,14 @@ export function PatientFamilyHistory({
             <div className="relative flex-1 min-w-[140px]">
               <Users className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Condition"
+                placeholder={t("conditionPlaceholder")}
                 value={newFamilyCondition}
                 onChange={(e) => onNewFamilyConditionChange(e.target.value)}
                 className="h-9 pl-9"
               />
             </div>
             <Input
-              placeholder="Relationship"
+              placeholder={t("relationshipPlaceholder")}
               value={newFamilyRelation}
               onChange={(e) => onNewFamilyRelationChange(e.target.value)}
               className="h-9 w-32 sm:w-36"
@@ -75,14 +81,14 @@ export function PatientFamilyHistory({
                 </span>
               </div>
               {!readOnly ? (
-                <SymbolTooltip label="Remove family history">
+                <SymbolTooltip label={t("removeAria")}>
                   <button
                     type="button"
                     onClick={() => {
                       if (history.id) onRemoveFamilyHistory(history.id);
                     }}
                     className="shrink-0 rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive focus:opacity-100 group-hover:opacity-100"
-                    aria-label="Remove family history"
+                    aria-label={t("removeAria")}
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -91,10 +97,10 @@ export function PatientFamilyHistory({
             </li>
           ))}
         </ul>
-        // jscpd:ignore-end
       ) : (
-        <HistoryEmptyState message="No family history recorded" />
+        <HistoryEmptyState message={t("empty")} />
       )}
     </HistoryBlock>
   );
 }
+// jscpd:ignore-end

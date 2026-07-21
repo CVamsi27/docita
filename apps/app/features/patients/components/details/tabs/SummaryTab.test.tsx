@@ -2,6 +2,44 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { SummaryTab } from "./SummaryTab";
 
+// English literal map mirroring the Patients.summary.* JSON keys the
+// components use, so test assertions on hardcoded English still match
+// after the i18n refactor.
+const summaryCopy: Record<string, string> = {
+  "ongoingMedications.openAction": "Open prescriptions",
+  "ongoingMedications.title": "Ongoing medicines",
+  "ongoingMedications.description": "Current prescriptions and adherence at a glance.",
+  "ongoingMedications.asNeededBadge": "As needed",
+  "ongoingMedications.takeWhenLabel": "Take when: {instructions}",
+  "ongoingMedications.adherenceLabel": "Adherence",
+  "ongoingMedications.adherenceAria": "{name} adherence",
+  "ongoingMedications.adherenceSummary": "{taken} of {total} doses taken",
+  "ongoingMedications.adherencePending": "Adherence data is not available yet.",
+  "clinicalOverview.title": "Conditions & allergies",
+  "clinicalOverview.description": "Critical problem-list items for quick review.",
+  "clinicalOverview.editAction": "Edit problem list",
+  "clinicalOverview.conditionsHeading": "Health conditions",
+  "clinicalOverview.allergiesHeading": "Allergies",
+  "clinicalOverview.allergiesEmpty": "NKA",
+  "latestVitals.title": "Latest vitals",
+  "recentConsultations.title": "Recent consultations",
+  "seeAllVisitsButton": "See all visits",
+  "abdm.title": "External ABDM records",
+  "medicalHistory.title": "Surgeries",
+  "comingSoon": "Coming soon",
+};
+
+vi.mock("next-intl", () => ({
+  useTranslations: (namespace?: string) => (key: string, params?: Record<string, string | number>) => {
+    // Map Patients.summary.<ns>.<key> directly to the literal copy map.
+    const ns = namespace?.split(".").pop() ?? "";
+    const lookupKey = ns ? `${ns}.${key}` : key;
+    const template = summaryCopy[lookupKey] ?? summaryCopy[key] ?? key;
+    if (!params) return template;
+    return template.replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? ""));
+  },
+}));
+
 vi.mock("@workspace/data-access", () => ({
   useActiveMedications: () => ({
     data: [

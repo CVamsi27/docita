@@ -3,6 +3,7 @@
 import { getPatientFullName } from "@workspace/utils";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { ChevronLeft, Sparkles } from "lucide-react";
 import { Badge, Button } from "@workspace/ui/components";
 import type { Patient } from "@workspace/types";
@@ -19,13 +20,15 @@ export function PatientPageHeaderUI({
   patient,
   onEdit,
 }: PatientPageHeaderUIProps) {
+  const t = useTranslations("Patients.pageHeader");
   const { openOverlay } = useAskAi();
   const patientName = getPatientFullName(patient).trim();
+  const askAiName = patientName || t("askAiDefaultName");
 
   const askAiForPatient = () => {
     openOverlay({
       id: `patient:${patient.id}`,
-      label: `on ${patientName || "this patient"}`,
+      label: t("askAiOverlayLabel", { name: askAiName }),
       payload: { kind: "patient", patientId: patient.id },
     });
   };
@@ -41,7 +44,7 @@ export function PatientPageHeaderUI({
         >
           <Link href="/patients">
             <ChevronLeft className="h-4 w-4" />
-            Patients
+            {t("backToList")}
           </Link>
         </Button>
       </div>
@@ -51,7 +54,7 @@ export function PatientPageHeaderUI({
           <div className="flex items-center gap-2 mt-1">
             <Badge variant="outline">{formatGenderLabel(patient.gender)}</Badge>
             <span className="text-sm text-muted-foreground">
-              ID: {patient.id?.slice(0, 8)}
+              {t("idPrefix", { id: patient.id?.slice(0, 8) ?? "" })}
             </span>
           </div>
         </div>
@@ -64,13 +67,13 @@ export function PatientPageHeaderUI({
               onClick={askAiForPatient}
               data-testid="patient-ask-ai"
               className="gap-2"
-              aria-label={`Ask AI about ${patientName || "this patient"}`}
+              aria-label={t("askAiAria", { name: askAiName })}
             >
               <Sparkles className="size-4 text-primary" aria-hidden />
-              Ask AI
+              {t("askAiButton")}
             </Button>
           )}
-          {onEdit && <Button onClick={onEdit}>Edit Patient</Button>}
+          {onEdit && <Button onClick={onEdit}>{t("editButton")}</Button>}
         </div>
       </div>
     </div>

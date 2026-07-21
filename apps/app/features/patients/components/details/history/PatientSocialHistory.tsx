@@ -2,15 +2,16 @@
 import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { Card, CardContent, CardHeader, CardTitle, Label } from "@workspace/ui/components";
 import { Coffee } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   ALCOHOL_USE_STATUS_LABELS,
-// jscpd:ignore-end
   alcoholUseStatusSchema,
   PatientSocialHistory,
   PatientWithMedicalHistory,
   SMOKING_STATUS_LABELS,
   smokingStatusSchema,
 } from "@workspace/types";
+// jscpd:ignore-end
 import { HistoryBlock } from "./HistoryBlock";
 
 interface PatientSocialHistoryProps {
@@ -29,11 +30,12 @@ export function PatientSocialHistoryComp({
   isCompact,
   onSocialHistoryUpdate,
 }: PatientSocialHistoryProps) {
+  const t = useTranslations("Patients.medicalHistory.socialHistory");
   const fields = (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
       <div className="space-y-1.5">
         <Label htmlFor="smokingStatus" className="text-xs font-medium">
-          Smoking status
+          {t("smokingStatusLabel")}
         </Label>
         <Select
           value={patient.socialHistory?.smokingStatus || "UNKNOWN"}
@@ -43,7 +45,7 @@ export function PatientSocialHistoryComp({
           disabled={readOnly}
         >
           <SelectTrigger id="smokingStatus" className="h-9">
-            <SelectValue placeholder="Smoking status" />
+            <SelectValue placeholder={t("smokingStatusLabel")} />
           </SelectTrigger>
           <SelectContent>
             {smokingStatusSchema.options.map((status) => (
@@ -57,7 +59,7 @@ export function PatientSocialHistoryComp({
 
       <div className="space-y-1.5">
         <Label htmlFor="alcoholUse" className="text-xs font-medium">
-          Alcohol use
+          {t("alcoholUseLabel")}
         </Label>
         <Select
           value={patient.socialHistory?.alcoholUse || "UNKNOWN"}
@@ -67,7 +69,7 @@ export function PatientSocialHistoryComp({
           disabled={readOnly}
         >
           <SelectTrigger id="alcoholUse" className="h-9">
-            <SelectValue placeholder="Alcohol use" />
+            <SelectValue placeholder={t("alcoholUseLabel")} />
           </SelectTrigger>
           <SelectContent>
             {alcoholUseStatusSchema.options.map((status) => (
@@ -81,11 +83,11 @@ export function PatientSocialHistoryComp({
 
       <div className="space-y-1.5">
         <Label htmlFor="occupation" className="text-xs font-medium">
-          Occupation
+          {t("occupationLabel")}
         </Label>
         <Input
           id="occupation"
-          placeholder="Occupation"
+          placeholder={t("occupationPlaceholder")}
           value={patient.socialHistory?.occupation || ""}
           onChange={(e) => onSocialHistoryUpdate("occupation", e.target.value)}
           disabled={readOnly}
@@ -94,11 +96,11 @@ export function PatientSocialHistoryComp({
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="dietaryRestrictions" className="text-xs font-medium">
-          Dietary restrictions
+          {t("dietaryLabel")}
         </Label>
         <Input
           id="dietaryRestrictions"
-          placeholder="Dietary restrictions"
+          placeholder={t("dietaryPlaceholder")}
           value={patient.socialHistory?.dietaryRestrictions || ""}
           onChange={(e) =>
             onSocialHistoryUpdate("dietaryRestrictions", e.target.value)
@@ -114,7 +116,7 @@ export function PatientSocialHistoryComp({
     return (
       <HistoryBlock
         icon={<Coffee className="h-3.5 w-3.5 text-warning" />}
-        title="Social History"
+        title={t("title")}
       >
         {fields}
       </HistoryBlock>
@@ -126,7 +128,7 @@ export function PatientSocialHistoryComp({
       <CardHeader className="py-4">
         <CardTitle className="text-lg flex items-center gap-2">
           <Coffee className="h-5 w-5 text-warning" />
-          Social history
+          {t("titleLower")}
         </CardTitle>
       </CardHeader>
       <CardContent>{fields}</CardContent>

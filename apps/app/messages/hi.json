@@ -580,6 +580,16 @@
     }
   },
   "Settings": {
+    "teamMemberForm": {
+      "emailLabel": "ईमेल",
+      "emailPlaceholder": "ईमेल",
+      "phoneLabel": "फ़ोन (वैकल्पिक)",
+      "phonePlaceholder": "फ़ोन नंबर",
+      "labLabel": "लैब",
+      "labAssignPlaceholder": "लैब असाइन करें",
+      "labUnassigned": "अनअसाइन्ड (सभी क्लिनिक ऑर्डर)",
+      "labExternalSuffix": " (बाहरी)"
+    },
     "subscription": {
       "loadingAriaLabel": "सदस्यता लोड हो रही है",
       "cardTitle": "सदस्यता",
@@ -1211,6 +1221,98 @@
     }
   },
   "Patients": {
+    "tabs": {
+      "sections": "अनुभाग",
+      "patientDetailAria": "रोगी विवरण",
+      "patientSectionsAria": "रोगी अनुभाग",
+      "recordsSubSectionsAria": "रिकॉर्ड उप-अनुभाग",
+      "summary": "सारांश",
+      "visits": "विज़िट्स",
+      "records": "रिकॉर्ड",
+      "billing": "बिलिंग",
+      "messages": "संदेश",
+      "history": "इतिहास और एलर्जी",
+      "vitals": "वाइटल्स",
+      "prescriptions": "नुस्खे",
+      "labs": "लैब्स",
+      "documents": "दस्तावेज़",
+      "referrals": "रेफरल"
+    },
+
+    "summary": {
+      "ongoingMedications": {
+        "title": "चालू दवाइयाँ",
+        "description": "वर्तमान नुस्खे और अनुपालन एक नज़र में।",
+        "openAction": "नुस्खे खोलें",
+        "loadingMessage": "चालू दवाइयाँ लोड हो रही हैं…",
+        "errorMessage": "हम चालू दवाइयाँ लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+        "emptyTitle": "कोई चालू दवाई नहीं",
+        "emptyDescription": "सक्रिय नुस्खे यहाँ दिखाई देंगे।",
+        "asNeededBadge": "आवश्यकतानुसार",
+        "takeWhenLabel": "कब लें: {instructions}",
+        "adherenceLabel": "अनुपालन",
+        "adherenceAria": "{name} अनुपालन",
+        "adherenceSummary": "{taken}/{total} खुराकें ली गईं",
+        "adherencePending": "अनुपालन डेटा अभी उपलब्ध नहीं है।"
+      },
+      "clinicalOverview": {
+        "title": "स्थितियाँ और एलर्जी",
+        "description": "त्वरित समीक्षा के लिए महत्वपूर्ण समस्या-सूची आइटम।",
+        "editAction": "समस्या सूची संपादित करें",
+        "emptyTitle": "कोई स्थिति या एलर्जी दर्ज नहीं",
+        "emptyDescription": "उपलब्ध होने पर इतिहास विवरण जोड़ें।",
+        "conditionsHeading": "स्वास्थ्य स्थितियाँ",
+        "conditionsEmpty": "कोई स्थिति दर्ज नहीं।",
+        "allergiesHeading": "एलर्जी",
+        "allergiesEmpty": "कोई ज्ञात एलर्जी नहीं"
+      }
+    },
+    "pageHeader": {
+      "backToList": "रोगी",
+      "askAiButton": "AI से पूछें",
+      "askAiAria": "{name} के बारे में AI से पूछें",
+      "askAiDefaultName": "इस रोगी",
+      "askAiOverlayLabel": "{name} पर",
+      "editButton": "रोगी संपादित करें",
+      "idPrefix": "ID: {id}"
+    },
+    "medicalHistory": {
+      "conditions": {
+        "title": "समस्या सूची",
+        "addPlaceholder": "स्थिति जोड़ें",
+        "removeAria": "{name} हटाएँ",
+        "empty": "कोई ज्ञात चिकित्सा स्थिति नहीं"
+      },
+      "allergies": {
+        "title": "एलर्जी",
+        "addPlaceholder": "एलर्जी जोड़ें",
+        "empty": "कोई ज्ञात एलर्जी नहीं"
+      },
+      "familyHistory": {
+        "title": "पारिवारिक इतिहास",
+        "conditionPlaceholder": "स्थिति",
+        "relationshipPlaceholder": "रिश्ता",
+        "removeAria": "पारिवारिक इतिहास हटाएँ",
+        "empty": "कोई पारिवारिक इतिहास दर्ज नहीं"
+      },
+      "socialHistory": {
+        "title": "सामाजिक इतिहास",
+        "titleLower": "सामाजिक इतिहास",
+        "smokingStatusLabel": "धूम्रपान की स्थिति",
+        "alcoholUseLabel": "शराब का सेवन",
+        "occupationLabel": "व्यवसाय",
+        "occupationPlaceholder": "व्यवसाय",
+        "dietaryLabel": "आहार प्रतिबंध",
+        "dietaryPlaceholder": "आहार प्रतिबंध"
+      },
+      "surgeries": {
+        "title": "शल्य चिकित्सा इतिहास",
+        "procedureNamePlaceholder": "प्रक्रिया का नाम",
+        "procedureDatePlaceholder": "प्रक्रिया तिथि",
+        "removeAria": "शल्य चिकित्सा हटाएँ",
+        "empty": "कोई शल्य चिकित्सा इतिहास दर्ज नहीं"
+      }
+    },
     "whatsappComposer": {
       "composerTitle": "WhatsApp संदेश भेजें",
       "templateLabel": "टेम्पलेट से शुरू करें",

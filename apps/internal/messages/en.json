@@ -777,5 +777,51 @@
       "noVitalsDescription": "Record the patient's vitals to see trends over time.",
       "loadingMessage": "Loading vitals…"
     }
+  },
+  "AnalyticsDashboard": {
+    "reportingWindow": {
+      "title": "Reporting Window",
+      "description": "Filter the dashboard by time range without breaking the shared page rhythm.",
+      "periodDaily": "Daily",
+      "periodWeekly": "Weekly",
+      "periodMonthly": "Monthly",
+      "startDatePlaceholder": "Start date",
+      "endDatePlaceholder": "End date",
+      "toLabel": "to"
+    },
+    "mrrTrend": {
+      "title": "MRR Trend (6 months)",
+      "description": "Recent recurring revenue performance"
+    },
+    "subscriptionBreakdown": {
+      "title": "Subscription Breakdown",
+      "description": "Customer mix across Docita plans"
+    },
+    "detailedMetrics": {
+      "title": "Detailed Metrics",
+      "description": "Expanded operational metrics for the selected time range.",
+      "loadingAria": "Loading detailed metrics",
+      "loadingMessage": "Loading detailed metrics…",
+      "empty": "No detailed metrics available for this period"
+    },
+    "growthMetric": {
+      "thisPeriod": "{label} this period",
+      "description": "{label} in the current period",
+      "vsLastPeriodUp": "↑ {change}% vs last period",
+      "vsLastPeriodDown": "↓ {change}% vs last period"
+    }
+  },
+  "BillingDashboard": {
+    "metrics": {
+      "mrrTitle": "Monthly Recurring Revenue",
+      "mrrHelper": "from active subscriptions",
+      "arrTitle": "Annual Recurring Revenue",
+      "arrHelper": "Projected annual revenue",
+      "activeTitle": "Active Subscriptions",
+      "trialInTrial": "{count} in trial",
+      "churnTitle": "Churn rate",
+      "churnAbove": "Above target",
+      "churnOn": "On target"
+    }
   }
 }

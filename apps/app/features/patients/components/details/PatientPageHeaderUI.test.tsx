@@ -10,6 +10,27 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+// English literal map mirroring the Patients.pageHeader JSON keys the
+// component uses, so test assertions on hardcoded English still match
+// after the i18n refactor.
+const patientHeaderCopy: Record<string, string> = {
+  backToList: "Patients",
+  askAiButton: "Ask AI",
+  askAiAria: "Ask AI about {name}",
+  askAiDefaultName: "this patient",
+  askAiOverlayLabel: "on {name}",
+  editButton: "Edit Patient",
+  idPrefix: "ID: {id}",
+};
+
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string, params?: Record<string, string | number>) => {
+    const template = patientHeaderCopy[key] ?? key;
+    if (!params) return template;
+    return template.replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? ""));
+  },
+}));
+
 // These tests exercise the Ask AI button, which only renders when the global
 // AI switch is on.
 vi.mock("@/lib/config/ai-features", () => ({

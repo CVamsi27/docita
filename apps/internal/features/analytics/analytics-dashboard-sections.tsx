@@ -3,6 +3,7 @@
 import { Calendar } from "lucide-react";
 import { Button, DatePicker, Section, SymbolTooltip } from "@workspace/ui/components";
 import { formatAmountLocale } from "@workspace/utils";
+import { useTranslations } from "next-intl";
 import { cn } from "@workspace/ui/lib/utils";
 import { getInternalTierChartColorClass } from "@/lib/tier-display";
 import dynamic from "next/dynamic";
@@ -15,24 +16,29 @@ const AnalyticsDetailedMetricsTable = dynamic(
       (module) => module.AnalyticsDetailedMetricsTable,
     ),
   {
-    loading: () => (
-      <div
-        className="ui-section-stack flex flex-col items-center gap-3 py-8 text-center text-muted-foreground"
-        role="status"
-        aria-live="polite"
-        aria-label="Loading detailed metrics"
-      >
-        <DocitaLoadingIndicator
-          variant="section"
-          withStatusRole={false}
-          iconClassName="h-8 w-8"
-        />
-        <p className="text-sm">Loading detailed metrics…</p>
-      </div>
-    ),
+    loading: () => <AnalyticsDetailedMetricsLoading />,
     ssr: false,
   },
 );
+
+function AnalyticsDetailedMetricsLoading() {
+  const t = useTranslations("AnalyticsDashboard.detailedMetrics");
+  return (
+    <div
+      className="ui-section-stack flex flex-col items-center gap-3 py-8 text-center text-muted-foreground"
+      role="status"
+      aria-live="polite"
+      aria-label={t("loadingAria")}
+    >
+      <DocitaLoadingIndicator
+        variant="section"
+        withStatusRole={false}
+        iconClassName="h-8 w-8"
+      />
+      <p className="text-sm">{t("loadingMessage")}</p>
+    </div>
+  );
+}
 
 interface PeriodSectionProps {
   period: string;
@@ -43,6 +49,12 @@ interface PeriodSectionProps {
   onEndDateChange: (date: string) => void;
 }
 
+const PERIOD_LABEL_KEYS: Record<"daily" | "weekly" | "monthly", string> = {
+  daily: "periodDaily",
+  weekly: "periodWeekly",
+  monthly: "periodMonthly",
+};
+
 export function AnalyticsReportingWindowSection({
   period,
   onPeriodChange,
@@ -51,10 +63,11 @@ export function AnalyticsReportingWindowSection({
   endDate,
   onEndDateChange,
 }: PeriodSectionProps) {
+  const t = useTranslations("AnalyticsDashboard.reportingWindow");
   return (
     <Section
-      title="Reporting Window"
-      description="Filter the dashboard by time range without breaking the shared page rhythm."
+      title={t("title")}
+      description={t("description")}
       contentClassName="space-y-4"
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -66,7 +79,7 @@ export function AnalyticsReportingWindowSection({
               size="sm"
               variant={period === p ? "default" : "outline"}
             >
-              {p.charAt(0).toUpperCase() + p.slice(1)}
+              {t(PERIOD_LABEL_KEYS[p])}
             </Button>
           ))}
         </div>
@@ -78,18 +91,18 @@ export function AnalyticsReportingWindowSection({
               onChange={(date) =>
                 onStartDateChange(date?.toISOString().slice(0, 10) ?? "")
               }
-              placeholder="Start date"
+              placeholder={t("startDatePlaceholder")}
               className="w-40"
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="ui-helper-text">to</span>
+            <span className="ui-helper-text">{t("toLabel")}</span>
             <DatePicker
               value={endDate || undefined}
               onChange={(date) =>
                 onEndDateChange(date?.toISOString().slice(0, 10) ?? "")
               }
-              placeholder="End date"
+              placeholder={t("endDatePlaceholder")}
               className="w-40"
             />
           </div>
@@ -108,12 +121,13 @@ export function AnalyticsMrrTrendSection({
   revenueByMonth,
   maxRevenue,
 }: MrrTrendSectionProps) {
+  const t = useTranslations("AnalyticsDashboard.mrrTrend");
   if (revenueByMonth.length === 0) return null;
 
   return (
     <Section
-      title="MRR Trend (6 months)"
-      description="Recent recurring revenue performance"
+      title={t("title")}
+      description={t("description")}
       contentClassName="space-y-4"
     >
       <div className="flex items-end gap-2 h-40">
@@ -158,12 +172,13 @@ export function AnalyticsSubscriptionBreakdownSection({
   tierEntries,
   totalTierCount,
 }: SubscriptionBreakdownSectionProps) {
+  const t = useTranslations("AnalyticsDashboard.subscriptionBreakdown");
   if (tierEntries.length === 0) return null;
 
   return (
     <Section
-      title="Subscription Breakdown"
-      description="Customer mix across Docita plans"
+      title={t("title")}
+      description={t("description")}
       contentClassName="space-y-3"
     >
       <div className="space-y-3">
@@ -205,10 +220,11 @@ export function AnalyticsGrowthMetricSection({
   change,
   label,
 }: GrowthMetricSectionProps) {
+  const t = useTranslations("AnalyticsDashboard.growthMetric");
   return (
     <Section
       title={label}
-      description={`${label.toLowerCase()} in the current period`}
+      description={t("description", { label })}
       contentClassName="flex h-40 items-center justify-center"
     >
       <div className="text-center">
@@ -216,7 +232,7 @@ export function AnalyticsGrowthMetricSection({
           {value}
         </p>
         <p className="ui-section-subtitle mt-1">
-          {label.toLowerCase()} this period
+          {t("thisPeriod", { label })}
         </p>
         {change !== undefined && (
           <p
@@ -225,8 +241,13 @@ export function AnalyticsGrowthMetricSection({
               change >= 0 ? "text-success" : "text-destructive",
             )}
           >
-            {change >= 0 ? "\u2191" : "\u2193"} {Math.abs(change).toFixed(1)}%
-            vs last period
+            {change >= 0
+              ? t("vsLastPeriodUp", {
+                  change: Math.abs(change).toFixed(1),
+                })
+              : t("vsLastPeriodDown", {
+                  change: Math.abs(change).toFixed(1),
+                })}
           </p>
         )}
       </div>
@@ -241,17 +262,18 @@ interface DetailedMetricsSectionProps {
 export function AnalyticsDetailedMetricsSection({
   detailedMetrics,
 }: DetailedMetricsSectionProps) {
+  const t = useTranslations("AnalyticsDashboard.detailedMetrics");
   return (
     <Section
-      title="Detailed Metrics"
-      description="Expanded operational metrics for the selected time range."
+      title={t("title")}
+      description={t("description")}
       contentClassName="space-y-4"
     >
       {detailedMetrics && detailedMetrics.length > 0 ? (
         <AnalyticsDetailedMetricsTable rows={detailedMetrics} />
       ) : (
         <div className="ui-section-stack py-8 text-center text-muted-foreground">
-          <p>No detailed metrics available for this period</p>
+          <p>{t("empty")}</p>
         </div>
       )}
     </Section>
