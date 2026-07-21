@@ -40,7 +40,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 22.12.0
           package-manager-cache: false
@@ -63,7 +63,7 @@ jobs:
           corepack prepare pnpm@10.30.3 --activate
 
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 22.12.0
           cache: "pnpm"
@@ -97,7 +97,7 @@ jobs:
           corepack prepare pnpm@10.30.3 --activate
 
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 22.12.0
           cache: "pnpm"
@@ -141,7 +141,7 @@ jobs:
           corepack prepare pnpm@10.30.3 --activate
 
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 22.12.0
           cache: "pnpm"
@@ -182,7 +182,7 @@ jobs:
           corepack prepare pnpm@10.30.3 --activate
 
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 22.12.0
           cache: "pnpm"
@@ -228,7 +228,7 @@ jobs:
           corepack prepare pnpm@10.30.3 --activate
 
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 22.12.0
           cache: "pnpm"
@@ -264,7 +264,7 @@ jobs:
           corepack prepare pnpm@10.30.3 --activate
 
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 22.12.0
           cache: "pnpm"
@@ -307,7 +307,7 @@ jobs:
           corepack prepare pnpm@10.30.3 --activate
 
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 22.12.0
           cache: "pnpm"
@@ -369,7 +369,7 @@ jobs:
           corepack prepare pnpm@10.30.3 --activate
 
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 22.12.0
           cache: "pnpm"
@@ -415,7 +415,7 @@ jobs:
           corepack prepare pnpm@10.30.3 --activate
 
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 22.12.0
           cache: "pnpm"
