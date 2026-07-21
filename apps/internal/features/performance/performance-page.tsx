@@ -1,11 +1,13 @@
 "use client";
 
 import { AppPageScaffold, Button, DataState, PageHeader } from "@workspace/ui/components";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useInternalHealthCheck, useInternalMonitoringHealth, useInternalPerformanceDatabaseStats, useInternalPerformanceMetrics } from "@workspace/data-access/internal";
 import { MiddleMetricsCards, ServiceHealthSection, TopMetricsCards } from "./performance-page-sections";
 
 export default function PerformancePage() {
+  const t = useTranslations("Performance");
   const refetchInterval = 30_000;
 
   const runtimeQuery = useInternalPerformanceMetrics({ refetchInterval });
@@ -56,12 +58,12 @@ export default function PerformancePage() {
     <AppPageScaffold
       header={
         <PageHeader
-          title="Performance"
-          description="Live runtime, database, and request metrics"
+          title={t("pageTitle")}
+          description={t("pageDescription")}
           size="compact"
           actions={
             <Button variant="outline" size="sm" asChild>
-              <Link href="/system-monitoring">System monitoring</Link>
+              <Link href="/system-monitoring">{t("systemMonitoringLink")}</Link>
             </Button>
           }
         />
@@ -69,8 +71,8 @@ export default function PerformancePage() {
     >
       <DataState
         status={pageStatus}
-        loadingMessage="Loading performance metrics…"
-        errorMessage="We could not load live performance metrics. Please try again."
+        loadingMessage={t("loadingMessage")}
+        errorMessage={t("errorMessage")}
         onRetry={() => {
           void runtimeQuery.refetch();
           void databaseQuery.refetch();

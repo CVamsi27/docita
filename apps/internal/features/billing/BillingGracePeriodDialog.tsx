@@ -1,6 +1,7 @@
 "use client";
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { useTranslations } from "next-intl";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label } from "@workspace/ui/components";
 
 interface BillingGracePeriodDialogProps {
@@ -22,20 +23,21 @@ export function BillingGracePeriodDialog({
   sending,
   onConfirm,
 }: BillingGracePeriodDialogProps) {
+  const t = useTranslations("BillingDashboard.graceDialog");
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Extend Grace Period</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            Extend the grace period for
+            {t("description")}
             <span className="ml-1">{subscriptionName}</span>
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="days" className="text-right">
-              Days
+              {t("daysLabel")}
             </Label>
             <Input
               id="days"
@@ -52,7 +54,7 @@ export function BillingGracePeriodDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("cancelButton")}
           </Button>
           <Button onClick={onConfirm} disabled={sending}>
             {sending && (
@@ -62,7 +64,7 @@ export function BillingGracePeriodDialog({
                 className="mr-2"
               />
             )}
-            Extend
+            {t("confirmButton")}
           </Button>
         </DialogFooter>
       </DialogContent>

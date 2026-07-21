@@ -5,6 +5,7 @@ import type {
   InternalSubscriptionOverview,
 } from "@workspace/data-access/internal";
 import { differenceInDays, formatDistanceToNow } from "@workspace/utils";
+import { useTranslations } from "next-intl";
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
 import { AlertTriangle, CalendarPlus, Clock, Mail } from "lucide-react";
 
@@ -19,6 +20,7 @@ export function BillingRiskSummary({
   onSendReminder,
   onExtendGracePeriod,
 }: BillingRiskSummaryProps) {
+  const t = useTranslations("BillingDashboard.riskSummary");
   const expiringSubscriptions = metrics?.expiringSubscriptions ?? [];
   const gracePeriodSubscriptions = metrics?.gracePeriodSubscriptions ?? [];
   const hasRisk =
@@ -29,14 +31,11 @@ export function BillingRiskSummary({
       <Card className="border-dashed bg-muted/30">
         <CardContent className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
-            <p className="font-semibold">Internal billing reminder</p>
-            <p className="text-sm text-muted-foreground">
-              Keep requested hospital offers in WhatsApp, and do not charge a
-              paid Indian plan until GSTIN is captured.
-            </p>
+            <p className="font-semibold">{t("reminderTitle")}</p>
+            <p className="text-sm text-muted-foreground">{t("reminderBody")}</p>
           </div>
           <Badge variant="outline" className="w-fit">
-            WhatsApp-first + GST invoice required
+            {t("reminderBadge")}
           </Badge>
         </CardContent>
       </Card>
@@ -68,16 +67,15 @@ function ExpiringSubscriptionsCard({
   subscriptions: InternalSubscriptionOverview[];
   onSendReminder: (subscription: InternalSubscriptionOverview) => void;
 }) {
+  const t = useTranslations("BillingDashboard.riskSummary");
   return (
     <Card className="border-warning/40">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-5 w-5 text-warning" />
-          <CardTitle className="text-lg">Expiring soon</CardTitle>
+          <CardTitle className="text-lg">{t("expiringTitle")}</CardTitle>
         </div>
-        <CardDescription>
-          {subscriptions.length} subscription(s) expiring in the next 7 days
-        </CardDescription>
+        <CardDescription>{t("expiringDescription", { count: subscriptions.length })}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
@@ -85,9 +83,9 @@ function ExpiringSubscriptionsCard({
             <SubscriptionRow
               key={subscription.id}
               subscription={subscription}
-              secondaryLine="Expires"
+              secondaryLine={t("secondaryExpires")}
               secondaryValue={formatDistanceToNow(subscription.currentPeriodEnd)}
-              actionLabel="Remind"
+              actionLabel={t("actionRemind")}
               actionIcon={Mail}
               onAction={() => onSendReminder(subscription)}
             />
@@ -105,16 +103,15 @@ function GracePeriodSubscriptionsCard({
   subscriptions: InternalSubscriptionOverview[];
   onExtendGracePeriod: (subscription: InternalSubscriptionOverview) => void;
 }) {
+  const t = useTranslations("BillingDashboard.riskSummary");
   return (
     <Card className="border-warning/40">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <Clock className="h-5 w-5 text-warning" />
-          <CardTitle className="text-lg">In Grace Period</CardTitle>
+          <CardTitle className="text-lg">{t("graceTitle")}</CardTitle>
         </div>
-        <CardDescription>
-          {subscriptions.length} subscription(s) in grace period
-        </CardDescription>
+        <CardDescription>{t("graceDescription", { count: subscriptions.length })}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
@@ -122,11 +119,10 @@ function GracePeriodSubscriptionsCard({
             <SubscriptionRow
               key={subscription.id}
               subscription={subscription}
-              secondaryValue={`${differenceInDays(
-                subscription.currentPeriodEnd,
-                new Date(),
-              )} days remaining`}
-              actionLabel="Extend"
+              secondaryValue={t("secondaryDaysRemaining", {
+                days: differenceInDays(subscription.currentPeriodEnd, new Date()),
+              })}
+              actionLabel={t("actionExtend")}
               actionIcon={CalendarPlus}
               onAction={() => onExtendGracePeriod(subscription)}
             />

@@ -811,7 +811,40 @@
       "vsLastPeriodDown": "↓ पिछली अवधि से {change}%"
     }
   },
+  "Performance": {
+    "pageTitle": "प्रदर्शन",
+    "pageDescription": "लाइव रनटाइम, डेटाबेस और अनुरोध मेट्रिक्स",
+    "systemMonitoringLink": "सिस्टम मॉनिटरिंग",
+    "loadingMessage": "प्रदर्शन मेट्रिक्स लोड हो रहे हैं…",
+    "errorMessage": "हम लाइव प्रदर्शन मेट्रिक्स लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+    "uptimeTitle": "अपटाइम",
+    "uptimeSeconds": "{count} सेकंड",
+    "avgResponseTitle": "औसत प्रतिक्रिया समय",
+    "avgResponseDescription": "पिछले घंटे की मॉनिटरिंग औसत",
+    "requestsPerMinuteTitle": "अनुरोध/मिनट",
+    "requestsPerMinuteDescription": "लाइव अनुरोध गिनती से प्राप्त",
+    "errorRateTitle": "त्रुटि दर",
+    "errorRateDescription": "पिछले घंटे में {count} त्रुटियाँ",
+    "cpuTitle": "CPU समय",
+    "cpuDescription": "उपयोगकर्ता {user}s, सिस्टम {system}s",
+    "memoryTitle": "मेमोरी उपयोग",
+    "memoryDescription": "RSS {rss} MB, हीप {heapUsed}/{heapTotal} MB",
+    "databaseQueryTitle": "डेटाबेस क्वेरी समय",
+    "serviceHealthTitle": "सेवा स्वास्थ्य",
+    "serviceHealthDescription": "लाइव API रनटाइम और डेटाबेस कनेक्शन की स्थिति",
+    "apiHealthTitle": "API स्वास्थ्य",
+    "monitoringDbTitle": "मॉनिटरिंग DB",
+    "monitoringDbConnected": "कनेक्टेड",
+    "monitoringDbDisconnected": "डिस्कनेक्टेड"
+  },
   "BillingDashboard": {
+    "graceDialog": {
+      "title": "ग्रेस अवधि बढ़ाएँ",
+      "description": "ग्रेस अवधि बढ़ाएँ",
+      "daysLabel": "दिन",
+      "cancelButton": "रद्द करें",
+      "confirmButton": "बढ़ाएँ"
+    },
     "metrics": {
       "mrrTitle": "मासिक आवर्ती राजस्व",
       "mrrHelper": "सक्रिय सब्सक्रिप्शन से",
@@ -822,6 +855,19 @@
       "churnTitle": "चर्न दर",
       "churnAbove": "लक्ष्य से ऊपर",
       "churnOn": "लक्ष्य पर"
+    },
+    "riskSummary": {
+      "reminderTitle": "आंतरिक बिलिंग अनुस्मारक",
+      "reminderBody": "अस्पताल ऑफ़र के लिए WhatsApp का उपयोग करें, और GSTIN दर्ज होने तक कोई भुगतान योजना शुल्क न लें।",
+      "reminderBadge": "WhatsApp-प्रथम + GST इनवॉइस आवश्यक",
+      "expiringTitle": "जल्द समाप्त हो रहे हैं",
+      "expiringDescription": "{count, plural, one {अगले 7 दिनों में 1 सब्सक्रिप्शन समाप्त हो रहा है} other {अगले 7 दिनों में {count} सब्सक्रिप्शन समाप्त हो रहे हैं}}",
+      "graceTitle": "ग्रेस अवधि में",
+      "graceDescription": "{count, plural, one {1 सब्सक्रिप्शन ग्रेस अवधि में है} other {{count} सब्सक्रिप्शन ग्रेस अवधि में हैं}}",
+      "secondaryExpires": "समाप्ति",
+      "secondaryDaysRemaining": "{days} दिन शेष",
+      "actionRemind": "याद दिलाएँ",
+      "actionExtend": "बढ़ाएँ"
     }
   }
 }

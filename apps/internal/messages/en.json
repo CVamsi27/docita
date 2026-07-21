@@ -811,7 +811,40 @@
       "vsLastPeriodDown": "↓ {change}% vs last period"
     }
   },
+  "Performance": {
+    "pageTitle": "Performance",
+    "pageDescription": "Live runtime, database, and request metrics",
+    "systemMonitoringLink": "System monitoring",
+    "loadingMessage": "Loading performance metrics…",
+    "errorMessage": "We could not load live performance metrics. Please try again.",
+    "uptimeTitle": "Uptime",
+    "uptimeSeconds": "{count} seconds",
+    "avgResponseTitle": "Avg Response Time",
+    "avgResponseDescription": "Monitoring average from the last hour",
+    "requestsPerMinuteTitle": "Requests/min",
+    "requestsPerMinuteDescription": "Derived from live request counts",
+    "errorRateTitle": "Error Rate",
+    "errorRateDescription": "{count} errors in the last hour",
+    "cpuTitle": "CPU Time",
+    "cpuDescription": "User {user}s, system {system}s",
+    "memoryTitle": "Memory Usage",
+    "memoryDescription": "RSS {rss} MB, heap {heapUsed} of {heapTotal} MB",
+    "databaseQueryTitle": "Database Query Time",
+    "serviceHealthTitle": "Service Health",
+    "serviceHealthDescription": "Status of the live API runtime and database connection",
+    "apiHealthTitle": "API Health",
+    "monitoringDbTitle": "Monitoring DB",
+    "monitoringDbConnected": "Connected",
+    "monitoringDbDisconnected": "Disconnected"
+  },
   "BillingDashboard": {
+    "graceDialog": {
+      "title": "Extend Grace Period",
+      "description": "Extend the grace period for",
+      "daysLabel": "Days",
+      "cancelButton": "Cancel",
+      "confirmButton": "Extend"
+    },
     "metrics": {
       "mrrTitle": "Monthly Recurring Revenue",
       "mrrHelper": "from active subscriptions",
@@ -822,6 +855,19 @@
       "churnTitle": "Churn rate",
       "churnAbove": "Above target",
       "churnOn": "On target"
+    },
+    "riskSummary": {
+      "reminderTitle": "Internal billing reminder",
+      "reminderBody": "Keep requested hospital offers in WhatsApp, and do not charge a paid Indian plan until GSTIN is captured.",
+      "reminderBadge": "WhatsApp-first + GST invoice required",
+      "expiringTitle": "Expiring soon",
+      "expiringDescription": "{count, plural, one {1 subscription expiring in the next 7 days} other {{count} subscriptions expiring in the next 7 days}}",
+      "graceTitle": "In Grace Period",
+      "graceDescription": "{count, plural, one {1 subscription in grace period} other {{count} subscriptions in grace period}}",
+      "secondaryExpires": "Expires",
+      "secondaryDaysRemaining": "{days} days remaining",
+      "actionRemind": "Remind",
+      "actionExtend": "Extend"
     }
   }
 }

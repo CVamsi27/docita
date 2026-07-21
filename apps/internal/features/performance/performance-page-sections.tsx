@@ -3,6 +3,7 @@
 // Idiomatic shadcn/Origin import boilerplate — shared verbatim with sibling
 // monitoring/performance dashboards that render the same primitive families.
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Progress } from "@workspace/ui/components";
+import { useTranslations } from "next-intl";
 import { SystemHealthBadge, SystemHealthIcon } from "@workspace/ui/components/feedback/system-health-indicator";
 import { formatCountLocale } from "@workspace/utils";
 import { Activity, AlertTriangle, Clock, Cpu, Database, Server, Wifi } from "lucide-react";
@@ -25,6 +26,7 @@ export function TopMetricsCards({
   errorRate,
   errorCount,
 }: TopMetricsCardsProps) {
+  const t = useTranslations("Performance");
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {/*
@@ -38,30 +40,30 @@ export function TopMetricsCards({
         concern.
       */}
       <MetricStatCard
-        title="Uptime"
+        title={t("uptimeTitle")}
         icon={Activity}
         valueClassName="text-success"
         value={uptimeFormatted}
-        description={`${formatCountLocale(uptimeSeconds)} seconds`}
+        description={t("uptimeSeconds", { count: formatCountLocale(uptimeSeconds) })}
       />
       <MetricStatCard
-        title="Avg Response Time"
+        title={t("avgResponseTitle")}
         icon={Clock}
         value={`${averageResponseTime}ms`}
-        description="Monitoring average from the last hour"
+        description={t("avgResponseDescription")}
       />
       <MetricStatCard
-        title="Requests/min"
+        title={t("requestsPerMinuteTitle")}
         icon={Wifi}
         value={requestsPerMinute}
-        description="Derived from live request counts"
+        description={t("requestsPerMinuteDescription")}
       />
       <MetricStatCard
-        title="Error Rate"
+        title={t("errorRateTitle")}
         icon={AlertTriangle}
         valueClassName="text-success"
         value={`${errorRate}%`}
-        description={`${formatCountLocale(errorCount)} errors in the last hour`}
+        description={t("errorRateDescription", { count: formatCountLocale(errorCount) })}
       />
     </div>
   );
@@ -90,26 +92,34 @@ export function MiddleMetricsCards({
   databaseQueryResponseTimeMs,
   databaseStatus,
 }: MiddleMetricsCardsProps) {
+  const t = useTranslations("Performance");
   return (
     <div className="grid gap-4 md:grid-cols-3">
       <MetricStatCard
-        title="CPU Time"
+        title={t("cpuTitle")}
         icon={Cpu}
         value={`${totalCpuSeconds}s`}
-        description={`User ${cpuUser.toFixed(2)}s, system ${cpuSystem.toFixed(2)}s`}
+        description={t("cpuDescription", {
+          user: cpuUser.toFixed(2),
+          system: cpuSystem.toFixed(2),
+        })}
       />
       <MetricStatCard
-        title="Memory Usage"
+        title={t("memoryTitle")}
         icon={Server}
         value={`${heapUsagePercent}%`}
-        description={`RSS ${memoryRss} MB, heap ${memoryHeapUsed} of ${memoryHeapTotal} MB`}
+        description={t("memoryDescription", {
+          rss: memoryRss,
+          heapUsed: memoryHeapUsed,
+          heapTotal: memoryHeapTotal,
+        })}
       >
         <Progress value={heapUsagePercent} className="h-2" />
       </MetricStatCard>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            Database Query Time
+            {t("databaseQueryTitle")}
           </CardTitle>
           <Database className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
@@ -136,13 +146,12 @@ export function ServiceHealthSection({
   appHealthStatus,
   monitoringDbConnected,
 }: ServiceHealthSectionProps) {
+  const t = useTranslations("Performance");
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Service Health</CardTitle>
-        <CardDescription>
-          Status of the live API runtime and database connection
-        </CardDescription>
+        <CardTitle>{t("serviceHealthTitle")}</CardTitle>
+        <CardDescription>{t("serviceHealthDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid gap-4 md:grid-cols-2">
@@ -154,7 +163,7 @@ export function ServiceHealthSection({
                   status={appHealthStatus}
                 />
                 <div>
-                  <p className="font-medium">API Health</p>
+                  <p className="font-medium">{t("apiHealthTitle")}</p>
                   <p className="text-sm text-muted-foreground">
                     {appHealthStatus}
                   </p>
@@ -171,9 +180,11 @@ export function ServiceHealthSection({
                   status={monitoringDbConnected ? "healthy" : "critical"}
                 />
                 <div>
-                  <p className="font-medium">Monitoring DB</p>
+                  <p className="font-medium">{t("monitoringDbTitle")}</p>
                   <p className="text-sm text-muted-foreground">
-                    {monitoringDbConnected ? "Connected" : "Disconnected"}
+                    {monitoringDbConnected
+                      ? t("monitoringDbConnected")
+                      : t("monitoringDbDisconnected")}
                   </p>
                 </div>
               </div>
