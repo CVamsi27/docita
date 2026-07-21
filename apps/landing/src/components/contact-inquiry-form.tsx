@@ -4,7 +4,7 @@ import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Inpu
 
 export function ContactInquiryForm() {
   return (
-    <div data-contact-inquiry-root>
+    <div data-contact-inquiry-root id="book-demo">
       <Card>
         <CardHeader>
           <CardTitle>Book clinic setup</CardTitle>

@@ -87,7 +87,7 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
                   variant="ghost"
                   className="h-12 rounded-xl px-6 text-base font-semibold text-background hover:bg-background/15 hover:text-background"
                 >
-                  <a href="/contact">
+                  <a href="/contact#book-demo">
                     <CalendarCheck className="h-5 w-5" />
                     Book guided demo
                   </a>
