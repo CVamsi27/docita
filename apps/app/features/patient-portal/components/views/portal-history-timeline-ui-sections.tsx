@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronDown, ChevronUp, History } from "lucide-react";
 import { PatientTimeline } from "@/components/patient-history/PatientTimeline";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
@@ -33,18 +34,19 @@ export function PortalTimelineSection({
   onLoadMore,
   onRetry,
 }: PortalTimelineSectionProps) {
+  const t = useTranslations("PatientPortal.historyTimeline");
   const events: TimelineEvent[] = timeline?.events ?? [];
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Timeline</h2>
+      <h2 className="text-xl font-semibold">{t("timelineHeading")}</h2>
       <DataState
         status={status}
-        loadingMessage="Loading your timeline…"
-        errorMessage="We could not load your health timeline. Please try again."
+        loadingMessage={t("loadingMessage")}
+        errorMessage={t("errorMessage")}
         onRetry={onRetry}
         emptyIcon={History}
-        emptyTitle="No timeline records found"
-        emptyDescription="Your appointments, prescriptions, and health events will appear here"
+        emptyTitle={t("emptyTitle")}
+        emptyDescription={t("emptyDescription")}
       >
         <PatientTimeline
           mode="portal"
@@ -74,11 +76,12 @@ function PortalMedicalHistoryListGroup({
   items,
   renderItem,
 }: PortalMedicalHistoryListGroupProps) {
+  const t = useTranslations("PatientPortal.historyTimeline");
   return (
     <div>
       <h4 className="text-sm font-medium mb-2">{title}</h4>
       {items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">None</p>
+        <p className="text-sm text-muted-foreground">{t("listEmpty")}</p>
       ) : (
         <ul className="space-y-1">
           {items.map((item, index) => (
@@ -107,6 +110,7 @@ interface PortalMedicalHistoryPanelProps {
 export function PortalMedicalHistoryPanel({
   medicalHistory,
 }: PortalMedicalHistoryPanelProps) {
+  const t = useTranslations("PatientPortal.historyTimeline");
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -116,7 +120,7 @@ export function PortalMedicalHistoryPanel({
         className="w-full flex items-center justify-between p-4 text-left"
         onClick={() => setIsExpanded((prev) => !prev)}
       >
-        <span className="font-medium">Medical History Details</span>
+        <span className="font-medium">{t("panelTitle")}</span>
         {isExpanded ? (
           <ChevronUp className="h-4 w-4 text-muted-foreground" />
         ) : (
@@ -126,12 +130,12 @@ export function PortalMedicalHistoryPanel({
       {isExpanded && (
         <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <PortalMedicalHistoryListGroup
-            title="Conditions"
+            title={t("conditionsTitle")}
             items={medicalHistory.conditions}
             renderItem={(c) => String(c.conditionName ?? "")}
           />
           <PortalMedicalHistoryListGroup
-            title="Allergies"
+            title={t("allergiesTitle")}
             items={medicalHistory.allergies}
             renderItem={(a) => (
               <>
@@ -140,7 +144,7 @@ export function PortalMedicalHistoryPanel({
             )}
           />
           <PortalMedicalHistoryListGroup
-            title="Family history"
+            title={t("familyHistoryTitle")}
             items={medicalHistory.familyHistory}
             renderItem={(f) => (
               <>
@@ -149,7 +153,7 @@ export function PortalMedicalHistoryPanel({
             )}
           />
           <PortalMedicalHistoryListGroup
-            title="Surgical history"
+            title={t("surgicalHistoryTitle")}
             items={medicalHistory.surgicalHistory}
             renderItem={(s) => String(s.procedureName ?? "")}
           />

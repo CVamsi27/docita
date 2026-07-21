@@ -220,6 +220,144 @@
       "cancelButton": "Cancel",
       "creatingButton": "Creating…",
       "createButton": "Create Metric"
+    },
+    "doseTracker": {
+      "trackTitle": "Track: {name}",
+      "recordTodayLabel": "Record today's dose",
+      "tookItButton": "Took it",
+      "missedButton": "Missed",
+      "skipButton": "Skip",
+      "recentDosesLabel": "Recent doses",
+      "toastRecordedTaken": "Dose recorded: taken",
+      "toastRecordedMissed": "Dose recorded: missed",
+      "toastRecordedSkipped": "Dose skipped",
+      "errorRecord": "We could not record this dose. Please try again.",
+      "status": {
+        "PENDING": "Pending",
+        "TAKEN": "Taken",
+        "MISSED": "Missed",
+        "SKIPPED": "Skipped",
+        "ADMINISTERED": "Administered"
+      }
+    },
+    "activeMedications": {
+      "title": "Current Medications",
+      "empty": "No active medications found",
+      "asNeededBadge": "As needed",
+      "takeWhenLabel": "Take when: {instructions}",
+      "startedLabel": "Started: {date}",
+      "untilLabel": "Until: {date}",
+      "adherenceLabel": "Adherence",
+      "adherenceSummary": "{taken} of {total} doses taken"
+    },
+    "adherenceChart": {
+      "defaultTitle": "Overall Adherence",
+      "messageGreat": "Great adherence! Keep it up",
+      "messageImprove": "Room for improvement",
+      "messageConsult": "Please consult your doctor",
+      "summaryLine": "{taken} of {total} doses taken",
+      "takenLegend": "Taken ({count})",
+      "missedLegend": "Missed ({count})",
+      "skippedLegend": "Skipped ({count})"
+    },
+    "common": {
+      "backToHome": "Back to Portal Home"
+    },
+    "dashboard": {
+      "pageTitle": "My Health Dashboard",
+      "pageDescription": "Appointments, prescriptions, bills, and consent — one portal surface.",
+      "loadingMessage": "Loading your dashboard…",
+      "errorMessage": "We could not load your health overview. Please try again.",
+      "whatsAppGranted": "WhatsApp granted",
+      "whatsAppNotGranted": "WhatsApp not granted"
+    },
+    "appointments": {
+      "pageTitle": "My Appointments",
+      "pageDescription": "Track upcoming and past visits",
+      "requestCardTitle": "Request an Appointment",
+      "reasonLabel": "Reason for visit",
+      "reasonPlaceholder": "Reason for visit",
+      "preferredDateLabel": "Preferred date",
+      "preferredDatePlaceholder": "Select preferred date",
+      "preferredTimeLabel": "Preferred time",
+      "notesLabel": "Additional notes",
+      "notesPlaceholder": "Additional notes",
+      "submitButton": "Send Request",
+      "errorDateRequired": "Select a preferred date before sending the request.",
+      "errorSubmit": "We could not send this appointment request. Please try again.",
+      "loadingMessage": "Loading appointments…",
+      "errorMessage": "We could not load your appointment list. Please try again.",
+      "emptyTitle": "No appointments found",
+      "emptyDescription": "Your scheduled visits will appear here"
+    },
+    "quickActions": {
+      "cardTitle": "Quick actions",
+      "appointments": "Appointments",
+      "prescriptions": "Prescriptions",
+      "billing": "Billing",
+      "visitHistory": "Visit history"
+    },
+    "historyTimeline": {
+      "pageTitle": "My Health History",
+      "pageSubtitle": "A complete record of your health journey in one place.",
+      "timelineHeading": "Timeline",
+      "loadingMessage": "Loading your timeline…",
+      "errorMessage": "We could not load your health timeline. Please try again.",
+      "emptyTitle": "No timeline records found",
+      "emptyDescription": "Your appointments, prescriptions, and health events will appear here",
+      "panelTitle": "Medical History Details",
+      "conditionsTitle": "Conditions",
+      "allergiesTitle": "Allergies",
+      "familyHistoryTitle": "Family history",
+      "surgicalHistoryTitle": "Surgical history",
+      "listEmpty": "None"
+    },
+    "billing": {
+      "pageTitle": "Billing",
+      "pageSubtitle": "Review invoice status and pending dues.",
+      "cardTitle": "Invoice summary",
+      "emptyTitle": "No invoices available",
+      "emptyDescription": "Your paid and pending invoices will appear here once generated",
+      "invoiceId": "Invoice #{id}"
+    },
+    "prescriptions": {
+      "pageTitle": "Prescriptions",
+      "pageSubtitle": "Access active and past prescriptions shared by your doctors.",
+      "cardTitle": "Prescription history",
+      "emptyTitle": "No prescriptions available",
+      "emptyDescription": "Prescriptions will appear here after your consultation is completed"
+    },
+    "appointmentsList": {
+      "pageTitle": "Appointments",
+      "pageSubtitle": "Manage your upcoming and historical appointments.",
+      "cardTitle": "Upcoming appointments",
+      "emptyTitle": "No appointments scheduled",
+      "emptyDescription": "Your next appointment will appear here with date, doctor, and facility details"
+    },
+    "overview": {
+      "pageTitle": "Patient portal",
+      "pageSubtitle": "View your care journey, prescriptions, and billing in one place.",
+      "upcomingAppointments": "Upcoming Appointments",
+      "activePrescriptions": "Active Prescriptions",
+      "outstandingInvoices": "Outstanding Invoices",
+      "emptyTitle": "No upcoming appointments yet",
+      "emptyDescription": "Book your next visit to get started with the portal experience",
+      "openAppointmentsButton": "Open appointments"
+    },
+    "metrics": {
+      "loadingMessage": "Loading metrics…",
+      "errorMessage": "We could not load your health metrics. Please try again.",
+      "emptyTitle": "No metric categories available",
+      "emptyDescription": "Create a custom metric to start tracking your health trends",
+      "emptyAction": "Add your first custom metric",
+      "pageTitle": "My metrics",
+      "pageSubtitle": "Track and monitor your personal health metrics",
+      "refreshLabel": "Refresh metrics",
+      "addMetricButton": "Add Metric",
+      "rangeLast7": "Last 7 days",
+      "rangeLast30": "Last 30 days",
+      "rangeLast90": "Last 3 months",
+      "rangeLast180": "Last 6 months"
     }
   },
   "Onboarding": {

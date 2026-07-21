@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { LucideIcon } from "lucide-react";
 import { Button, Card, CardContent, CardHeader, CardTitle, EmptyState, ListRowGroup } from "@workspace/ui/components";
 
@@ -29,6 +30,7 @@ export function PortalCardSection({
   portalHomeHref,
   showHeader = true,
 }: PortalCardSectionProps) {
+  const t = useTranslations("PatientPortal.common");
   return (
     <div className="space-y-4">
       {showHeader ? (
@@ -57,7 +59,7 @@ export function PortalCardSection({
           )}
           <div className="flex justify-center pb-4 pt-4">
             <Button asChild variant="outline" className="touch-manipulation">
-              <Link href={portalHomeHref}>Back to Portal Home</Link>
+              <Link href={portalHomeHref}>{t("backToHome")}</Link>
             </Button>
           </div>
         </CardContent>

@@ -3,6 +3,7 @@
 import { CreditCard } from "lucide-react";
 import { ListRow } from "@workspace/ui/components/data-display/list-row";
 import { formatCurrency } from "@workspace/utils";
+import { useTranslations } from "next-intl";
 import type { PatientPortalInvoice } from "@/features/patient-portal/types/patient-portal-types";
 import { getInvoiceStatusLabel } from "@/features/patient-portal/rules/patient-portal-rules";
 import { formatDate } from "@/lib/formatters";
@@ -19,14 +20,15 @@ export function PatientPortalBillingUI({
   portalHomeHref,
   showHeader = true,
 }: PatientPortalBillingUIProps) {
+  const t = useTranslations("PatientPortal.billing");
   return (
     <PortalCardSection
-      pageTitle="Billing"
-      pageSubtitle="Review invoice status and pending dues."
-      cardTitle="Invoice summary"
+      pageTitle={t("pageTitle")}
+      pageSubtitle={t("pageSubtitle")}
+      cardTitle={t("cardTitle")}
       emptyIcon={CreditCard}
-      emptyTitle="No invoices available"
-      emptyDescription="Your paid and pending invoices will appear here once generated"
+      emptyTitle={t("emptyTitle")}
+      emptyDescription={t("emptyDescription")}
       isEmpty={invoices.length === 0}
       portalHomeHref={portalHomeHref}
       showHeader={showHeader}
@@ -37,7 +39,7 @@ export function PatientPortalBillingUI({
           title={formatCurrency(invoice.amount, {
             currency: invoice.currency,
           })}
-          meta={`Invoice #${invoice.id.slice(0, 8)}`}
+          meta={t("invoiceId", { id: invoice.id.slice(0, 8) })}
           time={formatDate(invoice.dueAt)}
           status={invoice.status}
           statusLabel={getInvoiceStatusLabel(invoice.status)}

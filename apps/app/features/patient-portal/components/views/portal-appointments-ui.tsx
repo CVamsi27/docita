@@ -2,6 +2,7 @@
 
 import { CalendarDays } from "lucide-react";
 import { ListRow } from "@workspace/ui/components/data-display/list-row";
+import { useTranslations } from "next-intl";
 import type { PatientPortalAppointment } from "@/features/patient-portal/types/patient-portal-types";
 import { getAppointmentStatusLabel } from "@/features/patient-portal/rules/patient-portal-rules";
 import { formatDateTime } from "@/lib/formatters";
@@ -18,14 +19,15 @@ export function PatientPortalAppointmentsUI({
   portalHomeHref,
   showHeader = true,
 }: PatientPortalAppointmentsUIProps) {
+  const t = useTranslations("PatientPortal.appointmentsList");
   return (
     <PortalCardSection
-      pageTitle="Appointments"
-      pageSubtitle="Manage your upcoming and historical appointments."
-      cardTitle="Upcoming appointments"
+      pageTitle={t("pageTitle")}
+      pageSubtitle={t("pageSubtitle")}
+      cardTitle={t("cardTitle")}
       emptyIcon={CalendarDays}
-      emptyTitle="No appointments scheduled"
-      emptyDescription="Your next appointment will appear here with date, doctor, and facility details"
+      emptyTitle={t("emptyTitle")}
+      emptyDescription={t("emptyDescription")}
       isEmpty={appointments.length === 0}
       portalHomeHref={portalHomeHref}
       showHeader={showHeader}

@@ -220,6 +220,144 @@
       "cancelButton": "रद्द करें",
       "creatingButton": "बना रहे हैं…",
       "createButton": "मेट्रिक बनाएँ"
+    },
+    "doseTracker": {
+      "trackTitle": "ट्रैक करें: {name}",
+      "recordTodayLabel": "आज की खुराक रिकॉर्ड करें",
+      "tookItButton": "ले ली",
+      "missedButton": "छूट गई",
+      "skipButton": "छोड़ें",
+      "recentDosesLabel": "हाल की खुराकें",
+      "toastRecordedTaken": "खुराक दर्ज: ली गई",
+      "toastRecordedMissed": "खुराक दर्ज: छूटी हुई",
+      "toastRecordedSkipped": "खुराक छोड़ी गई",
+      "errorRecord": "हम यह खुराक दर्ज नहीं कर सके। कृपया पुनः प्रयास करें।",
+      "status": {
+        "PENDING": "लंबित",
+        "TAKEN": "ली गई",
+        "MISSED": "छूटी हुई",
+        "SKIPPED": "छोड़ी गई",
+        "ADMINISTERED": "दी गई"
+      }
+    },
+    "activeMedications": {
+      "title": "वर्तमान दवाइयाँ",
+      "empty": "कोई सक्रिय दवाई नहीं मिली",
+      "asNeededBadge": "आवश्यकतानुसार",
+      "takeWhenLabel": "कब लें: {instructions}",
+      "startedLabel": "शुरू हुई: {date}",
+      "untilLabel": "तक: {date}",
+      "adherenceLabel": "अनुपालन",
+      "adherenceSummary": "{taken}/{total} खुराकें ली गईं"
+    },
+    "adherenceChart": {
+      "defaultTitle": "समग्र अनुपालन",
+      "messageGreat": "बढ़िया अनुपालन! ऐसे ही जारी रखें",
+      "messageImprove": "सुधार की गुंजाइश है",
+      "messageConsult": "कृपया अपने चिकित्सक से परामर्श लें",
+      "summaryLine": "{taken}/{total} खुराकें ली गईं",
+      "takenLegend": "ली गई ({count})",
+      "missedLegend": "छूटी हुई ({count})",
+      "skippedLegend": "छोड़ी गई ({count})"
+    },
+    "common": {
+      "backToHome": "पोर्टल होम पर वापस जाएँ"
+    },
+    "dashboard": {
+      "pageTitle": "मेरा स्वास्थ्य डैशबोर्ड",
+      "pageDescription": "अपॉइंटमेंट, नुस्खे, बिल और सहमति — एक ही पोर्टल सतह।",
+      "loadingMessage": "आपका डैशबोर्ड लोड हो रहा है…",
+      "errorMessage": "हम आपका स्वास्थ्य अवलोकन लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+      "whatsAppGranted": "WhatsApp सहमति प्रदत्त",
+      "whatsAppNotGranted": "WhatsApp सहमति नहीं दी गई"
+    },
+    "appointments": {
+      "pageTitle": "मेरी अपॉइंटमेंट्स",
+      "pageDescription": "आगामी और पिछली विज़िट ट्रैक करें",
+      "requestCardTitle": "अपॉइंटमेंट का अनुरोध करें",
+      "reasonLabel": "विज़िट का कारण",
+      "reasonPlaceholder": "विज़िट का कारण",
+      "preferredDateLabel": "पसंदीदा तारीख़",
+      "preferredDatePlaceholder": "पसंदीदा तारीख़ चुनें",
+      "preferredTimeLabel": "पसंदीदा समय",
+      "notesLabel": "अतिरिक्त नोट्स",
+      "notesPlaceholder": "अतिरिक्त नोट्स",
+      "submitButton": "अनुरोध भेजें",
+      "errorDateRequired": "अनुरोध भेजने से पहले पसंदीदा तारीख़ चुनें।",
+      "errorSubmit": "हम यह अपॉइंटमेंट अनुरोध नहीं भेज सके। कृपया पुनः प्रयास करें।",
+      "loadingMessage": "अपॉइंटमेंट लोड हो रही हैं…",
+      "errorMessage": "हम आपकी अपॉइंटमेंट सूची लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+      "emptyTitle": "कोई अपॉइंटमेंट नहीं मिली",
+      "emptyDescription": "आपकी निर्धारित विज़िट यहाँ दिखाई देंगी"
+    },
+    "quickActions": {
+      "cardTitle": "त्वरित कार्य",
+      "appointments": "अपॉइंटमेंट्स",
+      "prescriptions": "नुस्खे",
+      "billing": "बिलिंग",
+      "visitHistory": "विज़िट इतिहास"
+    },
+    "historyTimeline": {
+      "pageTitle": "मेरा स्वास्थ्य इतिहास",
+      "pageSubtitle": "एक ही जगह पर आपकी स्वास्थ्य यात्रा का पूरा रिकॉर्ड।",
+      "timelineHeading": "टाइमलाइन",
+      "loadingMessage": "आपकी टाइमलाइन लोड हो रही है…",
+      "errorMessage": "हम आपकी स्वास्थ्य टाइमलाइन लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+      "emptyTitle": "कोई टाइमलाइन रिकॉर्ड नहीं मिला",
+      "emptyDescription": "आपकी अपॉइंटमेंट, नुस्खे और स्वास्थ्य घटनाएँ यहाँ दिखाई देंगी",
+      "panelTitle": "चिकित्सा इतिहास विवरण",
+      "conditionsTitle": "स्थितियाँ",
+      "allergiesTitle": "एलर्जी",
+      "familyHistoryTitle": "पारिवारिक इतिहास",
+      "surgicalHistoryTitle": "शल्य इतिहास",
+      "listEmpty": "कोई नहीं"
+    },
+    "billing": {
+      "pageTitle": "बिलिंग",
+      "pageSubtitle": "इनवॉइस स्थिति और लंबित बकाया की समीक्षा करें।",
+      "cardTitle": "इनवॉइस सारांश",
+      "emptyTitle": "कोई इनवॉइस उपलब्ध नहीं",
+      "emptyDescription": "आपके भुगतान किए गए और लंबित इनवॉइस यहाँ दिखाई देंगे",
+      "invoiceId": "इनवॉइस #{id}"
+    },
+    "prescriptions": {
+      "pageTitle": "नुस्खे",
+      "pageSubtitle": "आपके डॉक्टरों द्वारा साझा किए गए सक्रिय और पिछले नुस्खे देखें।",
+      "cardTitle": "नुस्खा इतिहास",
+      "emptyTitle": "कोई नुस्खा उपलब्ध नहीं",
+      "emptyDescription": "परामर्श पूरा होने के बाद नुस्खे यहाँ दिखाई देंगे"
+    },
+    "appointmentsList": {
+      "pageTitle": "अपॉइंटमेंट्स",
+      "pageSubtitle": "अपनी आगामी और पिछली अपॉइंटमेंट्स प्रबंधित करें।",
+      "cardTitle": "आगामी अपॉइंटमेंट्स",
+      "emptyTitle": "कोई अपॉइंटमेंट निर्धारित नहीं",
+      "emptyDescription": "आपकी अगली अपॉइंटमेंट यहाँ तारीख़, डॉक्टर और सुविधा विवरण के साथ दिखाई देगी"
+    },
+    "overview": {
+      "pageTitle": "रोगी पोर्टल",
+      "pageSubtitle": "अपनी देखभाल यात्रा, नुस्खे और बिलिंग एक ही जगह देखें।",
+      "upcomingAppointments": "आगामी अपॉइंटमेंट्स",
+      "activePrescriptions": "सक्रिय नुस्खे",
+      "outstandingInvoices": "लंबित इनवॉइस",
+      "emptyTitle": "अभी तक कोई आगामी अपॉइंटमेंट नहीं",
+      "emptyDescription": "पोर्टल अनुभव शुरू करने के लिए अपनी अगली विज़िट बुक करें",
+      "openAppointmentsButton": "अपॉइंटमेंट्स खोलें"
+    },
+    "metrics": {
+      "loadingMessage": "मेट्रिक्स लोड हो रहे हैं…",
+      "errorMessage": "हम आपके स्वास्थ्य मेट्रिक्स लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+      "emptyTitle": "कोई मेट्रिक श्रेणी उपलब्ध नहीं",
+      "emptyDescription": "अपने स्वास्थ्य रुझानों को ट्रैक करना शुरू करने के लिए कस्टम मेट्रिक बनाएँ",
+      "emptyAction": "अपना पहला कस्टम मेट्रिक जोड़ें",
+      "pageTitle": "मेरे मेट्रिक्स",
+      "pageSubtitle": "अपने व्यक्तिगत स्वास्थ्य मेट्रिक्स ट्रैक और मॉनिटर करें",
+      "refreshLabel": "मेट्रिक्स रिफ्रेश करें",
+      "addMetricButton": "मेट्रिक जोड़ें",
+      "rangeLast7": "पिछले 7 दिन",
+      "rangeLast30": "पिछले 30 दिन",
+      "rangeLast90": "पिछले 3 महीने",
+      "rangeLast180": "पिछले 6 महीने"
     }
   },
   "Onboarding": {

@@ -1,8 +1,8 @@
 "use client";
 
-// jscpd:ignore-start
 import { Plus, RefreshCw } from "lucide-react";
 import { Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SymbolTooltip } from "@workspace/ui/components";
+import { useTranslations } from "next-intl";
 import { isRecord } from "@workspace/utils";
 import type { MetricRecordResponse } from "@workspace/types";
 
@@ -16,7 +16,6 @@ export type PortalMetricRecord = {
     valueBoolean?: boolean | null;
   }>;
 };
-// jscpd:ignore-end
 
 export type PortalMetricDefinition = {
   id: string;
@@ -81,12 +80,14 @@ export function readPortalMetricCategory(value: unknown): PortalMetricCategory |
   return { id: value.id, name: value.name, metricDefinitions };
 }
 
-export const DATE_RANGE_OPTIONS = [
-  { value: "7", label: "Last 7 days" },
-  { value: "30", label: "Last 30 days" },
-  { value: "90", label: "Last 3 months" },
-  { value: "180", label: "Last 6 months" },
-] as const;
+function buildDateRangeOptions(t: (key: string) => string) {
+  return [
+    { value: "7", label: t("rangeLast7") },
+    { value: "30", label: t("rangeLast30") },
+    { value: "90", label: t("rangeLast90") },
+    { value: "180", label: t("rangeLast180") },
+  ] as const;
+}
 
 export function getDateRange(days: number) {
   const to = new Date();
@@ -99,12 +100,11 @@ export function getDateRange(days: number) {
 }
 
 export function PortalMetricsHeader() {
+  const t = useTranslations("PatientPortal.metrics");
   return (
     <div>
-      <h1 className="ui-page-title">My metrics</h1>
-      <p className="ui-page-subtitle">
-        Track and monitor your personal health metrics
-      </p>
+      <h1 className="ui-page-title">{t("pageTitle")}</h1>
+      <p className="ui-page-subtitle">{t("pageSubtitle")}</p>
     </div>
   );
 }
@@ -122,16 +122,18 @@ export function PortalMetricsToolbar({
   onRefresh: () => void;
   onAddMetric: () => void;
 }) {
+  const t = useTranslations("PatientPortal.metrics");
+  const dateRangeOptions = buildDateRangeOptions(t);
   return (
     <div className="flex items-center justify-end gap-2">
       <div className="flex items-center gap-2">
-        <SymbolTooltip label="Refresh metrics">
+        <SymbolTooltip label={t("refreshLabel")}>
           <Button
             variant="outline"
             size="icon"
             onClick={onRefresh}
             disabled={isLoading}
-            aria-label="Refresh metrics"
+            aria-label={t("refreshLabel")}
           >
             <RefreshCw
               className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
@@ -145,14 +147,14 @@ export function PortalMetricsToolbar({
           className="gap-2"
         >
           <Plus className="h-4 w-4" />
-          Add Metric
+          {t("addMetricButton")}
         </Button>
         <Select value={dateRange} onValueChange={onDateRangeChange}>
           <SelectTrigger className="w-40">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {DATE_RANGE_OPTIONS.map((opt) => (
+            {dateRangeOptions.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
               </SelectItem>

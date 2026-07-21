@@ -9,10 +9,32 @@ const portalAppointmentMocks = vi.hoisted(() => ({
   showError: vi.fn(),
 }));
 
+// English literal map mirroring the JSON keys the component uses,
+// so test assertions on hardcoded English still match after the i18n refactor.
+const portalAppointmentCopy: Record<string, string> = {
+  pageTitle: "My Appointments",
+  pageDescription: "Track upcoming and past visits",
+  requestCardTitle: "Request an Appointment",
+  reasonLabel: "Reason for visit",
+  reasonPlaceholder: "Reason for visit",
+  preferredDateLabel: "Preferred date",
+  preferredDatePlaceholder: "Select preferred date",
+  preferredTimeLabel: "Preferred time",
+  notesLabel: "Additional notes",
+  notesPlaceholder: "Additional notes",
+  submitButton: "Send Request",
+  errorDateRequired: "Select a preferred date before sending the request.",
+  errorSubmit: "We could not send this appointment request. Please try again.",
+  loadingMessage: "Loading appointments…",
+  errorMessage: "We could not load your appointment list. Please try again.",
+  emptyTitle: "No appointments found",
+  emptyDescription: "Your scheduled visits will appear here",
+};
+
 vi.mock("@workspace/data-access", async () => {
   const actual = await vi.importActual<typeof import("@workspace/data-access")>(
-      "@workspace/data-access",
-    );
+    "@workspace/data-access",
+  );
   return {
     ...actual,
     usePatientPortalAppointments:
@@ -45,6 +67,10 @@ vi.mock("@workspace/ui/components/form/iso-date-picker-field", () => ({
       onChange={(event) => onChange(event.target.value)}
     />
   ),
+}));
+
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => portalAppointmentCopy[key] ?? key,
 }));
 
 describe("PortalAppointmentsPage", () => {

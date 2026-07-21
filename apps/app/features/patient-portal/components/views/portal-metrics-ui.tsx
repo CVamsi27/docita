@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Activity } from "lucide-react";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { queryKeys, usePortalMetricCategories, usePortalMetricHistory } from "@workspace/data-access";
+import { useTranslations } from "next-intl";
 import { MetricCategorySection } from "@/features/patient-portal/components/metrics/metric-category-section";
 import { AddMetricDefinitionModal } from "@/features/patient-portal/components/metrics/add-metric-definition-modal";
 import { useQueryClient } from "@tanstack/react-query";
@@ -15,6 +16,7 @@ interface PortalMetricsUIProps {
 }
 
 export function PortalMetricsUI({ showHeader = true }: PortalMetricsUIProps) {
+  const t = useTranslations("PatientPortal.metrics");
   const [dateRange, setDateRange] = useState("30");
   const [showAddModal, setShowAddModal] = useState(false);
   const queryClient = useQueryClient();
@@ -83,14 +85,14 @@ export function PortalMetricsUI({ showHeader = true }: PortalMetricsUIProps) {
 
       <DataState
         status={status}
-        loadingMessage="Loading metrics\u2026"
-        errorMessage="We could not load your health metrics. Please try again."
+        loadingMessage={t("loadingMessage")}
+        errorMessage={t("errorMessage")}
         onRetry={handleRetry}
         emptyIcon={Activity}
-        emptyTitle="No metric categories available"
-        emptyDescription="Create a custom metric to start tracking your health trends"
+        emptyTitle={t("emptyTitle")}
+        emptyDescription={t("emptyDescription")}
         emptyAction={{
-          label: "Add your first custom metric",
+          label: t("emptyAction"),
           onClick: () => setShowAddModal(true),
         }}
       >

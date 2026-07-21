@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { CalendarDays, CreditCard, FileText } from "lucide-react";
 import { Button, Card, CardContent, CardHeader, CardTitle, EmptyState } from "@workspace/ui/components";
 
@@ -17,20 +18,19 @@ export function PatientPortalOverviewUI({
   outstandingInvoiceCount,
   appointmentsHref = "/portal/appointments",
 }: PatientPortalOverviewUIProps) {
+  const t = useTranslations("PatientPortal.overview");
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="ui-page-title">Patient portal</h1>
-        <p className="ui-page-subtitle">
-          View your care journey, prescriptions, and billing in one place.
-        </p>
+        <h1 className="ui-page-title">{t("pageTitle")}</h1>
+        <p className="ui-page-subtitle">{t("pageSubtitle")}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Upcoming Appointments
+              {t("upcomingAppointments")}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex items-center justify-between">
@@ -44,7 +44,7 @@ export function PatientPortalOverviewUI({
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Active Prescriptions
+              {t("activePrescriptions")}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex items-center justify-between">
@@ -58,7 +58,7 @@ export function PatientPortalOverviewUI({
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Outstanding Invoices
+              {t("outstandingInvoices")}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex items-center justify-between">
@@ -74,12 +74,12 @@ export function PatientPortalOverviewUI({
         <CardContent>
           <EmptyState
             icon={CalendarDays}
-            title="No upcoming appointments yet"
-            description="Book your next visit to get started with the portal experience"
+            title={t("emptyTitle")}
+            description={t("emptyDescription")}
           />
           <div className="flex justify-center pb-6">
             <Button asChild>
-              <Link href={appointmentsHref}>Open appointments</Link>
+              <Link href={appointmentsHref}>{t("openAppointmentsButton")}</Link>
             </Button>
           </div>
         </CardContent>

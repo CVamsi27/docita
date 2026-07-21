@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import { TrendingUp } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@workspace/ui/lib/utils";
 import type { MedicationAdherenceSummary } from "@workspace/types";
 
@@ -11,6 +12,7 @@ interface AdherenceChartProps {
 }
 
 export function AdherenceChart({ summary, label }: AdherenceChartProps) {
+  const t = useTranslations("PatientPortal.adherenceChart");
   const { adherenceRate, taken, missed, skipped, totalDoses } = summary;
 
   const color =
@@ -29,17 +31,17 @@ export function AdherenceChart({ summary, label }: AdherenceChartProps) {
 
   const message =
     adherenceRate >= 80
-      ? "Great adherence! Keep it up"
+      ? t("messageGreat")
       : adherenceRate >= 50
-        ? "Room for improvement"
-        : "Please consult your doctor";
+        ? t("messageImprove")
+        : t("messageConsult");
 
   return (
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
           <TrendingUp className="h-5 w-5" />
-          {label ?? "Overall Adherence"}
+          {label ?? t("defaultTitle")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -50,7 +52,7 @@ export function AdherenceChart({ summary, label }: AdherenceChartProps) {
           <div>
             <p className="text-sm font-medium">{message}</p>
             <p className="text-xs text-muted-foreground">
-              {taken} of {totalDoses} doses taken
+              {t("summaryLine", { taken, total: totalDoses })}
             </p>
           </div>
         </div>
@@ -81,18 +83,18 @@ export function AdherenceChart({ summary, label }: AdherenceChartProps) {
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <span className="h-2 w-2 rounded-full bg-success inline-block" />
-              Taken ({taken})
+              {t("takenLegend", { count: taken })}
             </span>
             {missed > 0 && (
               <span className="flex items-center gap-1">
                 <span className="h-2 w-2 rounded-full bg-destructive/40 inline-block" />
-                Missed ({missed})
+                {t("missedLegend", { count: missed })}
               </span>
             )}
             {skipped > 0 && (
               <span className="flex items-center gap-1">
                 <span className="h-2 w-2 rounded-full bg-warning/40 inline-block" />
-                Skipped ({skipped})
+                {t("skippedLegend", { count: skipped })}
               </span>
             )}
           </div>

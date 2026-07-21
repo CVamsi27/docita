@@ -2,11 +2,13 @@
 
 import { usePatientPortalDashboard } from "@workspace/data-access";
 import { usePatientConsentSettings } from "@workspace/data-access";
+import { useTranslations } from "next-intl";
 import { AppPageScaffold, DataState, PageHeader } from "@workspace/ui/components";
 import { PortalMetricsCards } from "./PortalMetricsCards";
 import { PortalQuickActions } from "./PortalQuickActions";
 
 export default function PortalDashboardPage() {
+  const t = useTranslations("PatientPortal.dashboard");
   const {
     data: dashboard,
     isLoading,
@@ -16,22 +18,22 @@ export default function PortalDashboardPage() {
   const { data: consentSettings } = usePatientConsentSettings();
 
   const whatsappConsentStatus = consentSettings?.whatsappConsent
-    ? "WhatsApp granted"
-    : "WhatsApp not granted";
+    ? t("whatsAppGranted")
+    : t("whatsAppNotGranted");
 
   return (
     <AppPageScaffold
       header={
         <PageHeader
-          title="My Health Dashboard"
-          description="Appointments, prescriptions, bills, and consent — one portal surface."
+          title={t("pageTitle")}
+          description={t("pageDescription")}
         />
       }
     >
       <DataState
         status={isLoading ? "loading" : isError ? "error" : "success"}
-        loadingMessage="Loading your dashboard…"
-        errorMessage="We could not load your health overview. Please try again."
+        loadingMessage={t("loadingMessage")}
+        errorMessage={t("errorMessage")}
         onRetry={() => void refetch()}
       >
         <PortalMetricsCards

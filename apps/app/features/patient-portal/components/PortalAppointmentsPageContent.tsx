@@ -1,14 +1,13 @@
 "use client";
 
-// jscpd:ignore-start
 import { useState, type FormEvent } from "react";
 import { PatientPortalAppointmentsUI } from "@/features/patient-portal/components";
 import { usePatientPortalAppointments, useRequestAppointment } from "@workspace/data-access";
+import { useTranslations } from "next-intl";
 import { AppPageScaffold, Button, DataState, Input, IsoDatePickerField, Label, PageHeader, Textarea } from "@workspace/ui/components";
 import {
   Card,
   CardContent,
-// jscpd:ignore-end
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
@@ -17,6 +16,7 @@ import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { mapPortalAppointmentRow } from "@/features/patient-portal/lib/map-portal-records";
 
 export default function PortalAppointmentsPage() {
+  const t = useTranslations("PatientPortal.appointments");
   const [preferredDate, setPreferredDate] = useState("");
   const [preferredTime, setPreferredTime] = useState("");
   const [reason, setReason] = useState("");
@@ -37,11 +37,7 @@ export default function PortalAppointmentsPage() {
   const handleRequestSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!preferredDate.trim()) {
-      showUserFacingErrorToast(
-        null,
-        "Select a preferred date before sending the request.",
-        "form",
-      );
+      showUserFacingErrorToast(null, t("errorDateRequired"), "form");
       return;
     }
     try {
@@ -57,26 +53,19 @@ export default function PortalAppointmentsPage() {
       setNotes("");
       void refetch();
     } catch (error) {
-      showUserFacingErrorToast(
-        error,
-        "We could not send this appointment request. Please try again.",
-        "form",
-      );
+      showUserFacingErrorToast(error, t("errorSubmit"), "form");
     }
   };
 
   return (
     <AppPageScaffold
       header={
-        <PageHeader
-          title="My Appointments"
-          description="Track upcoming and past visits"
-        />
+        <PageHeader title={t("pageTitle")} description={t("pageDescription")} />
       }
     >
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Request an Appointment</CardTitle>
+          <CardTitle className="text-base">{t("requestCardTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form
@@ -86,17 +75,17 @@ export default function PortalAppointmentsPage() {
             <Input
               value={reason}
               onChange={(event) => setReason(event.target.value)}
-              placeholder="Reason for visit"
+              placeholder={t("reasonPlaceholder")}
               required
               maxLength={500}
-              aria-label="Reason for visit"
+              aria-label={t("reasonLabel")}
             />
             <div className="flex min-w-0 flex-col gap-2">
               <Label
                 htmlFor="portal-preferred-date"
                 className="text-xs text-muted-foreground"
               >
-                Preferred date
+                {t("preferredDateLabel")}
               </Label>
               <IsoDatePickerField
                 id="portal-preferred-date"
@@ -105,7 +94,7 @@ export default function PortalAppointmentsPage() {
                 value={preferredDate}
                 onChange={setPreferredDate}
                 required
-                placeholder="Select preferred date"
+                placeholder={t("preferredDatePlaceholder")}
                 triggerClassName="h-10 w-full min-w-0 sm:w-full lg:w-[160px]"
               />
             </div>
@@ -113,14 +102,14 @@ export default function PortalAppointmentsPage() {
               type="time"
               value={preferredTime}
               onChange={(event) => setPreferredTime(event.target.value)}
-              aria-label="Preferred time"
+              aria-label={t("preferredTimeLabel")}
             />
             <Textarea
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
-              placeholder="Additional notes"
+              placeholder={t("notesPlaceholder")}
               maxLength={1000}
-              aria-label="Additional notes"
+              aria-label={t("notesLabel")}
               className="md:col-span-2 lg:col-span-2"
             />
             <Button
@@ -128,7 +117,7 @@ export default function PortalAppointmentsPage() {
               disabled={requestAppointment.isPending}
               className="lg:self-start"
             >
-              Send Request
+              {t("submitButton")}
             </Button>
           </form>
         </CardContent>
@@ -136,12 +125,12 @@ export default function PortalAppointmentsPage() {
 
       <DataState
         status={state}
-        loadingMessage="Loading appointments…"
-        errorMessage="We could not load your appointment list. Please try again."
+        loadingMessage={t("loadingMessage")}
+        errorMessage={t("errorMessage")}
         onRetry={() => void refetch()}
         emptyIcon={Calendar}
-        emptyTitle="No appointments found"
-        emptyDescription="Your scheduled visits will appear here"
+        emptyTitle={t("emptyTitle")}
+        emptyDescription={t("emptyDescription")}
       >
         <PatientPortalAppointmentsUI
           appointments={appointments}
