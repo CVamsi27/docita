@@ -175,7 +175,8 @@
     "check:globals-css-imports": "node scripts/checks/check-globals-css-imports.mjs",
     "check:circular": "node scripts/checks/check-circular-deps.mjs",
     "check:circular:enforce": "node scripts/checks/check-circular-deps.mjs --enforce",
-    "openapi:generate": "pnpm --filter @docita/api run openapi:generate"
+    "openapi:generate": "pnpm --filter @docita/api run openapi:generate",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
@@ -185,6 +186,7 @@
     "@workspace/typescript-config": "workspace:*",
     "axe-playwright": "^2.2.2",
     "fallow": "2.91.0",
+    "husky": "9.1.7",
     "jscpd": "^4.2.4",
     "madge": "^8.0.0",
     "prettier": "^3.8.4",
@@ -246,7 +248,6 @@
       "form-data": "^4.0.6",
       "js-yaml": "^4.3.0",
       "@opentelemetry/core": ">=2.8.0",
-      
       "@babel/core": ">=7.29.6",
       "webpack": "^5.104.1"
     },

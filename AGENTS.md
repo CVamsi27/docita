@@ -454,6 +454,23 @@ Rules:
 - **Exceptions.** The temporary cap may be exceeded only for: (a) an active consolidation operation that itself reduces the count back to ≤ 2, or (b) an in-progress release cut where a release branch is briefly open alongside the next feature branch. Both exceptions are time-bounded — do not normalise them.
 - **Agents must check the count before pushing a new branch.** Run `gh pr list --state open --json number,headRefName --jq 'length'` (excluding `main`/`staging` infra PRs); if the count is already 2, do not open another PR until one closes.
 
+### Local git hooks (husky)
+
+The repo uses [husky 9](https://typicode.github.io/husky/) for local git hooks. Hooks live in `.husky/` and are auto-installed via the `prepare` script in `package.json` (runs on `pnpm install`).
+
+- **`pre-commit`** — runs `pnpm lint` (≈ 70 ms with turbo cache). Catches lint regressions on staged files. Fast by design.
+- **`pre-push`** — runs the cheap subset of `verify:standard` that catches the regression classes we have already hit (jscpd clones, missing i18n namespaces, broken gate wiring) without paying the full ~6 min cost:
+  - `pnpm lint`
+  - `pnpm check:i18n-translation-keys --enforce`
+  - `pnpm check:duplication` (jscpd)
+  - `pnpm check:standard-gate-wiring`
+  - `pnpm test:standards-checks`
+  - Total ≈ 30–40 s on a warm cache.
+
+The full `pnpm verify:standard` is the project's CI merge gate. To bypass locally (e.g. for a WIP push to a feature branch), use `git push --no-verify`. Never bypass on `main` or `staging`.
+
+When adding new standards checks to `verify:standard`, ask: "is this fast enough to add to the pre-push subset too?" If yes, also add it to `.husky/pre-push` and document the runtime budget in the comment block.
+
 ## 12) Design Principles, Patterns, and Performance
 
 These principles are mandatory for every change. Apply them pragmatically; do not introduce abstractions that no current caller needs.
