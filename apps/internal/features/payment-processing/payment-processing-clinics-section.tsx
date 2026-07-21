@@ -15,7 +15,7 @@ import {
 } from "@workspace/ui/components/data-display/table";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { DEFAULT_CURRENCY, formatPlanLimitCount } from "@workspace/utils";
-import { getInternalTierBadgeClass } from "@/lib/tier-display";
+import { getInternalTierBadgeClass, getInternalTierLabel } from "@/lib/tier-display";
 import { CreditCard, Receipt, TrendingUp } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { PaymentProcessingPageViewModel } from "@/features/payment-processing/use-payment-processing-page";
@@ -79,7 +79,7 @@ export function PaymentProcessingClinicsSection({
                   <Badge
                     className={getInternalTierBadgeClass(clinic.tier)}
                   >
-                    {clinic.tier}
+                    {getInternalTierLabel(clinic.tier)}
                   </Badge>
                 </TableCell>
                 <TableCell>

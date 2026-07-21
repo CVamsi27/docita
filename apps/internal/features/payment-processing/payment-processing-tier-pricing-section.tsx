@@ -15,6 +15,7 @@ import {
   formatPlanLimitCount,
 } from "@workspace/utils";
 import { TrendingUp } from "lucide-react";
+import { getInternalTierLabel } from "@/lib/tier-display";
 import type { PaymentProcessingPageViewModel } from "@/features/payment-processing/use-payment-processing-page";
 
 type PaymentProcessingTierPricingSectionProps = Pick<
@@ -32,7 +33,7 @@ export function PaymentProcessingTierPricingSection({
           <Card key={tier.tier}>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold">
-                {tier.displayName ?? tier.tier}
+                {tier.displayName ?? getInternalTierLabel(tier.tier)}
               </CardTitle>
             </CardHeader>
             <CardContent>

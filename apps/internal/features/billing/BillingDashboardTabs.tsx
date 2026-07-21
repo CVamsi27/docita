@@ -42,6 +42,7 @@ import {
 import {
   getInternalTierBadgeClass,
   getInternalTierFilterOptions,
+  getInternalTierLabel,
 } from "@/lib/tier-display";
 import {
   Activity,
@@ -265,12 +266,18 @@ function SubscriptionRow({ subscription, sending, onSendReminder, onExtendGraceP
         </div>
       </TableCell>
       <TableCell>
-        <Badge className={getInternalTierBadgeClass(subscription.tier)}>{subscription.tier}</Badge>
+        <Badge className={getInternalTierBadgeClass(subscription.tier)}>{getInternalTierLabel(subscription.tier)}</Badge>
       </TableCell>
       <TableCell>
         <Badge className={getBillingStatusBadgeClass(subscription.status)}>{formatBillingStatus(subscription.status)}</Badge>
       </TableCell>
-      <TableCell><span className="text-sm">{subscription.billingCycle}</span></TableCell>
+      <TableCell>
+        <span className="text-sm">
+          {subscription.billingCycle
+            ? subscription.billingCycle.charAt(0).toUpperCase() + subscription.billingCycle.slice(1)
+            : "—"}
+        </span>
+      </TableCell>
       <TableCell>
         <span className="font-medium">
           {formatCurrency(subscription.amount, { currency: subscription.currency, fractionDigits: 0 })}
