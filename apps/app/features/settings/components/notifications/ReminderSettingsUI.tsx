@@ -11,13 +11,14 @@ import {
   type ReminderSettingsFormValues,
 } from "@workspace/types";
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
+  Form
+} from "@workspace/ui/components";
 import { Bell } from "lucide-react";
 import {
   useClinicSettings,
@@ -26,7 +27,6 @@ import {
 } from "@workspace/data-access";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { Form } from "@workspace/ui/components/form/form";
 import { ReminderSettingsLoadingCard } from "./reminder-settings-loading-card";
 import {
   ReminderRow,

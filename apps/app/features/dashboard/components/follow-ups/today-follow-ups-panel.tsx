@@ -10,14 +10,14 @@ import {
 import { useFollowUps } from "@workspace/data-access";
 import type { FollowUpResponse } from "@workspace/types";
 import {
+  Badge,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+  EmptyState
+} from "@workspace/ui/components";
 import { CalendarCheck } from "lucide-react";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 

@@ -1,14 +1,14 @@
 "use client";
 
 // jscpd:ignore-start
-import { Label } from "@workspace/ui/components/form/label";
 import {
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+  SelectValue
+} from "@workspace/ui/components";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
 import { useConsultationSectionSubtitle } from "@/features/consultation/workspace/consultation-workspace-context";

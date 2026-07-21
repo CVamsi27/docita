@@ -1,11 +1,11 @@
 import {
+  LoadingState,
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
-  SheetTitle,
-} from "@workspace/ui/components/overlay/sheet";
-import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
+  SheetTitle
+} from "@workspace/ui/components";
 import { Package } from "lucide-react";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import {

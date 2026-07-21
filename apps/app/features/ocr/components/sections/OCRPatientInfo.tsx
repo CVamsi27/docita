@@ -1,6 +1,8 @@
 import { useTranslations } from "next-intl";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
+import {
+  Input,
+  Label
+} from "@workspace/ui/components";
 import { User } from "lucide-react";
 import { ConfidenceIndicator } from "@/features/ocr/components/common/confidence-indicator";
 import { SectionToggle } from "@/features/ocr/components/common/section-toggle";

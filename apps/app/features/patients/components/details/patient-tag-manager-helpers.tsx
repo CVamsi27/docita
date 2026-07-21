@@ -1,9 +1,11 @@
 import { resolveTagColor } from "./tag-colors";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
+import {
+  Badge,
+  Button,
+  Input,
+  Label,
+  ScrollArea
+} from "@workspace/ui/components";
 import { Check, Palette, Plus } from "lucide-react";
 import type { PresetTag } from "./patient-tag.types";
 import {

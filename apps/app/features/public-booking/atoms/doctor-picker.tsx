@@ -1,16 +1,16 @@
 "use client";
 
 // jscpd:ignore-start
-import { Button } from "@workspace/ui/components/form/button";
-import { Label } from "@workspace/ui/components/form/label";
 import {
+  Button,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+  Skeleton
+} from "@workspace/ui/components";
 import { ANY_DOCTOR_ID } from "@/features/public-booking/public-booking-constants";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { cn } from "@workspace/ui/lib/utils";

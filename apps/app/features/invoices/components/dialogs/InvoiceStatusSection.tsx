@@ -1,11 +1,11 @@
-import { Label } from "@workspace/ui/components/form/label";
 import {
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+  SelectValue
+} from "@workspace/ui/components";
 
 interface InvoiceStatusSectionProps {
   status: string;

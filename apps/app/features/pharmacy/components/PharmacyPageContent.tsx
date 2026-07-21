@@ -1,15 +1,15 @@
 "use client";
 
 // jscpd:ignore-start
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import {
+  AppPageScaffold,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
+  EmptyState,
+  PageHeader
+} from "@workspace/ui/components";
 import { Feature } from "@workspace/types";
 import { useTranslations } from "next-intl";
 import { ClipboardList, Pill } from "lucide-react";

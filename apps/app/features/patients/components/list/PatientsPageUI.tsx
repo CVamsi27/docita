@@ -1,6 +1,8 @@
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+import {
+  AppPageScaffold,
+  Button,
+  DataState
+} from "@workspace/ui/components";
 import { DebouncedSearchInput } from "@workspace/ui/components/form/debounced-search-input";
 import { Users } from "lucide-react";
 import { PatientsPageHeader } from "./patients-page-header";

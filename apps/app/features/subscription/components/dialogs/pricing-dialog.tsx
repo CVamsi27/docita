@@ -3,15 +3,15 @@
 // jscpd:ignore-start
 import { useState } from "react";
 import {
+  Badge,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Switch } from "@workspace/ui/components/form/switch";
-import { Label } from "@workspace/ui/components/form/label";
+  Label,
+  Switch
+} from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   PRICING_CURRENCY_CONFIG,

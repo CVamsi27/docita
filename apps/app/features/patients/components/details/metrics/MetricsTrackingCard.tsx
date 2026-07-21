@@ -1,10 +1,10 @@
-import { Checkbox } from "@workspace/ui/components/form/checkbox";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
+  Checkbox
+} from "@workspace/ui/components";
 import type { MetricCategoryResponse } from "@workspace/types";
 import { Layers } from "lucide-react";
 

@@ -15,15 +15,15 @@ import {
 import { SubscriptionLockNotice } from "@/components/layout/subscription-lock-notice";
 import { ProvidersWrapper } from "./providers-wrapper";
 import {
+  Button,
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@workspace/ui/components/layout/resizable";
+  SymbolTooltip
+} from "@workspace/ui/components";
 import type { ImperativePanelHandle } from "@workspace/ui/components/layout/resizable";
 import { ErrorBoundaryWrapper } from "@/components/errors/error-boundary";
 import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { ChevronLeft, ChevronRight, Command } from "lucide-react";
 import { useFeatureFlag } from "@/hooks/use-feature-flag";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";

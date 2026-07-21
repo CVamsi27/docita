@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -9,13 +9,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@workspace/ui/components/overlay/dialog";
-import {
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/navigation/tabs";
+  TabsTrigger
+} from "@workspace/ui/components";
 import { Tag } from "lucide-react";
 import { getTagColorName } from "./tag-colors";
 import type { PatientTag, PresetTag } from "./patient-tag.types";

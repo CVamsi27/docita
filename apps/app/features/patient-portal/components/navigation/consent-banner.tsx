@@ -2,17 +2,17 @@
 
 // jscpd:ignore-start
 import { useEffect, useState } from "react";
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Button,
+  Checkbox,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Checkbox } from "@workspace/ui/components/form/checkbox";
-import { Label } from "@workspace/ui/components/form/label";
+  Label
+} from "@workspace/ui/components";
 import { Bell, Shield } from "lucide-react";
 import {
   usePatientConsentSettings,

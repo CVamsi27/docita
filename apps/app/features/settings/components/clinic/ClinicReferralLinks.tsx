@@ -2,9 +2,11 @@
 
 import { Check, Copy } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@workspace/ui/components/form/button";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import {
+  Button,
+  MicroLabel,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { CopyableLinkField } from "@/components/signature/copyable-link-field";
 import { getPublicBookingUrl } from "@/lib/constants/public-app-origin";
 

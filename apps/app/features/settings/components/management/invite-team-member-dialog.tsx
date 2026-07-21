@@ -7,8 +7,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Form } from "@workspace/ui/components/form/form";
+  Form
+} from "@workspace/ui/components";
 
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { InviteFormValues } from "@/features/settings/components/management/member-management-schemas";

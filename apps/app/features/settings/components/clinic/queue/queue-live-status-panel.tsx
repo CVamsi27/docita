@@ -11,18 +11,18 @@ import {
   isQueueTokenInProgress,
   isQueueTokenWaiting,
 } from "@/lib/utils/queue-token-status";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
+  Skeleton
+} from "@workspace/ui/components";
 // jscpd:ignore-end
 import { ConfirmationDialog } from "@workspace/ui/components/overlay/confirmation-dialog";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 export const QueueLiveStatusPanel = () => {

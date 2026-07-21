@@ -2,21 +2,19 @@
 
 import { useEffect, useState } from "react";
 import {
+  Badge,
+  Button,
+  ScrollArea,
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@workspace/ui/components/overlay/sheet";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
-import {
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/navigation/tabs";
+  TabsTrigger
+} from "@workspace/ui/components";
 import Link from "next/link";
 import { BellIcon, ExternalLinkIcon, TrashIcon, XIcon } from "lucide-react";
 import {

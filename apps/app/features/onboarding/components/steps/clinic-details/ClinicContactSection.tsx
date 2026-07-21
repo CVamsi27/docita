@@ -1,6 +1,8 @@
 import { UseFormReturn } from "react-hook-form";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
+import {
+  Input,
+  Label
+} from "@workspace/ui/components";
 import PhoneInput from "react-phone-number-input";
 import { cn } from "@workspace/ui/lib/utils";
 import { resolveLibPhoneCountryFromCode } from "@/lib/phone/libphone-country.boundary";

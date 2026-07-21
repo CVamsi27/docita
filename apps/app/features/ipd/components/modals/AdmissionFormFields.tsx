@@ -1,13 +1,6 @@
 import { useMemo } from "react";
-import { Label } from "@workspace/ui/components/form/label";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { Label } from "@workspace/ui/components";
 import { useDoctors } from "@workspace/data-access";
 import { useTranslations } from "next-intl";
 import type { WardWithRooms as WardInfo } from "@/features/ipd/hooks/use-ipd-logic";

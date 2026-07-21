@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
+} from "@workspace/ui/components";
 import { Calendar, FileText, Receipt } from "lucide-react";
 
 export function PortalQuickActions() {

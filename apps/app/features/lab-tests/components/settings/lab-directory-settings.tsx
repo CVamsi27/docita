@@ -5,24 +5,8 @@ import type { LabContractResponse } from "@workspace/types";
 import type { Control, FieldPath } from "react-hook-form";
 import type { CreateLabRequest } from "@workspace/types";
 import { useTranslations } from "next-intl";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Switch } from "@workspace/ui/components/form/switch";
-import {
-  FormControl, FormField, FormItem, FormLabel, FormMessage,
-} from "@workspace/ui/components/form/form";
-import { Form } from "@workspace/ui/components/form/form";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@workspace/ui/components/form/select";
-import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { DataTable, type DataTableColumn } from "@workspace/ui/components/data-display/data-table";
-import {
-  Dialog, DialogBody, DialogContent, DialogDescription,
-  DialogFooter, DialogHeader, DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Badge, Button, DataState, DataTable, Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Form, StatusBadge, Switch, type DataTableColumn } from "@workspace/ui/components";
 import { useLabDirectory } from "@/features/lab-tests/hooks/use-lab-directory";
 
 /* ─── Subcomponents ─────────────────────────────────────────── */

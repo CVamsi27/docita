@@ -1,9 +1,11 @@
 "use client";
 
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import {
+  AppPageScaffold,
+  Button,
+  DataState,
+  PageHeader
+} from "@workspace/ui/components";
 import { Feature } from "@workspace/types";
 import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import { addDaysToPickerIsoDate } from "@workspace/utils";

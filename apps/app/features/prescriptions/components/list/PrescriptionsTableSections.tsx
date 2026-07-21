@@ -9,11 +9,13 @@ import {
   Printer,
 } from "lucide-react";
 import type { DataTableColumn } from "@workspace/ui/components/data-display/data-table";
-import { SortableHeaderButton } from "@workspace/ui/components/data-display/sortable-header-button";
-import { ListRow } from "@workspace/ui/components/data-display/list-row";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+import {
+  Badge,
+  Button,
+  ListRow,
+  SortableHeaderButton,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import type { Prescription } from "@workspace/types";
 
 /**

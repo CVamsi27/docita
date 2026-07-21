@@ -1,13 +1,13 @@
 "use client";
 
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
+  CardTitle
+} from "@workspace/ui/components";
 import { FileText, Check, X } from "lucide-react";
 import {
   MEDICAL_DOCUMENT_STATUS_COLORS,

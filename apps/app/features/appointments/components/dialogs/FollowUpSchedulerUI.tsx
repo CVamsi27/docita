@@ -1,12 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Button } from "@workspace/ui/components/form/button";
-import { Label } from "@workspace/ui/components/form/label";
-
-import { Calendar } from "@workspace/ui/components/form/calendar";
-
 import {
+  Button,
+  Calendar,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -14,13 +11,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@workspace/ui/components/overlay/dialog";
-
-import {
+  Label,
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@workspace/ui/components/overlay/popover";
+  PopoverTrigger
+} from "@workspace/ui/components";
+
+
+
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Calendar as CalendarIcon, CalendarPlus, Check } from "lucide-react";
 import { formatDate } from "@workspace/utils";

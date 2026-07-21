@@ -20,8 +20,10 @@ import {
   parseSupportedCurrency,
 } from "@workspace/utils";
 import { Tier, getTierInfo, getTierPricing } from "@/lib/subscription/tier-access";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import {
+  Button,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { TierCard } from "@/features/subscription/components/cards/tier-card";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";

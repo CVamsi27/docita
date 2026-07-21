@@ -1,16 +1,16 @@
 // jscpd:ignore-start
 import { formatDate } from "@workspace/utils";
 import { useTranslations } from "next-intl";
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
+  Badge,
+  ScrollArea,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
-import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
+  TableRow
+} from "@workspace/ui/components";
 import { ArrowDownLeft, ArrowUpRight, History } from "lucide-react";
 
 /**

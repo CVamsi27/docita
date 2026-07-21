@@ -1,17 +1,6 @@
 import { UseFormReturn } from "react-hook-form";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@workspace/ui/components/form/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Label, RadioGroup, RadioGroupItem } from "@workspace/ui/components";
 import { CLINIC_TYPE_OPTIONS } from "@workspace/types";
 import { parseStringEnumMember } from "@workspace/utils";
 import { cn } from "@workspace/ui/lib/utils";

@@ -1,7 +1,9 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import {
+  Button,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { ChevronUp, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { useFloatingStartConsultation } from "./use-floating-start-consultation";

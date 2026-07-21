@@ -3,8 +3,8 @@ import {
   FormField,
   FormItem,
   FormMessage,
-} from "@workspace/ui/components/form/form";
-import { Switch } from "@workspace/ui/components/form/switch";
+  Switch
+} from "@workspace/ui/components";
 import type { UseFormReturn } from "react-hook-form";
 import type { QueueSettingsFormValues } from "@workspace/types";
 

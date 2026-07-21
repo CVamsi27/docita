@@ -1,8 +1,10 @@
 "use client";
 
 import { Square } from "lucide-react";
-import { PromptInput } from "@workspace/ui/components/form/prompt-input";
-import { Button } from "@workspace/ui/components/form/button";
+import {
+  Button,
+  PromptInput
+} from "@workspace/ui/components";
 import { formatCountLocale } from "@workspace/utils";
 import type { AiCreditBalance } from "@workspace/types";
 

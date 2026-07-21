@@ -1,10 +1,10 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Button,
   DataState,
-  type DataStateStatus,
-} from "@workspace/ui/components/data-display/data-state";
+  type DataStateStatus
+} from "@workspace/ui/components";
 import { FileText, Plus } from "lucide-react";
 import { MedicalDocumentCard } from "./medical-document-card";
 import { MedicalDocumentCreateDialog } from "./medical-document-create-dialog";

@@ -4,22 +4,8 @@
 // jscpd:ignore-start
 import type { ComponentProps } from "react";
 import type { Control, FieldValues, Path } from "react-hook-form";
-import { DatePicker } from "@workspace/ui/components/form/date-picker";
-import { Input } from "@workspace/ui/components/form/input";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { DatePicker } from "@workspace/ui/components";
 import { GENDER_OPTIONS } from "./add-patient-dialog-constants";
 
 interface SharedPatientInfoFieldsProps<T extends FieldValues> {

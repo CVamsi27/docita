@@ -11,8 +11,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+  EmptyState
+} from "@workspace/ui/components";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 

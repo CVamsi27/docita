@@ -1,7 +1,9 @@
 import { UseFormReturn } from "react-hook-form";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { Switch } from "@workspace/ui/components/form/switch";
+import {
+  Input,
+  Label,
+  Switch
+} from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { ComingSoonBadge } from "@/components/feedback/coming-soon-badge";
 import type { ClinicDetails } from "@/features/onboarding/components/types";

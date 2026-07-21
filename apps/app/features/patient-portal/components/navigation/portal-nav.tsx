@@ -16,14 +16,14 @@ import {
   TrendingUp,
   User,
 } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Button,
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
-} from "@workspace/ui/components/overlay/sheet";
+  SheetTrigger
+} from "@workspace/ui/components";
 import { useAuth } from "@/lib/auth/auth-context";
 import { usePatientConsentSettings } from "@workspace/data-access";
 import { formatDate } from "@/lib/formatters";

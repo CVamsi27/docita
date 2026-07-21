@@ -1,8 +1,12 @@
 "use client";
 
 import { HeartPulse } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { Textarea } from "@workspace/ui/components/form/textarea";
+import {
+  AllergyBanner,
+  Button,
+  Textarea,
+  type AllergyEntry
+} from "@workspace/ui/components";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import {
   useConsultationSectionSubtitle,
@@ -16,10 +20,6 @@ import { ExaminationInput } from "@/features/consultation/components/structured/
 import { PrescriptionInput } from "@/features/consultation/components/structured/PrescriptionInput";
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
 import { SectionField } from "@/features/consultation/workspace/chrome/SectionField";
-import {
-  AllergyBanner,
-  type AllergyEntry,
-} from "@workspace/ui/components/feedback/allergy-banner";
 import type { PatientAllergy } from "@workspace/types";
 
 /** Maps a stored allergy severity to the {@link AllergyBanner} severity scale. */

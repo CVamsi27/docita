@@ -6,15 +6,16 @@ import {
   type ContactSalesFormValues,
 } from "@workspace/types";
 import {
+  Alert,
+  AlertDescription,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
+  Form
+} from "@workspace/ui/components";
 import { AlertCircle, Mail } from "lucide-react";
-import { Form } from "@workspace/ui/components/form/form";
 import {
   ContactSalesSuccessPanel,
   ContactSalesFormFields,

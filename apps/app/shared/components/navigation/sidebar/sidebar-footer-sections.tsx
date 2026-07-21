@@ -13,18 +13,18 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@workspace/ui/lib/utils";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
+  Badge,
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@workspace/ui/components/overlay/dropdown-menu";
-import { SidebarRailAction } from "@workspace/ui/components/navigation/sidebar-rail-action";
-import { SidebarRailTooltip } from "@workspace/ui/components/navigation/sidebar-rail-tooltip";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+  MicroLabel,
+  SidebarRailAction,
+  SidebarRailTooltip
+} from "@workspace/ui/components";
 import { NotificationBellWithBadges } from "@/components/navigation/notification-bell-with-badges";
 import { AskAiButton } from "@/components/ask-ai/ask-ai-button";
 import { HELP_NAV_ITEM } from "@/components/navigation/nav-config";

@@ -8,8 +8,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Form } from "@workspace/ui/components/form/form";
+  Form
+} from "@workspace/ui/components";
 import { useApplyLeave } from "@workspace/data-access";
 import { createLeaveRequestSchema } from "@workspace/types";
 import type { User } from "@workspace/types";

@@ -1,14 +1,14 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+  Textarea
+} from "@workspace/ui/components";
 import { Brain, Shield, Sparkles, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { DiagnosisSuggestion } from "@/features/ai-assistant/hooks/use-ai-assistant-logic";

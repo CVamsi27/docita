@@ -1,7 +1,9 @@
 "use client";
 
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import {
+  AppPageScaffold,
+  PageHeader
+} from "@workspace/ui/components";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { MemberManagementSettings } from "@/features/settings/components/management/MemberManagementSettings";
 

@@ -2,15 +2,15 @@
 
 // jscpd:ignore-start
 import { Plus, RefreshCw } from "lucide-react";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import {
+  Button,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Button } from "@workspace/ui/components/form/button";
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { isRecord } from "@workspace/utils";
 import type { MetricRecordResponse } from "@workspace/types";
 

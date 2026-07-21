@@ -12,10 +12,12 @@ import {
   type ForgotPasswordFormValues,
 } from "@workspace/types";
 import { CheckCircle } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
+import {
+  Button,
+  Input,
+  Label,
+  LoadingState
+} from "@workspace/ui/components";
 import { logger } from "@/lib/monitoring/logger";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 import { BackButton } from "@/components/navigation/back-button";

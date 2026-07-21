@@ -1,9 +1,11 @@
 "use client";
 
 import { getPatientFullName } from "@workspace/utils";
-import { SearchInput } from "@workspace/ui/components/form/search-input";
-import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+import {
+  Button,
+  DataState,
+  SearchInput
+} from "@workspace/ui/components";
 import { X } from "lucide-react";
 
 interface DeskPatientListItem {

@@ -1,11 +1,11 @@
-import { SearchInput } from "@workspace/ui/components/form/search-input";
 import {
+  SearchInput,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+  SelectValue
+} from "@workspace/ui/components";
 
 interface InventoryFiltersProps {
   searchQuery: string;

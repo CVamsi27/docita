@@ -3,14 +3,14 @@
 import { HeartPulse, Users, CreditCard } from "lucide-react";
 import { getPatientFullName } from "@workspace/utils";
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { Section } from "@workspace/ui/components/layout/section";
+  Section
+} from "@workspace/ui/components";
 import {
   AppointmentRowActionsMenu,
   useAppointmentRowActions,

@@ -7,8 +7,8 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@workspace/ui/components/feedback/alert";
-import { Button } from "@workspace/ui/components/form/button";
+  Button
+} from "@workspace/ui/components";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { useSubscription } from "@workspace/data-access";
 import {

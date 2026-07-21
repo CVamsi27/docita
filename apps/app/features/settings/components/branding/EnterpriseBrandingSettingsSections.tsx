@@ -3,16 +3,16 @@
 import { useTranslations } from "next-intl";
 import { Card } from "@/components/card";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/card";
-import { Label } from "@workspace/ui/components/form/label";
-import { Input } from "@workspace/ui/components/form/input";
-import { Switch } from "@workspace/ui/components/form/switch";
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Badge,
+  Button,
+  Input,
+  Label,
+  Separator,
+  Switch,
   ToggleGroup,
-  ToggleGroupItem,
-} from "@workspace/ui/components/form/toggle-group";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Separator } from "@workspace/ui/components/layout/separator";
+  ToggleGroupItem
+} from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 
 const ACCENT_OPTIONS = [

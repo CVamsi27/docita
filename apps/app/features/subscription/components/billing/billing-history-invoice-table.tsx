@@ -1,17 +1,15 @@
 "use client";
 
 import {
+  ListRowGroup,
   Table,
   TableBody,
   TableCell,
   TableFooter,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
-import {
-  ListRowGroup,
-} from "@workspace/ui/components/data-display/list-row";
+  TableRow
+} from "@workspace/ui/components";
 import type { BillingHistoryItem } from "@workspace/data-access";
 import {
   BILLING_HISTORY_TABLE_CAPTION,

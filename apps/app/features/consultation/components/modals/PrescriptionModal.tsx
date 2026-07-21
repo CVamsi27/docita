@@ -3,14 +3,14 @@
 // jscpd:ignore-start
 import React, { useState } from "react";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Button } from "@workspace/ui/components/form/button";
+  DialogTitle
+} from "@workspace/ui/components";
 import { toast } from "sonner";
 import {
   useCreatePrescription,

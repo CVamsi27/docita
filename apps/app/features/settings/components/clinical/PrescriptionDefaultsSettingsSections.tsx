@@ -1,24 +1,22 @@
 "use client";
 
 import { FileText, Save } from "lucide-react";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
-import { Button } from "@workspace/ui/components/form/button";
-import { Label } from "@workspace/ui/components/form/label";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import { Checkbox } from "@workspace/ui/components/form/checkbox";
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import {
+  Checkbox,
   FormControl,
   FormField,
   FormItem,
   FormMessage,
-} from "@workspace/ui/components/form/form";
+  Label,
+  Skeleton,
+  Textarea
+} from "@workspace/ui/components";
 import type { UseFormReturn } from "react-hook-form";
 import type { PrescriptionDefaultsFormValues } from "@workspace/types";
 

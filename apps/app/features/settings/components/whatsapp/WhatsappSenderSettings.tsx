@@ -3,13 +3,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
+  Badge,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+  DataState
+} from "@workspace/ui/components";
 import {
   useRevokeWhatsappSender,
   useUpdateWhatsappSender,

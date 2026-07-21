@@ -10,16 +10,16 @@ import {
   Upload,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  AppPageScaffold,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
+  PageHeader
+} from "@workspace/ui/components";
 import { BulletStepList } from "@/components/bullet-step-list";
 import {
   FeatureGate,

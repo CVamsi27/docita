@@ -2,10 +2,12 @@
 
 import { FC } from "react";
 import { ArrowLeft } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { Button } from "@workspace/ui/components/form/button";
-import { Form } from "@workspace/ui/components/form/form";
+import {
+  AppPageScaffold,
+  Button,
+  Form,
+  PageHeader
+} from "@workspace/ui/components";
 import {
   useInsuranceClaimCreateLogic,
   type ClaimCreatePresets,

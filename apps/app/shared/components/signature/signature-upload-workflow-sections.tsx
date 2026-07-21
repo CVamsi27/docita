@@ -2,11 +2,11 @@
 
 import { type RefObject } from "react";
 import Image from "next/image";
-import { Button } from "@workspace/ui/components/form/button";
 import {
   Alert,
   AlertDescription,
-} from "@workspace/ui/components/feedback/alert";
+  Button
+} from "@workspace/ui/components";
 import { AlertCircle, Image as ImageIcon, Pencil, Upload } from "lucide-react";
 import {
   SignaturePad,

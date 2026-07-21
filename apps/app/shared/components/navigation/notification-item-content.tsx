@@ -1,10 +1,12 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import {
+  Button,
+  PriorityBadge,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { CheckIcon, XIcon } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import { PriorityBadge } from "@workspace/ui/components/indicators/status-badge";
 import { formatTime } from "@workspace/utils";
 import type { StaffNotification } from "@workspace/data-access";
 

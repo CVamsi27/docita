@@ -2,15 +2,15 @@
 
 import { useTranslations } from "next-intl";
 import {
+  Button,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
-import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
+  DataState,
+  EmptyState,
+  StatusBadge
+} from "@workspace/ui/components";
 import { Banknote, BookOpen, CalendarCheck, Wallet } from "lucide-react";
 import { ComingSoonBadge } from "@/components/feedback/coming-soon-badge";
 import { formatTime } from "@/lib/formatters";

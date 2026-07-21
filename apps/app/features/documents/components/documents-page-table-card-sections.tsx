@@ -1,15 +1,17 @@
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { type DataTableColumn } from "@workspace/ui/components/data-display/data-table";
-import { ListRow } from "@workspace/ui/components/data-display/list-row";
+import {
+  Badge,
+  Button,
+  ListRow,
+  SortableHeaderButton,
+  SymbolTooltip,
+  type DataTableColumn
+} from "@workspace/ui/components";
 import {
   Download,
   ExternalLink,
   Eye,
   FileText,
 } from "lucide-react";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { SortableHeaderButton } from "@workspace/ui/components/data-display/sortable-header-button";
 import type { Document } from "@workspace/types";
 import { DOCUMENT_TYPE_LABELS } from "@workspace/types";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";

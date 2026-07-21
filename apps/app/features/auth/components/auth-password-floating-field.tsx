@@ -1,10 +1,12 @@
 "use client";
 
 import { Eye, EyeOff } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import {
+  Button,
+  Input,
+  Label,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   InlineFieldError,

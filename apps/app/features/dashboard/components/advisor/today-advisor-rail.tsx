@@ -3,10 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
+  Button,
   RightRailCard,
-  RightRailCardStack,
-} from "@workspace/ui/components/data-display/right-rail-card";
-import { Button } from "@workspace/ui/components/form/button";
+  RightRailCardStack
+} from "@workspace/ui/components";
 import { useTranslations } from "next-intl";
 
 export type TodayAdvisorCounts = {

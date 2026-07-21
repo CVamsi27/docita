@@ -1,12 +1,12 @@
 "use client";
 
 import { AlertCircle, SlidersHorizontal } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Button,
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@workspace/ui/components/overlay/popover";
+  PopoverTrigger
+} from "@workspace/ui/components";
 import { formatScheduleTime } from "@workspace/utils";
 import type { ApproveScheduleFieldKey } from "@/lib/utils/appointment-request-approve-errors";
 import { cn } from "@workspace/ui/lib/utils";

@@ -1,19 +1,17 @@
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
-import {
+  ScrollArea,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+  SelectValue
+} from "@workspace/ui/components";
 import {
   Calendar,
   CheckCircle2,

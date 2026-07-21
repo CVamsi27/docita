@@ -6,10 +6,13 @@ import {
   useCancelClinicWhatsappCampaign,
   useClinicWhatsappCampaigns,
 } from "@workspace/data-access";
-import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Card, CardContent } from "@workspace/ui/components/indicators/card";
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  DataState
+} from "@workspace/ui/components";
 import { useAuth } from "@/lib/auth/auth-context";
 import { isAdmin } from "@/lib/auth/permissions";
 import { WhatsappCampaignCreateDialog } from "./WhatsappCampaignCreateDialog";

@@ -3,15 +3,15 @@
 // jscpd:ignore-start
 import { useState } from "react";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Button } from "@workspace/ui/components/form/button";
-import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
+  ScrollArea
+} from "@workspace/ui/components";
 import { Shield } from "lucide-react";
 import {
   CONSENT_CONTENT,

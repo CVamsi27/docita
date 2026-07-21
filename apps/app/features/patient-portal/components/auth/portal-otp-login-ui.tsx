@@ -5,15 +5,15 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 
 import { FormEvent } from "react";
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
+  Input,
+  Label
+} from "@workspace/ui/components";
 import {
   Alert,
 // jscpd:ignore-end

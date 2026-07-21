@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
   Breadcrumbs,
-  type BreadcrumbItem,
-} from "@workspace/ui/components/navigation/breadcrumbs";
-import { TopBar } from "@workspace/ui/components/layout/top-bar";
+  TopBar,
+  type BreadcrumbItem
+} from "@workspace/ui/components";
 import { breadcrumbsFor } from "@/app/(protected)/route-meta";
 import { TopBarActions } from "@/components/layout/top-bar-actions";
 

@@ -6,15 +6,13 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+  TableRow
+} from "@workspace/ui/components";
 import { CalendarDays, TrendingUp, Users, type LucideIcon } from "lucide-react";
 import type { AppointmentSnapshot } from "@workspace/types";
 import {

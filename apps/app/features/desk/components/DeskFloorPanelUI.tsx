@@ -1,10 +1,12 @@
 "use client";
 
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { NowServingBoard } from "@workspace/ui/components/data-display/now-serving-board";
-import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+import {
+  AppPageScaffold,
+  DataState,
+  LoadingState,
+  NowServingBoard,
+  PageHeader
+} from "@workspace/ui/components";
 import {
   FloorStatsSection,
   WaitingListSection,

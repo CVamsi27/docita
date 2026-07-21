@@ -9,46 +9,8 @@
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { customFieldTypeSchema, type CustomField } from "@workspace/types";
 import { useTranslations } from "next-intl";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Switch } from "@workspace/ui/components/form/switch";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import {
-  DataTable,
-  type DataTableColumn,
-} from "@workspace/ui/components/data-display/data-table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, DataTable, Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Form, FormDescription, Switch, type DataTableColumn } from "@workspace/ui/components";
 import { ConfirmationDialog } from "@workspace/ui/components/overlay/confirmation-dialog";
 import { useCustomFieldsSettings } from "@/features/settings/hooks/use-custom-fields-settings";
 

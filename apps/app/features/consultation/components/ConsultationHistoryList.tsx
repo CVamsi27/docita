@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Card,
   CardContent,
-} from "@workspace/ui/components/indicators/card";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+  DataState
+} from "@workspace/ui/components";
 import { ClipboardList } from "lucide-react";
 import { useAppointments } from "@workspace/data-access";
 import { usePermissions } from "@/hooks/use-permissions";

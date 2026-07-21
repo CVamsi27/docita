@@ -2,17 +2,15 @@
 
 import { FC } from "react";
 import {
+  Badge,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
-} from "@workspace/ui/components/overlay/collapsible";
+  CollapsibleTrigger
+} from "@workspace/ui/components";
 import {
   AlertTriangle,
   ChevronDown,

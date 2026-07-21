@@ -1,13 +1,13 @@
 "use client";
 
 import { useWhatsappStats } from "@workspace/data-access";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
+  DataState
+} from "@workspace/ui/components";
 
 export function WhatsappDeliveryView() {
   const stats = useWhatsappStats();

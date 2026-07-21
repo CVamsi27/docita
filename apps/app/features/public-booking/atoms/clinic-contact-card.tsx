@@ -6,8 +6,8 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+  MicroLabel
+} from "@workspace/ui/components";
 import {
   bookingCardClass,
   bookingSectionHeaderBar,

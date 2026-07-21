@@ -3,17 +3,17 @@
 // jscpd:ignore-start
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
+  Skeleton
+} from "@workspace/ui/components";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
   Alert,
 // jscpd:ignore-end

@@ -1,14 +1,14 @@
 "use client";
 
 import { Clock, Building2 } from "lucide-react";
-import { Card } from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
 import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@workspace/ui/components/feedback/alert";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+  Badge,
+  Button,
+  Card
+} from "@workspace/ui/components";
 import {
   DATE_FORMATS,
   formatDate,

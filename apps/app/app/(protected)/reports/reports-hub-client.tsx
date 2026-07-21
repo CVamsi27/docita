@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { BarChart3, BookOpen, ExternalLink } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
+  AppPageScaffold,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
+  PageHeader
+} from "@workspace/ui/components";
 
 const REPORTS = [
   {

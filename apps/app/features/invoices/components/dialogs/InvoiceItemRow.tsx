@@ -1,6 +1,8 @@
-import { Input } from "@workspace/ui/components/form/input";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import {
+  Button,
+  Input,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { X } from "lucide-react";
 import type { InvoiceItem } from "@workspace/types";
 import type { EditableInvoiceItemField } from "./edit-invoice-dialog-state";

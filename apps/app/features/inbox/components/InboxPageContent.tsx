@@ -9,13 +9,13 @@ import {
   UserPlus,
   type LucideIcon,
 } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
+  AppPageScaffold,
+  DataState,
+  PageHeader,
   PageTabs,
-  type PageTabItem,
-} from "@workspace/ui/components/navigation/page-tabs";
+  type PageTabItem
+} from "@workspace/ui/components";
 import {
   APP_ACCESS_TARGETS,
   type AppAccessTarget,

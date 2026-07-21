@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { Building2, XCircle } from "lucide-react";
-import { Card } from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
 import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@workspace/ui/components/feedback/alert";
+  Button,
+  Card
+} from "@workspace/ui/components";
 import { PreDashboardShell } from "@/features/auth";
 
 export type JoinRequestTerminalState =

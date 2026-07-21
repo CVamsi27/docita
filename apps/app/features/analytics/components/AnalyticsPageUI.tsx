@@ -3,18 +3,18 @@
 import React, { FC } from "react";
 import dynamic from "next/dynamic";
 import {
+  AppPageScaffold,
+  DataState,
+  LoadingState,
+  PageHeader,
+  Skeleton,
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/navigation/tabs";
+  TabsTrigger
+} from "@workspace/ui/components";
 import { Calendar, DollarSign, Users } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { Feature, FeatureGate } from "@/components/auth/feature-gate";
 import type {
   AnalyticsOverview,

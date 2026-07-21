@@ -1,5 +1,7 @@
-import { Input } from "@workspace/ui/components/form/input";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import {
+  Input,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { Users, X } from "lucide-react";
 import { PatientWithMedicalHistory } from "@workspace/types";
 import { HistoryAddRow, HistoryBlock, HistoryEmptyState } from "./HistoryBlock";

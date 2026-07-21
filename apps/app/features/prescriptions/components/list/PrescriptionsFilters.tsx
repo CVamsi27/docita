@@ -1,9 +1,11 @@
 import React from "react";
-import { SearchInput } from "@workspace/ui/components/form/search-input";
-import { Button } from "@workspace/ui/components/form/button";
-import { Label } from "@workspace/ui/components/form/label";
-import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import {
+  Button,
+  IsoDatePickerField,
+  Label,
+  SearchInput,
+  SymbolTooltip
+} from "@workspace/ui/components";
 
 interface PrescriptionsFiltersProps {
   searchQuery: string;

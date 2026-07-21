@@ -2,10 +2,12 @@
 
 import type { ElementType } from "react";
 import Link from "next/link";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
+import {
+  Badge,
+  Button,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { ChevronDown, ChevronUp, Pill } from "lucide-react";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { cn } from "@workspace/ui/lib/utils";
 import { VisitCardMedicationList } from "./visit-card-medication-list";

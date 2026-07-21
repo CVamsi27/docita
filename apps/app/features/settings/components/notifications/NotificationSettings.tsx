@@ -10,13 +10,14 @@ import {
   type NotificationSettingsFormValues,
 } from "@workspace/types";
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
+  Form
+} from "@workspace/ui/components";
 import { Bell } from "lucide-react";
 import {
   useClinicSettings,
@@ -25,7 +26,6 @@ import {
 import { parseClinicAppSettings } from "@/lib/clinic/parse-clinic-app-settings";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { Form } from "@workspace/ui/components/form/form";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { Feature } from "@workspace/types";
 import { NotificationSettingsLoadingCard } from "./notification-settings-loading-card";

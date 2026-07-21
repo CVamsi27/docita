@@ -7,13 +7,13 @@ import type {
   ClinicWhatsappTemplate,
   WhatsappTemplateCategory,
 } from "@workspace/types";
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Button,
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+  CardTitle
+} from "@workspace/ui/components";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {

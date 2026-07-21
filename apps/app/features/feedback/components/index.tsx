@@ -3,15 +3,15 @@
 // jscpd:ignore-start
 import { FC } from "react";
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import { Label } from "@workspace/ui/components/form/label";
+  Label,
+  Textarea
+} from "@workspace/ui/components";
 import {
   Frown,
 // jscpd:ignore-end

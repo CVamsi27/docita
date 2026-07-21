@@ -1,7 +1,9 @@
 "use client";
 
-import { PageTabs } from "@workspace/ui/components/navigation/page-tabs";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import {
+  MicroLabel,
+  PageTabs
+} from "@workspace/ui/components";
 import type { Appointment, PatientWithMedicalHistory } from "@workspace/types";
 import { PatientTagManagerContainer as PatientTagManager } from "@/features/patients/components/details/PatientTagManagerContainer";
 import { PatientClinicalChartSummary } from "./patient-clinical-chart-summary";

@@ -1,19 +1,17 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
-import { Calendar } from "@workspace/ui/components/form/calendar";
 import {
+  Button,
+  Calendar,
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@workspace/ui/components/overlay/popover";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+  SelectValue
+} from "@workspace/ui/components";
 import {
   formatClinicPickerDayIsoFromSelection,
   formatScheduleTime,

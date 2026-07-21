@@ -4,17 +4,15 @@ import { Check, Info, Minus } from "lucide-react";
 import { getTierName, hasFeatureAccess } from "@/lib/subscription/tier-access";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import {
+  Badge,
+  SymbolTooltip,
   TableCell,
   TableRow,
-} from "@workspace/ui/components/data-display/table";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { cn } from "@workspace/ui/lib/utils";
-import {
-  SymbolTooltip,
   Tooltip,
   TooltipContent,
-  TooltipTrigger,
-} from "@workspace/ui/components/overlay/tooltip";
+  TooltipTrigger
+} from "@workspace/ui/components";
+import { cn } from "@workspace/ui/lib/utils";
 import {
   Feature,
   MODE_BLOCKED_FEATURES,

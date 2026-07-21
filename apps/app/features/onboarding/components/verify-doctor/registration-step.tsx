@@ -2,8 +2,10 @@
 
 import { FC } from "react";
 import { CheckCircle2, Circle } from "lucide-react";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
+import {
+  Input,
+  Label
+} from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import type { UseVerifyDoctorReturn } from "@/features/onboarding/hooks/use-verify-doctor";
 

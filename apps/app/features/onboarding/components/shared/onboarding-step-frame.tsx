@@ -1,17 +1,17 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Button,
   Card,
   CardDescription,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
+  MicroLabel
+} from "@workspace/ui/components";
 import {
   CategoryAvatar,
   type CategoryAvatarTone,
 } from "@workspace/ui/components/indicators/category-avatar";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { cn } from "@workspace/ui/lib/utils";
 // Single source of truth for the wizard step count lives with the step list.

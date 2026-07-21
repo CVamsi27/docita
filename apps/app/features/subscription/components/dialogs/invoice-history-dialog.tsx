@@ -2,14 +2,14 @@
 
 // jscpd:ignore-start
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Button } from "@workspace/ui/components/form/button";
+  DialogTitle
+} from "@workspace/ui/components";
 import { FileText } from "lucide-react";
 import { useBillingHistory } from "@workspace/data-access";
 import { BillingHistoryTable } from "@/features/subscription/components/billing/BillingHistoryTable";

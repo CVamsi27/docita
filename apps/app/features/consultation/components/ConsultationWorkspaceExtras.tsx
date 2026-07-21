@@ -1,8 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Button } from "@workspace/ui/components/form/button";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import {
+  Button,
+  MicroLabel
+} from "@workspace/ui/components";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatChiefComplaintSummary } from "@workspace/utils";
 import { formatDate, DATE_FORMAT_OPTIONS_US_LONG } from "@/lib/formatters";

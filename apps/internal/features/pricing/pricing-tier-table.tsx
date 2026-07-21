@@ -19,14 +19,14 @@ import {
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { Save, Sparkles } from "lucide-react";
-import { TIER_INFO, type TierName, tierSchema } from "@workspace/types";
+import { TIER_INFO, tierSchema } from "@workspace/types";
 import type { EditableTierRow } from "./pricing-helpers";
 
 /** Render a tier identifier (raw string from API) as a human label when known. */
 function formatTierLabel(raw: string): string {
   const parsed = tierSchema.safeParse(raw);
   if (parsed.success) {
-    return TIER_INFO[parsed.data as TierName].name;
+    return TIER_INFO[parsed.data].name;
   }
   return raw;
 }

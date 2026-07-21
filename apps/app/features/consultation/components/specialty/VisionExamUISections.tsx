@@ -1,15 +1,15 @@
 "use client";
 
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
 import {
+  Input,
+  Label,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+  TableRow
+} from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { OphthalmologyExamData } from "@workspace/types";
 import {

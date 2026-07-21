@@ -2,16 +2,16 @@
 
 import { Globe, Mail } from "lucide-react";
 
-import { Checkbox } from "@workspace/ui/components/form/checkbox";
-import { Label } from "@workspace/ui/components/form/label";
-import { ADMIN_EMAIL } from "@/lib/constants/support-contact";
 import {
+  Checkbox,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+  SelectValue
+} from "@workspace/ui/components";
+import { ADMIN_EMAIL } from "@/lib/constants/support-contact";
 
 export const SUPPORTED_LANGUAGES = [
   { code: "en", name: "English", nativeName: "English" },

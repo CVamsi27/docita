@@ -3,8 +3,8 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { DataTable } from "@workspace/ui/components/data-display/data-table";
+  DataTable
+} from "@workspace/ui/components";
 import {
   getPrescriptionColumns,
   MobileCard,

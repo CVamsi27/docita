@@ -9,11 +9,14 @@ import {
   useMarkClinicWhatsappConversationRead,
   useReplyToClinicWhatsappConversation,
 } from "@workspace/data-access";
-import { Button } from "@workspace/ui/components/form/button";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Card, CardContent } from "@workspace/ui/components/indicators/card";
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  DataState,
+  Textarea
+} from "@workspace/ui/components";
 
 export function WhatsappConversationsView() {
   const conversations = useClinicWhatsappConversations();

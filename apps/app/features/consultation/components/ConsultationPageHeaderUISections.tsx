@@ -4,20 +4,16 @@ import { ArrowLeft, Clock, Lock, PanelLeft } from "lucide-react";
 import {
   Avatar,
   AvatarFallback,
-} from "@workspace/ui/components/indicators/avatar";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  SymbolTooltip,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@workspace/ui/components/overlay/tooltip";
-import {
+  Badge,
+  Button,
   Sheet,
   SheetContent,
   SheetTrigger,
-} from "@workspace/ui/components/overlay/sheet";
+  SymbolTooltip,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatClockTime, formatDate } from "@/lib/formatters";
 import type { ConsultationHeaderDisplay } from "./consultation-page-header-helpers";

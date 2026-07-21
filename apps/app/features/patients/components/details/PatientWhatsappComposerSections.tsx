@@ -2,23 +2,13 @@
 
 // jscpd:ignore-start
 import { History, Info, MessageCircle, Send } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import { Label } from "@workspace/ui/components/form/label";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { Badge, Button, DataState, Label } from "@workspace/ui/components";
 import {
   Alert,
 // jscpd:ignore-end
   AlertDescription,
 } from "@workspace/ui/components/feedback/alert";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { useTranslations } from "next-intl";
 import type { ClinicWhatsappTemplate, ClinicWhatsappSentMessage } from "@workspace/types";
 

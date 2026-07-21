@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { CalendarDays, CreditCard, FileText } from "lucide-react";
 import {
+  Button,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+  EmptyState
+} from "@workspace/ui/components";
 
 interface PatientPortalOverviewUIProps {
   appointmentCount: number;

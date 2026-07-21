@@ -1,13 +1,13 @@
 "use client";
 
 import { CalendarDays, Check, Copy, Share2, Users } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import {
+  Button,
+  MicroLabel,
   Tooltip,
   TooltipContent,
-  TooltipTrigger,
-} from "@workspace/ui/components/overlay/tooltip";
+  TooltipTrigger
+} from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 
 export function bookingPathLabel(publicOnlineBookingUrl: string): string {

@@ -4,14 +4,12 @@ import { Lock } from "lucide-react";
 import {
   Alert,
   AlertDescription,
-} from "@workspace/ui/components/feedback/alert";
-import {
   Card,
   CardContent,
   CardHeader,
-} from "@workspace/ui/components/indicators/card";
+  MicroLabel
+} from "@workspace/ui/components";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { TurnstileWidget } from "@/features/public-booking/components/turnstile-widget";
 import {
   BookingSectionHeader,

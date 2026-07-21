@@ -4,14 +4,14 @@ import React, { FC, useState } from "react";
 import type { AbhaVerificationResult } from "@workspace/types";
 import { useRequestAbhaOtp, useVerifyAbhaOtp } from "@workspace/data-access";
 import {
+  Button,
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
-} from "@workspace/ui/components/overlay/dialog";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
+  Input
+} from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { getAbhaVerificationErrorState } from "./abha-verification-errors";
 

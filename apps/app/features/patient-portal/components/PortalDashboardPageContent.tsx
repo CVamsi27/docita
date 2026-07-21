@@ -2,9 +2,11 @@
 
 import { usePatientPortalDashboard } from "@workspace/data-access";
 import { usePatientConsentSettings } from "@workspace/data-access";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import {
+  AppPageScaffold,
+  DataState,
+  PageHeader
+} from "@workspace/ui/components";
 import { PortalMetricsCards } from "./PortalMetricsCards";
 import { PortalQuickActions } from "./PortalQuickActions";
 

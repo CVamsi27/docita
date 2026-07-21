@@ -1,14 +1,14 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
+  Badge,
+  Button,
+  DataState,
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/navigation/tabs";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+  TabsTrigger
+} from "@workspace/ui/components";
 import { BellIcon, TrashIcon } from "lucide-react";
 import {
   NotificationRow,

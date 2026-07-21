@@ -1,17 +1,17 @@
 "use client";
 
 import { Building2, Calendar as CalendarIcon, Sparkles } from "lucide-react";
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
+  Badge,
   Card,
   CardContent,
   CardHeader,
-} from "@workspace/ui/components/indicators/card";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { DescriptionList } from "@workspace/ui/components/data-display/description-list";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
-import { Timeline } from "@workspace/ui/components/data-display/timeline";
+  DataState,
+  DescriptionList,
+  EmptyState,
+  MicroLabel,
+  Timeline
+} from "@workspace/ui/components";
 import { formatDate } from "@workspace/utils";
 import {
   appointmentTimelineAccent,

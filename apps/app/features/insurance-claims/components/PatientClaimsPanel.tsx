@@ -4,15 +4,15 @@
 import { FC, useMemo } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+  DataState
+} from "@workspace/ui/components";
 import { useInsuranceClaimsByPatient } from "@workspace/data-access";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import {

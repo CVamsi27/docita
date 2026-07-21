@@ -4,14 +4,14 @@
 import Link from "next/link";
 import { formatDate } from "@workspace/utils";
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+  DataState
+} from "@workspace/ui/components";
 import { ExternalLink, Pill, RotateCcw } from "lucide-react";
 import { usePatientPrescriptions } from "@workspace/data-access";
 import { useRepeatPrescription } from "@/features/patients/hooks/use-repeat-prescription";

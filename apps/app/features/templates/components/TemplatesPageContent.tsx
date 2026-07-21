@@ -2,13 +2,13 @@
 
 import { Suspense, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
+  AppPageScaffold,
+  DataState,
+  PageHeader,
   PageTabs,
-  type PageTabItem,
-} from "@workspace/ui/components/navigation/page-tabs";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+  type PageTabItem
+} from "@workspace/ui/components";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
 import {

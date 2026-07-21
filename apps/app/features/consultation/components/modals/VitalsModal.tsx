@@ -1,12 +1,12 @@
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Button } from "@workspace/ui/components/form/button";
+  DialogTitle
+} from "@workspace/ui/components";
 import { HeartPulse } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
 import { useVitalsForm } from "./use-vitals-form";

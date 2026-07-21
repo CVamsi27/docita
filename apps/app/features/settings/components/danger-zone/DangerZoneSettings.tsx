@@ -3,16 +3,16 @@
 // jscpd:ignore-start
 import { useState } from "react";
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { Checkbox } from "@workspace/ui/components/form/checkbox";
-import { Label } from "@workspace/ui/components/form/label";
-import { Textarea } from "@workspace/ui/components/form/textarea";
+  Checkbox,
+  Label,
+  Textarea
+} from "@workspace/ui/components";
 import {
   Alert,
 // jscpd:ignore-end

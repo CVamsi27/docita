@@ -8,8 +8,11 @@ import {
   useUpdatePrescriptionDefaults,
 } from "@workspace/data-access";
 import { toast } from "sonner";
-import { Card, CardContent } from "@workspace/ui/components/indicators/card";
-import { Form } from "@workspace/ui/components/form/form";
+import {
+  Card,
+  CardContent,
+  Form
+} from "@workspace/ui/components";
 import {
   prescriptionDefaultsFormSchema,
   type PrescriptionDefaultsFormValues,

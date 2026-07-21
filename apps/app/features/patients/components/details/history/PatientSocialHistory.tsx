@@ -1,19 +1,6 @@
 // jscpd:ignore-start
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Card, CardContent, CardHeader, CardTitle, Label } from "@workspace/ui/components";
 import { Coffee } from "lucide-react";
 import {
   ALCOHOL_USE_STATUS_LABELS,

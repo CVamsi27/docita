@@ -1,8 +1,11 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { Card, CardContent } from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { Checkbox } from "@workspace/ui/components/form/checkbox";
-import { Label } from "@workspace/ui/components/form/label";
+import {
+  Button,
+  Card,
+  CardContent,
+  Checkbox,
+  Label
+} from "@workspace/ui/components";
 import { CheckCircle2 } from "lucide-react";
 import { OCRHeader } from "@/features/ocr/components/sections/OCRHeader";
 import { OCRPatientInfo } from "@/features/ocr/components/sections/OCRPatientInfo";

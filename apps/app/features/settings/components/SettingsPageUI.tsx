@@ -1,8 +1,10 @@
 "use client";
 
 import { BackButton } from "@/components/navigation/back-button";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { Tabs } from "@workspace/ui/components/navigation/tabs";
+import {
+  AppPageScaffold,
+  Tabs
+} from "@workspace/ui/components";
 import {
   SettingsPageHeaderUserMeta,
   SettingsProfileHeader,

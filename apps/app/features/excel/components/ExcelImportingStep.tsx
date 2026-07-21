@@ -5,8 +5,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Progress } from "@workspace/ui/components/feedback/progress";
+  Progress
+} from "@workspace/ui/components";
 
 
 interface ExcelImportingStepProps {

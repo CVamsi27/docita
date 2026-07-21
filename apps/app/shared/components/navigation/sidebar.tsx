@@ -3,14 +3,14 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Button,
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@workspace/ui/components/overlay/sheet";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { SidebarContent } from "./sidebar-sections";
 
 // ─── Public API ───────────────────────────────────────────────────────────────

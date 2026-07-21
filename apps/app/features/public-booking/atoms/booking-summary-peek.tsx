@@ -1,15 +1,15 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import {
+  MicroLabel,
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
-} from "@workspace/ui/components/overlay/sheet";
+  SheetTrigger
+} from "@workspace/ui/components";
 import { formatDate } from "@workspace/utils";
 import { formatTime } from "@/lib/formatters";
 import { RequestSummaryCard } from "./request-summary-card";

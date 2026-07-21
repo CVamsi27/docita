@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Input } from "@workspace/ui/components/form/input";
+import {
+  Button,
+  Input,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { Search, X } from "lucide-react";
 import { useSearchIcdCodes } from "@workspace/data-access";
 import { useDebounce } from "@workspace/hooks/use-debounce";

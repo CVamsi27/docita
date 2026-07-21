@@ -1,19 +1,6 @@
 import { UseFormReturn } from "react-hook-form";
 import { useLabs } from "@workspace/data-access";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import type { CreateLabTestOrderInput } from "@/features/lab-tests/hooks/use-lab-tests-logic";
 
 const UNASSIGNED_VALUE = "__unassigned__";

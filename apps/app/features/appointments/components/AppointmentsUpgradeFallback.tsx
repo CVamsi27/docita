@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { CalendarDays } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import {
+  AppPageScaffold,
+  Button
+} from "@workspace/ui/components";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 
 export function AppointmentsUpgradeFallback() {

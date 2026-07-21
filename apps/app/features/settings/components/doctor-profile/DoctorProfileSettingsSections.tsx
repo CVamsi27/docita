@@ -1,14 +1,14 @@
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
-import { FormFieldGroup } from "@workspace/ui/components";
-import { Input } from "@workspace/ui/components/form/input";
+  FormFieldGroup,
+  Input
+} from "@workspace/ui/components";
 import type { AppAuthUser, User } from "@workspace/types";
 import { useTranslations } from "next-intl";
 import { SignatureUploadQR } from "@/features/settings/components/signature-upload-qr";

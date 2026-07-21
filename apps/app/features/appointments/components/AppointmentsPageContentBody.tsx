@@ -4,8 +4,10 @@ import dynamicImport from "next/dynamic";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Clock } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import {
+  AppPageScaffold,
+  Button
+} from "@workspace/ui/components";
 import { MarkDoctorDelaySection } from "./MarkDoctorDelaySection";
 import { AppointmentsPageHeaderUI, AppointmentRowActionDialogs } from "@/features/appointments/components";
 import { AppointmentsWeekViewSection, AppointmentsDayViewSection } from "./AppointmentsPageContentSections";

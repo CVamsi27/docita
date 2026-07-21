@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+  CardTitle
+} from "@workspace/ui/components";
 import { Check, Clock, X } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate } from "@workspace/utils";

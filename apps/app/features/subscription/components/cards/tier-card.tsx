@@ -1,8 +1,8 @@
 import {
+  Badge,
   Card,
-  CardContent,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+  CardContent
+} from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { Tier } from "@/lib/subscription/tier-access";
 import { PlanFeatures } from "@/features/subscription/components/sections/plan-features";

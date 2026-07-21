@@ -3,14 +3,14 @@
 // jscpd:ignore-start
 import { useState } from "react";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+  SymbolTooltip
+} from "@workspace/ui/components";
 import {
   Alert,
 // jscpd:ignore-end

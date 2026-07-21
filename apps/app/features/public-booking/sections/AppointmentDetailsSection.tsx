@@ -5,15 +5,13 @@ import { useState } from "react";
 import {
   Alert,
   AlertDescription,
-} from "@workspace/ui/components/feedback/alert";
-import {
+  Calendar,
   Card,
   CardContent,
   CardHeader,
-} from "@workspace/ui/components/indicators/card";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
-import { Separator } from "@workspace/ui/components/layout/separator";
-import { Calendar } from "@workspace/ui/components/form/calendar";
+  MicroLabel,
+  Separator
+} from "@workspace/ui/components";
 import { formatDate, formatPickerIsoDate } from "@workspace/utils";
 import { PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS } from "@/features/public-booking/public-booking-constants";
 import {

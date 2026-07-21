@@ -2,8 +2,10 @@
 
 import { Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import {
+  Button,
+  SymbolTooltip
+} from "@workspace/ui/components";
 
 /**
  * Trash button + tooltip used to remove a single line item from the

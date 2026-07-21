@@ -8,19 +8,17 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Label } from "@workspace/ui/components/form/label";
-import { Input } from "@workspace/ui/components/form/input";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import {
+  DataState,
+  Input,
+  Label,
+  MicroLabel,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+  TableRow
+} from "@workspace/ui/components";
 import { Wallet } from "lucide-react";
 import { useTranslations } from "next-intl";
 

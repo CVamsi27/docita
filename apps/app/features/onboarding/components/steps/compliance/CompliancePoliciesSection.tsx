@@ -1,8 +1,10 @@
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Progress } from "@workspace/ui/components/feedback/progress";
+import {
+  Badge,
+  Progress
+} from "@workspace/ui/components";
 import { ShieldCheck } from "lucide-react";
 import {
   DataProcessingAgreementContent,

@@ -1,7 +1,10 @@
 import React, { useCallback, useState } from "react";
 import Image from "next/image";
-import { Card, CardContent } from "@workspace/ui/components/indicators/card";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import {
+  Card,
+  CardContent,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { Camera, ImageIcon, RotateCcw, X } from "lucide-react";
 
 interface MobileFileUploaderProps {

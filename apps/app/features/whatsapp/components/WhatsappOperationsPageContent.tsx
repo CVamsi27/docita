@@ -4,13 +4,13 @@ import Link from "next/link";
 import { Suspense, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Settings2 } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
+  AppPageScaffold,
+  Button,
+  PageHeader,
   PageTabs,
-  type PageTabItem,
-} from "@workspace/ui/components/navigation/page-tabs";
+  type PageTabItem
+} from "@workspace/ui/components";
 import { WhatsappTemplatesSettings } from "@/features/settings";
 import { useAuth } from "@/lib/auth/auth-context";
 import { isAdmin } from "@/lib/auth/permissions";

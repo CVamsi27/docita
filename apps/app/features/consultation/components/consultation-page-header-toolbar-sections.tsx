@@ -10,19 +10,17 @@ import {
   PencilLine,
   Sparkles,
 } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
 import {
-  SymbolTooltip,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@workspace/ui/components/overlay/tooltip";
-import {
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@workspace/ui/components/overlay/dropdown-menu";
+  SymbolTooltip,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from "@workspace/ui/components";
 import { ConsultationTimerContainer } from "./ConsultationTimerContainer";
 
 interface ConsultationToolbarPrimaryActionsProps {

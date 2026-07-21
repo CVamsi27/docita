@@ -1,7 +1,9 @@
 "use client";
 
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import {
+  AppPageScaffold,
+  DataState
+} from "@workspace/ui/components";
 import { ConsultationShell } from "@/features/consultation/workspace/ConsultationShell";
 import { ConsultationPageHeaderUI } from "@/features/consultation/components/ConsultationPageHeaderUI";
 import { ConsultationSidebarContainer } from "@/features/consultation/components/ConsultationSidebarContainer";

@@ -5,11 +5,11 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@workspace/ui/components/feedback/alert";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+  Button,
+  Input,
+  Label,
+  MicroLabel
+} from "@workspace/ui/components";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 
 export function ContactSectionVerification({

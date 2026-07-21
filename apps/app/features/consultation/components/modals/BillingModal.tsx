@@ -2,17 +2,17 @@
 
 // jscpd:ignore-start
 import {
+  Button,
+  DatePicker,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Button } from "@workspace/ui/components/form/button";
-import { Label } from "@workspace/ui/components/form/label";
-import { DatePicker } from "@workspace/ui/components/form/date-picker";
-import { Switch } from "@workspace/ui/components/form/switch";
+  Label,
+  Switch
+} from "@workspace/ui/components";
 import { formatCurrency } from "@workspace/utils";
 import { BadgeCheck, CreditCard, FileText, PencilLine } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";

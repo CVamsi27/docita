@@ -2,27 +2,9 @@
 
 // jscpd:ignore-start
 import type { UseFormReturn } from "react-hook-form";
-import { Button } from "@workspace/ui/components/form/button";
-import { DatePicker } from "@workspace/ui/components/form/date-picker";
-import {
-  DialogFooter,
-} from "@workspace/ui/components/overlay/dialog";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { Button, DatePicker, DialogFooter } from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Textarea } from "@workspace/ui/components/form/textarea";
 import type { User } from "@workspace/types";
 import type { z } from "zod";
 import { createLeaveRequestSchema } from "@workspace/types";

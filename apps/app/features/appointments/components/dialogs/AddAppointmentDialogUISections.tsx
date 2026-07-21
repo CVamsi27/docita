@@ -7,18 +7,16 @@ import {
   type AvailableSlot,
 } from "@workspace/types";
 import type { SelectOption } from "@/lib/contexts/app-config-context";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
+  Badge,
+  Button,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form/form";
-import {
   IsoDatePickerField,
-  parseIsoDateToLocalDate,
-} from "@workspace/ui/components/form/iso-date-picker-field";
+  parseIsoDateToLocalDate
+} from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { formatClinicPickerDayIsoFromSelection } from "@workspace/utils";
 import { AppointmentFormFields } from "@/features/appointments/components/sections/add-dialog/AppointmentFormFields";

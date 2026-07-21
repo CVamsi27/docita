@@ -9,11 +9,11 @@ import {
   useUpdateClinicSettings,
 } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Button,
   Form,
-} from "@workspace/ui/components/form/form";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+  Skeleton
+} from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
   queueSettingsFormSchema,

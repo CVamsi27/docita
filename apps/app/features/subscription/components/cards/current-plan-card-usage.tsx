@@ -1,8 +1,10 @@
 "use client";
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Progress } from "@workspace/ui/components/feedback/progress";
+import {
+  Badge,
+  Progress
+} from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   formatUsageMeterCaption,

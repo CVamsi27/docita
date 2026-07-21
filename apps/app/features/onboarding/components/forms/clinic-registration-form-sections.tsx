@@ -4,21 +4,21 @@
 import { useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { AlertCircle } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
+  MicroLabel
+} from "@workspace/ui/components";
 import {
   Alert,
 // jscpd:ignore-end
   AlertDescription,
 } from "@workspace/ui/components/feedback/alert";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatDateTime } from "@/lib/formatters";
 import type {

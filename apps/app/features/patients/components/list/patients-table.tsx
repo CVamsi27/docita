@@ -1,14 +1,12 @@
 import type { Patient } from "@workspace/types";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  DataTable,
-  type DataTableColumn,
-} from "@workspace/ui/components/data-display/data-table";
 import {
   Avatar,
   AvatarFallback,
-} from "@workspace/ui/components/indicators/avatar";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+  Button,
+  DataTable,
+  SymbolTooltip,
+  type DataTableColumn
+} from "@workspace/ui/components";
 import { formatGenderLabel } from "@/lib/formatters";
 import { getInitials } from "@/lib/formatters";
 import { getPatientFullName } from "@workspace/utils";

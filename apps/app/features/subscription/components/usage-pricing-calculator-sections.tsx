@@ -1,10 +1,12 @@
 "use client";
 
-import { Label } from "@workspace/ui/components/form/label";
-import { Slider } from "@workspace/ui/components/form/slider";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Separator } from "@workspace/ui/components/layout/separator";
-import { Button } from "@workspace/ui/components/form/button";
+import {
+  Badge,
+  Button,
+  Label,
+  Separator,
+  Slider
+} from "@workspace/ui/components";
 import { formatCountLocale } from "@workspace/utils";
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";

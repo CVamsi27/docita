@@ -1,12 +1,12 @@
 import { Lock, Unlock } from "lucide-react";
 import {
+  Badge,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+  CardTitle
+} from "@workspace/ui/components";
 import { Feature, getTierInfo } from "@/lib/subscription/tier-access";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 

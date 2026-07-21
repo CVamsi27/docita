@@ -1,14 +1,14 @@
 "use client";
 
 import {
+  AppPageScaffold,
   Card,
   CardContent,
   CardHeader,
-} from "@workspace/ui/components/indicators/card";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
-import { StatGrid } from "@workspace/ui/components/data-display/stat-grid";
+  PageHeader,
+  Skeleton,
+  StatGrid
+} from "@workspace/ui/components";
 
 export function ConsultationDashboardSkeleton() {
   return (

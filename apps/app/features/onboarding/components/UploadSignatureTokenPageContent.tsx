@@ -8,14 +8,12 @@ import { useParams } from "next/navigation";
 import {
   Alert,
   AlertDescription,
-} from "@workspace/ui/components/feedback/alert";
-import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+  CardTitle
+} from "@workspace/ui/components";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { SignatureUploadWorkflow } from "@/components/signature/signature-upload-workflow";
 import { SupportContact } from "@/components/support-contact/support-contact";

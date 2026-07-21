@@ -5,9 +5,9 @@ import type { ReactNode } from "react";
 import {
   CardDescription,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
+  MicroLabel
+} from "@workspace/ui/components";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { cn } from "@workspace/ui/lib/utils";
 
 export function BookingSectionHeader({

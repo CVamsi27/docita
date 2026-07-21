@@ -1,12 +1,12 @@
 "use client";
 
 import {
+  Badge,
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+  CardTitle
+} from "@workspace/ui/components";
 import { Pill } from "lucide-react";
 import type { ActiveMedication } from "@workspace/types";
 import { formatDate } from "@/lib/formatters";

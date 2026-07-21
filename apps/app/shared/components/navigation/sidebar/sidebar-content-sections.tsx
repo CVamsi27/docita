@@ -4,13 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronUp, X } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import { Button } from "@workspace/ui/components/form/button";
+import {
+  Button,
+  SidebarRailTooltip,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import {
   DocitaIcon,
   DocitaLogo,
 } from "@workspace/ui/components/indicators/docita-logo";
-import { SidebarRailTooltip } from "@workspace/ui/components/navigation/sidebar-rail-tooltip";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { useScrollBehavior } from "@workspace/hooks";
 import type { NavSection } from "@/components/navigation/nav-config";
 import { SidebarTrackSection } from "./sidebar-track-section";

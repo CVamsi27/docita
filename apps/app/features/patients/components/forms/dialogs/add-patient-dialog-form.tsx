@@ -3,16 +3,16 @@
 import type { BaseSyntheticEvent } from "react";
 import type { Control, UseFormReturn } from "react-hook-form";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { Button } from "@workspace/ui/components/form/button";
-import { Checkbox } from "@workspace/ui/components/form/checkbox";
 import {
+  Button,
+  Checkbox,
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
+  FormMessage
+} from "@workspace/ui/components";
 import {
   DPDP_NOTICE_TEXT_STAFF,
   DPDP_NOTICE_TITLE,

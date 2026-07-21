@@ -2,14 +2,14 @@
 
 import type { FC } from "react";
 import { ChevronDown } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { cn } from "@workspace/ui/lib/utils";
 import {
+  Badge,
+  Button,
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
-} from "@workspace/ui/components/overlay/collapsible";
+  CollapsibleTrigger
+} from "@workspace/ui/components";
+import { cn } from "@workspace/ui/lib/utils";
 import { ComparisonTable } from "@/features/subscription";
 import {
   PRICING_CURRENCY_SYMBOLS,

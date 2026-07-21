@@ -1,14 +1,14 @@
 import React from "react";
 import { useTranslations } from "next-intl";
-import { SearchInput } from "@workspace/ui/components/form/search-input";
-import { Label } from "@workspace/ui/components/form/label";
 import {
+  Label,
+  SearchInput,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+  SelectValue
+} from "@workspace/ui/components";
 import type { ListInvoicesContractQuery } from "@workspace/types";
 
 type InvoiceStatusFilter = ListInvoicesContractQuery["status"] | "all";

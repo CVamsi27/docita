@@ -2,20 +2,8 @@
 
 // jscpd:ignore-start
 import { X } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@workspace/ui/components/overlay/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Textarea } from "@workspace/ui/components/form/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { Button, Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components";
 import type { AppointmentRequestResponse } from "@workspace/types";
 import {
   REJECT_REASON_CUSTOM,

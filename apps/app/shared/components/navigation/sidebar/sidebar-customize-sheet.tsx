@@ -2,15 +2,15 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { cn } from "@workspace/ui/lib/utils";
-import { Switch } from "@workspace/ui/components/form/switch";
 import {
+  MicroLabel,
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@workspace/ui/components/overlay/sheet";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+  Switch,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import {
   FIXED_NAV_HREFS,
   type NavSection,

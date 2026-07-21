@@ -3,14 +3,15 @@
 // jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Label } from "@workspace/ui/components/form/label";
-import { Button } from "@workspace/ui/components/form/button";
+  Label,
+  Skeleton
+} from "@workspace/ui/components";
 import {
   Select,
 // jscpd:ignore-end
@@ -20,7 +21,6 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { Calendar } from "lucide-react";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { DoctorAvailabilityDayRow } from "./doctor-availability-day-row";
 import { useDoctorAvailabilitySettings } from "./use-doctor-availability-settings";
 

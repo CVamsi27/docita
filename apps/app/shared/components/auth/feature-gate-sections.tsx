@@ -3,15 +3,15 @@
 // jscpd:ignore-start
 import Link from "next/link";
 import { Clock, Lock, Sparkles } from "lucide-react";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+  CardTitle
+} from "@workspace/ui/components";
 import {
   Tooltip,
 // jscpd:ignore-end

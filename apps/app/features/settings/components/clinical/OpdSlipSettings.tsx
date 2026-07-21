@@ -8,27 +8,10 @@ import {
   useUpdateOpdSlipSettings,
 } from "@workspace/data-access";
 import { toast } from "sonner";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
-import { Button } from "@workspace/ui/components/form/button";
-import { Label } from "@workspace/ui/components/form/label";
-import { Input } from "@workspace/ui/components/form/input";
-import { Textarea } from "@workspace/ui/components/form/textarea";
+import { FormControl, FormField, FormItem, FormMessage, Input, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Form, Label, Skeleton } from "@workspace/ui/components";
 import { FileText, Save } from "lucide-react";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
 import {
   opdSlipSettingsFormSchema,
   type OpdSlipSettingsFormValues,

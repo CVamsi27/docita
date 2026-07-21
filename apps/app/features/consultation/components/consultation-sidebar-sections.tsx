@@ -1,16 +1,17 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Card, CardContent } from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import {
+  Button,
+  Card,
+  CardContent,
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@workspace/ui/components/overlay/collapsible";
+  MicroLabel,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { ChevronDown, Clock, User, X } from "lucide-react";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   PatientFamilyHistory,

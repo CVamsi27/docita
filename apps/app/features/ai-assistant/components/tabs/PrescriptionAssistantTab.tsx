@@ -1,16 +1,16 @@
 // jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+  Input,
+  Textarea
+} from "@workspace/ui/components";
 import { AlertTriangle, CheckCircle2, Lightbulb, Pill, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type {

@@ -5,9 +5,14 @@ import { getPatientFullName } from "@workspace/utils";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { CalendarCheck, Check, X } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
+import {
+  AppPageScaffold,
+  Badge,
+  Button,
+  DataState,
+  PageHeader,
+  SegmentedControl
+} from "@workspace/ui/components";
 import {
   Card,
   CardContent,
@@ -15,9 +20,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
-import { SegmentedControl } from "@workspace/ui/components/navigation/segmented-control";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import {
   Feature,
   type FollowUpResponse,

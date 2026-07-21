@@ -3,18 +3,16 @@
 // jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
+  Alert,
+  AlertDescription,
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Alert,
-  AlertDescription,
-} from "@workspace/ui/components/feedback/alert";
+  DialogTitle
+} from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   AlertTriangle,

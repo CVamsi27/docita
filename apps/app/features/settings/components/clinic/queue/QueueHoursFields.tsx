@@ -1,11 +1,4 @@
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
-import { Input } from "@workspace/ui/components/form/input";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input } from "@workspace/ui/components/form/form-primitives";
 import type { UseFormReturn } from "react-hook-form";
 import type { QueueSettingsFormValues } from "@workspace/types";
 import { useTranslations } from "next-intl";

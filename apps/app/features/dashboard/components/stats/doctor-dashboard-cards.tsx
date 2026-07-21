@@ -4,21 +4,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatTime } from "@/lib/formatters";
 import {
+  Avatar,
+  AvatarFallback,
+  Badge,
+  Button,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Avatar,
-  AvatarFallback,
-} from "@workspace/ui/components/indicators/avatar";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
   ListRow,
-  ListRowGroup,
-} from "@workspace/ui/components/data-display/list-row";
+  ListRowGroup
+} from "@workspace/ui/components";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Play, Stethoscope } from "lucide-react";
 

@@ -4,25 +4,8 @@ import { FC, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, RefreshCw } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Card, CardContent } from "@workspace/ui/components/indicators/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import {
-  DataTable,
-  type DataTableColumn,
-} from "@workspace/ui/components/data-display/data-table";
-import { ListRow } from "@workspace/ui/components/data-display/list-row";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { AppPageScaffold, Badge, Button, Card, CardContent, DataState, DataTable, ListRow, PageHeader, type DataTableColumn } from "@workspace/ui/components";
 import type { InsuranceClaim } from "@workspace/types";
 import { getPatientFullName } from "@workspace/utils";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";

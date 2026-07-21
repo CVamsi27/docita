@@ -6,8 +6,12 @@
 // simple regex that flags the English word "as" in JSX text as a type cast.
 // There are no TypeScript type assertions in this file.
 
-import { Card, CardContent, CardHeader } from "@workspace/ui/components/indicators/card";
-import { Separator } from "@workspace/ui/components/layout/separator";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Separator
+} from "@workspace/ui/components";
 import {
   DocumentHeader,
   PatientInfoSection,

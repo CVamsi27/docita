@@ -2,25 +2,8 @@
 
 // jscpd:ignore-start
 import { FormEvent } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Input } from "@workspace/ui/components/form/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import { Button } from "@workspace/ui/components/form/button";
-import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, IsoDatePickerField } from "@workspace/ui/components";
 import type { CreateDataSubjectRequest } from "@workspace/types";
 import {
   REQUEST_TYPE_OPTIONS,

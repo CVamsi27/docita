@@ -1,11 +1,11 @@
 "use client";
 
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Label } from "@workspace/ui/components/form/label";
 import {
+  Badge,
+  Label,
   RadioGroup,
-  RadioGroupItem,
-} from "@workspace/ui/components/form/radio-group";
+  RadioGroupItem
+} from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   getFieldError,

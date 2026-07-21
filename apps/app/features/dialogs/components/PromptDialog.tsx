@@ -1,14 +1,14 @@
 // jscpd:ignore-start
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
+  Input
+} from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { PromptOptions } from "@/features/dialogs/types";
 import {

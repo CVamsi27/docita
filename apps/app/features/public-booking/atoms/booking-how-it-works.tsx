@@ -5,16 +5,14 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@workspace/ui/components/feedback/alert";
-import { Button } from "@workspace/ui/components/form/button";
-import {
+  Button,
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
-} from "@workspace/ui/components/overlay/sheet";
+  SheetTrigger
+} from "@workspace/ui/components";
 import { bookingSteps } from "./booking-constants";
 import { cn } from "@workspace/ui/lib/utils";
 

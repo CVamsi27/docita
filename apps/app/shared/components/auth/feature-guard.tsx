@@ -4,14 +4,14 @@
 import React from "react";
 import Link from "next/link";
 import { Lock, Sparkles } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+  CardTitle
+} from "@workspace/ui/components";
 import {
   Feature,
   FEATURE_TIER_MAP,

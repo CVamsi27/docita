@@ -1,15 +1,8 @@
 "use client";
 
 // jscpd:ignore-start
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Label } from "@workspace/ui/components";
 import { useTranslations } from "next-intl";
 import {
   CURRENCY_OPTIONS,
@@ -33,7 +26,7 @@ export interface PricingEstimatorUsage {
 
 interface DynamicPricingEstimatorInputsProps {
   tier: TierName;
-  tiers: string[];
+  tiers: readonly TierName[];
   onTierChange: (tier: TierName) => void;
   effectiveBillingCycle: "monthly" | "yearly";
   onBillingCycleChange: (cycle: "monthly" | "yearly") => void;

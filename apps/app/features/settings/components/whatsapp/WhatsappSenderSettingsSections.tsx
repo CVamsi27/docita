@@ -6,16 +6,16 @@ import {
   RotateCcw,
   ShieldCheck,
 } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+  Input,
+  Label
+} from "@workspace/ui/components";
 
 type SenderMode = "SHARED" | "BYO" | "MANAGED";
 

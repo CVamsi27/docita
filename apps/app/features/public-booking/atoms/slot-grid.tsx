@@ -10,14 +10,12 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@workspace/ui/components/feedback/alert";
-import { Button } from "@workspace/ui/components/form/button";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
-import {
+  Button,
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@workspace/ui/components/overlay/collapsible";
+  EmptyState
+} from "@workspace/ui/components";
 import {
   publicBookingSlotEmptyMessage,
   SlotTimesScrollArea,

@@ -7,14 +7,12 @@ import { useAuth } from "@/lib/auth/auth-context";
 import {
   Alert,
   AlertDescription,
-} from "@workspace/ui/components/feedback/alert";
-import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+  CardTitle
+} from "@workspace/ui/components";
 import { FileText, CheckCircle2 } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import { ClinicSlaSignatureQR } from "@/features/settings/components/clinic-sla-signature-qr";

@@ -8,10 +8,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import {
-  Form,
-} from "@workspace/ui/components/form/form";
+  Form
+} from "@workspace/ui/components";
 import { User } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {

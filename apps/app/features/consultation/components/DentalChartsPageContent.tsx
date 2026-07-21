@@ -4,10 +4,12 @@ import { useState } from "react";
 import { Smile, Save } from "lucide-react";
 import { CLINIC_TYPE_LABELS, Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { Card } from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
+import {
+  AppPageScaffold,
+  Button,
+  Card,
+  PageHeader
+} from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { toast } from "sonner";
 import { useClinic } from "@/lib/contexts/clinic-context";

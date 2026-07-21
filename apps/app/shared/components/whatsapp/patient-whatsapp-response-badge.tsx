@@ -1,7 +1,9 @@
 "use client";
 
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import {
+  Badge,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import {
   formatDate,
   DATE_FORMATS,

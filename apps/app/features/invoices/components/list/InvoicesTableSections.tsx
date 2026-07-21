@@ -2,11 +2,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getPatientFullName } from "@workspace/utils";
 import { useTranslations } from "next-intl";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
-import { ListRow } from "@workspace/ui/components/data-display/list-row";
-import { DataTableColumn } from "@workspace/ui/components/data-display/data-table";
+import {
+  Button,
+  DataTableColumn,
+  ListRow,
+  StatusBadge,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import {
   ArrowDown,
   ArrowUp,

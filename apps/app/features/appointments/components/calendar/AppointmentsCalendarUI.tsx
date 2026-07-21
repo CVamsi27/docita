@@ -1,19 +1,17 @@
 // jscpd:ignore-start
-import { Calendar } from "@workspace/ui/components/form/calendar";
 import {
+  Button,
+  Calendar,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+  SelectValue
+} from "@workspace/ui/components";
 import {
   DEFAULT_TIMEZONE,
   formatClinicPickerDayIsoFromSelection,

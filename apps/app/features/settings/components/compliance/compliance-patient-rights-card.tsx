@@ -2,14 +2,14 @@
 
 // jscpd:ignore-start
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
+  CardTitle
+} from "@workspace/ui/components";
 import { Inbox } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import type {

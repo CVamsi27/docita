@@ -11,13 +11,14 @@ import {
   type SecuritySettingsFormValues,
 } from "@workspace/types";
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
+  Form
+} from "@workspace/ui/components";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import {
   useClinicSettings,
@@ -26,9 +27,6 @@ import {
 import { parseClinicAppSettings } from "@/lib/clinic/parse-clinic-app-settings";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  Form,
-} from "@workspace/ui/components/form/form";
 // jscpd:ignore-end
 import { TwoFactorAuthSection } from "./SecuritySettingsSections";
 import { SessionTimeoutSection } from "./SecuritySettingsSections";

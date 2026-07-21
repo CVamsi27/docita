@@ -7,8 +7,8 @@ import {
   FormField,
   FormItem,
   FormLabel,
-} from "@workspace/ui/components/form/form";
-import { Input } from "@workspace/ui/components/form/input";
+  Input
+} from "@workspace/ui/components";
 
 interface InvoiceSubtotalProps<T extends FieldValues & { discount: number }> {
   control: Control<T>;

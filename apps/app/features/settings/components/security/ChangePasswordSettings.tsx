@@ -9,20 +9,18 @@ import {
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import {
   Form,
   FormControl,
   FormField,
-} from "@workspace/ui/components/form/form";
-import { FormFieldGroup } from "@workspace/ui/components";
+  FormFieldGroup,
+  Input
+} from "@workspace/ui/components";
 import { settingsApi } from "@/features/settings/api/settings.api";
 import { PasswordStrengthIndicator } from "@/features/auth";
 

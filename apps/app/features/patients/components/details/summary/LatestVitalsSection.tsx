@@ -3,10 +3,10 @@
 import { usePatientSnapshot } from "@workspace/data-access";
 import {
   DataState,
-  type DataStateStatus,
-} from "@workspace/ui/components/data-display/data-state";
-import { StatTile } from "@workspace/ui/components/data-display/stat-tile";
-import { Section } from "@workspace/ui/components/layout/section";
+  Section,
+  StatTile,
+  type DataStateStatus
+} from "@workspace/ui/components";
 import { formatDate } from "@workspace/utils";
 import { Activity, HeartPulse, Thermometer, Weight } from "lucide-react";
 import { SummarySectionAction } from "./SummarySectionAction";

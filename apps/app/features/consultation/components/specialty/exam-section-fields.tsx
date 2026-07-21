@@ -1,8 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Label } from "@workspace/ui/components/form/label";
-import { Textarea } from "@workspace/ui/components/form/textarea";
+import {
+  Label,
+  Textarea
+} from "@workspace/ui/components";
 
 /**
  * Shared field primitives for the specialty exam sections (Gynecology,

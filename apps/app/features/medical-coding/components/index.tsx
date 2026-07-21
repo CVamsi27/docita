@@ -4,16 +4,16 @@
 import { FC } from "react";
 import Link from "next/link";
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Input } from "@workspace/ui/components/form/input";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+  Input,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { BookOpen, CheckCircle2, FileText, Search, X } from "lucide-react";
 
 export const MedicalCodingSearch: FC<{

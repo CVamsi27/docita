@@ -4,11 +4,11 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { usePatientTimeline } from "@workspace/data-access";
 import {
+  Badge,
   DataState,
-  type DataStateStatus,
-} from "@workspace/ui/components/data-display/data-state";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Section } from "@workspace/ui/components/layout/section";
+  Section,
+  type DataStateStatus
+} from "@workspace/ui/components";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatDate } from "@workspace/utils";
 import { CalendarDays, ChevronRight, Pill, Stethoscope } from "lucide-react";

@@ -2,27 +2,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import {
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Label } from "@workspace/ui/components/form/label";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Input } from "@workspace/ui/components/form/input";
-import { Switch } from "@workspace/ui/components/form/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Button, CardDescription, CardHeader, CardTitle, IsoDatePickerField, Label, Skeleton, Switch, SymbolTooltip } from "@workspace/ui/components";
 import { Trash2 } from "lucide-react";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
-import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
 import { formatDate } from "@workspace/utils";
 import type { DoctorTimeOff } from "@workspace/data-access";
 

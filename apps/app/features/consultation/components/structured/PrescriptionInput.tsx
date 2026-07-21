@@ -1,16 +1,6 @@
 import React from "react";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Input } from "@workspace/ui/components/form/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Button, SelectGroup, SelectLabel, SymbolTooltip } from "@workspace/ui/components";
 import { Pill, Plus, Trash2 } from "lucide-react";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { MEDICATION_ROUTES } from "@/lib/services/clinic-feature.service";

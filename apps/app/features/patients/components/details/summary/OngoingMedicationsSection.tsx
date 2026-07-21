@@ -2,12 +2,12 @@
 
 import { useActiveMedications } from "@workspace/data-access";
 import {
+  Badge,
   DataState,
-  type DataStateStatus,
-} from "@workspace/ui/components/data-display/data-state";
-import { Progress } from "@workspace/ui/components/feedback/progress";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Section } from "@workspace/ui/components/layout/section";
+  Progress,
+  Section,
+  type DataStateStatus
+} from "@workspace/ui/components";
 import { Pill } from "lucide-react";
 import { SummarySectionAction } from "./SummarySectionAction";
 

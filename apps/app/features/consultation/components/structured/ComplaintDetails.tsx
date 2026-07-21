@@ -1,10 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Label } from "@workspace/ui/components/form/label";
-import { Input } from "@workspace/ui/components/form/input";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import { MicButton } from "@workspace/ui/components/form/mic-button";
+import {
+  Input,
+  Label,
+  MicButton,
+  Textarea
+} from "@workspace/ui/components";
 import { SelectField } from "./_shared/SelectField";
 import type { ChiefComplaintItem } from "./chief-complaint.types";
 

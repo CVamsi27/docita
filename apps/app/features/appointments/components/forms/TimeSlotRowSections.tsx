@@ -5,9 +5,11 @@ import { Check, Play, UserCheck } from "lucide-react";
 import { formatClockTime } from "@/lib/formatters";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import type { AppointmentListItem } from "@workspace/data-access";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Button } from "@workspace/ui/components/form/button";
+import {
+  Badge,
+  Button,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { WhatsAppDeliveryBadge } from "@/components/whatsapp/whatsapp-delivery-badge";
 import { PatientWhatsAppResponseBadge } from "@/components/whatsapp/patient-whatsapp-response-badge";

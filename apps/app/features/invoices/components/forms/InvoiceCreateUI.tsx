@@ -3,10 +3,10 @@
 import { FC } from "react";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
-import { Button } from "@workspace/ui/components/form/button";
 import {
-  Form,
-} from "@workspace/ui/components/form/form";
+  Button,
+  Form
+} from "@workspace/ui/components";
 import { Save } from "lucide-react";
 import { useInvoiceCreateLogic } from "@/features/invoices/hooks/use-invoice-create-logic";
 import { BackButton } from "@/components/navigation/back-button";

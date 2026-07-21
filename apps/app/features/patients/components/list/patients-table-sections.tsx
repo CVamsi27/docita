@@ -1,9 +1,9 @@
 import type { Patient } from "@workspace/types";
-import { Button } from "@workspace/ui/components/form/button";
 import {
   Avatar,
   AvatarFallback,
-} from "@workspace/ui/components/indicators/avatar";
+  Button
+} from "@workspace/ui/components";
 import { formatGenderLabel } from "@/lib/formatters";
 import { getInitials } from "@/lib/formatters";
 import { getPatientFullName } from "@workspace/utils";

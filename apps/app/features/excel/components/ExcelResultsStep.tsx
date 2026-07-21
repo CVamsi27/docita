@@ -1,19 +1,17 @@
 // jscpd:ignore-start
 import {
+  Button,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+  TableRow
+} from "@workspace/ui/components";
 import { AlertCircle, Check, CheckCircle2, Users, XCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ImportResult } from "@/features/excel/hooks/use-excel-import";

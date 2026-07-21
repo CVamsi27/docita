@@ -3,15 +3,15 @@
 import Link from "next/link";
 import { getPatientFullName } from "@workspace/utils";
 // jscpd:ignore-end
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { Section } from "@workspace/ui/components/layout/section";
 import {
+  AppPageScaffold,
+  Button,
+  DataState,
+  PageHeader,
+  Section,
   StatGrid,
-  type StatItem,
-} from "@workspace/ui/components/data-display/stat-grid";
+  type StatItem
+} from "@workspace/ui/components";
 import {
   Activity,
   BadgeCheck,

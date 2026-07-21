@@ -3,16 +3,14 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
+  Button,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
-import {
-  ListRowGroup,
-} from "@workspace/ui/components/data-display/list-row";
+  EmptyState,
+  ListRowGroup
+} from "@workspace/ui/components";
 
 interface PortalCardSectionProps {
   pageTitle: string;

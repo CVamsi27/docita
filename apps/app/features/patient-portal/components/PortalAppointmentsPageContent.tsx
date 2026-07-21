@@ -7,8 +7,16 @@ import {
   usePatientPortalAppointments,
   useRequestAppointment,
 } from "@workspace/data-access";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { Button } from "@workspace/ui/components/form/button";
+import {
+  AppPageScaffold,
+  Button,
+  DataState,
+  Input,
+  IsoDatePickerField,
+  Label,
+  PageHeader,
+  Textarea
+} from "@workspace/ui/components";
 import {
   Card,
   CardContent,
@@ -16,12 +24,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
 import { Calendar } from "lucide-react";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { mapPortalAppointmentRow } from "@/features/patient-portal/lib/map-portal-records";

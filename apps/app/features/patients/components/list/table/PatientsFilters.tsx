@@ -4,13 +4,11 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import {
+  Input,
   Tabs,
   TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/navigation/tabs";
-import { Input } from "@workspace/ui/components/form/input";
+  TabsTrigger
+} from "@workspace/ui/components";
 import { ClearSearchButton } from "@/components/buttons/clear-search-button";
 import { Search } from "lucide-react";
 
