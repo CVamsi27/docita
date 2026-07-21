@@ -4,8 +4,8 @@ import { sanitizeUserFacingMessage } from "@workspace/utils";
 import {
   Card,
   CardContent,
-} from "@workspace/ui/components/indicators/card";
-import { TabsContent } from "@workspace/ui/components/navigation/tabs";
+  TabsContent
+} from "@workspace/ui/components";
 import { ShieldAlert } from "lucide-react";
 import type { SystemMonitoringPageViewModel } from "./use-system-monitoring-page";
 import { TenantScopeMetricsCards } from "./tenant-scope-metrics-cards";

@@ -1,22 +1,13 @@
 "use client";
 
-// jscpd:ignore-start
 import { memo } from "react";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { Badge } from "@workspace/ui/components";
 import { formatAmountLocale } from "@workspace/utils";
 import { useTranslations } from "next-intl";
 import type { InternalDetailedMetricsRow } from "@workspace/data-access/internal";
 
 export type DetailedMetricsRow = InternalDetailedMetricsRow;
-// jscpd:ignore-end
 
 /**
  * Phase 3 (per-feature): apps/internal Analytics > Detailed metrics

@@ -1,12 +1,12 @@
 "use client";
 
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
+  EmptyState
+} from "@workspace/ui/components";
 import {
   DEFAULT_CURRENCY,
   formatBillingCycleLabel,

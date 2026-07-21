@@ -2,7 +2,7 @@
 
 import type { Control, FieldPath } from "react-hook-form";
 import { ArrowLeft } from "lucide-react";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Textarea } from "@workspace/ui/components/form/form-primitives"
 import { AppPageScaffold, Button, Card, CardContent, DataState, Form, PageHeader } from "@workspace/ui/components";
 import type { EditInsuranceClaimFormValues } from "@workspace/types";
 import { useInsuranceClaimEditLogic } from "@/features/insurance-claims/hooks/use-insurance-claim-edit-logic";

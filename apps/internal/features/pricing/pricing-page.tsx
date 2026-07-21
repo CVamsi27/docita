@@ -5,22 +5,20 @@ import { PricingTierTable } from "./pricing-tier-table";
 import { PricingOfferBuilder } from "./pricing-offer-builder";
 import { PricingOfferList } from "./pricing-offer-list";
 
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
 import {
+  AppPageScaffold,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import {
+  DataState,
+  PageHeader,
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/navigation/tabs";
+  TabsTrigger
+} from "@workspace/ui/components";
 
 export default function PricingPage() {
   const {

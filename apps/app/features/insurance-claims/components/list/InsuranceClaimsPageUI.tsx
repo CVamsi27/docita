@@ -4,7 +4,7 @@ import { FC, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, RefreshCw } from "lucide-react";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
 import { AppPageScaffold, Badge, Button, Card, CardContent, DataState, DataTable, ListRow, PageHeader, type DataTableColumn } from "@workspace/ui/components";
 import type { InsuranceClaim } from "@workspace/types";
 import { getPatientFullName } from "@workspace/utils";

@@ -2,15 +2,8 @@
 
 // jscpd:ignore-start
 import { Info } from "lucide-react";
-import {
-  Badge,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@workspace/ui/components";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { Badge } from "@workspace/ui/components";
 import {
   SymbolTooltip,
 // jscpd:ignore-end

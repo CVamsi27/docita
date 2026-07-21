@@ -2,16 +2,16 @@
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
+  Badge,
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Label } from "@workspace/ui/components/form/label";
-import { Textarea } from "@workspace/ui/components/form/textarea";
+  Label,
+  Textarea
+} from "@workspace/ui/components";
 import { Lightbulb, ThumbsDown, ThumbsUp } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import { useTranslations } from "next-intl";

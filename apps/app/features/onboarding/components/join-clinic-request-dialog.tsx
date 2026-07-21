@@ -1,7 +1,7 @@
 "use client";
 
 // jscpd:ignore-start
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives"
 import { Button, Dialog, DialogContent, DialogHeader, DialogTitle } from "@workspace/ui/components";
 import { useTranslations } from "next-intl";
 // jscpd:ignore-end

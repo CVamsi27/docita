@@ -1,23 +1,21 @@
 "use client";
 
-// jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+  EmptyState
+} from "@workspace/ui/components";
 import { Eye, MessageSquare, ThumbsUp, Trash2 } from "lucide-react";
 import { formatDate } from "@workspace/utils";
 import type { InternalFeedback } from "@workspace/data-access/internal";
 import {
   FeedbackRatingStars,
-// jscpd:ignore-end
   FeedbackStatusBadge,
 } from "./feedback-display";
 

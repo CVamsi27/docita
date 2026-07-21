@@ -1,25 +1,9 @@
 "use client";
 
-// jscpd:ignore-start
 import { formatDate, formatDistanceToNow, getUserFacingErrorMessage } from "@workspace/utils";
 import { useMemo } from "react";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import {
-  Table,
-// jscpd:ignore-end
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { Badge, Card, CardContent, CardHeader, CardTitle, DataState } from "@workspace/ui/components";
 import { useInternalSupportInquiries } from "@workspace/data-access/internal";
 import type { SupportInquiry } from "@workspace/types";
 import { Mail } from "lucide-react";

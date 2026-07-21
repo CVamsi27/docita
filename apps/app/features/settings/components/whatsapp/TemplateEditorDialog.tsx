@@ -3,7 +3,7 @@
 // jscpd:ignore-start
 import type { WhatsappTemplateCategory } from "@workspace/types";
 import { whatsappTemplateCategorySchema } from "@workspace/types";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives"
 import { Label } from "@workspace/ui/components";
 import { CRUDDialog } from "@workspace/ui/components/overlay/crud-dialog";
 

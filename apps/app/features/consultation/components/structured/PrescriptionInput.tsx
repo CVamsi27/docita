@@ -1,5 +1,5 @@
 import React from "react";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
 import { Button, SelectGroup, SelectLabel, SymbolTooltip } from "@workspace/ui/components";
 import { Pill, Plus, Trash2 } from "lucide-react";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";

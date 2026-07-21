@@ -2,7 +2,7 @@
 
 // jscpd:ignore-start
 import type { InvoiceListRow } from "@workspace/types";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives"
 import { Button, Label, MicroLabel } from "@workspace/ui/components";
 import {
   Dialog,

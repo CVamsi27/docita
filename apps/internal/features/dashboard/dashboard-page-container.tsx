@@ -1,16 +1,16 @@
 "use client";
 
 import {
+  AppPageScaffold,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Input } from "@workspace/ui/components/form/input";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+  DataState,
+  Input,
+  PageHeader
+} from "@workspace/ui/components";
 import {
   Building2,
   FileText,

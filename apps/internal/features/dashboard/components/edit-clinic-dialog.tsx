@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { CRUDDialog } from "@workspace/ui/components/overlay/crud-dialog";
 import { Pencil } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import {
+  Button,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { client } from "@/lib/api/api-client";
 import { toast } from "sonner";
 import {

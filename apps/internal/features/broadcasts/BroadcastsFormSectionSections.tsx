@@ -1,26 +1,22 @@
 // check-as-cast-density: allow-file — narrowing casts required by generic signatures or external types
 "use client";
 
-// jscpd:ignore-start
 import type { ChangeEvent } from "react";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
+  Badge,
+  Button,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+  Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/form/select";
-import {
-  Collapsible,
-// jscpd:ignore-end
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@workspace/ui/components/overlay/collapsible";
+  Textarea
+} from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { AlertCircle, FileText, Send, Upload } from "lucide-react";
 import { useTranslations } from "next-intl";

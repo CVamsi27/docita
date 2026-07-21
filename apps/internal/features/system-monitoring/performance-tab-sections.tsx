@@ -2,17 +2,15 @@
 
 import { useTranslations } from "next-intl";
 import { DATE_FORMATS, formatDate } from "@workspace/utils";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-// jscpd:ignore-start
 import {
+  Badge,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-// jscpd:ignore-end
-import { Progress } from "@workspace/ui/components/feedback/progress";
+  Progress
+} from "@workspace/ui/components";
 import {
   Activity,
   Database,
@@ -43,7 +41,6 @@ export function StatCardGrid({
   performance,
   monitoringHealth,
   database,
-// jscpd:ignore-start
 }: StatCardGridProps) {
   const t = usePerformanceTranslations();
   return (
@@ -56,7 +53,6 @@ export function StatCardGrid({
         <CardContent>
           <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
             {performance?.uptime.formatted ?? "N/A"}
-{/* jscpd:ignore-end */}
           </div>
           <p className="text-xs text-muted-foreground">
             {t("uptimeDescription")}

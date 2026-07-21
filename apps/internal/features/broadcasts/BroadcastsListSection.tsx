@@ -3,13 +3,13 @@
 import { useTranslations } from "next-intl";
 import { formatDistanceToNow } from "@workspace/utils";
 import {
+  Badge,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+  DataState
+} from "@workspace/ui/components";
 import { Megaphone } from "lucide-react";
 import type { WhatsAppBroadcastJobSummary } from "@workspace/types";
 

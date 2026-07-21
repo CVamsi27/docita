@@ -1,4 +1,3 @@
-// jscpd:ignore-start
 "use client";
 
 import { useCallback } from "react";
@@ -16,4 +15,3 @@ export function useBackNavigation(fallback: string) {
     router.push(fallback);
   }, [router, fallback]);
 }
-// jscpd:ignore-end

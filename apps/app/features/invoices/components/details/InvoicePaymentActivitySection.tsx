@@ -1,16 +1,8 @@
 "use client";
 
 import type { FC } from "react";
-import {
-  DataState,
-  StatusBadge,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@workspace/ui/components";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { DataState, StatusBadge } from "@workspace/ui/components";
 import { CreditCard } from "lucide-react";
 import { useInvoicePaymentActivity } from "@workspace/data-access";
 import type { InvoicePaymentActivityItem } from "@workspace/types";

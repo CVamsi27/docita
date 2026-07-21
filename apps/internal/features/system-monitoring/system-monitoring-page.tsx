@@ -1,9 +1,11 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import {
+  AppPageScaffold,
+  Button,
+  DataState,
+  PageHeader
+} from "@workspace/ui/components";
 import { RefreshCw } from "lucide-react";
 import { SystemMonitoringTabs } from "./system-monitoring-tabs";
 import { useSystemMonitoringPage } from "./use-system-monitoring-page";

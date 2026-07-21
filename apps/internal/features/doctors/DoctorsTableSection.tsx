@@ -2,19 +2,17 @@
 
 import { Eye, ShieldCheck, ShieldX, Stethoscope } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import {
   TableCell,
   TableHead,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+  TableRow
+} from "@workspace/ui/components";
 import type { InternalDoctorListItem } from "@workspace/data-access/internal";
 import {
   getVerificationBadgeVariant,

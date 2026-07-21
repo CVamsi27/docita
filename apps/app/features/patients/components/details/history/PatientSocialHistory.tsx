@@ -1,5 +1,5 @@
 // jscpd:ignore-start
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
 import { Card, CardContent, CardHeader, CardTitle, Label } from "@workspace/ui/components";
 import { Coffee } from "lucide-react";
 import {

@@ -3,20 +3,10 @@
 
 // jscpd:ignore-start
 import type { ReactNode } from "react";
-import {
-  useWatch,
-  type ArrayPath,
-  type Control,
-  type FieldArrayWithId,
-  type FieldValues,
-  type Path,
-  type UseFieldArrayAppend,
-  type UseFieldArrayRemove,
-  type UseFormSetValue,
-} from "react-hook-form";
+import { useWatch, type ArrayPath, type Control, type FieldArrayWithId, type FieldValues, type Path, type UseFieldArrayAppend, type UseFieldArrayRemove, type UseFormSetValue, } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import type { InvoiceLineItemFormValues } from "@workspace/types";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives"
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
 import { Plus } from "lucide-react";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";

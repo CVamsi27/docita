@@ -50,7 +50,6 @@ interface FeedbackRatingStarsProps {
 }
 
 /** Renders a 1-5 star rating, filling stars up to `rating`. */
-// jscpd:ignore-start
 export function FeedbackRatingStars({ rating }: FeedbackRatingStarsProps) {
   return (
     <div className="flex gap-0.5">
@@ -67,4 +66,3 @@ export function FeedbackRatingStars({ rating }: FeedbackRatingStarsProps) {
     </div>
   );
 }
-// jscpd:ignore-end

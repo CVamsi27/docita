@@ -2,7 +2,7 @@
 
 // jscpd:ignore-start
 import { FormEvent } from "react";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives"
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, IsoDatePickerField } from "@workspace/ui/components";
 import type { CreateDataSubjectRequest } from "@workspace/types";
 import {

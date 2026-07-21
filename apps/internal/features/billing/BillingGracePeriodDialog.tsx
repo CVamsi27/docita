@@ -1,19 +1,17 @@
 "use client";
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-// jscpd:ignore-start
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-// jscpd:ignore-end
+  Input,
+  Label
+} from "@workspace/ui/components";
 
 interface BillingGracePeriodDialogProps {
   open: boolean;

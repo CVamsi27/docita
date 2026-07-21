@@ -2,16 +2,14 @@
 
 // Idiomatic shadcn/Origin import boilerplate — shared verbatim with sibling
 // monitoring/performance dashboards that render the same primitive families.
-// jscpd:ignore-start
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Progress } from "@workspace/ui/components/feedback/progress";
-// jscpd:ignore-end
+  Progress
+} from "@workspace/ui/components";
 import {
   SystemHealthBadge,
   SystemHealthIcon,
@@ -57,7 +55,6 @@ export function TopMetricsCards({
         config schema for a coincidental visual likeness, not a true shared
         concern.
       */}
-      {/* jscpd:ignore-start */}
       <MetricStatCard
         title="Uptime"
         icon={Activity}
@@ -71,7 +68,6 @@ export function TopMetricsCards({
         value={`${averageResponseTime}ms`}
         description="Monitoring average from the last hour"
       />
-      {/* jscpd:ignore-end */}
       <MetricStatCard
         title="Requests/min"
         icon={Wifi}

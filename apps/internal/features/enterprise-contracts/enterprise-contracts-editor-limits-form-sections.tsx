@@ -1,9 +1,11 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { Textarea } from "@workspace/ui/components/form/textarea";
+import {
+  Input,
+  Label,
+  Textarea
+} from "@workspace/ui/components";
 import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
 
 type FormFields = EnterpriseContractsPageState["form"];
@@ -19,7 +21,6 @@ function useEnterpriseContractsLimitsTranslations() {
   return useTranslations("InternalEnterpriseContracts.limits");
 }
 
-// jscpd:ignore-start
 function IncludedLimitsFields({
   form,
   setForm,
@@ -117,7 +118,6 @@ function IncludedLimitsFields({
     </div>
   );
 }
-// jscpd:ignore-end
 
 function OverageAndPricingFields({
   form,

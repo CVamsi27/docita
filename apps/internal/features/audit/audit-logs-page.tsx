@@ -3,19 +3,8 @@
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import { useMemo } from "react";
 import { RefreshCw } from "lucide-react";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { AppPageScaffold, Badge, Button, DataState, PageHeader } from "@workspace/ui/components";
 import { useInternalAuditLogs } from "@workspace/data-access/internal";
 import { useTranslations } from "next-intl";
 import { formatInternalTimestamp } from "@/lib/formatters/format-internal-timestamp";

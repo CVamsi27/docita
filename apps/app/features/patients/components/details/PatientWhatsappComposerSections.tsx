@@ -2,7 +2,7 @@
 
 // jscpd:ignore-start
 import { History, Info, MessageCircle, Send } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives"
 import { Badge, Button, DataState, Label } from "@workspace/ui/components";
 import {
   Alert,

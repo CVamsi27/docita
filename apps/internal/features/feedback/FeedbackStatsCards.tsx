@@ -2,12 +2,12 @@
 
 import { useTranslations } from "next-intl";
 import {
+  Badge,
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+  CardTitle
+} from "@workspace/ui/components";
 import {
   AlertCircle,
   CheckCircle,
@@ -19,25 +19,7 @@ import {
   ThumbsUp,
 } from "lucide-react";
 import type { InternalFeedbackStats } from "@workspace/data-access/internal";
-
-// jscpd:ignore-start
-function renderStars(rating: number) {
-  return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Star
-          key={star}
-          className={`h-4 w-4 ${
-            rating >= star
-              ? "text-warning fill-warning"
-              : "text-muted-foreground"
-          }`}
-        />
-      ))}
-    </div>
-  );
-}
-// jscpd:ignore-end
+import { FeedbackRatingStars } from "./feedback-display";
 
 /**
  * Phase 3 (per-feature): apps/internal Feedback > Stats cards
@@ -75,7 +57,7 @@ function StatsOverviewCards({ stats }: { stats: InternalFeedbackStats }) {
           <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
             {stats.averageRating.toFixed(1)}
           </div>
-          {renderStars(Math.round(stats.averageRating))}
+          <FeedbackRatingStars rating={Math.round(stats.averageRating)} />
         </CardContent>
       </Card>
       <Card>

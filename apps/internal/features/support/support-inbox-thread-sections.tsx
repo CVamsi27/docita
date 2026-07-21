@@ -2,15 +2,15 @@
 
 import { DATE_FORMATS, formatDate, formatDistanceToNow } from "@workspace/utils";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Textarea } from "@workspace/ui/components/form/textarea";
+  Textarea
+} from "@workspace/ui/components";
 import { MessageSquare, Phone, Send } from "lucide-react";
 import type { FormEvent } from "react";
 import type { SupportWhatsAppMessage, SupportWhatsAppThreadSummary } from "@workspace/types";

@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { PAYMENT_REMINDER_DAY_PRESETS } from "@workspace/types";
 import type { ReminderSettingsFormValues } from "@workspace/types";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
 import { Button, Label, Switch } from "@workspace/ui/components";
 import {
   FormControl,

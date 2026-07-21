@@ -2,7 +2,6 @@
 
 import { formatDate } from "@workspace/utils";
 import { useTranslations } from "next-intl";
-// jscpd:ignore-start
 import {
   BaseContractDialogShell,
   Table,
@@ -12,7 +11,6 @@ import {
   TableHeader,
   TableRow,
 } from "./base-dialog-shell";
-// jscpd:ignore-end
 import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
 
 type EnterpriseContractsAlertsDialogProps = Pick<EnterpriseContractsPageState, 'alertsOpen' | 'setAlertsOpen' | 'alerts'>;

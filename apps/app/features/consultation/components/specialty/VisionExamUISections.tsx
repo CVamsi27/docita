@@ -1,15 +1,7 @@
 "use client";
 
-import {
-  Input,
-  Label,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@workspace/ui/components";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { Input, Label } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { OphthalmologyExamData } from "@workspace/types";
 import {

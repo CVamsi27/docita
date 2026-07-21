@@ -3,16 +3,14 @@
 import { formatCountLocale } from "@workspace/utils";
 // Idiomatic shadcn/Origin import boilerplate — shared verbatim with sibling
 // monitoring/performance dashboards that render the same primitive families.
-// jscpd:ignore-start
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Progress } from "@workspace/ui/components/feedback/progress";
-// jscpd:ignore-end
+  Progress
+} from "@workspace/ui/components";
 import {
   Activity,
   AlertTriangle,

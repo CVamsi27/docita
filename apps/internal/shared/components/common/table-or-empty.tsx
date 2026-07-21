@@ -1,7 +1,7 @@
 "use client";
 
-import { Table, TableBody, TableHeader, TableRow } from "@workspace/ui/components/data-display/table";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { Table, TableBody, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { EmptyState } from "@workspace/ui/components";
 import type { LucideIcon } from "lucide-react";
 
 interface TableOrEmptyProps<T> {

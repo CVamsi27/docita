@@ -1,13 +1,13 @@
 "use client";
 
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
+  Badge,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Input } from "@workspace/ui/components/form/input";
+  Input
+} from "@workspace/ui/components";
 import { Search } from "lucide-react";
 import { formatDistanceToNow } from "@workspace/utils";
 import { formatMessageType, getThreadLabel } from "./support-helpers";

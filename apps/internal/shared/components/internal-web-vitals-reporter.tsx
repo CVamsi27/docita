@@ -36,7 +36,6 @@ export function InternalWebVitalsReporter() {
         page: pathname,
         feature: "internal-admin",
         sessionId,
-// jscpd:ignore-start
       });
     }
 
@@ -51,4 +50,3 @@ export function InternalWebVitalsReporter() {
 
   return null;
 }
-// jscpd:ignore-end

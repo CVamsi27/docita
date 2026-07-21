@@ -5,7 +5,7 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Form } from "@workspace/ui/components";
 import {
   Dialog,

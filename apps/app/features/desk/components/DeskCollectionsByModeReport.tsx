@@ -3,22 +3,8 @@
 import { useState } from "react";
 import { useCollectionsByModeReport } from "@workspace/data-access";
 import { formatPaymentChannelLabel } from "@workspace/types";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  DataState,
-  Input,
-  Label,
-  MicroLabel,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@workspace/ui/components";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { Card, CardContent, CardHeader, CardTitle, DataState, Input, Label, MicroLabel } from "@workspace/ui/components";
 import { Wallet } from "lucide-react";
 import { useTranslations } from "next-intl";
 

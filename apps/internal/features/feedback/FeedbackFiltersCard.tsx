@@ -1,19 +1,17 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Button,
   Card,
   CardContent,
-} from "@workspace/ui/components/indicators/card";
-import {
+  DatePicker,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Label } from "@workspace/ui/components/form/label";
-import { DatePicker } from "@workspace/ui/components/form/date-picker";
+  SelectValue
+} from "@workspace/ui/components";
 import { useTranslations } from "next-intl";
 import { CATEGORY_OPTIONS, STATUS_OPTIONS } from "./feedback-helpers";
 import type { InternalFeedbackFilters } from "@workspace/data-access/internal";

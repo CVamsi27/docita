@@ -7,38 +7,8 @@ import type {
 import type { InternalBillingPaymentItem } from "@workspace/types";
 import { useTranslations } from "next-intl";
 import { DEFAULT_CURRENCY, formatCurrency, formatDate } from "@workspace/utils";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-// jscpd:ignore-start
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
-// jscpd:ignore-end
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/navigation/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
 import {
   getInternalTierBadgeClass,
   getInternalTierFilterOptions,

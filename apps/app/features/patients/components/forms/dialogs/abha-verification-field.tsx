@@ -2,7 +2,7 @@
 
 import type { Control, FieldValues, Path } from "react-hook-form";
 import { AlertCircle, CheckCircle2, ShieldCheck } from "lucide-react";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input } from "@workspace/ui/components/form/form-primitives";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input } from "@workspace/ui/components/form/form-primitives"
 import { Alert, AlertDescription, AlertTitle, Badge, Button } from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { ComingSoonBadge } from "@/components/feedback/coming-soon-badge";

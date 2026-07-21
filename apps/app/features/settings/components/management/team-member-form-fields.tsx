@@ -2,7 +2,7 @@
 "use client";
 
 import type { FieldValues, UseFormReturn, Path } from "react-hook-form";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
 import { useLabs } from "@workspace/data-access";
 
 const LAB_UNASSIGNED_VALUE = "__unassigned__";

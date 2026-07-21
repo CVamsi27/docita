@@ -1,21 +1,7 @@
 "use client";
 
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
 
 interface ScopeRule {
   model: string;

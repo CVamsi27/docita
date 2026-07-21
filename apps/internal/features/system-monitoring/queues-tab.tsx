@@ -1,17 +1,15 @@
 "use client";
 
 import { formatCountLocale } from "@workspace/utils";
-// jscpd:ignore-start
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-// jscpd:ignore-end
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { TabsContent } from "@workspace/ui/components/navigation/tabs";
+  DataState,
+  TabsContent
+} from "@workspace/ui/components";
 import type { SystemMonitoringPageViewModel } from "./use-system-monitoring-page";
 
 export type QueuesTabProps = Pick<

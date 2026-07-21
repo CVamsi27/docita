@@ -1,18 +1,17 @@
 "use client";
 
-// jscpd:ignore-start
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
+  Badge,
+  Button,
+  Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/form/select";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { MessageCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { WhatsappSenderConfigResponse, WhatsappSenderMode } from "@workspace/types";

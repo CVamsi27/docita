@@ -5,15 +5,15 @@ import type {
   InternalSubscriptionOverview,
 } from "@workspace/data-access/internal";
 import { differenceInDays, formatDistanceToNow } from "@workspace/utils";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+  CardTitle
+} from "@workspace/ui/components";
 import { AlertTriangle, CalendarPlus, Clock, Mail } from "lucide-react";
 
 interface BillingRiskSummaryProps {
@@ -69,7 +69,6 @@ export function BillingRiskSummary({
   );
 }
 
-// jscpd:ignore-start
 function ExpiringSubscriptionsCard({
   subscriptions,
   onSendReminder,
@@ -91,37 +90,22 @@ function ExpiringSubscriptionsCard({
       <CardContent>
         <div className="space-y-2">
           {subscriptions.slice(0, 3).map((subscription) => (
-            <div
+            <SubscriptionRow
               key={subscription.id}
-              className="flex items-center justify-between rounded-[var(--radius)] border border-border/70 p-3"
-            >
-              <div>
-                <p className="font-medium">{subscription.clinic.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  Expires
-                  <span className="ml-1">
-                    {formatDistanceToNow(subscription.currentPeriodEnd)}
-                  </span>
-                </p>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onSendReminder(subscription)}
-              >
-                <Mail className="mr-2 h-3 w-3" />
-                Remind
-              </Button>
-            </div>
+              subscription={subscription}
+              secondaryLine="Expires"
+              secondaryValue={formatDistanceToNow(subscription.currentPeriodEnd)}
+              actionLabel="Remind"
+              actionIcon={Mail}
+              onAction={() => onSendReminder(subscription)}
+            />
           ))}
         </div>
       </CardContent>
     </Card>
   );
 }
-// jscpd:ignore-end
 
-// jscpd:ignore-start
 function GracePeriodSubscriptionsCard({
   subscriptions,
   onExtendGracePeriod,
@@ -143,30 +127,61 @@ function GracePeriodSubscriptionsCard({
       <CardContent>
         <div className="space-y-2">
           {subscriptions.slice(0, 3).map((subscription) => (
-            <div
+            <SubscriptionRow
               key={subscription.id}
-              className="flex items-center justify-between rounded-[var(--radius)] border border-border/70 p-3"
-            >
-              <div>
-                <p className="font-medium">{subscription.clinic.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {differenceInDays(subscription.currentPeriodEnd, new Date())}
-                  <span className="ml-1">days remaining</span>
-                </p>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onExtendGracePeriod(subscription)}
-              >
-                <CalendarPlus className="mr-2 h-3 w-3" />
-                Extend
-              </Button>
-            </div>
+              subscription={subscription}
+              secondaryValue={`${differenceInDays(
+                subscription.currentPeriodEnd,
+                new Date(),
+              )} days remaining`}
+              actionLabel="Extend"
+              actionIcon={CalendarPlus}
+              onAction={() => onExtendGracePeriod(subscription)}
+            />
           ))}
         </div>
       </CardContent>
     </Card>
   );
 }
-// jscpd:ignore-end
+
+interface SubscriptionRowProps {
+  subscription: InternalSubscriptionOverview;
+  /** Optional prefix label rendered before the value (e.g. "Expires"). */
+  secondaryLine?: string;
+  secondaryValue: string;
+  actionLabel: string;
+  actionIcon: typeof Mail;
+  onAction: () => void;
+}
+
+function SubscriptionRow({
+  subscription,
+  secondaryLine,
+  secondaryValue,
+  actionLabel,
+  actionIcon: ActionIcon,
+  onAction,
+}: SubscriptionRowProps) {
+  return (
+    <div className="flex items-center justify-between rounded-[var(--radius)] border border-border/70 p-3">
+      <div>
+        <p className="font-medium">{subscription.clinic.name}</p>
+        <p className="text-sm text-muted-foreground">
+          {secondaryLine ? (
+            <>
+              {secondaryLine}
+              <span className="ml-1">{secondaryValue}</span>
+            </>
+          ) : (
+            <span>{secondaryValue}</span>
+          )}
+        </p>
+      </div>
+      <Button size="sm" variant="outline" onClick={onAction}>
+        <ActionIcon className="mr-2 h-3 w-3" />
+        {actionLabel}
+      </Button>
+    </div>
+  );
+}

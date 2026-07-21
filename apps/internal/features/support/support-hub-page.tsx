@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { PageTabs } from "@workspace/ui/components/navigation/page-tabs";
+import {
+  AppPageScaffold,
+  PageHeader,
+  PageTabs
+} from "@workspace/ui/components";
 import { SupportInboxPage } from "./support-inbox-page";
 import { SupportInquiriesSection } from "./support-inquiries-section";
 

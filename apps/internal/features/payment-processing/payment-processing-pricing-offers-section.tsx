@@ -6,8 +6,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Form } from "@workspace/ui/components/form/form";
+  Form
+} from "@workspace/ui/components";
 import { Percent } from "lucide-react";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { PaymentProcessingPageViewModel } from "@/features/payment-processing/use-payment-processing-page";

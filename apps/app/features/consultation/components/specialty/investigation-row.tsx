@@ -3,7 +3,7 @@
 // jscpd:ignore-start
 import { Loader2, Paperclip, Trash2, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives"
 import { Button, Label, SymbolTooltip } from "@workspace/ui/components";
 import { type ClinicalInvestigation } from "@workspace/types";
 import { parseStringEnumMember } from "@workspace/utils";

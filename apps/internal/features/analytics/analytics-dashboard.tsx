@@ -1,8 +1,10 @@
 "use client";
 
 import { Download } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+import {
+  Button,
+  DataState
+} from "@workspace/ui/components";
 import {
   BillingOverviewCards,
   MetricCardsGrid,

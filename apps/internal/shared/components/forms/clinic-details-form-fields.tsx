@@ -1,19 +1,17 @@
 "use client";
 
-// jscpd:ignore-start
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
 import {
+  Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+  SelectValue
+} from "@workspace/ui/components";
 import PhoneInput, { type Country } from "react-phone-number-input";
 import {
   CLINIC_TYPE_OPTIONS,
-// jscpd:ignore-end
   type ClinicType,
   clinicTypeSchema,
   PUBLISHED_PLAN_LADDER,

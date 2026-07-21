@@ -1,16 +1,8 @@
 "use client";
 
-// jscpd:ignore-start
 import { useTranslations } from "next-intl";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { Badge } from "@workspace/ui/components";
 import { EditClinicDialog } from "./edit-clinic-dialog";
 import { Building2 } from "lucide-react";
 import { mapDbClinicTierStringToTierName, TIER_INFO } from "@workspace/types";
@@ -27,7 +19,6 @@ function useClinicListTranslations() {
 }
 
 function getTierDisplay(tier: string): { name: string; className: string } {
-// jscpd:ignore-end
   const normalizedTier = mapDbClinicTierStringToTierName(tier);
   const tierInfo = TIER_INFO[normalizedTier];
   if (tierInfo) {

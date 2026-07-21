@@ -1,19 +1,17 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import {
   TableCell,
   TableHead,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+  TableRow
+} from "@workspace/ui/components";
 import { DEFAULT_CURRENCY, formatPlanLimitCount } from "@workspace/utils";
 import { getInternalTierBadgeClass, getInternalTierLabel } from "@/lib/tier-display";
 import { CreditCard, Receipt, TrendingUp } from "lucide-react";

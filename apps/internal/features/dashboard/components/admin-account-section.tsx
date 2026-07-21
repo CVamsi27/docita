@@ -1,21 +1,19 @@
 "use client";
 
-// jscpd:ignore-start
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
 import {
+  Button,
+  Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Button } from "@workspace/ui/components/form/button";
+  SelectValue
+} from "@workspace/ui/components";
 import { Eye, EyeOff, Shield, Users } from "lucide-react";
 import { internalClinicAdminTypeSchema } from "@workspace/types";
 import type {
   CreateClinicFormData,
-// jscpd:ignore-end
   FieldErrors,
 } from "@/features/dashboard/hooks/create-clinic-form-helpers";
 

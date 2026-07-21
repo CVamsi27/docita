@@ -2,8 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { formatCurrency, formatDate } from "@workspace/utils";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { TableCell, TableRow } from "@workspace/ui/components/data-display/table";
+import {
+  Badge,
+  TableCell,
+  TableRow
+} from "@workspace/ui/components";
 import type { InternalEnterpriseContractRow as EnterpriseContractRow } from "@workspace/data-access/internal";
 import { enterpriseContractStatusBadgeClass } from "./enterprise-contracts-helpers";
 import {

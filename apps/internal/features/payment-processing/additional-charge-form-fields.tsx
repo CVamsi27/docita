@@ -1,20 +1,4 @@
-// jscpd:ignore-start
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Input } from "@workspace/ui/components/form/input";
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { useTranslations } from "next-intl";
 import { guidedSetupPresetAmount } from "@/features/payment-processing/payment-processing-helpers";
@@ -88,4 +72,3 @@ export function AdditionalChargeFormFields({ additionalChargeClinic, additionalC
     </>
   );
 }
-// jscpd:ignore-end

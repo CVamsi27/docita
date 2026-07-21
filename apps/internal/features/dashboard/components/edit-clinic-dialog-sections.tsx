@@ -1,20 +1,18 @@
 "use client";
 
-// jscpd:ignore-start
-import { Label } from "@workspace/ui/components/form/label";
 import {
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+  SelectValue
+} from "@workspace/ui/components";
 import { type Country } from "react-phone-number-input";
 import type { ClinicType, TierName } from "@workspace/types";
 import { ClinicCoreDetailsFields } from "@/components/forms/clinic-details-form-fields";
 
 export type EditClinicFormData = {
-// jscpd:ignore-end
   name: string;
   email: string;
   phone: string;

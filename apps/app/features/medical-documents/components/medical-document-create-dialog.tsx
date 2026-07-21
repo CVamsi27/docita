@@ -2,7 +2,7 @@
 
 // jscpd:ignore-start
 import { useTranslations } from "next-intl";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
 import { Button, Label } from "@workspace/ui/components";
 import {
   Dialog,

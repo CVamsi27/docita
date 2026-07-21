@@ -1,37 +1,10 @@
 "use client";
 
-// jscpd:ignore-start
 import type { UseFormReturn } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
-import {
-  Select,
-// jscpd:ignore-end
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
-import { Input } from "@workspace/ui/components/form/input";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { Button, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage, Input, IsoDatePickerField, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components";
 import type { PricingOfferRow } from "@/lib/api/api";
 
 interface PricingOfferFormValues {

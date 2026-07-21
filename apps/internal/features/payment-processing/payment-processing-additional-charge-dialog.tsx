@@ -1,16 +1,15 @@
 "use client";
 
-// jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Form } from "@workspace/ui/components/form/form";
+  Form
+} from "@workspace/ui/components";
 import type { PaymentProcessingPageViewModel } from "@/features/payment-processing/use-payment-processing-page";
 import { AdditionalChargeFormFields } from "./additional-charge-form-fields";
 import { ChargeSummary } from "./charge-summary";
@@ -77,4 +76,3 @@ export function PaymentProcessingAdditionalChargeDialog(props: PaymentProcessing
       </Dialog>
   );
 }
-// jscpd:ignore-end

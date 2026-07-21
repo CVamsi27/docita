@@ -1,8 +1,10 @@
 "use client";
 
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+import {
+  AppPageScaffold,
+  DataState,
+  PageHeader
+} from "@workspace/ui/components";
 import { useAdminsPage } from "./use-admins-page";
 import {
   AdminCreateDialog,

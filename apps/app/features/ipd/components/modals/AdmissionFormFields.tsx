@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives"
 import { Label } from "@workspace/ui/components";
 import { useDoctors } from "@workspace/data-access";
 import { useTranslations } from "next-intl";

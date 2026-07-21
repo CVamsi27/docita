@@ -1,7 +1,6 @@
 // check-as-cast-density: allow-file — React Hook Form generic field name requires as Path
 "use client";
 
-// jscpd:ignore-start
 import { Plus } from "lucide-react";
 import { Dialog, DialogContent } from "@workspace/ui/components/overlay/dialog";
 import type { CreateForm } from "./admin-helpers";
@@ -60,4 +59,3 @@ export function AdminCreateDialog({
     </Dialog>
   );
 }
-// jscpd:ignore-end

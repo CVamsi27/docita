@@ -1,10 +1,12 @@
 "use client";
 
 import { Calendar } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { DatePicker } from "@workspace/ui/components/form/date-picker";
-import { Section } from "@workspace/ui/components/layout/section";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import {
+  Button,
+  DatePicker,
+  Section,
+  SymbolTooltip
+} from "@workspace/ui/components";
 import { formatAmountLocale } from "@workspace/utils";
 import { cn } from "@workspace/ui/lib/utils";
 import { getInternalTierChartColorClass } from "@/lib/tier-display";

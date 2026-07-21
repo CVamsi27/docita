@@ -1,20 +1,18 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
 import {
+  Button,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import {
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Label } from "@workspace/ui/components/form/label";
+  SelectValue
+} from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { internalClinicAdminTypeSchema } from "@workspace/types";
 import type { ReactNode } from "react";

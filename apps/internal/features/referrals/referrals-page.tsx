@@ -15,26 +15,8 @@ import { internalQueryKeys } from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth";
 import { client } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-// jscpd:ignore-start — shared Select import block matches other consumers
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-// jscpd:ignore-end
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { Badge, Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
 
 const REFERRER_TYPES: ReferrerType[] = [
   "MARKETING_PERSON",

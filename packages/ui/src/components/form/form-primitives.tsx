@@ -9,6 +9,7 @@
  */
 export {
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,

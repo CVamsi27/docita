@@ -2,7 +2,7 @@
 
 // jscpd:ignore-start
 import { Info, Trash2 } from "lucide-react";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
 import { Button, Label } from "@workspace/ui/components";
 import {
   SymbolTooltip,

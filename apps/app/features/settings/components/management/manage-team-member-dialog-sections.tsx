@@ -2,7 +2,7 @@
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives"
 import { Badge, Button } from "@workspace/ui/components";
 // jscpd:ignore-end
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
