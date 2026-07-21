@@ -27,8 +27,10 @@ const TodayBottomBarSection = dynamic(
 
 import { TodayErrorState, TodayLoadingState, TodayNewClinicEmptyState } from "./today-page-state-shells";
 import { TodayPageHeader, TodayWorkspaceLayout } from "./today-page-content-sections";
+import { useTranslations } from "next-intl";
 
 export function TodayPageContent() {
+  const t = useTranslations("Dashboard.today");
   const { clinic } = useClinic();
   const referralShare = useClinicReferralShare();
   const { canStartConsultation } = usePermissions();
@@ -73,7 +75,7 @@ export function TodayPageContent() {
       onRefresh={refetchAll}
       canStartConsultation={canStartConsultation}
       onOpenAskAi={() =>
-        openOverlay({ id: "today", label: "on today's workspace" })
+        openOverlay({ id: "today", label: t("askAiOverlayLabel") })
       }
     />
   );

@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { DashboardSharedWorkspace } from "@/features/dashboard/components/layout/dashboard-shared-workspace";
 import { DashboardRefreshControl } from "@/features/dashboard/components/layout/dashboard-refresh-control";
 import { ClinicReferralShareToolbar } from "@/features/dashboard/components/layout/clinic-referral-share-toolbar";
@@ -43,6 +44,7 @@ export function TodayHeaderActions({
   canStartConsultation,
   onOpenAskAi,
 }: TodayHeaderActionsProps) {
+  const t = useTranslations("Dashboard.today");
   return (
     <div
       className={cn(
@@ -64,11 +66,11 @@ export function TodayHeaderActions({
           size="sm"
           className="h-10 min-h-10 flex-1 touch-manipulation sm:h-9 sm:min-h-0 sm:flex-none"
           onClick={onOpenAskAi}
-          aria-label="Ask AI about today"
+          aria-label={t("askAiAria")}
           data-testid="today-ask-ai"
         >
           <Sparkles className="size-4 shrink-0" aria-hidden />
-          <span className="truncate">Ask AI</span>
+          <span className="truncate">{t("askAiButton")}</span>
         </Button>
         {canStartConsultation ? (
           <Button
@@ -77,7 +79,7 @@ export function TodayHeaderActions({
             className="h-10 min-h-10 flex-1 touch-manipulation sm:h-9 sm:min-h-0 sm:flex-none"
             asChild
           >
-            <Link href="/consultation">Open queue</Link>
+            <Link href="/consultation">{t("openQueueButton")}</Link>
           </Button>
         ) : null}
       </div>
@@ -102,9 +104,10 @@ export function TodayPageHeader({
   canStartConsultation,
   onOpenAskAi,
 }: TodayPageHeaderProps) {
+  const t = useTranslations("Dashboard.today");
   return (
     <PageHeader
-      title="Today"
+      title={t("pageTitle")}
       description={summaryLine}
       actions={
         <TodayHeaderActions
@@ -144,6 +147,7 @@ export function TodayRightRailSection({
   uncodedVisits,
   waitingCount,
 }: TodayRightRailSectionProps) {
+  const t = useTranslations("Dashboard.today");
   return (
     <section
       aria-labelledby="today-rail-heading"
@@ -155,17 +159,17 @@ export function TodayRightRailSection({
       )}
     >
       <h2 className="sr-only" id="today-rail-heading">
-        Sharing and recommendations
+        {t("railHeading")}
       </h2>
       <MicroLabel
         as="p"
         className="border-b border-border/60 pb-2 text-[length:var(--fs-2xs)] xl:hidden"
       >
         {hasShareRailContent && hasAdvisorRailContent
-          ? "Sharing & tips"
+          ? t("railLabelBoth")
           : hasShareRailContent
-            ? "Sharing"
-            : "Tips"}
+            ? t("railLabelSharing")
+            : t("railLabelTips")}
       </MicroLabel>
       {hasShareRailContent ? (
         <ClinicReferralShareToolbar
@@ -210,11 +214,12 @@ export function TodayBottomBarSection({
   isMutationPending,
   onStartNextPatient,
 }: TodayBottomBarSectionProps) {
+  const t = useTranslations("Dashboard.today");
   if (!canStartConsultation || !nextPatient) return null;
 
   if (hasCurrentPatient) {
     return (
-      <BottomActionBar aria-label="Next patient in queue">
+      <BottomActionBar aria-label={t("bottomBarAria")}>
         <BottomActionBarSlot variant="secondary">
           <NextPatientPreview nextPatient={nextPatient} />
         </BottomActionBarSlot>
@@ -223,12 +228,12 @@ export function TodayBottomBarSection({
             className="w-full touch-manipulation"
             disabled={isStarting || isMutationPending}
             onClick={onStartNextPatient}
-            aria-label={`Start next consultation: ${getPatientFullName(
-              nextPatient.patient,
-            )}`}
+            aria-label={t("startNextAria", {
+              name: getPatientFullName(nextPatient.patient),
+            })}
           >
             <Play className="mr-2 size-4" aria-hidden />
-            {isStarting ? "Starting…" : "Start next"}
+            {isStarting ? t("startingButton") : t("startNextButton")}
           </Button>
         </BottomActionBarSlot>
       </BottomActionBar>
@@ -243,7 +248,7 @@ export function TodayBottomBarSection({
           className="w-full touch-manipulation"
           asChild
         >
-          <Link href="/consultation">View queue</Link>
+          <Link href="/consultation">{t("viewQueueButton")}</Link>
         </Button>
       </BottomActionBarSlot>
       <BottomActionBarSlot variant="primary">
@@ -251,12 +256,12 @@ export function TodayBottomBarSection({
           className="w-full touch-manipulation"
           disabled={isStarting || isMutationPending}
           onClick={onStartNextPatient}
-          aria-label={`Start next consultation: ${getPatientFullName(
-            nextPatient.patient,
-          )}`}
+          aria-label={t("startNextAria", {
+            name: getPatientFullName(nextPatient.patient),
+          })}
         >
           <Play className="mr-2 size-4" aria-hidden />
-          {isStarting ? "Starting…" : "Next patient"}
+          {isStarting ? t("startingButton") : t("nextPatientButton")}
         </Button>
       </BottomActionBarSlot>
     </BottomActionBar>
@@ -268,6 +273,7 @@ interface NextPatientPreviewProps {
 }
 
 function NextPatientPreview({ nextPatient }: NextPatientPreviewProps) {
+  const t = useTranslations("Dashboard.today");
   const fullName = getPatientFullName(nextPatient.patient);
   const formattedTime = nextPatient.startTime
     ? formatDate(nextPatient.startTime, "hh:mm a")
@@ -285,7 +291,7 @@ function NextPatientPreview({ nextPatient }: NextPatientPreviewProps) {
       </Avatar>
       <div className="min-w-0 flex-1">
         <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          Next up
+          {t("nextUpLabel")}
         </p>
         <p className="truncate text-sm font-semibold text-foreground">
           {fullName}

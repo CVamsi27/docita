@@ -1159,6 +1159,24 @@
     }
   },
   "Dashboard": {
+    "today": {
+      "askAiOverlayLabel": "आज के वर्कस्पेस पर",
+      "askAiAria": "आज के बारे में AI से पूछें",
+      "askAiButton": "AI से पूछें",
+      "openQueueButton": "कतार खोलें",
+      "viewQueueButton": "कतार देखें",
+      "pageTitle": "आज",
+      "railHeading": "शेयरिंग और सुझाव",
+      "railLabelTips": "सुझाव",
+      "railLabelSharing": "शेयरिंग",
+      "railLabelBoth": "शेयरिंग और सुझाव",
+      "bottomBarAria": "कतार में अगला रोगी",
+      "startNextButton": "अगला शुरू करें",
+      "startingButton": "शुरू हो रहा है…",
+      "nextPatientButton": "अगला रोगी",
+      "startNextAria": "अगला परामर्श शुरू करें: {name}",
+      "nextUpLabel": "अगला"
+    },
     "todayAdvisorRail": {
       "joinRequestsCategory": "शामिल होने के अनुरोध",
       "joinRequestsHeadline": "{count, plural, one {1 लंबित अनुरोध} other {{count} लंबित अनुरोध}}",
