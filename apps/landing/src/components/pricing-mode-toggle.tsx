@@ -64,7 +64,7 @@ export function PricingModeToggle({ selectedMode, billingPeriod, onModeChange, o
                   <span className={cn("rounded px-1.5 py-0.5 text-[var(--fs-2xs)] font-semibold leading-none",
                     active ? "bg-background/15 text-background" : "bg-success/10 text-success"
                   )}>
-                    2 mo free
+                    2 months free
                   </span>
                 ) : null}
               </span>

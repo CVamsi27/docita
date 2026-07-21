@@ -1,20 +1,18 @@
-// jscpd:ignore-start
 import { Send } from "lucide-react";
 
-import { Button } from "@workspace/ui/components/form/button";
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { Textarea } from "@workspace/ui/components/form/textarea";
+  Input,
+  Label,
+  Textarea,
+} from "@workspace/ui/components";
 
 export function ContactInquiryForm() {
-// jscpd:ignore-end
   return (
     <div data-contact-inquiry-root>
       <Card>

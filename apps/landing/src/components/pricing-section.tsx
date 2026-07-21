@@ -22,7 +22,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
   const gridVariants = landingStaggerContainer(reduce ?? false, 0.06, 0.04);
 
   const [selectedMode, setSelectedMode] = useState<PlanMode>("FULL");
-  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("yearly");
   const isYearly = billingPeriod === "yearly";
 
   const orderedTiers = TIER_ORDER
