@@ -1,0 +1,7 @@
+# Pre-commit: fast lint pass. The heavier checks (jscpd, i18n,
+# standards-checks suite) run in pre-push and in CI. This hook
+# only catches the most common regression (lint warning on staged
+# files) before you commit.
+#
+# To bypass locally (e.g. a WIP commit), use `git commit --no-verify`.
+pnpm lint
