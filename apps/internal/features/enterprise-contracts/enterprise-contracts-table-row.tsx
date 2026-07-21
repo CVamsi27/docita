@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { formatCurrency, formatDate } from "@workspace/utils";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { TableCell, TableRow } from "@workspace/ui/components/data-display/table";
@@ -23,10 +24,23 @@ export type EnterpriseContractTableRowProps = Omit<
  * from `EnterpriseContractsTableSection` so the table shell only owns the
  * header and the `rows.map(...)` composition.
  */
+function contractStatusKey(status: string): string {
+  switch (status) {
+    case "DRAFT":
+    case "ACTIVE":
+    case "EXPIRED":
+    case "TERMINATED":
+      return `contractStatus${status}`;
+    default:
+      return status;
+  }
+}
+
 export function EnterpriseContractTableRow({
   row,
   ...actionProps
 }: EnterpriseContractTableRowProps) {
+  const t = useTranslations("InternalEnterpriseContracts.tableSection");
   return (
     <TableRow>
       <TableCell className="text-xs">
@@ -41,7 +55,7 @@ export function EnterpriseContractTableRow({
       </TableCell>
       <TableCell>
         <Badge className={enterpriseContractStatusBadgeClass[row.status]}>
-          {row.status}
+          {t(contractStatusKey(row.status)) || row.status}
         </Badge>
       </TableCell>
       <TableCell className="text-xs">

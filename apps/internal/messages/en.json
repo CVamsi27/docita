@@ -186,6 +186,10 @@
     "payoutSummary": "Payout summary",
     "payoutsCount": "{count} payout(s)",
     "noPayoutsYet": "No payouts yet.",
+    "payoutStatusPENDING": "Pending",
+    "payoutStatusAPPROVED": "Approved",
+    "payoutStatusPAID": "Paid",
+    "payoutStatusVOID": "Void",
     "addReferrer": "Add referrer",
     "nameRequiredWarning": "Enter the referrer's name to continue",
     "typeLabel": "Type",
@@ -237,6 +241,13 @@
       "moreSkippedHint": "{count, plural, one {… and 1 more skipped row} other {… and {count} more skipped rows}}",
       "throttleNote": "Sending is throttled (~4 messages/sec) and runs in the background. You can close this page.",
       "startBroadcastButton": "Start broadcast"
+    },
+    "listSection": {
+      "statusPending": "Pending",
+      "statusRunning": "Running",
+      "statusCompleted": "Completed",
+      "statusFailed": "Failed",
+      "statusCancelled": "Cancelled"
     }
   },
   "InternalEnterpriseContracts": {
@@ -252,7 +263,11 @@
       "colStatus": "Status",
       "colPeriod": "Period",
       "colPlatformFee": "Platform fee",
-      "colActions": "Actions"
+      "colActions": "Actions",
+      "contractStatusDRAFT": "Draft",
+      "contractStatusACTIVE": "Active",
+      "contractStatusEXPIRED": "Expired",
+      "contractStatusTERMINATED": "Terminated"
     },
     "alertsDialog": {
       "title": "True-up alerts",

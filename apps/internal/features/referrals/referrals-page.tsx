@@ -61,6 +61,19 @@ function useReferralsTranslations() {
   return useTranslations("InternalReferrals");
 }
 
+/** Map a referral payout status enum to its i18n key, with a safe fallback. */
+function payoutStatusKey(status: string): string {
+  switch (status) {
+    case "PENDING":
+    case "APPROVED":
+    case "PAID":
+    case "VOID":
+      return `payoutStatus${status}`;
+    default:
+      return status;
+  }
+}
+
 export default function ReferralsPage() {
   const t = useReferralsTranslations();
   const { token, isInternal } = useAuth();
@@ -128,7 +141,9 @@ export default function ReferralsPage() {
               key={row.status}
               className="rounded-lg border px-4 py-3 text-sm"
             >
-              <div className="text-muted-foreground">{row.status}</div>
+              <div className="text-muted-foreground">
+                {t(payoutStatusKey(row.status)) || row.status}
+              </div>
               <div className="text-lg font-semibold">{rupees(row.totalCents)}</div>
               <div className="text-xs text-muted-foreground">
                 {t("payoutsCount", { count: row.count })}
@@ -275,7 +290,7 @@ export default function ReferralsPage() {
                   <Badge
                     variant={payout.status === "PAID" ? "default" : "secondary"}
                   >
-                    {payout.status}
+                    {t(payoutStatusKey(payout.status)) || payout.status}
                   </Badge>
                 </TableCell>
                 <TableCell>

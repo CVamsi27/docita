@@ -186,6 +186,10 @@
     "payoutSummary": "भुगतान सारांश",
     "payoutsCount": "{count} भुगतान",
     "noPayoutsYet": "अभी तक कोई भुगतान नहीं।",
+    "payoutStatusPENDING": "लंबित",
+    "payoutStatusAPPROVED": "स्वीकृत",
+    "payoutStatusPAID": "भुगतान किया गया",
+    "payoutStatusVOID": "रद्द",
     "addReferrer": "रेफरर जोड़ें",
     "nameRequiredWarning": "जारी रखने के लिए रेफरर का नाम दर्ज करें",
     "typeLabel": "प्रकार",
@@ -237,6 +241,13 @@
       "moreSkippedHint": "{count, plural, one {… और 1 छोड़ी गई पंक्ति} other {… और {count} छोड़ी गई पंक्तियाँ}}",
       "throttleNote": "भेजना थ्रॉटल किया गया है (~4 संदेश/सेकंड) और पृष्ठभूमि में चलता है। आप इस पृष्ठ को बंद कर सकते हैं।",
       "startBroadcastButton": "प्रसारण शुरू करें"
+    },
+    "listSection": {
+      "statusPending": "लंबित",
+      "statusRunning": "चालू",
+      "statusCompleted": "पूर्ण",
+      "statusFailed": "विफल",
+      "statusCancelled": "रद्द"
     }
   },
   "InternalEnterpriseContracts": {
@@ -252,7 +263,11 @@
       "colStatus": "स्थिति",
       "colPeriod": "अवधि",
       "colPlatformFee": "प्लेटफ़ॉर्म शुल्क",
-      "colActions": "क्रियाएँ"
+      "colActions": "क्रियाएँ",
+      "contractStatusDRAFT": "मसौदा",
+      "contractStatusACTIVE": "सक्रिय",
+      "contractStatusEXPIRED": "समाप्त",
+      "contractStatusTERMINATED": "समाप्त किया गया"
     },
     "alertsDialog": {
       "title": "ट्रू-अप अलर्ट",

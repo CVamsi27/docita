@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { formatDistanceToNow } from "@workspace/utils";
 import {
   Card,
@@ -23,6 +24,23 @@ const STATUS_VARIANTS: Record<
   CANCELLED: "secondary",
 };
 
+function broadcastStatusKey(status: string): string {
+  switch (status) {
+    case "PENDING":
+      return "statusPending";
+    case "RUNNING":
+      return "statusRunning";
+    case "COMPLETED":
+      return "statusCompleted";
+    case "FAILED":
+      return "statusFailed";
+    case "CANCELLED":
+      return "statusCancelled";
+    default:
+      return status;
+  }
+}
+
 interface BroadcastsListSectionProps {
   status: "loading" | "error" | "success";
   jobs: WhatsAppBroadcastJobSummary[];
@@ -36,6 +54,7 @@ export function BroadcastsListSection({
   errorMessage,
   onRetry,
 }: BroadcastsListSectionProps) {
+  const t = useTranslations("InternalBroadcasts.listSection");
   return (
     <Card>
       <CardHeader>
@@ -67,7 +86,7 @@ export function BroadcastsListSection({
                     </p>
                   </div>
                   <Badge variant={STATUS_VARIANTS[job.status]}>
-                    {job.status}
+                    {t(broadcastStatusKey(job.status)) || job.status}
                   </Badge>
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
