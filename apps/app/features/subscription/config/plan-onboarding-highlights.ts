@@ -11,7 +11,7 @@ export const PLAN_ONBOARDING_KEY_HIGHLIGHTS: Record<string, string[]> = {
     "Upgrade anytime when you outgrow limits",
   ],
   ESSENTIAL: [
-    "WhatsApp flows with 500 msgs/mo included",
+    "WhatsApp flows with 500 msgs / month included",
     "Invoicing and GST-ready totals",
     "Queue and calendar tuned for busy OPD",
     `${SUBSCRIPTION_TRIAL_DAYS}-day trial where checkout is eligible`,
@@ -24,13 +24,13 @@ export const PLAN_ONBOARDING_KEY_HIGHLIGHTS: Record<string, string[]> = {
   ],
   FRONT_DESK_CLINIC: [
     "Up to 25 staff users for multiple desks",
-    "3,000 appointments/mo included",
+    "3,000 appointments / month included",
     "Supervisor and billing-only roles",
     "Clinical workflows remain disabled in-app",
   ],
   FRONT_DESK_HOSPITAL: [
     "Up to 150 staff users and 10 locations",
-    "15,000 appointments/mo included",
+    "15,000 appointments / month included",
     "Multi-OPD queue routing and shift handover",
     "Dedicated success support for operations teams",
   ],
@@ -42,7 +42,7 @@ export const PLAN_ONBOARDING_KEY_HIGHLIGHTS: Record<string, string[]> = {
   ],
   HOSPITAL: [
     "Up to 25 doctors and 5 branches",
-    "Pooled WhatsApp (6,000 msgs/mo) across branches",
+    "Pooled WhatsApp (6,000 msgs / month) across branches",
     "Multi-location analytics & dashboards",
     "Dedicated customer success manager",
   ],

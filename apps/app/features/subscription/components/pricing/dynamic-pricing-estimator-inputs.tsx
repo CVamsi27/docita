@@ -19,6 +19,7 @@ import {
 import {
   tierSchema,
 // jscpd:ignore-end
+  TIER_INFO,
   type SupportedCurrency,
   type TierName,
 } from "@workspace/types";
@@ -89,7 +90,7 @@ export function DynamicPricingEstimatorInputs({
             <SelectContent>
               {tiers.map((tierName) => (
                 <SelectItem key={tierName} value={tierName}>
-                  {tierName}
+                  {TIER_INFO[tierName as TierName]?.name ?? tierName}
                 </SelectItem>
               ))}
             </SelectContent>

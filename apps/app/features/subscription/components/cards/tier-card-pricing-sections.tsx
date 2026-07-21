@@ -150,7 +150,7 @@ export function TierCardUsageHints({
           <span>
             {usageHints.whatsappMsgs >= 999999
               ? "Unlimited WA msgs"
-              : `${formatCountLocale(usageHints.whatsappMsgs)} WA msgs/mo`}
+              : `${formatCountLocale(usageHints.whatsappMsgs)} WA msgs / month`}
           </span>
         </li>
       ) : null}
