@@ -153,6 +153,7 @@
       "statusActive": "सक्रिय",
       "statusTrial": "परीक्षण",
       "statusPastDue": "बकाया",
+      "statusPaymentDue": "भुगतान बकाया",
       "statusGracePeriod": "अनुग्रह अवधि",
       "statusCancelled": "रद्द",
       "statusExpired": "समाप्त",

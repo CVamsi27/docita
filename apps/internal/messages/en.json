@@ -153,6 +153,7 @@
       "statusActive": "Active",
       "statusTrial": "Trial",
       "statusPastDue": "Past due",
+      "statusPaymentDue": "Payment due",
       "statusGracePeriod": "Grace period",
       "statusCancelled": "Cancelled",
       "statusExpired": "Expired",

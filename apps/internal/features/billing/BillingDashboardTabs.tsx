@@ -76,8 +76,10 @@ interface BillingDashboardTabsProps {
  * titles) resolves through useTranslations("InternalBilling.dashboard").
  *
  * Note: dynamic data like subscription.clinic.name, subscription.tier,
- * formatBillingStatus(subscription.status) and currency formatting
- * stay unchanged — these come from the API and aren't chrome copy.
+ * and currency formatting stay unchanged — these come from the API and
+ * aren't chrome copy. Status labels go through
+ * `billingStatusToI18nKey` so each enum value is mapped to the
+ * InternalBilling.dashboard.status* namespace.
  */
 function useBillingDashboardTranslations() {
   return useTranslations("InternalBilling.dashboard");
@@ -269,7 +271,9 @@ function SubscriptionRow({ subscription, sending, onSendReminder, onExtendGraceP
         <Badge className={getInternalTierBadgeClass(subscription.tier)}>{getInternalTierLabel(subscription.tier)}</Badge>
       </TableCell>
       <TableCell>
-        <Badge className={getBillingStatusBadgeClass(subscription.status)}>{formatBillingStatus(subscription.status)}</Badge>
+        <Badge className={getBillingStatusBadgeClass(subscription.status)}>
+          {t(billingStatusToI18nKey(subscription.status)) || subscription.status}
+        </Badge>
       </TableCell>
       <TableCell>
         <span className="text-sm">
@@ -459,13 +463,24 @@ function getBillingStatusBadgeClass(status: string) {
   return "badge-danger";
 }
 
-function formatBillingStatus(status: string) {
-  // The formatBillingStatus function is a runtime helper that maps
-  // API status codes to human labels. With Phase 3, the labels live
-  // in the messages file and are resolved by the consumer via
-  // useTranslations. This helper is kept for the SubscriptionRow
-  // badge label, which historically read the API enum directly.
-  // (TODO: refactor to receive the t() instance and resolve
-  // through the InternalBilling.dashboard namespace.)
-  return status;
+/** Maps the API status enum to a translation key under InternalBilling.dashboard. */
+function billingStatusToI18nKey(status: string): string {
+  switch (status) {
+    case "ACTIVE":
+      return "statusActive";
+    case "TRIALING":
+      return "statusTrial";
+    case "PAST_DUE":
+      return "statusPastDue";
+    case "GRACE":
+      return "statusGracePeriod";
+    case "CANCELLED":
+      return "statusCancelled";
+    case "EXPIRED":
+      return "statusExpired";
+    case "PAYMENT_DUE":
+      return "statusPaymentDue";
+    default:
+      return status;
+  }
 }
