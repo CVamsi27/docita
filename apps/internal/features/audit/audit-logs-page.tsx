@@ -117,7 +117,11 @@ export function AuditLogsPage() {
                         log.status === "success" ? "secondary" : "destructive"
                       }
                     >
-                      {log.status}
+                      {t(
+                        log.status === "success"
+                          ? "statusSuccess"
+                          : "statusFailed"
+                      )}
                     </Badge>
                   </TableCell>
                 </TableRow>

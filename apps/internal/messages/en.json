@@ -478,7 +478,11 @@
       "colEmail": "Email",
       "colClinic": "Clinic",
       "colStatus": "Status",
-      "colMessage": "Message"
+      "colMessage": "Message",
+      "statusNew": "New",
+      "statusReviewed": "Reviewed",
+      "statusResolved": "Resolved",
+      "statusArchived": "Archived"
     }
   },
   "InternalPaymentProcessing": {
@@ -661,6 +665,8 @@
       "colClinic": "Clinic",
       "colUser": "User",
       "colStatus": "Status",
+      "statusSuccess": "Success",
+      "statusFailed": "Failed",
       "recentEntriesFooter": "Showing {count} recent entries. Refreshes every 30 seconds."
     }
   },

@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { DatePicker } from "@workspace/ui/components/form/date-picker";
+import { useTranslations } from "next-intl";
 import type { InternalAuditLog } from "@workspace/data-access/internal";
 import { formatInternalTimestamp } from "@/lib/formatters/format-internal-timestamp";
 
@@ -175,6 +176,7 @@ export function AuditLogTableSection({
   expandedRows,
   onToggleRowExpand,
 }: TableSectionProps) {
+  const t = useTranslations("InternalAudit.logsPage");
   return (
     <div className="border border-border/70 rounded-[var(--radius)] overflow-hidden">
       {errorMessage && (
@@ -243,7 +245,11 @@ export function AuditLogTableSection({
                             : "badge-danger"
                         }`}
                       >
-                        {log.status}
+                        {t(
+                          log.status === "success"
+                            ? "statusSuccess"
+                            : "statusFailed"
+                        )}
                       </Badge>
                     </TableCell>
                     <TableCell className="px-4 py-3 text-muted-foreground font-mono text-xs">

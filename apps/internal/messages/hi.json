@@ -478,7 +478,11 @@
       "colEmail": "ईमेल",
       "colClinic": "क्लिनिक",
       "colStatus": "स्थिति",
-      "colMessage": "संदेश"
+      "colMessage": "संदेश",
+      "statusNew": "नया",
+      "statusReviewed": "समीक्षित",
+      "statusResolved": "हल",
+      "statusArchived": "पुरालेखित"
     }
   },
   "InternalPaymentProcessing": {
@@ -661,6 +665,8 @@
       "colClinic": "क्लिनिक",
       "colUser": "उपयोगकर्ता",
       "colStatus": "स्थिति",
+      "statusSuccess": "सफल",
+      "statusFailed": "विफल",
       "recentEntriesFooter": "{count} हाल की प्रविष्टियाँ दिखा रहे हैं। हर 30 सेकंड में ताज़ा होता है।"
     }
   },

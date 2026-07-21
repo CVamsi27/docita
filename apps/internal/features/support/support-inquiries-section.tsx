@@ -46,6 +46,22 @@ function useInquiriesTranslations() {
   return useTranslations("InternalSupport.inquiriesSection");
 }
 
+/** Map the inquiry.status API enum to an i18n key, with a safe fallback. */
+function statusKey(status: string): string {
+  switch (status) {
+    case "NEW":
+      return "statusNew";
+    case "REVIEWED":
+      return "statusReviewed";
+    case "RESOLVED":
+      return "statusResolved";
+    case "ARCHIVED":
+      return "statusArchived";
+    default:
+      return status;
+  }
+}
+
 export function SupportInquiriesSection() {
   const t = useInquiriesTranslations();
   const inquiriesQuery = useInternalSupportInquiries(INQUIRIES_LIMIT);
@@ -116,7 +132,7 @@ export function SupportInquiriesSection() {
                           STATUS_VARIANTS[inquiry.status] ?? "secondary"
                         }
                       >
-                        {inquiry.status}
+                        {t(statusKey(inquiry.status)) || inquiry.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="max-w-md text-sm text-muted-foreground">
