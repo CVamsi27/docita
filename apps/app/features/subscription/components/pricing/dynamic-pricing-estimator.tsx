@@ -115,10 +115,10 @@ export function DynamicPricingEstimator({
       maximumFractionDigits: amtFmt.decimalPlaces,
     });
 
-  const estimatorTierIds = new Set<string>(PRICING_ESTIMATOR_TIERS);
-  const tiers = (pricingConfig?.tiers || [])
+  const estimatorTierIds = new Set<TierName>(PRICING_ESTIMATOR_TIERS);
+  const tiers: TierName[] = (pricingConfig?.tiers || [])
     .map((tierInfo) => tierInfo.id)
-    .filter((tierId) => estimatorTierIds.has(tierId));
+    .filter((tierId): tierId is TierName => estimatorTierIds.has(tierId as TierName));
 
   return (
     <Card>

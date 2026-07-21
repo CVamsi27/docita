@@ -18,7 +18,7 @@ import {
   landingInViewViewport,
 } from "@/lib/motion-prefs";
 import { FALLBACK_PRICING_CONFIG } from "@/lib/landing-data";
-import { PLAN_MODE_INFO, type PlanMode, type TierName, tierSchema } from "@workspace/types";
+import { PLAN_MODE_INFO, planModeSchema, type TierName, tierSchema } from "@workspace/types";
 
 type PracticeShape = "solo" | "small" | "multi" | "hospital";
 type WorkType = "front_desk" | "opd" | "full_clinical";
@@ -215,7 +215,8 @@ function formatPlanPickerHeadline(tier: string, mode: string, billing: string): 
   const tierLabel = tierName
     ? FALLBACK_PRICING_CONFIG.tiers.find((t) => t.id === tierName)?.name ?? tier
     : tier;
-  const modeLabel = (PLAN_MODE_INFO[mode as PlanMode]?.name ?? mode);
+  const parsedMode = planModeSchema.safeParse(mode);
+  const modeLabel = parsedMode.success ? PLAN_MODE_INFO[parsedMode.data].name : mode;
   const billingLabel = billing === "yearly" ? "Yearly" : "Monthly";
   return `${tierLabel} · ${modeLabel} · ${billingLabel}`;
 }

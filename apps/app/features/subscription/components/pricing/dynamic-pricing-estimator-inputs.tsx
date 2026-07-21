@@ -90,7 +90,7 @@ export function DynamicPricingEstimatorInputs({
             <SelectContent>
               {tiers.map((tierName) => (
                 <SelectItem key={tierName} value={tierName}>
-                  {TIER_INFO[tierName as TierName]?.name ?? tierName}
+                  {TIER_INFO[tierName].name}
                 </SelectItem>
               ))}
             </SelectContent>
