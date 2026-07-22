@@ -173,7 +173,7 @@ export function DoctorEvidenceSection({ doctor }: { doctor: Doctor }) {
   );
 }
 
-interface DoctorVerificationSectionProps {
+export interface DoctorVerificationActionProps {
 // jscpd:ignore-start
   doctor: Doctor;
   adminActionBusy: "verify" | "reject" | null;
@@ -195,7 +195,7 @@ export function DoctorVerificationSection({
   onShowRejectFormChange,
   onAdminVerify,
   onAdminReject,
-}: DoctorVerificationSectionProps) {
+}: DoctorVerificationActionProps) {
   const t = useDoctorsViewTranslations();
   if (
     !doctor.registrationNumber ||

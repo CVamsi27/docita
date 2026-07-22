@@ -5,11 +5,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { type Doctor } from "./doctor-helpers";
 import { DoctorEducationSection, DoctorEvidenceSection, DoctorInfoGrid, DoctorSpecializationsSection, DoctorVerificationActionProps, DoctorVerificationSection } from "./DoctorsViewDialogSections";
 
-interface DoctorsViewDialogProps extends DoctorVerificationActionProps {
+interface DoctorsViewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   doctor: Doctor | null;
 }
+
+type VerificationActionProps = Omit<DoctorVerificationActionProps, 'doctor'>;
 
 export function DoctorsViewDialog({
   open,
@@ -22,7 +24,7 @@ export function DoctorsViewDialog({
   onShowRejectFormChange,
   onAdminVerify,
   onAdminReject,
-}: DoctorsViewDialogProps) {
+}: DoctorsViewDialogProps & VerificationActionProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
