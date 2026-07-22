@@ -4,6 +4,7 @@ import {
   type SubscriptionPersistencePort,
 } from '@/domains/subscriptions/application/ports/subscription-persistence.port';
 import { SubscriptionOverageMeterService } from '@/domains/subscriptions/application/services/subscription-overage-meter.service';
+import { GLOBAL_BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
 
 export interface BillMonthlyOveragesParams {
   periodStart: Date;
@@ -39,7 +40,7 @@ export class BillMonthlyOveragesUseCase {
         // overages for the period — unacceptable. The cap is a guardrail
         // well above current scale; if it ever fires the per-clinic
         // failure loop surfaces it loudly.
-        take: 10000,
+        take: GLOBAL_BULK_READ_LIMIT,
       });
 
       this.logger.log(

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { GLOBAL_BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
 import type {
   CreateReferralPayoutInput,
   DueRevenueShareReferral,
@@ -52,7 +53,7 @@ export class PrismaReferralPayoutRepository implements IReferralPayoutRepository
       // across all clinics. Dropping a row here means a clinic's referrer
       // is silently underpaid; the cap is a guardrail and the surrounding
       // accrual log surfaces anything truncated.
-      take: 10000,
+      take: GLOBAL_BULK_READ_LIMIT,
     });
   }
 

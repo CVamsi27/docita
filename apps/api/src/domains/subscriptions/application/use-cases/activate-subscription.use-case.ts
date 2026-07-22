@@ -3,22 +3,16 @@ import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
 } from '@/domains/subscriptions/application/ports/subscription.repository.port';
-import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 import {
   ClinicTier,
   BillingCycle,
 } from '@/domains/subscriptions/core/value-objects';
-import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
-import {
-  finalizePayableAmountPaise,
-  SubscriptionCheckoutPricingService,
-} from '@/domains/subscriptions/application/services/subscription-checkout-pricing.service';
-import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { SubscriptionActivationPolicyService } from '@/domains/subscriptions/application/services/subscription-activation-policy.service';
 import { SubscriptionBillingSnapshotService } from '@/domains/subscriptions/application/services/subscription-billing-snapshot.service';
 import { ActivateSubscriptionPaymentService } from '@/domains/subscriptions/application/services/activate-subscription-payment.service';
 import { ActivateSubscriptionClinicSyncService } from '@/domains/subscriptions/application/services/activate-subscription-clinic-sync.service';
+import { ActivateSubscriptionPricingResolver } from '@/domains/subscriptions/application/services/activate-subscription-pricing.resolver';
 import { ReferralService } from '@/domains/subscriptions/core/services/referral.service';
+import type { PlatformInvoiceSummary } from '@/domains/payments/core/ports/platform-invoice-provider.port';
 
 export interface ActivateSubscriptionRequest {
   clinicId: string;
@@ -37,20 +31,14 @@ export interface ActivateSubscriptionRequest {
 
 @Injectable()
 export class ActivateSubscriptionUseCase {
-  // jscpd:ignore-start
   private readonly logger = new Logger(ActivateSubscriptionUseCase.name);
 
   constructor(
     @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
     private readonly subscriptionRepo: ISubscriptionRepository,
-    private readonly pricingService: SubscriptionPricingService,
-    private readonly featureFlagService: FeatureFlagService,
-    private readonly checkoutPricing: SubscriptionCheckoutPricingService,
-    private readonly configService: AppConfigService,
-    private readonly activationPolicy: SubscriptionActivationPolicyService,
+    private readonly pricingResolver: ActivateSubscriptionPricingResolver,
     private readonly billingSnapshot: SubscriptionBillingSnapshotService,
     private readonly activationPayment: ActivateSubscriptionPaymentService,
-    // jscpd:ignore-end
     private readonly clinicSync: ActivateSubscriptionClinicSyncService,
     private readonly referralService: ReferralService,
   ) {}
@@ -66,32 +54,10 @@ export class ActivateSubscriptionUseCase {
 
     const tier = ClinicTier.fromString(request.tier);
     const cycle = BillingCycle.fromString(request.cycle);
-    const clinicOffer = await this.featureFlagService.getClinicPricingOffer(
+    const pricing = await this.pricingResolver.resolve(
       request.clinicId,
-    );
-    const offerPercent = clinicOffer?.percentOff ?? 0;
-
-    const subscription = await this.subscriptionRepo.findByClinicId(
-      request.clinicId,
-    );
-    // jscpd:ignore-start
-    const currencyCode = this.configService.getCurrencyCode();
-    const breakdown = this.checkoutPricing.compute(
-      subscription,
       tier,
       cycle,
-      offerPercent,
-    );
-    const payableAmount = finalizePayableAmountPaise(
-      breakdown.finalAmountCents,
-      currencyCode,
-    );
-
-    const listPriceCents = this.pricingService.calculatePrice(
-      // jscpd:ignore-end
-      tier,
-      cycle,
-      offerPercent,
     );
 
     const { payment } =
@@ -100,28 +66,21 @@ export class ActivateSubscriptionUseCase {
         razorpayOrderId: request.razorpayOrderId,
         razorpayPaymentId: request.razorpayPaymentId,
         razorpaySignature: request.razorpaySignature,
-        payableAmountPaise: payableAmount,
+        payableAmountPaise: pricing.payableAmountPaise,
         subscriptionPaymentId: request.subscriptionPaymentId,
         skipPaymentVerification: request.skipPaymentVerification,
         verifiedAmountCents: request.verifiedAmountCents,
       });
 
     const saved = await this.billingSnapshot.persistActivatedSubscription({
-      // jscpd:ignore-start
       clinicId: request.clinicId,
       tier,
       cycle,
-      listPriceCents,
-      subscription,
-      creditsConsumed: breakdown.accountCreditsAppliedCents,
-      preserveCurrentPeriodEnd:
-        this.activationPolicy.shouldPreserveCurrentPeriodEnd(
-          subscription,
-          tier,
-          cycle,
-        ),
-      surplusCreditCents: breakdown.surplusCreditCents,
-      // jscpd:ignore-end
+      listPriceCents: pricing.listPriceCents,
+      subscription: pricing.subscription,
+      creditsConsumed: pricing.creditsConsumed,
+      preserveCurrentPeriodEnd: pricing.preserveCurrentPeriodEnd,
+      surplusCreditCents: pricing.surplusCreditCents,
     });
 
     const razorpayInvoice = await this.billingSnapshot.createHostedInvoice({
@@ -134,29 +93,7 @@ export class ActivateSubscriptionUseCase {
       cycle: cycle.value,
     });
 
-    const paidDetails = {
-      paymentId: request.razorpayPaymentId,
-      signature: request.razorpaySignature,
-      subscriptionId: saved.id,
-      invoiceUrl: razorpayInvoice?.shortUrl ?? undefined,
-      invoiceNumber: razorpayInvoice?.invoiceNumber ?? undefined,
-    };
-
-    if (request.subscriptionPaymentId) {
-      await this.subscriptionRepo.updatePaymentStatusById(
-        request.clinicId,
-        request.subscriptionPaymentId,
-        'paid',
-        paidDetails,
-      );
-    } else {
-      await this.subscriptionRepo.updatePaymentStatus(
-        request.razorpayOrderId,
-        'paid',
-        paidDetails,
-      );
-    }
-
+    await this.markPaymentPaid(request, saved.id, razorpayInvoice);
     await this.clinicSync.syncAfterActivation(
       request.clinicId,
       tier,
@@ -168,6 +105,40 @@ export class ActivateSubscriptionUseCase {
 
     this.logger.log(
       `Subscription activated for clinic ${request.clinicId}: ${tier.value} ${cycle.value}`,
+    );
+  }
+
+  /**
+   * Routes the post-activation status update to the correct repo method
+   * based on whether we have a `subscriptionPaymentId` (payment-link
+   * resume rows) or only a Razorpay `orderId` (the normal checkout path).
+   */
+  private async markPaymentPaid(
+    request: ActivateSubscriptionRequest,
+    subscriptionId: string,
+    razorpayInvoice: PlatformInvoiceSummary | null,
+  ): Promise<void> {
+    const paidDetails = {
+      paymentId: request.razorpayPaymentId,
+      signature: request.razorpaySignature,
+      subscriptionId,
+      invoiceUrl: razorpayInvoice?.shortUrl ?? undefined,
+      invoiceNumber: razorpayInvoice?.invoiceNumber ?? undefined,
+    };
+
+    if (request.subscriptionPaymentId) {
+      await this.subscriptionRepo.updatePaymentStatusById(
+        request.clinicId,
+        request.subscriptionPaymentId,
+        'paid',
+        paidDetails,
+      );
+      return;
+    }
+    await this.subscriptionRepo.updatePaymentStatus(
+      request.razorpayOrderId,
+      'paid',
+      paidDetails,
     );
   }
 }

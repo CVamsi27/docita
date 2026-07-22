@@ -8,6 +8,7 @@ import {
   type IClinicUsagePort,
 } from '@/domains/billing/application/ports';
 import { UsageThresholdNotifierService } from '@/domains/subscriptions/application/services/usage-threshold-notifier.service';
+import { GLOBAL_BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
 
 @Injectable()
 export class NotifyUsageThresholdsUseCase {
@@ -31,9 +32,9 @@ export class NotifyUsageThresholdsUseCase {
         },
         // Capped: this cron iterates all active/trialing subscriptions across
         // every clinic. The current Docita footprint is well under this
-        // guardrail; 10000 is a safety net that pages loudly via the
-        // Promise.allSettled error loop before anything is dropped.
-        take: 10000,
+        // guardrail; GLOBAL_BULK_READ_LIMIT is a safety net that pages loudly
+        // via the Promise.allSettled error loop before anything is dropped.
+        take: GLOBAL_BULK_READ_LIMIT,
       });
 
       const results = await Promise.allSettled(

@@ -28,6 +28,7 @@ import { ReferralAccrualService } from './application/services/referral-accrual.
 import { REFERRAL_PAYOUT_REPOSITORY_TOKEN } from './application/ports/referral-payout.repository.port';
 import { PrismaReferralPayoutRepository } from './infrastructure/repositories/prisma-referral-payout.repository';
 import { ActivateSubscriptionClinicSyncService } from './application/services/activate-subscription-clinic-sync.service';
+import { ActivateSubscriptionPricingResolver } from './application/services/activate-subscription-pricing.resolver';
 import { razorpayWebhookHandlerProviders } from './application/webhooks/razorpay/razorpay-webhook-handler.registry';
 import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
@@ -51,6 +52,7 @@ export const SUBSCRIPTIONS_COMMON_PROVIDERS = [
   SubscriptionBillingSnapshotService,
   ActivateSubscriptionPaymentService,
   ActivateSubscriptionClinicSyncService,
+  ActivateSubscriptionPricingResolver,
   ProratingService,
   SubscriptionValidationService,
   ReferralService,

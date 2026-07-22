@@ -4,6 +4,7 @@ import { addOnIncludedQuotaByTierJsonSchema } from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UsageType } from '@workspace/db';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import { GLOBAL_BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
 
 @Injectable()
 export class UsageAggregationService {
@@ -32,7 +33,7 @@ export class UsageAggregationService {
         // up usage metrics. The cap is a guardrail well above current
         // scale; if it fires the per-clinic failure loop surfaces it
         // loudly in the daily log.
-        take: 10000,
+        take: GLOBAL_BULK_READ_LIMIT,
       });
 
       const results = await Promise.allSettled(

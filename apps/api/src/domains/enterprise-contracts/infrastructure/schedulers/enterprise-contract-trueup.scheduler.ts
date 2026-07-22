@@ -7,6 +7,7 @@ import { EnterpriseContractsService } from '@/domains/enterprise-contracts/appli
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
 import { TrackHeartbeat } from '@/shared/modules/schedule/cron-heartbeat';
+import { BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
 
 @Injectable()
 export class EnterpriseContractTrueUpScheduler {
@@ -45,7 +46,7 @@ export class EnterpriseContractTrueUpScheduler {
           // Active enterprise contracts are a small internal-portal set;
           // 1000 is a guardrail well above realistic scale and below
           // table-size.
-          take: 1000,
+          take: BULK_READ_LIMIT,
         });
         this.logger.log(
           `True-up scan: ${activeContracts.length} active contracts`,
