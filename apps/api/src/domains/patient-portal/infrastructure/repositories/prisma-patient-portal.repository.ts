@@ -143,8 +143,8 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
     return this.auth.findActiveOtp(phone, now);
   }
 
-  incrementOtpAttempts(id: string): Promise<void> {
-    return this.auth.incrementOtpAttempts(id);
+  tryConsumeOtpAttempt(id: string, maxAttempts: number): Promise<boolean> {
+    return this.auth.tryConsumeOtpAttempt(id, maxAttempts);
   }
 
   markOtpUsed(id: string): Promise<void> {

@@ -55,7 +55,9 @@ export class PublicBookingCreationService {
     clinicId: string,
     phone: string,
   ): Promise<void> {
-    const otp = crypto.randomInt(100000, 999999).toString();
+    // randomInt's max is exclusive — use 1_000_000 to actually include
+    // 999_999 in the sample space. Same fix as PatientPortalAuthCommandService.
+    const otp = crypto.randomInt(100000, 1_000_000).toString();
     const otpHash = await bcrypt.hash(otp, 10);
     const expiresAt = new Date(this.clock.now().getTime() + 10 * 60 * 1000);
     await this.persistence.publicBookingOtp.deleteMany({
@@ -150,17 +152,27 @@ export class PublicBookingCreationService {
       });
       if (!otpRecord)
         throw new UnauthorizedException('Invalid or expired code');
-      await this.persistence.publicBookingOtp.update({
-        where: { id: otpRecord.id },
+      // Atomic attempt consumption: cap-check and increment in one UPDATE
+      // so concurrent verifyOtp calls cannot all observe attempts < cap
+      // and all run bcrypt.compare. See also the equivalent fix in
+      // PatientPortalAuthCommandService — same pattern, different domain.
+      const PUBLIC_BOOKING_MAX_OTP_ATTEMPTS = 3;
+      const consumed = await this.persistence.publicBookingOtp.updateMany({
+        where: {
+          id: otpRecord.id,
+          attempts: { lt: PUBLIC_BOOKING_MAX_OTP_ATTEMPTS },
+        },
         data: { attempts: { increment: 1 } },
       });
-      const refreshed = await this.persistence.publicBookingOtp.findUnique({
-        where: { id: otpRecord.id },
-      });
-      if (!refreshed || refreshed.attempts > 3)
+      if (consumed.count !== 1)
         throw new UnauthorizedException(
           'Too many attempts. Please request a new code.',
         );
+      const refreshed = await this.persistence.publicBookingOtp.findUnique({
+        where: { id: otpRecord.id },
+      });
+      if (!refreshed)
+        throw new UnauthorizedException('Invalid or expired code');
       const isValid = await bcrypt.compare(body.otp, refreshed.otpHash);
       if (!isValid) throw new UnauthorizedException('Invalid code');
       await this.persistence.publicBookingOtp.update({

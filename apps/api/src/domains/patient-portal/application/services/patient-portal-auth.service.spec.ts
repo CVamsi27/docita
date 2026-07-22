@@ -48,7 +48,7 @@ describe('PatientPortalAuthService', () => {
       invalidateOtps: jest.fn(),
       createOtp: jest.fn(),
       findActiveOtp: jest.fn(),
-      incrementOtpAttempts: jest.fn(),
+      tryConsumeOtpAttempt: jest.fn(),
       markOtpUsed: jest.fn(),
       createPortalUser: jest.fn(),
       linkUserToPatient: jest.fn(),
@@ -124,7 +124,28 @@ describe('PatientPortalAuthService', () => {
         expiresAt: new Date(Date.now() + 5 * 60 * 1000),
         usedAt: null,
       });
-      repository.incrementOtpAttempts.mockResolvedValue(undefined);
+      // Atomic consume returns false once the row is at-or-over the cap,
+      // even if the in-memory OTP record was loaded before the cap was hit.
+      repository.tryConsumeOtpAttempt.mockResolvedValue(false);
+
+      await expect(
+        service.verifyOtp('+919876543210', '123456'),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('throws when the cap has not been hit yet but the atomic consume refuses', async () => {
+      // Simulates a concurrent caller that incremented the row between
+      // our findActiveOtp and our consume. The pre-fix implementation
+      // would still have allowed bcrypt.compare to run; the new flow
+      // refuses atomically.
+      repository.findActiveOtp.mockResolvedValue({
+        id: 'otp-1',
+        attempts: 2,
+        otpHash: 'hashed',
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+        usedAt: null,
+      });
+      repository.tryConsumeOtpAttempt.mockResolvedValue(false);
 
       await expect(
         service.verifyOtp('+919876543210', '123456'),
