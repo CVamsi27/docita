@@ -120,8 +120,14 @@ export class RazorpaySubscriptionAdapter
       );
 
       return this.mapRazorpayCustomer(customer);
-    } catch {
-      this.logger.warn(`Customer ${customerId} not found`);
+    } catch (error) {
+      // Caller treats null as "not found" — that contract is preserved.
+      // Log the real cause so non-404 failures (Razorpay 5xx, network,
+      // circuit-breaker open) are visible in observability instead of
+      // masquerading as a missing record.
+      this.logger.warn(
+        `Customer ${customerId} lookup returned no record: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return null;
     }
   }
@@ -176,8 +182,12 @@ export class RazorpaySubscriptionAdapter
     try {
       const razorpay = this.getClient();
       return await this.withRazorpayTimeout(() => razorpay.plans.fetch(planId));
-    } catch {
-      this.logger.warn(`Plan ${planId} not found`);
+    } catch (error) {
+      // See getCustomer above: caller treats null as "not found", but
+      // we still log the real cause so non-404 failures stay visible.
+      this.logger.warn(
+        `Plan ${planId} lookup returned no record: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return null;
     }
   }
@@ -223,8 +233,12 @@ export class RazorpaySubscriptionAdapter
       );
 
       return this.mapRazorpaySubscription(subscription);
-    } catch {
-      this.logger.warn(`Subscription ${subscriptionId} not found`);
+    } catch (error) {
+      // See getCustomer above: caller treats null as "not found", but
+      // we still log the real cause so non-404 failures stay visible.
+      this.logger.warn(
+        `Subscription ${subscriptionId} lookup returned no record: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return null;
     }
   }

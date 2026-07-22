@@ -27,13 +27,7 @@ export class RazorpayRefundAdapter
           },
         }),
       );
-
-      return {
-        refundId: refund.id,
-        amount: Money.fromCents(refund.amount || 0, refund.currency),
-        status: this.mapRefundStatus(refund.status),
-        createdAt: new Date(refund.created_at * 1000),
-      };
+      return this.mapRefundResponse(refund);
     } catch (error) {
       this.logger.error('Failed to create refund', error);
       throw new BadRequestException('Failed to create refund');
@@ -46,17 +40,35 @@ export class RazorpayRefundAdapter
       const refund = await this.withRazorpayTimeout(() =>
         razorpay.refunds.fetch(refundId),
       );
-
-      return {
-        refundId: refund.id,
-        amount: Money.fromCents(refund.amount || 0, refund.currency),
-        status: this.mapRefundStatus(refund.status),
-        createdAt: new Date(refund.created_at * 1000),
-      };
-    } catch {
-      this.logger.warn(`Refund ${refundId} not found`);
+      return this.mapRefundResponse(refund);
+    } catch (error) {
+      // Caller treats null as "not found"; log real cause so non-404
+      // failures (5xx, network, breaker) stay visible.
+      this.logger.warn(
+        `Refund ${refundId} lookup returned no record: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return null;
     }
+  }
+
+  /**
+   * Map a raw Razorpay refund entity into the provider-neutral
+   * RefundResponse. Extracted to keep createRefund and getRefund
+   * byte-different and the responsibility testable in isolation.
+   */
+  private mapRefundResponse(refund: {
+    id: string;
+    amount?: number | null;
+    currency?: string;
+    status: string;
+    created_at: number;
+  }): RefundResponse {
+    return {
+      refundId: refund.id,
+      amount: Money.fromCents(refund.amount || 0, refund.currency),
+      status: this.mapRefundStatus(refund.status),
+      createdAt: new Date(refund.created_at * 1000),
+    };
   }
 
   private mapRefundStatus(razorpayStatus: string): RefundStatus {

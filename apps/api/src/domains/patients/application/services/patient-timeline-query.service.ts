@@ -162,9 +162,15 @@ export class PatientTimelineQueryService {
         for (const [medicationId, rate] of adherenceMap.entries()) {
           adherenceByMedicationId.set(medicationId, rate);
         }
-      } catch {
+      } catch (error) {
+        // Adherence is a non-critical enrichment for the patient
+        // snapshot. If the batch lookup fails (e.g. Prisma error or
+        // timeout) we still want to return the rest of the snapshot
+        // — but the real cause must be visible in observability so
+        // we don't silently degrade the UI.
         this.logger.warn(
           'Could not fetch medication adherence in batch for patient snapshot',
+          error instanceof Error ? error.stack : String(error),
         );
       }
     }
