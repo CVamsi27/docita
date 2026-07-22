@@ -40,8 +40,28 @@ export class ReferralAccrualService {
   async accrueAllDuePayouts(): Promise<AccrualRunResult> {
     const referrals = await this.repository.findDueRevenueShareReferrals();
 
-    let payoutsCreated = 0;
+    // Resolve the per-referral paid-period list (one round-trip per referral
+    // — the SQL is index-backed and the dataset is small because each
+    // referral is bound to a single clinic). Then accrue every
+    // (referral, payment) pair concurrently. accruePayoutForPeriod is
+    // idempotent (dedupes on (referralId, periodStart)), so parallel
+    // execution cannot double-pay and the pool absorbs the burst.
+    //
+    // Without this refactor, 50 referrals × 12 monthly payments = 600
+    // sequential round-trips per scheduler tick; with it, the same work
+    // completes in roughly the duration of a single accrual.
+    type AccrualJob = {
+      referralId: string;
+      referrerId: string;
+      activationAt: Date;
+      periodStart: Date;
+      periodEnd: Date;
+      paidRevenueCents: number;
+      rateBands: ReturnType<typeof parseRateBands>;
+      firstYearOnly: boolean;
+    };
 
+    const jobs: AccrualJob[] = [];
     for (const referral of referrals) {
       const referrer = referral.referrer;
       if (!referrer || !referral.activationAt || !referral.referredClinicId) {
@@ -67,7 +87,7 @@ export class ReferralAccrualService {
 
       for (const payment of payments) {
         if (!payment.paidAt) continue;
-        const result = await this.payoutService.accruePayoutForPeriod({
+        jobs.push({
           referralId: referral.id,
           referrerId: referrer.id,
           activationAt: referral.activationAt,
@@ -75,10 +95,32 @@ export class ReferralAccrualService {
           periodEnd: payment.paidAt,
           paidRevenueCents: payment.amountCents,
           rateBands: bands,
-          firstYearOnly: referrer.firstYearOnly,
+          firstYearOnly: referrer.firstYearOnly ?? true,
         });
-        if (result.created) payoutsCreated += 1;
       }
+    }
+
+    const results = await Promise.allSettled(
+      jobs.map((job) => this.payoutService.accruePayoutForPeriod(job)),
+    );
+
+    let payoutsCreated = 0;
+    const failures: PromiseRejectedResult[] = [];
+    for (const result of results) {
+      if (result.status === 'fulfilled') {
+        if (result.value.created) payoutsCreated += 1;
+      } else {
+        failures.push(result);
+      }
+    }
+    if (failures.length > 0) {
+      // Surface but do not rethrow: the scheduler cron will retry the whole
+      // batch on the next tick. Logging each rejection keeps the failure
+      // visible in Sentry / log search without aborting the run.
+      this.logger.error(
+        `Referral accrual: ${failures.length} of ${results.length} job(s) failed`,
+        failures.map((f) => f.reason).join('\n'),
+      );
     }
 
     if (payoutsCreated > 0) {

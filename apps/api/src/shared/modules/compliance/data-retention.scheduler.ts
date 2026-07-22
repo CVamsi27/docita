@@ -67,12 +67,56 @@ export class DataRetentionScheduler {
       }),
     );
 
-    const results = await Promise.allSettled(
-      recordsToDelete.map((patient) =>
-        this.anonymizePatient(patient.id, patient.clinicId),
+    if (recordsToDelete.length === 0) return;
+
+    // Cache the admin user for each affected clinic so the per-patient
+    // anonymization does not issue an extra `user.findFirst` query for
+    // every row. 100 patients across 100 clinics would otherwise fan out
+    // to 100 + 100 = 200 SELECTs; this brings it down to 100 + N where N
+    // is the number of distinct clinics in the batch (usually 1).
+    const clinicIds = Array.from(
+      new Set(
+        recordsToDelete
+          .map((patient) => patient.clinicId)
+          .filter((id): id is string => Boolean(id)),
       ),
     );
+    const adminByClinic = await this.fetchAdminUsersByClinic(clinicIds);
+
+    const results = await Promise.allSettled(
+      recordsToDelete.map((patient) => {
+        const admin = patient.clinicId
+          ? adminByClinic.get(patient.clinicId)
+          : undefined;
+        return this.anonymizePatient(patient.id, patient.clinicId, admin?.id);
+      }),
+    );
     this.logSweepOutcome(results, 'patient');
+  }
+
+  /**
+   * Single batched lookup of the earliest-created admin user per clinic.
+   * Replaces what would otherwise be one `user.findFirst` per anonymized
+   * patient in the compliance sweep.
+   */
+  private async fetchAdminUsersByClinic(
+    clinicIds: string[],
+  ): Promise<Map<string, { id: string }>> {
+    if (clinicIds.length === 0) return new Map();
+    // RLS-BYPASS: compliance retention spans tenants; users precede tenant bind.
+    const rows = await this.prisma.runUnrestricted(async () =>
+      this.prisma.user.findMany({
+        where: { clinicId: { in: clinicIds } },
+        select: { id: true, clinicId: true, createdAt: true },
+        orderBy: { createdAt: 'asc' },
+      }),
+    );
+    const earliest = new Map<string, { id: string }>();
+    for (const row of rows) {
+      if (!row.clinicId) continue;
+      if (!earliest.has(row.clinicId)) earliest.set(row.clinicId, row);
+    }
+    return earliest;
   }
 
   /** Shared success/failure logging for a retention anonymization sweep. */
@@ -166,6 +210,7 @@ export class DataRetentionScheduler {
   private async anonymizePatient(
     patientId: string,
     clinicId: string,
+    adminUserId?: string,
   ): Promise<void> {
     const randomId = `ANON-${this.clock.now().getTime()}`;
 
@@ -186,15 +231,13 @@ export class DataRetentionScheduler {
         },
       });
 
-      const adminUser = await this.prisma.user.findFirst({
-        where: { clinicId },
-        select: { id: true },
-        orderBy: { createdAt: 'asc' },
-      });
-
-      if (adminUser) {
+      // Admin user is resolved once per batch by the caller
+      // (processSoftDeletedRecords → fetchAdminUsersByClinic) so the
+      // per-patient audit log does not issue another round-trip to the
+      // database for every row.
+      if (adminUserId) {
         await this.auditService.logAction({
-          userId: adminUser.id,
+          userId: adminUserId,
           clinicId,
           actionType: 'DATA_RETENTION_ANONYMIZATION',
           resourceType: 'Patient',

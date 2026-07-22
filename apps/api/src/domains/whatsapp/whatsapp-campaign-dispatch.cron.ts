@@ -59,25 +59,25 @@ export class WhatsappCampaignDispatchCron {
     const job = await this.prisma.whatsAppBroadcastJob.findUnique({
       where: { id: jobId },
       include: {
+        // Pull `whatsappConsent` for each recipient's linked patient in
+        // the same query. A 10k-recipient campaign previously issued
+        // 10k extra `patient.findFirst` round-trips to evaluate consent;
+        // this bring it down to one.
         recipients: {
           where: { status: 'PENDING' },
           orderBy: { createdAt: 'asc' },
+          include: {
+            patient: {
+              select: { whatsappConsent: true },
+            },
+          },
         },
       },
     });
     if (!job?.clinicId || job.status === 'CANCELLED') return;
 
     for (const recipient of job.recipients) {
-      const patient = recipient.patientId
-        ? await this.prisma.patient.findFirst({
-            where: {
-              id: recipient.patientId,
-              clinicId: job.clinicId,
-              deletedAt: null,
-            },
-            select: { whatsappConsent: true },
-          })
-        : null;
+      const patient = recipient.patient ?? null;
       if (!patient?.whatsappConsent) {
         await this.prisma.whatsAppBroadcastRecipient.update({
           where: { id: recipient.id },
