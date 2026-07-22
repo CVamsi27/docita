@@ -191,7 +191,6 @@ export class LabWorkflowCommandService {
     this.eventEmitter.emit(ApplicationEvents.LAB_RESULT_RELEASED, {
       orderId: id,
       clinicId,
-      // jscpd:ignore-start
       patientId: ctx.patient.id,
     });
   }
@@ -222,7 +221,6 @@ export class LabWorkflowCommandService {
     }>,
   ): Promise<LabRecord> {
     return await this.directoryRepository.updateLab(id, clinicId, data);
-    // jscpd:ignore-end
   }
 
   private async loadOrder(id: string, clinicId: string): Promise<LabOrder> {

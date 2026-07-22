@@ -58,20 +58,19 @@ export class PrismaDoctorDelayRepository implements IDoctorDelayRepository {
       });
 
       const shiftMs = command.delayMinutes * 60 * 1000;
-      const ids: string[] = [];
-      for (const appt of upcoming) {
-        const newStart = new Date(appt.startTime.getTime() + shiftMs);
-        const newEnd = new Date(appt.endTime.getTime() + shiftMs);
-        await tx.appointment.update({
-          where: { id: appt.id },
-          data: {
-            startTime: newStart,
-            endTime: newEnd,
-            originalStartTime: appt.originalStartTime ?? appt.startTime,
-          },
-        });
-        ids.push(appt.id);
-      }
+      const ids = upcoming.map((appt) => appt.id);
+      await Promise.all(
+        upcoming.map((appt) =>
+          tx.appointment.update({
+            where: { id: appt.id },
+            data: {
+              startTime: new Date(appt.startTime.getTime() + shiftMs),
+              endTime: new Date(appt.endTime.getTime() + shiftMs),
+              originalStartTime: appt.originalStartTime ?? appt.startTime,
+            },
+          }),
+        ),
+      );
       return [newDelay, ids];
     });
     return { delay, affectedAppointmentIds: affectedIds };
