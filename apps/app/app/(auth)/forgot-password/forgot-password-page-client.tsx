@@ -121,7 +121,6 @@ function ForgotPasswordPageInner() {
 {/* jscpd:ignore-end */}
                 </>
               ) : (
-// jscpd:ignore-start
                 tAuth("submitIdle")
               )}
             </Button>

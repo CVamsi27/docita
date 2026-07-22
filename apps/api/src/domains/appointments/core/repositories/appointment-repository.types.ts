@@ -45,7 +45,6 @@ export interface AppointmentSearchParams {
   search?: string;
   cursor?: string;
   page?: number;
-  // jscpd:ignore-start
   sortOrder?: 'asc' | 'desc';
   limit?: number;
 }
