@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DATE_FORMATS, formatDate, getPatientFullName } from '@workspace/utils';
-import { LabType } from '@workspace/db';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import {
@@ -19,6 +18,8 @@ import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/sen
 import type {
   LabDirectoryRepository,
   LabRecord,
+  CreateLabInput,
+  UpdateLabInput,
 } from '@/domains/clinical/core/repositories/lab-directory.repository.interface';
 import type { LabOrderRepository } from '@/domains/clinical/core/repositories/lab-order.repository.interface';
 import type { LabWorkflowRepository } from '@/domains/clinical/core/repositories/lab-workflow.repository.interface';
@@ -197,13 +198,7 @@ export class LabWorkflowCommandService {
 
   async createLab(
     clinicId: string,
-    data: {
-      name: string;
-      type: LabType;
-      phone?: string;
-      email?: string;
-      address?: string;
-    },
+    data: CreateLabInput,
   ): Promise<LabRecord> {
     return await this.directoryRepository.createLab(clinicId, data);
   }
@@ -211,14 +206,7 @@ export class LabWorkflowCommandService {
   async updateLab(
     id: string,
     clinicId: string,
-    data: Partial<{
-      name: string;
-      type: LabType;
-      phone: string;
-      email: string;
-      address: string;
-      active: boolean;
-    }>,
+    data: UpdateLabInput,
   ): Promise<LabRecord> {
     return await this.directoryRepository.updateLab(id, clinicId, data);
   }
