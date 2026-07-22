@@ -209,8 +209,6 @@ export class DataRetentionScheduler {
     clinicId: string,
     adminUserId?: string,
   ): Promise<void> {
-    const randomId = `ANON-${this.clock.now().getTime()}`;
-
     // RLS-BYPASS: compliance retention and archival jobs span tenants by design
     await this.prisma.runUnrestricted(async () => {
       await this.prisma.patient.update({
@@ -218,7 +216,7 @@ export class DataRetentionScheduler {
         data: {
           firstName: 'Anonymous',
           lastName: 'Patient',
-          email: `${randomId}@anonymized.local`,
+          email: `anon-${patientId}@anonymized.local`,
           phoneNumber: '0000000000',
           address: null,
           dateOfBirth: new Date('1900-01-01'),
