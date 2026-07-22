@@ -117,6 +117,29 @@ export class PrismaMedicationDoseRepository
     }));
   }
 
+  /**
+   * Batched adherence lookup: returns a `{ medicationId, status, count }`
+   * row per (medication, status) for the matching dose filter. The
+   * caller (typically `getActiveMedications`) accumulates these into a
+   * per-medication map and computes adherence in one pass — replacing
+   * a per-medication groupBy that scaled linearly with the number of
+   * non-PrN medications on the active-prescription list.
+   */
+  async groupDosesByMedicationAndStatus(
+    where: Prisma.MedicationDoseWhereInput,
+  ): Promise<Array<{ medicationId: string; status: string; count: number }>> {
+    const rows = await this.getReadClient().medicationDose.groupBy({
+      by: ['medicationId', 'status'],
+      where,
+      _count: { _all: true },
+    });
+    return rows.map((row) => ({
+      medicationId: row.medicationId,
+      status: row.status,
+      count: row._count._all,
+    }));
+  }
+
   async createManyDoses(
     // jscpd:ignore-end
     data: Array<Prisma.MedicationDoseUncheckedCreateInput>,

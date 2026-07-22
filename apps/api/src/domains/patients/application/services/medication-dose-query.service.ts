@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { MedicationDoseStatus, Prisma } from '@workspace/db';
 import {
   IMedicationDoseRepository,
@@ -18,6 +18,8 @@ interface DoseHistoryQuery {
 
 @Injectable()
 export class MedicationDoseQueryService {
+  private readonly logger = new Logger(MedicationDoseQueryService.name);
+
   constructor(
     @Inject(MEDICATION_DOSE_REPOSITORY_TOKEN)
     private readonly repository: IMedicationDoseRepository,
@@ -120,6 +122,12 @@ export class MedicationDoseQueryService {
     const prescriptions =
       await this.repository.findPrescriptionsWithMedications(patientId, 10);
 
+    // Single batched adherence lookup across every medication on the
+    // active-prescription list. Previously this method fired one
+    // `getAdherenceSummary` (2 SQL queries) per non-PrN medication:
+    // up to ~50 sequential round-trips per patient snapshot. Now it's
+    // one `groupBy(medicationId, status)` regardless of medication
+    // count.
     const activeMedications: Array<{
       medicationId: string;
       name: string;
@@ -141,6 +149,7 @@ export class MedicationDoseQueryService {
         adherenceRate: number;
       } | null;
     }> = [];
+    const medicationIdsForAdherence: string[] = [];
 
     for (const prescription of prescriptions) {
       for (const med of prescription.medications) {
@@ -148,16 +157,8 @@ export class MedicationDoseQueryService {
 
         if (!isActive) continue;
 
-        let adherence = null;
         if (!med.isPRN) {
-          const summary = await this.getAdherenceSummary(
-            clinicId,
-            patientId,
-            prescription.id,
-          );
-          if (summary.totalDoses > 0) {
-            adherence = summary;
-          }
+          medicationIdsForAdherence.push(med.id);
         }
 
         activeMedications.push({
@@ -173,8 +174,80 @@ export class MedicationDoseQueryService {
           prnInstructions: med.prnInstructions,
           prescriptionId: prescription.id,
           prescriptionDate: prescription.date,
-          adherence,
+          adherence: null,
         });
+      }
+    }
+
+    const adherenceByMedicationId = new Map<
+      string,
+      {
+        totalDoses: number;
+        taken: number;
+        missed: number;
+        skipped: number;
+        adherenceRate: number;
+      }
+    >();
+
+    if (medicationIdsForAdherence.length > 0) {
+      try {
+        const uniqueMedicationIds = [...new Set(medicationIdsForAdherence)];
+        const dueWhere: Prisma.MedicationDoseWhereInput = {
+          clinicId,
+          patientId,
+          medicationId: { in: uniqueMedicationIds },
+          scheduledAt: { lte: now },
+          source: {
+            in: ['SYSTEM_GENERATED', 'PATIENT_REPORTED', 'CLINICIAN_RECORDED'],
+          },
+        };
+        const rows =
+          await this.repository.groupDosesByMedicationAndStatus(dueWhere);
+
+        // Roll up the per-(medication, status) counts into the
+        // { taken, missed, skipped, …, adherenceRate } shape the
+        // caller expects, so we don't have to do a second pass.
+        for (const row of rows) {
+          const existing = adherenceByMedicationId.get(row.medicationId) ?? {
+            totalDoses: 0,
+            taken: 0,
+            missed: 0,
+            skipped: 0,
+            adherenceRate: 0,
+          };
+          existing.totalDoses += row.count;
+          if (row.status === 'TAKEN' || row.status === 'ADMINISTERED') {
+            existing.taken += row.count;
+          } else if (row.status === 'MISSED') {
+            existing.missed += row.count;
+          } else if (row.status === 'SKIPPED') {
+            existing.skipped += row.count;
+          }
+          adherenceByMedicationId.set(row.medicationId, existing);
+        }
+        for (const summary of adherenceByMedicationId.values()) {
+          summary.adherenceRate =
+            summary.totalDoses > 0
+              ? (summary.taken / summary.totalDoses) * 100
+              : 100;
+        }
+      } catch (error) {
+        // Adherence is a non-critical enrichment — if the batched
+        // lookup fails we still want to return the medication list
+        // with `adherence: null`. Log so a recurring failure is
+        // visible in observability.
+        this.logger.warn(
+          `Batched medication adherence lookup failed for patient ${patientId}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+
+    for (const med of activeMedications) {
+      if (med.isPRN) continue;
+      const summary = adherenceByMedicationId.get(med.medicationId);
+      if (summary && summary.totalDoses > 0) {
+        med.adherence = summary;
       }
     }
 
