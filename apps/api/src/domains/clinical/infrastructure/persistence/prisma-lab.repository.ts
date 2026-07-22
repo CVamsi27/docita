@@ -9,6 +9,7 @@ import {
 } from '@workspace/utils';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import { BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
 import { PrismaService } from '@/prisma/prisma.service';
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
@@ -364,7 +365,7 @@ export class PrismaLabRepository implements ILabRepository {
         },
       },
       orderBy: { createdAt: 'desc' },
-      take: 1000,
+      take: BULK_READ_LIMIT,
     });
 
     return orders.map((o) => ({

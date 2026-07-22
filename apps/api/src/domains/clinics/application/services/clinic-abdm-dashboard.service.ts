@@ -72,12 +72,10 @@ export class ClinicAbdmDashboardService {
       this.clock.now(),
     );
 
+    // Single source of truth: "ABHA-verified, non-deleted patient of this
+    // clinic" — used both for the ABHA readiness counter and as a filter for
+    // every DHIS record count.
     const verifiedPatientFilter = {
-      clinicId,
-      deletedAt: null,
-      abhaVerifiedAt: { not: null },
-    };
-    const recordPatientFilter = {
       clinicId,
       deletedAt: null,
       abhaVerifiedAt: { not: null },
@@ -128,7 +126,7 @@ export class ClinicAbdmDashboardService {
           status: {
             in: [LabTestOrderStatus.RESULT_READY, LabTestOrderStatus.COMPLETED],
           },
-          patient: recordPatientFilter,
+          patient: verifiedPatientFilter,
           OR: [
             { completedAt: { gte: monthStart, lt: nextMonthStart } },
             { resultUploadedAt: { gte: monthStart, lt: nextMonthStart } },
@@ -141,7 +139,7 @@ export class ClinicAbdmDashboardService {
           type: MedicalDocumentType.DISCHARGE_SUMMARY,
           status: MedicalDocumentStatus.SIGNED,
           signedAt: { gte: monthStart, lt: nextMonthStart },
-          patient: recordPatientFilter,
+          patient: verifiedPatientFilter,
         },
       }),
       this.persistence.prescription.count({
@@ -151,7 +149,7 @@ export class ClinicAbdmDashboardService {
             in: [ApprovalStatus.APPROVED, ApprovalStatus.AUTO_APPROVED],
           },
           date: { gte: monthStart, lt: nextMonthStart },
-          patient: recordPatientFilter,
+          patient: verifiedPatientFilter,
         },
       }),
       this.persistence.appointment.count({
@@ -159,7 +157,7 @@ export class ClinicAbdmDashboardService {
           clinicId,
           status: AppointmentStatus.COMPLETED,
           startTime: { gte: monthStart, lt: nextMonthStart },
-          patient: recordPatientFilter,
+          patient: verifiedPatientFilter,
         },
       }),
       this.persistence.medicalDocument.count({
@@ -168,7 +166,7 @@ export class ClinicAbdmDashboardService {
           type: { not: MedicalDocumentType.DISCHARGE_SUMMARY },
           status: MedicalDocumentStatus.SIGNED,
           signedAt: { gte: monthStart, lt: nextMonthStart },
-          patient: recordPatientFilter,
+          patient: verifiedPatientFilter,
         },
       }),
       this.persistence.invoice.count({
@@ -179,7 +177,7 @@ export class ClinicAbdmDashboardService {
             { issuedAt: { gte: monthStart, lt: nextMonthStart } },
             { createdAt: { gte: monthStart, lt: nextMonthStart } },
           ],
-          patient: recordPatientFilter,
+          patient: verifiedPatientFilter,
         },
       }),
     ]);
