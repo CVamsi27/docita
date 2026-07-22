@@ -50,8 +50,19 @@ export class WhatsappCampaignDispatchCron {
       WHERE job.id = claimed.id
       RETURNING job.id
     `;
-    for (const job of jobs) {
-      await this.dispatch(job.id);
+    // Claimed jobs are independent (separate clinic, separate recipients,
+    // separate lease). Run them in parallel so a slow WhatsApp API call on
+    // one clinic does not block the others. Failures stay isolated via
+    // allSettled so a single bad job cannot poison the whole tick.
+    const results = await Promise.allSettled(
+      jobs.map((job) => this.dispatch(job.id)),
+    );
+    const failures = results.filter((r) => r.status === 'rejected');
+    if (failures.length > 0) {
+      this.logger.error(
+        `WhatsApp campaign dispatch: ${failures.length} of ${results.length} job(s) failed`,
+        failures.map((f) => f.reason).join('\n'),
+      );
     }
   }
 
@@ -62,7 +73,7 @@ export class WhatsappCampaignDispatchCron {
         // Pull `whatsappConsent` for each recipient's linked patient in
         // the same query. A 10k-recipient campaign previously issued
         // 10k extra `patient.findFirst` round-trips to evaluate consent;
-        // this bring it down to one.
+        // this brings it down to one.
         recipients: {
           where: { status: 'PENDING' },
           orderBy: { createdAt: 'asc' },

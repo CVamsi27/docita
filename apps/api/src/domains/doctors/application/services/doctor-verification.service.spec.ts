@@ -8,29 +8,34 @@ import type { DoctorVerificationHttpClient } from '@/domains/doctors/infrastruct
 
 const NOW = new Date('2026-07-05T09:00:00.000Z');
 
-function makeCtx(options: {
-  doctors: ReadonlyArray<{ id: string }>;
-  verify: (id: string) => Promise<unknown>;
-} = { doctors: [], verify: async () => null }) {
-  const findDoctorsForReverification = jest
-    .fn<() => Promise<Array<{ id: string }>>>(async () => [...options.doctors]);
+function makeCtx(
+  options: {
+    doctors: ReadonlyArray<{ id: string }>;
+    verify: (id: string) => Promise<unknown>;
+  } = { doctors: [], verify: async () => null },
+) {
+  const findDoctorsForReverification = jest.fn<
+    () => Promise<Array<{ id: string }>>
+  >(async () => [...options.doctors]);
   const repository = {
     findDoctorsForReverification,
-    findDoctorForVerification: jest
-      .fn<(id: string) => Promise<unknown>>(async (id: string) => ({
+    findDoctorForVerification: jest.fn<(id: string) => Promise<unknown>>(
+      async (id: string) => ({
         id,
         name: `Dr ${id}`,
         role: 'DOCTOR',
         registrationNumber: 'MCI-1',
-      })),
-    findDoctorLicenseExpiry: jest
-      .fn<(id: string) => Promise<unknown>>(async () => null),
-    updateVerificationStatus: jest
-      .fn<(id: string, data: unknown) => Promise<void>>(
-        async () => undefined,
-      ),
-    findDoctorVerificationRecord: jest
-      .fn<(id: string) => Promise<unknown>>(async (id: string) => ({ id })),
+      }),
+    ),
+    findDoctorLicenseExpiry: jest.fn<(id: string) => Promise<unknown>>(
+      async () => null,
+    ),
+    updateVerificationStatus: jest.fn<
+      (id: string, data: unknown) => Promise<void>
+    >(async () => undefined),
+    findDoctorVerificationRecord: jest.fn<(id: string) => Promise<unknown>>(
+      async (id: string) => ({ id }),
+    ),
   } as unknown as IDoctorVerificationRepository;
 
   const configService = {
@@ -65,7 +70,9 @@ describe('DoctorVerificationService.runDoctorReverificationSweep', () => {
   let errorSpy: jest.SpiedFunction<typeof Logger.prototype.error>;
 
   beforeEach(() => {
-    errorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    errorSpy = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
   });
 
   afterEach(() => {

@@ -144,10 +144,8 @@ export class SubscriptionMapper {
         });
         aggregate.addDiscount(discount, asOf);
       } catch (error) {
-        // Per the design comment: skip malformed stored discounts so
-        // valid ones remain usable. But the real cause must be visible
-        // in observability so a recurring corruption pattern is
-        // actionable instead of silently dropped.
+        // Skip malformed stored discounts; surface the original cause
+        // so a recurring corruption pattern is actionable.
         SubscriptionMapper.logger.warn(
           `Skipped malformed stored discount (type=${String(
             (item as { type?: unknown })?.type,

@@ -196,10 +196,7 @@ export class LabWorkflowCommandService {
     });
   }
 
-  async createLab(
-    clinicId: string,
-    data: CreateLabInput,
-  ): Promise<LabRecord> {
+  async createLab(clinicId: string, data: CreateLabInput): Promise<LabRecord> {
     return await this.directoryRepository.createLab(clinicId, data);
   }
 
