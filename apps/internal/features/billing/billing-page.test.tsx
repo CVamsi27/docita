@@ -108,16 +108,23 @@ const messages = {
       creditsMonths: "{count} mo",
     },
   },
-  // Some surfaces the dashboard dialogs read from use other namespaces.
-  // Keep them here so the test renders the existing test copy
-  // (e.g. "Extend Grace Period", "In Grace Period") without ICU
-  // fallbacks leaking into the DOM.
-  InternalBillingActions: {
-    extendGracePeriod: "Extend",
-    gracePeriodBadge: "In Grace Period",
-    extendDialogTitle: "Extend Grace Period",
-    extendDialogBody: "Extend the grace period for {clinicName}",
-    daysLabel: "Days",
+  // The grace-summary card reads from BillingDashboard.riskSummary
+  // (not the legacy InternalBillingActions namespace). Keep the
+  // BillingDashboard bundle here so the dashboard renders real text
+  // instead of ICU fallbacks when the test mounts.
+  BillingDashboard: {
+    riskSummary: {
+      graceTitle: "In Grace Period",
+      graceDescription: "{count} subscriptions in grace period",
+      actionExtend: "Extend",
+    },
+    graceDialog: {
+      title: "Extend Grace Period",
+      description: "Extend the grace period for",
+      daysLabel: "Days",
+      cancelButton: "Cancel",
+      confirmButton: "Extend",
+    },
   },
 };
 

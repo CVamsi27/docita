@@ -17,14 +17,6 @@ function useDetailedMetricsTableTranslations() {
   return useTranslations("InternalAnalytics.detailedMetricsTable");
 }
 
-/**
- * Phase 3 (per-feature): apps/internal Analytics > Detailed metrics
- * table. 6 literals converted to useTranslations("InternalAnalytics.detailedMetricsTable").
- */
-function useDetailedMetricsTableTranslations() {
-  return useTranslations("InternalAnalytics.detailedMetricsTable");
-}
-
 interface AnalyticsDetailedMetricsTableProps {
   rows: DetailedMetricsRow[];
 }

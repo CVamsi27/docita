@@ -38,40 +38,6 @@ function renderWithIntl(node: React.ReactNode) {
   );
 }
 
-const messages = {
-  Ipd: {
-    admissionForm: {
-      title: "New admission",
-      description: "Admit a patient to the hospital",
-      patientLabel: "Patient",
-      patientPlaceholder: "Enter patient name or phone",
-      wardLabel: "Ward",
-      wardAriaLabel: "Select Ward",
-      wardPlaceholder: "Ward",
-      bedLabel: "Bed",
-      bedAriaLabel: "Select Bed",
-      bedPlaceholder: "Bed",
-      doctorLabel: "Attending doctor",
-      doctorAriaLabel: "Select Doctor",
-      doctorPlaceholder: "Doctor",
-      diagnosisLabel: "Admission diagnosis",
-      diagnosisPlaceholder: "Admission diagnosis",
-      notesLabel: "Notes",
-      notesPlaceholder: "Admission notes",
-      submittingButton: "Admitting…",
-      submitButton: "Admit Patient",
-    },
-  },
-};
-
-function renderWithIntl(node: React.ReactNode) {
-  return render(
-    <NextIntlClientProvider locale="en" messages={messages}>
-      {node}
-    </NextIntlClientProvider>,
-  );
-}
-
 describe("ipdAdmissionFormSchema", () => {
   it("requires the core admission identifiers", () => {
     const result = ipdAdmissionFormSchema.safeParse({
