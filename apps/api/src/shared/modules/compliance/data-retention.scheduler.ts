@@ -69,11 +69,8 @@ export class DataRetentionScheduler {
 
     if (recordsToDelete.length === 0) return;
 
-    // Cache the admin user for each affected clinic so the per-patient
-    // anonymization does not issue an extra `user.findFirst` query for
-    // every row. 100 patients across 100 clinics would otherwise fan out
-    // to 100 + 100 = 200 SELECTs; this brings it down to 100 + N where N
-    // is the number of distinct clinics in the batch (usually 1).
+    // Batch the admin-user lookup once per distinct clinic so we don't
+    // issue one user.findFirst per anonymized patient.
     const clinicIds = Array.from(
       new Set(
         recordsToDelete
@@ -231,10 +228,7 @@ export class DataRetentionScheduler {
         },
       });
 
-      // Admin user is resolved once per batch by the caller
-      // (processSoftDeletedRecords → fetchAdminUsersByClinic) so the
-      // per-patient audit log does not issue another round-trip to the
-      // database for every row.
+      // Admin user id is passed in by the caller (batched lookup).
       if (adminUserId) {
         await this.auditService.logAction({
           userId: adminUserId,

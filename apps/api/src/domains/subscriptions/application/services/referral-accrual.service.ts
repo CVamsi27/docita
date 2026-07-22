@@ -40,16 +40,9 @@ export class ReferralAccrualService {
   async accrueAllDuePayouts(): Promise<AccrualRunResult> {
     const referrals = await this.repository.findDueRevenueShareReferrals();
 
-    // Resolve the per-referral paid-period list (one round-trip per referral
-    // — the SQL is index-backed and the dataset is small because each
-    // referral is bound to a single clinic). Then accrue every
-    // (referral, payment) pair concurrently. accruePayoutForPeriod is
-    // idempotent (dedupes on (referralId, periodStart)), so parallel
-    // execution cannot double-pay and the pool absorbs the burst.
-    //
-    // Without this refactor, 50 referrals × 12 monthly payments = 600
-    // sequential round-trips per scheduler tick; with it, the same work
-    // completes in roughly the duration of a single accrual.
+    // Build the (referral, payment) job list, then run all accruals
+    // concurrently. accruePayoutForPeriod is idempotent (dedupes on
+    // (referralId, periodStart)), so parallel execution is safe.
     type AccrualJob = {
       referralId: string;
       referrerId: string;
@@ -114,9 +107,9 @@ export class ReferralAccrualService {
       }
     }
     if (failures.length > 0) {
-      // Surface but do not rethrow: the scheduler cron will retry the whole
-      // batch on the next tick. Logging each rejection keeps the failure
-      // visible in Sentry / log search without aborting the run.
+      // Surface but don't rethrow — the cron will retry the whole
+      // batch on the next tick. Logging each keeps failures visible
+      // without aborting the run.
       this.logger.error(
         `Referral accrual: ${failures.length} of ${results.length} job(s) failed`,
         failures.map((f) => f.reason).join('\n'),

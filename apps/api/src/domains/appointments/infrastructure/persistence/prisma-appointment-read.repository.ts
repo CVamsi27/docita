@@ -83,12 +83,9 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
       ];
     }
 
-    // Infrastructure errors propagate. AllExceptionsFilter maps Prisma's
-    // structured errors (P2002 unique violation, connection issues, …) to
-    // proper HTTP responses and routes 5xx to Sentry; this method used to
-    // wrap every call in try/catch and rethrow as BadRequestException,
-    // which (a) lost the original Prisma error code, (b) leaked the raw
-    // Prisma error message to the client, and (c) downgraded 5xx to 4xx.
+    // Infrastructure errors propagate to AllExceptionsFilter, which
+    // maps Prisma's structured errors (P2002, connection issues, …) to
+    // proper HTTP responses and routes 5xx to Sentry.
     const readClient = this.getReadClient();
     const listInclude = {
       patient: {
