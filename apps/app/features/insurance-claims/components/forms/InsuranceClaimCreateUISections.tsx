@@ -1,15 +1,31 @@
 "use client";
 
 import { getPatientFullName } from "@workspace/utils";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
-import { Button, Card, CardContent } from "@workspace/ui/components";
+import { Input } from "@workspace/ui/components/form/input";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { useTranslations } from "next-intl";
 // The shadcn/ui form-field + select import blocks below are identical to the
 // ones every other `react-hook-form` + `Select` field module pulls in (see
 // order-lab-select-field.tsx) — that's the framework's own re-export surface,
 // not copy-pasted code, so it's marked as intentional structural similarity.
 // jscpd:ignore-start
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@workspace/ui/components/form/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/form/select";
 // jscpd:ignore-end
+import { Button } from "@workspace/ui/components/form/button";
 import { CLAIM_TYPE_LABELS } from "@/features/insurance-claims/lib/claim-display";
 import type { ClaimCreatePresets } from "@/features/insurance-claims/hooks/use-insurance-claim-create-logic";
 import type { CreateInsuranceClaimFormValues, Patient } from "@workspace/types";

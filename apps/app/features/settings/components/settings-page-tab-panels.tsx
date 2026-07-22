@@ -1,9 +1,29 @@
 "use client";
 
 import { RoleGuard } from "@/components";
-import { AppearanceSettings, ClinicGeneralSettings, NotificationSettings, OpdSlipSettingsContainer, PrescriptionDefaultsSettingsContainer, QueueSettings, ReminderSettings, SecuritySettings } from "@/features/settings/components";
+import {
+  AppearanceSettings,
+  ClinicGeneralSettings,
+  NotificationSettings,
+  OpdSlipSettingsContainer,
+  PrescriptionDefaultsSettingsContainer,
+  QueueSettings,
+  ReminderSettings,
+  SecuritySettings,
+} from "@/features/settings/components";
 import { LabDirectorySettings, LabTestsCatalogSettings } from "@/features/lab-tests";
-import { DangerZoneSettingsLazy, DoctorAvailabilitySettingsLazy, DoctorProfileSettingsLazy, DoctorTimeAwaySettingsLazy, EnterpriseBrandingSettingsLazy, AbdmSettingsPanelLazy, CustomFieldsSettingsLazy, LeaveManagementSettingsLazy, MemberManagementSettingsLazy, SubscriptionSettingsPanel } from "./settings-page-lazy-panels";
+import {
+  DangerZoneSettingsLazy,
+  DoctorAvailabilitySettingsLazy,
+  DoctorProfileSettingsLazy,
+  DoctorTimeAwaySettingsLazy,
+  EnterpriseBrandingSettingsLazy,
+  AbdmSettingsPanelLazy,
+  CustomFieldsSettingsLazy,
+  LeaveManagementSettingsLazy,
+  MemberManagementSettingsLazy,
+  SubscriptionSettingsPanel,
+} from "./settings-page-lazy-panels";
 import { TabsContent } from "@workspace/ui/components/navigation/tabs";
 
 export function SettingsPageTabPanels({

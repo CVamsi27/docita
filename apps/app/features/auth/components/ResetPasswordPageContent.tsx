@@ -15,6 +15,15 @@ function useResetPasswordTranslations() {
   return useTranslations("Auth.resetPassword");
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Auth > reset password content (parent).
+ * Companion to ResetPasswordPageContentSections — uses the same
+ * "Auth.resetPassword" namespace to avoid duplication.
+ */
+function useResetPasswordTranslations() {
+  return useTranslations("Auth.resetPassword");
+}
+
 function ResetPasswordInner() {
   const t = useResetPasswordTranslations();
   const {

@@ -1,8 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { Activity, AlertTriangle, ChevronDown, ChevronUp, FileText, History, Pill, User } from "lucide-react";
-import { Badge, Button, SymbolTooltip } from "@workspace/ui/components";
+import {
+  Activity,
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  History,
+  Pill,
+  User,
+} from "lucide-react";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { formatDistanceToNow, getPatientFullName } from "@workspace/utils";
 import { SummaryMedications } from "./shared/SummaryMedications";
 import { SummaryConditions } from "./shared/SummaryConditions";

@@ -2,7 +2,18 @@
 
 // jscpd:ignore-start
 import Link from "next/link";
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState, type DataStateStatus } from "@workspace/ui/components";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import {
+  DataState,
+  type DataStateStatus,
+} from "@workspace/ui/components/data-display/data-state";
 import { ExternalLink, Receipt } from "lucide-react";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatCurrency, formatDate } from "@workspace/utils";

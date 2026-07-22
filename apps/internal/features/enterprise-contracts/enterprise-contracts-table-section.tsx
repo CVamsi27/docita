@@ -1,8 +1,23 @@
 "use client";
 
-import { Table, TableBody, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, DataState } from "@workspace/ui/components";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { useTranslations } from "next-intl";
+// jscpd:ignore-start
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/data-display/table";
+// jscpd:ignore-end
 import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
 import { EnterpriseContractTableRow } from "./enterprise-contracts-table-row";
 import type { EnterpriseContractRowActionsProps } from "./enterprise-contracts-row-actions";

@@ -1,8 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import {
-  buildAppointmentObservationMetrics,
-  type AppointmentObservationMetric,
-} from './appointment-observation-metrics.rules';
+import { buildAppointmentObservationMetrics } from './appointment-observation-metrics.rules';
 
 describe('buildAppointmentObservationMetrics', () => {
   it('returns an empty list when neither field is present', () => {
@@ -23,7 +20,7 @@ describe('buildAppointmentObservationMetrics', () => {
       observations: '   ',
       consultationNotes: '  patient reported headaches  ',
     });
-    expect(result).toEqual<AppointmentObservationMetric[]>([
+    expect(result).toEqual([
       {
         definitionKey: 'consultation_notes',
         definitionLabel: 'Consultation Notes',
@@ -37,7 +34,7 @@ describe('buildAppointmentObservationMetrics', () => {
       observations: 'Lungs clear',
       consultationNotes: 'Follow up in 2 weeks',
     });
-    expect(result).toEqual<AppointmentObservationMetric[]>([
+    expect(result).toEqual([
       {
         definitionKey: 'observations',
         definitionLabel: 'Observations',
@@ -52,11 +49,14 @@ describe('buildAppointmentObservationMetrics', () => {
   });
 
   it('ignores non-string values (defensive — payload type allows unknown)', () => {
-    // @ts-expect-error — exercising runtime defensiveness
+    // Cast through `unknown` so we can probe runtime defensiveness without
+    // fighting the type signature: the function is typed as Partial<…>
+    // but the call below deliberately uses wrong shapes to confirm the
+    // typeof-guards inside the implementation.
     const result = buildAppointmentObservationMetrics({
       observations: 42,
       consultationNotes: null,
-    });
+    } as unknown as Parameters<typeof buildAppointmentObservationMetrics>[0]);
     expect(result).toEqual([]);
   });
 });

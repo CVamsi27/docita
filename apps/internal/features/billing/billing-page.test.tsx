@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -112,66 +118,6 @@ const messages = {
     extendDialogTitle: "Extend Grace Period",
     extendDialogBody: "Extend the grace period for {clinicName}",
     daysLabel: "Days",
-  },
-  BillingDashboard: {
-    graceDialog: {
-      title: "Extend Grace Period",
-      description: "Extend the grace period for",
-      daysLabel: "Days",
-      cancelButton: "Cancel",
-      confirmButton: "Extend",
-    },
-    riskSummary: {
-      reminderTitle: "Internal billing reminder",
-      reminderBody: "Keep requested hospital offers in WhatsApp, and do not charge a paid Indian plan until GSTIN is captured.",
-      reminderBadge: "WhatsApp-first + GST invoice required",
-      expiringTitle: "Expiring soon",
-      expiringDescription: "{count, plural, one {1 subscription expiring in the next 7 days} other {{count} subscriptions expiring in the next 7 days}}",
-      graceTitle: "In Grace Period",
-      graceDescription: "{count, plural, one {1 subscription in grace period} other {{count} subscriptions in grace period}}",
-      secondaryExpires: "Expires",
-      secondaryDaysRemaining: "{days} days remaining",
-      actionRemind: "Remind",
-      actionExtend: "Extend",
-    },
-    metrics: {
-      mrrTitle: "Monthly Recurring Revenue",
-      mrrHelper: "from active subscriptions",
-      arrTitle: "Annual Recurring Revenue",
-      arrHelper: "Projected annual revenue",
-      activeTitle: "Active Subscriptions",
-      trialInTrial: "{count} in trial",
-      churnTitle: "Churn rate",
-      churnAbove: "Above target",
-      churnOn: "On target",
-    },
-  },
-  AnalyticsDashboard: {
-    reportingWindow: {
-      title: "Reporting Window",
-      description: "Filter the dashboard by time range without breaking the shared page rhythm.",
-      periodDaily: "Daily",
-      periodWeekly: "Weekly",
-      periodMonthly: "Monthly",
-      startDatePlaceholder: "Start date",
-      endDatePlaceholder: "End date",
-      toLabel: "to",
-    },
-    mrrTrend: { title: "MRR Trend (6 months)", description: "Recent recurring revenue performance" },
-    subscriptionBreakdown: { title: "Subscription Breakdown", description: "Customer mix across Docita plans" },
-    detailedMetrics: {
-      title: "Detailed Metrics",
-      description: "Expanded operational metrics for the selected time range.",
-      loadingAria: "Loading detailed metrics",
-      loadingMessage: "Loading detailed metrics…",
-      empty: "No detailed metrics available for this period",
-    },
-    growthMetric: {
-      thisPeriod: "{label} this period",
-      description: "{label} in the current period",
-      vsLastPeriodUp: "↑ {change}% vs last period",
-      vsLastPeriodDown: "↓ {change}% vs last period",
-    },
   },
 };
 

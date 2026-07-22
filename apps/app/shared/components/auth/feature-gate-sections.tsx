@@ -3,14 +3,27 @@
 // jscpd:ignore-start
 import Link from "next/link";
 import { Clock, Lock, Sparkles } from "lucide-react";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Button } from "@workspace/ui/components/form/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
 import {
   Tooltip,
 // jscpd:ignore-end
   TooltipContent,
   TooltipTrigger,
 } from "@workspace/ui/components/overlay/tooltip";
-import { FEATURE_TIER_MAP, TIER_INFO, Tier, type Feature } from "@workspace/types";
+import {
+  FEATURE_TIER_MAP,
+  TIER_INFO,
+  Tier,
+  type Feature,
+} from "@workspace/types";
 import { getTierName, isFeatureGenerallyAvailable } from "@workspace/utils";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 

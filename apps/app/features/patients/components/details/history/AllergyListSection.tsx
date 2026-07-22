@@ -1,6 +1,5 @@
 import { AlertTriangle, Plus } from "lucide-react";
 import { Input } from "@workspace/ui/components/form/input";
-import { useTranslations } from "next-intl";
 import type { PatientAllergy, PatientWithMedicalHistory } from "@workspace/types";
 import { AllergyBadge } from "./AllergyBadge";
 // jscpd:ignore-start
@@ -22,7 +21,6 @@ interface AllergyListSectionProps {
 }
 
 export function AllergyListSection(props: AllergyListSectionProps) {
-  const t = useTranslations("Patients.medicalHistory.allergies");
   const { patient, readOnly, newAllergy, onNewAllergyChange, onAddAllergy, onRemoveAllergy, editingAllergy, onEditAllergy, onUpdateAllergy, onCancelEditAllergy, onEditingAllergyChange } = props;
   const items = patient.patientAllergies ?? [];
 
@@ -30,7 +28,7 @@ export function AllergyListSection(props: AllergyListSectionProps) {
     <>
       <HistoryBlock
         icon={<AlertTriangle className="h-3.5 w-3.5 text-warning" />}
-        title={t("title")}
+        title="Allergies"
         count={items.length}
         addRow={
           !readOnly ? (
@@ -41,7 +39,7 @@ export function AllergyListSection(props: AllergyListSectionProps) {
               <div className="relative flex-1 min-w-[160px]">
                 <Plus className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder={t("addPlaceholder")}
+                  placeholder="Add allergy"
                   value={newAllergy}
                   onChange={(e) => onNewAllergyChange(e.target.value)}
                   className="h-9 pl-9"
@@ -64,7 +62,7 @@ export function AllergyListSection(props: AllergyListSectionProps) {
             ))}
           </div>
         ) : (
-          <HistoryEmptyState message={t("empty")} tone="success" />
+          <HistoryEmptyState message="NKA" tone="success" />
         )}
       </HistoryBlock>
 

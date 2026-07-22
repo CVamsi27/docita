@@ -3,12 +3,26 @@
 // jscpd:ignore-start
 import { Loader2, Paperclip, Trash2, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
-import { Button, Label, SymbolTooltip } from "@workspace/ui/components";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/form/select";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import { type ClinicalInvestigation } from "@workspace/types";
 import { parseStringEnumMember } from "@workspace/utils";
 import { resolveAttachmentUrl } from "@/features/consultation/hooks/use-investigation-attachment";
-import { INVESTIGATION_CATEGORIES, INVESTIGATION_STATUSES, type InvestigationRowProps } from "./investigation-row.helpers";
+import {
+  INVESTIGATION_CATEGORIES,
+  INVESTIGATION_STATUSES,
+  type InvestigationRowProps,
+} from "./investigation-row.helpers";
 // jscpd:ignore-end
 
 export type { InvestigationRowProps };

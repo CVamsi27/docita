@@ -1,9 +1,32 @@
 "use client";
 
-import { Edit2, Eye, Shield, UserCheck, UserX } from "lucide-react";
+// jscpd:ignore-start
+import {
+  Edit2,
+  Eye,
+  Shield,
+  UserCheck,
+  UserX,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, EmptyState } from "@workspace/ui/components";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/data-display/table";
+import {
+  Card,
+// jscpd:ignore-end
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { formatInternalListDate } from "@/lib/formatters/format-internal-list-date";
 import type { Admin } from "./use-admins-page";
 

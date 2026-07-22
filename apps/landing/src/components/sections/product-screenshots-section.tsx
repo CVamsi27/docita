@@ -3,7 +3,11 @@
 import { motion, useReducedMotion } from "motion/react";
 import { CalendarDays, ClipboardList, FileText, Receipt, Stethoscope } from "lucide-react";
 
-import { landingFadeUpVariants, landingInViewViewport, landingStaggerContainer } from "@/lib/motion-prefs";
+import {
+  landingFadeUpVariants,
+  landingInViewViewport,
+  landingStaggerContainer,
+} from "@/lib/motion-prefs";
 
 interface ProductShot {
   id: string;

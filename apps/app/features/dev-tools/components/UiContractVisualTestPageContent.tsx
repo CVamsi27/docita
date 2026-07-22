@@ -3,7 +3,16 @@
 // jscpd:ignore-start
 import { AlertCircle, Calendar, LayoutGrid, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { AppPageScaffold, Button, Card, CardContent, CardHeader, CardTitle, DataState, PageHeader } from "@workspace/ui/components";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { Button } from "@workspace/ui/components/form/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 
 /**
  * Phase 3 (per-feature): apps/app Dev Tools > UI contract visual test page.

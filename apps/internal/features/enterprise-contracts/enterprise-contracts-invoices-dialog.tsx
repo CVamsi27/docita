@@ -3,7 +3,14 @@
 import { formatCurrency, formatDate } from "@workspace/utils";
 import { useTranslations } from "next-intl";
 import { BaseContractDialogShell } from "./base-dialog-shell";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/data-display/table";
 import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
 
 type EnterpriseContractsInvoicesDialogProps = Pick<

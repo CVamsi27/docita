@@ -1,6 +1,10 @@
 import { DataTable } from "@workspace/ui/components/data-display/data-table";
 import { useTranslations } from "next-intl";
-import { getInvoiceColumns, MobileCard, useInvoiceColumnLabels } from "./InvoicesTableSections";
+import {
+  getInvoiceColumns,
+  MobileCard,
+  useInvoiceColumnLabels,
+} from "./InvoicesTableSections";
 import type { InvoiceListRow } from "@workspace/types";
 import type { SortConfig, SortKey } from "@/features/invoices/hooks/use-invoices-logic";
 

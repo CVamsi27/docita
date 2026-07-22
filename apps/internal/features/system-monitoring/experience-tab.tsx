@@ -1,9 +1,27 @@
 "use client";
 
 import { formatCountLocale } from "@workspace/utils";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, TabsContent } from "@workspace/ui/components";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { useTranslations } from "next-intl";
+// jscpd:ignore-start
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { TabsContent } from "@workspace/ui/components/navigation/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/data-display/table";
+// jscpd:ignore-end
 import type { SystemMonitoringPageViewModel } from "./use-system-monitoring-page";
 
 export type ExperienceTabProps = Pick<

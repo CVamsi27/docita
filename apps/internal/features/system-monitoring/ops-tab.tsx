@@ -1,7 +1,13 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/card";
 import { TabsContent } from "@workspace/ui/components/navigation/tabs";
 import { ExternalLink } from "lucide-react";
 import { buildPrometheusMetricsUrl } from "./system-monitoring-helpers";

@@ -2,8 +2,22 @@
 
 import { formatDate } from "@workspace/utils";
 import { useTranslations } from "next-intl";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@workspace/ui/components";
+// jscpd:ignore-start
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/overlay/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/data-display/table";
+// jscpd:ignore-end
 import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
 
 type EnterpriseContractsRevisionsDialogProps = Pick<EnterpriseContractsPageState, 'revisionsOpen' | 'setRevisionsOpen' | 'revisions'>;

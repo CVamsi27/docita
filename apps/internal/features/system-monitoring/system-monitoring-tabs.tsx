@@ -1,6 +1,10 @@
 "use client";
 
-import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/navigation/tabs";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/navigation/tabs";
 import { useTranslations } from "next-intl";
 import { ExperienceTab } from "./experience-tab";
 import { HealthTab } from "./health-tab";

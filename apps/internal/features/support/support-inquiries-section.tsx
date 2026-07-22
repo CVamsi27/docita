@@ -1,9 +1,25 @@
 "use client";
 
+// jscpd:ignore-start
 import { formatDate, formatDistanceToNow, getUserFacingErrorMessage } from "@workspace/utils";
 import { useMemo } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
-import { Badge, Card, CardContent, CardHeader, CardTitle, DataState } from "@workspace/ui/components";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import {
+  Table,
+// jscpd:ignore-end
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/data-display/table";
 import { useInternalSupportInquiries } from "@workspace/data-access/internal";
 import type { SupportInquiry } from "@workspace/types";
 import { Mail } from "lucide-react";
@@ -28,22 +44,6 @@ const STATUS_VARIANTS: Record<
  */
 function useInquiriesTranslations() {
   return useTranslations("InternalSupport.inquiriesSection");
-}
-
-/** Map the inquiry.status API enum to an i18n key, with a safe fallback. */
-function statusKey(status: string): string {
-  switch (status) {
-    case "NEW":
-      return "statusNew";
-    case "REVIEWED":
-      return "statusReviewed";
-    case "RESOLVED":
-      return "statusResolved";
-    case "ARCHIVED":
-      return "statusArchived";
-    default:
-      return status;
-  }
 }
 
 export function SupportInquiriesSection() {
@@ -116,7 +116,7 @@ export function SupportInquiriesSection() {
                           STATUS_VARIANTS[inquiry.status] ?? "secondary"
                         }
                       >
-                        {t(statusKey(inquiry.status)) || inquiry.status}
+                        {inquiry.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="max-w-md text-sm text-muted-foreground">

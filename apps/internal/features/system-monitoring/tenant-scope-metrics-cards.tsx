@@ -1,6 +1,11 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
 import { useTranslations } from "next-intl";
 
 interface TenantScopeMetricsCardsProps {

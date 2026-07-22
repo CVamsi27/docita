@@ -1,8 +1,22 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/data-display/table";
+import { Input } from "@workspace/ui/components/form/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/form/select";
 import { InvoiceItemCard, type InvoiceItem } from "./InvoiceItemsTableSections";
 import { InvoiceItemRemoveButton } from "./invoice-item-remove-button";
 

@@ -28,6 +28,15 @@ function useFeedbackFormTranslations() {
   return useTranslations("Feedback.form");
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Feedback > Form components
+ * (FeedbackForm + QuickFeedback). 6 literals converted to
+ * useTranslations("Feedback.form").
+ */
+function useFeedbackFormTranslations() {
+  return useTranslations("Feedback.form");
+}
+
 export const FeedbackForm: FC<{
   onSubmit?: (feedback: {
     rating: number;

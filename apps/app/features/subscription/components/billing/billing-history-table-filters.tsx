@@ -1,8 +1,20 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Button, IsoDatePickerField, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
-import { parseStatusFilterValue, type StatusFilterValue } from "./billing-history-table-helpers";
+import { Button } from "@workspace/ui/components/form/button";
+import { Label } from "@workspace/ui/components/form/label";
+import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/form/select";
+import {
+  parseStatusFilterValue,
+  type StatusFilterValue,
+} from "./billing-history-table-helpers";
 
 /**
  * Phase 3 (per-feature): apps/app Subscription > billing history table filters.

@@ -1,14 +1,40 @@
 "use client";
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, EmptyState } from "@workspace/ui/components";
+import { Button } from "@workspace/ui/components/form/button";
 import { useTranslations } from "next-intl";
 import { InternalTableToolbar } from "@/components/common/internal-table-toolbar";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/data-display/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/overlay/dialog";
 import { Eye, Users } from "lucide-react";
 import { formatInternalListDate } from "@/lib/formatters/format-internal-list-date";
 import { formatInternalTimestamp } from "@/lib/formatters/format-internal-timestamp";
 import { ROLE_CONFIG, type RoleFilter, type User } from "./types";
-import { getRoleBadgeColor, getSpecializationLabel, isRoleConfigKey } from "./utils";
+import {
+  getRoleBadgeColor,
+  getSpecializationLabel,
+  isRoleConfigKey,
+} from "./utils";
 
 /**
  * Phase 3 (per-feature): apps/internal Users > Page sections

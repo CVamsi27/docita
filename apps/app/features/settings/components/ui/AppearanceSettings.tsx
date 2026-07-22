@@ -4,7 +4,13 @@ import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 import { Card } from "@/components/card";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/card";
-import { Button, Label, Switch, ToggleGroup, ToggleGroupItem } from "@workspace/ui/components";
+import { Label } from "@workspace/ui/components/form/label";
+import { Switch } from "@workspace/ui/components/form/switch";
+import { Button } from "@workspace/ui/components/form/button";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@workspace/ui/components/form/toggle-group";
 import { useAppearanceStore } from "@/lib/stores/appearance-store";
 import { toast } from "sonner";
 import { cn } from "@workspace/ui/lib/utils";

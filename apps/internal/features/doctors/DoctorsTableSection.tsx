@@ -2,9 +2,27 @@
 
 import { Eye, ShieldCheck, ShieldX, Stethoscope } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, TableCell, TableHead, TableRow } from "@workspace/ui/components";
+import { Button } from "@workspace/ui/components/form/button";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
+import {
+  TableCell,
+  TableHead,
+  TableRow,
+} from "@workspace/ui/components/data-display/table";
 import type { InternalDoctorListItem } from "@workspace/data-access/internal";
-import { getVerificationBadgeVariant, getVerificationLabel, labelForHospitalRole, labelForSpecialization, parseDoctorVerificationStatus } from "./doctor-helpers";
+import {
+  getVerificationBadgeVariant,
+  getVerificationLabel,
+  labelForHospitalRole,
+  labelForSpecialization,
+  parseDoctorVerificationStatus,
+} from "./doctor-helpers";
 import { InternalTableToolbar } from "@/components/common/internal-table-toolbar";
 import { TableOrEmpty } from "@/components/common/table-or-empty";
 

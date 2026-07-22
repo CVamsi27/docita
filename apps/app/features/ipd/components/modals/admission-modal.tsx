@@ -2,7 +2,13 @@
 
 import React, { FC, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/overlay/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/overlay/dialog";
 import type { AdmitPatientRequest } from "@workspace/types";
 import type { WardWithRooms as WardInfo } from "@/features/ipd/hooks/use-ipd-logic";
 import { AdmissionPatientInfo } from "./AdmissionPatientInfo";

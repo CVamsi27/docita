@@ -11,36 +11,6 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-// English literal map mirroring the Dashboard.today JSON keys the
-// component uses, so test assertions on hardcoded English still match
-// after the i18n refactor.
-const todayCopy: Record<string, string> = {
-  askAiOverlayLabel: "on today's workspace",
-  askAiAria: "Ask AI about today",
-  askAiButton: "Ask AI",
-  openQueueButton: "Open queue",
-  viewQueueButton: "View queue",
-  pageTitle: "Today",
-  railHeading: "Sharing and recommendations",
-  railLabelTips: "Tips",
-  railLabelSharing: "Sharing",
-  railLabelBoth: "Sharing & tips",
-  bottomBarAria: "Next patient in queue",
-  startNextButton: "Start next",
-  startingButton: "Starting…",
-  nextPatientButton: "Next patient",
-  startNextAria: "Start next consultation: {name}",
-  nextUpLabel: "Next up",
-};
-
-vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string, params?: Record<string, string | number>) => {
-    const template = todayCopy[key] ?? key;
-    if (!params) return template;
-    return template.replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? ""));
-  },
-}));
-
 const NEXT_PATIENT: AppointmentListItem = {
   id: "appt-1",
   startTime: "2026-07-13T11:30:00.000Z",

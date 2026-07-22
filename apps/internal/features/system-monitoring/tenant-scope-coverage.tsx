@@ -1,7 +1,14 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
 
 interface TenantScopeCoverageProps {
   uncoveredCount: number;

@@ -2,9 +2,22 @@
 
 import type { Control, FieldValues, Path } from "react-hook-form";
 import { AlertCircle, CheckCircle2, ShieldCheck } from "lucide-react";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input } from "@workspace/ui/components/form/form-primitives";
-import { Alert, AlertDescription, AlertTitle, Badge, Button } from "@workspace/ui/components";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/feedback/alert";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { Button } from "@workspace/ui/components/form/button";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@workspace/ui/components/form/form";
+import { Input } from "@workspace/ui/components/form/input";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { ComingSoonBadge } from "@/components/feedback/coming-soon-badge";
 
 export type AbhaVerificationUiState =

@@ -2,8 +2,9 @@
 
 import type { ReactNode } from "react";
 import { LayoutDashboard } from "lucide-react";
-import { AppPageScaffold, DataState } from "@workspace/ui/components";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { DashboardSkeletonUI } from "@/features/dashboard/components/layout/dashboard-skeleton-ui";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 
 export interface TodayHeaderSlotProps {
   header: ReactNode;

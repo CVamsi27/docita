@@ -4,13 +4,37 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { type CreateInternalReferrerInput, type ReferrerType, useInternalReferralPayouts, useInternalReferralPayoutSummary, useInternalReferrers } from "@workspace/data-access/internal";
+import {
+  type CreateInternalReferrerInput,
+  type ReferrerType,
+  useInternalReferralPayouts,
+  useInternalReferralPayoutSummary,
+  useInternalReferrers,
+} from "@workspace/data-access/internal";
 import { internalQueryKeys } from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth";
 import { client } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
-import { Badge, Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+// jscpd:ignore-start — shared Select import block matches other consumers
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/form/select";
+// jscpd:ignore-end
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/data-display/table";
 
 const REFERRER_TYPES: ReferrerType[] = [
   "MARKETING_PERSON",
@@ -35,19 +59,6 @@ function rupees(cents: number): string {
  */
 function useReferralsTranslations() {
   return useTranslations("InternalReferrals");
-}
-
-/** Map a referral payout status enum to its i18n key, with a safe fallback. */
-function payoutStatusKey(status: string): string {
-  switch (status) {
-    case "PENDING":
-    case "APPROVED":
-    case "PAID":
-    case "VOID":
-      return `payoutStatus${status}`;
-    default:
-      return status;
-  }
 }
 
 export default function ReferralsPage() {
@@ -117,9 +128,7 @@ export default function ReferralsPage() {
               key={row.status}
               className="rounded-lg border px-4 py-3 text-sm"
             >
-              <div className="text-muted-foreground">
-                {t(payoutStatusKey(row.status)) || row.status}
-              </div>
+              <div className="text-muted-foreground">{row.status}</div>
               <div className="text-lg font-semibold">{rupees(row.totalCents)}</div>
               <div className="text-xs text-muted-foreground">
                 {t("payoutsCount", { count: row.count })}
@@ -266,7 +275,7 @@ export default function ReferralsPage() {
                   <Badge
                     variant={payout.status === "PAID" ? "default" : "secondary"}
                   >
-                    {t(payoutStatusKey(payout.status)) || payout.status}
+                    {payout.status}
                   </Badge>
                 </TableCell>
                 <TableCell>

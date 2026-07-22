@@ -2,7 +2,11 @@
 
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { cn } from "@workspace/ui/lib/utils";
-import { AppointmentsCalendarUI, AppointmentsListUI, AppointmentsWeekView } from "@/features/appointments/components";
+import {
+  AppointmentsCalendarUI,
+  AppointmentsListUI,
+  AppointmentsWeekView,
+} from "@/features/appointments/components";
 import type { AppointmentListItem } from "@workspace/data-access";
 
 // ---------------------------------------------------------------------------

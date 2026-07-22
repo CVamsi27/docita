@@ -1,8 +1,21 @@
 "use client";
 
 // jscpd:ignore-start
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
-import { Button, Dialog, DialogContent, DialogHeader, DialogTitle } from "@workspace/ui/components";
+import { Button } from "@workspace/ui/components/form/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/form/select";
+import { Textarea } from "@workspace/ui/components/form/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/overlay/dialog";
 import { useTranslations } from "next-intl";
 // jscpd:ignore-end
 import type { JoinClinicSearchResult } from "@/features/onboarding/components/join-clinic-search-results";

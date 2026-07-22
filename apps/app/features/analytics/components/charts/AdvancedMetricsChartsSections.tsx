@@ -1,7 +1,20 @@
 // jscpd:ignore-start
 import { useTranslations } from "next-intl";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/data-display/table";
 import { CalendarDays, TrendingUp, Users, type LucideIcon } from "lucide-react";
 import type { AppointmentSnapshot } from "@workspace/types";
 import {

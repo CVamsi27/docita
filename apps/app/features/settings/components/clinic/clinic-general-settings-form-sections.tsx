@@ -3,8 +3,17 @@
 // jscpd:ignore-start
 import { ExternalLink } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { FormControl, FormField, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
-import { Button, FormFieldGroup } from "@workspace/ui/components";
+import { FormFieldGroup } from "@workspace/ui/components";
+import { Button } from "@workspace/ui/components/form/button";
+import { FormControl, FormField } from "@workspace/ui/components/form/form";
+import { Input } from "@workspace/ui/components/form/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/form/select";
 import { cn } from "@workspace/ui/lib/utils";
 import { parseStringEnumMember } from "@workspace/utils";
 import type {

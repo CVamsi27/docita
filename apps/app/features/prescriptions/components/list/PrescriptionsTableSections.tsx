@@ -2,9 +2,18 @@ import React from "react";
 import Link from "next/link";
 import { formatDate, getPatientFullName } from "@workspace/utils";
 import { useTranslations } from "next-intl";
-import { Download, Eye, Pill, Printer } from "lucide-react";
+import {
+  Download,
+  Eye,
+  Pill,
+  Printer,
+} from "lucide-react";
 import type { DataTableColumn } from "@workspace/ui/components/data-display/data-table";
-import { Badge, Button, ListRow, SortableHeaderButton, SymbolTooltip } from "@workspace/ui/components";
+import { SortableHeaderButton } from "@workspace/ui/components/data-display/sortable-header-button";
+import { ListRow } from "@workspace/ui/components/data-display/list-row";
+import { Button } from "@workspace/ui/components/form/button";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import type { Prescription } from "@workspace/types";
 
 /**

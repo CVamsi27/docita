@@ -2,8 +2,16 @@
 
 // jscpd:ignore-start
 import { useTranslations } from "next-intl";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
-import { Button, Label } from "@workspace/ui/components";
+import { Button } from "@workspace/ui/components/form/button";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/form/select";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +20,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
-import { MEDICAL_DOCUMENT_TYPE_LABELS, MEDICAL_DOCUMENT_TYPE_OPTIONS } from "./medical-document-list-config";
+import {
+  MEDICAL_DOCUMENT_TYPE_LABELS,
+  MEDICAL_DOCUMENT_TYPE_OPTIONS,
+} from "./medical-document-list-config";
 
 /**
  * Phase 3 (per-feature): apps/app Medical Documents > create dialog.

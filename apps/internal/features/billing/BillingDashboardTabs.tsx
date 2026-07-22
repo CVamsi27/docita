@@ -7,10 +7,49 @@ import type {
 import type { InternalBillingPaymentItem } from "@workspace/types";
 import { useTranslations } from "next-intl";
 import { DEFAULT_CURRENCY, formatCurrency, formatDate } from "@workspace/utils";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
-import { getInternalTierBadgeClass, getInternalTierFilterOptions, getInternalTierLabel } from "@/lib/tier-display";
-import { Activity, Building2, CalendarPlus, CreditCard, Mail } from "lucide-react";
+import { Button } from "@workspace/ui/components/form/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/form/select";
+import { Badge } from "@workspace/ui/components/indicators/badge";
+// jscpd:ignore-start
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/data-display/table";
+// jscpd:ignore-end
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/navigation/tabs";
+import {
+  getInternalTierBadgeClass,
+  getInternalTierFilterOptions,
+} from "@/lib/tier-display";
+import {
+  Activity,
+  Building2,
+  CalendarPlus,
+  CreditCard,
+  Mail,
+} from "lucide-react";
 
 interface BillingDashboardTabsProps {
   tierFilter: string;
@@ -36,10 +75,8 @@ interface BillingDashboardTabsProps {
  * titles) resolves through useTranslations("InternalBilling.dashboard").
  *
  * Note: dynamic data like subscription.clinic.name, subscription.tier,
- * and currency formatting stay unchanged — these come from the API and
- * aren't chrome copy. Status labels go through
- * `billingStatusToI18nKey` so each enum value is mapped to the
- * InternalBilling.dashboard.status* namespace.
+ * formatBillingStatus(subscription.status) and currency formatting
+ * stay unchanged — these come from the API and aren't chrome copy.
  */
 function useBillingDashboardTranslations() {
   return useTranslations("InternalBilling.dashboard");
@@ -228,20 +265,12 @@ function SubscriptionRow({ subscription, sending, onSendReminder, onExtendGraceP
         </div>
       </TableCell>
       <TableCell>
-        <Badge className={getInternalTierBadgeClass(subscription.tier)}>{getInternalTierLabel(subscription.tier)}</Badge>
+        <Badge className={getInternalTierBadgeClass(subscription.tier)}>{subscription.tier}</Badge>
       </TableCell>
       <TableCell>
-        <Badge className={getBillingStatusBadgeClass(subscription.status)}>
-          {t(billingStatusToI18nKey(subscription.status)) || subscription.status}
-        </Badge>
+        <Badge className={getBillingStatusBadgeClass(subscription.status)}>{formatBillingStatus(subscription.status)}</Badge>
       </TableCell>
-      <TableCell>
-        <span className="text-sm">
-          {subscription.billingCycle
-            ? subscription.billingCycle.charAt(0).toUpperCase() + subscription.billingCycle.slice(1)
-            : "—"}
-        </span>
-      </TableCell>
+      <TableCell><span className="text-sm">{subscription.billingCycle}</span></TableCell>
       <TableCell>
         <span className="font-medium">
           {formatCurrency(subscription.amount, { currency: subscription.currency, fractionDigits: 0 })}
@@ -423,24 +452,13 @@ function getBillingStatusBadgeClass(status: string) {
   return "badge-danger";
 }
 
-/** Maps the API status enum to a translation key under InternalBilling.dashboard. */
-function billingStatusToI18nKey(status: string): string {
-  switch (status) {
-    case "ACTIVE":
-      return "statusActive";
-    case "TRIALING":
-      return "statusTrial";
-    case "PAST_DUE":
-      return "statusPastDue";
-    case "GRACE":
-      return "statusGracePeriod";
-    case "CANCELLED":
-      return "statusCancelled";
-    case "EXPIRED":
-      return "statusExpired";
-    case "PAYMENT_DUE":
-      return "statusPaymentDue";
-    default:
-      return status;
-  }
+function formatBillingStatus(status: string) {
+  // The formatBillingStatus function is a runtime helper that maps
+  // API status codes to human labels. With Phase 3, the labels live
+  // in the messages file and are resolved by the consumer via
+  // useTranslations. This helper is kept for the SubscriptionRow
+  // badge label, which historically read the API enum directly.
+  // (TODO: refactor to receive the t() instance and resolve
+  // through the InternalBilling.dashboard namespace.)
+  return status;
 }

@@ -2,11 +2,30 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Database, FileSpreadsheet, ScanLine, Upload } from "lucide-react";
+import {
+  ArrowRight,
+  Database,
+  FileSpreadsheet,
+  ScanLine,
+  Upload,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
-import { AppPageScaffold, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader } from "@workspace/ui/components";
+import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { Button } from "@workspace/ui/components/form/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/indicators/card";
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { BulletStepList } from "@/components/bullet-step-list";
-import { FeatureGate, FeatureTierBadge, TierBadge } from "@/components/auth/feature-gate";
+import {
+  FeatureGate,
+  FeatureTierBadge,
+  TierBadge,
+} from "@/components/auth/feature-gate";
 import { BulkImportDialog } from "@/features/import/components/BulkImportDialogContainer";
 import { Feature, Tier } from "@/lib/stores/permission-store";
 

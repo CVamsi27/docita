@@ -1,14 +1,24 @@
 "use client";
 
 // jscpd:ignore-start
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
-import { Label } from "@workspace/ui/components";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/form/select";
 import { useTranslations } from "next-intl";
-import { CURRENCY_OPTIONS, DEFAULT_CURRENCY, parseSupportedCurrency } from "@workspace/utils";
+import {
+  CURRENCY_OPTIONS,
+  DEFAULT_CURRENCY,
+  parseSupportedCurrency,
+} from "@workspace/utils";
 import {
   tierSchema,
 // jscpd:ignore-end
-  TIER_INFO,
   type SupportedCurrency,
   type TierName,
 } from "@workspace/types";
@@ -22,7 +32,7 @@ export interface PricingEstimatorUsage {
 
 interface DynamicPricingEstimatorInputsProps {
   tier: TierName;
-  tiers: readonly TierName[];
+  tiers: string[];
   onTierChange: (tier: TierName) => void;
   effectiveBillingCycle: "monthly" | "yearly";
   onBillingCycleChange: (cycle: "monthly" | "yearly") => void;
@@ -79,7 +89,7 @@ export function DynamicPricingEstimatorInputs({
             <SelectContent>
               {tiers.map((tierName) => (
                 <SelectItem key={tierName} value={tierName}>
-                  {TIER_INFO[tierName].name}
+                  {tierName}
                 </SelectItem>
               ))}
             </SelectContent>

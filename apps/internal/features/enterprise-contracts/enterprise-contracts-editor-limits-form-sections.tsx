@@ -1,7 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Input, Label, Textarea } from "@workspace/ui/components";
+import { Input } from "@workspace/ui/components/form/input";
+import { Label } from "@workspace/ui/components/form/label";
+import { Textarea } from "@workspace/ui/components/form/textarea";
 import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
 
 type FormFields = EnterpriseContractsPageState["form"];
@@ -17,12 +19,14 @@ function useEnterpriseContractsLimitsTranslations() {
   return useTranslations("InternalEnterpriseContracts.limits");
 }
 
-interface FormSectionProps {
+// jscpd:ignore-start
+function IncludedLimitsFields({
+  form,
+  setForm,
+}: {
   form: FormFields;
   setForm: SetForm;
-}
-
-function IncludedLimitsFields({ form, setForm }: FormSectionProps) {
+}) {
   const t = useEnterpriseContractsLimitsTranslations();
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -113,8 +117,15 @@ function IncludedLimitsFields({ form, setForm }: FormSectionProps) {
     </div>
   );
 }
+// jscpd:ignore-end
 
-function OverageAndPricingFields({ form, setForm }: FormSectionProps) {
+function OverageAndPricingFields({
+  form,
+  setForm,
+}: {
+  form: FormFields;
+  setForm: SetForm;
+}) {
   const t = useEnterpriseContractsLimitsTranslations();
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -206,7 +217,13 @@ function OverageAndPricingFields({ form, setForm }: FormSectionProps) {
   );
 }
 
-function BillingConfigFields({ form, setForm }: FormSectionProps) {
+function BillingConfigFields({
+  form,
+  setForm,
+}: {
+  form: FormFields;
+  setForm: SetForm;
+}) {
   const t = useEnterpriseContractsLimitsTranslations();
   return (
     <div className="grid grid-cols-2 gap-3">

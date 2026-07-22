@@ -6,7 +6,12 @@ import { NotificationPanel } from "@/components/navigation/notification-panel";
 import { type NavSection } from "@/components/navigation/nav-config";
 import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
 import { SidebarCustomizeSheet } from "@/components/navigation/sidebar/sidebar-customize-sheet";
-import { QuickAccessIcons, PlanRowSection, AskAiSection, LanguageSection } from "./sidebar-footer-sections";
+import {
+  QuickAccessIcons,
+  PlanRowSection,
+  AskAiSection,
+  LanguageSection,
+} from "./sidebar-footer-sections";
 
 export interface SidebarFooterProps {
   collapsedRail: boolean;
