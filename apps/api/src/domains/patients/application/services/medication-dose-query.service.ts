@@ -122,12 +122,9 @@ export class MedicationDoseQueryService {
     const prescriptions =
       await this.repository.findPrescriptionsWithMedications(patientId, 10);
 
-    // Single batched adherence lookup across every medication on the
-    // active-prescription list. Previously this method fired one
-    // `getAdherenceSummary` (2 SQL queries) per non-PrN medication:
-    // up to ~50 sequential round-trips per patient snapshot. Now it's
-    // one `groupBy(medicationId, status)` regardless of medication
-    // count.
+    // Batched adherence: one groupBy for every non-PrN medication on
+    // the active-prescription list, not one per medication. Was
+    // ~50 sequential round-trips before.
     const activeMedications: Array<{
       medicationId: string;
       name: string;
@@ -205,9 +202,8 @@ export class MedicationDoseQueryService {
         const rows =
           await this.repository.groupDosesByMedicationAndStatus(dueWhere);
 
-        // Roll up the per-(medication, status) counts into the
-        // { taken, missed, skipped, …, adherenceRate } shape the
-        // caller expects, so we don't have to do a second pass.
+        // Roll the (med, status, count) tuples into the { taken,
+        // missed, skipped, adherenceRate } shape the caller wants.
         for (const row of rows) {
           const existing = adherenceByMedicationId.get(row.medicationId) ?? {
             totalDoses: 0,
@@ -233,10 +229,8 @@ export class MedicationDoseQueryService {
               : 100;
         }
       } catch (error) {
-        // Adherence is a non-critical enrichment — if the batched
-        // lookup fails we still want to return the medication list
-        // with `adherence: null`. Log so a recurring failure is
-        // visible in observability.
+        // Adherence is non-critical — if the batched lookup fails we
+        // still return the medication list with `adherence: null`.
         this.logger.warn(
           `Batched medication adherence lookup failed for patient ${patientId}: ${error instanceof Error ? error.message : String(error)}`,
         );

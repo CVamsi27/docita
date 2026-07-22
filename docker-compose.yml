@@ -1,8 +1,11 @@
 version: "3.8"
 
-# NOTE: This docker-compose.yml is for LOCAL DEVELOPMENT ONLY
-# For production deployment, see docs/DEPLOYMENT_GUIDE.md
-# Production uses: Neon DB + AWS EC2 + Vercel
+# NOTE: This docker-compose.yml is for LOCAL DEVELOPMENT ONLY.
+# For production deployment, see docs/operations/DEPLOYMENT.md.
+# Production stack: apps/api on Fly.io (Mumbai), apps/{app,internal,landing}
+# on Cloudflare Workers, AWS RDS Postgres (Mumbai) for the DB, Cloudflare R2
+# for object storage. Sibling docker-compose services (db, redis) stand up the
+# local dev equivalents.
 
 services:
   web:

@@ -17,7 +17,7 @@ import {
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { SubscriptionActivationPolicyService } from '@/domains/subscriptions/application/services/subscription-activation-policy.service';
 
-export interface ResolvedActivationPricing {
+interface ResolvedActivationPricing {
   subscription: Subscription | null;
   offerPercent: number;
   payableAmountPaise: number;
