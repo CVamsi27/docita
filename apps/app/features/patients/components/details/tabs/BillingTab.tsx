@@ -14,6 +14,7 @@ import {
   DataState,
   type DataStateStatus,
 } from "@workspace/ui/components/data-display/data-state";
+import { useTranslations } from "next-intl";
 import { ExternalLink, Receipt } from "lucide-react";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatCurrency, formatDate } from "@workspace/utils";
@@ -37,6 +38,7 @@ const STATUS_VARIANT: Record<
 };
 
 export function BillingTab({ patientId }: BillingTabProps) {
+  const t = useTranslations("Patients.billingTab");
   const {
     data: invoices,
     isLoading,
@@ -66,12 +68,12 @@ export function BillingTab({ patientId }: BillingTabProps) {
       <PatientClaimsPanel patientId={patientId} />
       <DataState
         status={status}
-        loadingMessage="Loading invoices…"
-        errorMessage="We could not load these invoices. Please try again."
+        loadingMessage={t("loadingMessage")}
+        errorMessage={t("errorMessage")}
         onRetry={() => refetch()}
         emptyIcon={Receipt}
-        emptyTitle="No invoices"
-        emptyDescription="Invoices billed to this patient will appear here."
+        emptyTitle={t("emptyTitle")}
+        emptyDescription={t("emptyDescription")}
       >
         <div className="space-y-3">
           {sorted.map((invoice) => {
@@ -91,12 +93,12 @@ export function BillingTab({ patientId }: BillingTabProps) {
                     <Receipt className="h-4 w-4 text-primary" />
                     {invoice.invoiceNumber
                       ? `#${invoice.invoiceNumber}`
-                      : "Invoice"}
+                      : t("invoiceFallback")}
                   </CardTitle>
                   <p className="text-xs text-muted-foreground mt-1">
                     {dateLabel}
                     {invoice.appointment?.doctor?.name
-                      ? ` \u00b7 Dr. ${invoice.appointment.doctor.name}`
+                      ? ` \u00b7 ${t("doctorPrefix", { name: invoice.appointment.doctor.name })}`
                       : ""}
                   </p>
                 </div>
@@ -123,7 +125,7 @@ export function BillingTab({ patientId }: BillingTabProps) {
                 >
                   <Link href={`/invoices/${invoice.id}`}>
                     <ExternalLink className="h-3 w-3 mr-1.5" />
-                    View invoice
+                    {t("viewInvoiceButton")}
                   </Link>
                 </Button>
               </CardContent>

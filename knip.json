@@ -184,7 +184,8 @@
     "packages/ui": {
       "ignore": [
         "src/components/feedback/error-boundary.tsx",
-        "src/components/form/debounced-search-input.tsx"
+        "src/components/form/debounced-search-input.tsx",
+        "src/components/form/form-primitives.tsx"
       ],
       "ignoreDependencies": [
         "@hookform/resolvers",

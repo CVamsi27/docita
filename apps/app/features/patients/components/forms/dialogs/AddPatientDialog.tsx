@@ -2,6 +2,7 @@
 
 import { FC } from "react";
 import { FormDialog } from "@workspace/ui/components/form/form-dialog";
+import { useTranslations } from "next-intl";
 import { AddPatientDialogForm } from "./add-patient-dialog-form";
 import { useAddPatientDialog } from "./use-add-patient-dialog";
 
@@ -16,14 +17,15 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
   onOpenChange,
   onPatientAdded,
 }) => {
+  const t = useTranslations("Patients.addPatientDialog");
   const dialog = useAddPatientDialog({ onPatientAdded, onOpenChange });
 
   return (
     <FormDialog
       open={open}
       onOpenChange={dialog.handleClose}
-      title="Add New Patient"
-      description="Enter the patient's details to create their record"
+      title={t("title")}
+      description={t("description")}
     >
       <AddPatientDialogForm
         form={dialog.form}

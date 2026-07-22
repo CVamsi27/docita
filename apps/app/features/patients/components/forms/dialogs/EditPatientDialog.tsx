@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 
 import { Patient, type AbhaVerificationResult } from "@workspace/types";
 import { useClinic } from "@/lib/contexts/clinic-context";
@@ -29,17 +30,18 @@ interface EditPatientDialogProps {
 }
 
 function getInitialAbhaStatus(
-  patient?: Patient | null,
+  patient: Patient | null | undefined,
+  t: (key: string) => string,
 ): AbhaVerificationUiState {
   if (patient?.abhaVerifiedAt) {
     return {
       kind: "verified",
-      message: "ABHA verified",
+      message: t("abhaVerifiedBadge"),
     };
   }
   return {
     kind: "idle",
-    message: "Verify the ABHA address after saving or editing the value.",
+    message: t("abhaIdleHint"),
   };
 }
 
@@ -49,13 +51,14 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
   patient,
   onPatientUpdated,
 }) => {
+  const t = useTranslations("Patients.editPatientDialog");
   const updatePatient = useUpdatePatient(patient?.id ?? "");
   const { clinic } = useClinic();
   const [otpDialogOpen, setOtpDialogOpen] = useState(false);
   type PatientUpdateFormValues = z.infer<typeof updatePatientRequestSchema>;
   const initialAbhaStatus = useMemo(
-    () => getInitialAbhaStatus(patient),
-    [patient],
+    () => getInitialAbhaStatus(patient, t),
+    [patient, t],
   );
   const [abhaStatus, setAbhaStatus] =
     useState<AbhaVerificationUiState>(initialAbhaStatus);
@@ -89,11 +92,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
   }, [initialAbhaStatus]);
 
   const handleInvalidSubmit = () => {
-    showUserFacingErrorToast(
-      "Please check the highlighted fields and try again.",
-      "Please check the highlighted fields and try again.",
-      "form",
-    );
+    showUserFacingErrorToast(t("validationError"), t("validationError"), "form");
   };
 
   const handleSubmit = form.handleSubmit(async (values) => {
@@ -108,11 +107,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
           type: "manual",
           message: phoneError,
         });
-        showUserFacingErrorToast(
-          "Please check the highlighted fields and try again.",
-          "Please check the highlighted fields and try again.",
-          "form",
-        );
+        showUserFacingErrorToast(t("validationError"), t("validationError"), "form");
         return;
       }
 
@@ -128,13 +123,11 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
           abhaAddress: values.abhaAddress?.trim() || undefined,
         }),
       );
-      toast.success("Patient updated successfully");
+      toast.success(t("saveSuccess"));
       onPatientUpdated?.();
       onOpenChange?.(false);
     } catch {
-      showUserFacingErrorToast(
-        "We could not save this patient. Please try again.",
-      );
+      showUserFacingErrorToast(t("saveError"));
     }
   }, handleInvalidSubmit);
 
@@ -151,8 +144,8 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
     <FormDialog
       open={open}
       onOpenChange={(o) => onOpenChange?.(o)}
-      title="Edit Patient"
-      description="Update the patient's information"
+      title={t("title")}
+      description={t("description")}
     >
       <Form {...form}>
         <form onSubmit={handleSubmit} noValidate className="space-y-6">
@@ -166,7 +159,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
               patientId={patient.id}
               status={abhaStatus}
               onVerify={() => setOtpDialogOpen(true)}
-              verifyLabel="Verify via OTP"
+              verifyLabel={t("verifyLabel")}
               requireValueToVerify={false}
             />
             <PatientDemographicFields control={form.control} />

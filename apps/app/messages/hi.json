@@ -1414,11 +1414,98 @@
       "addCustomFieldButton": "कस्टम फ़ील्ड जोड़ें"
     },
     "vitalsTab": {
-      "title": "Vitals",
-      "addVitalsButton": "Add vitals",
-      "noVitalsTitle": "No vitals recorded",
-      "noVitalsDescription": "Record the patient's vitals to see trends over time.",
-      "loadingMessage": "Loading vitals…"
+      "title": "वाइटल्स",
+      "addVitalsButton": "वाइटल्स जोड़ें",
+      "noVitalsTitle": "कोई वाइटल्स दर्ज नहीं",
+      "noVitalsDescription": "रुझान देखने के लिए रोगी के वाइटल्स दर्ज करें।",
+      "loadingMessage": "वाइटल्स लोड हो रहे हैं…"
+    },
+    "labsTab": {
+      "loadingMessage": "लैब टेस्ट लोड हो रहे हैं…",
+      "errorMessage": "हम ये लैब टेस्ट लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+      "emptyTitle": "कोई लैब टेस्ट ऑर्डर नहीं",
+      "emptyDescription": "इस रोगी के लैब ऑर्डर यहाँ दिखाई देंगे।",
+      "labTestFallback": "लैब टेस्ट",
+      "orderedLabel": "{date} को ऑर्डर किया गया",
+      "doctorPrefix": "डॉ. {name}",
+      "categoryLabel": "श्रेणी: {value}",
+      "completedLabel": "{date} को पूर्ण",
+      "viewResultButton": "परिणाम देखें"
+    },
+    "visitsTab": {
+      "loadingMessage": "विज़िट लोड हो रही हैं…",
+      "errorMessage": "हम ये विज़िट लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+      "emptyTitle": "अभी तक कोई विज़िट नहीं",
+      "emptyDescription": "इस रोगी की पिछली और आगामी अपॉइंटमेंट यहाँ दिखाई देंगी।"
+    },
+    "referralsTab": {
+      "cardTitle": "रेफरल",
+      "emptyTitle": "रेफरल बैकएंड लंबित",
+      "emptyDescription": "इस रोगी के लिए विशेषज्ञ रेफरल पत्र — संपादन योग्य पत्र प्रारूप, बंद-लूप ट्रैकिंग, और विशेषज्ञ नेटवर्क निर्देशिका। एक नए PatientReferral मॉडल और रेफरल API डोमेन की आवश्यकता है; स्कीमा बंद है, इसलिए माइग्रेशन की समीक्षा आवश्यक है।"
+    },
+    "prescriptionsTab": {
+      "loadingMessage": "नुस्खे लोड हो रहे हैं…",
+      "errorMessage": "हम ये नुस्खे लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+      "emptyTitle": "अभी तक कोई नुस्खा नहीं",
+      "emptyDescription": "इस रोगी को जारी किए गए नुस्खे यहाँ दिखाई देंगे।",
+      "diagnosisLabel": "निदान:",
+      "medicationOne": "दवा",
+      "medicationMany": "दवाइयाँ",
+      "moreSuffix": "+{count} और",
+      "viewButton": "देखें",
+      "repeatButton": "दोहराएँ"
+    },
+    "billingTab": {
+      "loadingMessage": "इनवॉइस लोड हो रहे हैं…",
+      "errorMessage": "हम ये इनवॉइस लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+      "emptyTitle": "कोई इनवॉइस नहीं",
+      "emptyDescription": "इस रोगी को बिल किए गए इनवॉइस यहाँ दिखाई देंगे।",
+      "invoiceFallback": "इनवॉइस",
+      "doctorPrefix": "डॉ. {name}",
+      "viewInvoiceButton": "इनवॉइस देखें"
+    },
+    "recordsTab": {
+      "editButton": "रिकॉर्ड संपादित करें",
+      "doneButton": "पूर्ण"
+    },
+    "addPatientDialog": {
+      "title": "नया रोगी जोड़ें",
+      "description": "रोगी का रिकॉर्ड बनाने के लिए विवरण दर्ज करें"
+    },
+    "editPatientDialog": {
+      "title": "रोगी संपादित करें",
+      "description": "रोगी की जानकारी अपडेट करें",
+      "verifyLabel": "OTP के माध्यम से सत्यापित करें",
+      "saveSuccess": "रोगी सफलतापूर्वक अपडेट किया गया",
+      "saveError": "हम यह रोगी सहेज नहीं सके। कृपया पुनः प्रयास करें।",
+      "validationError": "कृपया हाइलाइट किए गए फ़ील्ड जाँचें और पुनः प्रयास करें।",
+      "abhaVerifiedBadge": "ABHA सत्यापित",
+      "abhaIdleHint": "मान सहेजने या संपादित करने के बाद ABHA पता सत्यापित करें।"
+    },
+    "abhaField": {
+      "label": "ABHA पता",
+      "labelAria": "ABHA पता (जल्द आ रहा है)",
+      "verifyLabel": "सत्यापित करें",
+      "verifyAria": "{label} (जल्द आ रहा है)",
+      "verifiedBadge": "सत्यापित",
+      "notConfiguredBadge": "कॉन्फ़िगर नहीं",
+      "failedBadge": "विफल",
+      "unverifiedBadge": "असत्यापित",
+      "pendingTitle": "ABHA सत्यापन लंबित",
+      "verifiedDescription": "इस रोगी के लिए ABHA सत्यापन पूरा हुआ।"
+    },
+    "abhaOtpDialog": {
+      "title": "OTP के माध्यम से ABHA सत्यापित करें",
+      "mobileDescription": "ABHA सत्यापन के लिए OTP प्राप्त करने हेतु रोगी का मोबाइल नंबर दर्ज करें।",
+      "otpDescription": "पंजीकृत मोबाइल पर भेजा गया OTP दर्ज करें।",
+      "mobileLabel": "मोबाइल नंबर",
+      "mobilePlaceholder": "10 अंकों का मोबाइल नंबर दर्ज करें",
+      "otpLabel": "OTP",
+      "otpPlaceholder": "OTP दर्ज करें",
+      "cancelButton": "रद्द करें",
+      "sendOtpButton": "OTP भेजें",
+      "backButton": "वापस",
+      "verifyButton": "सत्यापित करें"
     }
   },
   "Inventory": {

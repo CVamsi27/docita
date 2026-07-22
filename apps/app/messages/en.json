@@ -1419,6 +1419,93 @@
       "noVitalsTitle": "No vitals recorded",
       "noVitalsDescription": "Record the patient's vitals to see trends over time.",
       "loadingMessage": "Loading vitals…"
+    },
+    "labsTab": {
+      "loadingMessage": "Loading lab tests…",
+      "errorMessage": "We could not load these lab tests. Please try again.",
+      "emptyTitle": "No lab tests ordered",
+      "emptyDescription": "Lab orders for this patient will appear here once created.",
+      "labTestFallback": "Lab test",
+      "orderedLabel": "Ordered {date}",
+      "doctorPrefix": "Dr. {name}",
+      "categoryLabel": "Category: {value}",
+      "completedLabel": "Completed {date}",
+      "viewResultButton": "View result"
+    },
+    "visitsTab": {
+      "loadingMessage": "Loading visits…",
+      "errorMessage": "We could not load these visits. Please try again.",
+      "emptyTitle": "No visits yet",
+      "emptyDescription": "Past and upcoming appointments for this patient will appear here."
+    },
+    "referralsTab": {
+      "cardTitle": "Referrals",
+      "emptyTitle": "Referrals backend pending",
+      "emptyDescription": "Specialist referral letters for this patient — editable letter format, closed-loop tracking, and specialist network directory. Needs a new PatientReferral model and referrals API domain; the schema is locked, so the migration must be reviewed before landing."
+    },
+    "prescriptionsTab": {
+      "loadingMessage": "Loading prescriptions…",
+      "errorMessage": "We could not load these prescriptions. Please try again.",
+      "emptyTitle": "No prescriptions yet",
+      "emptyDescription": "Prescriptions issued to this patient will appear here.",
+      "diagnosisLabel": "Diagnosis:",
+      "medicationOne": "medication",
+      "medicationMany": "medications",
+      "moreSuffix": "+{count} more",
+      "viewButton": "View",
+      "repeatButton": "Repeat"
+    },
+    "billingTab": {
+      "loadingMessage": "Loading invoices…",
+      "errorMessage": "We could not load these invoices. Please try again.",
+      "emptyTitle": "No invoices",
+      "emptyDescription": "Invoices billed to this patient will appear here.",
+      "invoiceFallback": "Invoice",
+      "doctorPrefix": "Dr. {name}",
+      "viewInvoiceButton": "View invoice"
+    },
+    "recordsTab": {
+      "editButton": "Edit records",
+      "doneButton": "Done"
+    },
+    "addPatientDialog": {
+      "title": "Add New Patient",
+      "description": "Enter the patient's details to create their record"
+    },
+    "editPatientDialog": {
+      "title": "Edit Patient",
+      "description": "Update the patient's information",
+      "verifyLabel": "Verify via OTP",
+      "saveSuccess": "Patient updated successfully",
+      "saveError": "We could not save this patient. Please try again.",
+      "validationError": "Please check the highlighted fields and try again.",
+      "abhaVerifiedBadge": "ABHA verified",
+      "abhaIdleHint": "Verify the ABHA address after saving or editing the value."
+    },
+    "abhaField": {
+      "label": "ABHA Address",
+      "labelAria": "ABHA Address (coming soon)",
+      "verifyLabel": "Verify",
+      "verifyAria": "{label} (coming soon)",
+      "verifiedBadge": "Verified",
+      "notConfiguredBadge": "Not configured",
+      "failedBadge": "Failed",
+      "unverifiedBadge": "Unverified",
+      "pendingTitle": "ABHA verification pending",
+      "verifiedDescription": "ABHA verification completed for this patient."
+    },
+    "abhaOtpDialog": {
+      "title": "Verify ABHA via OTP",
+      "mobileDescription": "Enter the patient's mobile number to receive an OTP for ABHA verification.",
+      "otpDescription": "Enter the OTP sent to the registered mobile.",
+      "mobileLabel": "Mobile number",
+      "mobilePlaceholder": "Enter 10-digit mobile number",
+      "otpLabel": "OTP",
+      "otpPlaceholder": "Enter the OTP",
+      "cancelButton": "Cancel",
+      "sendOtpButton": "Send OTP",
+      "backButton": "Back",
+      "verifyButton": "Verify"
     }
   },
   "Inventory": {

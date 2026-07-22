@@ -1,6 +1,7 @@
 "use client";
 
 import type { Control, FieldValues, Path } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import { AlertCircle, CheckCircle2, ShieldCheck } from "lucide-react";
 import {
   Alert,
@@ -36,23 +37,26 @@ interface AbhaVerificationFieldProps<
   patientId?: string | null;
   status: AbhaVerificationUiState;
   onVerify?: () => void;
-  /** Verify label (defaults to "Verify"). */
+  /** Verify label (defaults to namespace "verifyLabel"). */
   verifyLabel?: string;
   /** When false, the verify action is available even without a typed ABHA. */
   requireValueToVerify?: boolean;
 }
 
-function getStatusBadge(status: AbhaVerificationUiState) {
+function getStatusBadge(
+  status: AbhaVerificationUiState,
+  t: (key: string) => string,
+) {
   if (status.kind === "verified") {
-    return <Badge className="badge-success">Verified</Badge>;
+    return <Badge className="badge-success">{t("verifiedBadge")}</Badge>;
   }
   if (status.kind === "not-configured") {
-    return <Badge variant="outline">Not configured</Badge>;
+    return <Badge variant="outline">{t("notConfiguredBadge")}</Badge>;
   }
   if (status.kind === "failed") {
-    return <Badge variant="destructive">Failed</Badge>;
+    return <Badge variant="destructive">{t("failedBadge")}</Badge>;
   }
-  return <Badge variant="outline">Unverified</Badge>;
+  return <Badge variant="outline">{t("unverifiedBadge")}</Badge>;
 }
 
 function AbhaVerificationStatus({
@@ -60,6 +64,7 @@ function AbhaVerificationStatus({
 }: {
   status: AbhaVerificationUiState;
 }) {
+  const t = useTranslations("Patients.abhaField");
   if (status.kind === "idle" && !status.message) return null;
 
   const isVerified = status.kind === "verified";
@@ -76,13 +81,11 @@ function AbhaVerificationStatus({
         <AlertCircle className="h-4 w-4" aria-hidden />
       )}
       <AlertTitle className="flex flex-wrap items-center gap-2">
-        <span>{status.message ?? "ABHA verification pending"}</span>
-        {getStatusBadge(status)}
+        <span>{status.message ?? t("pendingTitle")}</span>
+        {getStatusBadge(status, t)}
       </AlertTitle>
       {status.kind === "verified" ? (
-        <AlertDescription>
-          ABHA verification completed for this patient.
-        </AlertDescription>
+        <AlertDescription>{t("verifiedDescription")}</AlertDescription>
       ) : null}
     </Alert>
   );
@@ -96,8 +99,10 @@ export function AbhaVerificationField<
   currentValue,
   isPending,
   status,
-  verifyLabel = "Verify",
+  verifyLabel,
 }: AbhaVerificationFieldProps<T>) {
+  const t = useTranslations("Patients.abhaField");
+  const resolvedVerifyLabel = verifyLabel ?? t("verifyLabel");
   return (
     <div className="md:col-span-2">
       <FormField
@@ -106,7 +111,7 @@ export function AbhaVerificationField<
         render={({ field }) => (
           <FormItem>
             <FormLabel className="flex items-center gap-2">
-              ABHA Address
+              {t("label")}
               <ComingSoonBadge />
             </FormLabel>
             <div className="flex flex-col gap-2 sm:flex-row">
@@ -116,7 +121,7 @@ export function AbhaVerificationField<
                   value={field.value ?? currentValue ?? ""}
                   placeholder="name@abdm"
                   disabled
-                  aria-label="ABHA Address (coming soon)"
+                  aria-label={t("labelAria")}
                 />
               </FormControl>
               <Button
@@ -124,14 +129,14 @@ export function AbhaVerificationField<
                 variant="outline"
                 disabled
                 className="sm:w-32"
-                aria-label={`${verifyLabel} (coming soon)`}
+                aria-label={t("verifyAria", { label: resolvedVerifyLabel })}
               >
                 {isPending ? (
                   <DocitaLoadingIndicator variant="inline" decorative />
                 ) : (
                   <ShieldCheck className="h-4 w-4" aria-hidden />
                 )}
-                {verifyLabel}
+                {resolvedVerifyLabel}
               </Button>
             </div>
             <FormMessage />

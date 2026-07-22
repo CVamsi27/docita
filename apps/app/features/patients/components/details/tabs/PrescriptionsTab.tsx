@@ -3,6 +3,7 @@
 // jscpd:ignore-start
 import Link from "next/link";
 import { formatDate } from "@workspace/utils";
+import { useTranslations } from "next-intl";
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState } from "@workspace/ui/components";
 import { ExternalLink, Pill, RotateCcw } from "lucide-react";
 import { usePatientPrescriptions } from "@workspace/data-access";
@@ -14,6 +15,7 @@ interface PrescriptionsTabProps {
 }
 
 export function PrescriptionsTab({ patientId }: PrescriptionsTabProps) {
+  const t = useTranslations("Patients.prescriptionsTab");
   const {
     data: prescriptions,
     isLoading,
@@ -41,12 +43,12 @@ export function PrescriptionsTab({ patientId }: PrescriptionsTabProps) {
   return (
     <DataState
       status={status}
-      loadingMessage="Loading prescriptions…"
-      errorMessage="We could not load these prescriptions. Please try again."
+      loadingMessage={t("loadingMessage")}
+      errorMessage={t("errorMessage")}
       onRetry={() => refetch()}
       emptyIcon={Pill}
-      emptyTitle="No prescriptions yet"
-      emptyDescription="Prescriptions issued to this patient will appear here."
+      emptyTitle={t("emptyTitle")}
+      emptyDescription={t("emptyDescription")}
     >
       <div className="space-y-3">
         {sorted.map((prescription) => {
@@ -69,20 +71,22 @@ export function PrescriptionsTab({ patientId }: PrescriptionsTabProps) {
                   </CardTitle>
                   {doctorName && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Dr. {doctorName}
+                      {t("doctorPrefix", { name: doctorName })}
                     </p>
                   )}
                 </div>
                 <Badge variant="secondary" className="shrink-0 text-xs">
                   {medications.length}{" "}
-                  {medications.length === 1 ? "medication" : "medications"}
+                  {medications.length === 1
+                    ? t("medicationOne")
+                    : t("medicationMany")}
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
               {prescription.diagnosis && (
                 <div className="text-xs">
-                  <span className="text-muted-foreground">Diagnosis: </span>
+                  <span className="text-muted-foreground">{t("diagnosisLabel")} </span>
                   <span className="text-foreground">
                     {prescription.diagnosis}
                   </span>
@@ -116,7 +120,7 @@ export function PrescriptionsTab({ patientId }: PrescriptionsTabProps) {
                   ))}
                   {medications.length > 4 && (
                     <p className="text-xs text-muted-foreground">
-                      +{medications.length - 4} more
+                      {t("moreSuffix", { count: medications.length - 4 })}
                     </p>
                   )}
                 </div>
@@ -132,7 +136,7 @@ export function PrescriptionsTab({ patientId }: PrescriptionsTabProps) {
                   >
                     <Link href={`/prescriptions/${prescription.id}`}>
                       <ExternalLink className="h-3 w-3 mr-1.5" />
-                      View
+                      {t("viewButton")}
                     </Link>
                   </Button>
                 )}
@@ -144,7 +148,7 @@ export function PrescriptionsTab({ patientId }: PrescriptionsTabProps) {
                     onClick={() => repeatPrescription(appointmentId, patientId)}
                   >
                     <RotateCcw className="h-3 w-3 mr-1.5" />
-                    Repeat
+                    {t("repeatButton")}
                   </Button>
                 )}
               </div>

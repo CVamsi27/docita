@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@workspace/ui/components/form/button";
+import { useTranslations } from "next-intl";
 import { Check, Pencil } from "lucide-react";
 import type { PatientWithMedicalHistory } from "@workspace/types";
 import { PatientMedicalHistoryContainer } from "@/features/patients/components/details/PatientMedicalHistoryContainer";
@@ -12,6 +13,7 @@ interface RecordsTabProps {
 }
 
 export function RecordsTab({ patient, canEditPatient }: RecordsTabProps) {
+  const t = useTranslations("Patients.recordsTab");
   const [isEditing, setIsEditing] = useState(false);
 
   return (
@@ -27,12 +29,12 @@ export function RecordsTab({ patient, canEditPatient }: RecordsTabProps) {
             {isEditing ? (
               <>
                 <Check className="h-3.5 w-3.5 mr-1.5" />
-                Done
+                {t("doneButton")}
               </>
             ) : (
               <>
                 <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                Edit records
+                {t("editButton")}
               </>
             )}
           </Button>

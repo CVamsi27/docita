@@ -6,6 +6,7 @@ import {
   DataState,
   type DataStateStatus,
 } from "@workspace/ui/components/data-display/data-state";
+import { useTranslations } from "next-intl";
 import { Clock3 } from "lucide-react";
 import type { TimelineEventType } from "@workspace/types";
 import { usePatientTimeline } from "@workspace/data-access";
@@ -22,6 +23,7 @@ const VISIT_TYPES: TimelineEventType[] = [
 ];
 
 export function VisitsTab({ patientId }: VisitsTabProps) {
+  const t = useTranslations("Patients.visitsTab");
   const [selectedTypes, setSelectedTypes] =
     useState<TimelineEventType[]>(VISIT_TYPES);
   const [offset, setOffset] = useState(0);
@@ -55,12 +57,12 @@ export function VisitsTab({ patientId }: VisitsTabProps) {
   return (
     <DataState
       status={status}
-      loadingMessage="Loading visits…"
-      errorMessage="We could not load these visits. Please try again."
+      loadingMessage={t("loadingMessage")}
+      errorMessage={t("errorMessage")}
       onRetry={() => refetch()}
       emptyIcon={Clock3}
-      emptyTitle="No visits yet"
-      emptyDescription="Past and upcoming appointments for this patient will appear here."
+      emptyTitle={t("emptyTitle")}
+      emptyDescription={t("emptyDescription")}
     >
       {data ? (
         <PatientTimeline
