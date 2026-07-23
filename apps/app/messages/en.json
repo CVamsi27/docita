@@ -973,6 +973,17 @@
       "closeButton": "Close",
       "saveButton": "Save Changes",
       "removeButton": "Remove"
+    },
+    "doctorAvailability": {
+      "loadingAria": "Loading doctor availability",
+      "title": "Doctor availability",
+      "description": "Working hours and slot duration per doctor.",
+      "selectDoctorLabel": "Select Doctor",
+      "doctorPlaceholder": "Doctor",
+      "scheduleEyebrow": "{name}'s weekly schedule",
+      "scheduleHint": "Toggle days on or off and set hours individually.",
+      "saveButton": "Save availability",
+      "savingButton": "Saving…"
     }
   },
   "Subscription": {

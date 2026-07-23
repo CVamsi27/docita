@@ -973,6 +973,17 @@
       "closeButton": "बंद करें",
       "saveButton": "परिवर्तन सहेजें",
       "removeButton": "हटाएँ"
+    },
+    "doctorAvailability": {
+      "loadingAria": "डॉक्टर उपलब्धता लोड हो रही है",
+      "title": "डॉक्टर उपलब्धता",
+      "description": "प्रति डॉक्टर कार्य घंटे और स्लॉट अवधि।",
+      "selectDoctorLabel": "डॉक्टर चुनें",
+      "doctorPlaceholder": "डॉक्टर",
+      "scheduleEyebrow": "{name} का साप्ताहिक कार्यक्रम",
+      "scheduleHint": "दिन चालू या बंद करें और घंटे व्यक्तिगत रूप से सेट करें।",
+      "saveButton": "उपलब्धता सहेजें",
+      "savingButton": "सहेज रहा है…"
     }
   },
   "Subscription": {
