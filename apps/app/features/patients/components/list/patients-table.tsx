@@ -4,6 +4,7 @@ import { formatGenderLabel } from "@/lib/formatters";
 import { getInitials } from "@/lib/formatters";
 import { getPatientFullName } from "@workspace/utils";
 import { Calendar, Pencil } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { PatientsSortConfig } from "./patients-page-types";
 import { SortableHeader, PatientMobileCard } from "./patients-table-sections";
 
@@ -26,6 +27,7 @@ export function PatientsTable({
   onSchedulePatient: (patientId: string) => void;
   onEditPatient: (patient: Patient) => void;
 }) {
+  const t = useTranslations("Patients.list");
   const columns: DataTableColumn<Patient>[] = [
     {
       id: "avatar",
@@ -43,7 +45,7 @@ export function PatientsTable({
       id: "name",
       header: (
         <SortableHeader
-          label="Name"
+          label={t("tableColumnName")}
           column="fullName"
           sortConfig={sortConfig}
           onSort={onSort}
@@ -57,7 +59,7 @@ export function PatientsTable({
     },
     {
       id: "contact",
-      header: "Contact",
+      header: t("tableColumnContact"),
       hiddenOnMobile: true,
       cell: (patient) => (
         <div className="flex flex-col text-sm">
@@ -70,7 +72,7 @@ export function PatientsTable({
       id: "gender",
       header: (
         <SortableHeader
-          label="Gender"
+          label={t("tableColumnGender")}
           column="gender"
           sortConfig={sortConfig}
           onSort={onSort}
@@ -81,13 +83,13 @@ export function PatientsTable({
     },
     {
       id: "actions",
-      header: "Actions",
+      header: t("tableColumnActions"),
       align: "right",
       cell: (patient) => {
         const patientId = patient.id;
         return (
           <div className="flex items-center justify-end gap-1.5">
-            <SymbolTooltip label="Schedule appointment">
+            <SymbolTooltip label={t("scheduleAria")}>
               <Button
                 variant="outline"
                 size="sm"
@@ -101,10 +103,10 @@ export function PatientsTable({
                 disabled={!patientId}
               >
                 <Calendar className="h-4 w-4" />
-                <span className="hidden sm:inline">Schedule</span>
+                <span className="hidden sm:inline">{t("scheduleLabel")}</span>
               </Button>
             </SymbolTooltip>
-            <SymbolTooltip label="Edit patient">
+            <SymbolTooltip label={t("editAria")}>
               <Button
                 variant="ghost"
                 size="sm"
@@ -115,7 +117,7 @@ export function PatientsTable({
                 }}
               >
                 <Pencil className="h-4 w-4" />
-                <span className="hidden sm:inline">Edit</span>
+                <span className="hidden sm:inline">{t("editLabel")}</span>
               </Button>
             </SymbolTooltip>
           </div>
@@ -132,11 +134,11 @@ export function PatientsTable({
         patient.id ?? `${getPatientFullName(patient, "patient")}-${index}`
       }
       isLoading={isLoading}
-      emptyTitle="No patients found"
+      emptyTitle={t("tableEmptyTitle")}
       emptyDescription={
         searchQuery
-          ? `No patients found matching "${searchQuery}"`
-          : "No patients found"
+          ? t("tableEmptyDescription", { query: searchQuery })
+          : t("tableEmptyDescriptionFallback")
       }
       onRowClick={(patient) => {
         if (patient.id) {

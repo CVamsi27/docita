@@ -605,7 +605,9 @@
       "treatmentPlaceholder": "Advice, procedures, and treatment given…",
       "followUpTitle": "Follow-up plan",
       "followUpHint": "When to return and what to watch for.",
-      "followUpPlaceholder": "When to return and what to watch for…"
+      "followUpPlaceholder": "When to return and what to watch for…",
+      "allergySevereTitle": "Severe allergies",
+      "allergyAllergiesTitle": "Allergies"
     }
   },
   "Settings": {
@@ -953,6 +955,24 @@
       "copyButton": "Copy",
       "shareCodeHint": "Share this code so staff can join from the {facilityLabel} selection page.",
       "inviteButton": "Invite member"
+    },
+    "page": {
+      "backToToday": "Back to Today",
+      "workspaceEyebrow": "Workspace",
+      "pageTitle": "Settings",
+      "pageSubtitle": "Tune your clinic, team, and patient touchpoints — one calm, consistent control room."
+    },
+    "manageMember": {
+      "unknownMember": "Unknown member",
+      "nameLabel": "Name",
+      "namePlaceholder": "Full name",
+      "roleLabel": "Role",
+      "roleAdmin": "Admin",
+      "roleAdminDoctor": "Admin Doctor",
+      "createdLabel": "Created",
+      "closeButton": "Close",
+      "saveButton": "Save Changes",
+      "removeButton": "Remove"
     }
   },
   "Subscription": {
@@ -1252,6 +1272,21 @@
     }
   },
   "Analytics": {
+    "page": {
+      "loadingMessage": "Loading analytics…",
+      "errorMessage": "We could not load analytics. Please try again.",
+      "title": "Analytics",
+      "description": "Insights and performance metrics for your facility.",
+      "chartLoadingAria": "Loading chart",
+      "totalPatients": "Total patients",
+      "newPatients": "New patients",
+      "appointments": "Appointments",
+      "revenue": "Revenue",
+      "thisMonth": "This month",
+      "tabDiseaseTrends": "Disease trends",
+      "tabCptRevenue": "CPT Revenue",
+      "tabCompliance": "Compliance"
+    },
     "advancedMetrics": {
       "revenueTrendsTitle": "Revenue trends",
       "revenueTrendsDescription": "Daily/weekly trend in billed collections",
@@ -1506,6 +1541,137 @@
       "sendOtpButton": "Send OTP",
       "backButton": "Back",
       "verifyButton": "Verify"
+    },
+    "tagColorPicker": {
+      "useColorAria": "Use {name}"
+    },
+    "tagManager": {
+      "manageTags": "Manage Tags",
+      "title": "Patient Tags",
+      "description": "Add tags to categorize and quickly identify patient conditions",
+      "currentTab": "Current ({count})",
+      "presetsTab": "Quick add",
+      "customTab": "Custom",
+      "noPresetsMatch": "No presets match \"{query}\"",
+      "tagNameLabel": "Tag name",
+      "tagNamePlaceholder": "Tag name",
+      "tagColorLabel": "Tag Color",
+      "chooseColorAria": "Choose color (currently {name})",
+      "previewLabel": "Preview",
+      "addTagButton": "Add Tag",
+      "tagAlreadyExists": "This tag already exists",
+      "doneButton": "Done",
+      "noTagsYet": "No tags added yet, add from presets or create custom",
+      "saveTagAria": "Save tag",
+      "cancelEditAria": "Cancel edit",
+      "editTagAria": "Edit tag {name}",
+      "deleteTagAria": "Delete tag {name}",
+      "searchPlaceholder": "Enter tags",
+      "searchAria": "Search tags",
+      "clearSearchAria": "Clear search"
+    },
+    "changePassword": {
+      "title": "Change password",
+      "description": "Update the password on your account.",
+      "currentPasswordLabel": "Current password",
+      "currentPasswordPlaceholder": "Enter current password",
+      "newPasswordLabel": "New password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmPasswordLabel": "Confirm new password",
+      "confirmPasswordPlaceholder": "Confirm password",
+      "submitButton": "Update password",
+      "submittingButton": "Updating…",
+      "successToast": "Password updated successfully",
+      "errorFallback": "We could not update your password. Please try again."
+    },
+    "dangerZone": {
+      "signOutTitle": "Sign out",
+      "signOutDescription": "Sign out of your Docita account on this device.",
+      "signOutButton": "Sign out",
+      "signOutConfirmTitle": "Sign out",
+      "signOutConfirmDescription": "Are you sure you want to sign out of your account?",
+      "signOutConfirmAction": "Sign out",
+      "cancelAction": "Cancel",
+      "deleteTitle": "Delete account",
+      "deleteDescription": "Request permanent closure of your staff account and removal of personal data associated with it, subject to legal and clinical retention requirements.",
+      "warningTitle": "Warning",
+      "warningBody": "This starts an irreversible process for your login access. Some clinical records may need to be retained where the law requires.",
+      "reasonLabel": "Reason for deletion (required)",
+      "reasonPlaceholder": "Enter deletion reason",
+      "confirmCheckbox": "I understand this will remove my access and request deletion of my personal data where permitted.",
+      "deleteButton": "Delete my account",
+      "deletingButton": "Submitting…",
+      "reasonMissing": "Tell us why you want to delete your account before continuing",
+      "confirmMissing": "Please confirm that you want to delete your account before submitting",
+      "successToast": "Account deletion requested. Your account will be processed within 30 days.",
+      "errorFallback": "We could not submit this deletion request. Please try again."
+    },
+    "allergyBadge": {
+      "editAria": "Edit allergy {name}",
+      "removeAria": "Remove allergy {name}"
+    },
+    "allergyBanner": {
+      "titleWithName": "Allergy alert — {name}",
+      "severeTitle": "Severe allergies",
+      "allergiesTitle": "Allergies"
+    },
+    "patientForm": {
+      "firstNameLabel": "First Name",
+      "firstNamePlaceholder": "First name",
+      "lastNameLabel": "Last Name",
+      "lastNamePlaceholder": "Last name",
+      "phoneLabel": "Phone",
+      "phonePlaceholder": "Phone number",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Email",
+      "genderLabel": "Gender",
+      "genderPlaceholder": "Gender",
+      "dateOfBirthLabel": "Date of Birth",
+      "dateOfBirthPlaceholder": "Date of birth",
+      "addPatientButton": "Add Patient",
+      "closeButton": "Close",
+      "cancelButton": "Cancel",
+      "dpdpCheckbox": "I confirm DPDP Act, 2023 consent has been obtained from the patient (or their authorised representative)."
+    },
+    "list": {
+      "searchPlaceholder": "Enter name or phone",
+      "clearSearch": "Clear",
+      "emptyTitle": "No patients yet",
+      "emptyDescription": "Add your first patient to start tracking their history, appointments, and prescriptions.",
+      "emptyAction": "Add patient",
+      "pageTitle": "Patients",
+      "pageDescription": "Manage your patient records and history.",
+      "consultationQueueFull": "Consultation queue",
+      "consultationQueueShort": "Queue",
+      "addPatient": "Add Patient",
+      "tableColumnName": "Name",
+      "tableColumnContact": "Contact",
+      "tableColumnGender": "Gender",
+      "tableColumnActions": "Actions",
+      "scheduleAria": "Schedule appointment",
+      "scheduleLabel": "Schedule",
+      "editAria": "Edit patient",
+      "editLabel": "Edit",
+      "tableEmptyTitle": "No patients found",
+      "tableEmptyDescription": "No patients found matching \"{query}\"",
+      "tableEmptyDescriptionFallback": "No patients found"
+    },
+    "metrics": {
+      "categoriesTitle": "Categories & Tracked Metrics",
+      "loadingMetrics": "Loading metrics",
+      "unnamedCategory": "Unnamed Category",
+      "track": "Track",
+      "metricFallback": "Metric",
+      "loadingHistory": "Loading history",
+      "generalCategory": "General",
+      "recordVitals": "Record Vitals Value",
+      "recordMetric": "Record Metric Value",
+      "metricLabel": "Metric",
+      "valueLabel": "Value",
+      "metricPlaceholder": "Metric",
+      "valuePlaceholder": "Value",
+      "noMetricsAvailable": "No metrics available yet",
+      "save": "Save"
     }
   },
   "Inventory": {

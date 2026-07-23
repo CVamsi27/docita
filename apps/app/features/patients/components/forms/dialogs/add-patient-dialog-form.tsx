@@ -2,6 +2,7 @@
 
 import type { BaseSyntheticEvent } from "react";
 import type { Control, UseFormReturn } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Button, Checkbox, Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@workspace/ui/components";
 import { DPDP_NOTICE_TEXT_STAFF, DPDP_NOTICE_TITLE, DPDP_NOTICE_VERSION, type PatientCreateFormValues } from "@workspace/types";
@@ -13,6 +14,7 @@ function DpdpConsentSection({
 }: {
   control: Control<PatientCreateFormValues>;
 }) {
+  const t = useTranslations("Patients.patientForm");
   return (
     <FormField
       control={control}
@@ -43,8 +45,7 @@ function DpdpConsentSection({
                 aria-invalid={fieldState.error ? true : undefined}
               />
               <span>
-                I confirm DPDP Act, 2023 consent has been obtained from the
-                patient (or their authorised representative).
+                {t("dpdpCheckbox")}
                 <span className="text-destructive ml-0.5">*</span>
               </span>
             </label>
@@ -67,6 +68,7 @@ function FormFooter({
   onCancel: () => void;
   patientCreated: boolean;
 }) {
+  const t = useTranslations("Patients.patientForm");
   return (
     <div className="flex flex-col-reverse gap-2 border-t border-border/60 pt-4 sm:flex-row sm:justify-end">
       <Button
@@ -75,7 +77,7 @@ function FormFooter({
         onClick={onCancel}
         disabled={isPending}
       >
-        {patientCreated ? "Close" : "Cancel"}
+        {patientCreated ? t("closeButton") : t("cancelButton")}
       </Button>
       {!patientCreated ? (
         <Button type="submit" disabled={isPending || !dpdpAccepted}>
@@ -86,7 +88,7 @@ function FormFooter({
               className="mr-2"
             />
           )}
-          Add Patient
+          {t("addPatientButton")}
         </Button>
       ) : null}
     </div>

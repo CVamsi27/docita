@@ -1,4 +1,5 @@
 import { resolveTagColor } from "./tag-colors";
+import { useTranslations } from "next-intl";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components/overlay/tooltip";
 import { COLOR_PALETTE } from "./patient-tag-manager-logic";
 
@@ -16,6 +17,7 @@ export function ColorPickerGrid({
   cols,
   swatchSize = "h-6 w-6",
 }: ColorPickerGridProps) {
+  const t = useTranslations("Patients.tagColorPicker");
   return (
     <div
       className="grid gap-1"
@@ -26,7 +28,7 @@ export function ColorPickerGrid({
           <TooltipTrigger asChild>
             <button
               type="button"
-              aria-label={`Use ${color.name}`}
+              aria-label={t("useColorAria", { name: color.name })}
               className={`${swatchSize} rounded-md transition-colors duration-150 ${
                 selectedColor === color.value
                   ? "ring-2 ring-primary ring-offset-2"

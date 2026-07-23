@@ -2,6 +2,7 @@
 import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { Button, Card, CardContent, CardHeader, CardTitle, Label } from "@workspace/ui/components";
 import { Settings2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface FlatDefinition {
 // jscpd:ignore-end
@@ -31,25 +32,26 @@ export function MetricsRecordCard({
   onValueInputChange,
   onRecordValue,
 }: MetricsRecordCardProps) {
+  const t = useTranslations("Patients.metrics");
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <Settings2 className="h-5 w-5 text-primary" />
-          {categoryKey === "vitals" ? "Record Vitals Value" : "Record Metric Value"}
+          {categoryKey === "vitals" ? t("recordVitals") : t("recordMetric")}
         </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-3 md:grid-cols-[1.4fr_1fr_auto] items-end">
         <div className="space-y-2">
-          <Label>Metric</Label>
+          <Label>{t("metricLabel")}</Label>
           <Select value={valueDefinitionId} onValueChange={onValueDefinitionIdChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Metric" />
+              <SelectValue placeholder={t("metricPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {flatDefinitions.length === 0 ? (
                 <SelectItem value="__empty" disabled>
-                  No metrics available yet
+                  {t("noMetricsAvailable")}
                 </SelectItem>
               ) : (
                 flatDefinitions.map((definition) => (
@@ -62,15 +64,15 @@ export function MetricsRecordCard({
           </Select>
         </div>
         <div className="space-y-2">
-          <Label>Value</Label>
+          <Label>{t("valueLabel")}</Label>
           <Input
-            placeholder="Value"
+            placeholder={t("valuePlaceholder")}
             value={valueInput}
             onChange={(event) => onValueInputChange(event.target.value)}
           />
         </div>
         <Button type="button" onClick={onRecordValue} disabled={isPending}>
-          Save
+          {t("save")}
         </Button>
       </CardContent>
     </Card>

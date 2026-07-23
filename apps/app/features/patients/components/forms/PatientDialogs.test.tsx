@@ -1,8 +1,79 @@
 import { act, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DPDP_NOTICE_VERSION } from "@workspace/types";
+import { NextIntlClientProvider } from "next-intl";
 import { AddPatientDialog, EditPatientDialog } from "./PatientDialogs";
 import { useAddPatientDialog } from "./dialogs/use-add-patient-dialog";
+
+const messages = {
+  Patients: {
+    addPatientDialog: {
+      title: "Add New Patient",
+      description: "Enter the patient's details to create their record",
+    },
+    editPatientDialog: {
+      title: "Edit Patient",
+      description: "Update the patient's information",
+      verifyLabel: "Verify via OTP",
+      saveSuccess: "Patient updated successfully",
+      saveError: "We could not save this patient. Please try again.",
+      validationError: "Please check the highlighted fields and try again.",
+      abhaVerifiedBadge: "ABHA verified",
+      abhaIdleHint: "Verify the ABHA address after saving or editing the value.",
+    },
+    abhaField: {
+      label: "ABHA Address",
+      labelAria: "ABHA Address (coming soon)",
+      verifyLabel: "Verify",
+      verifyAria: "{label} (coming soon)",
+      verifiedBadge: "Verified",
+      notConfiguredBadge: "Not configured",
+      failedBadge: "Failed",
+      unverifiedBadge: "Unverified",
+      pendingTitle: "ABHA verification pending",
+      verifiedDescription: "ABHA verification completed for this patient.",
+    },
+    abhaOtpDialog: {
+      title: "Verify ABHA via OTP",
+      mobileDescription: "Enter the patient's mobile number to receive an OTP for ABHA verification.",
+      otpDescription: "Enter the OTP sent to the registered mobile.",
+      mobileLabel: "Mobile number",
+      mobilePlaceholder: "Enter 10-digit mobile number",
+      otpLabel: "OTP",
+      otpPlaceholder: "Enter the OTP",
+      cancelButton: "Cancel",
+      sendOtpButton: "Send OTP",
+      backButton: "Back",
+      verifyButton: "Verify",
+    },
+    patientForm: {
+      firstNameLabel: "First Name",
+      firstNamePlaceholder: "First name",
+      lastNameLabel: "Last Name",
+      lastNamePlaceholder: "Last name",
+      phoneLabel: "Phone",
+      phonePlaceholder: "Phone number",
+      emailLabel: "Email",
+      emailPlaceholder: "Email",
+      genderLabel: "Gender",
+      genderPlaceholder: "Gender",
+      dateOfBirthLabel: "Date of Birth",
+      dateOfBirthPlaceholder: "Date of birth",
+      addPatientButton: "Add Patient",
+      closeButton: "Close",
+      cancelButton: "Cancel",
+      dpdpCheckbox: "I confirm DPDP Act, 2023 consent has been obtained from the patient (or their authorised representative).",
+    },
+  },
+};
+
+function renderWithIntl(ui: React.ReactElement) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      {ui}
+    </NextIntlClientProvider>,
+  );
+}
 
 const createPatientMock = vi.fn();
 const updatePatientMock = vi.fn();
@@ -66,13 +137,13 @@ describe("AddPatientDialog", () => {
   });
 
   it("does not render when closed", () => {
-    render(<AddPatientDialog open={false} />);
+    renderWithIntl(<AddPatientDialog open={false} />);
 
     expect(screen.queryByText("Add New Patient")).not.toBeInTheDocument();
   });
 
   it("renders form fields when open", () => {
-    render(<AddPatientDialog open />);
+    renderWithIntl(<AddPatientDialog open />);
 
     expect(screen.getByText("Add New Patient")).toBeInTheDocument();
     expect(screen.getByLabelText("First Name *")).toBeInTheDocument();
@@ -91,7 +162,7 @@ describe("AddPatientDialog", () => {
   });
 
   it("updates first name input value", () => {
-    render(<AddPatientDialog open />);
+    renderWithIntl(<AddPatientDialog open />);
 
     const firstNameInput = screen.getByLabelText("First Name *");
     fireEvent.change(firstNameInput, { target: { value: "Asha" } });
@@ -102,7 +173,7 @@ describe("AddPatientDialog", () => {
   it("closes dialog when clicking cancel", () => {
     const onOpenChange = vi.fn();
 
-    render(<AddPatientDialog open onOpenChange={onOpenChange} />);
+    renderWithIntl(<AddPatientDialog open onOpenChange={onOpenChange} />);
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
     expect(onOpenChange).toHaveBeenCalledWith(false);
@@ -147,7 +218,7 @@ describe("EditPatientDialog", () => {
   });
 
   it("shows the ABHA verify action as disabled while the feature is coming soon", () => {
-    render(
+    renderWithIntl(
       <EditPatientDialog
         open
         patient={{

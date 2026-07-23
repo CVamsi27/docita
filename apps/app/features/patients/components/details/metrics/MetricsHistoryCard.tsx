@@ -1,6 +1,7 @@
 import { Badge, Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components";
 import type { MetricRecordResponse } from "@workspace/types";
 import { History } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { formatDateTime } from "@/lib/formatters";
 import { extractValue } from "@/features/patients/components/details/patient-metrics-value-formatter";
 
@@ -17,6 +18,7 @@ export function MetricsHistoryCard({
   filteredTimeline,
   emptyHistoryMessage,
 }: MetricsHistoryCardProps) {
+  const t = useTranslations("Patients.metrics");
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -27,7 +29,7 @@ export function MetricsHistoryCard({
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading history</p>
+          <p className="text-sm text-muted-foreground">{t("loadingHistory")}</p>
         ) : filteredTimeline.length === 0 ? (
           <p className="text-sm text-muted-foreground">{emptyHistoryMessage}</p>
         ) : (
@@ -42,7 +44,7 @@ export function MetricsHistoryCard({
                     {record.definition.label}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {record.definition.category.name ?? "General"} •{" "}
+                    {record.definition.category.name ?? t("generalCategory")} •{" "}
                     {formatDateTime(record.recordedAt)}
                   </div>
                 </div>

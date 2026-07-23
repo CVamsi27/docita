@@ -1,16 +1,15 @@
 // check-as-cast-density: allow-file — React Hook Form generic field names require as Path<T>
 "use client";
 
-// jscpd:ignore-start
 import type { ComponentProps } from "react";
 import type { Control, FieldValues, Path } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { DatePicker } from "@workspace/ui/components";
 import { GENDER_OPTIONS } from "./add-patient-dialog-constants";
 
 interface SharedPatientInfoFieldsProps<T extends FieldValues> {
   control: Control<T>;
-  // jscpd:ignore-end
   dateOfBirthRequired?: boolean;
   genderRequired?: boolean;
 }
@@ -23,13 +22,6 @@ interface PatientTextFieldConfig {
   inputProps?: Pick<ComponentProps<"input">, "type" | "inputMode">;
 }
 
-/**
- * One labelled text `FormField` bound to `Input`. `SharedPatientNameFields`
- * and `SharedPatientContactFields` below are both lists of these — same
- * label/control/message shell, differing only in field name, copy, and a
- * couple of native input attributes — so each renders its config list through
- * this single component instead of repeating the `FormField` markup per field.
- */
 function PatientTextField<T extends FieldValues>({
   control,
   config,
@@ -64,58 +56,62 @@ function PatientTextField<T extends FieldValues>({
   );
 }
 
-const PATIENT_NAME_FIELDS: PatientTextFieldConfig[] = [
-  {
-    name: "firstName",
-    label: "First Name",
-    placeholder: "First name",
-    required: true,
-  },
-  {
-    name: "lastName",
-    label: "Last Name",
-    placeholder: "Last name",
-    required: true,
-  },
-];
-
-const PATIENT_CONTACT_FIELDS: PatientTextFieldConfig[] = [
-  {
-    name: "phoneNumber",
-    label: "Phone",
-    placeholder: "Phone number",
-    inputProps: { inputMode: "tel" },
-  },
-  {
-    name: "email",
-    label: "Email",
-    placeholder: "Email",
-    inputProps: { type: "email" },
-  },
-];
-
-export function SharedPatientNameFields<T extends FieldValues>({
+function PatientTextFieldList<T extends FieldValues>({
   control,
-}: SharedPatientInfoFieldsProps<T>) {
+  configs,
+}: {
+  control: Control<T>;
+  configs: PatientTextFieldConfig[];
+}) {
   return (
     <>
-      {PATIENT_NAME_FIELDS.map((config) => (
+      {configs.map((config) => (
         <PatientTextField key={config.name} control={control} config={config} />
       ))}
     </>
   );
 }
 
+export function SharedPatientNameFields<T extends FieldValues>({
+  control,
+}: SharedPatientInfoFieldsProps<T>) {
+  const t = useTranslations("Patients.patientForm");
+  const configs: PatientTextFieldConfig[] = [
+    {
+      name: "firstName",
+      label: t("firstNameLabel"),
+      placeholder: t("firstNamePlaceholder"),
+      required: true,
+    },
+    {
+      name: "lastName",
+      label: t("lastNameLabel"),
+      placeholder: t("lastNamePlaceholder"),
+      required: true,
+    },
+  ];
+  return <PatientTextFieldList control={control} configs={configs} />;
+}
+
 export function SharedPatientContactFields<T extends FieldValues>({
   control,
 }: SharedPatientInfoFieldsProps<T>) {
-  return (
-    <>
-      {PATIENT_CONTACT_FIELDS.map((config) => (
-        <PatientTextField key={config.name} control={control} config={config} />
-      ))}
-    </>
-  );
+  const t = useTranslations("Patients.patientForm");
+  const configs: PatientTextFieldConfig[] = [
+    {
+      name: "phoneNumber",
+      label: t("phoneLabel"),
+      placeholder: t("phonePlaceholder"),
+      inputProps: { inputMode: "tel" },
+    },
+    {
+      name: "email",
+      label: t("emailLabel"),
+      placeholder: t("emailPlaceholder"),
+      inputProps: { type: "email" },
+    },
+  ];
+  return <PatientTextFieldList control={control} configs={configs} />;
 }
 
 export function SharedPatientIdentityFields<T extends FieldValues>({
@@ -123,6 +119,7 @@ export function SharedPatientIdentityFields<T extends FieldValues>({
   genderRequired,
   dateOfBirthRequired,
 }: SharedPatientInfoFieldsProps<T>) {
+  const t = useTranslations("Patients.patientForm");
   return (
     <>
       <FormField
@@ -131,7 +128,7 @@ export function SharedPatientIdentityFields<T extends FieldValues>({
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Gender{" "}
+              {t("genderLabel")}{" "}
               {genderRequired ? (
                 <span className="text-destructive ml-0.5">*</span>
               ) : null}
@@ -145,7 +142,7 @@ export function SharedPatientIdentityFields<T extends FieldValues>({
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Gender" />
+                  <SelectValue placeholder={t("genderPlaceholder")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -166,7 +163,7 @@ export function SharedPatientIdentityFields<T extends FieldValues>({
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Date of Birth{" "}
+              {t("dateOfBirthLabel")}{" "}
               {dateOfBirthRequired ? (
                 <span className="text-destructive ml-0.5">*</span>
               ) : null}
@@ -177,7 +174,7 @@ export function SharedPatientIdentityFields<T extends FieldValues>({
                 onChange={(date) =>
                   field.onChange(date?.toISOString().slice(0, 10) ?? "")
                 }
-                placeholder="Date of birth"
+                placeholder={t("dateOfBirthPlaceholder")}
                 maxDate={new Date()}
               />
             </FormControl>

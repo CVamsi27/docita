@@ -1,6 +1,7 @@
 import { AppPageScaffold, Button, DataState } from "@workspace/ui/components";
 import { DebouncedSearchInput } from "@workspace/ui/components/form/debounced-search-input";
 import { Users } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { PatientsPageHeader } from "./patients-page-header";
 import { PatientsTable } from "./patients-table";
 import type { PatientsPageUIProps } from "./patients-page-types";
@@ -30,6 +31,7 @@ export function PatientsPageUI({
   onNextPage,
   onOpenConsultationQueue,
 }: PatientsPageUIProps) {
+  const t = useTranslations("Patients.list");
   const header = (
     <PatientsPageHeader
       onAddPatient={onAddPatient}
@@ -60,9 +62,9 @@ export function PatientsPageUI({
           status="empty"
           className="min-h-[40vh]"
           emptyIcon={Users}
-          emptyTitle="No patients yet"
-          emptyDescription="Add your first patient to start tracking their history, appointments, and prescriptions."
-          emptyAction={{ label: "Add patient", onClick: onAddPatient }}
+          emptyTitle={t("emptyTitle")}
+          emptyDescription={t("emptyDescription")}
+          emptyAction={{ label: t("emptyAction"), onClick: onAddPatient }}
         />
       </AppPageScaffold>
     );
@@ -74,7 +76,7 @@ export function PatientsPageUI({
         <div className="flex items-center gap-4">
           <div className="max-w-sm flex-1">
             <DebouncedSearchInput
-              placeholder="Enter name or phone"
+              placeholder={t("searchPlaceholder")}
               className="bg-background"
               value={searchQuery}
               onChange={onSearchChange}
@@ -82,7 +84,7 @@ export function PatientsPageUI({
           </div>
           {searchQuery ? (
             <Button variant="ghost" size="sm" onClick={onClearSearch}>
-              Clear
+              {t("clearSearch")}
             </Button>
           ) : null}
         </div>

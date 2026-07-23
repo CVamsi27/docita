@@ -605,7 +605,9 @@
       "treatmentPlaceholder": "सलाह, प्रक्रियाएँ और उपचार…",
       "followUpTitle": "फॉलो-अप योजना",
       "followUpHint": "कब लौटना है और क्या देखना है।",
-      "followUpPlaceholder": "कब लौटना है और क्या देखना है…"
+      "followUpPlaceholder": "कब लौटना है और क्या देखना है…",
+      "allergySevereTitle": "गंभीर एलर्जी",
+      "allergyAllergiesTitle": "एलर्जी"
     }
   },
   "Settings": {
@@ -953,6 +955,24 @@
       "copyButton": "कॉपी करें",
       "shareCodeHint": "कर्मचारी {facilityLabel} चयन पृष्ठ से शामिल हो सकें इसलिए यह कोड साझा करें।",
       "inviteButton": "सदस्य आमंत्रित करें"
+    },
+    "page": {
+      "backToToday": "आज पर वापस",
+      "workspaceEyebrow": "कार्यस्थल",
+      "pageTitle": "सेटिंग्स",
+      "pageSubtitle": "अपने क्लिनिक, टीम और मरीज़ टचपॉइंट्स को ट्यून करें — एक शांत, सुसंगत नियंत्रण कक्ष।"
+    },
+    "manageMember": {
+      "unknownMember": "अज्ञात सदस्य",
+      "nameLabel": "नाम",
+      "namePlaceholder": "पूरा नाम",
+      "roleLabel": "भूमिका",
+      "roleAdmin": "व्यवस्थापक",
+      "roleAdminDoctor": "व्यवस्थापक डॉक्टर",
+      "createdLabel": "बनाया गया",
+      "closeButton": "बंद करें",
+      "saveButton": "परिवर्तन सहेजें",
+      "removeButton": "हटाएँ"
     }
   },
   "Subscription": {
@@ -1252,6 +1272,21 @@
     }
   },
   "Analytics": {
+    "page": {
+      "loadingMessage": "विश्लेषण लोड हो रहा है…",
+      "errorMessage": "हम विश्लेषण लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+      "title": "विश्लेषण",
+      "description": "आपकी सुविधा के लिए अंतर्दृष्टि और प्रदर्शन मेट्रिक्स।",
+      "chartLoadingAria": "चार्ट लोड हो रहा है",
+      "totalPatients": "कुल मरीज़",
+      "newPatients": "नए मरीज़",
+      "appointments": "अपॉइंटमेंट",
+      "revenue": "राजस्व",
+      "thisMonth": "इस माह",
+      "tabDiseaseTrends": "रोग रुझान",
+      "tabCptRevenue": "CPT राजस्व",
+      "tabCompliance": "अनुपालन"
+    },
     "advancedMetrics": {
       "revenueTrendsTitle": "राजस्व रुझान",
       "revenueTrendsDescription": "दैनिक/साप्ताहिक बिल संग्रहण रुझान",
@@ -1506,6 +1541,137 @@
       "sendOtpButton": "OTP भेजें",
       "backButton": "वापस",
       "verifyButton": "सत्यापित करें"
+    },
+    "tagColorPicker": {
+      "useColorAria": "{name} का उपयोग करें"
+    },
+    "tagManager": {
+      "manageTags": "टैग प्रबंधित करें",
+      "title": "मरीज़ टैग",
+      "description": "मरीज़ स्थितियों को वर्गीकृत करने और शीघ्रता से पहचानने के लिए टैग जोड़ें",
+      "currentTab": "वर्तमान ({count})",
+      "presetsTab": "त्वरित जोड़ें",
+      "customTab": "कस्टम",
+      "noPresetsMatch": "\"{query}\" से मेल खाता कोई प्रीसेट नहीं",
+      "tagNameLabel": "टैग का नाम",
+      "tagNamePlaceholder": "टैग का नाम",
+      "tagColorLabel": "टैग रंग",
+      "chooseColorAria": "रंग चुनें (वर्तमान में {name})",
+      "previewLabel": "पूर्वावलोकन",
+      "addTagButton": "टैग जोड़ें",
+      "tagAlreadyExists": "यह टैग पहले से मौजूद है",
+      "doneButton": "पूर्ण",
+      "noTagsYet": "अभी तक कोई टैग नहीं जोड़ा गया, प्रीसेट से जोड़ें या कस्टम बनाएँ",
+      "saveTagAria": "टैग सहेजें",
+      "cancelEditAria": "संपादन रद्द करें",
+      "editTagAria": "टैग {name} संपादित करें",
+      "deleteTagAria": "टैग {name} हटाएँ",
+      "searchPlaceholder": "टैग दर्ज करें",
+      "searchAria": "टैग खोजें",
+      "clearSearchAria": "खोज साफ़ करें"
+    },
+    "changePassword": {
+      "title": "पासवर्ड बदलें",
+      "description": "अपने खाते का पासवर्ड अपडेट करें।",
+      "currentPasswordLabel": "वर्तमान पासवर्ड",
+      "currentPasswordPlaceholder": "वर्तमान पासवर्ड दर्ज करें",
+      "newPasswordLabel": "नया पासवर्ड",
+      "newPasswordPlaceholder": "नया पासवर्ड दर्ज करें",
+      "confirmPasswordLabel": "नए पासवर्ड की पुष्टि करें",
+      "confirmPasswordPlaceholder": "पासवर्ड की पुष्टि करें",
+      "submitButton": "पासवर्ड अपडेट करें",
+      "submittingButton": "अपडेट हो रहा है…",
+      "successToast": "पासवर्ड सफलतापूर्वक अपडेट किया गया",
+      "errorFallback": "हम आपका पासवर्ड अपडेट नहीं कर सके। कृपया पुनः प्रयास करें।"
+    },
+    "dangerZone": {
+      "signOutTitle": "साइन आउट",
+      "signOutDescription": "इस डिवाइस पर अपने Docita खाते से साइन आउट करें।",
+      "signOutButton": "साइन आउट",
+      "signOutConfirmTitle": "साइन आउट",
+      "signOutConfirmDescription": "क्या आप वाकई अपने खाते से साइन आउट करना चाहते हैं?",
+      "signOutConfirmAction": "साइन आउट",
+      "cancelAction": "रद्द करें",
+      "deleteTitle": "खाता हटाएँ",
+      "deleteDescription": "अपने स्टाफ खाते की स्थायी समाप्ति और उससे जुड़े व्यक्तिगत डेटा को हटाने का अनुरोध करें, कानूनी और नैदानिक प्रतिधारण आवश्यकताओं के अधीन।",
+      "warningTitle": "चेतावनी",
+      "warningBody": "यह आपके लॉगिन एक्सेस के लिए एक अपरिवर्तनीय प्रक्रिया शुरू करता है। कुछ नैदानिक रिकॉर्ड कानून द्वारा आवश्यक होने पर रखे जा सकते हैं।",
+      "reasonLabel": "हटाने का कारण (आवश्यक)",
+      "reasonPlaceholder": "हटाने का कारण दर्ज करें",
+      "confirmCheckbox": "मैं समझता/समझती हूँ कि यह मेरी पहुँच हटा देगा और अनुमत होने पर मेरे व्यक्तिगत डेटा के हटाने का अनुरोध करेगा।",
+      "deleteButton": "मेरा खाता हटाएँ",
+      "deletingButton": "सबमिट हो रहा है…",
+      "reasonMissing": "जारी रखने से पहले बताएँ कि आप अपना खाता क्यों हटाना चाहते हैं",
+      "confirmMissing": "सबमिट करने से पहले पुष्टि करें कि आप अपना खाता हटाना चाहते हैं",
+      "successToast": "खाता हटाने का अनुरोध किया गया। आपके खाते पर 30 दिनों के भीतर कार्रवाई की जाएगी।",
+      "errorFallback": "हम यह हटाने का अनुरोध सबमिट नहीं कर सके। कृपया पुनः प्रयास करें।"
+    },
+    "allergyBadge": {
+      "editAria": "एलर्जी {name} संपादित करें",
+      "removeAria": "एलर्जी {name} हटाएँ"
+    },
+    "allergyBanner": {
+      "titleWithName": "एलर्जी सूचना — {name}",
+      "severeTitle": "गंभीर एलर्जी",
+      "allergiesTitle": "एलर्जी"
+    },
+    "patientForm": {
+      "firstNameLabel": "पहला नाम",
+      "firstNamePlaceholder": "पहला नाम",
+      "lastNameLabel": "अंतिम नाम",
+      "lastNamePlaceholder": "अंतिम नाम",
+      "phoneLabel": "फ़ोन",
+      "phonePlaceholder": "फ़ोन नंबर",
+      "emailLabel": "ईमेल",
+      "emailPlaceholder": "ईमेल",
+      "genderLabel": "लिंग",
+      "genderPlaceholder": "लिंग",
+      "dateOfBirthLabel": "जन्म तिथि",
+      "dateOfBirthPlaceholder": "जन्म तिथि",
+      "addPatientButton": "रोगी जोड़ें",
+      "closeButton": "बंद करें",
+      "cancelButton": "रद्द करें",
+      "dpdpCheckbox": "मैं पुष्टि करता/करती हूँ कि DPDP अधिनियम, 2023 के तहत रोगी (या उनके अधिकृत प्रतिनिधि) से सहमति प्राप्त कर ली गई है।"
+    },
+    "list": {
+      "searchPlaceholder": "नाम या फ़ोन दर्ज करें",
+      "clearSearch": "साफ़ करें",
+      "emptyTitle": "अभी तक कोई मरीज़ नहीं",
+      "emptyDescription": "अपना पहला मरीज़ जोड़कर उनका इतिहास, अपॉइंटमेंट और प्रिस्क्रिप्शन ट्रैक करना शुरू करें।",
+      "emptyAction": "मरीज़ जोड़ें",
+      "pageTitle": "मरीज़",
+      "pageDescription": "अपने मरीज़ रिकॉर्ड और इतिहास प्रबंधित करें।",
+      "consultationQueueFull": "परामर्श कतार",
+      "consultationQueueShort": "कतार",
+      "addPatient": "मरीज़ जोड़ें",
+      "tableColumnName": "नाम",
+      "tableColumnContact": "संपर्क",
+      "tableColumnGender": "लिंग",
+      "tableColumnActions": "क्रियाएँ",
+      "scheduleAria": "अपॉइंटमेंट शेड्यूल करें",
+      "scheduleLabel": "शेड्यूल",
+      "editAria": "मरीज़ संपादित करें",
+      "editLabel": "संपादित करें",
+      "tableEmptyTitle": "कोई मरीज़ नहीं मिला",
+      "tableEmptyDescription": "\"{query}\" से मेल खाता कोई मरीज़ नहीं मिला",
+      "tableEmptyDescriptionFallback": "कोई मरीज़ नहीं मिला"
+    },
+    "metrics": {
+      "categoriesTitle": "श्रेणियाँ और ट्रैक किए गए मेट्रिक्स",
+      "loadingMetrics": "मेट्रिक्स लोड हो रहे हैं",
+      "unnamedCategory": "अनाम श्रेणी",
+      "track": "ट्रैक करें",
+      "metricFallback": "मेट्रिक",
+      "loadingHistory": "इतिहास लोड हो रहा है",
+      "generalCategory": "सामान्य",
+      "recordVitals": "वाइटल्स मान रिकॉर्ड करें",
+      "recordMetric": "मेट्रिक मान रिकॉर्ड करें",
+      "metricLabel": "मेट्रिक",
+      "valueLabel": "मान",
+      "metricPlaceholder": "मेट्रिक",
+      "valuePlaceholder": "मान",
+      "noMetricsAvailable": "अभी तक कोई मेट्रिक उपलब्ध नहीं",
+      "save": "सहेजें"
     }
   },
   "Inventory": {

@@ -205,7 +205,11 @@ export function PlanSection({
       completed={isComplete}
     >
       {allergyEntries.length > 0 ? (
-        <AllergyBanner allergies={allergyEntries} />
+        <AllergyBanner
+          allergies={allergyEntries}
+          severeTitle={t("allergySevereTitle")}
+          allergiesTitle={t("allergyAllergiesTitle")}
+        />
       ) : null}
       <SectionField
         title={t("medicationsTitle")}

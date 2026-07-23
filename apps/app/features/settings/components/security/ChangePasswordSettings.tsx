@@ -4,12 +4,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { changePasswordFormSchema, type ChangePasswordFormValues } from "@workspace/types";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Form, FormControl, FormField, FormFieldGroup, Input } from "@workspace/ui/components";
 import { settingsApi } from "@/features/settings/api/settings.api";
 import { PasswordStrengthIndicator } from "@/features/auth";
 
 export function ChangePasswordSettings() {
+  const t = useTranslations("Patients.changePassword");
   const form = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(changePasswordFormSchema),
     defaultValues: {
@@ -27,22 +29,18 @@ export function ChangePasswordSettings() {
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
       });
-      toast.success("Password updated successfully");
+      toast.success(t("successToast"));
       form.reset();
     } catch (error) {
-      showUserFacingErrorToast(
-        error,
-        "We could not update your password. Please try again.",
-        "save",
-      );
+      showUserFacingErrorToast(error, t("errorFallback"), "save");
     }
   };
 
   return (
     <Card>
       <CardHeader className="border-b border-border/60 pb-5">
-        <CardTitle>Change password</CardTitle>
-        <CardDescription>Update the password on your account.</CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent className="pt-5">
         <Form {...form}>
@@ -56,7 +54,7 @@ export function ChangePasswordSettings() {
               name="currentPassword"
               render={({ field }) => (
                 <FormFieldGroup
-                  label="Current password"
+                  label={t("currentPasswordLabel")}
                   htmlFor="current-password"
                   required
                   error={form.formState.errors.currentPassword?.message}
@@ -66,7 +64,7 @@ export function ChangePasswordSettings() {
                       id="current-password"
                       type="password"
                       autoComplete="current-password"
-                      placeholder="Enter current password"
+                      placeholder={t("currentPasswordPlaceholder")}
                       {...field}
                     />
                   </FormControl>
@@ -79,7 +77,7 @@ export function ChangePasswordSettings() {
               name="newPassword"
               render={({ field }) => (
                 <FormFieldGroup
-                  label="New password"
+                  label={t("newPasswordLabel")}
                   htmlFor="new-password"
                   required
                   error={form.formState.errors.newPassword?.message}
@@ -89,7 +87,7 @@ export function ChangePasswordSettings() {
                       id="new-password"
                       type="password"
                       autoComplete="new-password"
-                      placeholder="Enter new password"
+                      placeholder={t("newPasswordPlaceholder")}
                       {...field}
                     />
                   </FormControl>
@@ -103,7 +101,7 @@ export function ChangePasswordSettings() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormFieldGroup
-                  label="Confirm new password"
+                  label={t("confirmPasswordLabel")}
                   htmlFor="confirm-password"
                   required
                   error={form.formState.errors.confirmPassword?.message}
@@ -113,7 +111,7 @@ export function ChangePasswordSettings() {
                       id="confirm-password"
                       type="password"
                       autoComplete="new-password"
-                      placeholder="Confirm password"
+                      placeholder={t("confirmPasswordPlaceholder")}
                       {...field}
                     />
                   </FormControl>
@@ -123,7 +121,7 @@ export function ChangePasswordSettings() {
 
             <div className="flex justify-end border-t border-border/60 pt-4">
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? "Updating…" : "Update password"}
+                {form.formState.isSubmitting ? t("submittingButton") : t("submitButton")}
               </Button>
             </div>
           </form>

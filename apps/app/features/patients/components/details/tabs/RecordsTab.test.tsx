@@ -3,6 +3,15 @@ import { fireEvent, screen } from "@testing-library/react";
 import { render } from "@/test-utils/render-with-tooltip";
 import { RecordsTab } from "./RecordsTab";
 
+const messages = {
+  Patients: {
+    recordsTab: {
+      editButton: "Edit records",
+      doneButton: "Done",
+    },
+  },
+};
+
 // Mock the underlying container so we only assert on the gate logic.
 vi.mock(
   "@/features/patients/components/details/PatientMedicalHistoryContainer",
@@ -31,7 +40,7 @@ describe("RecordsTab growth-edit gate", () => {
   });
 
   it("starts read-only with growth editing disabled", () => {
-    render(<RecordsTab patient={PATIENT} canEditPatient={true} />);
+    render(<RecordsTab patient={PATIENT} canEditPatient={true} />, { messages });
 
     const container = screen.getByTestId("history-container");
     expect(container).toHaveAttribute("data-readonly", "true");
@@ -39,7 +48,7 @@ describe("RecordsTab growth-edit gate", () => {
   });
 
   it("unlocks every field including growth when the user clicks Edit", () => {
-    render(<RecordsTab patient={PATIENT} canEditPatient={true} />);
+    render(<RecordsTab patient={PATIENT} canEditPatient={true} />, { messages });
 
     fireEvent.click(screen.getByRole("button", { name: /edit records/i }));
 
@@ -51,7 +60,7 @@ describe("RecordsTab growth-edit gate", () => {
   });
 
   it("re-locks every field including growth when the user clicks Done", () => {
-    render(<RecordsTab patient={PATIENT} canEditPatient={true} />);
+    render(<RecordsTab patient={PATIENT} canEditPatient={true} />, { messages });
 
     fireEvent.click(screen.getByRole("button", { name: /edit records/i }));
     fireEvent.click(screen.getByRole("button", { name: /done/i }));
@@ -62,7 +71,7 @@ describe("RecordsTab growth-edit gate", () => {
   });
 
   it("hides the Edit records button when the actor lacks edit permission", () => {
-    render(<RecordsTab patient={PATIENT} canEditPatient={false} />);
+    render(<RecordsTab patient={PATIENT} canEditPatient={false} />, { messages });
 
     expect(
       screen.queryByRole("button", { name: /edit records/i }),
