@@ -113,9 +113,29 @@ const messages = {
   // BillingDashboard bundle here so the dashboard renders real text
   // instead of ICU fallbacks when the test mounts.
   BillingDashboard: {
+    metrics: {
+      mrrTitle: "Monthly Recurring Revenue",
+      mrrHelper: "from active subscriptions",
+      arrTitle: "Annual Recurring Revenue",
+      arrHelper: "Projected annual revenue",
+      activeTitle: "Active Subscriptions",
+      trialInTrial: "{count} in trial",
+      churnTitle: "Churn rate",
+      churnAbove: "Above target",
+      churnOn: "On target",
+    },
     riskSummary: {
+      reminderTitle: "Internal billing reminder",
+      reminderBody:
+        "Keep requested hospital offers in WhatsApp, and do not charge a paid Indian plan until GSTIN is captured.",
+      reminderBadge: "WhatsApp-first + GST invoice required",
+      expiringTitle: "Expiring soon",
+      expiringDescription: "{count} subscriptions expiring in the next 7 days",
       graceTitle: "In Grace Period",
       graceDescription: "{count} subscriptions in grace period",
+      secondaryExpires: "Expires",
+      secondaryDaysRemaining: "{days} days remaining",
+      actionRemind: "Remind",
       actionExtend: "Extend",
     },
     graceDialog: {
@@ -140,7 +160,8 @@ function renderWithDataAccess(ui: ReactElement) {
     endpoint: string,
     options?: RequestConfig,
   ): Promise<T> => {
-    if (endpoint === "/internal/billing/metrics") return billingApiMocks.getMetrics() as Promise<T>;
+    if (endpoint === "/internal/billing/metrics")
+      return billingApiMocks.getMetrics() as Promise<T>;
     if (endpoint === "/internal/billing/subscriptions") {
       return billingApiMocks.getSubscriptions(
         options?.params ?? {},

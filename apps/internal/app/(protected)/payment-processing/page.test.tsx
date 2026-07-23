@@ -133,7 +133,8 @@ const messages = {
       tierDescription: "Select the new tier for this facility",
       amountLabel: "Amount ({currency})",
       amountPlaceholder: "Amount",
-      amountDescription: "Amount will be auto-calculated based on selected tier",
+      amountDescription:
+        "Amount will be auto-calculated based on selected tier",
       paymentMethodLabel: "Payment Method",
       paymentMethodRazorpay: "Razorpay",
       paymentMethodStripe: "Stripe",
@@ -150,7 +151,8 @@ const messages = {
       categoryIntegration: "Integration",
       categoryCommercialDiscount: "Commercial discount / adjustment",
       categoryOther: "Other service",
-      categoryDescription: "Guided setup is separate from the software subscription. Default amount follows the list price for the clinic's currency; adjust to match your invoice.",
+      categoryDescription:
+        "Guided setup is separate from the software subscription. Default amount follows the list price for the clinic's currency; adjust to match your invoice.",
       amountLabel: "Amount ({currency})",
       amountPlaceholder: "Enter amount",
     },
@@ -166,22 +168,35 @@ const messages = {
       notesPlaceholder: "Scope, invoice reference, or internal note",
     },
     pricingOffers: {
-      noActiveDiscounts: "No active checkout discounts.",
-      colFacilityName: "Facility Name",
-      colCurrentTier: "Current Tier",
-      colMaxDoctors: "Max Doctors",
-      colMaxPatients: "Max Patients",
-      colEmail: "Email",
-      colCurrency: "Currency",
+      noActiveDiscounts: "No active discounts",
+      colFacility: "Facility",
+      colTitle: "Title",
+      colPercentOff: "% off",
+      colValidUntil: "Valid until",
       colActions: "Actions",
-      managePlanButton: "Manage plan payment",
-      addOnChargeButton: "Add-on charge",
+      removeButton: "Remove",
+      facilityLabel: "Facility",
+      facilityPlaceholder: "Select facility",
+      percentOffLabel: "Percent off",
+      percentOffPlaceholder: "e.g. 15",
+      percentOffDescription:
+        "Whole-number percent (0-95). Applied to the facility's tier price.",
+      titleLabel: "Offer title",
+      titlePlaceholder: "Spring onboarding discount",
+      validUntilLabel: "Valid until",
+      validUntilPlaceholder: "Pick a date",
+      notesLabel: "Notes (optional)",
+      notesPlaceholder: "Internal note for the sales / support team",
+      saveButton: "Save offer",
+      savingLabel: "Saving...",
     },
     clinicsSection: {
       title: "Facilities Payment Management",
-      description: "Select a facility to change plan and record subscription payment, or record an add-on charge (for example guided setup)",
+      description:
+        "Select a facility to change plan and record subscription payment, or record an add-on charge (for example guided setup)",
       emptyTitle: "No facilities found",
-      emptyDescription: "Facilities will appear here once they are provisioned for billing.",
+      emptyDescription:
+        "Facilities will appear here once they are provisioned for billing.",
       colFacilityName: "Facility Name",
       colCurrentTier: "Current Tier",
       colMaxDoctors: "Max Doctors",
@@ -214,7 +229,8 @@ describe("PaymentProcessingPage", () => {
       if (url === "/internal/tier-pricing") {
         return Promise.resolve({ tiers: tierPricing });
       }
-      if (url === "/internal/billing/pricing/offers") return Promise.resolve([]);
+      if (url === "/internal/billing/pricing/offers")
+        return Promise.resolve([]);
       if (url === "/internal/clinics/clinic_1/tier-info") {
         return Promise.resolve({
           currentTier: "ESSENTIAL",
@@ -224,7 +240,8 @@ describe("PaymentProcessingPage", () => {
           pricing: 999,
         });
       }
-      if (url === "/pricing/config?currency=INR") return Promise.resolve(pricingConfig);
+      if (url === "/pricing/config?currency=INR")
+        return Promise.resolve(pricingConfig);
       return Promise.reject(new Error(`Unexpected GET ${url}`));
     });
     clientMocks.post.mockResolvedValue({});
@@ -312,7 +329,8 @@ describe("PaymentProcessingPage", () => {
       if (url === "/internal/tier-pricing") {
         return Promise.resolve({ tiers: tierPricing });
       }
-      if (url === "/internal/billing/pricing/offers") return Promise.resolve([]);
+      if (url === "/internal/billing/pricing/offers")
+        return Promise.resolve([]);
       return Promise.reject(new Error(`Unexpected GET ${url}`));
     });
 
@@ -327,8 +345,10 @@ describe("PaymentProcessingPage", () => {
       if (url === "/internal/tier-pricing") {
         return Promise.resolve({ tiers: tierPricing });
       }
-      if (url === "/internal/billing/pricing/offers") return Promise.resolve([]);
-      if (url === "/internal/clinics/clinic_1/tier-info") return Promise.reject(new Error("Tier info unavailable"));
+      if (url === "/internal/billing/pricing/offers")
+        return Promise.resolve([]);
+      if (url === "/internal/clinics/clinic_1/tier-info")
+        return Promise.reject(new Error("Tier info unavailable"));
       return Promise.reject(new Error(`Unexpected GET ${url}`));
     });
 

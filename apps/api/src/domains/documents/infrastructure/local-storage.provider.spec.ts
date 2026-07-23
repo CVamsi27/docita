@@ -1,15 +1,21 @@
 import { BadRequestException } from '@nestjs/common';
-import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
+import sharp from 'sharp';
 import { LocalStorageProvider } from './local-storage.provider';
 
 describe('LocalStorageProvider', () => {
-  const signaturePng = Buffer.from(
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZxXQAAAAASUVORK5CYII=',
-    'base64',
-  );
+  let signaturePng: Buffer;
+
+  beforeAll(async () => {
+    signaturePng = await sharp({
+      create: { width: 8, height: 8, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 1 } },
+    })
+      .png()
+      .toBuffer();
+  });
 
   let tempRoot: string;
   let provider: LocalStorageProvider;

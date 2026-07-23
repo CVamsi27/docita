@@ -44,6 +44,10 @@ import {
   getInternalTierFilterOptions,
 } from "@/lib/tier-display";
 import {
+  formatBillingStatus,
+  getBillingStatusBadgeClass,
+} from "./billing-status";
+import {
   Activity,
   Building2,
   CalendarPlus,
@@ -268,7 +272,7 @@ function SubscriptionRow({ subscription, sending, onSendReminder, onExtendGraceP
         <Badge className={getInternalTierBadgeClass(subscription.tier)}>{subscription.tier}</Badge>
       </TableCell>
       <TableCell>
-        <Badge className={getBillingStatusBadgeClass(subscription.status)}>{formatBillingStatus(subscription.status)}</Badge>
+        <Badge className={getBillingStatusBadgeClass(subscription.status)}>{formatBillingStatus(subscription.status, t)}</Badge>
       </TableCell>
       <TableCell><span className="text-sm">{subscription.billingCycle}</span></TableCell>
       <TableCell>
@@ -441,24 +445,4 @@ function getPaymentStatusBadgeClass(status: string) {
   if (status === "SUCCESS") return "badge-success";
   if (status === "PENDING") return "badge-warning";
   return "badge-danger";
-}
-
-function getBillingStatusBadgeClass(status: string) {
-  if (status === "ACTIVE") return "badge-success";
-  if (status === "TRIAL") return "badge-info";
-  if (status === "PAST_DUE") return "badge-warning";
-  if (status === "GRACE_PERIOD") return "badge-warning";
-  if (status === "CANCELLED") return "badge-muted";
-  return "badge-danger";
-}
-
-function formatBillingStatus(status: string) {
-  // The formatBillingStatus function is a runtime helper that maps
-  // API status codes to human labels. With Phase 3, the labels live
-  // in the messages file and are resolved by the consumer via
-  // useTranslations. This helper is kept for the SubscriptionRow
-  // badge label, which historically read the API enum directly.
-  // (TODO: refactor to receive the t() instance and resolve
-  // through the InternalBilling.dashboard namespace.)
-  return status;
 }
