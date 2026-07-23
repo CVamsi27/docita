@@ -36,6 +36,21 @@ import InternalDashboard from "./page";
 
 const messages = {
   InternalDashboard: {
+    overview: {
+      pageTitle: "Overview",
+      pageDescription: "Monitor and manage all facilities across the platform.",
+      loadingMessage: "Loading dashboard…",
+      totalFacilities: "Total Facilities",
+      totalDoctors: "Total Doctors",
+      totalPatients: "Total Patients",
+      totalInvoices: "Total Invoices",
+      prescriptions: "Prescriptions",
+      vsLastMonth: "vs last month",
+      thisMonth: "this month",
+      facilitiesCardTitle: "Facilities",
+      facilitiesCardDescription: "All registered facilities on the platform",
+      facilitySearchPlaceholder: "Enter facility name",
+    },
     clinicList: {
       loadingLabel: "Loading facilities…",
       emptyTitle: "No clinics found",

@@ -2,10 +2,12 @@
 
 import { AppPageScaffold, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, Input, PageHeader } from "@workspace/ui/components";
 import { Building2, FileText, Pill, Search, TrendingDown, TrendingUp, User, Users } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { ClinicList, CreateClinicDialog } from "@/features/dashboard/components";
 import { useDashboardData } from "./use-dashboard-data";
 
 export function DashboardPageContainer() {
+  const t = useTranslations("InternalDashboard.overview");
   const {
     token,
     clinics,
@@ -33,7 +35,7 @@ export function DashboardPageContainer() {
           {suffix}
         </span>
         <span className="ml-1">
-          {isPercentage ? "vs last month" : "this month"}
+          {isPercentage ? t("vsLastMonth") : t("thisMonth")}
         </span>
       </p>
     );
@@ -49,8 +51,8 @@ export function DashboardPageContainer() {
     <AppPageScaffold
       header={
         <PageHeader
-          title="Overview"
-          description="Monitor and manage all facilities across the platform."
+          title={t("pageTitle")}
+          description={t("pageDescription")}
           size="compact"
           actions={<CreateClinicDialog onClinicCreated={refetch} />}
         />
@@ -58,7 +60,7 @@ export function DashboardPageContainer() {
     >
       <DataState
         status={dataStatus}
-        loadingMessage="Loading dashboard…"
+        loadingMessage={t("loadingMessage")}
         errorMessage={errorMessage}
         onRetry={() => void refetch()}
       >
@@ -66,7 +68,7 @@ export function DashboardPageContainer() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Total Facilities
+                {t("totalFacilities")}
               </CardTitle>
               <Building2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -79,7 +81,7 @@ export function DashboardPageContainer() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Doctors</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("totalDoctors")}</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -92,7 +94,7 @@ export function DashboardPageContainer() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Total Patients
+                {t("totalPatients")}
               </CardTitle>
               <User className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -106,7 +108,7 @@ export function DashboardPageContainer() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Total Invoices
+                {t("totalInvoices")}
               </CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -119,7 +121,7 @@ export function DashboardPageContainer() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Prescriptions</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("prescriptions")}</CardTitle>
               <Pill className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -135,14 +137,14 @@ export function DashboardPageContainer() {
           <CardHeader>
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <CardTitle>Facilities</CardTitle>
+                <CardTitle>{t("facilitiesCardTitle")}</CardTitle>
                 <CardDescription>
-                  All registered facilities on the platform
+                  {t("facilitiesCardDescription")}
                 </CardDescription>
               </div>
               <div className="relative w-full md:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Enter facility name" className="pl-8" />
+                <Input placeholder={t("facilitySearchPlaceholder")} className="pl-8" />
               </div>
             </div>
           </CardHeader>

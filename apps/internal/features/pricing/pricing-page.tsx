@@ -6,8 +6,10 @@ import { PricingOfferBuilder } from "./pricing-offer-builder";
 import { PricingOfferList } from "./pricing-offer-list";
 
 import { AppPageScaffold, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, PageHeader, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
+import { useTranslations } from "next-intl";
 
 export default function PricingPage() {
+  const t = useTranslations("InternalPricing.page");
   const {
     tiers,
     savingId,
@@ -31,14 +33,14 @@ export default function PricingPage() {
     <AppPageScaffold
       header={
         <PageHeader
-          title="Pricing Management"
-          description="Manage tier pricing centrally and create facility-specific offers for requested hospitals."
+          title={t("pageTitle")}
+          description={t("pageDescription")}
         />
       }
     >
       <DataState
         status={pageStatus}
-        loadingMessage="Loading pricing…"
+        loadingMessage={t("loadingMessage")}
         errorMessage={loadError}
         onRetry={refetchAll}
       >
@@ -50,17 +52,16 @@ export default function PricingPage() {
 
         <Tabs defaultValue="tiers" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="tiers">Tier pricing</TabsTrigger>
-            <TabsTrigger value="offers">Facility offers</TabsTrigger>
+            <TabsTrigger value="tiers">{t("tabTierPricing")}</TabsTrigger>
+            <TabsTrigger value="offers">{t("tabFacilityOffers")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="tiers">
             <Card>
               <CardHeader>
-                <CardTitle>Tier pricing</CardTitle>
+                <CardTitle>{t("tabTierPricing")}</CardTitle>
                 <CardDescription>
-                  All prices are stored in cents/paise. The public pricing API
-                  converts them for display.
+                  {t("tierCardDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent>

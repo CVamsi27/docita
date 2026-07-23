@@ -318,6 +318,25 @@
     }
   },
   "InternalPricing": {
+    "page": {
+      "pageTitle": "मूल्य प्रबंधन",
+      "pageDescription": "स्तर मूल्य निर्धारण को केंद्रीय रूप से प्रबंधित करें और अनुरोधित अस्पतालों के लिए सुविधा-विशिष्ट ऑफ़र बनाएँ।",
+      "loadingMessage": "मूल्य निर्धारण लोड हो रहा है…",
+      "tabTierPricing": "स्तर मूल्य निर्धारण",
+      "tabFacilityOffers": "सुविधा ऑफ़र",
+      "tierCardDescription": "सभी मूल्य पैसे/पैसे में संग्रहीत होते हैं। सार्वजनिक मूल्य API उन्हें प्रदर्शन के लिए परिवर्तित करता है।"
+    },
+    "offerList": {
+      "activeOffersTitle": "सक्रिय ऑफ़र",
+      "activeOffersDescription": "ये ऑफ़र स्वचालित रूप से प्रत्येक क्लिनिक के अगले चेकआउट पूर्वावलोकन पर लागू होते हैं।",
+      "noActiveOffersTitle": "कोई सक्रिय ऑफ़र नहीं",
+      "noActiveOffersDescription": "चेकआउट पूर्वावलोकन पर लागू करने के लिए सुविधा-विशिष्ट ऑफ़र बनाएँ।",
+      "percentOffBadge": "{percent}% छूट",
+      "durationMonths": "{count} महीने का ऑफ़र",
+      "noFixedDuration": "कोई निश्चित अवधि नहीं",
+      "validUntil": "• {date} तक",
+      "removeButton": "हटाएँ"
+    },
     "tierTable": {
       "emptyTitle": "कोई स्तर मूल्य पंक्तियाँ नहीं",
       "emptyDescription": "संपादन से पहले स्तर मूल्य निर्धारण को पॉप्युलेट करने के लिए बिलिंग सीड स्क्रिप्ट चलाएँ।",
@@ -604,6 +623,21 @@
     }
   },
   "InternalDashboard": {
+    "overview": {
+      "pageTitle": "अवलोकन",
+      "pageDescription": "प्लेटफ़ॉर्म पर सभी सुविधाओं की निगरानी और प्रबंधन करें।",
+      "loadingMessage": "डैशबोर्ड लोड हो रहा है…",
+      "totalFacilities": "कुल सुविधाएँ",
+      "totalDoctors": "कुल डॉक्टर",
+      "totalPatients": "कुल मरीज़",
+      "totalInvoices": "कुल चालान",
+      "prescriptions": "नुस्खे",
+      "vsLastMonth": "पिछले माह की तुलना में",
+      "thisMonth": "इस माह",
+      "facilitiesCardTitle": "सुविधाएँ",
+      "facilitiesCardDescription": "प्लेटफ़ॉर्म पर पंजीकृत सभी सुविधाएँ",
+      "facilitySearchPlaceholder": "सुविधा का नाम दर्ज करें"
+    },
     "clinicList": {
       "loadingLabel": "सुविधाएँ लोड हो रही हैं…",
       "emptyTitle": "कोई क्लिनिक नहीं मिला",

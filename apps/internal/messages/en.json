@@ -318,6 +318,25 @@
     }
   },
   "InternalPricing": {
+    "page": {
+      "pageTitle": "Pricing Management",
+      "pageDescription": "Manage tier pricing centrally and create facility-specific offers for requested hospitals.",
+      "loadingMessage": "Loading pricing…",
+      "tabTierPricing": "Tier pricing",
+      "tabFacilityOffers": "Facility offers",
+      "tierCardDescription": "All prices are stored in cents/paise. The public pricing API converts them for display."
+    },
+    "offerList": {
+      "activeOffersTitle": "Active offers",
+      "activeOffersDescription": "These offers are automatically applied to the next checkout preview for each clinic.",
+      "noActiveOffersTitle": "No active offers",
+      "noActiveOffersDescription": "Create a facility-specific offer to apply at checkout preview.",
+      "percentOffBadge": "{percent}% off",
+      "durationMonths": "{count} month offer",
+      "noFixedDuration": "No fixed duration",
+      "validUntil": "• until {date}",
+      "removeButton": "Remove"
+    },
     "tierTable": {
       "emptyTitle": "No tier pricing rows",
       "emptyDescription": "Run the billing seed script to populate tier pricing before editing.",
@@ -604,6 +623,21 @@
     }
   },
   "InternalDashboard": {
+    "overview": {
+      "pageTitle": "Overview",
+      "pageDescription": "Monitor and manage all facilities across the platform.",
+      "loadingMessage": "Loading dashboard…",
+      "totalFacilities": "Total Facilities",
+      "totalDoctors": "Total Doctors",
+      "totalPatients": "Total Patients",
+      "totalInvoices": "Total Invoices",
+      "prescriptions": "Prescriptions",
+      "vsLastMonth": "vs last month",
+      "thisMonth": "this month",
+      "facilitiesCardTitle": "Facilities",
+      "facilitiesCardDescription": "All registered facilities on the platform",
+      "facilitySearchPlaceholder": "Enter facility name"
+    },
     "clinicList": {
       "loadingLabel": "Loading facilities…",
       "emptyTitle": "No clinics found",
