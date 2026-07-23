@@ -37,8 +37,8 @@ describe('ConsentGuard', () => {
   let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let prisma: {
     consent: {
-      findFirst: jest.MockedFunction<
-        (...args: unknown[]) => Promise<{ id: string } | null>
+      findMany: jest.MockedFunction<
+        (...args: unknown[]) => Promise<Array<{ consentType: ConsentType }>>
       >;
     };
     clinic: {
@@ -56,7 +56,7 @@ describe('ConsentGuard', () => {
       ]),
     };
     prisma = {
-      consent: { findFirst: jest.fn() },
+      consent: { findMany: jest.fn() },
       clinic: { findUnique: jest.fn() },
     };
     // Default: clinic has opted in to treatment-consent enforcement.
@@ -76,7 +76,7 @@ describe('ConsentGuard', () => {
     await expect(
       guard.canActivate(createContext({ patientId: 'p1' })),
     ).resolves.toBe(true);
-    expect(prisma.consent.findFirst).not.toHaveBeenCalled();
+    expect(prisma.consent.findMany).not.toHaveBeenCalled();
   });
 
   it('allows request when patientId is missing', async () => {
@@ -85,7 +85,7 @@ describe('ConsentGuard', () => {
     ]);
 
     await expect(guard.canActivate(createContext({}))).resolves.toBe(true);
-    expect(prisma.consent.findFirst).not.toHaveBeenCalled();
+    expect(prisma.consent.findMany).not.toHaveBeenCalled();
   });
 
   it('skips enforcement (opt-in) when the clinic flag is off', async () => {
@@ -99,7 +99,7 @@ describe('ConsentGuard', () => {
     await expect(
       guard.canActivate(createContext({ patientId: 'p1' })),
     ).resolves.toBe(true);
-    expect(prisma.consent.findFirst).not.toHaveBeenCalled();
+    expect(prisma.consent.findMany).not.toHaveBeenCalled();
   });
 
   it('skips enforcement when there is no clinic context', async () => {
@@ -111,7 +111,7 @@ describe('ConsentGuard', () => {
       guard.canActivate(createContext({ patientId: 'p1' }, null)),
     ).resolves.toBe(true);
     expect(prisma.clinic.findUnique).not.toHaveBeenCalled();
-    expect(prisma.consent.findFirst).not.toHaveBeenCalled();
+    expect(prisma.consent.findMany).not.toHaveBeenCalled();
   });
 
   it('allows request when all required consent types are active', async () => {
@@ -119,21 +119,22 @@ describe('ConsentGuard', () => {
       ConsentType.TREATMENT,
       ConsentType.PROCEDURE,
     ]);
-    prisma.consent.findFirst
-      .mockResolvedValueOnce({ id: 'consent-1' })
-      .mockResolvedValueOnce({ id: 'consent-2' });
+    prisma.consent.findMany.mockResolvedValue([
+      { consentType: ConsentType.TREATMENT },
+      { consentType: ConsentType.PROCEDURE },
+    ]);
 
     await expect(
       guard.canActivate(createContext({ patientId: 'p1' })),
     ).resolves.toBe(true);
-    expect(prisma.consent.findFirst).toHaveBeenCalledTimes(2);
+    expect(prisma.consent.findMany).toHaveBeenCalledTimes(1);
   });
 
   it('blocks request when required consent is missing', async () => {
     mockRequiredConsentTypes(reflector.getAllAndOverride, [
       ConsentType.SURGERY,
     ]);
-    prisma.consent.findFirst.mockResolvedValue(null);
+    prisma.consent.findMany.mockResolvedValue([]);
 
     await expect(
       guard.canActivate(createContext({ patientId: 'p1' })),
@@ -144,18 +145,20 @@ describe('ConsentGuard', () => {
     mockRequiredConsentTypes(reflector.getAllAndOverride, [
       ConsentType.TELEHEALTH,
     ]);
-    prisma.consent.findFirst.mockResolvedValue({ id: 'consent-1' });
+    prisma.consent.findMany.mockResolvedValue([
+      { consentType: ConsentType.TELEHEALTH },
+    ]);
 
     await guard.canActivate(createContext({ patientId: 'patient-1' }));
 
-    expect(prisma.consent.findFirst).toHaveBeenCalledWith({
+    expect(prisma.consent.findMany).toHaveBeenCalledWith({
       where: {
         patientId: 'patient-1',
-        consentType: ConsentType.TELEHEALTH,
+        consentType: { in: [ConsentType.TELEHEALTH] },
         status: 'ACTIVE',
         OR: [{ validUntil: null }, { validUntil: { gt: expect.any(Date) } }],
       },
-      select: { id: true },
+      select: { consentType: true },
     });
   });
 });

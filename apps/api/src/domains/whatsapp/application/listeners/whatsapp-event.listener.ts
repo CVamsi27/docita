@@ -135,19 +135,25 @@ export class WhatsappEventListener {
     this.logger.log(
       `Doctor delay marked: ${event.delayMinutes}min for doctor ${event.doctorId}, notifying ${event.affectedAppointmentIds.length} patients`,
     );
-    for (const appointmentId of event.affectedAppointmentIds) {
-      try {
-        await this.whatsappService.sendAppointmentDelayNotification(
+    // Each appointment is independent (separate phone, separate template
+    // send, separate outbound log). Run them in parallel so a slow
+    // WhatsApp API call on one appointment does not block the others;
+    // allSettled keeps a single failure from dropping the rest.
+    const results = await Promise.allSettled(
+      event.affectedAppointmentIds.map((appointmentId) =>
+        this.whatsappService.sendAppointmentDelayNotification(
           appointmentId,
           event.clinicId,
           event.delayMinutes,
-        );
-      } catch (error) {
-        this.logger.error(
-          `Failed to send delay WhatsApp for appointment ${appointmentId}`,
-          error,
-        );
-      }
+        ),
+      ),
+    );
+    const failures = results.filter((r) => r.status === 'rejected');
+    if (failures.length > 0) {
+      this.logger.error(
+        `Doctor delay notification: ${failures.length} of ${results.length} appointment(s) failed`,
+        failures.map((f) => f.reason).join('\n'),
+      );
     }
   }
 

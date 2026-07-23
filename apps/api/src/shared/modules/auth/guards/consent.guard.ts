@@ -68,18 +68,19 @@ export class ConsentGuard implements CanActivate {
 
     const now = this.clock.now();
 
+    // One query for all required consent types, instead of one per type.
+    const activeConsents = await this.prisma.consent.findMany({
+      where: {
+        patientId,
+        consentType: { in: requiredTypes },
+        status: 'ACTIVE',
+        OR: [{ validUntil: null }, { validUntil: { gt: now } }],
+      },
+      select: { consentType: true },
+    });
+    const grantedTypes = new Set(activeConsents.map((c) => c.consentType));
     for (const consentType of requiredTypes) {
-      const consent = await this.prisma.consent.findFirst({
-        where: {
-          patientId,
-          consentType,
-          status: 'ACTIVE',
-          OR: [{ validUntil: null }, { validUntil: { gt: now } }],
-        },
-        select: { id: true },
-      });
-
-      if (!consent) {
+      if (!grantedTypes.has(consentType)) {
         throw new ForbiddenException(
           `Patient has not provided required consent: ${consentType}`,
         );

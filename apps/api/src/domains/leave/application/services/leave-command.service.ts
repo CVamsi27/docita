@@ -214,8 +214,25 @@ export class LeaveCommandService {
           leave.startDate,
           leave.endDate,
         );
-        for (const timeOff of timeOffs) {
-          await this.availabilityScheduleService.deleteTimeOff(timeOff.id);
+        // Time-off rows are independent deletes; parallelize so a slow row
+        // does not block the rest. allSettled keeps a single failure
+        // from dropping the others.
+        const results = await Promise.allSettled(
+          timeOffs.map((timeOff) =>
+            this.availabilityScheduleService.deleteTimeOff(timeOff.id),
+          ),
+        );
+        const failures = results.filter((r) => r.status === 'rejected');
+        if (failures.length > 0) {
+          this.logger.warn(
+            `Could not remove ${failures.length} of ${results.length} DoctorTimeOff row(s) for cancelled leave`,
+            {
+              leaveId,
+              errors: failures.map((f) =>
+                f.reason instanceof Error ? f.reason.message : String(f.reason),
+              ),
+            },
+          );
         }
       } catch (err) {
         this.logger.warn('Could not remove DoctorTimeOff for cancelled leave', {

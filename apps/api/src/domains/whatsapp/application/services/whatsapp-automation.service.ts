@@ -175,21 +175,35 @@ export class WhatsAppAutomationService {
   }): Promise<void> {
     if (!(await this.repository.isAutomationEnabled(payload.clinicId))) return;
 
-    for (const to of payload.recipients) {
-      await this.sendMessage
-        .execute({
-          clinicId: payload.clinicId,
-          recipientPhone: to,
-          templateName: 'staff_notification',
-          variables: {
-            title: payload.title,
-            message: payload.message,
-            ...payload.variables,
-          },
-        })
-        .catch((err) =>
-          this.logger.error(`Failed to notify staff ${to}: ${err.message}`),
-        );
+    // Each staff recipient is an independent WhatsApp send; parallelize
+    // so a slow recipient does not block the others. allSettled keeps
+    // a single failure from dropping the rest of the broadcast.
+    const results = await Promise.allSettled(
+      payload.recipients.map((to) =>
+        this.sendMessage
+          .execute({
+            clinicId: payload.clinicId,
+            recipientPhone: to,
+            templateName: 'staff_notification',
+            variables: {
+              title: payload.title,
+              message: payload.message,
+              ...payload.variables,
+            },
+          })
+          .catch((err) => {
+            this.logger.error(
+              `Failed to notify staff ${to}: ${err instanceof Error ? err.message : String(err)}`,
+            );
+            throw err;
+          }),
+      ),
+    );
+    const failures = results.filter((r) => r.status === 'rejected');
+    if (failures.length > 0) {
+      this.logger.warn(
+        `Staff notification: ${failures.length} of ${results.length} recipient(s) failed for clinic ${payload.clinicId}`,
+      );
     }
   }
 }

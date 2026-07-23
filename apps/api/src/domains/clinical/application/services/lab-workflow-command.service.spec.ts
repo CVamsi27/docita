@@ -6,7 +6,6 @@ import { LabTestOrderStatus } from '@workspace/db';
 import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 
 describe('LabWorkflowCommandService', () => {
   let service: LabWorkflowCommandService;
@@ -61,7 +60,6 @@ describe('LabWorkflowCommandService', () => {
           provide: SendMessageUseCase,
           useValue: { execute: jest.fn() },
         },
-        { provide: EventEmitter2, useValue: { emit: jest.fn() } },
         {
           provide: CLOCK_PORT,
           useValue: { now: () => new Date('2026-07-01T10:00:00.000Z') },

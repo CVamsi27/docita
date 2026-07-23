@@ -6,10 +6,8 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DATE_FORMATS, formatDate, getPatientFullName } from '@workspace/utils';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import { ApplicationEvents } from '@/shared/common/events/application-events';
 import {
   StorageProvider,
   GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
@@ -44,7 +42,6 @@ export class LabWorkflowCommandService {
     private readonly orderRepository: LabOrderRepository,
     private readonly storageProvider: StorageProvider,
     private readonly sendMessage: SendMessageUseCase,
-    private readonly eventEmitter: EventEmitter2,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
@@ -186,14 +183,6 @@ export class LabWorkflowCommandService {
     }
 
     await this.workflowRepository.markReleased(id, clinicId, now);
-
-    // allow-direct-emit: fire-and-forget notification after release completes;
-    // the result+payment gates are already checked above.
-    this.eventEmitter.emit(ApplicationEvents.LAB_RESULT_RELEASED, {
-      orderId: id,
-      clinicId,
-      patientId: ctx.patient.id,
-    });
   }
 
   async createLab(clinicId: string, data: CreateLabInput): Promise<LabRecord> {

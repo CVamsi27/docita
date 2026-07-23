@@ -56,18 +56,22 @@ export class CacheInvalidationBus {
     event: CacheInvalidationEvent,
   ): Promise<void> {
     try {
-      if (event.key) {
-        await this.cache.del(event.key);
-        this.logger.debug(`Cache invalidated: ${event.key}`);
-      }
-      if (event.tags) {
-        for (const tag of event.tags) {
-          await this.cache.del(tag);
-        }
-      }
+      const targets: string[] = [];
+      if (event.key) targets.push(event.key);
+      if (event.tags) targets.push(...event.tags);
+      if (targets.length === 0) return;
+      // Each cache key delete is independent; parallelize so a slow key
+      // does not block the others.
+      await Promise.all(
+        targets.map((target) =>
+          this.cache.del(target).then(() => {
+            this.logger.debug(`Cache invalidated: ${target}`);
+          }),
+        ),
+      );
     } catch (error) {
       this.logger.error(
-        `Cache invalidation error for ${event.key}: ${error instanceof Error ? error.message : String(error)}`,
+        `Cache invalidation error for ${event.key ?? 'event'}: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
