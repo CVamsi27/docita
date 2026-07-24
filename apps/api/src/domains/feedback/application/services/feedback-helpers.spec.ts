@@ -12,7 +12,9 @@ describe('buildFeedbackWhereClause', () => {
   });
 
   it('filters by category', () => {
-    const result = buildFeedbackWhereClause({ category: FeedbackCategory.GENERAL });
+    const result = buildFeedbackWhereClause({
+      category: FeedbackCategory.GENERAL,
+    });
     expect(result.category).toBe(FeedbackCategory.GENERAL);
   });
 
@@ -39,13 +41,17 @@ describe('buildFeedbackWhereClause', () => {
   it('filters by startDate only', () => {
     const result = buildFeedbackWhereClause({ startDate: '2026-01-01' });
     expect(result.createdAt).toBeDefined();
-    expect((result.createdAt as Record<string, unknown>).gte).toBeInstanceOf(Date);
+    expect((result.createdAt as Record<string, unknown>).gte).toBeInstanceOf(
+      Date,
+    );
   });
 
   it('filters by endDate only', () => {
     const result = buildFeedbackWhereClause({ endDate: '2026-12-31' });
     expect(result.createdAt).toBeDefined();
-    expect((result.createdAt as Record<string, unknown>).lte).toBeInstanceOf(Date);
+    expect((result.createdAt as Record<string, unknown>).lte).toBeInstanceOf(
+      Date,
+    );
   });
 
   it('filters by both startDate and endDate', () => {

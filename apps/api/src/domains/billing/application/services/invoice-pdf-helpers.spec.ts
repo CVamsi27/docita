@@ -185,17 +185,26 @@ describe('buildPdfItems', () => {
 describe('buildProcedureCptMap', () => {
   it('maps description to cptCode', () => {
     const procedures = [
-      { description: 'X-Ray', cptCode: { code: '71046', description: 'Chest X-Ray' } },
-      { description: 'ECG', cptCode: { code: '93000', description: 'Electrocardiogram' } },
+      {
+        description: 'X-Ray',
+        cptCode: { code: '71046', description: 'Chest X-Ray' },
+      },
+      {
+        description: 'ECG',
+        cptCode: { code: '93000', description: 'Electrocardiogram' },
+      },
     ];
     const result = buildProcedureCptMap(procedures);
-    expect(result).toEqual({ 'X-Ray': '71046', 'ECG': '93000' });
+    expect(result).toEqual({ 'X-Ray': '71046', ECG: '93000' });
   });
 
   it('skips procedures with null cptCode', () => {
     const procedures = [
       { description: 'Consultation', cptCode: null },
-      { description: 'Lab Work', cptCode: { code: '80053', description: 'Lab' } },
+      {
+        description: 'Lab Work',
+        cptCode: { code: '80053', description: 'Lab' },
+      },
     ];
     const result = buildProcedureCptMap(procedures);
     expect(result).toEqual({ 'Lab Work': '80053' });
@@ -233,7 +242,11 @@ describe('buildPdfClinicInfo', () => {
       currency: 'INR',
       branding: null,
     };
-    const taxSnapshot = { countryCode: 'IN', regime: 'IN_GST' as const, registrationId: '27AABCU9603R1ZM' };
+    const taxSnapshot = {
+      countryCode: 'IN',
+      regime: 'IN_GST' as const,
+      registrationId: '27AABCU9603R1ZM',
+    };
     const result = buildPdfClinicInfo(clinic, taxSnapshot);
     expect(result.name).toBe('Sunrise Clinic');
     expect(result.address).toBe('123 Main St');
@@ -333,7 +346,9 @@ describe('buildPdfPatientInfo', () => {
       email: 'john@example.com',
       address: '456 Oak Ave',
     };
-    const result = buildPdfPatientInfo(patient as NonNullable<InvoiceDetail['patient']>);
+    const result = buildPdfPatientInfo(
+      patient as NonNullable<InvoiceDetail['patient']>,
+    );
     expect(result.name).toBe('John Doe');
     expect(result.phoneNumber).toBe('1234567890');
     expect(result.email).toBe('john@example.com');
@@ -350,7 +365,9 @@ describe('buildPdfPatientInfo', () => {
       email: null,
       address: null,
     };
-    const result = buildPdfPatientInfo(patient as NonNullable<InvoiceDetail['patient']>);
+    const result = buildPdfPatientInfo(
+      patient as NonNullable<InvoiceDetail['patient']>,
+    );
     expect(result.phoneNumber).toBe('');
     expect(result.email).toBeUndefined();
     expect(result.address).toBeUndefined();

@@ -1,4 +1,9 @@
-import { parseQueueTokenType, calcAvgConsultationMinutes, mapQueueToken, getTodayRange } from './queue-token.helpers';
+import {
+  parseQueueTokenType,
+  calcAvgConsultationMinutes,
+  mapQueueToken,
+  getTodayRange,
+} from './queue-token.helpers';
 import type { QueueTokenWithRelations } from '@/domains/appointments/core/repositories/queue.repository.interface';
 import type { IClock } from '@/shared/common/ports/clock.port';
 import { QueueTokenStatus } from '@workspace/db';
@@ -44,7 +49,10 @@ describe('calcAvgConsultationMinutes', () => {
   it('returns 0 when all entries have missing dates', () => {
     const completed = [
       { consultationStart: null, completedAt: null },
-      { consultationStart: new Date('2026-01-01T10:00:00Z'), completedAt: null },
+      {
+        consultationStart: new Date('2026-01-01T10:00:00Z'),
+        completedAt: null,
+      },
     ];
     expect(calcAvgConsultationMinutes(completed)).toBe(0);
   });

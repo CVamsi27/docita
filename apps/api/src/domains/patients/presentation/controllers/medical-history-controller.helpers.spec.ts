@@ -31,7 +31,11 @@ describe('verifyMedicalHistoryPatientAccess', () => {
 
   it('throws ForbiddenException when PATIENT tries to access another patient', async () => {
     const req = {
-      user: { role: Role.PATIENT, patientId: 'pat-other', clinicId: 'clinic-1' },
+      user: {
+        role: Role.PATIENT,
+        patientId: 'pat-other',
+        clinicId: 'clinic-1',
+      },
     } as any;
     const patientService = createMockPatientService();
     await expect(
@@ -41,7 +45,11 @@ describe('verifyMedicalHistoryPatientAccess', () => {
 
   it('throws ForbiddenException with descriptive message for cross-patient access', async () => {
     const req = {
-      user: { role: Role.PATIENT, patientId: 'pat-other', clinicId: 'clinic-1' },
+      user: {
+        role: Role.PATIENT,
+        patientId: 'pat-other',
+        clinicId: 'clinic-1',
+      },
     } as any;
     const patientService = createMockPatientService();
     await expect(
@@ -65,7 +73,10 @@ describe('verifyMedicalHistoryPatientAccess', () => {
     } as any;
     const patientService = createMockPatientService();
     await verifyMedicalHistoryPatientAccess(patientId, req, patientService);
-    expect(patientService.getPatient).toHaveBeenCalledWith(patientId, 'clinic-1');
+    expect(patientService.getPatient).toHaveBeenCalledWith(
+      patientId,
+      'clinic-1',
+    );
   });
 
   it('throws NotFoundException when no clinicId is present for non-PATIENT', async () => {
@@ -93,7 +104,9 @@ describe('verifyMedicalHistoryPatientAccess', () => {
       user: { role: Role.DOCTOR, patientId: undefined, clinicId: 'clinic-1' },
     } as any;
     const patientService = createMockPatientService();
-    patientService.getPatient.mockRejectedValue(new NotFoundException('Patient not found'));
+    patientService.getPatient.mockRejectedValue(
+      new NotFoundException('Patient not found'),
+    );
     await expect(
       verifyMedicalHistoryPatientAccess(patientId, req, patientService),
     ).rejects.toThrow('Patient not found');

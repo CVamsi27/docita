@@ -63,10 +63,12 @@ describe('mapClinicMemberRoleToPrisma', () => {
 });
 
 describe('isClinicFrontDesk', () => {
-  function createMockPersistence(clinicData: {
-    tier?: string;
-    planMode?: string;
-  } | null): ClinicPersistencePort {
+  function createMockPersistence(
+    clinicData: {
+      tier?: string;
+      planMode?: string;
+    } | null,
+  ): ClinicPersistencePort {
     return {
       clinic: {
         findUnique: jest.fn().mockResolvedValue(clinicData),

@@ -7,7 +7,10 @@ import {
 
 describe('parseAppointmentRequestDate', () => {
   it('returns a valid Date for a valid ISO string', () => {
-    const result = parseAppointmentRequestDate('2026-03-15T10:30:00.000Z', 'preferredDate');
+    const result = parseAppointmentRequestDate(
+      '2026-03-15T10:30:00.000Z',
+      'preferredDate',
+    );
     expect(result).toBeInstanceOf(Date);
     expect(result.toISOString()).toBe('2026-03-15T10:30:00.000Z');
   });
@@ -25,15 +28,15 @@ describe('parseAppointmentRequestDate', () => {
   });
 
   it('throws BadRequestException with the field name in the message', () => {
-    expect(() =>
-      parseAppointmentRequestDate('invalid', 'customField'),
-    ).toThrow('customField must be a valid date');
+    expect(() => parseAppointmentRequestDate('invalid', 'customField')).toThrow(
+      'customField must be a valid date',
+    );
   });
 
   it('throws BadRequestException for an empty string', () => {
-    expect(() =>
-      parseAppointmentRequestDate('', 'preferredDate'),
-    ).toThrow(BadRequestException);
+    expect(() => parseAppointmentRequestDate('', 'preferredDate')).toThrow(
+      BadRequestException,
+    );
   });
 });
 
@@ -57,7 +60,12 @@ describe('mapAppointmentRequest', () => {
       responseMessage: null,
       createdAt: now,
       updatedAt: now,
-      patient: { id: 'pat-1', firstName: 'John', lastName: 'Doe', phoneNumber: '1234567890' },
+      patient: {
+        id: 'pat-1',
+        firstName: 'John',
+        lastName: 'Doe',
+        phoneNumber: '1234567890',
+      },
       preferredDoctor: { id: 'doc-1', name: 'Dr. Smith' },
       reviewedBy: null,
     } as AppointmentRequestWithRelations;

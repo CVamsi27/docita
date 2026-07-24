@@ -43,7 +43,9 @@ async function main() {
           });
 
           if (result) {
-            console.error('TENANT ISOLATION BREACH: findUnique returned patient from Clinic A under Clinic B context');
+            console.error(
+              'TENANT ISOLATION BREACH: findUnique returned patient from Clinic A under Clinic B context',
+            );
             process.exitCode = 1;
           }
         } catch (_err) {
@@ -61,7 +63,9 @@ async function main() {
           });
 
           if (result) {
-            console.error('TENANT ISOLATION BREACH: findFirst returned patient from Clinic A under Clinic B context');
+            console.error(
+              'TENANT ISOLATION BREACH: findFirst returned patient from Clinic A under Clinic B context',
+            );
             process.exitCode = 1;
           }
         } catch (_err) {

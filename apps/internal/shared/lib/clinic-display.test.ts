@@ -1,7 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  getInternalClinicTypeDisplay,
   CLINIC_TYPE_DESCRIPTIONS,
+  getInternalClinicTypeDisplay,
 } from "./clinic-display";
 
 describe("CLINIC_TYPE_DESCRIPTIONS", () => {

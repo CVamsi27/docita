@@ -18,16 +18,16 @@ describe('loadSubscriptionByIdOrThrow', () => {
 
   it('throws NotFoundException when subscription is null', async () => {
     const repo = createMockRepo(null);
-    await expect(
-      loadSubscriptionByIdOrThrow(repo, 'sub-999'),
-    ).rejects.toThrow(NotFoundException);
+    await expect(loadSubscriptionByIdOrThrow(repo, 'sub-999')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('throws NotFoundException when subscription is undefined', async () => {
     const repo = createMockRepo(undefined);
-    await expect(
-      loadSubscriptionByIdOrThrow(repo, 'sub-999'),
-    ).rejects.toThrow(NotFoundException);
+    await expect(loadSubscriptionByIdOrThrow(repo, 'sub-999')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('throws with correct message', async () => {

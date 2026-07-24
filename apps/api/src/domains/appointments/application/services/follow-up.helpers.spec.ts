@@ -33,12 +33,18 @@ describe('parseFollowUpDate', () => {
 describe('parseFollowUpStatuses', () => {
   it('returns default statuses when no status is provided', () => {
     const result = parseFollowUpStatuses(undefined);
-    expect(result).toEqual([FollowUpStatus.PENDING, FollowUpStatus.REMINDER_SENT]);
+    expect(result).toEqual([
+      FollowUpStatus.PENDING,
+      FollowUpStatus.REMINDER_SENT,
+    ]);
   });
 
   it('returns default statuses for empty string', () => {
     const result = parseFollowUpStatuses('');
-    expect(result).toEqual([FollowUpStatus.PENDING, FollowUpStatus.REMINDER_SENT]);
+    expect(result).toEqual([
+      FollowUpStatus.PENDING,
+      FollowUpStatus.REMINDER_SENT,
+    ]);
   });
 
   it('parses a single valid status', () => {
@@ -79,7 +85,8 @@ describe('parseFollowUpStatuses', () => {
   });
 
   it('parses all valid FollowUpStatus values', () => {
-    const allStatuses = 'PENDING,REMINDER_SENT,BOOKED,COMPLETED,CANCELLED,EXPIRED';
+    const allStatuses =
+      'PENDING,REMINDER_SENT,BOOKED,COMPLETED,CANCELLED,EXPIRED';
     const result = parseFollowUpStatuses(allStatuses);
     expect(result).toEqual([
       FollowUpStatus.PENDING,

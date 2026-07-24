@@ -169,9 +169,7 @@ describe('extractClinicGstin', () => {
 
 describe('parseInvoiceItems', () => {
   it('parses valid invoice items', () => {
-    const items = [
-      { description: 'Consultation', quantity: 1, price: 500 },
-    ];
+    const items = [{ description: 'Consultation', quantity: 1, price: 500 }];
     const result = parseInvoiceItems(items);
     expect(result).toHaveLength(1);
     expect(result[0].description).toBe('Consultation');

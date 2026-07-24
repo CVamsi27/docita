@@ -31,7 +31,9 @@ describe('assertMrnAvailable', () => {
   });
 
   it('does nothing when no existing patient has the MRN', async () => {
-    const repo = createMockRepository({ findByMrn: jest.fn().mockResolvedValue(null) });
+    const repo = createMockRepository({
+      findByMrn: jest.fn().mockResolvedValue(null),
+    });
     await expect(
       assertMrnAvailable(repo, 'MRN-001', clinicId),
     ).resolves.toBeUndefined();
@@ -57,7 +59,9 @@ describe('assertMrnAvailable', () => {
   });
 
   it('passes the correct clinicId to findByMrn', async () => {
-    const repo = createMockRepository({ findByMrn: jest.fn().mockResolvedValue(null) });
+    const repo = createMockRepository({
+      findByMrn: jest.fn().mockResolvedValue(null),
+    });
     await assertMrnAvailable(repo, 'MRN-999', 'clinic-42');
     expect(repo.findByMrn).toHaveBeenCalledWith('MRN-999', 'clinic-42');
   });

@@ -11,7 +11,9 @@ describe('buildPdfPatientInfo', () => {
       email: 'john@example.com',
       address: '456 Oak Ave',
     };
-    const result = buildPdfPatientInfo(patient as NonNullable<InvoiceDetail['patient']>);
+    const result = buildPdfPatientInfo(
+      patient as NonNullable<InvoiceDetail['patient']>,
+    );
     expect(result.name).toBe('John Doe');
     expect(result.phoneNumber).toBe('1234567890');
     expect(result.email).toBe('john@example.com');
@@ -28,7 +30,9 @@ describe('buildPdfPatientInfo', () => {
       email: null,
       address: null,
     };
-    const result = buildPdfPatientInfo(patient as NonNullable<InvoiceDetail['patient']>);
+    const result = buildPdfPatientInfo(
+      patient as NonNullable<InvoiceDetail['patient']>,
+    );
     expect(result.phoneNumber).toBe('');
     expect(result.email).toBeUndefined();
     expect(result.address).toBeUndefined();
@@ -43,7 +47,9 @@ describe('buildPdfPatientInfo', () => {
       email: null,
       address: null,
     };
-    const result = buildPdfPatientInfo(patient as NonNullable<InvoiceDetail['patient']>);
+    const result = buildPdfPatientInfo(
+      patient as NonNullable<InvoiceDetail['patient']>,
+    );
     expect(result.name).toBe('Alice Wonderland');
   });
 
@@ -56,7 +62,9 @@ describe('buildPdfPatientInfo', () => {
       email: null,
       address: null,
     };
-    const result = buildPdfPatientInfo(patient as NonNullable<InvoiceDetail['patient']>);
+    const result = buildPdfPatientInfo(
+      patient as NonNullable<InvoiceDetail['patient']>,
+    );
     expect(result.patientId).toBe('PAT-VERY');
   });
 
@@ -69,7 +77,9 @@ describe('buildPdfPatientInfo', () => {
       email: null,
       address: null,
     };
-    const result = buildPdfPatientInfo(patient as NonNullable<InvoiceDetail['patient']>);
+    const result = buildPdfPatientInfo(
+      patient as NonNullable<InvoiceDetail['patient']>,
+    );
     expect(result.name).toBe('Cher');
   });
 });

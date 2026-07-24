@@ -15,7 +15,7 @@ describe('toPaiseAmount', () => {
   });
 
   it('converts amount with one decimal place', () => {
-    expect(toPaiseAmount(10.50)).toBe(1050);
+    expect(toPaiseAmount(10.5)).toBe(1050);
   });
 
   it('throws for amount with more than two decimal places', () => {

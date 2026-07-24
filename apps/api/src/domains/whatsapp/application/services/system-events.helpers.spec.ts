@@ -1,12 +1,17 @@
 import { WhatsappLogStatus } from '@workspace/db';
-import { resolveAppointmentMapsLink, logOutboundPatientTemplate } from './system-events.helpers';
+import {
+  resolveAppointmentMapsLink,
+  logOutboundPatientTemplate,
+} from './system-events.helpers';
 
 describe('resolveAppointmentMapsLink', () => {
   it('returns custom mapsLink when present and valid', () => {
     const settings = {
       mapsLink: 'https://maps.app.goo.gl/abc123',
     };
-    expect(resolveAppointmentMapsLink(settings)).toBe('https://maps.app.goo.gl/abc123');
+    expect(resolveAppointmentMapsLink(settings)).toBe(
+      'https://maps.app.goo.gl/abc123',
+    );
   });
 
   it('returns Google Maps URL from mapsLocation when mapsLink is absent', () => {
@@ -22,7 +27,9 @@ describe('resolveAppointmentMapsLink', () => {
       mapsLink: 'https://custom.link/clinic',
       mapsLocation: { lat: 28.6139, lng: 77.209 },
     };
-    expect(resolveAppointmentMapsLink(settings)).toBe('https://custom.link/clinic');
+    expect(resolveAppointmentMapsLink(settings)).toBe(
+      'https://custom.link/clinic',
+    );
   });
 
   it('returns empty string when no maps config is present', () => {
@@ -45,7 +52,9 @@ describe('resolveAppointmentMapsLink', () => {
     const settings = {
       mapsLink: '  https://maps.example.com/clinic  ',
     };
-    expect(resolveAppointmentMapsLink(settings)).toBe('https://maps.example.com/clinic');
+    expect(resolveAppointmentMapsLink(settings)).toBe(
+      'https://maps.example.com/clinic',
+    );
   });
 
   it('ignores empty string mapsLink and falls back to mapsLocation', () => {

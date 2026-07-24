@@ -47,7 +47,9 @@ describe('parseEnterpriseBranding', () => {
   });
 
   it('returns parsed branding with lockedTheme', () => {
-    const branding = { lockedTheme: { primaryColor: '#FF0000', mode: 'light' } };
+    const branding = {
+      lockedTheme: { primaryColor: '#FF0000', mode: 'light' },
+    };
     const result = parseEnterpriseBranding(branding);
     expect(result).toBeDefined();
     expect(result?.lockedTheme?.primaryColor).toBe('#FF0000');
@@ -55,7 +57,9 @@ describe('parseEnterpriseBranding', () => {
   });
 
   it('returns undefined for invalid nested lockedTheme mode', () => {
-    const result = parseEnterpriseBranding({ lockedTheme: { mode: 'invalid' } });
+    const result = parseEnterpriseBranding({
+      lockedTheme: { mode: 'invalid' },
+    });
     expect(result).toBeUndefined();
   });
 
@@ -90,11 +94,18 @@ describe('readString', () => {
 
 describe('readStringArray', () => {
   it('returns the array when all items are strings', () => {
-    expect(readStringArray({ tags: ['a', 'b', 'c'] }, 'tags')).toEqual(['a', 'b', 'c']);
+    expect(readStringArray({ tags: ['a', 'b', 'c'] }, 'tags')).toEqual([
+      'a',
+      'b',
+      'c',
+    ]);
   });
 
   it('filters out non-string items', () => {
-    expect(readStringArray({ tags: ['a', 42, 'b'] }, 'tags')).toEqual(['a', 'b']);
+    expect(readStringArray({ tags: ['a', 42, 'b'] }, 'tags')).toEqual([
+      'a',
+      'b',
+    ]);
   });
 
   it('returns empty array when no items are strings', () => {
@@ -174,7 +185,9 @@ describe('generateReferralCode', () => {
   });
 
   it('generates different codes on successive calls (randomness)', () => {
-    const codes = new Set(Array.from({ length: 20 }, () => generateReferralCode('Clinic')));
+    const codes = new Set(
+      Array.from({ length: 20 }, () => generateReferralCode('Clinic')),
+    );
     expect(codes.size).toBeGreaterThan(1);
   });
 
@@ -228,13 +241,17 @@ describe('attachResolvedClinicSignatureUrl', () => {
       }),
     };
     const result = await attachResolvedClinicSignatureUrl(clinic, resolver);
-    expect(result.slaSignatureUrl).toBe('https://cdn.example.com/direct-sig.png');
+    expect(result.slaSignatureUrl).toBe(
+      'https://cdn.example.com/direct-sig.png',
+    );
   });
 
   it('returns undefined urls when no signature is configured', async () => {
     const clinic = { slaSignatureUrl: null, settings: {} };
     const resolver = {
-      resolveWithStoredUrl: jest.fn().mockResolvedValue({ url: null, storedUrl: null }),
+      resolveWithStoredUrl: jest
+        .fn()
+        .mockResolvedValue({ url: null, storedUrl: null }),
     };
     const result = await attachResolvedClinicSignatureUrl(clinic, resolver);
     expect(result.slaSignatureUrl).toBeUndefined();
@@ -249,7 +266,9 @@ describe('attachResolvedClinicSignatureUrl', () => {
       settings: {},
     };
     const resolver = {
-      resolveWithStoredUrl: jest.fn().mockResolvedValue({ url: null, storedUrl: null }),
+      resolveWithStoredUrl: jest
+        .fn()
+        .mockResolvedValue({ url: null, storedUrl: null }),
     };
     const result = await attachResolvedClinicSignatureUrl(clinic, resolver);
     expect(result.id).toBe('clinic-1');

@@ -48,6 +48,9 @@ describe('verifyMedicationDosePatientAccess', () => {
       verifyPatientAccess: jest.fn().mockResolvedValue(true),
     });
     await verifyMedicationDosePatientAccess(repo, 'clinic-42', 'pat-99');
-    expect(repo.verifyPatientAccess).toHaveBeenCalledWith('pat-99', 'clinic-42');
+    expect(repo.verifyPatientAccess).toHaveBeenCalledWith(
+      'pat-99',
+      'clinic-42',
+    );
   });
 });
