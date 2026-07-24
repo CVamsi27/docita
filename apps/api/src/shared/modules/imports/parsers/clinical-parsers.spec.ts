@@ -13,23 +13,44 @@ import type { ParsedMedicalFields } from "@workspace/types";
 
 function createEmptyFields(): ParsedMedicalFields {
   return {
-    clinicName: "",
-    doctorName: "",
-    patientName: "",
-    gender: "",
-    dateOfBirth: "",
-    visitDate: "",
-    admissionDate: "",
-    invoiceDate: "",
+    firstName: "",
+    lastName: "",
     mrn: "",
+    preferredName: "",
+    pronouns: "",
+    address: "",
+    preferredLanguage: "",
+    age: "",
+    gender: "",
     phoneNumber: "",
     email: "",
+    bloodType: "",
+    emergencyContact: null,
+    dateOfBirth: "",
+    visitDate: "",
+    invoiceDate: "",
+    admissionDate: "",
+    clinicName: "",
+    doctorName: "",
     diagnosis: "",
+    symptoms: [],
+    allergies: [],
+    medicalHistory: [],
     medications: [],
-    vitals: { bp: "", temp: "", pulse: "", spO2: "" },
-    labValues: { hemoglobin: "", glucose: "", creatinine: "" },
-    emergencyContact: undefined,
-    invoice: { total: 0, tax: 0, discount: 0, subtotal: 0, items: [] },
+    vitals: {
+      bp: "",
+      temp: "",
+      pulse: "",
+      respiratoryRate: "",
+      spO2: "",
+      glucose: "",
+    },
+    labValues: {
+      hemoglobin: "",
+      glucose: "",
+      creatinine: "",
+    },
+    invoice: { total: null, tax: null, discount: null, subtotal: null, items: [] },
   };
 }
 
@@ -87,7 +108,6 @@ describe("extractMedications", () => {
       fields.medications.push({ name: `Med${i}`, dosage: "10mg", frequency: "", route: "", duration: "" });
     }
     extractMedications("New Drug 100mg", "new drug 100mg", fields);
-    // Guard fires at >= 10, so no new medication is added
     expect(fields.medications).toHaveLength(12);
   });
 });
@@ -237,7 +257,7 @@ describe("extractGlucose", () => {
 describe("extractCreatinine", () => {
   it("extracts creatinine value", () => {
     const fields = createEmptyFields();
-    extractCreatinine("Creatinine: 1.2mg/dl", "creatinine: 1.2mg/dl", fields);
+    extractCreatinine("Creatinine: 1.2 mg/dl", "creatinine: 1.2 mg/dl", fields);
     expect(fields.labValues.creatinine).toBe("1.2");
   });
 

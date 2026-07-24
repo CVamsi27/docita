@@ -3,23 +3,44 @@ import type { ParsedMedicalFields } from "@workspace/types";
 
 function createEmptyFields(): ParsedMedicalFields {
   return {
-    clinicName: "",
-    doctorName: "",
-    patientName: "",
-    gender: "",
-    dateOfBirth: "",
-    visitDate: "",
-    admissionDate: "",
-    invoiceDate: "",
+    firstName: "",
+    lastName: "",
     mrn: "",
+    preferredName: "",
+    pronouns: "",
+    address: "",
+    preferredLanguage: "",
+    age: "",
+    gender: "",
     phoneNumber: "",
     email: "",
+    bloodType: "",
+    emergencyContact: null,
+    dateOfBirth: "",
+    visitDate: "",
+    invoiceDate: "",
+    admissionDate: "",
+    clinicName: "",
+    doctorName: "",
     diagnosis: "",
+    symptoms: [],
+    allergies: [],
+    medicalHistory: [],
     medications: [],
-    vitals: { bp: "", temp: "", pulse: "", spO2: "" },
-    labValues: { hemoglobin: "", glucose: "", creatinine: "" },
-    emergencyContact: undefined,
-    invoice: { total: 0, tax: 0, discount: 0, subtotal: 0, items: [] },
+    vitals: {
+      bp: "",
+      temp: "",
+      pulse: "",
+      respiratoryRate: "",
+      spO2: "",
+      glucose: "",
+    },
+    labValues: {
+      hemoglobin: "",
+      glucose: "",
+      creatinine: "",
+    },
+    invoice: { total: null, tax: null, discount: null, subtotal: null, items: [] },
   };
 }
 
@@ -103,6 +124,6 @@ describe("extractEmergencyContact", () => {
   it("does nothing when no emergency keyword found", () => {
     const fields = createEmptyFields();
     extractEmergencyContact("No match here at all", fields);
-    expect(fields.emergencyContact).toBeUndefined();
+    expect(fields.emergencyContact).toBeNull();
   });
 });

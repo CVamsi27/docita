@@ -9,23 +9,44 @@ import type { ParsedMedicalFields } from "@workspace/types";
 
 function createEmptyFields(): ParsedMedicalFields {
   return {
-    clinicName: "",
-    doctorName: "",
-    patientName: "",
-    gender: "",
-    dateOfBirth: "",
-    visitDate: "",
-    admissionDate: "",
-    invoiceDate: "",
+    firstName: "",
+    lastName: "",
     mrn: "",
+    preferredName: "",
+    pronouns: "",
+    address: "",
+    preferredLanguage: "",
+    age: "",
+    gender: "",
     phoneNumber: "",
     email: "",
+    bloodType: "",
+    emergencyContact: null,
+    dateOfBirth: "",
+    visitDate: "",
+    invoiceDate: "",
+    admissionDate: "",
+    clinicName: "",
+    doctorName: "",
     diagnosis: "",
+    symptoms: [],
+    allergies: [],
+    medicalHistory: [],
     medications: [],
-    vitals: { bp: "", temp: "", pulse: "", spO2: "" },
-    labValues: { hemoglobin: "", glucose: "", creatinine: "" },
-    emergencyContact: undefined,
-    invoice: { total: 0, tax: 0, discount: 0, subtotal: 0, items: [] },
+    vitals: {
+      bp: "",
+      temp: "",
+      pulse: "",
+      respiratoryRate: "",
+      spO2: "",
+      glucose: "",
+    },
+    labValues: {
+      hemoglobin: "",
+      glucose: "",
+      creatinine: "",
+    },
+    invoice: { total: null, tax: null, discount: null, subtotal: null, items: [] },
   };
 }
 
@@ -51,7 +72,7 @@ describe("extractInvoiceTotal", () => {
   it("does nothing when no total found", () => {
     const fields = createEmptyFields();
     extractInvoiceTotal("No total here", fields);
-    expect(fields.invoice.total).toBe(0);
+    expect(fields.invoice.total).toBeNull();
   });
 });
 
@@ -71,7 +92,7 @@ describe("extractInvoiceTax", () => {
   it("does nothing when no tax found", () => {
     const fields = createEmptyFields();
     extractInvoiceTax("No tax here", fields);
-    expect(fields.invoice.tax).toBe(0);
+    expect(fields.invoice.tax).toBeNull();
   });
 });
 
@@ -85,7 +106,7 @@ describe("extractInvoiceDiscount", () => {
   it("does nothing when no discount found", () => {
     const fields = createEmptyFields();
     extractInvoiceDiscount("No discount here", fields);
-    expect(fields.invoice.discount).toBe(0);
+    expect(fields.invoice.discount).toBeNull();
   });
 });
 
@@ -99,7 +120,7 @@ describe("extractInvoiceSubtotal", () => {
   it("does nothing when no subtotal found", () => {
     const fields = createEmptyFields();
     extractInvoiceSubtotal("No subtotal here", fields);
-    expect(fields.invoice.subtotal).toBe(0);
+    expect(fields.invoice.subtotal).toBeNull();
   });
 });
 
