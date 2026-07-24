@@ -15,7 +15,7 @@ overrides:
   ajv: ^8.18.0
   axios: ^1.18.0
   '@eslint/config-array>minimatch': ^9.0.7
-  minimatch@5>brace-expansion: ^5.0.7
+  minimatch@5>brace-expansion: ^2.0.1
   minimatch@8>brace-expansion: ^2.0.1
   minimatch@9>brace-expansion: ^5.0.7
   minimatch@10>brace-expansion: ^5.0.7
@@ -23741,7 +23741,7 @@ snapshots:
 
   minimatch@5.1.9:
     dependencies:
-      brace-expansion: 5.0.7
+      brace-expansion: 2.1.2
 
   minimatch@8.0.7:
     dependencies:
