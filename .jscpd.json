@@ -25,7 +25,8 @@
     "**/package.json",
     "**/tsconfig*.json",
     "**/content-scripts/**",
-    "**/messages/**"
+    "**/messages/**",
+    "**/test-helpers.*"
   ],
   "format": ["typescript", "tsx", "javascript", "jsx", "css", "json"]
 }
