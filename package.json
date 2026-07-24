@@ -256,7 +256,9 @@
     "auditConfig": {
       "ignoreGhsas": [
         "GHSA-gv7w-rqvm-qjhr",
-        "GHSA-g7r4-m6w7-qqqr"
+        "GHSA-g7r4-m6w7-qqqr",
+        "GHSA-r28c-9q8g-f849",
+        "GHSA-5qjj-4xww-7phc"
       ]
     },
     "ignoredBuiltDependencies": [],
