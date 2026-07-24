@@ -1,81 +1,108 @@
-import { describe, expect, it } from '@jest/globals';
-import type { ParsedMedicalFields } from '@workspace/types';
-import {
-  extractEmail,
-  extractEmergencyContact,
-  extractPhoneNumber,
-} from './contact-parsers';
+import { extractPhoneNumber, extractEmail, extractEmergencyContact } from "./contact-parsers";
+import type { ParsedMedicalFields } from "@workspace/types";
 
-function makeFields(): ParsedMedicalFields {
+function createEmptyFields(): ParsedMedicalFields {
   return {
-    firstName: '',
-    lastName: '',
-    phoneNumber: '',
-    email: '',
-    mrn: '',
-    age: '',
-    gender: 'MALE',
-    address: '',
-    preferredName: '',
-    pronouns: '',
-    preferredLanguage: '',
-    emergencyContact: { name: '', phoneNumber: '', relation: '' },
-    clinicName: '',
-    doctorName: '',
-    invoiceDate: '',
-    admissionDate: '',
-    visitDate: '',
-    dateOfBirth: '',
-    invoice: { items: [], total: 0, tax: 0, discount: 0, subtotal: 0 },
-    vitals: { bp: '', temp: '', pulse: '', spO2: '' },
-    labValues: { hemoglobin: '', glucose: '', creatinine: '' },
+    clinicName: "",
+    doctorName: "",
+    patientName: "",
+    gender: "",
+    dateOfBirth: "",
+    visitDate: "",
+    admissionDate: "",
+    invoiceDate: "",
+    mrn: "",
+    phoneNumber: "",
+    email: "",
+    diagnosis: "",
     medications: [],
-    diagnosis: '',
-  } as unknown as ParsedMedicalFields;
+    vitals: { bp: "", temp: "", pulse: "", spO2: "" },
+    labValues: { hemoglobin: "", glucose: "", creatinine: "" },
+    emergencyContact: undefined,
+    invoice: { total: 0, tax: 0, discount: 0, subtotal: 0, items: [] },
+  };
 }
 
-describe('extractPhoneNumber', () => {
-  it('extracts a 10-digit Indian phone number', () => {
-    const f = makeFields();
-    extractPhoneNumber('Phone: 9876543210', f);
-    expect(f.phoneNumber).toBe('9876543210');
+describe("extractPhoneNumber", () => {
+  it("extracts Indian mobile number", () => {
+    const fields = createEmptyFields();
+    extractPhoneNumber("Phone: 9876543210", fields);
+    expect(fields.phoneNumber).toBe("9876543210");
   });
 
-  it('does not overwrite an existing phone number', () => {
-    const f = makeFields();
-    f.phoneNumber = '1111111111';
-    extractPhoneNumber('Phone: 9876543210', f);
-    expect(f.phoneNumber).toBe('1111111111');
+  it("extracts number with +91 prefix", () => {
+    const fields = createEmptyFields();
+    extractPhoneNumber("Call +919876543210", fields);
+    expect(fields.phoneNumber).toBe("9876543210");
+  });
+
+  it("extracts number with 0 prefix", () => {
+    const fields = createEmptyFields();
+    extractPhoneNumber("Tel: 09876543210", fields);
+    expect(fields.phoneNumber).toBe("9876543210");
+  });
+
+  it("does not overwrite existing phone number", () => {
+    const fields = createEmptyFields();
+    fields.phoneNumber = "1234567890";
+    extractPhoneNumber("Phone: 9876543210", fields);
+    expect(fields.phoneNumber).toBe("1234567890");
+  });
+
+  it("does nothing when no phone number found", () => {
+    const fields = createEmptyFields();
+    extractPhoneNumber("No phone here", fields);
+    expect(fields.phoneNumber).toBe("");
   });
 });
 
-describe('extractEmail', () => {
-  it('extracts an email address', () => {
-    const f = makeFields();
-    extractEmail('Email: user@example.com', f);
-    expect(f.email).toBe('user@example.com');
+describe("extractEmail", () => {
+  it("extracts email address", () => {
+    const fields = createEmptyFields();
+    extractEmail("Email: john@example.com", fields);
+    expect(fields.email).toBe("john@example.com");
   });
 
-  it('does not overwrite an existing email', () => {
-    const f = makeFields();
-    f.email = 'primary@example.com';
-    extractEmail('Email: other@example.com', f);
-    expect(f.email).toBe('primary@example.com');
+  it("extracts email with dots and hyphens", () => {
+    const fields = createEmptyFields();
+    extractEmail("Contact: john.doe@hospital.org", fields);
+    expect(fields.email).toBe("john.doe@hospital.org");
+  });
+
+  it("does not overwrite existing email", () => {
+    const fields = createEmptyFields();
+    fields.email = "existing@test.com";
+    extractEmail("Email: new@test.com", fields);
+    expect(fields.email).toBe("existing@test.com");
+  });
+
+  it("does nothing when no email found", () => {
+    const fields = createEmptyFields();
+    extractEmail("No email here", fields);
+    expect(fields.email).toBe("");
   });
 });
 
-describe('extractEmergencyContact', () => {
-  it('extracts name and phone when both present', () => {
-    const f = makeFields();
-    extractEmergencyContact('Emergency Contact: John Doe - 9876543210', f);
-    expect(f.emergencyContact?.name).toBe('John Doe');
-    expect(f.emergencyContact?.phoneNumber).toBe('9876543210');
+describe("extractEmergencyContact", () => {
+  it("extracts emergency contact with name and phone", () => {
+    const fields = createEmptyFields();
+    extractEmergencyContact("Emergency Contact: John Doe 9876543210", fields);
+    expect(fields.emergencyContact).toEqual({
+      name: "John Doe",
+      phoneNumber: "9876543210",
+      relation: "",
+    });
   });
 
-  it('extracts name only when no phone', () => {
-    const f = makeFields();
-    extractEmergencyContact('Emergency: Mary Smith', f);
-    expect(f.emergencyContact?.name).toBe('Mary Smith');
-    expect(f.emergencyContact?.phoneNumber).toBe('');
+  it("extracts emergency contact with name only", () => {
+    const fields = createEmptyFields();
+    extractEmergencyContact("Emergency: Jane Smith", fields);
+    expect(fields.emergencyContact?.name).toBe("Jane Smith");
+  });
+
+  it("does nothing when no emergency keyword found", () => {
+    const fields = createEmptyFields();
+    extractEmergencyContact("No match here at all", fields);
+    expect(fields.emergencyContact).toBeUndefined();
   });
 });
