@@ -1,53 +1,10 @@
-import type { ParsedMedicalFields } from "@workspace/types";
 import {
   extractClinicName,
   extractDoctorName,
   extractDates,
   extractMrn,
 } from "./document-parsers";
-
-function createEmptyFields(): ParsedMedicalFields {
-  return {
-    firstName: "",
-    lastName: "",
-    mrn: "",
-    preferredName: "",
-    pronouns: "",
-    address: "",
-    preferredLanguage: "",
-    age: "",
-    gender: "",
-    phoneNumber: "",
-    email: "",
-    bloodType: "",
-    emergencyContact: null,
-    dateOfBirth: "",
-    visitDate: "",
-    invoiceDate: "",
-    admissionDate: "",
-    clinicName: "",
-    doctorName: "",
-    diagnosis: "",
-    symptoms: [],
-    allergies: [],
-    medicalHistory: [],
-    medications: [],
-    vitals: {
-      bp: "",
-      temp: "",
-      pulse: "",
-      respiratoryRate: "",
-      spO2: "",
-      glucose: "",
-    },
-    labValues: {
-      hemoglobin: "",
-      glucose: "",
-      creatinine: "",
-    },
-    invoice: { total: null, tax: null, discount: null, subtotal: null, items: [] },
-  };
-}
+import { createEmptyFields } from "./test-helpers";
 
 describe("extractClinicName", () => {
   it("extracts hospital name", () => {
